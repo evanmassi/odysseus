@@ -8,6 +8,8 @@
  */
 
 import { UserRepository } from '@domain/repositories/UserRepository';
+import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
+import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { EventBus } from '@application/contracts/EventBus';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -28,7 +30,9 @@ export interface AdminResetPasswordCommand {
 export class AdminResetPasswordCommandHandler {
   constructor(
     private userRepository: UserRepository,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private refreshTokenRepository: RefreshTokenRepository,
+    private userSessionRepository: UserSessionRepository
   ) {}
 
   async execute(command: AdminResetPasswordCommand): Promise<void> {
@@ -51,6 +55,9 @@ export class AdminResetPasswordCommandHandler {
     targetUser.adminResetPassword(command.newPassword, command.requirePasswordChange);
     await this.userRepository.save(targetUser);
 
+    const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(targetUser.id);
+    const revokedSessions = await this.userSessionRepository.revokeAllSessions(targetUser.id);
+
     // Publish event
     this.eventBus.publish(new PasswordResetByAdminEvent(
       targetUser.id,
@@ -65,6 +72,8 @@ export class AdminResetPasswordCommandHandler {
       targetUserId: targetUser.id,
       targetUsername: targetUser.username,
       requirePasswordChange: command.requirePasswordChange,
+      revokedRefreshTokens: revokedTokens,
+      revokedSessions: revokedSessions,
       timestamp: new Date().toISOString()
     });
   }
@@ -138,7 +147,9 @@ export interface ResetPasswordWithTokenCommand {
 export class ResetPasswordWithTokenCommandHandler {
   constructor(
     private userRepository: UserRepository,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private refreshTokenRepository: RefreshTokenRepository,
+    private userSessionRepository: UserSessionRepository
   ) {}
 
   async execute(command: ResetPasswordWithTokenCommand): Promise<void> {
@@ -150,17 +161,18 @@ export class ResetPasswordWithTokenCommandHandler {
     user.resetPasswordWithToken(command.token, command.newPassword);
     await this.userRepository.save(user);
 
+    const revokedTokens = await this.refreshTokenRepository.revokeAllForUser(user.id);
+    const revokedSessions = await this.userSessionRepository.revokeAllSessions(user.id);
+
     // Publish event
     this.eventBus.publish(new PasswordResetCompletedEvent(user.id));
 
     logger.info('Password reset completed with token', {
       userId: user.id,
       username: user.username,
+      revokedRefreshTokens: revokedTokens,
+      revokedSessions: revokedSessions,
       timestamp: new Date().toISOString()
     });
-
-    // TODO: Invalidate all user sessions after password reset for security
-    // Prevents stolen refresh tokens from remaining valid
-    // await sessionService.invalidateAllUserSessions(user.id);
   }
 }

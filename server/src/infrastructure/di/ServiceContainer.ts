@@ -263,7 +263,9 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.adminResetPasswordHandler = new AdminResetPasswordCommandHandler(
         repositories.users,
-        this.getEventBus()
+        this.getEventBus(),
+        repositories.refreshTokens,
+        repositories.userSessions
       );
     }
     return this.adminResetPasswordHandler;
@@ -285,7 +287,9 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.resetPasswordWithTokenHandler = new ResetPasswordWithTokenCommandHandler(
         repositories.users,
-        this.getEventBus()
+        this.getEventBus(),
+        repositories.refreshTokens,
+        repositories.userSessions
       );
     }
     return this.resetPasswordWithTokenHandler;
