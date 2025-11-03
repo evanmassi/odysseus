@@ -1,0 +1,151 @@
+@layer components {
+  /* Auth modal input container - Focus ring on container when input focused */
+  .auth-input-container {
+    @apply relative border rounded-lg transition-all duration-200;
+  }
+
+  .auth-input-container:focus-within {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
+  .auth-input-container input {
+    @apply w-full bg-transparent border-none outline-none;
+  }
+
+  .auth-input-container input:focus {
+    outline: none;
+  }
+
+  .input {
+    @apply flex h-10 w-full rounded-lg border border-odysseus-border bg-odysseus-surface px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-odysseus-muted disabled:cursor-not-allowed disabled:opacity-50;
+    transition:
+      border-color 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .input:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    border-color: transparent;
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
+  .input-compact {
+    @apply flex h-8 w-full rounded-md border border-odysseus-border bg-odysseus-surface px-2 py-1 text-xs file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-odysseus-muted disabled:cursor-not-allowed disabled:opacity-50;
+    transition:
+      border-color 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .input-compact:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    border-color: transparent;
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
+  /* Form field inputs (ValidatedInput component) */
+  .input-form-field {
+    transition:
+      border-color 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .input-form-field:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    border-color: transparent;
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
+  /* Small number inputs (for quantity selectors, etc) */
+  .input-number-sm {
+    @apply border rounded text-xs text-center;
+    transition:
+      border-color 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .input-number-sm:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    border-color: transparent;
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
+  /* Small select dropdowns (for inline selections like role selectors) */
+  .select-sm {
+    @apply border border-gray-300 rounded-md text-xs;
+    transition:
+      border-color 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .select-sm:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    border-color: transparent;
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+}
+
+@layer utilities {
+  /* Form Input Fields */
+
+  .input-field {
+    @apply h-9 px-4 py-1 rounded-lg transition-colors duration-200;
+    @apply bg-odysseus-input text-odysseus-text-primary placeholder-odysseus-text-secondary;
+  }
+
+  .input-field-normal {
+    @apply border border-odysseus-border;
+  }
+
+  .input-field-normal:hover:not(:disabled) {
+    @apply border-action-hover border-opacity-50;
+  }
+
+  .input-field-normal:focus {
+    @apply border-action-hover ring ring-action-hover ring-opacity-20 outline-none;
+  }
+
+  .input-field:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .input-field-error {
+    @apply border-2 border-validation-error-border bg-validation-error-bg;
+  }
+
+  .input-field-error:focus,
+  .input-field-error:focus-within {
+    @apply border-validation-error-ring outline-none;
+    animation: pulseErrorRing 1.5s infinite;
+    transition: border-color 0.3s;
+  }
+}

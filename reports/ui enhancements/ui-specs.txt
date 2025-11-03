@@ -1,0 +1,64 @@
+we have an app we're building here: C:\Users\evan\Desktop\Odysseus\odysseus-app\
+there are a lot of key functions that are not up to industry standards or need to be fixed entirely
+I only want you to investigate the codebase right now before we do anything. we need to get a handle what is available to us to make this work WITHOUT adding any technical debt and maintaining industry standards for optimal UI interface:
+1. Creating/adding and editing tubes:
+- Nothing works to actually bring up the create a tube or edit tube modal
+- This function needs to work any way the user will want to interact: press enter, use the dashboard button, select from the context menu or double click on a tube
+	- pressing enter should allow for confirmation of it as well once in the modal
+- this should work with either single tubes or batch selecting tubes
+- it's very important that any way of accessing the modal works exactly the same without conflicts and without unnecessary technical debt or patching
+2. The add tube/edit tube modal needs to be as compact as possible while still being readable
+- all of the fields should fit cleanly without the user needing to scroll around the modal to make edits and would fit like this:
+	Row 1: Cell Type: string input				Internal ID: string input			Source ID: string input
+	Row 2: Concentration: str/numb, conc. unit: drop down	Media Type: string	Supplements: string	Selection: string
+	Row 3: Culture Condition: string input			Lot #: string input	Date: MM/DD/YYYY	Researcher: drop down selection
+	Row 4: NOTES
+- Row 1 is grouped as the "Donor Information"
+- Rows 2 and 3 are all part of the same "Sample Information" section
+- Row 4 will be it's own "Notes" section and just have a large box for the user to input any extraneous information.
+- the concentration will support any type of flexibility for the user to input but be normalized to display scientific notation. this has been addressed in the codebase already but the modal needs to support it. the concentration units will be either c/v or c/mL, no parantheses explaining it is necessary.
+- Example texts in each box will be addressed, but only the conc unit and researcher fields will be drop downs.
+- the researcher field will be handled by the users to add depending on the personnel.
+- all of the fields should be evenly distributed and look clean and clear and well labeled.
+- will include save changes, cancel and delete buttons (for when editing tubes).
+- when the modal opens, the user should be immediately able to type into the cell type field without clicking anything with the mouse first. they should be able to easily navigated between fields with tab and shift+tab and the keyboard.
+- when editing multiple tubes with conflicting information it should already fill in the identical information, ANY information the user edits in to the conflicting fields boxes should then update all those tubes to contain that info. e.g. 4 tubes, 3 say donor 1, 1 says donor 4, the user edits them all to say 14, now they all say donor 14. similar for any of the fields that might need editing.
+- the color system for easy identification should be applied to any tubes and be consistent everytime the user opens the app. the main color (determined by a number of factors), a corner indicator for lot number and different corner indicator for the culture condition.
+3. Grid functions:
+- I should be able to drag and select any number of tubes to edit and batch edit as I please. I should be able to access batching editing the same way as above with any utility I choose (keyboard enter, double click, dashboard button or right clicking and selecting the context menu)
+- currently when I click it's constantly adding more to it so the drag and select is a little broken. I should be able to select a bunch while holding down the mouse and selecting and then I should be able to quickly select to a single tube (which should deselect my selection). this should be intuitive and give the user a smooth interface experience.
+- the highlighted tubes should all be in sync when they are highlighted no matter how many are selected or when they become selected.
+- control + select should work seamlessly.
+- shift + select should work intuitively for selecting what is needed.
+- full keyboard navigation should work effortlessly for using the arrow keys or enter
+- pressing the delete button should allow for the user to delete one or multiple tubes. when the modal is brought up, the user should be able to confirm with the enter key or pressing the button.
+4. copy, cut, and paste
+- should work in any possible way (with the keyboard, right clicking to the context menu or using the dashboard buttons).
+- it should be intuitive and the user should be able to cut, copy and paste single or multiple tubes anywhere within the same box or between different boxes and racks and tanks.
+- cut needs to make sense where once it copies it removes the other tubes.
+- previews of what's been copy/cut by graying out the tubes will be useful for the user and intuitive.
+- I should be able to copy one or two tubes and paste them across more than one location. e.g. I copy 1 or 2 or 3 tubes to 15 new spots and it works seamlessly. conflicts should be dealt with.
+- cutting and copying should preserve their relative positioning. meaning if I cut 4 tubes in a square it should paste in those same square positions. conflicts and edge cases should be factored in.
+- Cutting and copying OVER existing tubes should be dealt with clean architecturally sound, industry standard conflict resolution implementations.
+- the delete modal should have a red delete button and the overwrite modal will look just like the delete modal except be a gold/yellow color and say overwrite instead of delete.
+5. Tank, rack, box navigation
+- a tank, rack and box navigating tree will be on the right that allows the user to easily navigate between boxes. it will clearly show what the user is currently selected and be operable with either the mouse or keyboard.
+- the default load-in will always be the top tank, the first rack and the first box of that rack. this should be agnostic of the naming conventions assigned by the user.
+- the user should have full customizability for naming the tank, rack, box, but the backend should have a clear system that will ensure data persists and that there are no errors, however this would be dealt.
+- the user should have customizability for the box sizes from anywhere to 5x5 to 10x10 (these are standard laboratory box sizes).
+- the grid should easily fit those without changing the container... each grid size should fit into the same container size so the user always see the same overall grid size (e.g. 10x10 and 6x6 fit in the same container but the 10x10 would obviously have smaller square to make it fit compared to the 6x6).
+- the default load-in of the tree should have the top tank, the first rack and any associated boxes already uncollapsed. everything else should stay collapsed.
+- the admin should have the ability to configure the tank, rack and box info to any spec they want in the equipment/lab config menu (this needs to be investigated).
+6. Tube Information Panel on the right side
+- should clearly display the position information with the Display tank name, the display rack name and the display box name depending on what the user input. this should be in that blue box at the top that's already present. currently that information is being displaying in a separate section (green) below it.
+- Donor information should follow the current pattern with that distinguishing line on the left followed by the info (the current sytling of the tube info panel is pretty good already).
+- the sample info should be simliarly grouped below.
+- everything needs to be clear and readable and the user should not have to scroll around to see all the info.
+- any conflicting information from multiple selected tubes should be mentioned, but all identical information should be displayed clearly.
+7. Dashboard
+- aesthetically looks good right now
+- dashboard utility buttons (like add tubes, clear, cut copy paste etc etc etc) should appear intuitively. like editing multiple tubes should show the edit tubes button and tell you how many tubes you'll edit or delete or cut or copy or paste). 
+- search functionality should work seamlessly and allow the user to search any combination of what they're looking for and all the relevant results should appear. the results should be grouped intelligently, so if I search for LP#4 t cells it should show me all the identical tubes. if they are in different boxes or racks or tanks they should appear as different results (but everything together in a box should be grouped into a single result).
+- similarly searching t cells LP#4 evan should show me the exact results i'm looking for that would meet those relevant informations.
+- the hamburger menu on the left is well placed. the xcell and odysseus logo need to be slightly modified but that can be done later as it's merely cosmetic.
+8. all data should persist between any sessions and this should not be difficult for the user. they should see their changes reflected on the screen immediately and then feel confident their data is saved when they close the app and reopen it.

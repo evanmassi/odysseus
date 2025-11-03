@@ -1,0 +1,72 @@
+/**
+ * Application bootstrap types
+ */
+
+export interface AppBootstrapState {
+  isLoading: boolean;
+  currentStep: BootstrapStep;
+  error: string | null;
+  steps: BootstrapStepInfo[];
+  flags: {
+    firstTimeSetupRequired: boolean;
+  };
+}
+
+export type BootstrapStep = 
+  | 'initialization'
+  | 'auth-check'
+  | 'socket-connection'
+  | 'data-loading'
+  | 'complete'
+  | 'error';
+
+export interface BootstrapStepInfo {
+  step: BootstrapStep;
+  label: string;
+  completed: boolean;
+  error?: string;
+}
+
+export interface UseAppBootstrapReturn {
+  isLoading: boolean;
+  currentStep: BootstrapStep;
+  error: string | null;
+  steps: BootstrapStepInfo[];
+  retry: () => void;
+}
+
+// Enhanced bootstrap error interface
+export interface BootstrapError {
+  message: string;
+  step: BootstrapStep;
+  code: string;
+  retryable: boolean;
+  details?: Record<string, any>;
+}
+
+// Bootstrap initialization result for detailed error handling
+export interface BootstrapInitializationResult {
+  completedSteps: BootstrapStep[];
+  errors: BootstrapError[];
+  isComplete: boolean;
+  timestamp: Date;
+}
+
+// Modern interface used by the new hook
+export interface UseAppBootstrapResult {
+  isReady: boolean;
+  isLoading: boolean;
+  isError: boolean;
+  error: string | BootstrapError | null;
+  currentStep: BootstrapStep;
+  context: string;
+  state: 'initializing' | 'loading' | 'error' | 'retrying' | 'complete';
+  progress: number;
+  canRetry: boolean;
+  completedSteps: BootstrapStep[];
+  initializationResult: BootstrapInitializationResult | null;
+  retry: () => void;
+  flags: {
+    firstTimeSetupRequired: boolean;
+  };
+}

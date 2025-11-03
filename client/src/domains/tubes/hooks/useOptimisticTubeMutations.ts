@@ -1,0 +1,361 @@
+/**
+ * Optimistic Tube Mutations
+ * Phase 3 Step 3: Advanced optimistic updates with rollback and conflict resolution
+ * 
+ * Enhanced tube mutations that provide instant user feedback with proper
+ * rollback, conflict resolution, and offline support.
+ */
+
+import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '../../../infrastructure/socket/queryBridge';
+import { TubeService } from '../services/TubeService';
+import { 
+  initializeOptimisticUpdates,
+  OptimisticPatterns,
+  ConflictResolution
+} from '@infra/optimistic/optimisticUpdates';
+import {
+  type TubeData,
+  type CreateTubeRequest,
+  type UpdateTubeRequest,
+  UNKNOWN_RESEARCHER
+} from '@odysseus/shared-schemas';
+
+/**
+ * Enhanced create tube mutation with optimistic updates
+ */
+export function useOptimisticCreateTubeMutation() {
+  const queryClient = useQueryClient();
+  const optimisticService = initializeOptimisticUpdates(queryClient);
+
+  return optimisticService.createOptimisticMutation<
+    TubeData,
+    Error,
+    CreateTubeRequest
+  >({
+    mutationFn: async (tubeData: CreateTubeRequest) => {
+      console.log('🔄 [OptimisticTube] Creating tube:', tubeData);
+      return await TubeService.createTube(tubeData);
+    },
+
+    optimisticUpdate: {
+      queryKeys: [
+        queryKeys.tubes.lists() as unknown as string[]
+        // Location-specific invalidation handled in updateFn
+      ],
+      updateFn: (variables: CreateTubeRequest, oldData: TubeData[] | undefined) => {
+        const optimisticTube: TubeData = {
+          ...variables,
+          researcherId: variables.researcherId || UNKNOWN_RESEARCHER,
+          id: `temp-${Date.now()}`,
+          timestamps: {
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+        };
+        
+        if (!oldData) return [optimisticTube];
+        
+        return [...oldData, optimisticTube];
+      },
+      generateTempId: () => `temp-tube-${Date.now()}-${Math.random()}`,
+      conflictResolution: ConflictResolution.SERVER_WINS
+    },
+
+    feedback: {
+      loading: 'Creating tube...',
+      success: 'Tube created successfully!',
+      error: 'Failed to create tube. Please try again.',
+      rollback: 'Tube creation failed. Changes have been reverted.'
+    },
+
+    onSuccess: (data, variables, context) => {
+      console.log('[OptimisticTube] Tube created successfully:', data.id);
+      
+      // Invalidate related queries to ensure consistency
+      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+    },
+
+    onError: (error, variables, context) => {
+      console.error('❌ [OptimisticTube] Failed to create tube:', error);
+    }
+  });
+}
+
+/**
+ * Enhanced update tube mutation with optimistic updates
+ */
+export function useOptimisticUpdateTubeMutation() {
+  const queryClient = useQueryClient();
+  const optimisticService = initializeOptimisticUpdates(queryClient);
+
+  return optimisticService.createOptimisticMutation<
+    TubeData,
+    Error,
+    { id: string; data: UpdateTubeRequest }
+  >({
+    mutationFn: async ({ id, data }: { id: string; data: UpdateTubeRequest }) => {
+      console.log('🔄 [OptimisticTube] Updating tube:', id, data);
+      return await TubeService.updateTube(id, data);
+    },
+
+    optimisticUpdate: {
+      queryKeys: [
+        queryKeys.tubes.lists() as unknown as string[]
+      ],
+      updateFn: ({ id, data }: { id: string; data: UpdateTubeRequest }, oldData: TubeData[] | undefined) => {
+        if (!oldData) return oldData;
+        
+        return oldData.map(tube => 
+          tube.id === id 
+            ? { 
+                ...tube, 
+                ...data,
+                timestamps: {
+                  ...tube.timestamps,
+                  updatedAt: new Date()
+                }
+              }
+            : tube
+        );
+      },
+      conflictResolution: ConflictResolution.MERGE_SMART
+    },
+
+    feedback: {
+      loading: 'Updating tube...',
+      success: 'Tube updated successfully!',
+      error: 'Failed to update tube. Please try again.',
+      rollback: 'Update failed. Changes have been reverted.'
+    },
+
+    onSuccess: (data, variables, context) => {
+      console.log('[OptimisticTube] Tube updated successfully:', variables.id);
+      
+      // Update individual tube cache
+      queryClient.setQueryData(queryKeys.tubes.detail(variables.id), data);
+      
+      // Invalidate statistics if needed
+      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+    }
+  });
+}
+
+/**
+ * Enhanced delete tube mutation with optimistic updates
+ */
+export function useOptimisticDeleteTubeMutation() {
+  const queryClient = useQueryClient();
+  const optimisticService = initializeOptimisticUpdates(queryClient);
+
+  return optimisticService.createOptimisticMutation<
+    void,
+    Error,
+    string
+  >({
+    mutationFn: async (tubeId: string) => {
+      console.log('🔄 [OptimisticTube] Deleting tube:', tubeId);
+      await TubeService.deleteTube(tubeId);
+    },
+
+    optimisticUpdate: {
+      queryKeys: [
+        queryKeys.tubes.lists() as unknown as string[]
+      ],
+      updateFn: (tubeId: string, oldData: TubeData[] | undefined) => {
+        if (!oldData) return oldData;
+        return oldData.filter(tube => tube.id !== tubeId);
+      },
+      conflictResolution: ConflictResolution.CLIENT_WINS // User intent to delete should be preserved
+    },
+
+    feedback: {
+      loading: 'Deleting tube...',
+      success: 'Tube deleted successfully!',
+      error: 'Failed to delete tube. Please try again.',
+      rollback: 'Delete failed. Tube has been restored.'
+    },
+
+    onSuccess: (data, tubeId, context) => {
+      console.log('[OptimisticTube] Tube deleted successfully:', tubeId);
+      
+      // Remove from individual cache
+      queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
+      
+      // Invalidate location queries and statistics
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.tubes.lists(),
+        predicate: (query) => {
+          const key = query.queryKey as string[];
+          return key.includes('location');
+        }
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+    }
+  });
+}
+
+/**
+ * Enhanced batch tube operations with optimistic updates
+ */
+export function useOptimisticBatchTubesMutation() {
+  const queryClient = useQueryClient();
+  const optimisticService = initializeOptimisticUpdates(queryClient);
+
+  return optimisticService.createOptimisticMutation<
+    { success: boolean; count: number },
+    Error,
+    { operation: 'update' | 'delete'; tubeIds: string[]; data?: Partial<TubeData> }
+  >({
+    mutationFn: async ({ operation, tubeIds, data }) => {
+      console.log(`🔄 [OptimisticTube] Batch ${operation}:`, tubeIds.length, 'tubes');
+      
+      // Client-side batch operation using parallel execution
+      if (operation === 'update' && data) {
+        await Promise.all(
+          tubeIds.map(id => TubeService.updateTube(id, data as UpdateTubeRequest))
+        );
+      } else if (operation === 'delete') {
+        await Promise.all(
+          tubeIds.map(id => TubeService.deleteTube(id))
+        );
+      } else {
+        throw new Error('Invalid batch operation');
+      }
+      
+      return {
+        success: true,
+        count: tubeIds.length
+      };
+    },
+
+    optimisticUpdate: {
+      queryKeys: [
+        queryKeys.tubes.lists() as unknown as string[]
+      ],
+      updateFn: ({ operation, tubeIds, data }, oldData: TubeData[] | undefined) => {
+        if (!oldData) return oldData;
+        
+        if (operation === 'delete') {
+          return oldData.filter(tube => !tubeIds.includes(tube.id));
+        }
+        
+        if (operation === 'update' && data) {
+          return oldData.map(tube => 
+            tubeIds.includes(tube.id)
+              ? { 
+                  ...tube, 
+                  ...data,
+                  timestamps: {
+                    ...tube.timestamps,
+                    updatedAt: new Date()
+                  }
+                }
+              : tube
+          );
+        }
+        
+        return oldData;
+      },
+      conflictResolution: ConflictResolution.MERGE_SMART
+    },
+
+    feedback: {
+      loading: 'Processing batch operation...',
+      success: 'Batch operation completed successfully!', 
+      error: 'Batch operation failed. Please try again.',
+      rollback: 'Batch operation failed. Changes have been reverted.'
+    },
+
+    onSuccess: (data, variables, context) => {
+      console.log('[OptimisticTube] Batch operation completed:', data.count, 'tubes');
+      
+      // Invalidate all location queries and statistics
+      queryClient.invalidateQueries({ 
+        queryKey: queryKeys.tubes.lists(),
+        predicate: (query) => {
+          const key = query.queryKey as string[];
+          return key.includes('location');
+        }
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+    }
+  });
+}
+
+/**
+ * Optimistic tube position move (for drag & drop)
+ */
+export function useOptimisticMoveTubeMutation() {
+  const queryClient = useQueryClient();
+  const optimisticService = initializeOptimisticUpdates(queryClient);
+
+  return optimisticService.createOptimisticMutation<
+    TubeData,
+    Error,
+    { 
+      tubeId: string; 
+      fromLocation: { tankId: string; rackId: string; boxId: string; position: number };
+      toLocation: { tankId: string; rackId: string; boxId: string; position: number };
+    }
+  >({
+    mutationFn: async ({ tubeId, toLocation }) => {
+      console.log('🔄 [OptimisticTube] Moving tube:', tubeId, 'to', toLocation);
+      
+      return await TubeService.updateTube(tubeId, {
+        location: toLocation
+      });
+    },
+
+    optimisticUpdate: {
+      queryKeys: [
+        queryKeys.tubes.lists() as unknown as string[]
+        // Location-specific invalidation handled in updateFn
+      ],
+      updateFn: ({ tubeId, toLocation }, oldData: TubeData[] | undefined) => {
+        if (!oldData) return oldData;
+        
+        return oldData.map(tube => 
+          tube.id === tubeId
+            ? {
+                ...tube,
+                location: toLocation,
+                timestamps: {
+                  ...tube.timestamps,
+                  updatedAt: new Date()
+                }
+              }
+            : tube
+        );
+      },
+      conflictResolution: ConflictResolution.CLIENT_WINS // User drag & drop intent should be preserved
+    },
+
+    feedback: {
+      loading: 'Moving tube...',
+      success: 'Tube moved successfully!',
+      error: 'Failed to move tube. Please try again.',
+      rollback: 'Move failed. Tube position has been restored.'
+    },
+
+    onSuccess: (data, variables, context) => {
+      console.log('[OptimisticTube] Tube moved successfully:', variables.tubeId);
+      
+      // Update individual tube cache
+      queryClient.setQueryData(queryKeys.tubes.detail(variables.tubeId), data);
+    }
+  });
+}
+
+/**
+ * Hook to get optimistic mutations status
+ */
+export function useOptimisticMutationsStatus() {
+  const optimisticService = initializeOptimisticUpdates(useQueryClient());
+  
+  return {
+    pendingCount: optimisticService.getPendingMutationsCount(),
+    pendingMutations: optimisticService.getPendingMutations(),
+    cancelAll: () => optimisticService.cancelAllOptimisticUpdates()
+  };
+}

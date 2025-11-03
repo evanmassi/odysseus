@@ -1,0 +1,468 @@
+/* Enhanced corner indicators for lot # and culture condition - Responsive */
+.lot-indicator {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  border-radius: 1px;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .lot-indicator {
+    border: 2px solid rgba(0, 0, 0, 0.8);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  }
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .lot-indicator {
+    transition: none;
+  }
+}
+
+.lot-indicator.striped::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 100%;
+  background: white;
+  transform: translateX(-50%);
+}
+
+.lot-indicator.striped.yellow::after {
+  background: black;
+}
+
+.lot-indicator.striped.white::after {
+  background: black;
+}
+
+.lot-indicator.dotted::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 3px;
+  height: 3px;
+  background: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.lot-indicator.dotted.yellow::after,
+.lot-indicator.dotted.white::after {
+  background: black;
+}
+
+.lot-indicator.crossed::before,
+.lot-indicator.crossed::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: white;
+}
+
+.lot-indicator.crossed::before {
+  width: 8px;
+  height: 1px;
+  transform: translate(-50%, -50%);
+}
+
+.lot-indicator.crossed::after {
+  width: 1px;
+  height: 8px;
+  transform: translate(-50%, -50%);
+}
+
+.lot-indicator.crossed.white::before,
+.lot-indicator.crossed.white::after {
+  background: black;
+}
+
+/* Enhanced pattern styles */
+.lot-indicator.checkered::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 50%;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.lot-indicator.checkered::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 50%;
+  height: 50%;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.lot-indicator.checkered.yellow::before,
+.lot-indicator.checkered.yellow::after,
+.lot-indicator.checkered.white::before,
+.lot-indicator.checkered.white::after {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+.lot-indicator.circle::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.lot-indicator.circle.yellow::before,
+.lot-indicator.circle.white::before {
+  border-color: black;
+}
+
+.lot-indicator.double-stripe::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 25%;
+  width: 2px;
+  height: 100%;
+  background: white;
+}
+
+.lot-indicator.double-stripe::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 25%;
+  width: 2px;
+  height: 100%;
+  background: white;
+}
+
+.lot-indicator.double-stripe.yellow::before,
+.lot-indicator.double-stripe.yellow::after,
+.lot-indicator.double-stripe.white::before,
+.lot-indicator.double-stripe.white::after {
+  background: black;
+}
+
+.lot-indicator.diamond::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  background: white;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.lot-indicator.diamond.yellow::before,
+.lot-indicator.diamond.white::before {
+  background: black;
+}
+
+/* Simplified upward-pointing triangular condition indicators - Responsive */
+.condition-indicator {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  z-index: 1;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s ease;
+
+  /* Create flatter upward-pointing triangle */
+  clip-path: polygon(50% 20%, 0% 100%, 100% 100%);
+}
+
+/* High contrast mode support for condition indicators */
+@media (prefers-contrast: high) {
+  .condition-indicator {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Reduced motion accessibility for condition indicators */
+@media (prefers-reduced-motion: reduce) {
+  .condition-indicator {
+    transition: none;
+  }
+}
+
+/* Professional tube content container - Perfect centering */
+.tube-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow: hidden;
+  box-sizing: border-box;
+  z-index: 2;
+}
+
+.tube-position {
+  position: relative;
+}
+
+.donor-internal,
+.donor-source {
+  font-weight: 500;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.1;
+  max-width: 100%;
+}
+
+.cell-line {
+  font-weight: 700;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+  line-height: 1.1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  max-width: 100%;
+  text-align: center;
+}
+
+.empty-label {
+  color: #999;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+/* Sophisticated teal selection animations - futuristic glow from border */
+/* ===================================== */
+/* SELECTION ANIMATIONS - Industry Standard */
+/* One-time selection animation for immediate visual feedback */
+/* ===================================== */
+
+@keyframes tube-select-once {
+  0% {
+    transform: scale3d(1, 1, 1);
+  }
+  50% {
+    transform: scale3d(1.08, 1.08, 1);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+  }
+}
+
+/* Respect user's reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .tube-position.selected {
+    animation: none !important;
+  }
+}
+
+/* ===================================== */
+/* BASE BORDER STYLES - Unselected State */
+/* ===================================== */
+
+.tube-position {
+  border: 2px solid var(--border-color, #c4c4c4); /* Dynamic border from CSS variable */
+  /* Performance optimizations - paint removed to allow marching ants overflow */
+  contain: layout style;
+  backface-visibility: hidden;
+}
+
+/* Non-selected tubes: smooth hover transition */
+.tube-position:not(.selected) {
+  transition: transform 200ms ease;
+}
+
+.tube-position:not(.selected):hover {
+  transform: scale3d(1.05, 1.05, 1); /* GPU-accelerated scale */
+}
+
+/* ===================================== */
+/* SELECTION STATES - CSS Only, Zero Technical Debt */
+/* ===================================== */
+
+/* Base selection - solid border with one-time animation */
+.tube-position.selected {
+  border: 4px solid #14b8a6 !important;
+  box-shadow: 0 0 12px rgba(20, 184, 166, 0.6) !important; /* Industry-standard outer glow */
+  animation: tube-select-once 0.3s ease-out; /* One-time animation on selection */
+  position: relative; /* For ::before pseudo-element positioning */
+  /* GPU acceleration hints */
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+}
+
+/* Empty positions: dashed border + gray overlay */
+.tube-position.selected.empty {
+  border: 2px dashed #14b8a6 !important; /* Thinner, more subtle border for empty positions */
+}
+
+.tube-position.selected.empty::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(156, 163, 175, 0.2); /* Solid overlay - GPU optimized */
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1; /* Above background, below content */
+}
+
+/* Occupied positions: solid border + light teal overlay (preserves tube colors) */
+.tube-position.selected.occupied {
+  border-style: solid !important; /* Ensure solid for occupied positions */
+}
+
+.tube-position.selected.occupied::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 184, 166, 0.12); /* Solid overlay - GPU optimized */
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* ===================================== */
+/* FOCUS SUPPRESSION - Clean Aesthetic */
+/* ===================================== */
+
+/* Aggressive focus removal for grid cells */
+.tube-position,
+.tube-position:focus,
+.tube-position:focus-visible,
+.tube-position:focus-within,
+.tube-position *,
+.tube-position *:focus,
+.tube-position *:focus-visible,
+.tube-position *:focus-within {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* Prevent mobile tap highlight */
+.tube-position {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Remove borders from child elements that might show focus */
+.tube-position *:not(.tube-position) {
+  border: none !important;
+}
+
+/* Ensure tube content stays above selection overlays */
+.tube-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Drag preview - lighter/translucent version of selection (NO animation) */
+.tube-position.drag-preview {
+  border: 2px solid rgba(20, 184, 166, 0.5) !important;
+  /* NO animation during preview */
+}
+
+/* Empty positions during drag preview: dashed border + lighter gray overlay */
+.tube-position.drag-preview.empty {
+  border-style: dashed !important;
+}
+
+.tube-position.drag-preview.empty::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(156, 163, 175, 0.1);
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* Occupied positions during drag preview: solid border + lighter teal overlay */
+.tube-position.drag-preview.occupied {
+  border-style: solid !important;
+}
+
+.tube-position.drag-preview.occupied::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 184, 166, 0.06);
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 1;
+}
+
+/* Cut tube visual feedback */
+.tube-position.cut-tube {
+  opacity: 0.65;
+  filter: grayscale(0.4);
+  transition:
+    opacity 0.3s ease,
+    filter 0.3s ease;
+}
+
+/* Copied tube visual feedback - Marching ants border */
+@keyframes marching-ants {
+  0% {
+    background-position:
+      0 0,
+      0 100%,
+      0 0,
+      100% 0;
+  }
+  100% {
+    background-position:
+      20px 0,
+      -20px 100%,
+      0 -20px,
+      100% 20px;
+  }
+}
+
+.tube-position.copied-tube::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  background:
+    linear-gradient(90deg, #000000 50%, #ffffff 50%),
+    linear-gradient(90deg, #000000 50%, #ffffff 50%),
+    linear-gradient(0deg, #000000 50%, #ffffff 50%), linear-gradient(0deg, #000000 50%, #ffffff 50%);
+  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+  background-size:
+    20px 2px,
+    20px 2px,
+    2px 20px,
+    2px 20px;
+  background-position:
+    0 0,
+    0 100%,
+    0 0,
+    100% 0;
+  animation: marching-ants 0.5s linear infinite;
+  pointer-events: none;
+  border-radius: inherit;
+  z-index: 100;
+}

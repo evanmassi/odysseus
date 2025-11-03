@@ -1,0 +1,72 @@
+@layer components {
+  /* Enhanced focus indicator with high contrast (proof of concept) */
+  .focus-enhanced {
+    transition:
+      box-shadow 0.15s ease-out,
+      outline 0.15s ease-out;
+  }
+
+  .focus-enhanced:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
+    outline-offset: var(--focus-ring-offset);
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur) !important;
+  }
+
+  /* Reusable Focus Ring Component Classes */
+
+  /* Default focus ring - Standard blue with glow effect */
+  .focus-ring-default:focus,
+  .focus-ring-default:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
+  /* Light focus ring - White for dark backgrounds */
+  .focus-ring-light:focus,
+  .focus-ring-light:focus-visible {
+    outline: var(--focus-ring-width) solid white;
+    outline-offset: var(--focus-ring-offset);
+    box-shadow:
+      0 0 0 3px rgba(255, 255, 255, 0.3),
+      0 0 0 6px rgba(255, 255, 255, 0.15),
+      0 0 8px 6px rgba(255, 255, 255, 0.1);
+  }
+
+  /* Error focus ring - Red with pulsing animation */
+  .focus-ring-error:focus,
+  .focus-ring-error:focus-visible {
+    outline: none;
+    border-color: var(--focus-ring-error);
+    animation: pulseErrorRing 1.5s infinite;
+    transition: border-color 0.3s;
+  }
+
+  /* Warning focus ring - Yellow with glow */
+  .focus-ring-warning:focus,
+  .focus-ring-warning:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-warning);
+    outline-offset: var(--focus-ring-offset);
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
+  }
+
+  /* Success focus ring - Green with glow */
+  .focus-ring-success:focus,
+  .focus-ring-success:focus-visible {
+    outline: var(--focus-ring-width) solid var(--focus-ring-success);
+    outline-offset: var(--focus-ring-offset);
+    box-shadow: 0 0 0 3px rgba(135, 216, 195, 0.3);
+  }
+
+  /* No focus ring - Use only when custom focus management is implemented */
+  .focus-ring-none:focus,
+  .focus-ring-none:focus-visible {
+    outline: none;
+  }
+}

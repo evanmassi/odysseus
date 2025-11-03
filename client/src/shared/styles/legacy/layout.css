@@ -1,0 +1,234 @@
+/**
+ * Professional Layout System
+ * Fixed proportions for consistent, predictable behavior
+ */
+
+:root {
+  /* Layout Heights */
+  --layout-header-height: 48px;
+
+  /* Design Tokens - Unified spacing and typography */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Typography Scale */
+  --fs-title: 0.875rem;
+  --fs-body: 0.75rem;
+  --fs-small: 0.6875rem;
+
+  /* Component Heights */
+  --title-height: 32px;
+  --button-height: 40px;
+}
+
+/* Main Application Layout */
+.app-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--odysseus-gray);
+}
+
+.app-header {
+  height: var(--layout-header-height);
+  flex-shrink: 0;
+}
+
+.main-layout {
+  height: calc(100vh - var(--layout-header-height) - 12px);
+  display: flex;
+  justify-content: center;
+  gap: var(--space-md);
+  padding: 8px;
+  padding-top: 20px;
+  align-items: flex-start;
+}
+
+/* Selector Panels - Minimal Width */
+.selector-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 80px;
+  max-width: 120px;
+  flex-shrink: 0;
+}
+
+/* Storage Navigator Panel - Wider for Tank/Rack/Box navigation */
+.storage-navigator-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  max-width: 220px;
+  flex-shrink: 0;
+}
+
+.storage-navigator-panel .component-card {
+  overflow: visible;
+}
+
+.storage-navigator-panel .component-body {
+  padding: 10px;
+  overflow-x: visible;
+  overflow-y: visible;
+}
+
+/* Grid Section - Square Constraint */
+.grid-section {
+  display: flex;
+  flex-direction: column;
+  width: min(calc(100vh - var(--layout-header-height) - 80px), 60vw);
+  flex-shrink: 0;
+}
+
+/* Info Panel - Flexible Width */
+.info-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 200px;
+  max-width: 400px;
+}
+
+/* Unified Component Styling */
+.component-card {
+  background: var(--odysseus-surface);
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.component-card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.component-title {
+  height: var(--title-height);
+  padding: 0 var(--space-md);
+  border-bottom: 1px solid var(--odysseus-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 12px 12px 0 0;
+  position: relative;
+}
+
+.component-title h4 {
+  font-size: var(--fs-title);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: var(--odysseus-dark);
+  margin: 0;
+  text-align: center;
+}
+
+/* Increased font sizes for panel titles */
+.storage-navigator-panel .component-title h4,
+.info-panel .component-title h4 {
+  font-size: 1rem;
+}
+
+/* Slightly larger font size for main grid title */
+.grid-section .component-title h4 {
+  font-size: 1.25rem;
+}
+
+.component-title-actions {
+  position: absolute;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+}
+
+.component-body {
+  flex: 1;
+  padding: 8px;
+  overflow-y: auto;
+}
+
+/* Grid-specific styling - Professional dynamic system */
+.grid-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+}
+
+/* Professional TubeGrid (configuration-driven) */
+.tube-grid {
+  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  /* aspect-ratio is set dynamically via inline styles */
+  /* grid-template-columns/rows are set dynamically via inline styles */
+  gap: 4px;
+}
+
+/* GridPosition styling */
+.grid-position {
+  /* Inherits from tube-position styles but adds professional features */
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* Selector styling */
+.selector-button {
+  width: 100%;
+  height: var(--button-height);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  margin-bottom: var(--space-xs);
+}
+
+.selector-button:last-child {
+  margin-bottom: 0;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 1400px) {
+  .grid-section {
+    width: min(calc(100vh - var(--layout-header-height) - 100px), 50vw);
+  }
+
+  --fs-title: 0.8125rem;
+  --fs-body: 0.6875rem;
+}
+
+@media (max-width: 1200px) {
+  .main-layout {
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+  }
+
+  .component-title {
+    height: 28px;
+  }
+
+  .component-body {
+    padding: 6px;
+  }
+
+  .grid-section {
+    width: min(calc(100vh - var(--layout-header-height) - 120px), 40vw);
+  }
+
+  --fs-title: 0.75rem;
+  --fs-body: 0.65rem;
+}

@@ -1,0 +1,24 @@
+/* Minimal keyboard navigation support - functionally invisible */
+/* Selection styling is handled in colorIndicators.css */
+
+/* Quick edit mode styles - minimal visual change */
+.quick-edit-mode {
+  position: relative;
+  z-index: 20;
+}
+
+/* Accessibility support for screen readers */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast mode support only when explicitly requested */
+@media (prefers-contrast: high) {
+  .tube-position.selected {
+    outline: 2px solid CanvasText;
+  }
+}

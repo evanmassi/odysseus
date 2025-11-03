@@ -1,0 +1,427 @@
+/**
+ * Admin Service
+ *
+ * Manages admin operations including user management and role updates.
+ * Uses httpClient for proper authentication and error handling.
+ */
+
+import { httpClient } from '@infra/api/httpClient';
+import type {
+  AdminUser,
+  AdminResearcher,
+  SecurityConfig,
+  UpdateSecurityConfig,
+  SystemMetrics,
+  SyncStatus,
+  AuditLogEntry,
+  AuditLogFilters
+} from '@odysseus/shared-schemas';
+
+export class AdminService {
+  /**
+   * Get all users (admin only)
+   */
+  async getUsers(): Promise<{ success: boolean; users: AdminUser[] }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: { users: AdminUser[] };
+        meta?: { timing: number };
+      }>('/admin/users');
+
+      return {
+        success: response.data.success,
+        users: response.data.data.users
+      };
+    } catch (error) {
+      console.error('Failed to get users:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update user role (admin only)
+   */
+  async updateUserRole(userId: string, newRole: 'admin' | 'user'): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.put<{ success: boolean }>(`/admin/users/${userId}/role`, {
+        role: newRole
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to update user role for ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete user (admin only)
+   */
+  async deleteUser(userId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.delete<{ success: boolean }>(`/admin/users/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to delete user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get pending users awaiting approval (admin only)
+   */
+  async getPendingUsers(): Promise<{ success: boolean; users: AdminUser[] }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: { users: AdminUser[] };
+        meta?: { timing: number };
+      }>('/admin/users/pending');
+
+      return {
+        success: response.data.success,
+        users: response.data.data.users
+      };
+    } catch (error) {
+      console.error('Failed to get pending users:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Approve pending user (admin only)
+   */
+  async approveUser(userId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.post<{ success: boolean }>(`/admin/users/${userId}/approve`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to approve user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Reject pending user (admin only)
+   */
+  async rejectUser(userId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.post<{ success: boolean }>(`/admin/users/${userId}/reject`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to reject user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Link researcher profile to user (admin only)
+   */
+  async linkResearcherToUser(userId: string, researcherId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.post<{ success: boolean }>(
+        `/admin/users/${userId}/link-researcher`,
+        { researcherId }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to link researcher to user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Unlink researcher profile from user (admin only)
+   */
+  async unlinkResearcherFromUser(userId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.post<{ success: boolean }>(`/admin/users/${userId}/unlink-researcher`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to unlink researcher from user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Admin resets user password directly
+   */
+  async resetUserPassword(
+    userId: string,
+    newPassword: string,
+    requirePasswordChange: boolean = true
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        message: string;
+      }>(`/admin/users/${userId}/reset-password`, {
+        newPassword,
+        requirePasswordChange
+      });
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to reset password for user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Admin generates password reset token
+   * Returns URL with embedded token for user to set own password (15-minute expiry)
+   */
+  async generatePasswordResetToken(userId: string): Promise<{
+    success: boolean;
+    resetUrl: string;
+    expiresAt: string;
+    message: string;
+  }> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        resetUrl: string;
+        expiresAt: string;
+        message: string;
+      }>(`/admin/users/${userId}/generate-reset-token`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to generate password reset token for user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all researchers with admin metadata (admin only)
+   */
+  async getResearchers(): Promise<{ success: boolean; researchers: AdminResearcher[] }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          researchers: AdminResearcher[];
+        };
+      }>('/admin/researchers');
+
+      return {
+        success: response.data.success,
+        researchers: response.data.data.researchers
+      };
+    } catch (error) {
+      console.error('Failed to get researchers:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete researcher (admin only)
+   * Safe deletion only - requires zero tubes AND no linked user
+   */
+  async deleteResearcher(researcherId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.delete<{ success: boolean }>(`/admin/researchers/${researcherId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to delete researcher ${researcherId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get unlinked researchers (not associated with any user)
+   */
+  async getUnlinkedResearchers(): Promise<{ success: boolean; researchers: any[] }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: { researchers: any[] };
+      }>('/admin/researchers/unlinked');
+
+      return {
+        success: response.data.success,
+        researchers: response.data.data.researchers
+      };
+    } catch (error) {
+      console.error('Failed to get unlinked researchers:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create researcher and link to user in one operation
+   */
+  async createAndLinkResearcher(
+    userId: string,
+    researcherData: { firstName: string; lastName: string; email: string; position?: string; department?: string }
+  ): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.post<{ success: boolean }>(
+        `/admin/users/${userId}/link-researcher`,
+        { newResearcher: researcherData }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Failed to create and link researcher:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create standalone researcher (no user link)
+   */
+  async createResearcher(data: { firstName: string; lastName: string; email: string; position?: string; department?: string }): Promise<{ success: boolean; researcher: any }> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        data: any;
+      }>('/researchers', data);
+
+      return {
+        success: response.data.success,
+        researcher: response.data.data
+      };
+    } catch (error) {
+      console.error('Failed to create researcher:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get admin metrics/statistics
+   */
+  async getMetrics(): Promise<{
+    success: boolean;
+    data: SystemMetrics;
+  }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: SystemMetrics;
+        meta?: { timing: number };
+      }>('/admin/metrics');
+
+      return {
+        success: response.data.success,
+        data: response.data.data
+      };
+    } catch (error) {
+      console.error('Failed to get admin metrics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get security configuration
+   */
+  async getSecurityConfig(): Promise<{
+    success: boolean;
+    config: SecurityConfig;
+  }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          config: SecurityConfig;
+        };
+        meta?: { timing: number };
+      }>('/admin/security-config');
+
+      return {
+        success: response.data.success,
+        config: response.data.data.config
+      };
+    } catch (error) {
+      console.error('Failed to get security config:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update security configuration
+   */
+  async updateSecurityConfig(config: UpdateSecurityConfig): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.put<{
+        success: boolean;
+        data: { config: SecurityConfig };
+        meta?: { timing: number };
+      }>('/admin/security-config', config);
+
+      return {
+        success: response.data.success
+      };
+    } catch (error) {
+      console.error('Failed to update security config:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get synchronization status
+   */
+  async getSyncStatus(): Promise<{
+    success: boolean;
+    sync: SyncStatus;
+  }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          sync: SyncStatus;
+        };
+        meta?: { timing: number };
+      }>('/admin/sync-status');
+
+      return {
+        success: response.data.success,
+        sync: response.data.data.sync
+      };
+    } catch (error) {
+      console.error('Failed to get sync status:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get audit log entries
+   */
+  async getAuditLog(options: AuditLogFilters = {}): Promise<{
+    success: boolean;
+    entries: AuditLogEntry[];
+    pagination: {
+      total: number;
+      limit: number;
+      offset: number;
+      hasMore: boolean;
+    };
+  }> {
+    try {
+      const params = new URLSearchParams();
+      if (options.limit) params.append('limit', options.limit.toString());
+      if (options.offset) params.append('offset', options.offset.toString());
+      if (options.userId) params.append('userId', options.userId);
+      if (options.action) params.append('action', options.action);
+      if (options.dateFrom) params.append('dateFrom', options.dateFrom);
+      if (options.dateTo) params.append('dateTo', options.dateTo);
+
+      const query = params.toString() ? `?${params.toString()}` : '';
+      const response = await httpClient.get<{
+        success: boolean;
+        entries: AuditLogEntry[];
+        pagination: {
+          total: number;
+          limit: number;
+          offset: number;
+          hasMore: boolean;
+        };
+      }>(`/admin/audit${query}`);
+
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get audit log:', error);
+      throw error;
+    }
+  }
+}
+
+// Export singleton instance
+export const adminService = new AdminService();

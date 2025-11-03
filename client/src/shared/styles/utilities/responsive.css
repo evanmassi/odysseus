@@ -1,0 +1,86 @@
+@layer utilities {
+  /* Responsive Layout Enhancements */
+  .responsive-main-content {
+    /* Smooth transitions for layout changes */
+    transition: padding 0.2s ease;
+  }
+
+  .responsive-layout-grid {
+    /* Natural grid sizing without forced minimums */
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  /* Unified component title styling */
+  .component-title {
+    @apply px-4 py-3 border-b border-gray-200 bg-gradient-to-r;
+    height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Legacy component styling removed - replaced by StorageNavigator */
+
+  /* Grid section centering and spacing */
+  .grid-section-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    min-height: 100%;
+    overflow: hidden;
+  }
+
+  /* Info panel responsive behavior */
+  .info-panel-column {
+    display: flex;
+    flex-direction: column;
+    align-self: start;
+  }
+
+  /* Progressive scaling breakpoints */
+  @media (max-width: 1600px) {
+    .responsive-layout-grid {
+      gap: clamp(6px, 1vw, 12px);
+    }
+  }
+
+  @media (max-width: 1366px) {
+    .responsive-layout-grid {
+      gap: clamp(4px, 0.8vw, 10px);
+    }
+  }
+
+  @media (max-width: 1200px) {
+    .responsive-layout-grid {
+      gap: clamp(4px, 0.6vw, 8px);
+    }
+  }
+
+  @media (max-width: 1000px) {
+    .responsive-layout-grid {
+      gap: 6px;
+    }
+
+    /* Very compact layout */
+    .component-title {
+      height: 2.5rem;
+      font-size: 0.75rem;
+    }
+  }
+
+  /* Legacy selector styles removed */
+
+  /* Enhanced visual hierarchy */
+  .responsive-main-content .card {
+    transition: all 0.2s ease;
+  }
+
+  .responsive-main-content .card:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 10px 25px -3px rgba(0, 0, 0, 0.1),
+      0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+}

@@ -1,0 +1,199 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  safelist: [
+    'expanded',
+    'tank-level',
+    'rack-level',
+    'selector-level'
+  ],
+  theme: {
+    extend: {
+      colors: {
+        odysseus: {
+          primary: 'var(--color-odysseus-primary)',
+          secondary: 'var(--color-odysseus-secondary)',
+          accent: 'var(--color-odysseus-accent)',
+          gray: 'var(--color-odysseus-gray)',
+          dark: 'var(--color-odysseus-dark)',
+          surface: 'var(--color-odysseus-surface)',
+          'surface-hover': 'var(--color-odysseus-surface-hover)',
+          border: 'var(--color-odysseus-border)',
+          muted: 'var(--color-odysseus-muted)',
+          'text-primary': 'var(--color-odysseus-text-primary)',
+          'text-secondary': 'var(--color-odysseus-text-secondary)',
+          input: 'var(--color-odysseus-input)'
+        },
+        ice: {
+          50: 'var(--color-ice-50)',
+          100: 'var(--color-ice-100)',
+          200: 'var(--color-ice-200)',
+          300: 'var(--color-ice-300)',
+          400: 'var(--color-ice-400)',
+          500: 'var(--color-ice-500)',
+          600: 'var(--color-ice-600)',
+          700: 'var(--color-ice-700)',
+          800: 'var(--color-ice-800)',
+          900: 'var(--color-ice-900)',
+        },
+        frost: 'var(--color-frost)',
+        action: {
+          DEFAULT: 'var(--color-action-default)',
+          hover: 'var(--color-action-hover)',
+          focus: 'var(--color-action-focus)',
+        },
+        edit: {
+          bg: 'var(--color-edit-bg)',
+          hover: 'var(--color-edit-hover)',
+          text: 'var(--color-edit-text)',
+          btnText: 'var(--color-edit-btnText)',
+        },
+        copy: {
+          bg: 'var(--color-copy-bg)',
+          hover: 'var(--color-copy-hover)',
+          text: 'var(--color-copy-text)',
+          btnText: 'var(--color-copy-btnText)',
+        },
+        cut: {
+          bg: 'var(--color-cut-bg)',
+          hover: 'var(--color-cut-hover)',
+          text: 'var(--color-cut-text)',
+          btnText: 'var(--color-cut-btnText)',
+        },
+        danger: {
+          bg: 'var(--color-danger-bg)',
+          hover: 'var(--color-danger-hover)',
+          text: 'var(--color-danger-text)',
+          btnText: 'var(--color-danger-btnText)',
+          light: 'var(--color-danger-light)',
+          border: 'var(--color-danger-border)',
+        },
+        password: {
+          bg: 'var(--color-password-bg)',
+          hover: 'var(--color-password-hover)',
+        },
+        clear: {
+          bg: 'var(--color-clear-bg)',
+          hover: 'var(--color-clear-hover)',
+          text: 'var(--color-clear-text)',
+        },
+        warning: {
+          bg: 'var(--color-warning-bg)',
+          hover: 'var(--color-warning-hover)',
+          text: 'var(--color-warning-text)',
+          btnText: 'var(--color-warning-btnText)',
+          light: 'var(--color-warning-light)',
+          border: 'var(--color-warning-border)',
+        },
+        success: {
+          bg: 'var(--color-success-bg)',
+          hover: 'var(--color-success-hover)',
+          text: 'var(--color-success-text)',
+          btnText: 'var(--color-success-btnText)',
+          light: 'var(--color-success-light)',
+          border: 'var(--color-success-border)',
+        },
+        info: {
+          bg: 'var(--color-info-bg)',
+          hover: 'var(--color-info-hover)',
+          text: 'var(--color-info-text)',
+          btnText: 'var(--color-info-btnText)',
+          light: 'var(--color-info-light)',
+          border: 'var(--color-info-border)',
+        },
+        validation: {
+          error: {
+            border: 'var(--color-validation-error-border)',
+            bg: 'var(--color-validation-error-bg)',
+            text: 'var(--color-validation-error-text)',
+            label: 'var(--color-validation-error-label)',
+            helper: 'var(--color-validation-error-helper)',
+            ring: 'var(--color-validation-error-ring)',
+            icon: 'var(--color-validation-error-icon)',
+            required: 'var(--color-validation-error-required)',
+          },
+          warning: {
+            border: 'var(--color-validation-warning-border)',
+            bg: 'var(--color-validation-warning-bg)',
+            text: 'var(--color-validation-warning-text)',
+            label: 'var(--color-validation-warning-label)',
+            helper: 'var(--color-validation-warning-helper)',
+            ring: 'var(--color-validation-warning-ring)',
+            icon: 'var(--color-validation-warning-icon)',
+          },
+          success: {
+            border: 'var(--color-validation-success-border)',
+            bg: 'var(--color-validation-success-bg)',
+            text: 'var(--color-validation-success-text)',
+            label: 'var(--color-validation-success-label)',
+            ring: 'var(--color-validation-success-ring)',
+            icon: 'var(--color-validation-success-icon)',
+          },
+          default: {
+            border: 'var(--color-validation-default-border)',
+            bg: 'var(--color-validation-default-bg)',
+            ring: 'var(--color-validation-default-ring)',
+          },
+        },
+        storage: {
+          tank: {
+            bg: 'var(--color-storage-tank-bg)',
+            hover: 'var(--color-storage-tank-hover)',
+            selected: 'var(--color-storage-tank-selected)',
+            border: 'var(--color-storage-tank-border)',
+          },
+          rack: {
+            bg: 'var(--color-storage-rack-bg)',
+            hover: 'var(--color-storage-rack-hover)',
+            selected: 'var(--color-storage-rack-selected)',
+            border: 'var(--color-storage-rack-border)',
+          },
+          box: {
+            bg: 'var(--color-storage-box-bg)',
+            hover: 'var(--color-storage-box-hover)',
+            selected: 'var(--color-storage-box-selected)',
+            border: 'var(--color-storage-box-border)',
+          },
+          'selected-border': 'var(--color-storage-selected-border)',
+          'selected-shadow': 'var(--color-storage-selected-shadow)',
+        },
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif']
+      },
+      keyframes: {
+        'zoom-in-98': {
+          '0%': { opacity: '0', transform: 'scale(0.98)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'zoom-in-95': {
+          '0%': { opacity: '0', transform: 'scale(0.95)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'slide-up-fade': {
+          '0%': { opacity: '0', transform: 'translateY(12px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        slideDown: {
+          from: { height: '0', opacity: '0' },
+          to: { height: 'var(--radix-collapsible-content-height)', opacity: '1' },
+        },
+        slideUp: {
+          from: { height: 'var(--radix-collapsible-content-height)', opacity: '1' },
+          to: { height: '0', opacity: '0' },
+        },
+      },
+      animation: {
+        'zoom-in-98': 'zoom-in-98 160ms cubic-bezier(0.16, 1, 0.3, 1)',
+        'zoom-in-95': 'zoom-in-95 250ms cubic-bezier(0.22, 1, 0.36, 1)',
+        'slide-up-fade': 'slide-up-fade 200ms cubic-bezier(0.16, 1, 0.3, 1)',
+        slideDown: 'slideDown 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+        slideUp: 'slideUp 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+      },
+    },
+  },
+  plugins: [require("tailwindcss-animate")],
+}

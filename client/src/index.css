@@ -1,0 +1,24 @@
+/* Odysseus App - Main Stylesheet Entry Point */
+
+/* Base Layer - Foundation */
+@import './shared/styles/base/tailwind.css';
+@import './shared/styles/base/variables.css';
+
+/* Component Layer - UI Building Blocks */
+@import './shared/styles/components/buttons.css';
+@import './shared/styles/components/inputs.css';
+@import './shared/styles/components/alerts.css';
+@import './shared/styles/components/cards.css';
+@import './shared/styles/components/menus.css';
+
+/* Utilities Layer - Helpers & Effects */
+@import './shared/styles/utilities/focus.css';
+@import './shared/styles/utilities/animations.css';
+@import './shared/styles/utilities/effects.css';
+@import './shared/styles/utilities/responsive.css';
+
+/* Legacy Styles - To be integrated or deprecated */
+@import './shared/styles/legacy/notifications.css';
+@import './shared/styles/legacy/keyboardNavigation.css';
+@import './shared/styles/legacy/colorIndicators.css';
+@import './shared/styles/legacy/layout.css';

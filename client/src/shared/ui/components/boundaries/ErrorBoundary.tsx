@@ -1,0 +1,299 @@
+/**
+ * Error Boundary Component
+ * 
+ * Professional error boundary with retry functionality and proper error reporting
+ * Handles runtime errors in React component tree
+ */
+
+import React, { Component, ReactNode, ErrorInfo } from 'react';
+import { env } from '@shared/config';
+
+// Error boundary state
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+  errorId: string | null;
+}
+
+// Error boundary props
+export interface ErrorBoundaryProps {
+  children: ReactNode;
+  
+  // Error handling
+  fallback?: React.ComponentType<{
+    error: Error;
+    errorInfo: ErrorInfo | null;
+    retry: () => void;
+    errorId: string;
+  }> | ((props: {
+    error: Error;
+    errorInfo: ErrorInfo | null;
+    retry: () => void;
+    errorId: string;
+  }) => ReactNode);
+  
+  // Callbacks
+  onError?: (error: Error, errorInfo: ErrorInfo, errorId: string) => void;
+  onRetry?: () => void;
+  
+  // Configuration
+  isolate?: boolean; // Prevent error propagation
+  level?: 'page' | 'section' | 'component'; // Error boundary level
+  
+  // Debugging
+  name?: string; // For debugging purposes
+}
+
+// Default error fallback component
+interface DefaultErrorFallbackProps {
+  error: Error;
+  errorInfo: ErrorInfo | null;
+  retry: () => void;
+  errorId: string;
+  level?: string;
+  name?: string;
+}
+
+const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retry, errorId, level = 'component', name }) => {
+  const isDevelopment = env.isDev();
+  
+  return (
+    <div 
+      className="flex flex-col items-center justify-center p-8 min-h-[200px] border-2 border-dashed border-error-300 bg-error-50 rounded-lg"
+      role="alert"
+      aria-label={`Error in ${name || level}`}
+    >
+      <div className="text-error-500 mb-4">
+        <svg className="w-16 h-16 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="15" y1="9" x2="9" y2="15" />
+          <line x1="9" y1="9" x2="15" y2="15" />
+        </svg>
+      </div>
+      
+      <h2 className="text-xl font-bold text-error-900 mb-2">
+        Something went wrong
+      </h2>
+      
+      <p className="text-error-700 text-center mb-4 max-w-md">
+        {isDevelopment 
+          ? error.message 
+          : `An error occurred while rendering this ${level}.`
+        }
+      </p>
+      
+      {isDevelopment && (
+        <details className="mb-4 max-w-2xl w-full">
+          <summary className="cursor-pointer text-error-600 font-medium mb-2">
+            Error Details
+          </summary>
+          <div className="bg-error-100 p-4 rounded border text-sm font-mono text-error-800 overflow-auto max-h-40">
+            <div className="mb-2">
+              <strong>Error ID:</strong> {errorId}
+            </div>
+            <div className="mb-2">
+              <strong>Component:</strong> {name || 'Unknown'}
+            </div>
+            <div className="mb-2">
+              <strong>Message:</strong> {error.message}
+            </div>
+            {error.stack && (
+              <div>
+                <strong>Stack:</strong>
+                <pre className="mt-1 whitespace-pre-wrap">{error.stack}</pre>
+              </div>
+            )}
+          </div>
+        </details>
+      )}
+      
+      <div className="flex space-x-3">
+        <button
+          onClick={retry}
+          className="btn px-4 py-2 bg-error-600 text-white rounded-md hover:bg-error-700 transition-colors"
+        >
+          Try Again
+        </button>
+
+        {isDevelopment && (
+          <button
+            onClick={() => {
+              console.group(`🚨 Error Boundary: ${name || 'Unknown'}`);
+              console.error('Error:', error);
+              console.error('Error ID:', errorId);
+              console.groupEnd();
+            }}
+            className="btn px-4 py-2 bg-neutral-600 text-white rounded-md hover:bg-neutral-700 transition-colors"
+          >
+            Log to Console
+          </button>
+        )}
+      </div>
+      
+      {level === 'page' && (
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-3 text-error-600 hover:text-error-800 underline text-sm"
+        >
+          Reload Page
+        </button>
+      )}
+    </div>
+  );
+};
+
+// Generate unique error ID
+const generateErrorId = (): string => {
+  return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
+
+// Main Error Boundary class component
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  private errorId: string = '';
+  
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    
+    this.state = {
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      errorId: null,
+    };
+  }
+  
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+    const errorId = generateErrorId();
+    
+    return {
+      hasError: true,
+      error,
+      errorId,
+    };
+  }
+  
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    const errorId = this.state.errorId || generateErrorId();
+    
+    this.setState({
+      errorInfo,
+      errorId,
+    });
+    
+    // Log error for monitoring
+    if (env.isDev()) {
+      console.group(`🚨 Error Boundary Caught Error: ${this.props.name || 'Unknown'}`);
+      console.error('Error:', error);
+      console.error('Error Info:', errorInfo);
+      console.error('Error ID:', errorId);
+      console.groupEnd();
+    }
+    
+    // Call error callback
+    this.props.onError?.(error, errorInfo, errorId);
+    
+    // In production, you might want to send this to an error reporting service
+    if (env.isProd()) {
+      // Example: Send to error reporting service
+      // errorReportingService.captureException(error, {
+      //   tags: {
+      //     errorBoundary: this.props.name || 'unknown',
+      //     errorId,
+      //   },
+      //   extra: errorInfo,
+      // });
+    }
+  }
+  
+  handleRetry = () => {
+    this.props.onRetry?.();
+    
+    this.setState({
+      hasError: false,
+      error: null,
+      errorInfo: null,
+      errorId: null,
+    });
+  };
+  
+  override render() {
+    if (this.state.hasError && this.state.error) {
+      const FallbackComponent = this.props.fallback || DefaultErrorFallback;
+      
+      const fallbackProps = {
+        error: this.state.error,
+        errorInfo: this.state.errorInfo,
+        retry: this.handleRetry,
+        errorId: this.state.errorId!,
+        level: this.props.level,
+        name: this.props.name,
+      };
+      
+      // Handle function vs component fallback
+      if (typeof FallbackComponent === 'function') {
+        return <FallbackComponent {...fallbackProps} />;
+      } else {
+        return React.createElement(FallbackComponent, fallbackProps);
+      }
+    }
+    
+    return this.props.children;
+  }
+}
+
+// Hook for handling errors in functional components
+export const useErrorHandler = () => {
+  const [error, setError] = React.useState<Error | null>(null);
+  
+  const handleError = React.useCallback((error: Error) => {
+    setError(error);
+    
+    // Log error
+    if (env.isDev()) {
+      console.error('Handled error:', error);
+    }
+  }, []);
+  
+  const clearError = React.useCallback(() => {
+    setError(null);
+  }, []);
+  
+  // Re-throw error to be caught by error boundary
+  React.useEffect(() => {
+    if (error) {
+      throw error;
+    }
+  }, [error]);
+  
+  return { handleError, clearError, error };
+};
+
+// Higher-order component for error boundary
+export const withErrorBoundary = <P extends object>(
+  Component: React.ComponentType<P>,
+  errorBoundaryConfig?: Omit<ErrorBoundaryProps, 'children'>
+) => {
+  const WrappedComponent = React.forwardRef<any, P>((props, ref) => (
+    <ErrorBoundary {...errorBoundaryConfig}>
+      <Component {...(props as any)} ref={ref} />
+    </ErrorBoundary>
+  ));
+  
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
+  
+  return WrappedComponent;
+};
+
+// Error boundary for specific scenarios
+export const PageErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = (props) => (
+  <ErrorBoundary {...props} level="page" />
+);
+
+export const SectionErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = (props) => (
+  <ErrorBoundary {...props} level="section" />
+);
+
+export const ComponentErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = (props) => (
+  <ErrorBoundary {...props} level="component" />
+);

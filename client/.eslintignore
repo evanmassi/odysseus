@@ -1,0 +1,31 @@
+# Build outputs
+dist/
+build/
+coverage/
+
+# Dependencies
+node_modules/
+
+# Generated files
+*.min.js
+*.min.css
+
+# Config files that don't need linting
+vite.config.ts
+vitest.config.ts
+tailwind.config.js
+postcss.config.js
+
+# Test setup and utilities
+src/__tests__/setup.ts
+
+# Legacy or vendor code
+public/
+assets/
+
+# Electron main process (if needed)
+electron/
+
+# IDE files
+.vscode/
+.idea/

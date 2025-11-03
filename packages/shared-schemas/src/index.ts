@@ -1,0 +1,352 @@
+/**
+ * @odysseus/shared-schemas
+ *
+ * Single source of truth for all Odysseus validation schemas
+ * Used by both client and server
+ */
+
+export {
+  // Constants
+  CONCENTRATION_UNITS,
+  UNKNOWN_RESEARCHER,
+
+  // Domain Schemas
+  tubeLocationSchema,
+  tubeMediaSchema,
+  tubeSampleSchema,
+  tubeTimestampsSchema,
+  tubeDataSchema,
+  tubeDataArraySchema,
+
+  // API Schemas (Client & Server use these directly)
+  createTubeRequestSchema,
+  updateTubeRequestSchema,
+  tubeQueryFiltersSchema,
+  batchTubeOperationSchema,
+  tubeValidationResultSchema,
+
+  // Types
+  type TubeData,
+  type TubeLocation,
+  type TubeSample,
+  type TubeUpdateSample,
+  type TubeMedia,
+  type TubeTimestamps,
+  type CreateTubeRequest,
+  type UpdateTubeRequest,
+  type TubeQueryFilters,
+  type BatchTubeOperation,
+  type TubeValidationResult,
+  type ConcentrationUnit,
+
+  // Form Input Types (z.input - raw form state before Zod transformations)
+  type CreateTubeFormInput,
+  type UpdateTubeFormInput,
+
+  // ⚠️ Deprecated (backward compatibility - Phase 2 will remove)
+  type TubeFormSampleInput,
+  type TubeFormDataInput,
+
+  // Utilities
+  validateTubePosition,
+  validateConcentrationUnit,
+  transformLegacyTubeData
+} from './tubes/tubeSchemas';
+
+// Tube Validation Utilities (Phase 1 - New)
+export {
+  parseConcentration,
+  concentrationPreprocessor,
+  concentrationPreprocessorNullable,
+  parseDate,
+  datePreprocessor,
+  datePreprocessorNullable,
+  optionalFromEmpty,
+  nullableOptionalFromEmpty,
+  validateConcentrationUnit as validateConcentrationUnitInvariant,
+  concentrationUnitRefinement
+} from './tubes/tubeValidation';
+
+// Tube Display Formatters (Presentation layer only)
+export {
+  formatConcentrationDisplay,
+  formatTubeLocation,
+  formatTubeLocationShort,
+  formatTubeDate,
+  parseConcentrationDisplay,
+  type TubeLocationFormatOptions
+} from './tubes/tubeFormatters';
+
+// Tube Data Mappers (Single source of truth for transformations)
+export {
+  tubeDataToCreateRequest,
+  tubeDataArrayToCreateRequests
+} from './tubes/tubeMappers';
+
+// Search Schemas (Phase 2 - Migrated)
+export {
+  // Schemas
+  SearchFiltersSchema,
+  AdvancedSearchOptionsSchema,
+  SearchPaginationSchema,
+  SearchMetadataSchema,
+  SearchResultSchema,
+  GroupedResultSchema,
+  SearchResultsSchema,
+  SearchSuggestionsResponseSchema,
+  SaveSearchResponseSchema,
+  SavedSearchSchema,
+  SavedSearchesResponseSchema,
+  FilterOptionsResponseSchema,
+  
+  // Types
+  type SearchFilters,
+  type AdvancedSearchOptions,
+  type SearchResult,
+  type GroupedResult,
+  type SearchResults,
+  type SearchSuggestionsResponse,
+  type SaveSearchResponse,
+  type SavedSearch,
+  type SavedSearchesResponse,
+  type FilterOptionsResponse
+} from './search/searchSchemas';
+
+// Researcher Schemas (Clean Architecture - Simple Domain Entities)
+export {
+  // Core Schemas
+  researcherSchema,
+  researchersArraySchema,
+  createResearcherProfileSchema,
+  updateResearcherProfileSchema,
+  researcherQueryFiltersSchema,
+  adminResearcherSchema,
+  adminResearchersResponseSchema,
+
+  // Types
+  type Researcher,
+  type CreateResearcherProfile,
+  type UpdateResearcherProfile,
+  type ResearcherQueryFilters,
+  type AdminResearcher,
+  type AdminResearchersResponse,
+
+  // Utilities
+  validateResearcherName,
+  validateResearcherEmail,
+
+  // Display Formatters
+  formatResearcherListDisplay,
+  formatResearcherDropdownDisplay,
+  formatResearcherFullDisplay,
+  sortResearchers,
+
+  // Duplicate Detection
+  calculateNameSimilarity,
+  findSimilarResearchers
+} from './researchers/researcherSchemas';
+
+// Transport Schemas (Phase 3 - Migrated) - Infrastructure Layer
+export {
+  // Envelope Schemas (generic functions)
+  successEnvelopeSchema,
+  errorEnvelopeSchema,
+  paginatedEnvelopeSchema,
+  batchEnvelopeSchema,
+  
+  // Error Class
+  ApiError,
+  
+  // Types
+  type PaginatedResult,
+  type BatchResult
+} from './infrastructure/transportSchemas';
+
+// Laboratory Configuration Schemas (Phase 3 - Migrated)
+export {
+  // Schemas
+  GridConfigurationSchema,
+  BoxConfigurationSchema,
+  RackConfigurationSchema,
+  TankConfigurationSchema,
+  ColorSchemeSchema,
+  EquipmentConfigurationSchema,
+  LabConfigurationSchema,
+  GlobalSettingsSchema,
+  SystemConfigurationSchema,
+  ConfigurationResponseSchema,
+  SaveConfigurationRequestSchema,
+  DeleteTankResponseSchema,
+
+  // Types
+  type GridConfiguration,
+  type BoxConfiguration,
+  type RackConfiguration,
+  type TankConfiguration,
+  type ColorScheme,
+  type EquipmentConfiguration,
+  type LabConfiguration,
+  type GlobalSettings,
+  type SystemConfiguration,
+  type ConfigurationResponse,
+  type SaveConfigurationRequest,
+  type DeleteTankResponse
+} from './storage/configurationSchemas';
+
+// Position Display Schemas & Utilities
+export {
+  // Schemas
+  positionDisplayFormatSchema,
+  alphanumericConfigSchema,
+  positionDisplayConfigSchema,
+  positionDisplayPreferenceSchema,
+
+  // Constants
+  POSITION_DISPLAY_PRESETS,
+
+  // Types
+  type PositionDisplayFormat,
+  type AlphanumericConfig,
+  type PositionDisplayConfig,
+  type PositionDisplayPreference,
+
+  // Config Generators (flexible for any grid size)
+  generateAlphabeticLabels,
+  generateNumericLabels,
+  createAlphanumericConfig,
+  createNumericConfig,
+  getDefaultPositionDisplay,
+} from './storage/positionSchemas';
+
+export {
+  // Utilities
+  positionToLabel,
+  labelToPosition,
+  isValidPositionLabel,
+  generatePositionLabels,
+} from './storage/positionFormatters';
+
+// API Schemas (Phase 4 - Migrated) - Shared API Layer
+export {
+  // Schemas
+  websocketMessageSchema,
+  queryParametersSchema,
+  httpStatusSchema,
+
+  // Constants
+  API_ERROR_CODES,
+
+  // Types
+  type WebSocketMessage,
+  type QueryParameters
+} from './api/apiSchemas';
+
+// System Constants (Single source of truth)
+export {
+  // Equipment Defaults
+  EQUIPMENT_DEFAULTS,
+
+  // Validation Limits
+  VALIDATION_LIMITS,
+
+  // System Defaults
+  SYSTEM_DEFAULTS,
+
+  // Naming Patterns
+  NAMING_PATTERNS,
+
+  // Grid Templates
+  GRID_TEMPLATES,
+  DEFAULT_GRID_CONFIG
+} from './constants';
+
+// Admin Schemas (Security, User Management, System Monitoring)
+export {
+  // Schemas
+  securityConfigSchema,
+  updateSecurityConfigSchema,
+  adminUserSchema,
+  systemMetricsSchema,
+  syncStatusSchema,
+  auditLogEntrySchema,
+  auditLogFiltersSchema,
+  userSessionSchema,
+  securityConfigResponseSchema,
+  adminUsersResponseSchema,
+  systemMetricsResponseSchema,
+  syncStatusResponseSchema,
+  auditLogResponseSchema,
+
+  // Constants
+  DEFAULT_SECURITY_CONFIG,
+
+  // Types
+  type SecurityConfig,
+  type UpdateSecurityConfig,
+  type AdminUser,
+  type SystemMetrics,
+  type SyncStatus,
+  type AuditLogEntry,
+  type AuditLogFilters,
+  type UserSession,
+  type SecurityConfigResponse,
+  type AdminUsersResponse,
+  type SystemMetricsResponse,
+  type SyncStatusResponse,
+  type AuditLogResponse
+} from './admin/adminSchemas';
+
+// Authentication Schemas (Registration, Login, Email Verification)
+export {
+  // Schemas
+  registerWithResearcherSchema,
+  verifyEmailRequestSchema,
+  resendVerificationRequestSchema,
+  verificationStatusResponseSchema,
+
+  // Types
+  type RegisterWithResearcherRequest,
+  type VerifyEmailRequest,
+  type ResendVerificationRequest,
+  type VerificationStatusResponse
+} from './auth/authSchemas';
+
+// Password Validation (Single source of truth for client + server)
+export {
+  // Validator
+  PasswordValidator,
+
+  // Types
+  type PasswordRequirementsConfig,
+  type PasswordRequirement,
+  type PasswordValidationResult
+} from './auth/passwordValidation';
+
+// Password Reset Schemas (Admin-initiated, no email dependency)
+export {
+  // Schemas
+  adminResetPasswordRequestSchema,
+  generatePasswordResetTokenResponseSchema,
+  resetPasswordWithTokenRequestSchema,
+
+  // Types
+  type AdminResetPasswordRequest,
+  type GeneratePasswordResetTokenResponse,
+  type ResetPasswordWithTokenRequest
+} from './auth/passwordResetSchemas';
+
+// User Settings Schemas (Per-user preferences and configuration)
+export {
+  // Schemas
+  userSettingsSchema,
+  updateUserSettingsRequestSchema,
+  userSettingsResponseSchema,
+
+  // Constants
+  DEFAULT_USER_SETTINGS,
+
+  // Types
+  type UserSettings,
+  type UpdateUserSettingsRequest,
+  type UserSettingsResponse
+} from './users/userSettingsSchemas';

@@ -1,0 +1,143 @@
+/**
+ * Email Verification Commands
+ *
+ * Commands for email verification operations in the CQRS pattern
+ */
+
+import { BaseCommand, CommandHandler } from '@application/commands/Command';
+import { User } from '@domain/entities/User';
+import { UserRepository } from '@domain/repositories/UserRepository';
+import { EmailService } from '@domain/services/EmailService';
+import { EventBus } from '@application/contracts/EventBus';
+import { NotFoundError } from '@domain/errors/NotFoundError';
+import { EmailVerificationError } from '@domain/errors/EmailVerificationError';
+import {
+  VerificationEmailSentEvent,
+  EmailVerifiedEvent,
+  VerificationEmailResentEvent
+} from '@domain/events/EmailVerificationEvents';
+
+// Send Verification Email Command
+
+export class SendVerificationEmailCommand extends BaseCommand {
+  constructor(
+    public readonly userId: string,
+    initiatedBy: string
+  ) {
+    super(initiatedBy);
+  }
+}
+
+export class SendVerificationEmailCommandHandler implements CommandHandler<SendVerificationEmailCommand, void> {
+  constructor(
+    private userRepository: UserRepository,
+    private emailService: EmailService,
+    private eventBus: EventBus
+  ) {}
+
+  async handle(command: SendVerificationEmailCommand): Promise<void> {
+    const user = await this.userRepository.findById(command.userId);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    if (!user.email) {
+      throw new EmailVerificationError('User does not have an email address');
+    }
+
+    const token = user.generateVerificationToken();
+    await this.userRepository.save(user);
+
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      token,
+      user.username
+    );
+
+    const event = new VerificationEmailSentEvent(user.id, user.email);
+    await this.eventBus.publish(event);
+  }
+}
+
+// Verify Email Command
+
+export class VerifyEmailCommand extends BaseCommand {
+  constructor(
+    public readonly token: string,
+    initiatedBy: string = 'system'
+  ) {
+    super(initiatedBy);
+  }
+}
+
+export class VerifyEmailCommandHandler implements CommandHandler<VerifyEmailCommand, User> {
+  constructor(
+    private userRepository: UserRepository,
+    private eventBus: EventBus
+  ) {}
+
+  async handle(command: VerifyEmailCommand): Promise<User> {
+    const user = await this.userRepository.findByVerificationToken(command.token);
+    if (!user) {
+      throw EmailVerificationError.invalid();
+    }
+
+    user.verifyEmail(command.token);
+    await this.userRepository.save(user);
+
+    const event = new EmailVerifiedEvent(user.id, user.email!);
+    await this.eventBus.publish(event);
+
+    return user;
+  }
+}
+
+// Resend Verification Email Command
+
+export class ResendVerificationEmailCommand extends BaseCommand {
+  constructor(
+    public readonly userId: string,
+    initiatedBy: string
+  ) {
+    super(initiatedBy);
+  }
+}
+
+export class ResendVerificationEmailCommandHandler implements CommandHandler<ResendVerificationEmailCommand, void> {
+  constructor(
+    private userRepository: UserRepository,
+    private emailService: EmailService,
+    private eventBus: EventBus
+  ) {}
+
+  async handle(command: ResendVerificationEmailCommand): Promise<void> {
+    const user = await this.userRepository.findById(command.userId);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    if (!user.email) {
+      throw new EmailVerificationError('User does not have an email address');
+    }
+
+    if (user.isEmailVerified()) {
+      throw new EmailVerificationError('Email is already verified');
+    }
+
+    if (!user.canResendVerification()) {
+      throw EmailVerificationError.rateLimited(5);
+    }
+
+    const token = user.generateVerificationToken();
+    await this.userRepository.save(user);
+
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      token,
+      user.username
+    );
+
+    const event = new VerificationEmailResentEvent(user.id, user.email);
+    await this.eventBus.publish(event);
+  }
+}

@@ -1,0 +1,67 @@
+/* Toast notification styling with colored text */
+:root {
+  --toast-delete-color: #ef4444;
+  --toast-copy-color: #3b82f6;
+  --toast-cut-color: #f97316;
+  --toast-create-color: #059669;
+  --toast-update-color: #0ea5e9;
+  --toast-warning-color: #f59e0b;
+  --toast-info-color: #6b7280;
+}
+
+/* Connection status animation */
+@keyframes bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-bounce-in {
+  animation: bounce-in 0.3s ease-out;
+}
+
+/* Reduce gap between notifications and enable dynamic positioning */
+.react-hot-toast-container {
+  gap: 8px !important;
+}
+
+/* Colored text for different action types (success bubbles with colored text) */
+.toast-delete div:last-child {
+  color: var(--toast-delete-color);
+  font-weight: 600;
+}
+
+.toast-copy div:last-child {
+  color: var(--toast-copy-color);
+  font-weight: 600;
+}
+
+.toast-cut div:last-child {
+  color: var(--toast-cut-color);
+  font-weight: 600;
+}
+
+.toast-create div:last-child {
+  color: var(--toast-create-color);
+  font-weight: 600;
+}
+
+.toast-update div:last-child {
+  color: var(--toast-update-color);
+  font-weight: 600;
+}
+
+.toast-warning div:last-child {
+  color: var(--toast-warning-color);
+  font-weight: 600;
+}
+
+.toast-info div:last-child {
+  color: var(--toast-info-color);
+  font-weight: 600;
+}

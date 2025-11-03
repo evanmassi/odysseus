@@ -1,0 +1,766 @@
+import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/valueObjects/Equipment';
+import { ValidationError } from '@domain/errors/ValidationError';
+import { PermissionError } from '@domain/errors/PermissionError';
+import { Location } from '@domain/valueObjects/Location';
+import {
+  EQUIPMENT_DEFAULTS,
+  NAMING_PATTERNS,
+  SYSTEM_DEFAULTS,
+  type PositionDisplayConfig,
+} from '@odysseus/shared-schemas';
+
+/**
+ * Configuration Entity (System Settings Aggregate Root)
+ * Represents the complete system configuration including equipment
+ * Contains all business logic for system configuration management
+ */
+export class Configuration {
+  private constructor(
+    private _equipment: EquipmentConfiguration,
+    private _systemSettings: SystemSettings,
+    private _updatedAt: Date,
+    private _version: number
+  ) {
+    this.validate();
+  }
+
+  /**
+   * Factory method to create default configuration
+   */
+  static createDefault(): Configuration {
+    // Create default boxes A-J for each rack
+    const defaultBoxes: Box[] = [];
+    for (let i = 0; i < EQUIPMENT_DEFAULTS.BOXES_PER_RACK; i++) {
+      const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(i); // A, B, C, ..., J
+      defaultBoxes.push(Box.create(
+        boxName,
+        { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
+        EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
+        undefined, // positionDisplay - use default
+        true
+      ));
+    }
+
+    // Create default racks with nested boxes
+    const defaultRacks = [
+      Rack.create(1, NAMING_PATTERNS.RACK.DEFAULT_NAME(1), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true),
+      Rack.create(2, NAMING_PATTERNS.RACK.DEFAULT_NAME(2), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true),
+      Rack.create(3, NAMING_PATTERNS.RACK.DEFAULT_NAME(3), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true)
+    ];
+
+    // Create default tank with nested racks
+    const defaultTanks = [
+      Tank.create(NAMING_PATTERNS.TANK.ID_PATTERN(1), NAMING_PATTERNS.TANK.DEFAULT_NAME(1), defaultRacks, EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK, true)
+    ];
+
+    const equipment = EquipmentConfiguration.create(defaultTanks);
+    const systemSettings = SystemSettings.createDefault();
+
+    return new Configuration(equipment, systemSettings, new Date(), 1);
+  }
+
+  /**
+   * Factory method to create configuration from data
+   * Accepts nested structure matching shared-schemas
+   */
+  static fromData(data: {
+    tanks: Array<{
+      id: string;
+      name: string;
+      racks: Array<{
+        id: number | string;
+        name: string;
+        boxes: Array<{
+          name: string;
+          gridConfig?: { rows: number; cols: number };
+          maxPositions?: number;
+          positionDisplay?: PositionDisplayConfig;
+          isActive?: boolean;
+        }>;
+        maxBoxes?: number;
+        capacity?: number;
+        isActive?: boolean;
+      }>;
+      maxRacks?: number;
+      isActive?: boolean;
+    }>;
+    systemSettings: {
+      labName: string;
+      defaultResearcher: string;
+      autoSave: boolean;
+      auditTrailEnabled: boolean;
+      syncEnabled: boolean;
+      defaultPositionDisplay?: PositionDisplayConfig;
+    };
+    updatedAt?: string;
+    version?: number;
+  }): Configuration {
+    // Reconstruct tanks with nested racks and boxes
+    const tanks = data.tanks.map(tankData => {
+      const racks = tankData.racks.map(rackData => {
+        const boxes = rackData.boxes.map(boxData =>
+          Box.create(
+            boxData.name,
+            boxData.gridConfig || { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
+            boxData.maxPositions,
+            boxData.positionDisplay, // positionDisplay config
+            boxData.isActive ?? true
+          )
+        );
+
+        // Use the maximum of: actual box count, requested capacity, or default
+        // This handles legacy data migration where old capacity=9 but new boxes.length=10
+        const effectiveCapacity = Math.max(
+          boxes.length,
+          rackData.maxBoxes || 0,
+          rackData.capacity || 0,
+          EQUIPMENT_DEFAULTS.BOXES_PER_RACK
+        );
+
+        return Rack.create(
+          typeof rackData.id === 'string' ? parseInt(rackData.id) : rackData.id,
+          rackData.name,
+          boxes,
+          effectiveCapacity,
+          effectiveCapacity,
+          rackData.isActive ?? true
+        );
+      });
+
+      return Tank.create(
+        tankData.id,
+        tankData.name,
+        racks,
+        tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
+        tankData.isActive ?? true
+      );
+    });
+
+    const equipment = EquipmentConfiguration.create(tanks);
+    const systemSettings = SystemSettings.fromData(data.systemSettings);
+
+    return new Configuration(
+      equipment,
+      systemSettings,
+      data.updatedAt ? new Date(data.updatedAt) : new Date(),
+      data.version || 1
+    );
+  }
+
+  /**
+   * Validate configuration state (invariants)
+   */
+  private validate(): void {
+    if (this._version < 1) {
+      throw new ValidationError('Configuration version must be at least 1');
+    }
+    
+    // Equipment configuration validates itself
+    // System settings validate themselves
+  }
+
+  /**
+   * Business method: Add new tank
+   */
+  addTank(id: string, name: string, maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK): Tank {
+    const newTank = Tank.create(id, name, [], maxRacks, true);
+
+    // Business rule: Tank IDs must be unique
+    if (this._equipment.tanks.some(t => t.id === id)) {
+      throw new ValidationError(`Tank with ID '${id}' already exists`);
+    }
+
+    // Recreate equipment configuration with new tank
+    const newTanks = [...this._equipment.tanks, newTank];
+    this._equipment = EquipmentConfiguration.create(newTanks);
+
+    this.touch();
+    return newTank;
+  }
+
+  /**
+   * Business method: Add rack to tank
+   */
+  addRack(tankId: string, rackId: number, rackName: string, maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK): Rack {
+    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
+    if (tankIndex === -1) {
+      throw new ValidationError(`Tank '${tankId}' not found`);
+    }
+
+    const tank = this._equipment.tanks[tankIndex];
+
+    if (!tank.canAccommodateRack(rackId)) {
+      throw new ValidationError(`Tank '${tankId}' cannot accommodate rack ${rackId}`);
+    }
+
+    // Business rule: Rack IDs must be unique within a tank
+    if (tank.racks.some(r => r.id === rackId)) {
+      throw new ValidationError(`Rack ${rackId} already exists in tank '${tankId}'`);
+    }
+
+    const newRack = Rack.create(rackId, rackName, [], maxBoxes, maxBoxes, true);
+
+    // Recreate tank with new rack
+    const updatedTank = Tank.create(
+      tank.id,
+      tank.name,
+      [...tank.racks, newRack] as Rack[],
+      tank.maxRacks,
+      tank.isActive
+    );
+
+    // Recreate equipment with updated tank
+    const newTanks = [...this._equipment.tanks];
+    newTanks[tankIndex] = updatedTank;
+    this._equipment = EquipmentConfiguration.create(newTanks);
+
+    this.touch();
+    return newRack;
+  }
+
+  /**
+   * Business method: Add box to rack
+   */
+  addBox(tankId: string, rackId: number, boxId: string, gridConfig: { rows: number; cols: number } = { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS }): Box {
+    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
+    if (tankIndex === -1) {
+      throw new ValidationError(`Tank '${tankId}' not found`);
+    }
+
+    const tank = this._equipment.tanks[tankIndex];
+    const rackIndex = tank.racks.findIndex(r => r.id === rackId);
+    if (rackIndex === -1) {
+      throw new ValidationError(`Rack ${rackId} not found in tank '${tankId}'`);
+    }
+
+    const rack = tank.racks[rackIndex];
+
+    if (!rack.canAccommodateBox(boxId)) {
+      throw new ValidationError(`Rack ${rackId} cannot accommodate box '${boxId}'`);
+    }
+
+    // Business rule: Box names must be unique within a rack
+    if (rack.boxes.some(b => b.name === boxId.toUpperCase())) {
+      throw new ValidationError(`Box '${boxId}' already exists in rack ${rackId} of tank '${tankId}'`);
+    }
+
+    const newBox = Box.create(boxId, gridConfig, gridConfig.rows * gridConfig.cols, undefined, true);
+
+    // Recreate rack with new box
+    const updatedRack = Rack.create(
+      rack.id,
+      rack.name,
+      [...rack.boxes, newBox] as Box[],
+      rack.maxBoxes,
+      rack.capacity,
+      rack.isActive
+    );
+
+    // Recreate tank with updated rack
+    const newRacks = [...tank.racks];
+    newRacks[rackIndex] = updatedRack;
+    const updatedTank = Tank.create(
+      tank.id,
+      tank.name,
+      newRacks as Rack[],
+      tank.maxRacks,
+      tank.isActive
+    );
+
+    // Recreate equipment with updated tank
+    const newTanks = [...this._equipment.tanks];
+    newTanks[tankIndex] = updatedTank;
+    this._equipment = EquipmentConfiguration.create(newTanks);
+
+    this.touch();
+    return newBox;
+  }
+
+  /**
+   * Business method: Remove tank (and all associated racks/boxes)
+   */
+  removeTank(tankId: string): void {
+    const tank = this._equipment.tanks.find(t => t.id === tankId);
+    if (!tank) {
+      throw new ValidationError(`Tank '${tankId}' not found`);
+    }
+
+    // Remove tank (racks and boxes are automatically removed via composition)
+    const remainingTanks = this._equipment.tanks.filter(t => t.id !== tankId);
+    this._equipment = EquipmentConfiguration.create(remainingTanks);
+
+    this.touch();
+  }
+
+  /**
+   * Business method: Update system settings
+   */
+  updateSystemSettings(updates: {
+    labName?: string;
+    defaultResearcher?: string;
+    autoSave?: boolean;
+    auditTrailEnabled?: boolean;
+    syncEnabled?: boolean;
+  }): Configuration {
+    const newSystemSettings = this._systemSettings.update(updates);
+    return new Configuration(
+      this._equipment,
+      newSystemSettings,
+      new Date(),
+      this._version + 1
+    );
+  }
+
+  /**
+   * Business method: Update tanks configuration
+   * Tanks now contain nested racks and boxes
+   */
+  updateTanks(tanks: Tank[]): Configuration {
+    const newEquipment = EquipmentConfiguration.create(tanks);
+    return new Configuration(
+      newEquipment,
+      this._systemSettings,
+      new Date(),
+      this._version + 1
+    );
+  }
+
+  /**
+   * Business method: Update racks configuration for a specific tank
+   */
+  updateRacks(tankId: string, racks: Rack[]): Configuration {
+    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
+    if (tankIndex === -1) {
+      throw new ValidationError(`Tank '${tankId}' not found`);
+    }
+
+    const tank = this._equipment.tanks[tankIndex];
+    const updatedTank = Tank.create(
+      tank.id,
+      tank.name,
+      racks,
+      tank.maxRacks,
+      tank.isActive
+    );
+
+    const newTanks = [...this._equipment.tanks];
+    newTanks[tankIndex] = updatedTank;
+
+    const newEquipment = EquipmentConfiguration.create(newTanks);
+    return new Configuration(
+      newEquipment,
+      this._systemSettings,
+      new Date(),
+      this._version + 1
+    );
+  }
+
+  /**
+   * Business method: Update boxes configuration for a specific rack
+   */
+  updateBoxes(tankId: string, rackId: number, boxes: Box[]): Configuration {
+    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
+    if (tankIndex === -1) {
+      throw new ValidationError(`Tank '${tankId}' not found`);
+    }
+
+    const tank = this._equipment.tanks[tankIndex];
+    const rackIndex = tank.racks.findIndex(r => r.id === rackId);
+    if (rackIndex === -1) {
+      throw new ValidationError(`Rack ${rackId} not found in tank '${tankId}'`);
+    }
+
+    const rack = tank.racks[rackIndex];
+    const updatedRack = Rack.create(
+      rack.id,
+      rack.name,
+      boxes,
+      rack.maxBoxes,
+      rack.capacity,
+      rack.isActive
+    );
+
+    const newRacks = [...tank.racks];
+    newRacks[rackIndex] = updatedRack;
+
+    const updatedTank = Tank.create(
+      tank.id,
+      tank.name,
+      newRacks as Rack[],
+      tank.maxRacks,
+      tank.isActive
+    );
+
+    const newTanks = [...this._equipment.tanks];
+    newTanks[tankIndex] = updatedTank;
+
+    const newEquipment = EquipmentConfiguration.create(newTanks);
+    return new Configuration(
+      newEquipment,
+      this._systemSettings,
+      new Date(),
+      this._version + 1
+    );
+  }
+
+  /**
+   * Update position display configuration for a specific box
+   *
+   * Maintains immutability by creating new instances of affected objects.
+   * Increments configuration version to track changes.
+   *
+   * @param tankId - Tank identifier
+   * @param rackId - Rack identifier
+   * @param boxId - Box identifier
+   * @param positionDisplay - New position display config (null to reset to default)
+   * @returns New Configuration instance with updated box
+   */
+  updateBoxPositionDisplay(
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    positionDisplay: PositionDisplayConfig | null
+  ): Configuration {
+    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
+    if (tankIndex === -1) {
+      throw new ValidationError(`Tank '${tankId}' not found`);
+    }
+
+    const tank = this._equipment.tanks[tankIndex];
+    const rackIndex = tank.racks.findIndex(r => String(r.id) === rackId);
+    if (rackIndex === -1) {
+      throw new ValidationError(`Rack ${rackId} not found in tank '${tankId}'`);
+    }
+
+    const rack = tank.racks[rackIndex];
+    const boxIndex = rack.boxes.findIndex(b => b.name === boxId.toUpperCase());
+    if (boxIndex === -1) {
+      throw new ValidationError(
+        `Box '${boxId}' not found in tank '${tankId}', rack ${rackId}`
+      );
+    }
+
+    // Create updated box with new position display config
+    const oldBox = rack.boxes[boxIndex];
+    const updatedBox = Box.create(
+      oldBox.name,
+      oldBox.gridConfig,
+      oldBox.maxPositions,
+      positionDisplay === null ? undefined : positionDisplay,
+      oldBox.isActive
+    );
+
+    // Create new boxes array with updated box
+    const newBoxes = [...rack.boxes];
+    newBoxes[boxIndex] = updatedBox;
+
+    // Create new rack with updated boxes
+    const updatedRack = Rack.create(
+      rack.id,
+      rack.name,
+      newBoxes,
+      rack.maxBoxes,
+      rack.capacity,
+      rack.isActive
+    );
+
+    // Create new racks array with updated rack
+    const newRacks = [...tank.racks];
+    newRacks[rackIndex] = updatedRack;
+
+    // Create new tank with updated racks
+    const updatedTank = Tank.create(
+      tank.id,
+      tank.name,
+      newRacks as Rack[],
+      tank.maxRacks,
+      tank.isActive
+    );
+
+    // Create new tanks array with updated tank
+    const newTanks = [...this._equipment.tanks];
+    newTanks[tankIndex] = updatedTank;
+
+    // Create new equipment configuration
+    const newEquipment = EquipmentConfiguration.create(newTanks);
+
+    // Return new Configuration instance (immutability)
+    return new Configuration(
+      newEquipment,
+      this._systemSettings,
+      new Date(),
+      this._version + 1
+    );
+  }
+
+  /**
+   * Business method: Update lab default position display
+   *
+   * Sets the lab-wide default for position display format.
+   * Pass null to clear the lab default (fall back to system default).
+   *
+   * @param positionDisplay - New default position display config (null = clear)
+   * @returns New Configuration instance (immutability)
+   */
+  updateLabDefaultPositionDisplay(
+    positionDisplay: PositionDisplayConfig | null
+  ): Configuration {
+    const newSystemSettings = this._systemSettings.update({
+      defaultPositionDisplay: positionDisplay
+    });
+
+    return new Configuration(
+      this._equipment,
+      newSystemSettings,
+      new Date(),
+      this._version + 1
+    );
+  }
+
+  /**
+   * Business query: Validate if location exists in configuration
+   */
+  isLocationValid(location: Location): boolean {
+    return this._equipment.isLocationValid(
+      location.tankId,
+      location.rackId,
+      location.boxId,
+      location.position
+    );
+  }
+
+  /**
+   * Business query: Check if location exists in configuration
+   */
+  locationExists(tankId: string, rackId: string, boxId: string, position: number): boolean {
+    return this._equipment.isLocationValid(tankId, rackId, boxId, position);
+  }
+
+  /**
+   * Business query: Get available positions in a box
+   */
+  getAvailablePositions(tankId: string, rackId: number, boxId: string, occupiedPositions: number[]): number[] {
+    const tank = this._equipment.tanks.find(t => t.id === tankId);
+    if (!tank) return [];
+
+    const rack = tank.racks.find(r => r.id === rackId);
+    if (!rack) return [];
+
+    const box = rack.boxes.find(b => b.name === boxId.toUpperCase() && b.isActive);
+    if (!box) return [];
+
+    const allPositions: number[] = [];
+    for (let i = 1; i <= box.maxPositions; i++) {
+      if (!occupiedPositions.includes(i)) {
+        allPositions.push(i);
+      }
+    }
+
+    return allPositions;
+  }
+
+  /**
+   * Update timestamp and increment version
+   */
+  private touch(): void {
+    this._updatedAt = new Date();
+    this._version++;
+  }
+
+  /**
+   * Convert to data object for persistence
+   * Returns nested structure matching shared-schemas
+   */
+  toData(): {
+    tanks: Array<{
+      id: string;
+      name: string;
+      racks: Array<{
+        id: number;
+        name: string;
+        boxes: Array<{
+          name: string;
+          gridConfig: { rows: number; cols: number };
+          maxPositions: number;
+          positionDisplay?: PositionDisplayConfig;
+          isActive: boolean;
+        }>;
+        maxBoxes: number;
+        capacity: number;
+        isActive: boolean;
+      }>;
+      maxRacks: number;
+      isActive: boolean;
+    }>;
+    systemSettings: {
+      labName: string;
+      defaultResearcher: string;
+      autoSave: boolean;
+      auditTrailEnabled: boolean;
+      syncEnabled: boolean;
+      defaultPositionDisplay?: PositionDisplayConfig;
+    };
+    updatedAt: string;
+    version: number;
+  } {
+    const equipmentData = this._equipment.toData();
+    const systemSettingsData = this._systemSettings.toData();
+
+    return {
+      tanks: equipmentData.tanks,
+      systemSettings: systemSettingsData,
+      updatedAt: this._updatedAt.toISOString(),
+      version: this._version
+    };
+  }
+
+  /**
+   * Convert to API response format
+   * Returns nested structure matching shared-schemas
+   */
+  toApiData(): {
+    equipment: {
+      tanks: ReturnType<Tank['toData']>[];
+    };
+    systemSettings: {
+      labName: string;
+      defaultResearcher: string;
+      autoSave: boolean;
+      auditTrailEnabled: boolean;
+      syncEnabled: boolean;
+      defaultPositionDisplay?: PositionDisplayConfig;
+    };
+    metadata: {
+      updatedAt: string;
+      version: number;
+    };
+  } {
+    const data = this.toData();
+
+    return {
+      equipment: {
+        tanks: data.tanks
+      },
+      systemSettings: data.systemSettings,
+      metadata: {
+        updatedAt: data.updatedAt,
+        version: data.version
+      }
+    };
+  }
+
+  // Getters (immutable access)
+  get equipment(): EquipmentConfiguration { return this._equipment; }
+  get systemSettings(): SystemSettings { return this._systemSettings; }
+  get updatedAt(): Date { return new Date(this._updatedAt); }
+  get version(): number { return this._version; }
+
+  // Convenience getter for tanks (most common access pattern)
+  get tanks(): readonly Tank[] { return this._equipment.tanks; }
+}
+
+/**
+ * System Settings Value Object
+ * Represents general system configuration settings
+ */
+class SystemSettings {
+  private constructor(
+    private readonly _labName: string,
+    private readonly _defaultResearcher: string,
+    private readonly _autoSave: boolean,
+    private readonly _auditTrailEnabled: boolean,
+    private readonly _syncEnabled: boolean,
+    private readonly _defaultPositionDisplay?: PositionDisplayConfig
+  ) {
+    this.validate();
+  }
+
+  static createDefault(): SystemSettings {
+    return new SystemSettings(
+      SYSTEM_DEFAULTS.LAB.NAME,
+      '',
+      SYSTEM_DEFAULTS.SETTINGS.AUTO_BACKUP,
+      SYSTEM_DEFAULTS.SETTINGS.AUDIT_TRAIL_ENABLED,
+      SYSTEM_DEFAULTS.SETTINGS.ENABLE_REAL_TIME_SYNC,
+      undefined // defaultPositionDisplay - use system default (alphanumeric)
+    );
+  }
+
+  static fromData(data: {
+    labName: string;
+    defaultResearcher: string;
+    autoSave: boolean;
+    auditTrailEnabled: boolean;
+    syncEnabled: boolean;
+    defaultPositionDisplay?: PositionDisplayConfig;
+  }): SystemSettings {
+    return new SystemSettings(
+      data.labName,
+      data.defaultResearcher,
+      data.autoSave,
+      data.auditTrailEnabled,
+      data.syncEnabled,
+      data.defaultPositionDisplay
+    );
+  }
+
+  private validate(): void {
+    if (!this._labName || this._labName.trim().length === 0) {
+      throw new ValidationError('Lab name is required');
+    }
+    
+    if (this._labName.length > 200) {
+      throw new ValidationError('Lab name cannot exceed 200 characters');
+    }
+
+    if (this._defaultResearcher && this._defaultResearcher.length > 100) {
+      throw new ValidationError('Default researcher name cannot exceed 100 characters');
+    }
+  }
+
+  update(updates: {
+    labName?: string;
+    defaultResearcher?: string;
+    autoSave?: boolean;
+    auditTrailEnabled?: boolean;
+    syncEnabled?: boolean;
+    defaultPositionDisplay?: PositionDisplayConfig | null;
+  }): SystemSettings {
+    return new SystemSettings(
+      updates.labName !== undefined ? updates.labName : this._labName,
+      updates.defaultResearcher !== undefined ? updates.defaultResearcher : this._defaultResearcher,
+      updates.autoSave !== undefined ? updates.autoSave : this._autoSave,
+      updates.auditTrailEnabled !== undefined ? updates.auditTrailEnabled : this._auditTrailEnabled,
+      updates.syncEnabled !== undefined ? updates.syncEnabled : this._syncEnabled,
+      updates.defaultPositionDisplay !== undefined
+        ? (updates.defaultPositionDisplay === null ? undefined : updates.defaultPositionDisplay)
+        : this._defaultPositionDisplay
+    );
+  }
+
+  toData(): {
+    labName: string;
+    defaultResearcher: string;
+    autoSave: boolean;
+    auditTrailEnabled: boolean;
+    syncEnabled: boolean;
+    defaultPositionDisplay?: PositionDisplayConfig;
+  } {
+    return {
+      labName: this._labName,
+      defaultResearcher: this._defaultResearcher,
+      autoSave: this._autoSave,
+      auditTrailEnabled: this._auditTrailEnabled,
+      syncEnabled: this._syncEnabled,
+      defaultPositionDisplay: this._defaultPositionDisplay
+    };
+  }
+
+  // Getters
+  get labName(): string { return this._labName; }
+  get defaultResearcher(): string { return this._defaultResearcher; }
+  get autoSave(): boolean { return this._autoSave; }
+  get auditTrailEnabled(): boolean { return this._auditTrailEnabled; }
+  get syncEnabled(): boolean { return this._syncEnabled; }
+  get defaultPositionDisplay(): PositionDisplayConfig | undefined { return this._defaultPositionDisplay; }
+}

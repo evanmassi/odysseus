@@ -1,0 +1,92 @@
+@layer utilities {
+  /* Alert/Notification System */
+
+  /* Base alert container */
+  .alert {
+    @apply p-3 rounded-lg border-2;
+  }
+
+  /* Warning alerts - Uses validation.warning colors */
+  .alert-warning {
+    @apply alert bg-validation-warning-bg border-validation-warning-border;
+  }
+
+  .alert-warning-icon {
+    @apply text-validation-warning-icon;
+  }
+
+  .alert-warning-heading {
+    @apply font-medium text-validation-warning-label;
+  }
+
+  .alert-warning-text {
+    @apply text-sm text-validation-warning-text;
+  }
+
+  .alert-warning-accent {
+    @apply px-2 py-1 bg-warning-light text-validation-warning-label text-xs rounded;
+  }
+
+  /* Error alerts - Uses validation.error colors */
+  .alert-error {
+    @apply alert bg-validation-error-bg border-validation-error-border;
+  }
+
+  .alert-error-icon {
+    @apply text-validation-error-icon;
+  }
+
+  .alert-error-heading {
+    @apply font-medium text-validation-error-text;
+  }
+
+  .alert-error-text {
+    @apply text-sm text-validation-error-helper;
+  }
+
+  .alert-error-accent {
+    @apply px-2 py-1 bg-danger-light text-validation-error-text text-xs rounded;
+  }
+
+  /* Success alerts - Uses validation.success colors */
+  .alert-success {
+    @apply alert bg-validation-success-bg border-validation-success-border;
+  }
+
+  .alert-success-icon {
+    @apply text-validation-success-icon;
+  }
+
+  .alert-success-heading {
+    @apply font-medium text-validation-success-text;
+  }
+
+  .alert-success-text {
+    @apply text-sm text-validation-success-label;
+  }
+
+  .alert-success-accent {
+    @apply px-2 py-1 bg-success-light text-validation-success-text text-xs rounded;
+  }
+
+  /* Info alerts */
+  .alert-info {
+    @apply alert bg-info-light border-info-border;
+  }
+
+  .alert-info-icon {
+    @apply text-info-bg;
+  }
+
+  .alert-info-heading {
+    @apply font-medium text-info-bg;
+  }
+
+  .alert-info-text {
+    @apply text-sm text-info-text;
+  }
+
+  .alert-info-accent {
+    @apply px-2 py-1 bg-info-light text-info-bg text-xs rounded;
+  }
+}

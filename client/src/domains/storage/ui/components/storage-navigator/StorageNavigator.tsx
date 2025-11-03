@@ -1,0 +1,219 @@
+import React, { useMemo, useRef, useState, createRef, useCallback } from 'react';
+import { StorageNavigatorItem } from './StorageNavigatorItem';
+import { TreeLineOverlay } from './TreeLineOverlay';
+import { useStorageNavigation } from './useStorageNavigation';
+import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
+import type { StorageNavigatorProps, VisibleTreeNode } from './storageNavigatorTypes';
+
+export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
+  data,
+  selected,
+  onSelect,
+  className = '',
+}) => {
+  const {
+    expandedTanks,
+    expandedRacks,
+    toggleTank,
+    toggleRack,
+    selectTank,
+    selectRack,
+    selectBox,
+    isTankSelected,
+    isRackSelected,
+    isBoxSelected,
+  } = useStorageNavigation(data, selected, onSelect);
+
+  // Build flat list of visible nodes for keyboard navigation
+  const visibleNodes = useMemo((): VisibleTreeNode[] => {
+    const nodes: VisibleTreeNode[] = [];
+
+    data.tanks.forEach((tank, tankIndex) => {
+      const tankNode: VisibleTreeNode = {
+        id: tank.id,
+        name: tank.name,
+        level: 'tank',
+        tankId: tank.id,
+        isExpanded: expandedTanks.has(tank.id),
+        isSelected: isTankSelected(tank.id),
+        hasChildren: tank.racks.length > 0,
+        ref: createRef<HTMLButtonElement>(),
+        ariaLevel: 1,
+        ariaPosinset: tankIndex + 1,
+        ariaSetsize: data.tanks.length,
+      };
+      nodes.push(tankNode);
+
+      // Only include racks if tank is expanded
+      if (expandedTanks.has(tank.id)) {
+        tank.racks.forEach((rack, rackIndex) => {
+          const rackNode: VisibleTreeNode = {
+            id: rack.id,
+            name: rack.name,
+            level: 'rack',
+            tankId: tank.id,
+            rackId: rack.id,
+            isExpanded: expandedRacks.has(rack.id),
+            isSelected: isRackSelected(rack.id),
+            hasChildren: rack.boxes.length > 0,
+            ref: createRef<HTMLButtonElement>(),
+            ariaLevel: 2,
+            ariaPosinset: rackIndex + 1,
+            ariaSetsize: tank.racks.length,
+          };
+          nodes.push(rackNode);
+
+          // Only include boxes if rack is expanded
+          if (expandedRacks.has(rack.id)) {
+            rack.boxes.forEach((box, boxIndex) => {
+              const boxNode: VisibleTreeNode = {
+                id: box.id,
+                name: box.name,
+                level: 'box',
+                tankId: tank.id,
+                rackId: rack.id,
+                boxId: box.id,
+                isExpanded: false,
+                isSelected: isBoxSelected(box.id),
+                hasChildren: false,
+                ref: createRef<HTMLButtonElement>(),
+                ariaLevel: 3,
+                ariaPosinset: boxIndex + 1,
+                ariaSetsize: rack.boxes.length,
+              };
+              nodes.push(boxNode);
+            });
+          }
+        });
+      }
+    });
+
+    return nodes;
+  }, [data, expandedTanks, expandedRacks, isTankSelected, isRackSelected, isBoxSelected]);
+
+  // Track which node has keyboard focus
+  const [focusedIndex, setFocusedIndex] = useState(() => {
+    // Initialize to first selected node, or 0 if none selected
+    const selectedIndex = visibleNodes.findIndex(node => node.isSelected);
+    return selectedIndex >= 0 ? selectedIndex : 0;
+  });
+
+  // Handle node selection from keyboard
+  const handleSelectNode = useCallback((node: VisibleTreeNode) => {
+    if (node.level === 'tank') {
+      toggleTank(node.id);
+      selectTank(node.id);
+    } else if (node.level === 'rack') {
+      toggleRack(node.id);
+      selectRack(node.tankId, node.rackId!);
+    } else if (node.level === 'box') {
+      selectBox(node.tankId, node.rackId!, node.boxId!);
+    }
+  }, [toggleTank, toggleRack, selectTank, selectRack, selectBox]);
+
+  // Keyboard navigation
+  const { handleKeyDown } = useTreeKeyboardNavigation({
+    visibleNodes,
+    focusedIndex,
+    setFocusedIndex,
+    onToggleTank: toggleTank,
+    onToggleRack: toggleRack,
+    onSelectNode: handleSelectNode,
+  });
+
+  return (
+    <nav
+      className={`w-full pl-2 pr-3 pb-2 flex flex-col gap-1 relative ${className}`}
+      aria-label="Storage Navigator"
+      role="tree"
+      onKeyDown={handleKeyDown}
+    >
+      <TreeLineOverlay
+        expandedTanks={expandedTanks}
+        expandedRacks={expandedRacks}
+      />
+      {data.tanks.map((tank, tankIndex) => {
+        const tankExpanded = expandedTanks.has(tank.id);
+        const tankSelected = isTankSelected(tank.id);
+        const nodeIndex = visibleNodes.findIndex(n => n.id === tank.id && n.level === 'tank');
+        const node = visibleNodes[nodeIndex];
+
+        return (
+          <StorageNavigatorItem
+            key={tank.id}
+            id={tank.id}
+            name={tank.name}
+            level="tank"
+            isSelected={tankSelected}
+            isExpanded={tankExpanded}
+            onToggle={() => toggleTank(tank.id)}
+            onSelect={() => {
+              toggleTank(tank.id);
+              selectTank(tank.id);
+            }}
+            tabIndex={nodeIndex === focusedIndex ? 0 : -1}
+            buttonRef={node?.ref}
+            onFocus={() => setFocusedIndex(nodeIndex)}
+            ariaLevel={node?.ariaLevel}
+            ariaPosinset={node?.ariaPosinset}
+            ariaSetsize={node?.ariaSetsize}
+          >
+            {tank.racks.map((rack, rackIndex) => {
+              const rackExpanded = expandedRacks.has(rack.id);
+              const rackSelected = isRackSelected(rack.id);
+              const nodeIndex = visibleNodes.findIndex(n => n.id === rack.id && n.level === 'rack');
+              const node = visibleNodes[nodeIndex];
+
+              return (
+                <StorageNavigatorItem
+                  key={rack.id}
+                  id={rack.id}
+                  name={rack.name}
+                  level="rack"
+                  isSelected={rackSelected}
+                  isExpanded={rackExpanded}
+                  onToggle={() => toggleRack(rack.id)}
+                  onSelect={() => {
+                    toggleRack(rack.id);
+                    selectRack(tank.id, rack.id);
+                  }}
+                  tabIndex={nodeIndex === focusedIndex ? 0 : -1}
+                  buttonRef={node?.ref}
+                  onFocus={() => setFocusedIndex(nodeIndex)}
+                  ariaLevel={node?.ariaLevel}
+                  ariaPosinset={node?.ariaPosinset}
+                  ariaSetsize={node?.ariaSetsize}
+                >
+                  {rack.boxes.map((box, boxIndex) => {
+                    const boxSelected = isBoxSelected(box.id);
+                    const nodeIndex = visibleNodes.findIndex(n => n.id === box.id && n.level === 'box');
+                    const node = visibleNodes[nodeIndex];
+
+                    return (
+                      <StorageNavigatorItem
+                        key={box.id}
+                        id={box.id}
+                        name={box.name}
+                        level="box"
+                        isSelected={boxSelected}
+                        isExpanded={false}
+                        onToggle={() => {}}
+                        onSelect={() => selectBox(tank.id, rack.id, box.id)}
+                        tabIndex={nodeIndex === focusedIndex ? 0 : -1}
+                        buttonRef={node?.ref}
+                        onFocus={() => setFocusedIndex(nodeIndex)}
+                        ariaLevel={node?.ariaLevel}
+                        ariaPosinset={node?.ariaPosinset}
+                        ariaSetsize={node?.ariaSetsize}
+                      />
+                    );
+                  })}
+                </StorageNavigatorItem>
+              );
+            })}
+          </StorageNavigatorItem>
+        );
+      })}
+    </nav>
+  );
+};

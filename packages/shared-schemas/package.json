@@ -1,0 +1,40 @@
+{
+  "name": "@odysseus/shared-schemas",
+  "version": "1.0.0",
+  "description": "Shared Zod schemas for Odysseus client and server",
+  "private": true,
+  "main": "dist/index.cjs",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsup",
+    "watch": "tsup --watch",
+    "clean": "rmdir /S /Q dist 2>nul || echo \"Clean completed\""
+  },
+  "peerDependencies": {
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.4",
+    "tsup": "^8.5.0",
+    "typescript": "^5.2.2"
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "keywords": [
+    "zod",
+    "validation",
+    "schemas",
+    "odysseus"
+  ],
+  "author": "XcellBio",
+  "license": "MIT"
+}
