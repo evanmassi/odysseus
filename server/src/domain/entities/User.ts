@@ -31,6 +31,7 @@ export class User {
     private readonly _createdAt: Date,
     private _lastActivity: Date,
     private _researcherId?: string,
+    private _personId?: string,
     private _status: 'pending' | 'approved' | 'rejected' = 'pending',
     private _email?: string,
     emailVerified?: boolean,
@@ -70,7 +71,8 @@ export class User {
     username: string,
     apiKey: string,
     isFirstUser: boolean = false,
-    researcherId?: string
+    researcherId?: string,
+    personId?: string
   ): User {
     // Generate unique ID
     const id = User.generateId();
@@ -87,14 +89,15 @@ export class User {
       role,
       now,
       now,
-      researcherId
+      researcherId,
+      personId
     );
   }
 
   /**
    * Factory method to create admin user explicitly
    */
-  static createAdmin(username: string, apiKey: string, researcherId?: string): User {
+  static createAdmin(username: string, apiKey: string, researcherId?: string, personId?: string): User {
     const id = User.generateId();
     const now = new Date();
 
@@ -105,7 +108,8 @@ export class User {
       UserRole.admin(),
       now,
       now,
-      researcherId
+      researcherId,
+      personId
     );
   }
 
@@ -117,6 +121,7 @@ export class User {
     password: string,
     role: UserRole,
     researcherId?: string,
+    personId?: string,
     status: 'pending' | 'approved' | 'rejected' = 'pending',
     email?: string
   ): User {
@@ -135,6 +140,7 @@ export class User {
       now,
       now,
       researcherId,
+      personId,
       status,
       normalizedEmail,
       false, // emailVerified
@@ -164,6 +170,7 @@ export class User {
     passwordHash?: string;
     salt?: string;
     researcherId?: string;
+    personId?: string;
     status?: 'pending' | 'approved' | 'rejected';
     email?: string;
     emailVerified?: number;
@@ -204,6 +211,7 @@ export class User {
       new Date(data.createdAt),
       new Date(data.lastActivity),
       data.researcherId,
+      data.personId,
       data.status || 'pending',
       normalizedEmail,
       data.emailVerified === 1,
@@ -556,6 +564,7 @@ export class User {
     createdAt: string;
     lastActivity: string;
     researcherId?: string;
+    personId?: string;
     status: 'pending' | 'approved' | 'rejected';
     email?: string;
     settings: UserSettings;
@@ -568,6 +577,7 @@ export class User {
       createdAt: this._createdAt.toISOString(),
       lastActivity: this._lastActivity.toISOString(),
       researcherId: this._researcherId,
+      personId: this._personId,
       status: this._status,
       email: this._email,
       settings: this._settings
@@ -620,6 +630,7 @@ export class User {
   get createdAt(): Date { return new Date(this._createdAt); } // Return copy
   get lastActivity(): Date { return new Date(this._lastActivity); } // Return copy
   get researcherId(): string | undefined { return this._researcherId; }
+  get personId(): string | undefined { return this._personId; }
   get status(): 'pending' | 'approved' | 'rejected' { return this._status; }
   get email(): string | undefined { return this._email; }
 
@@ -885,6 +896,7 @@ export class User {
       this._createdAt,
       this._lastActivity,
       this._researcherId,
+      this._personId,
       this._status,
       this._email,
       this._emailVerified,

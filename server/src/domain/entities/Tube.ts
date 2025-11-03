@@ -16,7 +16,8 @@ export class Tube {
     private _sample: SampleData,
     private _researcherId: string | undefined,
     private readonly _createdAt: Date,
-    private _updatedAt: Date
+    private _updatedAt: Date,
+    private readonly _createdByName?: string
   ) {
     this.validate();
   }
@@ -41,6 +42,7 @@ export class Tube {
       notes?: string;
     } | SampleData;
     researcherId?: string;
+    createdByName?: string;
   }): Tube {
     // Generate unique ID if not provided
     const id = data.id || Tube.generateId();
@@ -63,7 +65,8 @@ export class Tube {
       sample,
       data.researcherId,
       now,
-      now
+      now,
+      data.createdByName
     );
   }
 
@@ -87,6 +90,7 @@ export class Tube {
       notes?: string;
     };
     researcherId?: string;
+    createdByName?: string;
     timestamps: {
       createdAt: string | Date;
       updatedAt: string | Date;
@@ -105,7 +109,8 @@ export class Tube {
         : data.timestamps.createdAt,
       typeof data.timestamps.updatedAt === 'string'
         ? new Date(data.timestamps.updatedAt)
-        : data.timestamps.updatedAt
+        : data.timestamps.updatedAt,
+      data.createdByName
     );
   }
 
@@ -217,7 +222,8 @@ export class Tube {
       newSample,
       newResearcherId,
       this._createdAt,
-      new Date() // Update timestamp
+      new Date(), // Update timestamp
+      this._createdByName // Preserve historical creator name
     );
   }
 
@@ -291,6 +297,7 @@ export class Tube {
       notes?: string;
     };
     researcherId?: string;
+    createdByName?: string;
     timestamps: {
       createdAt: string;
       updatedAt: string;
@@ -301,6 +308,7 @@ export class Tube {
       location: this._location.toData(),
       sample: this._sample.toData(),
       researcherId: this._researcherId,
+      createdByName: this._createdByName,
       timestamps: {
         createdAt: this._createdAt.toISOString(),
         updatedAt: this._updatedAt.toISOString()
@@ -363,15 +371,22 @@ export class Tube {
   /**
    * Get creation timestamp (returns copy for immutability)
    */
-  get createdAt(): Date { 
-    return new Date(this._createdAt); 
+  get createdAt(): Date {
+    return new Date(this._createdAt);
   }
 
   /**
    * Get last update timestamp (returns copy for immutability)
    */
-  get updatedAt(): Date { 
-    return new Date(this._updatedAt); 
+  get updatedAt(): Date {
+    return new Date(this._updatedAt);
+  }
+
+  /**
+   * Get historical creator name (snapshot at creation time)
+   */
+  get createdByName(): string | undefined {
+    return this._createdByName;
   }
 
   // CONVENIENCE GETTERS - Direct access to nested properties

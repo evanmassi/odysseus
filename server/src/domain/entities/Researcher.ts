@@ -14,7 +14,8 @@ export class Researcher {
     private _department: string | undefined,
     private _email: string | undefined,
     private _active: boolean,
-    private readonly _createdAt: Date
+    private readonly _createdAt: Date,
+    private _personId?: string
   ) {
     this.validate();
   }
@@ -27,12 +28,13 @@ export class Researcher {
     lastName: string,
     email: string,
     position?: string,
-    department?: string
+    department?: string,
+    personId?: string
   ): Researcher {
     const id = Researcher.generateId();
     const now = new Date();
 
-    return new Researcher(id, firstName, lastName, position, department, email, true, now);
+    return new Researcher(id, firstName, lastName, position, department, email, true, now, personId);
   }
 
   /**
@@ -47,6 +49,7 @@ export class Researcher {
     department?: string;
     active: boolean;
     createdAt: string;
+    personId?: string;
   }): Researcher {
     return new Researcher(
       data.id,
@@ -56,7 +59,8 @@ export class Researcher {
       data.department,
       data.email,
       data.active,
-      new Date(data.createdAt)
+      new Date(data.createdAt),
+      data.personId
     );
   }
 
@@ -128,7 +132,7 @@ export class Researcher {
     }
 
     // Create temporary researcher to validate the new names
-    const temp = new Researcher(this._id, firstName, lastName, this._position, this._department, this._email, this._active, this._createdAt);
+    const temp = new Researcher(this._id, firstName, lastName, this._position, this._department, this._email, this._active, this._createdAt, this._personId);
 
     // If validation passes, update the names
     this._firstName = firstName;
@@ -227,6 +231,7 @@ export class Researcher {
     department?: string;
     active: boolean;
     createdAt: string;
+    personId?: string;
   } {
     return {
       id: this._id,
@@ -236,7 +241,8 @@ export class Researcher {
       position: this._position,
       department: this._department,
       active: this._active,
-      createdAt: this._createdAt.toISOString()
+      createdAt: this._createdAt.toISOString(),
+      personId: this._personId
     };
   }
 
@@ -253,6 +259,7 @@ export class Researcher {
     active: boolean;
     displayName: string;
     createdAt: string;
+    personId?: string;
   } {
     return {
       id: this._id,
@@ -263,7 +270,8 @@ export class Researcher {
       department: this._department,
       active: this._active,
       displayName: this.getDisplayName(),
-      createdAt: this._createdAt.toISOString()
+      createdAt: this._createdAt.toISOString(),
+      personId: this._personId
     };
   }
 
@@ -291,6 +299,7 @@ export class Researcher {
   get email(): string | undefined { return this._email; }
   get active(): boolean { return this._active; }
   get createdAt(): Date { return new Date(this._createdAt); } // Return copy
+  get personId(): string | undefined { return this._personId; }
 
 
 
@@ -345,7 +354,7 @@ export class Researcher {
   /**
    * Create multiple researchers from data array (convenience method)
    */
-  static createMany(researcherData: Array<{ firstName: string; lastName: string; email: string; position?: string; department?: string }>): Researcher[] {
+  static createMany(researcherData: Array<{ firstName: string; lastName: string; email: string; position?: string; department?: string; personId?: string }>): Researcher[] {
     const researchers: Researcher[] = [];
     const seen = new Set<string>();
 
@@ -358,7 +367,7 @@ export class Researcher {
       }
 
       seen.add(normalizedKey);
-      researchers.push(Researcher.create(data.firstName.trim(), data.lastName.trim(), data.email.trim(), data.position, data.department));
+      researchers.push(Researcher.create(data.firstName.trim(), data.lastName.trim(), data.email.trim(), data.position, data.department, data.personId));
     }
 
     return researchers;

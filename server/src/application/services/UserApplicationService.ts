@@ -412,6 +412,7 @@ export class UserApplicationService {
       request.password,
       role,           // First user = admin, subsequent = user
       researcherId,   // Link to researcher if created, undefined otherwise
+      undefined,      // personId - not yet implemented in registration flow
       status,         // First user = approved, subsequent = pending
       request.email   // Email for authentication
     );
