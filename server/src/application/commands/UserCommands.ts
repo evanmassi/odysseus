@@ -338,10 +338,11 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
       throw new InvalidCredentialsError('Account access has been denied. Contact administrator for more information.');
     }
 
-    // Check email verification ONLY if user has email AND is not admin-approved
+    // Check email verification if not admin-approved
     // Admin approval bypasses email verification requirement (admin manually vets users)
     // This allows system to work without email service - admin approval is primary security gate
-    if (user.email && !user.isEmailVerified() && user.status !== 'approved') {
+    // Note: All users now have email via Person entity
+    if (!user.isEmailVerified() && user.status !== 'approved') {
       throw new InvalidCredentialsError('Email not verified. Check your inbox for verification link.');
     }
 

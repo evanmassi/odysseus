@@ -212,7 +212,8 @@ export class AccessControlService {
     }
 
     // Business rule: Check if researcher has active tubes
-    const tubeCount = await this.tubeRepository.countByResearcher(researcher.getFullName());
+    // TODO: After TubeRepository refactor, use researcher.id instead of name
+    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id);
     if (tubeCount > 0) {
       return this.createAllowedResult(`Researcher has ${tubeCount} tubes`, { tubeCount });
     }
@@ -230,7 +231,8 @@ export class AccessControlService {
     }
 
     // Business rule: Cannot delete researchers with active tubes
-    const tubeCount = await this.tubeRepository.countByResearcher(researcher.getFullName());
+    // TODO: After TubeRepository refactor, use researcher.id instead of name
+    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id);
     if (tubeCount > 0) {
       return this.createDeniedResult(`Cannot delete researcher with ${tubeCount} active tubes. Reassign or delete tubes first.`);
     }

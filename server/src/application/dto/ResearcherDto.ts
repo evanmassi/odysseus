@@ -1,8 +1,12 @@
 import { Researcher } from '@domain/entities/Researcher';
+import { Person } from '@domain/entities/Person';
 
 /**
  * Researcher DTOs - API data transfer objects
  * Clean separation between domain entities and HTTP API
+ *
+ * Note: Researcher entity only contains research-specific data (personId, active, etc.)
+ * Profile data (name, email, position, department) comes from Person entity
  */
 
 export interface CreateResearcherRequest {
@@ -39,32 +43,41 @@ export interface ResearcherListResponse {
 }
 
 /**
+ * Helper type for Researcher with resolved Person data
+ */
+export interface ResearcherWithPerson {
+  researcher: Researcher;
+  person: Person;
+}
+
+/**
  * DTO Conversion Utilities
  */
 export class ResearcherDto {
   /**
-   * Convert domain entity to API response
+   * Convert domain entities to API response
+   * Requires both Researcher and Person since profile data is in Person
    */
-  static toResponse(researcher: Researcher): ResearcherResponse {
+  static toResponse(researcher: Researcher, person: Person): ResearcherResponse {
     return {
       id: researcher.id,
-      firstName: researcher.firstName,
-      lastName: researcher.lastName,
-      position: researcher.position,
-      department: researcher.department,
-      email: researcher.email,
+      firstName: person.firstName,
+      lastName: person.lastName,
+      position: person.position,
+      department: person.department,
+      email: person.email,
       active: researcher.active,
       createdAt: researcher.createdAt.toISOString()
     };
   }
 
   /**
-   * Convert multiple researchers to list response
+   * Convert multiple researchers with person data to list response
    */
-  static toListResponse(researchers: Researcher[]): ResearcherListResponse {
+  static toListResponse(items: ResearcherWithPerson[]): ResearcherListResponse {
     return {
-      researchers: researchers.map(researcher => this.toResponse(researcher)),
-      total: researchers.length
+      researchers: items.map(item => this.toResponse(item.researcher, item.person)),
+      total: items.length
     };
   }
 

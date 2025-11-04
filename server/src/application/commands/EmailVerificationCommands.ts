@@ -7,6 +7,7 @@
 import { BaseCommand, CommandHandler } from '@application/commands/Command';
 import { User } from '@domain/entities/User';
 import { UserRepository } from '@domain/repositories/UserRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { EmailService } from '@domain/services/EmailService';
 import { EventBus } from '@application/contracts/EventBus';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -31,6 +32,7 @@ export class SendVerificationEmailCommand extends BaseCommand {
 export class SendVerificationEmailCommandHandler implements CommandHandler<SendVerificationEmailCommand, void> {
   constructor(
     private userRepository: UserRepository,
+    private personRepository: PersonRepository,
     private emailService: EmailService,
     private eventBus: EventBus
   ) {}
@@ -41,20 +43,26 @@ export class SendVerificationEmailCommandHandler implements CommandHandler<SendV
       throw new NotFoundError('User not found');
     }
 
-    if (!user.email) {
-      throw new EmailVerificationError('User does not have an email address');
+    // Get email from Person entity
+    if (!user.personId) {
+      throw new EmailVerificationError('User does not have a linked person profile');
+    }
+
+    const person = await this.personRepository.findById(user.personId);
+    if (!person) {
+      throw new NotFoundError('Person profile not found for user');
     }
 
     const token = user.generateVerificationToken();
     await this.userRepository.save(user);
 
     await this.emailService.sendVerificationEmail(
-      user.email,
+      person.email,
       token,
       user.username
     );
 
-    const event = new VerificationEmailSentEvent(user.id, user.email);
+    const event = new VerificationEmailSentEvent(user.id, person.email);
     await this.eventBus.publish(event);
   }
 }
@@ -73,6 +81,7 @@ export class VerifyEmailCommand extends BaseCommand {
 export class VerifyEmailCommandHandler implements CommandHandler<VerifyEmailCommand, User> {
   constructor(
     private userRepository: UserRepository,
+    private personRepository: PersonRepository,
     private eventBus: EventBus
   ) {}
 
@@ -85,7 +94,11 @@ export class VerifyEmailCommandHandler implements CommandHandler<VerifyEmailComm
     user.verifyEmail(command.token);
     await this.userRepository.save(user);
 
-    const event = new EmailVerifiedEvent(user.id, user.email!);
+    // Get email from Person entity for event
+    const person = user.personId ? await this.personRepository.findById(user.personId) : null;
+    const email = person?.email || 'unknown';
+
+    const event = new EmailVerifiedEvent(user.id, email);
     await this.eventBus.publish(event);
 
     return user;
@@ -106,6 +119,7 @@ export class ResendVerificationEmailCommand extends BaseCommand {
 export class ResendVerificationEmailCommandHandler implements CommandHandler<ResendVerificationEmailCommand, void> {
   constructor(
     private userRepository: UserRepository,
+    private personRepository: PersonRepository,
     private emailService: EmailService,
     private eventBus: EventBus
   ) {}
@@ -116,8 +130,14 @@ export class ResendVerificationEmailCommandHandler implements CommandHandler<Res
       throw new NotFoundError('User not found');
     }
 
-    if (!user.email) {
-      throw new EmailVerificationError('User does not have an email address');
+    // Get email from Person entity
+    if (!user.personId) {
+      throw new EmailVerificationError('User does not have a linked person profile');
+    }
+
+    const person = await this.personRepository.findById(user.personId);
+    if (!person) {
+      throw new NotFoundError('Person profile not found for user');
     }
 
     if (user.isEmailVerified()) {
@@ -132,12 +152,12 @@ export class ResendVerificationEmailCommandHandler implements CommandHandler<Res
     await this.userRepository.save(user);
 
     await this.emailService.sendVerificationEmail(
-      user.email,
+      person.email,
       token,
       user.username
     );
 
-    const event = new VerificationEmailResentEvent(user.id, user.email);
+    const event = new VerificationEmailResentEvent(user.id, person.email);
     await this.eventBus.publish(event);
   }
 }

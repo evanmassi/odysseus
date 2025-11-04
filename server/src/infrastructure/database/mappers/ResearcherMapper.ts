@@ -6,11 +6,7 @@ import { SqliteDateMapper } from '@infrastructure/database/SqliteDateMapper';
  */
 export interface ResearcherRow {
   id: string;
-  firstName: string;
-  lastName: string;
-  position: string | null;
-  department: string | null;
-  email: string | null;
+  personId: string;
   active: number; // SQLite stores boolean as 0/1
   createdAt: string;
 }
@@ -29,11 +25,7 @@ export class ResearcherMapper {
   static toRow(researcher: Researcher): ResearcherRow {
     return {
       id: researcher.id,
-      firstName: researcher.firstName,
-      lastName: researcher.lastName,
-      position: researcher.position ?? null,
-      department: researcher.department ?? null,
-      email: researcher.email ?? null,
+      personId: researcher.personId,
       active: researcher.active ? 1 : 0,
       createdAt: SqliteDateMapper.toDbDateTime(researcher.createdAt)
     };
@@ -45,11 +37,7 @@ export class ResearcherMapper {
   static fromRow(row: ResearcherRow): Researcher {
     return Researcher.fromData({
       id: row.id,
-      firstName: row.firstName,
-      lastName: row.lastName,
-      position: row.position ?? undefined,
-      department: row.department ?? undefined,
-      email: row.email ?? undefined,
+      personId: row.personId,
       active: Boolean(row.active),
       createdAt: SqliteDateMapper.fromDbDateTime(row.createdAt)!.toISOString()
     });

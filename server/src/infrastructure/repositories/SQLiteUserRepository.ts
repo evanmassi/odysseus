@@ -125,12 +125,12 @@ export class SQLiteUserRepository implements UserRepository {
 
     await this.context.execute(`
       INSERT OR REPLACE INTO users (
-        id, username, email, apiKey, role, passwordHash, salt, createdAt, researcherId, status,
+        id, username, apiKey, role, passwordHash, salt, createdAt, researcherId, personId, status,
         emailVerified, emailVerificationToken, emailVerificationExpiry, lastVerificationEmailSent,
         passwordResetToken, passwordResetExpiry, requirePasswordChange, lastPasswordChange, settings
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
-      row.id, row.username, row.email, row.apiKey, row.role, row.passwordHash, row.salt, row.createdAt, row.researcherId, row.status,
+      row.id, row.username, row.apiKey, row.role, row.passwordHash, row.salt, row.createdAt, row.researcherId, row.personId, row.status,
       row.emailVerified, row.emailVerificationToken, row.emailVerificationExpiry, row.lastVerificationEmailSent,
       row.passwordResetToken, row.passwordResetExpiry, row.requirePasswordChange, row.lastPasswordChange, row.settings
     ]);

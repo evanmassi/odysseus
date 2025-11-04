@@ -28,6 +28,7 @@ export interface TubeRow {
   concentrationUnit?: 'c/v' | 'c/mL';
   date?: string;
   researcherId?: string;
+  createdByName?: string;
   media?: string;
   cultureCondition?: string;
   lotNumber?: string;
@@ -68,6 +69,7 @@ export class TubeMapper {
       concentrationUnit: sampleData.concentrationUnit || undefined,
       date: sampleData.date || undefined,
       researcherId: tube.researcherId || undefined,
+      createdByName: tube.createdByName || undefined,
       media: mediaJson,
       cultureCondition: sampleData.cultureCondition || undefined,
       lotNumber: sampleData.lotNumber || undefined,
@@ -136,6 +138,7 @@ export class TubeMapper {
         notes: nullToUndefined(row.notes)
       },
       researcherId: nullToUndefined(row.researcherId),
+      createdByName: nullToUndefined(row.createdByName),
       timestamps: {
         createdAt: SqliteDateMapper.fromDbDateTime(row.createdAt)!.toISOString(),
         updatedAt: SqliteDateMapper.fromDbDateTime(row.updatedAt)!.toISOString()

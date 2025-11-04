@@ -228,6 +228,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.sendVerificationEmailHandler = new SendVerificationEmailCommandHandler(
         repositories.users,
+        repositories.persons,
         this.getEmailService(),
         this.getEventBus()
       );
@@ -240,6 +241,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.verifyEmailHandler = new VerifyEmailCommandHandler(
         repositories.users,
+        repositories.persons,
         this.getEventBus()
       );
     }
@@ -251,6 +253,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.resendVerificationHandler = new ResendVerificationEmailCommandHandler(
         repositories.users,
+        repositories.persons,
         this.getEmailService(),
         this.getEventBus()
       );
@@ -517,7 +520,8 @@ export class ServiceContainer {
 
         // Repositories (for admin endpoints)
         this.repositoryFactory.getConfigurationRepository(),
-        this.repositoryFactory.getResearcherRepository()
+        this.repositoryFactory.getResearcherRepository(),
+        this.repositoryFactory.getPersonRepository()
       );
     }
     return this.authController;
@@ -614,6 +618,7 @@ export class ServiceContainer {
       this.researcherApplicationService = new ResearcherApplicationService(
         repositories.researchers,
         repositories.users,
+        repositories.persons,
         this.getAccessControlService()
       );
     }
@@ -626,6 +631,7 @@ export class ServiceContainer {
       this.userApplicationService = new UserApplicationService(
         repositories.users,
         this.getAccessControlService(),
+        repositories.persons,
         repositories.researchers,
         repositories.configurations,
         this.repositoryFactory.getSQLiteContext()

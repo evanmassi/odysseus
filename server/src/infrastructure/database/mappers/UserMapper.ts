@@ -8,13 +8,13 @@ import { SqliteDateMapper } from '@infrastructure/database/SqliteDateMapper';
 export interface UserRow {
   id: string;
   username: string;
-  email?: string;
   apiKey: string;
   role: 'admin' | 'user';
   passwordHash?: string;
   salt?: string;
   createdAt: string;
   researcherId?: string;
+  personId?: string;
   status: 'pending' | 'approved' | 'rejected';
   emailVerified?: number;
   emailVerificationToken?: string;
@@ -45,13 +45,13 @@ export class UserMapper {
     return {
       id: user.id,
       username: user.username,
-      email: user.email,
       apiKey: user.apiKey,
       role: role.isAdmin() ? 'admin' : 'user',
       passwordHash: user.passwordHash || undefined,
       salt: user.salt || undefined,
       createdAt: SqliteDateMapper.toDbDateTime(user.createdAt),
       researcherId: user.researcherId,
+      personId: user.personId,
       status: user.status,
       emailVerified: user.emailVerified ? 1 : 0,
       emailVerificationToken: user.emailVerificationToken,
@@ -87,8 +87,8 @@ export class UserMapper {
       passwordHash: row.passwordHash,
       salt: row.salt,
       researcherId: row.researcherId,
+      personId: row.personId,
       status: row.status,
-      email: row.email,
       emailVerified: row.emailVerified,
       emailVerificationToken: row.emailVerificationToken,
       emailVerificationExpiry: row.emailVerificationExpiry,

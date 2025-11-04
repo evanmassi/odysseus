@@ -35,13 +35,13 @@ export class SQLiteTubeRepository implements TubeRepository {
     await this.context.execute(`
       INSERT OR REPLACE INTO tubes (
         id, tankId, rackId, boxId, position, cellType, donorInternalId,
-        donorSourceId, concentration, concentrationUnit, date, researcherId,
+        donorSourceId, concentration, concentrationUnit, date, researcherId, createdByName,
         media, cultureCondition, lotNumber, notes, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       row.id, row.tankId, row.rackId, row.boxId, row.position,
       row.cellType, row.donorInternalId, row.donorSourceId,
-      row.concentration, row.concentrationUnit, row.date, row.researcherId,
+      row.concentration, row.concentrationUnit, row.date, row.researcherId, row.createdByName,
       row.media, row.cultureCondition, row.lotNumber, row.notes,
       row.createdAt, row.updatedAt
     ]);

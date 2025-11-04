@@ -33,7 +33,6 @@ export class User {
     private _researcherId?: string,
     private _personId?: string,
     private _status: 'pending' | 'approved' | 'rejected' = 'pending',
-    private _email?: string,
     emailVerified?: boolean,
     emailVerificationToken?: string,
     emailVerificationExpiry?: Date | string,
@@ -122,15 +121,11 @@ export class User {
     role: UserRole,
     researcherId?: string,
     personId?: string,
-    status: 'pending' | 'approved' | 'rejected' = 'pending',
-    email?: string
+    status: 'pending' | 'approved' | 'rejected' = 'pending'
   ): User {
     const id = User.generateId();
     const apiKey = User.generateApiKey();
     const now = new Date();
-
-    // Normalize email to lowercase for consistent storage per RFC 5321
-    const normalizedEmail = email ? email.toLowerCase().trim() : undefined;
 
     const user = new User(
       id,
@@ -142,7 +137,6 @@ export class User {
       researcherId,
       personId,
       status,
-      normalizedEmail,
       false, // emailVerified
       undefined, // emailVerificationToken
       undefined, // emailVerificationExpiry
@@ -172,7 +166,6 @@ export class User {
     researcherId?: string;
     personId?: string;
     status?: 'pending' | 'approved' | 'rejected';
-    email?: string;
     emailVerified?: number;
     emailVerificationToken?: string;
     emailVerificationExpiry?: string;
@@ -183,9 +176,6 @@ export class User {
     lastPasswordChange?: string;
     settings?: UserSettings | string;
   }): User {
-    // Normalize email to lowercase when reading from database (handles legacy mixed-case data)
-    const normalizedEmail = data.email ? data.email.toLowerCase().trim() : undefined;
-
     // Parse settings from JSON string if needed
     let parsedSettings: UserSettings | undefined;
     if (data.settings) {
@@ -213,7 +203,6 @@ export class User {
       data.researcherId,
       data.personId,
       data.status || 'pending',
-      normalizedEmail,
       data.emailVerified === 1,
       data.emailVerificationToken,
       data.emailVerificationExpiry,
@@ -254,7 +243,6 @@ export class User {
   private validate(): void {
     this.validateUsername();
     this.validateApiKey();
-    this.validateEmail();
     this.validateTimestamps();
   }
 
@@ -291,19 +279,6 @@ export class User {
   private validateTimestamps(): void {
     if (this._createdAt > this._lastActivity) {
       throw new ValidationError('Created date cannot be after last activity date');
-    }
-  }
-
-  private validateEmail(): void {
-    if (this._email && this._email.trim().length > 0) {
-      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailPattern.test(this._email.trim())) {
-        throw new ValidationError('Invalid email format');
-      }
-
-      if (this._email.length > 255) {
-        throw new ValidationError('Email cannot exceed 255 characters');
-      }
     }
   }
 
@@ -566,7 +541,6 @@ export class User {
     researcherId?: string;
     personId?: string;
     status: 'pending' | 'approved' | 'rejected';
-    email?: string;
     settings: UserSettings;
   } {
     return {
@@ -579,7 +553,6 @@ export class User {
       researcherId: this._researcherId,
       personId: this._personId,
       status: this._status,
-      email: this._email,
       settings: this._settings
     };
   }
@@ -632,7 +605,6 @@ export class User {
   get researcherId(): string | undefined { return this._researcherId; }
   get personId(): string | undefined { return this._personId; }
   get status(): 'pending' | 'approved' | 'rejected' { return this._status; }
-  get email(): string | undefined { return this._email; }
 
   // Password getters (for persistence layer)
   get passwordHash(): string | undefined { return this._passwordHash; }
@@ -898,7 +870,6 @@ export class User {
       this._researcherId,
       this._personId,
       this._status,
-      this._email,
       this._emailVerified,
       this._emailVerificationToken,
       this._emailVerificationExpiry,

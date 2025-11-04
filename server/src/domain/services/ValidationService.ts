@@ -353,7 +353,9 @@ export class ValidationService {
       if (!researcher) {
         result.errors.push(`Researcher ID '${researcherId}' not found in system.`);
       } else if (!researcher.isActive()) {
-        result.warnings.push(`Researcher '${researcher.firstName} ${researcher.lastName}' is marked as inactive`);
+        // Note: Researcher names are now in Person entity
+        // TODO: Look up Person to display name in warning message
+        result.warnings.push(`Researcher '${researcher.id}' is marked as inactive`);
       }
     } catch (error) {
       result.warnings.push('Unable to verify researcher information');

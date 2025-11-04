@@ -29,6 +29,7 @@ import { UserRole } from '@domain/valueObjects/UserRole';
 import { SessionService } from '@application/commands/UserCommands';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -63,7 +64,8 @@ export class AuthController {
 
     // Repositories (for admin endpoints)
     private configRepository: ConfigurationRepository,
-    private researcherRepository: ResearcherRepository
+    private researcherRepository: ResearcherRepository,
+    private personRepository: PersonRepository
   ) {}
 
   // PUBLIC ENDPOINTS (No auth required)
@@ -370,11 +372,15 @@ export class AuthController {
             try {
               const researcher = await this.researcherRepository.findById(publicData.researcherId);
               if (researcher) {
-                return {
-                  ...publicData,
-                  researcherFirstName: researcher.firstName,
-                  researcherLastName: researcher.lastName
-                };
+                // Get Person data for researcher name
+                const person = await this.personRepository.findById(researcher.personId);
+                if (person) {
+                  return {
+                    ...publicData,
+                    researcherFirstName: person.firstName,
+                    researcherLastName: person.lastName
+                  };
+                }
               }
             } catch (error) {
               logger.warn('Failed to fetch researcher details for user', {
@@ -636,18 +642,22 @@ export class AuthController {
 
       // Send verification email for all users with email addresses
       // (First user will be auto-verified, but still gets the email for record keeping)
-      if (user.email) {
-        try {
-          const sendCommand = new SendVerificationEmailCommand(user.id, user.id);
-          await this.sendVerificationEmailHandler.handle(sendCommand);
-          logger.info('Verification email sent', { userId: user.id, email: user.email });
-        } catch (emailError) {
-          logger.error('Failed to send verification email', {
-            userId: user.id,
-            email: user.email,
-            error: emailError instanceof Error ? emailError.message : String(emailError)
-          });
-          // Don't fail registration if email sending fails - user is still created
+      // Get email from Person entity
+      if (user.personId) {
+        const person = await this.personRepository.findById(user.personId);
+        if (person && person.email) {
+          try {
+            const sendCommand = new SendVerificationEmailCommand(user.id, user.id);
+            await this.sendVerificationEmailHandler.handle(sendCommand);
+            logger.info('Verification email sent', { userId: user.id, email: person.email });
+          } catch (emailError) {
+            logger.error('Failed to send verification email', {
+              userId: user.id,
+              email: person.email,
+              error: emailError instanceof Error ? emailError.message : String(emailError)
+            });
+            // Don't fail registration if email sending fails - user is still created
+          }
         }
       }
 
@@ -897,10 +907,14 @@ export class AuthController {
       const command = new VerifyEmailCommand(token);
       const user = await this.verifyEmailHandler.handle(command);
 
-      logger.info('Email verified successfully', {
-        userId: user.id,
-        email: user.email
-      });
+      // Get email from Person entity for logging
+      if (user.personId) {
+        const person = await this.personRepository.findById(user.personId);
+        logger.info('Email verified successfully', {
+          userId: user.id,
+          email: person?.email || 'unknown'
+        });
+      }
 
       res.status(200).json({
         success: true,
@@ -978,10 +992,14 @@ export class AuthController {
       const command = new ResendVerificationEmailCommand(req.user.id, req.user.id);
       await this.resendVerificationHandler.handle(command);
 
-      logger.info('Verification email resent', {
-        userId: req.user.id,
-        email: req.user.email
-      });
+      // Get email from Person entity for logging
+      if (req.user.personId) {
+        const person = await this.personRepository.findById(req.user.personId);
+        logger.info('Verification email resent', {
+          userId: req.user.id,
+          email: person?.email || 'unknown'
+        });
+      }
 
       res.status(200).json({
         success: true,
@@ -1010,11 +1028,18 @@ export class AuthController {
         emailVerified: req.user.emailVerified
       });
 
+      // Get email from Person entity
+      let email: string | null = null;
+      if (req.user.personId) {
+        const person = await this.personRepository.findById(req.user.personId);
+        email = person?.email || null;
+      }
+
       res.status(200).json({
         success: true,
         data: {
           emailVerified: req.user.emailVerified,
-          email: req.user.email
+          email
         }
       });
     } catch (error) {

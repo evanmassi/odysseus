@@ -2,6 +2,7 @@ import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { SQLiteTubeRepository } from '@infrastructure/repositories/SQLiteTubeRepository';
 import { SQLiteUserRepository } from '@infrastructure/repositories/SQLiteUserRepository';
 import { SQLiteResearcherRepository } from '@infrastructure/repositories/SQLiteResearcherRepository';
+import { SQLitePersonRepository } from '@infrastructure/repositories/SQLitePersonRepository';
 import { SQLiteConfigurationRepository } from '@infrastructure/repositories/SQLiteConfigurationRepository';
 import { SQLiteRefreshTokenRepository } from '@infrastructure/repositories/SQLiteRefreshTokenRepository';
 import { SQLiteSessionRepository } from '@infrastructure/repositories/SQLiteSessionRepository';
@@ -10,6 +11,7 @@ import { SQLiteSessionRepository } from '@infrastructure/repositories/SQLiteSess
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
@@ -25,6 +27,7 @@ export class RepositoryFactory {
   private tubeRepository?: TubeRepository;
   private userRepository?: UserRepository;
   private researcherRepository?: ResearcherRepository;
+  private personRepository?: PersonRepository;
   private configurationRepository?: ConfigurationRepository;
   private refreshTokenRepository?: RefreshTokenRepository;
   private userSessionRepository?: UserSessionRepository;
@@ -67,9 +70,20 @@ export class RepositoryFactory {
    */
   getResearcherRepository(): ResearcherRepository {
     if (!this.researcherRepository) {
-      this.researcherRepository = new SQLiteResearcherRepository(this.sqliteContext);
+      const personRepo = this.getPersonRepository();
+      this.researcherRepository = new SQLiteResearcherRepository(this.sqliteContext, personRepo);
     }
     return this.researcherRepository;
+  }
+
+  /**
+   * Get person repository instance
+   */
+  getPersonRepository(): PersonRepository {
+    if (!this.personRepository) {
+      this.personRepository = new SQLitePersonRepository(this.sqliteContext);
+    }
+    return this.personRepository;
   }
 
   /**
@@ -117,6 +131,7 @@ export class RepositoryFactory {
       tubes: this.getTubeRepository(),
       users: this.getUserRepository(),
       researchers: this.getResearcherRepository(),
+      persons: this.getPersonRepository(),
       configurations: this.getConfigurationRepository(),
       refreshTokens: this.getRefreshTokenRepository(),
       userSessions: this.getUserSessionRepository()

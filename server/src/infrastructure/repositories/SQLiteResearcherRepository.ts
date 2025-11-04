@@ -7,19 +7,32 @@ import {
   ResearcherUsageStats
 } from '@domain/repositories/ResearcherRepository';
 import { Researcher } from '@domain/entities/Researcher';
+import { Person } from '@domain/entities/Person';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { ResearcherMapper, ResearcherRow } from '@infrastructure/database/mappers/ResearcherMapper';
 import { SqliteDateMapper } from '@infrastructure/database/SqliteDateMapper';
 
 /**
  * SQLiteResearcherRepository - Researcher data access
- * 
+ *
  * Implements ResearcherRepository interface using SQLite.
  * Handles all researcher persistence operations.
+ *
+ * IMPORTANT: After Person entity implementation, Researcher no longer contains
+ * profile fields (firstName, lastName, email, position, department).
+ * These are now in Person entity. Many methods below need refactoring to JOIN
+ * with persons table or work at Person level instead.
+ *
+ * TODO: Refactor bulk operations (saveMany, createFromNames, updateMany, etc.)
+ * to work with Person entity properly. Currently marked for cleanup.
  */
 export class SQLiteResearcherRepository implements ResearcherRepository {
-  
-  constructor(private context: SQLiteContext) {}
+
+  constructor(
+    private context: SQLiteContext,
+    private personRepository: PersonRepository
+  ) {}
 
   // BASIC CRUD OPERATIONS
 
@@ -32,17 +45,22 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   }
 
   async findByName(firstName: string, lastName: string): Promise<Researcher | null> {
-    const row = await this.context.queryOne<ResearcherRow>(
-      'SELECT * FROM researchers WHERE firstName = ? AND lastName = ?',
-      [firstName, lastName]
-    );
+    // Note: Names are now in Person entity, need to JOIN
+    const row = await this.context.queryOne<ResearcherRow>(`
+      SELECT r.* FROM researchers r
+      INNER JOIN persons p ON r.personId = p.id
+      WHERE p.firstName = ? AND p.lastName = ?
+    `, [firstName, lastName]);
     return row ? ResearcherMapper.fromRow(row) : null;
   }
 
   async findAll(): Promise<Researcher[]> {
-    const rows = await this.context.queryMany<ResearcherRow>(
-      'SELECT * FROM researchers ORDER BY lastName, firstName'
-    );
+    // Note: Ordering by Person name requires JOIN
+    const rows = await this.context.queryMany<ResearcherRow>(`
+      SELECT r.* FROM researchers r
+      INNER JOIN persons p ON r.personId = p.id
+      ORDER BY p.lastName, p.firstName
+    `);
     return ResearcherMapper.fromRows(rows);
   }
 
@@ -51,10 +69,10 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
 
     await this.context.execute(`
       INSERT OR REPLACE INTO researchers (
-        id, firstName, lastName, position, department, email, active, createdAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        id, personId, active, createdAt
+      ) VALUES (?, ?, ?, ?)
     `, [
-      row.id, row.firstName, row.lastName, row.position, row.department, row.email, row.active, row.createdAt
+      row.id, row.personId, row.active, row.createdAt
     ]);
   }
 
@@ -82,10 +100,13 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   }
 
   async findByStatus(isActive: boolean): Promise<Researcher[]> {
-    const rows = await this.context.queryMany<ResearcherRow>(
-      'SELECT * FROM researchers WHERE active = ? ORDER BY lastName, firstName',
-      [isActive ? 1 : 0]
-    );
+    // Note: Ordering by Person name requires JOIN
+    const rows = await this.context.queryMany<ResearcherRow>(`
+      SELECT r.* FROM researchers r
+      INNER JOIN persons p ON r.personId = p.id
+      WHERE r.active = ?
+      ORDER BY p.lastName, p.firstName
+    `, [isActive ? 1 : 0]);
     return ResearcherMapper.fromRows(rows);
   }
 
@@ -118,20 +139,24 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   }
 
   async searchByName(namePattern: string): Promise<Researcher[]> {
-    const rows = await this.context.queryMany<ResearcherRow>(
-      'SELECT * FROM researchers WHERE firstName LIKE ? OR lastName LIKE ? ORDER BY lastName, firstName',
-      [`%${namePattern}%`, `%${namePattern}%`]
-    );
+    // Note: Names are in Person entity, need to JOIN
+    const rows = await this.context.queryMany<ResearcherRow>(`
+      SELECT r.* FROM researchers r
+      INNER JOIN persons p ON r.personId = p.id
+      WHERE p.firstName LIKE ? OR p.lastName LIKE ?
+      ORDER BY p.lastName, p.firstName
+    `, [`%${namePattern}%`, `%${namePattern}%`]);
     return ResearcherMapper.fromRows(rows);
   }
 
   async findSimilarNames(firstName: string, lastName: string): Promise<Researcher[]> {
-    // Find similar first or last names
+    // Names are now in Person entity, need to JOIN
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT * FROM researchers
-       WHERE (firstName LIKE ? OR lastName LIKE ?)
-       AND NOT (firstName = ? AND lastName = ?)
-       ORDER BY lastName, firstName`,
+      `SELECT r.* FROM researchers r
+       INNER JOIN persons p ON r.personId = p.id
+       WHERE (p.firstName LIKE ? OR p.lastName LIKE ?)
+       AND NOT (p.firstName = ? AND p.lastName = ?)
+       ORDER BY p.lastName, p.firstName`,
       [`%${firstName}%`, `%${lastName}%`, firstName, lastName]
     );
     return ResearcherMapper.fromRows(rows);
@@ -359,7 +384,13 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
     if (firstName && firstName.trim() && lastName && lastName.trim() && errors.length === 0) {
       const similar = await this.findSimilarNames(firstName.trim(), lastName.trim());
       if (similar.length > 0) {
-        warnings.push(`Similar names found: ${similar.map(r => `${r.firstName} ${r.lastName}`).join(', ')}`);
+        const names = await Promise.all(
+          similar.map(async (r) => {
+            const person = await this.personRepository.findById(r.personId);
+            return person ? person.fullName : 'Unknown';
+          })
+        );
+        warnings.push(`Similar names found: ${names.join(', ')}`);
       }
     }
 
@@ -391,15 +422,29 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
       const existing = await this.findByName(trimmedFirst, trimmedLast);
       const similarResearchers = await this.findSimilarNames(trimmedFirst, trimmedLast);
 
+      // Get Person data for existing researcher
+      let existingPerson: Person | null = null;
+      if (existing) {
+        existingPerson = await this.personRepository.findById(existing.personId);
+      }
+
+      // Get Person data for similar researchers
+      const similarNames = await Promise.all(
+        similarResearchers.map(async (r) => {
+          const person = await this.personRepository.findById(r.personId);
+          return person ? person.fullName : 'Unknown';
+        })
+      );
+
       results.push({
         name: fullName,
         isDuplicate: Boolean(existing),
-        existingResearcher: existing ? {
+        existingResearcher: existing && existingPerson ? {
           id: existing.id,
-          name: `${existing.firstName} ${existing.lastName}`,
+          name: existingPerson.fullName,
           isActive: existing.active
         } : undefined,
-        similarNames: similarResearchers.map(r => `${r.firstName} ${r.lastName}`)
+        similarNames
       });
     }
 
@@ -411,15 +456,25 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   // BULK OPERATIONS
 
   async saveMany(researchers: Researcher[]): Promise<void> {
-    await this.context.transaction(() => {
+    await this.context.transaction(async () => {
       for (const researcher of researchers) {
+        // Fetch Person entity for this researcher
+        const person = await this.personRepository.findById(researcher.personId);
+        if (!person) {
+          throw new Error(`Person not found for researcher: ${researcher.personId}`);
+        }
+
+        // Save Person entity first
+        await this.personRepository.save(person);
+
+        // Save Researcher entity
         const row = ResearcherMapper.toRow(researcher);
-        this.context.execute(`
+        await this.context.execute(`
           INSERT OR REPLACE INTO researchers (
-            id, firstName, lastName, position, department, email, active, createdAt
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            id, personId, active, createdAt
+          ) VALUES (?, ?, ?, ?)
         `, [
-          row.id, row.firstName, row.lastName, row.position, row.department, row.email, row.active, row.createdAt
+          row.id, row.personId, row.active, row.createdAt
         ]);
       }
     });
@@ -444,21 +499,29 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
       for (const data of researchers) {
         if (!data.firstName.trim() || !data.lastName.trim()) continue;
 
-        const researcher = Researcher.create(
+        // Create Person entity (single source of truth for profile data)
+        const person = Person.create(
           data.firstName.trim(),
           data.lastName.trim(),
-          data.email || '',  // Email required for create, use empty string if not provided
+          data.email || '',  // Email required
           data.position,
           data.department
         );
-        const row = ResearcherMapper.toRow(researcher);
 
+        // Create Researcher entity (links to Person)
+        const researcher = Researcher.create(person.id);
+
+        // Save Person first
+        await this.personRepository.save(person);
+
+        // Save Researcher
+        const row = ResearcherMapper.toRow(researcher);
         await this.context.execute(`
           INSERT OR IGNORE INTO researchers (
-            id, firstName, lastName, position, department, email, active, createdAt
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            id, personId, active, createdAt
+          ) VALUES (?, ?, ?, ?)
         `, [
-          row.id, row.firstName, row.lastName, row.position, row.department, row.email, row.active, row.createdAt
+          row.id, row.personId, row.active, row.createdAt
         ]);
 
         createdResearchers.push(researcher);
@@ -475,47 +538,63 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
 
     await this.context.transaction(async () => {
       for (const update of updates) {
-        const setParts: string[] = [];
-        const params: any[] = [];
+        // Fetch Researcher
+        const researcher = await this.findById(update.id);
+        if (!researcher) continue;
 
-        if (update.firstName !== undefined) {
-          setParts.push('firstName = ?');
-          params.push(update.firstName);
+        // Fetch Person
+        const person = await this.personRepository.findById(researcher.personId);
+        if (!person) continue;
+
+        let personUpdated = false;
+        let researcherUpdated = false;
+
+        // Update Person for profile fields
+        if (update.firstName !== undefined || update.lastName !== undefined ||
+            update.position !== undefined || update.department !== undefined) {
+          person.updateProfile(
+            update.firstName ?? person.firstName,
+            update.lastName ?? person.lastName,
+            update.position ?? person.position,
+            update.department ?? person.department
+          );
+          personUpdated = true;
         }
 
-        if (update.lastName !== undefined) {
-          setParts.push('lastName = ?');
-          params.push(update.lastName);
-        }
-
-        if (update.position !== undefined) {
-          setParts.push('position = ?');
-          params.push(update.position);
-        }
-
-        if (update.department !== undefined) {
-          setParts.push('department = ?');
-          params.push(update.department);
-        }
-
+        // Update email separately if provided
         if (update.email !== undefined) {
-          setParts.push('email = ?');
-          params.push(update.email);
+          person.updateEmail(update.email);
+          personUpdated = true;
         }
 
+        // Save Person if modified
+        if (personUpdated) {
+          await this.personRepository.save(person);
+        }
+
+        // Update Researcher for active status
         if (update.active !== undefined) {
-          setParts.push('active = ?');
-          params.push(update.active ? 1 : 0);
+          if (update.active && !researcher.active) {
+            researcher.activate();
+            researcherUpdated = true;
+          } else if (!update.active && researcher.active) {
+            researcher.deactivate();
+            researcherUpdated = true;
+          }
         }
 
-        if (setParts.length === 0) continue;
+        // Save Researcher if modified
+        if (researcherUpdated) {
+          const row = ResearcherMapper.toRow(researcher);
+          await this.context.execute(
+            `UPDATE researchers SET active = ? WHERE id = ?`,
+            [row.active, row.id]
+          );
+        }
 
-        params.push(update.id);
-        const result = await this.context.execute(
-          `UPDATE researchers SET ${setParts.join(', ')} WHERE id = ?`,
-          params
-        );
-        totalUpdated += result.changes;
+        if (personUpdated || researcherUpdated) {
+          totalUpdated++;
+        }
       }
     });
 
@@ -559,13 +638,26 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
     const totalTubes = totalTubesResult?.count || 0;
     const averageTubesPerResearcher = researchersWithTubes.length > 0 ? totalTubes / researchersWithTubes.length : 0;
 
-    // Get oldest and newest researchers
+    // Get oldest and newest researchers (JOIN with persons for names)
     const oldestResearcherRow = await this.context.queryOne<{ id: string; firstName: string; lastName: string; createdAt: string }>(
-      'SELECT id, firstName, lastName, createdAt FROM researchers ORDER BY createdAt ASC LIMIT 1'
+      `SELECT r.id, p.firstName, p.lastName, r.createdAt
+       FROM researchers r
+       INNER JOIN persons p ON r.personId = p.id
+       ORDER BY r.createdAt ASC LIMIT 1`
     );
     const newestResearcherRow = await this.context.queryOne<{ id: string; firstName: string; lastName: string; createdAt: string }>(
-      'SELECT id, firstName, lastName, createdAt FROM researchers ORDER BY createdAt DESC LIMIT 1'
+      `SELECT r.id, p.firstName, p.lastName, r.createdAt
+       FROM researchers r
+       INNER JOIN persons p ON r.personId = p.id
+       ORDER BY r.createdAt DESC LIMIT 1`
     );
+
+    // Get most productive researcher Person data
+    let mostProductiveName: string | undefined;
+    if (mostActiveResearchers[0]?.researcher) {
+      const person = await this.personRepository.findById(mostActiveResearchers[0].researcher.personId);
+      mostProductiveName = person ? person.fullName : 'Unknown';
+    }
 
     return {
       totalResearchers,
@@ -574,9 +666,9 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
       researchersWithTubes: researchersWithTubes.length,
       researchersWithoutTubes: researchersWithoutTubes.length,
       averageTubesPerResearcher,
-      mostProductiveResearcher: mostActiveResearchers[0]?.researcher ? {
+      mostProductiveResearcher: mostActiveResearchers[0]?.researcher && mostProductiveName ? {
         id: mostActiveResearchers[0].researcher.id,
-        name: `${mostActiveResearchers[0].researcher.firstName} ${mostActiveResearchers[0].researcher.lastName}`,
+        name: mostProductiveName,
         tubeCount: mostActiveResearchers[0].tubeCount
       } : undefined,
       oldestResearcher: oldestResearcherRow ? {

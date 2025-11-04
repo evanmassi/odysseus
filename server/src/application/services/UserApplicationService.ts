@@ -1,8 +1,10 @@
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { User } from '@domain/entities/User';
 import { Researcher } from '@domain/entities/Researcher';
+import { Person } from '@domain/entities/Person';
 import { UserRole } from '@domain/valueObjects/UserRole';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import { LoginRequest, CreateUserRequest, UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest, UserDto } from '@application/dto/UserDto';
@@ -24,6 +26,7 @@ export class UserApplicationService {
   constructor(
     private userRepository: UserRepository,
     private accessControlService: AccessControlService,
+    private personRepository?: PersonRepository,
     private researcherRepository?: ResearcherRepository,
     private configurationRepository?: ConfigurationRepository,
     private context?: SQLiteContext
@@ -387,34 +390,36 @@ export class UserApplicationService {
       throw new Error('SQLiteContext is required for this operation');
     }
 
-    // Conditionally create researcher entity based on flag
+    // 1. Create Person entity (single source of truth for profile data)
+    const person = Person.create(
+      request.firstName,
+      request.lastName,
+      request.email,
+      request.position,
+      request.department
+    );
+
+    // 2. Conditionally create Researcher entity (links Person to research activities)
     let researcherId: string | undefined = undefined;
     let researcher: Researcher | undefined = undefined;
 
     if (createResearcher) {
-      researcher = Researcher.create(
-        request.firstName,
-        request.lastName,
-        request.email,
-        request.position,
-        request.department
-      );
+      researcher = Researcher.create(person.id);
       researcherId = researcher.id;
     }
 
-    // Determine role and status based on first-user detection
+    // 3. Determine role and status based on first-user detection
     const role = isFirstUser ? UserRole.admin() : UserRole.user();
     const status = isFirstUser ? 'approved' : 'pending';
 
-    // Create User entity with optional researcher link
+    // 4. Create User entity (links Person to authentication)
     const user = User.createWithPassword(
       username,
       request.password,
-      role,           // First user = admin, subsequent = user
-      researcherId,   // Link to researcher if created, undefined otherwise
-      undefined,      // personId - not yet implemented in registration flow
-      status,         // First user = approved, subsequent = pending
-      request.email   // Email for authentication
+      role,
+      researcherId,
+      person.id,  // Link to Person entity
+      status
     );
 
     // First user (admin): Auto-verify email to allow immediate login
@@ -422,14 +427,17 @@ export class UserApplicationService {
       user.markEmailVerified();
     }
 
-    // Atomic transaction: save researcher (if created) and user together
+    // 5. Atomic transaction: save Person, Researcher (if created), and User together
     return await this.context.transaction(async () => {
-      // Save researcher to database if created
+      // Save Person first (must exist before Researcher/User can reference it)
+      await this.personRepository!.save(person);
+
+      // Save Researcher if created (references Person via foreign key)
       if (researcher) {
         await this.researcherRepository!.save(researcher);
       }
 
-      // Save user to database with race condition protection
+      // Save User (references Person via foreign key, optionally Researcher)
       try {
         await this.userRepository.save(user);
       } catch (error) {

@@ -63,6 +63,20 @@ export class SQLiteContext {
     // Configuration tables - normalized schema
     this.createConfigurationTables();
 
+    // Persons table - single source of truth for human identity
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS persons (
+        id TEXT PRIMARY KEY,
+        firstName TEXT NOT NULL,
+        lastName TEXT NOT NULL,
+        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        position TEXT,
+        department TEXT,
+        createdAt TEXT NOT NULL,
+        updatedAt TEXT NOT NULL
+      )
+    `);
+
     // Tubes table with flexible identifiers
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS tubes (
@@ -78,6 +92,7 @@ export class SQLiteContext {
         concentrationUnit TEXT CHECK (concentrationUnit IN ('c/v', 'c/mL')),
         date TEXT,
         researcherId TEXT,
+        createdByName TEXT,
         media TEXT,
         cultureCondition TEXT,
         lotNumber TEXT,
@@ -94,13 +109,13 @@ export class SQLiteContext {
       CREATE TABLE IF NOT EXISTS users (
         id TEXT PRIMARY KEY,
         username TEXT NOT NULL UNIQUE,
-        email TEXT UNIQUE,
         apiKey TEXT NOT NULL UNIQUE,
         role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
         passwordHash TEXT,
         salt TEXT,
         createdAt TEXT NOT NULL,
         researcherId TEXT,
+        personId TEXT,
         status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
         emailVerified INTEGER NOT NULL DEFAULT 0 CHECK (emailVerified IN (0, 1)),
         emailVerificationToken TEXT,
@@ -111,22 +126,19 @@ export class SQLiteContext {
         requirePasswordChange INTEGER NOT NULL DEFAULT 0 CHECK (requirePasswordChange IN (0, 1)),
         lastPasswordChange TEXT,
         settings TEXT DEFAULT '{}',
-        FOREIGN KEY (researcherId) REFERENCES researchers(id) ON DELETE CASCADE
+        FOREIGN KEY (researcherId) REFERENCES researchers(id) ON DELETE CASCADE,
+        FOREIGN KEY (personId) REFERENCES persons(id)
       )
     `);
 
-    // Researchers table - simple and clean
+    // Researchers table - links Person to research activities
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS researchers (
         id TEXT PRIMARY KEY,
-        firstName TEXT NOT NULL,
-        lastName TEXT NOT NULL,
-        position TEXT,
-        department TEXT,
-        email TEXT,
+        personId TEXT NOT NULL,
         active INTEGER NOT NULL DEFAULT 1 CHECK (active IN (0, 1)),
         createdAt TEXT NOT NULL,
-        UNIQUE(firstName, lastName)
+        FOREIGN KEY (personId) REFERENCES persons(id)
       )
     `);
 
@@ -171,11 +183,17 @@ export class SQLiteContext {
    * Create database indexes
    */
   private createIndexes(): void {
+    // Person indexes
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(email COLLATE NOCASE)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_persons_last_name ON persons(lastName)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_persons_first_name ON persons(firstName)');
+
     // Tube location indexes
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_location ON tubes(tankId, rackId, boxId)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_position ON tubes(rackId, boxId, position)');
 
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_researcher_id ON tubes(researcherId)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_created_by_name ON tubes(createdByName)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_cell_type ON tubes(cellType)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_created_at ON tubes(createdAt DESC)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_updated_at ON tubes(updatedAt DESC)');
@@ -190,9 +208,9 @@ export class SQLiteContext {
     // User authentication indexes
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(apiKey)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_username ON users(username)');
-    this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_researcherId ON users(researcherId)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_personId ON users(personId)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_status ON users(status)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_email_verification_token ON users(emailVerificationToken)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_password_reset_token ON users(passwordResetToken)');
@@ -214,11 +232,8 @@ export class SQLiteContext {
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_user_sessions_last_used ON user_sessions(lastUsedAt DESC)');
 
     // Researcher indexes
-    this.db.exec('CREATE INDEX IF NOT EXISTS idx_researchers_last_name ON researchers(lastName)');
-    this.db.exec('CREATE INDEX IF NOT EXISTS idx_researchers_first_name ON researchers(firstName)');
-    this.db.exec('CREATE INDEX IF NOT EXISTS idx_researchers_email ON researchers(email)');
-    this.db.exec('CREATE INDEX IF NOT EXISTS idx_researchers_department ON researchers(department)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_researchers_active ON researchers(active)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_researchers_personId ON researchers(personId)');
     
     // Configuration indexes for optimized performance
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_configuration_versions_updated_at ON configuration_versions(updated_at DESC)');
