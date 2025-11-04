@@ -20,6 +20,7 @@ import { ResearcherController } from '@presentation/controllers/ResearcherContro
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { SearchController } from '@presentation/controllers/SearchController';
 import { UserController } from '@presentation/controllers/UserController';
+import { PersonController } from '@presentation/controllers/PersonController';
 
 // Application services
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
@@ -96,6 +97,7 @@ export class ServiceContainer {
   private configurationController?: ConfigurationController;
   private searchController?: SearchController;
   private userController?: UserController;
+  private personController?: PersonController;
 
   // Infrastructure services
   private passwordService?: PasswordService;
@@ -559,6 +561,15 @@ export class ServiceContainer {
     return this.userController;
   }
 
+  getPersonController(): PersonController {
+    if (!this.personController) {
+      this.personController = new PersonController(
+        this.repositoryFactory.getPersonRepository()
+      );
+    }
+    return this.personController;
+  }
+
   // LEGACY SERVICES (for non-migrated controllers)
 
   getTubePositionService(): TubePositionService {
@@ -605,6 +616,7 @@ export class ServiceContainer {
         repositories.tubes,
         repositories.users,
         repositories.researchers,
+        repositories.persons,
         this.getTubePositionService(),
         this.getAccessControlService()
       );
@@ -687,7 +699,8 @@ export class ServiceContainer {
       tubes: this.getTubeController(),
       auth: this.getAuthController(),
       researchers: this.getResearcherController(),
-      configurations: this.getConfigurationController()
+      configurations: this.getConfigurationController(),
+      person: this.getPersonController()
     };
   }
 }

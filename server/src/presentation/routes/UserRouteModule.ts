@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { UserController } from '@presentation/controllers/UserController';
+import { PersonController } from '@presentation/controllers/PersonController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
 
@@ -12,6 +13,7 @@ import { RouteModule } from '@presentation/routes/RouteModule';
 export class UserRouteModule implements RouteModule {
   constructor(
     private userController: UserController,
+    private personController: PersonController,
     private authMiddleware: AuthMiddleware
   ) {}
 
@@ -35,6 +37,28 @@ export class UserRouteModule implements RouteModule {
    * Configure routes on the provided router
    */
   configure(router: Router): void {
+    /**
+     * GET /api/users/me/profile
+     * Get current user's person profile
+     *
+     * Access: Any authenticated user
+     * Used by: Frontend profile management UI
+     */
+    router.get('/me/profile',
+      this.personController.getMyProfile.bind(this.personController)
+    );
+
+    /**
+     * PUT /api/users/me/profile
+     * Update current user's person profile
+     *
+     * Access: Any authenticated user
+     * Used by: Frontend when user updates their profile
+     */
+    router.put('/me/profile',
+      this.personController.updateMyProfile.bind(this.personController)
+    );
+
     /**
      * GET /api/users/me/settings
      * Get current user's settings
@@ -62,6 +86,6 @@ export class UserRouteModule implements RouteModule {
    * Get route count for monitoring
    */
   getRouteCount(): number {
-    return 2; // Total number of routes configured
+    return 4; // Total number of routes configured
   }
 }

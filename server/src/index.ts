@@ -124,6 +124,7 @@ class OdysseusServer {
     const configurationController = this.serviceContainer.getConfigurationController();
     const searchController = this.serviceContainer.getSearchController();
     const userController = this.serviceContainer.getUserController();
+    const personController = this.serviceContainer.getPersonController();
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
     const configurationRepository = this.repositoryFactory.getConfigurationRepository();
 
@@ -134,7 +135,7 @@ class OdysseusServer {
     registry.registerModule(new ResourceRouteModule(tubeController, researcherController, authMiddleware, configurationRepository));
     registry.registerModule(new ConfigurationRouteModule(configurationController, authMiddleware));
     registry.registerModule(new SearchRouteModule(searchController, authMiddleware, configurationRepository));
-    registry.registerModule(new UserRouteModule(userController, authMiddleware));
+    registry.registerModule(new UserRouteModule(userController, personController, authMiddleware));
 
     // Apply all routes
     registry.applyRoutes();

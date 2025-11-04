@@ -1,6 +1,7 @@
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { Tube } from '@domain/entities/Tube';
 import { User } from '@domain/entities/User';
 import { TubePositionService } from '@domain/services/TubePositionService';
@@ -23,6 +24,7 @@ export class TubeApplicationService {
     private tubeRepository: TubeRepository,
     private userRepository: UserRepository,
     private researcherRepository: ResearcherRepository,
+    private personRepository: PersonRepository,
     private tubePositionService: TubePositionService,
     private accessControlService: AccessControlService
   ) {}
@@ -54,10 +56,27 @@ export class TubeApplicationService {
       });
     }
 
-    // 4. Create entity (domain applies defaults & validation)
-    const tube = Tube.create(tubeData);
+    // 4. Snapshot person name for historical tracking
+    // If tube has a researcher, capture their name at creation time
+    // This preserves historical accuracy if person changes name later
+    let createdByName: string | undefined;
+    if (tubeData.researcherId) {
+      const researcher = await this.researcherRepository.findById(tubeData.researcherId);
+      if (researcher) {
+        const person = await this.personRepository.findById(researcher.personId);
+        if (person) {
+          createdByName = person.fullName;
+        }
+      }
+    }
 
-    // 5. Save
+    // 5. Create entity (domain applies defaults & validation)
+    const tube = Tube.create({
+      ...tubeData,
+      createdByName
+    });
+
+    // 6. Save
     await this.tubeRepository.save(tube);
 
     return TubeDto.toResponse(tube);
