@@ -95,6 +95,7 @@ export const tubeDataSchema = z.object({
   location: tubeLocationSchema,
   sample: tubeSampleSchema,
   researcherId: z.string().optional(),
+  createdByName: z.string().optional(),
   timestamps: tubeTimestampsSchema
 });
 

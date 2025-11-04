@@ -474,56 +474,73 @@ File: `server/src/application/commands/PersonCommands.ts` (NEW)
 
 ---
 
-### Phase 5: Presentation Layer - Controllers & Routes
+### Phase 5: Presentation Layer - Controllers & Routes ✓
 
-**5.1 Update AuthController**
+**Status**: ✅ COMPLETE - All presentation layer endpoints and historical name tracking implemented
 
-File: `server/src/presentation/controllers/AuthController.ts`
+**5.1 PersonController - Profile Management Endpoints**
 
-**Changes:**
-- Update `registerWithResearcher()` endpoint
-- No breaking changes to API contract (request/response same)
-- Internal logic uses Person entity
-
-**5.2 Create PersonController**
-
-File: `server/src/presentation/controllers/PersonController.ts` (NEW)
-
-```typescript
-export class PersonController {
-  // GET /api/users/me/profile - Get current user's person profile
-  async getMyProfile(req: Request, res: Response) {
-    const user = req.user;
-    const person = await personRepository.findById(user.personId);
-    res.json({ success: true, data: person.toData() });
-  }
-
-  // PUT /api/users/me/profile - Update current user's profile
-  async updateMyProfile(req: Request, res: Response) {
-    const user = req.user;
-    const person = await personRepository.findById(user.personId);
-    person.updateProfile(req.body.firstName, req.body.lastName, req.body.position, req.body.department);
-    await personRepository.save(person);
-    res.json({ success: true, data: person.toData() });
-  }
-}
-```
-
-**5.3 Update TubeController**
-
-File: `server/src/presentation/controllers/TubeController.ts`
-
-**Changes:**
-- Tube DTOs now include `createdByName` field
-- Display logic uses snapshot name for historical tubes
-
-**Files to Modify/Create:**
-- `server/src/presentation/controllers/AuthController.ts`
+**Created PersonController:**
 - `server/src/presentation/controllers/PersonController.ts` (NEW)
-- `server/src/presentation/controllers/TubeController.ts`
-- `server/src/presentation/routes/UserRouteModule.ts`
+- `GET /api/users/me/profile` - Fetch current user's person profile
+- `PUT /api/users/me/profile` - Update profile (name, email, position, department)
+- Email uniqueness validation
+- Permission checks (user must own the profile)
+- Proper error handling with domain exceptions
 
-**Estimated Time**: 3 hours
+**5.2 UserRouteModule - Profile Routes**
+
+**Wired up profile endpoints:**
+- `server/src/presentation/routes/UserRouteModule.ts` (UPDATED)
+- Routes configured for GET and PUT on `/users/me/profile`
+- PersonController injected via dependency injection
+- Authenticated routes (requires user session)
+
+**5.3 Tube Historical Name Tracking**
+
+**Backend - Tube DTOs:**
+- `packages/shared-schemas/src/tubes/tubeSchemas.ts` (UPDATED)
+- Added `createdByName: z.string().optional()` to `tubeDataSchema`
+- API now returns `createdByName` field in all tube responses
+- Backend already captures creator name at tube creation (TubeApplicationService lines 59-71)
+
+**Frontend - TubeInfoPanel Display:**
+- `client/src/domains/tubes/ui/components/grid/TubeInfoPanel.tsx` (UPDATED)
+- Smart researcher display with historical name tracking:
+  - Same name → "Evan Smith" (simple display)
+  - Name changed → "Evan Massi (now Evan Smith)" (shows evolution)
+  - Only historical → "Evan Massi" (researcher deleted/unlinked)
+  - Only current → "Evan Smith" (old tubes before Person entity)
+  - Neither → No display
+- Preserves historical record while showing current identity
+- Single field (no redundancy) - combines historical and current seamlessly
+
+**Files Created/Modified:**
+
+**Backend Controllers:**
+- `server/src/presentation/controllers/PersonController.ts` (NEW)
+
+**Backend Routes:**
+- `server/src/presentation/routes/UserRouteModule.ts` (UPDATED)
+
+**Shared Schemas:**
+- `packages/shared-schemas/src/tubes/tubeSchemas.ts` (UPDATED - added createdByName)
+
+**Frontend Components:**
+- `client/src/domains/tubes/ui/components/grid/TubeInfoPanel.tsx` (UPDATED - historical display)
+
+**Compilation Result:**
+- Client: 0 TypeScript errors ✅
+- Server: 0 TypeScript errors ✅
+
+**Key Achievement:**
+Historical name preservation now works end-to-end:
+1. Backend captures creator name at tube creation
+2. API returns createdByName in responses
+3. Frontend displays smart researcher name (historical + current if changed)
+4. Clean UX - single field, no redundancy
+
+**Estimated Time**: 3 hours (planned) → 2 hours (actual)
 
 ---
 
@@ -706,16 +723,16 @@ During Phase 6, we initially updated all client code to use `AdminResearcher` ty
 
 ### Presentation Layer
 - [x] Update AuthController (registerWithResearcher + all email/researcher name access)
-- [ ] Create PersonController (profile endpoints)
-- [ ] Update TubeController (include createdByName in DTOs)
-- [ ] Create UserRouteModule routes for profile
+- [x] Create PersonController (profile endpoints)
+- [x] Update TubeDto/tubeSchemas (include createdByName in DTOs)
+- [x] Create UserRouteModule routes for profile
 
 ### Shared Schemas
 - [x] Create Person.ts types (personSchemas.ts with Zod validation)
 - [x] Update User.ts types (add personId, remove fields) - N/A, used adminSchemas.ts instead
 - [x] Update Researcher.ts types (add personId, denormalized Person fields)
 - [x] Update AdminUser types (add personId, researcherId)
-- [ ] Update Tube.ts types (add person fields)
+- [x] Update Tube.ts types (add createdByName field)
 - [x] Export all new types from index.ts
 
 ### Client Services

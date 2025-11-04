@@ -168,6 +168,7 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
   const concentrationUnit = getDisplayValue('sample.concentrationUnit');
   const date = getDisplayValue('sample.date');
   const researcherId = getDisplayValue('researcherId');
+  const createdByName = getDisplayValue('createdByName');
   const notes = getDisplayValue('sample.notes');
 
   // Format complex values
@@ -175,9 +176,30 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
     ? formatConcentrationDisplay(concentration as number, concentrationUnit as 'c/v' | 'c/mL' | undefined)
     : undefined;
   const formattedDate = date ? formatDateForDisplay(date as string | Date) : undefined;
-  const researcherName = researcherId && researcherMap.has(researcherId as string)
-    ? formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!)
-    : undefined;
+
+  // Researcher display with historical name tracking
+  const researcherDisplay = (() => {
+    const currentName = researcherId && researcherMap.has(researcherId as string)
+      ? formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!)
+      : undefined;
+
+    const historicalName = createdByName as string | undefined;
+
+    // No researcher info at all
+    if (!historicalName && !currentName) return undefined;
+
+    // Only have historical name (researcher deleted or unlinked)
+    if (!currentName) return historicalName;
+
+    // Only have current name (old tube before Person entity implementation)
+    if (!historicalName) return currentName;
+
+    // Names match - no change
+    if (historicalName === currentName) return currentName;
+
+    // Names differ - show historical with current in parentheses
+    return `${historicalName} (now ${currentName})`;
+  })();
 
   // Detect if any fields have conflicts across selected tubes
   const hasConflicts = tubes.hasAnyConflicts(selectedTubes, [
@@ -249,7 +271,7 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
           <div className="flex flex-col gap-0.5 mt-3 border-l-2 border-gray-300 pl-2">
             <FieldValue label="Concentration" value={formattedConcentration} />
             <FieldValue label="Date" value={formattedDate} />
-            <FieldValue label="Researcher" value={researcherName} />
+            <FieldValue label="Researcher" value={researcherDisplay} />
           </div>
         </InfoSection>
 
