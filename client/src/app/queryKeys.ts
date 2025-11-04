@@ -16,6 +16,7 @@ export const queryKeys = {
   users: {
     all: ['users'] as const,
     settings: () => [...queryKeys.users.all, 'settings'] as const,
+    profile: () => [...queryKeys.users.all, 'profile'] as const,
   },
 
   // Tubes (unified)

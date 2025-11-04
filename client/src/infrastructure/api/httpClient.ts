@@ -105,6 +105,12 @@ export class HttpClient {
     else if (url.includes('/auth/refresh')) {
       return ResponseTransformers.RefreshResponse(data);
     }
+    else if (url.includes('/users/me/profile')) {
+      return ResponseTransformers.Person(data);
+    }
+    else if (url.includes('/users/me/sessions')) {
+      return ResponseTransformers.ActiveSession(data);
+    }
     else if (url.includes('/users/me/settings')) {
       return transformApiResponse(data, 'UserSettingsResponse');
     }

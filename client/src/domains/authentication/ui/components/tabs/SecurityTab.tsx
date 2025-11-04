@@ -1,0 +1,305 @@
+/**
+ * Security Tab
+ *
+ * Password management for authenticated users.
+ * Requires current password verification for security.
+ */
+import { useState, useEffect, useMemo } from 'react';
+import { KeyRound, Save, RefreshCw, Eye, EyeOff, Shield } from 'lucide-react';
+import { useChangePassword } from '@domains/users/hooks/useChangePassword';
+import { authService } from '@domains/authentication/services/AuthenticationService';
+import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthenticationService';
+import { PasswordRequirements } from '../PasswordRequirements';
+import { PasswordValidator } from '@odysseus/shared-schemas';
+import { notifications } from '@shared/utils';
+import { AnimatedCheckmark } from '../AnimatedCheckmark';
+
+interface SecurityTabProps {
+  onSaveComplete?: () => void;
+}
+
+export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
+  const { changePassword, isChanging, isSuccess, reset } = useChangePassword();
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [currentPasswordTouched, setCurrentPasswordTouched] = useState(false);
+  const [newPasswordTouched, setNewPasswordTouched] = useState(false);
+  const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const [passwordRequirements, setPasswordRequirements] = useState<PasswordConfig | null>(null);
+  const [showSuccess, setShowSuccess] = useState(false);
+
+  useEffect(() => {
+    const fetchRequirements = async () => {
+      try {
+        const requirements = await authService.getPasswordRequirements();
+        setPasswordRequirements(requirements);
+      } catch (error) {
+        console.error('Failed to fetch password requirements:', error);
+      }
+    };
+    fetchRequirements();
+  }, []);
+
+  const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
+    if (!touched) return 'border-gray-300';
+    return isValid ? 'border-green-500' : 'input-field-error';
+  };
+
+  const getLabelColorClass = (touched: boolean, isValid: boolean) => {
+    if (!touched) return 'text-gray-700';
+    return isValid ? 'text-green-700' : 'text-validation-error-label';
+  };
+
+  const newPasswordMeetsRequirements = useMemo(() => {
+    if (!passwordRequirements || !newPassword) return false;
+    const result = PasswordValidator.validate(newPassword, passwordRequirements);
+    return result.isValid;
+  }, [newPassword, passwordRequirements]);
+
+  const passwordsMatch = useMemo(() => {
+    return newPassword === confirmPassword && confirmPassword.length > 0;
+  }, [newPassword, confirmPassword]);
+
+  const newPasswordIsDifferent = useMemo(() => {
+    return currentPassword !== newPassword || newPassword.length === 0;
+  }, [currentPassword, newPassword]);
+
+  const isFormValid = useMemo(() => {
+    return (
+      currentPassword.trim().length > 0 &&
+      newPasswordMeetsRequirements &&
+      passwordsMatch &&
+      newPasswordIsDifferent
+    );
+  }, [currentPassword, newPasswordMeetsRequirements, passwordsMatch, newPasswordIsDifferent]);
+
+  const handleSubmit = async () => {
+    if (!isFormValid) {
+      if (currentPassword.trim().length === 0) {
+        setCurrentPasswordTouched(true);
+        notifications.error('Current password is required');
+        return;
+      }
+      if (!newPasswordMeetsRequirements) {
+        setNewPasswordTouched(true);
+        notifications.error('New password does not meet requirements');
+        return;
+      }
+      if (!passwordsMatch) {
+        setConfirmPasswordTouched(true);
+        notifications.error('Passwords do not match');
+        return;
+      }
+      if (!newPasswordIsDifferent) {
+        setNewPasswordTouched(true);
+        notifications.error('New password must be different from current password');
+        return;
+      }
+      return;
+    }
+
+    changePassword(
+      { currentPassword, newPassword },
+      {
+        onSuccess: () => {
+          notifications.success('Password changed successfully');
+          setCurrentPassword('');
+          setNewPassword('');
+          setConfirmPassword('');
+          setCurrentPasswordTouched(false);
+          setNewPasswordTouched(false);
+          setConfirmPasswordTouched(false);
+          setShowSuccess(true);
+          reset();
+          if (onSaveComplete) {
+            onSaveComplete();
+          }
+        },
+        onError: (error: Error) => {
+          console.error('❌ [SecurityTab] Password change failed:', error);
+          notifications.error(error.message || 'Failed to change password');
+        },
+      }
+    );
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 mb-4">
+        <Shield size={22} className="text-gray-700" />
+        <h3 className="text-xl font-semibold text-gray-900">Password Management</h3>
+      </div>
+
+      <div className="space-y-4 max-w-2xl">
+        <p className="text-sm text-gray-600">Change your password to keep your account secure</p>
+
+        {/* Current Password */}
+        <div className={`auth-input-container ${getFieldBorderClass(currentPasswordTouched, currentPassword.trim().length > 0)}`}>
+          <label
+            htmlFor="security-currentPassword"
+            className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(currentPasswordTouched, currentPassword.trim().length > 0)}`}
+          >
+            Current Password <span className="text-red-500">*</span>
+          </label>
+          <div className="relative px-3 py-2">
+            <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+            <input
+              type={showCurrentPassword ? 'text' : 'password'}
+              id="security-currentPassword"
+              value={currentPassword}
+              onChange={(e) => {
+                setCurrentPassword(e.target.value);
+                setShowSuccess(false);
+              }}
+              onBlur={() => setCurrentPasswordTouched(true)}
+              className="pl-7 pr-10 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+              placeholder="Enter current password"
+              required
+              disabled={isChanging}
+            />
+            <button
+              type="button"
+              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted hover:text-odysseus-dark transition-colors"
+              aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
+              tabIndex={-1}
+            >
+              {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+
+        {/* New Password */}
+        <div className="space-y-1">
+          <div className={`auth-input-container ${getFieldBorderClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}>
+            <label
+              htmlFor="security-newPassword"
+              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}
+            >
+              New Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative px-3 py-2">
+              <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+              <input
+                type={showNewPassword ? 'text' : 'password'}
+                id="security-newPassword"
+                value={newPassword}
+                onChange={(e) => {
+                  setNewPassword(e.target.value);
+                  setShowSuccess(false);
+                }}
+                onBlur={() => setNewPasswordTouched(true)}
+                className="pl-7 pr-10 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                placeholder="Enter new password"
+                required
+                disabled={isChanging}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword(!showNewPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted hover:text-odysseus-dark transition-colors"
+                aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                tabIndex={-1}
+              >
+                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          {passwordRequirements && (
+            <PasswordRequirements
+              password={newPassword}
+              config={passwordRequirements}
+              showError={newPasswordTouched && !newPasswordMeetsRequirements}
+            />
+          )}
+
+          {!newPasswordIsDifferent && newPasswordTouched && (
+            <p className="text-[10px] text-red-600 ml-1 mt-1">
+              New password must be different from current password
+            </p>
+          )}
+        </div>
+
+        {/* Confirm Password */}
+        <div className={`auth-input-container ${getFieldBorderClass(confirmPasswordTouched, passwordsMatch)}`}>
+          <label
+            htmlFor="security-confirmPassword"
+            className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(confirmPasswordTouched, passwordsMatch)}`}
+          >
+            Confirm Password <span className="text-red-500">*</span>
+          </label>
+          <div className="relative px-3 py-2">
+            <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              id="security-confirmPassword"
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                setShowSuccess(false);
+              }}
+              onBlur={() => setConfirmPasswordTouched(true)}
+              className="pl-7 pr-10 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+              placeholder="Confirm new password"
+              required
+              disabled={isChanging}
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted hover:text-odysseus-dark transition-colors"
+              aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+              tabIndex={-1}
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+        </div>
+
+        {confirmPasswordTouched && !passwordsMatch && confirmPassword.length > 0 && (
+          <p className="text-[10px] text-red-600 ml-1 -mt-2">
+            Passwords do not match
+          </p>
+        )}
+
+        {/* Save Button */}
+        <div className="pt-4 border-t border-gray-200">
+          <button
+            onClick={handleSubmit}
+            disabled={!isFormValid || isChanging}
+            className="btn btn-primary flex items-center space-x-2 text-sm px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isChanging ? (
+              <RefreshCw size={14} className="animate-spin" />
+            ) : (
+              <Save size={14} />
+            )}
+            <span>{isChanging ? 'Changing Password...' : 'Change Password'}</span>
+          </button>
+
+          {/* Success Banner - Reserved space to prevent layout shift */}
+          <div className="mt-4 min-h-[80px]">
+            {showSuccess && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <AnimatedCheckmark size={40} />
+                <div className="flex-1">
+                  <h4 className="text-sm font-semibold text-green-900">Password Changed Successfully</h4>
+                  <p className="text-xs text-green-700 mt-0.5">You can now use your new password to log in.</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

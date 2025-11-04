@@ -39,6 +39,8 @@ const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   'RefreshResponse': new Set(['accessTokenExpiry']),
   'LoginResponse': new Set(['createdAt', 'accessTokenExpiry', 'refreshTokenExpiry', 'timestamp']),
   'User': new Set(['lastActivity']),
+  'Person': new Set(['createdAt', 'updatedAt']),
+  'ActiveSession': new Set(['timestamp', 'createdAt', 'lastUsedAt']),
   'TubeData': new Set(['createdAt', 'updatedAt', 'date']),
   'Researcher': new Set(['createdAt', 'updatedAt']),
   'TankConfiguration': new Set(['createdAt', 'updatedAt']),
@@ -167,6 +169,8 @@ export const ResponseTransformers = {
     return transformed;
   },
   User: (data: any) => transformApiResponse(data, 'User'),
+  Person: (data: any) => transformApiResponse(data, 'Person'),
+  ActiveSession: (data: any) => transformApiResponse(data, 'ActiveSession'),
   TubeData: (data: any) => transformApiResponse(data, 'TubeData'),
   Researcher: (data: any) => transformApiResponse(data, 'Researcher')
 } as const;

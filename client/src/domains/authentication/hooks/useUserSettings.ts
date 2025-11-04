@@ -5,7 +5,7 @@
  * Provides proper loading states, error handling, and caching.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { userSettingsService } from '../services/UserSettingsService';
+import { userSettingsService } from '@domains/users/services/UserSettingsService';
 import { queryKeys } from '@app/queryKeys';
 import type { UserSettings, PositionDisplayPreference } from '@odysseus/shared-schemas';
 

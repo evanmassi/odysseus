@@ -481,13 +481,14 @@ export class SQLiteTubeRepository implements TubeRepository {
       SELECT ${this.TUBE_COLUMNS}, 100 as rank
       FROM tubes
       LEFT JOIN researchers ON tubes.researcherId = researchers.id
+      INNER JOIN persons p ON researchers.personId = p.id
       WHERE researchers.id IS NOT NULL
         AND (
     `;
 
     const researcherConditions: string[] = [];
     for (const term of terms) {
-      researcherConditions.push(`(researchers.firstName LIKE ? OR researchers.lastName LIKE ?)`);
+      researcherConditions.push(`(p.firstName LIKE ? OR p.lastName LIKE ?)`);
       params.push(`%${term}%`, `%${term}%`);
     }
 

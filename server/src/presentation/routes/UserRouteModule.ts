@@ -1,19 +1,21 @@
 import { Router } from 'express';
 import { UserController } from '@presentation/controllers/UserController';
 import { PersonController } from '@presentation/controllers/PersonController';
+import { SessionController } from '@presentation/controllers/SessionController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
 
 /**
  * User Route Module
  *
- * Handles user-related HTTP routes (settings, profile, etc.)
+ * Handles user-related HTTP routes (settings, profile, sessions, etc.)
  * All routes require authentication.
  */
 export class UserRouteModule implements RouteModule {
   constructor(
     private userController: UserController,
     private personController: PersonController,
+    private sessionController: SessionController,
     private authMiddleware: AuthMiddleware
   ) {}
 
@@ -80,12 +82,45 @@ export class UserRouteModule implements RouteModule {
     router.put('/me/settings',
       this.userController.updateCurrentUserSettings.bind(this.userController)
     );
+
+    /**
+     * GET /api/users/me/sessions
+     * Get all active sessions for current user
+     *
+     * Access: Any authenticated user
+     * Used by: Frontend security settings to display active sessions
+     */
+    router.get('/me/sessions',
+      this.sessionController.getUserSessions.bind(this.sessionController)
+    );
+
+    /**
+     * DELETE /api/users/me/sessions/:id
+     * Revoke a specific session
+     *
+     * Access: Any authenticated user (can only revoke own sessions)
+     * Used by: Frontend security settings to logout from specific device
+     */
+    router.delete('/me/sessions/:id',
+      this.sessionController.revokeSession.bind(this.sessionController)
+    );
+
+    /**
+     * DELETE /api/users/me/sessions/all
+     * Revoke all other sessions (except current)
+     *
+     * Access: Any authenticated user
+     * Used by: Frontend security settings "logout all other devices" button
+     */
+    router.delete('/me/sessions/all',
+      this.sessionController.revokeAllOtherSessions.bind(this.sessionController)
+    );
   }
 
   /**
    * Get route count for monitoring
    */
   getRouteCount(): number {
-    return 4; // Total number of routes configured
+    return 7; // Total number of routes configured
   }
 }

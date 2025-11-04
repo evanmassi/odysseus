@@ -13,6 +13,13 @@ import {
   updatePersonProfileSchema
 } from '@odysseus/shared-schemas';
 
+/**
+ * Extended update type including password confirmation requirement
+ */
+export interface UpdatePersonProfileWithPassword extends UpdatePersonProfile {
+  currentPassword: string;
+}
+
 export class PersonService {
   private static readonly BASE_PATH = '/users/me/profile';
 
@@ -25,9 +32,16 @@ export class PersonService {
 
   /**
    * Update current user's person profile
+   * Requires current password for security
    */
-  static async updateMyProfile(data: UpdatePersonProfile): Promise<Person> {
-    const validated = updatePersonProfileSchema.parse(data);
-    return await httpClient.putData(this.BASE_PATH, validated, personSchema);
+  static async updateMyProfile(data: UpdatePersonProfileWithPassword): Promise<Person> {
+    const { currentPassword, ...profileData } = data;
+    const validated = updatePersonProfileSchema.parse(profileData);
+
+    return await httpClient.putData(
+      this.BASE_PATH,
+      { ...validated, currentPassword },
+      personSchema
+    );
   }
 }

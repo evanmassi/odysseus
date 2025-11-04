@@ -21,6 +21,7 @@ import { ConfigurationController } from '@presentation/controllers/Configuration
 import { SearchController } from '@presentation/controllers/SearchController';
 import { UserController } from '@presentation/controllers/UserController';
 import { PersonController } from '@presentation/controllers/PersonController';
+import { SessionController } from '@presentation/controllers/SessionController';
 
 // Application services
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
@@ -98,6 +99,7 @@ export class ServiceContainer {
   private searchController?: SearchController;
   private userController?: UserController;
   private personController?: PersonController;
+  private sessionController?: SessionController;
 
   // Infrastructure services
   private passwordService?: PasswordService;
@@ -564,10 +566,20 @@ export class ServiceContainer {
   getPersonController(): PersonController {
     if (!this.personController) {
       this.personController = new PersonController(
-        this.repositoryFactory.getPersonRepository()
+        this.repositoryFactory.getPersonRepository(),
+        this.repositoryFactory.getUserRepository()
       );
     }
     return this.personController;
+  }
+
+  getSessionController(): SessionController {
+    if (!this.sessionController) {
+      this.sessionController = new SessionController(
+        this.repositoryFactory.getUserSessionRepository()
+      );
+    }
+    return this.sessionController;
   }
 
   // LEGACY SERVICES (for non-migrated controllers)

@@ -45,7 +45,7 @@ export class SQLiteUserRepository implements UserRepository {
     // Email comparison is case-insensitive per RFC 5321
     const normalizedEmail = email.toLowerCase().trim();
     const row = await this.context.queryOne<UserRow>(
-      'SELECT * FROM users WHERE LOWER(email) = ?',
+      'SELECT u.* FROM users u INNER JOIN persons p ON u.personId = p.id WHERE LOWER(p.email) = ?',
       [normalizedEmail]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -163,7 +163,7 @@ export class SQLiteUserRepository implements UserRepository {
     // Email comparison is case-insensitive per RFC 5321
     const normalizedEmail = email.toLowerCase().trim();
     const result = await this.context.queryOne<{ count: number }>(
-      'SELECT COUNT(*) as count FROM users WHERE LOWER(email) = ?',
+      'SELECT COUNT(*) as count FROM users u INNER JOIN persons p ON u.personId = p.id WHERE LOWER(p.email) = ?',
       [normalizedEmail]
     );
     return (result?.count || 0) > 0;

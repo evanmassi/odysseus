@@ -2,7 +2,7 @@
 
 **Date**: 2025-11-03
 **Author**: Claude (Sonnet 4.5)
-**Status**: In Progress - Phases 1-6 Complete (Client Layer Fully Integrated)
+**Status**: In Progress - Phases 1-6 Complete, Phase 7 Ready to Implement (Account & Security Tabs)
 
 ---
 
@@ -646,15 +646,313 @@ During Phase 6, we initially updated all client code to use `AdminResearcher` ty
 
 ---
 
-### Phase 7: Client Layer - Account Tab UI (DEFERRED)
+### Phase 7: Client Layer - Account & Security Tabs
 
-**Status**: Deferred to separate implementation after Person entity foundation is complete.
+**Status**: READY TO IMPLEMENT - Backend verification complete
 
-**Scope**: Profile management, security settings, activity log UI components.
+**Scope**: Account tab (profile management), Security tab (password/sessions/activity), integration with UserSettingsModal.
 
-**Rationale**: Build data layer and backend first, then UI separately for focused iterations.
+**Rationale**: Separate "who you are" (Account) from "how you authenticate" (Security) for better UX and cleaner architecture.
 
-**Estimated Time**: 6 hours (when implemented later)
+**Estimated Time**: 6-7 hours total
+
+---
+
+#### 7.1 Backend Prerequisites
+
+**✅ Existing Endpoints:**
+
+1. **Profile Management** (PersonController):
+   - GET /api/users/me/profile
+   - PUT /api/users/me/profile
+   - **⚠️ Missing:** Password confirmation required for profile updates
+
+2. **Password Management** (AuthController):
+   - POST /api/auth/change-password (requires currentPassword + newPassword)
+
+**❌ Missing Endpoints:**
+
+3. **Session Management** (needs implementation):
+   - GET /api/users/me/sessions - List active sessions
+   - DELETE /api/users/me/sessions/:id - Revoke specific session
+   - DELETE /api/users/me/sessions/all - Revoke all other sessions
+
+**Infrastructure Already Exists:**
+- UserSession entity (tracks: deviceInfo, ipAddress, userAgent, timestamps)
+- UserSessionRepository with all required methods
+- JwtSessionService for session lifecycle management
+
+**Backend Work Required Before Frontend:**
+1. Add password confirmation validation to PersonController.updateMyProfile
+2. Create session management endpoints (use existing infrastructure)
+3. Test endpoints with Postman/curl
+
+---
+
+#### 7.2 Frontend Implementation Plan
+
+**Step 1: Backend Work (1.5 hours)**
+
+**Task 1.1: Add Password Confirmation to Profile Updates**
+- Modify PersonController.updateMyProfile to require currentPassword field
+- Validate password before allowing profile changes
+- Return appropriate error if password incorrect
+
+**Task 1.2: Create Session Management Endpoints**
+- Create SessionController or add to UserController:
+  - `getUserSessions()` - GET /api/users/me/sessions
+  - `revokeSession()` - DELETE /api/users/me/sessions/:id
+  - `revokeAllSessions()` - DELETE /api/users/me/sessions/all
+- Wire up routes in UserRouteModule
+- Use existing UserSessionRepository methods
+
+**Task 1.3: Test Backend Endpoints**
+- Test profile update with password confirmation
+- Test session listing
+- Test session revocation
+
+---
+
+**Step 2: Client Services Layer (45 min)**
+
+**Task 2.1: Create SessionService**
+- File: `client/src/domains/authentication/services/SessionService.ts`
+- Methods:
+  - `getSessions()` - GET /api/users/me/sessions
+  - `revokeSession(sessionId)` - DELETE /api/users/me/sessions/:id
+  - `revokeAllOtherSessions()` - DELETE /api/users/me/sessions/all
+
+**Task 2.2: Create React Query Hooks**
+- File: `client/src/domains/authentication/hooks/useSessionQuery.ts`
+- Hooks:
+  - `useSessionsQuery()` - Fetch sessions with React Query
+  - `useRevokeSessionMutation()` - Revoke single session
+  - `useRevokeAllSessionsMutation()` - Revoke all others
+
+**Task 2.3: Update PersonService**
+- Add password field to `updateMyProfile()` request
+- Update request validation
+
+**Task 2.4: Add Query Keys**
+- Add `sessions.list()` to queryKeys.ts
+- Ensure proper cache invalidation on revoke
+
+---
+
+**Step 3: Account Tab Implementation (2.5 hours)**
+
+**Task 3.1: Create ProfileSection Component**
+- File: `client/src/domains/authentication/ui/components/ProfileSection.tsx`
+- Features:
+  - Display mode: Shows Person data (firstName, lastName, email, position, department)
+  - Edit mode: Inline form with validation
+  - Password confirmation field (required for save)
+  - Username display (read-only, generated from name)
+  - Researcher status indicator (read-only)
+  - Save/Cancel buttons
+  - Success/error toasts
+- Uses:
+  - React Hook Form for form state
+  - Zod validation from shared-schemas
+  - PersonService hooks (useMyProfile, useUpdateMyProfile)
+
+**Task 3.2: Create AccountTab Component**
+- File: `client/src/domains/authentication/ui/components/AccountTab.tsx`
+- Layout: Simple container that wraps ProfileSection
+- Styling: Consistent with existing UserSettingsModal tabs
+
+**Task 3.3: Test Account Tab**
+- Verify profile display
+- Test edit mode toggle
+- Test validation (empty fields, invalid email)
+- Test password confirmation requirement
+- Test successful save + toast
+- Test error handling
+
+---
+
+**Step 4: Security Tab - Password Management (1.5 hours)**
+
+**Task 4.1: Create PasswordSection Component**
+- File: `client/src/domains/authentication/ui/components/PasswordSection.tsx`
+- Features:
+  - Current password field
+  - New password field (with PasswordRequirements display)
+  - Confirm password field
+  - Password strength indicator
+  - Save button with loading state
+  - Success/error toasts
+- Validation:
+  - Current password required
+  - New password meets requirements (uses PasswordValidator)
+  - Confirm password matches
+- Uses:
+  - React Hook Form
+  - Existing PasswordRequirements component
+  - AuthService.changePassword()
+
+**Task 4.2: Test Password Change**
+- Verify validation (all fields required)
+- Test incorrect current password
+- Test password requirements validation
+- Test mismatch between new/confirm
+- Test successful password change + toast
+
+---
+
+**Step 5: Security Tab - Session Management (1.5 hours)**
+
+**Task 5.1: Create SessionListSection Component**
+- File: `client/src/domains/authentication/ui/components/SessionListSection.tsx`
+- Features:
+  - Table of active sessions
+  - Columns: Device Info, Location (IP), Created, Last Used
+  - Current session indicator (badge/highlight)
+  - "Revoke" button per session (except current)
+  - "Logout All Other Devices" button
+  - Confirmation dialog for bulk revoke
+  - Loading states during revocation
+  - Success/error toasts
+- Uses:
+  - useSessionsQuery() hook
+  - useRevokeSessionMutation()
+  - useRevokeAllSessionsMutation()
+
+**Task 5.2: Create ActivityLogSection Component (Optional - can defer)**
+- File: `client/src/domains/authentication/ui/components/ActivityLogSection.tsx`
+- Features:
+  - Table of recent security events
+  - Columns: Date/Time, Event Type (Login, Password Change, etc.), IP Address, Status
+  - Date range filter
+  - Pagination
+- Uses: Session creation timestamps from sessions data (reuse existing endpoint)
+
+**Task 5.3: Create SecurityTab Component**
+- File: `client/src/domains/authentication/ui/components/SecurityTab.tsx`
+- Layout: Vertical stack of sections
+  - PasswordSection
+  - SessionListSection
+  - ActivityLogSection (if implemented)
+
+**Task 5.4: Test Security Tab**
+- Verify sessions list display
+- Test current session indicator
+- Test single session revocation
+- Test "logout all others" with confirmation
+- Test activity log display (if implemented)
+
+---
+
+**Step 6: Integration with UserSettingsModal (30 min)**
+
+**Task 6.1: Update UserSettingsModal**
+- File: `client/src/domains/authentication/ui/components/UserSettingsModal.tsx`
+- Changes:
+  - Add "Account" tab alongside existing tabs
+  - Add "Security" tab
+  - Import AccountTab and SecurityTab components
+  - Update tab routing/state management
+  - Ensure consistent styling
+
+**Task 6.2: E2E Testing**
+- Test all tabs switch correctly
+- Verify no layout issues
+- Test data persistence across tab switches
+- Verify all functionality works in modal context
+
+---
+
+#### 7.3 Implementation Checklist
+
+**Backend (Required First):**
+- [ ] Add password confirmation to PersonController.updateMyProfile
+- [ ] Create SessionController with 3 endpoints
+- [ ] Wire up session routes in UserRouteModule
+- [ ] Test all endpoints
+
+**Client Services:**
+- [ ] Create SessionService
+- [ ] Create useSessionQuery hooks
+- [ ] Update PersonService with password field
+- [ ] Add session query keys
+
+**Account Tab:**
+- [ ] Create ProfileSection component
+- [ ] Create AccountTab container
+- [ ] Test profile display/edit/save
+
+**Security Tab:**
+- [ ] Create PasswordSection component
+- [ ] Create SessionListSection component
+- [ ] Create ActivityLogSection component (optional)
+- [ ] Create SecurityTab container
+- [ ] Test password change
+- [ ] Test session management
+
+**Integration:**
+- [ ] Update UserSettingsModal with new tabs
+- [ ] E2E testing
+- [ ] Verify styling consistency
+
+---
+
+#### 7.4 Design Considerations
+
+**Password Confirmation Strategy:**
+- Profile updates require current password for security
+- Email changes are particularly sensitive (require admin re-verification after change)
+- Position/department changes do not require password (lower sensitivity)
+- **Decision:** Require password for ANY profile update (simplest, most secure)
+
+**Session Management UX:**
+- Show current session prominently (cannot be revoked)
+- Confirmation dialog for "logout all other devices" (destructive action)
+- Auto-refresh sessions list after revocation
+- Show friendly device names when possible (fallback to user agent string)
+
+**Activity Log Scope:**
+- **Phase 7:** Use session creation/last used timestamps (no new data needed)
+- **Future:** Implement proper audit log with all user actions (tube edits, searches, etc.)
+
+---
+
+#### 7.5 Testing Requirements
+
+**Unit Tests (Optional):**
+- ProfileSection form validation
+- PasswordSection password requirements
+- SessionListSection session display
+
+**Integration Tests:**
+- Profile update with password confirmation
+- Password change flow
+- Session revocation flow
+
+**Manual E2E Testing:**
+- Register new user → Update profile → Change password → Revoke sessions
+- Test validation errors at each step
+- Verify data persistence across page refreshes
+- Test multiple sessions (login from different browsers)
+
+---
+
+#### 7.6 Time Estimates
+
+**Backend Work:** 1.5 hours
+- Password confirmation: 30 min
+- Session endpoints: 45 min
+- Testing: 15 min
+
+**Frontend Implementation:** 4.5-5.5 hours
+- Services layer: 45 min
+- Account tab: 2.5 hours
+- Security tab (password): 1.5 hours
+- Security tab (sessions): 1.5 hours
+- Activity log: 1 hour (OPTIONAL - can defer)
+
+**Integration & Testing:** 30 min
+
+**Total: 6.5-7.5 hours** (6.5 without activity log, 7.5 with activity log)
 
 ---
 
@@ -758,12 +1056,14 @@ During Phase 6, we initially updated all client code to use `AdminResearcher` ty
   - [x] BatchTubeEditorModal.tsx
 
 ### Client UI
-- [ ] Update RegisterModal (handle new Person entity types)
-- [ ] ~~Create ProfileSection component~~ (DEFERRED)
-- [ ] ~~Create SecuritySection component~~ (DEFERRED)
-- [ ] ~~Create ActivityLogSection component~~ (DEFERRED)
-- [ ] ~~Create AccountTab container~~ (DEFERRED)
-- [ ] ~~Update SettingsModal (add Account tab)~~ (DEFERRED)
+- [x] Update RegisterModal (handle new Person entity types) - **✅ VERIFIED (already compatible)**
+- [ ] Create ProfileSection component
+- [ ] Create PasswordSection component
+- [ ] Create SessionListSection component
+- [ ] Create ActivityLogSection component (optional)
+- [ ] Create AccountTab container
+- [ ] Create SecurityTab container
+- [ ] Update UserSettingsModal (add Account + Security tabs)
 
 ### Testing & Verification
 - [x] Test TypeScript compilation (0 errors) - **ACHIEVED**
@@ -909,8 +1209,10 @@ During Phase 6, we initially updated all client code to use `AdminResearcher` ty
 - Update TubeController to include createdByName in DTOs
 - Create UserRouteModule routes for profile management
 
-**Phase 7 - UI (Deferred):**
-- Account tab implementation deferred to separate work
+**Phase 7 - Account & Security Tabs UI:**
+- Backend: Add password confirmation + session management endpoints
+- Frontend: AccountTab (profile management) + SecurityTab (password/sessions/activity)
+- Integration: Add tabs to UserSettingsModal
 
 **Phase 8 - Testing:**
 - Integration testing of registration flows

@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, lazy, Suspense } from 'react';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
-import { X, Save, RefreshCw, Cog, Table2, AlertTriangle } from 'lucide-react';
+import { X, Save, RefreshCw, Cog, Table2, UserRound, Shield, AlertTriangle } from 'lucide-react';
 import { notifications } from '@shared/utils';
 import { useUserSettings, useUserSettingsActions } from '../../hooks/useUserSettings';
 import type { UserSettings, PositionDisplayPreference } from '@odysseus/shared-schemas';
@@ -16,6 +16,12 @@ import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
 const PositionDisplayPreferenceTab = lazy(() =>
   import('./tabs/PositionDisplayPreferenceTab').then(m => ({ default: m.PositionDisplayPreferenceTab }))
 );
+const AccountTab = lazy(() =>
+  import('./tabs/AccountTab').then(m => ({ default: m.AccountTab }))
+);
+const SecurityTab = lazy(() =>
+  import('./tabs/SecurityTab').then(m => ({ default: m.SecurityTab }))
+);
 
 interface UserSettingsModalProps {
   isOpen: boolean;
@@ -23,7 +29,7 @@ interface UserSettingsModalProps {
 }
 
 export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<'display'>('display');
+  const [activeTab, setActiveTab] = useState<'account' | 'security' | 'display'>('account');
   const [localSettings, setLocalSettings] = useState<UserSettings>({});
   const [originalSettings, setOriginalSettings] = useState<UserSettings>({});
 
@@ -78,10 +84,9 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   const hasChanges = JSON.stringify(localSettings) !== JSON.stringify(originalSettings);
 
   const tabs = [
+    { id: 'account', label: 'Account', icon: UserRound },
+    { id: 'security', label: 'Security', icon: Shield },
     { id: 'display', label: 'Display Preferences', icon: Table2 },
-    // Future tabs can be added here:
-    // { id: 'notifications', label: 'Notifications', icon: Bell },
-    // { id: 'profile', label: 'Profile', icon: User },
   ] as const;
 
   return (
@@ -97,7 +102,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
               <Cog className="w-6 h-6" />
               <div>
                 <h2 className="text-lg font-bold">User Settings</h2>
-                <p className="text-white/80 text-xs">Personalize Your Experience</p>
+                <p className="text-white/80 text-xs">Account & Personal Preferences</p>
               </div>
             </div>
             <button
@@ -143,6 +148,16 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
                 <TabSkeleton />
               ) : (
                 <>
+                  {activeTab === 'account' && (
+                    <Suspense fallback={<TabSkeleton />}>
+                      <AccountTab onSaveComplete={onClose} />
+                    </Suspense>
+                  )}
+                  {activeTab === 'security' && (
+                    <Suspense fallback={<TabSkeleton />}>
+                      <SecurityTab />
+                    </Suspense>
+                  )}
                   {activeTab === 'display' && (
                     <Suspense fallback={<TabSkeleton />}>
                       <PositionDisplayPreferenceTab
