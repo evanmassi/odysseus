@@ -350,3 +350,16 @@ export {
   type UpdateUserSettingsRequest,
   type UserSettingsResponse
 } from './users/userSettingsSchemas';
+
+// Person Schemas (Core profile entity)
+export {
+  // Schemas
+  personSchema,
+  updatePersonProfileSchema,
+  personProfileResponseSchema,
+
+  // Types
+  type Person,
+  type UpdatePersonProfile,
+  type PersonProfileResponse
+} from './persons/personSchemas';

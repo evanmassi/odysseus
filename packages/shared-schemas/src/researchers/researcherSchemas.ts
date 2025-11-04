@@ -9,22 +9,26 @@
  */
 
 import { z } from 'zod';
+import type { Person } from '../persons/personSchemas';
 
 /**
  * Researcher Domain Entity
  *
  * Represents a researcher profile in the lab system.
- * Simple, clean domain model matching backend implementation.
+ * Includes denormalized Person fields for display purposes.
+ * Matches backend ResearcherResponse DTO.
  */
 export const researcherSchema = z.object({
-  id: z.string(), // nanoid format from backend
+  id: z.string(),
+  personId: z.string(),
+  active: z.boolean(),
+  createdAt: z.union([z.string().datetime('Invalid created date'), z.date()]),
+  // Denormalized Person fields for display
   firstName: z.string(),
   lastName: z.string(),
+  email: z.string(),
   position: z.string().optional(),
-  department: z.string().optional(),
-  email: z.string().optional(),
-  active: z.boolean(),
-  createdAt: z.union([z.string().datetime('Invalid created date'), z.date()]) // API sends ISO string, transformer converts to Date
+  department: z.string().optional()
 });
 
 /**
@@ -77,10 +81,18 @@ export type ResearcherQueryFilters = z.infer<typeof researcherQueryFiltersSchema
 /**
  * Admin Researcher Schema
  *
- * Extended researcher view with admin metadata (tube counts, user links)
- * Used in admin panels for researcher management and safe deletion
+ * Extended researcher view with admin metadata and denormalized Person fields
+ * Includes person data for display purposes in admin UI
  */
 export const adminResearcherSchema = researcherSchema.extend({
+  // Person fields (denormalized for display)
+  firstName: z.string(),
+  lastName: z.string(),
+  email: z.string(),
+  position: z.string().optional(),
+  department: z.string().optional(),
+
+  // Admin metadata
   tubeCount: z.number().int().min(0),
   linkedUserId: z.string().nullable(),
   linkedUsername: z.string().nullable(),
@@ -115,31 +127,31 @@ export const validateResearcherEmail = (email?: string): boolean => {
 };
 
 /**
- * Display utilities for researcher names
+ * Display utilities for person names
  */
 
 /** Format for display in lists: "Last, First" */
-export const formatResearcherListDisplay = (researcher: Pick<Researcher, 'firstName' | 'lastName'>): string => {
-  return `${researcher.lastName}, ${researcher.firstName}`;
+export const formatResearcherListDisplay = (person: Pick<Person, 'firstName' | 'lastName'>): string => {
+  return `${person.lastName}, ${person.firstName}`;
 };
 
 /** Format for display in dropdowns: "First Last" */
-export const formatResearcherDropdownDisplay = (researcher: Pick<Researcher, 'firstName' | 'lastName'>): string => {
-  return `${researcher.firstName} ${researcher.lastName}`;
+export const formatResearcherDropdownDisplay = (person: Pick<Person, 'firstName' | 'lastName'>): string => {
+  return `${person.firstName} ${person.lastName}`;
 };
 
 /** Format full display with position: "First Last (Position)" */
-export const formatResearcherFullDisplay = (researcher: Pick<Researcher, 'firstName' | 'lastName' | 'position'>): string => {
-  const baseName = formatResearcherDropdownDisplay(researcher);
-  return researcher.position ? `${baseName} (${researcher.position})` : baseName;
+export const formatResearcherFullDisplay = (person: Pick<Person, 'firstName' | 'lastName' | 'position'>): string => {
+  const baseName = formatResearcherDropdownDisplay(person);
+  return person.position ? `${baseName} (${person.position})` : baseName;
 };
 
 /**
- * Sorting utility for researchers
+ * Sorting utility for persons by name
  * Sorts by last name, with special handling for hyphenated names
  * Hyphenated names sort by the first part of the hyphen
  */
-export const sortResearchers = (a: Pick<Researcher, 'firstName' | 'lastName'>, b: Pick<Researcher, 'firstName' | 'lastName'>): number => {
+export const sortResearchers = (a: Pick<Person, 'firstName' | 'lastName'>, b: Pick<Person, 'firstName' | 'lastName'>): number => {
   // Extract primary sort key from last name
   // For hyphenated names like "Smith-Johnson", use "Smith"
   const getLastNameSortKey = (lastName: string): string => {
@@ -216,16 +228,16 @@ export function calculateNameSimilarity(name1: string, name2: string): number {
 }
 
 /**
- * Find similar researchers that might be duplicates
- * Returns researchers with high name similarity (>85% match or exact match)
+ * Find similar persons that might be duplicates
+ * Returns persons with high name similarity (>85% match or exact match)
  */
 export function findSimilarResearchers(
-  newResearcher: Pick<Researcher, 'firstName' | 'lastName'>,
-  existingResearchers: Pick<Researcher, 'firstName' | 'lastName'>[]
-): Pick<Researcher, 'firstName' | 'lastName'>[] {
-  const newFullName = `${newResearcher.firstName} ${newResearcher.lastName}`.toLowerCase().trim();
+  newPerson: Pick<Person, 'firstName' | 'lastName'>,
+  existingPersons: Pick<Person, 'firstName' | 'lastName'>[]
+): Pick<Person, 'firstName' | 'lastName'>[] {
+  const newFullName = `${newPerson.firstName} ${newPerson.lastName}`.toLowerCase().trim();
 
-  return existingResearchers.filter(existing => {
+  return existingPersons.filter(existing => {
     const existingFullName = `${existing.firstName} ${existing.lastName}`.toLowerCase().trim();
 
     // Exact match (case-insensitive)

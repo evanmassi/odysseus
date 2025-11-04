@@ -35,7 +35,7 @@ export function TreeLineOverlay({
     const tankItems = container.querySelectorAll('[data-level="tank"]');
 
     tankItems.forEach(tankItem => {
-      const tankId = (tankItem as HTMLElement).dataset.id;
+      const tankId = (tankItem as HTMLElement).dataset['id'];
       if (!tankId || !expandedTanks.has(tankId)) return;
 
       const tankButton = tankItem.querySelector('button');
@@ -50,7 +50,7 @@ export function TreeLineOverlay({
       let deepestY = tankBottomY;
 
       rackItems.forEach(rackItem => {
-        const rackId = (rackItem as HTMLElement).dataset.id;
+        const rackId = (rackItem as HTMLElement).dataset['id'];
         if (!rackId) return;
 
         const rackButton = rackItem.querySelector('button');
@@ -89,7 +89,7 @@ export function TreeLineOverlay({
 
             // Add horizontal branch from rack to box
             allLines.push({
-              id: `box-branch-${tankId}-${rackId}-${(boxItem as HTMLElement).dataset.id}`,
+              id: `box-branch-${tankId}-${rackId}-${(boxItem as HTMLElement).dataset['id']}`,
               x1: rackX,
               y1: boxY,
               x2: boxX,

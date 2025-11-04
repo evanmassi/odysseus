@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 import { ResearcherService } from '../services/ResearcherService';
 import {
   type Researcher,
+  type AdminResearcher,
   type CreateResearcherProfile,
   type UpdateResearcherProfile,
   formatResearcherDropdownDisplay,
@@ -18,7 +19,8 @@ import {
 } from '@odysseus/shared-schemas';
 
 /**
- * Hook to fetch all researchers
+ * Hook to fetch all researchers (basic data only)
+ * Use this for dropdowns, forms, and general display
  */
 export function useResearchersQuery(options?: {
   filters?: { active?: boolean; search?: string };
@@ -29,7 +31,28 @@ export function useResearchersQuery(options?: {
   return useQuery({
     queryKey: queryKeys.researchers.list(filters),
     queryFn: async (): Promise<Researcher[]> => {
-      const researchers = await ResearcherService.list(filters);
+      const researchers = await ResearcherService.list({ filters });
+      return researchers.sort(sortResearchers);
+    },
+    ...DOMAIN_QUERY_OPTIONS.researchers,
+    ...queryOptions
+  });
+}
+
+/**
+ * Hook to fetch all researchers with admin metadata
+ * Use this for admin UI that needs tubeCount, linkedUserId, linkedUsername
+ */
+export function useAdminResearchersQuery(options?: {
+  filters?: { active?: boolean; search?: string };
+  queryOptions?: Omit<UseQueryOptions<AdminResearcher[]>, 'queryKey' | 'queryFn'>;
+}) {
+  const { filters, queryOptions } = options || {};
+
+  return useQuery({
+    queryKey: queryKeys.researchers.admin(filters),
+    queryFn: async (): Promise<AdminResearcher[]> => {
+      const researchers = await ResearcherService.list({ admin: true, filters });
       return researchers.sort(sortResearchers);
     },
     ...DOMAIN_QUERY_OPTIONS.researchers,
@@ -41,7 +64,7 @@ export function useResearchersQuery(options?: {
  * Hook to fetch a single researcher by ID
  */
 export function useResearcherQuery(researcherId: string, options?: {
-  queryOptions?: Omit<UseQueryOptions<Researcher>, 'queryKey' | 'queryFn'>;
+  queryOptions?: Omit<UseQueryOptions<AdminResearcher>, 'queryKey' | 'queryFn'>;
 }) {
   return useQuery({
     queryKey: queryKeys.researchers.detail(researcherId),

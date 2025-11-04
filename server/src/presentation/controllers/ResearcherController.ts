@@ -16,14 +16,25 @@ export class ResearcherController {
   /**
    * Get all researchers
    * GET /api/researchers
+   * GET /api/researchers?admin=true (includes metadata: tubeCount, linkedUserId, linkedUsername)
    */
   async getAllResearchers(req: Request, res: Response): Promise<void> {
     try {
-      const userApiKey = this.extractOptionalApiKey(req);
+      const includeAdminData = req.query.admin === 'true';
 
-      const researchers = await this.researcherApplicationService.getAllResearchers(userApiKey);
-
-      res.json(ErrorDto.success(researchers));
+      if (includeAdminData) {
+        // Admin data requires authentication
+        const userApiKey = this.extractApiKey(req);
+        // Returns AdminResearcher[] with metadata
+        const researchers = await this.researcherApplicationService.getResearchersWithMetadata(userApiKey);
+        res.json(ErrorDto.success({ researchers }));
+      } else {
+        // Basic data can be accessed with optional auth
+        const userApiKey = this.extractOptionalApiKey(req);
+        // Returns Researcher[] without metadata
+        const researchers = await this.researcherApplicationService.getAllResearchers(userApiKey);
+        res.json(ErrorDto.success(researchers));
+      }
     } catch (error) {
       this.handleError(error, res, 'Failed to get researchers');
     }

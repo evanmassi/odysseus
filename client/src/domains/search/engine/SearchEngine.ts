@@ -1,6 +1,5 @@
-import { SearchResult, GroupedResult, NAMING_PATTERNS } from '@odysseus/shared-schemas';
+import { SearchResult, GroupedResult, NAMING_PATTERNS, type Researcher } from '@odysseus/shared-schemas';
 import { TubeData } from '@domains/tubes/types';
-import { Researcher } from '@domains/researchers/types';
 import { useTubeStore } from '@domains/tubes';
 import { toPositionKey } from '@shared/types/grid';
 import { groupTubesByRelevance } from '../lib/searchUtils';

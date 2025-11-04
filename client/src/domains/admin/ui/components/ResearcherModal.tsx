@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Plus, RefreshCw, User, Mail, Building2, Briefcase } from 'lucide-react';
-import { createResearcherProfileSchema, type CreateResearcherProfile, type Researcher } from '@odysseus/shared-schemas';
+import { createResearcherProfileSchema, type CreateResearcherProfile, type AdminResearcher } from '@odysseus/shared-schemas';
 import { notifications } from '@shared/utils';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ResearcherIcon } from '@shared/ui/components/icons';
@@ -13,7 +13,7 @@ export interface ResearcherModalProps {
   mode: 'create-only' | 'select-or-create';
   userId?: string;
   username?: string;
-  unlinkedResearchers?: Researcher[];
+  unlinkedResearchers?: AdminResearcher[];
   onSuccess: () => void;
   onCreateResearcher: (data: CreateResearcherProfile) => Promise<void>;
   onLinkExisting: (researcherId: string) => Promise<void>;

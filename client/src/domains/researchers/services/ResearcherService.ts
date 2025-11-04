@@ -9,10 +9,12 @@ import { httpClient } from '@infra/api/httpClient';
 import { z } from 'zod';
 import {
   type Researcher,
+  type AdminResearcher,
   type CreateResearcherProfile,
   type UpdateResearcherProfile,
   type ResearcherQueryFilters,
   researcherSchema,
+  adminResearcherSchema,
   createResearcherProfileSchema,
   updateResearcherProfileSchema
 } from '@odysseus/shared-schemas';
@@ -22,44 +24,63 @@ export class ResearcherService {
 
   /**
    * Fetch all researchers with optional filters
+   * TypeScript overloads for type safety:
+   * - admin: true → returns AdminResearcher[] (with tubeCount, linkedUserId, linkedUsername)
+   * - admin: false/undefined → returns Researcher[] (basic fields only)
    */
-  static async list(filters?: ResearcherQueryFilters): Promise<Researcher[]> {
-    const queryParams = filters ? new URLSearchParams({
-      ...filters.active !== undefined && { active: String(filters.active) },
-      ...filters.department && { department: filters.department },
-      ...filters.search && { search: filters.search },
-      ...filters.limit && { limit: String(filters.limit) },
-      ...filters.offset && { offset: String(filters.offset) },
-      ...filters.sortBy && { sortBy: filters.sortBy },
-      ...filters.sortOrder && { sortOrder: filters.sortOrder }
-    }) : null;
+  static async list(options: { admin: true; filters?: ResearcherQueryFilters }): Promise<AdminResearcher[]>;
+  static async list(options?: { admin?: false; filters?: ResearcherQueryFilters }): Promise<Researcher[]>;
+  static async list(options?: { admin?: boolean; filters?: ResearcherQueryFilters }): Promise<Researcher[] | AdminResearcher[]> {
+    const { admin = false, filters } = options || {};
 
-    const url = queryParams ? `${this.BASE_PATH}?${queryParams}` : this.BASE_PATH;
+    const queryParams = new URLSearchParams();
 
-    return await httpClient.getArray(url, researcherSchema);
+    // Add admin flag if requested
+    if (admin) {
+      queryParams.set('admin', 'true');
+    }
+
+    // Add filters
+    if (filters) {
+      if (filters.active !== undefined) queryParams.set('active', String(filters.active));
+      if (filters.department) queryParams.set('department', filters.department);
+      if (filters.search) queryParams.set('search', filters.search);
+      if (filters.limit) queryParams.set('limit', String(filters.limit));
+      if (filters.offset) queryParams.set('offset', String(filters.offset));
+      if (filters.sortBy) queryParams.set('sortBy', filters.sortBy);
+      if (filters.sortOrder) queryParams.set('sortOrder', filters.sortOrder);
+    }
+
+    const queryString = queryParams.toString();
+    const url = queryString ? `${this.BASE_PATH}?${queryString}` : this.BASE_PATH;
+
+    // Use appropriate schema based on admin flag
+    const schema = admin ? adminResearcherSchema : researcherSchema;
+
+    return await httpClient.getArray(url, schema);
   }
 
   /**
    * Fetch single researcher by ID
    */
-  static async get(id: string): Promise<Researcher> {
-    return await httpClient.getData(`${this.BASE_PATH}/${id}`, researcherSchema);
+  static async get(id: string): Promise<AdminResearcher> {
+    return await httpClient.getData(`${this.BASE_PATH}/${id}`, adminResearcherSchema);
   }
 
   /**
    * Create new researcher
    */
-  static async create(data: CreateResearcherProfile): Promise<Researcher> {
+  static async create(data: CreateResearcherProfile): Promise<AdminResearcher> {
     const validated = createResearcherProfileSchema.parse(data);
-    return await httpClient.postData(this.BASE_PATH, validated, researcherSchema);
+    return await httpClient.postData(this.BASE_PATH, validated, adminResearcherSchema);
   }
 
   /**
    * Update researcher
    */
-  static async update(id: string, data: UpdateResearcherProfile): Promise<Researcher> {
+  static async update(id: string, data: UpdateResearcherProfile): Promise<AdminResearcher> {
     const validated = updateResearcherProfileSchema.parse(data);
-    return await httpClient.putData(`${this.BASE_PATH}/${id}`, validated, researcherSchema);
+    return await httpClient.putData(`${this.BASE_PATH}/${id}`, validated, adminResearcherSchema);
   }
 
   /**

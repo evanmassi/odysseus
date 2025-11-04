@@ -77,14 +77,13 @@ export const adminUserSchema = z.object({
   email: z.string().email().optional(),
   emailVerified: z.boolean().optional(),
   role: z.enum(['admin', 'user']),
-  researcherId: z.string().optional(), // Optional link to researcher profile
-  researcherFirstName: z.string().optional(), // Researcher's first name if linked
-  researcherLastName: z.string().optional(), // Researcher's last name if linked
+  personId: z.string().nullable(),
+  researcherId: z.string().nullable(),
   createdAt: z.union([z.string().datetime(), z.date()]),
   lastActivity: z.union([z.string().datetime(), z.date()]).optional(),
   isActive: z.boolean().default(true),
   status: z.enum(['pending', 'approved', 'rejected']).default('approved'),
-  requirePasswordChange: z.boolean().optional().default(false), // Flag for password change requirement
+  requirePasswordChange: z.boolean().optional().default(false),
 });
 
 export type AdminUser = z.infer<typeof adminUserSchema>;

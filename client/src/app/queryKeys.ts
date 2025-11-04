@@ -37,9 +37,11 @@ export const queryKeys = {
   // Researchers (unified with socket bridge)
   researchers: {
     all: ['researchers'] as const,
-    list: (filters?: any) => 
+    list: (filters?: any) =>
       filters ? [...queryKeys.researchers.all, 'list', filters] as const : [...queryKeys.researchers.all, 'list'] as const,
     lists: () => [...queryKeys.researchers.all, 'list'] as const, // Canonical base query
+    admin: (filters?: any) =>
+      filters ? [...queryKeys.researchers.all, 'admin', filters] as const : [...queryKeys.researchers.all, 'admin'] as const,
     detail: (id: string) => [...queryKeys.researchers.all, 'detail', id] as const,
     stats: () => [...queryKeys.researchers.all, 'stats'] as const,
   },

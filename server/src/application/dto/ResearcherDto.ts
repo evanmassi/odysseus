@@ -28,13 +28,15 @@ export interface UpdateResearcherRequest {
 
 export interface ResearcherResponse {
   id: string;
-  firstName: string;
-  lastName: string;
-  position?: string;
-  department?: string;
-  email?: string;
+  personId: string;
   active: boolean;
   createdAt: string;
+  // Denormalized Person fields for display
+  firstName: string;
+  lastName: string;
+  email: string;
+  position?: string;
+  department?: string;
 }
 
 export interface ResearcherListResponse {
@@ -61,13 +63,14 @@ export class ResearcherDto {
   static toResponse(researcher: Researcher, person: Person): ResearcherResponse {
     return {
       id: researcher.id,
+      personId: researcher.personId,
+      active: researcher.active,
+      createdAt: researcher.createdAt.toISOString(),
       firstName: person.firstName,
       lastName: person.lastName,
-      position: person.position,
-      department: person.department,
       email: person.email,
-      active: researcher.active,
-      createdAt: researcher.createdAt.toISOString()
+      position: person.position,
+      department: person.department
     };
   }
 

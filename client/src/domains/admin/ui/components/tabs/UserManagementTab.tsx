@@ -16,7 +16,7 @@ import { useState, useEffect } from 'react';
 import { RefreshCw, UserRound, CheckCircle, XCircle, Clock, UserRoundCheck, Unlink2, Trash2, Link2, UsersRound, KeyRound } from 'lucide-react';
 import { adminService } from '../../../services/AdminService';
 import { notifications } from '@shared/utils';
-import type { AdminUser, CreateResearcherProfile, Researcher } from '@odysseus/shared-schemas';
+import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
 import { ResearcherModal } from '../ResearcherModal';
 import { PasswordResetModal } from '../PasswordResetModal';
 
@@ -70,7 +70,7 @@ export function UserManagementTab({
   const [loadingPending, setLoadingPending] = useState(false);
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
   const [linkingUser, setLinkingUser] = useState<{ id: string; username: string } | null>(null);
-  const [unlinkedResearchers, setUnlinkedResearchers] = useState<Researcher[]>([]);
+  const [unlinkedResearchers, setUnlinkedResearchers] = useState<AdminResearcher[]>([]);
   const [passwordResetModal, setPasswordResetModal] = useState<{ userId: string; username: string } | null>(null);
 
   /**
@@ -419,9 +419,9 @@ export function UserManagementTab({
 
                   {/* Researcher Status Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
-                    {user.researcherId && user.researcherFirstName && user.researcherLastName ? (
+                    {user.researcherId ? (
                       <div className="flex items-center space-x-1 text-sm text-gray-900">
-                        <span>{user.researcherFirstName} {user.researcherLastName}</span>
+                        <span>Linked</span>
                         <UserRoundCheck size={14} className="text-green-600 flex-shrink-0" />
                       </div>
                     ) : (
