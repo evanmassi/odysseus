@@ -177,6 +177,23 @@ export class SQLiteContext {
         FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
+
+    // Audit log table - comprehensive activity tracking for compliance and debugging
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS audit_log (
+        id TEXT PRIMARY KEY,
+        userId TEXT NOT NULL,
+        username TEXT NOT NULL,
+        action TEXT NOT NULL,
+        entityType TEXT NOT NULL,
+        entityId TEXT,
+        details TEXT NOT NULL,
+        timestamp TEXT NOT NULL,
+        ipAddress TEXT,
+        userAgent TEXT,
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
   }
 
   /**
@@ -230,6 +247,14 @@ export class SQLiteContext {
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expiresAt)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_user_sessions_is_active ON user_sessions(isActive)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_user_sessions_last_used ON user_sessions(lastUsedAt DESC)');
+
+    // Audit log indexes for optimal query performance
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_log(userId)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_log(action)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_log_entity_type ON audit_log(entityType)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_log_entity_id ON audit_log(entityId)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp ON audit_log(timestamp DESC)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_log_composite ON audit_log(entityType, entityId, timestamp DESC)');
 
     // Researcher indexes
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_researchers_active ON researchers(active)');
@@ -499,6 +524,13 @@ export class SQLiteContext {
   async transaction<T>(fn: () => T): Promise<T> {
     const transaction = this.db.transaction(fn);
     return transaction();
+  }
+
+  /**
+   * Get raw database instance for advanced operations (transactions, bulk operations)
+   */
+  getDatabase(): Database.Database {
+    return this.db;
   }
 
   /**

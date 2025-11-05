@@ -12,6 +12,7 @@ import { GetCurrentConfigurationQueryHandler, GetConfigurationHistoryQueryHandle
 
 // Event Bus
 import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
+import { AuditEventHandler } from '@application/eventHandlers/AuditEventHandler';
 
 // Controllers
 import { AuthController } from '@presentation/controllers/AuthController';
@@ -22,11 +23,13 @@ import { SearchController } from '@presentation/controllers/SearchController';
 import { UserController } from '@presentation/controllers/UserController';
 import { PersonController } from '@presentation/controllers/PersonController';
 import { SessionController } from '@presentation/controllers/SessionController';
+import { AuditController } from '@presentation/controllers/AuditController';
 
 // Application services
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { UserApplicationService } from '@application/services/UserApplicationService';
+import { AuditService } from '@application/services/AuditService';
 import { TubePositionService, AccessControlService, ValidationService } from '@domain/services';
 
 // Infrastructure services
@@ -100,6 +103,7 @@ export class ServiceContainer {
   private userController?: UserController;
   private personController?: PersonController;
   private sessionController?: SessionController;
+  private auditController?: AuditController;
 
   // Infrastructure services
   private passwordService?: PasswordService;
@@ -110,10 +114,14 @@ export class ServiceContainer {
   private tubeApplicationService?: TubeApplicationService;
   private researcherApplicationService?: ResearcherApplicationService;
   private userApplicationService?: UserApplicationService;
+  private auditService?: AuditService;
   private tubePositionService?: TubePositionService;
   private accessControlService?: AccessControlService;
   private validationService?: ValidationService;
-  
+
+  // Event Handlers
+  private auditEventHandler?: AuditEventHandler;
+
   // Middleware
   private authMiddleware?: AuthMiddleware;
 
@@ -199,7 +207,8 @@ export class ServiceContainer {
         repositories.users,
         this.getPasswordService(),
         this.getEventBus(),
-        repositories.configurations
+        repositories.configurations,
+        repositories.userSessions
       );
     }
     return this.changePasswordHandler;
@@ -582,6 +591,30 @@ export class ServiceContainer {
     return this.sessionController;
   }
 
+  getAuditService(): AuditService {
+    if (!this.auditService) {
+      this.auditService = new AuditService(this.repositoryFactory.getAuditRepository());
+    }
+    return this.auditService;
+  }
+
+  getAuditController(): AuditController {
+    if (!this.auditController) {
+      this.auditController = new AuditController(this.getAuditService());
+    }
+    return this.auditController;
+  }
+
+  getAuditEventHandler(): AuditEventHandler {
+    if (!this.auditEventHandler) {
+      this.auditEventHandler = new AuditEventHandler(
+        this.getAuditService(),
+        this.getEventBus()
+      );
+    }
+    return this.auditEventHandler;
+  }
+
   // LEGACY SERVICES (for non-migrated controllers)
 
   getTubePositionService(): TubePositionService {
@@ -630,7 +663,8 @@ export class ServiceContainer {
         repositories.researchers,
         repositories.persons,
         this.getTubePositionService(),
-        this.getAccessControlService()
+        this.getAccessControlService(),
+        this.getEventBus()
       );
     }
     return this.tubeApplicationService;

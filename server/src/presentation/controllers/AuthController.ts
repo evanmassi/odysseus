@@ -301,11 +301,12 @@ export class AuthController {
       }
 
       const { currentPassword, newPassword } = req.body;
-      
+
       const command = new ChangeUserPasswordCommand(
         user.id,
         currentPassword,
         newPassword,
+        req.sessionId,
         user.id
       );
       

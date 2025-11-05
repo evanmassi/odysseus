@@ -17,7 +17,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
   ) {}
 
   get authenticate(): RequestHandler {
-    return async (req: Request & { user?: User }, res: Response, next: NextFunction): Promise<void> => {
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
         const authHeader = req.headers.authorization;
 
@@ -38,10 +38,10 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
 
         const token = authHeader.substring(7); // Remove 'Bearer '
 
-        let user: User | null = null;
+        let validationResult = null;
 
         try {
-          user = await this.sessionService.validateSession(token);
+          validationResult = await this.sessionService.validateSession(token);
         } catch (validateError) {
           logger.error('Session validation error', {
             error: validateError instanceof Error ? validateError.message : 'Unknown error',
@@ -49,7 +49,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           });
         }
 
-        if (!user) {
+        if (!validationResult) {
           res.status(401).json({
             success: false,
             error: {
@@ -64,13 +64,15 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           return;
         }
 
-        // Add user to request context
-        req.user = user;
+        // Add user and sessionId to request context
+        req.user = validationResult.user;
+        req.sessionId = validationResult.sessionId;
 
         logger.debug('User authenticated successfully', {
-          userId: user.id,
-          username: user.username,
-          role: user.role.value,
+          userId: validationResult.user.id,
+          username: validationResult.user.username,
+          role: validationResult.user.role.value,
+          sessionId: validationResult.sessionId,
           path: req.path
         });
 
@@ -99,7 +101,7 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
   }
 
   get requireAdmin(): RequestHandler {
-    return (req: Request & { user?: User }, res: Response, next: NextFunction): void => {
+    return (req: Request, res: Response, next: NextFunction): void => {
       try {
         if (!req.user) {
           res.status(401).json({
@@ -170,10 +172,10 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
   }
 
   get optionalAuthenticate(): RequestHandler {
-    return async (req: Request & { user?: User }, res: Response, next: NextFunction): Promise<void> => {
+    return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {
         const authHeader = req.headers.authorization;
-        
+
         // No auth header is OK for optional auth
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
           next();
@@ -181,13 +183,15 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
         }
 
         const token = authHeader.substring(7);
-        const user = await this.sessionService.validateSession(token);
+        const validationResult = await this.sessionService.validateSession(token);
 
-        if (user) {
-          req.user = user;
+        if (validationResult) {
+          req.user = validationResult.user;
+          req.sessionId = validationResult.sessionId;
           logger.debug('Optional authentication successful', {
-            userId: user.id,
-            username: user.username,
+            userId: validationResult.user.id,
+            username: validationResult.user.username,
+            sessionId: validationResult.sessionId,
             path: req.path
           });
         } else {

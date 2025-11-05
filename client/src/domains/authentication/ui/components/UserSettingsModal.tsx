@@ -96,7 +96,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-4xl h-[75vh] mx-4 overflow-hidden animate-slide-up-fade flex flex-col"
       >
         {/* Header */}
-        <div className="bg-action px-6 py-3 text-white flex-shrink-0">
+        <div className="bg-gradient-to-r from-action-hover via-action to-action-hover px-6 py-3 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Cog className="w-6 h-6" />
@@ -178,7 +178,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center space-x-2 text-xs text-gray-600 flex-shrink min-w-0">
               <AlertTriangle size={14} className="alert-warning-icon flex-shrink-0" />
-              <span className="truncate">Settings are personal and only affect your account</span>
+              <span className="truncate">These settings apply only to your account.</span>
             </div>
             <div className="flex space-x-2 flex-shrink-0">
               <button onClick={onClose} className="btn-cancel">

@@ -133,6 +133,7 @@ export const auditLogEntrySchema = z.object({
   details: z.string(),
   timestamp: z.union([z.string().datetime(), z.date()]),
   ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
 });
 
 export type AuditLogEntry = z.infer<typeof auditLogEntrySchema>;

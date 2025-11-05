@@ -10,6 +10,14 @@ import { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
+import type { EventBus } from '@application/contracts/EventBus';
+import {
+  TubeCreatedEvent,
+  TubeUpdatedEvent,
+  TubeLocationChangedEvent,
+  TubeDeletedEvent,
+  BulkTubesUpdatedEvent
+} from '@domain/events/TubeEvents';
 
 /**
  * TubeApplicationService
@@ -26,7 +34,8 @@ export class TubeApplicationService {
     private researcherRepository: ResearcherRepository,
     private personRepository: PersonRepository,
     private tubePositionService: TubePositionService,
-    private accessControlService: AccessControlService
+    private accessControlService: AccessControlService,
+    private eventBus: EventBus
   ) {}
 
   /**
@@ -78,6 +87,14 @@ export class TubeApplicationService {
 
     // 6. Save
     await this.tubeRepository.save(tube);
+
+    // 7. Publish domain event
+    this.eventBus.publish(new TubeCreatedEvent(
+      tube.id,
+      tube.location,
+      tube.sampleData,
+      authenticatedUser.username
+    ));
 
     return TubeDto.toResponse(tube);
   }
@@ -229,14 +246,41 @@ export class TubeApplicationService {
       }
     }
 
+    // Capture old state for event publishing
+    const oldLocation = existingTube.location;
+    const oldSampleData = existingTube.sampleData;
+
     // Map DTO to domain (thin, no logic)
     const updateData = TubeDto.fromUpdateRequest(request);
-    
+
     // Update entity (domain handles validation)
     const updatedTube = existingTube.update(updateData);
 
     // Save
     await this.tubeRepository.save(updatedTube);
+
+    // Publish domain events
+    const locationChanged = !oldLocation.equals(updatedTube.location);
+
+    if (locationChanged) {
+      // Publish location change event
+      this.eventBus.publish(new TubeLocationChangedEvent(
+        updatedTube.id,
+        oldLocation,
+        updatedTube.location,
+        authenticatedUser.username
+      ));
+    }
+
+    // Always publish general update event
+    this.eventBus.publish(new TubeUpdatedEvent(
+      updatedTube.id,
+      oldLocation,
+      updatedTube.location,
+      oldSampleData,
+      updatedTube.sampleData,
+      authenticatedUser.username
+    ));
 
     return TubeDto.toResponse(updatedTube);
   }
@@ -254,6 +298,13 @@ export class TubeApplicationService {
     this.accessControlService.requireCanDeleteTube(authenticatedUser, tube);
 
     await this.tubeRepository.delete(id);
+
+    // Publish domain event
+    this.eventBus.publish(new TubeDeletedEvent(
+      tube.id,
+      tube.location,
+      authenticatedUser.username
+    ));
   }
 
   /**
@@ -282,6 +333,15 @@ export class TubeApplicationService {
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
+    }
+
+    // Publish bulk update event (only if some succeeded)
+    if (updated.length > 0) {
+      this.eventBus.publish(new BulkTubesUpdatedEvent(
+        updated,
+        authenticatedUser.username,
+        { updated: updated.length, failed: failed.length }
+      ));
     }
 
     return {

@@ -40,14 +40,17 @@ const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   'LoginResponse': new Set(['createdAt', 'accessTokenExpiry', 'refreshTokenExpiry', 'timestamp']),
   'User': new Set(['lastActivity']),
   'Person': new Set(['createdAt', 'updatedAt']),
-  'ActiveSession': new Set(['timestamp', 'createdAt', 'lastUsedAt']),
+  'ActiveSession': new Set(['createdAt', 'lastUsedAt', 'expiresAt']),
   'TubeData': new Set(['createdAt', 'updatedAt', 'date']),
   'Researcher': new Set(['createdAt', 'updatedAt']),
   'TankConfiguration': new Set(['createdAt', 'updatedAt']),
   'LabConfiguration': new Set(['createdAt', 'updatedAt']),
   'ConfigurationResponse': new Set(['createdAt', 'updatedAt']), // Handles nested configs (labs, tanks, racks, boxes)
   'UserSettings': new Set([]), // User settings has no date fields
-  'UserSettingsResponse': new Set([]) // Response envelope for user settings
+  'UserSettingsResponse': new Set([]), // Response envelope for user settings
+  'AdminUser': new Set(['createdAt', 'lastActivity']),
+  'SystemMetrics': new Set(['lastBackup']),
+  'AuditLogEntry': new Set(['timestamp'])
 };
 
 // Type-safe date field detection with exclusion patterns to prevent false positives
@@ -172,7 +175,10 @@ export const ResponseTransformers = {
   Person: (data: any) => transformApiResponse(data, 'Person'),
   ActiveSession: (data: any) => transformApiResponse(data, 'ActiveSession'),
   TubeData: (data: any) => transformApiResponse(data, 'TubeData'),
-  Researcher: (data: any) => transformApiResponse(data, 'Researcher')
+  Researcher: (data: any) => transformApiResponse(data, 'Researcher'),
+  AdminUser: (data: any) => transformApiResponse(data, 'AdminUser'),
+  SystemMetrics: (data: any) => transformApiResponse(data, 'SystemMetrics'),
+  AuditLogEntry: (data: any) => transformApiResponse(data, 'AuditLogEntry')
 } as const;
 
 /**

@@ -76,24 +76,32 @@ export class InMemoryEventBus implements EventBus {
     // Process all handlers in parallel
     const handlerPromises = handlers.map(async (handler) => {
       try {
-        await handler.handle(event);
+        // Handle both function and object handlers
+        if (typeof handler === 'function') {
+          await handler(event);
+        } else {
+          await handler.handle(event);
+        }
+
+        const handlerName = typeof handler === 'function' ? handler.name : handler.constructor.name;
         logger.debug('Event handler completed successfully', {
           eventName,
           eventId: event.eventId,
-          handler: handler.constructor.name
+          handler: handlerName
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         const errorStack = error instanceof Error ? error.stack : undefined;
-        
+        const handlerName = typeof handler === 'function' ? handler.name : handler.constructor.name;
+
         logger.error('Event handler failed', {
           eventName,
           eventId: event.eventId,
-          handler: handler.constructor.name,
+          handler: handlerName,
           error: errorMessage,
           stack: errorStack
         });
-        
+
         // Don't rethrow - one handler failure shouldn't stop others
         // In production, you might want to implement retry logic here
       }
@@ -113,9 +121,10 @@ export class InMemoryEventBus implements EventBus {
     existingHandlers.push(handler);
     this.handlers.set(eventName, existingHandlers);
 
+    const handlerName = typeof handler === 'function' ? handler.name : handler.constructor.name;
     logger.debug('Event handler subscribed', {
       eventName,
-      handler: handler.constructor.name,
+      handler: handlerName,
       totalHandlers: existingHandlers.length
     });
   }
@@ -123,16 +132,17 @@ export class InMemoryEventBus implements EventBus {
   unsubscribe<T extends DomainEvent>(eventName: string, handler: EventHandler<T>): void {
     const existingHandlers = this.handlers.get(eventName) || [];
     const updatedHandlers = existingHandlers.filter(h => h !== handler);
-    
+
     if (updatedHandlers.length === 0) {
       this.handlers.delete(eventName);
     } else {
       this.handlers.set(eventName, updatedHandlers);
     }
 
+    const handlerName = typeof handler === 'function' ? handler.name : handler.constructor.name;
     logger.debug('Event handler unsubscribed', {
       eventName,
-      handler: handler.constructor.name,
+      handler: handlerName,
       remainingHandlers: updatedHandlers.length
     });
   }
@@ -152,11 +162,13 @@ export class InMemoryEventBus implements EventBus {
    */
   getDetailedSubscriptions(): Record<string, string[]> {
     const details: Record<string, string[]> = {};
-    
+
     for (const [eventName, handlers] of this.handlers.entries()) {
-      details[eventName] = handlers.map(h => h.constructor.name);
+      details[eventName] = handlers.map(h =>
+        typeof h === 'function' ? h.name : h.constructor.name
+      );
     }
-    
+
     return details;
   }
 

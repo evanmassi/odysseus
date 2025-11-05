@@ -10,7 +10,7 @@ import { randomUUID, randomBytes } from 'crypto';
 import { User } from '@domain/entities/User';
 import { RefreshToken } from '@domain/entities/RefreshToken';
 import { UserSession } from '@domain/entities/UserSession';
-import { SessionService } from '@application/commands/UserCommands';
+import { SessionService, SessionValidationResult } from '@application/commands/UserCommands';
 import { ConfigurationService } from '@infrastructure/configuration/ConfigurationService';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
@@ -137,16 +137,17 @@ export class JwtSessionService implements SessionService {
     }
   }
 
-  async validateSession(token: string): Promise<User | null> {
+  async validateSession(token: string): Promise<SessionValidationResult | null> {
     try {
       const decoded = jwt.verify(token, this.config.secret, {
         issuer: this.config.issuer,
         audience: this.config.audience,
         algorithms: [this.config.algorithm]
-      }) as any; // OAuth 2.0 access token payload
+      }) as AccessTokenPayload; // OAuth 2.0 access token payload
 
       // OAuth 2.0: Use standard 'sub' field (RFC 7519)
       const userId = decoded.sub;
+      const sessionId = decoded.sessionId;
 
       // Validate user ID exists
       if (!userId) {
@@ -154,11 +155,24 @@ export class JwtSessionService implements SessionService {
         return null;
       }
 
+      // Validate session ID exists
+      if (!sessionId) {
+        console.error(`❌ [${this.instanceId}] No session ID found in token payload`);
+        return null;
+      }
+
       // Query database for current user state
       // Ensures disabled users can't authenticate and permissions are current
       const user = await this.userRepository.findById(userId);
 
-      return user;
+      if (!user) {
+        return null;
+      }
+
+      return {
+        user,
+        sessionId
+      };
 
     } catch (error) {
       // Token is invalid, expired, or malformed
@@ -243,35 +257,38 @@ export class JwtSessionService implements SessionService {
     // Enforce concurrent session limit (revoke old sessions if needed)
     await this.enforceSessionLimit(user.id);
 
-    // Get configurable access token expiry from security settings
+    // Get configurable token expiry from security settings
     const accessTokenExpiryMs = await this.getAccessTokenExpiryMilliseconds();
-
-    // Create short-lived access token (JWT)
-    const accessToken = await this.createAccessToken(user);
+    const refreshTokenExpiry = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)); // 7 days
 
     // Create long-lived refresh token (secure random)
     const refreshToken = await this.createRefreshToken(user);
 
-    // Token expiry times (configurable from admin settings)
-    const accessTokenExpiry = new Date(Date.now() + accessTokenExpiryMs);
-    const refreshTokenExpiry = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)); // 7 days
+    // Create user session FIRST - its ID will be embedded in the JWT
+    // This ensures JWT sessionId matches the database UserSession.id
+    const userSession = UserSession.create(
+      user.id,
+      refreshToken.token,
+      refreshTokenExpiry,
+      deviceInfo,
+      ipAddress,
+      userAgent
+    );
 
-    // Create user session for tracking concurrent sessions
     try {
-      const userSession = UserSession.create(
-        user.id,
-        refreshToken.token,
-        refreshTokenExpiry,
-        deviceInfo,
-        ipAddress,
-        userAgent
-      );
       await this.userSessionRepository.save(userSession);
       console.log(`[${this.instanceId}] Created session ${userSession.id} for user ${user.username}`);
     } catch (error) {
-      // Log error but don't block login if session creation fails
       console.error(`[${this.instanceId}] Failed to create user session:`, error);
+      throw new Error('Failed to create user session - login aborted');
     }
+
+    // Create short-lived access token (JWT) with session ID
+    // The sessionId in the JWT now matches the UserSession.id in the database
+    const accessToken = await this.createAccessToken(user, userSession.id);
+
+    // Token expiry times (configurable from admin settings)
+    const accessTokenExpiry = new Date(Date.now() + accessTokenExpiryMs);
 
     // Get security config for session timeout
     const securityConfig = await this.configurationRepository.getSecurityConfig();
@@ -295,11 +312,13 @@ export class JwtSessionService implements SessionService {
 
   /**
    * Create short-lived access token (JWT)
+   *
+   * @param user - User to create token for
+   * @param sessionId - Database session ID to embed in token (links JWT to UserSession record)
    */
-  private async createAccessToken(user: User): Promise<string> {
+  private async createAccessToken(user: User, sessionId: string): Promise<string> {
     // Get configurable expiry from security settings
     const expirySeconds = await this.getAccessTokenExpirySeconds();
-    const sessionId = randomUUID();
     const nowSeconds = Math.floor(Date.now() / 1000);
 
     const payload: AccessTokenPayload = {
@@ -385,8 +404,17 @@ export class JwtSessionService implements SessionService {
       tokenRecord.recordUsage();
       await this.refreshTokenRepository.save(tokenRecord);
 
-      // 6. Create new access token with configurable expiry
-      const newAccessToken = await this.createAccessToken(user);
+      // 6. Find the UserSession associated with this refresh token
+      const userSession = await this.userSessionRepository.findByRefreshToken(refreshToken);
+      if (!userSession) {
+        throw new Error('USER_SESSION_NOT_FOUND');
+      }
+
+      // 7. Update session last used time
+      await this.userSessionRepository.updateLastUsed(userSession.id, new Date());
+
+      // 8. Create new access token with session ID (maintains JWT-to-session mapping)
+      const newAccessToken = await this.createAccessToken(user, userSession.id);
       const accessTokenExpiryMs = await this.getAccessTokenExpiryMilliseconds();
       const accessTokenExpiry = new Date(Date.now() + accessTokenExpiryMs);
 
@@ -398,17 +426,18 @@ export class JwtSessionService implements SessionService {
 
     } catch (error) {
       console.error(`❌ [${this.instanceId}] Token refresh failed:`, error);
-      
+
       // Re-throw known errors
       if (error instanceof Error && [
         'INVALID_REFRESH_TOKEN',
-        'EXPIRED_REFRESH_TOKEN', 
+        'EXPIRED_REFRESH_TOKEN',
         'REVOKED_REFRESH_TOKEN',
-        'USER_NOT_FOUND'
+        'USER_NOT_FOUND',
+        'USER_SESSION_NOT_FOUND'
       ].includes(error.message)) {
         throw error;
       }
-      
+
       // Wrap unexpected errors
       throw new Error('TOKEN_REFRESH_FAILED');
     }

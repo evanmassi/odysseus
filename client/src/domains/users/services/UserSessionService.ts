@@ -16,21 +16,15 @@ const activeSessionSchema = z.object({
   deviceInfo: z.string().optional(),
   ipAddress: z.string().optional(),
   userAgent: z.string().optional(),
-  createdAt: z.string().datetime(),
-  lastUsedAt: z.string().datetime(),
-  expiresAt: z.string().datetime(),
+  createdAt: z.date(),
+  lastUsedAt: z.date(),
+  expiresAt: z.date(),
   isCurrentSession: z.boolean(),
 });
 
 export type ActiveSession = z.infer<typeof activeSessionSchema>;
 
-const revokeSessionResponseSchema = z.object({
-  success: z.boolean(),
-  message: z.string(),
-});
-
 const revokeAllResponseSchema = z.object({
-  success: z.boolean(),
   message: z.string(),
   revokedCount: z.number(),
 });
@@ -55,10 +49,7 @@ export class UserSessionService {
    * @throws Error if attempting to revoke current session
    */
   static async revokeSession(sessionId: string): Promise<void> {
-    await httpClient.getData(
-      `${this.BASE_PATH}/${sessionId}`,
-      revokeSessionResponseSchema
-    );
+    await httpClient.deleteData(`${this.BASE_PATH}/${sessionId}`);
   }
 
   /**
@@ -67,7 +58,7 @@ export class UserSessionService {
    * @returns Number of sessions revoked
    */
   static async revokeAllOtherSessions(): Promise<number> {
-    const response = await httpClient.getData(
+    const response = await httpClient.deleteWithData(
       `${this.BASE_PATH}/all`,
       revokeAllResponseSchema
     );

@@ -109,6 +109,9 @@ export class HttpClient {
       return ResponseTransformers.Person(data);
     }
     else if (url.includes('/users/me/sessions')) {
+      if (Array.isArray(data)) {
+        return data.map((session: any) => ResponseTransformers.ActiveSession(session));
+      }
       return ResponseTransformers.ActiveSession(data);
     }
     else if (url.includes('/users/me/settings')) {
@@ -122,6 +125,21 @@ export class HttpClient {
     }
     else if (url.includes('/researchers')) {
       return ResponseTransformers.Researcher(data);
+    }
+    else if (url.includes('/admin/users')) {
+      if (Array.isArray(data)) {
+        return data.map((user: any) => ResponseTransformers.AdminUser(user));
+      }
+      return ResponseTransformers.AdminUser(data);
+    }
+    else if (url.includes('/admin/metrics')) {
+      return ResponseTransformers.SystemMetrics(data);
+    }
+    else if (url.includes('/admin/audit')) {
+      if (Array.isArray(data)) {
+        return data.map((entry: any) => ResponseTransformers.AuditLogEntry(entry));
+      }
+      return ResponseTransformers.AuditLogEntry(data);
     }
     else {
       return transformApiResponse(data);
@@ -217,6 +235,22 @@ export class HttpClient {
     headers?: Record<string, string>
   ): Promise<void> {
     await this.delete(url, headers);
+  }
+
+  /**
+   * DELETE request that returns data
+   * Unwraps envelope and validates response data
+   */
+  async deleteWithData<T>(
+    url: string,
+    responseSchema: z.ZodType<T>,
+    headers?: Record<string, string>
+  ): Promise<T> {
+    const response = await this.delete(url, headers);
+
+    const envelope = successEnvelopeSchema(responseSchema).parse(response.data);
+
+    return envelope.data;
   }
 
   /**

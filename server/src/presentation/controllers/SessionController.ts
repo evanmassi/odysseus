@@ -24,8 +24,8 @@ export class SessionController {
 
       const sessions = await this.userSessionRepository.findActiveSessionsByUserId(req.user.id);
 
-      // Get current session ID from JWT token (if available)
-      const currentSessionId = (req as any).sessionId;
+      // Get current session ID from JWT token (attached by auth middleware)
+      const currentSessionId = req.sessionId;
 
       const sessionData = sessions.map(session => ({
         id: session.id,
@@ -62,7 +62,7 @@ export class SessionController {
       const sessionId = req.params.id;
 
       // Get current session ID to prevent self-revocation
-      const currentSessionId = (req as any).sessionId;
+      const currentSessionId = req.sessionId;
       if (sessionId === currentSessionId) {
         throw new PermissionError('Cannot revoke your current session. Use logout instead.');
       }
@@ -105,7 +105,7 @@ export class SessionController {
         throw new PermissionError('Authentication required');
       }
 
-      const currentSessionId = (req as any).sessionId;
+      const currentSessionId = req.sessionId;
 
       // Get all active sessions for user
       const sessions = await this.userSessionRepository.findActiveSessionsByUserId(req.user.id);

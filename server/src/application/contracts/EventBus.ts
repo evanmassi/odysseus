@@ -50,19 +50,11 @@ export interface EventBus {
 }
 
 /**
- * Event Handler Function Type
- * 
- * Defines the signature for event handler functions.
+ * Event Handler Type
+ *
+ * Accepts both function handlers and object handlers with a handle() method.
+ * This provides flexibility for different handler patterns.
  */
-export interface EventHandler<T extends DomainEvent> {
-  handle(event: T): Promise<void>;
-}
-
-/**
- * Event Handler Class Interface
- * 
- * Defines the interface for event handler classes.
- */
-export interface EventHandler<T extends DomainEvent> {
-  handle(event: T): Promise<void>;
-}
+export type EventHandler<T extends DomainEvent> =
+  | ((event: T) => Promise<void>)
+  | { handle(event: T): Promise<void> };

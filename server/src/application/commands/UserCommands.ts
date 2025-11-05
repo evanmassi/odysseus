@@ -9,6 +9,7 @@ import { UserRole } from '@domain/valueObjects/UserRole';
 import { User } from '@domain/entities/User';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { PasswordService } from '@application/contracts/PasswordService';
 import { EventBus } from '@application/contracts/EventBus';
 import { UserCreatedEvent, UserPasswordChangedEvent, UserRoleChangedEvent, UserDeletedEvent } from '@domain/events/UserEvents';
@@ -113,6 +114,7 @@ export class ChangeUserPasswordCommand extends BaseCommand {
     public readonly userId: string,
     public readonly currentPassword: string,
     public readonly newPassword: string,
+    public readonly currentSessionId: string | undefined,
     initiatedBy: string
   ) {
     super(initiatedBy);
@@ -124,7 +126,8 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
     private userRepository: UserRepository,
     private passwordService: PasswordService,
     private eventBus: EventBus,
-    private configurationRepository: ConfigurationRepository
+    private configurationRepository: ConfigurationRepository,
+    private userSessionRepository: UserSessionRepository
   ) {}
 
   async handle(command: ChangeUserPasswordCommand): Promise<void> {
@@ -148,6 +151,20 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
 
     // Persist
     await this.userRepository.save(user);
+
+    // Revoke all other sessions for security (except current session)
+    // Industry standard: changing password logs out all other devices
+    if (command.currentSessionId) {
+      const activeSessions = await this.userSessionRepository.findActiveSessionsByUserId(user.id);
+      const otherSessionIds = activeSessions
+        .filter(s => s.id !== command.currentSessionId)
+        .map(s => s.id);
+
+      if (otherSessionIds.length > 0) {
+        const revokedCount = await this.userSessionRepository.batchRevoke(otherSessionIds);
+        console.log(`🔒 Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`);
+      }
+    }
 
     // Publish domain event
     const event = new UserPasswordChangedEvent(user.id, user.username, command.initiatedBy);
@@ -431,9 +448,17 @@ export class GetUserSettingsQueryHandler {
 
 // Session Service Interface
 
+/**
+ * Session validation result containing authenticated user and session metadata
+ */
+export interface SessionValidationResult {
+  user: User;
+  sessionId: string;
+}
+
 export interface SessionService {
   // OAuth 2.0 dual token support (pure implementation)
-  validateSession(token: string): Promise<User | null>;
+  validateSession(token: string): Promise<SessionValidationResult | null>;
   revokeSession(token: string): Promise<void>;
   createTokenPair(user: User, userAgent?: string, ipAddress?: string, deviceInfo?: string): Promise<any>; // EnhancedLoginResponse
   refreshAccessToken(refreshToken: string): Promise<any>; // RefreshTokenResponse

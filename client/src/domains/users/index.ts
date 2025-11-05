@@ -8,6 +8,7 @@
  * - UserPasswordService: Password management operations
  * - useUserProfile: Profile query and mutation hooks
  * - useChangePassword: Password change mutation hooks
+ * - useUserSessions: Session query and mutation hooks
  */
 
 export { PersonService, type UpdatePersonProfileWithPassword } from './services/PersonService';
@@ -24,3 +25,9 @@ export {
   useChangePassword,
   useChangePasswordMutation
 } from './hooks/useChangePassword';
+export {
+  useUserSessions,
+  useUserSessionsQuery,
+  useRevokeSessionMutation,
+  useRevokeAllSessionsMutation
+} from './hooks/useUserSessions';

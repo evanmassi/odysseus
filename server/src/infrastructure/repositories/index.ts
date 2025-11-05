@@ -6,6 +6,7 @@ import { SQLitePersonRepository } from '@infrastructure/repositories/SQLitePerso
 import { SQLiteConfigurationRepository } from '@infrastructure/repositories/SQLiteConfigurationRepository';
 import { SQLiteRefreshTokenRepository } from '@infrastructure/repositories/SQLiteRefreshTokenRepository';
 import { SQLiteSessionRepository } from '@infrastructure/repositories/SQLiteSessionRepository';
+import { SQLiteAuditRepository } from '@infrastructure/repositories/SQLiteAuditRepository';
 
 // Repository interfaces
 import { TubeRepository } from '@domain/repositories/TubeRepository';
@@ -15,6 +16,7 @@ import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { AuditRepository } from '@domain/repositories/AuditRepository';
 
 /**
  * Repository Factory - Dependency injection
@@ -31,6 +33,7 @@ export class RepositoryFactory {
   private configurationRepository?: ConfigurationRepository;
   private refreshTokenRepository?: RefreshTokenRepository;
   private userSessionRepository?: UserSessionRepository;
+  private auditRepository?: AuditRepository;
 
   constructor(dbPath: string) {
     this.sqliteContext = new SQLiteContext(dbPath);
@@ -117,6 +120,16 @@ export class RepositoryFactory {
   }
 
   /**
+   * Get audit repository instance
+   */
+  getAuditRepository(): AuditRepository {
+    if (!this.auditRepository) {
+      this.auditRepository = new SQLiteAuditRepository(this.sqliteContext);
+    }
+    return this.auditRepository;
+  }
+
+  /**
    * Get SQLite context instance
    */
   getSQLiteContext(): SQLiteContext {
@@ -134,7 +147,8 @@ export class RepositoryFactory {
       persons: this.getPersonRepository(),
       configurations: this.getConfigurationRepository(),
       refreshTokens: this.getRefreshTokenRepository(),
-      userSessions: this.getUserSessionRepository()
+      userSessions: this.getUserSessionRepository(),
+      audit: this.getAuditRepository()
     };
   }
 

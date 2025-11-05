@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
+import { AuditController } from '@presentation/controllers/AuditController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { createRateLimitMiddleware } from '@middleware/RateLimiting';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
@@ -26,6 +27,7 @@ export class AdminRouteModule implements RouteModule {
   constructor(
     private readonly authController: AuthController,
     private readonly researcherController: ResearcherController,
+    private readonly auditController: AuditController,
     private readonly authMiddleware: AuthMiddleware,
     configurationRepository: ConfigurationRepository
   ) {
@@ -156,6 +158,27 @@ export class AdminRouteModule implements RouteModule {
 
     router.get('/stats/users',
       this.authController.getUserStatistics.bind(this.authController)
+    );
+
+    // AUDIT LOG ENDPOINTS
+
+    // Get audit statistics (for dashboard)
+    router.get('/audit/statistics',
+      this.auditController.getStatistics.bind(this.auditController)
+    );
+
+    // Get entity history (must come before general audit route to avoid collision)
+    router.get('/audit/entity/:entityType/:entityId',
+      validateParams(z.object({
+        entityType: z.string(),
+        entityId: z.string()
+      })),
+      this.auditController.getEntityHistory.bind(this.auditController)
+    );
+
+    // Get full audit log with filtering
+    router.get('/audit',
+      this.auditController.getAuditLog.bind(this.auditController)
     );
 
     // DATABASE MANAGEMENT

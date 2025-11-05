@@ -87,6 +87,10 @@ class OdysseusServer {
   private setupServices(): void {
     // Initialize service container with dependency injection
     this.serviceContainer = new ServiceContainer(this.repositoryFactory);
+
+    // Initialize audit event handler to start listening for domain events
+    this.serviceContainer.getAuditEventHandler();
+    logger.info('Audit event handler initialized');
   }
 
   private setupMiddleware(): void {
@@ -126,13 +130,14 @@ class OdysseusServer {
     const userController = this.serviceContainer.getUserController();
     const personController = this.serviceContainer.getPersonController();
     const sessionController = this.serviceContainer.getSessionController();
+    const auditController = this.serviceContainer.getAuditController();
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
     const configurationRepository = this.repositoryFactory.getConfigurationRepository();
 
     // Register all route modules with ConfigurationRepository for dynamic rate limiting
     registry.registerModule(new PublicRouteModule(authController, configurationRepository));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, configurationRepository));
-    registry.registerModule(new AdminRouteModule(authController, researcherController, authMiddleware, configurationRepository));
+    registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, authMiddleware, configurationRepository));
     registry.registerModule(new ResourceRouteModule(tubeController, researcherController, authMiddleware, configurationRepository));
     registry.registerModule(new ConfigurationRouteModule(configurationController, authMiddleware));
     registry.registerModule(new SearchRouteModule(searchController, authMiddleware, configurationRepository));

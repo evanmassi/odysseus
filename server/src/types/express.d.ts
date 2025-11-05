@@ -14,6 +14,9 @@ declare global {
       /** Current authenticated user (set by auth middleware) */
       user?: User;
 
+      /** Session ID extracted from JWT token (set by auth middleware) */
+      sessionId?: string;
+
       /** Rate limiting identifier (IP address) */
       rateLimitIdentifier?: string;
 

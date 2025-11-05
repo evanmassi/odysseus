@@ -400,6 +400,7 @@ export class AdminService {
       if (options.offset) params.append('offset', options.offset.toString());
       if (options.userId) params.append('userId', options.userId);
       if (options.action) params.append('action', options.action);
+      if (options.entityType) params.append('entityType', options.entityType);
       if (options.dateFrom) params.append('dateFrom', options.dateFrom);
       if (options.dateTo) params.append('dateTo', options.dateTo);
 
@@ -418,6 +419,60 @@ export class AdminService {
       return response.data;
     } catch (error) {
       console.error('Failed to get audit log:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get audit statistics for dashboard
+   */
+  async getAuditStatistics(): Promise<{
+    success: boolean;
+    data: {
+      totalEntries: number;
+      entriesLast24h: number;
+      entriesLast7d: number;
+      topActions: Array<{ action: string; count: number }>;
+      topUsers: Array<{ username: string; count: number }>;
+      recentActivity: AuditLogEntry[];
+    };
+  }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          totalEntries: number;
+          entriesLast24h: number;
+          entriesLast7d: number;
+          topActions: Array<{ action: string; count: number }>;
+          topUsers: Array<{ username: string; count: number }>;
+          recentActivity: AuditLogEntry[];
+        };
+      }>('/admin/audit/statistics');
+
+      return response.data;
+    } catch (error) {
+      console.error('Failed to get audit statistics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get audit history for a specific entity
+   */
+  async getEntityHistory(entityType: string, entityId: string): Promise<{
+    success: boolean;
+    entries: AuditLogEntry[];
+  }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        entries: AuditLogEntry[];
+      }>(`/admin/audit/entity/${entityType}/${entityId}`);
+
+      return response.data;
+    } catch (error) {
+      console.error(`Failed to get entity history for ${entityType}:${entityId}:`, error);
       throw error;
     }
   }
