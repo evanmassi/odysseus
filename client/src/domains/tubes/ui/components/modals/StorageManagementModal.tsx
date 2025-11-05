@@ -269,7 +269,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const handleUpdateTank = async (tankId: string, updates: Partial<TankConfiguration>) => {
     updateTank(currentLab.id, tankId, updates);
     setEditingTank(null);
-    
+
     // Save to server (SessionManager handles authentication automatically)
     await saveToServerWithReactQuery();
   };

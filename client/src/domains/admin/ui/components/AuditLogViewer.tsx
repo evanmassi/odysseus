@@ -108,31 +108,57 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     });
   };
 
-  // Format action for display
+  // Format action for display - simple verb
   const formatAction = (action: string) => {
-    return action
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+    // Remove entity type prefix and capitalize (e.g., "tube_created" → "Created")
+    const parts = action.split('_');
+    if (parts.length > 1) {
+      // Take the action part (after entity type)
+      return parts[parts.length - 1].charAt(0).toUpperCase() + parts[parts.length - 1].slice(1);
+    }
+    return action.charAt(0).toUpperCase() + action.slice(1);
   };
 
-  // Parse and format details
-  const formatDetails = (detailsStr: string) => {
+  // Get action color based on type
+  const getActionColor = (action: string) => {
+    if (action.includes('created')) return 'bg-green-100 text-green-800';
+    if (action.includes('updated')) return 'bg-blue-100 text-blue-800';
+    if (action.includes('moved')) return 'bg-yellow-100 text-yellow-800';
+    if (action.includes('deleted')) return 'bg-red-100 text-red-800';
+    return 'bg-gray-100 text-gray-800';
+  };
+
+  // Format entity type for display with badge
+  const formatEntityType = (entityType: string) => {
+    return entityType.charAt(0).toUpperCase() + entityType.slice(1);
+  };
+
+  // Get entity badge color
+  const getEntityBadgeColor = (entityType: string) => {
+    if (entityType === 'tube') return 'bg-blue-100 text-blue-700 border-blue-200';
+    if (entityType === 'user') return 'bg-purple-100 text-purple-700 border-purple-200';
+    if (entityType === 'researcher') return 'bg-green-100 text-green-700 border-green-200';
+    return 'bg-gray-100 text-gray-700 border-gray-200';
+  };
+
+  // Parse and format location from details
+  const formatLocation = (detailsStr: string) => {
     try {
       const details = JSON.parse(detailsStr);
-      // For tube operations, show key information
+      // Use displayLocation if available (new format)
+      if (details.displayLocation) {
+        return details.displayLocation;
+      }
+      // Fallback to raw location
       if (details.location) {
         return details.location;
       }
-      if (details.changes && Array.isArray(details.changes)) {
-        return `${details.changes.length} field(s) changed`;
-      }
-      if (details.count) {
-        return `${details.count} items affected`;
-      }
-      return 'View details';
+      // For other entity types
+      if (details.email) return details.email;
+      if (details.department) return details.department;
+      return '-';
     } catch {
-      return detailsStr.substring(0, 50) + (detailsStr.length > 50 ? '...' : '');
+      return '-';
     }
   };
 
@@ -286,9 +312,9 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                 <tr>
                   <th className="px-3 py-2 text-left font-semibold text-gray-700">Timestamp</th>
                   <th className="px-3 py-2 text-left font-semibold text-gray-700">User</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Item</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Location</th>
                   <th className="px-3 py-2 text-left font-semibold text-gray-700">Action</th>
-                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Entity</th>
-                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Details</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -301,21 +327,21 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                       <span className="font-medium text-gray-900">{entry.username}</span>
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        {formatAction(entry.action)}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2 whitespace-nowrap text-gray-600">
-                      {entry.entityType && entry.entityId ? (
-                        <span className="font-mono text-xs">
-                          {entry.entityType}:{entry.entityId.substring(0, 8)}...
+                      {entry.entityType ? (
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getEntityBadgeColor(entry.entityType)}`}>
+                          {formatEntityType(entry.entityType)}
                         </span>
                       ) : (
-                        <span className="text-gray-400">N/A</span>
+                        <span className="text-gray-400 text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-gray-600 max-w-md truncate">
-                      {formatDetails(entry.details)}
+                    <td className="px-3 py-2 text-gray-700 max-w-xs truncate" title={formatLocation(entry.details)}>
+                      {formatLocation(entry.details)}
+                    </td>
+                    <td className="px-3 py-2 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getActionColor(entry.action)}`}>
+                        {formatAction(entry.action)}
+                      </span>
                     </td>
                   </tr>
                 ))}

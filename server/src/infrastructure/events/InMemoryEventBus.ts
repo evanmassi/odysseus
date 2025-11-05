@@ -23,7 +23,7 @@ export class InMemoryEventBus implements EventBus {
 
     // Add to queue for sequential processing
     this.eventQueue.push(event);
-    
+
     // Process queue if not already processing
     if (!this.isProcessing) {
       await this.processQueue();
@@ -76,6 +76,8 @@ export class InMemoryEventBus implements EventBus {
     // Process all handlers in parallel
     const handlerPromises = handlers.map(async (handler) => {
       try {
+        const handlerName = typeof handler === 'function' ? handler.name : handler.constructor.name;
+
         // Handle both function and object handlers
         if (typeof handler === 'function') {
           await handler(event);
@@ -83,7 +85,6 @@ export class InMemoryEventBus implements EventBus {
           await handler.handle(event);
         }
 
-        const handlerName = typeof handler === 'function' ? handler.name : handler.constructor.name;
         logger.debug('Event handler completed successfully', {
           eventName,
           eventId: event.eventId,
@@ -93,6 +94,7 @@ export class InMemoryEventBus implements EventBus {
         const errorMessage = error instanceof Error ? error.message : String(error);
         const errorStack = error instanceof Error ? error.stack : undefined;
         const handlerName = typeof handler === 'function' ? handler.name : handler.constructor.name;
+        });
 
         logger.error('Event handler failed', {
           eventName,

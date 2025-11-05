@@ -8,6 +8,8 @@ import {
   BulkTubesUpdatedEvent,
 } from '@domain/events/TubeEvents';
 import { UserRepository } from '@domain/repositories/UserRepository';
+import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { Location } from '@domain/valueObjects/Location';
 import { logger } from '@utils/logger';
 
 /**
@@ -25,7 +27,8 @@ export class AuditEventHandler {
   constructor(
     private auditService: AuditService,
     private eventBus: EventBus,
-    private userRepository: UserRepository
+    private userRepository: UserRepository,
+    private configurationRepository: ConfigurationRepository
   ) {
     this.subscribeToEvents();
   }
@@ -49,6 +52,46 @@ export class AuditEventHandler {
   // TUBE EVENT HANDLERS
 
   /**
+   * Convert Location to display-friendly string
+   * Example: "Main Storage Tank / Top Shelf / Sample Box Alpha / A1"
+   */
+  private async getDisplayLocation(location: Location): Promise<string> {
+    try {
+      const config = await this.configurationRepository.getCurrent();
+      if (!config) {
+        return location.toString();
+      }
+
+      // Find tank by ID
+      const tank = config.equipment.tanks.find(t => t.id === location.tankId);
+      if (!tank) {
+        return location.toString();
+      }
+
+      // Find rack by ID (rackId is a string but Rack.id is a number)
+      const rackId = parseInt(location.rackId);
+      const rack = tank.racks.find(r => r.id === rackId);
+      if (!rack) {
+        return location.toString();
+      }
+
+      // Find box by name
+      const box = rack.boxes.find(b => b.name.toUpperCase() === location.boxId.toUpperCase());
+      if (!box) {
+        return location.toString();
+      }
+
+      // Get position display based on box configuration
+      const positionDisplay = box.formatPosition(location.position);
+
+      return `${tank.name} / ${rack.name} / ${box.name} / ${positionDisplay}`;
+    } catch (error) {
+      logger.warn('Failed to get display location, using fallback', { error });
+      return location.toString();
+    }
+  }
+
+  /**
    * Handle TubeCreated event
    *
    * Logs tube creation with full sample data and location.
@@ -59,6 +102,9 @@ export class AuditEventHandler {
       const user = await this.userRepository.findById(event.createdBy);
       const username = user?.username || event.createdBy;
 
+      // Get display-friendly location
+      const displayLocation = await this.getDisplayLocation(event.location);
+
       await this.auditService.logAction({
         userId: event.createdBy,
         username: username,
@@ -67,6 +113,7 @@ export class AuditEventHandler {
         entityId: event.tubeId,
         details: {
           location: event.location.toString(),
+          displayLocation: displayLocation,
           tankId: event.location.tankId,
           rackId: event.location.rackId,
           boxId: event.location.boxId,
@@ -131,6 +178,9 @@ export class AuditEventHandler {
         }
       });
 
+      // Get display-friendly location
+      const displayLocation = await this.getDisplayLocation(event.newLocation);
+
       await this.auditService.logAction({
         userId: event.updatedBy,
         username: username,
@@ -140,6 +190,7 @@ export class AuditEventHandler {
         details: {
           changes,
           location: event.newLocation.toString(),
+          displayLocation: displayLocation,
           updatedBy: username,
           timestamp: event.occurredOn.toISOString(),
         },
@@ -163,6 +214,10 @@ export class AuditEventHandler {
       const user = await this.userRepository.findById(event.movedBy);
       const username = user?.username || event.movedBy;
 
+      // Get display-friendly locations
+      const oldDisplayLocation = await this.getDisplayLocation(event.oldLocation);
+      const newDisplayLocation = await this.getDisplayLocation(event.newLocation);
+
       await this.auditService.logAction({
         userId: event.movedBy,
         username: username,
@@ -172,6 +227,8 @@ export class AuditEventHandler {
         details: {
           oldLocation: event.oldLocation.toString(),
           newLocation: event.newLocation.toString(),
+          oldDisplayLocation: oldDisplayLocation,
+          displayLocation: newDisplayLocation,
           movedBy: username,
           timestamp: event.occurredOn.toISOString(),
         },
@@ -195,6 +252,9 @@ export class AuditEventHandler {
       const user = await this.userRepository.findById(event.deletedBy);
       const username = user?.username || event.deletedBy;
 
+      // Get display-friendly location
+      const displayLocation = await this.getDisplayLocation(event.location);
+
       await this.auditService.logAction({
         userId: event.deletedBy,
         username: username,
@@ -203,6 +263,7 @@ export class AuditEventHandler {
         entityId: event.tubeId,
         details: {
           location: event.location.toString(),
+          displayLocation: displayLocation,
           tankId: event.location.tankId,
           rackId: event.location.rackId,
           boxId: event.location.boxId,

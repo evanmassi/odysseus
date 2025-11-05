@@ -405,18 +405,26 @@ export class AdminService {
       if (options.dateTo) params.append('dateTo', options.dateTo);
 
       const query = params.toString() ? `?${params.toString()}` : '';
+
       const response = await httpClient.get<{
         success: boolean;
-        entries: AuditLogEntry[];
-        pagination: {
-          total: number;
-          limit: number;
-          offset: number;
-          hasMore: boolean;
+        data: {
+          entries: AuditLogEntry[];
+          pagination: {
+            total: number;
+            limit: number;
+            offset: number;
+            hasMore: boolean;
+          };
         };
+        meta?: { timing: number };
       }>(`/admin/audit${query}`);
 
-      return response.data;
+      return {
+        success: response.data.success,
+        entries: response.data.data.entries,
+        pagination: response.data.data.pagination
+      };
     } catch (error) {
       console.error('Failed to get audit log:', error);
       throw error;
