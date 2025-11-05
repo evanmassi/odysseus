@@ -93,7 +93,7 @@ export class TubeApplicationService {
       tube.id,
       tube.location,
       tube.sampleData,
-      authenticatedUser.username
+      authenticatedUser.id
     ));
 
     return TubeDto.toResponse(tube);
@@ -268,7 +268,7 @@ export class TubeApplicationService {
         updatedTube.id,
         oldLocation,
         updatedTube.location,
-        authenticatedUser.username
+        authenticatedUser.id
       ));
     }
 
@@ -279,7 +279,7 @@ export class TubeApplicationService {
       updatedTube.location,
       oldSampleData,
       updatedTube.sampleData,
-      authenticatedUser.username
+      authenticatedUser.id
     ));
 
     return TubeDto.toResponse(updatedTube);
@@ -303,7 +303,7 @@ export class TubeApplicationService {
     this.eventBus.publish(new TubeDeletedEvent(
       tube.id,
       tube.location,
-      authenticatedUser.username
+      authenticatedUser.id
     ));
   }
 
@@ -339,7 +339,7 @@ export class TubeApplicationService {
     if (updated.length > 0) {
       this.eventBus.publish(new BulkTubesUpdatedEvent(
         updated,
-        authenticatedUser.username,
+        authenticatedUser.id,
         { updated: updated.length, failed: failed.length }
       ));
     }

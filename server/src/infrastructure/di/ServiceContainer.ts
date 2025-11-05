@@ -607,9 +607,11 @@ export class ServiceContainer {
 
   getAuditEventHandler(): AuditEventHandler {
     if (!this.auditEventHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
       this.auditEventHandler = new AuditEventHandler(
         this.getAuditService(),
-        this.getEventBus()
+        this.getEventBus(),
+        repositories.users
       );
     }
     return this.auditEventHandler;

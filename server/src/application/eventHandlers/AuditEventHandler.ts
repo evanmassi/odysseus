@@ -7,6 +7,7 @@ import {
   TubeDeletedEvent,
   BulkTubesUpdatedEvent,
 } from '@domain/events/TubeEvents';
+import { UserRepository } from '@domain/repositories/UserRepository';
 import { logger } from '@utils/logger';
 
 /**
@@ -23,7 +24,8 @@ import { logger } from '@utils/logger';
 export class AuditEventHandler {
   constructor(
     private auditService: AuditService,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private userRepository: UserRepository
   ) {
     this.subscribeToEvents();
   }
@@ -53,13 +55,13 @@ export class AuditEventHandler {
    */
   private async handleTubeCreated(event: TubeCreatedEvent): Promise<void> {
     try {
-      // Extract user ID from createdBy (format: "username" or could include user ID)
-      // For now, we'll use createdBy as both userId and username
-      // TODO: In Phase 2, enhance to get actual user ID from username
+      // Look up username from user ID
+      const user = await this.userRepository.findById(event.createdBy);
+      const username = user?.username || event.createdBy;
 
       await this.auditService.logAction({
-        userId: event.createdBy, // TODO: Resolve to actual user ID
-        username: event.createdBy,
+        userId: event.createdBy,
+        username: username,
         action: 'tube_created',
         entityType: 'tube',
         entityId: event.tubeId,
@@ -78,7 +80,7 @@ export class AuditEventHandler {
           cultureCondition: event.sampleData.cultureCondition,
           lotNumber: event.sampleData.lotNumber,
           notes: event.sampleData.notes,
-          createdBy: event.createdBy,
+          createdBy: username,
           timestamp: event.occurredOn.toISOString(),
         },
       });
@@ -97,6 +99,10 @@ export class AuditEventHandler {
    */
   private async handleTubeUpdated(event: TubeUpdatedEvent): Promise<void> {
     try {
+      // Look up username from user ID
+      const user = await this.userRepository.findById(event.updatedBy);
+      const username = user?.username || event.updatedBy;
+
       // Calculate field-level changes
       const changes: Array<{ field: string; oldValue: any; newValue: any }> = [];
 
@@ -127,14 +133,14 @@ export class AuditEventHandler {
 
       await this.auditService.logAction({
         userId: event.updatedBy,
-        username: event.updatedBy,
+        username: username,
         action: 'tube_updated',
         entityType: 'tube',
         entityId: event.tubeId,
         details: {
           changes,
           location: event.newLocation.toString(),
-          updatedBy: event.updatedBy,
+          updatedBy: username,
           timestamp: event.occurredOn.toISOString(),
         },
       });
@@ -153,16 +159,20 @@ export class AuditEventHandler {
    */
   private async handleTubeLocationChanged(event: TubeLocationChangedEvent): Promise<void> {
     try {
+      // Look up username from user ID
+      const user = await this.userRepository.findById(event.movedBy);
+      const username = user?.username || event.movedBy;
+
       await this.auditService.logAction({
         userId: event.movedBy,
-        username: event.movedBy,
+        username: username,
         action: 'tube_moved',
         entityType: 'tube',
         entityId: event.tubeId,
         details: {
           oldLocation: event.oldLocation.toString(),
           newLocation: event.newLocation.toString(),
-          movedBy: event.movedBy,
+          movedBy: username,
           timestamp: event.occurredOn.toISOString(),
         },
       });
@@ -181,9 +191,13 @@ export class AuditEventHandler {
    */
   private async handleTubeDeleted(event: TubeDeletedEvent): Promise<void> {
     try {
+      // Look up username from user ID
+      const user = await this.userRepository.findById(event.deletedBy);
+      const username = user?.username || event.deletedBy;
+
       await this.auditService.logAction({
         userId: event.deletedBy,
-        username: event.deletedBy,
+        username: username,
         action: 'tube_deleted',
         entityType: 'tube',
         entityId: event.tubeId,
@@ -193,7 +207,7 @@ export class AuditEventHandler {
           rackId: event.location.rackId,
           boxId: event.location.boxId,
           position: event.location.position,
-          deletedBy: event.deletedBy,
+          deletedBy: username,
           deletedAt: event.occurredOn.toISOString(),
         },
       });
@@ -212,9 +226,13 @@ export class AuditEventHandler {
    */
   private async handleBulkTubesUpdated(event: BulkTubesUpdatedEvent): Promise<void> {
     try {
+      // Look up username from user ID
+      const user = await this.userRepository.findById(event.updatedBy);
+      const username = user?.username || event.updatedBy;
+
       await this.auditService.logAction({
         userId: event.updatedBy,
-        username: event.updatedBy,
+        username: username,
         action: 'tube_bulk_updated',
         entityType: 'tube',
         // Don't set entityId for bulk operations (affects multiple entities)
@@ -222,7 +240,7 @@ export class AuditEventHandler {
           tubeIds: event.tubeIds,
           count: event.tubeIds.length,
           changesSummary: event.changesSummary,
-          updatedBy: event.updatedBy,
+          updatedBy: username,
           timestamp: event.occurredOn.toISOString(),
         },
       });
