@@ -2,10 +2,12 @@ import { Configuration } from '@domain/entities/Configuration';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ValidationService } from '@domain/services/ValidationService';
+import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
 import { User } from '@domain/entities/User';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { EventBus } from '@application/contracts/EventBus';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 
 // CONFIGURATION COMMAND CONTRACTS
@@ -372,7 +374,9 @@ export class UpdateConfigurationCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
     private validationService: ValidationService,
-    private userRepository: UserRepository
+    private userRepository: UserRepository,
+    private eventBus: EventBus,
+    private changeDetector: ConfigurationChangeDetector
   ) {}
 
   async handle(command: UpdateConfigurationCommand): Promise<Configuration> {
@@ -409,6 +413,12 @@ export class UpdateConfigurationCommandHandler {
       throw new ValidationError(
         `Configuration update validation failed: ${validationResult.errors.join(', ')}`
       );
+    }
+
+    // Detect changes and emit domain events for audit trail
+    const changeEvents = this.changeDetector.detectChanges(currentConfig, updatedConfig, command.userId);
+    for (const event of changeEvents) {
+      this.eventBus.publish(event);
     }
 
     // Save the updated configuration

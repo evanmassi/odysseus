@@ -7,6 +7,18 @@ import {
   TubeDeletedEvent,
   BulkTubesUpdatedEvent,
 } from '@domain/events/TubeEvents';
+import {
+  TankUpdatedEvent,
+  TankAddedEvent,
+  TankDeletedEvent,
+  RackAddedEvent,
+  RackDeletedEvent,
+  RackUpdatedEvent,
+  BoxAddedEvent,
+  BoxDeletedEvent,
+  BoxUpdatedEvent,
+  LabNameChangedEvent
+} from '@domain/events/ConfigurationEvents';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { Location } from '@domain/valueObjects/Location';
@@ -45,6 +57,18 @@ export class AuditEventHandler {
     this.eventBus.subscribe('TubeLocationChanged', this.handleTubeLocationChanged.bind(this) as any);
     this.eventBus.subscribe('TubeDeleted', this.handleTubeDeleted.bind(this) as any);
     this.eventBus.subscribe('BulkTubesUpdated', this.handleBulkTubesUpdated.bind(this) as any);
+
+    // Configuration events
+    this.eventBus.subscribe('TankUpdated', this.handleTankUpdated.bind(this) as any);
+    this.eventBus.subscribe('TankAdded', this.handleTankAdded.bind(this) as any);
+    this.eventBus.subscribe('TankDeleted', this.handleTankDeleted.bind(this) as any);
+    this.eventBus.subscribe('RackAdded', this.handleRackAdded.bind(this) as any);
+    this.eventBus.subscribe('RackDeleted', this.handleRackDeleted.bind(this) as any);
+    this.eventBus.subscribe('RackUpdated', this.handleRackUpdated.bind(this) as any);
+    this.eventBus.subscribe('BoxAdded', this.handleBoxAdded.bind(this) as any);
+    this.eventBus.subscribe('BoxDeleted', this.handleBoxDeleted.bind(this) as any);
+    this.eventBus.subscribe('BoxUpdated', this.handleBoxUpdated.bind(this) as any);
+    this.eventBus.subscribe('LabNameChanged', this.handleLabNameChanged.bind(this) as any);
 
     logger.info('AuditEventHandler subscribed to domain events');
   }
@@ -313,6 +337,342 @@ export class AuditEventHandler {
     }
   }
 
+  // CONFIGURATION EVENT HANDLERS
+
+  /**
+   * Handle TankUpdated event
+   *
+   * Logs tank property changes (name, isActive).
+   */
+  private async handleTankUpdated(event: TankUpdatedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'tank_updated',
+        entityType: 'tank',
+        entityId: event.tankId,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          changes: event.changes,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log tank updated event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+      });
+    }
+  }
+
+  /**
+   * Handle TankAdded event
+   *
+   * Logs new tank creation.
+   */
+  private async handleTankAdded(event: TankAddedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'tank_added',
+        entityType: 'tank',
+        entityId: event.tankId,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log tank added event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+      });
+    }
+  }
+
+  /**
+   * Handle TankDeleted event
+   *
+   * Logs tank removal.
+   */
+  private async handleTankDeleted(event: TankDeletedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'tank_deleted',
+        entityType: 'tank',
+        entityId: event.tankId,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log tank deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+      });
+    }
+  }
+
+  /**
+   * Handle RackAdded event
+   *
+   * Logs when a new rack is added to a tank.
+   */
+  private async handleRackAdded(event: RackAddedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'rack_added',
+        entityType: 'rack',
+        entityId: `${event.tankId}-${event.rackId}`,
+        details: {
+          tankId: event.tankId,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log rack added event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+      });
+    }
+  }
+
+  /**
+   * Handle RackDeleted event
+   *
+   * Logs when a rack is removed from a tank.
+   */
+  private async handleRackDeleted(event: RackDeletedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'rack_deleted',
+        entityType: 'rack',
+        entityId: `${event.tankId}-${event.rackId}`,
+        details: {
+          tankId: event.tankId,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log rack deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+      });
+    }
+  }
+
+  /**
+   * Handle RackUpdated event
+   *
+   * Logs rack property changes.
+   */
+  private async handleRackUpdated(event: RackUpdatedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'rack_updated',
+        entityType: 'rack',
+        entityId: `${event.tankId}-${event.rackId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          changes: event.changes,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log rack updated event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+      });
+    }
+  }
+
+  /**
+   * Handle BoxAdded event
+   *
+   * Logs when a new box is added to a rack.
+   */
+  private async handleBoxAdded(event: BoxAddedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'box_added',
+        entityType: 'box',
+        entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          boxId: event.boxId,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log box added event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+        boxId: event.boxId,
+      });
+    }
+  }
+
+  /**
+   * Handle BoxDeleted event
+   *
+   * Logs when a box is removed from a rack.
+   */
+  private async handleBoxDeleted(event: BoxDeletedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'box_deleted',
+        entityType: 'box',
+        entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          boxId: event.boxId,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log box deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+        boxId: event.boxId,
+      });
+    }
+  }
+
+  /**
+   * Handle BoxUpdated event
+   *
+   * Logs box property changes.
+   */
+  private async handleBoxUpdated(event: BoxUpdatedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'box_updated',
+        entityType: 'box',
+        entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          boxId: event.boxId,
+          boxName: event.boxName,
+          changes: event.changes,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log box updated event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+        boxId: event.boxId,
+      });
+    }
+  }
+
+  /**
+   * Handle LabNameChanged event
+   *
+   * Logs laboratory name changes.
+   */
+  private async handleLabNameChanged(event: LabNameChangedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'lab_name_changed',
+        entityType: 'lab',
+        details: {
+          oldName: event.oldName,
+          newName: event.newName,
+          username: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log lab name changed event', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
   /**
    * Unsubscribe from all events (cleanup)
    *
@@ -324,6 +684,17 @@ export class AuditEventHandler {
     this.eventBus.unsubscribe('TubeLocationChanged', this.handleTubeLocationChanged.bind(this) as any);
     this.eventBus.unsubscribe('TubeDeleted', this.handleTubeDeleted.bind(this) as any);
     this.eventBus.unsubscribe('BulkTubesUpdated', this.handleBulkTubesUpdated.bind(this) as any);
+
+    this.eventBus.unsubscribe('TankUpdated', this.handleTankUpdated.bind(this) as any);
+    this.eventBus.unsubscribe('TankAdded', this.handleTankAdded.bind(this) as any);
+    this.eventBus.unsubscribe('TankDeleted', this.handleTankDeleted.bind(this) as any);
+    this.eventBus.unsubscribe('RackAdded', this.handleRackAdded.bind(this) as any);
+    this.eventBus.unsubscribe('RackDeleted', this.handleRackDeleted.bind(this) as any);
+    this.eventBus.unsubscribe('RackUpdated', this.handleRackUpdated.bind(this) as any);
+    this.eventBus.unsubscribe('BoxAdded', this.handleBoxAdded.bind(this) as any);
+    this.eventBus.unsubscribe('BoxDeleted', this.handleBoxDeleted.bind(this) as any);
+    this.eventBus.unsubscribe('BoxUpdated', this.handleBoxUpdated.bind(this) as any);
+    this.eventBus.unsubscribe('LabNameChanged', this.handleLabNameChanged.bind(this) as any);
 
     logger.info('AuditEventHandler unsubscribed from events');
   }

@@ -119,43 +119,141 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     return action.charAt(0).toUpperCase() + action.slice(1);
   };
 
-  // Get action color based on type
-  const getActionColor = (action: string) => {
-    if (action.includes('created')) return 'bg-green-100 text-green-800';
-    if (action.includes('updated')) return 'bg-blue-100 text-blue-800';
-    if (action.includes('moved')) return 'bg-yellow-100 text-yellow-800';
-    if (action.includes('deleted')) return 'bg-red-100 text-red-800';
-    return 'bg-gray-100 text-gray-800';
+  // Get action badge class based on type
+  const getActionBadgeClass = (action: string) => {
+    if (action.includes('created')) return 'badge-action-created';
+    if (action.includes('updated')) return 'badge-action-updated';
+    if (action.includes('moved')) return 'badge-action-moved';
+    if (action.includes('deleted')) return 'badge-action-deleted';
+    return 'badge-action-default';
   };
 
-  // Format entity type for display with badge
+  // Format entity type for display
   const formatEntityType = (entityType: string) => {
     return entityType.charAt(0).toUpperCase() + entityType.slice(1);
   };
 
-  // Get entity badge color
-  const getEntityBadgeColor = (entityType: string) => {
-    if (entityType === 'tube') return 'bg-blue-100 text-blue-700 border-blue-200';
-    if (entityType === 'user') return 'bg-purple-100 text-purple-700 border-purple-200';
-    if (entityType === 'researcher') return 'bg-green-100 text-green-700 border-green-200';
-    return 'bg-gray-100 text-gray-700 border-gray-200';
+  // Get entity badge class
+  const getEntityBadgeClass = (entityType: string) => {
+    if (entityType === 'tube') return 'badge-entity-tube';
+    if (entityType === 'user') return 'badge-entity-user';
+    if (entityType === 'researcher') return 'badge-entity-researcher';
+    if (entityType === 'tank') return 'badge-entity-tank';
+    if (entityType === 'rack') return 'badge-entity-rack';
+    if (entityType === 'box') return 'badge-entity-box';
+    if (entityType === 'lab') return 'badge-entity-lab';
+    return 'badge-entity-default';
   };
 
-  // Parse and format location from details
-  const formatLocation = (detailsStr: string) => {
+  // Parse and format details for display
+  const formatDetails = (entry: AuditLogEntry) => {
     try {
-      const details = JSON.parse(detailsStr);
-      // Use displayLocation if available (new format)
-      if (details.displayLocation) {
-        return details.displayLocation;
+      const details = JSON.parse(entry.details);
+      const action = entry.action;
+      const entityType = entry.entityType;
+
+      // TUBES: Show location
+      if (entityType === 'tube') {
+        if (details.displayLocation) return details.displayLocation;
+        if (details.location) return details.location;
+        return '-';
       }
-      // Fallback to raw location
-      if (details.location) {
-        return details.location;
+
+      // TANK EVENTS
+      if (entityType === 'tank') {
+        if (action === 'tank_added') {
+          const tankName = details.tankName || details.tankId || '';
+          return `Tank '${tankName}'`;
+        }
+        if (action === 'tank_deleted') {
+          const tankName = details.tankName || details.tankId || '';
+          return `Tank '${tankName}'`;
+        }
+        if (action === 'tank_updated' && details.changes) {
+          const nameChange = details.changes.find((c: any) => c.field === 'name');
+          if (nameChange) {
+            return `Tank '${nameChange.oldValue}' renamed to '${nameChange.newValue}'`;
+          }
+          const activeChange = details.changes.find((c: any) => c.field === 'isActive');
+          if (activeChange) {
+            const tankName = nameChange?.newValue || details.tankId || '';
+            return `Tank '${tankName}' ${activeChange.newValue ? 'activated' : 'deactivated'}`;
+          }
+        }
+        const tankName = details.tankId || '';
+        return `Tank '${tankName}'`;
       }
-      // For other entity types
+
+      // RACK EVENTS
+      if (entityType === 'rack') {
+        const tankName = details.tankName || details.tankId || '';
+        const rackName = details.rackName || `Rack ${details.rackId}` || '';
+        const path = `${tankName}/${rackName}`;
+
+        if (action === 'rack_added') {
+          return path;
+        }
+        if (action === 'rack_deleted') {
+          return path;
+        }
+        if (action === 'rack_updated' && details.changes) {
+          const nameChange = details.changes.find((c: any) => c.field === 'name');
+          if (nameChange) {
+            const oldPath = `${tankName}/${nameChange.oldValue}`;
+            return `${oldPath} renamed to '${nameChange.newValue}'`;
+          }
+          const activeChange = details.changes.find((c: any) => c.field === 'isActive');
+          if (activeChange) {
+            return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
+          }
+        }
+        return path;
+      }
+
+      // BOX EVENTS
+      if (entityType === 'box') {
+        const tankName = details.tankName || details.tankId || '';
+        const rackName = details.rackName || `Rack ${details.rackId}` || '';
+        const boxName = details.boxName || `Box ${details.boxId}` || '';
+        const path = `${tankName}/${rackName}/${boxName}`;
+
+        if (action === 'box_added') {
+          return path;
+        }
+        if (action === 'box_deleted') {
+          return path;
+        }
+        if (action === 'box_updated' && details.changes) {
+          const nameChange = details.changes.find((c: any) => c.field === 'name');
+          if (nameChange) {
+            const oldPath = `${tankName}/${rackName}/Box ${nameChange.oldValue}`;
+            return `${oldPath} renamed to 'Box ${nameChange.newValue}'`;
+          }
+          const rowChange = details.changes.find((c: any) => c.field === 'gridConfig.rows');
+          const colChange = details.changes.find((c: any) => c.field === 'gridConfig.cols');
+          if (rowChange && colChange) {
+            return `${path} resized to ${rowChange.newValue}x${colChange.newValue}`;
+          }
+          const activeChange = details.changes.find((c: any) => c.field === 'isActive');
+          if (activeChange) {
+            return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
+          }
+        }
+        return path;
+      }
+
+      // LAB EVENTS
+      if (entityType === 'lab') {
+        if (action === 'lab_name_changed' && details.oldName && details.newName) {
+          return `'${details.oldName}' renamed to '${details.newName}'`;
+        }
+        return details.newName || '-';
+      }
+
+      // OTHER ENTITY TYPES (user, researcher)
       if (details.email) return details.email;
       if (details.department) return details.department;
+
       return '-';
     } catch {
       return '-';
@@ -313,7 +411,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                   <th className="px-3 py-2 text-left font-semibold text-gray-700">Timestamp</th>
                   <th className="px-3 py-2 text-left font-semibold text-gray-700">User</th>
                   <th className="px-3 py-2 text-left font-semibold text-gray-700">Item</th>
-                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Location</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Details</th>
                   <th className="px-3 py-2 text-left font-semibold text-gray-700">Action</th>
                 </tr>
               </thead>
@@ -328,18 +426,18 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
                       {entry.entityType ? (
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border ${getEntityBadgeColor(entry.entityType)}`}>
+                        <span className={getEntityBadgeClass(entry.entityType)}>
                           {formatEntityType(entry.entityType)}
                         </span>
                       ) : (
                         <span className="text-gray-400 text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-gray-700 max-w-xs truncate" title={formatLocation(entry.details)}>
-                      {formatLocation(entry.details)}
+                    <td className="px-3 py-2 text-gray-700 max-w-xs truncate" title={formatDetails(entry)}>
+                      {formatDetails(entry)}
                     </td>
                     <td className="px-3 py-2 whitespace-nowrap">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getActionColor(entry.action)}`}>
+                      <span className={getActionBadgeClass(entry.action)}>
                         {formatAction(entry.action)}
                       </span>
                     </td>

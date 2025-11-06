@@ -1492,3 +1492,80 @@ const ttl = 120000; // 2 minutes in milliseconds
 - All functionality must work in packaged app
 - Socket.IO must connect in production
 - Data must persist across restarts
+
+## Global Claude Code Instructions
+
+### Communication Style
+- Be concise and direct
+- Skip unnecessary preamble and postamble
+- Be skeptical and complete and thorough in everything you do
+- Use technical language to make a point and for yourself to understand when performing tasks. HOWEVER, use simple language and explanations for non-coders (like myself) when you're explaining what will need to happen, what has happened or what can happen. Assume I don't know coding.
+- Understand that I'm not a coder, so you must explain simply why a certain approach is the top industry quality and give examples of why it is the best way to solve a problem.
+- You can mention some technical language to help me understand exactly what you're doing and where you're working, but don't assume I understand everything you're saying.
+
+### Code Preferences
+- Follow established patterns in existing codebase.
+- You should always recommended the cleanest and most architecturally sound approach to building something.
+- Always use top quality, industry-standard approaches that do not increase technical debt or utilize patches, shortcuts or workarounds when solving problems or errors.
+- Prefer named exports over default exports
+- Maintain consistency with project architecture
+- Never assume files or functions are missing, search the project codebase to see if they are there and how they work before suggesting changes or optimizations.
+- Always write code from the perspective of a fullstack senior engineer with decades of coding experience in every language.
+- If you write code that you don't use always go back and throw it out. Absolutely no zombie or dead code.
+
+### Workflow
+- Batch operations together when possible
+- Reference project documentation when available
+- Prioritize pragmatic solutions
+- Skip confirmations when safe to proceed.
+- Don't ask for permissions unless it's a potentially dangerous action.
+- Solutions should be elegant and simple unless there is better architecturally sound approach
+- Always find the root cause to a problem and never assume anything. You should dig through the code if you aren't 100% sure of any errors or problems that occur.
+
+### Windows Environment Command Execution
+
+**Environment Context:**
+- Running on Windows 10 via PowerShell
+- The Bash tool handles both PowerShell and cmd commands automatically
+
+**File System Operations:**
+- Use Windows native commands: `dir`, `del`, `copy`, `move`, `mkdir`, `rmdir`
+- NEVER use Unix commands: `ls`, `rm`, `cp`, `mv` (they may fail or behave unexpectedly)
+
+**Cross-Platform Tools:**
+- npm, node, git, sqlite3, curl work normally - use them as-is
+
+**Path Handling:**
+- ALWAYS use double quotes for paths with spaces: `"C:\Users\evan\Desktop\folder name"`
+- Windows accepts both `\` and `/` in paths, but prefer `\` for clarity
+
+**Command Chaining:**
+- Sequential (ignore failures): `command1 ; command2`
+- Stop on failure: `command1 && command2`
+
+**CRITICAL - Error Redirection:**
+- ⛔ **NEVER EVER USE `2>nul` or `>nul` in bash commands** - This creates literal files named "nul" or "NUL"
+- ✅ Use proper Unix syntax: `2>/dev/null` or `>/dev/null`
+- ✅ Or simply omit error suppression entirely
+- This applies to ALL bash commands including grep, find, etc.
+
+**Critical Rule - Use Dedicated Tools Instead of Bash:**
+- File reading: Use `Read` tool, NOT `cat`, `type`, `Get-Content`
+- File search: Use `Glob` tool, NOT `dir /s`, `Get-ChildItem -Recurse`
+- Content search: Use `Grep` tool, NOT `findstr`, `Select-String`
+- File editing: Use `Edit` tool, NOT `sed`, PowerShell string replacement
+- File writing: Use `Write` tool, NOT `echo >`, `Out-File`
+
+**Only Use Bash Tool For:**
+- Running builds/tests (npm, node)
+- Version control (git)
+- Process management (tasklist, taskkill)
+- Database operations (sqlite3)
+- System commands that have no dedicated tool alternative
+
+### Project Work
+- Always check instructions in `.claude/instructions.md`
+- Always create project-specific instructions in the project directory that EXPANDS on these instructions.
+- Follow naming conventions and file structures from existing code and ensure they meet typical industry standards
+- Respect architectural patterns already in place, but suggest optimizing if there is unnecessary technical debt or duplicate functions.
+- Create a reports dir in a given project that should contain detailed work we've accomplished.

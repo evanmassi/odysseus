@@ -31,6 +31,7 @@ import { ResearcherApplicationService } from '@application/services/ResearcherAp
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import { AuditService } from '@application/services/AuditService';
 import { TubePositionService, AccessControlService, ValidationService } from '@domain/services';
+import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
 
 // Infrastructure services
 import { BcryptPasswordService } from '@infrastructure/services/BcryptPasswordService';
@@ -364,10 +365,16 @@ export class ServiceContainer {
       this.updateConfigurationHandler = new UpdateConfigurationCommandHandler(
         repositories.configurations,
         this.getValidationService(),
-        repositories.users
+        repositories.users,
+        this.getEventBus(),
+        this.getConfigurationChangeDetector()
       );
     }
     return this.updateConfigurationHandler;
+  }
+
+  getConfigurationChangeDetector(): ConfigurationChangeDetector {
+    return new ConfigurationChangeDetector();
   }
 
   getUpdateBoxPositionDisplayHandler(): UpdateBoxPositionDisplayCommandHandler {

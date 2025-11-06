@@ -94,7 +94,6 @@ export class InMemoryEventBus implements EventBus {
         const errorMessage = error instanceof Error ? error.message : String(error);
         const errorStack = error instanceof Error ? error.stack : undefined;
         const handlerName = typeof handler === 'function' ? handler.name : handler.constructor.name;
-        });
 
         logger.error('Event handler failed', {
           eventName,
