@@ -161,7 +161,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
       // TANK EVENTS
       if (entityType === 'tank') {
-        if (action === 'tank_added') {
+        if (action === 'tank_created') {
           const tankName = details.tankName || details.tankId || '';
           return `Tank '${tankName}'`;
         }
@@ -190,7 +190,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
         const rackName = details.rackName || `Rack ${details.rackId}` || '';
         const path = `${tankName}/${rackName}`;
 
-        if (action === 'rack_added') {
+        if (action === 'rack_created') {
           return path;
         }
         if (action === 'rack_deleted') {
@@ -217,7 +217,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
         const boxName = details.boxName || `Box ${details.boxId}` || '';
         const path = `${tankName}/${rackName}/${boxName}`;
 
-        if (action === 'box_added') {
+        if (action === 'box_created') {
           return path;
         }
         if (action === 'box_deleted') {

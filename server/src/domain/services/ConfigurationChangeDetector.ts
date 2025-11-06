@@ -154,7 +154,7 @@ export class ConfigurationChangeDetector {
     // Detect added racks
     for (const newRack of newRacks) {
       if (!oldRackMap.has(newRack.id)) {
-        events.push(new RackAddedEvent(userId, tankId, newRack.id, newRack.name));
+        events.push(new RackAddedEvent(userId, tankId, tankName, newRack.id, newRack.name));
         summary.racksAdded++;
       }
     }
@@ -162,7 +162,7 @@ export class ConfigurationChangeDetector {
     // Detect deleted racks
     for (const oldRack of oldRacks) {
       if (!newRackMap.has(oldRack.id)) {
-        events.push(new RackDeletedEvent(userId, tankId, oldRack.id, oldRack.name));
+        events.push(new RackDeletedEvent(userId, tankId, tankName, oldRack.id, oldRack.name));
         summary.racksDeleted++;
       }
     }
@@ -224,7 +224,7 @@ export class ConfigurationChangeDetector {
     // Detect added boxes
     for (const newBox of newBoxes) {
       if (!oldBoxMap.has(newBox.name)) {
-        events.push(new BoxAddedEvent(userId, tankId, rackId, newBox.name, tankName, rackName));
+        events.push(new BoxAddedEvent(userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name));
         summary.boxesAdded++;
       }
     }
@@ -232,7 +232,7 @@ export class ConfigurationChangeDetector {
     // Detect deleted boxes
     for (const oldBox of oldBoxes) {
       if (!newBoxMap.has(oldBox.name)) {
-        events.push(new BoxDeletedEvent(userId, tankId, rackId, oldBox.name, tankName, rackName));
+        events.push(new BoxDeletedEvent(userId, tankId, tankName, rackId, rackName, oldBox.name, oldBox.name));
         summary.boxesDeleted++;
       }
     }

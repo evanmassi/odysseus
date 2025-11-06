@@ -117,6 +117,7 @@ export class RackAddedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly tankId: string,
+    public readonly tankName: string,
     public readonly rackId: number,
     public readonly rackName: string
   ) {
@@ -141,6 +142,7 @@ export class RackDeletedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly tankId: string,
+    public readonly tankName: string,
     public readonly rackId: number,
     public readonly rackName: string
   ) {
@@ -195,10 +197,11 @@ export class BoxAddedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly tankId: string,
-    public readonly rackId: number,
-    public readonly boxId: string,
     public readonly tankName: string,
-    public readonly rackName: string
+    public readonly rackId: number,
+    public readonly rackName: string,
+    public readonly boxId: string,
+    public readonly boxName: string
   ) {
     super();
   }
@@ -221,10 +224,11 @@ export class BoxDeletedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly tankId: string,
-    public readonly rackId: number,
-    public readonly boxId: string,
     public readonly tankName: string,
-    public readonly rackName: string
+    public readonly rackId: number,
+    public readonly rackName: string,
+    public readonly boxId: string,
+    public readonly boxName: string
   ) {
     super();
   }

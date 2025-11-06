@@ -384,7 +384,7 @@ export class AuditEventHandler {
       await this.auditService.logAction({
         userId: event.userId,
         username: username,
-        action: 'tank_added',
+        action: 'tank_created',
         entityType: 'tank',
         entityId: event.tankId,
         details: {
@@ -446,11 +446,12 @@ export class AuditEventHandler {
       await this.auditService.logAction({
         userId: event.userId,
         username: username,
-        action: 'rack_added',
+        action: 'rack_created',
         entityType: 'rack',
         entityId: `${event.tankId}-${event.rackId}`,
         details: {
           tankId: event.tankId,
+          tankName: event.tankName,
           rackId: event.rackId,
           rackName: event.rackName,
           username: username,
@@ -484,6 +485,7 @@ export class AuditEventHandler {
         entityId: `${event.tankId}-${event.rackId}`,
         details: {
           tankId: event.tankId,
+          tankName: event.tankName,
           rackId: event.rackId,
           rackName: event.rackName,
           username: username,
@@ -547,7 +549,7 @@ export class AuditEventHandler {
       await this.auditService.logAction({
         userId: event.userId,
         username: username,
-        action: 'box_added',
+        action: 'box_created',
         entityType: 'box',
         entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
         details: {
@@ -556,6 +558,7 @@ export class AuditEventHandler {
           rackId: event.rackId,
           rackName: event.rackName,
           boxId: event.boxId,
+          boxName: event.boxName,
           username: username,
           timestamp: event.occurredOn.toISOString(),
         },
@@ -592,6 +595,7 @@ export class AuditEventHandler {
           rackId: event.rackId,
           rackName: event.rackName,
           boxId: event.boxId,
+          boxName: event.boxName,
           username: username,
           timestamp: event.occurredOn.toISOString(),
         },
