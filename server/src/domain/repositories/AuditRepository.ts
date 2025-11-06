@@ -114,4 +114,31 @@ export interface AuditRepository {
    * @param dateTo - End date
    */
   countInRange(dateFrom: Date, dateTo: Date): Promise<number>;
+
+  // ARCHIVAL OPERATIONS
+
+  /**
+   * Find entries older than specified date (for archival)
+   *
+   * @param date - Cutoff date
+   * @param limit - Optional limit for batch processing
+   */
+  findOlderThan(date: Date, limit?: number): Promise<AuditLogEntry[]>;
+
+  /**
+   * Delete archived entries from active table (called after saveArchived)
+   *
+   * @param entryIds - Array of entry IDs to delete
+   * @returns Number of entries deleted
+   */
+  deleteArchived(entryIds: string[]): Promise<number>;
+
+  /**
+   * Get active table statistics for monitoring
+   */
+  getActiveTableMetrics(): Promise<{
+    count: number;
+    oldestEntry: Date | null;
+    newestEntry: Date | null;
+  }>;
 }

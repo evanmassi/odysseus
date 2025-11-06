@@ -30,6 +30,7 @@ import { TubeApplicationService } from '@application/services/TubeApplicationSer
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import { AuditService } from '@application/services/AuditService';
+import { AuditRetentionService } from '@application/services/AuditRetentionService';
 import { TubePositionService, AccessControlService, ValidationService } from '@domain/services';
 import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
 
@@ -39,6 +40,8 @@ import { JwtSessionService } from '@infrastructure/services/JwtSessionService';
 import { ExpressAuthMiddleware } from '@infrastructure/security/ExpressAuthMiddleware';
 import { ConfigurationService } from '@infrastructure/configuration/ConfigurationService';
 import { ConsoleEmailService } from '@infrastructure/services/ConsoleEmailService';
+import { AuditArchiveRepository } from '@infrastructure/repositories/AuditArchiveRepository';
+import { AuditArchivalJob } from '@infrastructure/jobs/AuditArchivalJob';
 
 // Contracts
 import { PasswordService } from '@application/contracts/PasswordService';
@@ -116,9 +119,16 @@ export class ServiceContainer {
   private researcherApplicationService?: ResearcherApplicationService;
   private userApplicationService?: UserApplicationService;
   private auditService?: AuditService;
+  private auditRetentionService?: AuditRetentionService;
   private tubePositionService?: TubePositionService;
   private accessControlService?: AccessControlService;
   private validationService?: ValidationService;
+
+  // Infrastructure repositories
+  private auditArchiveRepository?: AuditArchiveRepository;
+
+  // Jobs
+  private auditArchivalJob?: AuditArchivalJob;
 
   // Event Handlers
   private auditEventHandler?: AuditEventHandler;
@@ -609,9 +619,40 @@ export class ServiceContainer {
     return this.auditService;
   }
 
+  getAuditArchiveRepository(): AuditArchiveRepository {
+    if (!this.auditArchiveRepository) {
+      this.auditArchiveRepository = new AuditArchiveRepository(
+        this.repositoryFactory.getSQLiteContext()
+      );
+    }
+    return this.auditArchiveRepository;
+  }
+
+  getAuditRetentionService(): AuditRetentionService {
+    if (!this.auditRetentionService) {
+      this.auditRetentionService = new AuditRetentionService(
+        this.repositoryFactory.getAuditRepository(),
+        this.getAuditArchiveRepository()
+      );
+    }
+    return this.auditRetentionService;
+  }
+
+  getAuditArchivalJob(): AuditArchivalJob {
+    if (!this.auditArchivalJob) {
+      this.auditArchivalJob = new AuditArchivalJob(
+        this.getAuditRetentionService()
+      );
+    }
+    return this.auditArchivalJob;
+  }
+
   getAuditController(): AuditController {
     if (!this.auditController) {
-      this.auditController = new AuditController(this.getAuditService());
+      this.auditController = new AuditController(
+        this.getAuditService(),
+        this.getAuditRetentionService()
+      );
     }
     return this.auditController;
   }

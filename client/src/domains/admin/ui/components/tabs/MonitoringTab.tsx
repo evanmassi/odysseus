@@ -3,6 +3,7 @@
  *
  * Provides admin interface for system monitoring and audit trail viewing.
  * Displays:
+ * - Audit log retention settings and metrics
  * - Audit log with filtering and search
  * - System activity tracking
  * - User action history
@@ -15,6 +16,7 @@
 import { RefreshCw, Activity } from 'lucide-react';
 import type { SystemMetrics } from '@odysseus/shared-schemas';
 import { AuditLogViewer } from '../AuditLogViewer';
+import { AuditRetentionSettings } from '../AuditRetentionSettings';
 
 /**
  * MonitoringTab Props Interface
@@ -32,10 +34,10 @@ export interface MonitoringTabProps {
 /**
  * Monitoring Tab Component
  *
- * Displays audit log viewer with comprehensive activity tracking.
+ * Displays retention settings and audit log viewer with comprehensive activity tracking.
  *
  * @param {MonitoringTabProps} props - Component props
- * @returns {JSX.Element} Monitoring interface with audit log
+ * @returns {JSX.Element} Monitoring interface with retention settings and audit log
  *
  * @example
  * ```tsx
@@ -53,6 +55,9 @@ export function MonitoringTab({ stats, onRefresh }: MonitoringTabProps) {
         <Activity size={22} className="text-gray-700" />
         <h3 className="text-xl font-semibold text-gray-900">System Monitoring</h3>
       </div>
+
+      {/* Audit Retention Settings - Collapsible */}
+      <AuditRetentionSettings defaultCollapsed={true} />
 
       {/* Audit Log Viewer */}
       <AuditLogViewer />

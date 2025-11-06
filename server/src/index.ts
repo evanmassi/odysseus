@@ -91,6 +91,10 @@ class OdysseusServer {
     // Initialize audit event handler to start listening for domain events
     this.serviceContainer.getAuditEventHandler();
     logger.info('Audit event handler initialized');
+
+    // Initialize and start audit archival job
+    this.serviceContainer.getAuditArchivalJob().start();
+    logger.info('Audit archival job started');
   }
 
   private setupMiddleware(): void {
@@ -588,6 +592,10 @@ class OdysseusServer {
   private async shutdown(): Promise<void> {
     logger.info('Shutting down server...');
     try {
+      // Stop audit archival job
+      this.serviceContainer.getAuditArchivalJob().stop();
+      logger.info('Audit archival job stopped');
+
       // Clean shutdown of repository factory
       await this.repositoryFactory.close();
       this.server.close(() => {

@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight, X, Archive } from 'lucide-react';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import { adminService } from '@domains/admin/services/AdminService';
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
@@ -38,13 +38,14 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
   const [showFilters, setShowFilters] = useState(false);
   const [tempFilters, setTempFilters] = useState<AuditFilterState>({});
+  const [includeArchive, setIncludeArchive] = useState(false);
 
   // Load audit log entries
   const loadAuditLog = async () => {
     try {
       setLoading(true);
       setError(null);
-      const result = await adminService.getAuditLog(filters);
+      const result = await adminService.searchAuditLogs(filters, includeArchive);
       setEntries(result.entries);
       setPagination(result.pagination);
     } catch (err) {
@@ -57,7 +58,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
   useEffect(() => {
     loadAuditLog();
-  }, [filters]);
+  }, [filters, includeArchive]);
 
   // Apply filters - convert multi-select to single action for backend
   const applyFilters = () => {
@@ -378,6 +379,17 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIncludeArchive(!includeArchive)}
+            className={`btn-refresh-compact flex items-center space-x-1 ${
+              includeArchive ? 'bg-action text-white border-action hover:bg-action-hover' : ''
+            }`}
+            title={includeArchive ? 'Currently showing active + archived logs' : 'Currently showing active logs only'}
+          >
+            <Archive size={12} />
+            <span>{includeArchive ? 'With Archive' : 'Active Only'}</span>
+          </button>
+
           {hasActiveFilters && (
             <button
               onClick={clearFilters}

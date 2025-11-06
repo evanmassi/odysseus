@@ -181,6 +181,33 @@ export class AdminRouteModule implements RouteModule {
       this.auditController.getAuditLog.bind(this.auditController)
     );
 
+    // AUDIT RETENTION ENDPOINTS
+
+    // Get retention metrics
+    router.get('/audit/retention/metrics',
+      this.auditController.getRetentionMetrics.bind(this.auditController)
+    );
+
+    // Get retention policy
+    router.get('/audit/retention/policy',
+      this.auditController.getRetentionPolicy.bind(this.auditController)
+    );
+
+    // Export archived logs
+    router.get('/audit/retention/export',
+      this.auditController.exportArchivedLogs.bind(this.auditController)
+    );
+
+    // Manually trigger archival
+    router.post('/audit/retention/archive',
+      this.auditController.runManualArchival.bind(this.auditController)
+    );
+
+    // Search audit logs with archive option
+    router.get('/audit/search',
+      this.auditController.searchAuditLogs.bind(this.auditController)
+    );
+
     // DATABASE MANAGEMENT
 
     router.get('/database/status',

@@ -484,6 +484,185 @@ export class AdminService {
       throw error;
     }
   }
+
+  /**
+   * Search audit logs with optional archive inclusion
+   */
+  async searchAuditLogs(options: AuditLogFilters = {}, includeArchive: boolean = false): Promise<{
+    success: boolean;
+    entries: AuditLogEntry[];
+    pagination: {
+      total: number;
+      limit: number;
+      offset: number;
+      hasMore: boolean;
+    };
+  }> {
+    try {
+      const params = new URLSearchParams();
+      if (options.limit) params.append('limit', options.limit.toString());
+      if (options.offset) params.append('offset', options.offset.toString());
+      if (options.username) params.append('username', options.username);
+      if (options.action) params.append('action', options.action);
+      if (options.entityType) params.append('entityType', options.entityType);
+      if (options.dateFrom) params.append('dateFrom', options.dateFrom);
+      if (options.dateTo) params.append('dateTo', options.dateTo);
+      params.append('includeArchive', includeArchive.toString());
+
+      const query = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          entries: AuditLogEntry[];
+          pagination: {
+            total: number;
+            limit: number;
+            offset: number;
+            hasMore: boolean;
+          };
+          includeArchive: boolean;
+        };
+        meta?: { timing: number };
+      }>(`/admin/audit/search${query}`);
+
+      return {
+        success: response.data.success,
+        entries: response.data.data.entries,
+        pagination: response.data.data.pagination
+      };
+    } catch (error) {
+      console.error('Failed to search audit logs:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get retention metrics
+   */
+  async getRetentionMetrics(): Promise<{
+    success: boolean;
+    data: {
+      activeTable: {
+        count: number;
+        oldestEntry: Date | null;
+        newestEntry: Date | null;
+        retentionDays: number;
+      };
+      archiveTable: {
+        count: number;
+        oldestEntry: Date | null;
+        retentionDays: number;
+      };
+      nextArchivalDate: Date | null;
+      performanceWarning: boolean;
+    };
+  }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          metrics: any;
+        };
+        meta?: { timing: number };
+      }>('/admin/audit/retention/metrics');
+
+      return {
+        success: response.data.success,
+        data: response.data.data.metrics
+      };
+    } catch (error) {
+      console.error('Failed to get retention metrics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get retention policy
+   */
+  async getRetentionPolicy(): Promise<{
+    success: boolean;
+    data: {
+      activeRetentionDays: number;
+      totalRetentionDays: number;
+      archiveRetentionDays: number;
+      enableAutoArchival: boolean;
+      activeTableWarningThreshold: number;
+    };
+  }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          policy: any;
+        };
+        meta?: { timing: number };
+      }>('/admin/audit/retention/policy');
+
+      return {
+        success: response.data.success,
+        data: response.data.data.policy
+      };
+    } catch (error) {
+      console.error('Failed to get retention policy:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Manually trigger archival process
+   */
+  async runManualArchival(): Promise<{
+    success: boolean;
+    data: {
+      archived: number;
+      deleted: number;
+      message: string;
+    };
+  }> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        data: {
+          archived: number;
+          deleted: number;
+          message: string;
+        };
+        meta?: { timing: number };
+      }>('/admin/audit/retention/archive');
+
+      return {
+        success: response.data.success,
+        data: response.data.data
+      };
+    } catch (error) {
+      console.error('Failed to run manual archival:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Export archived logs
+   */
+  async exportArchivedLogs(dateFrom?: Date, dateTo?: Date): Promise<Blob> {
+    try {
+      const params = new URLSearchParams();
+      if (dateFrom) params.append('dateFrom', dateFrom.toISOString());
+      if (dateTo) params.append('dateTo', dateTo.toISOString());
+
+      const query = params.toString() ? `?${params.toString()}` : '';
+
+      const response = await httpClient.get<Blob>(
+        `/admin/audit/retention/export${query}`,
+        { responseType: 'blob' }
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Failed to export archived logs:', error);
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance

@@ -248,6 +248,65 @@ export class SQLiteAuditRepository implements AuditRepository {
     return row?.total || 0;
   }
 
+  // ARCHIVAL OPERATIONS
+
+  /**
+   * Find entries older than specified date (for archival)
+   */
+  async findOlderThan(date: Date, limit?: number): Promise<AuditLogEntry[]> {
+    let query = 'SELECT * FROM audit_log WHERE timestamp < ? ORDER BY timestamp ASC';
+    const params: any[] = [date.toISOString()];
+
+    if (limit) {
+      query += ' LIMIT ?';
+      params.push(limit);
+    }
+
+    const rows = await this.context.queryMany<AuditLogRow>(query, params);
+    return rows.map(this.rowToEntry);
+  }
+
+  /**
+   * Delete archived entries from active table (called after saveArchived)
+   */
+  async deleteArchived(entryIds: string[]): Promise<number> {
+    if (entryIds.length === 0) return 0;
+
+    const placeholders = entryIds.map(() => '?').join(',');
+    const result = await this.context.execute(
+      `DELETE FROM audit_log WHERE id IN (${placeholders})`,
+      entryIds
+    );
+    return result.changes;
+  }
+
+  /**
+   * Get active table statistics for monitoring
+   */
+  async getActiveTableMetrics(): Promise<{
+    count: number;
+    oldestEntry: Date | null;
+    newestEntry: Date | null;
+  }> {
+    const countRow = await this.context.queryOne<{ total: number }>(
+      'SELECT COUNT(*) as total FROM audit_log'
+    );
+
+    const oldestRow = await this.context.queryOne<{ oldest: string }>(
+      'SELECT MIN(timestamp) as oldest FROM audit_log'
+    );
+
+    const newestRow = await this.context.queryOne<{ newest: string }>(
+      'SELECT MAX(timestamp) as newest FROM audit_log'
+    );
+
+    return {
+      count: countRow?.total || 0,
+      oldestEntry: oldestRow?.oldest ? new Date(oldestRow.oldest) : null,
+      newestEntry: newestRow?.newest ? new Date(newestRow.newest) : null,
+    };
+  }
+
   // PRIVATE HELPERS
 
   /**

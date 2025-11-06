@@ -194,6 +194,24 @@ export class SQLiteContext {
         FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
+
+    // Audit log archive table - warm storage for logs older than 90 days
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS audit_log_archive (
+        id TEXT PRIMARY KEY,
+        userId TEXT NOT NULL,
+        username TEXT NOT NULL,
+        action TEXT NOT NULL,
+        entityType TEXT NOT NULL,
+        entityId TEXT,
+        details TEXT NOT NULL,
+        timestamp TEXT NOT NULL,
+        ipAddress TEXT,
+        userAgent TEXT,
+        archivedAt TEXT NOT NULL,
+        FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
   }
 
   /**
@@ -255,6 +273,11 @@ export class SQLiteContext {
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_log_entity_id ON audit_log(entityId)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp ON audit_log(timestamp DESC)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_log_composite ON audit_log(entityType, entityId, timestamp DESC)');
+
+    // Audit log archive indexes (minimal for performance)
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_archive_timestamp ON audit_log_archive(timestamp DESC)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_archive_userId ON audit_log_archive(userId)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_audit_archive_archivedAt ON audit_log_archive(archivedAt DESC)');
 
     // Researcher indexes
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_researchers_active ON researchers(active)');

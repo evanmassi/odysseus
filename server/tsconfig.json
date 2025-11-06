@@ -26,7 +26,8 @@
       "@utils/*": ["src/utils/*"],
       "@middleware/*": ["src/middleware/*"],
       "@validation/*": ["src/validation/*"],
-      "@interfaces/*": ["src/interfaces/*"]
+      "@interfaces/*": ["src/interfaces/*"],
+      "@config/*": ["src/config/*"]
     }
   },
   "include": ["src/**/*"],

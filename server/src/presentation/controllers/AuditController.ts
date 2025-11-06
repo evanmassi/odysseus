@@ -9,11 +9,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { ResponseBuilder } from '@presentation/responses/ApiResponse';
 import { AuditService } from '@application/services/AuditService';
+import { AuditRetentionService } from '@application/services/AuditRetentionService';
 import type { AuditLogFilters } from '@odysseus/shared-schemas';
 import { logger } from '@utils/logger';
 
 export class AuditController {
-  constructor(private auditService: AuditService) {}
+  constructor(
+    private auditService: AuditService,
+    private retentionService: AuditRetentionService
+  ) {}
 
   /**
    * Get full audit log with advanced filtering (admin only)
@@ -161,6 +165,177 @@ export class AuditController {
 
       logger.debug('Audit statistics retrieved', {
         requestedBy: req.user?.username,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get retention metrics (admin only)
+   * GET /api/admin/audit/retention/metrics
+   *
+   * Returns retention metrics including active/archive table stats.
+   */
+  async getRetentionMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+
+      const metrics = await this.retentionService.getRetentionMetrics();
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        metrics,
+      });
+
+      res.status(200).json(response);
+
+      logger.debug('Retention metrics retrieved', {
+        requestedBy: req.user?.username,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get retention policy (admin only)
+   * GET /api/admin/audit/retention/policy
+   *
+   * Returns current retention policy configuration.
+   */
+  async getRetentionPolicy(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+
+      const policy = this.retentionService.getRetentionPolicy();
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        policy,
+      });
+
+      res.status(200).json(response);
+
+      logger.debug('Retention policy retrieved', {
+        requestedBy: req.user?.username,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Manually trigger archival process (admin only)
+   * POST /api/admin/audit/retention/archive
+   *
+   * Triggers manual archival of old logs and deletion of expired logs.
+   */
+  async runManualArchival(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+
+      logger.info('Manual archival triggered', {
+        requestedBy: req.user?.username,
+      });
+
+      const result = await this.retentionService.runManualArchival();
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        archived: result.archived,
+        deleted: result.deleted,
+        message: `Successfully archived ${result.archived} entries and deleted ${result.deleted} expired entries`,
+      });
+
+      res.status(200).json(response);
+
+      logger.info('Manual archival completed', {
+        requestedBy: req.user?.username,
+        archived: result.archived,
+        deleted: result.deleted,
+      });
+    } catch (error) {
+      logger.error('Manual archival failed', {
+        error: error instanceof Error ? error.message : String(error),
+        requestedBy: req.user?.username,
+      });
+      next(error);
+    }
+  }
+
+  /**
+   * Export archived logs (admin only)
+   * GET /api/admin/audit/retention/export
+   *
+   * Query parameters:
+   * - dateFrom: Optional start date filter
+   * - dateTo: Optional end date filter
+   *
+   * Returns JSON export of archived logs.
+   */
+  async exportArchivedLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined;
+      const dateTo = req.query.dateTo ? new Date(req.query.dateTo as string) : undefined;
+
+      const jsonExport = await this.retentionService.exportArchivedLogs(dateFrom, dateTo);
+
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', 'attachment; filename=audit-archive-export.json');
+      res.status(200).send(jsonExport);
+
+      logger.info('Archived logs exported', {
+        requestedBy: req.user?.username,
+        dateFrom: dateFrom?.toISOString(),
+        dateTo: dateTo?.toISOString(),
+      });
+    } catch (error) {
+      logger.error('Archive export failed', {
+        error: error instanceof Error ? error.message : String(error),
+        requestedBy: req.user?.username,
+      });
+      next(error);
+    }
+  }
+
+  /**
+   * Query logs with archive option (admin only)
+   * GET /api/admin/audit/search
+   *
+   * Query parameters: Same as getAuditLog, plus:
+   * - includeArchive: true/false to include archived logs
+   */
+  async searchAuditLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+
+      // Parse query parameters
+      const filters: AuditLogFilters = {
+        limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
+        offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
+        username: req.query.username as string | undefined,
+        action: req.query.action as string | undefined,
+        entityType: req.query.entityType as string | undefined,
+        dateFrom: req.query.dateFrom as string | undefined,
+        dateTo: req.query.dateTo as string | undefined,
+      };
+
+      const includeArchive = req.query.includeArchive === 'true';
+
+      // Get results (with or without archive)
+      const result = await this.retentionService.queryAllLogs(filters, includeArchive);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        entries: result.items,
+        pagination: result.pagination,
+        includeArchive,
+      });
+
+      res.status(200).json(response);
+
+      logger.debug('Audit search completed', {
+        requestedBy: req.user?.username,
+        filters,
+        includeArchive,
+        resultCount: result.items.length,
       });
     } catch (error) {
       next(error);
