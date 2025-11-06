@@ -40,7 +40,7 @@ export class AuditArchivalJob {
         await this.runArchival();
       },
       {
-        timezone: 'America/New_York', // Adjust to your timezone
+        timezone: AUDIT_RETENTION_CONFIG.archivalJobTimezone,
       }
     );
 

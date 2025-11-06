@@ -5,11 +5,14 @@
  * Shows detailed activity tracking for compliance and debugging.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight, X, Archive } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight, X, Archive, TestTube, UserRound, Icon, Rows3, Box } from 'lucide-react';
+import { refrigeratorFreezer } from '@lucide/lab';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import { adminService } from '@domains/admin/services/AdminService';
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
+import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
+import { ResearcherIcon } from '@shared/ui/components/icons';
 
 interface AuditLogViewerProps {
   /** Optional initial filters */
@@ -167,196 +170,16 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     return 'badge-entity-default';
   };
 
-  // Parse and format details for display
-  const formatDetails = (entry: AuditLogEntry) => {
-    try {
-      const details = JSON.parse(entry.details);
-      const action = entry.action;
-      const entityType = entry.entityType;
-
-      // TUBES: Show location or bulk update count
-      if (entityType === 'tube') {
-        if (action === 'tube_bulk_updated' && details.count) {
-          return `${details.count} tube${details.count !== 1 ? 's' : ''} updated`;
-        }
-        if (details.displayLocation) return details.displayLocation;
-        if (details.location) return details.location;
-        return '-';
-      }
-
-      // TANK EVENTS
-      if (entityType === 'tank') {
-        if (action === 'tank_created') {
-          const tankName = details.tankName || details.tankId || '';
-          return `Tank '${tankName}'`;
-        }
-        if (action === 'tank_deleted') {
-          const tankName = details.tankName || details.tankId || '';
-          return `Tank '${tankName}'`;
-        }
-        if (action === 'tank_updated' && details.changes) {
-          const nameChange = details.changes.find((c: any) => c.field === 'name');
-          if (nameChange) {
-            return `Tank '${nameChange.oldValue}' renamed to '${nameChange.newValue}'`;
-          }
-          const activeChange = details.changes.find((c: any) => c.field === 'isActive');
-          if (activeChange) {
-            const tankName = nameChange?.newValue || details.tankId || '';
-            return `Tank '${tankName}' ${activeChange.newValue ? 'activated' : 'deactivated'}`;
-          }
-        }
-        const tankName = details.tankId || '';
-        return `Tank '${tankName}'`;
-      }
-
-      // RACK EVENTS
-      if (entityType === 'rack') {
-        const tankName = details.tankName || details.tankId || '';
-        const rackName = details.rackName || `Rack ${details.rackId}` || '';
-        const path = `${tankName}/${rackName}`;
-
-        if (action === 'rack_created') {
-          return path;
-        }
-        if (action === 'rack_deleted') {
-          return path;
-        }
-        if (action === 'rack_updated' && details.changes) {
-          const nameChange = details.changes.find((c: any) => c.field === 'name');
-          if (nameChange) {
-            const oldPath = `${tankName}/${nameChange.oldValue}`;
-            return `${oldPath} renamed to '${nameChange.newValue}'`;
-          }
-          const activeChange = details.changes.find((c: any) => c.field === 'isActive');
-          if (activeChange) {
-            return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
-          }
-        }
-        return path;
-      }
-
-      // BOX EVENTS
-      if (entityType === 'box') {
-        const tankName = details.tankName || details.tankId || '';
-        const rackName = details.rackName || `Rack ${details.rackId}` || '';
-        const boxName = details.boxName || `Box ${details.boxId}` || '';
-        const path = `${tankName}/${rackName}/${boxName}`;
-
-        if (action === 'box_created') {
-          return path;
-        }
-        if (action === 'box_deleted') {
-          return path;
-        }
-        if (action === 'box_updated' && details.changes) {
-          const nameChange = details.changes.find((c: any) => c.field === 'name');
-          if (nameChange) {
-            const oldPath = `${tankName}/${rackName}/Box ${nameChange.oldValue}`;
-            return `${oldPath} renamed to 'Box ${nameChange.newValue}'`;
-          }
-          const rowChange = details.changes.find((c: any) => c.field === 'gridConfig.rows');
-          const colChange = details.changes.find((c: any) => c.field === 'gridConfig.cols');
-          if (rowChange && colChange) {
-            return `${path} resized to ${rowChange.newValue}x${colChange.newValue}`;
-          }
-          const activeChange = details.changes.find((c: any) => c.field === 'isActive');
-          if (activeChange) {
-            return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
-          }
-        }
-        return path;
-      }
-
-      // LAB EVENTS
-      if (entityType === 'lab') {
-        if (action === 'lab_name_changed' && details.oldName && details.newName) {
-          return `'${details.oldName}' renamed to '${details.newName}'`;
-        }
-        return details.newName || '-';
-      }
-
-      // RESEARCHER EVENTS
-      if (entityType === 'researcher') {
-        const researcherName = details.researcherName || '-';
-        const createdBy = details.createdBy || '';
-        const updatedBy = details.updatedBy || '';
-        const deactivatedBy = details.deactivatedBy || '';
-        const reactivatedBy = details.reactivatedBy || '';
-
-        if (action === 'researcher_created') {
-          const emailPart = details.email ? ` (${details.email})` : '';
-          return `${researcherName}${emailPart} by ${createdBy}`;
-        }
-        if (action === 'researcher_updated' && details.changes) {
-          const emailChange = details.changes.find((c: any) => c.field === 'email');
-          if (emailChange) {
-            return `${researcherName}: Email changed to ${emailChange.newValue} by ${updatedBy}`;
-          }
-          const positionChange = details.changes.find((c: any) => c.field === 'position');
-          if (positionChange) {
-            return `${researcherName}: Position changed to '${positionChange.newValue}' by ${updatedBy}`;
-          }
-          const firstNameChange = details.changes.find((c: any) => c.field === 'firstName');
-          const lastNameChange = details.changes.find((c: any) => c.field === 'lastName');
-          if (firstNameChange || lastNameChange) {
-            return `${researcherName}: Name updated by ${updatedBy}`;
-          }
-          return `${researcherName} updated by ${updatedBy}`;
-        }
-        if (action === 'researcher_deactivated') {
-          const tubeCount = details.tubesReassignedCount || 0;
-          const tubeText = tubeCount > 0 ? ` (${tubeCount} tubes reassigned to Unknown)` : '';
-          return `${researcherName}${tubeText} by ${deactivatedBy}`;
-        }
-        if (action === 'researcher_reactivated') {
-          return `${researcherName} by ${reactivatedBy}`;
-        }
-        return researcherName;
-      }
-
-      // USER EVENTS
-      if (entityType === 'user') {
-        const username = details.username || '-';
-        const changedBy = details.changedBy || '';
-        const linkedBy = details.linkedBy || '';
-        const unlinkedBy = details.unlinkedBy || '';
-        const deletedBy = details.deletedBy || '';
-
-        if (action === 'user_created') {
-          const role = details.role || 'user';
-          const isFirstUser = details.username && username === details.username && !changedBy;
-          return isFirstUser ? `${username} (Role: ${role}) - First user setup` : `${username} (Role: ${role})`;
-        }
-        if (action === 'user_logged_in') {
-          return username;
-        }
-        if (action === 'user_logged_out') {
-          return username;
-        }
-        if (action === 'user_role_changed') {
-          const newRole = details.newRole || '';
-          return `Role changed to ${newRole}`;
-        }
-        if (action === 'user_password_changed') {
-          return 'Password changed';
-        }
-        if (action === 'user_linked_to_researcher') {
-          const researcherName = details.researcherName || '';
-          return `${username} linked to researcher ${researcherName} by ${linkedBy}`;
-        }
-        if (action === 'user_unlinked_from_researcher') {
-          const researcherName = details.researcherName || '';
-          return `${username} unlinked from researcher ${researcherName} by ${unlinkedBy}`;
-        }
-        if (action === 'user_deleted') {
-          return `${username} by ${deletedBy}`;
-        }
-        return username;
-      }
-
-      return '-';
-    } catch {
-      return '-';
+  // Get entity icon component
+  const getEntityIcon = (entityType: string) => {
+    switch (entityType) {
+      case 'tube': return TestTube;
+      case 'user': return UserRound;
+      case 'researcher': return 'researcher'; // Custom component
+      case 'tank': return 'tank'; // Custom from @lucide/lab
+      case 'rack': return Rows3;
+      case 'box': return Box;
+      default: return null;
     }
   };
 
@@ -469,15 +292,27 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
                       {entry.entityType ? (
-                        <span className={getEntityBadgeClass(entry.entityType)}>
+                        <span className={`${getEntityBadgeClass(entry.entityType)} gap-1`}>
+                          {(() => {
+                            const icon = getEntityIcon(entry.entityType);
+                            if (icon === 'researcher') {
+                              return <ResearcherIcon size={12} />;
+                            } else if (icon === 'tank') {
+                              return <Icon iconNode={refrigeratorFreezer} size={12} />;
+                            } else if (icon && typeof icon !== 'string') {
+                              const IconComponent = icon;
+                              return <IconComponent size={12} />;
+                            }
+                            return null;
+                          })()}
                           {formatEntityType(entry.entityType)}
                         </span>
                       ) : (
                         <span className="text-gray-400 text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-2 py-2 text-gray-700 max-w-md truncate" title={formatDetails(entry)}>
-                      {formatDetails(entry)}
+                    <td className="px-2 py-2 text-gray-700 max-w-md truncate" title={formatAuditDetails(entry)}>
+                      {formatAuditDetails(entry)}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
                       <span className={getActionBadgeClass(entry.action)}>
