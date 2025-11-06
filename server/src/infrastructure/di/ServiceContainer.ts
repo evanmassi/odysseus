@@ -195,7 +195,8 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.loginHandler = new LoginCommandHandler(
         repositories.users,
-        this.getSessionService()
+        this.getSessionService(),
+        this.getEventBus()
       );
     }
     return this.loginHandler;
@@ -541,7 +542,10 @@ export class ServiceContainer {
         // Repositories (for admin endpoints)
         this.repositoryFactory.getConfigurationRepository(),
         this.repositoryFactory.getResearcherRepository(),
-        this.repositoryFactory.getPersonRepository()
+        this.repositoryFactory.getPersonRepository(),
+
+        // Event Bus
+        this.getEventBus()
       );
     }
     return this.authController;
@@ -687,7 +691,8 @@ export class ServiceContainer {
         repositories.researchers,
         repositories.users,
         repositories.persons,
-        this.getAccessControlService()
+        this.getAccessControlService(),
+        this.getEventBus()
       );
     }
     return this.researcherApplicationService;
@@ -702,7 +707,8 @@ export class ServiceContainer {
         repositories.persons,
         repositories.researchers,
         repositories.configurations,
-        this.repositoryFactory.getSQLiteContext()
+        this.repositoryFactory.getSQLiteContext(),
+        this.getEventBus()
       );
     }
     return this.userApplicationService;

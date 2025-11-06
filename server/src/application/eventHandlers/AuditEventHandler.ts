@@ -19,6 +19,22 @@ import {
   BoxUpdatedEvent,
   LabNameChangedEvent
 } from '@domain/events/ConfigurationEvents';
+import {
+  UserCreatedEvent,
+  UserPasswordChangedEvent,
+  UserRoleChangedEvent,
+  UserDeletedEvent,
+  UserLoggedInEvent,
+  UserLoggedOutEvent,
+  UserLinkedToResearcherEvent,
+  UserUnlinkedFromResearcherEvent
+} from '@domain/events/UserEvents';
+import {
+  ResearcherCreatedEvent,
+  ResearcherUpdatedEvent,
+  ResearcherDeactivatedEvent,
+  ResearcherReactivatedEvent
+} from '@domain/events/ResearcherEvents';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { Location } from '@domain/valueObjects/Location';
@@ -69,6 +85,22 @@ export class AuditEventHandler {
     this.eventBus.subscribe('BoxDeleted', this.handleBoxDeleted.bind(this) as any);
     this.eventBus.subscribe('BoxUpdated', this.handleBoxUpdated.bind(this) as any);
     this.eventBus.subscribe('LabNameChanged', this.handleLabNameChanged.bind(this) as any);
+
+    // User events
+    this.eventBus.subscribe('UserCreated', this.handleUserCreated.bind(this) as any);
+    this.eventBus.subscribe('UserPasswordChanged', this.handleUserPasswordChanged.bind(this) as any);
+    this.eventBus.subscribe('UserRoleChanged', this.handleUserRoleChanged.bind(this) as any);
+    this.eventBus.subscribe('UserDeleted', this.handleUserDeleted.bind(this) as any);
+    this.eventBus.subscribe('UserLoggedIn', this.handleUserLoggedIn.bind(this) as any);
+    this.eventBus.subscribe('UserLoggedOut', this.handleUserLoggedOut.bind(this) as any);
+    this.eventBus.subscribe('UserLinkedToResearcher', this.handleUserLinkedToResearcher.bind(this) as any);
+    this.eventBus.subscribe('UserUnlinkedFromResearcher', this.handleUserUnlinkedFromResearcher.bind(this) as any);
+
+    // Researcher events
+    this.eventBus.subscribe('ResearcherCreated', this.handleResearcherCreated.bind(this) as any);
+    this.eventBus.subscribe('ResearcherUpdated', this.handleResearcherUpdated.bind(this) as any);
+    this.eventBus.subscribe('ResearcherDeactivated', this.handleResearcherDeactivated.bind(this) as any);
+    this.eventBus.subscribe('ResearcherReactivated', this.handleResearcherReactivated.bind(this) as any);
 
     logger.info('AuditEventHandler subscribed to domain events');
   }
@@ -677,6 +709,317 @@ export class AuditEventHandler {
     }
   }
 
+  // RESEARCHER EVENT HANDLERS
+
+  private async handleResearcherCreated(event: ResearcherCreatedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.createdBy);
+      const username = user?.username || event.createdBy;
+      const fullName = `${event.firstName} ${event.lastName}`;
+
+      await this.auditService.logAction({
+        userId: event.createdBy,
+        username: username,
+        action: 'researcher_created',
+        entityType: 'researcher',
+        entityId: event.researcherId,
+        details: {
+          researcherId: event.researcherId,
+          researcherName: fullName,
+          email: event.email,
+          position: event.position,
+          createdBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log researcher created event', {
+        error: error instanceof Error ? error.message : String(error),
+        researcherId: event.researcherId,
+      });
+    }
+  }
+
+  private async handleResearcherUpdated(event: ResearcherUpdatedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.updatedBy);
+      const username = user?.username || event.updatedBy;
+      const fullName = `${event.firstName} ${event.lastName}`;
+
+      await this.auditService.logAction({
+        userId: event.updatedBy,
+        username: username,
+        action: 'researcher_updated',
+        entityType: 'researcher',
+        entityId: event.researcherId,
+        details: {
+          researcherId: event.researcherId,
+          researcherName: fullName,
+          changes: event.changes,
+          updatedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log researcher updated event', {
+        error: error instanceof Error ? error.message : String(error),
+        researcherId: event.researcherId,
+      });
+    }
+  }
+
+  private async handleResearcherDeactivated(event: ResearcherDeactivatedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.deactivatedBy);
+      const username = user?.username || event.deactivatedBy;
+      const fullName = `${event.firstName} ${event.lastName}`;
+
+      await this.auditService.logAction({
+        userId: event.deactivatedBy,
+        username: username,
+        action: 'researcher_deactivated',
+        entityType: 'researcher',
+        entityId: event.researcherId,
+        details: {
+          researcherId: event.researcherId,
+          researcherName: fullName,
+          tubesReassignedCount: event.tubesReassignedCount,
+          deactivatedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log researcher deactivated event', {
+        error: error instanceof Error ? error.message : String(error),
+        researcherId: event.researcherId,
+      });
+    }
+  }
+
+  private async handleResearcherReactivated(event: ResearcherReactivatedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.reactivatedBy);
+      const username = user?.username || event.reactivatedBy;
+      const fullName = `${event.firstName} ${event.lastName}`;
+
+      await this.auditService.logAction({
+        userId: event.reactivatedBy,
+        username: username,
+        action: 'researcher_reactivated',
+        entityType: 'researcher',
+        entityId: event.researcherId,
+        details: {
+          researcherId: event.researcherId,
+          researcherName: fullName,
+          reactivatedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log researcher reactivated event', {
+        error: error instanceof Error ? error.message : String(error),
+        researcherId: event.researcherId,
+      });
+    }
+  }
+
+  // USER EVENT HANDLERS
+
+  private async handleUserCreated(event: UserCreatedEvent): Promise<void> {
+    try {
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: event.username,
+        action: 'user_created',
+        entityType: 'user',
+        entityId: event.userId,
+        details: {
+          username: event.username,
+          role: event.role.value,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log user created event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId,
+      });
+    }
+  }
+
+  private async handleUserPasswordChanged(event: UserPasswordChangedEvent): Promise<void> {
+    try {
+      const changedByUser = await this.userRepository.findById(event.changedBy);
+      const changedByUsername = changedByUser?.username || event.changedBy;
+
+      await this.auditService.logAction({
+        userId: event.changedBy,
+        username: changedByUsername,
+        action: 'user_password_changed',
+        entityType: 'user',
+        entityId: event.userId,
+        details: {
+          username: event.username,
+          changedBy: changedByUsername,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log user password changed event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId,
+      });
+    }
+  }
+
+  private async handleUserRoleChanged(event: UserRoleChangedEvent): Promise<void> {
+    try {
+      const changedByUser = await this.userRepository.findById(event.changedBy);
+      const changedByUsername = changedByUser?.username || event.changedBy;
+
+      await this.auditService.logAction({
+        userId: event.changedBy,
+        username: changedByUsername,
+        action: 'user_role_changed',
+        entityType: 'user',
+        entityId: event.userId,
+        details: {
+          username: event.username,
+          oldRole: event.oldRole.value,
+          newRole: event.newRole.value,
+          changedBy: changedByUsername,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log user role changed event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId,
+      });
+    }
+  }
+
+  private async handleUserDeleted(event: UserDeletedEvent): Promise<void> {
+    try {
+      const deletedByUser = await this.userRepository.findById(event.deletedBy);
+      const deletedByUsername = deletedByUser?.username || event.deletedBy;
+
+      await this.auditService.logAction({
+        userId: event.deletedBy,
+        username: deletedByUsername,
+        action: 'user_deleted',
+        entityType: 'user',
+        entityId: event.userId,
+        details: {
+          username: event.username,
+          deletedBy: deletedByUsername,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log user deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId,
+      });
+    }
+  }
+
+  private async handleUserLoggedIn(event: UserLoggedInEvent): Promise<void> {
+    try {
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: event.username,
+        action: 'user_logged_in',
+        entityType: 'user',
+        entityId: event.userId,
+        details: {
+          username: event.username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log user logged in event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId,
+      });
+    }
+  }
+
+  private async handleUserLoggedOut(event: UserLoggedOutEvent): Promise<void> {
+    try {
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: event.username,
+        action: 'user_logged_out',
+        entityType: 'user',
+        entityId: event.userId,
+        details: {
+          username: event.username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log user logged out event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId,
+      });
+    }
+  }
+
+  private async handleUserLinkedToResearcher(event: UserLinkedToResearcherEvent): Promise<void> {
+    try {
+      const linkedByUser = await this.userRepository.findById(event.linkedBy);
+      const linkedByUsername = linkedByUser?.username || event.linkedBy;
+
+      await this.auditService.logAction({
+        userId: event.linkedBy,
+        username: linkedByUsername,
+        action: 'user_linked_to_researcher',
+        entityType: 'user',
+        entityId: event.userId,
+        details: {
+          username: event.username,
+          researcherId: event.researcherId,
+          researcherName: event.researcherName,
+          linkedBy: linkedByUsername,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log user linked to researcher event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId,
+      });
+    }
+  }
+
+  private async handleUserUnlinkedFromResearcher(event: UserUnlinkedFromResearcherEvent): Promise<void> {
+    try {
+      const unlinkedByUser = await this.userRepository.findById(event.unlinkedBy);
+      const unlinkedByUsername = unlinkedByUser?.username || event.unlinkedBy;
+
+      await this.auditService.logAction({
+        userId: event.unlinkedBy,
+        username: unlinkedByUsername,
+        action: 'user_unlinked_from_researcher',
+        entityType: 'user',
+        entityId: event.userId,
+        details: {
+          username: event.username,
+          researcherId: event.researcherId,
+          researcherName: event.researcherName,
+          unlinkedBy: unlinkedByUsername,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log user unlinked from researcher event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId,
+      });
+    }
+  }
+
   /**
    * Unsubscribe from all events (cleanup)
    *
@@ -699,6 +1042,20 @@ export class AuditEventHandler {
     this.eventBus.unsubscribe('BoxDeleted', this.handleBoxDeleted.bind(this) as any);
     this.eventBus.unsubscribe('BoxUpdated', this.handleBoxUpdated.bind(this) as any);
     this.eventBus.unsubscribe('LabNameChanged', this.handleLabNameChanged.bind(this) as any);
+
+    this.eventBus.unsubscribe('UserCreated', this.handleUserCreated.bind(this) as any);
+    this.eventBus.unsubscribe('UserPasswordChanged', this.handleUserPasswordChanged.bind(this) as any);
+    this.eventBus.unsubscribe('UserRoleChanged', this.handleUserRoleChanged.bind(this) as any);
+    this.eventBus.unsubscribe('UserDeleted', this.handleUserDeleted.bind(this) as any);
+    this.eventBus.unsubscribe('UserLoggedIn', this.handleUserLoggedIn.bind(this) as any);
+    this.eventBus.unsubscribe('UserLoggedOut', this.handleUserLoggedOut.bind(this) as any);
+    this.eventBus.unsubscribe('UserLinkedToResearcher', this.handleUserLinkedToResearcher.bind(this) as any);
+    this.eventBus.unsubscribe('UserUnlinkedFromResearcher', this.handleUserUnlinkedFromResearcher.bind(this) as any);
+
+    this.eventBus.unsubscribe('ResearcherCreated', this.handleResearcherCreated.bind(this) as any);
+    this.eventBus.unsubscribe('ResearcherUpdated', this.handleResearcherUpdated.bind(this) as any);
+    this.eventBus.unsubscribe('ResearcherDeactivated', this.handleResearcherDeactivated.bind(this) as any);
+    this.eventBus.unsubscribe('ResearcherReactivated', this.handleResearcherReactivated.bind(this) as any);
 
     logger.info('AuditEventHandler unsubscribed from events');
   }

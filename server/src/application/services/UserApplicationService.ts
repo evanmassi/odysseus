@@ -15,6 +15,12 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { nanoid } from 'nanoid';
 import { isDatabaseConstraintError, isEmailConstraintError } from '@infrastructure/database/DatabaseErrors';
 import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
+import type { EventBus } from '@application/contracts/EventBus';
+import {
+  UserLinkedToResearcherEvent,
+  UserUnlinkedFromResearcherEvent,
+  UserLoggedOutEvent
+} from '@domain/events/UserEvents';
 
 /**
  * UserApplicationService - User and authentication use case orchestration
@@ -29,7 +35,8 @@ export class UserApplicationService {
     private personRepository?: PersonRepository,
     private researcherRepository?: ResearcherRepository,
     private configurationRepository?: ConfigurationRepository,
-    private context?: SQLiteContext
+    private context?: SQLiteContext,
+    private eventBus?: EventBus
   ) {}
 
   /**
@@ -631,6 +638,20 @@ export class UserApplicationService {
     });
 
     await this.userRepository.save(updatedUser);
+
+    // Get researcher name for audit
+    if (this.personRepository && this.eventBus) {
+      const person = await this.personRepository.findById(researcher.personId);
+      const researcherName = person ? `${person.firstName} ${person.lastName}` : researcherId;
+
+      this.eventBus.publish(new UserLinkedToResearcherEvent(
+        userId,
+        user.username,
+        researcherId,
+        researcherName,
+        admin.id
+      ));
+    }
   }
 
   /**
@@ -658,8 +679,31 @@ export class UserApplicationService {
       throw new ValidationError('User has no linked researcher profile', { userId });
     }
 
+    // Get researcher info before unlinking for audit
+    const oldResearcherId = user.researcherId;
+    let researcherName = oldResearcherId || '';
+
+    if (oldResearcherId && this.researcherRepository && this.personRepository) {
+      const researcher = await this.researcherRepository.findById(oldResearcherId);
+      if (researcher) {
+        const person = await this.personRepository.findById(researcher.personId);
+        researcherName = person ? `${person.firstName} ${person.lastName}` : oldResearcherId;
+      }
+    }
+
     user.unlinkResearcher();
     await this.userRepository.save(user);
+
+    // Publish event
+    if (this.eventBus && oldResearcherId) {
+      this.eventBus.publish(new UserUnlinkedFromResearcherEvent(
+        userId,
+        user.username,
+        oldResearcherId,
+        researcherName,
+        admin.id
+      ));
+    }
   }
 
   /**

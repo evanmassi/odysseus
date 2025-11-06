@@ -9,6 +9,13 @@ import { CreateResearcherRequest, ResearcherResponse, ResearcherDto } from '@app
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
+import type { EventBus } from '@application/contracts/EventBus';
+import {
+  ResearcherCreatedEvent,
+  ResearcherUpdatedEvent,
+  ResearcherDeactivatedEvent,
+  ResearcherReactivatedEvent
+} from '@domain/events/ResearcherEvents';
 
 /**
  * ResearcherApplicationService - Researcher management use case orchestration
@@ -24,7 +31,8 @@ export class ResearcherApplicationService {
     private researcherRepository: ResearcherRepository,
     private userRepository: UserRepository,
     private personRepository: PersonRepository,
-    private accessControlService: AccessControlService
+    private accessControlService: AccessControlService,
+    private eventBus: EventBus
   ) {}
 
   /**
@@ -167,6 +175,16 @@ export class ResearcherApplicationService {
     await this.personRepository.save(person);
     await this.researcherRepository.save(researcher);
 
+    // 4. Publish event
+    this.eventBus.publish(new ResearcherCreatedEvent(
+      user.id,
+      person.firstName,
+      person.lastName,
+      person.email,
+      person.position,
+      user.id
+    ));
+
     return ResearcherDto.toResponse(researcher, person);
   }
 
@@ -189,9 +207,25 @@ export class ResearcherApplicationService {
       throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
     }
 
+    // Track changes for audit
+    const changes: Array<{ field: string; oldValue: any; newValue: any }> = [];
+
     // Update Person entity for profile changes
     if (updates.firstName !== undefined || updates.lastName !== undefined ||
         updates.position !== undefined || updates.department !== undefined) {
+      if (updates.firstName !== undefined && updates.firstName !== person.firstName) {
+        changes.push({ field: 'firstName', oldValue: person.firstName, newValue: updates.firstName });
+      }
+      if (updates.lastName !== undefined && updates.lastName !== person.lastName) {
+        changes.push({ field: 'lastName', oldValue: person.lastName, newValue: updates.lastName });
+      }
+      if (updates.position !== undefined && updates.position !== person.position) {
+        changes.push({ field: 'position', oldValue: person.position, newValue: updates.position });
+      }
+      if (updates.department !== undefined && updates.department !== person.department) {
+        changes.push({ field: 'department', oldValue: person.department, newValue: updates.department });
+      }
+
       person.updateProfile(
         updates.firstName ?? person.firstName,
         updates.lastName ?? person.lastName,
@@ -203,6 +237,7 @@ export class ResearcherApplicationService {
 
     // Update email separately
     if (updates.email !== undefined && updates.email !== person.email) {
+      changes.push({ field: 'email', oldValue: person.email, newValue: updates.email });
       person.updateEmail(updates.email);
       await this.personRepository.save(person);
     }
@@ -215,6 +250,17 @@ export class ResearcherApplicationService {
         researcher.deactivate();
       }
       await this.researcherRepository.save(researcher);
+    }
+
+    // Publish event if there were changes
+    if (changes.length > 0) {
+      this.eventBus.publish(new ResearcherUpdatedEvent(
+        researcher.id,
+        person.firstName,
+        person.lastName,
+        changes,
+        user.id
+      ));
     }
 
     return ResearcherDto.toResponse(researcher, person);
@@ -271,14 +317,68 @@ export class ResearcherApplicationService {
    * Deactivate researcher (soft delete)
    */
   async deactivateResearcher(id: string, userApiKey: string): Promise<ResearcherResponse> {
-    return this.updateResearcher(id, { active: false }, userApiKey);
+    const user = await this.getUserByApiKey(userApiKey);
+    this.accessControlService.requireCanManageResearchers(user);
+
+    const researcher = await this.researcherRepository.findById(id);
+    if (!researcher) {
+      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
+    }
+
+    const person = await this.personRepository.findById(researcher.personId);
+    if (!person) {
+      throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
+    }
+
+    // Count tubes before deactivation for audit
+    const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
+
+    // Deactivate researcher
+    researcher.deactivate();
+    await this.researcherRepository.save(researcher);
+
+    // Publish event
+    this.eventBus.publish(new ResearcherDeactivatedEvent(
+      researcher.id,
+      person.firstName,
+      person.lastName,
+      tubeCount,
+      user.id
+    ));
+
+    return ResearcherDto.toResponse(researcher, person);
   }
 
   /**
    * Activate researcher
    */
   async activateResearcher(id: string, userApiKey: string): Promise<ResearcherResponse> {
-    return this.updateResearcher(id, { active: true }, userApiKey);
+    const user = await this.getUserByApiKey(userApiKey);
+    this.accessControlService.requireCanManageResearchers(user);
+
+    const researcher = await this.researcherRepository.findById(id);
+    if (!researcher) {
+      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
+    }
+
+    const person = await this.personRepository.findById(researcher.personId);
+    if (!person) {
+      throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
+    }
+
+    // Reactivate researcher
+    researcher.activate();
+    await this.researcherRepository.save(researcher);
+
+    // Publish event
+    this.eventBus.publish(new ResearcherReactivatedEvent(
+      researcher.id,
+      person.firstName,
+      person.lastName,
+      user.id
+    ));
+
+    return ResearcherDto.toResponse(researcher, person);
   }
 
   /**

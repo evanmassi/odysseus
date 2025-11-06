@@ -110,6 +110,14 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
   // Format action for display - simple verb
   const formatAction = (action: string) => {
+    // Special cases for clearer display
+    if (action === 'user_logged_in') return 'Login';
+    if (action === 'user_logged_out') return 'Logout';
+    if (action === 'user_linked_to_researcher') return 'Linked';
+    if (action === 'user_unlinked_from_researcher') return 'Unlinked';
+    if (action === 'user_password_changed') return 'Updated';
+    if (action === 'user_role_changed') return 'Updated';
+
     // Remove entity type prefix and capitalize (e.g., "tube_created" → "Created")
     const parts = action.split('_');
     if (parts.length > 1) {
@@ -123,8 +131,16 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   const getActionBadgeClass = (action: string) => {
     if (action.includes('created')) return 'badge-action-created';
     if (action.includes('updated')) return 'badge-action-updated';
+    if (action.includes('password_changed')) return 'badge-action-updated';
+    if (action.includes('role_changed')) return 'badge-action-updated';
     if (action.includes('moved')) return 'badge-action-moved';
     if (action.includes('deleted')) return 'badge-action-deleted';
+    if (action.includes('deactivated')) return 'badge-action-deleted';
+    if (action.includes('unlinked')) return 'badge-action-logout';
+    if (action.includes('logged_in')) return 'badge-action-login';
+    if (action.includes('logged_out')) return 'badge-action-logout';
+    if (action.includes('linked')) return 'badge-action-login';
+    if (action.includes('reactivated')) return 'badge-action-login';
     return 'badge-action-default';
   };
 
@@ -250,9 +266,84 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
         return details.newName || '-';
       }
 
-      // OTHER ENTITY TYPES (user, researcher)
-      if (details.email) return details.email;
-      if (details.department) return details.department;
+      // RESEARCHER EVENTS
+      if (entityType === 'researcher') {
+        const researcherName = details.researcherName || '-';
+        const createdBy = details.createdBy || '';
+        const updatedBy = details.updatedBy || '';
+        const deactivatedBy = details.deactivatedBy || '';
+        const reactivatedBy = details.reactivatedBy || '';
+
+        if (action === 'researcher_created') {
+          const emailPart = details.email ? ` (${details.email})` : '';
+          return `${researcherName}${emailPart} by ${createdBy}`;
+        }
+        if (action === 'researcher_updated' && details.changes) {
+          const emailChange = details.changes.find((c: any) => c.field === 'email');
+          if (emailChange) {
+            return `${researcherName}: Email changed to ${emailChange.newValue} by ${updatedBy}`;
+          }
+          const positionChange = details.changes.find((c: any) => c.field === 'position');
+          if (positionChange) {
+            return `${researcherName}: Position changed to '${positionChange.newValue}' by ${updatedBy}`;
+          }
+          const firstNameChange = details.changes.find((c: any) => c.field === 'firstName');
+          const lastNameChange = details.changes.find((c: any) => c.field === 'lastName');
+          if (firstNameChange || lastNameChange) {
+            return `${researcherName}: Name updated by ${updatedBy}`;
+          }
+          return `${researcherName} updated by ${updatedBy}`;
+        }
+        if (action === 'researcher_deactivated') {
+          const tubeCount = details.tubesReassignedCount || 0;
+          const tubeText = tubeCount > 0 ? ` (${tubeCount} tubes reassigned to Unknown)` : '';
+          return `${researcherName}${tubeText} by ${deactivatedBy}`;
+        }
+        if (action === 'researcher_reactivated') {
+          return `${researcherName} by ${reactivatedBy}`;
+        }
+        return researcherName;
+      }
+
+      // USER EVENTS
+      if (entityType === 'user') {
+        const username = details.username || '-';
+        const changedBy = details.changedBy || '';
+        const linkedBy = details.linkedBy || '';
+        const unlinkedBy = details.unlinkedBy || '';
+        const deletedBy = details.deletedBy || '';
+
+        if (action === 'user_created') {
+          const role = details.role || 'user';
+          const isFirstUser = details.username && username === details.username && !changedBy;
+          return isFirstUser ? `${username} (Role: ${role}) - First user setup` : `${username} (Role: ${role})`;
+        }
+        if (action === 'user_logged_in') {
+          return username;
+        }
+        if (action === 'user_logged_out') {
+          return username;
+        }
+        if (action === 'user_role_changed') {
+          const newRole = details.newRole || '';
+          return `Role changed to ${newRole}`;
+        }
+        if (action === 'user_password_changed') {
+          return 'Password changed';
+        }
+        if (action === 'user_linked_to_researcher') {
+          const researcherName = details.researcherName || '';
+          return `${username} linked to researcher ${researcherName} by ${linkedBy}`;
+        }
+        if (action === 'user_unlinked_from_researcher') {
+          const researcherName = details.researcherName || '';
+          return `${username} unlinked from researcher ${researcherName} by ${unlinkedBy}`;
+        }
+        if (action === 'user_deleted') {
+          return `${username} by ${deletedBy}`;
+        }
+        return username;
+      }
 
       return '-';
     } catch {

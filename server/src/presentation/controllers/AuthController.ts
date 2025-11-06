@@ -9,6 +9,8 @@ import { Request, Response, NextFunction } from 'express';
 import { ResponseBuilder } from '@presentation/responses/ApiResponse';
 import { ErrorMapper } from '@presentation/responses/ErrorMapper';
 import { logger } from '@utils/logger';
+import type { EventBus } from '@application/contracts/EventBus';
+import { UserLoggedOutEvent } from '@domain/events/UserEvents';
 
 // CQRS Commands
 import { CreateUserCommand, CreateUserCommandHandler } from '@application/commands/UserCommands';
@@ -65,7 +67,10 @@ export class AuthController {
     // Repositories (for admin endpoints)
     private configRepository: ConfigurationRepository,
     private researcherRepository: ResearcherRepository,
-    private personRepository: PersonRepository
+    private personRepository: PersonRepository,
+
+    // Event bus
+    private eventBus: EventBus
   ) {}
 
   // PUBLIC ENDPOINTS (No auth required)
@@ -335,13 +340,17 @@ export class AuthController {
         return next(new Error('User not found in request context'));
       }
 
-      // TODO: Implement session revocation when we have session management
-      
+      // Publish logout event
+      this.eventBus.publish(new UserLoggedOutEvent(
+        user.id,
+        user.username
+      ));
+
       logger.info('User logged out', {
         userId: user.id,
         username: user.username
       });
-      
+
       const response = ResponseBuilder.success({ message: 'Logged out successfully' });
       res.status(200).json(response);
     } catch (error) {

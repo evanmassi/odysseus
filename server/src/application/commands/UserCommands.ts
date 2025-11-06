@@ -12,7 +12,14 @@ import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepos
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { PasswordService } from '@application/contracts/PasswordService';
 import { EventBus } from '@application/contracts/EventBus';
-import { UserCreatedEvent, UserPasswordChangedEvent, UserRoleChangedEvent, UserDeletedEvent } from '@domain/events/UserEvents';
+import {
+  UserCreatedEvent,
+  UserPasswordChangedEvent,
+  UserRoleChangedEvent,
+  UserDeletedEvent,
+  UserLoggedInEvent,
+  UserLoggedOutEvent
+} from '@domain/events/UserEvents';
 import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -324,7 +331,8 @@ export interface LoginResult {
 export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginResult> {
   constructor(
     private userRepository: UserRepository,
-    private sessionService: SessionService
+    private sessionService: SessionService,
+    private eventBus: EventBus
   ) {}
 
   async handle(command: LoginCommand): Promise<LoginResult> {
@@ -367,6 +375,12 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
     if (user.isPasswordChangeRequired()) {
       throw new PermissionError('Password change required. Please contact an administrator for a password reset link.');
     }
+
+    // Publish login event
+    this.eventBus.publish(new UserLoggedInEvent(
+      user.id,
+      user.username
+    ));
 
     // Return user for OAuth 2.0 token creation by AuthController
     return {
