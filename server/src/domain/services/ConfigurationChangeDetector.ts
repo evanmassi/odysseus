@@ -1,4 +1,5 @@
 import { Configuration } from '@domain/entities/Configuration';
+import { Rack, Box } from '@domain/valueObjects/Equipment';
 import {
   ConfigurationUpdatedEvent,
   TankUpdatedEvent,
@@ -139,8 +140,8 @@ export class ConfigurationChangeDetector {
    * Detect rack-level changes within a tank
    */
   private detectRackChanges(
-    oldRacks: any[],
-    newRacks: any[],
+    oldRacks: readonly Rack[],
+    newRacks: readonly Rack[],
     tankId: string,
     tankName: string,
     userId: string,
@@ -207,8 +208,8 @@ export class ConfigurationChangeDetector {
    * Detect box-level changes within a rack
    */
   private detectBoxChanges(
-    oldBoxes: any[],
-    newBoxes: any[],
+    oldBoxes: readonly Box[],
+    newBoxes: readonly Box[],
     tankId: string,
     tankName: string,
     rackId: number,
