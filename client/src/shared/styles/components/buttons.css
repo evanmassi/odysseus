@@ -74,6 +74,10 @@
     @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 h-10 px-4 py-2;
   }
 
+  .btn-refresh-compact {
+    @apply btn-compact border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400;
+  }
+
   /* Compact Button Variants - For tables, inline actions, and space-constrained UIs */
   .btn-compact {
     @apply inline-flex items-center justify-center rounded-lg text-xs font-medium disabled:pointer-events-none disabled:opacity-50 px-2 py-1;

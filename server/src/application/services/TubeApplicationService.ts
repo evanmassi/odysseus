@@ -264,7 +264,7 @@ export class TubeApplicationService {
 
     if (locationChanged) {
       // Publish location change event
-      this.eventBus.publish(new TubeLocationChangedEvent(
+      await this.eventBus.publish(new TubeLocationChangedEvent(
         updatedTube.id,
         oldLocation,
         updatedTube.location,
@@ -273,7 +273,7 @@ export class TubeApplicationService {
     }
 
     // Always publish general update event
-    this.eventBus.publish(new TubeUpdatedEvent(
+    await this.eventBus.publish(new TubeUpdatedEvent(
       updatedTube.id,
       oldLocation,
       updatedTube.location,
@@ -337,7 +337,7 @@ export class TubeApplicationService {
 
     // Publish bulk update event (only if some succeeded)
     if (updated.length > 0) {
-      this.eventBus.publish(new BulkTubesUpdatedEvent(
+      await this.eventBus.publish(new BulkTubesUpdatedEvent(
         updated,
         authenticatedUser.id,
         { updated: updated.length, failed: failed.length }

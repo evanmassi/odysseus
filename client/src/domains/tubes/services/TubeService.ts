@@ -147,4 +147,30 @@ export class TubeService {
     return await httpClient.postData(this.BASE_PATH, validatedRequests, tubeDataSchema.array());
   }
 
+  /**
+   * Bulk update tubes - update multiple tubes at once
+   *
+   * Uses server-side bulk update endpoint for proper audit logging.
+   */
+  static async bulkUpdateTubes(
+    updates: Array<{ id: string; data: UpdateTubeRequest }>
+  ): Promise<{ success: boolean; updated: string[]; failed: Array<{ id: string; error: string }> }> {
+    // Normalize dates to YYYY-MM-DD format to prevent timezone bugs
+    const normalizedUpdates = updates.map(update => ({
+      id: update.id,
+      updates: this.normalizeTubeDates(update.data)
+    }));
+
+    const response = await httpClient.post<{
+      success: boolean;
+      data: {
+        success: boolean;
+        updated: string[];
+        failed: Array<{ id: string; error: string }>;
+      };
+    }>('/tubes/bulk-update', { updates: normalizedUpdates });
+
+    return response.data.data;
+  }
+
 }

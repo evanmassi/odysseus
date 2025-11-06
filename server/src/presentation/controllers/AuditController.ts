@@ -36,7 +36,7 @@ export class AuditController {
       const filters: AuditLogFilters = {
         limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
         offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
-        userId: req.query.userId as string | undefined,
+        username: req.query.username as string | undefined,
         action: req.query.action as string | undefined,
         entityType: req.query.entityType as string | undefined,
         dateFrom: req.query.dateFrom as string | undefined,

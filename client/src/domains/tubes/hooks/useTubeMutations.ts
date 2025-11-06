@@ -287,73 +287,51 @@ return await TubeService.deleteTube(id);
 
 /**
  * Bulk update tubes mutation
- * 
+ *
  * Replaces: BulkOperationsService.bulkUpdateTubes()
  */
 export const useBulkUpdateTubesMutation = (
   options: UseMutationOptions<
-    BulkUpdateResult, 
-    Error, 
+    BulkUpdateResult,
+    Error,
     { tubeIds: string[]; updates: UpdateTubeRequest; onProgress?: (progress: { completed: number; total: number; currentId: string }) => void }
   > = {}
 ) => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ tubeIds, updates, onProgress }) => {
+      // Use the actual bulk update endpoint to get proper audit logging
+      const bulkUpdateItems = tubeIds.map(id => ({
+        id,
+        data: updates
+      }));
 
-      
-      const results: Array<{ id: string; success: boolean; error?: string }> = [];
-      let successful = 0;
-      let failed = 0;
-      
-      // Process tubes in parallel with concurrency limit
-      const concurrencyLimit = 5;
-      const chunks: string[][] = [];
-      for (let i = 0; i < tubeIds.length; i += concurrencyLimit) {
-        chunks.push(tubeIds.slice(i, i + concurrencyLimit));
-      }
-      
-      for (const chunk of chunks) {
-        const chunkPromises = chunk.map(async (id) => {
-          try {
-            onProgress?.({ completed: results.length, total: tubeIds.length, currentId: id });
-            
-            const tube = await TubeService.updateTube(id, updates);
-            
-            successful++;
-            results.push({ id, success: true });
-            
-            // Update individual tube in cache
-            queryClient.setQueryData(queryKeys.tubes.detail(id), tube);
-          } catch (error: any) {
-            failed++;
-            results.push({ id, success: false, error: error.message });
-            console.error(`Failed to update tube ${id}:`, error);
-          }
-        });
-        
-        await Promise.allSettled(chunkPromises);
-      }
-      
+      const result = await TubeService.bulkUpdateTubes(bulkUpdateItems);
 
-      
+      // Transform server response to BulkUpdateResult format
+      const errors = result.failed.map(f => ({
+        itemId: f.id,
+        tubeId: f.id,
+        error: f.error
+      }));
+
       return {
-        success: successful > 0,
+        success: result.success,
         totalProcessed: tubeIds.length,
-        successCount: successful,
-        successful,
-        failed,
-        errorCount: failed,
+        successCount: result.updated.length,
+        successful: result.updated.length,
+        failed: result.failed.length,
+        errorCount: result.failed.length,
         total: tubeIds.length,
-        results,
-        errors: results.filter(r => !r.success).map(r => ({
-          itemId: r.id,
-          tubeId: r.id,
-          error: r.error || 'Unknown error'
-        })),
-        duration: 0 // Add proper timing if needed
-      };
+        results: [],
+        errors: errors,
+        duration: 0,
+        response: {
+          updated: result.updated.length,
+          errors: errors
+        }
+      } as BulkUpdateResult;
     },
     
     onSuccess: (data, variables) => {

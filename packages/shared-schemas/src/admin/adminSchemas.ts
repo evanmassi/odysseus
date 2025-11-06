@@ -146,7 +146,7 @@ export type AuditLogEntry = z.infer<typeof auditLogEntrySchema>;
 export const auditLogFiltersSchema = z.object({
   limit: z.number().int().min(1).max(1000).optional(),
   offset: z.number().int().min(0).optional(),
-  userId: z.string().optional(),
+  username: z.string().optional(),
   action: z.string().optional(),
   entityType: z.string().optional(),
   dateFrom: z.string().datetime().optional(),

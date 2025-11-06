@@ -48,19 +48,10 @@ export interface MonitoringTabProps {
 export function MonitoringTab({ stats, onRefresh }: MonitoringTabProps) {
   return (
     <div className="space-y-4">
-      {/* Header with Refresh Button */}
-      <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-        <div className="flex items-center space-x-2">
-          <Activity size={22} className="text-gray-700" />
-          <h3 className="text-xl font-semibold text-gray-900">System Monitoring</h3>
-        </div>
-        <button
-          onClick={onRefresh}
-          className="btn-refresh flex items-center space-x-2"
-        >
-          <RefreshCw size={14} />
-          <span>Refresh</span>
-        </button>
+      {/* Header */}
+      <div className="flex items-center space-x-2 pb-3 border-b border-gray-200">
+        <Activity size={22} className="text-gray-700" />
+        <h3 className="text-xl font-semibold text-gray-900">System Monitoring</h3>
       </div>
 
       {/* Audit Log Viewer */}

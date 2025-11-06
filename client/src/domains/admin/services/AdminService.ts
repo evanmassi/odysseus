@@ -398,7 +398,7 @@ export class AdminService {
       const params = new URLSearchParams();
       if (options.limit) params.append('limit', options.limit.toString());
       if (options.offset) params.append('offset', options.offset.toString());
-      if (options.userId) params.append('userId', options.userId);
+      if (options.username) params.append('username', options.username);
       if (options.action) params.append('action', options.action);
       if (options.entityType) params.append('entityType', options.entityType);
       if (options.dateFrom) params.append('dateFrom', options.dateFrom);

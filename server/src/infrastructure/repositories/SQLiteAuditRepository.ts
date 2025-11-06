@@ -162,9 +162,9 @@ export class SQLiteAuditRepository implements AuditRepository {
     const whereClauses: string[] = [];
     const params: any[] = [];
 
-    if (filters.userId) {
-      whereClauses.push('userId = ?');
-      params.push(filters.userId);
+    if (filters.username) {
+      whereClauses.push('username = ?');
+      params.push(filters.username);
     }
 
     if (filters.action) {

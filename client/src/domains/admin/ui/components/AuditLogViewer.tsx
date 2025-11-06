@@ -5,10 +5,11 @@
  * Shows detailed activity tracking for compliance and debugging.
  */
 
-import React, { useState, useEffect } from 'react';
-import { Search, Filter, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import { adminService } from '@domains/admin/services/AdminService';
+import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 
 interface AuditLogViewerProps {
   /** Optional initial filters */
@@ -36,7 +37,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   });
 
   const [showFilters, setShowFilters] = useState(false);
-  const [tempFilters, setTempFilters] = useState<Partial<AuditLogFilters>>({});
+  const [tempFilters, setTempFilters] = useState<AuditFilterState>({});
 
   // Load audit log entries
   const loadAuditLog = async () => {
@@ -58,12 +59,16 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     loadAuditLog();
   }, [filters]);
 
-  // Apply filters
+  // Apply filters - convert multi-select to single action for backend
   const applyFilters = () => {
-    const newFilters = {
-      ...filters,
-      ...tempFilters,
-      offset: 0, // Reset to first page
+    const newFilters: AuditLogFilters = {
+      limit: filters.limit,
+      offset: 0,
+      username: tempFilters.username,
+      action: tempFilters.actions?.[0], // Backend only supports single action currently
+      entityType: tempFilters.entityTypes?.[0], // Backend only supports single entity type currently
+      dateFrom: tempFilters.dateFrom,
+      dateTo: tempFilters.dateTo,
     };
     setFilters(newFilters);
     setShowFilters(false);
@@ -78,7 +83,6 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     };
     setFilters(resetFilters);
     setTempFilters({});
-    setShowFilters(false);
     onFiltersChange?.(resetFilters);
   };
 
@@ -117,6 +121,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     if (action === 'user_unlinked_from_researcher') return 'Unlinked';
     if (action === 'user_password_changed') return 'Updated';
     if (action === 'user_role_changed') return 'Updated';
+    if (action === 'tube_bulk_updated') return 'Bulk Updated';
 
     // Remove entity type prefix and capitalize (e.g., "tube_created" → "Created")
     const parts = action.split('_');
@@ -168,8 +173,11 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
       const action = entry.action;
       const entityType = entry.entityType;
 
-      // TUBES: Show location
+      // TUBES: Show location or bulk update count
       if (entityType === 'tube') {
+        if (action === 'tube_bulk_updated' && details.count) {
+          return `${details.count} tube${details.count !== 1 ? 's' : ''} updated`;
+        }
         if (details.displayLocation) return details.displayLocation;
         if (details.location) return details.location;
         return '-';
@@ -352,7 +360,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   };
 
   const hasActiveFilters = Object.keys(tempFilters).some(
-    key => key !== 'limit' && key !== 'offset' && tempFilters[key as keyof AuditLogFilters]
+    key => key !== 'datePreset' && tempFilters[key as keyof AuditFilterState]
   );
 
   const currentPage = Math.floor((filters.offset || 0) / (filters.limit || 50)) + 1;
@@ -382,100 +390,32 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`flex items-center gap-1 px-2 py-1 text-xs rounded transition-colors ${
-              showFilters
-                ? 'bg-blue-100 text-blue-700'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            className={`btn-refresh-compact flex items-center space-x-1 ${
+              showFilters ? 'bg-action text-white border-action hover:bg-action-hover' : ''
             }`}
           >
-            <Filter className="w-3 h-3" />
-            Filters
+            <SlidersHorizontal size={12} />
+            <span>Filters</span>
           </button>
 
           <button
             onClick={loadAuditLog}
-            className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+            className="btn-refresh-compact flex items-center space-x-1"
           >
-            <Search className="w-3 h-3" />
-            Refresh
+            <RefreshCw size={12} />
+            <span>Refresh</span>
           </button>
         </div>
       </div>
 
       {/* Filter Panel */}
       {showFilters && (
-        <div className="bg-gray-50 p-3 rounded-lg space-y-2">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">User</label>
-              <input
-                type="text"
-                placeholder="Filter by username"
-                value={tempFilters.userId || ''}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, userId: e.target.value || undefined }))}
-                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Action</label>
-              <select
-                value={tempFilters.action || ''}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, action: e.target.value || undefined }))}
-                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Actions</option>
-                <option value="tube_created">Tube Created</option>
-                <option value="tube_updated">Tube Updated</option>
-                <option value="tube_moved">Tube Moved</option>
-                <option value="tube_deleted">Tube Deleted</option>
-                <option value="tube_bulk_updated">Bulk Update</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Entity Type</label>
-              <select
-                value={tempFilters.entityType || ''}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, entityType: e.target.value || undefined }))}
-                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">All Types</option>
-                <option value="tube">Tube</option>
-                <option value="user">User</option>
-                <option value="researcher">Researcher</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Date From</label>
-              <input
-                type="datetime-local"
-                value={tempFilters.dateFrom || ''}
-                onChange={(e) => setTempFilters(prev => ({ ...prev, dateFrom: e.target.value || undefined }))}
-                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              onClick={() => {
-                setTempFilters({});
-                setShowFilters(false);
-              }}
-              className="px-3 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-200 rounded"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={applyFilters}
-              className="px-3 py-1 text-xs bg-blue-600 text-white hover:bg-blue-700 rounded"
-            >
-              Apply Filters
-            </button>
-          </div>
-        </div>
+        <AuditLogFilterPanel
+          filters={tempFilters}
+          onChange={setTempFilters}
+          onApply={applyFilters}
+          onClear={clearFilters}
+        />
       )}
 
       {/* Loading State */}
@@ -499,23 +439,23 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
             <table className="w-full text-xs">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Timestamp</th>
-                  <th className="px-3 py-2 text-left font-semibold text-gray-700">User</th>
-                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Item</th>
-                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Details</th>
-                  <th className="px-3 py-2 text-left font-semibold text-gray-700">Action</th>
+                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-32">Timestamp</th>
+                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-24">User</th>
+                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-20">Item</th>
+                  <th className="px-2 py-2 text-left font-semibold text-gray-700">Details</th>
+                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-24">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {entries.map((entry) => (
                   <tr key={entry.id} className="hover:bg-gray-50">
-                    <td className="px-3 py-2 whitespace-nowrap text-gray-600">
+                    <td className="px-2 py-2 whitespace-nowrap text-gray-600">
                       {formatTimestamp(entry.timestamp)}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="px-2 py-2 whitespace-nowrap">
                       <span className="font-medium text-gray-900">{entry.username}</span>
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="px-2 py-2 whitespace-nowrap">
                       {entry.entityType ? (
                         <span className={getEntityBadgeClass(entry.entityType)}>
                           {formatEntityType(entry.entityType)}
@@ -524,10 +464,10 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                         <span className="text-gray-400 text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-3 py-2 text-gray-700 max-w-xs truncate" title={formatDetails(entry)}>
+                    <td className="px-2 py-2 text-gray-700 max-w-md truncate" title={formatDetails(entry)}>
                       {formatDetails(entry)}
                     </td>
-                    <td className="px-3 py-2 whitespace-nowrap">
+                    <td className="px-2 py-2 whitespace-nowrap">
                       <span className={getActionBadgeClass(entry.action)}>
                         {formatAction(entry.action)}
                       </span>
