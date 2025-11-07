@@ -66,8 +66,8 @@ export const SYSTEM_DEFAULTS = {
    */
   CONFIGURATION: {
     /**
-     * Current configuration schema version
+     * Initial configuration version (increments on each change)
      */
-    VERSION: '2.0.0',
+    VERSION: 1,
   },
 } as const;

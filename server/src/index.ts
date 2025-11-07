@@ -88,9 +88,16 @@ class OdysseusServer {
     // Initialize service container with dependency injection
     this.serviceContainer = new ServiceContainer(this.repositoryFactory);
 
+    // Pass Socket.IO instance to service container
+    this.serviceContainer.setSocketIO(this.io);
+
     // Initialize audit event handler to start listening for domain events
     this.serviceContainer.getAuditEventHandler();
     logger.info('Audit event handler initialized');
+
+    // Initialize Socket.IO event handler for real-time updates
+    this.serviceContainer.getSocketEventHandler();
+    logger.info('Socket event handler initialized');
 
     // Initialize and start audit archival job
     this.serviceContainer.getAuditArchivalJob().start();
@@ -438,14 +445,19 @@ class OdysseusServer {
         await repositories.tubes.delete(tube.id);
       }
 
-      // Just notify frontend to handle configuration update
+      // Legacy Socket.IO emissions for tube and tank deletion
+      // NOTE: These are manual emissions because this endpoint bypasses the domain layer.
+      // When tank deletion is properly moved to use UpdateConfigurationCommandHandler,
+      // these manual emissions can be removed as SocketEventHandler will handle them
+      // via domain events automatically.
       if (this.io) {
-        this.io.emit('tubeUpdate', { 
+        this.io.emit('tubeUpdate', {
           type: 'bulk-delete',
           data: { deletedTubes: tankTubes, tankId }
         });
-        
-        // Tell frontend to remove tank from configuration
+
+        // Configuration changes are now handled by SocketEventHandler via domain events,
+        // but this legacy endpoint still needs manual emission
         this.io.emit('tankDeleted', { tankId });
       }
       

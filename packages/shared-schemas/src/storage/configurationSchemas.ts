@@ -112,7 +112,7 @@ export const SystemConfigurationSchema = z.object({
   currentLabId: z.string(),
   availableLabs: z.array(LabConfigurationSchema),
   globalSettings: GlobalSettingsSchema,
-  version: z.string(),
+  version: z.number(),
 }).strict();
 
 /**

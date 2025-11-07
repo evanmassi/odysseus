@@ -59,7 +59,7 @@ export class ConfigurationDto {
             timezone: 'America/New_York',
             autoBackup: configData.systemSettings.autoSave
           },
-          version: configData.version.toString()
+          version: configData.version
         },
         currentLab: {
           id: 'default-lab',

@@ -13,6 +13,8 @@ import { GetCurrentConfigurationQueryHandler, GetConfigurationHistoryQueryHandle
 // Event Bus
 import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
 import { AuditEventHandler } from '@application/eventHandlers/AuditEventHandler';
+import { SocketEventHandler } from '@application/eventHandlers/SocketEventHandler';
+import type { Server as SocketIOServer } from 'socket.io';
 
 // Controllers
 import { AuthController } from '@presentation/controllers/AuthController';
@@ -132,9 +134,13 @@ export class ServiceContainer {
 
   // Event Handlers
   private auditEventHandler?: AuditEventHandler;
+  private socketEventHandler?: SocketEventHandler;
 
   // Middleware
   private authMiddleware?: AuthMiddleware;
+
+  // Socket.IO server instance
+  private socketIO?: SocketIOServer;
 
   constructor(repositoryFactory: RepositoryFactory) {
     this.repositoryFactory = repositoryFactory;
@@ -668,6 +674,29 @@ export class ServiceContainer {
       );
     }
     return this.auditEventHandler;
+  }
+
+  /**
+   * Initialize Socket.IO event handler
+   * Must be called after Socket.IO server is created
+   */
+  setSocketIO(io: SocketIOServer): void {
+    this.socketIO = io;
+  }
+
+  getSocketEventHandler(): SocketEventHandler | null {
+    if (!this.socketIO) {
+      console.warn('⚠️ Socket.IO not initialized. Call setSocketIO() first.');
+      return null;
+    }
+
+    if (!this.socketEventHandler) {
+      this.socketEventHandler = new SocketEventHandler(
+        this.socketIO,
+        this.getEventBus()
+      );
+    }
+    return this.socketEventHandler;
   }
 
   // LEGACY SERVICES (for non-migrated controllers)
