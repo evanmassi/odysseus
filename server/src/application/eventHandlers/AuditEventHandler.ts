@@ -124,9 +124,8 @@ export class AuditEventHandler {
         return location.toString();
       }
 
-      // Find rack by ID (rackId is a string but Rack.id is a number)
-      const rackId = parseInt(location.rackId);
-      const rack = tank.racks.find(r => r.id === rackId);
+      // Find rack by ID
+      const rack = tank.racks.find(r => r.id === location.rackId);
       if (!rack) {
         return location.toString();
       }

@@ -181,24 +181,25 @@ export class Configuration {
   /**
    * Business method: Add rack to tank
    */
-  addRack(tankId: string, rackId: number, rackName: string, maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK): Rack {
+  addRack(tankId: string, rackId: string | number, rackName: string, maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK): Rack {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
       throw new ValidationError(`Tank '${tankId}' not found`);
     }
 
     const tank = this._equipment.tanks[tankIndex];
+    const rackIdStr = String(rackId);
 
     if (!tank.canAccommodateRack(rackId)) {
       throw new ValidationError(`Tank '${tankId}' cannot accommodate rack ${rackId}`);
     }
 
     // Business rule: Rack IDs must be unique within a tank
-    if (tank.racks.some(r => r.id === rackId)) {
+    if (tank.racks.some(r => r.id === rackIdStr)) {
       throw new ValidationError(`Rack ${rackId} already exists in tank '${tankId}'`);
     }
 
-    const newRack = Rack.create(rackId, rackName, [], maxBoxes, maxBoxes, true);
+    const newRack = Rack.create(rackIdStr, rackName, [], maxBoxes, maxBoxes, true);
 
     // Recreate tank with new rack
     const updatedTank = Tank.create(
@@ -221,14 +222,15 @@ export class Configuration {
   /**
    * Business method: Add box to rack
    */
-  addBox(tankId: string, rackId: number, boxId: string, gridConfig: { rows: number; cols: number } = { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS }): Box {
+  addBox(tankId: string, rackId: string | number, boxId: string, gridConfig: { rows: number; cols: number } = { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS }): Box {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
       throw new ValidationError(`Tank '${tankId}' not found`);
     }
 
     const tank = this._equipment.tanks[tankIndex];
-    const rackIndex = tank.racks.findIndex(r => r.id === rackId);
+    const rackIdStr = String(rackId);
+    const rackIndex = tank.racks.findIndex(r => r.id === rackIdStr);
     if (rackIndex === -1) {
       throw new ValidationError(`Rack ${rackId} not found in tank '${tankId}'`);
     }
@@ -358,14 +360,15 @@ export class Configuration {
   /**
    * Business method: Update boxes configuration for a specific rack
    */
-  updateBoxes(tankId: string, rackId: number, boxes: Box[]): Configuration {
+  updateBoxes(tankId: string, rackId: string | number, boxes: Box[]): Configuration {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
       throw new ValidationError(`Tank '${tankId}' not found`);
     }
 
     const tank = this._equipment.tanks[tankIndex];
-    const rackIndex = tank.racks.findIndex(r => r.id === rackId);
+    const rackIdStr = String(rackId);
+    const rackIndex = tank.racks.findIndex(r => r.id === rackIdStr);
     if (rackIndex === -1) {
       throw new ValidationError(`Rack ${rackId} not found in tank '${tankId}'`);
     }
@@ -539,11 +542,12 @@ export class Configuration {
   /**
    * Business query: Get available positions in a box
    */
-  getAvailablePositions(tankId: string, rackId: number, boxId: string, occupiedPositions: number[]): number[] {
+  getAvailablePositions(tankId: string, rackId: string | number, boxId: string, occupiedPositions: number[]): number[] {
     const tank = this._equipment.tanks.find(t => t.id === tankId);
     if (!tank) return [];
 
-    const rack = tank.racks.find(r => r.id === rackId);
+    const rackIdStr = String(rackId);
+    const rack = tank.racks.find(r => r.id === rackIdStr);
     if (!rack) return [];
 
     const box = rack.boxes.find(b => b.name === boxId.toUpperCase() && b.isActive);
@@ -576,7 +580,7 @@ export class Configuration {
       id: string;
       name: string;
       racks: Array<{
-        id: number;
+        id: string;
         name: string;
         boxes: Array<{
           name: string;

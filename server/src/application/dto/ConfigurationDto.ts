@@ -105,7 +105,7 @@ export class ConfigurationDto {
    */
   private static transformRack(rackData: ReturnType<Rack['toData']>) {
     return {
-      id: rackData.id.toString(),
+      id: rackData.id,
       name: rackData.name,
       capacity: rackData.capacity,
       location: 'Main Lab',

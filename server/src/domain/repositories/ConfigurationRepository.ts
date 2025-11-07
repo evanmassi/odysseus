@@ -101,12 +101,12 @@ export interface ConfigurationRepository {
   /**
    * Get all rack IDs for a tank
    */
-  getRackIds(tankId: string): Promise<number[]>;
-  
+  getRackIds(tankId: string): Promise<string[]>;
+
   /**
    * Get all box names for a rack
    */
-  getBoxNames(tankId: string, rackId: number): Promise<string[]>;
+  getBoxNames(tankId: string, rackId: string | number): Promise<string[]>;
   
   /**
    * Get equipment hierarchy summary
@@ -349,7 +349,7 @@ export interface ApiConfigurationResponse {
       maxRacks: number;
       isActive: boolean;
       racks: Array<{
-        id: number;
+        id: string;
         name: string;
         maxBoxes: number;
         capacity: number;
@@ -384,7 +384,7 @@ export interface FrontendConfiguration {
     id: string;
     name: string;
     racks: Array<{
-      id: number;
+      id: string;
       boxes: Array<{
         name: string;
         maxPositions: number;

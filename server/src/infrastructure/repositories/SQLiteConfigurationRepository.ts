@@ -266,30 +266,32 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     return racks.filter(rack => rack.isActive);
   }
 
-  async getRackById(tankId: string, rackId: number): Promise<Rack | null> {
+  async getRackById(tankId: string, rackId: string | number): Promise<Rack | null> {
     const racks = await this.getRacksForTank(tankId);
-    return racks.find(rack => rack.id === rackId) || null;
+    const rackIdStr = String(rackId);
+    return racks.find(rack => rack.id === rackIdStr) || null;
   }
 
-  async getBoxesForRack(tankId: string, rackId: number): Promise<Box[]> {
+  async getBoxesForRack(tankId: string, rackId: string | number): Promise<Box[]> {
     const config = await this.getCurrent();
     if (!config) return [];
 
     const tank = config.equipment.tanks.find(t => t.id === tankId);
     if (!tank) return [];
 
-    const rack = tank.racks.find(r => r.id === rackId);
+    const rackIdStr = String(rackId);
+    const rack = tank.racks.find(r => r.id === rackIdStr);
     if (!rack) return [];
 
     return [...rack.boxes];
   }
 
-  async getActiveBoxesForRack(tankId: string, rackId: number): Promise<Box[]> {
+  async getActiveBoxesForRack(tankId: string, rackId: string | number): Promise<Box[]> {
     const boxes = await this.getBoxesForRack(tankId, rackId);
     return boxes.filter(box => box.isActive);
   }
 
-  async getBoxByName(tankId: string, rackId: number, boxId: string): Promise<Box | null> {
+  async getBoxByName(tankId: string, rackId: string | number, boxId: string): Promise<Box | null> {
     const boxes = await this.getBoxesForRack(tankId, rackId);
     return boxes.find(box => box.name.toLowerCase() === boxId.toLowerCase()) || null;
   }
@@ -450,12 +452,12 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     return tanks.map(tank => tank.id);
   }
 
-  async getRackIds(tankId: string): Promise<number[]> {
+  async getRackIds(tankId: string): Promise<string[]> {
     const racks = await this.getRacksForTank(tankId);
     return racks.map(rack => rack.id);
   }
 
-  async getBoxNames(tankId: string, rackId: number): Promise<string[]> {
+  async getBoxNames(tankId: string, rackId: string | number): Promise<string[]> {
     const boxes = await this.getBoxesForRack(tankId, rackId);
     return boxes.map(box => box.name);
   }

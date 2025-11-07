@@ -64,8 +64,9 @@ export class Tank {
     }
   }
 
-  canAccommodateRack(rackId: number): boolean {
-    return rackId >= 1 && rackId <= this._maxRacks;
+  canAccommodateRack(rackId: string | number): boolean {
+    const numericId = typeof rackId === 'string' ? parseInt(rackId, 10) : rackId;
+    return !isNaN(numericId) && numericId >= 1 && numericId <= this._maxRacks;
   }
 
   equals(other: Tank): boolean {
@@ -103,7 +104,7 @@ export class Tank {
  */
 export class Rack {
   private constructor(
-    private readonly _id: number,
+    private readonly _id: string,
     private readonly _name: string,
     private readonly _boxes: Box[],
     private readonly _maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
@@ -114,22 +115,19 @@ export class Rack {
   }
 
   static create(
-    id: number,
+    id: string | number,
     name: string,
     boxes: Box[] = [],
     maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
     capacity: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
     isActive: boolean = true
   ): Rack {
-    return new Rack(id, name, boxes, maxBoxes, capacity, isActive);
+    return new Rack(String(id), name, boxes, maxBoxes, capacity, isActive);
   }
 
   private validate(): void {
-    if (!Number.isInteger(this._id)) {
-      throw new ValidationError('Rack ID must be an integer');
-    }
-    if (this._id < 1) {
-      throw new ValidationError('Rack ID must be greater than 0');
+    if (!this._id || this._id.trim().length === 0) {
+      throw new ValidationError('Rack ID is required');
     }
     if (!this._name || this._name.trim().length === 0) {
       throw new ValidationError('Rack name is required');
@@ -169,7 +167,7 @@ export class Rack {
   }
 
   toData(): {
-    id: number;
+    id: string;
     name: string;
     boxes: ReturnType<Box['toData']>[];
     maxBoxes: number;
@@ -187,7 +185,7 @@ export class Rack {
   }
 
   // Getters
-  get id(): number { return this._id; }
+  get id(): string { return this._id; }
   get name(): string { return this._name; }
   get boxes(): readonly Box[] { return this._boxes; }
   get maxBoxes(): number { return this._maxBoxes; }
@@ -426,11 +424,12 @@ export class EquipmentConfiguration {
   /**
    * Get active boxes for a rack
    */
-  getActiveBoxesForRack(tankId: string, rackId: number): Box[] {
+  getActiveBoxesForRack(tankId: string, rackId: string | number): Box[] {
     const tank = this._tanks.find(t => t.id === tankId);
     if (!tank) return [];
 
-    const rack = tank.racks.find(r => r.id === rackId);
+    const rackIdStr = String(rackId);
+    const rack = tank.racks.find(r => r.id === rackIdStr);
     if (!rack) return [];
 
     return rack.boxes.filter(b => b.isActive) as Box[];

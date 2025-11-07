@@ -212,7 +212,7 @@ export class ConfigurationChangeDetector {
     newBoxes: readonly Box[],
     tankId: string,
     tankName: string,
-    rackId: number,
+    rackId: string,
     rackName: string,
     userId: string,
     summary: ConfigurationChangeSummary

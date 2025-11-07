@@ -118,7 +118,7 @@ export class RackAddedEvent extends DomainEvent {
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string,
-    public readonly rackId: number,
+    public readonly rackId: string,
     public readonly rackName: string
   ) {
     super();
@@ -143,7 +143,7 @@ export class RackDeletedEvent extends DomainEvent {
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string,
-    public readonly rackId: number,
+    public readonly rackId: string,
     public readonly rackName: string
   ) {
     super();
@@ -168,7 +168,7 @@ export class RackUpdatedEvent extends DomainEvent {
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string,
-    public readonly rackId: number,
+    public readonly rackId: string,
     public readonly rackName: string,
     public readonly changes: {
       field: string;
@@ -198,7 +198,7 @@ export class BoxAddedEvent extends DomainEvent {
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string,
-    public readonly rackId: number,
+    public readonly rackId: string,
     public readonly rackName: string,
     public readonly boxId: string,
     public readonly boxName: string
@@ -225,7 +225,7 @@ export class BoxDeletedEvent extends DomainEvent {
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string,
-    public readonly rackId: number,
+    public readonly rackId: string,
     public readonly rackName: string,
     public readonly boxId: string,
     public readonly boxName: string
@@ -252,7 +252,7 @@ export class BoxUpdatedEvent extends DomainEvent {
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string,
-    public readonly rackId: number,
+    public readonly rackId: string,
     public readonly rackName: string,
     public readonly boxId: string,
     public readonly boxName: string,

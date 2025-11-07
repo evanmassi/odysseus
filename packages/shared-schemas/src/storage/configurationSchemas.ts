@@ -29,7 +29,7 @@ export const BoxConfigurationSchema = z.object({
  * Rack Configuration Schema
  */
 export const RackConfigurationSchema = z.object({
-  id: z.union([z.string(), z.number()]).transform(String),
+  id: z.string(),
   name: z.string(),
   capacity: z.number(),
   location: z.string().optional(),
