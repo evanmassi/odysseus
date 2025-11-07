@@ -28,6 +28,7 @@ export function useConfigurationSync() {
       hasSynced.current = true;
 
       const serverSystemConfig = data.configuration.systemConfig;
+      const serverCurrentLab = data.configuration.currentLab;
       const serverVersion = serverSystemConfig.version;
 
       // Get cached version from current store (if exists)
@@ -48,10 +49,20 @@ export function useConfigurationSync() {
       }
 
       console.log('📥 [ConfigSync] Syncing configuration from server');
+
+      // Ensure systemConfig.availableLabs contains the current lab
+      // The server sends currentLab separately, but we need to update availableLabs
+      const updatedAvailableLabs = serverSystemConfig.availableLabs.map(lab =>
+        lab.id === serverSystemConfig.currentLabId ? serverCurrentLab : lab
+      );
+
       useStorageStore.setState({
-        systemConfig: serverSystemConfig
+        systemConfig: {
+          ...serverSystemConfig,
+          availableLabs: updatedAvailableLabs
+        },
+        currentLab: serverCurrentLab
       });
-      // currentLab automatically synced from availableLabs
     }
   }, [isSuccess, data]);
 

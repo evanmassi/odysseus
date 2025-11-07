@@ -4,6 +4,7 @@ import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import {
   useStorageStore,
   useSaveStorageMutation,
+  useDeleteTankMutation,
   TankConfiguration,
   RackConfiguration,
   BoxConfiguration,
@@ -19,6 +20,7 @@ import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { useAuthStore } from '@domains/authentication';
 import { useModalStore } from '@app/stores/modalStore';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { notifications } from '@shared/utils/notifications';
 
 interface StorageManagementModalProps {
   isOpen: boolean;
@@ -32,7 +34,6 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
   const updateTank = useStorageStore(state => state.updateTank);
   const addTank = useStorageStore(state => state.addTank);
-  const deleteTank = useStorageStore(state => state.deleteTank);
   const updateBox = useStorageStore(state => state.updateBox);
   const updateRack = useStorageStore(state => state.updateRack);
   const addRack = useStorageStore(state => state.addRack);
@@ -42,9 +43,10 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const getAvailableGridTemplates = useStorageStore(state => state.getAvailableGridTemplates);
   const {} = useAuthStore();
   const modalService = useModalStore();
-  
-  // React Query mutation for server sync
+
+  // React Query mutations for server sync
   const saveConfigurationMutation = useSaveStorageMutation();
+  const deleteTankMutation = useDeleteTankMutation();
   
   // Helper function to save configuration to server
   const saveToServerWithReactQuery = async () => {
@@ -159,7 +161,8 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
       const newBox: BoxConfiguration = {
         id: nextBoxLetter,
         name: NAMING_PATTERNS.BOX.DEFAULT_NAME(boxIndex),
-        gridConfig: currentLab.equipment.defaultGridConfig
+        gridConfig: currentLab.equipment.defaultGridConfig,
+        position: boxIndex + 1 // Add position property (1-indexed)
       };
 
       addBoxToRack(currentLab.id, tankId, rackId, newBox);
@@ -255,13 +258,25 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
       alert('Cannot delete the last tank in the laboratory');
       return;
     }
-    
+
     modalService.showDeleteConfirm({
       title: 'Delete Tank',
       message: `Are you sure you want to delete this tank? This will remove all racks, boxes, and tubes in this tank.`,
       onConfirm: async () => {
-        await deleteTank(currentLab.id, tankId);
-        modalService.hideDeleteConfirm();
+        try {
+          // Use React Query mutation for CQRS pattern
+          await deleteTankMutation.mutateAsync(tankId);
+
+          // React Query automatically invalidates cache and refetches
+          // No manual store updates needed!
+
+          notifications.success('Tank deleted successfully');
+        } catch (error) {
+          console.error('Failed to delete tank:', error);
+          notifications.error('Failed to delete tank. Please try again.');
+        } finally {
+          modalService.hideDeleteConfirm();
+        }
       }
     });
   };

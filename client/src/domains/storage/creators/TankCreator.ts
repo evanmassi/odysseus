@@ -34,6 +34,7 @@ export function createBoxFromDefaults(
       cols: gridConfig.cols,
       template: gridConfig.template,
     },
+    position: boxIndex + 1, // Add position property (1-indexed)
   };
 }
 

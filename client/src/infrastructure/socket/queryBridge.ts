@@ -94,8 +94,9 @@ const configurationEventSchemas = {
 
 /**
  * Socket → Query Cache Bridge
- * 
- * Centralizes all socket event handling and cache management
+ *
+ * Centralizes all socket event handling and cache management.
+ * Singleton pattern - one instance per app lifetime.
  */
 export class SocketQueryBridge {
   private socket: Socket | null = null;
@@ -103,7 +104,7 @@ export class SocketQueryBridge {
   private isConnected = false;
   private isInitialized = false;
 
-  // Track last known configuration version to prevent unnecessary invalidations
+  // Session state: Persists across socket reconnections
   private lastKnownConfigVersion: number | null = null;
 
   constructor(queryClient: QueryClient) {
@@ -132,7 +133,10 @@ export class SocketQueryBridge {
   }
 
   /**
-   * Disconnect socket and cleanup handlers
+   * Disconnect socket and cleanup connection state
+   *
+   * Preserves session state (version tracking) across reconnections.
+   * Only clears connection-specific state (socket, listeners).
    */
   public disconnect(): void {
     if (this.socket) {
@@ -141,6 +145,7 @@ export class SocketQueryBridge {
       this.socket = null;
       this.isConnected = false;
       this.isInitialized = false;
+      // Note: lastKnownConfigVersion intentionally preserved (session state)
     }
 
     // Cleanup online/offline listeners
@@ -180,6 +185,26 @@ export class SocketQueryBridge {
         socketId: this.socket?.id,
         timestamp: new Date().toISOString()
       });
+
+      // Initialize version tracking from current cache (if not already set)
+      if (this.lastKnownConfigVersion === null) {
+        const currentConfig = this.queryClient.getQueryData(
+          queryKeys.storage.storage()
+        ) as any;
+        const currentVersion = currentConfig?.configuration?.systemConfig?.version;
+
+        if (currentVersion) {
+          this.lastKnownConfigVersion = currentVersion;
+          console.log('🔢 [SocketBridge] Initialized version tracking', {
+            version: currentVersion
+          });
+        }
+      } else {
+        console.log('🔢 [SocketBridge] Version tracking preserved from previous connection', {
+          version: this.lastKnownConfigVersion
+        });
+      }
+
       notifications.success('Connected to server');
     });
 
@@ -495,32 +520,44 @@ export class SocketQueryBridge {
    */
   private async invalidateConfigurationIfChanged(): Promise<boolean> {
     try {
-      // Get currently cached configuration
-      const cachedConfig = this.queryClient.getQueryData(
-        queryKeys.storage.storage()
-      ) as any; // ConfigurationResponse type
+      const currentVersion = this.lastKnownConfigVersion;
 
-      const currentVersion = cachedConfig?.configuration?.systemConfig?.version;
+      console.log('🔍 [SocketBridge] Starting version check', {
+        lastKnownVersion: currentVersion,
+        timestamp: new Date().toISOString()
+      });
 
-      // Invalidate cache and refetch
+      // Invalidate cache first
       await this.queryClient.invalidateQueries({
         queryKey: queryKeys.storage.storage()
       });
 
-      // Wait for refetch to complete
-      await this.queryClient.refetchQueries({
+      console.log('♻️  [SocketBridge] Cache invalidated, fetching fresh data...');
+
+      // Fetch fresh data from server (this waits for the network request to complete)
+      const freshData = await this.queryClient.fetchQuery({
         queryKey: queryKeys.storage.storage()
+      }) as any;
+
+      console.log('📦 [SocketBridge] Fresh data received from server', {
+        version: freshData?.configuration?.systemConfig?.version,
+        timestamp: new Date().toISOString()
       });
 
-      // Get the new configuration
-      const newConfig = this.queryClient.getQueryData(
-        queryKeys.storage.storage()
-      ) as any;
+      const newVersion = freshData?.configuration?.systemConfig?.version;
 
-      const newVersion = newConfig?.configuration?.systemConfig?.version;
+      // If this is the first time we're seeing a version, initialize tracking
+      if (currentVersion === null && newVersion !== undefined) {
+        console.log('🔢 [SocketBridge] First version seen, initializing tracking', {
+          version: newVersion
+        });
+        this.lastKnownConfigVersion = newVersion;
+        // On first event, always assume it changed (we have no baseline)
+        return true;
+      }
 
       // Check if version actually changed
-      if (currentVersion !== undefined && newVersion !== undefined) {
+      if (currentVersion !== undefined && currentVersion !== null && newVersion !== undefined) {
         const versionChanged = currentVersion !== newVersion;
 
         // Detect database reset (version went backward)
@@ -552,7 +589,9 @@ export class SocketQueryBridge {
           direction: newVersion > currentVersion ? 'forward' : newVersion < currentVersion ? 'backward' : 'unchanged'
         });
 
+        // Update tracked version for next comparison
         this.lastKnownConfigVersion = newVersion;
+
         return versionChanged;
       }
 
@@ -684,11 +723,14 @@ export const getSocketBridge = (queryClient: QueryClient): SocketQueryBridge => 
 };
 
 /**
- * Cleanup global socket bridge
+ * Cleanup socket connection
+ *
+ * Disconnects the socket but preserves the singleton instance.
+ * This maintains session state (version tracking) across reconnections.
  */
 export const cleanupSocketBridge = (): void => {
   if (globalSocketBridge) {
     globalSocketBridge.disconnect();
-    globalSocketBridge = null;
+    // Singleton preserved - only connection state cleared
   }
 };

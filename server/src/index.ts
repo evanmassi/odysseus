@@ -42,14 +42,34 @@ class OdysseusServer {
       cors: {
         origin: "*",
         methods: ["GET", "POST"]
-      }
+      },
+
+      // Production-grade timing configuration
+      pingTimeout: 60000,    // 60 seconds (increased from 5s default)
+      pingInterval: 25000,   // 25 seconds (keep default)
+
+      // Connection recovery for brief disconnections
+      connectionStateRecovery: {
+        maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+      },
+
+      // Transport configuration with fallback
+      transports: ['websocket', 'polling'],
+
+      // Performance tuning
+      perMessageDeflate: false, // Disable compression for low latency
+      httpCompression: false,   // Disable HTTP compression
     });
 
     this.io.on('connection', (socket) => {
       logger.info(`Client connected: ${socket.id}`);
-      
-      socket.on('disconnect', () => {
-        logger.info(`Client disconnected: ${socket.id}`);
+
+      socket.on('disconnect', (reason) => {
+        logger.info(`Client disconnected: ${socket.id}, reason: ${reason}`);
+      });
+
+      socket.on('error', (error) => {
+        logger.error(`Socket error for ${socket.id}:`, error);
       });
     });
   }
@@ -156,6 +176,10 @@ class OdysseusServer {
 
     // Apply all routes
     registry.applyRoutes();
+
+    // Legacy DELETE tank endpoint (bypasses domain layer)
+    // TODO: Migrate to ConfigurationCommandHandler for proper DDD implementation
+    this.app.delete('/api/tanks/:tankId', this.deleteTank.bind(this));
 
     logger.info('🚀 Route system initialized', {
       modules: registry.getModuleSummary()

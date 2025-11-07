@@ -564,6 +564,88 @@ export class Configuration {
   }
 
   /**
+   * Update configuration from data (DDD update pattern)
+   * Mutates existing aggregate and increments version
+   *
+   * @param data - New configuration data from client
+   */
+  public updateFromData(data: {
+    tanks: Array<{
+      id: string;
+      name: string;
+      racks: Array<{
+        id: number | string;
+        name: string;
+        boxes: Array<{
+          name: string;
+          gridConfig?: { rows: number; cols: number };
+          maxPositions?: number;
+          positionDisplay?: PositionDisplayConfig;
+          isActive?: boolean;
+        }>;
+        maxBoxes?: number;
+        capacity?: number;
+        isActive?: boolean;
+      }>;
+      maxRacks?: number;
+      isActive?: boolean;
+    }>;
+    systemSettings: {
+      labName: string;
+      defaultResearcher: string;
+      autoSave: boolean;
+      auditTrailEnabled: boolean;
+      syncEnabled: boolean;
+      defaultPositionDisplay?: PositionDisplayConfig;
+    };
+  }): void {
+    // Update equipment configuration
+    const tanks = data.tanks.map(tankData => {
+      const racks = tankData.racks.map(rackData => {
+        const boxes = rackData.boxes.map(boxData =>
+          Box.create(
+            boxData.name,
+            boxData.gridConfig || { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
+            boxData.maxPositions,
+            boxData.positionDisplay,
+            boxData.isActive ?? true
+          )
+        );
+
+        const effectiveCapacity = Math.max(
+          boxes.length,
+          rackData.maxBoxes || 0,
+          rackData.capacity || 0,
+          EQUIPMENT_DEFAULTS.BOXES_PER_RACK
+        );
+
+        return Rack.create(
+          typeof rackData.id === 'string' ? parseInt(rackData.id) : rackData.id,
+          rackData.name,
+          boxes,
+          effectiveCapacity,
+          effectiveCapacity,
+          rackData.isActive ?? true
+        );
+      });
+
+      return Tank.create(
+        tankData.id,
+        tankData.name,
+        racks,
+        tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
+        tankData.isActive ?? true
+      );
+    });
+
+    this._equipment = EquipmentConfiguration.create(tanks);
+    this._systemSettings = SystemSettings.fromData(data.systemSettings);
+
+    // Increment version and update timestamp
+    this.touch();
+  }
+
+  /**
    * Update timestamp and increment version
    */
   private touch(): void {

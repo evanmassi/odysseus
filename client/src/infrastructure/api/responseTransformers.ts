@@ -50,7 +50,9 @@ const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   'UserSettingsResponse': new Set([]), // Response envelope for user settings
   'AdminUser': new Set(['createdAt', 'lastActivity']),
   'SystemMetrics': new Set(['lastBackup']),
-  'AuditLogEntry': new Set(['timestamp'])
+  'AuditLogEntry': new Set(['timestamp']),
+  'SocketEventPayload': new Set(['timestamp', 'updatedAt']), // Socket.IO configuration_updated events
+  'ConfigurationUpdateEvent': new Set(['timestamp', 'updatedAt']) // Socket.IO configuration events
 };
 
 // Type-safe date field detection with exclusion patterns to prevent false positives

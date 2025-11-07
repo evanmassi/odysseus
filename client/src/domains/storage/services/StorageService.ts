@@ -63,7 +63,7 @@ export class StorageService {
    */
   static async deleteTank(tankId: string): Promise<DeleteTankResponse> {
     try {
-      return await httpClient.getData(`/tanks/${tankId}`, DeleteTankResponseSchema);
+      return await httpClient.deleteWithData(`/tanks/${tankId}`, DeleteTankResponseSchema);
     } catch (error) {
       throw new InfrastructureError(
         'API_ERROR',

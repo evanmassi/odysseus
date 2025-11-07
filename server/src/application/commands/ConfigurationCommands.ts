@@ -380,7 +380,7 @@ export class UpdateConfigurationCommandHandler {
   ) {}
 
   async handle(command: UpdateConfigurationCommand): Promise<Configuration> {
-    // Get current configuration
+    // Get current configuration (source of truth)
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
@@ -389,9 +389,13 @@ export class UpdateConfigurationCommandHandler {
     // Get user for permission validation
     const user = await this.getUserById(command.userId);
 
-    // Create updated configuration directly from nested shared-schema structure
+    // Snapshot current state for change detection
+    const beforeSnapshot = currentConfig.toData();
+    const beforeVersion = currentConfig.version;
+
+    // Update existing aggregate using domain method (increments version automatically)
     // Frontend sends: tanks[racks[boxes]] (nested) - MATCHES domain model now
-    const updatedConfig = Configuration.fromData({
+    currentConfig.updateFromData({
       tanks: command.currentLab.equipment?.tanks || [],
       systemSettings: {
         labName: command.currentLab.name,
@@ -402,10 +406,13 @@ export class UpdateConfigurationCommandHandler {
       }
     });
 
+    const afterVersion = currentConfig.version;
+    console.log(`[ConfigurationCommand] Version change: ${beforeVersion} → ${afterVersion}`);
+
     // Validate the configuration update
     const validationResult = await this.validationService.validateConfigurationUpdate(
-      currentConfig,
-      updatedConfig,
+      Configuration.fromData(beforeSnapshot), // old state
+      currentConfig, // new state (after mutations)
       user
     );
 
@@ -415,16 +422,24 @@ export class UpdateConfigurationCommandHandler {
       );
     }
 
-    // Detect changes and emit domain events for audit trail
-    const changeEvents = this.changeDetector.detectChanges(currentConfig, updatedConfig, command.userId);
+    // Detect changes for event emission (but don't emit yet)
+    const changeEvents = this.changeDetector.detectChanges(
+      Configuration.fromData(beforeSnapshot),
+      currentConfig,
+      command.userId
+    );
+
+    // Save the updated configuration (with incremented version) FIRST
+    // This ensures the database has the new version before Socket events fire
+    await this.configurationRepository.save(currentConfig);
+
+    // Emit domain events AFTER save completes
+    // This ensures clients refetch the correct version from database
     for (const event of changeEvents) {
       this.eventBus.publish(event);
     }
 
-    // Save the updated configuration
-    await this.configurationRepository.save(updatedConfig);
-
-    return updatedConfig;
+    return currentConfig;
   }
 
   private async getUserById(userId: string): Promise<User> {
