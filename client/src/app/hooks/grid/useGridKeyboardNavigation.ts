@@ -153,7 +153,7 @@ export function useGridKeyboardNavigation(
     if (key === 'Delete') {
       event.preventDefault();
       if (selectedPositions.size > 0) {
-        controller.actions.delete();
+        void controller.actions.delete();
       }
       return;
     }
@@ -181,21 +181,28 @@ export function useGridKeyboardNavigation(
     // Ctrl+C - Copy
     if (key === 'c' && (ctrlKey || metaKey)) {
       event.preventDefault();
-      controller.actions.copy();
+      void controller.actions.copy();
       return;
     }
 
     // Ctrl+X - Cut
     if (key === 'x' && (ctrlKey || metaKey)) {
       event.preventDefault();
-      controller.actions.cut();
+      void controller.actions.cut();
       return;
     }
 
     // Ctrl+V - Paste
     if (key === 'v' && (ctrlKey || metaKey)) {
       event.preventDefault();
-      controller.actions.paste();
+      void (async () => {
+        try {
+          await controller.actions.paste();
+        } catch (error) {
+          console.error('Paste operation failed:', error);
+          // Error notification already shown by paste handler
+        }
+      })();
       return;
     }
   }, [

@@ -524,7 +524,14 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                 if (e.key === 'Enter') {
                   e.preventDefault();
                   const template = selectedGridTemplate || editingBox.box.gridConfig;
-                  handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
+                  void (async () => {
+                    try {
+                      await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
+                    } catch (error) {
+                      console.error('Failed to update box grid:', error);
+                      notifications.error('Failed to save changes. Please try again.');
+                    }
+                  })();
                 } else if (e.key === 'Escape') {
                   e.preventDefault();
                   setEditingBox(null);
@@ -568,7 +575,14 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                   <button
                     onClick={() => {
                       const template = selectedGridTemplate || editingBox.box.gridConfig;
-                      handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
+                      void (async () => {
+                        try {
+                          await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
+                        } catch (error) {
+                          console.error('Failed to update box grid:', error);
+                          notifications.error('Failed to save changes. Please try again.');
+                        }
+                      })();
                     }}
                     className="btn-primary flex items-center gap-2"
                   >
@@ -589,12 +603,19 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && editingRack.rack.name.trim()) {
                   e.preventDefault();
-                  handleUpdateRack(editingRack.tankId, editingRack.rack.id, {
-                    name: editingRack.rack.name,
-                    location: editingRack.rack.location,
-                    description: editingRack.rack.description,
-                    isActive: editingRack.rack.isActive
-                  });
+                  void (async () => {
+                    try {
+                      await handleUpdateRack(editingRack.tankId, editingRack.rack.id, {
+                        name: editingRack.rack.name,
+                        location: editingRack.rack.location,
+                        description: editingRack.rack.description,
+                        isActive: editingRack.rack.isActive
+                      });
+                    } catch (error) {
+                      console.error('Failed to update rack:', error);
+                      notifications.error('Failed to save changes. Please try again.');
+                    }
+                  })();
                 } else if (e.key === 'Escape') {
                   e.preventDefault();
                   setEditingRack(null);
@@ -676,11 +697,18 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && editingTank.name.trim()) {
                   e.preventDefault();
-                  handleUpdateTank(editingTank.id, {
-                    name: editingTank.name.trim(),
-                    location: editingTank.location?.trim() || '',
-                    isActive: editingTank.isActive
-                  });
+                  void (async () => {
+                    try {
+                      await handleUpdateTank(editingTank.id, {
+                        name: editingTank.name.trim(),
+                        location: editingTank.location?.trim() || '',
+                        isActive: editingTank.isActive
+                      });
+                    } catch (error) {
+                      console.error('Failed to update tank:', error);
+                      notifications.error('Failed to save changes. Please try again.');
+                    }
+                  })();
                 } else if (e.key === 'Escape') {
                   e.preventDefault();
                   setEditingTank(null);
@@ -763,11 +791,18 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                 <button
                   onClick={() => {
                     if (editingTank.name.trim()) {
-                      handleUpdateTank(editingTank.id, {
-                        name: editingTank.name.trim(),
-                        location: editingTank.location?.trim() || '',
-                        isActive: editingTank.isActive
-                      });
+                      void (async () => {
+                        try {
+                          await handleUpdateTank(editingTank.id, {
+                            name: editingTank.name.trim(),
+                            location: editingTank.location?.trim() || '',
+                            isActive: editingTank.isActive
+                          });
+                        } catch (error) {
+                          console.error('Failed to update tank:', error);
+                          notifications.error('Failed to save changes. Please try again.');
+                        }
+                      })();
                     }
                   }}
                   disabled={!editingTank.name.trim()}

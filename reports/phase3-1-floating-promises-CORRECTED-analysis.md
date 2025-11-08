@@ -703,5 +703,438 @@ npm run lint | grep "no-floating-promises"  # Should show 48 fewer errors
 
 ---
 
-**Ready to proceed with TIER 2 Pattern 1 (void operator fixes)?**
+---
+
+## TIER 2 SESSION 1 COMPLETION
+
+**Date Completed:** 2025-01-07
+**Status:** ✅ COMPLETE
+**Errors Fixed:** 38 (Pattern 1 - Background Cache Invalidations)
+
+### Files Fixed:
+1. useTubeSocket.ts - 10 void operators
+2. queryBridge.ts - 11 void operators
+3. useTubesQuery.ts - 7 void operators
+4. useOptimisticTubeMutations.ts - 6 void operators
+5. useOptimizedTubeQueries.ts - 4 void operators
+
+**Error Count After Session 1:** 1,424 problems (732 errors, 692 warnings)
+**Reduction:** 38 errors ✅
+
+---
+
+## TIER 2 SESSION 2 - DETAILED INVESTIGATION & FIX STRATEGY
+
+**Date Investigated:** 2025-01-07
+**Total Errors:** 10 across 2 files
+**Category:** User-Facing Actions requiring error handling
+
+### Investigation Methodology
+
+For each floating promise error, I investigated:
+1. What does the async function actually do?
+2. Does it already handle errors internally?
+3. Does it show user notifications?
+4. Can it throw errors that need catching?
+5. What's the proper industry standard fix?
+
+---
+
+### **PATTERN 2 INVESTIGATION: Keyboard Actions (useGridKeyboardNavigation.ts)**
+
+**File:** `app/hooks/grid/useGridKeyboardNavigation.ts`
+**Lines:** 156 (delete), 184 (copy), 191 (cut), 198 (paste)
+**Total:** 4 errors
+
+#### **Line 156: Delete Key → `controller.actions.delete()`**
+
+**Investigation:**
+```typescript
+// useGridController.ts line 524
+const deleteSelectedTubes = React.useCallback(async () => {
+  // ... validation ...
+
+  // Show delete confirmation modal (confirm before destructive action)
+  modalService.showDeleteConfirm({
+    title: `Delete ${tubeIds.length} Tube${tubeIds.length > 1 ? 's' : ''}`,
+    message: `Are you sure you want to delete...`,
+    onConfirm: async () => {
+      if (onDeleteTubes) {
+        await onDeleteTubes(tubeIds);  // This can throw!
+      }
+      onSelectionChange(new Set());
+      modalService.hideDeleteConfirm();
+    },
+    onCancel: () => { /* ... */ }
+  });
+}, [...]);
+```
+
+**Findings:**
+- ✅ Shows modal confirmation before action
+- ⚠️ **The `onConfirm` callback calls `onDeleteTubes()` which CAN THROW**
+- ❌ NO error handling in `onConfirm` callback
+- ✅ Modal is async-safe (doesn't care about promise)
+
+**Industry Standard Fix:**
+The promise from `deleteSelectedTubes()` is **safe to ignore with `void`** because:
+1. The modal itself is shown immediately (non-blocking)
+2. The actual delete happens in modal's `onConfirm` callback
+3. If `onDeleteTubes` throws, it's unhandled - BUT this is already a bug in the existing code
+
+**However**, there's a **latent bug**: If `onDeleteTubes` fails in the modal callback, the error is unhandled. But fixing this requires changing the modal callback, not the keyboard handler.
+
+**Fix for keyboard handler:** `void` is correct
+**Bonus fix:** Add try/catch to modal's `onConfirm` (separate issue)
+
+---
+
+#### **Line 184: Ctrl+C → `controller.actions.copy()`**
+
+**Investigation:**
+```typescript
+// useGridController.ts line 287
+const copy = React.useCallback(async () => {
+  // ... validation ...
+
+  setClipboard(clipboardData);
+  await writeClipboardOS(clipboardData);  // Has internal try/catch!
+
+  // Show copy notification
+  notifications.copy(`Copied ${items.length} tube${items.length > 1 ? 's' : ''}`);
+}, [...]);
+```
+
+**Findings:**
+- ✅ `writeClipboardOS` has internal error handling (catches and silently ignores OS clipboard errors)
+- ✅ Always shows success notification (assumes success)
+- ✅ In-app clipboard as fallback
+- ❌ Cannot throw - all errors caught internally
+
+**Industry Standard Fix:**
+`void` operator is **100% correct** - function cannot throw, already handles errors.
+
+---
+
+#### **Line 191: Ctrl+X → `controller.actions.cut()`**
+
+**Investigation:**
+```typescript
+// useGridController.ts line 315
+const cut = React.useCallback(async () => {
+  // ... same as copy ...
+
+  setClipboard(clipboardData);
+  await writeClipboardOS(clipboardData);  // Has internal try/catch!
+
+  notifications.cut(`Cut ${items.length} tube${items.length > 1 ? 's' : ''}`);
+  onSelectionChange(new Set());
+}, [...]);
+```
+
+**Findings:**
+- ✅ Identical to copy - internal error handling
+- ✅ Always shows success notification
+- ❌ Cannot throw
+
+**Industry Standard Fix:**
+`void` operator is **100% correct**.
+
+---
+
+#### **Line 198: Ctrl+V → `controller.actions.paste()`**
+
+**Investigation:**
+```typescript
+// useGridController.ts line 349
+const paste = React.useCallback(async (options?) => {
+  // ... clipboard validation ...
+  // ... conflict detection with modal ...
+
+  // Call paste mutation
+  if (onPasteTubes) {
+    await onPasteTubes(tubesToPaste);  // This CAN THROW!
+  }
+
+  // Delete source tubes after successful paste (cut operation only)
+  if (clipData.operation === 'cut') {
+    if (onDeleteTubes && tubeIds.length > 0) {
+      await onDeleteTubes(tubeIds, true);  // This CAN THROW!
+    }
+    notifications.move(`Moved ${tubesToPaste.length}...`);
+  } else {
+    notifications.paste(`Pasted ${tubesToPaste.length}...`);
+  }
+
+  setClipboard(null);
+}, [...]);
+```
+
+**Findings:**
+- ⚠️ **`onPasteTubes()` can throw** (mutation can fail)
+- ⚠️ **`onDeleteTubes()` can throw** (mutation can fail)
+- ❌ NO error handling - failures are unhandled
+- ❌ Notifications shown BEFORE confirming success (optimistic)
+- 🔴 **CRITICAL BUG**: If paste fails, notification still shows success
+
+**Industry Standard Fix:**
+This requires **proper async/await with error handling**:
+
+```typescript
+void (async () => {
+  try {
+    await controller.actions.paste();
+  } catch (error) {
+    console.error('Paste operation failed:', error);
+    notifications.error('Failed to paste tubes. Please try again.');
+  }
+})();
+```
+
+**Reasoning:**
+- User pressed Ctrl+V expecting paste to happen
+- If paste fails, user MUST know (not silent failure)
+- Current code shows success notification even on failure (UX bug)
+
+---
+
+### **PATTERN 2 SUMMARY**
+
+| Line | Action | Function | Error Handling | Fix Required |
+|------|--------|----------|----------------|--------------|
+| 156 | Delete | `controller.actions.delete()` | Modal safe, but callback unhandled | `void` (+ fix modal separately) |
+| 184 | Copy | `controller.actions.copy()` | ✅ Internal try/catch | `void` only |
+| 191 | Cut | `controller.actions.cut()` | ✅ Internal try/catch | `void` only |
+| 198 | Paste | `controller.actions.paste()` | ❌ NO - can throw | `void + async/await + try/catch` |
+
+**Fix Strategy for Pattern 2:**
+- **Lines 156, 184, 191:** Simple `void` operator ✅
+- **Line 198:** Async IIFE with try/catch ⚠️
+
+---
+
+### **PATTERN 3 INVESTIGATION: UI Save Operations (StorageManagementModal.tsx)**
+
+**File:** `domains/tubes/ui/components/modals/StorageManagementModal.tsx`
+**Lines:** 272, 527, 571, 592, 679, 766
+**Total:** 6 errors
+
+#### **Common Helper Function Analysis**
+
+All errors call this helper:
+```typescript
+// Line 56
+const saveToServerWithReactQuery = async () => {
+  const state = useStorageStore.getState();
+  const { systemConfig, currentLab } = state;
+
+  await saveConfigurationMutation.mutateAsync({  // CAN THROW!
+    systemConfig: systemConfig as any,
+    currentLab: currentLab as any,
+  });
+};
+```
+
+**Findings:**
+- ⚠️ **`mutateAsync()` throws on failure** (React Query standard)
+- ❌ NO error handling in helper
+- ✅ Callers must catch errors
+
+---
+
+#### **Line 272: `deleteTank(currentLab.id, tankId)` in delete confirmation**
+
+**Investigation:**
+```typescript
+// Line 266
+modalService.showDeleteConfirm({
+  title: 'Delete Tank',
+  message: `Are you sure you want to delete this tank?...`,
+  onConfirm: async () => {
+    try {
+      deleteTank(currentLab.id, tankId);  // ← Line 272 (SYNC, returns void!)
+      await saveToServerWithReactQuery();  // ← This can throw
+      notifications.success('Tank deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete tank:', error);
+      notifications.error('Failed to delete tank. Please try again.');
+    } finally {
+      modalService.hideDeleteConfirm();
+    }
+  }
+});
+```
+
+**Findings:**
+- ✅ **Already has try/catch block!**
+- ✅ **Already has error notifications!**
+- ✅ **Already has success notifications!**
+- 🟢 **Line 272 is `deleteTank()` - NOT ASYNC, returns void**
+- 🟢 **This is a FALSE POSITIVE** - ESLint flagged a sync function call
+
+**Industry Standard Fix:**
+**NO FIX NEEDED** - This is not a floating promise! `deleteTank()` is synchronous.
+ESLint may be confused by the context. Line 272 has no promise to handle.
+
+**Actual fix:** Verify ESLint isn't misreporting the line number.
+
+---
+
+#### **Lines 527, 571: `handleUpdateBoxGrid()` calls**
+
+**Investigation:**
+```typescript
+// Line 199
+const handleUpdateBoxGrid = async (tankId, rackId, boxId, gridConfig) => {
+  updateBox(currentLab.id, tankId, rackId, boxId, { gridConfig });  // Sync
+  setEditingBox(null);
+  await saveToServerWithReactQuery();  // CAN THROW!
+};
+
+// Line 527 - Enter key handler
+onKeyDown={(e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const template = selectedGridTemplate || editingBox.box.gridConfig;
+    handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);  // ← NO AWAIT
+  }
+}}
+
+// Line 571 - Save button onClick
+onClick={() => {
+  const template = selectedGridTemplate || editingBox.box.gridConfig;
+  handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);  // ← NO AWAIT
+}}
+```
+
+**Findings:**
+- ⚠️ **`handleUpdateBoxGrid()` is async and CAN THROW**
+- ❌ NO error handling in handlers
+- ❌ User clicks "Save" but no feedback on failure
+- 🔴 **BUG**: Save failures are silent
+
+**Industry Standard Fix:**
+```typescript
+onClick={() => {
+  void (async () => {
+    try {
+      const template = selectedGridTemplate || editingBox.box.gridConfig;
+      await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
+      notifications.success('Box grid updated successfully');
+    } catch (error) {
+      console.error('Failed to update box grid:', error);
+      notifications.error('Failed to save changes. Please try again.');
+    }
+  })();
+}}
+```
+
+---
+
+#### **Lines 592: `handleUpdateRack()` calls**
+
+**Investigation:**
+```typescript
+// Line 207
+const handleUpdateRack = async (tankId, rackId, updates) => {
+  updateRack(currentLab.id, tankId, rackId, updates);  // Sync
+  setEditingRack(null);
+  await saveToServerWithReactQuery();  // CAN THROW!
+};
+```
+
+**Findings:** Same as handleUpdateBoxGrid
+**Fix:** Same async IIFE pattern with error handling
+
+---
+
+#### **Lines 679, 766: `handleUpdateTank()` calls**
+
+**Investigation:**
+```typescript
+// Line 288
+const handleUpdateTank = async (tankId, updates) => {
+  updateTank(currentLab.id, tankId, updates);  // Sync
+  setEditingTank(null);
+  await saveToServerWithReactQuery();  // CAN THROW!
+};
+```
+
+**Findings:** Same as handleUpdateBoxGrid
+**Fix:** Same async IIFE pattern with error handling
+
+---
+
+### **PATTERN 3 SUMMARY**
+
+| Line | Context | Function | Current Handling | Fix Required |
+|------|---------|----------|------------------|--------------|
+| 272 | Modal onConfirm | `deleteTank()` | ✅ Already has try/catch | **FALSE POSITIVE** - No fix needed |
+| 527 | Enter key | `handleUpdateBoxGrid()` | ❌ None | Async IIFE + try/catch |
+| 571 | Save button | `handleUpdateBoxGrid()` | ❌ None | Async IIFE + try/catch |
+| 592 | Enter key | `handleUpdateRack()` | ❌ None | Async IIFE + try/catch |
+| 679 | Enter key | `handleUpdateTank()` | ❌ None | Async IIFE + try/catch |
+| 766 | Save button | `handleUpdateTank()` | ❌ None | Async IIFE + try/catch |
+
+**Fix Strategy for Pattern 3:**
+- **Line 272:** Investigate if ESLint is misreporting - likely no fix needed
+- **Lines 527, 571, 592, 679, 766:** Async IIFE with try/catch + user notifications
+
+---
+
+## FINAL SESSION 2 FIX STRATEGY
+
+### **Actual Errors Requiring Fixes:** 9 (not 10)
+
+**Pattern 2 Fixes:**
+1. **Lines 156, 184, 191** → Simple `void` operator (3 fixes)
+2. **Line 198** → Async IIFE with try/catch (1 fix)
+
+**Pattern 3 Fixes:**
+1. **Line 272** → **NO FIX** (false positive - sync function)
+2. **Lines 527, 571, 592, 679, 766** → Async IIFE with try/catch + notifications (5 fixes)
+
+### **Implementation Order**
+
+**Step 1: Simple void operators (3 fixes, 5 min)**
+- useGridKeyboardNavigation.ts lines 156, 184, 191
+
+**Step 2: Paste with error handling (1 fix, 10 min)**
+- useGridKeyboardNavigation.ts line 198
+
+**Step 3: Storage modal save handlers (5 fixes, 20 min)**
+- StorageManagementModal.tsx lines 527, 571, 592, 679, 766
+
+**Step 4: Investigate line 272 (5 min)**
+- Verify if ESLint error is accurate
+- If sync function, no fix needed
+- If actually a promise, add to existing try/catch
+
+### **Expected Outcomes**
+
+**After Session 2:**
+- Errors fixed: 9 (or 10 if line 272 is real)
+- Error count: 1,424 → ~1,415 (9 errors) or ~1,414 (10 errors)
+- **UX improvements:**
+  - Paste failures now show error notifications
+  - Storage save failures now show error notifications
+  - Better user feedback on all save operations
+
+### **Testing Checklist**
+
+After fixes:
+- [ ] Delete key works (Ctrl+Del) - modal shows
+- [ ] Copy works (Ctrl+C) - notification shows
+- [ ] Cut works (Ctrl+X) - notification shows
+- [ ] Paste works (Ctrl+V) - success notification OR error notification
+- [ ] Paste failure shows error (test by disconnecting network)
+- [ ] Storage management save works - success notification
+- [ ] Storage management save failure shows error (test with network disconnect)
+- [ ] Enter key saves in all modals
+- [ ] TypeScript compiles
+- [ ] ESLint errors reduced by 9-10
+
+---
+
+**Ready to proceed with Session 2 fixes using this strategy?**
 
