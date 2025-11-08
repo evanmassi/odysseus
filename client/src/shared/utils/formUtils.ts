@@ -10,7 +10,7 @@
  * - Futureproof: works with any form structure
  */
 
-import { FieldValues } from 'react-hook-form';
+import type { FieldValues } from 'react-hook-form';
 
 /**
  * Extract only dirty (modified) fields from form data

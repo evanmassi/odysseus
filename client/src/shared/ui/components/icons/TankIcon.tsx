@@ -1,5 +1,5 @@
-import { Icon } from 'lucide-react';
 import { refrigeratorFreezer } from '@lucide/lab';
+import { Icon } from 'lucide-react';
 
 interface TankIconProps {
   size?: number;

@@ -12,18 +12,21 @@
  */
 
 import { env } from '@shared/config';
-import { 
+import {
+  SessionError
+} from '@shared/session/types';
+
+import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
+import type { 
   TokenPair, 
   SessionStatus, 
   SessionConfig, 
   SessionManagerState,
   TokenValidation,
   SessionStorage,
-  SessionError,
   RefreshResponse,
   TokenProvider
 } from '@shared/session/types';
-import { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
 
 /**
  * Session Manager - OAuth 2.0 Session Lifecycle Management

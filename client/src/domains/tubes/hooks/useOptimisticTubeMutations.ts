@@ -6,20 +6,22 @@
  * rollback, conflict resolution, and offline support.
  */
 
-import { useQueryClient } from '@tanstack/react-query';
-import { queryKeys } from '../../../infrastructure/socket/queryBridge';
-import { TubeService } from '../services/TubeService';
-import { 
-  initializeOptimisticUpdates,
-  OptimisticPatterns,
-  ConflictResolution
-} from '@infra/optimistic/optimisticUpdates';
 import {
   type TubeData,
   type CreateTubeRequest,
   type UpdateTubeRequest,
   UNKNOWN_RESEARCHER
 } from '@odysseus/shared-schemas';
+import { useQueryClient } from '@tanstack/react-query';
+
+import { 
+  initializeOptimisticUpdates,
+  OptimisticPatterns,
+  ConflictResolution
+} from '@infra/optimistic/optimisticUpdates';
+
+import { queryKeys } from '../../../infrastructure/socket/queryBridge';
+import { TubeService } from '../services/TubeService';
 
 /**
  * Enhanced create tube mutation with optimistic updates

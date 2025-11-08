@@ -1,7 +1,9 @@
 import React from 'react';
+
+import { refrigeratorFreezer } from '@lucide/lab';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Icon, Rows3, Box as BoxIcon } from 'lucide-react';
-import { refrigeratorFreezer } from '@lucide/lab';
+
 import type { StorageNavigatorItemProps } from './storageNavigatorTypes';
 import './StorageNavigator.css';
 

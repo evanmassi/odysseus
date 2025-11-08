@@ -1,8 +1,11 @@
 import type { ReactElement } from 'react';
-import { render, type RenderOptions } from '@testing-library/react';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { render, type RenderOptions } from '@testing-library/react';
 import { vi } from 'vitest';
+
 import { BootstrapProvider } from '../../app/contexts/BootstrapContext';
+
 import type { UseAppBootstrapResult } from '../../app/bootstrap/types';
 
 // Test-specific QueryClient with disabled retries and silent logging

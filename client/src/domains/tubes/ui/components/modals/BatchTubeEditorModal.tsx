@@ -1,27 +1,33 @@
-import { AlertCircle, XCircle, RefreshCw, MapPin, Pencil, Edit, Save, Trash2 } from 'lucide-react';
-import { BaseModal } from './BaseModal';
-import { useState, useMemo } from 'react';
-import { useCreateTubeForm } from '@domains/tubes/hooks/useTubeForm';
-import { useBulkUpdateTubesMutation, useBulkDeleteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';
-import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
+import { useState, useMemo , useEffect } from 'react';
+
 import { type CreateTubeFormInput, formatConcentrationDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
-import type { TubeData } from '@shared/types/tubeTypes';
-import { useTubeStore } from '@domains/tubes';
-import { useActiveResearchersQuery } from '@domains/researchers';
-import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
-import { useUserSettings } from '@domains/authentication';
+import { AlertCircle, XCircle, RefreshCw, MapPin, Pencil, Edit, Save, Trash2 } from 'lucide-react';
+
 import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
 import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
-import { TubeForm } from '../forms/TubeForm';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { useModalStore } from '@app/stores/modalStore';
+import { useUserSettings } from '@domains/authentication';
+import { useActiveResearchersQuery } from '@domains/researchers';
+import { useTubeStore } from '@domains/tubes';
+import { useCreateTubeForm } from '@domains/tubes/hooks/useTubeForm';
+import { BaseModal } from './BaseModal';
+import { useBulkUpdateTubesMutation, useBulkDeleteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';
+import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
+
+
 import { BulkProgressModal } from './BulkProgressModal';
+import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+
+import type { BulkUpdateProgress, BulkUpdateResult } from '@shared/types/bulkOperations';
+import type { TubeData } from '@shared/types/tubeTypes';
+import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
+
+import { TubeForm } from '../forms/TubeForm';
+
 import { notifications } from '@shared/utils';
-import { BulkUpdateProgress, BulkUpdateResult } from '@shared/types/bulkOperations';
 import { useKeyboardNavigation } from '@shared/hooks/keyboard';
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
 import { formatDateForInput } from '@shared/utils/dateFormatter';
-import { useEffect } from 'react';
-import { useModalStore } from '@app/stores/modalStore';
 
 export interface BatchTubeEditorModalProps {
   tubeIds: string[];     // Accept IDs, fetch own data

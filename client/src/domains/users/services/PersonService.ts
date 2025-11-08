@@ -5,13 +5,14 @@
  * Person is the single source of truth for profile data.
  */
 
-import { httpClient } from '@infra/api/httpClient';
 import {
   type Person,
   type UpdatePersonProfile,
   personSchema,
   updatePersonProfileSchema
 } from '@odysseus/shared-schemas';
+
+import { httpClient } from '@infra/api/httpClient';
 
 /**
  * Extended update type including password confirmation requirement

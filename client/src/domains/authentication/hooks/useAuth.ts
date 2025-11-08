@@ -5,8 +5,13 @@
  * Provides proper loading states, error handling, and caching.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { authService, AuthResponse, RegisterRequest, LoginRequest } from '../services/AuthenticationService';
+
 import { queryKeys } from '@app/queryKeys';
+
+import { authService } from '../services/AuthenticationService';
+
+import type { AuthResponse, RegisterRequest, LoginRequest } from '../services/AuthenticationService';
+
 
 /**
  * Query hook for session verification

@@ -7,15 +7,18 @@
  */
 
 import { useCallback } from 'react';
+
+import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import {
   useQuery,
   useQueryClient,
   type UseQueryOptions
 } from '@tanstack/react-query';
+
 import { queryKeys } from '@app/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
-import { TubeData } from '@domains/tubes/types';
-import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+
+import type { TubeData } from '@domains/tubes/types';
 
 // VIRTUALIZED QUERIES
 

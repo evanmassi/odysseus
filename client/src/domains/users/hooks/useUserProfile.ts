@@ -4,8 +4,11 @@
  * Hooks for fetching and updating user profile data.
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { PersonService, type UpdatePersonProfileWithPassword } from '../services/PersonService';
+
 import { queryKeys } from '@app/queryKeys';
+
+import { PersonService, type UpdatePersonProfileWithPassword } from '../services/PersonService';
+
 import type { Person } from '@odysseus/shared-schemas';
 
 /**

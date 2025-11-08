@@ -4,8 +4,9 @@
  * Handles password change for authenticated users.
  */
 
-import { httpClient } from '@infra/api/httpClient';
 import { z } from 'zod';
+
+import { httpClient } from '@infra/api/httpClient';
 
 const changePasswordResponseSchema = z.object({
   message: z.string(),

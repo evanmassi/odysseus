@@ -13,14 +13,16 @@
  * - Enables safe navigation of nested data structures
  */
 
-import {
+import { DomainError, FieldResolutionError, FieldPathError } from '@shared/domain/errors/DomainError';
+
+import type {
   FieldResolver,
   FieldPathMapping,
   FieldResolutionOptions,
   FieldResolutionResult
 } from '../types/FieldResolver';
-import { TubeData } from '@shared/types/tubeTypes';
-import { DomainError, FieldResolutionError, FieldPathError } from '@shared/domain/errors/DomainError';
+import type { TubeData } from '@shared/types/tubeTypes';
+
 
 /**
  * Performance monitoring for field resolution operations

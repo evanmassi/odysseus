@@ -20,27 +20,31 @@
  */
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { MapPin, AlertTriangle, Pencil, Edit, Plus, Save, Trash2 } from 'lucide-react';
-import { useTubeStore } from '@domains/tubes';
-import { useActiveResearchersQuery } from '@domains/researchers';
-import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
-import { useUserSettings } from '@domains/authentication';
-import { TubeForm } from '../forms/TubeForm';
-import { LocationDisplay } from '../displays/LocationDisplay';
-import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
-import { useTubesQuery, useTubeQuery } from '@domains/tubes/hooks/useTubesQuery';
-import { useUpdateTubeMutation, useDeleteTubeMutation } from '@domains/tubes/hooks/useTubeMutations';
+
 import {
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
   formatConcentrationDisplay,
   EQUIPMENT_DEFAULTS
 } from '@odysseus/shared-schemas';
-import { notifications } from '@shared/utils';
-import { parsePositionKey, type PositionKey } from '@shared/types/grid';
-import { formatDateForInput } from '@shared/utils/dateFormatter';
+import { MapPin, AlertTriangle, Pencil, Edit, Plus, Save, Trash2 } from 'lucide-react';
+
 import { useModalStore } from '@app/stores/modalStore';
+import { useUserSettings } from '@domains/authentication';
+import { useActiveResearchersQuery } from '@domains/researchers';
+import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
+import { useTubeStore } from '@domains/tubes';
+import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
+import { useUpdateTubeMutation, useDeleteTubeMutation } from '@domains/tubes/hooks/useTubeMutations';
+import { useTubesQuery, useTubeQuery } from '@domains/tubes/hooks/useTubesQuery';
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
+import { parsePositionKey, type PositionKey } from '@shared/types/grid';
+import { notifications } from '@shared/utils';
+
+import { formatDateForInput } from '@shared/utils/dateFormatter';
+import { LocationDisplay } from '../displays/LocationDisplay';
+import { TubeForm } from '../forms/TubeForm';
+
 import { BaseModal } from './BaseModal';
 
 /**

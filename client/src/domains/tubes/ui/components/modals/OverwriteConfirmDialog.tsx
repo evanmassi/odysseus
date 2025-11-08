@@ -1,5 +1,7 @@
-import { X, AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+import { X, AlertTriangle } from 'lucide-react';
+
 import { useModalStore } from '@app/stores/modalStore';
 
 interface OverwriteConfirmDialogProps {

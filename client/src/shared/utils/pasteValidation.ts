@@ -5,7 +5,8 @@
  * Validation patterns with zero side effects.
  */
 
-import { GridConfiguration, getGridTotalPositions } from '@/domains/storage';
+import type { GridConfiguration} from '@/domains/storage';
+import { getGridTotalPositions } from '@/domains/storage';
 
 /**
  * Grid configuration for validation (re-export shared schema type)

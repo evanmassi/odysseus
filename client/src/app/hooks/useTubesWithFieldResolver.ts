@@ -6,8 +6,11 @@
  */
 
 import { useMemo } from 'react';
+
+import { useTubesQuery } from '@domains/tubes/hooks/useTubesQuery';
+
 import { useSimpleFieldResolver } from './useSimpleFieldResolver';
-import { useTubesQuery } from '@domains/tubes';
+
 import type { TubeData } from '@shared/types/tubeTypes';
 
 /**

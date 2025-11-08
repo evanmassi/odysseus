@@ -1,18 +1,23 @@
 
 import React, { useMemo } from 'react';
+
+import { formatConcentrationDisplay, formatResearcherDropdownDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import { MapPin } from 'lucide-react';
+
 import { useFieldResolverQuery } from '@app/hooks';
-import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
-import { useTubeStore } from '@domains/tubes';
-import { useResearchersQuery } from '@domains/researchers';
 import { useUserSettings } from '@domains/authentication';
+import { useResearchersQuery } from '@domains/researchers';
+import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
+import { useTubeStore } from '../../../stores/tubeStore';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { formatDateForDisplay } from '@shared/utils/dateFormatter';
-import { formatConcentrationDisplay, formatResearcherDropdownDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
-import type { TubeData } from '@shared/types/tubeTypes';
-import type { Researcher } from '@odysseus/shared-schemas';
+
 import { FieldValue } from '../displays/FieldValue';
 import { InfoSection } from '../displays/InfoSection';
+
+import type { Researcher } from '@odysseus/shared-schemas';
+import type { TubeData } from '@shared/types/tubeTypes';
+
 
 interface TubeInfoPanelProps {
   selectedTubes: TubeData[];

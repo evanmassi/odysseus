@@ -4,13 +4,14 @@
  * Handles user preferences and settings management.
  * Coordinates between API, domain logic, and UI layers.
  */
-import { httpClient } from '@infra/api/httpClient';
 import {
   type UserSettings,
   type UpdateUserSettingsRequest,
   type UserSettingsResponse,
   type PositionDisplayPreference
 } from '@odysseus/shared-schemas';
+
+import { httpClient } from '@infra/api/httpClient';
 
 /**
  * User Settings service for managing per-user preferences

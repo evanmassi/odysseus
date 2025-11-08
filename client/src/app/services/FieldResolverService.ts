@@ -4,7 +4,8 @@
 
 // Import the authoritative FieldResolverHook interface from hooks layer
 import type { FieldResolverHook } from '../hooks/useFieldResolver';
-import { FieldResolutionOptions } from '@domains/tubes/types/FieldResolver';
+import type { FieldResolutionOptions } from '@domains/tubes/types/FieldResolver';
+
 
 export interface PerformanceMetrics {
   totalResolutions: number;

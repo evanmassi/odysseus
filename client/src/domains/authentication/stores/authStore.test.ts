@@ -5,10 +5,14 @@
  * Tests all authentication flows, session management, and error scenarios.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+import { SessionStatus } from '../../../shared/session/types';
+
 import { useAuthStore } from './authStore';
-import { TokenPair, SessionStatus } from '../../../shared/session/types';
+
+import type { TokenPair} from '../../../shared/session/types';
 
 // Mock SessionManager
 const mockSessionManager = {

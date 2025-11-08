@@ -1,8 +1,10 @@
 import React, { useMemo, useRef, useState, createRef, useCallback } from 'react';
+
 import { StorageNavigatorItem } from './StorageNavigatorItem';
 import { TreeLineOverlay } from './TreeLineOverlay';
 import { useStorageNavigation } from './useStorageNavigation';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
+
 import type { StorageNavigatorProps, VisibleTreeNode } from './storageNavigatorTypes';
 
 export const StorageNavigator: React.FC<StorageNavigatorProps> = ({

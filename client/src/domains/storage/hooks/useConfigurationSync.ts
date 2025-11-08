@@ -8,10 +8,14 @@
  * Handles multi-tab synchronization via storage events.
  */
 import { useEffect, useRef } from 'react';
-import { useLoadStorageQuery, useSaveStorageMutation } from './useStorageQuery';
-import { useStorageStore } from '../stores/storageStore';
+
 import { useQueryClient } from '@tanstack/react-query';
+
 import { queryKeys } from '@app/queryKeys';
+
+import { useStorageStore } from '../stores/storageStore';
+
+import { useLoadStorageQuery, useSaveStorageMutation } from './useStorageQuery';
 
 export function useConfigurationSync() {
   const { data, isSuccess, isError } = useLoadStorageQuery();

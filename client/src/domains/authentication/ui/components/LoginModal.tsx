@@ -1,12 +1,17 @@
 import { useState, useRef } from 'react';
+
 import { KeyRound, UserRound, Mail, Eye, EyeOff } from 'lucide-react';
-import { useAuthStore } from '../../stores/authStore';
-import { useTubeStore } from '@domains/tubes';
-import { authService } from '../../services/AuthenticationService';
-// React Query will automatically fetch researchers when components mount
-import { notifications } from '@shared/utils';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
+import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { notifications } from '@shared/utils';
+
+import { authService } from '../../services/AuthenticationService';
+
+// React Query will automatically fetch researchers when components mount
+
+import { useAuthStore } from '../../stores/authStore';
 
 interface LoginModalProps {
   onSwitchToRegister?: () => void;

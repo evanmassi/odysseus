@@ -1,17 +1,20 @@
 import { useMemo, useState } from 'react';
+
+import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
 import {
   Users, Calendar, X,
   ChevronDown, ChevronRight,
   Microscope, Barcode, UserCircle, Fingerprint, FlaskConical, MapPin
 } from 'lucide-react';
-import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
-import { useSearchStore } from '@domains/search';
+
 import { useActiveResearchersQuery } from '@domains/researchers';
-import { useTubes } from '@domains/tubes/hooks';
+import { useSearchStore } from '@domains/search';
 import { useStorageStore } from '@domains/storage';
+import { useTubes } from '@domains/tubes/hooks';
+import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { normalizeDateString } from '@shared/utils/dateUtils';
+
 import type { TubeData, Researcher } from '@odysseus/shared-schemas';
-import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
 
 interface FilterChipProps {
   label: string;

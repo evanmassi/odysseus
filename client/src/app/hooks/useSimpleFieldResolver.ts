@@ -6,9 +6,11 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import type { TubeData } from '@shared/types/tubeTypes';
-import type { Researcher } from '@odysseus/shared-schemas';
+
 import { areDatesEqual, normalizeDateString } from '@shared/utils/dateUtils';
+
+import type { Researcher } from '@odysseus/shared-schemas';
+import type { TubeData } from '@shared/types/tubeTypes';
 
 /**
  * Two-state conflict analysis result
@@ -152,7 +154,7 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
     const isDateField = fieldPath === 'sample.date' || fieldPath.endsWith('.date');
 
     let normalizedValues: (T | undefined)[];
-    let distribution = new Map<T | undefined, number>();
+    const distribution = new Map<T | undefined, number>();
 
     if (isDateField) {
       // Normalize all dates to YYYY-MM-DD strings for comparison

@@ -14,21 +14,25 @@
  */
 
 import { useCallback, useMemo, useRef } from 'react';
+
+import { 
+  TubeFieldAccessService 
+} from '@domains/tubes/services/TubeFieldAccessService';
 import { env } from '@shared/config';
-import {
+import { DomainError } from '@shared/domain/errors/DomainError';
+
+
+import { 
+  getFieldResolverApplicationService 
+} from '../services/FieldResolverService';
+
+import type {
   FieldResolver,
   FieldResolutionOptions,
   FieldResolutionResult
 } from '@domains/tubes/types/FieldResolver';
-import { 
-  TubeFieldAccessService 
-} from '@domains/tubes/services/TubeFieldAccessService';
-import { 
-  getFieldResolverApplicationService 
-} from '../services/FieldResolverService';
-import { TubeData } from '@shared/types/tubeTypes';
-import { ValidTubeFieldKey } from '@infra/configuration/fieldPathMapping';
-import { DomainError } from '@shared/domain/errors/DomainError';
+import type { ValidTubeFieldKey } from '@infra/configuration/fieldPathMapping';
+import type { TubeData } from '@shared/types/tubeTypes';
 
 /**
  * Hook configuration options

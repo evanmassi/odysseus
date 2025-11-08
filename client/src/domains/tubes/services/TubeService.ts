@@ -5,7 +5,6 @@
  * API operations using our new React Query + Zod architecture.
  */
 
-import { httpClient } from '@infra/api/httpClient';
 import {
   type TubeData,
   type CreateTubeRequest,
@@ -15,6 +14,8 @@ import {
   createTubeRequestSchema,
   updateTubeRequestSchema,
 } from '@odysseus/shared-schemas';
+
+import { httpClient } from '@infra/api/httpClient';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
 /**

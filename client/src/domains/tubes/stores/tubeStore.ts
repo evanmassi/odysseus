@@ -1,5 +1,6 @@
-import { create } from 'zustand';
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
+import { create } from 'zustand';
+
 import { type PositionKey } from '@shared/types/grid';
 
 /**

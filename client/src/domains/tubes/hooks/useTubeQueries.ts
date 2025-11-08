@@ -16,9 +16,11 @@ import {
   type UseQueryOptions,
   type UseInfiniteQueryOptions
 } from '@tanstack/react-query';
+
 import { queryKeys } from '@app/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
-import { TubeData } from '@domains/tubes/types';
+
+import type { TubeData } from '@domains/tubes/types';
 
 // QUERY HOOKS (READ OPERATIONS)
 

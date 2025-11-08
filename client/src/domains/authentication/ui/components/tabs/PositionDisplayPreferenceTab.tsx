@@ -9,6 +9,7 @@
  * Full configs with grid-specific details are generated when applied to boxes.
  */
 import { Table2 } from 'lucide-react';
+
 import type { PositionDisplayPreference } from '@odysseus/shared-schemas';
 
 interface PositionDisplayPreferenceTabProps {

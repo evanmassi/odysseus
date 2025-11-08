@@ -6,10 +6,14 @@
  * network failures, conflicts, and edge cases gracefully.
  */
 
-import { QueryClient, useMutation, UseMutationOptions } from '@tanstack/react-query';
-import { queryKeys } from '../socket/queryBridge';
-import { z } from 'zod';
+import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { z } from 'zod';
+
+import { queryKeys } from '../socket/queryBridge';
+
+
+import type { QueryClient, UseMutationOptions } from '@tanstack/react-query';
 
 /**
  * Optimistic update context for rollback

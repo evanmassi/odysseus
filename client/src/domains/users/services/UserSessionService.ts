@@ -4,8 +4,9 @@
  * Handles listing and revoking user sessions.
  */
 
-import { httpClient } from '@infra/api/httpClient';
 import { z } from 'zod';
+
+import { httpClient } from '@infra/api/httpClient';
 
 /**
  * Active session data returned from GET /api/users/me/sessions

@@ -12,7 +12,7 @@
  * - Enables dependency inversion for testing and flexibility
  */
 
-import { TubeData } from '@shared/types/tubeTypes';
+import type { TubeData } from '@shared/types/tubeTypes';
 
 /**
  * Field path mapping configuration type

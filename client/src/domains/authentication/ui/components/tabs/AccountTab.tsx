@@ -5,10 +5,13 @@
  * Uses label-in-border styling matching RegisterModal.
  */
 import { useState, useEffect, useMemo } from 'react';
+
 import { UserRound, Mail, Building2, BriefcaseBusiness, KeyRound, Save, RefreshCw } from 'lucide-react';
+
 import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
-import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
 import { notifications } from '@shared/utils';
+
+import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
 
 interface AccountTabProps {
   onSaveComplete?: () => void;

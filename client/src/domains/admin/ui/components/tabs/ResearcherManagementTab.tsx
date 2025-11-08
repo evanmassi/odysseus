@@ -12,12 +12,18 @@
  */
 
 import { useState, useEffect } from 'react';
+
 import { RefreshCw, AlertCircle, Trash2, Plus } from 'lucide-react';
-import { adminService } from '../../../services/AdminService';
-import { notifications } from '@shared/utils';
-import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
-import { ResearcherModal } from '../ResearcherModal';
+
 import { ResearcherIcon } from '@shared/ui/components/icons';
+import { notifications } from '@shared/utils';
+
+import { adminService } from '../../../services/AdminService';
+import { ResearcherModal } from '../ResearcherModal';
+
+import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
+
+
 
 /**
  * ResearcherManagementTab Props Interface

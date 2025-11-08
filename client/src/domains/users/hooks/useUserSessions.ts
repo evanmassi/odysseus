@@ -5,8 +5,10 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { UserSessionService, type ActiveSession } from '../services/UserSessionService';
+
 import { queryKeys } from '@app/queryKeys';
+
+import { UserSessionService, type ActiveSession } from '../services/UserSessionService';
 
 /**
  * Fetch all active sessions for current user

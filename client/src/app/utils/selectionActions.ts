@@ -1,5 +1,6 @@
 // Pure selection action functions - easy to test and reason about
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+
 import { type PositionKey } from '@shared/types/grid';
 
 export interface SelectionActions {

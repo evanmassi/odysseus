@@ -1,4 +1,5 @@
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+
 import { useSearchStore, type SortField } from '@domains/search';
 
 interface SortOption {

@@ -5,11 +5,17 @@
  * Catches React errors and provides recovery options.
  */
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import type { ErrorInfo, ReactNode } from 'react';
+import React, { Component } from 'react';
+
 import { AlertTriangle, RefreshCw, Home, Bug, ExternalLink } from 'lucide-react';
-import { UseAppBootstrapResult } from '../../bootstrap/types';
-import { AppInitializationError } from '@shared/errors/AppError';
+
 import { env } from '@shared/config/environment';
+
+import { UseAppBootstrapResult } from '../../bootstrap/types';
+
+import type { AppInitializationError } from '@shared/errors/AppError';
+
 
 interface AppErrorBoundaryProps {
   children: ReactNode;

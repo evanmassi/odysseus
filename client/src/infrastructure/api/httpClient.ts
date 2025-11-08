@@ -1,8 +1,6 @@
 /**
  * HTTP Client for API communication
  */
-import { z } from 'zod';
-import { transformApiResponse, ResponseTransformers } from './responseTransformers';
 import {
   successEnvelopeSchema,
   errorEnvelopeSchema,
@@ -12,6 +10,10 @@ import {
   type PaginatedResult,
   type BatchResult
 } from '@odysseus/shared-schemas';
+import { z } from 'zod';
+
+import { transformApiResponse, ResponseTransformers } from './responseTransformers';
+
 import type { TokenProvider } from '@shared/session/types';
 
 export interface HttpClientConfig {

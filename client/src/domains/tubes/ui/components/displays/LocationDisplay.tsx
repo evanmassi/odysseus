@@ -8,11 +8,13 @@
  */
 
 import { useMemo } from 'react';
+
+import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+import { MapPin } from 'lucide-react';
+
+import { useUserSettings } from '@domains/authentication/hooks/useUserSettings';
 import { useStorageStore } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
-import { useUserSettings } from '@domains/authentication/hooks/useUserSettings';
-import { MapPin } from 'lucide-react';
-import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 
 export interface LocationDisplayProps {
   tankId: string;

@@ -6,23 +6,29 @@
  */
 
 import React, { createContext, useContext, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+
 import { cva, type VariantProps } from 'class-variance-authority';
-import { 
-  ModalProps, 
-  ModalHeaderProps, 
-  ModalBodyProps, 
-  ModalFooterProps,
-  ModalRef,
-  ModalContextValue,
+import { createPortal } from 'react-dom';
+
+import { useModalFocusTrap } from '../../../hooks/keyboard';
+import { odysseusTheme } from '../../designSystem/tokens';
+
+import {
   defaultModalProps,
   defaultModalHeaderProps,
   defaultModalBodyProps,
   defaultModalFooterProps
 } from './types';
 import { useModal } from './useModal';
-import { useModalFocusTrap } from '../../../hooks/keyboard';
-import { odysseusTheme } from '../../designSystem/tokens';
+
+
+import type { 
+  ModalProps, 
+  ModalHeaderProps, 
+  ModalBodyProps, 
+  ModalFooterProps,
+  ModalRef,
+  ModalContextValue} from './types';
 
 // Modal context for sharing state between components
 const ModalContext = createContext<ModalContextValue | null>(null);

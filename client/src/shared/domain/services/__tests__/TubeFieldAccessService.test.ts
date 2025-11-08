@@ -6,9 +6,12 @@
  */
 
 import { TubeFieldAccessService } from '@domains/tubes/services/TubeFieldAccessService';
-import { FieldPathMapping } from '@domains/tubes/types/FieldResolver';
-import { TubeData } from '@shared/types/tubeTypes';
+
 import { DomainError, FieldResolutionError, FieldPathError } from '../../errors/DomainError';
+
+import type { FieldPathMapping } from '@domains/tubes/types/FieldResolver';
+import type { TubeData } from '@shared/types/tubeTypes';
+
 
 // Test data fixtures
 const mockTubeData: TubeData = {

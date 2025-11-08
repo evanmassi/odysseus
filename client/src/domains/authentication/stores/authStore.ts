@@ -11,18 +11,22 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { env } from '@shared/config';
-import { authService } from '../services/AuthenticationService';
+
 import { SessionManager, LocalStorageSessionStorage } from '@app/services/SessionManager';
-import { httpClient, configureHttpClientWithSessionManager } from '@infra/api/httpClient';
 import { authHttpClient } from '@infra/api/AuthHttpClient';
+import { httpClient, configureHttpClientWithSessionManager } from '@infra/api/httpClient';
+import { env } from '@shared/config';
 import {
-  TokenPair,
-  SessionStatus,
   LoginResponse,
   SessionError
 } from '@shared/session/types';
+
+import { authService } from '../services/AuthenticationService';
+
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
+import type {
+  TokenPair,
+  SessionStatus} from '@shared/session/types';
 
 // User interface (unchanged for compatibility)
 export interface User {

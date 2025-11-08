@@ -2,9 +2,12 @@
  * React Query Client Configuration - Optimized for Socket-Driven Real-time Updates
  * Phase 3 Step 2: Tuned for performance with centralized socket integration
  */
-import { QueryClient, DefaultOptions, QueryCache, MutationCache } from '@tanstack/react-query';
+import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+
 import { env } from '@shared/config';
+
+import type { DefaultOptions} from '@tanstack/react-query';
 
 /**
  * Cache timing constants optimized for socket-driven updates

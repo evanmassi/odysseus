@@ -5,7 +5,9 @@
  * Provides runtime validation with TypeScript integration.
  */
 
-import { z, ZodError, ZodSchema } from 'zod';
+import { z, ZodError } from 'zod';
+
+import type { ZodSchema } from 'zod';
 
 /**
  * Modern validation result interface

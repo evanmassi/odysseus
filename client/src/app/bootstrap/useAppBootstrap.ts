@@ -6,7 +6,11 @@
  */
 
 import { useState, useEffect } from 'react';
+
 import { useQueryClient } from '@tanstack/react-query';
+
+import { appBootstrapService } from './AppBootstrapService';
+
 import type { 
   AppBootstrapState,
   BootstrapStep,
@@ -14,7 +18,6 @@ import type {
   BootstrapInitializationResult,
   BootstrapError
 } from './types';
-import { appBootstrapService } from './AppBootstrapService';
 
 // UseAppBootstrapResult is now defined in types.ts for centralized type management
 

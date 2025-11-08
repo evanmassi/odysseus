@@ -1,18 +1,21 @@
-import { z } from 'zod';
-import { httpClient } from '@infra/api/httpClient';
 import {
-  ConfigurationResponse,
   SaveConfigurationRequest,
+  ConfigurationResponseSchema,
+  SaveConfigurationRequestSchema,
+  DeleteTankResponseSchema
+} from '@odysseus/shared-schemas';
+import { z } from 'zod';
+
+import { httpClient } from '@infra/api/httpClient';
+import { InfrastructureError } from '@shared/errors/AppError';
+
+import type {
+  ConfigurationResponse,
   DeleteTankResponse,
   SystemConfiguration,
   LabConfiguration,
-  ConfigurationResponseSchema,
-  SaveConfigurationRequestSchema,
-  DeleteTankResponseSchema,
   PositionDisplayConfig,
-  POSITION_DISPLAY_PRESETS,
-} from '@odysseus/shared-schemas';
-import { InfrastructureError } from '@shared/errors/AppError';
+  POSITION_DISPLAY_PRESETS} from '@odysseus/shared-schemas';
 
 /**
  * Modern Storage Service with Zod validation and proper error handling

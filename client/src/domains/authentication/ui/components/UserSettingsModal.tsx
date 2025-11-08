@@ -5,12 +5,17 @@
  * Extensible tab-based interface for future settings categories.
  */
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+
 import { X, Save, RefreshCw, Cog, Table2, UserRound, Shield, AlertTriangle } from 'lucide-react';
-import { notifications } from '@shared/utils';
-import { useUserSettings, useUserSettingsActions } from '../../hooks/useUserSettings';
-import type { UserSettings, PositionDisplayPreference } from '@odysseus/shared-schemas';
+
 import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
+import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { notifications } from '@shared/utils';
+
+import { useUserSettings, useUserSettingsActions } from '../../hooks/useUserSettings';
+
+import type { UserSettings, PositionDisplayPreference } from '@odysseus/shared-schemas';
+
 
 // Lazy-load tab components for code splitting
 const PositionDisplayPreferenceTab = lazy(() =>

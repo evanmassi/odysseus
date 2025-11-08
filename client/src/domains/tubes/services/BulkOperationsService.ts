@@ -5,7 +5,8 @@
  */
 
 import { httpClient } from '@infra/api/httpClient';
-import { 
+
+import type { 
   BulkUpdateItem, 
   BulkUpdateProgress, 
   BulkUpdateError,

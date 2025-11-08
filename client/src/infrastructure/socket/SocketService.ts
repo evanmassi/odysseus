@@ -6,9 +6,12 @@
  * Integrates with the Socket → Query Cache Bridge for real-time updates.
  */
 
-import { io, Socket } from 'socket.io-client';
-import { QueryClient } from '@tanstack/react-query';
+import { io } from 'socket.io-client';
+
 import { getSocketBridge, cleanupSocketBridge } from './queryBridge';
+
+import type { QueryClient } from '@tanstack/react-query';
+import type { Socket } from 'socket.io-client';
 
 /**
  * Socket connection configuration

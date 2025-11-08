@@ -5,8 +5,9 @@
  * Tests all token refresh scenarios, error handling, and edge cases.
  */
 
-import { SessionManager } from '@app/services/SessionManager';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+import { SessionManager } from '@app/services/SessionManager';
 
 import { SessionStatus } from './types';
 

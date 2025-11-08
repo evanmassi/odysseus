@@ -5,7 +5,8 @@
  * Includes modal, modal header, modal footer, and modal body
  */
 
-import { ComponentProps, ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { ComponentProps } from 'react';
 
 // Modal size types
 export type ModalSize = 

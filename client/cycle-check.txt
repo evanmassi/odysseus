@@ -1,0 +1,8 @@
+  6:1  error  Dependency cycle via @domains/tubes:16=>./ui/components/grid/TubeInfoPanel:10  import/no-cycle
+   16:1   error  Dependency cycle via ./ui/components/grid/TubeInfoPanel:10=>@app/hooks:7                                                                                                    import/no-cycle
+  10:1  error  Dependency cycle via ./ui/components/grid/TubeInfoPanel:10=>@app/hooks:7  import/no-cycle
+  6:1  error  Dependency cycle via ./LoginModal:13=>@domains/tubes:5=>./ui/components/grid/TubeInfoPanel:10  import/no-cycle
+  13:1   error    Dependency cycle via @domains/tubes:5=>./ui/components/grid/TubeInfoPanel:10=>@domains/authentication:8                    import/no-cycle
+    5:1   error  Dependency cycle via ./ui/components/grid/TubeInfoPanel:10=>@domains/authentication:8=>./ui/components/AuthGateway:6  import/no-cycle
+  10:1   error  Dependency cycle detected                      import/no-cycle
+    7:1   error  Dependency cycle via ./useFieldResolverQuery:6=>@domains/tubes:16                                          import/no-cycle

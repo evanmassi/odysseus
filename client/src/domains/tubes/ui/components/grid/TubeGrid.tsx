@@ -1,12 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { env } from '@shared/config';
-import { useTubeStore } from '@domains/tubes';
-import { useTubesByLocation } from '@domains/tubes/hooks';
-import { useAuthStore } from '@domains/authentication';
-import { useStorageStore, useCurrentTanks } from '@domains/storage';
-import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey, parsePositionKey, type PositionKey } from '@shared/types/grid';
-import { getGridTotalPositions } from '@domains/storage';
+
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 
 import {
@@ -15,11 +8,20 @@ import {
   useGridKeyboardNavigation,
   useGridFontSizing
 } from '@app/hooks/grid';
+import { useAuthStore } from '@domains/authentication';
+import { useStorageStore, useCurrentTanks , getGridTotalPositions } from '@domains/storage';
+import { useTubeStore } from '@domains/tubes';
+import { useTubesByLocation } from '@domains/tubes/hooks';
+import { env } from '@shared/config';
+import { useGridUiStore } from '@shared/stores/gridUiStore';
+import { toPositionKey, parsePositionKey, type PositionKey   , GridControllerReturn } from '@shared/types/grid';
+
+
 import { ContextMenu } from '../../../../../shared/ui/primitives/shared/ContextMenu';
+
 import { GridPosition } from './GridPosition';
 import '@shared/styles/legacy/colorIndicators.css';
 
-import type { GridControllerReturn } from '@shared/types/grid';
 import type { TubeData } from '@domains/tubes/types';
 
 /**

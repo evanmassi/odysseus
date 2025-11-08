@@ -6,11 +6,13 @@
  */
 
 import { useState, useMemo } from 'react';
+
+import { formatDistanceToNow, format } from 'date-fns';
 import { Monitor, TabletSmartphone, MonitorCheck, LogOut, RefreshCw } from 'lucide-react';
+import { UAParser } from 'ua-parser-js';
+
 import { useUserSessions, type ActiveSession } from '@domains/users';
 import { notifications } from '@shared/utils';
-import { UAParser } from 'ua-parser-js';
-import { formatDistanceToNow, format } from 'date-fns';
 
 export function SessionListSection() {
   const {

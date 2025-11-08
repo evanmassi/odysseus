@@ -1,8 +1,11 @@
+import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { create } from 'zustand';
-import { SearchFilters, NAMING_PATTERNS } from '@odysseus/shared-schemas';
-import { TubeData } from '@domains/tubes/types';
+
 import { useTubeStore } from '@domains/tubes';
 import { toPositionKey } from '@shared/types/grid';
+
+import type { TubeData } from '@domains/tubes/types';
+import type { SearchFilters} from '@odysseus/shared-schemas';
 
 /**
  * UI-Only Search Store

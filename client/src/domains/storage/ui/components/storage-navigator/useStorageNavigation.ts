@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo } from 'react';
+
 import type { StorageHierarchy, SelectedLocation } from './storageNavigatorTypes';
 
 export const useStorageNavigation = (

@@ -16,15 +16,19 @@
  * * = Required field (only Cell Type)
  */
 
-import { Control, UseFormRegister, FieldErrors, UseFormTrigger, Controller } from 'react-hook-form';
 import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type Researcher,
   formatResearcherDropdownDisplay
 } from '@odysseus/shared-schemas';
+import { Controller } from 'react-hook-form';
+
 import { ValidatedInput } from '@shared/ui';
+
 import { ConcentrationInput } from '../../inputs/ConcentrationInput';
+
+import type { Control, UseFormRegister, FieldErrors, UseFormTrigger} from 'react-hook-form';
 
 /**
  * Form values union - supports both create and edit modes
@@ -54,7 +58,7 @@ export const TubeForm = ({
     let currentError = errors as any;
 
     for (const part of pathParts) {
-      if (currentError && currentError[part]) {
+      if (currentError?.[part]) {
         currentError = currentError[part];
       } else {
         return undefined;

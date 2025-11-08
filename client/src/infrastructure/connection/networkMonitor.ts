@@ -6,9 +6,11 @@
  * Integrates with React Query to handle offline scenarios gracefully.
  */
 
-import { QueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
+
 import toast from 'react-hot-toast';
+
+import type { QueryClient } from '@tanstack/react-query';
 
 /**
  * Network status and quality metrics

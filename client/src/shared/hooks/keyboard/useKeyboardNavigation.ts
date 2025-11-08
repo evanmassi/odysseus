@@ -6,6 +6,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { type PositionKey } from '@shared/types/grid';
 
 // Grid position interface
@@ -279,7 +280,7 @@ export const useKeyboardNavigation = (config: KeyboardNavigationConfig) => {
         
       default:
         // Handle custom key bindings
-        if (finalConfig.customKeys && finalConfig.customKeys[event.key]) {
+        if (finalConfig.customKeys?.[event.key]) {
           event.preventDefault();
           finalConfig.customKeys[event.key](focusedPosition, event);
         }

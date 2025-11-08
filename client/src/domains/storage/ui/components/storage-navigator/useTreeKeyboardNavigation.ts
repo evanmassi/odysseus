@@ -1,4 +1,5 @@
 import { useCallback, useState, useRef } from 'react';
+
 import type { VisibleTreeNode } from './storageNavigatorTypes';
 
 interface UseTreeKeyboardNavigationProps {

@@ -5,7 +5,7 @@
  * Industry-standard validation with TypeScript integration
  */
 
-import { TubeValidationErrors } from '../types/validationTypes';
+import type { TubeValidationErrors } from '../types/validationTypes';
 
 // TODO: Re-enable once @domains path alias is fixed
 // Re-export everything from modern validation - NO LEGACY LAYER

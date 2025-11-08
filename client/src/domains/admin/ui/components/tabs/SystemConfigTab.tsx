@@ -12,6 +12,7 @@
  */
 
 import { RefreshCw, Gauge } from 'lucide-react';
+
 import type { SecurityConfig, SystemMetrics, SyncStatus } from '@odysseus/shared-schemas';
 
 /**

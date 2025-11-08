@@ -11,14 +11,16 @@
  */
 
 import { useState, useRef, useMemo, useCallback } from 'react';
+
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
-import { useTubeStore } from '@domains/tubes';
-import { useStorageStore } from '@domains/storage';
-import { useListKeyboardNavigation } from '@shared/hooks/keyboard';
+
 import { gridNavigationService } from '@domains/grid';
+import { useStorageStore , getGridDisplayName } from '@domains/storage';
+import { useTubeStore } from '@domains/tubes';
+import { useListKeyboardNavigation } from '@shared/hooks/keyboard';
+import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
+
 import { AnimatedTreeLineOverlay } from './AnimatedTreeLineOverlay';
-import { getGridDisplayName } from '@domains/storage';
 
 export function StorageNavigator() {
   const { currentTank, currentRack, currentBox } = useTubeStore();

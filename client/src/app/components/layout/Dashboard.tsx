@@ -1,34 +1,41 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { useTubeStore } from '@domains/tubes';
-import { useAuthStore } from '@domains/authentication';
-import { useSearchStore } from '@domains/search';
-import { useBulkDeleteTubesMutation, usePasteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';
-import { useTubesByLocation } from '@domains/tubes/hooks';
-import type { TubeData } from '@domains/tubes/types';
-import { parsePositionKey, type PositionKey } from '@shared/types/grid';
-import { notifications } from '@shared/utils/notifications';
 
-import { useStorageStore } from '@domains/storage';
-import type { TankConfiguration } from '@odysseus/shared-schemas';
-import { StorageNavigator, type StorageHierarchy, type SelectedLocation } from '@domains/storage/ui/components/storage-navigator';
+import { useAuthStore } from '@domains/authentication';
+
+import type { TubeData } from '@domains/tubes/types';
+
 import { gridNavigationService } from '@domains/grid';
+import { useSearchStore } from '@domains/search';
+import { useStorageStore } from '@domains/storage';
 import { useConfigurationSync } from '@domains/storage/hooks/useConfigurationSync';
+import { StorageNavigator, type StorageHierarchy, type SelectedLocation } from '@domains/storage/ui/components/storage-navigator';
+import { useTubeStore , TubeInfoPanel } from '@domains/tubes';
+import { useTubesByLocation } from '@domains/tubes/hooks';
+import { useBulkDeleteTubesMutation, usePasteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';
 
 import { useGridController, useGridPosition } from '../../hooks/grid';
+
+
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
-import { TubeInfoPanel } from '@domains/tubes';
 import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
 import { OverwriteConfirmDialog } from '@domains/tubes/ui/components/modals/OverwriteConfirmDialog';
+
 import { useModalStore } from '../../stores/modalStore';
+
 import { AppHeader } from './AppHeader';
+
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
 import '@shared/styles/legacy/layout.css';
 
 // Eager loading - modals included in main bundle
-import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
 import { BatchTubeEditorModal } from '@domains/tubes/ui/components/modals/BatchTubeEditorModal';
+import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
+import { parsePositionKey, type PositionKey } from '@shared/types/grid';
+import { notifications } from '@shared/utils/notifications';
+
+import type { TankConfiguration } from '@odysseus/shared-schemas';
 
 // Lazy loading (commented out - uncomment to re-enable code splitting)
 // const TubeEditorModal = lazy(() =>

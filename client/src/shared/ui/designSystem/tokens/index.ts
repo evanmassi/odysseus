@@ -7,8 +7,9 @@
  */
 
 // Import all tokens from individual files
+import { borders, borderWidths, borderStyles, borderRadius, semanticBorders, componentBorders, responsiveBorders, effectBorders } from './borders';
 import { colors, baseColors, semanticColors, surfaceColors, borderColors, textColors, interactiveColors } from './colors';
-import { typography, fontFamilies, fontWeights, fontSizes, lineHeights, letterSpacing, typeScale } from './typography';
+import { shadows, baseShadows, coloredShadows, interactiveShadows, componentShadows, layoutShadows, utilityShadows, darkShadows } from './shadows';
 import { 
   spacingSystem, 
   spacing as baseSpacing, 
@@ -18,8 +19,7 @@ import {
   responsiveSpacing, 
   safeAreaSpacing 
 } from './spacing';
-import { borders, borderWidths, borderStyles, borderRadius, semanticBorders, componentBorders, responsiveBorders, effectBorders } from './borders';
-import { shadows, baseShadows, coloredShadows, interactiveShadows, componentShadows, layoutShadows, utilityShadows, darkShadows } from './shadows';
+import { typography, fontFamilies, fontWeights, fontSizes, lineHeights, letterSpacing, typeScale } from './typography';
 
 // Re-export individual token exports
 export { colors, baseColors, semanticColors, surfaceColors, borderColors, textColors, interactiveColors };

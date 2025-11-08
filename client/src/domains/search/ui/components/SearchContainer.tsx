@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
+
 import { Search, SlidersHorizontal, X } from 'lucide-react';
+
 import { useSearch } from '@domains/search';
+
 import { FilterPanel } from './FilterPanel';
 import { SearchResults } from './SearchResults';
 

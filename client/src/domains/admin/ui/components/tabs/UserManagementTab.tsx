@@ -13,12 +13,17 @@
  */
 
 import { useState, useEffect } from 'react';
+
 import { RefreshCw, UserRound, CheckCircle, XCircle, Clock, UserRoundCheck, Unlink2, Trash2, Link2, UsersRound, KeyRound } from 'lucide-react';
-import { adminService } from '../../../services/AdminService';
+
 import { notifications } from '@shared/utils';
-import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
-import { ResearcherModal } from '../ResearcherModal';
+
+import { adminService } from '../../../services/AdminService';
 import { PasswordResetModal } from '../PasswordResetModal';
+import { ResearcherModal } from '../ResearcherModal';
+
+import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
+
 
 /**
  * UserManagementTab Props Interface

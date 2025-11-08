@@ -1,8 +1,10 @@
 import { useEffect } from 'react';
+
 import { X, AlertTriangle } from 'lucide-react';
-import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
-import { useModalFocusTrap } from '@shared/hooks/keyboard';
+
 import { useModalStore } from '@app/stores/modalStore';
+import { useModalFocusTrap } from '@shared/hooks/keyboard';
+import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;

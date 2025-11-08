@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { WifiOff, RotateCw } from 'lucide-react';
 
 interface ConnectionStatusProps {

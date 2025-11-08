@@ -5,15 +5,20 @@
  * Requires current password verification for security.
  */
 import { useState, useEffect, useMemo } from 'react';
-import { KeyRound, Save, RefreshCw, Eye, EyeOff, Shield, MonitorSmartphone } from 'lucide-react';
-import { useChangePassword } from '@domains/users/hooks/useChangePassword';
-import { authService } from '@domains/authentication/services/AuthenticationService';
-import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthenticationService';
-import { PasswordRequirements } from '../PasswordRequirements';
+
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import { notifications } from '@shared/utils';
+import { KeyRound, Save, RefreshCw, Eye, EyeOff, Shield, MonitorSmartphone } from 'lucide-react';
+
+import { authService } from '@domains/authentication/services/AuthenticationService';
+import { useChangePassword } from '@domains/users/hooks/useChangePassword';
 import { AnimatedCheckmark } from '@shared/components';
+import { notifications } from '@shared/utils';
+
+import { PasswordRequirements } from '../PasswordRequirements';
+
 import { SessionListSection } from './SessionListSection';
+
+import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthenticationService';
 
 interface SecurityTabProps {
   onSaveComplete?: () => void;

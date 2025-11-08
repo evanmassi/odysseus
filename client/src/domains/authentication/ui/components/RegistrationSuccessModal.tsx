@@ -8,7 +8,9 @@
  */
 
 import React, { useState } from 'react';
+
 import { CheckCircle, Copy, Check, Mail, Clock } from 'lucide-react';
+
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 
 export interface RegistrationSuccessModalProps {

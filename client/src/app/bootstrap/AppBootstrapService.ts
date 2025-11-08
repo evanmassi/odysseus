@@ -1,14 +1,17 @@
 /**
  * Application bootstrap service
  */
-import type { AppBootstrapState, BootstrapStep } from './types';
-import { BOOTSTRAP_STEPS } from './constants';
-import { QueryClient } from '@tanstack/react-query';
-import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
+
+import { authService } from '@domains/authentication/services/AuthenticationService';
 import { initializeCacheWarming } from '@infra/cache/CacheWarmingService';
 import { initializeNetworkMonitor, cleanupNetworkMonitor } from '@infra/connection/networkMonitor';
 import { initializeOptimisticUpdates } from '@infra/optimistic/optimisticUpdates';
-import { authService } from '@domains/authentication/services/AuthenticationService';
+import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
+
+import { BOOTSTRAP_STEPS } from './constants';
+
+import type { AppBootstrapState, BootstrapStep } from './types';
+import type { QueryClient } from '@tanstack/react-query';
 
 export class AppBootstrapService {
   private state: AppBootstrapState = {

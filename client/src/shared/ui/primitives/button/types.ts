@@ -5,7 +5,7 @@
  * Includes all variants, sizes, and interactive states
  */
 
-import { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 
 // Button variant types
 export type ButtonVariant = 

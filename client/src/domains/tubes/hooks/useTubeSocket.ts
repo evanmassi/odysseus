@@ -10,11 +10,18 @@
  */
 
 import { useEffect, useCallback } from 'react';
+
 import { useQueryClient } from '@tanstack/react-query';
-import { io, Socket } from 'socket.io-client';
-import { queryKeys } from '@app/queryKeys';
-import { TubeData } from '@domains/tubes/types';
 import toast from 'react-hot-toast';
+import { io } from 'socket.io-client';
+
+import { queryKeys } from '@app/queryKeys';
+
+import type { TubeData } from '@domains/tubes/types';
+import type { Socket } from 'socket.io-client';
+
+
+
 
 /**
  * Socket connection manager hook
@@ -197,7 +204,7 @@ export const useTubeSocket = () => {
         (oldData: TubeData[] | undefined) => {
           if (!oldData) return undefined;
           
-          let updatedData = [...oldData];
+          const updatedData = [...oldData];
           
           tubes.forEach(updatedTube => {
             const index = updatedData.findIndex(tube => tube.id === updatedTube.id);

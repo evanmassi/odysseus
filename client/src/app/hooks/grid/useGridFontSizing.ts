@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, type RefObject } from 'react';
+
 import type { GridConfiguration } from '@odysseus/shared-schemas';
 
 /**

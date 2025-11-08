@@ -6,13 +6,16 @@
  */
 
 import React from 'react';
-import { FieldConfig } from '../../../config/fieldConfig';
-import { formatDateForDisplay } from '@shared/utils/dateFormatter';
+
 import {
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
   type Researcher
 } from '@odysseus/shared-schemas';
+
+import { formatDateForDisplay } from '@shared/utils/dateFormatter';
+
+import type { FieldConfig } from '../../../config/fieldConfig';
 
 interface FieldDisplayProps {
   config: FieldConfig;

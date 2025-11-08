@@ -9,12 +9,17 @@
  */
 
 import { useMemo } from 'react';
-import { useSimpleFieldResolver, type SimpleFieldResolver } from './useSimpleFieldResolver';
-import { useTubesQuery } from '@domains/tubes';
-import { useActiveResearchersQuery } from '@domains/researchers';
-import type { TubeData } from '@shared/types/tubeTypes';
-import type { Researcher } from '@odysseus/shared-schemas';
+
 import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
+
+import { useActiveResearchersQuery } from '@domains/researchers';
+import { useTubesQuery } from '@domains/tubes/hooks/useTubesQuery';
+
+import { useSimpleFieldResolver, type SimpleFieldResolver } from './useSimpleFieldResolver';
+
+import type { Researcher } from '@odysseus/shared-schemas';
+import type { TubeData } from '@shared/types/tubeTypes';
+
 
 /**
  * Enhanced data access interface combining React Query with field resolution

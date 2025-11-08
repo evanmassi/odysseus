@@ -1,7 +1,9 @@
-import { useStorageStore } from '@domains/storage';
-import { queryKeys } from '@app/queryKeys';
-import { useQueryClient } from '@tanstack/react-query';
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
+
+import { queryKeys } from '@app/queryKeys';
+import { useStorageStore } from '@domains/storage';
+
+import type { useQueryClient } from '@tanstack/react-query';
 
 /**
  * Data Consistency Service

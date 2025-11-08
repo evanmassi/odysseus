@@ -6,16 +6,18 @@
  */
 
 import React from 'react';
-import { Select, type SelectOption } from '@shared/ui/primitives/select/Select';
+
 import {
   usePositionDisplayPresetsQuery,
   useUpdateBoxPositionDisplayMutation,
 } from '@domains/storage/hooks/useBoxPositionDisplay';
+import { useStorageStore } from '@domains/storage/stores/storageStore';
 import {
   getPositionDisplayForBox,
   hasCustomPositionDisplay,
 } from '@domains/storage/utils/positionDisplayUtils';
-import { useStorageStore } from '@domains/storage/stores/storageStore';
+import { Select, type SelectOption } from '@shared/ui/primitives/select/Select';
+
 import type { GridConfiguration } from '@odysseus/shared-schemas';
 
 export interface PositionDisplaySelectorProps {

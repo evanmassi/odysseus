@@ -12,6 +12,7 @@
  */
 
 import { Shield } from 'lucide-react';
+
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
 /**

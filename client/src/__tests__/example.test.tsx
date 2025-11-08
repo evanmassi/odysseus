@@ -5,9 +5,8 @@
  * is working correctly. Remove this file once real tests are added.
  */
 
+import { screen , render } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import { screen } from '@testing-library/react';
-import { render } from '@testing-library/react';
 
 // Simple component for testing
 function TestComponent() {

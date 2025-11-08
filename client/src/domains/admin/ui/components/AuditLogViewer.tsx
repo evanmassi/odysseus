@@ -6,13 +6,18 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight, X, Archive, TestTube, UserRound, Icon, Rows3, Box } from 'lucide-react';
+
 import { refrigeratorFreezer } from '@lucide/lab';
-import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
+import { RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight, X, Archive, TestTube, UserRound, Icon, Rows3, Box } from 'lucide-react';
+
+
 import { adminService } from '@domains/admin/services/AdminService';
-import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
 import { ResearcherIcon } from '@shared/ui/components/icons';
+
+import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
+
+import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 interface AuditLogViewerProps {
   /** Optional initial filters */

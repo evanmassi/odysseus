@@ -14,9 +14,11 @@
  */
 
 import { RefreshCw, Activity } from 'lucide-react';
-import type { SystemMetrics } from '@odysseus/shared-schemas';
+
 import { AuditLogViewer } from '../AuditLogViewer';
 import { AuditRetentionSettings } from '../AuditRetentionSettings';
+
+import type { SystemMetrics } from '@odysseus/shared-schemas';
 
 /**
  * MonitoringTab Props Interface

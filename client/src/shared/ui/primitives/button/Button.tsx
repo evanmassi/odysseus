@@ -6,9 +6,15 @@
  */
 
 import React, { forwardRef } from 'react';
+
 import { cva, type VariantProps } from 'class-variance-authority';
-import { ButtonProps, ButtonRef, defaultButtonProps } from './types';
+
 import { odysseusTheme } from '../../designSystem/tokens';
+
+import { defaultButtonProps } from './types';
+
+import type { ButtonProps, ButtonRef} from './types';
+
 
 // Button styling using class-variance-authority for type-safe variants
 const buttonVariants = cva(

@@ -12,10 +12,14 @@
  * - Separation of field access (resolver) from field presentation (config)
  */
 
-import { ValidTubeFieldKey, FieldMetadata } from './fieldPathMapping';
-import { FieldResolver } from '@domains/tubes/types/FieldResolver';
 import { env } from '@shared/config';
 import { formatToScientificNotation } from '@shared/utils/scientificNotation';
+
+import { FieldMetadata } from './fieldPathMapping';
+
+import type { ValidTubeFieldKey} from './fieldPathMapping';
+import type { FieldResolver } from '@domains/tubes/types/FieldResolver';
+
 
 export type FieldDisplayType = 'text' | 'select' | 'date' | 'concentration' | 'textarea' | 'readonly';
 

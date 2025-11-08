@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
+
+import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { Plus, Edit3, Trash2, Save, X, ChevronDown, ChevronRight } from 'lucide-react';
-import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
+
+import { useModalStore } from '@app/stores/modalStore';
+import { useAuthStore } from '@domains/authentication';
 import {
   useStorageStore,
   useSaveStorageMutation,
-  TankConfiguration,
-  RackConfiguration,
-  BoxConfiguration,
-  GridConfiguration,
   GRID_TEMPLATES,
   getGridTotalPositions,
   getGridDisplayName,
@@ -15,11 +15,16 @@ import {
   createRackFromDefaults,
   getNextTankNumber,
 } from '@domains/storage';
-import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
-import { useAuthStore } from '@domains/authentication';
-import { useModalStore } from '@app/stores/modalStore';
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils/notifications';
+
+import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+
+import type {
+  TankConfiguration,
+  RackConfiguration,
+  BoxConfiguration,
+  GridConfiguration} from '@domains/storage';
 
 interface StorageManagementModalProps {
   isOpen: boolean;

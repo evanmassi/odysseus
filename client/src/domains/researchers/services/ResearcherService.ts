@@ -5,8 +5,6 @@
  * All envelope handling done at transport layer, this service works with clean types.
  */
 
-import { httpClient } from '@infra/api/httpClient';
-import { z } from 'zod';
 import {
   type Researcher,
   type AdminResearcher,
@@ -18,6 +16,9 @@ import {
   createResearcherProfileSchema,
   updateResearcherProfileSchema
 } from '@odysseus/shared-schemas';
+import { z } from 'zod';
+
+import { httpClient } from '@infra/api/httpClient';
 
 export class ResearcherService {
   private static readonly BASE_PATH = '/researchers';

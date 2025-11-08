@@ -5,10 +5,11 @@
  * Centralizes all app-wide providers in proper order.
  */
 import React from 'react';
+
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { queryClient } from './queryClient';
 import { Toaster } from 'react-hot-toast';
+
 // Performance debugging removed for clean build
 import { env } from '@shared/config';
 import { 
@@ -16,6 +17,8 @@ import {
   RealtimeSyncIndicator, 
   OfflineBanner 
 } from '@shared/ui/components/ConnectionStatusIndicator';
+
+import { queryClient } from './queryClient';
 
 interface ProvidersProps {
   children: React.ReactNode;

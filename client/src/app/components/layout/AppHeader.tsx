@@ -1,17 +1,20 @@
 import { useState, lazy } from 'react';
+
 import { LogOut, UserRound, Users, Menu, Plus, Edit, Trash2, Copy, Scissors, ClipboardPaste, X, Cog } from 'lucide-react';
+
 import { useAuthStore } from '@domains/authentication';
-import { useTubeStore } from '@domains/tubes';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
+import { useTubeStore } from '@domains/tubes';
+import odysseusLogo from '@shared/assets/frozen-odysseus-logo.png';
+import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
-import type { TubeData } from '@domains/tubes/types';
 import { SuspenseBoundary } from '@shared/ui';
+import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
-import { TankIcon } from '@shared/ui/components/icons/TankIcon';
+
+import type { TubeData } from '@domains/tubes/types';
 // Assets - using ES6 imports for proper module resolution
-import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
-import odysseusLogo from '@shared/assets/frozen-odysseus-logo.png';
 
 // Lazy load modals for code splitting
 const AdminSettingsModal = lazy(() =>

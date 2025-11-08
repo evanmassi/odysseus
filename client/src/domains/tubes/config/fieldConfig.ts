@@ -3,8 +3,9 @@
  * Single source of truth for field ordering, labels, types, and rendering
  */
 
-import type { CreateTubeRequest } from '@odysseus/shared-schemas';
 import { formatToScientificNotation, isScientificNotationInput } from '@shared/utils/scientificNotation';
+
+import type { CreateTubeRequest } from '@odysseus/shared-schemas';
 
 export type FieldType = 'text' | 'select' | 'date' | 'concentration' | 'textarea';
 

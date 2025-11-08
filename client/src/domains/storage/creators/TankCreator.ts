@@ -7,13 +7,15 @@
  */
 
 import {
-  TankConfiguration,
-  RackConfiguration,
-  BoxConfiguration,
-  GridConfiguration,
   EQUIPMENT_DEFAULTS,
   NAMING_PATTERNS,
 } from '@odysseus/shared-schemas';
+
+import type {
+  TankConfiguration,
+  RackConfiguration,
+  BoxConfiguration,
+  GridConfiguration} from '@odysseus/shared-schemas';
 
 /**
  * Create a fresh box configuration from defaults

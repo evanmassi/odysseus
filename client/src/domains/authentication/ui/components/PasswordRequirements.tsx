@@ -6,7 +6,9 @@
  */
 
 import React, { useMemo } from 'react';
+
 import { PasswordValidator, type PasswordRequirement } from '@odysseus/shared-schemas';
+
 import type { PasswordRequirements as PasswordConfig } from '../../services/AuthenticationService';
 
 export interface PasswordRequirementsProps {

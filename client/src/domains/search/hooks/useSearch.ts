@@ -1,11 +1,20 @@
-import { useSearchStore } from '../stores/searchStore';
-import { useSearchTubesQuery } from './useSearchQuery';
-import { useActiveResearchersQuery } from '@domains/researchers';
-import { SearchEngine, DisplayResults } from '../engine/SearchEngine';
+import { useMemo } from 'react';
+
 import { SearchFilters } from '@odysseus/shared-schemas';
+
+import { useActiveResearchersQuery } from '@domains/researchers';
 import { TubeData } from '@domains/tubes/types';
 import { useDebounce } from '@shared/hooks';
-import { useMemo } from 'react';
+
+import { SearchEngine } from '../engine/SearchEngine';
+import { useSearchStore } from '../stores/searchStore';
+
+import { useSearchTubesQuery } from './useSearchQuery';
+
+
+
+import type { DisplayResults } from '../engine/SearchEngine';
+
 
 /**
  * Unified Search Hook

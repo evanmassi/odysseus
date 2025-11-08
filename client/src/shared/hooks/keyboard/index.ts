@@ -7,19 +7,17 @@
 // Import all hooks first
 
 import {
-  useKeyboardNavigation,
-  useTubeGridKeyboardNavigation,
-  useListKeyboardNavigation,
-} from './useKeyboardNavigation';
-
-import {
   useFocusTrap,
   useModalFocusTrap,
   useDropdownFocusTrap,
   useFocusRestore,
   useSkipLinks,
 } from './useFocusTrap';
-
+import {
+  useKeyboardNavigation,
+  useTubeGridKeyboardNavigation,
+  useListKeyboardNavigation,
+} from './useKeyboardNavigation';
 import {
   useTabOrder,
   useFormTabOrder,

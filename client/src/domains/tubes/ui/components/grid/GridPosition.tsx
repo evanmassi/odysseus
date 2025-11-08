@@ -1,9 +1,12 @@
 import React, { memo } from 'react';
-import { InlineEditInput } from '@shared/ui';
-import { getTubeColor, getLotStyleForBox, getConditionStyleForBox, parseDonorInfo } from '../../../utils/colorSystem';
-import { GridConfiguration } from '@domains/storage';
-import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
+
 import { useUserSettings } from '@domains/authentication/hooks/useUserSettings';
+import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
+import { InlineEditInput } from '@shared/ui';
+
+import { getTubeColor, getLotStyleForBox, getConditionStyleForBox, parseDonorInfo } from '../../../utils/colorSystem';
+
+import type { GridConfiguration } from '@domains/storage';
 import type { TubeData } from '@domains/tubes/types';
 import '@shared/styles/legacy/colorIndicators.css';
 

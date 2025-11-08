@@ -1,12 +1,15 @@
-import { httpClient } from '@infra/api/httpClient';
 import {
-  AdvancedSearchOptions,
-  SearchResult,
   SearchResultSchema,
   AdvancedSearchOptionsSchema
 } from '@odysseus/shared-schemas';
+
+import { httpClient } from '@infra/api/httpClient';
 import { InfrastructureError } from '@shared/errors/AppError';
 import { normalizeDateString } from '@shared/utils/dateUtils';
+
+import type {
+  AdvancedSearchOptions,
+  SearchResult} from '@odysseus/shared-schemas';
 
 /**
  * Modern Search Service with Zod validation and proper error handling

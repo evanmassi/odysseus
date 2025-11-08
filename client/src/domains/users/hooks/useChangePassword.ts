@@ -4,6 +4,7 @@
  * Hook for changing authenticated user's password.
  */
 import { useMutation } from '@tanstack/react-query';
+
 import { UserPasswordService } from '../services/UserPasswordService';
 
 interface ChangePasswordVariables {

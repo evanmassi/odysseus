@@ -1,8 +1,12 @@
-import { SearchResult, GroupedResult, NAMING_PATTERNS, type Researcher } from '@odysseus/shared-schemas';
-import { TubeData } from '@domains/tubes/types';
+import type { SearchResult, GroupedResult} from '@odysseus/shared-schemas';
+import { NAMING_PATTERNS, type Researcher } from '@odysseus/shared-schemas';
+
 import { useTubeStore } from '@domains/tubes';
 import { toPositionKey } from '@shared/types/grid';
+
 import { groupTubesByRelevance } from '../lib/searchUtils';
+
+import type { TubeData } from '@domains/tubes/types';
 
 /**
  * Highlighted text segment for rendering
@@ -150,7 +154,7 @@ export class SearchEngine {
     query: string,
     researchers: Researcher[] = []
   ): DisplayResults | null {
-    if (!serverResult || !serverResult.data) {
+    if (!serverResult?.data) {
       return null;
     }
 

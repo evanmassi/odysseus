@@ -1,11 +1,13 @@
 import { useState, useRef } from 'react';
-import { useForm } from 'react-hook-form';
+
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Plus, RefreshCw, User, Mail, Building2, Briefcase } from 'lucide-react';
 import { createResearcherProfileSchema, type CreateResearcherProfile, type AdminResearcher } from '@odysseus/shared-schemas';
-import { notifications } from '@shared/utils';
+import { X, Plus, RefreshCw, User, Mail, Building2, Briefcase } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ResearcherIcon } from '@shared/ui/components/icons';
+import { notifications } from '@shared/utils';
 
 export interface ResearcherModalProps {
   isOpen: boolean;

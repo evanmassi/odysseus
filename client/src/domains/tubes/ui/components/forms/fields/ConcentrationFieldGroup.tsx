@@ -7,8 +7,11 @@
  */
 
 import React, { useEffect } from 'react';
-import { UseFormReturn, Controller } from 'react-hook-form';
+
 import { type CreateTubeRequest, type UpdateTubeRequest } from '@odysseus/shared-schemas';
+import { Controller } from 'react-hook-form';
+
+import type { UseFormReturn} from 'react-hook-form';
 
 /**
  * Form values union - supports both create and edit modes

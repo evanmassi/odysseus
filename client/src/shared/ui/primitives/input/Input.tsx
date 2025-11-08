@@ -6,9 +6,15 @@
  */
 
 import React, { forwardRef, useState, useId, useCallback, useEffect } from 'react';
+
 import { cva, type VariantProps } from 'class-variance-authority';
-import { InputProps, InputRef, defaultInputProps, ValidationResult } from './types';
+
 import { odysseusTheme } from '../../designSystem/tokens';
+
+import { defaultInputProps } from './types';
+
+import type { InputProps, InputRef, ValidationResult } from './types';
+
 
 // Input styling using class-variance-authority for type-safe variants
 const inputVariants = cva(

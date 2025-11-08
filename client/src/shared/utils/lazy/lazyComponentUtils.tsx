@@ -4,7 +4,9 @@
  * Utilities for managing lazy component loading, preloading, and performance monitoring
  */
 
-import React, { lazy, ComponentType } from 'react';
+import type { ComponentType } from 'react';
+import React, { lazy } from 'react';
+
 import { env } from '@shared/config';
 
 // Lazy loading configuration

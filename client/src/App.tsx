@@ -1,20 +1,22 @@
 import React from 'react';
+
 import { Routes, Route } from 'react-router-dom';
-import { AppProviders } from '@app/providers';
+
 import { useAppBootstrap } from '@app/bootstrap';
+import { AppErrorBoundary } from '@app/components/boundaries/AppErrorBoundary';
+import { AppLoader } from '@app/components/layout/AppLoader';
+import { Dashboard } from '@app/components/layout/Dashboard';
 import { BootstrapProvider } from '@app/contexts/BootstrapContext';
-import { ErrorBanner, ConnectionIndicator } from '@shared/ui';
+import { AppProviders } from '@app/providers';
 import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
-import { VerifyEmailPage } from '@domains/authentication/ui/components/VerifyEmailPage';
-import { ResetPasswordPage } from '@domains/authentication/ui/components/ResetPasswordPage';
-import { useTubeStore } from '@domains/tubes';
 import { useUserSettingsQuery } from '@domains/authentication/hooks/useUserSettings';
+import { ResetPasswordPage } from '@domains/authentication/ui/components/ResetPasswordPage';
+import { VerifyEmailPage } from '@domains/authentication/ui/components/VerifyEmailPage';
+import { useTubeStore } from '@domains/tubes';
 
 // Import app-layer components (moved from @shared)
-import { AppLoader } from '@app/components/layout/AppLoader';
-import { AppErrorBoundary } from '@app/components/boundaries/AppErrorBoundary';
-import { Dashboard } from '@app/components/layout/Dashboard';
+import { ErrorBanner, ConnectionIndicator } from '@shared/ui';
 
 import '@shared/styles/legacy/notifications.css';
 import '@shared/styles/legacy/keyboardNavigation.css';

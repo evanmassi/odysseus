@@ -5,7 +5,7 @@
  * Includes text, number, search, and validation functionality
  */
 
-import { ComponentProps, ReactNode } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 
 // Input variant types
 export type InputVariant = 

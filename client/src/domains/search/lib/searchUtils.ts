@@ -1,5 +1,7 @@
-import { TubeData, TubeMedia } from '@domains/tubes/types';
-import { GroupedResult, NAMING_PATTERNS } from '@odysseus/shared-schemas';
+import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
+
+import type { TubeData, TubeMedia } from '@domains/tubes/types';
+import type { GroupedResult} from '@odysseus/shared-schemas';
 
 /**
  * Convert media object to string for searching

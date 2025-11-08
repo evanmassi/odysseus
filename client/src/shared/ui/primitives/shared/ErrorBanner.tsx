@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+
 import { AlertTriangle, X, Copy } from 'lucide-react';
 
 interface ErrorDisplayProps {

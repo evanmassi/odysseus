@@ -17,10 +17,10 @@ import {
   createNumericConfig,
   type PositionDisplayConfig,
   type PositionDisplayPreference,
-  type UserSettings,
-} from '@odysseus/shared-schemas';
+  type UserSettings   ,
+ GridConfiguration } from '@odysseus/shared-schemas';
+
 import { useStorageStore } from '../stores/storageStore';
-import type { GridConfiguration } from '@odysseus/shared-schemas';
 
 /**
  * Convert user preference to full position display config
@@ -41,7 +41,7 @@ function preferenceToConfig(
   gridRows: number,
   gridCols: number
 ): PositionDisplayConfig {
-  if (!preference || !preference.format) {
+  if (!preference?.format) {
     return getDefaultPositionDisplay(gridRows, gridCols);
   }
 

@@ -13,12 +13,14 @@
  * - Connection lifecycle management
  */
 
-import { QueryClient } from '@tanstack/react-query';
-import { Socket } from 'socket.io-client';
-import { z } from 'zod';
 import { websocketMessageSchema, tubeDataSchema, type TubeData, type Researcher } from '@odysseus/shared-schemas';
-import { notifications } from '@shared/utils/notifications';
+import { z } from 'zod';
+
 import { queryKeys } from '@app/queryKeys';
+import { notifications } from '@shared/utils/notifications';
+
+import type { QueryClient } from '@tanstack/react-query';
+import type { Socket } from 'socket.io-client';
 
 // Re-export queryKeys from centralized location
 export { queryKeys } from '@app/queryKeys';
@@ -367,7 +369,7 @@ export class SocketQueryBridge {
           (oldData: TubeData[] | undefined) => {
             if (!oldData) return undefined;
 
-            let updatedData = [...oldData];
+            const updatedData = [...oldData];
             tubes.forEach(updatedTube => {
               const index = updatedData.findIndex((item: TubeData) => item.id === updatedTube.id);
               if (index !== -1) {

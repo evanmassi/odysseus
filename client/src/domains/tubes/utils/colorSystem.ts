@@ -1,4 +1,5 @@
 // Color system for tube identification using LAB color space
+import { adaptTubeDataForColorSystem } from '@shared/types/colorSystemTypes';
 import { 
   generateOptimalColorPalette, 
   getOptimalTextColor,
@@ -6,7 +7,8 @@ import {
   labToRGBString
 } from '@shared/utils/labColorSpace';
 
-import { ColorSystemTubeData, adaptTubeDataForColorSystem } from '@shared/types/colorSystemTypes';
+import type { ColorSystemTubeData} from '@shared/types/colorSystemTypes';
+
 
 interface ColorResult {
   backgroundColor: string;

@@ -1,14 +1,21 @@
-import { useSearch, SearchResults as SearchResultsType, useSearchStore } from '@domains/search';
-import { useTubeStore } from '@domains/tubes';
-import { useStorageStore } from '@domains/storage';
-import { useResearchersQuery } from '@domains/researchers';
-import { useUserSettings } from '@domains/authentication';
-import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
-import { Download, MapPin } from 'lucide-react';
-import { TubeIcon } from '@shared/ui/components/icons';
-import { formatConcentrationDisplay, formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
 import { useMemo } from 'react';
+
+import { formatConcentrationDisplay, formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
+import { Download, MapPin } from 'lucide-react';
+
+import { useUserSettings } from '@domains/authentication';
+import { useResearchersQuery } from '@domains/researchers';
+import { useSearch, useSearchStore } from '@domains/search';
+import { useStorageStore } from '@domains/storage';
+import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
+import { useTubeStore } from '@domains/tubes';
+import { TubeIcon } from '@shared/ui/components/icons';
+
+
+
 import { SortDropdown } from './SortDropdown';
+
+import type { SearchResults as SearchResultsType} from '@domains/search';
 
 interface SearchResultsProps {
   results: SearchResultsType | null;
@@ -194,7 +201,7 @@ export function SearchResults({ results, onTubeSelect, isSearching = false, onCl
         const box = getBox(tube.location.tankId, tube.location.rackId, tube.location.boxId);
         let positionLabel = tube.location.position.toString();
 
-        if (box && box.gridConfig) {
+        if (box?.gridConfig) {
           try {
             positionLabel = formatPositionForBox(
               tube.location.position,
@@ -261,7 +268,7 @@ export function SearchResults({ results, onTubeSelect, isSearching = false, onCl
 
     // Get box configuration for grid dimensions
     const box = getBox(tankId, rackId, boxId);
-    if (!box || !box.gridConfig) {
+    if (!box?.gridConfig) {
       // Fallback to numeric if box config not found
       const positions = Array.from(new Set(
         tubes.map(tube => tube.location.position).filter(pos => pos != null).map(pos => Number(pos))

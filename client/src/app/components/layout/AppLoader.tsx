@@ -5,10 +5,14 @@
  */
 
 import React from 'react';
+
 import { Loader2, AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
-import { UseAppBootstrapResult } from '../../bootstrap/types';
-import { BOOTSTRAP_STEPS, LOADING_MESSAGES } from '../../bootstrap/constants';
+
 import { env } from '@shared/config/environment';
+
+import { BOOTSTRAP_STEPS, LOADING_MESSAGES } from '../../bootstrap/constants';
+
+import type { UseAppBootstrapResult } from '../../bootstrap/types';
 
 interface AppLoaderProps {
   context: UseAppBootstrapResult;

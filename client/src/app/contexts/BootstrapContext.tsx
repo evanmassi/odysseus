@@ -6,8 +6,10 @@
  *
  * Singleton service pattern via React Context
  */
-import React, { createContext, useContext, ReactNode } from 'react';
-import { UseAppBootstrapResult } from '@app/bootstrap';
+import type { ReactNode } from 'react';
+import React, { createContext, useContext } from 'react';
+
+import type { UseAppBootstrapResult } from '@app/bootstrap';
 
 interface BootstrapContextValue extends UseAppBootstrapResult {}
 

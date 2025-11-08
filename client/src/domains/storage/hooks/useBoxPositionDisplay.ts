@@ -1,8 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { StorageService } from '../services/StorageService';
-import { PositionDisplayConfig } from '@odysseus/shared-schemas';
-import { queryKeys } from '@app/queryKeys';
 import toast from 'react-hot-toast';
+
+import { queryKeys } from '@app/queryKeys';
+
+import { StorageService } from '../services/StorageService';
+
+import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 
 /**
  * Get Position Display Presets Hook

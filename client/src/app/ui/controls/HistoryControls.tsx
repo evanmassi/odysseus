@@ -1,6 +1,8 @@
-import { Undo2, Redo2, History, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { HistoryAction } from '@shared/types/clipboard';
+
+import { Undo2, Redo2, History, Trash2 } from 'lucide-react';
+
+import type { HistoryAction } from '@shared/types/clipboard';
 
 interface UndoRedoControlsProps {
   canUndo: boolean;

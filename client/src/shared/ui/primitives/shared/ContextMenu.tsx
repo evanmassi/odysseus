@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
+
 import { Plus, Edit, Trash2, Copy, Scissors, ClipboardPaste, X } from 'lucide-react';
+
 import { NOTIFICATION_COLORS } from '@shared/utils/notifications';
 
 interface ContextMenuProps {

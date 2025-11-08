@@ -4,10 +4,12 @@
  */
 
 import {
-  GridConfiguration,
   GRID_TEMPLATES as SHARED_GRID_TEMPLATES,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
+
+import type {
+  GridConfiguration} from '@odysseus/shared-schemas';
 
 /**
  * Get total positions in a grid (rows × cols)

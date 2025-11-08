@@ -6,10 +6,13 @@
  * Integrates with Socket → Query Cache Bridge for optimal real-time updates.
  */
 
-import { QueryClient } from '@tanstack/react-query';
-import { queryKeys } from '@app/queryKeys';
-import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
+
+
+import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
+import { queryKeys } from '@app/queryKeys';
+
+import type { QueryClient } from '@tanstack/react-query';
 
 /**
  * Cache warming priorities based on user behavior patterns

@@ -3,11 +3,6 @@
  * Provides type-safe server state management with automatic caching and invalidation
  */
 
-import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
-import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
-import { queryKeys } from '@app/queryKeys';
-import { toast } from 'react-hot-toast';
-import { ResearcherService } from '../services/ResearcherService';
 import {
   type Researcher,
   type AdminResearcher,
@@ -17,6 +12,16 @@ import {
   formatResearcherListDisplay,
   sortResearchers
 } from '@odysseus/shared-schemas';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'react-hot-toast';
+
+import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
+import { queryKeys } from '@app/queryKeys';
+
+import { ResearcherService } from '../services/ResearcherService';
+
+import type { UseQueryOptions } from '@tanstack/react-query';
+
 
 /**
  * Hook to fetch all researchers (basic data only)

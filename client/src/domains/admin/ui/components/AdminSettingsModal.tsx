@@ -1,13 +1,18 @@
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
-import { X, Shield, Users, Settings, Activity, AlertTriangle, Save, RefreshCw, Cog, Gauge, UsersRound } from 'lucide-react';
-import { useAuthStore } from '@domains/authentication';
-import { notifications } from '@shared/utils';
-import { adminService } from '../../services/AdminService';
-import type { SecurityConfig, AdminUser, SystemMetrics, SyncStatus } from '@odysseus/shared-schemas';
+
 import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
-import { TabSkeleton } from './TabSkeleton';
+import { X, Shield, Users, Settings, Activity, AlertTriangle, Save, RefreshCw, Cog, Gauge, UsersRound } from 'lucide-react';
+
+import { useAuthStore } from '@domains/authentication';
+import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ResearcherIcon } from '@shared/ui/components/icons';
+import { notifications } from '@shared/utils';
+
+import { adminService } from '../../services/AdminService';
+
+import { TabSkeleton } from './TabSkeleton';
+
+import type { SecurityConfig, AdminUser, SystemMetrics, SyncStatus } from '@odysseus/shared-schemas';
 
 // Lazy-load tab components for code splitting
 const SecurityTab = lazy(() =>

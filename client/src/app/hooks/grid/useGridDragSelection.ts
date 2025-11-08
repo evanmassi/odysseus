@@ -6,11 +6,13 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useTubeStore } from '@domains/tubes';
-import type { GridConfiguration } from '@odysseus/shared-schemas';
-import { toPositionKey, type PositionContext, type PositionKey } from '@shared/types/grid';
+
 import { getGridTotalPositions } from '@domains/storage';
+import { useTubeStore } from '@domains/tubes';
+import { toPositionKey, type PositionContext, type PositionKey } from '@shared/types/grid';
 import { getPositionsInRectangle, positionToCoordinates } from '@shared/utils/coordinates';
+
+import type { GridConfiguration } from '@odysseus/shared-schemas';
 
 /**
  * Hook Props Interface

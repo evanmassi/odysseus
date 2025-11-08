@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { SearchService } from '../services/SearchService';
-import { AdvancedSearchOptions } from '@odysseus/shared-schemas';
+
 import { queryKeys } from '@app/queryKeys';
+
+import { SearchService } from '../services/SearchService';
+
+import type { AdvancedSearchOptions } from '@odysseus/shared-schemas';
 
 /**
  * Advanced Search Hook

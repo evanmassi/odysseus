@@ -13,10 +13,13 @@
  */
 
 import { useState } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+
 import { Eye, EyeOff } from 'lucide-react';
-import { authenticationService } from '../../services/AuthenticationService';
 import toast from 'react-hot-toast';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+
+import { authenticationService } from '../../services/AuthenticationService';
+
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();

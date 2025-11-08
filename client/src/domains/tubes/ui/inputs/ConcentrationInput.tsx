@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { AlertCircle, AlertTriangle } from 'lucide-react';
+
 import { ValidatedInput } from '@shared/ui';
 import { formatToScientificNotation, isScientificNotationInput } from '@shared/utils/scientificNotation';
 

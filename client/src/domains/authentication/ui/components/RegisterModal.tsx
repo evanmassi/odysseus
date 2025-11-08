@@ -6,15 +6,20 @@
  */
 
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+
+import { PasswordValidator } from '@odysseus/shared-schemas';
 import { UserRound, KeyRound, Mail, Building2, BriefcaseBusiness, Info, Eye, EyeOff } from 'lucide-react';
-import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { notifications } from '@shared/utils';
+
 import { authService, type PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthenticationService';
+import { useAuthStore } from '@domains/authentication/stores/authStore';
+import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
+import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { notifications } from '@shared/utils';
+
 import { PasswordRequirements } from './PasswordRequirements';
 import { RegistrationSuccessModal } from './RegistrationSuccessModal';
-import { PasswordValidator } from '@odysseus/shared-schemas';
-import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
+
+
 
 interface RegisterModalProps {
   onSwitchToLogin?: () => void;

@@ -1,5 +1,6 @@
 import { CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { BulkUpdateProgress } from '@shared/types/bulkOperations';
+
+import type { BulkUpdateProgress } from '@shared/types/bulkOperations';
 
 interface BulkProgressModalProps {
   isOpen: boolean;

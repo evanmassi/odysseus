@@ -5,9 +5,12 @@
  * Provides consistent lazy loading experience across the application
  */
 
-import React, { Suspense, ReactNode } from 'react';
-import { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
+import type { ReactNode } from 'react';
+import React, { Suspense } from 'react';
+
 import { env } from '@shared/config';
+
+import { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
 
 // Suspense boundary configuration
 interface SuspenseBoundaryProps {

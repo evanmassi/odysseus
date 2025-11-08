@@ -4,10 +4,6 @@
  * Uses TubeService for all API operations with comprehensive Zod validation
  */
 
-import { useQuery, useMutation, useQueryClient, type UseQueryOptions, type UseMutationOptions } from '@tanstack/react-query';
-import { TubeService } from '../services/TubeService';
-import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
-import { queryKeys } from '@app/queryKeys';
 import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
@@ -15,11 +11,16 @@ import {
   type BatchTubeOperation,
   EQUIPMENT_DEFAULTS,
   UNKNOWN_RESEARCHER
-} from '@odysseus/shared-schemas';
+, type TubeData as SchemaTubeData    } from '@odysseus/shared-schemas';
+import { useQuery, useMutation, useQueryClient, type UseQueryOptions, type UseMutationOptions } from '@tanstack/react-query';
+
+import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
+import { queryKeys } from '@app/queryKeys';
 import { type TubeData } from '@shared/types/tubeTypes';
-import { type TubeData as SchemaTubeData } from '@odysseus/shared-schemas';
-import type { BatchResult } from '@odysseus/shared-schemas';
 import { normalizeConcentration } from '@shared/utils/concentrationConverter';
+
+import { TubeService } from '../services/TubeService';
+import type { BatchResult } from '@odysseus/shared-schemas';
 
 /**
  * Convert schema-based TubeData to shared TubeData format

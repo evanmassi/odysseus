@@ -6,10 +6,12 @@
  * eliminating duplicate auth flows and race conditions.
  */
 import React from 'react';
-import { useAuthStore } from '@domains/authentication/stores/authStore';
+
 import { useBootstrapContext } from '@app/contexts/BootstrapContext';
-import { RegisterModal } from './RegisterModal';
+import { useAuthStore } from '@domains/authentication/stores/authStore';
+
 import { LoginModal } from './LoginModal';
+import { RegisterModal } from './RegisterModal';
 
 interface AuthGatewayProps {
   children?: React.ReactNode;

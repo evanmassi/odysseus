@@ -3,7 +3,7 @@
  * Provides centralized HTTP client with automatic data validation
  */
 
-import { ZodSchema } from 'zod';
+import type { ZodSchema } from 'zod';
 
 /**
  * API error class for structured error handling

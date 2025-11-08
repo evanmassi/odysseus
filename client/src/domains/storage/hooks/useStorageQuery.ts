@@ -1,12 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { StorageService } from '../services/StorageService';
 import {
   ConfigurationResponse,
-  DeleteTankResponse,
+  DeleteTankResponse
+} from '@odysseus/shared-schemas';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { queryKeys } from '@app/queryKeys';
+
+import { StorageService } from '../services/StorageService';
+
+import type {
   SystemConfiguration,
   LabConfiguration
 } from '@odysseus/shared-schemas';
-import { queryKeys } from '@app/queryKeys';
 
 /**
  * Load Storage Configuration Hook

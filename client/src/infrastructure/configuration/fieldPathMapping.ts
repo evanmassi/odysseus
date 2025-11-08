@@ -15,8 +15,9 @@
  * - Clear separation of concerns (config vs logic)
  */
 
-import { FieldPathMapping } from '@domains/tubes/types/FieldResolver';
 import { TubeData } from '@shared/types/tubeTypes';
+
+import type { FieldPathMapping } from '@domains/tubes/types/FieldResolver';
 
 /**
  * Core field path mapping configuration

@@ -21,7 +21,9 @@
  */
 
 import React from 'react';
+
 import { X } from 'lucide-react';
+
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 
 export interface BaseModalProps {

@@ -14,10 +14,14 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+
 import { X, Eye, EyeOff, Copy, Check } from 'lucide-react';
-import { adminService } from '../../services/AdminService';
 import toast from 'react-hot-toast';
+
+import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+
+import { adminService } from '../../services/AdminService';
+
 
 interface PasswordResetModalProps {
   userId: string;

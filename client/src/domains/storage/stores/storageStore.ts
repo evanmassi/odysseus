@@ -4,24 +4,27 @@
  * Types from shared-schemas (single source of truth)
  */
 
+import {
+  EQUIPMENT_DEFAULTS,
+  NAMING_PATTERNS,
+  SYSTEM_DEFAULTS,
+} from '@odysseus/shared-schemas';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+
 import {
+  DEFAULT_GRID_CONFIG,
+  GRID_TEMPLATES,
+} from '../utils/gridHelpers';
+
+import type {
   LabConfiguration,
   SystemConfiguration,
   TankConfiguration,
   RackConfiguration,
   BoxConfiguration,
   GridConfiguration,
-  PositionDisplayConfig,
-  EQUIPMENT_DEFAULTS,
-  NAMING_PATTERNS,
-  SYSTEM_DEFAULTS,
-} from '@odysseus/shared-schemas';
-import {
-  DEFAULT_GRID_CONFIG,
-  GRID_TEMPLATES,
-} from '../utils/gridHelpers';
+  PositionDisplayConfig} from '@odysseus/shared-schemas';
 
 interface ConfigurationState {
   // Current state
@@ -306,7 +309,7 @@ export const useStorageStore = create<ConfigurationState>()(
       updateTank: (labId: string, tankId: string, updates: Partial<TankConfiguration>) => {
         const { systemConfig } = get();
         const lab = systemConfig.availableLabs.find(l => l.id === labId);
-        if (!lab || !lab.equipment.tanks) return;
+        if (!lab?.equipment.tanks) return;
 
         const updatedTanks = lab.equipment.tanks.map(tank =>
           tank.id === tankId ? { ...tank, ...updates, updatedAt: new Date().toISOString() } : tank
@@ -367,7 +370,7 @@ export const useStorageStore = create<ConfigurationState>()(
 
       addRack: (labId: string, tankId: string, rack: RackConfiguration) => {
         const lab = get().systemConfig.availableLabs.find(l => l.id === labId);
-        if (!lab || !lab.equipment.tanks) return;
+        if (!lab?.equipment.tanks) return;
 
         const updatedTanks = lab.equipment.tanks.map(tank =>
           tank.id === tankId 
@@ -385,7 +388,7 @@ export const useStorageStore = create<ConfigurationState>()(
 
       updateRack: (labId: string, tankId: string, rackId: string, updates: Partial<RackConfiguration>) => {
         const lab = get().systemConfig.availableLabs.find(l => l.id === labId);
-        if (!lab || !lab.equipment.tanks) return;
+        if (!lab?.equipment.tanks) return;
 
         const updatedTanks = lab.equipment.tanks.map(tank =>
           tank.id === tankId
@@ -408,7 +411,7 @@ export const useStorageStore = create<ConfigurationState>()(
 
       deleteRack: (labId: string, tankId: string, rackId: string) => {
         const lab = get().systemConfig.availableLabs.find(l => l.id === labId);
-        if (!lab || !lab.equipment.tanks) return;
+        if (!lab?.equipment.tanks) return;
 
         const updatedTanks = lab.equipment.tanks.map(tank =>
           tank.id === tankId
@@ -426,7 +429,7 @@ export const useStorageStore = create<ConfigurationState>()(
 
       updateBox: (labId: string, tankId: string, rackId: string, boxId: string, updates: Partial<BoxConfiguration>) => {
         const lab = get().systemConfig.availableLabs.find(l => l.id === labId);
-        if (!lab || !lab.equipment.tanks) return;
+        if (!lab?.equipment.tanks) return;
 
         const updatedTanks = lab.equipment.tanks.map(tank =>
           tank.id === tankId
@@ -456,7 +459,7 @@ export const useStorageStore = create<ConfigurationState>()(
 
       addBoxToRack: (labId: string, tankId: string, rackId: string, box: BoxConfiguration) => {
         const lab = get().systemConfig.availableLabs.find(l => l.id === labId);
-        if (!lab || !lab.equipment.tanks) return;
+        if (!lab?.equipment.tanks) return;
 
         const updatedTanks = lab.equipment.tanks.map(tank =>
           tank.id === tankId
@@ -481,7 +484,7 @@ export const useStorageStore = create<ConfigurationState>()(
 
       deleteBox: (labId: string, tankId: string, rackId: string, boxId: string) => {
         const lab = get().systemConfig.availableLabs.find(l => l.id === labId);
-        if (!lab || !lab.equipment.tanks) return;
+        if (!lab?.equipment.tanks) return;
 
         const updatedTanks = lab.equipment.tanks.map(tank =>
           tank.id === tankId
