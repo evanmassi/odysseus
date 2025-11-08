@@ -59,19 +59,19 @@ export const useCreateTubeMutation = (
     onSuccess: (tube, variables, context) => {
       // Add to individual tube cache
       queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
-      
+
       // Invalidate and refetch tube lists to show new tube
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
-      
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+
       // Invalidate location-specific queries
       if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-        queryClient.invalidateQueries({ 
-          queryKey: queryKeys.tubes.location(tube.location.tankId, tube.location.rackId, tube.location.boxId) 
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.tubes.location(tube.location.tankId, tube.location.rackId, tube.location.boxId)
         });
       }
-      
+
       // Invalidate statistics
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
 
 
     },
@@ -154,21 +154,21 @@ return await TubeService.updateTube(id, updates);
       if (oldTube) {
         // Invalidate old location
         if (oldTube.location.tankId && oldTube.location.rackId !== undefined && oldTube.location.boxId) {
-          queryClient.invalidateQueries({
+          void queryClient.invalidateQueries({
             queryKey: queryKeys.tubes.location(oldTube.location.tankId, oldTube.location.rackId, oldTube.location.boxId)
           });
         }
       }
-      
+
       // Invalidate new location
       if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.location(tube.location.tankId, tube.location.rackId, tube.location.boxId)
         });
       }
-      
+
       // Invalidate statistics
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
 
 
     },
@@ -184,7 +184,7 @@ return await TubeService.updateTube(id, updates);
     
     onSettled: (data, error, variables) => {
       // Always refetch the tube to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(variables.id) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(variables.id) });
 
     },
     
@@ -251,14 +251,14 @@ return await TubeService.deleteTube(id);
       if (context?.previousTube) {
         const tube = context.previousTube;
         if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-          queryClient.invalidateQueries({
+          void queryClient.invalidateQueries({
             queryKey: queryKeys.tubes.location(tube.location.tankId, tube.location.rackId, tube.location.boxId)
           });
         }
       }
-      
+
       // Invalidate statistics
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
 
 
     },
@@ -282,7 +282,7 @@ return await TubeService.deleteTube(id);
     
     onSettled: (data, error, id) => {
       // Refetch lists to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
 
     },
     
@@ -341,10 +341,10 @@ export const useBulkUpdateTubesMutation = (
     
     onSuccess: (data, variables) => {
       // Invalidate all tube queries to refetch fresh data
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
 
       // Invalidate statistics
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
 
 
     },
@@ -441,8 +441,8 @@ export const useBulkDeleteTubesMutation = (
       
       // Invalidate location and stats queries
       // Industry standard: Invalidate all queries that could be affected by the deletion
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
 
 
     },
@@ -453,7 +453,7 @@ export const useBulkDeleteTubesMutation = (
     
     onSettled: () => {
       // Always refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
 
     },
 
@@ -489,19 +489,19 @@ export const usePasteTubesMutation = (
       });
 
       // Invalidate all list queries to show new tubes
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
 
       // Invalidate location-specific queries for all affected locations
       createdTubes.forEach(tube => {
         if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
-          queryClient.invalidateQueries({
+          void queryClient.invalidateQueries({
             queryKey: queryKeys.tubes.location(tube.location.tankId, tube.location.rackId, tube.location.boxId)
           });
         }
       });
 
       // Invalidate statistics
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
 
       // Note: Paste success notifications now handled in useGridController where operation type is known
 
@@ -513,7 +513,7 @@ export const usePasteTubesMutation = (
 
     onSettled: () => {
       // Refetch to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
 
     },
 

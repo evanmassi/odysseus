@@ -5,7 +5,7 @@
  * Reads token from URL, calls backend, shows status, then redirects to login.
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
@@ -17,6 +17,9 @@ export function VerifyEmailPage() {
   const navigate = useNavigate();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [error, setError] = useState<string>('');
+
+  // Store timer ID for cleanup
+  const redirectTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -33,14 +36,23 @@ export function VerifyEmailPage() {
         setStatus('success');
 
         // Redirect to home (login modal) after 3 seconds
-        setTimeout(() => navigate('/'), 3000);
+        redirectTimerRef.current = window.setTimeout(() => {
+          navigate('/');
+        }, 3000);
       } catch (err) {
         setStatus('error');
         setError(err instanceof Error ? err.message : 'Verification failed. Please try again.');
       }
     };
 
-    verifyEmail();
+    void verifyEmail();
+
+    // Cleanup timer on unmount
+    return () => {
+      if (redirectTimerRef.current !== null) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
   }, [searchParams, navigate]);
 
   if (status === 'verifying') {

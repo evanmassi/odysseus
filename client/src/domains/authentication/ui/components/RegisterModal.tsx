@@ -90,10 +90,15 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
   // Fetch password requirements on mount
   useEffect(() => {
     async function loadPasswordRequirements() {
-      const requirements = await authService.getPasswordRequirements();
-      setPasswordConfig(requirements);
+      try {
+        const requirements = await authService.getPasswordRequirements();
+        setPasswordConfig(requirements);
+      } catch (error) {
+        console.error('Failed to load password requirements:', error);
+        // Keep default requirements on error
+      }
     }
-    loadPasswordRequirements();
+    void loadPasswordRequirements();
   }, []);
 
   // Helper function to get field border class for container

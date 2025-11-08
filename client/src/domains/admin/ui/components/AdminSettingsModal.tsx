@@ -57,10 +57,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   useEffect(() => {
     if (isOpen) {
       // SessionManager handles authentication automatically
-      loadConfiguration();
-      loadUsers();
-      loadSystemStats();
-      loadSyncStatus();
+      void loadConfiguration();
+      void loadUsers();
+      void loadSystemStats();
+      void loadSyncStatus();
     }
   }, [isOpen]);
 

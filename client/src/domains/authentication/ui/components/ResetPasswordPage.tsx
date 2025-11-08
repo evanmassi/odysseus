@@ -12,7 +12,7 @@
  * - Auto-redirect to login on success
  */
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 import { Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -32,6 +32,18 @@ export const ResetPasswordPage: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Timer ref for cleanup on unmount
+  const redirectTimerRef = useRef<number | null>(null);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current !== null) {
+        clearTimeout(redirectTimerRef.current);
+      }
+    };
+  }, []);
 
   if (!token) {
     return (
@@ -86,10 +98,10 @@ export const ResetPasswordPage: React.FC = () => {
     setIsLoading(true);
     try {
       await authenticationService.resetPasswordWithToken(token, newPassword);
-      toast.success('Password reset successfully!');
+      toast.success('Password reset successfully! Redirecting to login...');
 
-      // Redirect to login after 2 seconds
-      setTimeout(() => {
+      // Store timer ID for proper cleanup
+      redirectTimerRef.current = window.setTimeout(() => {
         navigate('/login');
       }, 2000);
     } catch (error: any) {
