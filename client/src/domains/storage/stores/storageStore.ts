@@ -337,13 +337,8 @@ export const useStorageStore = create<ConfigurationState>()(
       },
 
       deleteTank: async (labId: string, tankId: string) => {
-        // Note: This method now requires React Query mutation to be called from components
-        // The actual server deletion should be done via useDeleteTankMutation()
-        // This method only handles local state cleanup
-        
-        console.warn('⚠️ ConfigurationStore.deleteTank() is deprecated. Use useDeleteTankMutation() from components instead.');
-        
-        // Only perform local cleanup
+        // Remove tank from local state
+        // Server sync handled by caller via saveToServer()
         const lab = get().systemConfig.availableLabs.find(l => l.id === labId);
         if (lab?.equipment?.tanks) {
           const filteredTanks = lab.equipment.tanks.filter(tank => tank.id !== tankId);

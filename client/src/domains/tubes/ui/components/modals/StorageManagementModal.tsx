@@ -4,7 +4,6 @@ import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import {
   useStorageStore,
   useSaveStorageMutation,
-  useDeleteTankMutation,
   TankConfiguration,
   RackConfiguration,
   BoxConfiguration,
@@ -34,6 +33,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
   const updateTank = useStorageStore(state => state.updateTank);
   const addTank = useStorageStore(state => state.addTank);
+  const deleteTank = useStorageStore(state => state.deleteTank);
   const updateBox = useStorageStore(state => state.updateBox);
   const updateRack = useStorageStore(state => state.updateRack);
   const addRack = useStorageStore(state => state.addRack);
@@ -44,9 +44,8 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const {} = useAuthStore();
   const modalService = useModalStore();
 
-  // React Query mutations for server sync
+  // React Query mutation for server sync
   const saveConfigurationMutation = useSaveStorageMutation();
-  const deleteTankMutation = useDeleteTankMutation();
   
   // Helper function to save configuration to server
   const saveToServerWithReactQuery = async () => {
@@ -264,11 +263,11 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
       message: `Are you sure you want to delete this tank? This will remove all racks, boxes, and tubes in this tank.`,
       onConfirm: async () => {
         try {
-          // Use React Query mutation for CQRS pattern
-          await deleteTankMutation.mutateAsync(tankId);
+          // Update configuration state (remove tank)
+          deleteTank(currentLab.id, tankId);
 
-          // React Query automatically invalidates cache and refetches
-          // No manual store updates needed!
+          // Save to server via configuration update (Clean Architecture)
+          await saveToServerWithReactQuery();
 
           notifications.success('Tank deleted successfully');
         } catch (error) {

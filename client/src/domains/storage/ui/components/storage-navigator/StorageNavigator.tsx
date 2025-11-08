@@ -47,14 +47,15 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
       // Only include racks if tank is expanded
       if (expandedTanks.has(tank.id)) {
         tank.racks.forEach((rack, rackIndex) => {
+          const compositeKey = `${tank.id}-${rack.id}`;
           const rackNode: VisibleTreeNode = {
             id: rack.id,
             name: rack.name,
             level: 'rack',
             tankId: tank.id,
             rackId: rack.id,
-            isExpanded: expandedRacks.has(rack.id),
-            isSelected: isRackSelected(rack.id),
+            isExpanded: expandedRacks.has(compositeKey),
+            isSelected: isRackSelected(tank.id, rack.id),
             hasChildren: rack.boxes.length > 0,
             ref: createRef<HTMLButtonElement>(),
             ariaLevel: 2,
@@ -64,7 +65,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
           nodes.push(rackNode);
 
           // Only include boxes if rack is expanded
-          if (expandedRacks.has(rack.id)) {
+          if (expandedRacks.has(compositeKey)) {
             rack.boxes.forEach((box, boxIndex) => {
               const boxNode: VisibleTreeNode = {
                 id: box.id,
@@ -74,7 +75,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                 rackId: rack.id,
                 boxId: box.id,
                 isExpanded: false,
-                isSelected: isBoxSelected(box.id),
+                isSelected: isBoxSelected(tank.id, rack.id, box.id),
                 hasChildren: false,
                 ref: createRef<HTMLButtonElement>(),
                 ariaLevel: 3,
@@ -104,7 +105,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
       toggleTank(node.id);
       selectTank(node.id);
     } else if (node.level === 'rack') {
-      toggleRack(node.id);
+      toggleRack(node.tankId, node.id);
       selectRack(node.tankId, node.rackId!);
     } else if (node.level === 'box') {
       selectBox(node.tankId, node.rackId!, node.boxId!);
@@ -159,8 +160,9 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
             ariaSetsize={node?.ariaSetsize}
           >
             {tank.racks.map((rack, rackIndex) => {
-              const rackExpanded = expandedRacks.has(rack.id);
-              const rackSelected = isRackSelected(rack.id);
+              const compositeKey = `${tank.id}-${rack.id}`;
+              const rackExpanded = expandedRacks.has(compositeKey);
+              const rackSelected = isRackSelected(tank.id, rack.id);
               const nodeIndex = visibleNodes.findIndex(n => n.id === rack.id && n.level === 'rack');
               const node = visibleNodes[nodeIndex];
 
@@ -172,9 +174,9 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                   level="rack"
                   isSelected={rackSelected}
                   isExpanded={rackExpanded}
-                  onToggle={() => toggleRack(rack.id)}
+                  onToggle={() => toggleRack(tank.id, rack.id)}
                   onSelect={() => {
-                    toggleRack(rack.id);
+                    toggleRack(tank.id, rack.id);
                     selectRack(tank.id, rack.id);
                   }}
                   tabIndex={nodeIndex === focusedIndex ? 0 : -1}
@@ -185,7 +187,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                   ariaSetsize={node?.ariaSetsize}
                 >
                   {rack.boxes.map((box, boxIndex) => {
-                    const boxSelected = isBoxSelected(box.id);
+                    const boxSelected = isBoxSelected(tank.id, rack.id, box.id);
                     const nodeIndex = visibleNodes.findIndex(n => n.id === box.id && n.level === 'box');
                     const node = visibleNodes[nodeIndex];
 

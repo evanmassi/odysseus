@@ -6,7 +6,7 @@ interface UseTreeKeyboardNavigationProps {
   focusedIndex: number;
   setFocusedIndex: (index: number) => void;
   onToggleTank: (id: string) => void;
-  onToggleRack: (id: string) => void;
+  onToggleRack: (tankId: string, rackId: string) => void;
   onSelectNode: (node: VisibleTreeNode) => void;
 }
 
@@ -99,7 +99,7 @@ export function useTreeKeyboardNavigation({
           if (node.level === 'tank') {
             onToggleTank(node.id);
           } else if (node.level === 'rack') {
-            onToggleRack(node.id);
+            onToggleRack(node.tankId, node.id);
           }
         } else if (node.hasChildren && node.isExpanded) {
           // Open node with children: move to first child
@@ -118,7 +118,7 @@ export function useTreeKeyboardNavigation({
           if (node.level === 'tank') {
             onToggleTank(node.id);
           } else if (node.level === 'rack') {
-            onToggleRack(node.id);
+            onToggleRack(node.tankId, node.id);
           }
         } else if (node.level !== 'tank') {
           // Child node (closed or end): move to parent

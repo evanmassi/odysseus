@@ -26,13 +26,14 @@ export const useStorageNavigation = (
     });
   }, []);
 
-  const toggleRack = useCallback((rackId: string) => {
+  const toggleRack = useCallback((tankId: string, rackId: string) => {
+    const compositeKey = `${tankId}-${rackId}`;
     setExpandedRacks((prev) => {
       const next = new Set(prev);
-      if (next.has(rackId)) {
-        next.delete(rackId);
+      if (next.has(compositeKey)) {
+        next.delete(compositeKey);
       } else {
-        next.add(rackId);
+        next.add(compositeKey);
       }
       return next;
     });
@@ -75,12 +76,12 @@ export const useStorageNavigation = (
     return selected.tankId === tankId;
   }, [selected]);
 
-  const isRackSelected = useCallback((rackId: string) => {
-    return selected.rackId === rackId;
+  const isRackSelected = useCallback((tankId: string, rackId: string) => {
+    return selected.tankId === tankId && selected.rackId === rackId;
   }, [selected]);
 
-  const isBoxSelected = useCallback((boxId: string) => {
-    return selected.boxId === boxId;
+  const isBoxSelected = useCallback((tankId: string, rackId: string, boxId: string) => {
+    return selected.tankId === tankId && selected.rackId === rackId && selected.boxId === boxId;
   }, [selected]);
 
   return {

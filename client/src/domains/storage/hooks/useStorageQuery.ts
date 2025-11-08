@@ -76,33 +76,6 @@ export const useSaveStorageMutation = () => {
 };
 
 /**
- * Delete Tank Mutation Hook
- *
- * Deletes tank from server and invalidates relevant caches
- */
-export const useDeleteTankMutation = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (tankId: string) => StorageService.deleteTank(tankId),
-
-    onSuccess: (data: DeleteTankResponse) => {
-      console.log(`🗑️ ${data.message} (${data.deletedTubes} tubes removed)`);
-
-      // Invalidate caches that might be affected by tank deletion
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.storage()
-      });
-
-      // Also invalidate tubes cache since tubes were deleted
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.tubes.all
-      });
-    },
-  });
-};
-
-/**
  * Custom hook for storage configuration sync with auto-save
  */
 export const useStorageSync = (

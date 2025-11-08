@@ -74,8 +74,9 @@ export function TreeLineOverlay({
 
         deepestY = Math.max(deepestY, rackRect.bottom - containerRect.top);
 
-        // Handle boxes if rack is expanded
-        if (expandedRacks.has(rackId)) {
+        // Handle boxes if rack is expanded (using composite key)
+        const compositeKey = `${tankId}-${rackId}`;
+        if (expandedRacks.has(compositeKey)) {
           const boxItems = rackItem.querySelectorAll('[data-level="box"]');
           let deepestBoxY = rackRect.bottom - containerRect.top;
 
