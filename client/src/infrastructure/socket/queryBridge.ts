@@ -158,7 +158,7 @@ export class SocketQueryBridge {
   // Bound handlers for cleanup
   private handleOnline = () => {
     console.log('🌐 [SocketBridge] Browser back online');
-    this.queryClient.invalidateQueries({
+    void this.queryClient.invalidateQueries({
       queryKey: queryKeys.storage.storage()
     });
     notifications.info('Connection restored - syncing latest data');
@@ -274,10 +274,10 @@ export class SocketQueryBridge {
             }
           );
         }
-        
+
         // Invalidate statistics
-        this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-        
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+
       } catch (error) {
         console.error('❌ [SocketBridge] Invalid tube_created event:', error);
       }
@@ -310,10 +310,10 @@ export class SocketQueryBridge {
             }
           );
         }
-        
+
         // Invalidate statistics
-        this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-        
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+
       } catch (error) {
         console.error('❌ [SocketBridge] Invalid tube_updated event:', error);
       }
@@ -337,16 +337,16 @@ export class SocketQueryBridge {
         );
         
         // Invalidate location queries (we don't know which location)
-        this.queryClient.invalidateQueries({ 
+        void this.queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.lists(),
           predicate: (query) => {
             const key = query.queryKey as string[];
             return key.includes('location');
           }
         });
-        
+
         // Invalidate statistics
-        this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
         
       } catch (error) {
         console.error('❌ [SocketBridge] Invalid tube_deleted event:', error);
@@ -381,14 +381,14 @@ export class SocketQueryBridge {
         );
         
         // Invalidate location and stats queries
-        this.queryClient.invalidateQueries({ 
+        void this.queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.lists(),
           predicate: (query) => {
             const key = query.queryKey as string[];
             return key.includes('location');
           }
         });
-        this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
         
       } catch (error) {
         console.error('❌ [SocketBridge] Invalid tubes_bulk_updated event:', error);
@@ -414,10 +414,10 @@ export class SocketQueryBridge {
             return exists ? oldData : [...oldData, researcher];
           }
         );
-        
+
         // Invalidate tube statistics (researcher affects stats)
-        this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-        
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+
       } catch (error) {
         console.error('❌ [SocketBridge] Invalid researcher_created event:', error);
       }
@@ -435,10 +435,10 @@ export class SocketQueryBridge {
             return oldData.map((item: Researcher) => item.id === researcher.id ? researcher : item);
           }
         );
-        
+
         // Invalidate tube statistics
-        this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-        
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+
       } catch (error) {
         console.error('❌ [SocketBridge] Invalid researcher_updated event:', error);
       }
@@ -456,10 +456,10 @@ export class SocketQueryBridge {
             return oldData.filter((item: Researcher) => item.id !== researcherId);
           }
         );
-        
+
         // Invalidate tube statistics
-        this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-        
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+
       } catch (error) {
         console.error('❌ [SocketBridge] Invalid researcher_deleted event:', error);
       }
@@ -672,7 +672,7 @@ export class SocketQueryBridge {
       console.log(`🔄 [SocketBridge] Reconnected after ${attemptNumber} attempts`);
 
       // Invalidate all queries to refetch fresh data after reconnection
-      this.queryClient.invalidateQueries();
+      void this.queryClient.invalidateQueries();
 
       notifications.success('Reconnected to server - data refreshed');
     });

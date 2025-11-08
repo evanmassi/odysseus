@@ -138,7 +138,7 @@ export const usePrefetchAdjacentLocations = () => {
         .filter(rack => rack >= 1 && rack <= EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK)
         .map(rack => rack.toString());  // Convert back to string
       adjacentRacks.forEach(rack => {
-        queryClient.prefetchQuery({
+        void queryClient.prefetchQuery({
           queryKey: queryKeys.tubes.location(tankId, rack, boxId),
           queryFn: () => TubeService.fetchTubesByLocation(tankId, rack, boxId),
           staleTime: 5 * 60 * 1000, // 5 minutes
@@ -154,7 +154,7 @@ export const usePrefetchAdjacentLocations = () => {
       ].filter(box => box >= 'A' && box <= maxBoxLetter);
       
       adjacentBoxes.forEach(box => {
-        queryClient.prefetchQuery({
+        void queryClient.prefetchQuery({
           queryKey: queryKeys.tubes.location(tankId, rackId, box),
           queryFn: () => TubeService.fetchTubesByLocation(tankId, rackId, box),
           staleTime: 5 * 60 * 1000,
@@ -188,7 +188,7 @@ export const useSmartPrefetch = () => {
       
       // Prefetch recently visited locations
       recentLocations.slice(0, 3).forEach(location => {
-        queryClient.prefetchQuery({
+        void queryClient.prefetchQuery({
           queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
           queryFn: () => TubeService.fetchTubesByLocation(location.tankId, location.rackId, location.boxId),
           staleTime: 10 * 60 * 1000, // 10 minutes for recent locations
@@ -199,7 +199,7 @@ export const useSmartPrefetch = () => {
       if (userRole === 'researcher') {
         // Prefetch commonly used research tanks
         ['tank-1', 'tank-2'].forEach(tankId => {
-          queryClient.prefetchQuery({
+          void queryClient.prefetchQuery({
             queryKey: queryKeys.tubes.location(tankId, '1', 'A'),
             queryFn: () => TubeService.fetchTubesByLocation(tankId, '1', 'A'),
             staleTime: 15 * 60 * 1000,

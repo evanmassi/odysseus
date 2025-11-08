@@ -419,5 +419,289 @@ npm run lint       # Error count should drop by 22
 
 ---
 
-**Ready to proceed with TIER 1 (useTubeMutations.ts first)?**
+## TIER 1 COMPLETION SUMMARY
+
+**Date Completed:** 2025-01-07
+**Status:** ✅ COMPLETE
+**Errors Fixed:** 27 (22 floating-promises + 5 from improved error handling)
+
+### Files Fixed with Industry Standard Solutions:
+
+1. **useTubeMutations.ts** (19 errors) - `void` operator for queryClient.invalidateQueries()
+2. **AdminSettingsModal.tsx** (4 errors) - `void` operator for parallel data loading
+3. **RegisterModal.tsx** (1 error) - `void` operator + added error handling for password requirements
+4. **ResetPasswordPage.tsx** (1 error) - useRef + useEffect cleanup for setTimeout
+5. **VerifyEmailPage.tsx** (1 error) - useRef + useEffect cleanup for setTimeout
+
+**Error Count After TIER 1:** 1,462 problems (770 errors, 692 warnings)
+
+---
+
+## TIER 2 ANALYSIS - INDUSTRY STANDARD FIX STRATEGY
+
+**Date Analyzed:** 2025-01-07
+**Total Errors:** 48 across 7 files
+**Category:** Background Data Sync & Infrastructure
+
+### Critical Discovery: NOT All Floating Promises Should Be Fixed the Same Way
+
+After investigating all TIER 2 files, I identified **3 DISTINCT PATTERNS** requiring **DIFFERENT** industry standard solutions:
+
+---
+
+### **PATTERN 1: Background Cache Invalidations** ✅ Use `void` Operator
+
+**Files Affected:**
+- useTubeSocket.ts (10 errors)
+- queryBridge.ts (11 errors)
+- useTubesQuery.ts (7 errors)
+- useOptimisticTubeMutations.ts (6 errors)
+- useOptimizedTubeQueries.ts (4 errors)
+
+**Total:** 38 errors
+
+**Context:** `queryClient.invalidateQueries()` calls in:
+- WebSocket event handlers (`socket.on(...)`)
+- React Query mutation callbacks (`onSuccess`, `onSettled`)
+- Network status event handlers
+- Optimistic update rollback handlers
+
+**Example Code:**
+```typescript
+// useTubeSocket.ts line 106
+socket.on('tube_created', ({ tube }) => {
+  queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
+  queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() }); // ❌ Floating promise
+});
+```
+
+**Industry Standard Fix:** Add `void` operator
+```typescript
+socket.on('tube_created', ({ tube }) => {
+  queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
+  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() }); // ✅ Fire-and-forget
+});
+```
+
+**Justification:**
+- **TanStack Query Best Practice:** Cache invalidations are designed to be fire-and-forget
+- **Performance:** Non-blocking background updates maintain UI responsiveness
+- **Error Handling:** React Query handles errors internally, logs to console
+- **Same as TIER 1:** Consistent with useTubeMutations.ts pattern
+
+**Files to Fix:**
+1. `domains/tubes/hooks/useTubeSocket.ts` - Lines: 106, 147, 174, 183, 221, 229, 240, 243, 252, 345
+2. `infrastructure/socket/queryBridge.ts` - Lines: 161, 279, 315, 340, 349, 384, 391, 419, 440, 461, 675
+3. `domains/tubes/hooks/useTubesQuery.ts` - Lines: 136, 137, 162, 163, 185, 186, 245
+4. `domains/tubes/hooks/useOptimisticTubeMutations.ts` - Lines: 78, 141, 188, 195, 276, 283
+5. `domains/tubes/hooks/useOptimizedTubeQueries.ts` - Lines: 141, 157, 191, 202
+
+---
+
+### **PATTERN 2: User-Initiated Actions** ⚠️ Use Async/Await with Error Handling
+
+**Files Affected:**
+- useGridKeyboardNavigation.ts (4 errors)
+
+**Total:** 4 errors
+
+**Context:** Keyboard shortcuts calling async controller actions (delete, copy, cut, paste)
+
+**Example Code:**
+```typescript
+// useGridKeyboardNavigation.ts line 156
+if (key === 'Delete') {
+  event.preventDefault();
+  if (selectedPositions.size > 0) {
+    controller.actions.delete(); // ❌ Async function called without await
+  }
+  return;
+}
+```
+
+**Why NOT `void`:**
+- User **expects feedback** on success/failure
+- These are **destructive operations** (delete, cut)
+- Errors should be **caught and shown** to user
+- Different from background sync - this is foreground UX
+
+**Industry Standard Fix:** Async IIFE with error handling
+```typescript
+if (key === 'Delete') {
+  event.preventDefault();
+  if (selectedPositions.size > 0) {
+    void (async () => {
+      try {
+        await controller.actions.delete();
+      } catch (error) {
+        console.error('Delete operation failed:', error);
+        notifications.error('Failed to delete tubes. Please try again.');
+      }
+    })();
+  }
+  return;
+}
+```
+
+**Justification:**
+- **User Feedback:** Errors are caught and shown via notifications
+- **Error Logging:** Console.error for debugging
+- **Non-Blocking:** Using `void` on the IIFE itself (safe because error is caught internally)
+- **React Best Practice:** Event handlers should handle async operations with error boundaries
+
+**Files to Fix:**
+1. `app/hooks/grid/useGridKeyboardNavigation.ts` - Lines: 156 (delete), 184 (copy), 191 (cut), 198 (paste)
+
+**Note:** Each keyboard action (delete/copy/cut/paste) needs its own try/catch wrapper
+
+---
+
+### **PATTERN 3: UI Component Save Operations** ⚠️ Use Async/Await with Error Handling
+
+**Files Affected:**
+- StorageManagementModal.tsx (6 errors)
+
+**Total:** 6 errors
+
+**Context:** onClick/onKeyDown handlers calling async save functions
+
+**Example Code:**
+```typescript
+// StorageManagementModal.tsx line 571
+<button
+  onClick={() => {
+    const template = selectedGridTemplate || editingBox.box.gridConfig;
+    handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template); // ❌ Async, no await
+  }}
+  className="btn-primary"
+>
+  Save Changes
+</button>
+```
+
+**Why NOT `void`:**
+- User clicked "Save Changes" - expects **confirmation or error**
+- These are **CRUD operations** (update tank/rack/box config)
+- Failures should **show error notifications** to user
+- Same category as Pattern 2 - user-facing actions
+
+**Industry Standard Fix:** Async event handler with error handling
+```typescript
+<button
+  onClick={() => {
+    void (async () => {
+      try {
+        const template = selectedGridTemplate || editingBox.box.gridConfig;
+        await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
+        // Success notification already shown inside handleUpdateBoxGrid
+      } catch (error) {
+        console.error('Failed to update box grid:', error);
+        notifications.error('Failed to save changes. Please try again.');
+      }
+    })();
+  }}
+  className="btn-primary"
+>
+  Save Changes
+</button>
+```
+
+**Justification:**
+- **User Feedback:** Errors are caught and shown (success already handled in function)
+- **Error Logging:** Console.error for debugging
+- **Consistent UX:** User gets feedback on all save operations
+- **Industry Standard:** UI components should handle async errors explicitly
+
+**Files to Fix:**
+1. `domains/tubes/ui/components/modals/StorageManagementModal.tsx` - Lines: 272, 527, 571, 592, 679, 766
+   - Line 272: `deleteTank` call in modal confirmation
+   - Line 527: `handleUpdateBoxGrid` in Enter key handler
+   - Line 571: `handleUpdateBoxGrid` in onClick handler
+   - Line 592: `handleUpdateRack` in Enter key handler
+   - Line 679: `handleUpdateTank` in Enter key handler
+   - Line 766: `handleUpdateTank` in onClick handler
+
+---
+
+## TIER 2 Fix Strategy Summary
+
+| Pattern | Description | Fix Method | Files | Errors |
+|---------|-------------|------------|-------|--------|
+| **1** | Background cache invalidations | `void` operator | 5 | 38 |
+| **2** | User keyboard actions | `async/await` + error handling | 1 | 4 |
+| **3** | UI save operations | `async/await` + error handling | 1 | 6 |
+| **TOTAL** | | | **7** | **48** |
+
+---
+
+## Key Architectural Insight
+
+**The industry standard is NOT a blanket "use void everywhere" approach.**
+
+Instead, the fix depends on the **use case**:
+
+1. **Fire-and-Forget Operations** (Background sync, cache invalidations)
+   - ✅ Use `void` operator
+   - React Query, WebSocket handlers, optimistic updates
+   - Errors handled internally by framework
+
+2. **User-Facing Operations** (Buttons, keyboard shortcuts, form submissions)
+   - ⚠️ Use `async/await` with explicit error handling
+   - Delete, save, update, CRUD operations
+   - User expects feedback on success/failure
+
+This is the **true industry standard** - matching the solution to the problem domain, following the principle of **Explicit Error Handling for User Actions**.
+
+---
+
+## Recommended Fix Order for TIER 2
+
+### Session 1: Pattern 1 Files (38 errors, 2-3 hours)
+**Quick wins - all use `void` operator**
+
+1. useTubeSocket.ts (10 errors) - 30 min
+2. queryBridge.ts (11 errors) - 30 min
+3. useTubesQuery.ts (7 errors) - 20 min
+4. useOptimisticTubeMutations.ts (6 errors) - 20 min
+5. useOptimizedTubeQueries.ts (4 errors) - 15 min
+
+### Session 2: Pattern 2 & 3 Files (10 errors, 1-2 hours)
+**Require careful async/await + error handling**
+
+6. useGridKeyboardNavigation.ts (4 errors) - 45 min
+   - Each keyboard action needs custom error handling
+
+7. StorageManagementModal.tsx (6 errors) - 45 min
+   - Each save operation needs error handling
+   - Test all UI flows (save tank, rack, box)
+
+---
+
+## Verification Plan After TIER 2
+
+**TypeScript:**
+```bash
+npm run typecheck  # Must pass
+```
+
+**ESLint:**
+```bash
+npm run lint | grep "no-floating-promises"  # Should show 48 fewer errors
+```
+
+**Manual Testing:**
+- [ ] WebSocket sync works (create/update/delete tubes via socket)
+- [ ] Keyboard shortcuts work (Delete, Ctrl+C, Ctrl+X, Ctrl+V)
+- [ ] Storage management modal saves work (tank/rack/box updates)
+- [ ] Error notifications show on failures
+- [ ] No console errors during normal operations
+
+**Expected Error Count After TIER 2:**
+- Current: 1,462 problems (770 errors, 692 warnings)
+- After: ~1,414 problems (722 errors, 692 warnings)
+- Reduction: 48 errors
+
+---
+
+**Ready to proceed with TIER 2 Pattern 1 (void operator fixes)?**
 

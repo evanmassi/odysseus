@@ -131,10 +131,10 @@ export function useCreateTubeMutation(options?: {
     onSuccess: (newTube, variables) => {
       // Add to cache immediately for optimistic updates
       queryClient.setQueryData(queryKeys.tubes.detail(newTube.id), newTube);
-      
+
       // Invalidate and refetch tubes list to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
     retry: 1,
     ...options?.mutationOptions
@@ -157,10 +157,10 @@ export function useUpdateTubeMutation(options?: {
     onSuccess: (updatedTube, variables) => {
       // Update specific tube in cache immediately
       queryClient.setQueryData(queryKeys.tubes.detail(updatedTube.id), updatedTube);
-      
+
       // Invalidate lists to ensure consistency across filtered views
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
     retry: 1,
     ...options?.mutationOptions
@@ -180,10 +180,10 @@ export function useDeleteTubeMutation(options?: {
     onSuccess: (_, tubeId) => {
       // Remove from cache immediately
       queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
-      
+
       // Invalidate lists and stats to reflect deletion
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
     retry: 1,
     ...options?.mutationOptions
@@ -242,7 +242,7 @@ export function useBatchTubeMutation(options?: {
     onSuccess: (result, variables) => {
       // Invalidate all tube-related queries for batch operations
       // This ensures consistency across the entire dataset
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
     },
     retry: 1,
     ...options?.mutationOptions

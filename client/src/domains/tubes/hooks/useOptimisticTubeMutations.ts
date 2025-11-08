@@ -73,9 +73,9 @@ export function useOptimisticCreateTubeMutation() {
 
     onSuccess: (data, variables, context) => {
       console.log('[OptimisticTube] Tube created successfully:', data.id);
-      
+
       // Invalidate related queries to ensure consistency
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
 
     onError: (error, variables, context) => {
@@ -133,12 +133,12 @@ export function useOptimisticUpdateTubeMutation() {
 
     onSuccess: (data, variables, context) => {
       console.log('[OptimisticTube] Tube updated successfully:', variables.id);
-      
+
       // Update individual tube cache
       queryClient.setQueryData(queryKeys.tubes.detail(variables.id), data);
-      
+
       // Invalidate statistics if needed
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     }
   });
 }
@@ -183,16 +183,16 @@ export function useOptimisticDeleteTubeMutation() {
       
       // Remove from individual cache
       queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
-      
+
       // Invalidate location queries and statistics
-      queryClient.invalidateQueries({ 
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.tubes.lists(),
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key.includes('location');
         }
       });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     }
   });
 }
@@ -271,16 +271,16 @@ export function useOptimisticBatchTubesMutation() {
 
     onSuccess: (data, variables, context) => {
       console.log('[OptimisticTube] Batch operation completed:', data.count, 'tubes');
-      
+
       // Invalidate all location queries and statistics
-      queryClient.invalidateQueries({ 
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.tubes.lists(),
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key.includes('location');
         }
       });
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     }
   });
 }

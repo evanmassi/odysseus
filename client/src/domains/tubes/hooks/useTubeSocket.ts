@@ -101,9 +101,9 @@ export const useTubeSocket = () => {
           }
         );
       }
-      
+
       // Invalidate statistics
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     });
 
     /**
@@ -142,10 +142,10 @@ export const useTubeSocket = () => {
           }
         );
       }
-      
+
       // Invalidate statistics (tube properties might have changed)
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-      
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+
       console.log('[Socket] Tube update applied to cache');
     });
 
@@ -171,16 +171,16 @@ export const useTubeSocket = () => {
       );
       
       // Remove from location queries (we don't know which location, so invalidate all)
-      queryClient.invalidateQueries({ 
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.tubes.lists(),
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key[0] === 'tubes' && key[1] === 'list' && key[2] === 'location';
         }
       });
-      
+
       // Invalidate statistics
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       
       console.log('[Socket] Tube deletion applied to cache');
     });
@@ -218,15 +218,15 @@ export const useTubeSocket = () => {
       );
       
       // Invalidate location queries and statistics (bulk updates might affect multiple locations)
-      queryClient.invalidateQueries({ 
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.tubes.lists(),
         predicate: (query) => {
           const key = query.queryKey as string[];
           return key[0] === 'tubes' && key[1] === 'list' && key[2] === 'location';
         }
       });
-      
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       
       console.log('[Socket] Bulk update applied to cache');
     });
@@ -235,12 +235,12 @@ export const useTubeSocket = () => {
     
     socket.on('researcher_updated', () => {
       console.log('🔄 [Socket] Researcher data updated, invalidating related queries');
-      
+
       // Invalidate researcher queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-      
+      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+
       // Invalidate tube statistics (researcher data affects stats)
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     });
 
     // CONNECTION RECOVERY
@@ -249,7 +249,7 @@ export const useTubeSocket = () => {
       console.log(`🔄 [Socket] Reconnected after ${attemptNumber} attempts`);
 
       // Invalidate all queries to refetch fresh data after reconnection
-      queryClient.invalidateQueries();
+      void queryClient.invalidateQueries();
 
       // Note: Reconnection notifications handled by SocketQueryBridge to avoid duplicates
     });
@@ -342,7 +342,7 @@ export const useRealtimeTubes = (
   return {
     queryKey: queryKeys.tubes.list(filters),
     invalidate: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tubes.list(filters) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.list(filters) });
     }
   };
 };
