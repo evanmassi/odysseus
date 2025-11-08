@@ -65,7 +65,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   };
 
   useEffect(() => {
-    loadAuditLog();
+    void loadAuditLog();
   }, [filters, includeArchive]);
 
   // Apply filters - convert multi-select to single action for backend

@@ -67,7 +67,7 @@ export const useUpdateBoxPositionDisplayMutation = () => {
 
     onSuccess: (_, variables) => {
       // Invalidate storage cache to reflect updated configuration
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.storage.storage(),
       });
 
@@ -118,7 +118,7 @@ export const useUpdateLabDefaultPositionDisplayMutation = () => {
 
     onSuccess: (_, variables) => {
       // Invalidate storage cache to reflect updated configuration
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.storage.storage(),
       });
 

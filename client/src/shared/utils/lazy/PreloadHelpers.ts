@@ -190,7 +190,7 @@ export function usePreloadOnSelection(
 ) {
   useEffect(() => {
     if (selectedCount >= threshold) {
-      preloadFn();
+      void preloadFn();
     }
   }, [selectedCount, threshold, preloadFn]);
 }
@@ -255,7 +255,7 @@ export function usePreloadOnMount(
 ) {
   useEffect(() => {
     if (condition) {
-      preloadFn();
+      void preloadFn();
     }
   }, [preloadFn, condition]);
 }
@@ -293,9 +293,9 @@ export function usePreloadOnIdle(
   useEffect(() => {
     const timer = setTimeout(() => {
       if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => preloadFn());
+        requestIdleCallback(() => void preloadFn());
       } else {
-        preloadFn();
+        void preloadFn();
       }
     }, delayMs);
 

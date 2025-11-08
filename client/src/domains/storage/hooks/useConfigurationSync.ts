@@ -130,7 +130,7 @@ export function useConfigurationSync() {
             console.log('✅ [ConfigSync] Syncing newer configuration from other tab');
 
             // Invalidate React Query cache to refetch from server
-            queryClient.invalidateQueries({
+            void queryClient.invalidateQueries({
               queryKey: queryKeys.storage.storage()
             });
           } else {
@@ -139,14 +139,14 @@ export function useConfigurationSync() {
         } else {
           // Storage was cleared in another tab
           console.log('🗑️  [ConfigSync] Storage cleared in another tab, refetching from server');
-          queryClient.invalidateQueries({
+          void queryClient.invalidateQueries({
             queryKey: queryKeys.storage.storage()
           });
         }
       } catch (error) {
         console.error('❌ [ConfigSync] Error parsing storage event:', error);
         // On error, refetch to be safe
-        queryClient.invalidateQueries({
+        void queryClient.invalidateQueries({
           queryKey: queryKeys.storage.storage()
         });
       }

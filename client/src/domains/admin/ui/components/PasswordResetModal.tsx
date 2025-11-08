@@ -87,10 +87,17 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
   const handleCopyUrl = () => {
     if (resetUrl) {
-      navigator.clipboard.writeText(resetUrl);
-      setCopied(true);
-      toast.success('Reset link copied to clipboard');
-      setTimeout(() => setCopied(false), 2000);
+      void (async () => {
+        try {
+          await navigator.clipboard.writeText(resetUrl);
+          setCopied(true);
+          toast.success('Reset link copied to clipboard');
+          setTimeout(() => setCopied(false), 2000);
+        } catch (error) {
+          console.error('Failed to copy to clipboard:', error);
+          toast.error('Failed to copy link. Please copy manually.');
+        }
+      })();
     }
   };
 

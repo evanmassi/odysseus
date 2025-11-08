@@ -63,7 +63,7 @@ export function ResearcherManagementTab({
    * Load researchers on component mount
    */
   useEffect(() => {
-    loadResearchers();
+    void loadResearchers();
   }, []);
 
   /**

@@ -64,7 +64,14 @@ export function SearchContainer({ onTubeEdit }: SearchContainerProps) {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSearch();
+      void (async () => {
+        try {
+          await handleSearch();
+        } catch (error) {
+          console.error('Search failed:', error);
+          // Error already shown by React Query
+        }
+      })();
     }
   };
 

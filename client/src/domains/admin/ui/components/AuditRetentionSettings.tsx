@@ -72,7 +72,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   };
 
   useEffect(() => {
-    loadData();
+    void loadData();
   }, []);
 
   // Manually trigger archival

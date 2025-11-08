@@ -102,7 +102,7 @@ export const ResetPasswordPage: React.FC = () => {
 
       // Store timer ID for proper cleanup
       redirectTimerRef.current = window.setTimeout(() => {
-        navigate('/login');
+        void navigate('/login');
       }, 2000);
     } catch (error: any) {
       setError(error.message || 'Failed to reset password');

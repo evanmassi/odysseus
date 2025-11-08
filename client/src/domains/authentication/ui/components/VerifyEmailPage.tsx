@@ -37,7 +37,7 @@ export function VerifyEmailPage() {
 
         // Redirect to home (login modal) after 3 seconds
         redirectTimerRef.current = window.setTimeout(() => {
-          navigate('/');
+          void navigate('/');
         }, 3000);
       } catch (err) {
         setStatus('error');

@@ -210,7 +210,7 @@ export class NetworkMonitor {
   private startQualityMonitoring(): void {
     this.qualityCheckInterval = setInterval(() => {
       if (this.status.isOnline) {
-        this.checkConnectionQuality();
+        void this.checkConnectionQuality();
       }
     }, 30000); // Check every 30 seconds
   }
@@ -285,7 +285,7 @@ export class NetworkMonitor {
     
     if (connection) {
       connection.addEventListener('change', () => {
-        this.checkConnectionQuality();
+        void this.checkConnectionQuality();
       });
     }
   }

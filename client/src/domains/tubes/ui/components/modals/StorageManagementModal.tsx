@@ -269,7 +269,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
       onConfirm: async () => {
         try {
           // Update configuration state (remove tank)
-          deleteTank(currentLab.id, tankId);
+          void deleteTank(currentLab.id, tankId);
 
           // Save to server via configuration update (Clean Architecture)
           await saveToServerWithReactQuery();

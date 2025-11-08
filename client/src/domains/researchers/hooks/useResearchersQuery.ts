@@ -90,7 +90,7 @@ export function useCreateResearcherMutation() {
   return useMutation({
     mutationFn: (researcherData: CreateResearcherProfile) => ResearcherService.create(researcherData),
     onSuccess: (newResearcher) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
       toast.success(`Researcher "${formatResearcherDropdownDisplay(newResearcher)}" created successfully`);
     },
     onError: (error: any) => {
@@ -114,7 +114,7 @@ export function useUpdateResearcherMutation() {
         queryKeys.researchers.detail(updatedResearcher.id),
         updatedResearcher
       );
-      queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
 
       // Show appropriate success message based on what was updated
       if (variables.data.active !== undefined) {
@@ -140,7 +140,7 @@ export function useDeleteResearcherMutation() {
     mutationFn: (researcherId: string) => ResearcherService.delete(researcherId),
     onSuccess: (_, researcherId) => {
       queryClient.removeQueries({ queryKey: queryKeys.researchers.detail(researcherId) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
       toast.success('Researcher deleted successfully');
     },
     onError: (error: any) => {

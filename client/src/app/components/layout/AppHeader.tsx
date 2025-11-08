@@ -101,7 +101,7 @@ tubes = [],
 
   const handleLogout = () => {
     // Socket cleanup is now handled centrally by AppBootstrapService
-    logout();
+    void logout();
   };
 
   // Selection analysis for contextual controls

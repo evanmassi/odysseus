@@ -36,7 +36,7 @@ export function useAppBootstrap(): UseAppBootstrapResult {
     
     // Start bootstrap process if not already started
     if (bootstrapState.currentStep === 'initialization' && bootstrapState.isLoading) {
-      appBootstrapService.bootstrap(queryClient);
+      void appBootstrapService.bootstrap(queryClient);
     }
 
     return unsubscribe;

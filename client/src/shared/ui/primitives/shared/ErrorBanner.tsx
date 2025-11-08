@@ -16,7 +16,13 @@ export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
 
   const copyErrors = () => {
     const errorText = errors.join('\n\n');
-    navigator.clipboard.writeText(errorText);
+    void (async () => {
+      try {
+        await navigator.clipboard.writeText(errorText);
+      } catch (error) {
+        console.error('Failed to copy errors to clipboard:', error);
+      }
+    })();
   };
 
   if (!isVisible) return null;

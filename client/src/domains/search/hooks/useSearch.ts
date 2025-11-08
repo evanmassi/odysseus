@@ -97,7 +97,7 @@ export function useSearch() {
     updateFilters: setSearchFilters,
     clear: () => {
       clearSearch();
-      searchResult.refetch(); // Clear results from React Query
+      void searchResult.refetch(); // Clear results from React Query
     },
     navigateToResult: SearchEngine.navigateToResult,
 

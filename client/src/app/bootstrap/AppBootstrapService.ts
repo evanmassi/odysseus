@@ -165,7 +165,7 @@ export class AppBootstrapService {
     }));
 
     this.isInitialized = false; // Reset flag to allow retry
-    this.bootstrap(queryClient);
+    void this.bootstrap(queryClient);
   }
 }
 

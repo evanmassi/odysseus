@@ -452,7 +452,7 @@ export const Input = forwardRef<InputRef, InputProps>(
       onValueChange?.(newValue);
       
       if (validateOn === 'change') {
-        runValidation(newValue);
+        void runValidation(newValue);
       }
     }, [onChange, onValueChange, validateOn, runValidation]);
     
@@ -461,7 +461,7 @@ export const Input = forwardRef<InputRef, InputProps>(
       onBlur?.(event);
       
       if (validateOn === 'blur') {
-        runValidation(event.target.value);
+        void runValidation(event.target.value);
       }
     }, [onBlur, validateOn, runValidation]);
     

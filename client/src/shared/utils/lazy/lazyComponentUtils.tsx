@@ -246,7 +246,7 @@ export class PreloadManager {
     
     const preloadWithDelay = () => {
       setTimeout(() => {
-        this.preload(importFn, componentName, 'medium');
+        void this.preload(importFn, componentName, 'medium');
       }, delay);
     };
     

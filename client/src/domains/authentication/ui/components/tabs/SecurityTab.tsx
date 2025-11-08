@@ -53,7 +53,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
         console.error('Failed to fetch password requirements:', error);
       }
     };
-    fetchRequirements();
+    void fetchRequirements();
   }, []);
 
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {

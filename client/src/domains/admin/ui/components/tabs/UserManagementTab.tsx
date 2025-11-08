@@ -82,7 +82,7 @@ export function UserManagementTab({
    * Load pending users on component mount and when user list updates
    */
   useEffect(() => {
-    loadPendingUsers();
+    void loadPendingUsers();
   }, [users]);
 
   /**
@@ -288,7 +288,7 @@ export function UserManagementTab({
         <button
           onClick={() => {
             onUserUpdate();
-            loadPendingUsers();
+            void loadPendingUsers();
           }}
           className="btn-refresh flex items-center space-x-2"
         >

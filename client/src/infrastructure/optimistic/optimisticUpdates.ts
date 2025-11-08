@@ -188,7 +188,7 @@ export class OptimisticUpdatesService {
           
           // Invalidate all affected queries
           optimisticContext.rollbackQueries.forEach(queryKey => {
-            this.queryClient.invalidateQueries({ queryKey });
+            void this.queryClient.invalidateQueries({ queryKey });
           });
         }
 

@@ -162,7 +162,7 @@ describe('Enhanced AuthStore', () => {
       const { result } = renderHook(() => useAuthStore());
 
       act(() => {
-        result.current.login('testuser', 'password');
+        void result.current.login('testuser', 'password');
       });
 
       expect(result.current.isLoading).toBe(true);

@@ -70,10 +70,10 @@ export const useSaveStorageMutation = () => {
 
     onSuccess: () => {
       // Invalidate storage cache to reflect server state
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.storage.storage()
       });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.storage.exists()
       });
     },
