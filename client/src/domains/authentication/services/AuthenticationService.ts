@@ -1,18 +1,15 @@
 /**
  * Authentication Application Service
- * 
+ *
  * Clean separation of concerns - removes business logic from UI components.
  * Coordinates between domain, infrastructure, and UI layers.
  */
 import {
-  ApiError,
   type RegisterWithResearcherRequest,
-  type VerifyEmailRequest,
   type VerificationStatusResponse
 } from '@odysseus/shared-schemas';
 
 import { queryClient } from '@app/queryClient';
-import { queryKeys } from '@app/queryKeys';
 import { httpClient } from '@infra/api/httpClient';
 
 // Domain types (keep existing types intact)

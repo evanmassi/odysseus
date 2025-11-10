@@ -12,7 +12,6 @@
 import { useEffect, useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
 import { io } from 'socket.io-client';
 
 import { queryKeys } from '@app/queryKeys';
@@ -305,7 +304,7 @@ export const useAutoSocket = () => {
 
   useEffect(() => {
     // Initialize socket on mount
-    const socket = initializeSocket();
+    initializeSocket();
 
     // Cleanup on unmount
     return () => {

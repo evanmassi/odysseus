@@ -31,7 +31,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [currentPasswordTouched, setCurrentPasswordTouched] = useState(false);
+  const [_currentPasswordTouched, setCurrentPasswordTouched] = useState(false);
   const [newPasswordTouched, setNewPasswordTouched] = useState(false);
   const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
 

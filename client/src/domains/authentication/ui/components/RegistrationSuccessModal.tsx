@@ -9,20 +9,18 @@
 
 import React, { useState } from 'react';
 
-import { CheckCircle, Copy, Check, Mail, Clock } from 'lucide-react';
+import { CheckCircle, Copy, Check, Clock } from 'lucide-react';
 
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 
 export interface RegistrationSuccessModalProps {
   username: string;
-  email: string;
   status: 'approved' | 'pending';
   onClose: () => void;
 }
 
 export function RegistrationSuccessModal({
   username,
-  email,
   status,
   onClose
 }: RegistrationSuccessModalProps) {

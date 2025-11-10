@@ -72,7 +72,7 @@ export function UserManagementTab({
 }: UserManagementTabProps) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [pendingUsers, setPendingUsers] = useState<AdminUser[]>([]);
-  const [loadingPending, setLoadingPending] = useState(false);
+  const [_loadingPending, setLoadingPending] = useState(false);
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
   const [linkingUser, setLinkingUser] = useState<{ id: string; username: string } | null>(null);
   const [unlinkedResearchers, setUnlinkedResearchers] = useState<AdminResearcher[]>([]);
@@ -540,7 +540,6 @@ export function UserManagementTab({
             setUnlinkedResearchers([]);
           }}
           mode="select-or-create"
-          userId={linkingUser.id}
           username={linkingUser.username}
           unlinkedResearchers={unlinkedResearchers}
           onSuccess={() => {}}

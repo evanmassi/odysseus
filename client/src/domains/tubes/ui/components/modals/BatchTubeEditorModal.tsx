@@ -1,14 +1,13 @@
 import { useState, useMemo , useEffect } from 'react';
 
 import { type CreateTubeFormInput, formatConcentrationDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
-import { AlertCircle, XCircle, RefreshCw, MapPin, Pencil, Edit, Save, Trash2 } from 'lucide-react';
+import { AlertCircle, XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
 import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
-import { useTubeStore } from '@domains/tubes';
 import { useCreateTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import { BaseModal } from './BaseModal';
 import { useBulkUpdateTubesMutation, useBulkDeleteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';

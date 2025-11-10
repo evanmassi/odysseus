@@ -13,7 +13,6 @@ export interface ResearcherModalProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'create-only' | 'select-or-create';
-  userId?: string;
   username?: string;
   unlinkedResearchers?: AdminResearcher[];
   onSuccess: () => void;
@@ -25,7 +24,6 @@ export function ResearcherModal({
   isOpen,
   onClose,
   mode,
-  userId,
   username,
   unlinkedResearchers = [],
   onSuccess,

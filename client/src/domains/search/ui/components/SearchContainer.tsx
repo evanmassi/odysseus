@@ -7,11 +7,9 @@ import { useSearch } from '@domains/search';
 import { FilterPanel } from './FilterPanel';
 import { SearchResults } from './SearchResults';
 
-interface SearchContainerProps {
-  onTubeEdit: (tube: any) => void;
-}
+interface SearchContainerProps {}
 
-export function SearchContainer({ onTubeEdit }: SearchContainerProps) {
+export function SearchContainer({}: SearchContainerProps) {
   // Unified search hook - combines all search functionality
   const { query, filters, results, isSearching, search, clear, refetch } = useSearch();
 
@@ -162,7 +160,6 @@ export function SearchContainer({ onTubeEdit }: SearchContainerProps) {
         <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-300 rounded-lg shadow-lg z-40">
           <SearchResults
             results={results}
-            onTubeSelect={onTubeEdit}
             isSearching={isSearching}
             onClose={() => setShowResults(false)}
           />

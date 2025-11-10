@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, createRef, useCallback } from 'react';
+import React, { useMemo, useState, createRef, useCallback } from 'react';
 
 import { StorageNavigatorItem } from './StorageNavigatorItem';
 import { TreeLineOverlay } from './TreeLineOverlay';
@@ -135,7 +135,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
         expandedTanks={expandedTanks}
         expandedRacks={expandedRacks}
       />
-      {data.tanks.map((tank, tankIndex) => {
+      {data.tanks.map((tank, _tankIndex) => {
         const tankExpanded = expandedTanks.has(tank.id);
         const tankSelected = isTankSelected(tank.id);
         const nodeIndex = visibleNodes.findIndex(n => n.id === tank.id && n.level === 'tank');
@@ -161,7 +161,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
             ariaPosinset={node?.ariaPosinset}
             ariaSetsize={node?.ariaSetsize}
           >
-            {tank.racks.map((rack, rackIndex) => {
+            {tank.racks.map((rack, _rackIndex) => {
               const compositeKey = `${tank.id}-${rack.id}`;
               const rackExpanded = expandedRacks.has(compositeKey);
               const rackSelected = isRackSelected(tank.id, rack.id);
@@ -188,7 +188,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                   ariaPosinset={node?.ariaPosinset}
                   ariaSetsize={node?.ariaSetsize}
                 >
-                  {rack.boxes.map((box, boxIndex) => {
+                  {rack.boxes.map((box, _boxIndex) => {
                     const boxSelected = isBoxSelected(tank.id, rack.id, box.id);
                     const nodeIndex = visibleNodes.findIndex(n => n.id === box.id && n.level === 'box');
                     const node = visibleNodes[nodeIndex];

@@ -19,12 +19,11 @@ import type { SearchResults as SearchResultsType} from '@domains/search';
 
 interface SearchResultsProps {
   results: SearchResultsType | null;
-  onTubeSelect: (tube: any) => void;
   isSearching?: boolean;
   onClose?: () => void;
 }
 
-export function SearchResults({ results, onTubeSelect, isSearching = false, onClose }: SearchResultsProps) {
+export function SearchResults({ results, isSearching = false, onClose }: SearchResultsProps) {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const { navigateToResult } = useSearch();
   const { currentTank } = useTubeStore();

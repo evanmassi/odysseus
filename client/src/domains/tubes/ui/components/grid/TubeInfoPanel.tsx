@@ -9,7 +9,7 @@ import { useUserSettings } from '@domains/authentication';
 import { useResearchersQuery } from '@domains/researchers';
 import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
 import { useTubeStore } from '../../../stores/tubeStore';
-import { parsePositionKey, type PositionKey } from '@shared/types/grid';
+import { parsePositionKey } from '@shared/types/grid';
 import { formatDateForDisplay } from '@shared/utils/dateFormatter';
 
 import { FieldValue } from '../displays/FieldValue';

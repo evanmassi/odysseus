@@ -159,7 +159,7 @@ export function StorageNavigator() {
   }, [tanks, expandedTanks, expandedRacks, getCurrentRacks, getCurrentBoxes]);
 
   // Handle item selection from keyboard
-  const handleItemSelect = useCallback((item: typeof visibleItems[number], index: number) => {
+  const handleItemSelect = useCallback((item: typeof visibleItems[number], _index: number) => {
     item.action();
   }, []);
 

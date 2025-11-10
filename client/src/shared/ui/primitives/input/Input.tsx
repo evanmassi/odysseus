@@ -5,7 +5,7 @@
  * Supports validation, multiple variants, sizes, and full WCAG AA compliance
  */
 
-import React, { forwardRef, useState, useId, useCallback, useEffect } from 'react';
+import React, { forwardRef, useState, useId, useCallback } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 

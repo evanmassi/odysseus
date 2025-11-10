@@ -5,8 +5,6 @@
 
 import { formatToScientificNotation, isScientificNotationInput } from '@shared/utils/scientificNotation';
 
-import type { CreateTubeRequest } from '@odysseus/shared-schemas';
-
 export type FieldType = 'text' | 'select' | 'date' | 'concentration' | 'textarea';
 
 // Dot-notation field keys for tube form configuration (editable fields only)

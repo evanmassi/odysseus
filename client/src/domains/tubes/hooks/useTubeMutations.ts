@@ -19,7 +19,6 @@ import { queryKeys } from '@app/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
 import type { TubeData} from '@domains/tubes/types';
 import { type CreateTubeRequest, type UpdateTubeRequest } from '@domains/tubes/types';
-import { BulkUpdateError } from '@shared/types/bulkOperations';
 
 import type { BulkUpdateResult} from '@shared/types/bulkOperations';
 
@@ -56,7 +55,7 @@ export const useCreateTubeMutation = (
       return { previousTubes, newTube };
     },
     
-    onSuccess: (tube, variables, context) => {
+    onSuccess: (tube, _variables, _context) => {
       // Add to individual tube cache
       queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
 
@@ -75,8 +74,8 @@ export const useCreateTubeMutation = (
 
 
     },
-    
-    onError: (error, variables, context) => {
+
+    onError: (error, _variables, context) => {
       console.error('❌ [React Query] Create tube failed:', error);
 
       // Rollback optimistic updates if any were made
@@ -280,7 +279,7 @@ return await TubeService.deleteTube(id);
       }
     },
     
-    onSettled: (data, error, id) => {
+    onSettled: (_data, _error, _id) => {
       // Refetch lists to ensure consistency
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
 
@@ -305,7 +304,7 @@ export const useBulkUpdateTubesMutation = (
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ tubeIds, updates, onProgress }) => {
+    mutationFn: async ({ tubeIds, updates, onProgress: _onProgress }) => {
       // Use the actual bulk update endpoint to get proper audit logging
       const bulkUpdateItems = tubeIds.map(id => ({
         id,
@@ -339,7 +338,7 @@ export const useBulkUpdateTubesMutation = (
       } as BulkUpdateResult;
     },
     
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, _variables) => {
       // Invalidate all tube queries to refetch fresh data
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
 
@@ -348,8 +347,8 @@ export const useBulkUpdateTubesMutation = (
 
 
     },
-    
-    onError: (error, variables) => {
+
+    onError: (error, _variables) => {
       console.error('❌ [React Query] Bulk update failed:', error);
     },
     
@@ -419,17 +418,17 @@ export const useBulkDeleteTubesMutation = (
       };
     },
     
-    onSuccess: (data, variables) => {
+    onSuccess: (data, _variables) => {
       // Remove successful deletes from cache
       const successfulIds = data.results
         .filter(result => result.success)
         .map(result => result.id);
-      
+
       // Remove from individual caches
       successfulIds.forEach(id => {
         queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(id) });
       });
-      
+
       // Update list queries
       queryClient.setQueriesData(
         { queryKey: queryKeys.tubes.lists() },
@@ -438,7 +437,7 @@ export const useBulkDeleteTubesMutation = (
           return oldData.filter(tube => !successfulIds.includes(tube.id));
         }
       );
-      
+
       // Invalidate location and stats queries
       // Industry standard: Invalidate all queries that could be affected by the deletion
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
@@ -446,8 +445,8 @@ export const useBulkDeleteTubesMutation = (
 
 
     },
-    
-    onError: (error, variables) => {
+
+    onError: (error, _variables) => {
       console.error('❌ [React Query] Bulk delete failed:', error);
     },
     
@@ -482,7 +481,7 @@ export const usePasteTubesMutation = (
       return await TubeService.pasteTubes(tubes);
     },
 
-    onSuccess: (createdTubes, variables) => {
+    onSuccess: (createdTubes, _variables) => {
       // Add all created tubes to individual caches
       createdTubes.forEach(tube => {
         queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
@@ -507,7 +506,7 @@ export const usePasteTubesMutation = (
 
     },
 
-    onError: (error, variables) => {
+    onError: (error, _variables) => {
       console.error('❌ [React Query] Paste tubes failed:', error);
     },
 

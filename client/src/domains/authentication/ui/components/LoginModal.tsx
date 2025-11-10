@@ -2,7 +2,6 @@ import { useState, useRef } from 'react';
 
 import { KeyRound, UserRound, Mail, Eye, EyeOff } from 'lucide-react';
 
-import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { notifications } from '@shared/utils';

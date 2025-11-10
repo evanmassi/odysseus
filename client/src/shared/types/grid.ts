@@ -76,11 +76,6 @@ export interface GridControllerProps {
   resolveTubeIdAtPosition?: (position: number) => string | null;
   onDeleteTubes?: (tubeIds: string[], silent?: boolean) => Promise<void>;
   onPasteTubes?: (tubes: CreateTubeRequest[]) => Promise<void>;
-
-  // UI callbacks
-  onEditTube: (tubeId: string) => void;
-  onBatchEditTubes: (tubeIds: string[]) => void;
-  onAddTubes: (positions: PositionKey[]) => void;
 }
 
 export interface GridControllerReturn {

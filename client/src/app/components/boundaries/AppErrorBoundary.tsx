@@ -12,8 +12,6 @@ import { AlertTriangle, RefreshCw, Home, Bug, ExternalLink } from 'lucide-react'
 
 import { env } from '@shared/config/environment';
 
-import { UseAppBootstrapResult } from '../../bootstrap/types';
-
 import type { AppInitializationError } from '@shared/errors/AppError';
 
 

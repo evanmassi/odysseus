@@ -1,9 +1,8 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 
 import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
-import { X, Shield, Users, Settings, Activity, AlertTriangle, Save, RefreshCw, Cog, Gauge, UsersRound } from 'lucide-react';
+import { X, Shield, Activity, AlertTriangle, Save, RefreshCw, Cog, Gauge, UsersRound } from 'lucide-react';
 
-import { useAuthStore } from '@domains/authentication';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils';
@@ -297,10 +296,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
               {activeTab === 'monitoring' && (
                 <Suspense fallback={<TabSkeleton />}>
-                  <MonitoringTab
-                    stats={systemStats}
-                    onRefresh={loadSystemStats}
-                  />
+                  <MonitoringTab />
                 </Suspense>
               )}
             </div>

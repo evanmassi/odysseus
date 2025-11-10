@@ -10,7 +10,7 @@ import { Loader2, AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-rea
 
 import { env } from '@shared/config/environment';
 
-import { BOOTSTRAP_STEPS, LOADING_MESSAGES } from '../../bootstrap/constants';
+import { LOADING_MESSAGES } from '../../bootstrap/constants';
 
 import type { UseAppBootstrapResult } from '../../bootstrap/types';
 

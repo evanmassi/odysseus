@@ -9,8 +9,6 @@ import { create } from 'zustand';
 
 import { type PositionKey } from '@shared/types/grid';
 
-import type { TubeData } from '@domains/tubes';
-
 interface DeleteConfirmState {
   isOpen: boolean;
   title: string;

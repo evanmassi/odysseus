@@ -1,6 +1,6 @@
 import { useState, lazy } from 'react';
 
-import { LogOut, UserRound, Users, Menu, Plus, Edit, Trash2, Copy, Scissors, ClipboardPaste, X, Cog } from 'lucide-react';
+import { LogOut, UserRound, Menu, Plus, Edit, Trash2, Copy, Scissors, ClipboardPaste, X, Cog } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
@@ -50,11 +50,8 @@ const useLazyUserSettings = PreloadHelpers.createHook(
 
 interface HeaderProps {
   selectedPositions?: Set<PositionKey>;
-  onAddTube?: (positions?: PositionKey[]) => void;
   onEditTube?: (tubeId: string) => void;
-  onBatchEditTubes?: (tubeIds: string[]) => void;
   onClearSelection?: () => void;
-  onDeleteConfirm?: (tubes: TubeData[]) => void;
   tubes?: TubeData[];
   // Grid controller actions passed from parent
   gridController?: {
@@ -78,16 +75,12 @@ interface HeaderProps {
 
 export function AppHeader({
 selectedPositions = new Set(),
-onAddTube,
 onEditTube,
-onBatchEditTubes,
 onClearSelection,
-onDeleteConfirm,
 tubes = [],
   gridController
 }: HeaderProps) {
   const { isAuthenticated, user, logout } = useAuthStore();
-  const { setSelection } = useTubeStore();
 
   // Lazy loading hooks for modal preloading
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
@@ -264,7 +257,7 @@ tubes = [],
 
           {/* Search Container */}
           <div className="flex-shrink-0">
-            <SearchContainer onTubeEdit={onEditTube || (() => {})} />
+            <SearchContainer />
           </div>
 
           {/* Hamburger Menu */}

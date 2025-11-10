@@ -11,7 +11,7 @@ import { formatDistanceToNow, format } from 'date-fns';
 import { Monitor, TabletSmartphone, MonitorCheck, LogOut, RefreshCw } from 'lucide-react';
 import { UAParser } from 'ua-parser-js';
 
-import { useUserSessions, type ActiveSession } from '@domains/users';
+import { useUserSessions } from '@domains/users';
 import { notifications } from '@shared/utils';
 
 export function SessionListSection() {

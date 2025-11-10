@@ -1,5 +1,4 @@
 import {
-  SaveConfigurationRequest,
   ConfigurationResponseSchema,
   SaveConfigurationRequestSchema,
   DeleteTankResponseSchema

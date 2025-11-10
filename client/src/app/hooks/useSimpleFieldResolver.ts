@@ -7,9 +7,8 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { areDatesEqual, normalizeDateString } from '@shared/utils/dateUtils';
+import { normalizeDateString } from '@shared/utils/dateUtils';
 
-import type { Researcher } from '@odysseus/shared-schemas';
 import type { TubeData } from '@shared/types/tubeTypes';
 
 /**

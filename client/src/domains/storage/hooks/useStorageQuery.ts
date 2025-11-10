@@ -1,7 +1,3 @@
-import {
-  ConfigurationResponse,
-  DeleteTankResponse
-} from '@odysseus/shared-schemas';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';

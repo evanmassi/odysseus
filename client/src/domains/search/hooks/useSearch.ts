@@ -1,9 +1,6 @@
 import { useMemo } from 'react';
 
-import { SearchFilters } from '@odysseus/shared-schemas';
-
 import { useActiveResearchersQuery } from '@domains/researchers';
-import { TubeData } from '@domains/tubes/types';
 import { useDebounce } from '@shared/hooks';
 
 import { SearchEngine } from '../engine/SearchEngine';

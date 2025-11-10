@@ -26,7 +26,7 @@ function AppContent() {
   // ARCHITECTURAL IMPROVEMENT: Single bootstrap initialization
   // Only App.tsx calls useAppBootstrap() - all other components use BootstrapContext
   const bootstrapState = useAppBootstrap();
-  const { isReady, isLoading, isError, context, retry } = bootstrapState;
+  const { isReady, isLoading, isError, retry } = bootstrapState;
 
   // State for UI components
   const { errors, clearErrors } = useErrorStore();

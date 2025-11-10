@@ -13,7 +13,7 @@
  * @module admin/ui/components/tabs
  */
 
-import { RefreshCw, Activity } from 'lucide-react';
+import { Activity } from 'lucide-react';
 
 import { AuditLogViewer } from '../AuditLogViewer';
 import { AuditRetentionSettings } from '../AuditRetentionSettings';
@@ -25,13 +25,7 @@ import type { SystemMetrics } from '@odysseus/shared-schemas';
  *
  * @interface MonitoringTabProps
  */
-export interface MonitoringTabProps {
-  /** System statistics for monitoring metrics */
-  stats: SystemMetrics | null;
-
-  /** Callback invoked to refresh monitoring data */
-  onRefresh: () => void;
-}
+export interface MonitoringTabProps {}
 
 /**
  * Monitoring Tab Component
@@ -43,13 +37,10 @@ export interface MonitoringTabProps {
  *
  * @example
  * ```tsx
- * <MonitoringTab
- *   stats={systemStats}
- *   onRefresh={loadSystemStats}
- * />
+ * <MonitoringTab />
  * ```
  */
-export function MonitoringTab({ stats, onRefresh }: MonitoringTabProps) {
+export function MonitoringTab({}: MonitoringTabProps) {
   return (
     <div className="space-y-4">
       {/* Header */}

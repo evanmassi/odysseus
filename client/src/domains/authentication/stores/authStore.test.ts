@@ -6,9 +6,7 @@
  */
 
 import { renderHook, act } from '@testing-library/react';
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-
-import { SessionStatus } from '../../../shared/session/types';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { useAuthStore } from './authStore';
 

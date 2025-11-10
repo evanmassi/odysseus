@@ -15,10 +15,7 @@ import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
 
-import { toPositionKey, parsePositionKey, type PositionKey ,
-  PositionContext
-
-} from '@shared/types/grid';
+import { toPositionKey, parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { getSelectionRange } from '@shared/utils/coordinates';
 import { writeClipboardOS, readClipboardOS } from '@shared/utils/gridClipboard';
 import { notifications } from '@shared/utils/notifications';
@@ -42,10 +39,7 @@ export const useGridController = ({
   onSelectionChange,
   resolveTubeIdAtPosition,
   onDeleteTubes,
-  onPasteTubes,
-  onEditTube,        // Legacy - will be removed
-  onBatchEditTubes,  // Legacy - will be removed
-  onAddTubes         // Legacy - will be removed
+  onPasteTubes
 }: GridControllerProps): GridControllerReturn => {
   const ctx = React.useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
 
@@ -530,9 +524,6 @@ export const useGridController = ({
       .filter((tubeId): tubeId is string => tubeId !== null);
 
     if (tubeIds.length === 0) return;
-
-    // Get tube objects for display in confirmation
-    const tubesToDelete = tubes.filter(tube => tubeIds.includes(tube.id));
 
     // Show delete confirmation modal (confirm before destructive action)
     modalService.showDeleteConfirm({

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Plus, Edit, Trash2, Copy, Scissors, ClipboardPaste, X } from 'lucide-react';
 

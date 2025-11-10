@@ -1,4 +1,4 @@
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUp, ArrowDown } from 'lucide-react';
 
 import { useSearchStore, type SortField } from '@domains/search';
 
@@ -20,8 +20,6 @@ export function SortDropdown() {
   const sortDirection = useSearchStore(state => state.sortDirection);
   const setSortField = useSearchStore(state => state.setSortField);
   const toggleSortDirection = useSearchStore(state => state.toggleSortDirection);
-
-  const currentOption = SORT_OPTIONS.find(opt => opt.value === sortField);
 
   return (
     <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 border-b border-slate-200">

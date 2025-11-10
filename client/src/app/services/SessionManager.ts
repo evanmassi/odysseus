@@ -12,9 +12,6 @@
  */
 
 import { env } from '@shared/config';
-import {
-  SessionError
-} from '@shared/session/types';
 
 import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
 import type { 

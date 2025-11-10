@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 
 import { useStorageStore } from '@domains/storage';
-import { useTubeStore } from '@domains/tubes';
 
 interface AnimatedTreeLine {
   id: string;

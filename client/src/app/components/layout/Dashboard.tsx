@@ -1,11 +1,10 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 
 import { useAuthStore } from '@domains/authentication';
 
 import type { TubeData } from '@domains/tubes/types';
 
 import { gridNavigationService } from '@domains/grid';
-import { useSearchStore } from '@domains/search';
 import { useStorageStore } from '@domains/storage';
 import { useConfigurationSync } from '@domains/storage/hooks/useConfigurationSync';
 import { StorageNavigator, type StorageHierarchy, type SelectedLocation } from '@domains/storage/ui/components/storage-navigator';
@@ -26,7 +25,6 @@ import { AppHeader } from './AppHeader';
 
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
-import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
 import '@shared/styles/legacy/layout.css';
 
 // Eager loading - modals included in main bundle
@@ -34,8 +32,6 @@ import { BatchTubeEditorModal } from '@domains/tubes/ui/components/modals/BatchT
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { notifications } from '@shared/utils/notifications';
-
-import type { TankConfiguration } from '@odysseus/shared-schemas';
 
 // Lazy loading (commented out - uncomment to re-enable code splitting)
 // const TubeEditorModal = lazy(() =>
@@ -99,11 +95,6 @@ export function Dashboard() {
     return activeElement && storageNavigatorRef.current?.contains(activeElement);
   };
 
-  // Check if grid has keyboard focus
-  const isGridFocused = () => {
-    const activeElement = document.activeElement;
-    return activeElement && gridContainerRef.current?.contains(activeElement);
-  };
 
 
 
@@ -242,28 +233,6 @@ export function Dashboard() {
     clearSelection();
   };
 
-  const handleDeleteConfirm = (tubes: TubeData[]) => {
-    // Use unified ModalService for consistent delete confirmation
-    modalService.showDeleteConfirm({
-      title: `Delete ${tubes.length} Tube${tubes.length > 1 ? 's' : ''}`,
-      message: `Are you sure you want to delete ${tubes.length} tube${tubes.length > 1 ? 's' : ''}? This action cannot be undone.`,
-      onConfirm: async () => {
-        try {
-          console.log(`🗑️ [Dashboard] Bulk deleting ${tubes.length} tube${tubes.length > 1 ? 's' : ''} using React Query`);
-          const tubeIds = tubes.map(tube => tube.id);
-          await bulkDeleteTubesMutation.mutateAsync({ tubeIds });
-
-          notifications.success(`Successfully deleted ${tubeIds.length} tube${tubeIds.length > 1 ? 's' : ''}`);
-          setSelection(new Set());
-          modalService.hideDeleteConfirm();
-        } catch (error) {
-          console.error('Dashboard bulk delete failed:', error);
-          notifications.error(`Failed to delete tubes: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          modalService.hideDeleteConfirm();
-        }
-      }
-    });
-  };
 
   // Selection analysis for header
   const selectionAnalysis = (() => {
@@ -326,16 +295,6 @@ export function Dashboard() {
     };
   })();
 
-  // Unified position management for mouse/keyboard sync
-  const gridPosition = useGridPosition({
-    tankId: currentTank,
-    rackId: currentRack,
-    boxId: currentBox,
-    gridSize: 9,
-    onPositionChange: (position) => {
-      // Could add focus change animation here if needed
-    }
-  });
 
   // SINGLE GRID CONTROLLER INSTANCE - All other components receive actions as props
   const gridController = useGridController({
@@ -353,10 +312,7 @@ export function Dashboard() {
     },
     onPasteTubes: async (tubes) => {
       await pasteTubesMutation.mutateAsync({ tubes });
-    },
-    onEditTube: handleEditTube,
-    onBatchEditTubes: handleBatchEditTubes,
-    onAddTubes: handleAddTube
+    }
   });
 
   return (
@@ -365,11 +321,7 @@ export function Dashboard() {
       <div className="app-header">
         <AppHeader
           selectedPositions={selectedPositions}
-          onAddTube={handleAddTube}
-          onEditTube={handleEditTube}
-          onBatchEditTubes={handleBatchEditTubes}
           onClearSelection={handleClearSelection}
-          onDeleteConfirm={handleDeleteConfirm}
           tubes={tubes}
           gridController={{
             openModal: gridController.openModal,

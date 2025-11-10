@@ -40,39 +40,31 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
     }));
   }
 
-  const groups = new Map<string, { 
-    tubes: TubeData[], 
-    type: GroupedResult['groupType'], 
-    matchedField: string 
+  const groups = new Map<string, {
+    tubes: TubeData[],
+    type: GroupedResult['groupType'],
+    matchedField: string
   }>();
-  
+
   tubes.forEach(tube => {
-    let matchedField = '';
     let groupType: GroupedResult['groupType'] = 'cellType';
 
     // Determine what field matched the query
     if (tube.sample.donorInternalId?.toLowerCase().includes(query.toLowerCase())) {
-      matchedField = tube.sample.donorInternalId;
       groupType = 'donor';
     } else if (tube.sample.donorSourceId?.toLowerCase().includes(query.toLowerCase())) {
-      matchedField = tube.sample.donorSourceId;
       groupType = 'donor';
     } else if (tube.sample.cellType?.toLowerCase().includes(query.toLowerCase())) {
-      matchedField = tube.sample.cellType;
       groupType = 'cellType';
     } else if (tube.researcherId?.toLowerCase().includes(query.toLowerCase())) {
       // Search by researcherId (ID-based, not name)
       // Note: This searches by ID string. To search by name, need to fetch researcher data separately
-      matchedField = tube.researcherId;
       groupType = 'researcher';
     } else if (tube.sample.lotNumber?.toLowerCase().includes(query.toLowerCase())) {
-      matchedField = tube.sample.lotNumber;
       groupType = 'lotNumber';
     } else if (tube.sample.media && getMediaString(tube.sample.media).toLowerCase().includes(query.toLowerCase())) {
-      matchedField = getMediaString(tube.sample.media);
       groupType = 'media';
     } else {
-      matchedField = tube.sample.cellType || 'Unknown';
       groupType = 'cellType';
     }
 
@@ -88,7 +80,7 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
   });
 
   return Array.from(groups.entries())
-    .map(([key, { tubes: groupTubes, type, matchedField }]) => ({
+    .map(([_key, { tubes: groupTubes, type, matchedField }]) => ({
       groupKey: matchedField,
       groupType: type,
       tubes: groupTubes,

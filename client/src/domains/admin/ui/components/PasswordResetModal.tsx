@@ -13,7 +13,7 @@
  * - Loading states and error handling
  */
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 
 import { X, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import toast from 'react-hot-toast';

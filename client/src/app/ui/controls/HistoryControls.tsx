@@ -129,7 +129,7 @@ export function HistoryControls({
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {/* Future operations (redo stack) */}
-              {redoStack.map((operation, index) => (
+              {redoStack.map((operation, _index) => (
                 <div
                   key={`redo-${operation.id}`}
                   className="flex items-center space-x-3 p-2 rounded bg-blue-50 border border-blue-200"

@@ -8,7 +8,6 @@ import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type TubeQueryFilters,
-  type BatchTubeOperation,
   EQUIPMENT_DEFAULTS,
   UNKNOWN_RESEARCHER
 , type TubeData as SchemaTubeData    } from '@odysseus/shared-schemas';
@@ -128,7 +127,7 @@ export function useCreateTubeMutation(options?: {
       const schemaTube = await TubeService.createTube(tubeData);
       return convertSchemaToSharedTubeData(schemaTube);
     },
-    onSuccess: (newTube, variables) => {
+    onSuccess: (newTube, _variables) => {
       // Add to cache immediately for optimistic updates
       queryClient.setQueryData(queryKeys.tubes.detail(newTube.id), newTube);
 
@@ -154,7 +153,7 @@ export function useUpdateTubeMutation(options?: {
       const schemaTube = await TubeService.updateTube(id, data);
       return convertSchemaToSharedTubeData(schemaTube);
     },
-    onSuccess: (updatedTube, variables) => {
+    onSuccess: (updatedTube, _variables) => {
       // Update specific tube in cache immediately
       queryClient.setQueryData(queryKeys.tubes.detail(updatedTube.id), updatedTube);
 
@@ -239,7 +238,7 @@ export function useBatchTubeMutation(options?: {
           throw new Error(`Unsupported batch operation: ${action}`);
       }
     },
-    onSuccess: (result, variables) => {
+    onSuccess: (_result, _variables) => {
       // Invalidate all tube-related queries for batch operations
       // This ensures consistency across the entire dataset
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });

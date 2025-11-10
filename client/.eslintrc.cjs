@@ -60,7 +60,15 @@ module.exports = {
     'react-hooks/exhaustive-deps': 'error', // Critical for hook dependencies
     
     // TypeScript specific rules
-    '@typescript-eslint/no-unused-vars': 'error',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        argsIgnorePattern: '^_',
+        varsIgnorePattern: '^_',
+        caughtErrorsIgnorePattern: '^_',
+        destructuredArrayIgnorePattern: '^_',
+      },
+    ],
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/consistent-type-imports': 'error',
     '@typescript-eslint/no-floating-promises': 'error',

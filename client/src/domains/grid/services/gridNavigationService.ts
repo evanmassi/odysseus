@@ -90,12 +90,8 @@ export class GridNavigationService {
   public async navigateToTank(tankId: string): Promise<NavigationResult> {
     // Import configuration store to get first available rack/box
     const { useStorageStore } = await import('@/domains/storage');
-    const { getCurrentRacks, getCurrentBoxes, getCurrentTanks } = useStorageStore.getState();
-    
-    // Debug: Log available tanks
-    const availableTanks = getCurrentTanks();
-    
-    
+    const { getCurrentRacks, getCurrentBoxes } = useStorageStore.getState();
+
     const racks = getCurrentRacks(tankId);
     if (racks.length === 0) {
       console.error(`🐛 DEBUG: No racks found for tank "${tankId}"`);

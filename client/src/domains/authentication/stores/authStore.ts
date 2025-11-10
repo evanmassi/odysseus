@@ -14,12 +14,8 @@ import { persist } from 'zustand/middleware';
 
 import { SessionManager, LocalStorageSessionStorage } from '@app/services/SessionManager';
 import { authHttpClient } from '@infra/api/AuthHttpClient';
-import { httpClient, configureHttpClientWithSessionManager } from '@infra/api/httpClient';
+import { configureHttpClientWithSessionManager } from '@infra/api/httpClient';
 import { env } from '@shared/config';
-import {
-  LoginResponse,
-  SessionError
-} from '@shared/session/types';
 
 import { authService } from '../services/AuthenticationService';
 

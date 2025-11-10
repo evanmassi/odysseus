@@ -50,7 +50,7 @@ export const validateTubeData = (data: any) => ({
 export const validateBoxName = validateBoxId;
 
 // Enhanced validation with legacy-compatible interface for TubeValidationErrors
-export const validateTubeDataLegacyFormat = (tubeData: any, existingTubes: any[] = []): { 
+export const validateTubeDataLegacyFormat = (tubeData: any, _existingTubes: any[] = []): { 
   isValid: boolean; 
   errors: TubeValidationErrors; 
   warnings: TubeValidationErrors;

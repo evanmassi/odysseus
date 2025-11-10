@@ -40,7 +40,7 @@ interface GridPositionProps {
   isDragPreview?: boolean; // Visual preview only, no animation
   isCut: boolean;
   isCopied: boolean;
-  isKeyboardFocused: boolean;
+  _isKeyboardFocused: boolean;
   animationKey?: number;
   quickEditMode: { position: number; field: string } | null;
   gridConfig: GridConfiguration;
@@ -64,7 +64,7 @@ export const GridPosition = memo<GridPositionProps>(({
   isDragPreview = false,
   isCut,
   isCopied,
-  isKeyboardFocused,
+  _isKeyboardFocused,
   animationKey = 0,
   quickEditMode,
   gridConfig,

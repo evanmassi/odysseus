@@ -14,9 +14,8 @@ import {
 } from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { 
+import {
   initializeOptimisticUpdates,
-  OptimisticPatterns,
   ConflictResolution
 } from '@infra/optimistic/optimisticUpdates';
 
@@ -71,14 +70,14 @@ export function useOptimisticCreateTubeMutation() {
       rollback: 'Tube creation failed. Changes have been reverted.'
     },
 
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, _variables, _context) => {
       console.log('[OptimisticTube] Tube created successfully:', data.id);
 
       // Invalidate related queries to ensure consistency
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
 
-    onError: (error, variables, context) => {
+    onError: (error, _variables, _context) => {
       console.error('❌ [OptimisticTube] Failed to create tube:', error);
     }
   });
@@ -131,7 +130,7 @@ export function useOptimisticUpdateTubeMutation() {
       rollback: 'Update failed. Changes have been reverted.'
     },
 
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, _context) => {
       console.log('[OptimisticTube] Tube updated successfully:', variables.id);
 
       // Update individual tube cache
@@ -178,9 +177,9 @@ export function useOptimisticDeleteTubeMutation() {
       rollback: 'Delete failed. Tube has been restored.'
     },
 
-    onSuccess: (data, tubeId, context) => {
+    onSuccess: (data, tubeId, _context) => {
       console.log('[OptimisticTube] Tube deleted successfully:', tubeId);
-      
+
       // Remove from individual cache
       queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
 
@@ -269,7 +268,7 @@ export function useOptimisticBatchTubesMutation() {
       rollback: 'Batch operation failed. Changes have been reverted.'
     },
 
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, _variables, _context) => {
       console.log('[OptimisticTube] Batch operation completed:', data.count, 'tubes');
 
       // Invalidate all location queries and statistics
@@ -340,9 +339,9 @@ export function useOptimisticMoveTubeMutation() {
       rollback: 'Move failed. Tube position has been restored.'
     },
 
-    onSuccess: (data, variables, context) => {
+    onSuccess: (data, variables, _context) => {
       console.log('[OptimisticTube] Tube moved successfully:', variables.tubeId);
-      
+
       // Update individual tube cache
       queryClient.setQueryData(queryKeys.tubes.detail(variables.tubeId), data);
     }

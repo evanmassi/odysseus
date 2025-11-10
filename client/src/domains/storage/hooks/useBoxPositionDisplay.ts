@@ -83,7 +83,7 @@ export const useUpdateBoxPositionDisplayMutation = () => {
       );
     },
 
-    onError: (error: any, variables) => {
+    onError: (error: any, _variables) => {
       // Show error feedback
       console.error('❌ [useUpdateBoxPositionDisplayMutation] Failed:', error);
       toast.error(`Failed to update position display: ${error.message || 'Unknown error'}`);
@@ -134,7 +134,7 @@ export const useUpdateLabDefaultPositionDisplayMutation = () => {
       );
     },
 
-    onError: (error: any, variables) => {
+    onError: (error: any, _variables) => {
       // Show error feedback
       console.error('❌ [useUpdateLabDefaultPositionDisplayMutation] Failed:', error);
       toast.error(`Failed to update lab default: ${error.message || 'Unknown error'}`);

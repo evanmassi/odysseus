@@ -27,7 +27,7 @@ import {
   formatConcentrationDisplay,
   EQUIPMENT_DEFAULTS
 } from '@odysseus/shared-schemas';
-import { MapPin, AlertTriangle, Pencil, Edit, Plus, Save, Trash2 } from 'lucide-react';
+import { MapPin, AlertTriangle, Edit, Plus, Save, Trash2 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';

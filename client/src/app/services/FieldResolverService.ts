@@ -68,9 +68,9 @@ export class FieldResolverService {
         exists: true
       }),
       
-      getFieldPath: (fieldKey: string) => fieldKey,
+      getFieldPath: (_fieldKey: string) => _fieldKey,
       
-      isValidField: (fieldKey: string) => true,
+      isValidField: (_fieldKey: string) => true,
       
       getAvailableFields: () => [],
       

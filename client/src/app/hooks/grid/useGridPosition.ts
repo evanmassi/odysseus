@@ -6,9 +6,9 @@
 import { useGridUiStore } from '@shared/stores/gridUiStore';
 
 interface GridPositionProps {
-  tankId: string;
-  rackId: string;
-  boxId: string;
+  _tankId: string;
+  _rackId: string;
+  _boxId: string;
   gridSize: number;
   onPositionChange?: (position: number) => void;
 }
@@ -21,9 +21,9 @@ interface GridPositionReturn {
 }
 
 export const useGridPosition = ({
-  tankId,
-  rackId,
-  boxId,
+  _tankId,
+  _rackId,
+  _boxId,
   gridSize,
   onPositionChange
 }: GridPositionProps): GridPositionReturn => {

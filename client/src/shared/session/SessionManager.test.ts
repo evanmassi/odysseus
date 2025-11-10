@@ -9,8 +9,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { SessionManager } from '@app/services/SessionManager';
 
-import { SessionStatus } from './types';
-
 import type { TokenPair, SessionConfig } from './types';
 
 // Mock HTTP client

@@ -208,7 +208,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
     return (
       <RegistrationSuccessModal
         username={registrationResult.username}
-        email={registrationResult.email}
         status={registrationResult.status}
         onClose={handleSuccessModalClose}
       />

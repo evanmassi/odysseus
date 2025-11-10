@@ -290,18 +290,6 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
     return result;
   }, [filters, tanks, researchers]);
 
-  // Group active filters by category
-  const groupedActiveFilters = useMemo(() => {
-    const groups: Record<string, ActiveFilter[]> = {};
-    activeFilters.forEach(filter => {
-      if (!groups[filter.category]) {
-        groups[filter.category] = [];
-      }
-      groups[filter.category].push(filter);
-    });
-    return groups;
-  }, [activeFilters]);
-
   const hasActiveFilters = activeFilters.length > 0;
 
   // Smart truncation state

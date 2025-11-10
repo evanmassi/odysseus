@@ -1,20 +1,18 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 
 import {
-  useGridController,
   useGridDragSelection,
   useGridKeyboardNavigation,
   useGridFontSizing
 } from '@app/hooks/grid';
 import { useAuthStore } from '@domains/authentication';
-import { useStorageStore, useCurrentTanks , getGridTotalPositions } from '@domains/storage';
+import { useStorageStore, getGridTotalPositions } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
 import { useTubesByLocation } from '@domains/tubes/hooks';
-import { env } from '@shared/config';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey, parsePositionKey, type PositionKey   , GridControllerReturn } from '@shared/types/grid';
+import { toPositionKey, type PositionKey, GridControllerReturn } from '@shared/types/grid';
 
 
 import { ContextMenu } from '../../../../../shared/ui/primitives/shared/ContextMenu';
@@ -95,7 +93,6 @@ export function TubeGrid({
   const setClipboard = useGridUiStore(state => state.setClipboard);
 
   // UI-related state only
-  const [shiftStartPosition, setShiftStartPosition] = useState<number | null>(null);
   const [quickEditMode, setQuickEditMode] = useState<{ position: number; field: string } | null>(null);
   const [focusedPosition, setFocusedPosition] = useState<number>(1);
 
@@ -143,10 +140,6 @@ export function TubeGrid({
     [currentTubes]
   );
 
-  // Helper functions
-  const getTubeAtPosition = (position: number) => tubes.find(tube => tube.location.position === position);
-  const getCurrentSelection = () => Array.from(selectedPositions).map(Number);
-
   // Position click handler (delegates to grid controller)
   const handlePositionClick = (position: number, event: React.MouseEvent) => {
     setFocusedPosition(position); // Update keyboard focus on click
@@ -155,7 +148,6 @@ export function TubeGrid({
 
   const handlePositionRightClick = (position: number, event: React.MouseEvent) => {
     event.preventDefault();
-    const positionKey = toPositionKey(ctx, position);
 
     // Add position to selection if not already selected
     if (!controller.isPositionSelected(position)) {
@@ -275,7 +267,7 @@ export function TubeGrid({
               isDragPreview={inDragPreview && !selected}
               isCut={isCut}
               isCopied={isCopied}
-              isKeyboardFocused={isKeyboardFocused}
+              _isKeyboardFocused={isKeyboardFocused}
               quickEditMode={quickEditMode}
               gridConfig={gridConfig}
               fontSize={fontSizing.fontSize}
