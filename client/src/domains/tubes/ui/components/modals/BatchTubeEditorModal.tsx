@@ -8,25 +8,24 @@ import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
+import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
 import { useCreateTubeForm } from '@domains/tubes/hooks/useTubeForm';
-import { BaseModal } from './BaseModal';
 import { useBulkUpdateTubesMutation, useBulkDeleteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
+import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
+import { notifications } from '@shared/utils';
+import { formatDateForInput } from '@shared/utils/dateFormatter';
 
+import { TubeForm } from '../forms/TubeForm';
 
+import { BaseModal } from './BaseModal';
 import { BulkProgressModal } from './BulkProgressModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 
 import type { BulkUpdateProgress, BulkUpdateResult } from '@shared/types/bulkOperations';
 import type { TubeData } from '@shared/types/tubeTypes';
-import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
 
-import { TubeForm } from '../forms/TubeForm';
 
-import { notifications } from '@shared/utils';
-import { useKeyboardNavigation } from '@shared/hooks/keyboard';
-import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
-import { formatDateForInput } from '@shared/utils/dateFormatter';
 
 export interface BatchTubeEditorModalProps {
   tubeIds: string[];     // Accept IDs, fetch own data
@@ -61,6 +60,7 @@ interface BatchEditConflictAnalysis {
  * Only converts editable fields (sample + researcherId, no location)
  * Returns form INPUT type (pre-transformation)
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeFormInput> {
   return {
     sample: {
@@ -197,7 +197,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
 
   // CRITICAL: Subscribe to formState by destructuring in render phase (React Hook Form v7 Proxy pattern)
   // Without this, component won't re-render when errors/dirtyFields change
-  const { errors, dirtyFields, isDirty, isValidating } = form.formState;
+  const { errors, dirtyFields } = form.formState;
 
   // Reset form when resolved data changes to update dirty tracking baseline
   // This ensures defaultValues stay in sync with current tube selection

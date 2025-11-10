@@ -17,10 +17,10 @@
 // } from './useOptimizedCallback';
 
 // Placeholder exports to prevent import errors
-export const useOptimizedCallback = (...args: any[]) => args[0];
-export const useStableSelector = (...args: any[]) => args[0];
-export const useDebounced = (...args: any[]) => args[0];
-export const useThrottled = (...args: any[]) => args[0];
-export const useMemoizedCalculation = (...args: any[]) => args[0];
-export const useIntersectionObserver = (...args: any[]) => ({});
-export const usePerformanceMonitor = (...args: any[]) => ({});
+export const useOptimizedCallback = (..._args: any[]) => _args[0];
+export const useStableSelector = (..._args: any[]) => _args[0];
+export const useDebounced = (..._args: any[]) => _args[0];
+export const useThrottled = (..._args: any[]) => _args[0];
+export const useMemoizedCalculation = (..._args: any[]) => _args[0];
+export const useIntersectionObserver = (..._args: any[]) => ({});
+export const usePerformanceMonitor = (..._args: any[]) => ({});

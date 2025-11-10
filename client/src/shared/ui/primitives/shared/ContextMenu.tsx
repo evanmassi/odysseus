@@ -2,8 +2,6 @@ import { useEffect, useRef } from 'react';
 
 import { Plus, Edit, Trash2, Copy, Scissors, ClipboardPaste, X } from 'lucide-react';
 
-import { NOTIFICATION_COLORS } from '@shared/utils/notifications';
-
 interface ContextMenuProps {
   isVisible: boolean;
   position: { x: number; y: number };

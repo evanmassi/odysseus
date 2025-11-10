@@ -8,10 +8,10 @@ import { useFieldResolverQuery } from '@app/hooks';
 import { useUserSettings } from '@domains/authentication';
 import { useResearchersQuery } from '@domains/researchers';
 import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
-import { useTubeStore } from '../../../stores/tubeStore';
 import { parsePositionKey } from '@shared/types/grid';
 import { formatDateForDisplay } from '@shared/utils/dateFormatter';
 
+import { useTubeStore } from '../../../stores/tubeStore';
 import { FieldValue } from '../displays/FieldValue';
 import { InfoSection } from '../displays/InfoSection';
 

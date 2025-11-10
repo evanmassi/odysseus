@@ -8,9 +8,6 @@
 
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
-import { z } from 'zod';
-
-import { queryKeys } from '../socket/queryBridge';
 
 
 import type { QueryClient, UseMutationOptions } from '@tanstack/react-query';
@@ -208,7 +205,7 @@ export class OptimisticUpdatesService {
     variables: TVariables,
     config: NonNullable<OptimisticMutationOptions<any, any, TVariables, any>['optimisticUpdate']>
   ): Promise<OptimisticContext> {
-    const { queryKeys, updateFn, generateTempId, conflictResolution } = config;
+    const { queryKeys, updateFn, generateTempId } = config;
     
     // Cancel any outgoing refetches for affected queries
     await Promise.all(
@@ -373,7 +370,7 @@ export const OptimisticPatterns = {
    */
   createItem: <T extends { id: string }>(
     queryKey: string[],
-    listPath?: string
+    _listPath?: string
   ) => ({
     queryKeys: [queryKey],
     updateFn: (variables: Partial<T>, oldData: T[] | undefined) => {

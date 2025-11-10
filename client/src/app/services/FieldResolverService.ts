@@ -35,7 +35,7 @@ export class FieldResolverService {
     return value;
   }
 
-  static formatValue(value: any, fieldKey: string): string {
+  static formatValue(value: any, _fieldKey: string): string {
     if (value === null || value === undefined) return '';
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (typeof value === 'number') return value.toString();
@@ -43,7 +43,7 @@ export class FieldResolverService {
     return String(value);
   }
 
-  static validateValue(value: any, fieldKey: string): boolean {
+  static validateValue(value: any, _fieldKey: string): boolean {
     // Basic validation - can be enhanced based on fieldKey
     return value !== null && value !== undefined && value !== '';
   }

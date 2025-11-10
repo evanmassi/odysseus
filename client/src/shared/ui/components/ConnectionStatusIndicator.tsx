@@ -206,7 +206,7 @@ export const RealtimeSyncIndicator: React.FC<RealtimeSyncIndicatorProps> = ({
   isVisible = true
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [_isPending, startTransition] = useTransition();
 
   // Monitor query cache for background updates
   const queryClient = useQueryClient();

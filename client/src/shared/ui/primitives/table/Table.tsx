@@ -455,7 +455,7 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
       variant = 'default',
       size = 'md',
       stickyHeader = false,
-      pagination,
+      pagination: _pagination,
       onSort,
       onSelectionChange = () => {},
       onRowClick,
@@ -467,7 +467,7 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
       bodyClassName,
       rowClassName,
       maxHeight,
-      virtualized = false,
+      virtualized: _virtualized = false,
       ...props
     },
     ref

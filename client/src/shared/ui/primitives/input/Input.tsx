@@ -9,8 +9,6 @@ import React, { forwardRef, useState, useId, useCallback } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 
-import { odysseusTheme } from '../../designSystem/tokens';
-
 import { defaultInputProps } from './types';
 
 import type { InputProps, InputRef, ValidationResult } from './types';
@@ -400,7 +398,6 @@ export const Input = forwardRef<InputRef, InputProps>(
   ) => {
     // Generate unique IDs
     const id = useId();
-    const labelId = `${id}-label`;
     const descriptionId = `${id}-description`;
     const errorId = `${id}-error`;
     

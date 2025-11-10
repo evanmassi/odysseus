@@ -17,8 +17,7 @@ import {
 
 import { queryKeys } from '@app/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
-import type { TubeData} from '@domains/tubes/types';
-import { type CreateTubeRequest, type UpdateTubeRequest } from '@domains/tubes/types';
+import { type CreateTubeRequest, type UpdateTubeRequest , TubeData} from '@domains/tubes/types';
 
 import type { BulkUpdateResult} from '@shared/types/bulkOperations';
 

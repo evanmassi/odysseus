@@ -29,9 +29,11 @@ export interface ModalKeyboardNavConfig {
  */
 export function useModalKeyboardNav(config: ModalKeyboardNavConfig) {
   const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onEnter,
     onEscape,
     enabled = true,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     preventDefaultEnter = true,
     preventDefaultEscape = true,
   } = config;

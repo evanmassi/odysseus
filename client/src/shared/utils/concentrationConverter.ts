@@ -13,11 +13,8 @@
  * Will be removed in future cleanup phase.
  */
 
-import { 
-  parseScientificNotation, 
-  isScientificNotationInput,
-  formatToScientificNotation 
-} from './scientificNotation';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { formatToScientificNotation } from './scientificNotation';
 
 /**
  * Comprehensive concentration parser supporting all common scientific formats:

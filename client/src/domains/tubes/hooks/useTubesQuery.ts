@@ -4,13 +4,14 @@
  * Uses TubeService for all API operations with comprehensive Zod validation
  */
 
+import type { BatchResult } from '@odysseus/shared-schemas';
 import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type TubeQueryFilters,
   EQUIPMENT_DEFAULTS,
   UNKNOWN_RESEARCHER
-, type TubeData as SchemaTubeData    } from '@odysseus/shared-schemas';
+, type TubeData as SchemaTubeData           } from '@odysseus/shared-schemas';
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
@@ -19,7 +20,7 @@ import { type TubeData } from '@shared/types/tubeTypes';
 import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
 import { TubeService } from '../services/TubeService';
-import type { BatchResult } from '@odysseus/shared-schemas';
+
 
 /**
  * Convert schema-based TubeData to shared TubeData format
@@ -294,7 +295,7 @@ export function usePositionAvailabilityQuery(
   rackId: string,
   boxId: string,
   position: number,
-  options?: {
+  _options?: {
     queryOptions?: Omit<UseQueryOptions<{ available: boolean; occupiedBy?: TubeData }, Error>, 'queryKey' | 'queryFn'>;
   }
 ) {

@@ -1,12 +1,11 @@
 /**
  * Modal Component Types
- * 
+ *
  * Type definitions for accessible Modal primitive components
  * Includes modal, modal header, modal footer, and modal body
  */
 
 import type { ReactNode } from 'react';
-import { ComponentProps } from 'react';
 
 // Modal size types
 export type ModalSize = 

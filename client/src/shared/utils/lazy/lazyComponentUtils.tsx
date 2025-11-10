@@ -1,11 +1,11 @@
 /**
  * Lazy Component Utilities
- * 
+ *
  * Utilities for managing lazy component loading, preloading, and performance monitoring
  */
 
 import type { ComponentType } from 'react';
-import React, { lazy } from 'react';
+import { lazy } from 'react';
 
 import { env } from '@shared/config';
 

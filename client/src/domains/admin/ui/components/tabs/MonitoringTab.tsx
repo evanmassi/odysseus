@@ -18,8 +18,6 @@ import { Activity } from 'lucide-react';
 import { AuditLogViewer } from '../AuditLogViewer';
 import { AuditRetentionSettings } from '../AuditRetentionSettings';
 
-import type { SystemMetrics } from '@odysseus/shared-schemas';
-
 /**
  * MonitoringTab Props Interface
  *
@@ -40,7 +38,7 @@ export interface MonitoringTabProps {}
  * <MonitoringTab />
  * ```
  */
-export function MonitoringTab({}: MonitoringTabProps) {
+export function MonitoringTab(_props: MonitoringTabProps) {
   return (
     <div className="space-y-4">
       {/* Header */}

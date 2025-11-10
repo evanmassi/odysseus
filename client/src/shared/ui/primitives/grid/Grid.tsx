@@ -301,7 +301,7 @@ export const Grid = forwardRef<HTMLDivElement, GridProps>(
       justifyContent = 'start',
       alignContent = 'start',
       autoFlow = 'row',
-      responsive = false,
+      responsive: _responsive = false,
       className,
       as,
       ...props

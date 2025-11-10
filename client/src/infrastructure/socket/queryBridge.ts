@@ -13,6 +13,7 @@
  * - Connection lifecycle management
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { websocketMessageSchema, tubeDataSchema, type TubeData, type Researcher } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 

@@ -2,11 +2,10 @@
  * Infrastructure API Layer - Public Exports
  */
 
-export * from './client';
+export * from './client';  // Exports local ApiError class
 export { httpClient, HttpClient } from './httpClient';
 export { authHttpClient, AuthHttpClient } from './AuthHttpClient';
-export { 
-  ApiError, 
-  type PaginatedResult, 
-  type BatchResult 
+export {
+  type PaginatedResult,
+  type BatchResult
 } from '@odysseus/shared-schemas';

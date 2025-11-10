@@ -25,7 +25,7 @@ interface SecurityTabProps {
 }
 
 export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
-  const { changePassword, isChanging, isSuccess, reset } = useChangePassword();
+  const { changePassword, isChanging, reset } = useChangePassword();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');

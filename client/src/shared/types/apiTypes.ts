@@ -2,7 +2,7 @@
  * API-related types for consistent request/response handling
  */
 
-import type { TubeData, CreateTubeRequest, UpdateTubeRequest } from './tubeTypes';
+import type { TubeData, UpdateTubeRequest } from './tubeTypes';
 import type { ValidationError } from './validationTypes';
 
 // Generic API response wrapper
@@ -31,8 +31,7 @@ export interface TubeAPIResponse extends APIResponse {
   };
 }
 
-// Re-export API request types from shared schemas
-export type { CreateTubeRequest, UpdateTubeRequest };
+// Types imported above for internal use only - not re-exported (tubeTypes.ts is the canonical source)
 
 export interface TubeBulkUpdateRequest {
   updates: Array<{

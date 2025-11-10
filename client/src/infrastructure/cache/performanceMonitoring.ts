@@ -56,7 +56,7 @@ export class CachePerformanceMonitor {
     // Monitor query start and end times for performance tracking
     const originalFetch = this.queryClient.fetchQuery.bind(this.queryClient);
     
-    this.queryClient.fetchQuery = async <TQueryFnData = unknown, TError = Error>(
+    this.queryClient.fetchQuery = async <TQueryFnData = unknown, _TError = Error>(
       options: any
     ): Promise<TQueryFnData> => {
       const queryKeyStr = JSON.stringify(options.queryKey);

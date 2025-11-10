@@ -184,7 +184,7 @@ export const useSmartPrefetch = () => {
       userRole?: string;
       timeOfDay?: string;
     }) => {
-      const { recentLocations = [], userRole, timeOfDay } = userContext;
+      const { recentLocations = [], userRole } = userContext;
       
       // Prefetch recently visited locations
       recentLocations.slice(0, 3).forEach(location => {

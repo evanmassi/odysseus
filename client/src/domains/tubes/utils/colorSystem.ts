@@ -342,7 +342,7 @@ export function invalidateTubeCache(oldTubeData: any, newTubeData?: Partial<any>
 }
 
 // Global lot style assignment for consistency across all boxes
-export function getLotStyleForBox(lotNumber: string | undefined, rackId: string, boxId: string): LotStyle | null {
+export function getLotStyleForBox(lotNumber: string | undefined, _rackId: string, _boxId: string): LotStyle | null {
   if (!lotNumber || lotNumber.trim() === '') return null;
   
   const lot = lotNumber.trim();
@@ -353,7 +353,7 @@ export function getLotStyleForBox(lotNumber: string | undefined, rackId: string,
 }
 
 // Global condition style assignment for consistency across all boxes
-export function getConditionStyleForBox(condition: string | undefined, rackId: string, boxId: string): LotStyle | null {
+export function getConditionStyleForBox(condition: string | undefined, _rackId: string, _boxId: string): LotStyle | null {
   if (!condition || condition.trim() === '') return null;
   
   const cond = condition.trim();

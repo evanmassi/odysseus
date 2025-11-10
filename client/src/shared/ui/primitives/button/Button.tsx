@@ -9,8 +9,6 @@ import React, { forwardRef } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 
-import { odysseusTheme } from '../../designSystem/tokens';
-
 import { defaultButtonProps } from './types';
 
 import type { ButtonProps, ButtonRef} from './types';

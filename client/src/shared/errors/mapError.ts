@@ -15,8 +15,6 @@ import {
   UnknownError,
   DomainError,
   AuthenticationError,
-  type FieldResolutionError,
-  type FieldPathError,
 } from './AppError';
 
 /**
@@ -64,13 +62,6 @@ export const mapError = (error: unknown): AppError => {
 
   // Everything else becomes UnknownError
   return new UnknownError(error);
-};
-
-/**
- * Maps HTTP Response to ApiError
- */
-const mapResponseError = async (response: Response): Promise<ApiError> => {
-  return ApiError.fromResponse(response);
 };
 
 /**

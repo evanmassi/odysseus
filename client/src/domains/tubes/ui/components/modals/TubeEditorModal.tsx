@@ -33,15 +33,14 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
-import { useTubeStore } from '@domains/tubes';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import { useUpdateTubeMutation, useDeleteTubeMutation } from '@domains/tubes/hooks/useTubeMutations';
 import { useTubesQuery, useTubeQuery } from '@domains/tubes/hooks/useTubesQuery';
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { notifications } from '@shared/utils';
-
 import { formatDateForInput } from '@shared/utils/dateFormatter';
+
 import { LocationDisplay } from '../displays/LocationDisplay';
 import { TubeForm } from '../forms/TubeForm';
 
@@ -300,11 +299,10 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
  */
 function CreateModeContent({
   onClose,
-  rackId,
-  boxId,
+  _rackId,
+  _boxId,
   selectedPositions
 }: TubeEditorModalProps) {
-  const { currentTank } = useTubeStore();
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: allTubes = [] } = useTubesQuery();
   const updateTubeMutation = useUpdateTubeMutation();

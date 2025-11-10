@@ -65,7 +65,7 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
   onError,
   errorFallback,
   'aria-label': ariaLabel,
-  timeout = 10000, // 10 second timeout
+  timeout: _timeout = 10000, // 10 second timeout
   className = '',
   name,
 }) => {

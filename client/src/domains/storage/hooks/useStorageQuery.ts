@@ -82,7 +82,7 @@ export const useSaveStorageMutation = () => {
 export const useStorageSync = (
   systemConfig: SystemConfiguration,
   currentLab: LabConfiguration,
-  options?: {
+  _options?: {
     autoSave?: boolean;
     debounceMs?: number;
   }

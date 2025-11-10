@@ -10,7 +10,7 @@
  * - Default state: Tank 1 → Rack 1 → Box A visible
  */
 
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
@@ -48,8 +48,6 @@ export function StorageNavigator() {
     return new Set([`${firstTank.id}-${firstRack.id}`]);
   });
 
-  // Ref for the container to enable dynamic tree line calculations
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // Click handlers: Navigate + Toggle expansion
   const handleTankClick = async (tankId: string) => {
@@ -165,7 +163,6 @@ export function StorageNavigator() {
 
   // Keyboard navigation hook
   const {
-    focusedIndex,
     getItemProps,
     getContainerProps,
   } = useListKeyboardNavigation(

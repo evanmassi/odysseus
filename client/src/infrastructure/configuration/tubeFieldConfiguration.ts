@@ -15,8 +15,6 @@
 import { env } from '@shared/config';
 import { formatToScientificNotation } from '@shared/utils/scientificNotation';
 
-import { FieldMetadata } from './fieldPathMapping';
-
 import type { ValidTubeFieldKey} from './fieldPathMapping';
 import type { FieldResolver } from '@domains/tubes/types/FieldResolver';
 
@@ -320,7 +318,6 @@ export class TubeFieldConfigurationService {
   validateConfiguration(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
     const allFields = this.getAllFields();
-    const availableResolverFields = this.fieldResolver.getAvailableFields();
     
     // Check that all field keys can be resolved
     allFields.forEach(field => {

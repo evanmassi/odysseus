@@ -32,6 +32,3 @@ export {
   useEditTubeForm,
   useTubeFormTransform
 } from './hooks/useTubeForm';
-
-// Schemas
-export * from '@odysseus/shared-schemas';

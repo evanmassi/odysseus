@@ -282,7 +282,6 @@ export const useTabOrder = (config: TabOrderConfig = {}) => {
   
   // Get props for tab order item
   const getItemProps = useCallback((id: string, order?: number, group?: string) => {
-    const item = tabOrderItems.find(item => item.id === id);
     const isCurrent = currentFocusedItem?.id === id;
     
     return {

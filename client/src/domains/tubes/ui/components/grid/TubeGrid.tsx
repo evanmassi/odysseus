@@ -7,12 +7,11 @@ import {
   useGridKeyboardNavigation,
   useGridFontSizing
 } from '@app/hooks/grid';
-import { useAuthStore } from '@domains/authentication';
 import { useStorageStore, getGridTotalPositions } from '@domains/storage';
-import { useTubeStore } from '@domains/tubes';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey, type PositionKey, GridControllerReturn } from '@shared/types/grid';
+
+import { toPositionKey, type PositionKey       } from '@shared/types/grid';
 
 
 import { ContextMenu } from '../../../../../shared/ui/primitives/shared/ContextMenu';
@@ -21,6 +20,7 @@ import { GridPosition } from './GridPosition';
 import '@shared/styles/legacy/colorIndicators.css';
 
 import type { TubeData } from '@domains/tubes/types';
+import type { GridControllerReturn } from '@shared/types/grid';
 
 /**
  * TubeGrid Props Interface
@@ -31,9 +31,9 @@ interface TubeGridProps {
   boxId: string;
   selectedPositions: Set<PositionKey>;
   onSelectionChange: (positions: Set<PositionKey>) => void;
-  onEditTube?: (tubeId: string) => void;
-  onBatchEditTubes?: (tubeIds: string[]) => void;
-  onAddTubes?: (positions: PositionKey[]) => void;
+  _onEditTube?: (tubeId: string) => void;
+  _onBatchEditTubes?: (tubeIds: string[]) => void;
+  _onAddTubes?: (positions: PositionKey[]) => void;
   gridController: GridControllerReturn;
 }
 
@@ -42,33 +42,29 @@ interface TubeGridProps {
  *
  * Supports individual box customization and dynamic grid sizes.
  */
-export function TubeGrid({ 
+export function TubeGrid({
   tankId,
-  rackId, 
-  boxId, 
-  selectedPositions, 
+  rackId,
+  boxId,
+  selectedPositions,
   onSelectionChange,
-  onEditTube,
-  onBatchEditTubes,
-  onAddTubes,
+  _onEditTube,
+  _onBatchEditTubes,
+  _onAddTubes,
   gridController
 }: TubeGridProps) {
-  // UI state from Zustand, server state from React Query
-  const { 
-    selectedPositions: storeSelectedPositions,  // Note: this component manages its own selection
-  } = useTubeStore();
+  // Component manages its own selection via props, no need for store selection
   
   // Server state from React Query
   const {
     data: tubes = [],
     isLoading,
-    error,
-    isStale
+    error
   } = useTubesByLocation(tankId, rackId, boxId, {
     staleTime: 2 * 60 * 1000
   });
   const { getBox } = useStorageStore();
-  const {} = useAuthStore();
+  // Auth store subscribed for reactive updates
 
   // Data loading is now handled by GridNavigationService
   // This component just displays the current data from the store

@@ -35,7 +35,7 @@ function AppContent() {
 
   // Prefetch user settings in background (only when authenticated)
   // Settings are cached by React Query and available throughout the app
-  const { } = useUserSettingsQuery({ enabled: isAuthenticated });
+  useUserSettingsQuery({ enabled: isAuthenticated });
 
   // Show loading screen during bootstrap
   if (isLoading) {

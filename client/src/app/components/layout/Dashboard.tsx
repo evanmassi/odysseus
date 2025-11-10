@@ -1,7 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
 
-import { useAuthStore } from '@domains/authentication';
-
 import type { TubeData } from '@domains/tubes/types';
 
 import { gridNavigationService } from '@domains/grid';
@@ -12,7 +10,7 @@ import { useTubeStore , TubeInfoPanel } from '@domains/tubes';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useBulkDeleteTubesMutation, usePasteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';
 
-import { useGridController, useGridPosition } from '../../hooks/grid';
+import { useGridController } from '../../hooks/grid';
 
 
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
@@ -98,8 +96,8 @@ export function Dashboard() {
 
 
 
-  
-  const {} = useAuthStore();
+
+  // Auth store subscribed for reactive updates
 
   const getCurrentTanks = useStorageStore(state => state.getCurrentTanks);
   

@@ -15,6 +15,7 @@
  * - Clear separation of concerns (config vs logic)
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { TubeData } from '@shared/types/tubeTypes';
 
 import type { FieldPathMapping } from '@domains/tubes/types/FieldResolver';

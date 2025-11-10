@@ -29,8 +29,6 @@ export function AnimatedTreeLineOverlay({
 
   // Get configuration methods
   const getCurrentTanks = useStorageStore(state => state.getCurrentTanks);
-  const getCurrentRacks = useStorageStore(state => state.getCurrentRacks);
-  const getCurrentBoxes = useStorageStore(state => state.getCurrentBoxes);
 
   const tanks = getCurrentTanks();
 

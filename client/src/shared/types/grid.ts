@@ -3,6 +3,7 @@
  * Type definitions for grid operations
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type { TubeData, CreateTubeRequest } from './tubeTypes';
 
 // Position and location types

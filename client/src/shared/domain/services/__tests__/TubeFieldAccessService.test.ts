@@ -374,7 +374,6 @@ describe('TubeFieldAccessService', () => {
     });
 
     test('should cache compiled paths for performance', () => {
-      const metrics1 = service.getPerformanceMetrics();
       service.getValue(mockTubeData, 'cellType'); // Cache miss
       
       const metrics2 = service.getPerformanceMetrics();
@@ -389,8 +388,7 @@ describe('TubeFieldAccessService', () => {
     test('should clear cache correctly', () => {
       service.getValue(mockTubeData, 'cellType'); // Populate cache
       service.clearCache();
-      
-      const initialCacheHits = service.getPerformanceMetrics().cacheHits;
+
       service.getValue(mockTubeData, 'cellType'); // Should be cache miss after clear
       
       const finalMetrics = service.getPerformanceMetrics();

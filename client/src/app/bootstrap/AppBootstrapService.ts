@@ -3,7 +3,6 @@
  */
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
-import { initializeCacheWarming } from '@infra/cache/CacheWarmingService';
 import { initializeNetworkMonitor, cleanupNetworkMonitor } from '@infra/connection/networkMonitor';
 import { initializeOptimisticUpdates } from '@infra/optimistic/optimisticUpdates';
 import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';

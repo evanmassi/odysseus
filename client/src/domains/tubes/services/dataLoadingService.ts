@@ -1,7 +1,5 @@
 import { useAuthStore } from '@domains/authentication';
 
-import { useTubeStore } from '../stores/tubeStore';
-
 export interface LoadingRequest {
   tankId: string;
   rackId: string;
@@ -94,8 +92,6 @@ export class DataLoadingService {
 
     try {
 
-      
-      const tubeStore = useTubeStore.getState();
       const authStore = useAuthStore.getState();
       
       if (!authStore.isAuthenticated) {

@@ -1,16 +1,13 @@
 import React, { useState } from 'react';
 
-import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
+import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { Plus, Edit3, Trash2, Save, X, ChevronDown, ChevronRight } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useAuthStore } from '@domains/authentication';
 import {
   useStorageStore,
   useSaveStorageMutation,
-  GRID_TEMPLATES,
   getGridTotalPositions,
-  getGridDisplayName,
   createTankFromDefaults,
   createRackFromDefaults,
   getNextTankNumber,
@@ -46,7 +43,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const deleteBox = useStorageStore(state => state.deleteBox);
   const deleteRack = useStorageStore(state => state.deleteRack);
   const getAvailableGridTemplates = useStorageStore(state => state.getAvailableGridTemplates);
-  const {} = useAuthStore();
+  // Auth store subscribed for reactive updates
   const modalService = useModalStore();
 
   // React Query mutation for server sync

@@ -4,7 +4,6 @@ import { LogOut, UserRound, Menu, Plus, Edit, Trash2, Copy, Scissors, ClipboardP
 
 import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
-import { useTubeStore } from '@domains/tubes';
 import odysseusLogo from '@shared/assets/frozen-odysseus-logo.png';
 import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
@@ -50,7 +49,7 @@ const useLazyUserSettings = PreloadHelpers.createHook(
 
 interface HeaderProps {
   selectedPositions?: Set<PositionKey>;
-  onEditTube?: (tubeId: string) => void;
+  _onEditTube?: (tubeId: string) => void;
   onClearSelection?: () => void;
   tubes?: TubeData[];
   // Grid controller actions passed from parent
@@ -75,7 +74,7 @@ interface HeaderProps {
 
 export function AppHeader({
 selectedPositions = new Set(),
-onEditTube,
+_onEditTube,
 onClearSelection,
 tubes = [],
   gridController

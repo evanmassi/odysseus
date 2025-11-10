@@ -11,7 +11,6 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { createPortal } from 'react-dom';
 
 import { useModalFocusTrap } from '../../../hooks/keyboard';
-import { odysseusTheme } from '../../designSystem/tokens';
 
 import {
   defaultModalProps,

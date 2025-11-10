@@ -39,8 +39,8 @@ export {
 */
 
 // Temporary minimal exports until path aliases are fixed
-export const validateBoxId = (value: string) => ({ isValid: true, error: undefined });
-export const validateTubeData = (data: any) => ({ 
+export const validateBoxId = (_value: string) => ({ isValid: true, error: undefined });
+export const validateTubeData = (_data: any) => ({ 
   success: true, 
   errors: null,
   warnings: null 

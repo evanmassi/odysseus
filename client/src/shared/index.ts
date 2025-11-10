@@ -28,8 +28,7 @@ export type {
   QueryParameters
 } from '@odysseus/shared-schemas';
 
-// Constants - application-wide constants
-export * from './constants';
+// Constants - application-wide constants (moved to legacy-backup)
 
 // Configuration - environment and app config
 export * from './config';
@@ -50,8 +49,7 @@ export * from './ui';
 // Grid utilities
 export * from './types/GridTypes';
 
-// Feature flags
-export * from './utils/featureFlags';
+// Feature flags (currently unused but kept for future use)
 
 // Pure lib functions
 export { resetConfiguration } from './utils/resetConfiguration';

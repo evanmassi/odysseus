@@ -60,17 +60,6 @@ const defaultConfig: Partial<KeyboardNavigationConfig> = {
 };
 
 // Utility functions
-const positionToIndex = (position: GridPosition, columns: number): number => {
-  return position.row * columns + position.column;
-};
-
-const indexToPosition = (index: number, columns: number): GridPosition => {
-  return {
-    row: Math.floor(index / columns),
-    column: index % columns,
-  };
-};
-
 const isValidPosition = (position: GridPosition, rows: number, columns: number): boolean => {
   return position.row >= 0 && position.row < rows && 
          position.column >= 0 && position.column < columns;
