@@ -98,13 +98,13 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   // Pagination
   const goToNextPage = () => {
     if (pagination.hasMore) {
-      setFilters(prev => ({ ...prev, offset: (prev.offset || 0) + (prev.limit || 50) }));
+      setFilters(prev => ({ ...prev, offset: (prev.offset ?? 0) + (prev.limit ?? 50) }));
     }
   };
 
   const goToPreviousPage = () => {
-    if ((filters.offset || 0) > 0) {
-      setFilters(prev => ({ ...prev, offset: Math.max(0, (prev.offset || 0) - (prev.limit || 50)) }));
+    if ((filters.offset ?? 0) > 0) {
+      setFilters(prev => ({ ...prev, offset: Math.max(0, (prev.offset ?? 0) - (prev.limit ?? 50)) }));
     }
   };
 
@@ -192,8 +192,8 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     key => key !== 'datePreset' && tempFilters[key as keyof AuditFilterState]
   );
 
-  const currentPage = Math.floor((filters.offset || 0) / (filters.limit || 50)) + 1;
-  const totalPages = Math.ceil((pagination?.total || 0) / (filters.limit || 50));
+  const currentPage = Math.floor((filters.offset ?? 0) / (filters.limit ?? 50)) + 1;
+  const totalPages = Math.ceil((pagination?.total ?? 0) / (filters.limit ?? 50));
 
   return (
     <div className="space-y-3">
@@ -343,13 +343,13 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
       {!loading && entries && entries.length > 0 && (
         <div className="flex items-center justify-between text-xs text-gray-600">
           <div>
-            Showing {(filters.offset || 0) + 1} - {Math.min((filters.offset || 0) + (entries?.length || 0), pagination?.total || 0)} of {(pagination?.total || 0).toLocaleString()}
+            Showing {(filters.offset ?? 0) + 1} - {Math.min((filters.offset ?? 0) + (entries?.length ?? 0), pagination?.total ?? 0)} of {(pagination?.total ?? 0).toLocaleString()}
           </div>
 
           <div className="flex items-center gap-2">
             <button
               onClick={goToPreviousPage}
-              disabled={(filters.offset || 0) === 0}
+              disabled={(filters.offset ?? 0) === 0}
               className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="w-4 h-4" />

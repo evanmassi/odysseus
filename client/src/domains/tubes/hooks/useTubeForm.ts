@@ -328,7 +328,7 @@ export function useTubeFormTransform() {
           selection: tubeData.sample.media?.selection || ''
         },
         cultureCondition: tubeData.sample.cultureCondition || '',
-        lotNumber: tubeData.sample.lotNumber || '',
+        lotNumber: tubeData.sample.lotNumber ?? '',
         notes: tubeData.sample.notes || ''
       },
       researcherId: tubeData.researcherId

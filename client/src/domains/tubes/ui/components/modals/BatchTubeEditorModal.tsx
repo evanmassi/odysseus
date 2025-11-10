@@ -73,7 +73,7 @@ function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeFormIn
       date: tubeData.sample.date || '',
       media: tubeData.sample.media || { type: '', supplements: '', selection: '' },
       cultureCondition: tubeData.sample.cultureCondition || '',
-      lotNumber: tubeData.sample.lotNumber || '',
+      lotNumber: tubeData.sample.lotNumber ?? '',
       notes: tubeData.sample.notes || ''
     },
     researcherId: tubeData.researcherId
@@ -170,7 +170,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
           selection: analysis['media.selection'].state !== 'conflict' ? analysis['media.selection'].commonValue || '' : ''
         },
         cultureCondition: analysis.cultureCondition.state !== 'conflict' ? analysis.cultureCondition.commonValue || '' : '',
-        lotNumber: analysis.lotNumber.state !== 'conflict' ? analysis.lotNumber.commonValue || '' : '',
+        lotNumber: analysis.lotNumber.state !== 'conflict' ? analysis.lotNumber.commonValue ?? '' : '',
         notes: analysis.notes.state !== 'conflict' ? analysis.notes.commonValue || '' : ''
       },
       researcherId: analysis.researcherId.state !== 'conflict' ? analysis.researcherId.commonValue || '' : ''

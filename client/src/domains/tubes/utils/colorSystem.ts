@@ -207,9 +207,9 @@ function getDonorIdentifier(tubeData: ColorSystemTubeData): string {
 function createTubeSignature(tubeData: ColorSystemTubeData): string {
   const donorId = getDonorIdentifier(tubeData);
   const cellType = tubeData.cellType || tubeData.cellLine || '';
-  const lotNumber = tubeData.lotNumber || '';
+  const lotNumber = tubeData.lotNumber ?? '';
   const condition = tubeData.cultureCondition || '';
-  
+
   return `${donorId}|${cellType}|${lotNumber}|${condition}`;
 }
 

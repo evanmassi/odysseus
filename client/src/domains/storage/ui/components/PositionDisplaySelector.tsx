@@ -145,7 +145,7 @@ export const PositionDisplaySelector: React.FC<PositionDisplaySelectorProps> = (
     let positionDisplay;
 
     if (format === 'numeric') {
-      positionDisplay = presetsData?.presets.NUMERIC || { format: 'numeric' as const };
+      positionDisplay = presetsData?.presets.NUMERIC ?? { format: 'numeric' as const };
     } else {
       // Alphanumeric - use appropriate preset based on grid size
       const preset = presetsData?.presets.ALPHANUMERIC_STANDARD;
@@ -155,7 +155,7 @@ export const PositionDisplaySelector: React.FC<PositionDisplaySelectorProps> = (
       } else {
         // For custom grid sizes, would need to generate config
         // For now, use standard preset
-        positionDisplay = presetsData?.presets.ALPHANUMERIC_STANDARD || {
+        positionDisplay = presetsData?.presets.ALPHANUMERIC_STANDARD ?? {
           format: 'alphanumeric' as const,
           alphanumericConfig: {
             rowLabels: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],

@@ -243,7 +243,7 @@ export function ResearcherManagementTab({
 
                   {/* Position Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{researcher.position || '—'}</div>
+                    <div className="text-sm text-gray-900">{researcher.position ?? '—'}</div>
                     {researcher.department && (
                       <div className="text-xs text-gray-500">{researcher.department}</div>
                     )}

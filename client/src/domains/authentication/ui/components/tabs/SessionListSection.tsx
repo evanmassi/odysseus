@@ -33,7 +33,7 @@ export function SessionListSection() {
     const parser = new UAParser(userAgent);
     const result = parser.getResult();
 
-    const browser = result.browser.name || 'Unknown Browser';
+    const browser = result.browser.name ?? 'Unknown Browser';
     const browserVersion = result.browser.version?.split('.')[0] || '';
     const os = result.os.name || 'Unknown OS';
     const osVersion = result.os.version || '';

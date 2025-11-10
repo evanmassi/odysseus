@@ -164,13 +164,13 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
   const getSectionCount = (section: 'location' | 'sample' | 'researcher' | 'date'): number => {
     switch (section) {
       case 'location':
-        return (filters.tankIds?.length || 0) + (filters.rackIds?.length || 0) + (filters.boxIds?.length || 0);
+        return (filters.tankIds?.length ?? 0) + (filters.rackIds?.length ?? 0) + (filters.boxIds?.length ?? 0);
       case 'sample':
-        return (filters.cellTypes?.length || 0) + (filters.lotNumbers?.length || 0) +
-               (filters.donorInternalIds?.length || 0) + (filters.donorSourceIds?.length || 0) +
-               (filters.cultureConditions?.length || 0);
+        return (filters.cellTypes?.length ?? 0) + (filters.lotNumbers?.length ?? 0) +
+               (filters.donorInternalIds?.length ?? 0) + (filters.donorSourceIds?.length ?? 0) +
+               (filters.cultureConditions?.length ?? 0);
       case 'researcher':
-        return filters.researcherIds?.length || 0;
+        return filters.researcherIds?.length ?? 0;
       case 'date':
         return (filters.dateFrom ? 1 : 0) + (filters.dateTo ? 1 : 0);
       default:

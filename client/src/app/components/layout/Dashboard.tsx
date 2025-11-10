@@ -407,7 +407,7 @@ export function Dashboard() {
             rackId={modalService.tubeEditorModal.rackId || currentRack}
             boxId={modalService.tubeEditorModal.boxId || currentBox}
             onClose={handleCloseModal}
-            selectedPositions={new Set(modalService.tubeEditorModal.positions || [])}
+            selectedPositions={new Set(modalService.tubeEditorModal.positions ?? [])}
           />
         </SuspenseBoundary>
       )}

@@ -77,19 +77,19 @@ export function SystemConfigTab({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* Total Tubes */}
           <div className="bg-gray-50 p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-gray-900">{stats?.totalTubes || 0}</div>
+            <div className="text-xl font-bold text-gray-900">{stats?.totalTubes ?? 0}</div>
             <div className="text-xs text-gray-600">Total Tubes</div>
           </div>
 
           {/* Total Users */}
           <div className="bg-gray-50 p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-gray-900">{stats?.totalUsers || 0}</div>
+            <div className="text-xl font-bold text-gray-900">{stats?.totalUsers ?? 0}</div>
             <div className="text-xs text-gray-600">Total Users</div>
           </div>
 
           {/* Total Researchers */}
           <div className="bg-gray-50 p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-gray-900">{stats?.totalResearchers || 0}</div>
+            <div className="text-xl font-bold text-gray-900">{stats?.totalResearchers ?? 0}</div>
             <div className="text-xs text-gray-600">Researchers</div>
           </div>
 

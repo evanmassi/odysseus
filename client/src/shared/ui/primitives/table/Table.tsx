@@ -393,9 +393,9 @@ export const TableBody = <T extends TableRow>({
     <tbody className={className}>
       {data.map((row, index) => {
         const isSelected = selectedRows.includes(row.id);
-        const finalRowClassName = typeof rowClassName === 'function' 
+        const finalRowClassName = typeof rowClassName === 'function'
           ? rowClassName(row, index)
-          : rowClassName || '';
+          : rowClassName ?? '';
         
         return (
           <tr
@@ -527,9 +527,9 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
     );
     
     // Wrap in container for max height or sticky header
-    if (maxHeight || stickyHeader) {
+    if (maxHeight ?? stickyHeader) {
       return (
-        <div 
+        <div
           className={`overflow-auto ${stickyHeader ? 'relative' : ''}`}
           style={{ maxHeight }}
         >

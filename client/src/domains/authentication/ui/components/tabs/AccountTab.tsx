@@ -42,7 +42,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
       setLastName(profile.lastName);
       setEmail(profile.email);
       setDepartment(profile.department || '');
-      setPosition(profile.position || '');
+      setPosition(profile.position ?? '');
     }
   }, [profile]);
 
@@ -73,7 +73,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
       lastName !== profile.lastName ||
       email !== profile.email ||
       department !== (profile.department || '') ||
-      position !== (profile.position || '')
+      position !== (profile.position ?? '')
     );
   }, [profile, firstName, lastName, email, department, position]);
 
@@ -105,7 +105,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
     if (lastName !== profile?.lastName) updateData.lastName = lastName.trim();
     if (email !== profile?.email) updateData.email = email.trim();
     if (department !== (profile?.department || '')) updateData.department = department.trim() || undefined;
-    if (position !== (profile?.position || '')) updateData.position = position.trim() || undefined;
+    if (position !== (profile?.position ?? '')) updateData.position = position.trim() || undefined;
 
     updateProfile(updateData, {
       onSuccess: () => {

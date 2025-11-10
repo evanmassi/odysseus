@@ -245,6 +245,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
     ref
   ) => {
     // Determine if button is disabled (disabled prop or loading state)
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic is correct here
     const isDisabled = disabled || isLoading;
     
     // Generate button classes

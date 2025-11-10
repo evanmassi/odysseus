@@ -286,9 +286,9 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
   const getSectionCount = (section: string): number => {
     switch (section) {
       case 'actions':
-        return filters.actions?.length || 0;
+        return filters.actions?.length ?? 0;
       case 'entityTypes':
-        return filters.entityTypes?.length || 0;
+        return filters.entityTypes?.length ?? 0;
       case 'user':
         return filters.username ? 1 : 0;
       case 'date':

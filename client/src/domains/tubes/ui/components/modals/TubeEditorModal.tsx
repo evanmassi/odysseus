@@ -174,7 +174,7 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
         selection: tube.sample.media?.selection || ''
       },
       cultureCondition: tube.sample.cultureCondition || '',
-      lotNumber: tube.sample.lotNumber || '',
+      lotNumber: tube.sample.lotNumber ?? '',
       notes: tube.sample.notes || ''
     },
     researcherId: tube.researcherId ?? ''
@@ -531,7 +531,7 @@ function CreateModeContent({
         const updateCount = positionAnalysis.occupiedPositions.length;
 
         // Build position range display for notification
-        const positionRange = batchLocationDisplay?.positionRanges || '';
+        const positionRange = batchLocationDisplay?.positionRanges ?? '';
 
         if (createCount > 0 && updateCount > 0) {
           notifications.create(`Successfully filled ${successCount} positions (${createCount} new, ${updateCount} updated) at ${positionRange}`); // Minty Frost

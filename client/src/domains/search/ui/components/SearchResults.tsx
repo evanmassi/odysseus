@@ -82,8 +82,8 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
         }
 
         case 'lotNumber': {
-          const lotA = firstTubeA.sample?.lotNumber || '';
-          const lotB = firstTubeB.sample?.lotNumber || '';
+          const lotA = firstTubeA.sample?.lotNumber ?? '';
+          const lotB = firstTubeB.sample?.lotNumber ?? '';
           compareValue = lotA.localeCompare(lotB);
           break;
         }
@@ -225,7 +225,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
           tube.sample.cellType || '',
           tube.sample.donorInternalId ?? '',
           tube.sample.donorSourceId ?? '',
-          tube.sample.lotNumber || '',
+          tube.sample.lotNumber ?? '',
           tube.researcherId ?? '',
           tube.sample.date || ''
         ].join(',');
@@ -374,7 +374,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
             const donorInternal = firstTube.sample?.donorInternalId ?? '';
             const donorSource = firstTube.sample?.donorSourceId ?? '';
             const cultureCondition = firstTube.sample?.cultureCondition || '';
-            const lotNumber = firstTube.sample?.lotNumber || '';
+            const lotNumber = firstTube.sample?.lotNumber ?? '';
             const concentration = formatConcentrationDisplay(
               firstTube.sample?.concentration,
               firstTube.sample?.concentrationUnit

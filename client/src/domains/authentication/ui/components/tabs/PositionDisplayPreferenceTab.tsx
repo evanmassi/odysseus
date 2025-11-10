@@ -23,8 +23,8 @@ export function PositionDisplayPreferenceTab({
   savedPositionDisplay,
   onChange,
 }: PositionDisplayPreferenceTabProps) {
-  const currentFormat = defaultPositionDisplay?.format || null;
-  const savedFormat = savedPositionDisplay?.format || null;
+  const currentFormat = defaultPositionDisplay?.format ?? null;
+  const savedFormat = savedPositionDisplay?.format ?? null;
 
   const handleFormatChange = (format: 'numeric' | 'alphanumeric' | null) => {
     if (format === null) {
