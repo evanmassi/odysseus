@@ -47,7 +47,7 @@ const DefaultLoadingFallback: React.FC<DefaultLoadingFallbackProps> = ({ name, c
   <div 
     className={`flex items-center justify-center p-8 ${className}`}
     role="status"
-    aria-label={ariaLabel || `Loading ${name || 'component'}...`}
+    aria-label={ariaLabel ?? `Loading ${name ?? 'component'}...`}
   >
     <div className="flex items-center space-x-3">
       <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary-600 border-t-transparent" />
@@ -75,7 +75,7 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
       <div 
         className={`flex flex-col items-center justify-center p-8 text-center ${className}`}
         role="alert"
-        aria-label={`Error loading ${name || 'component'}`}
+        aria-label={`Error loading ${name ?? 'component'}`}
       >
         <div className="text-error-500 mb-4">
           <svg className="w-12 h-12 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -86,7 +86,7 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
         </div>
         
         <h3 className="text-lg font-semibold text-neutral-900 mb-2">
-          Failed to load {name || 'component'}
+          Failed to load {name ?? 'component'}
         </h3>
         
         <p className="text-neutral-600 mb-4 max-w-sm">

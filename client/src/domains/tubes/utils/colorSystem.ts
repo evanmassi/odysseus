@@ -384,8 +384,8 @@ export function parseDonorInfo(tubeData: any): { internal: string; source: strin
   // Check if we have the new separate fields first
   if (adaptedData.donorInternalId || adaptedData.donorSourceId) {
     return {
-      internal: formatIdForGrid(adaptedData.donorInternalId || ''),
-      source: formatIdForGrid(adaptedData.donorSourceId || '')
+      internal: formatIdForGrid(adaptedData.donorInternalId ?? ''),
+      source: formatIdForGrid(adaptedData.donorSourceId ?? '')
     };
   }
   

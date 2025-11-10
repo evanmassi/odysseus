@@ -536,7 +536,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                     <FilterChip
                       label="Lab Name Changed"
                       actionValue="lab_name_changed"
-                      isSelected={filters.actions?.includes('lab_name_changed') || false}
+                      isSelected={filters.actions?.includes('lab_name_changed') ?? false}
                       onClick={() => toggleAction('lab_name_changed')}
                     />
                   </div>

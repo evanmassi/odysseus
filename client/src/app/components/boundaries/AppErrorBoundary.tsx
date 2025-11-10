@@ -166,7 +166,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
                     Error Details
                   </h4>
                   <p className="text-sm text-red-700 break-words">
-                    {this.state.error?.message || 'Unknown error occurred'}
+                    {this.state.error?.message ?? 'Unknown error occurred'}
                   </p>
                   <p className="text-xs text-red-600 mt-2">
                     Error ID: {this.state.errorId}

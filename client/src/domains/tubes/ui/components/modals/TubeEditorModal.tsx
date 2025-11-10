@@ -163,8 +163,8 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
   const initialData: Partial<UpdateTubeFormInput> = {
     sample: {
       cellType: tube.sample.cellType || '',
-      donorInternalId: tube.sample.donorInternalId || '',
-      donorSourceId: tube.sample.donorSourceId || '',
+      donorInternalId: tube.sample.donorInternalId ?? '',
+      donorSourceId: tube.sample.donorSourceId ?? '',
       concentration: formatConcentrationDisplay(tube.sample.concentration) || undefined,
       concentrationUnit: tube.sample.concentrationUnit || undefined,
       date: tube.sample.date ? formatDateForInput(tube.sample.date) : '',
@@ -177,7 +177,7 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
       lotNumber: tube.sample.lotNumber || '',
       notes: tube.sample.notes || ''
     },
-    researcherId: tube.researcherId || ''
+    researcherId: tube.researcherId ?? ''
   };
 
   // Use edit mode hook - fully type-safe wrapper
@@ -200,7 +200,7 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
         notifications.update('Tube updated successfully'); // Minty Frost
         onClose();
       } else {
-        notifications.error(result.error || 'Failed to update tube');
+        notifications.error(result.error ?? 'Failed to update tube');
       }
     } catch (error) {
       notifications.error('Failed to update tube');
@@ -396,13 +396,13 @@ function CreateModeContent({
     const firstLocation = parsedPositions[0].location;
     const tanks = currentLab.equipment?.tanks || [];
     const tank = tanks.find(t => t.id === firstLocation.tankId);
-    const tankName = tank?.name || `Tank ${firstLocation.tankId}`;
+    const tankName = tank?.name ?? `Tank ${firstLocation.tankId}`;
 
     const rack = tank?.racks?.find(r => r.id === firstLocation.rackId);
-    const rackName = rack?.name || `Rack ${firstLocation.rackId}`;
+    const rackName = rack?.name ?? `Rack ${firstLocation.rackId}`;
 
     const box = rack?.boxes?.find(b => b.id === firstLocation.boxId);
-    const boxName = box?.name || `Box ${firstLocation.boxId}`;
+    const boxName = box?.name ?? `Box ${firstLocation.boxId}`;
 
     // Get box config for flexible position formatting
     const boxObj = getBox(firstLocation.tankId, firstLocation.rackId, firstLocation.boxId);
@@ -498,7 +498,7 @@ function CreateModeContent({
             successCount++;
           } else {
             errorCount++;
-            errors.push(`Position ${location.position}: ${result.error || 'Unknown error'}`);
+            errors.push(`Position ${location.position}: ${result.error ?? 'Unknown error'}`);
           }
         } catch (error) {
           errorCount++;

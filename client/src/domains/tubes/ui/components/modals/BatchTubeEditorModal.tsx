@@ -66,7 +66,7 @@ function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeFormIn
   return {
     sample: {
       cellType: tubeData.sample.cellType || '',
-      donorInternalId: tubeData.sample.donorInternalId || '',
+      donorInternalId: tubeData.sample.donorInternalId ?? '',
       donorSourceId: tubeData.sample.donorSourceId || '',
       concentration: formatConcentrationDisplay(tubeData.sample.concentration) || undefined,
       concentrationUnit: tubeData.sample.concentrationUnit,
@@ -406,7 +406,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
   const tanks = getCurrentTanks();
   const currentTankObj = tanks.find(tank => tank.id === tankId);
   const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === rackId);
-  const tankName = currentTankObj?.name || 'Unknown Tank';
+  const tankName = currentTankObj?.name ?? 'Unknown Tank';
   const rackName = currentRackObj?.name || 'Unknown Rack';
 
   // Get user settings for position display preferences

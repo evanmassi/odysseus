@@ -223,10 +223,10 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
           tube.location.position,
           positionLabel,
           tube.sample.cellType || '',
-          tube.sample.donorInternalId || '',
-          tube.sample.donorSourceId || '',
+          tube.sample.donorInternalId ?? '',
+          tube.sample.donorSourceId ?? '',
           tube.sample.lotNumber || '',
-          tube.researcherId || '',
+          tube.researcherId ?? '',
           tube.sample.date || ''
         ].join(',');
       })
@@ -371,8 +371,8 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
             {sortedGroups.map((group, index) => {
             const firstTube = group.tubes[0];
             const cellType = firstTube.sample?.cellType || 'Unknown';
-            const donorInternal = firstTube.sample?.donorInternalId || '';
-            const donorSource = firstTube.sample?.donorSourceId || '';
+            const donorInternal = firstTube.sample?.donorInternalId ?? '';
+            const donorSource = firstTube.sample?.donorSourceId ?? '';
             const cultureCondition = firstTube.sample?.cultureCondition || '';
             const lotNumber = firstTube.sample?.lotNumber || '';
             const concentration = formatConcentrationDisplay(

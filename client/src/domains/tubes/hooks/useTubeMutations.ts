@@ -411,7 +411,7 @@ export const useBulkDeleteTubesMutation = (
         errors: results.filter(r => !r.success).map(r => ({
           itemId: r.id,
           tubeId: r.id,
-          error: r.error || 'Unknown error'
+          error: r.error ?? 'Unknown error'
         })),
         duration: 0 // Add proper timing if needed
       };

@@ -104,7 +104,7 @@ export function Dashboard() {
   const tankDisplayName = currentTankObj?.name || `Tank ${currentTank}`;
   
   const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === currentRack);
-  const rackDisplayName = currentRackObj?.name || `Rack ${currentRack}`;
+  const rackDisplayName = currentRackObj?.name ?? `Rack ${currentRack}`;
   const modalService = useModalStore();
 
   const storageHierarchy: StorageHierarchy = useMemo(() => ({

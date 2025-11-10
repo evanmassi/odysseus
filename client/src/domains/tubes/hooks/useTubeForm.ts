@@ -317,8 +317,8 @@ export function useTubeFormTransform() {
     return {
       sample: {
         cellType: tubeData.sample.cellType,
-        donorInternalId: tubeData.sample.donorInternalId || '',
-        donorSourceId: tubeData.sample.donorSourceId || '',
+        donorInternalId: tubeData.sample.donorInternalId ?? '',
+        donorSourceId: tubeData.sample.donorSourceId ?? '',
         concentration: tubeData.sample.concentration,
         concentrationUnit: tubeData.sample.concentrationUnit,
         date: tubeData.sample.date || '',

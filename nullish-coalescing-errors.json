@@ -1,0 +1,1427 @@
+[
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\bootstrap\\useAppBootstrap.ts",
+    "line": 59,
+    "column": 37
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\components\\boundaries\\AppErrorBoundary.tsx",
+    "line": 169,
+    "column": 48
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\components\\layout\\Dashboard.tsx",
+    "line": 107,
+    "column": 48
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\components\\layout\\Dashboard.tsx",
+    "line": 110,
+    "column": 48
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\components\\layout\\Dashboard.tsx",
+    "line": 161,
+    "column": 36
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\components\\layout\\Dashboard.tsx",
+    "line": 376,
+    "column": 66
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\components\\layout\\Dashboard.tsx",
+    "line": 410,
+    "column": 57
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\components\\layout\\Dashboard.tsx",
+    "line": 411,
+    "column": 55
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\components\\layout\\Dashboard.tsx",
+    "line": 413,
+    "column": 79
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridController.ts",
+    "line": 96,
+    "column": 47
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridController.ts",
+    "line": 96,
+    "column": 105
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridController.ts",
+    "line": 392,
+    "column": 34
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridController.ts",
+    "line": 393,
+    "column": 34
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridController.ts",
+    "line": 394,
+    "column": 34
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridController.ts",
+    "line": 578,
+    "column": 44
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridController.ts",
+    "line": 678,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridController.ts",
+    "line": 682,
+    "column": 52
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridController.ts",
+    "line": 690,
+    "column": 52
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\grid\\useGridKeyboardNavigation.ts",
+    "line": 113,
+    "column": 73
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolverQuery.ts",
+    "line": 106,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolverQuery.ts",
+    "line": 142,
+    "column": 47
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolverQuery.ts",
+    "line": 193,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+    "line": 170,
+    "column": 56
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\SessionManager.ts",
+    "line": 125,
+    "column": 37
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\SessionManager.ts",
+    "line": 431,
+    "column": 69
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\stores\\modalStore.ts",
+    "line": 122,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\stores\\modalStore.ts",
+    "line": 144,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 230,
+    "column": 37
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 239,
+    "column": 45
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 289,
+    "column": 40
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 291,
+    "column": 44
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 389,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 408,
+    "column": 75
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 447,
+    "column": 75
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 476,
+    "column": 77
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 482,
+    "column": 77
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 488,
+    "column": 77
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 497,
+    "column": 77
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 503,
+    "column": 77
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 509,
+    "column": 77
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 518,
+    "column": 76
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 524,
+    "column": 76
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 530,
+    "column": 76
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 539,
+    "column": 81
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 568,
+    "column": 75
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 597,
+    "column": 75
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 643,
+    "column": 43
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogFilterPanel.tsx",
+    "line": 650,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 101,
+    "column": 59
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 101,
+    "column": 79
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 106,
+    "column": 25
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 107,
+    "column": 71
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 107,
+    "column": 91
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 195,
+    "column": 50
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 195,
+    "column": 73
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 196,
+    "column": 74
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 346,
+    "column": 38
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 346,
+    "column": 77
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AuditLogViewer.tsx",
+    "line": 352,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\tabs\\ResearcherManagementTab.tsx",
+    "line": 246,
+    "column": 81
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\tabs\\SystemConfigTab.tsx",
+    "line": 80,
+    "column": 81
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\tabs\\SystemConfigTab.tsx",
+    "line": 86,
+    "column": 81
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\tabs\\SystemConfigTab.tsx",
+    "line": 92,
+    "column": 87
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\LoginModal.tsx",
+    "line": 59,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\LoginModal.tsx",
+    "line": 87,
+    "column": 93
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\RegisterModal.tsx",
+    "line": 183,
+    "column": 45
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\AccountTab.tsx",
+    "line": 44,
+    "column": 40
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\AccountTab.tsx",
+    "line": 45,
+    "column": 36
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\AccountTab.tsx",
+    "line": 75,
+    "column": 42
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\AccountTab.tsx",
+    "line": 76,
+    "column": 38
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\AccountTab.tsx",
+    "line": 107,
+    "column": 45
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\AccountTab.tsx",
+    "line": 108,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\PositionDisplayPreferenceTab.tsx",
+    "line": 26,
+    "column": 56
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\PositionDisplayPreferenceTab.tsx",
+    "line": 27,
+    "column": 52
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\SessionListSection.tsx",
+    "line": 36,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\SessionListSection.tsx",
+    "line": 37,
+    "column": 66
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\SessionListSection.tsx",
+    "line": 38,
+    "column": 31
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\SessionListSection.tsx",
+    "line": 39,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\SessionListSection.tsx",
+    "line": 40,
+    "column": 43
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\SessionListSection.tsx",
+    "line": 170,
+    "column": 77
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\tabs\\SessionListSection.tsx",
+    "line": 244,
+    "column": 86
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\researchers\\hooks\\useResearchersQuery.ts",
+    "line": 34,
+    "column": 45
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\researchers\\hooks\\useResearchersQuery.ts",
+    "line": 55,
+    "column": 45
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\researchers\\services\\ResearcherService.ts",
+    "line": 35,
+    "column": 48
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\lib\\searchUtils.ts",
+    "line": 29,
+    "column": 40
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\lib\\searchUtils.ts",
+    "line": 73,
+    "column": 57
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\lib\\searchUtils.ts",
+    "line": 73,
+    "column": 86
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\lib\\searchUtils.ts",
+    "line": 73,
+    "column": 111
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\lib\\searchUtils.ts",
+    "line": 73,
+    "column": 135
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\services\\SearchService.ts",
+    "line": 39,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\services\\SearchService.ts",
+    "line": 40,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\services\\SearchService.ts",
+    "line": 42,
+    "column": 47
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\stores\\searchStore.ts",
+    "line": 106,
+    "column": 71
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 145,
+    "column": 23
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 167,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 167,
+    "column": 74
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 167,
+    "column": 106
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 169,
+    "column": 43
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 169,
+    "column": 79
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 170,
+    "column": 50
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 170,
+    "column": 90
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 171,
+    "column": 51
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 173,
+    "column": 46
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 545,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\FilterPanel.tsx",
+    "line": 554,
+    "column": 37
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 69,
+    "column": 57
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 70,
+    "column": 57
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 85,
+    "column": 53
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 86,
+    "column": 53
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 165,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 168,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 225,
+    "column": 32
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 226,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 227,
+    "column": 37
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 228,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 229,
+    "column": 29
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 230,
+    "column": 28
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 373,
+    "column": 57
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 374,
+    "column": 69
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 375,
+    "column": 65
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 376,
+    "column": 73
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+    "line": 377,
+    "column": 59
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+    "line": 198,
+    "column": 20
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+    "line": 538,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+    "line": 550,
+    "column": 28
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\ui\\components\\PositionDisplaySelector.tsx",
+    "line": 148,
+    "column": 54
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\ui\\components\\PositionDisplaySelector.tsx",
+    "line": 158,
+    "column": 70
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useOptimisticTubeMutations.ts",
+    "line": 50,
+    "column": 48
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useOptimizedTubeQueries.ts",
+    "line": 106,
+    "column": 61
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 98,
+    "column": 83
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 225,
+    "column": 48
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 320,
+    "column": 58
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 321,
+    "column": 54
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 324,
+    "column": 36
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 326,
+    "column": 45
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 327,
+    "column": 59
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 328,
+    "column": 55
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 330,
+    "column": 60
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 331,
+    "column": 46
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+    "line": 332,
+    "column": 38
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeMutations.ts",
+    "line": 414,
+    "column": 26
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+    "line": 65,
+    "column": 69
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+    "line": 66,
+    "column": 76
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+    "line": 67,
+    "column": 74
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+    "line": 155,
+    "column": 69
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+    "line": 156,
+    "column": 76
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+    "line": 157,
+    "column": 74
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+    "line": 262,
+    "column": 52
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+    "line": 262,
+    "column": 69
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubesQuery.ts",
+    "line": 52,
+    "column": 45
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\displays\\LocationDisplay.tsx",
+    "line": 41,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\displays\\LocationDisplay.tsx",
+    "line": 44,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\displays\\LocationDisplay.tsx",
+    "line": 47,
+    "column": 31
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\displays\\LocationDisplay.tsx",
+    "line": 50,
+    "column": 40
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\fieldRenderers\\FieldDisplay.tsx",
+    "line": 112,
+    "column": 14
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\forms\\TubeForm.tsx",
+    "line": 142,
+    "column": 43
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\forms\\TubeForm.tsx",
+    "line": 143,
+    "column": 44
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\forms\\fields\\ConcentrationFieldGroup.tsx",
+    "line": 155,
+    "column": 22
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+    "line": 109,
+    "column": 50
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+    "line": 110,
+    "column": 34
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+    "line": 115,
+    "column": 47
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+    "line": 166,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+    "line": 168,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+    "line": 183,
+    "column": 62
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\TubeGrid.tsx",
+    "line": 74,
+    "column": 44
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\TubeInfoPanel.tsx",
+    "line": 57,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\TubeInfoPanel.tsx",
+    "line": 58,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\TubeInfoPanel.tsx",
+    "line": 70,
+    "column": 50
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\TubeInfoPanel.tsx",
+    "line": 100,
+    "column": 50
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 67,
+    "column": 42
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 68,
+    "column": 56
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 69,
+    "column": 52
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 72,
+    "column": 34
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 73,
+    "column": 36
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 74,
+    "column": 58
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 75,
+    "column": 44
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 76,
+    "column": 36
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 95,
+    "column": 29
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 156,
+    "column": 90
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 157,
+    "column": 111
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 158,
+    "column": 105
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 167,
+    "column": 98
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 168,
+    "column": 119
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 169,
+    "column": 113
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 171,
+    "column": 114
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 172,
+    "column": 93
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 173,
+    "column": 81
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 175,
+    "column": 100
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 408,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 409,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+    "line": 416,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\StorageManagementModal.tsx",
+    "line": 523,
+    "column": 57
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\StorageManagementModal.tsx",
+    "line": 574,
+    "column": 61
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\StorageManagementModal.tsx",
+    "line": 646,
+    "column": 57
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+    "line": 203,
+    "column": 42
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+    "line": 399,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+    "line": 402,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+    "line": 405,
+    "column": 31
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+    "line": 409,
+    "column": 43
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+    "line": 501,
+    "column": 72
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+    "line": 534,
+    "column": 68
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+    "line": 191,
+    "column": 32
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+    "line": 192,
+    "column": 37
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+    "line": 192,
+    "column": 63
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+    "line": 209,
+    "column": 59
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+    "line": 210,
+    "column": 40
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+    "line": 211,
+    "column": 47
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+    "line": 385,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+    "line": 387,
+    "column": 61
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+    "line": 388,
+    "column": 57
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\tubeInfoHelpers.ts",
+    "line": 55,
+    "column": 42
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\tubeInfoHelpers.ts",
+    "line": 180,
+    "column": 30
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\tubeInfoHelpers.ts",
+    "line": 194,
+    "column": 25
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\AuthHttpClient.ts",
+    "line": 51,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\client.ts",
+    "line": 63,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\client.ts",
+    "line": 133,
+    "column": 38
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\httpClient.ts",
+    "line": 38,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\httpClient.ts",
+    "line": 39,
+    "column": 35
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\httpClient.ts",
+    "line": 272,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+    "line": 76,
+    "column": 100
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+    "line": 197,
+    "column": 46
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\cache\\performanceMonitoring.ts",
+    "line": 104,
+    "column": 57
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\connection\\networkMonitor.ts",
+    "line": 334,
+    "column": 49
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+    "line": 167,
+    "column": 48
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\keyboard\\useTabOrder.ts",
+    "line": 115,
+    "column": 26
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\useFocusManagement.tsx",
+    "line": 68,
+    "column": 65
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\useFocusTrap.ts",
+    "line": 36,
+    "column": 15
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\useFocusTrap.ts",
+    "line": 73,
+    "column": 43
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+    "line": 67,
+    "column": 36
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+    "line": 98,
+    "column": 49
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+    "line": 124,
+    "column": 56
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+    "line": 179,
+    "column": 40
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+    "line": 188,
+    "column": 72
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+    "line": 224,
+    "column": 53
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+    "line": 285,
+    "column": 77
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+    "line": 50,
+    "column": 27
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+    "line": 50,
+    "column": 46
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+    "line": 78,
+    "column": 43
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+    "line": 89,
+    "column": 32
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+    "line": 108,
+    "column": 36
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+    "line": 118,
+    "column": 29
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+    "line": 122,
+    "column": 54
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+    "line": 154,
+    "column": 84
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\button\\Button.tsx",
+    "line": 248,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\button\\Button.tsx",
+    "line": 289,
+    "column": 25
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\button\\Button.tsx",
+    "line": 289,
+    "column": 38
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\grid\\Grid.tsx",
+    "line": 335,
+    "column": 24
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\grid\\Grid.tsx",
+    "line": 382,
+    "column": 27
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\grid\\Grid.tsx",
+    "line": 420,
+    "column": 24
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 409,
+    "column": 17
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 410,
+    "column": 19
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 411,
+    "column": 19
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 429,
+    "column": 42
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 471,
+    "column": 17
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 471,
+    "column": 28
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 471,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 485,
+    "column": 37
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 486,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 486,
+    "column": 49
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 525,
+    "column": 22
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 527,
+    "column": 25
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 556,
+    "column": 26
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\input\\Input.tsx",
+    "line": 558,
+    "column": 26
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\inputs\\InlineEditInput.tsx",
+    "line": 63,
+    "column": 34
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\modal\\Modal.tsx",
+    "line": 371,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\modal\\Modal.tsx",
+    "line": 371,
+    "column": 58
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\modal\\Modal.tsx",
+    "line": 397,
+    "column": 33
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\modal\\Modal.tsx",
+    "line": 422,
+    "column": 43
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\modal\\Modal.tsx",
+    "line": 423,
+    "column": 45
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\modal\\Modal.tsx",
+    "line": 448,
+    "column": 32
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\modal\\Modal.tsx",
+    "line": 449,
+    "column": 22
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\modal\\Modal.tsx",
+    "line": 480,
+    "column": 22
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\select\\Select.tsx",
+    "line": 214,
+    "column": 28
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\table\\Table.tsx",
+    "line": 398,
+    "column": 26
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\table\\Table.tsx",
+    "line": 530,
+    "column": 19
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\dateUtils.ts",
+    "line": 71,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\dateUtils.ts",
+    "line": 72,
+    "column": 39
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\dateUtils.ts",
+    "line": 93,
+    "column": 53
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\dateUtils.ts",
+    "line": 164,
+    "column": 41
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+    "line": 77,
+    "column": 65
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+    "line": 121,
+    "column": 50
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+    "line": 135,
+    "column": 45
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+    "line": 144,
+    "column": 21
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\validation\\zodValidation.ts",
+    "line": 99,
+    "column": 68
+  },
+  {
+    "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\validation\\zodValidation.ts",
+    "line": 99,
+    "column": 80
+  }
+]

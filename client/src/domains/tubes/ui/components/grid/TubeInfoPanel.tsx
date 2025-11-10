@@ -54,8 +54,8 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
   const currentBoxObj = getBox(currentTank, currentRack, currentBox);
 
   // Get user-friendly names (not prefixed with "Tank" or "Rack")
-  const tankName = currentTankObj?.name || 'Unknown Tank';
-  const rackName = currentRackObj?.name || 'Unknown Rack';
+  const tankName = currentTankObj?.name ?? 'Unknown Tank';
+  const rackName = currentRackObj?.name ?? 'Unknown Rack';
 
   // Format position summary with flexible display
   // IMPORTANT: Must be before early return to comply with Rules of Hooks

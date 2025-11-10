@@ -38,13 +38,13 @@ export const LocationDisplay = ({
   const locationDisplay = useMemo(() => {
     const tanks = getCurrentTanks();
     const tank = tanks.find(t => t.id === tankId);
-    const tankName = tank?.name || `Tank ${tankId}`;
+    const tankName = tank?.name ?? `Tank ${tankId}`;
 
     const rack = tank?.racks?.find(r => r.id === rackId);
-    const rackName = rack?.name || `Rack ${rackId}`;
+    const rackName = rack?.name ?? `Rack ${rackId}`;
 
     const box = rack?.boxes?.find(b => b.id === boxId);
-    const boxName = box?.name || `Box ${boxId}`;
+    const boxName = box?.name ?? `Box ${boxId}`;
 
     // Format position label using box's configuration
     const gridConfig = box?.gridConfig || {

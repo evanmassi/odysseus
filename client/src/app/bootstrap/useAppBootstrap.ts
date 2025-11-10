@@ -56,7 +56,7 @@ export function useAppBootstrap(): UseAppBootstrapResult {
       case 'complete':
         return 'Ready!';
       case 'error':
-        return bootstrapState.error || 'Initialization failed';
+        return bootstrapState.error ?? 'Initialization failed';
       default:
         return 'Starting up...';
     }

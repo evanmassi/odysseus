@@ -180,7 +180,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         setShowSuccessModal(true);
       } else {
         // Check if it's an email-specific error
-        const errorMessage = result.message || 'Registration failed. Please check your information and try again.';
+        const errorMessage = result.message ?? 'Registration failed. Please check your information and try again.';
         if (errorMessage.toLowerCase().includes('email')) {
           setEmailError(errorMessage);
           setEmailTouched(true);

@@ -142,7 +142,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
   // Get tank name from ID
   const getTankName = useCallback((tankId: string): string => {
     const tank = tanks.find(t => t.id === tankId);
-    return tank?.name || `Tank ${tankId}`;
+    return tank?.name ?? `Tank ${tankId}`;
   }, [tanks]);
 
   // Update date filter

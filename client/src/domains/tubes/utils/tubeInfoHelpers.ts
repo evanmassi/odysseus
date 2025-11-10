@@ -177,7 +177,7 @@ const firstTube = tubes[0];
 const box = firstTube.location.boxId;
 const positions = formatPositionRanges(tubes);
 
-const rackDisplay = rackName || `Rack ${firstTube.location.rackId}`;
+const rackDisplay = rackName ?? `Rack ${firstTube.location.rackId}`;
 
 if (tubes.length === 1) {
   return `${rackDisplay} • Box ${box} • Position ${positions}`;
@@ -191,5 +191,5 @@ if (tubes.length === 1) {
  */
 export function getTankName(tubes: TubeData[], customTankName?: string): string {
   if (tubes.length === 0) return '';
-  return customTankName || `Tank ${tubes[0].location.tankId}`;
+  return customTankName ?? `Tank ${tubes[0].location.tankId}`;
 }
