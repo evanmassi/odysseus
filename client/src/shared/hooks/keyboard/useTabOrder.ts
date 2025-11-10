@@ -5,7 +5,7 @@
  * Ensures keyboard navigation follows intuitive patterns
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Tab order item interface
 export interface TabOrderItem {
@@ -46,7 +46,11 @@ const defaultConfig: TabOrderConfig = {
 
 // Main tab order hook
 export const useTabOrder = (config: TabOrderConfig = {}) => {
-  const finalConfig = { ...defaultConfig, ...config };
+  // Memoize finalConfig to prevent infinite loops in hook dependencies
+  const finalConfig = useMemo(
+    () => ({ ...defaultConfig, ...config }),
+    [config]
+  );
   const containerRef = useRef<HTMLElement>(null);
   const [tabOrderItems, setTabOrderItems] = useState<TabOrderItem[]>([]);
   const [currentFocusedItem, setCurrentFocusedItem] = useState<TabOrderItem | null>(null);

@@ -5,7 +5,12 @@
  * Tests all business logic, error handling, and performance characteristics.
  */
 
-import { TubeFieldAccessService } from '@domains/tubes/services/TubeFieldAccessService';
+import {
+  TubeFieldAccessService,
+  createTubeFieldAccessService,
+  getDefaultTubeFieldAccessService,
+  resetDefaultTubeFieldAccessService
+} from '@domains/tubes/services/TubeFieldAccessService';
 
 import { DomainError, FieldResolutionError, FieldPathError } from '../../errors/DomainError';
 
@@ -434,7 +439,6 @@ describe('TubeFieldAccessService', () => {
 
   describe('Factory Functions and Singleton', () => {
     test('should create service using factory function', () => {
-      const { createTubeFieldAccessService } = require('../TubeFieldAccessService');
       const factoryService = createTubeFieldAccessService(testFieldMapping);
       
       expect(factoryService).toBeInstanceOf(TubeFieldAccessService);
@@ -442,7 +446,6 @@ describe('TubeFieldAccessService', () => {
     });
 
     test('should provide singleton default service', () => {
-      const { getDefaultTubeFieldAccessService } = require('../TubeFieldAccessService');
       const service1 = getDefaultTubeFieldAccessService(testFieldMapping);
       const service2 = getDefaultTubeFieldAccessService();
       
@@ -450,11 +453,6 @@ describe('TubeFieldAccessService', () => {
     });
 
     test('should reset default singleton', () => {
-      const { 
-        getDefaultTubeFieldAccessService, 
-        resetDefaultTubeFieldAccessService 
-      } = require('../TubeFieldAccessService');
-      
       const service1 = getDefaultTubeFieldAccessService(testFieldMapping);
       resetDefaultTubeFieldAccessService();
       const service2 = getDefaultTubeFieldAccessService(testFieldMapping);

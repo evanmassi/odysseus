@@ -122,28 +122,32 @@ export const ResetPasswordPage: React.FC = () => {
         <form onSubmit={handleSubmit}>
           {/* New Password */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
               New Password
             </label>
             <div className="relative">
               <input
+                id="new-password"
                 type={showPassword ? 'text' : 'password'}
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="input w-full"
                 placeholder="Enter new password"
                 required
+                aria-describedby="password-strength"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                aria-controls="new-password"
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
             {newPassword && (
-              <p className={`text-xs mt-1 ${getPasswordStrengthColor(newPassword)}`}>
+              <p id="password-strength" className={`text-xs mt-1 ${getPasswordStrengthColor(newPassword)}`}>
                 Strength: {getPasswordStrength(newPassword)}
               </p>
             )}
@@ -151,11 +155,12 @@ export const ResetPasswordPage: React.FC = () => {
 
           {/* Confirm Password */}
           <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
               Confirm Password
             </label>
             <div className="relative">
               <input
+                id="confirm-password"
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -168,6 +173,7 @@ export const ResetPasswordPage: React.FC = () => {
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                aria-controls="confirm-password"
               >
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>

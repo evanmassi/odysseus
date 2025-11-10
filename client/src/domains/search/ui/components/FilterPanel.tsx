@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 
 import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
 import {
@@ -140,19 +140,19 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
   }), [tubes, researchers]);
 
   // Get tank name from ID
-  const getTankName = (tankId: string): string => {
+  const getTankName = useCallback((tankId: string): string => {
     const tank = tanks.find(t => t.id === tankId);
     return tank?.name || `Tank ${tankId}`;
-  };
+  }, [tanks]);
 
   // Update date filter
-  const updateDateFilter = (field: 'dateFrom' | 'dateTo', value: string) => {
+  const updateDateFilter = useCallback((field: 'dateFrom' | 'dateTo', value: string) => {
     const normalized = normalizeDateString(value);
     setSearchFilters({
       ...filters,
       [field]: normalized || undefined,
     });
-  };
+  }, [filters, setSearchFilters]);
 
   // Check if a value is selected in an array filter
   const isSelected = (filterKey: keyof typeof filters, value: string): boolean => {
@@ -288,7 +288,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
     }
 
     return result;
-  }, [filters, tanks, researchers]);
+  }, [filters, researchers, getTankName, toggleFilterValue, updateDateFilter]);
 
   const hasActiveFilters = activeFilters.length > 0;
 
@@ -338,10 +338,10 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           {filterOptions.tankIds.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <TankIcon className="w-3.5 h-3.5" />
-                <label className="text-xs font-medium text-gray-600">Tanks</label>
+                <TankIcon className="w-3.5 h-3.5" aria-hidden="true" />
+                <div className="text-xs font-medium text-gray-600">Tanks</div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Tank filters">
                 {filterOptions.tankIds.map(tankId => (
                   <FilterChip
                     key={tankId}
@@ -358,10 +358,10 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           {filterOptions.rackIds.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <RackIcon className="w-3.5 h-3.5" />
-                <label className="text-xs font-medium text-gray-600">Racks</label>
+                <RackIcon className="w-3.5 h-3.5" aria-hidden="true" />
+                <div className="text-xs font-medium text-gray-600">Racks</div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Rack filters">
                 {filterOptions.rackIds.map(rackId => (
                   <FilterChip
                     key={rackId}
@@ -378,10 +378,10 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           {filterOptions.boxIds.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <BoxIcon className="w-3.5 h-3.5" />
-                <label className="text-xs font-medium text-gray-600">Boxes</label>
+                <BoxIcon className="w-3.5 h-3.5" aria-hidden="true" />
+                <div className="text-xs font-medium text-gray-600">Boxes</div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Box filters">
                 {filterOptions.boxIds.map(boxId => (
                   <FilterChip
                     key={boxId}
@@ -409,10 +409,10 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           {filterOptions.cellTypes.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <Microscope className="w-3.5 h-3.5" />
-                <label className="text-xs font-medium text-gray-600">Cell Types</label>
+                <Microscope className="w-3.5 h-3.5" aria-hidden="true" />
+                <div className="text-xs font-medium text-gray-600">Cell Types</div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Cell type filters">
                 {filterOptions.cellTypes.map(cellType => (
                   <FilterChip
                     key={cellType}
@@ -429,10 +429,10 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           {filterOptions.lotNumbers.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <Barcode className="w-3.5 h-3.5" />
-                <label className="text-xs font-medium text-gray-600">Lot Numbers</label>
+                <Barcode className="w-3.5 h-3.5" aria-hidden="true" />
+                <div className="text-xs font-medium text-gray-600">Lot Numbers</div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Lot number filters">
                 {filterOptions.lotNumbers.map(lotNumber => (
                   <FilterChip
                     key={lotNumber}
@@ -449,10 +449,10 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           {filterOptions.donorInternalIds.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <UserCircle className="w-3.5 h-3.5" />
-                <label className="text-xs font-medium text-gray-600">Donor Int. IDs</label>
+                <UserCircle className="w-3.5 h-3.5" aria-hidden="true" />
+                <div className="text-xs font-medium text-gray-600">Donor Int. IDs</div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Donor internal ID filters">
                 {filterOptions.donorInternalIds.map(donorId => (
                   <FilterChip
                     key={donorId}
@@ -469,10 +469,10 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           {filterOptions.donorSourceIds.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <Fingerprint className="w-3.5 h-3.5" />
-                <label className="text-xs font-medium text-gray-600">Donor Src. IDs</label>
+                <Fingerprint className="w-3.5 h-3.5" aria-hidden="true" />
+                <div className="text-xs font-medium text-gray-600">Donor Src. IDs</div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Donor source ID filters">
                 {filterOptions.donorSourceIds.map(donorId => (
                   <FilterChip
                     key={donorId}
@@ -489,10 +489,10 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           {filterOptions.cultureConditions.length > 0 && (
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <FlaskConical className="w-3.5 h-3.5" />
-                <label className="text-xs font-medium text-gray-600">Culture Conditions</label>
+                <FlaskConical className="w-3.5 h-3.5" aria-hidden="true" />
+                <div className="text-xs font-medium text-gray-600">Culture Conditions</div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2" role="group" aria-label="Culture condition filters">
                 {filterOptions.cultureConditions.map(condition => (
                   <FilterChip
                     key={condition}
@@ -539,21 +539,29 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
       >
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">From:</label>
+            <label htmlFor="filter-date-from" className="text-xs font-medium text-gray-600 mb-1 block">
+              From:
+            </label>
             <input
+              id="filter-date-from"
               type="date"
               value={filters.dateFrom || ''}
               onChange={(e) => updateDateFilter('dateFrom', e.target.value)}
               className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-action-focus focus:border-action-focus"
+              aria-label="Filter start date"
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-gray-600 mb-1 block">To:</label>
+            <label htmlFor="filter-date-to" className="text-xs font-medium text-gray-600 mb-1 block">
+              To:
+            </label>
             <input
+              id="filter-date-to"
               type="date"
               value={filters.dateTo || ''}
               onChange={(e) => updateDateFilter('dateTo', e.target.value)}
               className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-action-focus focus:border-action-focus"
+              aria-label="Filter end date"
             />
           </div>
         </div>

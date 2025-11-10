@@ -418,6 +418,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
           role="combobox"
           aria-expanded={isOpen}
           aria-haspopup="listbox"
+          aria-controls="select-listbox"
           aria-label={ariaLabel}
           aria-labelledby={label ? labelId : undefined}
           aria-describedby={[
@@ -479,7 +480,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
             )}
             
             {/* Options */}
-            <div ref={optionsRef} role="listbox">
+            <div ref={optionsRef} role="listbox" id="select-listbox" aria-label={`${label || 'Select'} options`}>
               {filteredOptions.length === 0 ? (
                 <div className="px-3 py-2 text-sm text-neutral-500">
                   No options found
@@ -500,8 +501,16 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
                         isDisabled: option.disabled,
                       })}
                       onClick={() => handleOptionSelect(option)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          handleOptionSelect(option);
+                        }
+                      }}
                       role="option"
                       aria-selected={isSelected}
+                      aria-disabled={option.disabled}
+                      tabIndex={isHighlighted ? 0 : -1}
                     >
                       {multiple && (
                         <div className="flex items-center">

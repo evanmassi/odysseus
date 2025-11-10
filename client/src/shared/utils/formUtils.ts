@@ -43,7 +43,7 @@ export function extractDirtyFields<T extends FieldValues>(
   const result: any = {};
 
   for (const key in dirtyFields) {
-    if (dirtyFields.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(dirtyFields, key)) {
       const isDirty = dirtyFields[key];
       const value = formData[key];
 
@@ -87,7 +87,7 @@ export function hasAnyDirtyFields(dirtyFields: Record<string, any>): boolean {
   if (!dirtyFields) return false;
 
   for (const key in dirtyFields) {
-    if (dirtyFields.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(dirtyFields, key)) {
       const value = dirtyFields[key];
       if (value === true) return true;
       if (typeof value === 'object' && hasAnyDirtyFields(value)) return true;
@@ -123,7 +123,7 @@ export function extractNonEmptyFields<T extends FieldValues>(formData: T): Parti
   const result: any = {};
 
   for (const key in formData) {
-    if (formData.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(formData, key)) {
       const value = formData[key];
 
       // Skip undefined or null values

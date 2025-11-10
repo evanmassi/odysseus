@@ -128,14 +128,19 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     <nav
       className={`w-full pl-2 pr-3 pb-2 flex flex-col gap-1 relative ${className}`}
       aria-label="Storage Navigator"
-      role="tree"
-      onKeyDown={handleKeyDown}
     >
-      <TreeLineOverlay
-        expandedTanks={expandedTanks}
-        expandedRacks={expandedRacks}
-      />
-      {data.tanks.map((tank, _tankIndex) => {
+      <div
+        role="tree"
+        aria-label="Storage hierarchy"
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        className="flex flex-col gap-1"
+      >
+        <TreeLineOverlay
+          expandedTanks={expandedTanks}
+          expandedRacks={expandedRacks}
+        />
+        {data.tanks.map((tank, _tankIndex) => {
         const tankExpanded = expandedTanks.has(tank.id);
         const tankSelected = isTankSelected(tank.id);
         const nodeIndex = visibleNodes.findIndex(n => n.id === tank.id && n.level === 'tank');
@@ -218,6 +223,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
           </StorageNavigatorItem>
         );
       })}
+      </div>
     </nav>
   );
 };

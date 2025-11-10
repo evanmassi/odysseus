@@ -1,0 +1,59 @@
+  16:1  error  There should be no empty line within import group  import/order
+    3:1   error    `@domains/tubes/types` type import should occur after import of `@shared/utils/notifications`                                                                import/order
+   13:1   error    `../../hooks/grid` import should occur after import of `@shared/utils/notifications`                                                                         import/order
+   17:1   error    `@domains/tubes/ui/components/modals/DeleteConfirmDialog` import should occur after import of `@domains/tubes/ui/components/modals/BatchTubeEditorModal`     import/order
+   18:1   error    `@domains/tubes/ui/components/modals/OverwriteConfirmDialog` import should occur after import of `@domains/tubes/ui/components/modals/BatchTubeEditorModal`  import/order
+   20:1   error    `../../stores/modalStore` import should occur after import of `@shared/utils/notifications`                                                                  import/order
+   22:1   error    `./AppHeader` import should occur after import of `@shared/utils/notifications`                                                                              import/order
+   24:1   error    `@shared/ui` import should occur after import of `@shared/types/grid`                                                                                        import/order
+   25:1   error    There should be no empty line within import group                                                                                                            import/order
+   25:1   error    `@shared/ui/components/loading/LoadingSkeletons` import should occur after import of `@shared/types/grid`                                                    import/order
+   16:1    error    There should be at least one empty line between import groups                                                                                                                                               import/order
+   17:1    error    There should be at least one empty line between import groups                                                                                                                                               import/order
+   17:1    error    `@shared/types/grid` type import should occur after type import of `@shared/types/clipboard`                                                                                                                import/order
+   12:1   error    Imports "GridControllerReturn" and "PositionContext" are only used as types                                @typescript-eslint/consistent-type-imports
+  146:5   error    Unnecessary try/catch wrapper             no-useless-catch
+    9:1   error  There should be no empty line within import group                                                          import/order
+  267:18  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                            react/no-unescaped-entities
+  129:67  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  143:22  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  162:42  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  50:51  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                            react/no-unescaped-entities
+    1:1   error    Imports "SearchResult" and "GroupedResult" are only used as types  @typescript-eslint/consistent-type-imports
+  22:1   error    There should be at least one empty line between import groups                                               import/order
+   20:1   error    All imports in the declaration are only used as types. Use `import type`                                   @typescript-eslint/consistent-type-imports
+    7:1   error    There should be at least one empty line between import groups                                               import/order
+    7:1   error    `@odysseus/shared-schemas` type import should occur after import of `../services/TubeService`               import/order
+  209:11  error    Unexpected lexical declaration in case block                                                                no-case-declarations
+  218:11  error    Unexpected lexical declaration in case block                                                                no-case-declarations
+  229:11  error    Unexpected lexical declaration in case block                                                                no-case-declarations
+   12:1   error    There should be no empty line within import group                                                                                                                                                  import/order
+   43:13   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   44:20   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   45:18   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   46:18   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   47:22   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   48:9    error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   49:17   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   50:24   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   51:22   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   52:21   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   53:14   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   54:10   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+   55:17   error    `import()` type annotations are forbidden                                                                                                             @typescript-eslint/consistent-type-imports
+  616:26  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`                                                                                       react/no-unescaped-entities
+  17:18  error    Unsafe declaration merging between classes and interfaces                                                  @typescript-eslint/no-unsafe-declaration-merging
+  24:14  error    Unsafe declaration merging between classes and interfaces                                                  @typescript-eslint/no-unsafe-declaration-merging
+   92:12  error    React Hook "useMutation" cannot be called in a class component. React Hooks must be called in a React function component or a custom React Hook function  react-hooks/rules-of-hooks
+  5:15  error  No named exports found in module './services'  import/export
+  437:48  error  Require statement not part of import statement  @typescript-eslint/no-var-requires
+  445:52  error  Require statement not part of import statement  @typescript-eslint/no-var-requires
+  456:11  error  Require statement not part of import statement  @typescript-eslint/no-var-requires
+  246:9  error  Unexpected lexical declaration in case block                                                                                                                                               no-case-declarations
+  252:9  error  Unexpected lexical declaration in case block                                                                                                                                               no-case-declarations
+  259:18  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+  12:1  error  There should be no empty line within import group                   import/order
+  64:1  error  `./grid/Grid` import should occur before import of `./input/Input`  import/order
+   46:21  error    Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+   90:21  error    Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins
+  126:18  error    Do not access Object.prototype method 'hasOwnProperty' from target object  no-prototype-builtins

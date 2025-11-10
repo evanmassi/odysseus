@@ -71,17 +71,18 @@ export function RegistrationSuccessModal({
 
         {/* Username Display with Copy */}
         <div className="mb-6">
-          <label className="block text-xs font-semibold uppercase tracking-wide text-gray-700 mb-2">
+          <div className="text-xs font-semibold uppercase tracking-wide text-gray-700 mb-2">
             Your Username
-          </label>
+          </div>
           <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-300 rounded-lg">
-            <span className="flex-1 font-mono text-base font-semibold text-odysseus-dark">
+            <span className="flex-1 font-mono text-base font-semibold text-odysseus-dark" role="status" aria-label={`Your username is ${username}`}>
               {username}
             </span>
             <button
               onClick={handleCopyUsername}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-odysseus-primary hover:text-odysseus-accent hover:bg-info-light rounded transition-colors"
               type="button"
+              aria-label={`Copy username ${username}`}
             >
               {copied ? (
                 <>
@@ -126,7 +127,7 @@ export function RegistrationSuccessModal({
                     Administrator Approval Required
                   </h3>
                   <p className="alert-warning-text leading-relaxed">
-                    An administrator will review your account. You'll be notified when approved.
+                    An administrator will review your account. You&apos;ll be notified when approved.
                   </p>
                 </div>
               </div>
@@ -140,7 +141,7 @@ export function RegistrationSuccessModal({
                   Account Approved
                 </h3>
                 <p className="alert-success-text leading-relaxed">
-                  You're all set! You can now log in with your username and password.
+                  You&apos;re all set! You can now log in with your username and password.
                 </p>
               </div>
             </div>
@@ -159,7 +160,7 @@ export function RegistrationSuccessModal({
         {/* Footer Note */}
         {isPending && (
           <p className="text-xs text-center text-gray-500 mt-4">
-            You can close this window. We'll notify you when your account is ready.
+            You can close this window. We&apos;ll notify you when your account is ready.
           </p>
         )}
       </div>

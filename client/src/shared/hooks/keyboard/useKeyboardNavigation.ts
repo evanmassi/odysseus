@@ -5,7 +5,7 @@
  * Supports arrow key navigation, multi-selection, and accessibility
  */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { type PositionKey } from '@shared/types/grid';
 
@@ -84,7 +84,11 @@ const getPositionsInRange = (start: GridPosition, end: GridPosition): GridPositi
 
 // Main keyboard navigation hook
 export const useKeyboardNavigation = (config: KeyboardNavigationConfig) => {
-  const finalConfig = { ...defaultConfig, ...config };
+  // Memoize finalConfig to prevent infinite loops in hook dependencies
+  const finalConfig = useMemo(
+    () => ({ ...defaultConfig, ...config }),
+    [config]
+  );
   const containerRef = useRef<HTMLElement>(null);
   
   // Current focused position
@@ -241,17 +245,19 @@ export const useKeyboardNavigation = (config: KeyboardNavigationConfig) => {
         });
         break;
         
-      case 'PageUp':
+      case 'PageUp': {
         event.preventDefault();
         const pageUpRow = Math.max(0, focusedPosition.row - Math.floor(finalConfig.rows / 3));
         updateFocusedPosition({ ...focusedPosition, row: pageUpRow });
         break;
-        
-      case 'PageDown':
+      }
+
+      case 'PageDown': {
         event.preventDefault();
         const pageDownRow = Math.min(finalConfig.rows - 1, focusedPosition.row + Math.floor(finalConfig.rows / 3));
         updateFocusedPosition({ ...focusedPosition, row: pageDownRow });
         break;
+      }
         
       case 'a':
       case 'A':
@@ -453,18 +459,18 @@ export const useTubeGridKeyboardNavigation = (
     const baseCellProps = navigation.getCellProps(row, column);
     const positionId = positionIdGenerator(row, column);
     const isSelected = selectedPositions.has(positionId);
-    
+
     return {
       ...baseCellProps,
       'aria-selected': isSelected,
-      'aria-label': tubeId 
+      'aria-label': tubeId
         ? `Tube ${tubeId} at position ${row + 1}-${column + 1}${isSelected ? ', selected' : ''}`
         : `Empty position ${row + 1}-${column + 1}${isSelected ? ', selected' : ''}`,
       'data-tube-id': tubeId,
       'data-position-id': positionId,
       'data-selected': isSelected,
     };
-  }, [navigation.getCellProps, selectedPositions, positionIdGenerator]);
+  }, [navigation, selectedPositions, positionIdGenerator]);
   
   return {
     ...navigation,

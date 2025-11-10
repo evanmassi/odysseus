@@ -5,7 +5,7 @@
  * Includes focus trapping, escape key handling, and body scroll lock
  */
 
-import { useEffect, useRef, useCallback, useState } from 'react';
+import { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 
 // Modal configuration options
 export interface ModalOptions {
@@ -132,7 +132,11 @@ const bodyScrollLock = {
 
 // Main useModal hook
 export const useModal = (options: ModalOptions = {}) => {
-  const config = { ...defaultOptions, ...options };
+  // Memoize config to prevent infinite loops in hook dependencies
+  const config = useMemo(
+    () => ({ ...defaultOptions, ...options }),
+    [options]
+  );
   const modalRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
   const focusTrapRef = useRef<{ activate: () => void; deactivate: () => void } | null>(null);

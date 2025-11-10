@@ -9,11 +9,12 @@ import { useCallback } from 'react';
 
 import { getGridTotalPositions } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
-import { toPositionKey, type PositionKey          , GridControllerReturn, PositionContext } from '@shared/types/grid';
+import { toPositionKey } from '@shared/types/grid';
 import { getSelectionRange } from '@shared/utils/coordinates';
 
 import type { GridConfiguration } from '@odysseus/shared-schemas';
 import type { ClipboardData } from '@shared/types/clipboard';
+import type { GridControllerReturn, PositionContext, PositionKey } from '@shared/types/grid';
 
 
 

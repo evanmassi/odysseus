@@ -7,10 +7,9 @@ import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { notifications } from '@shared/utils';
 
 import { authService } from '../../services/AuthenticationService';
+import { useAuthStore } from '../../stores/authStore';
 
 // React Query will automatically fetch researchers when components mount
-
-import { useAuthStore } from '../../stores/authStore';
 
 interface LoginModalProps {
   onSwitchToRegister?: () => void;
@@ -264,7 +263,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         {onSwitchToRegister && (
           <div className="mt-4 text-center">
             <p className="text-xs text-odysseus-muted">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <button
                 type="button"
                 onClick={onSwitchToRegister}

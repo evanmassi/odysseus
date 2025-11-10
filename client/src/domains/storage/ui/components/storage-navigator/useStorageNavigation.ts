@@ -7,12 +7,10 @@ export const useStorageNavigation = (
   selected: SelectedLocation,
   onSelect: (location: SelectedLocation) => void
 ) => {
-  // Initialize with all tanks expanded by default
-  const initialExpandedTanks = useMemo(() => {
+  // Initialize with all tanks expanded by default (only runs once on mount)
+  const [expandedTanks, setExpandedTanks] = useState<Set<string>>(() => {
     return new Set(data.tanks.map(tank => tank.id));
-  }, []);
-
-  const [expandedTanks, setExpandedTanks] = useState<Set<string>>(initialExpandedTanks);
+  });
   const [expandedRacks, setExpandedRacks] = useState<Set<string>>(new Set());
 
   const toggleTank = useCallback((tankId: string) => {

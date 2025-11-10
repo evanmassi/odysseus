@@ -234,15 +234,13 @@ export const useBackgroundRefresh = (
   return useQuery({
     queryKey: [...queryKeys.tubes.location(location.tankId, location.rackId, location.boxId), 'background'],
     queryFn: async () => {
-      if (!enabled) return null;
-      
       console.log(`🔄 [Background Refresh] Syncing ${location.tankId}/${location.rackId}/${location.boxId}`);
-      
+
       // Invalidate existing cache to force fresh fetch
       await queryClient.invalidateQueries({
         queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId)
       });
-      
+
       return new Date().toISOString();
     },
     enabled,

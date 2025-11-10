@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import { useStorageStore } from '@domains/storage';
 
@@ -33,7 +33,7 @@ export function AnimatedTreeLineOverlay({
   const tanks = getCurrentTanks();
 
   // Calculate all lines at once - CSS transitions handle the animation
-  const calculateAllLines = () => {
+  const calculateAllLines = useCallback(() => {
     const container = document.querySelector('.storage-navigator');
     if (!container) return;
 
@@ -135,7 +135,7 @@ export function AnimatedTreeLineOverlay({
     });
 
     setLines(allLines);
-  };
+  }, [expandedTanks, expandedRacks, tanks]);
 
   // Update lines when expansion state changes
   useEffect(() => {
@@ -145,7 +145,7 @@ export function AnimatedTreeLineOverlay({
     }, 375);
 
     return () => clearTimeout(timer);
-  }, [expandedTanks, expandedRacks, tanks]);
+  }, [expandedTanks, expandedRacks, tanks, calculateAllLines]);
 
   if (lines.length === 0) return null;
 

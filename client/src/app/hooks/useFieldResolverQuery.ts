@@ -164,7 +164,7 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
 
   // Combined loading and error states
   const isLoading = tubesQuery.isLoading || researchersQuery.isLoading;
-  const errors = [tubesQuery.error, researchersQuery.error];
+  const errors = useMemo(() => [tubesQuery.error, researchersQuery.error], [tubesQuery.error, researchersQuery.error]);
   const hasErrors = errors.some(error => error !== null);
 
   return useMemo(() => ({

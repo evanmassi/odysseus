@@ -5,7 +5,7 @@
  * Shows detailed activity tracking for compliance and debugging.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import { RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight, X, Archive, TestTube, UserRound, Icon, Rows3, Box } from 'lucide-react';
@@ -49,7 +49,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   const [includeArchive, setIncludeArchive] = useState(false);
 
   // Load audit log entries
-  const loadAuditLog = async () => {
+  const loadAuditLog = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -62,11 +62,11 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, includeArchive]);
 
   useEffect(() => {
     void loadAuditLog();
-  }, [filters, includeArchive]);
+  }, [loadAuditLog]);
 
   // Apply filters - convert multi-select to single action for backend
   const applyFilters = () => {

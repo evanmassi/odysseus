@@ -325,16 +325,19 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       {/* Tank Header - Compact horizontal spacing */}
                       <div className="bg-slate-600 px-2 py-1.5 border-b border-slate-700 rounded-t-lg">
                         <div className="flex items-center gap-2">
-                          <div
+                          <button
+                            type="button"
                             onClick={() => toggleTankCollapse(tank.id)}
-                            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-700 -mx-1 px-1 py-1 rounded"
-                            title={collapsedTanks.has(tank.id) ? "Expand tank" : "Collapse tank"}
+                            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-700 -mx-1 px-1 py-1 rounded text-left"
+                            aria-expanded={!collapsedTanks.has(tank.id)}
+                            aria-controls={`tank-content-${tank.id}`}
+                            aria-label={`${collapsedTanks.has(tank.id) ? 'Expand' : 'Collapse'} tank ${tank.name}`}
                           >
-                            <div className="text-slate-200 flex-shrink-0">
+                            <div className="text-slate-200 flex-shrink-0" aria-hidden="true">
                               {collapsedTanks.has(tank.id) ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
                             </div>
                             <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                              <TankIcon className="text-white flex-shrink-0" size={24} />
+                              <TankIcon className="text-white flex-shrink-0" size={24} aria-hidden="true" />
                               <h3 className="text-base font-semibold text-white truncate min-w-[80px]">{tank.name}</h3>
                               <span className="text-xs px-2 py-1 bg-slate-700 rounded text-white flex items-center gap-1.5">
                                 <span>{tank.location}</span>
@@ -342,7 +345,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                                 <span>{tank.racks.length} {tank.racks.length === 1 ? 'rack' : 'racks'}</span>
                               </span>
                             </div>
-                          </div>
+                          </button>
                           <div className="flex items-center gap-0.5 flex-shrink-0">
                             <button
                               onClick={() => setEditingTank(tank)}
@@ -366,7 +369,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
                       {/* Tank content - collapsible */}
                       {!collapsedTanks.has(tank.id) && (
-                        <div className="p-2">
+                        <div id={`tank-content-${tank.id}`} className="p-2">
                           <div className="space-y-1.5">
                             {tank.racks.map((rack, rackIndex) => {
                               const rackKey = `${tank.id}-rack-${rack.id}`;
@@ -377,20 +380,23 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                                     <span className="text-slate-600 font-mono text-sm flex-shrink-0">
                                       {rackIndex === tank.racks.length - 1 ? '└' : '├'}
                                     </span>
-                                    <div
+                                    <button
+                                      type="button"
                                       onClick={() => toggleRackCollapse(rackKey)}
-                                      className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-500 -mx-1 px-1 py-0.5 rounded"
-                                      title={collapsedRacks.has(rackKey) ? "Expand rack" : "Collapse rack"}
+                                      className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-500 -mx-1 px-1 py-0.5 rounded text-left"
+                                      aria-expanded={!collapsedRacks.has(rackKey)}
+                                      aria-controls={`rack-content-${rackKey}`}
+                                      aria-label={`${collapsedRacks.has(rackKey) ? 'Expand' : 'Collapse'} ${rack.name}`}
                                     >
-                                      <div className="text-white flex-shrink-0">
+                                      <div className="text-white flex-shrink-0" aria-hidden="true">
                                         {collapsedRacks.has(rackKey) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                                       </div>
-                                      <RackIcon className="text-white flex-shrink-0" size={18} />
+                                      <RackIcon className="text-white flex-shrink-0" size={18} aria-hidden="true" />
                                       <span className="font-medium text-white text-sm inline-block min-w-[60px]">{rack.name}</span>
                                       <span className="text-xs px-2 py-0.5 bg-slate-500 rounded text-white">
                                         {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
                                       </span>
-                                    </div>
+                                    </button>
                                     <div className="flex items-center gap-1 flex-shrink-0">
                                       <button
                                         onClick={() => setEditingRack({ tankId: tank.id, rack })}
@@ -413,7 +419,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
                                   {/* Boxes under this rack - collapsible */}
                                   {!collapsedRacks.has(rackKey) && (
-                                    <div className="ml-5 mt-0.5 space-y-0.5">
+                                    <div id={`rack-content-${rackKey}`} className="ml-5 mt-0.5 space-y-0.5">
                                       {rack.boxes.map((box, boxIndex) => (
                                         <div key={box.id} className="flex items-center gap-1.5 py-0.5 px-1.5 bg-slate-200 rounded border border-slate-300">
                                           <span className="text-slate-400 font-mono text-xs flex-shrink-0">
@@ -514,35 +520,44 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
         </div>
 
         {editingBox && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60">
-            <div 
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
+            role="presentation"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                const template = selectedGridTemplate || editingBox.box.gridConfig;
+                void (async () => {
+                  try {
+                    await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
+                  } catch (error) {
+                    console.error('Failed to update box grid:', error);
+                    notifications.error('Failed to save changes. Please try again.');
+                  }
+                })();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                setEditingBox(null);
+              }
+            }}
+          >
+            <div
               className="bg-white rounded-lg p-6 max-w-md w-full m-4"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  const template = selectedGridTemplate || editingBox.box.gridConfig;
-                  void (async () => {
-                    try {
-                      await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
-                    } catch (error) {
-                      console.error('Failed to update box grid:', error);
-                      notifications.error('Failed to save changes. Please try again.');
-                    }
-                  })();
-                } else if (e.key === 'Escape') {
-                  e.preventDefault();
-                  setEditingBox(null);
-                }
-              }}
+              role="dialog"
+              aria-labelledby="box-edit-title"
+              aria-modal="true"
             >
-              <h3 className="text-lg font-semibold mb-4">
+              <h3 id="box-edit-title" className="text-lg font-semibold mb-4">
                 Configure {editingBox.box.name} Grid Size
               </h3>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Select Grid Template</label>
+                  <label htmlFor="box-grid-template" className="block text-sm font-medium mb-2">
+                    Select Grid Template
+                  </label>
                   <select
+                    id="box-grid-template"
                     className="w-full border rounded-lg px-3 py-2"
                     value={`${editingBox.box.gridConfig.rows}x${editingBox.box.gridConfig.cols}`}
                     onChange={(e) => {
@@ -550,6 +565,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       const template = gridTemplates.find(t => t.rows === rows && t.cols === cols);
                       if (template) setSelectedGridTemplate(template);
                     }}
+                    aria-label="Select grid template for box"
                   >
                     {gridTemplates.map((template) => (
                       <option
@@ -594,33 +610,39 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
         {/* Rack Editing Modal */}
         {editingRack && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60">
-            <div 
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
+            role="presentation"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && editingRack.rack.name.trim()) {
+                e.preventDefault();
+                void (async () => {
+                  try {
+                    await handleUpdateRack(editingRack.tankId, editingRack.rack.id, {
+                      name: editingRack.rack.name,
+                      location: editingRack.rack.location,
+                      description: editingRack.rack.description,
+                      isActive: editingRack.rack.isActive
+                    });
+                  } catch (error) {
+                    console.error('Failed to update rack:', error);
+                    notifications.error('Failed to save changes. Please try again.');
+                  }
+                })();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                setEditingRack(null);
+              }
+            }}
+          >
+            <div
               className="bg-white rounded-lg p-6 w-96 shadow-xl"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && editingRack.rack.name.trim()) {
-                  e.preventDefault();
-                  void (async () => {
-                    try {
-                      await handleUpdateRack(editingRack.tankId, editingRack.rack.id, {
-                        name: editingRack.rack.name,
-                        location: editingRack.rack.location,
-                        description: editingRack.rack.description,
-                        isActive: editingRack.rack.isActive
-                      });
-                    } catch (error) {
-                      console.error('Failed to update rack:', error);
-                      notifications.error('Failed to save changes. Please try again.');
-                    }
-                  })();
-                } else if (e.key === 'Escape') {
-                  e.preventDefault();
-                  setEditingRack(null);
-                }
-              }}
+              role="dialog"
+              aria-labelledby="rack-edit-title"
+              aria-modal="true"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold">Edit Rack</h3>
+                <h3 id="rack-edit-title" className="text-lg font-bold">Edit Rack</h3>
                 <button onClick={() => setEditingRack(null)} className="p-1 hover:bg-gray-100 rounded">
                   <X size={16} />
                 </button>
@@ -628,19 +650,27 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Rack Name</label>
+                  <label htmlFor="rack-name" className="block text-sm font-medium mb-2">
+                    Rack Name
+                  </label>
                   <input
+                    id="rack-name"
                     type="text"
                     className="input w-full"
                     value={editingRack.rack.name}
                     onChange={(e) => setEditingRack({ ...editingRack, rack: { ...editingRack.rack, name: e.target.value } })}
                     placeholder="Rack 1"
+                    required
+                    aria-required="true"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-2">Description</label>
+                  <label htmlFor="rack-description" className="block text-sm font-medium mb-2">
+                    Description
+                  </label>
                   <textarea
+                    id="rack-description"
                     className="input w-full resize-none"
                     rows={3}
                     value={editingRack.rack.description || ''}
@@ -688,34 +718,40 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
         {/* Tank Editing Modal - Enhanced */}
         {editingTank && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-60">
-            <div 
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
+            role="presentation"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && editingTank.name.trim()) {
+                e.preventDefault();
+                void (async () => {
+                  try {
+                    await handleUpdateTank(editingTank.id, {
+                      name: editingTank.name.trim(),
+                      location: editingTank.location?.trim() || '',
+                      isActive: editingTank.isActive
+                    });
+                  } catch (error) {
+                    console.error('Failed to update tank:', error);
+                    notifications.error('Failed to save changes. Please try again.');
+                  }
+                })();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                setEditingTank(null);
+              }
+            }}
+          >
+            <div
               className="bg-white rounded-lg p-6 w-[480px] shadow-xl"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && editingTank.name.trim()) {
-                  e.preventDefault();
-                  void (async () => {
-                    try {
-                      await handleUpdateTank(editingTank.id, {
-                        name: editingTank.name.trim(),
-                        location: editingTank.location?.trim() || '',
-                        isActive: editingTank.isActive
-                      });
-                    } catch (error) {
-                      console.error('Failed to update tank:', error);
-                      notifications.error('Failed to save changes. Please try again.');
-                    }
-                  })();
-                } else if (e.key === 'Escape') {
-                  e.preventDefault();
-                  setEditingTank(null);
-                }
-              }}
+              role="dialog"
+              aria-labelledby="tank-edit-title"
+              aria-modal="true"
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <TankIcon className="text-odysseus-blue" size={22} />
-                  <h3 className="text-lg font-bold">Edit Tank Configuration</h3>
+                  <h3 id="tank-edit-title" className="text-lg font-bold">Edit Tank Configuration</h3>
                 </div>
                 <button onClick={() => setEditingTank(null)} className="p-1 hover:bg-gray-100 rounded">
                   <X size={16} />
@@ -724,23 +760,33 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               
               <div className="space-y-5">
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Tank Name *</label>
+                  <label htmlFor="tank-name" className="block text-sm font-semibold mb-2 text-gray-700">
+                    Tank Name *
+                  </label>
                   <input
+                    id="tank-name"
                     type="text"
                     className="input w-full text-lg font-medium"
                     value={editingTank.name}
                     onChange={(e) => setEditingTank({ ...editingTank, name: e.target.value })}
                     placeholder="Main Cryogenic Storage"
                     required
+                    aria-required="true"
+                    aria-invalid={!editingTank.name.trim()}
                   />
                   {!editingTank.name.trim() && (
-                    <p className="text-red-500 text-xs mt-1">Tank name is required</p>
+                    <p id="tank-name-error" className="text-red-500 text-xs mt-1" role="alert">
+                      Tank name is required
+                    </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold mb-2 text-gray-700">Physical Location</label>
+                  <label htmlFor="tank-location" className="block text-sm font-semibold mb-2 text-gray-700">
+                    Physical Location
+                  </label>
                   <input
+                    id="tank-location"
                     type="text"
                     className="input w-full"
                     value={editingTank.location || ''}

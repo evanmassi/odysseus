@@ -2,5 +2,5 @@
  * Domain Services (Cross-cutting)
  */
 
-export * from './services';
+// Note: Services moved to appropriate domain layers (see services/index.ts)
 export * from './errors';

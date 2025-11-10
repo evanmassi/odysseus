@@ -143,21 +143,17 @@ export class AuthService {
    * Verify current session
    */
   async verifySession(): Promise<AuthResponse> {
-    try {
-      const response = await httpClient.get<{ success: boolean; data: { user: User } }>('/auth/verify');
-      
-      if (response.data.success && response.data.data) {
-        return {
-          user: response.data.data.user,
-          tokens: null // No tokens needed for verify - just user info
-        };
-      }
-      
-      throw new Error('Session verification failed');
-    } catch (error) {
-      // SessionManager will handle token cleanup
-      throw error;
+    const response = await httpClient.get<{ success: boolean; data: { user: User } }>('/auth/verify');
+
+    if (response.data.success && response.data.data) {
+      return {
+        user: response.data.data.user,
+        tokens: null // No tokens needed for verify - just user info
+      };
     }
+
+    // SessionManager will handle token cleanup on error
+    throw new Error('Session verification failed');
   }
 
   /**

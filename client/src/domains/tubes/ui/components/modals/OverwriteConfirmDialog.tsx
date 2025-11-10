@@ -114,7 +114,6 @@ export function OverwriteConfirmDialog({
               }
             }}
             disabled={isLoading || isConfirming}
-            autoFocus
             className="btn bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-600 hover:border-yellow-700 px-6"
           >
             {isLoading || isConfirming ? (

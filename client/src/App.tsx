@@ -14,7 +14,6 @@ import { useUserSettingsQuery } from '@domains/authentication/hooks/useUserSetti
 import { ResetPasswordPage } from '@domains/authentication/ui/components/ResetPasswordPage';
 import { VerifyEmailPage } from '@domains/authentication/ui/components/VerifyEmailPage';
 import { useTubeStore } from '@domains/tubes';
-
 // Import app-layer components (moved from @shared)
 import { ErrorBanner, ConnectionIndicator } from '@shared/ui';
 

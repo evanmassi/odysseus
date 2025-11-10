@@ -101,7 +101,7 @@ export function useConfigurationSync() {
         }
       });
     }
-  }, [isError, saveMutation.isPending]);
+  }, [isError, saveMutation]);
 
   // Multi-tab synchronization via storage events
   useEffect(() => {

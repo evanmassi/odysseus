@@ -183,10 +183,16 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   // Collapsed View
   if (isCollapsed) {
     return (
-      <div className={`${currentStatus.alertClass} rounded-lg p-3 cursor-pointer`} onClick={() => setIsCollapsed(false)}>
+      <button
+        type="button"
+        className={`${currentStatus.alertClass} rounded-lg p-3 cursor-pointer w-full text-left`}
+        onClick={() => setIsCollapsed(false)}
+        aria-expanded="false"
+        aria-label="Expand audit retention settings"
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <StatusIcon className={`w-4 h-4 ${currentStatus.iconClass}`} />
+            <StatusIcon className={`w-4 h-4 ${currentStatus.iconClass}`} aria-hidden="true" />
             <span className={`text-sm font-medium ${currentStatus.headingClass}`}>
               Retention: {metrics ? formatNumber(metrics.activeTable.count) : '-'} active • {metrics ? formatNumber(metrics.archiveTable.count) : '-'} archived • {currentStatus.text}
             </span>
@@ -197,10 +203,10 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
                 Next archival: {formatDate(metrics.nextArchivalDate)}
               </span>
             )}
-            <ChevronDown className={`w-4 h-4 ${currentStatus.iconClass}`} />
+            <ChevronDown className={`w-4 h-4 ${currentStatus.iconClass}`} aria-hidden="true" />
           </div>
         </div>
-      </div>
+      </button>
     );
   }
 

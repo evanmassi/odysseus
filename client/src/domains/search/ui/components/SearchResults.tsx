@@ -34,13 +34,13 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
   const sortDirection = useSearchStore(state => state.sortDirection);
 
   // Extract data for sorting (handle null results safely)
-  const groups = results?.grouped ?? [];
   const tubes = results?.tubes ?? [];
   const totalCount = results?.total ?? 0;
   const query = results?.query ?? '';
 
   // Client-side sorting of grouped results - MUST be called before early returns
   const sortedGroups = useMemo(() => {
+    const groups = results?.grouped ?? [];
     if (!groups || groups.length === 0) return groups;
 
     const sorted = [...groups].sort((a, b) => {
@@ -96,7 +96,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
     });
 
     return sorted;
-  }, [groups, sortField, sortDirection, researchers]);
+  }, [results, sortField, sortDirection, researchers]);
 
   // NOW safe to do early returns after all hooks are called
   if (!results && isSearching) {
@@ -384,15 +384,17 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
             const location = getDisplayLocation(group.primaryLocation);
 
             return (
-              <div
+              <button
+                type="button"
                 key={index}
                 onClick={() => handleGroupClick(group)}
-                className="p-2.5 border border-gray-200 dark:border-gray-700 rounded-md hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer transition-all"
+                className="w-full text-left p-2.5 border border-gray-200 dark:border-gray-700 rounded-md hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer transition-all"
+                aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
               >
                 {/* Line 1: Cell Type with tube count badge in top-right */}
                 <div className="flex items-start justify-between mb-1">
                   <div className="flex items-center space-x-1.5 flex-1 min-w-0">
-                    <TubeIcon className="text-black flex-shrink-0" size={14} />
+                    <TubeIcon className="text-black flex-shrink-0" size={14} aria-hidden="true" />
                     <div className="text-xs font-semibold text-black">
                       {highlightText(cellType, query)}
                     </div>
@@ -463,14 +465,14 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
 
                 {/* Line 5: Location with map icon aligned with tube icon above */}
                 <div className="text-xs flex items-start space-x-1.5 min-w-0" style={{ color: '#5987b6' }}>
-                  <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                  <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 min-w-0">
                     <span className="whitespace-nowrap">{location}</span>
                     <span className="flex-shrink-0">•</span>
                     <span>{formatPositions(group.tubes)}</span>
                   </div>
                 </div>
-              </div>
+              </button>
               );
             })}
           </div>

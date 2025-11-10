@@ -7,9 +7,12 @@
 
 // Import all components first
 import { Button } from './button/Button';
+import { Grid, GridItem } from './grid/Grid';
 import { Input } from './input/Input';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from './modal/Modal';
 import { useModal, useModalState } from './modal/useModal';
+import { Select } from './select/Select';
+import { Table, TableHeader, TableBody } from './table/Table';
 
 // Button primitives
 export { Button };
@@ -57,11 +60,6 @@ export type {
   DrawerModalProps,
   ModalRef
 } from './modal/types';
-
-// Import remaining components
-import { Select } from './select/Select';
-import { Table, TableHeader, TableBody } from './table/Table';
-import { Grid, GridItem } from './grid/Grid';
 
 // Select primitives
 export { Select };

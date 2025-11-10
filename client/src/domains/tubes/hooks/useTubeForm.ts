@@ -94,9 +94,6 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
   const createTubeMutation = useCreateTubeMutation();
   const updateTubeMutation = useUpdateTubeMutation();
 
-  // Get existing tubes for duplicate validation
-  const existingTubes = queryClient.getQueryData<TubeData[]>(queryKeys.tubes.all) || [];
-
   /**
    * Validate complete payload with business rules (duplicate position, warnings)
    *
@@ -107,6 +104,9 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
 
     // Warning: Duplicate position check (only if we have location)
     if ('location' in payload && payload.location) {
+      // Get existing tubes for duplicate validation (fresh on every validation)
+      const existingTubes = queryClient.getQueryData<TubeData[]>(queryKeys.tubes.all) || [];
+
       const filteredTubes = mode === 'edit' && tubeId
         ? existingTubes.filter(tube => tube.id !== tubeId)
         : existingTubes;
@@ -124,7 +124,7 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
     }
 
     return { warnings };
-  }, [existingTubes, mode, tubeId]);
+  }, [queryClient, mode, tubeId]);
 
   /**
    * Form submission handler with context support

@@ -333,7 +333,7 @@ function CreateModeContent({
         }, 0);
       }
     };
-  }, [shouldPreserveSelection]);
+  }, [shouldPreserveSelection, modalService.tubeEditorModal.previousFocusElement]);
 
   // Unified keyboard navigation: Escape = close
   // (Enter naturally submits form)
@@ -613,7 +613,7 @@ function CreateModeContent({
                       Mixed Selection Detected
                     </h3>
                     <p className="alert-warning-text mb-3">
-                      You've selected {positionAnalysis.emptyPositions.length} empty and {positionAnalysis.occupiedPositions.length} occupied position{positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}.
+                      You&apos;ve selected {positionAnalysis.emptyPositions.length} empty and {positionAnalysis.occupiedPositions.length} occupied position{positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}.
                       By default, only empty positions will be filled.
                     </p>
                     <label className="flex items-center space-x-2 cursor-pointer">

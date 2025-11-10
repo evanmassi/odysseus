@@ -91,7 +91,6 @@ export function DeleteConfirmDialog({
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            autoFocus
             className="btn btn-danger px-6"
           >
             {isLoading ? (

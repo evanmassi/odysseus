@@ -4,22 +4,24 @@
  * Uses TubeService for all API operations with comprehensive Zod validation
  */
 
-import type { BatchResult } from '@odysseus/shared-schemas';
 import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type TubeQueryFilters,
   EQUIPMENT_DEFAULTS,
   UNKNOWN_RESEARCHER
-, type TubeData as SchemaTubeData           } from '@odysseus/shared-schemas';
+, type TubeData as SchemaTubeData              } from '@odysseus/shared-schemas';
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
 import { queryKeys } from '@app/queryKeys';
-import { type TubeData } from '@shared/types/tubeTypes';
 import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
 import { TubeService } from '../services/TubeService';
+
+import type { BatchResult } from '@odysseus/shared-schemas';
+import type { TubeData } from '@shared/types/tubeTypes';
+
 
 
 /**
@@ -205,36 +207,39 @@ export function useBatchTubeMutation(options?: {
     mutationFn: async ({ action, data }): Promise<BatchResult<TubeData>> => {
       // Client-side batch operations using parallel execution
       switch (action) {
-        case 'create':
+        case 'create': {
           const createResults = await Promise.all(
             (data as CreateTubeRequest[]).map(tube => TubeService.createTube(tube))
           );
-          return { 
-            successful: createResults as TubeData[], 
-            failed: [], 
-            summary: { total: createResults.length, successful: createResults.length, failed: 0 } 
+          return {
+            successful: createResults as TubeData[],
+            failed: [],
+            summary: { total: createResults.length, successful: createResults.length, failed: 0 }
           };
-        case 'update':
+        }
+        case 'update': {
           const updateResults = await Promise.all(
-            (data as Array<{ id: string; data: UpdateTubeRequest }>).map(({ id, data }) => 
+            (data as Array<{ id: string; data: UpdateTubeRequest }>).map(({ id, data }) =>
               TubeService.updateTube(id, data)
             )
           );
-          return { 
-            successful: updateResults as TubeData[], 
-            failed: [], 
-            summary: { total: updateResults.length, successful: updateResults.length, failed: 0 } 
+          return {
+            successful: updateResults as TubeData[],
+            failed: [],
+            summary: { total: updateResults.length, successful: updateResults.length, failed: 0 }
           };
-        case 'delete':
+        }
+        case 'delete': {
           const deleteCount = (data as string[]).length;
           await Promise.all(
             (data as string[]).map(id => TubeService.deleteTube(id))
           );
-          return { 
-            successful: [] as TubeData[], 
-            failed: [], 
-            summary: { total: deleteCount, successful: deleteCount, failed: 0 } 
+          return {
+            successful: [] as TubeData[],
+            failed: [],
+            summary: { total: deleteCount, successful: deleteCount, failed: 0 }
           };
+        }
         default:
           throw new Error(`Unsupported batch operation: ${action}`);
       }

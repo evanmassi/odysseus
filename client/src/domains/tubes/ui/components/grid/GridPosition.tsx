@@ -96,6 +96,19 @@ export const GridPosition = memo<GridPositionProps>(({
       onContextMenu={(e) => onPositionRightClick(position, e)}
       onMouseDown={(e) => onMouseDown(position, e)}
       onMouseMove={() => onMouseMove(position)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onPositionClick(position, e as any);
+        }
+      }}
+      role="gridcell"
+      aria-label={tube
+        ? `Position ${position}, ${tube.sample?.cellType || 'Unknown sample'}, ${selected ? 'selected' : 'not selected'}`
+        : `Position ${position}, empty, ${selected ? 'selected' : 'not selected'}`
+      }
+      aria-selected={selected}
+      tabIndex={selected ? 0 : -1}
       className={`
         tube-position relative group cursor-pointer
         ${tube ? 'occupied' : 'empty'}

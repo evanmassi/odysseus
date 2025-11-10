@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface TreeLine {
   id: string;
@@ -24,7 +24,7 @@ export function TreeLineOverlay({
 }: TreeLineOverlayProps) {
   const [lines, setLines] = useState<TreeLine[]>([]);
 
-  const calculateAllLines = () => {
+  const calculateAllLines = useCallback(() => {
     const container = document.querySelector('[role="tree"]');
     if (!container) return;
 
@@ -137,7 +137,7 @@ export function TreeLineOverlay({
     });
 
     setLines(allLines);
-  };
+  }, [expandedTanks, expandedRacks]);
 
   // Recalculate lines when expansion state changes
   useEffect(() => {
@@ -147,7 +147,7 @@ export function TreeLineOverlay({
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [expandedTanks, expandedRacks]);
+  }, [expandedTanks, expandedRacks, calculateAllLines]);
 
   if (lines.length === 0) return null;
 

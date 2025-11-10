@@ -1,35 +1,32 @@
 import { useState, useRef, useMemo } from 'react';
 
-import type { TubeData } from '@domains/tubes/types';
-
 import { gridNavigationService } from '@domains/grid';
 import { useStorageStore } from '@domains/storage';
 import { useConfigurationSync } from '@domains/storage/hooks/useConfigurationSync';
-import { StorageNavigator, type StorageHierarchy, type SelectedLocation } from '@domains/storage/ui/components/storage-navigator';
+import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
 import { useTubeStore , TubeInfoPanel } from '@domains/tubes';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useBulkDeleteTubesMutation, usePasteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';
-
-import { useGridController } from '../../hooks/grid';
-
-
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
+import { BatchTubeEditorModal } from '@domains/tubes/ui/components/modals/BatchTubeEditorModal';
 import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
 import { OverwriteConfirmDialog } from '@domains/tubes/ui/components/modals/OverwriteConfirmDialog';
+import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
+import { parsePositionKey } from '@shared/types/grid';
+import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
+import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
+import { notifications } from '@shared/utils/notifications';
 
+import { useGridController } from '../../hooks/grid';
 import { useModalStore } from '../../stores/modalStore';
 
 import { AppHeader } from './AppHeader';
 
-import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
-import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
-import '@shared/styles/legacy/layout.css';
+import type { StorageHierarchy, SelectedLocation } from '@domains/storage/ui/components/storage-navigator';
+import type { TubeData } from '@domains/tubes/types';
+import type { PositionKey } from '@shared/types/grid';
 
-// Eager loading - modals included in main bundle
-import { BatchTubeEditorModal } from '@domains/tubes/ui/components/modals/BatchTubeEditorModal';
-import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
-import { parsePositionKey, type PositionKey } from '@shared/types/grid';
-import { notifications } from '@shared/utils/notifications';
+import '@shared/styles/legacy/layout.css';
 
 // Lazy loading (commented out - uncomment to re-enable code splitting)
 // const TubeEditorModal = lazy(() =>

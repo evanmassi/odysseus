@@ -256,7 +256,7 @@ export const OfflineBanner: React.FC = () => {
     <div className="fixed top-0 left-0 right-0 z-50 bg-warning-bg text-white py-2 px-4 text-center text-sm font-medium">
       <div className="flex items-center justify-center space-x-2">
         <span>📴</span>
-        <span>You're offline. Changes will be saved locally and synced when reconnected.</span>
+        <span>You&apos;re offline. Changes will be saved locally and synced when reconnected.</span>
         <button
           onClick={networkStatus.retryConnection}
           className="ml-4 underline hover:no-underline"

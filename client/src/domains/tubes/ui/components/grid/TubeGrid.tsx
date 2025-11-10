@@ -10,17 +10,17 @@ import {
 import { useStorageStore, getGridTotalPositions } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-
-import { toPositionKey, type PositionKey       } from '@shared/types/grid';
-
+import { toPositionKey } from '@shared/types/grid';
 
 import { ContextMenu } from '../../../../../shared/ui/primitives/shared/ContextMenu';
 
 import { GridPosition } from './GridPosition';
-import '@shared/styles/legacy/colorIndicators.css';
 
 import type { TubeData } from '@domains/tubes/types';
-import type { GridControllerReturn } from '@shared/types/grid';
+import type { PositionKey, GridControllerReturn } from '@shared/types/grid';
+
+import '@shared/styles/legacy/colorIndicators.css';
+
 
 /**
  * TubeGrid Props Interface
@@ -232,6 +232,9 @@ export function TubeGrid({
             outlineOffset: '0 !important',
             WebkitTapHighlightColor: 'transparent'
           }}
+          role="grid"
+          aria-label={`Tube storage grid for ${boxId ? `Box ${boxId}` : `Rack ${rackId}`}, ${positions.length} positions`}
+          aria-multiselectable="true"
           tabIndex={0}
           onKeyDown={keyboardNav.handleGridKeyDown}
           onFocus={() => {

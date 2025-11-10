@@ -14,14 +14,14 @@
 
 import { transformApiResponse } from './responseTransformers';
 
-export interface AuthApiError {
+export interface AuthApiErrorData {
   message: string;
   status: number;
   code?: string;
   details?: any;
 }
 
-export class AuthApiError extends Error {
+export class AuthApiError extends Error implements AuthApiErrorData {
   constructor(
     message: string,
     public status: number,

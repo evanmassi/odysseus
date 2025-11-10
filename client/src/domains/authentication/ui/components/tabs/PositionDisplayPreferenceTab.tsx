@@ -47,7 +47,7 @@ export function PositionDisplayPreferenceTab({
         <h4 className="text-base font-semibold text-gray-900 mb-2">Position Display Format</h4>
         <p className="text-xs text-gray-600 mb-3">
           Choose how position labels are displayed throughout the application.
-          This is your personal preference and won't affect other users.
+          This is your personal preference and won&apos;t affect other users.
         </p>
 
         {/* Segmented Control with Inline Descriptions */}

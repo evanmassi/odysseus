@@ -207,12 +207,12 @@ export const useBulkTubes = (
   options: Omit<UseQueryOptions<TubeData[]>, 'queryKey' | 'queryFn'> = {}
 ) => {
   return useQuery({
-    queryKey: ['tubes', 'bulk', { tubeIds: tubeIds.sort() }],
+    queryKey: ['tubes', 'bulk', { tubeIds: tubeIds.sort(), length: tubeIds.length }],
     queryFn: async (): Promise<TubeData[]> => {
       if (tubeIds.length === 0) {
         return [];
       }
-      
+
       // Fetch all tubes in parallel
       const tubes = await Promise.all(
         tubeIds.map(id => TubeService.fetchTubeById(id))
@@ -259,7 +259,7 @@ export const useTubeStats = (
   rackId?: string,  boxId?: string,  options: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'> = {}
 ) => {
   return useQuery({
-    queryKey: queryKeys.tubes.locationStats(tankId || 'all', rackId || 'all'),
+    queryKey: [...queryKeys.tubes.locationStats(tankId || 'all', rackId || 'all'), boxId || 'all'],
     queryFn: async () => {
       // Get all tubes for statistics
       let tubes = await TubeService.fetchTubes();

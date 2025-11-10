@@ -22,6 +22,7 @@ import { BaseModal } from './BaseModal';
 import { BulkProgressModal } from './BulkProgressModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 
+import type { FieldConflictAnalysis } from '@app/hooks/useSimpleFieldResolver';
 import type { BulkUpdateProgress, BulkUpdateResult } from '@shared/types/bulkOperations';
 import type { TubeData } from '@shared/types/tubeTypes';
 
@@ -40,19 +41,19 @@ export interface BatchTubeEditorModalProps {
  * and must be accessed with bracket notation: analysis['media.type']
  */
 interface BatchEditConflictAnalysis {
-  cellType: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  donorInternalId: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  donorSourceId: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  concentration: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<number>;
-  concentrationUnit: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  date: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  'media.type': import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  'media.supplements': import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  'media.selection': import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  cultureCondition: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  lotNumber: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  notes: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
-  researcherId: import('@app/hooks/useSimpleFieldResolver').FieldConflictAnalysis<string>;
+  cellType: FieldConflictAnalysis<string>;
+  donorInternalId: FieldConflictAnalysis<string>;
+  donorSourceId: FieldConflictAnalysis<string>;
+  concentration: FieldConflictAnalysis<number>;
+  concentrationUnit: FieldConflictAnalysis<string>;
+  date: FieldConflictAnalysis<string>;
+  'media.type': FieldConflictAnalysis<string>;
+  'media.supplements': FieldConflictAnalysis<string>;
+  'media.selection': FieldConflictAnalysis<string>;
+  cultureCondition: FieldConflictAnalysis<string>;
+  lotNumber: FieldConflictAnalysis<string>;
+  notes: FieldConflictAnalysis<string>;
+  researcherId: FieldConflictAnalysis<string>;
 }
 
 /**
@@ -112,7 +113,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
         setTimeout(() => previousFocus.focus(), 0);
       }
     };
-  }, [shouldPreserveSelection]);
+  }, [shouldPreserveSelection, modalService.tubeEditorModal.previousFocusElement]);
 
   // Unified keyboard navigation: Escape = close
   // (Enter naturally submits form)

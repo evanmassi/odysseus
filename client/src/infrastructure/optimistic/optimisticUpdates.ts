@@ -89,6 +89,7 @@ export class OptimisticUpdatesService {
   ) {
     const { optimisticUpdate, feedback, ...mutationOptions } = options;
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- Factory function pattern: this method is called from within React components
     return useMutation({
       ...mutationOptions,
 

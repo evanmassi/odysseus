@@ -9,7 +9,7 @@
  * - Active filters summary with quick removal
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 
 import { ChevronDown, ChevronRight, X } from 'lucide-react';
 
@@ -208,12 +208,12 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
   };
 
   // Entity types - reordered to match action sections
-  const entityTypes = [
+  const entityTypes = useMemo(() => [
     { value: 'tube', label: 'Tube' },
     { value: 'storage', label: 'Storage' },
     { value: 'user', label: 'User' },
     { value: 'researcher', label: 'Researcher' },
-  ];
+  ], []);
 
   // Date presets
   const datePresets = [
@@ -226,22 +226,22 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
   ];
 
   // Toggle action in multi-select
-  const toggleAction = (action: string) => {
+  const toggleAction = useCallback((action: string) => {
     const actions = filters.actions || [];
     const newActions = actions.includes(action)
       ? actions.filter(a => a !== action)
       : [...actions, action];
     onChange({ ...filters, actions: newActions.length > 0 ? newActions : undefined });
-  };
+  }, [filters, onChange]);
 
   // Toggle entity type in multi-select
-  const toggleEntityType = (entityType: string) => {
+  const toggleEntityType = useCallback((entityType: string) => {
     const entityTypes = filters.entityTypes || [];
     const newEntityTypes = entityTypes.includes(entityType)
       ? entityTypes.filter(e => e !== entityType)
       : [...entityTypes, entityType];
     onChange({ ...filters, entityTypes: newEntityTypes.length > 0 ? newEntityTypes : undefined });
-  };
+  }, [filters, onChange]);
 
   // Apply date preset
   const applyDatePreset = (preset: string) => {
@@ -361,7 +361,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
     }
 
     return result;
-  }, [filters]);
+  }, [filters, actionGroups.tube, actionGroups.storage, actionGroups.researcher, actionGroups.user, entityTypes, toggleAction, toggleEntityType, onChange]);
 
   const hasActiveFilters = activeFilters.length > 0;
 
@@ -614,8 +614,8 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
           <div className="space-y-3">
             {/* Quick Presets */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2">Quick Ranges</label>
-              <div className="flex flex-wrap gap-1">
+              <div className="text-xs font-medium text-gray-600 mb-2">Quick Ranges</div>
+              <div className="flex flex-wrap gap-1" role="group" aria-label="Quick date range presets">
                 {datePresets.map(preset => (
                   <button
                     key={preset.value}
@@ -635,25 +635,35 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
             </div>
 
             {/* Custom Date Range */}
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Custom Range</label>
+            <fieldset className="border-0 p-0 m-0">
+              <legend className="text-xs font-medium text-gray-600 mb-1">Custom Range</legend>
               <div className="space-y-2">
-                <input
-                  type="datetime-local"
-                  value={filters.dateFrom || ''}
-                  onChange={(e) => onChange({ ...filters, dateFrom: e.target.value || undefined, datePreset: undefined })}
-                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-action-focus focus:border-action-focus"
-                  placeholder="From"
-                />
-                <input
-                  type="datetime-local"
-                  value={filters.dateTo || ''}
-                  onChange={(e) => onChange({ ...filters, dateTo: e.target.value || undefined })}
-                  className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-action-focus focus:border-action-focus"
-                  placeholder="To"
-                />
+                <div>
+                  <label htmlFor="audit-date-from" className="sr-only">From date</label>
+                  <input
+                    id="audit-date-from"
+                    type="datetime-local"
+                    value={filters.dateFrom || ''}
+                    onChange={(e) => onChange({ ...filters, dateFrom: e.target.value || undefined, datePreset: undefined })}
+                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-action-focus focus:border-action-focus"
+                    placeholder="From"
+                    aria-label="Filter start date and time"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="audit-date-to" className="sr-only">To date</label>
+                  <input
+                    id="audit-date-to"
+                    type="datetime-local"
+                    value={filters.dateTo || ''}
+                    onChange={(e) => onChange({ ...filters, dateTo: e.target.value || undefined })}
+                    className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-action-focus focus:border-action-focus"
+                    placeholder="To"
+                    aria-label="Filter end date and time"
+                  />
+                </div>
               </div>
-            </div>
+            </fieldset>
           </div>
           </CollapsibleSection>
         </div>

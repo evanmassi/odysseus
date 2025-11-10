@@ -14,27 +14,18 @@ import { useStorageStore } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import type {
-  GridControllerProps,
-  GridControllerReturn,
-  TubeClipboardItem
-} from '@shared/types/grid';
-import { toPositionKey, parsePositionKey, type PositionKey 
-
-
-
-
-
-
-} from '@shared/types/grid';
+import { toPositionKey, parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { getSelectionRange } from '@shared/utils/coordinates';
 import { writeClipboardOS, readClipboardOS } from '@shared/utils/gridClipboard';
 import { notifications } from '@shared/utils/notifications';
 import { validatePasteOperation } from '@shared/utils/pasteValidation';
 
-
-
 import type { ClipboardData } from '@shared/types/clipboard';
+import type {
+  GridControllerProps,
+  GridControllerReturn,
+  TubeClipboardItem
+} from '@shared/types/grid';
 
 
 
@@ -93,7 +84,10 @@ export const useGridController = ({
   }, [tubes]);
 
   // Default tube resolution if not provided
-  const resolveTube = resolveTubeIdAtPosition || ((position: number) => positionToTubeMap.get(position) || null);
+  const resolveTube = React.useMemo(
+    () => resolveTubeIdAtPosition || ((position: number) => positionToTubeMap.get(position) || null),
+    [resolveTubeIdAtPosition, positionToTubeMap]
+  );
 
   const handlePositionClick = (position: number, event: React.MouseEvent, gridSize: number = 9) => {
     // Clear any pending click timer
@@ -519,7 +513,7 @@ export const useGridController = ({
 
     // Clear clipboard after successful paste (both copy and cut)
     setClipboard(null);
-  }, [clipboard, selectedPositionsInThisBox, setClipboard, onPasteTubes, onDeleteTubes, ctx, getBox, tankId, rackId, boxId, modalService]);
+  }, [clipboard, selectedPositionsInThisBox, setClipboard, onPasteTubes, onDeleteTubes, ctx, getBox, tankId, rackId, boxId, modalService, tubes]);
 
   // Delete operation with confirmation modal
   const deleteSelectedTubes = React.useCallback(async () => {
@@ -552,7 +546,7 @@ export const useGridController = ({
         modalService.hideDeleteConfirm();
       }
     });
-  }, [selectedPositionsInThisBox, resolveTube, onDeleteTubes, onSelectionChange, tubes, modalService]);
+  }, [selectedPositionsInThisBox, resolveTube, onDeleteTubes, onSelectionChange, modalService]);
 
   // Mouse position handler
   const setMousePosition = (position: { x: number; y: number } | null) => {
