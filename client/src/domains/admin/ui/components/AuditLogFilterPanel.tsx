@@ -227,7 +227,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
 
   // Toggle action in multi-select
   const toggleAction = useCallback((action: string) => {
-    const actions = filters.actions || [];
+    const actions = filters.actions ?? [];
     const newActions = actions.includes(action)
       ? actions.filter(a => a !== action)
       : [...actions, action];
@@ -236,7 +236,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
 
   // Toggle entity type in multi-select
   const toggleEntityType = useCallback((entityType: string) => {
-    const entityTypes = filters.entityTypes || [];
+    const entityTypes = filters.entityTypes ?? [];
     const newEntityTypes = entityTypes.includes(entityType)
       ? entityTypes.filter(e => e !== entityType)
       : [...entityTypes, entityType];
@@ -386,7 +386,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
             <input
               type="text"
               placeholder="Filter by username"
-              value={filters.username || ''}
+              value={filters.username ?? ''}
               onChange={(e) => onChange({ ...filters, username: e.target.value || undefined })}
               className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-action-focus focus:border-action-focus"
             />
@@ -405,7 +405,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                   key={entity.value}
                   label={entity.label}
                   entityType={entity.value}
-                  isSelected={filters.entityTypes?.includes(entity.value) || false}
+                  isSelected={filters.entityTypes?.includes(entity.value) ?? false}
                   onClick={() => toggleEntityType(entity.value)}
                 />
               ))}
@@ -444,7 +444,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                       key={action.value}
                       label={action.label}
                       actionValue={action.value}
-                      isSelected={filters.actions?.includes(action.value) || false}
+                      isSelected={filters.actions?.includes(action.value) ?? false}
                       onClick={() => toggleAction(action.value)}
                     />
                   ))}
@@ -473,19 +473,19 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                     <FilterChip
                       label="Tank Created"
                       actionValue="tank_created"
-                      isSelected={filters.actions?.includes('tank_created') || false}
+                      isSelected={filters.actions?.includes('tank_created') ?? false}
                       onClick={() => toggleAction('tank_created')}
                     />
                     <FilterChip
                       label="Tank Updated"
                       actionValue="tank_updated"
-                      isSelected={filters.actions?.includes('tank_updated') || false}
+                      isSelected={filters.actions?.includes('tank_updated') ?? false}
                       onClick={() => toggleAction('tank_updated')}
                     />
                     <FilterChip
                       label="Tank Deleted"
                       actionValue="tank_deleted"
-                      isSelected={filters.actions?.includes('tank_deleted') || false}
+                      isSelected={filters.actions?.includes('tank_deleted') ?? false}
                       onClick={() => toggleAction('tank_deleted')}
                     />
                   </div>
@@ -494,19 +494,19 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                     <FilterChip
                       label="Rack Created"
                       actionValue="rack_created"
-                      isSelected={filters.actions?.includes('rack_created') || false}
+                      isSelected={filters.actions?.includes('rack_created') ?? false}
                       onClick={() => toggleAction('rack_created')}
                     />
                     <FilterChip
                       label="Rack Updated"
                       actionValue="rack_updated"
-                      isSelected={filters.actions?.includes('rack_updated') || false}
+                      isSelected={filters.actions?.includes('rack_updated') ?? false}
                       onClick={() => toggleAction('rack_updated')}
                     />
                     <FilterChip
                       label="Rack Deleted"
                       actionValue="rack_deleted"
-                      isSelected={filters.actions?.includes('rack_deleted') || false}
+                      isSelected={filters.actions?.includes('rack_deleted') ?? false}
                       onClick={() => toggleAction('rack_deleted')}
                     />
                   </div>
@@ -515,19 +515,19 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                     <FilterChip
                       label="Box Created"
                       actionValue="box_created"
-                      isSelected={filters.actions?.includes('box_created') || false}
+                      isSelected={filters.actions?.includes('box_created') ?? false}
                       onClick={() => toggleAction('box_created')}
                     />
                     <FilterChip
                       label="Box Updated"
                       actionValue="box_updated"
-                      isSelected={filters.actions?.includes('box_updated') || false}
+                      isSelected={filters.actions?.includes('box_updated') ?? false}
                       onClick={() => toggleAction('box_updated')}
                     />
                     <FilterChip
                       label="Box Deleted"
                       actionValue="box_deleted"
-                      isSelected={filters.actions?.includes('box_deleted') || false}
+                      isSelected={filters.actions?.includes('box_deleted') ?? false}
                       onClick={() => toggleAction('box_deleted')}
                     />
                   </div>
@@ -565,7 +565,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                       key={action.value}
                       label={action.label}
                       actionValue={action.value}
-                      isSelected={filters.actions?.includes(action.value) || false}
+                      isSelected={filters.actions?.includes(action.value) ?? false}
                       onClick={() => toggleAction(action.value)}
                     />
                   ))}
@@ -594,7 +594,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                       key={action.value}
                       label={action.label}
                       actionValue={action.value}
-                      isSelected={filters.actions?.includes(action.value) || false}
+                      isSelected={filters.actions?.includes(action.value) ?? false}
                       onClick={() => toggleAction(action.value)}
                     />
                   ))}

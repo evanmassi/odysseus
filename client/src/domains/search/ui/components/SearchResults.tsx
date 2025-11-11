@@ -373,7 +373,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
             const cellType = firstTube.sample?.cellType || 'Unknown';
             const donorInternal = firstTube.sample?.donorInternalId ?? '';
             const donorSource = firstTube.sample?.donorSourceId ?? '';
-            const cultureCondition = firstTube.sample?.cultureCondition || '';
+            const cultureCondition = firstTube.sample?.cultureCondition ?? '';
             const lotNumber = firstTube.sample?.lotNumber ?? '';
             const concentration = formatConcentrationDisplay(
               firstTube.sample?.concentration,

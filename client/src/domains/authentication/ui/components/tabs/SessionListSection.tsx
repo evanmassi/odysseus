@@ -34,9 +34,9 @@ export function SessionListSection() {
     const result = parser.getResult();
 
     const browser = result.browser.name ?? 'Unknown Browser';
-    const browserVersion = result.browser.version?.split('.')[0] || '';
-    const os = result.os.name || 'Unknown OS';
-    const osVersion = result.os.version || '';
+    const browserVersion = result.browser.version?.split('.')[0] ?? '';
+    const os = result.os.name ?? 'Unknown OS';
+    const osVersion = result.os.version ?? '';
     const deviceType = result.device.type || 'desktop';
 
     const deviceName = `${browser}${browserVersion ? ' ' + browserVersion : ''} on ${os}${osVersion ? ' ' + osVersion : ''}`;
@@ -167,7 +167,7 @@ export function SessionListSection() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-sm text-gray-700">{session.ipAddress || 'Unknown'}</p>
+                    <p className="text-sm text-gray-700">{session.ipAddress ?? 'Unknown'}</p>
                   </td>
                   <td className="px-4 py-3">
                     <div>
@@ -241,7 +241,7 @@ export function SessionListSection() {
                 )}
               </div>
               <div className="space-y-1 text-xs text-gray-600">
-                <p><span className="font-medium">Location:</span> {session.ipAddress || 'Unknown'}</p>
+                <p><span className="font-medium">Location:</span> {session.ipAddress ?? 'Unknown'}</p>
                 <div>
                   <span className="font-medium">Last Active:</span>
                   <p className="ml-0 mt-0.5">{timestamp.relative}</p>

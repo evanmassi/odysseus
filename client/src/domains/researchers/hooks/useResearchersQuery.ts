@@ -31,7 +31,7 @@ export function useResearchersQuery(options?: {
   filters?: { active?: boolean; search?: string };
   queryOptions?: Omit<UseQueryOptions<Researcher[]>, 'queryKey' | 'queryFn'>;
 }) {
-  const { filters, queryOptions } = options || {};
+  const { filters, queryOptions } = options ?? {};
 
   return useQuery({
     queryKey: queryKeys.researchers.list(filters),
@@ -52,7 +52,7 @@ export function useAdminResearchersQuery(options?: {
   filters?: { active?: boolean; search?: string };
   queryOptions?: Omit<UseQueryOptions<AdminResearcher[]>, 'queryKey' | 'queryFn'>;
 }) {
-  const { filters, queryOptions } = options || {};
+  const { filters, queryOptions } = options ?? {};
 
   return useQuery({
     queryKey: queryKeys.researchers.admin(filters),

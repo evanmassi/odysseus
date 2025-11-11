@@ -155,7 +155,7 @@ export function Dashboard() {
    */
   const handleAddTube = (positions?: PositionKey[]) => {
     // Use provided position keys or current selection
-    const positionKeys = positions || Array.from(selectedPositions || []);
+    const positionKeys = positions ?? Array.from(selectedPositions ?? []);
 
     if (positionKeys.length === 0) return;
 

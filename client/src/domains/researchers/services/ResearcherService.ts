@@ -32,7 +32,7 @@ export class ResearcherService {
   static async list(options: { admin: true; filters?: ResearcherQueryFilters }): Promise<AdminResearcher[]>;
   static async list(options?: { admin?: false; filters?: ResearcherQueryFilters }): Promise<Researcher[]>;
   static async list(options?: { admin?: boolean; filters?: ResearcherQueryFilters }): Promise<Researcher[] | AdminResearcher[]> {
-    const { admin = false, filters } = options || {};
+    const { admin = false, filters } = options ?? {};
 
     const queryParams = new URLSearchParams();
 

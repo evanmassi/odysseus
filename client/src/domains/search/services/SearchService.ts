@@ -37,7 +37,7 @@ export class SearchService {
         query: validatedOptions.query,
         filters: normalizedFilters,
         limit: validatedOptions.limit || 50,
-        offset: validatedOptions.offset || 0,
+        offset: validatedOptions.offset ?? 0,
         sortBy: validatedOptions.sortBy,
         sortOrder: validatedOptions.sortOrder || 'desc'
       };

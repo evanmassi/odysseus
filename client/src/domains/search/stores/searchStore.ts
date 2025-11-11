@@ -103,7 +103,7 @@ export const useSearchStore = create<SearchUIStore>((set, get) => ({
   // Filter Helper Actions (for checkbox toggle behavior)
   toggleFilterValue: (filterKey, value) => {
     const { filters } = get();
-    const currentArray = (filters[filterKey] as string[] | undefined) || [];
+    const currentArray = (filters[filterKey] as string[] | undefined) ?? [];
 
     const newArray = currentArray.includes(value)
       ? currentArray.filter(v => v !== value) // Remove if exists

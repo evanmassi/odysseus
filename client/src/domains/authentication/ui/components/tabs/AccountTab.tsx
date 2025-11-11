@@ -41,7 +41,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
       setFirstName(profile.firstName);
       setLastName(profile.lastName);
       setEmail(profile.email);
-      setDepartment(profile.department || '');
+      setDepartment(profile.department ?? '');
       setPosition(profile.position ?? '');
     }
   }, [profile]);
@@ -72,7 +72,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
       firstName !== profile.firstName ||
       lastName !== profile.lastName ||
       email !== profile.email ||
-      department !== (profile.department || '') ||
+      department !== (profile.department ?? '') ||
       position !== (profile.position ?? '')
     );
   }, [profile, firstName, lastName, email, department, position]);
@@ -104,7 +104,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
     if (firstName !== profile?.firstName) updateData.firstName = firstName.trim();
     if (lastName !== profile?.lastName) updateData.lastName = lastName.trim();
     if (email !== profile?.email) updateData.email = email.trim();
-    if (department !== (profile?.department || '')) updateData.department = department.trim() || undefined;
+    if (department !== (profile?.department ?? '')) updateData.department = department.trim() || undefined;
     if (position !== (profile?.position ?? '')) updateData.position = position.trim() || undefined;
 
     updateProfile(updateData, {

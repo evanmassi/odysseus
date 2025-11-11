@@ -103,7 +103,7 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
 
   // Enhanced tube utilities
   const tubeUtils = useMemo(() => {
-    const tubes = tubesQuery.data || [];
+    const tubes = tubesQuery.data ?? [];
 
     return {
       data: tubesQuery.data,
@@ -137,9 +137,9 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
     };
   }, [tubesQuery, fieldResolver]);
 
-  // Enhanced researcher utilities  
+  // Enhanced researcher utilities
   const researcherUtils = useMemo(() => {
-    const researchers = researchersQuery.data || [];
+    const researchers = researchersQuery.data ?? [];
 
     return {
       data: researchersQuery.data,
@@ -190,7 +190,7 @@ export function useFieldResolverTubes() {
   const fieldResolver = useSimpleFieldResolver();
 
   return useMemo(() => {
-    const tubes = tubesQuery.data || [];
+    const tubes = tubesQuery.data ?? [];
 
     return {
       // React Query state

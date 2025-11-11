@@ -428,7 +428,7 @@ export class SessionManager implements TokenProvider {
       nextRefreshIn: timeUntilRefresh ? `${timeUntilRefresh} minutes` : 'Not scheduled',
       isRefreshing: this.state.isRefreshing,
       refreshAttempts: this.state.refreshAttempts,
-      lastRefresh: this.state.lastRefreshTime?.toLocaleTimeString() || 'Never'
+      lastRefresh: this.state.lastRefreshTime?.toLocaleTimeString() ?? 'Never'
     };
   }
 }

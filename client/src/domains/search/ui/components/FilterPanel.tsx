@@ -545,7 +545,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             <input
               id="filter-date-from"
               type="date"
-              value={filters.dateFrom || ''}
+              value={filters.dateFrom ?? ''}
               onChange={(e) => updateDateFilter('dateFrom', e.target.value)}
               className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-action-focus focus:border-action-focus"
               aria-label="Filter start date"
@@ -558,7 +558,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             <input
               id="filter-date-to"
               type="date"
-              value={filters.dateTo || ''}
+              value={filters.dateTo ?? ''}
               onChange={(e) => updateDateFilter('dateTo', e.target.value)}
               className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-action-focus focus:border-action-focus"
               aria-label="Filter end date"
