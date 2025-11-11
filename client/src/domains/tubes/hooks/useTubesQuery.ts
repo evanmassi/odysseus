@@ -51,7 +51,7 @@ export function useTubesQuery(options?: {
   filters?: TubeQueryFilters;
   queryOptions?: Omit<UseQueryOptions<TubeData[], Error, TubeData[]>, 'queryKey' | 'queryFn' | 'select'>;
 }) {
-  const { filters, queryOptions } = options || {};
+  const { filters, queryOptions } = options ?? {};
   
   return useQuery<TubeData[], Error, TubeData[]>({
     queryKey: queryKeys.tubes.lists(),

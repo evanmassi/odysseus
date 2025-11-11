@@ -65,16 +65,18 @@ interface BatchEditConflictAnalysis {
 function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeFormInput> {
   return {
     sample: {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
       cellType: tubeData.sample.cellType || '',
       donorInternalId: tubeData.sample.donorInternalId ?? '',
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
       donorSourceId: tubeData.sample.donorSourceId || '',
       concentration: formatConcentrationDisplay(tubeData.sample.concentration) || undefined,
       concentrationUnit: tubeData.sample.concentrationUnit,
-      date: tubeData.sample.date || '',
-      media: tubeData.sample.media || { type: '', supplements: '', selection: '' },
-      cultureCondition: tubeData.sample.cultureCondition || '',
+      date: tubeData.sample.date ?? '',
+      media: tubeData.sample.media ?? { type: '', supplements: '', selection: '' },
+      cultureCondition: tubeData.sample.cultureCondition ?? '',
       lotNumber: tubeData.sample.lotNumber ?? '',
-      notes: tubeData.sample.notes || ''
+      notes: tubeData.sample.notes ?? ''
     },
     researcherId: tubeData.researcherId
   };
@@ -93,6 +95,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
 
   // Fetch tubes by IDs, with legacy support during transition
   const { data: allTubes = [] } = useTubes();
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
   const tubes = legacyTubes || allTubes.filter(tube => tubeIds.includes(tube.id));
 
   // Focus return management - restore focus when modal unmounts
@@ -154,8 +157,10 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
 
     return {
       sample: {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show empty for user to fill
         cellType: analysis.cellType.state !== 'conflict' ? analysis.cellType.commonValue || '' : '',
-        donorInternalId: analysis.donorInternalId.state !== 'conflict' ? analysis.donorInternalId.commonValue || '' : '',
+        donorInternalId: analysis.donorInternalId.state !== 'conflict' ? analysis.donorInternalId.commonValue ?? '' : '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- donorSourceId is optional field, but following same pattern as cellType above
         donorSourceId: analysis.donorSourceId.state !== 'conflict' ? analysis.donorSourceId.commonValue || '' : '',
         concentration: analysis.concentration.state !== 'conflict'
           ? (analysis.concentration.commonValue ? formatConcentrationDisplay(analysis.concentration.commonValue) : undefined)
@@ -165,14 +170,15 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
           ? (analysis.date.commonValue ? formatDateForInput(analysis.date.commonValue) : '')
           : '',
         media: {
-          type: analysis['media.type'].state !== 'conflict' ? analysis['media.type'].commonValue || '' : '',
-          supplements: analysis['media.supplements'].state !== 'conflict' ? analysis['media.supplements'].commonValue || '' : '',
-          selection: analysis['media.selection'].state !== 'conflict' ? analysis['media.selection'].commonValue || '' : ''
+          type: analysis['media.type'].state !== 'conflict' ? analysis['media.type'].commonValue ?? '' : '',
+          supplements: analysis['media.supplements'].state !== 'conflict' ? analysis['media.supplements'].commonValue ?? '' : '',
+          selection: analysis['media.selection'].state !== 'conflict' ? analysis['media.selection'].commonValue ?? '' : ''
         },
-        cultureCondition: analysis.cultureCondition.state !== 'conflict' ? analysis.cultureCondition.commonValue || '' : '',
+        cultureCondition: analysis.cultureCondition.state !== 'conflict' ? analysis.cultureCondition.commonValue ?? '' : '',
         lotNumber: analysis.lotNumber.state !== 'conflict' ? analysis.lotNumber.commonValue ?? '' : '',
-        notes: analysis.notes.state !== 'conflict' ? analysis.notes.commonValue || '' : ''
+        notes: analysis.notes.state !== 'conflict' ? analysis.notes.commonValue ?? '' : ''
       },
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty researcherId in batch edit context indicates "not set"
       researcherId: analysis.researcherId.state !== 'conflict' ? analysis.researcherId.commonValue || '' : ''
     };
   }, [conflictAnalysis]);
@@ -407,14 +413,14 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
   const currentTankObj = tanks.find(tank => tank.id === tankId);
   const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === rackId);
   const tankName = currentTankObj?.name ?? 'Unknown Tank';
-  const rackName = currentRackObj?.name || 'Unknown Rack';
+  const rackName = currentRackObj?.name ?? 'Unknown Rack';
 
   // Get user settings for position display preferences
   const { settings: userSettings } = useUserSettings();
 
   // Format position ranges for display with flexible formatting
   const boxObj = getBox(tankId, rackId, boxId);
-  const gridConfig = boxObj?.gridConfig || {
+  const gridConfig = boxObj?.gridConfig ?? {
     rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
     cols: EQUIPMENT_DEFAULTS.GRID_COLS,
     template: 'standard' as const,

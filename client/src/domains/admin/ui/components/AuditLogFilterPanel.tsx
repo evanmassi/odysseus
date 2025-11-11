@@ -643,7 +643,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                   <input
                     id="audit-date-from"
                     type="datetime-local"
-                    value={filters.dateFrom || ''}
+                    value={filters.dateFrom ?? ''}
                     onChange={(e) => onChange({ ...filters, dateFrom: e.target.value || undefined, datePreset: undefined })}
                     className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-action-focus focus:border-action-focus"
                     placeholder="From"
@@ -655,7 +655,7 @@ export function AuditLogFilterPanel({ filters, onChange, onApply, onClear }: Aud
                   <input
                     id="audit-date-to"
                     type="datetime-local"
-                    value={filters.dateTo || ''}
+                    value={filters.dateTo ?? ''}
                     onChange={(e) => onChange({ ...filters, dateTo: e.target.value || undefined })}
                     className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-action-focus focus:border-action-focus"
                     placeholder="To"

@@ -101,7 +101,7 @@ export function Dashboard() {
   // Get actual tank and rack names for display
   const tanks = getCurrentTanks();
   const currentTankObj = tanks.find(tank => tank.id === currentTank);
-  const tankDisplayName = currentTankObj?.name || `Tank ${currentTank}`;
+  const tankDisplayName = currentTankObj?.name ?? `Tank ${currentTank}`;
   
   const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === currentRack);
   const rackDisplayName = currentRackObj?.name ?? `Rack ${currentRack}`;
@@ -370,6 +370,7 @@ export function Dashboard() {
                   tankId={currentTank}
                   rackId={currentRack}
                   boxId={currentBox}
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for conditional selection
                   selectedPositions={isStorageNavigatorFocused() || isSelectorActive ? new Set() : selectedPositions}
                   onSelectionChange={handleSelectionChange}
                   onEditTube={handleEditTube}
@@ -404,7 +405,9 @@ export function Dashboard() {
           name="TubeEditorModal"
         >
           <TubeEditorModal
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
             rackId={modalService.tubeEditorModal.rackId || currentRack}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
             boxId={modalService.tubeEditorModal.boxId || currentBox}
             onClose={handleCloseModal}
             selectedPositions={new Set(modalService.tubeEditorModal.positions ?? [])}

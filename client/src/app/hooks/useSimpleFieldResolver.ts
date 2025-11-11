@@ -167,7 +167,7 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
 
     // Build distribution map (including undefined for empty values)
     normalizedValues.forEach(value => {
-      distribution.set(value, (distribution.get(value) || 0) + 1);
+      distribution.set(value, (distribution.get(value) ?? 0) + 1);
     });
 
     // Two-state logic: All identical = COMMON, any difference = CONFLICT

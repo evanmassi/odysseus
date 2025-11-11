@@ -35,7 +35,9 @@ export class HttpClient {
   private timeout: number;
 
   constructor(config: HttpClientConfig = {}) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
     this.baseURL = config.baseURL || '/api';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
     this.timeout = config.timeout || 10000;
     this.defaultHeaders = {
       'Content-Type': 'application/json',
@@ -269,7 +271,7 @@ export class HttpClient {
     
     return {
       items: envelope.data,
-      pagination: envelope.pagination || {
+      pagination: envelope.pagination ?? {
         total: envelope.data.length,
         page: 1,
         limit: envelope.data.length,

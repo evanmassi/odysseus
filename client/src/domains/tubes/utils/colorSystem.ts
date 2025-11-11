@@ -188,7 +188,9 @@ function hashStringToIndex(str: string, maxIndex: number): number {
 // Get donor identifier from tube data
 function getDonorIdentifier(tubeData: ColorSystemTubeData): string {
   // Check new fields first
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
   if (tubeData.donorInternalId || tubeData.donorSourceId) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
     return tubeData.donorInternalId || tubeData.donorSourceId || 'unknown';
   }
   
@@ -206,9 +208,10 @@ function getDonorIdentifier(tubeData: ColorSystemTubeData): string {
 // Create unique signature for a tube
 function createTubeSignature(tubeData: ColorSystemTubeData): string {
   const donorId = getDonorIdentifier(tubeData);
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
   const cellType = tubeData.cellType || tubeData.cellLine || '';
   const lotNumber = tubeData.lotNumber ?? '';
-  const condition = tubeData.cultureCondition || '';
+  const condition = tubeData.cultureCondition ?? '';
 
   return `${donorId}|${cellType}|${lotNumber}|${condition}`;
 }
@@ -380,8 +383,9 @@ export function formatIdForGrid(id: string): string {
 // Helper function to extract both internal and source IDs from donor data
 export function parseDonorInfo(tubeData: any): { internal: string; source: string } {
   const adaptedData = adaptTubeDataForColorSystem(tubeData);
-  
+
   // Check if we have the new separate fields first
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check if either donor field is present
   if (adaptedData.donorInternalId || adaptedData.donorSourceId) {
     return {
       internal: formatIdForGrid(adaptedData.donorInternalId ?? ''),

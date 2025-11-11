@@ -73,6 +73,7 @@ function isDateField(key: string, typeName?: string): boolean {
 
   // Warn in development when using regex fallback
   if (env.isDev() && matched) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty typeName should display as 'unknown'
     console.warn(`⚠️ [API TRANSFORMER] Using regex fallback for field "${key}" in type "${typeName || 'unknown'}". Consider adding explicit mapping to EXPLICIT_DATE_FIELDS.`);
   }
 
@@ -192,8 +193,9 @@ export const TransformationDebug = {
    */
   logDateFields(obj: any, typeName?: string): void {
     if (typeof obj !== 'object' || !obj) return;
-    
+
     const dateFields = Object.keys(obj).filter(key => isDateField(key, typeName));
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty typeName should display as 'Unknown'
     console.log(`📅 [DATE FIELDS] ${typeName || 'Unknown'} detected fields:`, dateFields);
   },
   

@@ -526,7 +526,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault();
-                const template = selectedGridTemplate || editingBox.box.gridConfig;
+                const template = selectedGridTemplate ?? editingBox.box.gridConfig;
                 void (async () => {
                   try {
                     await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
@@ -587,7 +587,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                   </button>
                   <button
                     onClick={() => {
-                      const template = selectedGridTemplate || editingBox.box.gridConfig;
+                      const template = selectedGridTemplate ?? editingBox.box.gridConfig;
                       void (async () => {
                         try {
                           await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
@@ -673,7 +673,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                     id="rack-description"
                     className="input w-full resize-none"
                     rows={3}
-                    value={editingRack.rack.description || ''}
+                    value={editingRack.rack.description ?? ''}
                     onChange={(e) => setEditingRack({ ...editingRack, rack: { ...editingRack.rack, description: e.target.value } })}
                     placeholder="Optional description"
                   />

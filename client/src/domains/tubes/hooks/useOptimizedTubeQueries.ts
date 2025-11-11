@@ -103,6 +103,7 @@ export const useEssentialTubes = (
       if (filters.searchTerm) {
         const search = filters.searchTerm.toLowerCase();
         filtered = filtered.filter(t =>
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for searching across multiple fields
           t.sample.cellType?.toLowerCase().includes(search) ||
           t.researcherId?.toLowerCase().includes(search)
         );

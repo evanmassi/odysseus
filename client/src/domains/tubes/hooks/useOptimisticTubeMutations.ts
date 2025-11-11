@@ -47,6 +47,7 @@ export function useOptimisticCreateTubeMutation() {
       updateFn: (variables: CreateTubeRequest, oldData: TubeData[] | undefined) => {
         const optimisticTube: TubeData = {
           ...variables,
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- researcherId is required; empty string indicates missing data, use UNKNOWN_RESEARCHER
           researcherId: variables.researcherId || UNKNOWN_RESEARCHER,
           id: `temp-${Date.now()}`,
           timestamps: {

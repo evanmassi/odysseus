@@ -62,8 +62,11 @@ export const useTubes = (
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
         filtered = filtered.filter(tube =>
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
           tube.sample.cellType?.toLowerCase().includes(searchLower) ||
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
           tube.sample.donorInternalId?.toLowerCase().includes(searchLower) ||
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
           tube.sample.donorSourceId?.toLowerCase().includes(searchLower) ||
           tube.sample.notes?.toLowerCase().includes(searchLower)
         );
@@ -152,8 +155,11 @@ export const useInfiniteTubes = (
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
         tubes = tubes.filter(tube =>
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
           tube.sample.cellType?.toLowerCase().includes(searchLower) ||
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
           tube.sample.donorInternalId?.toLowerCase().includes(searchLower) ||
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
           tube.sample.donorSourceId?.toLowerCase().includes(searchLower) ||
           tube.sample.notes?.toLowerCase().includes(searchLower)
         );
@@ -259,6 +265,7 @@ export const useTubeStats = (
   rackId?: string,  boxId?: string,  options: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'> = {}
 ) => {
   return useQuery({
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string IDs are invalid, use 'all' for aggregated queries
     queryKey: [...queryKeys.tubes.locationStats(tankId || 'all', rackId || 'all'), boxId || 'all'],
     queryFn: async () => {
       // Get all tubes for statistics

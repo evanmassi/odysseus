@@ -60,6 +60,7 @@ export function InlineEditInput({
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty placeholder is meaningless, generate helpful text
         placeholder={placeholder || `Edit ${fieldName}`}
         className="flex-1 text-xs bg-transparent border-none outline-none px-1"
       />

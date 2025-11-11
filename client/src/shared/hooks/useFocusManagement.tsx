@@ -65,7 +65,7 @@ export function FocusZoneProvider({ children }: { children: React.ReactNode }) {
     setFocusState(prev => ({
       ...prev,
       isModalOpen: isOpen,
-      activeZone: isOpen ? FocusZone.MODAL : (prev.previousZone || FocusZone.GRID)
+      activeZone: isOpen ? FocusZone.MODAL : (prev.previousZone ?? FocusZone.GRID)
     }));
   }, []);
 

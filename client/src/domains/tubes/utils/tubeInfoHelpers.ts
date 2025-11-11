@@ -52,6 +52,7 @@ function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeReques
     // id is not part of CreateTubeRequest - it's generated on creation
     location: tubeData.location,
     sample: {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show empty for user to fill
       cellType: tubeData.sample.cellType || '',
       donorInternalId: tubeData.sample.donorInternalId,
       donorSourceId: tubeData.sample.donorSourceId,

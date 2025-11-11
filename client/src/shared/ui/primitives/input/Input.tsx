@@ -406,8 +406,11 @@ export const Input = forwardRef<InputRef, InputProps>(
     
     // Determine current state
     const getCurrentState = useCallback(() => {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to determine input state
       if (error || validationResult?.type === 'error') return 'error';
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to determine input state
       if (warning || validationResult?.type === 'warning') return 'warning';
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to determine input state
       if (success || validationResult?.type === 'success') return 'success';
       return state;
     }, [error, warning, success, validationResult, state]);
@@ -426,7 +429,7 @@ export const Input = forwardRef<InputRef, InputProps>(
         
         // Find first failed validation or return success
         const failedResult = results.find(result => !result.isValid);
-        const finalResult = failedResult || { isValid: true, type: 'success' as const };
+        const finalResult = failedResult ?? { isValid: true, type: 'success' as const };
         
         setValidationResult(finalResult);
         onValidationChange?.(finalResult);
@@ -465,9 +468,10 @@ export const Input = forwardRef<InputRef, InputProps>(
     // Determine aria-describedby
     const getAriaDescribedBy = useCallback(() => {
       const descriptions: string[] = [];
-      
+
       if (ariaDescribedBy) descriptions.push(ariaDescribedBy);
       if (description) descriptions.push(descriptionId);
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check if any message exists
       if (error || warning || success || validationResult?.message) {
         descriptions.push(errorId);
       }
@@ -482,7 +486,9 @@ export const Input = forwardRef<InputRef, InputProps>(
       size,
       state: currentState,
       fullWidth,
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check for icon/prefix presence
       hasLeftIcon: Boolean(leftIcon || prefix),
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check for icon/suffix/loading presence
       hasRightIcon: Boolean(rightIcon || suffix || isLoading),
       className: inputClassName,
     });
@@ -522,8 +528,10 @@ export const Input = forwardRef<InputRef, InputProps>(
         {/* Input wrapper with icons */}
         <div className="relative">
           {/* Left icon or prefix */}
+          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/prefix */}
           {(leftIcon || prefix) && (
             <div className={iconVariants({ position: 'left', size })}>
+              {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/prefix */}
               {leftIcon || prefix}
             </div>
           )}
@@ -553,8 +561,10 @@ export const Input = forwardRef<InputRef, InputProps>(
           {/* Right icon, suffix, or loading spinner */}
           {isLoading ? (
             <InputLoadingSpinner size={size!} />
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/suffix
           ) : (rightIcon || suffix) ? (
             <div className={iconVariants({ position: 'right', size })}>
+              {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/suffix */}
               {rightIcon || suffix}
             </div>
           ) : null}

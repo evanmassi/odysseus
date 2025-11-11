@@ -105,20 +105,21 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
   );
   
   // Default loading fallback with timeout
-  const loadingFallback = fallback || (
-    <DefaultLoadingFallback 
-      name={name} 
+  const loadingFallback = fallback ?? (
+    <DefaultLoadingFallback
+      name={name}
       className={className}
       aria-label={ariaLabel}
     />
   );
-  
+
   // Error boundary configuration - omit children since we use JSX children pattern
   const errorBoundaryConfig: Omit<ErrorBoundaryProps, 'children'> = {
-    fallback: errorFallback || defaultErrorFallback,
+    fallback: errorFallback ?? defaultErrorFallback,
     onError: (error, errorInfo) => {
       // Log error for debugging
       if (env.isDev()) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown Component'
         console.group(`🚨 Lazy Loading Error: ${name || 'Unknown Component'}`);
         console.error('Error:', error);
         console.error('Error Info:', errorInfo);
@@ -150,7 +151,8 @@ export const withSuspenseBoundary = <P extends object>(
       <LazyComponent {...(props as any)} ref={ref} />
     </SuspenseBoundary>
   ));
-  
+
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for React displayName
   WrappedComponent.displayName = `withSuspenseBoundary(${LazyComponent.displayName || LazyComponent.name})`;
   
   return WrappedComponent;

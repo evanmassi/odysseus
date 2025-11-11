@@ -55,6 +55,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         // Socket connection is now managed centrally by AppBootstrapService
       } else {
         // Use actual error from auth store for specific error messages
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error message should fall through to default
         setLoginError(authError || 'Incorrect username or password. Please try again.');
       }
     } catch (error) {
@@ -83,6 +84,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   };
 
   // Check if error is about email verification
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check multiple error conditions
   const isEmailVerificationError = loginError?.toLowerCase().includes('email not verified') ||
                                     loginError?.toLowerCase().includes('verify your email');
 

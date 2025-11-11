@@ -287,6 +287,7 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
       
       // Icon-only button
       if (iconOnly) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: use first available icon/children
         return leftIcon || rightIcon || children;
       }
       

@@ -97,6 +97,7 @@ export const GridPosition = memo<GridPositionProps>(({
       onMouseDown={(e) => onMouseDown(position, e)}
       onMouseMove={() => onMouseMove(position)}
       onKeyDown={(e) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for keyboard event handling
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onPositionClick(position, e as any);
@@ -104,6 +105,7 @@ export const GridPosition = memo<GridPositionProps>(({
       }}
       role="gridcell"
       aria-label={tube
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show fallback
         ? `Position ${position}, ${tube.sample?.cellType || 'Unknown sample'}, ${selected ? 'selected' : 'not selected'}`
         : `Position ${position}, empty, ${selected ? 'selected' : 'not selected'}`
       }
@@ -119,13 +121,13 @@ export const GridPosition = memo<GridPositionProps>(({
         rounded-lg
       `}
       style={{
-        backgroundColor: colors?.backgroundColor || '#f8f9fa',
-        color: colors?.textColor || (tube ? '#000' : '#999'),
+        backgroundColor: colors?.backgroundColor ?? '#f8f9fa',
+        color: colors?.textColor ?? (tube ? '#000' : '#999'),
         width: '100%',
         height: '100%',
         aspectRatio: '1',
         // CSS custom properties for dynamic theming
-        '--border-color': colors?.borderColor || '#C4C4C4'
+        '--border-color': colors?.borderColor ?? '#C4C4C4'
       } as React.CSSProperties}
       data-grid-size={`${gridConfig.rows}x${gridConfig.cols}`}
       data-position={position}
@@ -176,8 +178,10 @@ export const GridPosition = memo<GridPositionProps>(({
           <div
             className="cell-line font-medium leading-tight"
             style={{ fontSize: `${fontSize.cellFont}px` }}
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show fallback
             title={tube.sample.cellType || 'Unknown'}
           >
+            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
             {tube.sample.cellType || 'Unknown'}
           </div>
           {donorInfo.internal && (
@@ -190,9 +194,10 @@ export const GridPosition = memo<GridPositionProps>(({
             </div>
           )}
           {donorInfo.source && (
-            <div 
+            <div
               className="donor-source leading-tight"
               style={{ fontSize: `${fontSize.donorFont}px` }}
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback, empty string should trigger next option
               title={`Source ID: ${tube.sample.donorSourceId || donorInfo.source}`}
             >
               {donorInfo.source}
@@ -213,7 +218,7 @@ export const GridPosition = memo<GridPositionProps>(({
       {/* Quick edit overlay */}
       {isQuickEdit && tube && quickEditMode && (
         <InlineEditInput
-          initialValue={(tube as any)[quickEditMode.field] || ''}
+          initialValue={(tube as any)[quickEditMode.field] ?? ''}
           fieldName={quickEditMode.field}
           onSave={(value) => onQuickEditSave(position, quickEditMode.field, value)}
           onCancel={onQuickEditCancel}

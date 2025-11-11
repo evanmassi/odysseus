@@ -165,6 +165,7 @@ export class OptimisticUpdatesService {
           }
 
           // Show error feedback
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error message should fall through to default for UX
           const errorMessage = feedback?.error || 'Action failed. Changes have been reverted.';
           toast.error(errorMessage, { 
             id: optimisticContext.tempId,

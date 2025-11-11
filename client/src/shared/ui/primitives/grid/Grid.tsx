@@ -331,9 +331,10 @@ export const Grid = forwardRef<HTMLDivElement, GridProps>(
       rowClasses,
       className,
     ].filter(Boolean).join(' ');
-    
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Polymorphic component: empty 'as' is invalid, default to 'div'
     const Element = as || 'div';
-    
+
     // Industry-standard polymorphic component pattern with type safety bypass
     const elementProps = {
       ref: ref as any,
@@ -378,7 +379,8 @@ export const GridItem = forwardRef<HTMLElement, GridItemProps>(
       
       Object.entries(responsive).forEach(([breakpoint, config]) => {
         const prefix = breakpoint === 'xs' ? '' : `${breakpoint}:`;
-        
+
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check if either config property exists
         if (config.column || config.row) {
           const bpPositionClasses = getGridItemClasses(config.column, config.row);
           if (bpPositionClasses) {
@@ -416,9 +418,10 @@ export const GridItem = forwardRef<HTMLElement, GridItemProps>(
       responsiveClasses,
       className,
     ].filter(Boolean).join(' ');
-    
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Polymorphic component: empty 'as' is invalid, default to 'div'
     const Element = as || 'div';
-    
+
     // Industry-standard polymorphic component pattern with type safety bypass
     const elementProps = {
       ref: ref as any,

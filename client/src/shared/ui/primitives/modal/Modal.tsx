@@ -366,9 +366,9 @@ export const Modal = React.forwardRef<ModalRef, ModalProps>(
     
     // Generate classes
     const overlayClasses = overlayVariants({ 
-      backdrop, 
-      isOpen, 
-      className: `${backdropClassName || ''} ${className || ''}` 
+      backdrop,
+      isOpen,
+      className: `${backdropClassName ?? ''} ${className ?? ''}`
     });
     
     const contentClasses = contentVariants({
@@ -394,7 +394,7 @@ export const Modal = React.forwardRef<ModalRef, ModalProps>(
     if (!isOpen) return null;
     
     // Portal target
-    const target = portalTarget || (typeof window !== 'undefined' ? document.body : null);
+    const target = portalTarget ?? (typeof window !== 'undefined' ? document.body : null);
     if (!target) return null;
     
     // Modal content
@@ -419,8 +419,8 @@ export const Modal = React.forwardRef<ModalRef, ModalProps>(
           role={role}
           aria-modal="true"
           aria-label={ariaLabel}
-          aria-labelledby={ariaLabelledBy || headerId}
-          aria-describedby={ariaDescribedBy || bodyId}
+          aria-labelledby={ariaLabelledBy ?? headerId}
+          aria-describedby={ariaDescribedBy ?? bodyId}
           tabIndex={-1}
           {...props}
         >
@@ -445,8 +445,8 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
   id,
 }) => {
   const { onClose: contextOnClose, headerId } = useModalContext();
-  const finalOnClose = onClose || contextOnClose;
-  const finalId = id || headerId;
+  const finalOnClose = onClose ?? contextOnClose;
+  const finalId = id ?? headerId;
   
   return (
     <div
@@ -477,7 +477,7 @@ export const ModalBody: React.FC<ModalBodyProps> = ({
   id,
 }) => {
   const { bodyId } = useModalContext();
-  const finalId = id || bodyId;
+  const finalId = id ?? bodyId;
   
   const paddingClasses = {
     none: '',

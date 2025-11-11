@@ -61,9 +61,10 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
   const isDevelopment = env.isDev();
   
   return (
-    <div 
+    <div
       className="flex flex-col items-center justify-center p-8 min-h-[200px] border-2 border-dashed border-error-300 bg-error-50 rounded-lg"
       role="alert"
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for display: empty name falls through to level
       aria-label={`Error in ${name || level}`}
     >
       <div className="text-error-500 mb-4">
@@ -95,6 +96,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
               <strong>Error ID:</strong> {errorId}
             </div>
             <div className="mb-2">
+              {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug display: empty name shows 'Unknown' */}
               <strong>Component:</strong> {name || 'Unknown'}
             </div>
             <div className="mb-2">
@@ -121,6 +123,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
         {isDevelopment && (
           <button
             onClick={() => {
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
               console.group(`🚨 Error Boundary: ${name || 'Unknown'}`);
               console.error('Error:', error);
               console.error('Error ID:', errorId);
@@ -176,6 +179,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
   
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error ID is invalid, generate unique ID
     const errorId = this.state.errorId || generateErrorId();
     
     this.setState({
@@ -185,6 +189,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     
     // Log error for monitoring
     if (env.isDev()) {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
       console.group(`🚨 Error Boundary Caught Error: ${this.props.name || 'Unknown'}`);
       console.error('Error:', error);
       console.error('Error Info:', errorInfo);
@@ -221,7 +226,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   
   override render() {
     if (this.state.hasError && this.state.error) {
-      const FallbackComponent = this.props.fallback || DefaultErrorFallback;
+      const FallbackComponent = this.props.fallback ?? DefaultErrorFallback;
       
       const fallbackProps = {
         error: this.state.error,
@@ -281,7 +286,8 @@ export const withErrorBoundary = <P extends object>(
       <Component {...(props as any)} ref={ref} />
     </ErrorBoundary>
   ));
-  
+
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for React displayName
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
   
   return WrappedComponent;

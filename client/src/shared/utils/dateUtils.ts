@@ -68,8 +68,8 @@ export function normalizeDateString(input: string | Date | null | undefined): st
  */
 export function areDatesEqual(a: string | null | undefined, b: string | null | undefined): boolean {
   // Normalize both inputs
-  const dateA = normalizeDateString(a || '');
-  const dateB = normalizeDateString(b || '');
+  const dateA = normalizeDateString(a ?? '');
+  const dateB = normalizeDateString(b ?? '');
 
   // Empty dates are not equal to anything (including each other)
   if (!dateA || !dateB) return false;
@@ -90,7 +90,7 @@ export function formatDateForDisplay(
   locale: string = 'en-US',
   options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'numeric', day: 'numeric' }
 ): string {
-  const normalized = normalizeDateString(dateString || '');
+  const normalized = normalizeDateString(dateString ?? '');
   if (!normalized) return '';
 
   try {
@@ -161,5 +161,5 @@ export function parseDateInputValue(value: string): string {
  * @returns Value suitable for input[type="date"]
  */
 export function formatDateForInput(dateString: string | null | undefined): string {
-  return normalizeDateString(dateString || '');
+  return normalizeDateString(dateString ?? '');
 }

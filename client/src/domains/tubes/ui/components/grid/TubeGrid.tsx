@@ -71,7 +71,7 @@ export function TubeGrid({
   
   // Use the specific tankId passed from parent
   const boxConfig = getBox(tankId, rackId, boxId);
-  const gridConfig = boxConfig?.gridConfig || {
+  const gridConfig = boxConfig?.gridConfig ?? {
     rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
     cols: EQUIPMENT_DEFAULTS.GRID_COLS,
     template: 'standard'

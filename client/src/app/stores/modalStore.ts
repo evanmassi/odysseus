@@ -119,7 +119,7 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
         title: config.title,
         message: config.message,
         onConfirm: config.onConfirm,
-        onCancel: config.onCancel || (() => get().hideDeleteConfirm()),
+        onCancel: config.onCancel ?? (() => get().hideDeleteConfirm()),
         previousFocusElement
       }
     });
@@ -141,7 +141,7 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
         message: config.message,
         confirmText: config.confirmText,
         onConfirm: config.onConfirm,
-        onCancel: config.onCancel || (() => get().hideOverwriteConfirm()),
+        onCancel: config.onCancel ?? (() => get().hideOverwriteConfirm()),
         previousFocusElement
       }
     });

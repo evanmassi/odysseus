@@ -85,7 +85,8 @@ export const useGridController = ({
 
   // Default tube resolution if not provided
   const resolveTube = React.useMemo(
-    () => resolveTubeIdAtPosition || ((position: number) => positionToTubeMap.get(position) || null),
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Function fallback: use provided resolver or default implementation
+    () => resolveTubeIdAtPosition || ((position: number) => positionToTubeMap.get(position) ?? null),
     [resolveTubeIdAtPosition, positionToTubeMap]
   );
 
@@ -383,9 +384,9 @@ export const useGridController = ({
 
       // Validate paste operation across different grid configurations
       const sourceGridConfig = getBox(
-        (clipData.sourceLocation || ctx).tankId,
-        (clipData.sourceLocation || ctx).rackId,
-        (clipData.sourceLocation || ctx).boxId
+        (clipData.sourceLocation ?? ctx).tankId,
+        (clipData.sourceLocation ?? ctx).rackId,
+        (clipData.sourceLocation ?? ctx).boxId
       )?.gridConfig;
 
       const targetGridConfig = getBox(tankId, rackId, boxId)?.gridConfig;
@@ -569,7 +570,7 @@ export const useGridController = ({
   };
 
   const getPasteLabel = () => {
-    const count = clipboard?.tubes?.length || 0;
+    const count = clipboard?.tubes?.length ?? 0;
     if (count === 0) return 'Paste';
     if (count === 1) return 'Paste Tube';
     return `Paste ${count} Tubes`;
@@ -669,11 +670,11 @@ export const useGridController = ({
     // Grid selection operations state
     clipboard: {
       hasData: Boolean(clipboard?.tubes?.length),
-      count: clipboard?.tubes?.length || 0,
+      count: clipboard?.tubes?.length ?? 0,
       cutPositions: React.useMemo(() => {
         if (clipboard?.operation === 'cut') {
-          return new Set(clipboard.tubes.map(tube => 
-            toPositionKey(clipboard.sourceLocation || ctx, tube.location.position)
+          return new Set(clipboard.tubes.map(tube =>
+            toPositionKey(clipboard.sourceLocation ?? ctx, tube.location.position)
           ));
         }
         return new Set<PositionKey>();
@@ -681,7 +682,7 @@ export const useGridController = ({
       copyPositions: React.useMemo(() => {
         if (clipboard?.operation === 'copy') {
           return new Set(clipboard.tubes.map(tube =>
-            toPositionKey(clipboard.sourceLocation || ctx, tube.location.position)
+            toPositionKey(clipboard.sourceLocation ?? ctx, tube.location.position)
           ));
         }
         return new Set<PositionKey>();

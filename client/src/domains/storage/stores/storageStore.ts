@@ -195,7 +195,7 @@ export const useStorageStore = create<ConfigurationState>()(
         const lab = systemConfig.availableLabs.find(
           l => l.id === systemConfig.currentLabId
         );
-        return lab || DEFAULT_LAB_CONFIG;
+        return lab ?? DEFAULT_LAB_CONFIG;
       };
 
       // Wrapped set function that auto-syncs currentLab
@@ -535,7 +535,7 @@ export const useStorageStore = create<ConfigurationState>()(
         }
         
         const tank = tanks.find(t => t.id === tankId);
-        const racks = tank?.racks || [];
+        const racks = tank?.racks ?? [];
 
         return racks;
       },
@@ -547,7 +547,7 @@ export const useStorageStore = create<ConfigurationState>()(
         const tanks = equipment.tanks || [];
         const tank = tanks.find(t => t.id === tankId);
         const rack = tank?.racks?.find(r => r.id === rackId);
-        return rack?.boxes || [];
+        return rack?.boxes ?? [];
       },
 
       getBox: (tankId: string, rackId: string, boxId: string) => {

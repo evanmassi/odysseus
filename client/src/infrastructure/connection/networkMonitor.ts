@@ -331,7 +331,7 @@ export class NetworkMonitor {
    * Notify all listeners of an event
    */
   private notifyListeners(event: NetworkEvent): void {
-    const callbacks = this.listeners.get(event) || [];
+    const callbacks = this.listeners.get(event) ?? [];
     callbacks.forEach(callback => {
       try {
         callback(this.status);

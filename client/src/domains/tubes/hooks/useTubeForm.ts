@@ -105,7 +105,7 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
     // Warning: Duplicate position check (only if we have location)
     if ('location' in payload && payload.location) {
       // Get existing tubes for duplicate validation (fresh on every validation)
-      const existingTubes = queryClient.getQueryData<TubeData[]>(queryKeys.tubes.all) || [];
+      const existingTubes = queryClient.getQueryData<TubeData[]>(queryKeys.tubes.all) ?? [];
 
       const filteredTubes = mode === 'edit' && tubeId
         ? existingTubes.filter(tube => tube.id !== tubeId)
@@ -222,6 +222,7 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
   const isSubmitting = createTubeMutation.isPending || updateTubeMutation.isPending;
 
   // Error state
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
   const submitError = createTubeMutation.error || updateTubeMutation.error;
 
   return {
@@ -321,15 +322,15 @@ export function useTubeFormTransform() {
         donorSourceId: tubeData.sample.donorSourceId ?? '',
         concentration: tubeData.sample.concentration,
         concentrationUnit: tubeData.sample.concentrationUnit,
-        date: tubeData.sample.date || '',
+        date: tubeData.sample.date ?? '',
         media: {
-          type: tubeData.sample.media?.type || '',
-          supplements: tubeData.sample.media?.supplements || '',
-          selection: tubeData.sample.media?.selection || ''
+          type: tubeData.sample.media?.type ?? '',
+          supplements: tubeData.sample.media?.supplements ?? '',
+          selection: tubeData.sample.media?.selection ?? ''
         },
-        cultureCondition: tubeData.sample.cultureCondition || '',
+        cultureCondition: tubeData.sample.cultureCondition ?? '',
         lotNumber: tubeData.sample.lotNumber ?? '',
-        notes: tubeData.sample.notes || ''
+        notes: tubeData.sample.notes ?? ''
       },
       researcherId: tubeData.researcherId
     };

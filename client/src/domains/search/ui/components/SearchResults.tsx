@@ -66,8 +66,8 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
         }
 
         case 'cellType': {
-          const cellTypeA = firstTubeA.sample?.cellType || '';
-          const cellTypeB = firstTubeB.sample?.cellType || '';
+          const cellTypeA = firstTubeA.sample?.cellType ?? '';
+          const cellTypeB = firstTubeB.sample?.cellType ?? '';
           compareValue = cellTypeA.localeCompare(cellTypeB);
           break;
         }
@@ -162,10 +162,10 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
     const tanks = getCurrentTanks();
 
     const tank = tanks.find(t => t.id === tankId);
-    const tankName = tank?.name || `Tank ${tankId}`;
+    const tankName = tank?.name ?? `Tank ${tankId}`;
 
     const rack = tank?.racks?.find(r => r.id === rackId);
-    const rackName = rack?.name || `Rack ${rackId}`;
+    const rackName = rack?.name ?? `Rack ${rackId}`;
 
     return `${tankName} → ${rackName} → Box ${boxId}`;
   };
@@ -222,12 +222,12 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
           tube.location.boxId,
           tube.location.position,
           positionLabel,
-          tube.sample.cellType || '',
+          tube.sample.cellType ?? '',
           tube.sample.donorInternalId ?? '',
           tube.sample.donorSourceId ?? '',
           tube.sample.lotNumber ?? '',
           tube.researcherId ?? '',
-          tube.sample.date || ''
+          tube.sample.date ?? ''
         ].join(',');
       })
     ].join('\n');
@@ -370,6 +370,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
           <div className="space-y-2">
             {sortedGroups.map((group, index) => {
             const firstTube = group.tubes[0];
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- cellType is required; empty string indicates missing data, display as 'Unknown'
             const cellType = firstTube.sample?.cellType || 'Unknown';
             const donorInternal = firstTube.sample?.donorInternalId ?? '';
             const donorSource = firstTube.sample?.donorSourceId ?? '';

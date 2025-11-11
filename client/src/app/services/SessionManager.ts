@@ -122,7 +122,7 @@ export class SessionManager implements TokenProvider {
 
     if (refreshSuccess) {
       const newTokens = this.storage.getTokens();
-      return newTokens?.accessToken || null;
+      return newTokens?.accessToken ?? null;
     }
 
     return null;

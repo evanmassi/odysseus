@@ -60,6 +60,7 @@ export class ApiClient {
       'Content-Type': 'application/json',
       ...config.headers
     };
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
     this.timeout = config.timeout || 30000;
   }
 
@@ -130,6 +131,7 @@ export class ApiClient {
     };
 
     const controller = new AbortController();
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
     const timeout = options?.timeout || this.timeout;
     
     const timeoutId = setTimeout(() => controller.abort(), timeout);

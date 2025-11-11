@@ -67,7 +67,7 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
     const positions = selectedTubes.map(t => t.location.position);
 
     // Get grid config for position formatting
-    const gridConfig = currentBoxObj?.gridConfig || {
+    const gridConfig = currentBoxObj?.gridConfig ?? {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
       template: 'standard' as const,
@@ -97,7 +97,7 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
     }).sort((a, b) => a - b);
 
     // Get grid config for position formatting
-    const gridConfig = currentBoxObj?.gridConfig || {
+    const gridConfig = currentBoxObj?.gridConfig ?? {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
       template: 'standard' as const,

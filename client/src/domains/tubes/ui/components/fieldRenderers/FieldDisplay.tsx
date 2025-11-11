@@ -109,7 +109,7 @@ export const SectionDisplay: React.FC<SectionDisplayProps> = ({
     3: 'grid-cols-3',
     4: 'grid-cols-4',
     6: 'grid-cols-6'
-  }[columns] || 'grid-cols-1';
+  }[columns] ?? 'grid-cols-1';
 
   const useGridLayout = columns > 1;
 

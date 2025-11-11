@@ -1,4 +1,5 @@
 import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 import path from 'path';
 
 const logFormat = winston.format.combine(
@@ -28,12 +29,22 @@ const transports: winston.transport[] = [
 // Only add file logging in development mode (not in packaged apps or Electron)
 if (!isPkgBundle && !isElectronPackaged && !isElectronApp) {
   transports.push(
-    new winston.transports.File({
-      filename: path.join(__dirname, '../../logs/error.log'),
-      level: 'error'
+    // Error logs with rotation
+    new DailyRotateFile({
+      filename: path.join(__dirname, '../../logs/error-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      level: 'error',
+      maxSize: '10m',
+      maxFiles: '7d',
+      zippedArchive: true
     }),
-    new winston.transports.File({
-      filename: path.join(__dirname, '../../logs/combined.log')
+    // Combined logs with rotation
+    new DailyRotateFile({
+      filename: path.join(__dirname, '../../logs/combined-%DATE%.log'),
+      datePattern: 'YYYY-MM-DD',
+      maxSize: '10m',
+      maxFiles: '7d',
+      zippedArchive: true
     })
   );
 }

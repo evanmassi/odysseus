@@ -211,7 +211,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
     
     // Get selected options for display
     const getSelectedOptions = useCallback(() => {
-      const currentValue = value !== undefined ? value : selectedValue;
+      const currentValue = value ?? selectedValue;
       if (!currentValue) return [];
       
       const values = Array.isArray(currentValue) ? currentValue : [currentValue];
@@ -480,6 +480,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
             )}
             
             {/* Options */}
+            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty label is meaningless for accessibility, use default 'Select' */}
             <div ref={optionsRef} role="listbox" id="select-listbox" aria-label={`${label || 'Select'} options`}>
               {filteredOptions.length === 0 ? (
                 <div className="px-3 py-2 text-sm text-neutral-500">

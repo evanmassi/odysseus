@@ -47,7 +47,7 @@ export const LocationDisplay = ({
     const boxName = box?.name ?? `Box ${boxId}`;
 
     // Format position label using box's configuration
-    const gridConfig = box?.gridConfig || {
+    const gridConfig = box?.gridConfig ?? {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
       template: 'standard' as const,

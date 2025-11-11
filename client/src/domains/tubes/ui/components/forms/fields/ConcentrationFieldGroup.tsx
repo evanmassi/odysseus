@@ -152,7 +152,7 @@ export const ConcentrationFieldGroup: React.FC<ConcentrationFieldGroupProps> = (
       </div>
 
       {/* Smart Field Hint */}
-      {concentration || concentrationUnit ? (
+      {concentration ?? concentrationUnit ? (
         <div className="flex items-center space-x-2 text-sm text-odysseus-text-secondary bg-odysseus-surface/50 rounded-lg p-3 border border-odysseus-border/50">
           <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
             <span className="text-white text-xs">i</span>

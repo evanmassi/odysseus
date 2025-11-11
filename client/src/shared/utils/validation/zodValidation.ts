@@ -93,9 +93,10 @@ export function validateField<T>(
   fieldName?: string
 ): FieldValidationResult {
   const result = validateWithSchema(schema, value);
-  
+
   return {
     isValid: result.success,
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: empty fieldName uses 'field', empty error uses result.error
     error: result.success ? undefined : (result.errors?.[fieldName || 'field'] || result.error)
   };
 }

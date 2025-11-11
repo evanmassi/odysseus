@@ -113,9 +113,11 @@ export const useTabOrder = (config: TabOrderConfig = {}) => {
       }
       
       items.push({
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty element ID is invalid, generate unique ID
         id: element.id || `tab-item-${index}`,
         element,
         order,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty group is invalid, use undefined
         group: dataGroup || undefined,
         disabled: element.hasAttribute('disabled'),
       });

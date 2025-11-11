@@ -33,7 +33,7 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
     initialFocusDelay = 150,
     initialFocusRef,
     autoFocusFirstInput = false
-  } = options || {};
+  } = options ?? {};
 
   // Save focus on mount and restore on close/unmount
   useEffect(() => {
@@ -70,7 +70,7 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
       // This skips warning banners, checkboxes, and other inputs outside the main form
       else if (autoFocusFirstInput) {
         const formElement = modal.querySelector('form');
-        const searchContext = formElement || modal;
+        const searchContext = formElement ?? modal;
         const firstInput = searchContext.querySelector<HTMLElement>(FORM_INPUT_SELECTOR);
         elementToFocus = firstInput;
       }

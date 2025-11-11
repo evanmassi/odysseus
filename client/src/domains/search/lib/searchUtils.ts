@@ -26,6 +26,7 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
     // Group by cell type when no query
     const groups = new Map<string, TubeData[]>();
     tubes.forEach(tube => {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- cellType is required; empty string indicates missing data, display as 'Unknown'
       const key = tube.sample.cellType || 'Unknown';
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key)!.push(tube);
@@ -70,6 +71,7 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
 
     // Group by tube's CURRENT identifier, not what was matched
     const tankId = tube.location.tankId || NAMING_PATTERNS.TANK.ID_PATTERN(1);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain: try each identifier, empty values fall through
     const currentGroupKey = tube.sample.donorInternalId || tube.sample.donorSourceId || tube.sample.lotNumber || tube.sample.cellType || 'Unknown';
     const locationKey = `${currentGroupKey}:${tankId}:${tube.location.rackId}:${tube.location.boxId}`;
 

@@ -101,7 +101,7 @@ export class CachePerformanceMonitor {
    * Update performance metrics for a query
    */
   private updateQueryPerformance(queryKey: string, loadTime: number, isError: boolean): void {
-    const current = this.queryPerformance.get(queryKey) || {
+    const current = this.queryPerformance.get(queryKey) ?? {
       queryKey,
       averageLoadTime: 0,
       cacheHits: 0,

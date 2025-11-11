@@ -37,6 +37,7 @@ export function SessionListSection() {
     const browserVersion = result.browser.version?.split('.')[0] ?? '';
     const os = result.os.name ?? 'Unknown OS';
     const osVersion = result.os.version ?? '';
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty device type is invalid, default to 'desktop'
     const deviceType = result.device.type || 'desktop';
 
     const deviceName = `${browser}${browserVersion ? ' ' + browserVersion : ''} on ${os}${osVersion ? ' ' + osVersion : ''}`;

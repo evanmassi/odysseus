@@ -162,20 +162,20 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
   // concentration as string, date as string
   const initialData: Partial<UpdateTubeFormInput> = {
     sample: {
-      cellType: tube.sample.cellType || '',
+      cellType: tube.sample.cellType ?? '',
       donorInternalId: tube.sample.donorInternalId ?? '',
       donorSourceId: tube.sample.donorSourceId ?? '',
       concentration: formatConcentrationDisplay(tube.sample.concentration) || undefined,
       concentrationUnit: tube.sample.concentrationUnit || undefined,
       date: tube.sample.date ? formatDateForInput(tube.sample.date) : '',
       media: {
-        type: tube.sample.media?.type || '',
-        supplements: tube.sample.media?.supplements || '',
-        selection: tube.sample.media?.selection || ''
+        type: tube.sample.media?.type ?? '',
+        supplements: tube.sample.media?.supplements ?? '',
+        selection: tube.sample.media?.selection ?? ''
       },
-      cultureCondition: tube.sample.cultureCondition || '',
+      cultureCondition: tube.sample.cultureCondition ?? '',
       lotNumber: tube.sample.lotNumber ?? '',
-      notes: tube.sample.notes || ''
+      notes: tube.sample.notes ?? ''
     },
     researcherId: tube.researcherId ?? ''
   };
@@ -406,7 +406,7 @@ function CreateModeContent({
 
     // Get box config for flexible position formatting
     const boxObj = getBox(firstLocation.tankId, firstLocation.rackId, firstLocation.boxId);
-    const gridConfig = boxObj?.gridConfig || {
+    const gridConfig = boxObj?.gridConfig ?? {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
       template: 'standard' as const,

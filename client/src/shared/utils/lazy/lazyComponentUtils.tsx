@@ -73,7 +73,8 @@ export const createLazyComponent = <T extends ComponentType<any>>(
   const LazyComponent = lazy(async () => {
     const startTime = performance.now();
     let lastError: Error | null = null;
-    
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- 0 retry attempts is invalid, default to 3
     for (let attempt = 1; attempt <= (finalConfig.retryAttempts || 3); attempt++) {
       try {
         // Add timeout handling
@@ -118,6 +119,7 @@ export const createLazyComponent = <T extends ComponentType<any>>(
         }
         
         // Wait before retry (exponential backoff)
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- 0 retry attempts is invalid, default to 3
         if (attempt < (finalConfig.retryAttempts || 3)) {
           await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt - 1) * 1000));
         }
@@ -132,6 +134,7 @@ export const createLazyComponent = <T extends ComponentType<any>>(
       metricsCollection.push({
         componentName,
         loadTime: totalTime,
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- 0 retry attempts is invalid, default to 3
         attempts: finalConfig.retryAttempts || 3,
         success: false,
         timestamp: Date.now(),
@@ -140,8 +143,8 @@ export const createLazyComponent = <T extends ComponentType<any>>(
       
       console.error(`❌ Failed to load ${componentName} after ${finalConfig.retryAttempts} attempts in ${totalTime.toFixed(2)}ms`);
     }
-    
-    throw lastError || new Error(`Failed to load ${componentName} after ${finalConfig.retryAttempts} attempts`);
+
+    throw lastError ?? new Error(`Failed to load ${componentName} after ${finalConfig.retryAttempts} attempts`);
   });
   
   // Set displayName for debugging - type assertion for LazyExoticComponent

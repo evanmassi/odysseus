@@ -48,6 +48,7 @@ export class AuthHttpClient {
 
   constructor(config: { baseURL: string; timeout?: number } = { baseURL: 'http://localhost:3001/api' }) {
     this.baseURL = config.baseURL;
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
     this.timeout = config.timeout || 30000;
   }
 

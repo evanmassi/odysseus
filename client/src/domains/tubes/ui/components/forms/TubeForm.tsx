@@ -139,8 +139,8 @@ export const TubeForm = ({
                   render={({ field: { value: unitValue, onChange: onUnitChange } }) => (
                     <ConcentrationInput
                       label="Concentration"
-                      value={String(value || '')}
-                      unitValue={unitValue || ''}
+                      value={String(value ?? '')}
+                      unitValue={unitValue ?? ''}
                       onChange={onChange}
                       onUnitChange={async (newUnit) => {
                         onUnitChange(newUnit);
