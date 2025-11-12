@@ -1,0 +1,1937 @@
+{
+  "total": 322,
+  "warnings": [
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\bootstrap\\types.ts",
+      "line": 44,
+      "column": 28,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolver.ts",
+      "line": 55,
+      "column": 18,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolver.ts",
+      "line": 62,
+      "column": 19,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolver.ts",
+      "line": 75,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolver.ts",
+      "line": 153,
+      "column": 37,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolver.ts",
+      "line": 175,
+      "column": 38,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolver.ts",
+      "line": 212,
+      "column": 41,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useFieldResolver.ts",
+      "line": 306,
+      "column": 35,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 18,
+      "column": 44,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 49,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 52,
+      "column": 23,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 58,
+      "column": 29,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 61,
+      "column": 31,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 64,
+      "column": 31,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 70,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 70,
+      "column": 50,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 81,
+      "column": 26,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 89,
+      "column": 41,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 99,
+      "column": 42,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 108,
+      "column": 48,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 119,
+      "column": 50,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 130,
+      "column": 50,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 162,
+      "column": 49,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 255,
+      "column": 80,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\hooks\\useSimpleFieldResolver.ts",
+      "line": 256,
+      "column": 84,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryClient.ts",
+      "line": 50,
+      "column": 50,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryClient.ts",
+      "line": 68,
+      "column": 58,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryClient.ts",
+      "line": 99,
+      "column": 34,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryClient.ts",
+      "line": 99,
+      "column": 46,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryClient.ts",
+      "line": 119,
+      "column": 37,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryClient.ts",
+      "line": 119,
+      "column": 53,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryClient.ts",
+      "line": 119,
+      "column": 67,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryClient.ts",
+      "line": 119,
+      "column": 82,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryKeys.ts",
+      "line": 26,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryKeys.ts",
+      "line": 35,
+      "column": 27,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryKeys.ts",
+      "line": 42,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryKeys.ts",
+      "line": 45,
+      "column": 23,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryKeys.ts",
+      "line": 55,
+      "column": 28,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryKeys.ts",
+      "line": 59,
+      "column": 59,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\queryKeys.ts",
+      "line": 66,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 19,
+      "column": 29,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 19,
+      "column": 87,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 38,
+      "column": 29,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 46,
+      "column": 31,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 53,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 53,
+      "column": 33,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 56,
+      "column": 23,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 56,
+      "column": 35,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 59,
+      "column": 24,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 64,
+      "column": 26,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 64,
+      "column": 37,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\FieldResolverService.ts",
+      "line": 79,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\SessionManager.ts",
+      "line": 416,
+      "column": 19,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\SessionManager.ts",
+      "line": 480,
+      "column": 14,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\app\\services\\SessionManager.ts",
+      "line": 491,
+      "column": 17,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\services\\AdminService.ts",
+      "line": 245,
+      "column": 76,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\services\\AdminService.ts",
+      "line": 249,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\services\\AdminService.ts",
+      "line": 286,
+      "column": 169,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\services\\AdminService.ts",
+      "line": 290,
+      "column": 15,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\services\\AdminService.ts",
+      "line": 589,
+      "column": 20,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\services\\AdminService.ts",
+      "line": 622,
+      "column": 19,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\AdminSettingsModal.tsx",
+      "line": 136,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\PasswordResetModal.tsx",
+      "line": 67,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\PasswordResetModal.tsx",
+      "line": 81,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\ResearcherModal.tsx",
+      "line": 58,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\ResearcherModal.tsx",
+      "line": 72,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\ui\\components\\tabs\\ResearcherManagementTab.tsx",
+      "line": 131,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 46,
+      "column": 53,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 50,
+      "column": 55,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 73,
+      "column": 53,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 78,
+      "column": 55,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 100,
+      "column": 53,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 105,
+      "column": 52,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 106,
+      "column": 52,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 110,
+      "column": 55,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 139,
+      "column": 54,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 143,
+      "column": 57,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 147,
+      "column": 58,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\admin\\utils\\auditLogFormatters.ts",
+      "line": 148,
+      "column": 57,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\services\\AuthenticationService.ts",
+      "line": 27,
+      "column": 11,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\services\\AuthenticationService.ts",
+      "line": 32,
+      "column": 12,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\services\\AuthenticationService.ts",
+      "line": 63,
+      "column": 72,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\services\\AuthenticationService.ts",
+      "line": 92,
+      "column": 72,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\services\\AuthenticationService.ts",
+      "line": 121,
+      "column": 72,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\stores\\authStore.ts",
+      "line": 77,
+      "column": 23,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\stores\\authStore.ts",
+      "line": 480,
+      "column": 18,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\authentication\\ui\\components\\ResetPasswordPage.tsx",
+      "line": 107,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\researchers\\hooks\\useResearchersQuery.ts",
+      "line": 96,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\researchers\\hooks\\useResearchersQuery.ts",
+      "line": 127,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\researchers\\hooks\\useResearchersQuery.ts",
+      "line": 146,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\engine\\SearchEngine.ts",
+      "line": 163,
+      "column": 60,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\lib\\searchUtils.ts",
+      "line": 114,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\lib\\searchUtils.ts",
+      "line": 118,
+      "column": 66,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+      "line": 246,
+      "column": 42,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+      "line": 248,
+      "column": 52,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\search\\ui\\components\\SearchResults.tsx",
+      "line": 261,
+      "column": 35,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\hooks\\useBoxPositionDisplay.ts",
+      "line": 86,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\hooks\\useBoxPositionDisplay.ts",
+      "line": 138,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 75,
+      "column": 43,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 75,
+      "column": 51,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 163,
+      "column": 37,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 596,
+      "column": 58,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 645,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 646,
+      "column": 45,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 665,
+      "column": 47,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 707,
+      "column": 33,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 710,
+      "column": 43,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 714,
+      "column": 92,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 717,
+      "column": 45,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 719,
+      "column": 46,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 738,
+      "column": 91,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 750,
+      "column": 57,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 753,
+      "column": 51,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\storage\\stores\\storageStore.ts",
+      "line": 755,
+      "column": 52,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+      "line": 88,
+      "column": 37,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeForm.ts",
+      "line": 89,
+      "column": 35,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeMutations.ts",
+      "line": 397,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+      "line": 135,
+      "column": 41,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+      "line": 135,
+      "column": 53,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+      "line": 135,
+      "column": 58,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+      "line": 191,
+      "column": 27,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeQueries.ts",
+      "line": 265,
+      "column": 68,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeSocket.ts",
+      "line": 278,
+      "column": 16,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeSocket.ts",
+      "line": 288,
+      "column": 31,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeSocket.ts",
+      "line": 291,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\hooks\\useTubeSocket.ts",
+      "line": 297,
+      "column": 23,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\BulkOperationsService.ts",
+      "line": 230,
+      "column": 16,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\TubeFieldAccessService.ts",
+      "line": 67,
+      "column": 16,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\TubeFieldAccessService.ts",
+      "line": 122,
+      "column": 17,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\TubeFieldAccessService.ts",
+      "line": 194,
+      "column": 20,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\TubeFieldAccessService.ts",
+      "line": 309,
+      "column": 28,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\TubeFieldAccessService.ts",
+      "line": 309,
+      "column": 48,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\TubeFieldAccessService.ts",
+      "line": 317,
+      "column": 36,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\TubeFieldAccessService.ts",
+      "line": 317,
+      "column": 66,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\TubeFieldAccessService.ts",
+      "line": 352,
+      "column": 27,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\TubeFieldAccessService.ts",
+      "line": 387,
+      "column": 36,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\dataConsistencyService.ts",
+      "line": 35,
+      "column": 57,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\services\\dataConsistencyService.ts",
+      "line": 94,
+      "column": 38,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\types\\FieldResolver.ts",
+      "line": 28,
+      "column": 18,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\types\\FieldResolver.ts",
+      "line": 32,
+      "column": 23,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\types\\FieldResolver.ts",
+      "line": 32,
+      "column": 31,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\types\\FieldResolver.ts",
+      "line": 38,
+      "column": 44,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\types\\FieldResolver.ts",
+      "line": 75,
+      "column": 16,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\types\\FieldResolver.ts",
+      "line": 90,
+      "column": 17,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\types\\FieldResolver.ts",
+      "line": 132,
+      "column": 20,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\forms\\TubeForm.tsx",
+      "line": 58,
+      "column": 34,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\forms\\TubeForm.tsx",
+      "line": 82,
+      "column": 36,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+      "line": 103,
+      "column": 42,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+      "line": 221,
+      "column": 34,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 236,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 296,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 369,
+      "column": 67,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 374,
+      "column": 34,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 374,
+      "column": 50,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 374,
+      "column": 67,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 377,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 494,
+      "column": 38,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 495,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 496,
+      "column": 39,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+      "line": 497,
+      "column": 38,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\StorageManagementModal.tsx",
+      "line": 59,
+      "column": 37,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\StorageManagementModal.tsx",
+      "line": 60,
+      "column": 33,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 153,
+      "column": 9,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 155,
+      "column": 16,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 157,
+      "column": 17,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 241,
+      "column": 38,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 242,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 243,
+      "column": 46,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 244,
+      "column": 38,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 516,
+      "column": 44,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 517,
+      "column": 56,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 638,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 639,
+      "column": 42,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 640,
+      "column": 48,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+      "line": 641,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+      "line": 291,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+      "line": 331,
+      "column": 50,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+      "line": 331,
+      "column": 77,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\colorSystem.ts",
+      "line": 385,
+      "column": 42,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\domains\\tubes\\utils\\tubeInfoHelpers.ts",
+      "line": 118,
+      "column": 24,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\AuthHttpClient.ts",
+      "line": 21,
+      "column": 13,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\AuthHttpClient.ts",
+      "line": 29,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\AuthHttpClient.ts",
+      "line": 62,
+      "column": 18,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\AuthHttpClient.ts",
+      "line": 62,
+      "column": 43,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\AuthHttpClient.ts",
+      "line": 72,
+      "column": 17,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\client.ts",
+      "line": 180,
+      "column": 19,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\httpClient.ts",
+      "line": 117,
+      "column": 35,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\httpClient.ts",
+      "line": 135,
+      "column": 32,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\httpClient.ts",
+      "line": 144,
+      "column": 33,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 85,
+      "column": 34,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 95,
+      "column": 27,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 121,
+      "column": 31,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 121,
+      "column": 56,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 133,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 160,
+      "column": 42,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 160,
+      "column": 57,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 170,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 171,
+      "column": 27,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 172,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 180,
+      "column": 16,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 181,
+      "column": 18,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 182,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 183,
+      "column": 20,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 184,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 185,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 186,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 187,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 197,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 213,
+      "column": 22,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 216,
+      "column": 35,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\api\\responseTransformers.ts",
+      "line": 245,
+      "column": 14,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\cache\\CacheWarmingService.ts",
+      "line": 45,
+      "column": 43,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\cache\\CacheWarmingService.ts",
+      "line": 127,
+      "column": 49,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\cache\\CacheWarmingService.ts",
+      "line": 207,
+      "column": 18,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\cache\\CacheWarmingService.ts",
+      "line": 371,
+      "column": 84,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\cache\\performanceMonitoring.ts",
+      "line": 60,
+      "column": 16,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\configuration\\tubeFieldConfiguration.ts",
+      "line": 42,
+      "column": 28,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\configuration\\tubeFieldConfiguration.ts",
+      "line": 42,
+      "column": 39,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\configuration\\tubeFieldConfiguration.ts",
+      "line": 44,
+      "column": 23,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\configuration\\tubeFieldConfiguration.ts",
+      "line": 46,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\configuration\\tubeFieldConfiguration.ts",
+      "line": 46,
+      "column": 38,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\configuration\\tubeFieldConfiguration.ts",
+      "line": 260,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\configuration\\tubeFieldConfiguration.ts",
+      "line": 260,
+      "column": 60,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\configuration\\tubeFieldConfiguration.ts",
+      "line": 274,
+      "column": 58,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\configuration\\tubeFieldConfiguration.ts",
+      "line": 399,
+      "column": 12,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\connection\\networkMonitor.ts",
+      "line": 264,
+      "column": 38,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\connection\\networkMonitor.ts",
+      "line": 264,
+      "column": 71,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\connection\\networkMonitor.ts",
+      "line": 264,
+      "column": 107,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\connection\\networkMonitor.ts",
+      "line": 287,
+      "column": 38,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\connection\\networkMonitor.ts",
+      "line": 287,
+      "column": 71,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\connection\\networkMonitor.ts",
+      "line": 287,
+      "column": 107,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 18,
+      "column": 44,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 56,
+      "column": 48,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 56,
+      "column": 56,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 78,
+      "column": 45,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 101,
+      "column": 67,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 119,
+      "column": 64,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 148,
+      "column": 61,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 152,
+      "column": 64,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 180,
+      "column": 60,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 184,
+      "column": 98,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 198,
+      "column": 68,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 209,
+      "column": 51,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 209,
+      "column": 56,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 209,
+      "column": 73,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 224,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 255,
+      "column": 73,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\optimistic\\optimisticUpdates.ts",
+      "line": 414,
+      "column": 27,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\socket\\queryBridge.ts",
+      "line": 200,
+      "column": 14,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\infrastructure\\socket\\queryBridge.ts",
+      "line": 565,
+      "column": 13,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\config\\environment.ts",
+      "line": 65,
+      "column": 25,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\config\\environment.ts",
+      "line": 71,
+      "column": 39,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\config\\environment.ts",
+      "line": 80,
+      "column": 39,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 19,
+      "column": 46,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 65,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 96,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 127,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 143,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 176,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 188,
+      "column": 33,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 241,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 263,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\AppError.ts",
+      "line": 277,
+      "column": 30,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\errors\\mapError.ts",
+      "line": 238,
+      "column": 66,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\performance\\index.ts",
+      "line": 20,
+      "column": 48,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\performance\\index.ts",
+      "line": 21,
+      "column": 45,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\performance\\index.ts",
+      "line": 22,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\performance\\index.ts",
+      "line": 23,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\performance\\index.ts",
+      "line": 24,
+      "column": 50,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\performance\\index.ts",
+      "line": 25,
+      "column": 51,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\hooks\\performance\\index.ts",
+      "line": 26,
+      "column": 49,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\session\\types.ts",
+      "line": 99,
+      "column": 14,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\session\\types.ts",
+      "line": 100,
+      "column": 17,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\session\\types.ts",
+      "line": 111,
+      "column": 13,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\apiTypes.ts",
+      "line": 9,
+      "column": 34,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\apiTypes.ts",
+      "line": 49,
+      "column": 13,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\apiTypes.ts",
+      "line": 60,
+      "column": 34,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\bulkOperations.ts",
+      "line": 57,
+      "column": 10,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\bulkOperations.ts",
+      "line": 69,
+      "column": 18,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\bulkOperations.ts",
+      "line": 70,
+      "column": 13,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\clipboard.ts",
+      "line": 30,
+      "column": 14,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\clipboard.ts",
+      "line": 31,
+      "column": 13,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\clipboard.ts",
+      "line": 32,
+      "column": 13,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\colorSystemTypes.ts",
+      "line": 77,
+      "column": 55,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\validationTypes.ts",
+      "line": 37,
+      "column": 35,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\types\\validationTypes.ts",
+      "line": 37,
+      "column": 63,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\ConnectionStatusIndicator.tsx",
+      "line": 217,
+      "column": 45,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+      "line": 294,
+      "column": 39,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+      "line": 296,
+      "column": 32,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+      "line": 153,
+      "column": 39,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+      "line": 155,
+      "column": 36,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+      "line": 202,
+      "column": 58,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+      "line": 216,
+      "column": 65,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\grid\\Grid.tsx",
+      "line": 340,
+      "column": 19,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\grid\\Grid.tsx",
+      "line": 342,
+      "column": 20,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\grid\\Grid.tsx",
+      "line": 427,
+      "column": 19,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\grid\\Grid.tsx",
+      "line": 429,
+      "column": 20,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\table\\Table.tsx",
+      "line": 13,
+      "column": 34,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\table\\Table.tsx",
+      "line": 22,
+      "column": 20,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\ui\\primitives\\table\\Table.tsx",
+      "line": 28,
+      "column": 18,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\concentrationConverter.ts",
+      "line": 133,
+      "column": 45,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\formUtils.ts",
+      "line": 36,
+      "column": 40,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\formUtils.ts",
+      "line": 43,
+      "column": 17,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\formUtils.ts",
+      "line": 86,
+      "column": 63,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\formUtils.ts",
+      "line": 123,
+      "column": 17,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\formUtils.ts",
+      "line": 137,
+      "column": 23,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\PreloadHelpers.ts",
+      "line": 76,
+      "column": 39,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\PreloadHelpers.ts",
+      "line": 332,
+      "column": 67,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\PreloadHelpers.ts",
+      "line": 332,
+      "column": 104,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+      "line": 44,
+      "column": 54,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+      "line": 59,
+      "column": 61,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+      "line": 154,
+      "column": 21,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+      "line": 165,
+      "column": 29,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+      "line": 184,
+      "column": 29,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+      "line": 217,
+      "column": 31,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+      "line": 239,
+      "column": 29,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\lazy\\lazyComponentUtils.tsx",
+      "line": 357,
+      "column": 14,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\validation.ts",
+      "line": 43,
+      "column": 41,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\validation.ts",
+      "line": 53,
+      "column": 56,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\validation.ts",
+      "line": 53,
+      "column": 77,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\validation\\zodValidation.ts",
+      "line": 16,
+      "column": 39,
+      "message": "Unexpected any. Specify a different type."
+    },
+    {
+      "file": "C:\\Users\\evan\\Desktop\\Odysseus\\odysseus-app\\client\\src\\shared\\utils\\validation\\zodValidation.ts",
+      "line": 224,
+      "column": 45,
+      "message": "Unexpected any. Specify a different type."
+    }
+  ]
+}

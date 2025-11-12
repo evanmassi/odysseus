@@ -83,6 +83,7 @@ export function ResearcherManagementTab({
         setResearchers(sorted);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to load researchers:', error);
       notifications.error('Failed to load researchers');
     } finally {
@@ -127,11 +128,12 @@ export function ResearcherManagementTab({
       } else {
         notifications.error('Failed to delete researcher');
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to delete researcher:', error);
 
       // Extract error message from API response
-      const errorMessage = error?.response?.data?.error || 'Failed to delete researcher';
+      const errorMessage = (error as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to delete researcher';
       notifications.error(errorMessage);
     } finally {
       setDeleting(null);

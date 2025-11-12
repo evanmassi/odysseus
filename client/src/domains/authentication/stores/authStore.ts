@@ -146,6 +146,7 @@ export const useAuthStore = create<AuthStore>()(
           return true;
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Login error';
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [AUTH STORE] Login exception:', error);
           
           set({
@@ -184,6 +185,7 @@ export const useAuthStore = create<AuthStore>()(
           return true;
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Registration error';
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [AUTH STORE] Registration exception:', error);
 
           set({
@@ -252,6 +254,7 @@ export const useAuthStore = create<AuthStore>()(
 
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Registration error';
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [AUTH STORE] registerWithResearcher exception:', error);
 
           set({
@@ -300,6 +303,7 @@ export const useAuthStore = create<AuthStore>()(
           });
           return true;
         } catch (error) {
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [AUTH STORE] Session verification error:', error);
           get().clearAuth();
           return false;
@@ -314,6 +318,7 @@ export const useAuthStore = create<AuthStore>()(
           const result = await authService.checkFirstTime();
           return result; // AuthService returns boolean directly
         } catch (error) {
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [AUTH STORE] First time check failed:', error);
           return false;
         }
@@ -329,6 +334,7 @@ export const useAuthStore = create<AuthStore>()(
           // Attempt graceful logout with backend
           await authService.logout();
         } catch (error) {
+          // eslint-disable-next-line no-console -- Warning logging for production monitoring
           console.warn('⚠️ [AUTH STORE] Backend logout failed (clearing local session anyway):', error);
         }
 

@@ -21,9 +21,14 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 
+
 import {
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
+  type CreateTubeRequest,
+  type UpdateTubeRequest,
+  type TubeData,
+  type Researcher,
   formatConcentrationDisplay,
   EQUIPMENT_DEFAULTS
 } from '@odysseus/shared-schemas';
@@ -45,6 +50,8 @@ import { LocationDisplay } from '../displays/LocationDisplay';
 import { TubeForm } from '../forms/TubeForm';
 
 import { BaseModal } from './BaseModal';
+
+import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
 /**
  * TubeEditorModal Props
@@ -150,11 +157,11 @@ function EditModeContent({ tubeId, onClose }: EditModeContentProps) {
  * Inner component that remounts when tube data changes
  */
 interface EditModeFormProps {
-  tube: any;
+  tube: TubeData;
   tubeId: string;
-  researchers: any[];
+  researchers: Researcher[];
   onClose: () => void;
-  modalService: any;
+  modalService: ReturnType<typeof useModalStore>;
 }
 
 function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: EditModeFormProps) {
@@ -165,8 +172,9 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
       cellType: tube.sample.cellType ?? '',
       donorInternalId: tube.sample.donorInternalId ?? '',
       donorSourceId: tube.sample.donorSourceId ?? '',
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Convert empty string to undefined for form
       concentration: formatConcentrationDisplay(tube.sample.concentration) || undefined,
-      concentrationUnit: tube.sample.concentrationUnit || undefined,
+      concentrationUnit: tube.sample.concentrationUnit ?? undefined,
       date: tube.sample.date ? formatDateForInput(tube.sample.date) : '',
       media: {
         type: tube.sample.media?.type ?? '',
@@ -238,10 +246,10 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
           />
 
           <TubeForm
-            control={form.control as any}
-            register={form.register as any}
-            errors={form.formState.errors as any}
-            trigger={form.trigger as any}
+            control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
+            register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
+            errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
+            trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
             researchers={researchers}
             isLoading={isSubmitting}
           />
@@ -299,8 +307,8 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
  */
 function CreateModeContent({
   onClose,
-  _rackId,
-  _boxId,
+  rackId: _rackId,
+  boxId: _boxId,
   selectedPositions
 }: TubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
@@ -513,8 +521,8 @@ function CreateModeContent({
             await updateTubeMutation.mutateAsync({
               id: tubeId,
               updates: {
-                sample: formData.sample as any,
-                researcherId: formData.researcherId as any
+                sample: formData.sample as UpdateTubeFormInput['sample'],
+                researcherId: formData.researcherId as UpdateTubeFormInput['researcherId']
               }
             });
             successCount++;
@@ -552,6 +560,7 @@ function CreateModeContent({
           `Processed ${successCount} of ${parsedPositions.length} positions. ${errorCount} failed.`
         );
         if (errors.length > 0) {
+          // eslint-disable-next-line no-console -- Warning logging for production monitoring
           console.warn('Tube operation errors:', errors);
         }
       } else {
@@ -562,6 +571,7 @@ function CreateModeContent({
       }
 
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Tube creation error:', error);
       notifications.error('An unexpected error occurred during tube creation');
     }
@@ -633,10 +643,10 @@ function CreateModeContent({
             )}
 
             <TubeForm
-              control={form.control as any}
-              register={form.register as any}
-              errors={form.formState.errors as any}
-              trigger={form.trigger as any}
+              control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
+              register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
+              errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
+              trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
               researchers={researchers}
               isLoading={isSubmitting}
             />

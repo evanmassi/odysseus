@@ -35,15 +35,18 @@ export class DataConsistencyService {
         const actualTankIds = [...new Set(tubes.map((t: any) => t.location?.tankId || t.tankId).filter(Boolean))];
         if (actualTankIds.length > 0) {
           const authoritative = actualTankIds[0]; // Use first real tank ID
+          // eslint-disable-next-line no-console -- Info logging for operational visibility
           console.log(`📋 DATA CONSISTENCY: Authoritative tank ID from React Query data: "${authoritative}"`);
           return authoritative;
         }
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('📋 DATA CONSISTENCY: Could not access React Query cache:', error);
     }
     
     // Fallback to default
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log(`📋 DATA CONSISTENCY: No tube data found, using default: "${NAMING_PATTERNS.TANK.ID_PATTERN(1)}"`);
     return NAMING_PATTERNS.TANK.ID_PATTERN(1);
   }
@@ -57,6 +60,7 @@ export class DataConsistencyService {
     const configStore = useStorageStore.getState();
     const currentTanks = configStore.getCurrentTanks();
     
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log(`📋 DATA CONSISTENCY: Current config tanks:`, currentTanks.map(t => ({ id: t.id, name: t.name })));
     
     // Check if configuration has mismatched tank IDs
@@ -66,17 +70,20 @@ export class DataConsistencyService {
     );
     
     if (hasMismatch) {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`📋 DATA CONSISTENCY: Found tank ID mismatch, correcting directly in store...`);
       
       // Find the mismatched tank
       const mismatchedTank = currentTanks.find(tank => tank.id === 'main-tank');
       if (mismatchedTank) {
+        // eslint-disable-next-line no-console -- Info logging for operational visibility
         console.log(`📋 DATA CONSISTENCY: Updating tank ID from "${mismatchedTank.id}" to "${authoritativeTankId}"`);
         
         // Update the tank directly in the store's state
         this.forceUpdateTankId(mismatchedTank, authoritativeTankId);
       }
     } else {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`📋 DATA CONSISTENCY: Tank IDs are consistent`);
     }
   }
@@ -122,9 +129,11 @@ export class DataConsistencyService {
         systemConfig: updatedSystemConfig
       });
       
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`📋 DATA CONSISTENCY: Tank ID forcibly updated to "${newTankId}"`);
       
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to force update tank ID:', error);
     }
   }
@@ -142,6 +151,7 @@ export class DataConsistencyService {
       );
       
       keys.forEach(key => {
+        // eslint-disable-next-line no-console -- Info logging for operational visibility
         console.log(`📋 DATA CONSISTENCY: Clearing cached config: ${key}`);
         localStorage.removeItem(key);
       });
@@ -151,6 +161,7 @@ export class DataConsistencyService {
       localStorage.removeItem('configuration-storage');
       
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to clear persisted configuration:', error);
     }
   }

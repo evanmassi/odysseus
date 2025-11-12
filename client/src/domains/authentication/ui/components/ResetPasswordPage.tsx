@@ -15,7 +15,7 @@
 import { useState, useRef, useEffect } from 'react';
 
 import { Eye, EyeOff } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
 import { authenticationService } from '../../services/AuthenticationService';
@@ -104,8 +104,9 @@ export const ResetPasswordPage: React.FC = () => {
       redirectTimerRef.current = window.setTimeout(() => {
         void navigate('/login');
       }, 2000);
-    } catch (error: any) {
-      setError(error.message || 'Failed to reset password');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to reset password';
+      setError(message);
     } finally {
       setIsLoading(false);
     }

@@ -90,6 +90,7 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
     try {
       return getNestedValue(tube, fieldPath) as T;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn(`Failed to get tube value for field '${fieldPath}':`, error);
       return undefined;
     }

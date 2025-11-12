@@ -20,6 +20,7 @@ export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
       try {
         await navigator.clipboard.writeText(errorText);
       } catch (error) {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('Failed to copy errors to clipboard:', error);
       }
     })();

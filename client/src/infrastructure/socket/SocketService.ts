@@ -48,6 +48,7 @@ export class SocketService {
    */
   public async initialize(): Promise<void> {
     if (this.isInitialized) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('⚠️ [SocketService] Already initialized, skipping');
       return;
     }
@@ -66,6 +67,7 @@ export class SocketService {
       this.isInitialized = true;
       
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [SocketService] Failed to initialize:', error);
       throw error;
     }

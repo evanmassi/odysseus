@@ -74,6 +74,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         setOriginalConfig(loadedConfig); // Store original for change tracking
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to load configuration:', error);
       // Keep defaults on error
       setConfig(DEFAULT_SECURITY_CONFIG);
@@ -90,9 +91,11 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       } else {
         // API returned unsuccessfully or invalid data - set empty array as fallback
         setUsers([]);
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn('Failed to load users: API returned unsuccessful response or invalid data format');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to load users:', error);
       setUsers([]);
     }
@@ -111,6 +114,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         });
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to load system stats:', error);
       setSystemStats({
         totalTubes: 0,
@@ -147,6 +151,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         notifications.error('Failed to update security configuration');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to save configuration:', error);
       notifications.error('Failed to update security configuration');
     } finally {
@@ -163,6 +168,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         setSyncStatus(response.data.sync);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to load sync status:', error);
       setSyncStatus(null);
     }
@@ -180,6 +186,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         notifications.error('Failed to create invite code');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to create invite code:', error);
       notifications.error('Failed to create invite code');
     }

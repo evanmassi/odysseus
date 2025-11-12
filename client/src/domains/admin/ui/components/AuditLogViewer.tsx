@@ -58,6 +58,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
       setPagination(result.pagination);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load audit log');
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to load audit log:', err);
     } finally {
       setLoading(false);

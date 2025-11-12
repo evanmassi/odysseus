@@ -279,6 +279,7 @@ function adjustColorBrightness(color: string, percent: number): string {
     return labToRGBString(lab);
   } catch (error) {
     // Fallback to original color if conversion fails
+    // eslint-disable-next-line no-console -- Warning logging for production monitoring
     console.warn('Color adjustment failed, using original color:', color);
     return color;
   }

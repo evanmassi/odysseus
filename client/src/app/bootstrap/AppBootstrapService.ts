@@ -64,6 +64,7 @@ export class AppBootstrapService {
   async bootstrap(queryClient: QueryClient): Promise<void> {
     // GUARD: Prevent duplicate bootstrap in React StrictMode
     if (this.isInitialized) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('[Bootstrap] Already initialized, skipping duplicate bootstrap');
       return;
     }
@@ -91,6 +92,7 @@ export class AppBootstrapService {
 
         this.updateStep('auth-check', true);
       } catch (error) {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [Bootstrap] Auth check failed:', error);
         this.updateStep('auth-check', false, 'Failed to check authentication status');
         throw error;
@@ -110,6 +112,7 @@ export class AppBootstrapService {
 
         this.updateStep('socket-connection', true);
       } catch (socketError) {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [Bootstrap] Real-time systems initialization failed:', socketError);
         this.updateStep('socket-connection', false, 'Failed to initialize real-time systems');
         throw socketError;

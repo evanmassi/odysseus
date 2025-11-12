@@ -94,6 +94,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         const requirements = await authService.getPasswordRequirements();
         setPasswordConfig(requirements);
       } catch (error) {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('Failed to load password requirements:', error);
         // Keep default requirements on error
       }

@@ -200,6 +200,7 @@ export function useGridKeyboardNavigation(
         try {
           await controller.actions.paste();
         } catch (error) {
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('Paste operation failed:', error);
           // Error notification already shown by paste handler
         }

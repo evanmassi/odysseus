@@ -3,7 +3,7 @@
  * Phase 3 Step 2: Tuned for performance with centralized socket integration
  */
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 import { env } from '@shared/config';
 
@@ -47,7 +47,7 @@ export const CACHE_TIMES = {
 /**
  * Smart retry strategy with exponential backoff (for queries)
  */
-const retryLogic = (failureCount: number, error: any): boolean => {
+const retryLogic = (failureCount: number, error: unknown): boolean => {
   // Don't retry client errors (4xx)
   if (error?.status >= 400 && error?.status < 500) {
     return false;
@@ -65,7 +65,7 @@ const retryLogic = (failureCount: number, error: any): boolean => {
 /**
  * Smart mutation retry strategy - only retry transient failures
  */
-const mutationRetryLogic = (failureCount: number, error: any): boolean => {
+const mutationRetryLogic = (failureCount: number, error: unknown): boolean => {
   // Never retry client errors (4xx) - these are validation/business logic failures
   if (error?.status >= 400 && error?.status < 500) {
     return false;
@@ -96,8 +96,9 @@ const retryDelay = (attemptIndex: number): number => {
 /**
  * Global error handler for queries
  */
-const handleQueryError = (error: any, query: any): void => {
+const handleQueryError = (error: unknown, query: unknown): void => {
   if (env.isDev()) {
+    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('Query failed:', {
       queryKey: query.queryKey,
       error: error?.message || String(error),
@@ -115,11 +116,12 @@ const handleQueryError = (error: any, query: any): void => {
 /**
  * Global error handler for mutations
  */
-const handleMutationError = (error: any, variables: any, context: any, mutation: any): void => {
+const handleMutationError = (error: unknown, variables: unknown, context: unknown, mutation: unknown): void => {
   if (env.isDev()) {
     // Extract original error if wrapped by InfrastructureError
     const originalError = error?.details?.originalError || error;
 
+    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('Mutation failed:', {
       mutationKey: mutation.options.mutationKey,
       wrapperMessage: error?.message,
@@ -130,8 +132,10 @@ const handleMutationError = (error: any, variables: any, context: any, mutation:
     });
 
     // Log full error object for deep inspection
+    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('Full error object:', error);
     if (originalError !== error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Original unwrapped error:', originalError);
     }
   }

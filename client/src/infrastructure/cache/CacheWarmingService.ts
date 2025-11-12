@@ -53,11 +53,13 @@ export class CacheWarmingService {
    */
   public async startWarming(): Promise<void> {
     if (this.isWarming) {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔥 [CacheWarming] Already in progress, skipping');
       return;
     }
 
     this.isWarming = true;
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🔥 [CacheWarming] Starting intelligent cache warming');
 
     try {
@@ -74,6 +76,7 @@ export class CacheWarmingService {
       this.scheduleIdleWarming();
       
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [CacheWarming] Failed to start warming:', error);
     } finally {
       this.isWarming = false;
@@ -84,6 +87,7 @@ export class CacheWarmingService {
    * Warm critical data that users need immediately
    */
   private async warmCriticalData(): Promise<void> {
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🔥 [CacheWarming] Loading critical data');
     
     const criticalQueries = [
@@ -121,12 +125,14 @@ export class CacheWarmingService {
     // Load critical data in parallel with ensureQueryData (blocks until data loaded)
     const promises = criticalQueries.map(query => 
       this.queryClient.ensureQueryData(query as any).catch(error => {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`Failed to load critical data for ${query.queryKey}:`, error);
         return null;
       })
     );
 
     await Promise.all(promises);
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('[CacheWarming] Critical data loaded and cached');
   }
 
@@ -134,6 +140,7 @@ export class CacheWarmingService {
    * Warm high priority data in the background
    */
   private warmHighPriorityData(): void {
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🔥 [CacheWarming] Loading high priority data');
 
     // Get user's current location context
@@ -155,6 +162,7 @@ export class CacheWarmingService {
         },
         ...DOMAIN_QUERY_OPTIONS.tubes
       }).catch(error => {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn('Failed to prefetch location tubes:', error);
       });
     }
@@ -168,6 +176,7 @@ export class CacheWarmingService {
       },
       ...DOMAIN_QUERY_OPTIONS.statistics
     }).catch(error => {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('Failed to prefetch statistics:', error);
     });
   }
@@ -176,6 +185,7 @@ export class CacheWarmingService {
    * Warm medium priority data after initial load
    */
   private warmMediumPriorityData(): void {
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🔥 [CacheWarming] Loading medium priority data');
 
     // Prefetch adjacent locations (user might navigate there)
@@ -207,6 +217,7 @@ export class CacheWarmingService {
    * Warm low priority data when system is idle
    */
   private warmLowPriorityData(): void {
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🔥 [CacheWarming] Loading low priority data');
 
     // Skip - researchers already loaded in critical phase
@@ -221,6 +232,7 @@ export class CacheWarmingService {
       },
       ...DOMAIN_QUERY_OPTIONS.configuration
     }).catch(error => {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('Failed to prefetch system config:', error);
     });
   }
@@ -229,6 +241,7 @@ export class CacheWarmingService {
    * Smart prefetching based on navigation patterns
    */
   public prefetchForNavigation(targetLocation: { tankId: string; rackId: string; boxId: string }): void {
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🎯 [CacheWarming] Prefetching for navigation to:', targetLocation);
 
     // Prefetch tubes for target location
@@ -246,6 +259,7 @@ export class CacheWarmingService {
       },
       ...DOMAIN_QUERY_OPTIONS.tubes
     }).catch(error => {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('Failed to prefetch navigation target:', error);
     });
 
@@ -273,6 +287,7 @@ export class CacheWarmingService {
         staleTime: DOMAIN_QUERY_OPTIONS.tubes.staleTime / 2, // Shorter stale time for prefetched data
       }).catch(error => {
         // Silently fail for adjacent locations (not critical)
+        // eslint-disable-next-line no-console -- Debug logging for non-critical failures
         console.debug('Adjacent location prefetch failed:', error);
       });
     });
@@ -298,6 +313,7 @@ export class CacheWarmingService {
         },
         ...DOMAIN_QUERY_OPTIONS.search
       }).catch(error => {
+        // eslint-disable-next-line no-console -- Debug logging for non-critical failures
         console.debug('Recent search prefetch failed:', error);
       });
     });
@@ -307,6 +323,7 @@ export class CacheWarmingService {
    * Invalidate and refresh specific data types
    */
   public async refreshCriticalData(): Promise<void> {
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🔄 [CacheWarming] Refreshing critical data');
     
     await Promise.allSettled([

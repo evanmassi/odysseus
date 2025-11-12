@@ -8,6 +8,7 @@
 import { env } from '@shared/config';
 
 export function resetConfiguration(): void {
+  // eslint-disable-next-line no-console -- Info logging for operational visibility
   console.log('🔧 RESET: Clearing cached configuration...');
   
   try {
@@ -22,6 +23,7 @@ export function resetConfiguration(): void {
     keysToRemove.forEach(key => {
       if (localStorage.getItem(key)) {
         localStorage.removeItem(key);
+        // eslint-disable-next-line no-console -- Info logging for operational visibility
         console.log(`🔧 RESET: Cleared ${key}`);
       }
     });
@@ -30,13 +32,16 @@ export function resetConfiguration(): void {
     Object.keys(localStorage).forEach(key => {
       if (key.includes('configuration') || key.includes('lab-config') || key.includes('odysseus-config')) {
         localStorage.removeItem(key);
+        // eslint-disable-next-line no-console -- Info logging for operational visibility
         console.log(`🔧 RESET: Cleared ${key}`);
       }
     });
     
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('RESET: Configuration cache cleared. Please refresh the page.');
     
   } catch (error) {
+    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('❌ RESET: Failed to clear configuration:', error);
   }
 }

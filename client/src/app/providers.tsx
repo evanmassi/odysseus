@@ -4,7 +4,7 @@
  * Clean composition root that eliminates provider hell from App.tsx.
  * Centralizes all app-wide providers in proper order.
  */
-import React from 'react';
+import React, { Component } from 'react';
 
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -70,7 +70,7 @@ interface ErrorBoundaryState {
   error?: Error;
 }
 
-export class ErrorBoundary extends React.Component<
+export class ErrorBoundary extends Component<
   { children: React.ReactNode },
   ErrorBoundaryState
 > {
@@ -84,6 +84,7 @@ export class ErrorBoundary extends React.Component<
   }
 
   override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('App Error Boundary:', error, errorInfo);
   }
 

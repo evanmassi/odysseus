@@ -93,8 +93,9 @@ export function useCreateResearcherMutation() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
       toast.success(`Researcher "${formatResearcherDropdownDisplay(newResearcher)}" created successfully`);
     },
-    onError: (error: any) => {
-      toast.error(`Failed to create researcher: ${error.message || 'Unknown error'}`);
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to create researcher: ${message}`);
     }
   });
 }
@@ -124,8 +125,9 @@ export function useUpdateResearcherMutation() {
         toast.success(`Researcher "${formatResearcherListDisplay(updatedResearcher)}" updated successfully`);
       }
     },
-    onError: (error: any) => {
-      toast.error(`Failed to update researcher: ${error.message || 'Unknown error'}`);
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update researcher: ${message}`);
     }
   });
 }
@@ -143,8 +145,9 @@ export function useDeleteResearcherMutation() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
       toast.success('Researcher deleted successfully');
     },
-    onError: (error: any) => {
-      toast.error(`Failed to delete researcher: ${error.message || 'Unknown error'}`);
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to delete researcher: ${message}`);
     }
   });
 }

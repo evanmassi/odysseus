@@ -117,6 +117,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
         }
       },
       onError: (error: Error) => {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [AccountTab] Update failed:', error);
         if (error.message.includes('password')) {
           setPasswordTouched(true);

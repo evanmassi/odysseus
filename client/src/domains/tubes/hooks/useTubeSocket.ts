@@ -32,6 +32,7 @@ export const useTubeSocket = () => {
 
   // Socket connection management
   const initializeSocket = useCallback(() => {
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🔌 [Socket] Initializing socket connection');
     
     // Create socket connection
@@ -40,16 +41,19 @@ export const useTubeSocket = () => {
     // CONNECTION EVENTS
     
     socket.on('connect', () => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('[Socket] Connected to server');
       // Note: Connection notifications handled by SocketQueryBridge to avoid duplicates
     });
 
     socket.on('disconnect', (reason) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('❌ [Socket] Disconnected from server:', reason);
       // Note: Disconnection notifications handled by SocketQueryBridge to avoid duplicates
     });
 
     socket.on('connect_error', (error) => {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [Socket] Connection error:', error);
       // Note: Connection error notifications handled by SocketQueryBridge to avoid duplicates
     });
@@ -62,6 +66,7 @@ export const useTubeSocket = () => {
      * Replaces: tubeStore socket handler for tube_created
      */
     socket.on('tube_created', ({ tube }: { tube: TubeData }) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔄 [Socket] Tube created event received:', tube.id);
       
       // Add to individual tube cache immediately
@@ -76,10 +81,12 @@ export const useTubeSocket = () => {
           // Check if tube already exists (avoid duplicates)
           const exists = oldData.some(existingTube => existingTube.id === tube.id);
           if (exists) {
+            // eslint-disable-next-line no-console -- Info logging for operational visibility
             console.log('⚠️ [Socket] Tube already exists in cache, skipping add');
             return oldData;
           }
           
+          // eslint-disable-next-line no-console -- Info logging for operational visibility
           console.log('[Socket] Adding new tube to cache');
           return [...oldData, tube];
         }
@@ -111,6 +118,7 @@ export const useTubeSocket = () => {
      * Replaces: tubeStore socket handler for tube_updated
      */
     socket.on('tube_updated', ({ tube }: { tube: TubeData }) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔄 [Socket] Tube updated event received:', tube.id);
       
       // Update individual tube cache
@@ -145,6 +153,7 @@ export const useTubeSocket = () => {
       // Invalidate statistics (tube properties might have changed)
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
 
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('[Socket] Tube update applied to cache');
     });
 
@@ -154,6 +163,7 @@ export const useTubeSocket = () => {
      * Replaces: tubeStore socket handler for tube_deleted
      */
     socket.on('tube_deleted', ({ tubeId }: { tubeId: string }) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔄 [Socket] Tube deleted event received:', tubeId);
       
       // Remove from individual tube cache
@@ -181,6 +191,7 @@ export const useTubeSocket = () => {
       // Invalidate statistics
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('[Socket] Tube deletion applied to cache');
     });
 
@@ -190,6 +201,7 @@ export const useTubeSocket = () => {
      * Replaces: tubeStore socket handler for tubes_bulk_updated
      */
     socket.on('tubes_bulk_updated', ({ tubes }: { tubes: TubeData[] }) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`🔄 [Socket] Bulk update event received: ${tubes.length} tubes`);
       
       tubes.forEach(tube => {
@@ -227,12 +239,14 @@ export const useTubeSocket = () => {
 
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('[Socket] Bulk update applied to cache');
     });
 
     // RESEARCHER EVENTS (if needed)
     
     socket.on('researcher_updated', () => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔄 [Socket] Researcher data updated, invalidating related queries');
 
       // Invalidate researcher queries
@@ -245,6 +259,7 @@ export const useTubeSocket = () => {
     // CONNECTION RECOVERY
     
     socket.on('reconnect', (attemptNumber) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`🔄 [Socket] Reconnected after ${attemptNumber} attempts`);
 
       // Invalidate all queries to refetch fresh data after reconnection
@@ -254,6 +269,7 @@ export const useTubeSocket = () => {
     });
 
     socket.on('reconnect_failed', () => {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [Socket] Failed to reconnect to server');
       // Note: Reconnection failure notifications handled by SocketQueryBridge to avoid duplicates
     });
@@ -266,6 +282,7 @@ export const useTubeSocket = () => {
 
   // Disconnect socket
   const disconnectSocket = useCallback(() => {
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🔌 [Socket] Disconnecting socket');
     
     const socket = (window as any).__odysseusSocket as Socket;

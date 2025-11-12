@@ -64,6 +64,7 @@ export class GridNavigationService {
         // Note: Data loading is now handled by React Query in components
         // The React Query hooks will automatically refetch when the location changes
       } else {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error(`❌ ATOMIC NAVIGATION: User not authenticated`);
         return { success: false, error: 'Authentication required', location };
       }
@@ -73,6 +74,7 @@ export class GridNavigationService {
       return { success: true, location };
 
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ ATOMIC NAVIGATION: Navigation failed:', error);
       return { 
         success: false, 
@@ -94,12 +96,14 @@ export class GridNavigationService {
 
     const racks = getCurrentRacks(tankId);
     if (racks.length === 0) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`🐛 DEBUG: No racks found for tank "${tankId}"`);
       return { success: false, error: 'No racks available in tank', location: { tankId, rackId: '1', boxId: 'A' } };
     }
 
     const boxes = getCurrentBoxes(tankId, racks[0].id);
     if (boxes.length === 0) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`🐛 DEBUG: No boxes found for tank "${tankId}", rack ${racks[0].id}`);
       return { success: false, error: 'No boxes available in rack', location: { tankId, rackId: String(racks[0].id), boxId: 'A' } };
     }

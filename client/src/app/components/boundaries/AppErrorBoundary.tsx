@@ -56,6 +56,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     });
 
     // Log error for debugging
+    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('🛑 [ERROR BOUNDARY] React error caught:', {
       error: error.message,
       stack: error.stack,
@@ -80,6 +81,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
   private reportError(error: Error, errorInfo: ErrorInfo): void {
     // TODO: Send to error reporting service (Sentry, LogRocket, etc.)
+    // eslint-disable-next-line no-console -- Placeholder for error reporting service (TODO: replace with Sentry/LogRocket)
     console.log('📊 [ERROR REPORTING] Error would be reported to monitoring service:', {
       message: error.message,
       stack: error.stack,

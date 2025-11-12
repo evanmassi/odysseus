@@ -66,6 +66,7 @@ export function SearchContainer(_props: SearchContainerProps) {
         try {
           await handleSearch();
         } catch (error) {
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('Search failed:', error);
           // Error already shown by React Query
         }

@@ -7,7 +7,7 @@
  */
 
 import { useMutation } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 
 import type { QueryClient, UseMutationOptions } from '@tanstack/react-query';
@@ -154,6 +154,7 @@ export class OptimisticUpdatesService {
         if (context?.optimistic) {
           const optimisticContext = context.optimistic as OptimisticContext;
           
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [OptimisticUpdates] Mutation failed, rolling back:', error);
           
           // Rollback optimistic changes
@@ -326,6 +327,7 @@ export class OptimisticUpdatesService {
   private async showConflictResolutionUI<T>(conflict: DataConflict<T>): Promise<T> {
     // This would integrate with your modal system
     // For now, default to server wins
+    // eslint-disable-next-line no-console -- Warning logging for production monitoring
     console.warn('⚠️ [OptimisticUpdates] User conflict resolution UI not implemented, defaulting to server');
     return conflict.serverValue;
   }
@@ -348,6 +350,7 @@ export class OptimisticUpdatesService {
    * Cancel all pending optimistic updates (emergency rollback)
    */
   public cancelAllOptimisticUpdates(): void {
+    // eslint-disable-next-line no-console -- Warning logging for production monitoring
     console.warn('🚨 [OptimisticUpdates] Emergency rollback - cancelling all optimistic updates');
     
     Array.from(this.pendingMutations.values()).forEach(context => {

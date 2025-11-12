@@ -55,8 +55,9 @@ export function ResearcherModal({
       reset();
       onSuccess();
       onClose();
-    } catch (error: any) {
-      notifications.error(error?.response?.data?.error || 'Failed to add researcher');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to add researcher';
+      notifications.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -69,8 +70,9 @@ export function ResearcherModal({
       notifications.success('Researcher linked successfully');
       onSuccess();
       onClose();
-    } catch (error: any) {
-      notifications.error(error?.response?.data?.error || 'Failed to link researcher');
+    } catch (error: unknown) {
+      const message = (error as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to link researcher';
+      notifications.error(message);
     } finally {
       setIsSubmitting(false);
     }

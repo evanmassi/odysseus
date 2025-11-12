@@ -273,6 +273,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
           notifications.success('Tank deleted successfully');
         } catch (error) {
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('Failed to delete tank:', error);
           notifications.error('Failed to delete tank. Please try again.');
         } finally {
@@ -531,6 +532,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                   try {
                     await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
                   } catch (error) {
+                    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
                     console.error('Failed to update box grid:', error);
                     notifications.error('Failed to save changes. Please try again.');
                   }
@@ -592,6 +594,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                         try {
                           await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
                         } catch (error) {
+                          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
                           console.error('Failed to update box grid:', error);
                           notifications.error('Failed to save changes. Please try again.');
                         }
@@ -625,6 +628,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       isActive: editingRack.rack.isActive
                     });
                   } catch (error) {
+                    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
                     console.error('Failed to update rack:', error);
                     notifications.error('Failed to save changes. Please try again.');
                   }
@@ -732,6 +736,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       isActive: editingTank.isActive
                     });
                   } catch (error) {
+                    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
                     console.error('Failed to update tank:', error);
                     notifications.error('Failed to save changes. Please try again.');
                   }
@@ -842,6 +847,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                             isActive: editingTank.isActive
                           });
                         } catch (error) {
+                          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
                           console.error('Failed to update tank:', error);
                           notifications.error('Failed to save changes. Please try again.');
                         }

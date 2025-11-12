@@ -133,6 +133,7 @@ export function Dashboard() {
 
   const handleStorageNavigationSelect = async (location: SelectedLocation) => {
     if (!location.tankId || !location.rackId || !location.boxId) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Invalid location: missing required fields', location);
       return;
     }
@@ -144,6 +145,7 @@ export function Dashboard() {
     });
 
     if (!result.success) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Navigation failed:', result.error);
       notifications.error(`Navigation failed: ${result.error}`);
     }
@@ -177,6 +179,7 @@ export function Dashboard() {
     const tubeId = typeof input === 'string' ? input : input.id;
 
     if (!tubeId) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('[Dashboard] handleEditTube called with invalid input:', input);
       return;
     }
@@ -199,6 +202,7 @@ export function Dashboard() {
       .filter((id): id is string => Boolean(id));
 
     if (tubeIds.length === 0) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('[Dashboard] Batch edit requested but no valid tube IDs found:', inputs);
       return;
     }

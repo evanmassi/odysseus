@@ -35,6 +35,7 @@ export function useOptimisticCreateTubeMutation() {
     CreateTubeRequest
   >({
     mutationFn: async (tubeData: CreateTubeRequest) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔄 [OptimisticTube] Creating tube:', tubeData);
       return await TubeService.createTube(tubeData);
     },
@@ -72,6 +73,7 @@ export function useOptimisticCreateTubeMutation() {
     },
 
     onSuccess: (data, _variables, _context) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('[OptimisticTube] Tube created successfully:', data.id);
 
       // Invalidate related queries to ensure consistency
@@ -79,6 +81,7 @@ export function useOptimisticCreateTubeMutation() {
     },
 
     onError: (error, _variables, _context) => {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [OptimisticTube] Failed to create tube:', error);
     }
   });
@@ -97,6 +100,7 @@ export function useOptimisticUpdateTubeMutation() {
     { id: string; data: UpdateTubeRequest }
   >({
     mutationFn: async ({ id, data }: { id: string; data: UpdateTubeRequest }) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔄 [OptimisticTube] Updating tube:', id, data);
       return await TubeService.updateTube(id, data);
     },
@@ -132,6 +136,7 @@ export function useOptimisticUpdateTubeMutation() {
     },
 
     onSuccess: (data, variables, _context) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('[OptimisticTube] Tube updated successfully:', variables.id);
 
       // Update individual tube cache
@@ -156,6 +161,7 @@ export function useOptimisticDeleteTubeMutation() {
     string
   >({
     mutationFn: async (tubeId: string) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔄 [OptimisticTube] Deleting tube:', tubeId);
       await TubeService.deleteTube(tubeId);
     },
@@ -179,6 +185,7 @@ export function useOptimisticDeleteTubeMutation() {
     },
 
     onSuccess: (data, tubeId, _context) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('[OptimisticTube] Tube deleted successfully:', tubeId);
 
       // Remove from individual cache
@@ -210,6 +217,7 @@ export function useOptimisticBatchTubesMutation() {
     { operation: 'update' | 'delete'; tubeIds: string[]; data?: Partial<TubeData> }
   >({
     mutationFn: async ({ operation, tubeIds, data }) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`🔄 [OptimisticTube] Batch ${operation}:`, tubeIds.length, 'tubes');
       
       // Client-side batch operation using parallel execution
@@ -270,6 +278,7 @@ export function useOptimisticBatchTubesMutation() {
     },
 
     onSuccess: (data, _variables, _context) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('[OptimisticTube] Batch operation completed:', data.count, 'tubes');
 
       // Invalidate all location queries and statistics
@@ -302,6 +311,7 @@ export function useOptimisticMoveTubeMutation() {
     }
   >({
     mutationFn: async ({ tubeId, toLocation }) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔄 [OptimisticTube] Moving tube:', tubeId, 'to', toLocation);
       
       return await TubeService.updateTube(tubeId, {
@@ -341,6 +351,7 @@ export function useOptimisticMoveTubeMutation() {
     },
 
     onSuccess: (data, variables, _context) => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('[OptimisticTube] Tube moved successfully:', variables.tubeId);
 
       // Update individual tube cache

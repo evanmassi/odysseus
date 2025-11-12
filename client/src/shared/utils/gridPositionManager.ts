@@ -48,6 +48,7 @@ const useGridPositionStore = create<GridPositionStore>()(
       
       // Validate position bounds
       if (!state.validatePosition(position)) {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`Invalid grid position: ${position}. Keeping current: ${state.currentPosition}`);
         return;
       }

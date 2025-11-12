@@ -100,6 +100,7 @@ export class DataLoadingService {
 
       // Note: Data loading is now handled by React Query in components
       // This service is deprecated - React Query hooks handle the loading
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`🔄 DATA SERVICE: Location load requested for ${request.tankId}/${request.rackId}/${request.boxId} - handled by React Query`);
 
       const loadTime = performance.now() - startTime;

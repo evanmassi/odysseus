@@ -65,6 +65,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
       setPolicy(policyResult.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load retention data');
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to load retention data:', err);
     } finally {
       setLoading(false);
@@ -92,6 +93,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
       await loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to run archival');
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to run archival:', err);
     } finally {
       setArchiving(false);
@@ -112,6 +114,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
       window.URL.revokeObjectURL(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to export archive');
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to export archive:', err);
     }
   };

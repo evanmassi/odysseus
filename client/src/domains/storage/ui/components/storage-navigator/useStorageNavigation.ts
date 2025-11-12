@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 
 import type { StorageHierarchy, SelectedLocation } from './storageNavigatorTypes';
 
@@ -41,12 +41,14 @@ export const useStorageNavigation = (
   const selectTank = useCallback((tankId: string) => {
     const tank = data.tanks.find(t => t.id === tankId);
     if (!tank || tank.racks.length === 0) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('No racks available in tank:', tankId);
       return;
     }
 
     const firstRack = tank.racks[0];
     if (firstRack.boxes.length === 0) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('No boxes available in rack:', firstRack.id);
       return;
     }
@@ -59,6 +61,7 @@ export const useStorageNavigation = (
     const tank = data.tanks.find(t => t.id === tankId);
     const rack = tank?.racks.find(r => r.id === rackId);
     if (!rack || rack.boxes.length === 0) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('No boxes available in rack:', rackId);
       return;
     }

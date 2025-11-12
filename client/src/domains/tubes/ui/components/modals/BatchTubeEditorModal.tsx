@@ -1,6 +1,7 @@
 import { useState, useMemo , useEffect } from 'react';
 
-import { type CreateTubeFormInput, formatConcentrationDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+
+import { type CreateTubeFormInput, type CreateTubeRequest, type UpdateTubeRequest, formatConcentrationDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import { AlertCircle, XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
@@ -25,6 +26,7 @@ import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import type { FieldConflictAnalysis } from '@app/hooks/useSimpleFieldResolver';
 import type { BulkUpdateProgress, BulkUpdateResult } from '@shared/types/bulkOperations';
 import type { TubeData } from '@shared/types/tubeTypes';
+import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
 
 
@@ -95,8 +97,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
 
   // Fetch tubes by IDs, with legacy support during transition
   const { data: allTubes = [] } = useTubes();
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
-  const tubes = legacyTubes || allTubes.filter(tube => tubeIds.includes(tube.id));
+  const tubes = legacyTubes ?? allTubes.filter(tube => tubeIds.includes(tube.id));
 
   // Focus return management - restore focus when modal unmounts
   // Skip restoration for batch operations to preserve multi-selection
@@ -229,11 +230,10 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
       const formData = form.getValues();
 
       // Send all form data (simplicity > micro-optimization)
+      // Type assertion is safe here: form data validated by Zod, backend re-validates with same schemas
       const bulkResult = await bulkUpdateMutation.mutateAsync({
         tubeIds,
-        // Type assertion safe here: form data validated by Zod, backend re-validates with same schemas
-        // TODO: Align mutation types with CreateTubeFormInput to remove type assertion
-        updates: formData as any,
+        updates: formData as Partial<CreateTubeFormInput>,
         onProgress: (progress) => {
           setProgress({
             current: progress.completed,
@@ -257,6 +257,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
         notifications.error('Some tubes failed to update');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Batch update error:', error);
       notifications.error('Failed to update tubes');
       setShowProgress(false);
@@ -288,11 +289,10 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
       const formData = form.getValues();
 
       // Send all form data (simplicity > micro-optimization)
+      // Type assertion is safe here: form data validated by Zod, backend re-validates with same schemas
       const retryResult = await bulkUpdateMutation.mutateAsync({
         tubeIds: failedTubeIds,
-        // Type assertion safe here: form data validated by Zod, backend re-validates with same schemas
-        // TODO: Align mutation types with CreateTubeFormInput to remove type assertion
-        updates: formData as any,
+        updates: formData as Partial<CreateTubeFormInput>,
         onProgress: (progress) => {
           setProgress({
             current: progress.completed,
@@ -314,6 +314,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
         notifications.warning(`⚠️ Retry completed: ${retryResult.successCount}/${retryResult.totalProcessed} successful`);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Retry error:', error);
       notifications.error('Retry failed');
       setShowProgress(false);
@@ -343,6 +344,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
         notifications.error(`Deleted ${deleteResult.successCount} of ${deleteResult.totalProcessed} tubes`);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Batch delete error:', error);
       notifications.error('Failed to delete tubes');
     } finally {
@@ -363,15 +365,16 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
     'concentrationUnit': ['concentration']
   };
 
-  const isRelatedFieldDirty = (fieldKey: string, parentDirtyNode: any): boolean => {
+  const isRelatedFieldDirty = (fieldKey: string, parentDirtyNode: Record<string, unknown> | null | undefined): boolean => {
+    if (!parentDirtyNode) return false;
     const relatedFields = RELATED_FIELDS[fieldKey] || [];
     return relatedFields.some(relatedKey => parentDirtyNode?.[relatedKey] === true);
   };
 
-  const filterNode = (errorNode: any, dirtyNode: any, path = ''): any => {
+  const filterNode = (errorNode: Record<string, unknown> | null | undefined, dirtyNode: Record<string, unknown> | null | undefined, path = ''): Record<string, unknown> | undefined => {
     if (!errorNode || typeof errorNode !== 'object') return undefined;
 
-    const filtered: any = {};
+    const filtered: Record<string, unknown> = {};
     let hasAnyErrors = false;
 
     for (const key in errorNode) {
@@ -390,7 +393,11 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
       }
       // If this is a nested object, recurse
       else if (typeof errorValue === 'object') {
-        const nestedFiltered = filterNode(errorValue, dirtyValue, currentPath);
+        const nestedFiltered = filterNode(
+          errorValue as Record<string, unknown>,
+          dirtyValue as Record<string, unknown>,
+          currentPath
+        );
         if (nestedFiltered && Object.keys(nestedFiltered).length > 0) {
           filtered[key] = nestedFiltered;
           hasAnyErrors = true;
@@ -401,7 +408,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
     return hasAnyErrors ? filtered : undefined;
   };
 
-  const filteredErrors = filterNode(errors, dirtyFields) || {};
+  const filteredErrors = filterNode(errors, dirtyFields) ?? {};
 
   // Check if there are any relevant errors (for button state)
   const hasRelevantErrors = Object.keys(filteredErrors).length > 0;
@@ -488,10 +495,10 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
           </div>
 
           <TubeForm
-            control={form.control as any}
-            register={form.register as any}
-            errors={filteredErrors as any}
-            trigger={form.trigger as any}
+            control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
+            register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
+            errors={filteredErrors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
+            trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
             researchers={researchers}
             isLoading={isSubmitting}
           />

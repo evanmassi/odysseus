@@ -107,6 +107,7 @@ export const createLazyComponent = <T extends ComponentType<any>>(
             timestamp: Date.now(),
           });
           
+          // eslint-disable-next-line no-console -- Performance metrics logging (only when enableMetrics is true)
           console.log(`Lazy loaded ${componentName} in ${loadTime.toFixed(2)}ms (attempt ${attempt})`);
         }
         
@@ -115,6 +116,7 @@ export const createLazyComponent = <T extends ComponentType<any>>(
         lastError = error as Error;
         
         if (finalConfig.enableMetrics) {
+          // eslint-disable-next-line no-console -- Warning logging for production monitoring
           console.warn(`⚠️ Failed to load ${componentName} (attempt ${attempt}/${finalConfig.retryAttempts}):`, error);
         }
         
@@ -141,6 +143,7 @@ export const createLazyComponent = <T extends ComponentType<any>>(
         error: lastError?.message,
       });
       
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`❌ Failed to load ${componentName} after ${finalConfig.retryAttempts} attempts in ${totalTime.toFixed(2)}ms`);
     }
 
@@ -192,20 +195,17 @@ export class PreloadManager {
       }
       
       await importFn();
-      
+
       const endTime = performance.now();
-      const loadTime = endTime - startTime;
-      
+      const _loadTime = endTime - startTime;
+
       this.preloadedComponents.add(componentName);
       this.preloadPromises.delete(componentName);
-      
-      if (env.isDev()) {
-        console.log(`🚀 Preloaded ${componentName} in ${loadTime.toFixed(2)}ms (priority: ${priority})`);
-      }
     } catch (error) {
       this.preloadPromises.delete(componentName);
       
       if (env.isDev()) {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`Failed to preload ${componentName}:`, error);
       }
     }
@@ -227,6 +227,7 @@ export class PreloadManager {
       await Promise.allSettled(preloadPromises);
     } catch (error) {
       if (env.isDev()) {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn('Some components failed to preload during batch operation:', error);
       }
     }

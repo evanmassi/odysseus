@@ -169,6 +169,7 @@ export class AuthService {
 
       return false;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to check first-time setup:', error);
       return false;
     }
@@ -192,6 +193,7 @@ export class AuthService {
         passwordRequireSpecialChars: false
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get password requirements:', error);
       // Return safe defaults on error
       return {

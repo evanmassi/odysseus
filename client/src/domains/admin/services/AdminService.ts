@@ -35,6 +35,7 @@ export class AdminService {
         users: response.data.data.users
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get users:', error);
       throw error;
     }
@@ -50,6 +51,7 @@ export class AdminService {
       });
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to update user role for ${userId}:`, error);
       throw error;
     }
@@ -63,6 +65,7 @@ export class AdminService {
       const response = await httpClient.delete<{ success: boolean }>(`/admin/users/${userId}`);
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to delete user ${userId}:`, error);
       throw error;
     }
@@ -84,6 +87,7 @@ export class AdminService {
         users: response.data.data.users
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get pending users:', error);
       throw error;
     }
@@ -97,6 +101,7 @@ export class AdminService {
       const response = await httpClient.post<{ success: boolean }>(`/admin/users/${userId}/approve`);
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to approve user ${userId}:`, error);
       throw error;
     }
@@ -110,6 +115,7 @@ export class AdminService {
       const response = await httpClient.post<{ success: boolean }>(`/admin/users/${userId}/reject`);
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to reject user ${userId}:`, error);
       throw error;
     }
@@ -126,6 +132,7 @@ export class AdminService {
       );
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to link researcher to user ${userId}:`, error);
       throw error;
     }
@@ -139,6 +146,7 @@ export class AdminService {
       const response = await httpClient.post<{ success: boolean }>(`/admin/users/${userId}/unlink-researcher`);
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to unlink researcher from user ${userId}:`, error);
       throw error;
     }
@@ -162,6 +170,7 @@ export class AdminService {
       });
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to reset password for user ${userId}:`, error);
       throw error;
     }
@@ -186,6 +195,7 @@ export class AdminService {
       }>(`/admin/users/${userId}/generate-reset-token`);
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to generate password reset token for user ${userId}:`, error);
       throw error;
     }
@@ -208,6 +218,7 @@ export class AdminService {
         researchers: response.data.data.researchers
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get researchers:', error);
       throw error;
     }
@@ -222,6 +233,7 @@ export class AdminService {
       const response = await httpClient.delete<{ success: boolean }>(`/admin/researchers/${researcherId}`);
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to delete researcher ${researcherId}:`, error);
       throw error;
     }
@@ -242,6 +254,7 @@ export class AdminService {
         researchers: response.data.data.researchers
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get unlinked researchers:', error);
       throw error;
     }
@@ -261,6 +274,7 @@ export class AdminService {
       );
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to create and link researcher:', error);
       throw error;
     }
@@ -281,6 +295,7 @@ export class AdminService {
         researcher: response.data.data
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to create researcher:', error);
       throw error;
     }
@@ -305,6 +320,7 @@ export class AdminService {
         data: response.data.data
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get admin metrics:', error);
       throw error;
     }
@@ -331,6 +347,7 @@ export class AdminService {
         config: response.data.data.config
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get security config:', error);
       throw error;
     }
@@ -351,6 +368,7 @@ export class AdminService {
         success: response.data.success
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to update security config:', error);
       throw error;
     }
@@ -377,6 +395,7 @@ export class AdminService {
         sync: response.data.data.sync
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get sync status:', error);
       throw error;
     }
@@ -427,6 +446,7 @@ export class AdminService {
         pagination: response.data.data.pagination
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get audit log:', error);
       throw error;
     }
@@ -461,6 +481,7 @@ export class AdminService {
 
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get audit statistics:', error);
       throw error;
     }
@@ -481,6 +502,7 @@ export class AdminService {
 
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to get entity history for ${entityType}:${entityId}:`, error);
       throw error;
     }
@@ -533,6 +555,7 @@ export class AdminService {
         pagination: response.data.data.pagination
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to search audit logs:', error);
       throw error;
     }
@@ -573,6 +596,7 @@ export class AdminService {
         data: response.data.data.metrics
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get retention metrics:', error);
       throw error;
     }
@@ -605,6 +629,7 @@ export class AdminService {
         data: response.data.data.policy
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to get retention policy:', error);
       throw error;
     }
@@ -637,6 +662,7 @@ export class AdminService {
         data: response.data.data
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to run manual archival:', error);
       throw error;
     }
@@ -660,6 +686,7 @@ export class AdminService {
 
       return response.data;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to export archived logs:', error);
       throw error;
     }

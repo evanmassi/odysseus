@@ -42,6 +42,7 @@ export function normalizeDateString(input: string | Date | null | undefined): st
     const date = input instanceof Date ? input : new Date(input);
 
     if (isNaN(date.getTime())) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('Invalid date input:', input);
       return '';
     }
@@ -53,6 +54,7 @@ export function normalizeDateString(input: string | Date | null | undefined): st
 
     return `${year}-${month}-${day}`;
   } catch (error) {
+    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('Error normalizing date:', error);
     return '';
   }
@@ -102,6 +104,7 @@ export function formatDateForDisplay(
 
     return new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' }).format(date);
   } catch (error) {
+    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('Error formatting date for display:', error);
     return normalized; // Fallback to raw string
   }

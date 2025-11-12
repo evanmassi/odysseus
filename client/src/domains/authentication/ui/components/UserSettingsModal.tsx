@@ -73,11 +73,13 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
           onClose();
         },
         onError: (error: Error) => {
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [UserSettingsModal] Save failed:', error);
           notifications.error(`Failed to save settings: ${error.message}`);
         },
       });
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [UserSettingsModal] Failed to save settings:', error);
       notifications.error('Failed to save settings');
     }

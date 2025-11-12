@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 import { queryKeys } from '@app/queryKeys';
 
@@ -83,10 +83,12 @@ export const useUpdateBoxPositionDisplayMutation = () => {
       );
     },
 
-    onError: (error: any, _variables) => {
+    onError: (error: unknown, _variables) => {
       // Show error feedback
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [useUpdateBoxPositionDisplayMutation] Failed:', error);
-      toast.error(`Failed to update position display: ${error.message || 'Unknown error'}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update position display: ${message}`);
     },
   });
 };
@@ -134,10 +136,12 @@ export const useUpdateLabDefaultPositionDisplayMutation = () => {
       );
     },
 
-    onError: (error: any, _variables) => {
+    onError: (error: unknown, _variables) => {
       // Show error feedback
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [useUpdateLabDefaultPositionDisplayMutation] Failed:', error);
-      toast.error(`Failed to update lab default: ${error.message || 'Unknown error'}`);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      toast.error(`Failed to update lab default: ${message}`);
     },
   });
 };

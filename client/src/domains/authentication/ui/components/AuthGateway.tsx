@@ -5,7 +5,7 @@
  * AppBootstrapService handles authentication initialization,
  * eliminating duplicate auth flows and race conditions.
  */
-import React from 'react';
+import React, { useState } from 'react';
 
 import { useBootstrapContext } from '@app/contexts/BootstrapContext';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
@@ -45,7 +45,7 @@ export function AuthGateway({ children }: AuthGatewayProps) {
  */
 function AuthUnauthenticatedRouter() {
   const { flags } = useBootstrapContext();
-  const [showRegister, setShowRegister] = React.useState(flags.firstTimeSetupRequired);
+  const [showRegister, setShowRegister] = useState(flags.firstTimeSetupRequired);
 
   // Bootstrap single source of truth: explicit flag for first-time setup
   if (showRegister) {

@@ -9,8 +9,10 @@ import {
   type UpdateTubeRequest,
   type TubeQueryFilters,
   EQUIPMENT_DEFAULTS,
-  UNKNOWN_RESEARCHER
-, type TubeData as SchemaTubeData              } from '@odysseus/shared-schemas';
+  UNKNOWN_RESEARCHER,
+  type TubeData as SchemaTubeData,
+  type BatchResult
+} from '@odysseus/shared-schemas';
 import { useQuery, useMutation, useQueryClient, type UseQueryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
@@ -19,7 +21,7 @@ import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
 import { TubeService } from '../services/TubeService';
 
-import type { BatchResult } from '@odysseus/shared-schemas';
+
 import type { TubeData } from '@shared/types/tubeTypes';
 
 

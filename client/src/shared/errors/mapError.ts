@@ -235,7 +235,7 @@ export const shouldReportError = (error: AppError): boolean => {
 /**
  * Extract error context for logging
  */
-export const getErrorContext = (error: AppError): Record<string, any> => {
+export const getErrorContext = (error: AppError): Record<string, unknown> => {
   return {
     type: error.type,
     code: error.code,

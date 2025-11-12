@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from 'react';
 
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -115,6 +115,7 @@ export class NetworkMonitor {
       this.notifyListeners('reconnect-success');
     } else {
       // False positive - still offline
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('⚠️ [NetworkMonitor] False online event - still no server connectivity');
       this.handleOffline();
     }
@@ -165,6 +166,7 @@ export class NetworkMonitor {
       this.reconnectTimeout = setTimeout(attemptReconnect, delay);
       
       if (this.status.reconnectAttempts >= 10) {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [NetworkMonitor] Maximum reconnection attempts reached');
         this.notifyListeners('reconnect-failed');
         
@@ -199,6 +201,7 @@ export class NetworkMonitor {
       
       return response.ok;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Debug logging for non-critical failures
       console.debug('🔍 [NetworkMonitor] Server ping failed:', error);
       return false;
     }
@@ -336,6 +339,7 @@ export class NetworkMonitor {
       try {
         callback(this.status);
       } catch (error) {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [NetworkMonitor] Listener error:', error);
       }
     });

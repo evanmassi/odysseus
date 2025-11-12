@@ -6,7 +6,7 @@
  */
 
 import type { ReactNode } from 'react';
-import React, { Suspense } from 'react';
+import React, { Suspense, useCallback, useState, forwardRef } from 'react';
 
 import { env } from '@shared/config';
 
@@ -70,9 +70,9 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
   name,
 }) => {
   // Default error fallback
-  const defaultErrorFallback = React.useCallback(
+  const defaultErrorFallback = useCallback(
     ({ error, retry }: { error: Error; retry: () => void }) => (
-      <div 
+      <div
         className={`flex flex-col items-center justify-center p-8 text-center ${className}`}
         role="alert"
         aria-label={`Error loading ${name ?? 'component'}`}
@@ -84,15 +84,15 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
             <line x1="9" y1="9" x2="15" y2="15" />
           </svg>
         </div>
-        
+
         <h3 className="text-lg font-semibold text-neutral-900 mb-2">
           Failed to load {name ?? 'component'}
         </h3>
-        
+
         <p className="text-neutral-600 mb-4 max-w-sm">
           {error.message || 'Something went wrong while loading this component.'}
         </p>
-        
+
         <button
           onClick={retry}
           className="btn px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
@@ -120,9 +120,13 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
       // Log error for debugging
       if (env.isDev()) {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown Component'
-        console.group(`🚨 Lazy Loading Error: ${name || 'Unknown Component'}`);
+        // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
+        console.group(`🚨 Lazy Loading Error: ${name ?? 'Unknown Component'}`);
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('Error:', error);
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('Error Info:', errorInfo);
+        // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
         console.groupEnd();
       }
       
@@ -146,7 +150,7 @@ export const withSuspenseBoundary = <P extends object>(
   LazyComponent: React.ComponentType<P>,
   config?: Omit<SuspenseBoundaryProps, 'children'>
 ) => {
-  const WrappedComponent = React.forwardRef<any, P>((props, ref) => (
+  const WrappedComponent = forwardRef<any, P>((props, ref) => (
     <SuspenseBoundary {...config}>
       <LazyComponent {...(props as any)} ref={ref} />
     </SuspenseBoundary>
@@ -154,35 +158,36 @@ export const withSuspenseBoundary = <P extends object>(
 
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for React displayName
   WrappedComponent.displayName = `withSuspenseBoundary(${LazyComponent.displayName || LazyComponent.name})`;
-  
+
   return WrappedComponent;
 };
 
 // Hook for managing lazy loading state
 export const useLazyLoadingState = (componentName?: string) => {
-  const [isLoading, setIsLoading] = React.useState(true);
-  const [error, setError] = React.useState<Error | null>(null);
-  
-  const handleLoadComplete = React.useCallback(() => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const handleLoadComplete = useCallback(() => {
     setIsLoading(false);
     setError(null);
   }, []);
-  
-  const handleLoadError = React.useCallback((error: Error) => {
+
+  const handleLoadError = useCallback((error: Error) => {
     setIsLoading(false);
     setError(error);
-    
+
     if (env.isDev()) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Failed to load lazy component: ${componentName}`, error);
     }
   }, [componentName]);
-  
-  const retry = React.useCallback(() => {
+
+  const retry = useCallback(() => {
     setIsLoading(true);
     setError(null);
     // Component will re-mount and attempt to load again
   }, []);
-  
+
   return {
     isLoading,
     error,
@@ -200,6 +205,7 @@ export const preloadLazyComponent = async (
     await importFn();
   } catch (error) {
     if (env.isDev()) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('Failed to preload lazy component:', error);
     }
   }
@@ -213,6 +219,7 @@ export const preloadLazyComponents = async (
     await Promise.all(importFns.map(preloadLazyComponent));
   } catch (error) {
     if (env.isDev()) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('Failed to preload some lazy components:', error);
     }
   }

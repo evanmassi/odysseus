@@ -1,0 +1,2537 @@
+{
+  "categories": {
+    "generic-types": [
+      {
+        "file": "app\\bootstrap\\types.ts",
+        "line": 44,
+        "code": "details?: Record<string, any>;"
+      },
+      {
+        "file": "app\\hooks\\useFieldResolver.ts",
+        "line": 55,
+        "code": "getValue: <T = any>("
+      },
+      {
+        "file": "app\\hooks\\useFieldResolver.ts",
+        "line": 62,
+        "code": "getValues: <T = any>("
+      },
+      {
+        "file": "app\\hooks\\useFieldResolver.ts",
+        "line": 75,
+        "code": "resolveField: <T = any>("
+      },
+      {
+        "file": "app\\hooks\\useFieldResolver.ts",
+        "line": 153,
+        "code": "const getValue = useCallback(<T = any>("
+      },
+      {
+        "file": "app\\hooks\\useFieldResolver.ts",
+        "line": 175,
+        "code": "const getValues = useCallback(<T = any>("
+      },
+      {
+        "file": "app\\hooks\\useFieldResolver.ts",
+        "line": 212,
+        "code": "const resolveField = useCallback(<T = any>("
+      },
+      {
+        "file": "app\\hooks\\useFieldResolver.ts",
+        "line": 306,
+        "code": "const results: Record<string, any> = {};"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 18,
+        "code": "export interface FieldConflictAnalysis<T = any> {"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 49,
+        "code": "getTubeValue: <T = any>(tube: TubeData, fieldPath: string) => T | undefined;"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 52,
+        "code": "getTubeValues: <T = any>(tubes: TubeData[], fieldPath: string) => (T | undefined)[];"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 58,
+        "code": "getUniqueTubeValues: <T = any>(tubes: TubeData[], fieldPath: string) => T[];"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 61,
+        "code": "findTubesByFieldValue: <T = any>(tubes: TubeData[], fieldPath: string, value: T) => TubeData[];"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 64,
+        "code": "analyzeFieldConflicts: <T = any>(tubes: TubeData[], fieldPath: string) => FieldConflictAnalysis<T>;"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 89,
+        "code": "const getTubeValue = useCallback(<T = any>(tube: TubeData, fieldPath: string): T | undefined => {"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 99,
+        "code": "const getTubeValues = useCallback(<T = any>(tubes: TubeData[], fieldPath: string): (T | undefined)[] => {"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 108,
+        "code": "const getUniqueTubeValues = useCallback(<T = any>(tubes: TubeData[], fieldPath: string): T[] => {"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 119,
+        "code": "const findTubesByFieldValue = useCallback(<T = any>("
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 130,
+        "code": "const analyzeFieldConflicts = useCallback(<T = any>("
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 53,
+        "code": "getValue: <T = any>(tube: any, fieldKey: string, options?: FieldResolutionOptions) =>"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 53,
+        "code": "getValue: <T = any>(tube: any, fieldKey: string, options?: FieldResolutionOptions) =>"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 56,
+        "code": "getValues: <T = any>(tubes: any[], fieldKey: string, options?: FieldResolutionOptions) =>"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 56,
+        "code": "getValues: <T = any>(tubes: any[], fieldKey: string, options?: FieldResolutionOptions) =>"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 64,
+        "code": "resolveField: <T = any>(tube: any, fieldKey: string) => ({"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 64,
+        "code": "resolveField: <T = any>(tube: any, fieldKey: string) => ({"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeQueries.ts",
+        "line": 191,
+        "code": "filters: Record<string, any> = {},"
+      },
+      {
+        "file": "domains\\tubes\\services\\TubeFieldAccessService.ts",
+        "line": 67,
+        "code": "getValue<T = any>("
+      },
+      {
+        "file": "domains\\tubes\\services\\TubeFieldAccessService.ts",
+        "line": 122,
+        "code": "getValues<T = any>("
+      },
+      {
+        "file": "domains\\tubes\\services\\TubeFieldAccessService.ts",
+        "line": 194,
+        "code": "resolveField<T = any>("
+      },
+      {
+        "file": "domains\\tubes\\types\\FieldResolver.ts",
+        "line": 38,
+        "code": "export interface FieldResolutionResult<T = any> {"
+      },
+      {
+        "file": "domains\\tubes\\types\\FieldResolver.ts",
+        "line": 75,
+        "code": "getValue<T = any>("
+      },
+      {
+        "file": "domains\\tubes\\types\\FieldResolver.ts",
+        "line": 90,
+        "code": "getValues<T = any>("
+      },
+      {
+        "file": "domains\\tubes\\types\\FieldResolver.ts",
+        "line": 132,
+        "code": "resolveField<T = any>("
+      },
+      {
+        "file": "infrastructure\\api\\AuthHttpClient.ts",
+        "line": 62,
+        "code": "async post<T = any>(path: string, data: any): Promise<T> {"
+      },
+      {
+        "file": "infrastructure\\api\\AuthHttpClient.ts",
+        "line": 62,
+        "code": "async post<T = any>(path: string, data: any): Promise<T> {"
+      },
+      {
+        "file": "infrastructure\\api\\AuthHttpClient.ts",
+        "line": 72,
+        "code": "async get<T = any>(path: string): Promise<T> {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 160,
+        "code": "export function transformApiResponse<T = any>(response: any, typeName?: string): T {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 160,
+        "code": "export function transformApiResponse<T = any>(response: any, typeName?: string): T {"
+      },
+      {
+        "file": "infrastructure\\cache\\CacheWarmingService.ts",
+        "line": 371,
+        "code": "private getRecentSearchQueries(): Array<{ query: string; filters: Record<string, any> }> {"
+      },
+      {
+        "file": "shared\\types\\apiTypes.ts",
+        "line": 9,
+        "code": "export interface APIResponse<T = any> {"
+      },
+      {
+        "file": "shared\\types\\apiTypes.ts",
+        "line": 60,
+        "code": "export interface SocketEvent<T = any> {"
+      },
+      {
+        "file": "shared\\types\\validationTypes.ts",
+        "line": 37,
+        "code": "export type ValidatorFunction<T = any> = (value: T, context?: any) => FieldValidationResult;"
+      },
+      {
+        "file": "shared\\types\\validationTypes.ts",
+        "line": 37,
+        "code": "export type ValidatorFunction<T = any> = (value: T, context?: any) => FieldValidationResult;"
+      },
+      {
+        "file": "shared\\ui\\primitives\\table\\Table.tsx",
+        "line": 13,
+        "code": "export interface TableColumn<T = any> {"
+      },
+      {
+        "file": "shared\\utils\\formUtils.ts",
+        "line": 86,
+        "code": "export function hasAnyDirtyFields(dirtyFields: Record<string, any>): boolean {"
+      },
+      {
+        "file": "shared\\utils\\lazy\\PreloadHelpers.ts",
+        "line": 76,
+        "code": "export function createPreloadHook<T = any>("
+      },
+      {
+        "file": "shared\\utils\\validation\\zodValidation.ts",
+        "line": 16,
+        "code": "export interface ValidationResult<T = any> {"
+      },
+      {
+        "file": "shared\\utils\\validation\\zodValidation.ts",
+        "line": 224,
+        "code": "export interface ValidationWithWarnings<T = any> extends ValidationResult<T> {"
+      }
+    ],
+    "field-resolvers": [
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 70,
+        "code": "function getNestedValue(obj: any, path: string): any {"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 70,
+        "code": "function getNestedValue(obj: any, path: string): any {"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 81,
+        "code": "function hasValue(value: any): boolean {"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 162,
+        "code": "hasValue(v) ? (normalizeDateString(v as any) as T) : undefined"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 255,
+        "code": "getValue<K extends keyof typeof TUBE_FIELD_PATHS>(tube: TubeData, field: K): any;"
+      },
+      {
+        "file": "app\\hooks\\useSimpleFieldResolver.ts",
+        "line": 256,
+        "code": "getValues<K extends keyof typeof TUBE_FIELD_PATHS>(tubes: TubeData[], field: K): any[];"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 19,
+        "code": "static resolveField(tube: any, fieldKey: string, options?: FieldResolutionOptions): any {"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 19,
+        "code": "static resolveField(tube: any, fieldKey: string, options?: FieldResolutionOptions): any {"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 38,
+        "code": "static formatValue(value: any, _fieldKey: string): string {"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 46,
+        "code": "static validateValue(value: any, _fieldKey: string): boolean {"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 59,
+        "code": "hasValue: (tube: any, fieldKey: string) => {"
+      },
+      {
+        "file": "app\\services\\FieldResolverService.ts",
+        "line": 79,
+        "code": "resolver: null as any,"
+      },
+      {
+        "file": "domains\\tubes\\services\\TubeFieldAccessService.ts",
+        "line": 309,
+        "code": "private resolvePath(obj: any, path: string): any {"
+      },
+      {
+        "file": "domains\\tubes\\services\\TubeFieldAccessService.ts",
+        "line": 309,
+        "code": "private resolvePath(obj: any, path: string): any {"
+      },
+      {
+        "file": "domains\\tubes\\services\\TubeFieldAccessService.ts",
+        "line": 317,
+        "code": "private resolveCompiledPath(obj: any, pathSegments: string[]): any {"
+      },
+      {
+        "file": "domains\\tubes\\services\\TubeFieldAccessService.ts",
+        "line": 317,
+        "code": "private resolveCompiledPath(obj: any, pathSegments: string[]): any {"
+      },
+      {
+        "file": "domains\\tubes\\services\\TubeFieldAccessService.ts",
+        "line": 352,
+        "code": "private pathExists(obj: any, path: string): boolean {"
+      },
+      {
+        "file": "domains\\tubes\\types\\FieldResolver.ts",
+        "line": 28,
+        "code": "defaultValue?: any;"
+      },
+      {
+        "file": "domains\\tubes\\types\\FieldResolver.ts",
+        "line": 32,
+        "code": "transform?: (value: any) => any;"
+      },
+      {
+        "file": "domains\\tubes\\types\\FieldResolver.ts",
+        "line": 32,
+        "code": "transform?: (value: any) => any;"
+      },
+      {
+        "file": "infrastructure\\configuration\\tubeFieldConfiguration.ts",
+        "line": 42,
+        "code": "customRenderer?: (value: any, tube: any) => React.ReactNode;"
+      },
+      {
+        "file": "infrastructure\\configuration\\tubeFieldConfiguration.ts",
+        "line": 42,
+        "code": "customRenderer?: (value: any, tube: any) => React.ReactNode;"
+      },
+      {
+        "file": "infrastructure\\configuration\\tubeFieldConfiguration.ts",
+        "line": 44,
+        "code": "validator?: (value: any) => boolean;"
+      },
+      {
+        "file": "infrastructure\\configuration\\tubeFieldConfiguration.ts",
+        "line": 46,
+        "code": "displayTransform?: (value: any) => any;"
+      },
+      {
+        "file": "infrastructure\\configuration\\tubeFieldConfiguration.ts",
+        "line": 46,
+        "code": "displayTransform?: (value: any) => any;"
+      },
+      {
+        "file": "infrastructure\\configuration\\tubeFieldConfiguration.ts",
+        "line": 260,
+        "code": "getDisplayValue(tube: any, fieldKey: ValidTubeFieldKey): any {"
+      },
+      {
+        "file": "infrastructure\\configuration\\tubeFieldConfiguration.ts",
+        "line": 260,
+        "code": "getDisplayValue(tube: any, fieldKey: ValidTubeFieldKey): any {"
+      },
+      {
+        "file": "infrastructure\\configuration\\tubeFieldConfiguration.ts",
+        "line": 274,
+        "code": "validateFieldValue(fieldKey: ValidTubeFieldKey, value: any): boolean {"
+      },
+      {
+        "file": "infrastructure\\configuration\\tubeFieldConfiguration.ts",
+        "line": 399,
+        "code": "value: any,"
+      }
+    ],
+    "error-handling": [
+      {
+        "file": "app\\queryClient.ts",
+        "line": 50,
+        "code": "const retryLogic = (failureCount: number, error: any): boolean => {"
+      },
+      {
+        "file": "app\\queryClient.ts",
+        "line": 68,
+        "code": "const mutationRetryLogic = (failureCount: number, error: any): boolean => {"
+      },
+      {
+        "file": "app\\queryClient.ts",
+        "line": 99,
+        "code": "const handleQueryError = (error: any, query: any): void => {"
+      },
+      {
+        "file": "app\\queryClient.ts",
+        "line": 99,
+        "code": "const handleQueryError = (error: any, query: any): void => {"
+      },
+      {
+        "file": "app\\queryClient.ts",
+        "line": 119,
+        "code": "const handleMutationError = (error: any, variables: any, context: any, mutation: any): void => {"
+      },
+      {
+        "file": "app\\queryClient.ts",
+        "line": 119,
+        "code": "const handleMutationError = (error: any, variables: any, context: any, mutation: any): void => {"
+      },
+      {
+        "file": "app\\queryClient.ts",
+        "line": 119,
+        "code": "const handleMutationError = (error: any, variables: any, context: any, mutation: any): void => {"
+      },
+      {
+        "file": "app\\queryClient.ts",
+        "line": 119,
+        "code": "const handleMutationError = (error: any, variables: any, context: any, mutation: any): void => {"
+      },
+      {
+        "file": "domains\\admin\\ui\\components\\PasswordResetModal.tsx",
+        "line": 67,
+        "code": "} catch (error: any) {"
+      },
+      {
+        "file": "domains\\admin\\ui\\components\\PasswordResetModal.tsx",
+        "line": 81,
+        "code": "} catch (error: any) {"
+      },
+      {
+        "file": "domains\\admin\\ui\\components\\ResearcherModal.tsx",
+        "line": 58,
+        "code": "} catch (error: any) {"
+      },
+      {
+        "file": "domains\\admin\\ui\\components\\ResearcherModal.tsx",
+        "line": 72,
+        "code": "} catch (error: any) {"
+      },
+      {
+        "file": "domains\\admin\\ui\\components\\tabs\\ResearcherManagementTab.tsx",
+        "line": 131,
+        "code": "} catch (error: any) {"
+      },
+      {
+        "file": "domains\\authentication\\ui\\components\\ResetPasswordPage.tsx",
+        "line": 107,
+        "code": "} catch (error: any) {"
+      },
+      {
+        "file": "domains\\researchers\\hooks\\useResearchersQuery.ts",
+        "line": 96,
+        "code": "onError: (error: any) => {"
+      },
+      {
+        "file": "domains\\researchers\\hooks\\useResearchersQuery.ts",
+        "line": 127,
+        "code": "onError: (error: any) => {"
+      },
+      {
+        "file": "domains\\researchers\\hooks\\useResearchersQuery.ts",
+        "line": 146,
+        "code": "onError: (error: any) => {"
+      },
+      {
+        "file": "domains\\storage\\hooks\\useBoxPositionDisplay.ts",
+        "line": 86,
+        "code": "onError: (error: any, _variables) => {"
+      },
+      {
+        "file": "domains\\storage\\hooks\\useBoxPositionDisplay.ts",
+        "line": 138,
+        "code": "onError: (error: any, _variables) => {"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeMutations.ts",
+        "line": 397,
+        "code": "} catch (error: any) {"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeQueries.ts",
+        "line": 135,
+        "code": "options: Omit<UseInfiniteQueryOptions<any, Error, any, any, number>, 'queryKey' | 'queryFn' | 'getNextPageParam' | 'initialPageParam'> = {}"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeQueries.ts",
+        "line": 135,
+        "code": "options: Omit<UseInfiniteQueryOptions<any, Error, any, any, number>, 'queryKey' | 'queryFn' | 'getNextPageParam' | 'initialPageParam'> = {}"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeQueries.ts",
+        "line": 135,
+        "code": "options: Omit<UseInfiniteQueryOptions<any, Error, any, any, number>, 'queryKey' | 'queryFn' | 'getNextPageParam' | 'initialPageParam'> = {}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\forms\\TubeForm.tsx",
+        "line": 58,
+        "code": "let currentError = errors as any;"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\forms\\TubeForm.tsx",
+        "line": 82,
+        "code": "const sampleError = (errors as any)?.sample;"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 496,
+        "code": "errors={filteredErrors as any}"
+      },
+      {
+        "file": "infrastructure\\cache\\CacheWarmingService.ts",
+        "line": 127,
+        "code": "this.queryClient.ensureQueryData(query as any).catch(error => {"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 152,
+        "code": "onError: (error: TError, variables: TVariables, context: any) => {"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 180,
+        "code": "options.onError(error, variables, context, {} as any);"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 184,
+        "code": "onSettled: (data: TData | undefined, error: TError | null, variables: TVariables, context: any) => {"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 19,
+        "code": "public readonly details?: Record<string, any>,"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 65,
+        "code": "details?: Record<string, any>"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 96,
+        "code": "details?: Record<string, any>"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 127,
+        "code": "details?: Record<string, any>"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 143,
+        "code": "details?: Record<string, any>,"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 176,
+        "code": "details?: Record<string, any>"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 188,
+        "code": "let details: Record<string, any> = {};"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 241,
+        "code": "details?: Record<string, any>"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 263,
+        "code": "details?: Record<string, any>"
+      },
+      {
+        "file": "shared\\errors\\AppError.ts",
+        "line": 277,
+        "code": "details?: Record<string, any>"
+      },
+      {
+        "file": "shared\\errors\\mapError.ts",
+        "line": 238,
+        "code": "export const getErrorContext = (error: AppError): Record<string, any> => {"
+      },
+      {
+        "file": "shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+        "line": 294,
+        "code": "const WrappedComponent = forwardRef<any, P>((props, ref) => ("
+      },
+      {
+        "file": "shared\\ui\\components\\boundaries\\ErrorBoundary.tsx",
+        "line": 296,
+        "code": "<Component {...(props as any)} ref={ref} />"
+      }
+    ],
+    "query-cache": [
+      {
+        "file": "app\\queryKeys.ts",
+        "line": 26,
+        "code": "list: (filters?: any) =>"
+      },
+      {
+        "file": "app\\queryKeys.ts",
+        "line": 35,
+        "code": "paginated: (filters?: any) =>"
+      },
+      {
+        "file": "app\\queryKeys.ts",
+        "line": 42,
+        "code": "list: (filters?: any) =>"
+      },
+      {
+        "file": "app\\queryKeys.ts",
+        "line": 45,
+        "code": "admin: (filters?: any) =>"
+      },
+      {
+        "file": "app\\queryKeys.ts",
+        "line": 55,
+        "code": "tubesSearch: (options: any) =>"
+      },
+      {
+        "file": "app\\queryKeys.ts",
+        "line": 59,
+        "code": "fieldSearch: (field: string, value: string, options?: any) =>"
+      },
+      {
+        "file": "app\\queryKeys.ts",
+        "line": 66,
+        "code": "results: (query: string, filters?: any) =>"
+      },
+      {
+        "file": "infrastructure\\cache\\CacheWarmingService.ts",
+        "line": 45,
+        "code": "private warmingQueue: Array<{ queryKey: any[]; strategy: WarmingStrategy }> = [];"
+      },
+      {
+        "file": "infrastructure\\cache\\CacheWarmingService.ts",
+        "line": 207,
+        "code": "(window as any).requestIdleCallback(() => {"
+      },
+      {
+        "file": "infrastructure\\cache\\performanceMonitoring.ts",
+        "line": 60,
+        "code": "options: any"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 18,
+        "code": "export interface OptimisticContext<TData = any> {"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 56,
+        "code": "updateFn: (variables: TVariables, oldData: any) => any;  // How to update the data"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 56,
+        "code": "updateFn: (variables: TVariables, oldData: any) => any;  // How to update the data"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 78,
+        "code": "private conflictQueue: Array<DataConflict<any>> = [];"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 101,
+        "code": "customContext = await options.onMutate(variables, {} as any);"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 119,
+        "code": "onSuccess: (data: TData, variables: TVariables, context: any) => {"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 148,
+        "code": "options.onSuccess(data, variables, context, {} as any);"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 198,
+        "code": "options.onSettled(data, error, variables, context, {} as any);"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 209,
+        "code": "config: NonNullable<OptimisticMutationOptions<any, any, TVariables, any>['optimisticUpdate']>"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 209,
+        "code": "config: NonNullable<OptimisticMutationOptions<any, any, TVariables, any>['optimisticUpdate']>"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 209,
+        "code": "config: NonNullable<OptimisticMutationOptions<any, any, TVariables, any>['optimisticUpdate']>"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 224,
+        "code": "const previousData: any = {};"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 255,
+        "code": "private replaceOptimisticData(context: OptimisticContext, serverData: any): void {"
+      },
+      {
+        "file": "infrastructure\\optimistic\\optimisticUpdates.ts",
+        "line": 414,
+        "code": "updateFn: (variables: any, oldData: T[] | undefined) => {"
+      },
+      {
+        "file": "infrastructure\\socket\\queryBridge.ts",
+        "line": 200,
+        "code": ") as any;"
+      },
+      {
+        "file": "infrastructure\\socket\\queryBridge.ts",
+        "line": 565,
+        "code": "}) as any;"
+      }
+    ],
+    "other": [
+      {
+        "file": "app\\services\\SessionManager.ts",
+        "line": 416,
+        "code": "getDebugInfo(): any {"
+      },
+      {
+        "file": "app\\services\\SessionManager.ts",
+        "line": 480,
+        "code": "getUser(): any | null {"
+      },
+      {
+        "file": "app\\services\\SessionManager.ts",
+        "line": 491,
+        "code": "setUser(user: any): void {"
+      },
+      {
+        "file": "domains\\admin\\services\\AdminService.ts",
+        "line": 245,
+        "code": "async getUnlinkedResearchers(): Promise<{ success: boolean; researchers: any[] }> {"
+      },
+      {
+        "file": "domains\\admin\\services\\AdminService.ts",
+        "line": 249,
+        "code": "data: { researchers: any[] };"
+      },
+      {
+        "file": "domains\\admin\\services\\AdminService.ts",
+        "line": 286,
+        "code": "async createResearcher(data: { firstName: string; lastName: string; email: string; position?: string; department?: string }): Promise<{ success: boolean; researcher: any }> {"
+      },
+      {
+        "file": "domains\\admin\\services\\AdminService.ts",
+        "line": 589,
+        "code": "metrics: any;"
+      },
+      {
+        "file": "domains\\admin\\services\\AdminService.ts",
+        "line": 622,
+        "code": "policy: any;"
+      },
+      {
+        "file": "domains\\authentication\\services\\AuthenticationService.ts",
+        "line": 27,
+        "code": "tokens: any; // TokenPair from session types"
+      },
+      {
+        "file": "domains\\authentication\\services\\AuthenticationService.ts",
+        "line": 32,
+        "code": "tokens?: any; // Optional - only for approved users"
+      },
+      {
+        "file": "domains\\authentication\\stores\\authStore.ts",
+        "line": 77,
+        "code": "getDebugInfo: () => any;"
+      },
+      {
+        "file": "domains\\authentication\\stores\\authStore.ts",
+        "line": 480,
+        "code": "(globalThis as any).__ODYSSEUS_SESSION_DEBUG__ = () => {"
+      },
+      {
+        "file": "domains\\search\\engine\\SearchEngine.ts",
+        "line": 163,
+        "code": "const tubes: TubeData[] = serverResult.data.map((tube: any) => ({"
+      },
+      {
+        "file": "domains\\search\\ui\\components\\SearchResults.tsx",
+        "line": 246,
+        "code": "const handleGroupClick = async (group: any) => {"
+      },
+      {
+        "file": "domains\\search\\ui\\components\\SearchResults.tsx",
+        "line": 248,
+        "code": "const tubesWithTankId = group.tubes.map((tube: any) => ({"
+      },
+      {
+        "file": "domains\\search\\ui\\components\\SearchResults.tsx",
+        "line": 261,
+        "code": "const formatPositions = (tubes: any[]): string => {"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 75,
+        "code": "migrateConfigurationStructure: (config: any) => any;"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 75,
+        "code": "migrateConfigurationStructure: (config: any) => any;"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 163,
+        "code": "function migrateGridConfig(oldGrid: any): GridConfiguration {"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 596,
+        "code": "const existingRacks = (currentLab.equipment as any)?.racks;"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 645,
+        "code": "if ((updatedLab.equipment as any).racks) {"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 646,
+        "code": "delete (updatedLab.equipment as any).racks;"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 665,
+        "code": "migrateConfigurationStructure: (config: any) => {"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 707,
+        "code": "migrate: (persistedState: any, version: number) => {"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 710,
+        "code": "const state = persistedState as any;"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 714,
+        "code": "state.currentLab.equipment.tanks = state.currentLab.equipment.tanks.map((tank: any) => ({"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 717,
+        "code": "racks: tank.racks?.map((rack: any) => ({"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 719,
+        "code": "boxes: rack.boxes?.map((box: any) => ({"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 738,
+        "code": "state.systemConfig.availableLabs = state.systemConfig.availableLabs.map((lab: any) => {"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 750,
+        "code": "tanks: lab.equipment.tanks.map((tank: any) => ({"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 753,
+        "code": "racks: tank.racks?.map((rack: any) => ({"
+      },
+      {
+        "file": "domains\\storage\\stores\\storageStore.ts",
+        "line": 755,
+        "code": "boxes: rack.boxes?.map((box: any) => ({"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeForm.ts",
+        "line": 88,
+        "code": "resolver: zodResolver(schema as any),"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeForm.ts",
+        "line": 89,
+        "code": "defaultValues: initialData as any,"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeQueries.ts",
+        "line": 265,
+        "code": "rackId?: string,  boxId?: string,  options: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'> = {}"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeSocket.ts",
+        "line": 278,
+        "code": "(window as any).__odysseusSocket = socket;"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeSocket.ts",
+        "line": 288,
+        "code": "const socket = (window as any).__odysseusSocket as Socket;"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeSocket.ts",
+        "line": 291,
+        "code": "delete (window as any).__odysseusSocket;"
+      },
+      {
+        "file": "domains\\tubes\\hooks\\useTubeSocket.ts",
+        "line": 297,
+        "code": "return (window as any).__odysseusSocket as Socket | null;"
+      },
+      {
+        "file": "domains\\tubes\\services\\BulkOperationsService.ts",
+        "line": 230,
+        "code": "tubeStore: any,"
+      },
+      {
+        "file": "domains\\tubes\\services\\dataConsistencyService.ts",
+        "line": 35,
+        "code": "const actualTankIds = [...new Set(tubes.map((t: any) => t.location?.tankId || t.tankId).filter(Boolean))];"
+      },
+      {
+        "file": "domains\\tubes\\services\\dataConsistencyService.ts",
+        "line": 94,
+        "code": "private forceUpdateTankId(oldTank: any, newTankId: string): void {"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+        "line": 221,
+        "code": "initialValue={(tube as any)[quickEditMode.field] ?? ''}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 236,
+        "code": "updates: formData as any,"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 296,
+        "code": "updates: formData as any,"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 369,
+        "code": "const isRelatedFieldDirty = (fieldKey: string, parentDirtyNode: any): boolean => {"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 374,
+        "code": "const filterNode = (errorNode: any, dirtyNode: any, path = ''): any => {"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 374,
+        "code": "const filterNode = (errorNode: any, dirtyNode: any, path = ''): any => {"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 374,
+        "code": "const filterNode = (errorNode: any, dirtyNode: any, path = ''): any => {"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 377,
+        "code": "const filtered: any = {};"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 494,
+        "code": "control={form.control as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 495,
+        "code": "register={form.register as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx",
+        "line": 497,
+        "code": "trigger={form.trigger as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\StorageManagementModal.tsx",
+        "line": 59,
+        "code": "systemConfig: systemConfig as any,"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\StorageManagementModal.tsx",
+        "line": 60,
+        "code": "currentLab: currentLab as any,"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 153,
+        "code": "tube: any;"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 155,
+        "code": "researchers: any[];"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 157,
+        "code": "modalService: any;"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 241,
+        "code": "control={form.control as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 242,
+        "code": "register={form.register as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 243,
+        "code": "errors={form.formState.errors as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 244,
+        "code": "trigger={form.trigger as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 516,
+        "code": "sample: formData.sample as any,"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 517,
+        "code": "researcherId: formData.researcherId as any"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 638,
+        "code": "control={form.control as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 639,
+        "code": "register={form.register as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 640,
+        "code": "errors={form.formState.errors as any}"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx",
+        "line": 641,
+        "code": "trigger={form.trigger as any}"
+      },
+      {
+        "file": "infrastructure\\connection\\networkMonitor.ts",
+        "line": 264,
+        "code": "const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;"
+      },
+      {
+        "file": "infrastructure\\connection\\networkMonitor.ts",
+        "line": 264,
+        "code": "const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;"
+      },
+      {
+        "file": "infrastructure\\connection\\networkMonitor.ts",
+        "line": 264,
+        "code": "const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;"
+      },
+      {
+        "file": "infrastructure\\connection\\networkMonitor.ts",
+        "line": 287,
+        "code": "const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;"
+      },
+      {
+        "file": "infrastructure\\connection\\networkMonitor.ts",
+        "line": 287,
+        "code": "const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;"
+      },
+      {
+        "file": "infrastructure\\connection\\networkMonitor.ts",
+        "line": 287,
+        "code": "const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;"
+      },
+      {
+        "file": "shared\\hooks\\performance\\index.ts",
+        "line": 20,
+        "code": "export const useOptimizedCallback = (..._args: any[]) => _args[0];"
+      },
+      {
+        "file": "shared\\hooks\\performance\\index.ts",
+        "line": 21,
+        "code": "export const useStableSelector = (..._args: any[]) => _args[0];"
+      },
+      {
+        "file": "shared\\hooks\\performance\\index.ts",
+        "line": 22,
+        "code": "export const useDebounced = (..._args: any[]) => _args[0];"
+      },
+      {
+        "file": "shared\\hooks\\performance\\index.ts",
+        "line": 23,
+        "code": "export const useThrottled = (..._args: any[]) => _args[0];"
+      },
+      {
+        "file": "shared\\hooks\\performance\\index.ts",
+        "line": 24,
+        "code": "export const useMemoizedCalculation = (..._args: any[]) => _args[0];"
+      },
+      {
+        "file": "shared\\hooks\\performance\\index.ts",
+        "line": 25,
+        "code": "export const useIntersectionObserver = (..._args: any[]) => ({});"
+      },
+      {
+        "file": "shared\\hooks\\performance\\index.ts",
+        "line": 26,
+        "code": "export const usePerformanceMonitor = (..._args: any[]) => ({});"
+      },
+      {
+        "file": "shared\\types\\bulkOperations.ts",
+        "line": 57,
+        "code": "items: any[];"
+      },
+      {
+        "file": "shared\\types\\bulkOperations.ts",
+        "line": 69,
+        "code": "existingValue: any;"
+      },
+      {
+        "file": "shared\\types\\bulkOperations.ts",
+        "line": 70,
+        "code": "newValue: any;"
+      },
+      {
+        "file": "shared\\types\\clipboard.ts",
+        "line": 30,
+        "code": "before?: any;"
+      },
+      {
+        "file": "shared\\types\\clipboard.ts",
+        "line": 31,
+        "code": "after?: any;"
+      },
+      {
+        "file": "shared\\types\\clipboard.ts",
+        "line": 32,
+        "code": "items?: any[];"
+      },
+      {
+        "file": "shared\\ui\\components\\ConnectionStatusIndicator.tsx",
+        "line": 217,
+        "code": "const handleMutationUpdate = (mutation: any) => {"
+      },
+      {
+        "file": "shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+        "line": 153,
+        "code": "const WrappedComponent = forwardRef<any, P>((props, ref) => ("
+      },
+      {
+        "file": "shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+        "line": 155,
+        "code": "<LazyComponent {...(props as any)} ref={ref} />"
+      },
+      {
+        "file": "shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+        "line": 202,
+        "code": "importFn: () => Promise<{ default: React.ComponentType<any> }>"
+      },
+      {
+        "file": "shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx",
+        "line": 216,
+        "code": "importFns: Array<() => Promise<{ default: React.ComponentType<any> }>>"
+      },
+      {
+        "file": "shared\\ui\\primitives\\grid\\Grid.tsx",
+        "line": 340,
+        "code": "ref: ref as any,"
+      },
+      {
+        "file": "shared\\ui\\primitives\\grid\\Grid.tsx",
+        "line": 342,
+        "code": "...(props as any)"
+      },
+      {
+        "file": "shared\\ui\\primitives\\grid\\Grid.tsx",
+        "line": 427,
+        "code": "ref: ref as any,"
+      },
+      {
+        "file": "shared\\ui\\primitives\\grid\\Grid.tsx",
+        "line": 429,
+        "code": "...(props as any)"
+      },
+      {
+        "file": "shared\\ui\\primitives\\table\\Table.tsx",
+        "line": 22,
+        "code": "render?: (value: any, row: T, index: number) => React.ReactNode;"
+      },
+      {
+        "file": "shared\\ui\\primitives\\table\\Table.tsx",
+        "line": 28,
+        "code": "[key: string]: any;"
+      }
+    ],
+    "api-responses": [
+      {
+        "file": "domains\\admin\\services\\AdminService.ts",
+        "line": 290,
+        "code": "data: any;"
+      },
+      {
+        "file": "domains\\authentication\\services\\AuthenticationService.ts",
+        "line": 63,
+        "code": "const response = await httpClient.post<{ success: boolean; data: any }>('/public/auth/register', request);"
+      },
+      {
+        "file": "domains\\authentication\\services\\AuthenticationService.ts",
+        "line": 92,
+        "code": "const response = await httpClient.post<{ success: boolean; data: any }>('/public/auth/register-with-researcher', request);"
+      },
+      {
+        "file": "domains\\authentication\\services\\AuthenticationService.ts",
+        "line": 121,
+        "code": "const response = await httpClient.post<{ success: boolean; data: any }>('/public/auth/login', request);"
+      },
+      {
+        "file": "domains\\search\\lib\\searchUtils.ts",
+        "line": 114,
+        "code": "searchResult: { data: any[] }, // Accept flexible API response"
+      },
+      {
+        "file": "domains\\tubes\\services\\TubeFieldAccessService.ts",
+        "line": 387,
+        "code": "private validateDataObject(data: any): void {"
+      },
+      {
+        "file": "infrastructure\\api\\AuthHttpClient.ts",
+        "line": 21,
+        "code": "details?: any;"
+      },
+      {
+        "file": "infrastructure\\api\\AuthHttpClient.ts",
+        "line": 29,
+        "code": "public details?: any"
+      },
+      {
+        "file": "infrastructure\\api\\client.ts",
+        "line": 180,
+        "code": "(error as any).issues || [error]"
+      },
+      {
+        "file": "infrastructure\\api\\httpClient.ts",
+        "line": 117,
+        "code": "return data.map((session: any) => ResponseTransformers.ActiveSession(session));"
+      },
+      {
+        "file": "infrastructure\\api\\httpClient.ts",
+        "line": 135,
+        "code": "return data.map((user: any) => ResponseTransformers.AdminUser(user));"
+      },
+      {
+        "file": "infrastructure\\api\\httpClient.ts",
+        "line": 144,
+        "code": "return data.map((entry: any) => ResponseTransformers.AuditLogEntry(entry));"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 85,
+        "code": "function isValidDateValue(value: any): boolean {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 95,
+        "code": "function parseDate(value: any): Date | null {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 121,
+        "code": "function transformObject(obj: any, typeName?: string): any {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 121,
+        "code": "function transformObject(obj: any, typeName?: string): any {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 133,
+        "code": "const transformed: any = {};"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 170,
+        "code": "TokenPair: (data: any) => transformApiResponse(data, 'TokenPair'),"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 171,
+        "code": "RefreshResponse: (data: any) => transformApiResponse(data, 'RefreshResponse'),"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 172,
+        "code": "LoginResponse: (data: any) => {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 180,
+        "code": "User: (data: any) => transformApiResponse(data, 'User'),"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 181,
+        "code": "Person: (data: any) => transformApiResponse(data, 'Person'),"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 182,
+        "code": "ActiveSession: (data: any) => transformApiResponse(data, 'ActiveSession'),"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 183,
+        "code": "TubeData: (data: any) => transformApiResponse(data, 'TubeData'),"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 184,
+        "code": "Researcher: (data: any) => transformApiResponse(data, 'Researcher'),"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 185,
+        "code": "AdminUser: (data: any) => transformApiResponse(data, 'AdminUser'),"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 186,
+        "code": "SystemMetrics: (data: any) => transformApiResponse(data, 'SystemMetrics'),"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 187,
+        "code": "AuditLogEntry: (data: any) => transformApiResponse(data, 'AuditLogEntry')"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 197,
+        "code": "logDateFields(obj: any, typeName?: string): void {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 213,
+        "code": "validateDates(obj: any): { valid: number; invalid: number; fields: string[] } {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 216,
+        "code": "function checkObject(current: any, path = ''): void {"
+      },
+      {
+        "file": "infrastructure\\api\\responseTransformers.ts",
+        "line": 245,
+        "code": "(window as any).__ODYSSEUS_API_TRANSFORMER_DEBUG__ = TransformationDebug;"
+      },
+      {
+        "file": "shared\\types\\apiTypes.ts",
+        "line": 49,
+        "code": "filters?: any;"
+      },
+      {
+        "file": "shared\\utils\\validation.ts",
+        "line": 43,
+        "code": "export const validateTubeData = (_data: any) => ({"
+      }
+    ],
+    "configuration": [
+      {
+        "file": "domains\\admin\\ui\\components\\AdminSettingsModal.tsx",
+        "line": 136,
+        "code": "(changes as any)[configKey] = config[configKey];"
+      },
+      {
+        "file": "shared\\config\\environment.ts",
+        "line": 65,
+        "code": "(import.meta.env as any)[key] ?? defaultValue,"
+      },
+      {
+        "file": "shared\\config\\environment.ts",
+        "line": 71,
+        "code": "const value = (import.meta.env as any)[key];"
+      },
+      {
+        "file": "shared\\config\\environment.ts",
+        "line": 80,
+        "code": "const value = (import.meta.env as any)[key];"
+      }
+    ],
+    "utilities": [
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 46,
+        "code": "const nameChange = details.changes.find((c: any) => c.field === 'name');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 50,
+        "code": "const activeChange = details.changes.find((c: any) => c.field === 'isActive');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 73,
+        "code": "const nameChange = details.changes.find((c: any) => c.field === 'name');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 78,
+        "code": "const activeChange = details.changes.find((c: any) => c.field === 'isActive');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 100,
+        "code": "const nameChange = details.changes.find((c: any) => c.field === 'name');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 105,
+        "code": "const rowChange = details.changes.find((c: any) => c.field === 'gridConfig.rows');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 106,
+        "code": "const colChange = details.changes.find((c: any) => c.field === 'gridConfig.cols');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 110,
+        "code": "const activeChange = details.changes.find((c: any) => c.field === 'isActive');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 139,
+        "code": "const emailChange = details.changes.find((c: any) => c.field === 'email');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 147,
+        "code": "const firstNameChange = details.changes.find((c: any) => c.field === 'firstName');"
+      },
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 148,
+        "code": "const lastNameChange = details.changes.find((c: any) => c.field === 'lastName');"
+      },
+      {
+        "file": "domains\\search\\lib\\searchUtils.ts",
+        "line": 118,
+        "code": "const tubes: TubeData[] = (searchResult.data || []).map((tube: any) => ({"
+      },
+      {
+        "file": "domains\\tubes\\utils\\colorSystem.ts",
+        "line": 291,
+        "code": "export function getTubeColor(tubeData: any): ColorResult {"
+      },
+      {
+        "file": "domains\\tubes\\utils\\colorSystem.ts",
+        "line": 331,
+        "code": "export function invalidateTubeCache(oldTubeData: any, newTubeData?: Partial<any>): void {"
+      },
+      {
+        "file": "domains\\tubes\\utils\\colorSystem.ts",
+        "line": 331,
+        "code": "export function invalidateTubeCache(oldTubeData: any, newTubeData?: Partial<any>): void {"
+      },
+      {
+        "file": "domains\\tubes\\utils\\colorSystem.ts",
+        "line": 385,
+        "code": "export function parseDonorInfo(tubeData: any): { internal: string; source: string } {"
+      },
+      {
+        "file": "domains\\tubes\\utils\\tubeInfoHelpers.ts",
+        "line": 118,
+        "code": "(commonValues as any)[fieldKey] = uniqueValues[0];"
+      },
+      {
+        "file": "shared\\utils\\concentrationConverter.ts",
+        "line": 133,
+        "code": "export function isValidConcentration(value: any): value is number {"
+      },
+      {
+        "file": "shared\\utils\\formUtils.ts",
+        "line": 36,
+        "code": "dirtyFields: Partial<Record<keyof T, any>>"
+      },
+      {
+        "file": "shared\\utils\\formUtils.ts",
+        "line": 43,
+        "code": "const result: any = {};"
+      },
+      {
+        "file": "shared\\utils\\formUtils.ts",
+        "line": 123,
+        "code": "const result: any = {};"
+      },
+      {
+        "file": "shared\\utils\\formUtils.ts",
+        "line": 137,
+        "code": "if ((value as any) instanceof Date) {"
+      },
+      {
+        "file": "shared\\utils\\lazy\\PreloadHelpers.ts",
+        "line": 332,
+        "code": "export async function batchPreload(importFns: Array<() => Promise<any>>): Promise<PromiseSettledResult<any>[]> {"
+      },
+      {
+        "file": "shared\\utils\\lazy\\PreloadHelpers.ts",
+        "line": 332,
+        "code": "export async function batchPreload(importFns: Array<() => Promise<any>>): Promise<PromiseSettledResult<any>[]> {"
+      },
+      {
+        "file": "shared\\utils\\lazy\\lazyComponentUtils.tsx",
+        "line": 44,
+        "code": "const componentCache = new Map<string, ComponentType<any>>();"
+      },
+      {
+        "file": "shared\\utils\\lazy\\lazyComponentUtils.tsx",
+        "line": 59,
+        "code": "export const createLazyComponent = <T extends ComponentType<any>>("
+      },
+      {
+        "file": "shared\\utils\\lazy\\lazyComponentUtils.tsx",
+        "line": 154,
+        "code": "(LazyComponent as any).displayName = `Lazy(${componentName})`;"
+      },
+      {
+        "file": "shared\\utils\\lazy\\lazyComponentUtils.tsx",
+        "line": 165,
+        "code": "importFn: () => Promise<any>,"
+      },
+      {
+        "file": "shared\\utils\\lazy\\lazyComponentUtils.tsx",
+        "line": 184,
+        "code": "importFn: () => Promise<any>,"
+      },
+      {
+        "file": "shared\\utils\\lazy\\lazyComponentUtils.tsx",
+        "line": 217,
+        "code": "importFn: () => Promise<any>;"
+      },
+      {
+        "file": "shared\\utils\\lazy\\lazyComponentUtils.tsx",
+        "line": 239,
+        "code": "importFn: () => Promise<any>,"
+      },
+      {
+        "file": "shared\\utils\\lazy\\lazyComponentUtils.tsx",
+        "line": 357,
+        "code": "(window as any).lazyLoadUtils = {"
+      },
+      {
+        "file": "shared\\utils\\validation.ts",
+        "line": 53,
+        "code": "export const validateTubeDataLegacyFormat = (tubeData: any, _existingTubes: any[] = []): {"
+      },
+      {
+        "file": "shared\\utils\\validation.ts",
+        "line": 53,
+        "code": "export const validateTubeDataLegacyFormat = (tubeData: any, _existingTubes: any[] = []): {"
+      }
+    ],
+    "event-handlers": [
+      {
+        "file": "domains\\admin\\utils\\auditLogFormatters.ts",
+        "line": 143,
+        "code": "const positionChange = details.changes.find((c: any) => c.field === 'position');"
+      },
+      {
+        "file": "domains\\tubes\\ui\\components\\grid\\GridPosition.tsx",
+        "line": 103,
+        "code": "onPositionClick(position, e as any);"
+      }
+    ],
+    "type-definitions": [
+      {
+        "file": "shared\\session\\types.ts",
+        "line": 99,
+        "code": "getUser(): any | null;"
+      },
+      {
+        "file": "shared\\session\\types.ts",
+        "line": 100,
+        "code": "setUser(user: any): void;"
+      },
+      {
+        "file": "shared\\session\\types.ts",
+        "line": 111,
+        "code": "details?: any;"
+      },
+      {
+        "file": "shared\\types\\colorSystemTypes.ts",
+        "line": 77,
+        "code": "export const adaptTubeDataForColorSystem = (tubeData: any): ColorSystemTubeData => {"
+      }
+    ]
+  },
+  "fileAnalysis": {
+    "app\\bootstrap\\types.ts": {
+      "count": 1,
+      "lines": [
+        44
+      ],
+      "categories": [
+        "generic-types"
+      ]
+    },
+    "app\\hooks\\useFieldResolver.ts": {
+      "count": 7,
+      "lines": [
+        55,
+        62,
+        75,
+        153,
+        175,
+        212,
+        306
+      ],
+      "categories": [
+        "generic-types"
+      ]
+    },
+    "app\\hooks\\useSimpleFieldResolver.ts": {
+      "count": 17,
+      "lines": [
+        18,
+        49,
+        52,
+        58,
+        61,
+        64,
+        70,
+        70,
+        81,
+        89,
+        99,
+        108,
+        119,
+        130,
+        162,
+        255,
+        256
+      ],
+      "categories": [
+        "generic-types",
+        "field-resolvers"
+      ]
+    },
+    "app\\queryClient.ts": {
+      "count": 8,
+      "lines": [
+        50,
+        68,
+        99,
+        99,
+        119,
+        119,
+        119,
+        119
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "app\\queryKeys.ts": {
+      "count": 7,
+      "lines": [
+        26,
+        35,
+        42,
+        45,
+        55,
+        59,
+        66
+      ],
+      "categories": [
+        "query-cache"
+      ]
+    },
+    "app\\services\\FieldResolverService.ts": {
+      "count": 12,
+      "lines": [
+        19,
+        19,
+        38,
+        46,
+        53,
+        53,
+        56,
+        56,
+        59,
+        64,
+        64,
+        79
+      ],
+      "categories": [
+        "field-resolvers",
+        "generic-types"
+      ]
+    },
+    "app\\services\\SessionManager.ts": {
+      "count": 3,
+      "lines": [
+        416,
+        480,
+        491
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\admin\\services\\AdminService.ts": {
+      "count": 6,
+      "lines": [
+        245,
+        249,
+        286,
+        290,
+        589,
+        622
+      ],
+      "categories": [
+        "other",
+        "api-responses"
+      ]
+    },
+    "domains\\admin\\ui\\components\\AdminSettingsModal.tsx": {
+      "count": 1,
+      "lines": [
+        136
+      ],
+      "categories": [
+        "configuration"
+      ]
+    },
+    "domains\\admin\\ui\\components\\PasswordResetModal.tsx": {
+      "count": 2,
+      "lines": [
+        67,
+        81
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "domains\\admin\\ui\\components\\ResearcherModal.tsx": {
+      "count": 2,
+      "lines": [
+        58,
+        72
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "domains\\admin\\ui\\components\\tabs\\ResearcherManagementTab.tsx": {
+      "count": 1,
+      "lines": [
+        131
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "domains\\admin\\utils\\auditLogFormatters.ts": {
+      "count": 12,
+      "lines": [
+        46,
+        50,
+        73,
+        78,
+        100,
+        105,
+        106,
+        110,
+        139,
+        143,
+        147,
+        148
+      ],
+      "categories": [
+        "utilities",
+        "event-handlers"
+      ]
+    },
+    "domains\\authentication\\services\\AuthenticationService.ts": {
+      "count": 5,
+      "lines": [
+        27,
+        32,
+        63,
+        92,
+        121
+      ],
+      "categories": [
+        "other",
+        "api-responses"
+      ]
+    },
+    "domains\\authentication\\stores\\authStore.ts": {
+      "count": 2,
+      "lines": [
+        77,
+        480
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\authentication\\ui\\components\\ResetPasswordPage.tsx": {
+      "count": 1,
+      "lines": [
+        107
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "domains\\researchers\\hooks\\useResearchersQuery.ts": {
+      "count": 3,
+      "lines": [
+        96,
+        127,
+        146
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "domains\\search\\engine\\SearchEngine.ts": {
+      "count": 1,
+      "lines": [
+        163
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\search\\lib\\searchUtils.ts": {
+      "count": 2,
+      "lines": [
+        114,
+        118
+      ],
+      "categories": [
+        "api-responses",
+        "utilities"
+      ]
+    },
+    "domains\\search\\ui\\components\\SearchResults.tsx": {
+      "count": 3,
+      "lines": [
+        246,
+        248,
+        261
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\storage\\hooks\\useBoxPositionDisplay.ts": {
+      "count": 2,
+      "lines": [
+        86,
+        138
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "domains\\storage\\stores\\storageStore.ts": {
+      "count": 16,
+      "lines": [
+        75,
+        75,
+        163,
+        596,
+        645,
+        646,
+        665,
+        707,
+        710,
+        714,
+        717,
+        719,
+        738,
+        750,
+        753,
+        755
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\tubes\\hooks\\useTubeForm.ts": {
+      "count": 2,
+      "lines": [
+        88,
+        89
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\tubes\\hooks\\useTubeMutations.ts": {
+      "count": 1,
+      "lines": [
+        397
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "domains\\tubes\\hooks\\useTubeQueries.ts": {
+      "count": 5,
+      "lines": [
+        135,
+        135,
+        135,
+        191,
+        265
+      ],
+      "categories": [
+        "error-handling",
+        "generic-types",
+        "other"
+      ]
+    },
+    "domains\\tubes\\hooks\\useTubeSocket.ts": {
+      "count": 4,
+      "lines": [
+        278,
+        288,
+        291,
+        297
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\tubes\\services\\BulkOperationsService.ts": {
+      "count": 1,
+      "lines": [
+        230
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\tubes\\services\\TubeFieldAccessService.ts": {
+      "count": 9,
+      "lines": [
+        67,
+        122,
+        194,
+        309,
+        309,
+        317,
+        317,
+        352,
+        387
+      ],
+      "categories": [
+        "generic-types",
+        "field-resolvers",
+        "api-responses"
+      ]
+    },
+    "domains\\tubes\\services\\dataConsistencyService.ts": {
+      "count": 2,
+      "lines": [
+        35,
+        94
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\tubes\\types\\FieldResolver.ts": {
+      "count": 7,
+      "lines": [
+        28,
+        32,
+        32,
+        38,
+        75,
+        90,
+        132
+      ],
+      "categories": [
+        "field-resolvers",
+        "generic-types"
+      ]
+    },
+    "domains\\tubes\\ui\\components\\forms\\TubeForm.tsx": {
+      "count": 2,
+      "lines": [
+        58,
+        82
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "domains\\tubes\\ui\\components\\grid\\GridPosition.tsx": {
+      "count": 2,
+      "lines": [
+        103,
+        221
+      ],
+      "categories": [
+        "event-handlers",
+        "other"
+      ]
+    },
+    "domains\\tubes\\ui\\components\\modals\\BatchTubeEditorModal.tsx": {
+      "count": 11,
+      "lines": [
+        236,
+        296,
+        369,
+        374,
+        374,
+        374,
+        377,
+        494,
+        495,
+        496,
+        497
+      ],
+      "categories": [
+        "other",
+        "error-handling"
+      ]
+    },
+    "domains\\tubes\\ui\\components\\modals\\StorageManagementModal.tsx": {
+      "count": 2,
+      "lines": [
+        59,
+        60
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\tubes\\ui\\components\\modals\\TubeEditorModal.tsx": {
+      "count": 13,
+      "lines": [
+        153,
+        155,
+        157,
+        241,
+        242,
+        243,
+        244,
+        516,
+        517,
+        638,
+        639,
+        640,
+        641
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "domains\\tubes\\utils\\colorSystem.ts": {
+      "count": 4,
+      "lines": [
+        291,
+        331,
+        331,
+        385
+      ],
+      "categories": [
+        "utilities"
+      ]
+    },
+    "domains\\tubes\\utils\\tubeInfoHelpers.ts": {
+      "count": 1,
+      "lines": [
+        118
+      ],
+      "categories": [
+        "utilities"
+      ]
+    },
+    "infrastructure\\api\\AuthHttpClient.ts": {
+      "count": 5,
+      "lines": [
+        21,
+        29,
+        62,
+        62,
+        72
+      ],
+      "categories": [
+        "api-responses",
+        "generic-types"
+      ]
+    },
+    "infrastructure\\api\\client.ts": {
+      "count": 1,
+      "lines": [
+        180
+      ],
+      "categories": [
+        "api-responses"
+      ]
+    },
+    "infrastructure\\api\\httpClient.ts": {
+      "count": 3,
+      "lines": [
+        117,
+        135,
+        144
+      ],
+      "categories": [
+        "api-responses"
+      ]
+    },
+    "infrastructure\\api\\responseTransformers.ts": {
+      "count": 22,
+      "lines": [
+        85,
+        95,
+        121,
+        121,
+        133,
+        160,
+        160,
+        170,
+        171,
+        172,
+        180,
+        181,
+        182,
+        183,
+        184,
+        185,
+        186,
+        187,
+        197,
+        213,
+        216,
+        245
+      ],
+      "categories": [
+        "api-responses",
+        "generic-types"
+      ]
+    },
+    "infrastructure\\cache\\CacheWarmingService.ts": {
+      "count": 4,
+      "lines": [
+        45,
+        127,
+        207,
+        371
+      ],
+      "categories": [
+        "query-cache",
+        "error-handling",
+        "generic-types"
+      ]
+    },
+    "infrastructure\\cache\\performanceMonitoring.ts": {
+      "count": 1,
+      "lines": [
+        60
+      ],
+      "categories": [
+        "query-cache"
+      ]
+    },
+    "infrastructure\\configuration\\tubeFieldConfiguration.ts": {
+      "count": 9,
+      "lines": [
+        42,
+        42,
+        44,
+        46,
+        46,
+        260,
+        260,
+        274,
+        399
+      ],
+      "categories": [
+        "field-resolvers"
+      ]
+    },
+    "infrastructure\\connection\\networkMonitor.ts": {
+      "count": 6,
+      "lines": [
+        264,
+        264,
+        264,
+        287,
+        287,
+        287
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "infrastructure\\optimistic\\optimisticUpdates.ts": {
+      "count": 17,
+      "lines": [
+        18,
+        56,
+        56,
+        78,
+        101,
+        119,
+        148,
+        152,
+        180,
+        184,
+        198,
+        209,
+        209,
+        209,
+        224,
+        255,
+        414
+      ],
+      "categories": [
+        "query-cache",
+        "error-handling"
+      ]
+    },
+    "infrastructure\\socket\\queryBridge.ts": {
+      "count": 2,
+      "lines": [
+        200,
+        565
+      ],
+      "categories": [
+        "query-cache"
+      ]
+    },
+    "shared\\config\\environment.ts": {
+      "count": 3,
+      "lines": [
+        65,
+        71,
+        80
+      ],
+      "categories": [
+        "configuration"
+      ]
+    },
+    "shared\\errors\\AppError.ts": {
+      "count": 10,
+      "lines": [
+        19,
+        65,
+        96,
+        127,
+        143,
+        176,
+        188,
+        241,
+        263,
+        277
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "shared\\errors\\mapError.ts": {
+      "count": 1,
+      "lines": [
+        238
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "shared\\hooks\\performance\\index.ts": {
+      "count": 7,
+      "lines": [
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "shared\\session\\types.ts": {
+      "count": 3,
+      "lines": [
+        99,
+        100,
+        111
+      ],
+      "categories": [
+        "type-definitions"
+      ]
+    },
+    "shared\\types\\apiTypes.ts": {
+      "count": 3,
+      "lines": [
+        9,
+        49,
+        60
+      ],
+      "categories": [
+        "generic-types",
+        "api-responses"
+      ]
+    },
+    "shared\\types\\bulkOperations.ts": {
+      "count": 3,
+      "lines": [
+        57,
+        69,
+        70
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "shared\\types\\clipboard.ts": {
+      "count": 3,
+      "lines": [
+        30,
+        31,
+        32
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "shared\\types\\colorSystemTypes.ts": {
+      "count": 1,
+      "lines": [
+        77
+      ],
+      "categories": [
+        "type-definitions"
+      ]
+    },
+    "shared\\types\\validationTypes.ts": {
+      "count": 2,
+      "lines": [
+        37,
+        37
+      ],
+      "categories": [
+        "generic-types"
+      ]
+    },
+    "shared\\ui\\components\\ConnectionStatusIndicator.tsx": {
+      "count": 1,
+      "lines": [
+        217
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "shared\\ui\\components\\boundaries\\ErrorBoundary.tsx": {
+      "count": 2,
+      "lines": [
+        294,
+        296
+      ],
+      "categories": [
+        "error-handling"
+      ]
+    },
+    "shared\\ui\\components\\boundaries\\SuspenseBoundary.tsx": {
+      "count": 4,
+      "lines": [
+        153,
+        155,
+        202,
+        216
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "shared\\ui\\primitives\\grid\\Grid.tsx": {
+      "count": 4,
+      "lines": [
+        340,
+        342,
+        427,
+        429
+      ],
+      "categories": [
+        "other"
+      ]
+    },
+    "shared\\ui\\primitives\\table\\Table.tsx": {
+      "count": 3,
+      "lines": [
+        13,
+        22,
+        28
+      ],
+      "categories": [
+        "generic-types",
+        "other"
+      ]
+    },
+    "shared\\utils\\concentrationConverter.ts": {
+      "count": 1,
+      "lines": [
+        133
+      ],
+      "categories": [
+        "utilities"
+      ]
+    },
+    "shared\\utils\\formUtils.ts": {
+      "count": 5,
+      "lines": [
+        36,
+        43,
+        86,
+        123,
+        137
+      ],
+      "categories": [
+        "utilities",
+        "generic-types"
+      ]
+    },
+    "shared\\utils\\lazy\\PreloadHelpers.ts": {
+      "count": 3,
+      "lines": [
+        76,
+        332,
+        332
+      ],
+      "categories": [
+        "generic-types",
+        "utilities"
+      ]
+    },
+    "shared\\utils\\lazy\\lazyComponentUtils.tsx": {
+      "count": 8,
+      "lines": [
+        44,
+        59,
+        154,
+        165,
+        184,
+        217,
+        239,
+        357
+      ],
+      "categories": [
+        "utilities"
+      ]
+    },
+    "shared\\utils\\validation.ts": {
+      "count": 3,
+      "lines": [
+        43,
+        53,
+        53
+      ],
+      "categories": [
+        "api-responses",
+        "utilities"
+      ]
+    },
+    "shared\\utils\\validation\\zodValidation.ts": {
+      "count": 2,
+      "lines": [
+        16,
+        224
+      ],
+      "categories": [
+        "generic-types"
+      ]
+    }
+  },
+  "summary": {
+    "generic-types": 48,
+    "field-resolvers": 29,
+    "error-handling": 43,
+    "query-cache": 26,
+    "other": 98,
+    "api-responses": 34,
+    "configuration": 4,
+    "utilities": 34,
+    "event-handlers": 2,
+    "type-definitions": 4
+  }
+}

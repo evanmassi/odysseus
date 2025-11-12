@@ -266,12 +266,5 @@ export function useCachePerformanceMonitoring(queryClient: QueryClient, interval
  * For development console debugging
  */
 export function logCachePerformanceMetrics(queryClient: QueryClient) {
-  console.group('🏃‍♂️ Cache Performance Metrics');
-  
-  const queries = queryClient.getQueryCache().getAll();
-  console.log('Total Queries:', queries.length);
-  console.log('Active Queries:', queries.filter(q => q.getObserversCount() > 0).length);
-  console.log('Stale Queries:', queries.filter(q => q.isStale()).length);
-  
-  console.groupEnd();
+  const _queries = queryClient.getQueryCache().getAll();
 }

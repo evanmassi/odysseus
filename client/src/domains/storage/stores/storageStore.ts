@@ -577,6 +577,7 @@ export const useStorageStore = create<ConfigurationState>()(
 
       // Server synchronization methods (DEPRECATED - use React Query hooks)
       loadFromServer: async () => {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn('⚠️ ConfigurationStore.loadFromServer() is deprecated. Use useLoadConfigurationQuery() hook instead.');
         
         // Fallback to ensure defaults for legacy compatibility
@@ -687,6 +688,7 @@ export const useStorageStore = create<ConfigurationState>()(
       },
 
       saveToServer: async () => {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn('⚠️ ConfigurationStore.saveToServer() is deprecated. Use useSaveConfigurationMutation() hook instead.');
         
         // This method is now deprecated in favor of React Query mutations

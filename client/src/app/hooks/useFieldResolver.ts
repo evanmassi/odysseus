@@ -162,6 +162,7 @@ export function useFieldResolver(
     } catch (error) {
       // In React context, we generally want to handle errors gracefully
       if (env.isDev()) {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`Field resolution failed for key '${fieldKey}':`, error);
       }
       
@@ -182,6 +183,7 @@ export function useFieldResolver(
       return resolver.getValues<T>(tubes, fieldKey, mergedOptions);
     } catch (error) {
       if (env.isDev()) {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`Bulk field resolution failed for key '${fieldKey}':`, error);
       }
       
@@ -199,6 +201,7 @@ export function useFieldResolver(
       return resolver.hasValue(tube, fieldKey);
     } catch (error) {
       if (env.isDev()) {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`hasValue check failed for key '${fieldKey}':`, error);
       }
       return false;
@@ -214,6 +217,7 @@ export function useFieldResolver(
       return resolver.resolveField<T>(tube, fieldKey);
     } catch (error) {
       if (env.isDev()) {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`Field resolution details failed for key '${fieldKey}':`, error);
       }
       
@@ -234,6 +238,7 @@ export function useFieldResolver(
       return resolver.getFieldPath(fieldKey);
     } catch (error) {
       if (env.isDev()) {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`getFieldPath failed for key '${fieldKey}':`, error);
       }
       return fieldKey; // Fallback to field key itself
@@ -291,9 +296,9 @@ export const FieldResolverDevUtils = {
    * Log all field resolutions for a tube (development only)
    */
   logAllFields(
-    tube: TubeData, 
+    tube: TubeData,
     resolver: FieldResolverHook,
-    prefix: string = 'Field Resolution'
+    _prefix: string = 'Field Resolution'
   ): void {
     if (!env.isDev()) return;
     
@@ -309,10 +314,6 @@ export const FieldResolverDevUtils = {
         exists: resolution.exists
       };
     });
-    
-    console.group(`${prefix} - Tube ID: ${tube.id}`);
-    console.table(results);
-    console.groupEnd();
   },
   
   /**

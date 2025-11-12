@@ -6,7 +6,7 @@
  */
 
 import type { ReactNode, ErrorInfo } from 'react';
-import React, { Component } from 'react';
+import React, { Component, useState, useCallback, useEffect, forwardRef, createElement } from 'react';
 
 import { env } from '@shared/config';
 
@@ -124,9 +124,13 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
           <button
             onClick={() => {
               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
-              console.group(`🚨 Error Boundary: ${name || 'Unknown'}`);
+              // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
+              console.group(`🚨 Error Boundary: ${name ?? 'Unknown'}`);
+              // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
               console.error('Error:', error);
+              // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
               console.error('Error ID:', errorId);
+              // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
               console.groupEnd();
             }}
             className="btn px-4 py-2 bg-neutral-600 text-white rounded-md hover:bg-neutral-700 transition-colors"
@@ -190,10 +194,15 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     // Log error for monitoring
     if (env.isDev()) {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
-      console.group(`🚨 Error Boundary Caught Error: ${this.props.name || 'Unknown'}`);
+      // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
+      console.group(`🚨 Error Boundary Caught Error: ${this.props.name ?? 'Unknown'}`);
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Error:', error);
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Error Info:', errorInfo);
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Error ID:', errorId);
+      // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
       console.groupEnd();
     }
     
@@ -241,7 +250,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       if (typeof FallbackComponent === 'function') {
         return <FallbackComponent {...fallbackProps} />;
       } else {
-        return React.createElement(FallbackComponent, fallbackProps);
+        return createElement(FallbackComponent, fallbackProps);
       }
     }
     
@@ -251,28 +260,29 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
 
 // Hook for handling errors in functional components
 export const useErrorHandler = () => {
-  const [error, setError] = React.useState<Error | null>(null);
-  
-  const handleError = React.useCallback((error: Error) => {
+  const [error, setError] = useState<Error | null>(null);
+
+  const handleError = useCallback((error: Error) => {
     setError(error);
-    
+
     // Log error
     if (env.isDev()) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Handled error:', error);
     }
   }, []);
-  
-  const clearError = React.useCallback(() => {
+
+  const clearError = useCallback(() => {
     setError(null);
   }, []);
-  
+
   // Re-throw error to be caught by error boundary
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       throw error;
     }
   }, [error]);
-  
+
   return { handleError, clearError, error };
 };
 
@@ -281,7 +291,7 @@ export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
   errorBoundaryConfig?: Omit<ErrorBoundaryProps, 'children'>
 ) => {
-  const WrappedComponent = React.forwardRef<any, P>((props, ref) => (
+  const WrappedComponent = forwardRef<any, P>((props, ref) => (
     <ErrorBoundary {...errorBoundaryConfig}>
       <Component {...(props as any)} ref={ref} />
     </ErrorBoundary>
@@ -289,7 +299,7 @@ export const withErrorBoundary = <P extends object>(
 
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for React displayName
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 };
 

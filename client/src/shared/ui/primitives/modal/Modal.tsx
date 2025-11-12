@@ -5,7 +5,7 @@
  * Supports multiple sizes, variants, animations, and full WCAG AA compliance
  */
 
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useEffect, forwardRef, useId } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 import { createPortal } from 'react-dom';
@@ -259,7 +259,7 @@ const CloseButton: React.FC<CloseButtonProps> = ({ onClose, label = 'Close', cla
 );
 
 // Main Modal component
-export const Modal = React.forwardRef<ModalRef, ModalProps>(
+export const Modal = forwardRef<ModalRef, ModalProps>(
   (
     {
       // Core props
@@ -324,8 +324,8 @@ export const Modal = React.forwardRef<ModalRef, ModalProps>(
     });
     
     // Generate unique IDs for accessibility
-    const headerId = `modal-header-${React.useId()}`;
-    const bodyId = `modal-body-${React.useId()}`;
+    const headerId = `modal-header-${useId()}`;
+    const bodyId = `modal-body-${useId()}`;
     
     // Handle lifecycle events
     useEffect(() => {

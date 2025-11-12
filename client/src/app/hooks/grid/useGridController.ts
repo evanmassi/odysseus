@@ -5,7 +5,7 @@
  * Uses modalStore for all modal operations
  */
 
-import React from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 
 import { tubeDataToCreateRequest } from '@odysseus/shared-schemas';
 
@@ -14,18 +14,15 @@ import { useStorageStore } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey, parsePositionKey, type PositionKey } from '@shared/types/grid';
+import { toPositionKey, parsePositionKey } from '@shared/types/grid';
 import { getSelectionRange } from '@shared/utils/coordinates';
 import { writeClipboardOS, readClipboardOS } from '@shared/utils/gridClipboard';
 import { notifications } from '@shared/utils/notifications';
 import { validatePasteOperation } from '@shared/utils/pasteValidation';
 
 import type { ClipboardData } from '@shared/types/clipboard';
-import type {
-  GridControllerProps,
-  GridControllerReturn,
-  TubeClipboardItem
-} from '@shared/types/grid';
+import type { PositionKey, GridControllerProps, GridControllerReturn, TubeClipboardItem } from '@shared/types/grid';
+
 
 
 
@@ -39,7 +36,7 @@ export const useGridController = ({
   onDeleteTubes,
   onPasteTubes
 }: GridControllerProps): GridControllerReturn => {
-  const ctx = React.useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
+  const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
 
   // ✅ FIXED: Individual Zustand selectors for reactivity
   // When clipboard changes, this hook MUST re-render so copyPositions/cutPositions memos recalculate
@@ -51,10 +48,10 @@ export const useGridController = ({
   const { getBox } = useStorageStore();
 
   // Click timer for double-click detection
-  const clickTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+  const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Cleanup timer on unmount
-  React.useEffect(() => {
+  useEffect(() => {
     return () => {
       if (clickTimerRef.current) {
         clearTimeout(clickTimerRef.current);
@@ -63,7 +60,7 @@ export const useGridController = ({
   }, []);
 
   // Grid context menu state
-  const [contextMenu, setContextMenu] = React.useState({
+  const [contextMenu, setContextMenu] = useState({
     isOpen: false,
     x: 0,
     y: 0
@@ -73,7 +70,7 @@ export const useGridController = ({
   const { data: tubes = [] } = useTubesByLocation(tankId, rackId, boxId);
   
   // Create a lookup map for position -> tubeId resolution
-  const positionToTubeMap = React.useMemo(() => {
+  const positionToTubeMap = useMemo(() => {
     const map = new Map<number, string>();
     tubes.forEach(tube => {
       if (tube.location.position) {
@@ -84,7 +81,7 @@ export const useGridController = ({
   }, [tubes]);
 
   // Default tube resolution if not provided
-  const resolveTube = React.useMemo(
+  const resolveTube = useMemo(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Function fallback: use provided resolver or default implementation
     () => resolveTubeIdAtPosition || ((position: number) => positionToTubeMap.get(position) ?? null),
     [resolveTubeIdAtPosition, positionToTubeMap]
@@ -160,7 +157,7 @@ export const useGridController = ({
   };
 
   // Helper: Analyze selected positions (empty vs filled)
-  const selectionAnalysis = React.useMemo(() => {
+  const selectionAnalysis = useMemo(() => {
     let filledCount = 0;
     let emptyCount = 0;
 
@@ -185,7 +182,7 @@ export const useGridController = ({
   }, [selectedPositions, resolveTube]);
 
   // Unified modal opener - single source of truth for selection-based modal logic
-  const openModal = React.useCallback(() => {
+  const openModal = useCallback(() => {
     const positions = Array.from(selectedPositions);
 
     if (selectionAnalysis.isMixed || selectionAnalysis.allEmpty) {
@@ -262,13 +259,13 @@ export const useGridController = ({
     onSelectionChange(newSelection);
   };
 
-  const isPositionSelected = React.useCallback((position: number) => {
+  const isPositionSelected = useCallback((position: number) => {
     const positionKey = toPositionKey(ctx, position);
     return selectedPositions.has(positionKey);
   }, [ctx, selectedPositions]);
 
   // Helper: Get selected positions in current box
-  const selectedPositionsInThisBox = React.useCallback((): number[] => {
+  const selectedPositionsInThisBox = useCallback((): number[] => {
     const positions: number[] = [];
     selectedPositions.forEach((key) => {
       const { tankId: t, rackId: r, boxId: b, position } = parsePositionKey(key);
@@ -280,7 +277,7 @@ export const useGridController = ({
   }, [selectedPositions, tankId, rackId, boxId]);
 
   // Copy operation
-  const copy = React.useCallback(async () => {
+  const copy = useCallback(async () => {
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
 
@@ -308,7 +305,7 @@ export const useGridController = ({
   }, [selectedPositionsInThisBox, resolveTube, tubes, ctx, setClipboard]);
 
   // Cut operation (copy + delete)
-  const cut = React.useCallback(async () => {
+  const cut = useCallback(async () => {
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
 
@@ -342,7 +339,7 @@ export const useGridController = ({
   // Paste operation - dual-mode behavior
   // 1. Fill Mode: More targets than clipboard → Repeat pattern (Excel fill handle)
   // 2. Spatial Pattern Mode: Equal/fewer targets → Preserve 2D layout
-  const paste = React.useCallback(async (options?: { targetStart?: number }) => {
+  const paste = useCallback(async (options?: { targetStart?: number }) => {
     let clipData = clipboard;
 
     // Try OS clipboard if no in-app clipboard
@@ -517,7 +514,7 @@ export const useGridController = ({
   }, [clipboard, selectedPositionsInThisBox, setClipboard, onPasteTubes, onDeleteTubes, ctx, getBox, tankId, rackId, boxId, modalService, tubes]);
 
   // Delete operation with confirmation modal
-  const deleteSelectedTubes = React.useCallback(async () => {
+  const deleteSelectedTubes = useCallback(async () => {
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
 
@@ -647,11 +644,11 @@ export const useGridController = ({
   };
 
   // Grid context menu methods (domain-driven architecture)
-  const showContextMenu = React.useCallback((x: number, y: number) => {
+  const showContextMenu = useCallback((x: number, y: number) => {
     setContextMenu({ isOpen: true, x, y });
   }, []);
 
-  const hideContextMenu = React.useCallback(() => {
+  const hideContextMenu = useCallback(() => {
     setContextMenu({ isOpen: false, x: 0, y: 0 });
   }, []);
 
@@ -671,7 +668,7 @@ export const useGridController = ({
     clipboard: {
       hasData: Boolean(clipboard?.tubes?.length),
       count: clipboard?.tubes?.length ?? 0,
-      cutPositions: React.useMemo(() => {
+      cutPositions: useMemo(() => {
         if (clipboard?.operation === 'cut') {
           return new Set(clipboard.tubes.map(tube =>
             toPositionKey(clipboard.sourceLocation ?? ctx, tube.location.position)
@@ -679,7 +676,7 @@ export const useGridController = ({
         }
         return new Set<PositionKey>();
       }, [clipboard, ctx]),
-      copyPositions: React.useMemo(() => {
+      copyPositions: useMemo(() => {
         if (clipboard?.operation === 'copy') {
           return new Set(clipboard.tubes.map(tube =>
             toPositionKey(clipboard.sourceLocation ?? ctx, tube.location.position)

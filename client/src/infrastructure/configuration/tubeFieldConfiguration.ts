@@ -461,18 +461,9 @@ export const FieldConfigDevUtils = {
     
     // Count by type
     allFields.forEach(field => {
-      analysis.fieldsByType[field.displayType] = 
+      analysis.fieldsByType[field.displayType] =
         (analysis.fieldsByType[field.displayType] || 0) + 1;
     });
-    
-    console.group('Tube Field Configuration Analysis');
-    console.table(analysis);
-    console.log('Sections:', TUBE_FIELD_SECTIONS.map(s => ({
-      key: s.key,
-      title: s.title,
-      fieldCount: s.fields.length
-    })));
-    console.groupEnd();
   },
   
   /**
@@ -532,9 +523,11 @@ export function initializeTubeFieldConfiguration(
     
     const resolutionValidation = FieldConfigDevUtils.validateFieldResolution(fieldResolver);
     if (!resolutionValidation.valid) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('Some fields cannot be resolved:', resolutionValidation.invalidFields);
     }
   }
   
+  // eslint-disable-next-line no-console -- Info logging for operational visibility
   console.log('Tube field configuration initialized successfully');
 }

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { formatConcentrationDisplay, formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
+import { type TubeData, formatConcentrationDisplay, formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
 import { Download, MapPin } from 'lucide-react';
 
 import { useUserSettings } from '@domains/authentication';
@@ -243,9 +243,9 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
     URL.revokeObjectURL(url);
   };
 
-  const handleGroupClick = async (group: any) => {
+  const handleGroupClick = async (group: { tubes: TubeData[] }) => {
     // Add tankId if missing for legacy data compatibility
-    const tubesWithTankId = group.tubes.map((tube: any) => ({
+    const tubesWithTankId = group.tubes.map((tube) => ({
       ...tube,
       location: {
         ...tube.location,
@@ -258,7 +258,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
     onClose?.();
   };
 
-  const formatPositions = (tubes: any[]): string => {
+  const formatPositions = (tubes: TubeData[]): string => {
     if (tubes.length === 0) return '';
 
     // Get location info from first tube (all tubes in group share same box)

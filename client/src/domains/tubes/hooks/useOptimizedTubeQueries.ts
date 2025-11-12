@@ -37,6 +37,7 @@ export const useVirtualizedTubes = (
   return useQuery({
     queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
     queryFn: async () => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`🚀 [Optimized Query] Loading virtualized tubes for ${location.tankId}/${location.rackId}/${location.boxId}`);
       
       // Load tubes with standard parameters
@@ -55,6 +56,7 @@ export const useVirtualizedTubes = (
         }
       });
       
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`⚡ [Optimized Query] Transformed ${tubes.length} tubes into position map`);
       return positionMap;
     },
@@ -84,6 +86,7 @@ export const useEssentialTubes = (
   return useQuery<TubeData[], Error, TubeData[]>({
     queryKey: queryKeys.tubes.lists(),
     queryFn: async () => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`🚀 [Optimized Query] Loading tubes`);
       
       return await TubeService.fetchTubes();
@@ -162,6 +165,7 @@ export const usePrefetchAdjacentLocations = () => {
         });
       });
       
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`🔮 [Prefetch] Queued prefetch for ${adjacentRacks.length} racks, ${adjacentBoxes.length} boxes`);
     },
     [queryClient]
@@ -208,6 +212,7 @@ export const useSmartPrefetch = () => {
         });
       }
       
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`🧠 [Smart Prefetch] Prefetched ${recentLocations.length} recent locations for ${userRole}`);
     },
     [queryClient]
@@ -235,6 +240,7 @@ export const useBackgroundRefresh = (
   return useQuery({
     queryKey: [...queryKeys.tubes.location(location.tankId, location.rackId, location.boxId), 'background'],
     queryFn: async () => {
+      // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log(`🔄 [Background Refresh] Syncing ${location.tankId}/${location.rackId}/${location.boxId}`);
 
       // Invalidate existing cache to force fresh fetch
@@ -282,6 +288,7 @@ export const useQueryPerformanceMetrics = () => {
       memoryUsage: tubeQueries.reduce((acc, q) => acc + JSON.stringify(q.state.data || {}).length, 0)
     };
     
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('📊 [Performance Metrics] React Query Stats:', metrics);
     return metrics;
   }, [queryClient]);

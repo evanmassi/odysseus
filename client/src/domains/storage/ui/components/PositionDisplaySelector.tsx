@@ -5,7 +5,7 @@
  * Supports numeric (1-81) and alphanumeric (A1-I9) formats.
  */
 
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import {
   usePositionDisplayPresetsQuery,
@@ -85,7 +85,7 @@ export const PositionDisplaySelector: React.FC<PositionDisplaySelectorProps> = (
   const hasCustomConfig = hasCustomPositionDisplay(tankId, rackId, boxId);
 
   // Build select options
-  const options: SelectOption[] = React.useMemo(() => {
+  const options: SelectOption[] = useMemo(() => {
     if (!presetsData) return [];
 
     const opts: SelectOption[] = [

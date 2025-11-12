@@ -103,6 +103,7 @@ export function createPreloadHook<T = any>(
         await importFn();
         setIsPreloaded(true);
       } catch (error) {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn('[PreloadHelpers] Preload failed, will lazy load on render:', error);
         // Don't throw - component will lazy load normally on render
         // This handles transient network errors gracefully
@@ -335,6 +336,7 @@ export async function batchPreload(importFns: Array<() => Promise<any>>): Promis
   if (process.env['NODE_ENV'] === 'development') {
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
+        // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`[PreloadHelpers] Batch preload failed for import #${index}:`, result.reason);
       }
     });

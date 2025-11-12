@@ -23,6 +23,7 @@ export const useErrorStore = create<ErrorStore>((set, get) => ({
     const { errors } = get();
     set({ errors: [...errors, formattedError].slice(-10) }); // Keep last 10 errors
     
+    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('Odysseus Error:', error);
   },
   

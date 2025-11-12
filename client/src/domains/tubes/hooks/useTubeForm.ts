@@ -157,6 +157,7 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
         // Validate complete payload and show warnings (non-blocking)
         const { warnings } = validateCompletePayload(validatedPayload);
         if (Object.keys(warnings).length > 0) {
+          // eslint-disable-next-line no-console -- Warning logging for production monitoring
           console.warn('Tube creation warnings:', warnings);
         }
 
@@ -180,6 +181,7 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
         // Validate complete payload and show warnings (non-blocking)
         const { warnings } = validateCompletePayload(validatedPayload);
         if (Object.keys(warnings).length > 0) {
+          // eslint-disable-next-line no-console -- Warning logging for production monitoring
           console.warn('Tube update warnings:', warnings);
         }
 

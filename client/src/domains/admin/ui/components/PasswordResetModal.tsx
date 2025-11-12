@@ -16,7 +16,7 @@
 import { useState } from 'react';
 
 import { X, Eye, EyeOff, Copy, Check } from 'lucide-react';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 
@@ -64,8 +64,9 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
       toast.success('Password reset successfully');
       onSuccess();
       onClose();
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to reset password');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to reset password';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -78,8 +79,9 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
       setResetUrl(response.resetUrl);
       setExpiresAt(response.expiresAt);
       toast.success('Reset link generated successfully');
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to generate reset link');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to generate reset link';
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -94,6 +96,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
           toast.success('Reset link copied to clipboard');
           setTimeout(() => setCopied(false), 2000);
         } catch (error) {
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('Failed to copy to clipboard:', error);
           toast.error('Failed to copy link. Please copy manually.');
         }

@@ -50,6 +50,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
         const requirements = await authService.getPasswordRequirements();
         setPasswordRequirements(requirements);
       } catch (error) {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('Failed to fetch password requirements:', error);
       }
     };
@@ -141,6 +142,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           }
         },
         onError: (error: Error) => {
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [SecurityTab] Password change failed:', error);
           // Check if error is due to incorrect password
           if (error.message.toLowerCase().includes('incorrect') || error.message.toLowerCase().includes('invalid')) {

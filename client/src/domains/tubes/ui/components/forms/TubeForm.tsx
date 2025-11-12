@@ -55,17 +55,21 @@ export const TubeForm = ({
   // Helper function to get field errors from nested React Hook Form structure
   const getFieldError = (fieldPath: string, errors: FieldErrors<CreateTubeRequest>): string | undefined => {
     const pathParts = fieldPath.split('.');
-    let currentError = errors as any;
+    let currentError: unknown = errors;
 
     for (const part of pathParts) {
-      if (currentError?.[part]) {
-        currentError = currentError[part];
+      if (currentError && typeof currentError === 'object' && part in currentError) {
+        currentError = (currentError as Record<string, unknown>)[part];
       } else {
         return undefined;
       }
     }
 
-    return currentError?.message;
+    if (currentError && typeof currentError === 'object' && 'message' in currentError) {
+      return (currentError as { message?: string }).message;
+    }
+
+    return undefined;
   };
 
   // Helper to get concentration field errors (checks both nested and refinement errors)
@@ -79,8 +83,8 @@ export const TubeForm = ({
     if (unitError) return unitError;
 
     // Check for refinement error at sample level (concentration/unit invariant)
-    const sampleError = (errors as any)?.sample;
-    if (sampleError && typeof sampleError.message === 'string') {
+    const sampleError = errors.sample;
+    if (sampleError && typeof sampleError === 'object' && 'message' in sampleError && typeof sampleError.message === 'string') {
       return sampleError.message;
     }
 

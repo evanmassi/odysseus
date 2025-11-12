@@ -28,6 +28,7 @@ export class StorageService {
       const response = await httpClient.getData('/configuration', ConfigurationResponseSchema);
       return response;
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [StorageService] Load configuration failed:', error);
       throw new InfrastructureError(
         'API_ERROR',
@@ -51,6 +52,7 @@ export class StorageService {
 
       await httpClient.put('/configuration', requestData);
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [StorageService] Save configuration failed:', error);
       throw new InfrastructureError(
         'API_ERROR',
@@ -123,6 +125,7 @@ export class StorageService {
         description: response.description as Record<string, string>,
       };
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [StorageService] Get position display presets failed:', error);
       throw new InfrastructureError(
         'API_ERROR',
@@ -157,6 +160,7 @@ export class StorageService {
         positionDisplay,
       });
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [StorageService] Update box position display failed:', error);
       throw new InfrastructureError(
         'API_ERROR',
@@ -183,6 +187,7 @@ export class StorageService {
         positionDisplay,
       });
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [StorageService] Update lab default position display failed:', error);
       throw new InfrastructureError(
         'API_ERROR',

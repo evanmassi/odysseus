@@ -5,7 +5,7 @@
  * Supports responsive breakpoints and consistent spacing
  */
 
-import React, { forwardRef } from 'react';
+import { forwardRef, createElement } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -342,7 +342,7 @@ export const Grid = forwardRef<HTMLDivElement, GridProps>(
       ...(props as any)
     };
     
-    return React.createElement(Element, elementProps, children);
+    return createElement(Element, elementProps, children);
   }
 );
 
@@ -429,7 +429,7 @@ export const GridItem = forwardRef<HTMLElement, GridItemProps>(
       ...(props as any)
     };
     
-    return React.createElement(Element, elementProps, children);
+    return createElement(Element, elementProps, children);
   }
 );
 

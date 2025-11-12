@@ -65,6 +65,7 @@ export function StorageNavigator() {
     // Navigate to first rack/box in this tank
     const result = await gridNavigationService.navigateToTank(tankId);
     if (!result.success) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to navigate to tank:', result.error);
     }
   };
@@ -86,6 +87,7 @@ export function StorageNavigator() {
     // Navigate to first box in this rack
     const result = await gridNavigationService.navigateToRack(tankId, rackId);
     if (!result.success) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to navigate to rack:', result.error);
     }
   };
@@ -93,6 +95,7 @@ export function StorageNavigator() {
   const handleBoxClick = async (tankId: string, rackId: string, boxId: string) => {
     const result = await gridNavigationService.navigateToLocation({ tankId, rackId, boxId });
     if (!result.success) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to navigate to box:', result.error);
     }
   };

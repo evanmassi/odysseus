@@ -75,6 +75,7 @@ export const useCreateTubeMutation = (
     },
 
     onError: (error, _variables, context) => {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [React Query] Create tube failed:', error);
 
       // Rollback optimistic updates if any were made
@@ -172,6 +173,7 @@ return await TubeService.updateTube(id, updates);
     },
     
     onError: (error, variables, context) => {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`❌ [React Query] Update tube ${variables.id} failed:`, error);
 
       // Rollback optimistic update
@@ -262,6 +264,7 @@ return await TubeService.deleteTube(id);
     },
     
     onError: (error, id, context) => {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`❌ [React Query] Delete tube ${id} failed:`, error);
 
       // Rollback optimistic update - add tube back to lists
@@ -348,6 +351,7 @@ export const useBulkUpdateTubesMutation = (
     },
 
     onError: (error, _variables) => {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [React Query] Bulk update failed:', error);
     },
     
@@ -390,9 +394,11 @@ export const useBulkDeleteTubesMutation = (
           
           successful++;
           results.push({ id, success: true });
-        } catch (error: any) {
+        } catch (error: unknown) {
           failed++;
-          results.push({ id, success: false, error: error.message });
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          results.push({ id, success: false, error: errorMessage });
+          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error(`Failed to delete tube ${id}:`, error);
         }
       }
@@ -446,6 +452,7 @@ export const useBulkDeleteTubesMutation = (
     },
 
     onError: (error, _variables) => {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [React Query] Bulk delete failed:', error);
     },
     
@@ -506,6 +513,7 @@ export const usePasteTubesMutation = (
     },
 
     onError: (error, _variables) => {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [React Query] Paste tubes failed:', error);
     },
 

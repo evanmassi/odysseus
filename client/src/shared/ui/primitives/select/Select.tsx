@@ -5,7 +5,7 @@
  * Supports single/multi selection, search, and full WCAG AA compliance
  */
 
-import React, { forwardRef, useState, useRef, useCallback, useId } from 'react';
+import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -337,7 +337,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
     }, [onSearch]);
     
     // Close dropdown on outside click
-    React.useEffect(() => {
+    useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
         if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
           setIsOpen(false);

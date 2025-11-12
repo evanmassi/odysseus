@@ -245,9 +245,11 @@ export const validateFieldCoverage = (): boolean => {
   const extraKeys = Array.from(configKeys).filter(key => !formDataKeys.includes(key));
   
   if (missingKeys.length > 0) {
+    // eslint-disable-next-line no-console -- Warning logging for production monitoring
     console.warn('Missing field configurations for:', missingKeys);
   }
   if (extraKeys.length > 0) {
+    // eslint-disable-next-line no-console -- Warning logging for production monitoring
     console.warn('Extra field configurations found:', extraKeys);
   }
   

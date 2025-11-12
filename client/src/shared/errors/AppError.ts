@@ -16,7 +16,7 @@ export abstract class AppError extends Error {
 
   constructor(
     message: string,
-    public readonly details?: Record<string, any>,
+    public readonly details?: Record<string, unknown>,
     public readonly originalError?: unknown
   ) {
     super(message);
@@ -62,7 +62,7 @@ export class AuthenticationError extends AppError {
   constructor(
     public readonly code: 'INVALID_CREDENTIALS' | 'SESSION_EXPIRED' | 'ACCESS_DENIED' | 'FIRST_TIME_SETUP',
     message: string,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(message, details);
   }
@@ -93,7 +93,7 @@ export class ValidationError extends AppError {
   constructor(
     public readonly code: 'SCHEMA_VALIDATION' | 'FORM_VALIDATION' | 'BUSINESS_RULE' | 'REQUIRED_FIELD',
     message: string,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(message, details);
   }
@@ -124,7 +124,7 @@ export class DomainError extends AppError {
   constructor(
     public readonly code: string,
     message: string,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(message, details);
   }
@@ -140,7 +140,7 @@ export class InfrastructureError extends AppError {
   constructor(
     public readonly code: 'NETWORK_ERROR' | 'API_ERROR' | 'SERVER_ERROR' | 'TIMEOUT' | 'CONNECTION_LOST',
     message: string,
-    details?: Record<string, any>,
+    details?: Record<string, unknown>,
     retryable = true
   ) {
     super(message, details);
@@ -173,7 +173,7 @@ export class ApiError extends InfrastructureError {
     public readonly status: number,
     public readonly statusText: string,
     message: string,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(
       status >= 500 ? 'SERVER_ERROR' : 'API_ERROR',
@@ -185,7 +185,7 @@ export class ApiError extends InfrastructureError {
 
   static async fromResponse(response: Response): Promise<ApiError> {
     let message = `HTTP ${response.status}: ${response.statusText}`;
-    let details: Record<string, any> = {};
+    let details: Record<string, unknown> = {};
 
     try {
       const body = await response.text();
@@ -238,7 +238,7 @@ export class AppInitializationError extends InfrastructureError {
   constructor(
     public readonly phase: string,
     message: string,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(
       'TIMEOUT', // Use existing InfrastructureError code
@@ -260,7 +260,7 @@ export class FieldResolutionError extends DomainError {
   constructor(
     public readonly fieldKey: string,
     public readonly availableFields: string[],
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(
       'FIELD_RESOLUTION_ERROR',
@@ -274,7 +274,7 @@ export class FieldPathError extends DomainError {
   constructor(
     public readonly path: string,
     public readonly fieldKey: string,
-    details?: Record<string, any>
+    details?: Record<string, unknown>
   ) {
     super(
       'FIELD_PATH_ERROR',

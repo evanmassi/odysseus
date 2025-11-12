@@ -30,6 +30,7 @@ export class BulkOperationsService {
       const response = await httpClient.get<{ status: string }>('/health');
       return response.data.status === 'healthy';
     } catch (error) {
+      // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('Server health check failed, falling back to individual updates');
       return false;
     }
@@ -67,6 +68,7 @@ export class BulkOperationsService {
       return await this.processSingleBatch(updates, onProgress, startTime);
       
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Bulk update failed:', error);
       return {
         success: false,
@@ -207,6 +209,7 @@ export class BulkOperationsService {
       };
 
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error(`Bulk update attempt ${retryCount + 1} failed:`, error);
       
       // Retry logic for transient errors

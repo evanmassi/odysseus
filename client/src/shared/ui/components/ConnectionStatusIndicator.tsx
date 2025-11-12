@@ -8,7 +8,7 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, type Mutation } from '@tanstack/react-query';
 
 import { useNetworkStatus, ConnectionQuality } from '@infra/connection/networkMonitor';
 import { getOptimisticUpdatesService } from '@infra/optimistic/optimisticUpdates';
@@ -213,8 +213,8 @@ export const RealtimeSyncIndicator: React.FC<RealtimeSyncIndicatorProps> = ({
 
   useEffect(() => {
     const mutationCache = queryClient.getMutationCache();
-    
-    const handleMutationUpdate = (mutation: any) => {
+
+    const handleMutationUpdate = (mutation: Mutation<unknown, unknown, unknown, unknown>) => {
       // Only animate for user-initiated mutations (create, update, delete)
       if (mutation?.state?.status === 'pending') {
         startTransition(() => {
@@ -229,7 +229,7 @@ export const RealtimeSyncIndicator: React.FC<RealtimeSyncIndicatorProps> = ({
 
     // Listen only to mutations, not all cache updates
     const unsubscribe = mutationCache.subscribe(handleMutationUpdate);
-    
+
     return unsubscribe;
   }, [queryClient]);
 

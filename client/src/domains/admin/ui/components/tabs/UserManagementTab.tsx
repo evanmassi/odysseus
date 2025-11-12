@@ -96,6 +96,7 @@ export function UserManagementTab({
         setPendingUsers(response.users);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to load pending users:', error);
     } finally {
       setLoadingPending(false);
@@ -118,6 +119,7 @@ export function UserManagementTab({
         notifications.error('Failed to update user role');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to update user role:', error);
       notifications.error('Failed to update user role');
     } finally {
@@ -144,6 +146,7 @@ export function UserManagementTab({
         notifications.error('Failed to delete user');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to delete user:', error);
       notifications.error('Failed to delete user');
     }
@@ -166,6 +169,7 @@ export function UserManagementTab({
         notifications.error('Failed to approve user');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to approve user:', error);
       notifications.error('Failed to approve user');
     } finally {
@@ -194,6 +198,7 @@ export function UserManagementTab({
         notifications.error('Failed to reject user');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to reject user:', error);
       notifications.error('Failed to reject user');
     } finally {
@@ -221,6 +226,7 @@ export function UserManagementTab({
         notifications.error('Failed to unlink researcher');
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to unlink researcher:', error);
       notifications.error('Failed to unlink researcher');
     } finally {
@@ -240,6 +246,7 @@ export function UserManagementTab({
         setUnlinkedResearchers(response.researchers);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('Failed to load unlinked researchers:', error);
       notifications.error('Failed to load available researchers');
     }
@@ -251,6 +258,7 @@ export function UserManagementTab({
   const handleLinkExisting = async (researcherId: string) => {
     if (!linkingUser) return;
 
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('[DEBUG] Linking researcher to user:', {
       userId: linkingUser.id,
       username: linkingUser.username,
@@ -267,6 +275,7 @@ export function UserManagementTab({
   const handleCreateAndLink = async (data: CreateResearcherProfile) => {
     if (!linkingUser) return;
 
+    // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('[DEBUG] Creating and linking researcher to user:', {
       userId: linkingUser.id,
       username: linkingUser.username,
