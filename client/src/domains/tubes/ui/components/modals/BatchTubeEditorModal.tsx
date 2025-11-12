@@ -1,7 +1,7 @@
 import { useState, useMemo , useEffect } from 'react';
 
 
-import { type CreateTubeFormInput, type CreateTubeRequest, type UpdateTubeRequest, formatConcentrationDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+import { type CreateTubeFormInput, type CreateTubeRequest, type UpdateTubeRequest, updateTubeRequestSchema, formatConcentrationDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import { AlertCircle, XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
@@ -226,14 +226,17 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
     setResult(null);
 
     try {
-      // Get form data
-      const formData = form.getValues();
+      // Get raw form data
+      const rawFormData = form.getValues();
 
-      // Send all form data (simplicity > micro-optimization)
-      // Type assertion is safe here: form data validated by Zod, backend re-validates with same schemas
+      // Validate and transform through Zod schema: INPUT → OUTPUT
+      // This transforms raw form data to proper API request format
+      const validatedUpdates = updateTubeRequestSchema.parse(rawFormData);
+
+      // Send validated data to bulk update mutation
       const bulkResult = await bulkUpdateMutation.mutateAsync({
         tubeIds,
-        updates: formData as Partial<CreateTubeFormInput>,
+        updates: validatedUpdates,
         onProgress: (progress) => {
           setProgress({
             current: progress.completed,
@@ -285,14 +288,17 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
     setResult(null);
 
     try {
-      // Get form data for retry
-      const formData = form.getValues();
+      // Get raw form data for retry
+      const rawFormData = form.getValues();
 
-      // Send all form data (simplicity > micro-optimization)
-      // Type assertion is safe here: form data validated by Zod, backend re-validates with same schemas
+      // Validate and transform through Zod schema: INPUT → OUTPUT
+      // This transforms raw form data to proper API request format
+      const validatedUpdates = updateTubeRequestSchema.parse(rawFormData);
+
+      // Send validated data to bulk update mutation
       const retryResult = await bulkUpdateMutation.mutateAsync({
         tubeIds: failedTubeIds,
-        updates: formData as Partial<CreateTubeFormInput>,
+        updates: validatedUpdates,
         onProgress: (progress) => {
           setProgress({
             current: progress.completed,

@@ -1,26 +1,16 @@
 /**
  * Performance Hooks Index
- * 
- * Performance hooks temporarily disabled due to TypeScript syntax issues
- * Focus on core legacy migration first
+ *
+ * Performance hooks temporarily disabled - not currently used in the codebase
+ *
+ * TODO: Implement proper performance hooks when needed:
+ * - useOptimizedCallback: Memoized callback with dependency tracking
+ * - useStableSelector: Stable selector for Zustand/Redux
+ * - useDebounced: Debounced value hook
+ * - useThrottled: Throttled value hook
+ * - useMemoizedCalculation: Expensive calculation memoization
+ * - useIntersectionObserver: Intersection observer for lazy loading
+ * - usePerformanceMonitor: Performance metric tracking
  */
 
-// TODO: Fix performance hooks syntax issues and re-enable
-// export {
-//   useOptimizedCallback,
-//   useStableSelector,
-//   useDebounced,
-//   useThrottled,
-//   useMemoizedCalculation,
-//   useIntersectionObserver,
-//   usePerformanceMonitor,
-// } from './useOptimizedCallback';
-
-// Placeholder exports to prevent import errors
-export const useOptimizedCallback = (..._args: any[]) => _args[0];
-export const useStableSelector = (..._args: any[]) => _args[0];
-export const useDebounced = (..._args: any[]) => _args[0];
-export const useThrottled = (..._args: any[]) => _args[0];
-export const useMemoizedCalculation = (..._args: any[]) => _args[0];
-export const useIntersectionObserver = (..._args: any[]) => ({});
-export const usePerformanceMonitor = (..._args: any[]) => ({});
+// No exports - file kept for future implementation

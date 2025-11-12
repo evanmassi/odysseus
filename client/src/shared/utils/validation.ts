@@ -40,17 +40,17 @@ export {
 
 // Temporary minimal exports until path aliases are fixed
 export const validateBoxId = (_value: string) => ({ isValid: true, error: undefined });
-export const validateTubeData = (_data: any) => ({ 
-  success: true, 
+export const validateTubeData = (_data: unknown) => ({
+  success: true,
   errors: null,
-  warnings: null 
+  warnings: null
 });
 
 // Legacy compatibility export (will be removed when forms are migrated)
 export const validateBoxName = validateBoxId;
 
 // Enhanced validation with legacy-compatible interface for TubeValidationErrors
-export const validateTubeDataLegacyFormat = (tubeData: any, _existingTubes: any[] = []): { 
+export const validateTubeDataLegacyFormat = (tubeData: unknown, _existingTubes: unknown[] = []): { 
   isValid: boolean; 
   errors: TubeValidationErrors; 
   warnings: TubeValidationErrors;

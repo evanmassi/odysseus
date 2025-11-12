@@ -2,6 +2,8 @@
  * Color System Types
  */
 
+import type { TubeData } from '@odysseus/shared-schemas';
+
 export interface ColorPalette {
   primary: string;
   secondary: string;
@@ -74,19 +76,31 @@ export interface ColorSystemTubeData {
 }
 
 // Adapter function for tube data
-export const adaptTubeDataForColorSystem = (tubeData: any): ColorSystemTubeData => {
+export const adaptTubeDataForColorSystem = (tubeData: TubeData): ColorSystemTubeData => {
+  // Handle media object -> string conversion
+  const mediaString = tubeData.sample?.media?.type;
+
+  // Handle Date -> string conversion
+  const dateString = tubeData.sample?.date
+    ? (typeof tubeData.sample.date === 'string'
+        ? tubeData.sample.date
+        : tubeData.sample.date.toISOString())
+    : undefined;
+
   return {
     id: tubeData.id,
     cellType: tubeData.sample?.cellType || '',
     researcherId: tubeData.researcherId || '',
     position: tubeData.location?.position || 0,
-    media: tubeData.sample?.media,
+    media: mediaString,
     lotNumber: tubeData.sample?.lotNumber,
-    date: tubeData.sample?.date,
+    date: dateString,
     donorInternalId: tubeData.sample?.donorInternalId,
     donorSourceId: tubeData.sample?.donorSourceId,
-    donor: tubeData.sample?.donor,
-    cellLine: tubeData.sample?.cellLine || tubeData.sample?.cellType,
+    // Use donorInternalId as fallback for legacy 'donor' field
+    donor: tubeData.sample?.donorInternalId || tubeData.sample?.donorSourceId,
+    // Use cellType as cellLine (they're the same in current schema)
+    cellLine: tubeData.sample?.cellType,
     cultureCondition: tubeData.sample?.cultureCondition
   };
 };

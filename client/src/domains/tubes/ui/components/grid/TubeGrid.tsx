@@ -137,7 +137,7 @@ export function TubeGrid({
   );
 
   // Position click handler (delegates to grid controller)
-  const handlePositionClick = (position: number, event: React.MouseEvent) => {
+  const handlePositionClick = (position: number, event: React.MouseEvent | React.KeyboardEvent) => {
     setFocusedPosition(position); // Update keyboard focus on click
     controller.handlePositionClick(position, event, gridConfig.cols);
   };

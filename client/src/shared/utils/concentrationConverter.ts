@@ -130,7 +130,7 @@ export function validateConcentrationInput(value: string | number | undefined): 
 /**
  * Type guard for concentration values
  */
-export function isValidConcentration(value: any): value is number {
+export function isValidConcentration(value: unknown): value is number {
   return typeof value === 'number' && !isNaN(value) && value >= 0;
 }
 

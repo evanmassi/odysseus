@@ -291,11 +291,16 @@ export const withErrorBoundary = <P extends object>(
   Component: React.ComponentType<P>,
   errorBoundaryConfig?: Omit<ErrorBoundaryProps, 'children'>
 ) => {
-  const WrappedComponent = forwardRef<any, P>((props, ref) => (
-    <ErrorBoundary {...errorBoundaryConfig}>
-      <Component {...(props as any)} ref={ref} />
-    </ErrorBoundary>
-  ));
+  const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
+    // Conditionally pass ref only if it exists
+    const componentProps = ref ? { ...props, ref: ref as React.Ref<unknown> } : props;
+
+    return (
+      <ErrorBoundary {...errorBoundaryConfig}>
+        <Component {...componentProps as P} />
+      </ErrorBoundary>
+    );
+  });
 
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for React displayName
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;

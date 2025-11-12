@@ -45,7 +45,7 @@ interface GridPositionProps {
   quickEditMode: { position: number; field: string } | null;
   gridConfig: GridConfiguration;
   fontSize: { cellFont: number; donorFont: number; positionFont: number };
-  onPositionClick: (position: number, event: React.MouseEvent) => void;
+  onPositionClick: (position: number, event: React.MouseEvent | React.KeyboardEvent) => void;
   onPositionRightClick: (position: number, event: React.MouseEvent) => void;
   onPositionDoubleClick?: (position: number, event: React.MouseEvent) => void;
   onMouseDown: (position: number, event: React.MouseEvent) => void;
@@ -100,7 +100,7 @@ export const GridPosition = memo<GridPositionProps>(({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for keyboard event handling
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          onPositionClick(position, e as any);
+          onPositionClick(position, e);
         }
       }}
       role="gridcell"
@@ -218,7 +218,7 @@ export const GridPosition = memo<GridPositionProps>(({
       {/* Quick edit overlay */}
       {isQuickEdit && tube && quickEditMode && (
         <InlineEditInput
-          initialValue={(tube as any)[quickEditMode.field] ?? ''}
+          initialValue={(tube as Record<string, unknown>)[quickEditMode.field] as string ?? ''}
           fieldName={quickEditMode.field}
           onSave={(value) => onQuickEditSave(position, quickEditMode.field, value)}
           onCancel={onQuickEditCancel}

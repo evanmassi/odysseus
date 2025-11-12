@@ -335,13 +335,13 @@ export const Grid = forwardRef<HTMLDivElement, GridProps>(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Polymorphic component: empty 'as' is invalid, default to 'div'
     const Element = as || 'div';
 
-    // Industry-standard polymorphic component pattern with type safety bypass
+    // Polymorphic component pattern - refs and props forwarded to dynamic element
     const elementProps = {
-      ref: ref as any,
+      ref: ref as React.Ref<HTMLElement>,
       className: finalClassName,
-      ...(props as any)
+      ...props
     };
-    
+
     return createElement(Element, elementProps, children);
   }
 );
@@ -422,13 +422,13 @@ export const GridItem = forwardRef<HTMLElement, GridItemProps>(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Polymorphic component: empty 'as' is invalid, default to 'div'
     const Element = as || 'div';
 
-    // Industry-standard polymorphic component pattern with type safety bypass
+    // Polymorphic component pattern - refs and props forwarded to dynamic element
     const elementProps = {
-      ref: ref as any,
+      ref: ref as React.Ref<HTMLElement>,
       className: finalClassName,
-      ...(props as any)
+      ...props
     };
-    
+
     return createElement(Element, elementProps, children);
   }
 );

@@ -150,11 +150,16 @@ export const withSuspenseBoundary = <P extends object>(
   LazyComponent: React.ComponentType<P>,
   config?: Omit<SuspenseBoundaryProps, 'children'>
 ) => {
-  const WrappedComponent = forwardRef<any, P>((props, ref) => (
-    <SuspenseBoundary {...config}>
-      <LazyComponent {...(props as any)} ref={ref} />
-    </SuspenseBoundary>
-  ));
+  const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
+    // Conditionally pass ref only if it exists
+    const componentProps = ref ? { ...props, ref: ref as React.Ref<unknown> } : props;
+
+    return (
+      <SuspenseBoundary {...config}>
+        <LazyComponent {...componentProps as P} />
+      </SuspenseBoundary>
+    );
+  });
 
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for React displayName
   WrappedComponent.displayName = `withSuspenseBoundary(${LazyComponent.displayName || LazyComponent.name})`;
@@ -199,7 +204,7 @@ export const useLazyLoadingState = (componentName?: string) => {
 
 // Preloading utilities for better UX
 export const preloadLazyComponent = async (
-  importFn: () => Promise<{ default: React.ComponentType<any> }>
+  importFn: () => Promise<{ default: React.ComponentType<Record<string, unknown>> }>
 ): Promise<void> => {
   try {
     await importFn();
@@ -213,7 +218,7 @@ export const preloadLazyComponent = async (
 
 // Batch preloader for multiple components
 export const preloadLazyComponents = async (
-  importFns: Array<() => Promise<{ default: React.ComponentType<any> }>>
+  importFns: Array<() => Promise<{ default: React.ComponentType<Record<string, unknown>> }>>
 ): Promise<void> => {
   try {
     await Promise.all(importFns.map(preloadLazyComponent));

@@ -1,7 +1,7 @@
 /**
  * Network Connection Monitor
  * Phase 3 Step 3: Advanced connection robustness and offline/online handling
- * 
+ *
  * Monitors network connectivity, quality, and provides intelligent reconnection strategies.
  * Integrates with React Query to handle offline scenarios gracefully.
  */
@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'react-hot-toast';
 
 import type { QueryClient } from '@tanstack/react-query';
+import type { NetworkInformation, NavigatorWithConnection } from '@shared/types';
 
 /**
  * Network status and quality metrics
@@ -259,23 +260,24 @@ export class NetworkMonitor {
    */
   private getConnectionQuality(): ConnectionQuality {
     if (!this.status.isOnline) return ConnectionQuality.OFFLINE;
-    
-    // Use Network Information API if available
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-    
+
+    // Use Network Information API if available (experimental browser API)
+    const nav = navigator as NavigatorWithConnection;
+    const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
+
     if (connection) {
       const { downlink, rtt, effectiveType } = connection;
-      
+
       this.status.downlink = downlink;
       this.status.rtt = rtt;
       this.status.effectiveType = effectiveType;
-      
-      if (downlink > 10 && rtt < 100) return ConnectionQuality.EXCELLENT;
-      if (downlink > 1 && rtt < 300) return ConnectionQuality.GOOD;
-      if (downlink > 0.5 && rtt < 1000) return ConnectionQuality.FAIR;
+
+      if (downlink && downlink > 10 && rtt && rtt < 100) return ConnectionQuality.EXCELLENT;
+      if (downlink && downlink > 1 && rtt && rtt < 300) return ConnectionQuality.GOOD;
+      if (downlink && downlink > 0.5 && rtt && rtt < 1000) return ConnectionQuality.FAIR;
       return ConnectionQuality.POOR;
     }
-    
+
     // Fallback assessment based on timing
     return ConnectionQuality.GOOD; // Assume good if we can't measure
   }
@@ -284,8 +286,9 @@ export class NetworkMonitor {
    * Set up Network Information API monitoring
    */
   private setupNetworkInformationAPI(): void {
-    const connection = (navigator as any).connection || (navigator as any).mozConnection || (navigator as any).webkitConnection;
-    
+    const nav = navigator as NavigatorWithConnection;
+    const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
+
     if (connection) {
       connection.addEventListener('change', () => {
         void this.checkConnectionQuality();

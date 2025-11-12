@@ -14,6 +14,9 @@ export type * from './clipboard';
 // Color system types
 export type * from './colorSystemTypes';
 
+// Experimental browser API types
+export type * from './experimentalBrowserApis';
+
 // Grid types
 export type * from './grid';
 

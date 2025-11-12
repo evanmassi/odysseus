@@ -29,6 +29,7 @@ import {
   type UpdateTubeRequest,
   type TubeData,
   type Researcher,
+  updateTubeRequestSchema,
   formatConcentrationDisplay,
   EQUIPMENT_DEFAULTS
 } from '@odysseus/shared-schemas';
@@ -518,12 +519,15 @@ function CreateModeContent({
       if (allowOverwrite) {
         for (const { location, tubeId } of positionAnalysis.occupiedPositions) {
           try {
+            // Validate and transform raw form data through Zod schema
+            const validatedUpdates = updateTubeRequestSchema.parse({
+              sample: formData.sample,
+              researcherId: formData.researcherId
+            });
+
             await updateTubeMutation.mutateAsync({
               id: tubeId,
-              updates: {
-                sample: formData.sample as UpdateTubeFormInput['sample'],
-                researcherId: formData.researcherId as UpdateTubeFormInput['researcherId']
-              }
+              updates: validatedUpdates
             });
             successCount++;
           } catch (error) {

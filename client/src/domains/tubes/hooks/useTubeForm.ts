@@ -85,7 +85,9 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
   // React Hook Form with Zod validation
   // Type assertion needed for generic factory pattern - type safety enforced at public wrappers
   const form = useForm<TInput>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic Zod schema requires any for React Hook Form resolver compatibility
     resolver: zodResolver(schema as any),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic defaultValues require any for type compatibility across TInput instances
     defaultValues: initialData as any,
     mode: 'onChange' // Real-time validation for immediate feedback
   });

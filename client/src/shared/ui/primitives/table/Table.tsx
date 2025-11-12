@@ -10,7 +10,7 @@ import React, { forwardRef, createContext, useContext } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 // Table column definition
-export interface TableColumn<T = any> {
+export interface TableColumn<T = Record<string, unknown>> {
   id: string;
   header: string;
   accessor?: keyof T | ((row: T) => React.ReactNode);
@@ -19,13 +19,13 @@ export interface TableColumn<T = any> {
   sortable?: boolean;
   align?: 'left' | 'center' | 'right';
   sticky?: boolean;
-  render?: (value: any, row: T, index: number) => React.ReactNode;
+  render?: (value: unknown, row: T, index: number) => React.ReactNode;
 }
 
 // Table row data
 export interface TableRow {
   id: string | number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Sort configuration
@@ -369,23 +369,26 @@ export const TableBody = <T extends TableRow>({
     onSelectionChange(newSelection);
   };
   
-  const getCellValue = (column: TableColumn<T>, row: T) => {
+  const getCellValue = (column: TableColumn<T>, row: T): React.ReactNode => {
     if (column.render) {
       return column.render(
-        column.accessor ? 
-          (typeof column.accessor === 'function' ? column.accessor(row) : row[column.accessor]) 
+        column.accessor ?
+          (typeof column.accessor === 'function' ? column.accessor(row) : row[column.accessor])
           : undefined,
         row,
         0 // index would be passed from parent
       );
     }
-    
+
     if (column.accessor) {
-      return typeof column.accessor === 'function' 
+      const value = typeof column.accessor === 'function'
         ? column.accessor(row)
         : row[column.accessor];
+
+      // Type assertion: table values must be renderable primitives or React nodes
+      return value as React.ReactNode;
     }
-    
+
     return null;
   };
   

@@ -61,14 +61,14 @@ export const env = {
   /**
    * Get a custom environment variable with optional default
    */
-  get: (key: string, defaultValue?: string) => 
-    (import.meta.env as any)[key] ?? defaultValue,
+  get: (key: string, defaultValue?: string) =>
+    (import.meta.env as Record<string, string | undefined>)[key] ?? defaultValue,
 
   /**
    * Get a boolean environment variable
    */
   getBoolean: (key: string, defaultValue = false) => {
-    const value = (import.meta.env as any)[key];
+    const value = (import.meta.env as Record<string, string | undefined>)[key];
     if (value === undefined) return defaultValue;
     return value === 'true' || value === '1' || value === 'yes';
   },
@@ -77,7 +77,7 @@ export const env = {
    * Get a number environment variable
    */
   getNumber: (key: string, defaultValue?: number) => {
-    const value = (import.meta.env as any)[key];
+    const value = (import.meta.env as Record<string, string | undefined>)[key];
     if (value === undefined) return defaultValue;
     const parsed = Number(value);
     return isNaN(parsed) ? defaultValue : parsed;

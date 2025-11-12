@@ -87,7 +87,7 @@ export const useGridController = ({
     [resolveTubeIdAtPosition, positionToTubeMap]
   );
 
-  const handlePositionClick = (position: number, event: React.MouseEvent, gridSize: number = 9) => {
+  const handlePositionClick = (position: number, event: React.MouseEvent | React.KeyboardEvent, gridSize: number = 9) => {
     // Clear any pending click timer
     if (clickTimerRef.current) {
       clearTimeout(clickTimerRef.current);
