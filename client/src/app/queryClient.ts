@@ -10,6 +10,86 @@ import { env } from '@shared/config';
 import type { DefaultOptions} from '@tanstack/react-query';
 
 /**
+ * Type Guards for Error Handling
+ *
+ * React Query v5 types errors as `unknown` (correct - errors can be anything).
+ * These type guards safely narrow unknown types to specific shapes.
+ */
+
+/**
+ * Type guard for errors with HTTP status code
+ */
+function hasStatus(error: unknown): error is { status: number } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    typeof (error as Record<string, unknown>)['status'] === 'number'
+  );
+}
+
+/**
+ * Type guard for errors with message property
+ */
+function hasMessage(error: unknown): error is { message: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as Record<string, unknown>)['message'] === 'string'
+  );
+}
+
+/**
+ * Type guard for errors with code property
+ */
+function hasCode(error: unknown): error is { code: string } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    typeof (error as Record<string, unknown>)['code'] === 'string'
+  );
+}
+
+/**
+ * Type guard for errors with details object (AppError pattern)
+ */
+function hasDetails(error: unknown): error is { details: Record<string, unknown> } {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'details' in error &&
+    typeof (error as Record<string, unknown>)['details'] === 'object' &&
+    (error as Record<string, unknown>)['details'] !== null
+  );
+}
+
+/**
+ * Type guard for React Query Query objects
+ */
+function isQuery(query: unknown): query is { queryKey: unknown } {
+  return (
+    typeof query === 'object' &&
+    query !== null &&
+    'queryKey' in query
+  );
+}
+
+/**
+ * Type guard for React Query Mutation objects
+ */
+function isMutation(mutation: unknown): mutation is { options: { mutationKey?: unknown } } {
+  return (
+    typeof mutation === 'object' &&
+    mutation !== null &&
+    'options' in mutation &&
+    typeof (mutation as Record<string, unknown>)['options'] === 'object' &&
+    (mutation as Record<string, unknown>)['options'] !== null
+  );
+}
+
+/**
  * Cache timing constants optimized for socket-driven updates
  */
 export const CACHE_TIMES = {
@@ -49,12 +129,12 @@ export const CACHE_TIMES = {
  */
 const retryLogic = (failureCount: number, error: unknown): boolean => {
   // Don't retry client errors (4xx)
-  if (error?.status >= 400 && error?.status < 500) {
+  if (hasStatus(error) && error.status >= 400 && error.status < 500) {
     return false;
   }
 
   // Don't retry authentication errors
-  if (error?.status === 401 || error?.status === 403) {
+  if (hasStatus(error) && (error.status === 401 || error.status === 403)) {
     return false;
   }
 
@@ -67,12 +147,12 @@ const retryLogic = (failureCount: number, error: unknown): boolean => {
  */
 const mutationRetryLogic = (failureCount: number, error: unknown): boolean => {
   // Never retry client errors (4xx) - these are validation/business logic failures
-  if (error?.status >= 400 && error?.status < 500) {
+  if (hasStatus(error) && error.status >= 400 && error.status < 500) {
     return false;
   }
 
   // Retry server errors (5xx) and network failures up to 2 times
-  if (error?.status >= 500 || error?.status === 0) {
+  if (hasStatus(error) && (error.status >= 500 || error.status === 0)) {
     return failureCount < 2;
   }
 
@@ -100,15 +180,18 @@ const handleQueryError = (error: unknown, query: unknown): void => {
   if (env.isDev()) {
     // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('Query failed:', {
-      queryKey: query.queryKey,
-      error: error?.message || String(error),
-      status: error?.status
+      queryKey: isQuery(query) ? query.queryKey : 'unknown',
+      error: hasMessage(error) ? error.message : String(error),
+      status: hasStatus(error) ? error.status : undefined
     });
   }
-  
-  if (error?.status >= 500) {
+
+  if (hasStatus(error) && error.status >= 500) {
     toast.error('Server error occurred. Please try again.');
-  } else if (error?.status === 0 || error?.code === 'NETWORK_ERROR') {
+  } else if (
+    (hasStatus(error) && error.status === 0) ||
+    (hasCode(error) && error.code === 'NETWORK_ERROR')
+  ) {
     toast.error('Network error. Check your connection.');
   }
 };
@@ -119,15 +202,20 @@ const handleQueryError = (error: unknown, query: unknown): void => {
 const handleMutationError = (error: unknown, variables: unknown, context: unknown, mutation: unknown): void => {
   if (env.isDev()) {
     // Extract original error if wrapped by InfrastructureError
-    const originalError = error?.details?.originalError || error;
+    const originalError = hasDetails(error) &&
+      typeof error.details['originalError'] !== 'undefined'
+        ? error.details['originalError']
+        : error;
 
     // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
     console.error('Mutation failed:', {
-      mutationKey: mutation.options.mutationKey,
-      wrapperMessage: error?.message,
+      mutationKey: isMutation(mutation) ? mutation.options.mutationKey : 'unknown',
+      wrapperMessage: hasMessage(error) ? error.message : undefined,
       originalError: originalError,
-      status: error?.status || originalError?.status,
-      errorDetails: error?.details,
+      status: hasStatus(error)
+        ? error.status
+        : (hasStatus(originalError) ? originalError.status : undefined),
+      errorDetails: hasDetails(error) ? error.details : undefined,
       variables,
     });
 
@@ -140,10 +228,11 @@ const handleMutationError = (error: unknown, variables: unknown, context: unknow
     }
   }
 
-  if (error?.status >= 500) {
+  if (hasStatus(error) && error.status >= 500) {
     toast.error('Server error. Your changes could not be saved.');
-  } else if (error?.status >= 400 && error?.status < 500) {
-    toast.error(error?.message || 'Invalid request. Please check your input.');
+  } else if (hasStatus(error) && error.status >= 400 && error.status < 500) {
+    const message = hasMessage(error) ? error.message : 'Invalid request. Please check your input.';
+    toast.error(message);
   } else {
     toast.error('Network error. Please try again.');
   }

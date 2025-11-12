@@ -306,7 +306,7 @@ export class TubeFieldAccessService implements FieldResolver {
   /**
    * Safely resolve a nested path in an object
    */
-  private resolvePath(obj: any, path: string): any {
+  private resolvePath(obj: unknown, path: string): unknown {
     const compiledPath = this.compilePath(path);
     return this.resolveCompiledPath(obj, compiledPath);
   }
@@ -314,17 +314,21 @@ export class TubeFieldAccessService implements FieldResolver {
   /**
    * Resolve using pre-compiled path segments for performance
    */
-  private resolveCompiledPath(obj: any, pathSegments: string[]): any {
-    let current = obj;
-    
+  private resolveCompiledPath(obj: unknown, pathSegments: string[]): unknown {
+    let current: unknown = obj;
+
     for (const segment of pathSegments) {
       if (current === null || current === undefined) {
         return undefined;
       }
-      
-      current = current[segment];
+
+      if (typeof current === 'object' && current !== null && segment in current) {
+        current = (current as Record<string, unknown>)[segment];
+      } else {
+        return undefined;
+      }
     }
-    
+
     return current;
   }
 
@@ -349,22 +353,26 @@ export class TubeFieldAccessService implements FieldResolver {
   /**
    * Check if a path exists in the data structure (without retrieving value)
    */
-  private pathExists(obj: any, path: string): boolean {
+  private pathExists(obj: unknown, path: string): boolean {
     const compiledPath = this.compilePath(path);
-    let current = obj;
-    
+    let current: unknown = obj;
+
     for (const segment of compiledPath) {
       if (current === null || current === undefined) {
         return false;
       }
-      
+
+      if (typeof current !== 'object' || current === null) {
+        return false;
+      }
+
       if (!(segment in current)) {
         return false;
       }
-      
-      current = current[segment];
+
+      current = (current as Record<string, unknown>)[segment];
     }
-    
+
     return true;
   }
 
@@ -384,7 +392,7 @@ export class TubeFieldAccessService implements FieldResolver {
   /**
    * Validate data object input
    */
-  private validateDataObject(data: any): void {
+  private validateDataObject(data: unknown): void {
     if (!data || typeof data !== 'object') {
       throw new DomainError(
         'Data must be a valid object',

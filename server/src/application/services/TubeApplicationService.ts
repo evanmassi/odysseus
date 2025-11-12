@@ -1,4 +1,5 @@
 import { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { TubeSearchCriteria } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
@@ -11,6 +12,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import type { EventBus } from '@application/contracts/EventBus';
+import type { TubeMedia } from '@odysseus/shared-schemas';
 import {
   TubeCreatedEvent,
   TubeUpdatedEvent,
@@ -140,7 +142,7 @@ export class TubeApplicationService {
     let tubes: Tube[];
 
     if (searchRequest && Object.keys(searchRequest).length > 0) {
-      tubes = await this.tubeRepository.search(searchRequest as any); // Type compatible, minor differences
+      tubes = await this.tubeRepository.search(searchRequest as TubeSearchCriteria);
     } else {
       tubes = await this.tubeRepository.findAll();
     }
@@ -188,7 +190,7 @@ export class TubeApplicationService {
   ): Promise<TubeResponse[]> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const tubes = await this.tubeRepository.search(searchRequest as any); // Type compatible
+    const tubes = await this.tubeRepository.search(searchRequest as TubeSearchCriteria);
 
     return TubeDto.toResponseList(tubes);
   }
@@ -403,7 +405,7 @@ interface TubeCreationData {
     concentration?: number;
     concentrationUnit?: 'c/v' | 'c/mL';
     date?: string;
-    media?: any;
+    media?: TubeMedia;
     cultureCondition?: string;
     lotNumber?: string;
     notes?: string;

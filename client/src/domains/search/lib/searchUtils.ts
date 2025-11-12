@@ -111,20 +111,30 @@ export const getPrimaryLocation = (tubes: TubeData[]): string => {
  * This maintains compatibility with the existing SearchResults interface
  */
 export const transformSearchResult = (
-  searchResult: { data: any[] }, // Accept flexible API response
+  searchResult: { data: unknown[] }, // Accept API response with unknown data
   query: string
 ) => {
-  // Convert API response tubes to proper TubeData format
-  const tubes: TubeData[] = (searchResult.data || []).map((tube: any) => ({
-    ...tube,
-    sample: {
-      ...tube.sample,
-      // Convert concentration from string|number to number for storage consistency
-      concentration: typeof tube.sample.concentration === 'string' 
-        ? (tube.sample.concentration ? Number(tube.sample.concentration) : undefined)
-        : tube.sample.concentration
-    }
-  }));
+  // Convert API response tubes to proper TubeData format with type validation
+  const tubes: TubeData[] = (searchResult.data || [])
+    .filter((item): item is Record<string, unknown> =>
+      typeof item === 'object' && item !== null
+    )
+    .map((tube) => {
+      const sample = typeof tube['sample'] === 'object' && tube['sample'] !== null
+        ? tube['sample'] as Record<string, unknown>
+        : {};
+
+      return {
+        ...tube,
+        sample: {
+          ...sample,
+          // Convert concentration from string|number to number for storage consistency
+          concentration: typeof sample['concentration'] === 'string'
+            ? (sample['concentration'] ? Number(sample['concentration']) : undefined)
+            : sample['concentration']
+        }
+      } as TubeData;
+    });
   
   const grouped = groupTubesByRelevance(tubes, query);
   

@@ -5,6 +5,7 @@ import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
+import type { PositionConflict } from '@domain/types/position';
 
 /**
  * TubePositionService
@@ -339,7 +340,7 @@ export class TubePositionService {
     position: number,
     tubeRepository: TubeRepository,
     excludeTubeId?: string
-  ): Promise<{ isValid: boolean; reason?: string; conflicts?: any[] }> {
+  ): Promise<{ isValid: boolean; reason?: string; conflicts?: PositionConflict[] }> {
     const location = Location.create(tankId, rackId, boxId, position);
     const result = await this.canPlaceTubeAt(location, excludeTubeId);
 
@@ -374,7 +375,7 @@ export class TubePositionService {
     positionLabel: string,
     tubeRepository: TubeRepository,
     excludeTubeId?: string
-  ): Promise<{ isValid: boolean; position?: number; reason?: string; conflicts?: any[] }> {
+  ): Promise<{ isValid: boolean; position?: number; reason?: string; conflicts?: PositionConflict[] }> {
     try {
       // Get box configuration to determine position display format
       const configuration = await this.configurationRepository.getCurrent();

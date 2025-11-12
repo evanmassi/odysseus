@@ -42,7 +42,7 @@ interface WarmingStrategy {
 export class CacheWarmingService {
   private queryClient: QueryClient;
   private isWarming = false;
-  private warmingQueue: Array<{ queryKey: any[]; strategy: WarmingStrategy }> = [];
+  private warmingQueue: Array<{ queryKey: ReadonlyArray<unknown>; strategy: WarmingStrategy }> = [];
 
   constructor(queryClient: QueryClient) {
     this.queryClient = queryClient;
@@ -123,8 +123,8 @@ export class CacheWarmingService {
     ] as const;
 
     // Load critical data in parallel with ensureQueryData (blocks until data loaded)
-    const promises = criticalQueries.map(query => 
-      this.queryClient.ensureQueryData(query as any).catch(error => {
+    const promises = criticalQueries.map(query =>
+      this.queryClient.ensureQueryData(query as never).catch(error => {
         // eslint-disable-next-line no-console -- Warning logging for production monitoring
         console.warn(`Failed to load critical data for ${query.queryKey}:`, error);
         return null;
@@ -204,7 +204,10 @@ export class CacheWarmingService {
   private scheduleIdleWarming(): void {
     // Use requestIdleCallback if available
     if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => {
+      const windowWithIdle = window as Window & {
+        requestIdleCallback: (callback: () => void, options?: { timeout: number }) => void;
+      };
+      windowWithIdle.requestIdleCallback(() => {
         this.warmLowPriorityData();
       }, { timeout: 5000 });
     } else {
@@ -368,7 +371,7 @@ export class CacheWarmingService {
   /**
    * Get recent search queries from user history
    */
-  private getRecentSearchQueries(): Array<{ query: string; filters: Record<string, any> }> {
+  private getRecentSearchQueries(): Array<{ query: string; filters: Record<string, string> }> {
     // This would integrate with search history or user preferences
     // For now, return empty array
     return [];

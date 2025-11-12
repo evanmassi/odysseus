@@ -6,9 +6,9 @@
 
 import { httpClient } from '@infra/api/httpClient';
 
-import type { 
-  BulkUpdateItem, 
-  BulkUpdateProgress, 
+import type {
+  BulkUpdateItem,
+  BulkUpdateProgress,
   BulkUpdateError,
   BulkProgressCallback,
   BulkUpdateResult
@@ -227,6 +227,7 @@ export class BulkOperationsService {
    */
   async fallbackIndividualUpdates(
     updates: BulkUpdateItem[],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Legacy Zustand store pattern, will be typed in Phase 2
     tubeStore: any,
     onProgress?: BulkProgressCallback
   ): Promise<BulkUpdateResult> {

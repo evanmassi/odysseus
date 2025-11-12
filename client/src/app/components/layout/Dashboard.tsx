@@ -377,9 +377,9 @@ export function Dashboard() {
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for conditional selection
                   selectedPositions={isStorageNavigatorFocused() || isSelectorActive ? new Set() : selectedPositions}
                   onSelectionChange={handleSelectionChange}
-                  onEditTube={handleEditTube}
-                  onBatchEditTubes={handleBatchEditTubes}
-                  onAddTubes={handleAddTube}
+                  _onEditTube={handleEditTube}
+                  _onBatchEditTubes={handleBatchEditTubes}
+                  _onAddTubes={handleAddTube}
                   gridController={gridController}
                 />
               </ErrorBoundary>

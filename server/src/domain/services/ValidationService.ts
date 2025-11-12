@@ -12,6 +12,7 @@ import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepos
 import { ValidationError } from '@domain/errors/ValidationError';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
+import type { ConfigurationUpdateData } from '@domain/types/configuration';
 
 /**
  * ValidationService
@@ -371,7 +372,7 @@ export class ValidationService {
    */
   async validateConfigurationUpdate(
     currentConfig: Configuration,
-    updates: any,
+    updates: ConfigurationUpdateData,
     user: User
   ): Promise<ValidationResult> {
     const result: ValidationResult = {
@@ -487,14 +488,14 @@ export class ValidationService {
     return result;
   }
 
-  private isEquipmentBeingRemoved(updates: any): boolean {
+  private isEquipmentBeingRemoved(updates: ConfigurationUpdateData): boolean {
     // Check if any equipment is being marked as inactive or removed
-    return updates.tanks?.some((tank: any) => !tank.isActive) ||
-           updates.racks?.some((rack: any) => !rack.isActive) ||
-           updates.boxes?.some((box: any) => !box.isActive);
+    return updates.tanks?.some(tank => !tank.isActive) ||
+           updates.equipment?.racks?.some(rack => !rack.isActive) ||
+           updates.equipment?.boxes?.some(box => !box.isActive);
   }
 
-  private async validateEquipmentRemoval(updates: any): Promise<ValidationResult> {
+  private async validateEquipmentRemoval(updates: ConfigurationUpdateData): Promise<ValidationResult> {
     const result: ValidationResult = {
       isValid: true,
       errors: [],
@@ -521,7 +522,7 @@ export class ValidationService {
 
   private async validateConfigurationBusinessRules(
     currentConfig: Configuration,
-    updates: any
+    updates: ConfigurationUpdateData
   ): Promise<ValidationResult> {
     const result: ValidationResult = {
       isValid: true,
@@ -531,7 +532,7 @@ export class ValidationService {
 
     // Business rule: Ensure at least one tank remains active
     if (updates.tanks) {
-      const activeTanks = updates.tanks.filter((tank: any) => tank.isActive);
+      const activeTanks = updates.tanks.filter(tank => tank.isActive);
       if (activeTanks.length === 0) {
         result.isValid = false;
         result.errors.push('At least one tank must remain active');

@@ -1,0 +1,8 @@
+src/domains/tubes/hooks/useTubeSocket.ts(363,36): error TS2345: Argument of type '{ tankId?: string | undefined; rackId?: number | undefined; boxId?: string | undefined; }' is not assignable to parameter of type '{ tankId?: string | undefined; rackId?: string | undefined; boxId?: string | undefined; researcherId?: string | undefined; cellType?: string | undefined; dateFrom?: string | undefined; ... 4 more ...; offset?: number | undefined; }'.
+  Types of property 'rackId' are incompatible.
+    Type 'number | undefined' is not assignable to type 'string | undefined'.
+      Type 'number' is not assignable to type 'string'.
+src/domains/tubes/hooks/useTubeSocket.ts(365,75): error TS2345: Argument of type '{ tankId?: string | undefined; rackId?: number | undefined; boxId?: string | undefined; }' is not assignable to parameter of type '{ tankId?: string | undefined; rackId?: string | undefined; boxId?: string | undefined; researcherId?: string | undefined; cellType?: string | undefined; dateFrom?: string | undefined; ... 4 more ...; offset?: number | undefined; }'.
+  Types of property 'rackId' are incompatible.
+    Type 'number | undefined' is not assignable to type 'string | undefined'.
+      Type 'number' is not assignable to type 'string'.

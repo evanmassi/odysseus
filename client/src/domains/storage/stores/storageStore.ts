@@ -16,6 +16,13 @@ import {
   DEFAULT_GRID_CONFIG,
   GRID_TEMPLATES,
 } from '../utils/gridHelpers';
+import {
+  isGridConfiguration,
+  isLegacyGridConfig,
+  hasEquipment,
+  hasRacks,
+  hasTanks
+} from '../types/migrations';
 
 import type {
   LabConfiguration,
@@ -72,7 +79,7 @@ interface ConfigurationState {
   // Note: loadFromServer and saveToServer are deprecated - use React Query hooks instead
   loadFromServer: () => Promise<void>;
   saveToServer: () => Promise<void>;
-  migrateConfigurationStructure: (config: any) => any;
+  migrateConfigurationStructure: (config: unknown) => unknown;
   ensureDefaultConfiguration: () => void;
   initialize: () => void;
 }
@@ -160,16 +167,16 @@ const createDefaultSystemConfig = (): SystemConfiguration => ({
  * Old: {rows, columns, totalPositions, displayName}
  * New: {rows, cols, template}
  */
-function migrateGridConfig(oldGrid: any): GridConfiguration {
+function migrateGridConfig(oldGrid: unknown): GridConfiguration {
   if (!oldGrid) return DEFAULT_GRID_CONFIG;
 
   // If already has new format, return as-is
-  if (oldGrid.cols !== undefined && oldGrid.template !== undefined) {
-    return oldGrid as GridConfiguration;
+  if (isGridConfiguration(oldGrid)) {
+    return oldGrid;
   }
 
   // If has old format, convert it
-  if (oldGrid.columns !== undefined) {
+  if (isLegacyGridConfig(oldGrid)) {
     // Determine template based on dimensions
     let template = 'standard';
     if (oldGrid.rows === 8 && oldGrid.columns === 8) template = 'compact';
@@ -593,7 +600,8 @@ export const useStorageStore = create<ConfigurationState>()(
         if (!currentLab.equipment.tanks) {
 
           // Check if we have existing racks to migrate
-          const existingRacks = (currentLab.equipment as any)?.racks;
+          const equipment = currentLab.equipment as Record<string, unknown>;
+          const existingRacks = hasRacks(equipment) ? equipment.racks : undefined;
 
           const tanks = existingRacks ? [
             {
@@ -642,8 +650,9 @@ export const useStorageStore = create<ConfigurationState>()(
           };
 
           // Remove old racks property if it exists
-          if ((updatedLab.equipment as any).racks) {
-            delete (updatedLab.equipment as any).racks;
+          const updatedEquipment = updatedLab.equipment as Record<string, unknown>;
+          if (hasRacks(updatedEquipment)) {
+            delete updatedEquipment.racks;
           }
 
           // Update in availableLabs (single source of truth)
@@ -662,10 +671,25 @@ export const useStorageStore = create<ConfigurationState>()(
       },
 
       // Migration helper to convert old racks structure to tanks structure
-      migrateConfigurationStructure: (config: any) => {
-        if (config.currentLab?.equipment?.racks && !config.currentLab?.equipment?.tanks) {
+      migrateConfigurationStructure: (config: unknown) => {
+        // Type guard: ensure config has the expected structure
+        if (
+          typeof config !== 'object' ||
+          config === null ||
+          !('currentLab' in config)
+        ) {
+          return config;
+        }
 
+        const configObj = config as Record<string, unknown>;
+        const currentLab = configObj.currentLab;
 
+        if (!hasEquipment(currentLab)) {
+          return config;
+        }
+
+        // Check if migration is needed (has racks but no tanks)
+        if (hasRacks(currentLab.equipment) && !hasTanks(currentLab.equipment)) {
           // Create a default tank with the existing racks
           const defaultTank = {
             id: NAMING_PATTERNS.TANK.ID_PATTERN(1),
@@ -675,15 +699,14 @@ export const useStorageStore = create<ConfigurationState>()(
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             defaultGridConfig: DEFAULT_GRID_CONFIG,
-            racks: config.currentLab.equipment.racks
+            racks: currentLab.equipment.racks
           };
 
           // Update the structure
-          config.currentLab.equipment.tanks = [defaultTank];
-          delete config.currentLab.equipment.racks; // Remove old structure
-
-
+          currentLab.equipment.tanks = [defaultTank];
+          delete (currentLab.equipment as Record<string, unknown>).racks;
         }
+
         return config;
       },
 
@@ -704,63 +727,112 @@ export const useStorageStore = create<ConfigurationState>()(
     {
       name: 'odysseus-configuration-store',
       version: 2, // Bumped version to trigger migration
-      migrate: (persistedState: any, version: number) => {
+      migrate: (persistedState: unknown, version: number) => {
         // Migrate from version 1 to version 2 (grid schema changes)
         if (version < 2) {
-          const state = persistedState as any;
+          const state = persistedState as Record<string, unknown>;
 
           // Migrate all grid configurations in the stored state
-          if (state.currentLab?.equipment?.tanks) {
-            state.currentLab.equipment.tanks = state.currentLab.equipment.tanks.map((tank: any) => ({
-              ...tank,
-              defaultGridConfig: migrateGridConfig(tank.defaultGridConfig),
-              racks: tank.racks?.map((rack: any) => ({
-                ...rack,
-                boxes: rack.boxes?.map((box: any) => ({
-                  ...box,
-                  gridConfig: migrateGridConfig(box.gridConfig)
-                }))
-              }))
-            }));
+          if (state.currentLab && hasEquipment(state.currentLab)) {
+            const equipment = state.currentLab.equipment;
+
+            if (hasTanks(equipment)) {
+              equipment.tanks = (equipment.tanks as unknown[]).map((tank: unknown) => {
+                const tankObj = tank as Record<string, unknown>;
+                return {
+                  ...tankObj,
+                  defaultGridConfig: migrateGridConfig(tankObj.defaultGridConfig),
+                  racks: Array.isArray(tankObj.racks)
+                    ? tankObj.racks.map((rack: unknown) => {
+                        const rackObj = rack as Record<string, unknown>;
+                        return {
+                          ...rackObj,
+                          boxes: Array.isArray(rackObj.boxes)
+                            ? rackObj.boxes.map((box: unknown) => {
+                                const boxObj = box as Record<string, unknown>;
+                                return {
+                                  ...boxObj,
+                                  gridConfig: migrateGridConfig(boxObj.gridConfig)
+                                };
+                              })
+                            : rackObj.boxes
+                        };
+                      })
+                    : tankObj.racks
+                };
+              });
+            }
           }
 
           // Migrate default grid configs
-          if (state.currentLab?.equipment?.defaultGridConfig) {
-            state.currentLab.equipment.defaultGridConfig = migrateGridConfig(state.currentLab.equipment.defaultGridConfig);
-          }
+          if (state.currentLab && hasEquipment(state.currentLab)) {
+            const equipment = state.currentLab.equipment as Record<string, unknown>;
 
-          if (state.currentLab?.equipment?.defaultBoxConfig?.gridConfig) {
-            state.currentLab.equipment.defaultBoxConfig.gridConfig = migrateGridConfig(state.currentLab.equipment.defaultBoxConfig.gridConfig);
+            if ('defaultGridConfig' in equipment) {
+              equipment.defaultGridConfig = migrateGridConfig(equipment.defaultGridConfig);
+            }
+
+            if ('defaultBoxConfig' in equipment && typeof equipment.defaultBoxConfig === 'object' && equipment.defaultBoxConfig !== null) {
+              const boxConfig = equipment.defaultBoxConfig as Record<string, unknown>;
+              if ('gridConfig' in boxConfig) {
+                boxConfig.gridConfig = migrateGridConfig(boxConfig.gridConfig);
+              }
+            }
           }
 
           // Migrate all labs in systemConfig
-          if (state.systemConfig?.availableLabs) {
-            state.systemConfig.availableLabs = state.systemConfig.availableLabs.map((lab: any) => {
-              if (!lab.equipment?.tanks) return lab;
+          if (state['systemConfig'] && typeof state['systemConfig'] === 'object' && state['systemConfig'] !== null) {
+            const systemConfig = state['systemConfig'] as Record<string, unknown>;
 
-              return {
-                ...lab,
-                equipment: {
-                  ...lab.equipment,
-                  defaultGridConfig: migrateGridConfig(lab.equipment.defaultGridConfig),
-                  defaultBoxConfig: lab.equipment.defaultBoxConfig ? {
-                    ...lab.equipment.defaultBoxConfig,
-                    gridConfig: migrateGridConfig(lab.equipment.defaultBoxConfig.gridConfig)
-                  } : undefined,
-                  tanks: lab.equipment.tanks.map((tank: any) => ({
-                    ...tank,
-                    defaultGridConfig: migrateGridConfig(tank.defaultGridConfig),
-                    racks: tank.racks?.map((rack: any) => ({
-                      ...rack,
-                      boxes: rack.boxes?.map((box: any) => ({
-                        ...box,
-                        gridConfig: migrateGridConfig(box.gridConfig)
-                      }))
-                    }))
-                  }))
+            if ('availableLabs' in systemConfig && Array.isArray(systemConfig['availableLabs'])) {
+              systemConfig['availableLabs'] = systemConfig['availableLabs'].map((lab: unknown) => {
+                const labObj = lab as Record<string, unknown>;
+
+                if (!hasEquipment(labObj) || !hasTanks(labObj['equipment'] as Record<string, unknown>)) {
+                  return lab;
                 }
-              };
-            });
+
+                const labEquipment = labObj['equipment'] as Record<string, unknown>;
+
+                return {
+                  ...labObj,
+                  equipment: {
+                    ...labEquipment,
+                    defaultGridConfig: migrateGridConfig(labEquipment['defaultGridConfig']),
+                    defaultBoxConfig: labEquipment['defaultBoxConfig'] && typeof labEquipment['defaultBoxConfig'] === 'object'
+                      ? {
+                          ...(labEquipment['defaultBoxConfig'] as Record<string, unknown>),
+                          gridConfig: migrateGridConfig((labEquipment['defaultBoxConfig'] as Record<string, unknown>)['gridConfig'])
+                        }
+                      : undefined,
+                    tanks: (labEquipment['tanks'] as unknown[]).map((tank: unknown) => {
+                      const tankObj = tank as Record<string, unknown>;
+                      return {
+                        ...tankObj,
+                        defaultGridConfig: migrateGridConfig(tankObj['defaultGridConfig']),
+                        racks: Array.isArray(tankObj['racks'])
+                          ? (tankObj['racks'] as unknown[]).map((rack: unknown) => {
+                              const rackObj = rack as Record<string, unknown>;
+                              return {
+                                ...rackObj,
+                                boxes: Array.isArray(rackObj['boxes'])
+                                  ? (rackObj['boxes'] as unknown[]).map((box: unknown) => {
+                                      const boxObj = box as Record<string, unknown>;
+                                      return {
+                                        ...boxObj,
+                                        gridConfig: migrateGridConfig(boxObj['gridConfig'])
+                                      };
+                                    })
+                                  : rackObj['boxes']
+                              };
+                            })
+                          : tankObj['racks']
+                      };
+                    })
+                  }
+                };
+              });
+            }
           }
         }
 

@@ -18,6 +18,7 @@ import { configureHttpClientWithSessionManager } from '@infra/api/httpClient';
 import { env } from '@shared/config';
 
 import { authService } from '../services/AuthenticationService';
+import type { AuthDebugInfo } from '../types/debug';
 
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
 import type {
@@ -74,7 +75,7 @@ interface AuthActions {
   reset: () => void;
 
   // Development debugging
-  getDebugInfo: () => any;
+  getDebugInfo: () => AuthDebugInfo | null;
 }
 
 interface AuthStore extends AuthState, AuthActions {}
@@ -477,7 +478,7 @@ export { sessionManager };
 
 // Development-only global debugging (removed in production builds)
 if (env.isDev()) {
-  (globalThis as any).__ODYSSEUS_SESSION_DEBUG__ = () => {
+  globalThis.__ODYSSEUS_SESSION_DEBUG__ = () => {
     const authState = useAuthStore.getState();
     return authState.getDebugInfo();
   };

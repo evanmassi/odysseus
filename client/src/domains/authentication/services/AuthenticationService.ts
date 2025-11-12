@@ -12,6 +12,14 @@ import {
 import { queryClient } from '@app/queryClient';
 import { httpClient } from '@infra/api/httpClient';
 
+import type { TokenPair } from '@shared/session/types';
+import type {
+  AuthResponse,
+  RegisterWithResearcherResponse,
+  AuthApiResponse,
+  RegisterWithResearcherApiResponse
+} from '../types/api';
+
 // Domain types (keep existing types intact)
 export interface User {
   id: string;
@@ -22,17 +30,8 @@ export interface User {
   status?: 'pending' | 'approved' | 'rejected';
 }
 
-export interface AuthResponse {
-  user: User;
-  tokens: any; // TokenPair from session types
-}
-
-export interface RegisterWithResearcherResponse {
-  user: User;
-  tokens?: any; // Optional - only for approved users
-  status: 'approved' | 'pending';
-  message: string;
-}
+// Re-export API types for backward compatibility
+export type { AuthResponse, RegisterWithResearcherResponse };
 
 export interface RegisterRequest {
   username: string;
@@ -60,7 +59,7 @@ export class AuthService {
    */
   async register(request: RegisterRequest): Promise<AuthResponse> {
     try {
-      const response = await httpClient.post<{ success: boolean; data: any }>('/public/auth/register', request);
+      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>('/public/auth/register', request);
 
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
@@ -89,7 +88,7 @@ export class AuthService {
    */
   async registerWithResearcher(request: RegisterWithResearcherRequest): Promise<RegisterWithResearcherResponse> {
     try {
-      const response = await httpClient.post<{ success: boolean; data: any }>('/public/auth/register-with-researcher', request);
+      const response = await httpClient.post<{ success: boolean; data: RegisterWithResearcherResponse }>('/public/auth/register-with-researcher', request);
 
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
@@ -118,7 +117,7 @@ export class AuthService {
   async login(request: LoginRequest): Promise<AuthResponse> {
     try {
       // HttpClient automatically transforms dates using existing responseTransformers
-      const response = await httpClient.post<{ success: boolean; data: any }>('/public/auth/login', request);
+      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>('/public/auth/login', request);
       
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
@@ -143,13 +142,10 @@ export class AuthService {
    * Verify current session
    */
   async verifySession(): Promise<AuthResponse> {
-    const response = await httpClient.get<{ success: boolean; data: { user: User } }>('/auth/verify');
+    const response = await httpClient.get<{ success: boolean; data: AuthResponse }>('/auth/verify');
 
     if (response.data.success && response.data.data) {
-      return {
-        user: response.data.data.user,
-        tokens: null // No tokens needed for verify - just user info
-      };
+      return response.data.data;
     }
 
     // SessionManager will handle token cleanup on error

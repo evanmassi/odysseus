@@ -1,0 +1,9 @@
+src/app/queryClient.ts(27,47): error TS4111: Property 'status' comes from an index signature, so it must be accessed with ['status'].
+src/app/queryClient.ts(39,47): error TS4111: Property 'message' comes from an index signature, so it must be accessed with ['message'].
+src/app/queryClient.ts(51,47): error TS4111: Property 'code' comes from an index signature, so it must be accessed with ['code'].
+src/app/queryClient.ts(63,47): error TS4111: Property 'details' comes from an index signature, so it must be accessed with ['details'].
+src/app/queryClient.ts(64,40): error TS4111: Property 'details' comes from an index signature, so it must be accessed with ['details'].
+src/app/queryClient.ts(87,50): error TS4111: Property 'options' comes from an index signature, so it must be accessed with ['options'].
+src/app/queryClient.ts(88,43): error TS4111: Property 'options' comes from an index signature, so it must be accessed with ['options'].
+src/app/queryClient.ts(206,28): error TS4111: Property 'originalError' comes from an index signature, so it must be accessed with ['originalError'].
+src/app/queryClient.ts(207,25): error TS4111: Property 'originalError' comes from an index signature, so it must be accessed with ['originalError'].

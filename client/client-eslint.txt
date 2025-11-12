@@ -1,0 +1,230 @@
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\app\bootstrap\types.ts
+  44:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\app\hooks\useFieldResolver.ts
+  36:1  error  `@app/types/fieldTypeMapping` type import should occur before type import of `@domains/tubes/types/FieldResolver`  import/order
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\app\hooks\useSimpleFieldResolver.ts
+  13:1  error  There should be at least one empty line between import groups                                           import/order
+  13:1  error  `@app/types/fieldTypeMapping` type import should occur before type import of `@shared/types/tubeTypes`  import/order
+  14:1  error  `@app/types/fieldTypeMapping` import should occur before import of `@shared/utils/dateUtils`            import/order
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\app\services\FieldResolverService.ts
+   5:1  error  There should be no empty line within import group                                                               import/order
+   7:1  error  `../hooks/useFieldResolver` type import should occur before type import of `@odysseus/shared-schemas`           import/order
+   8:1  error  `@domains/tubes/types/FieldResolver` type import should occur before type import of `@odysseus/shared-schemas`  import/order
+   9:1  error  There should be at least one empty line between import groups                                                   import/order
+   9:1  error  `@app/types/fieldTypeMapping` type import should occur before type import of `@odysseus/shared-schemas`         import/order
+  10:1  error  `@app/types/fieldTypeMapping` import should occur before type import of `@odysseus/shared-schemas`              import/order
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\app\services\SessionManager.ts
+  18:1  error  `../../infrastructure/api/AuthHttpClient` type import should occur before type import of `@domains/authentication/types`  import/order
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\admin\ui\components\AdminSettingsModal.tsx
+  136:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\admin\utils\auditLogFormatters.ts
+  244:29  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\authentication\services\AuthenticationService.ts
+  15:15  error  'TokenPair' is defined but never used. Allowed unused vars must match /^_/u                          @typescript-eslint/no-unused-vars
+  16:1   error  `../types/api` type import should occur before type import of `@shared/session/types`                import/order
+  19:3   error  'AuthApiResponse' is defined but never used. Allowed unused vars must match /^_/u                    @typescript-eslint/no-unused-vars
+  20:3   error  'RegisterWithResearcherApiResponse' is defined but never used. Allowed unused vars must match /^_/u  @typescript-eslint/no-unused-vars
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\authentication\stores\authStore.ts
+  20:1  error  There should be at least one empty line between import groups  import/order
+  21:1  error  There should be no empty line within import group              import/order
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\authentication\types\api.ts
+  8:1  error  `./index` type import should occur before type import of `@shared/session/types`  import/order
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\search\engine\SearchEngine.ts
+  163:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\storage\stores\storageStore.ts
+  19:1  error  `../types/migrations` import should occur before import of `../utils/gridHelpers`  import/order
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\hooks\useTubeQueries.ts
+  135:41  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  135:53  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  135:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  191:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  265:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\services\TubeFieldAccessService.ts
+   67:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  122:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  194:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\services\dataConsistencyService.ts
+  7:1  error  `@odysseus/shared-schemas` type import should occur before type import of `@shared/types/tubeTypes`  import/order
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\types\FieldResolver.ts
+   28:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   32:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   32:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   38:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   75:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   90:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  132:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\ui\components\modals\StorageManagementModal.tsx
+  59:37  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\utils\colorSystem.ts
+  291:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  331:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  331:77  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  385:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\utils\tubeInfoHelpers.ts
+  118:24  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\infrastructure\api\AuthHttpClient.ts
+  21:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  29:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  62:43  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  72:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\infrastructure\api\client.ts
+  180:19  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\infrastructure\api\httpClient.ts
+  117:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  135:32  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  144:33  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\infrastructure\api\responseTransformers.ts
+   85:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   95:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  121:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  133:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  160:42  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  160:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  170:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  171:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  180:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  181:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  182:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  183:20  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  184:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  185:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  186:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  187:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  197:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  213:22  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  216:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  245:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\infrastructure\cache\performanceMonitoring.ts
+  60:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\infrastructure\configuration\tubeFieldConfiguration.ts
+   42:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   42:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   44:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   46:30  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   46:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  260:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  260:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  274:58  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  399:12  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\infrastructure\connection\networkMonitor.ts
+   14:1   error  `@shared/types` type import should occur before type import of `@tanstack/react-query`                     import/order
+   14:15  error  'NetworkInformation' is defined but never used. Allowed unused vars must match /^_/u                       @typescript-eslint/no-unused-vars
+  266:39  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  266:60  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  290:39  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  290:60  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\infrastructure\optimistic\optimisticUpdates.ts
+   18:44  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:48  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   56:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   78:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  101:67  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  119:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  148:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  152:64  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  180:60  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  184:98  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  198:68  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  209:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  209:56  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  209:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  224:25  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  255:73  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  414:27  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\infrastructure\socket\queryBridge.ts
+  200:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  565:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\session\types.ts
+   99:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  100:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  111:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\types\apiTypes.ts
+   9:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  49:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  60:34  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\types\bulkOperations.ts
+  57:10  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  69:18  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  70:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\types\clipboard.ts
+  30:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  31:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  32:13  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\types\colorSystemTypes.ts
+   92:41  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+   93:41  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+  101:45  error  Prefer using nullish coalescing operator (`??`) instead of a logical or (`||`), as it is a safer operator  @typescript-eslint/prefer-nullish-coalescing
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\types\validationTypes.ts
+  37:35  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  37:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\utils\formUtils.ts
+   36:40  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   43:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   86:63  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  123:17  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  137:23  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\utils\lazy\PreloadHelpers.ts
+   76:39   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  332:67   warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  332:104  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\utils\lazy\lazyComponentUtils.tsx
+   44:54  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   59:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  154:21  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  165:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  184:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  217:31  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  239:29  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  357:14  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\shared\utils\validation\zodValidation.ts
+   16:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  224:45  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\types\global.d.ts
+  25:3  error  Unexpected var, use let or const instead  no-var
+
+✖ 148 problems (31 errors, 117 warnings)
+  18 errors and 0 warnings potentially fixable with the `--fix` option.
+

@@ -1,0 +1,23 @@
+src/app/queryClient.ts(52,14): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(52,38): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(57,14): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(57,39): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(70,14): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(70,38): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(75,14): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(75,38): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(103,17): error TS18046: 'query' is of type 'unknown'.
+src/app/queryClient.ts(104,21): error TS2339: Property 'message' does not exist on type '{}'.
+src/app/queryClient.ts(105,22): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(109,14): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(111,21): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(111,44): error TS2339: Property 'code' does not exist on type '{}'.
+src/app/queryClient.ts(122,34): error TS2339: Property 'details' does not exist on type '{}'.
+src/app/queryClient.ts(126,20): error TS18046: 'mutation' is of type 'unknown'.
+src/app/queryClient.ts(127,30): error TS2339: Property 'message' does not exist on type '{}'.
+src/app/queryClient.ts(129,22): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(130,28): error TS2339: Property 'details' does not exist on type '{}'.
+src/app/queryClient.ts(143,14): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(145,21): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(145,45): error TS2339: Property 'status' does not exist on type '{}'.
+src/app/queryClient.ts(146,24): error TS2339: Property 'message' does not exist on type '{}'.

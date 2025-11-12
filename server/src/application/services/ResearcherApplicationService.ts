@@ -9,6 +9,7 @@ import { CreateResearcherRequest, ResearcherResponse, ResearcherDto } from '@app
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
+import type { AuditChange } from '@application/types/audit';
 import type { EventBus } from '@application/contracts/EventBus';
 import {
   ResearcherCreatedEvent,
@@ -208,7 +209,7 @@ export class ResearcherApplicationService {
     }
 
     // Track changes for audit
-    const changes: Array<{ field: string; oldValue: any; newValue: any }> = [];
+    const changes: AuditChange[] = [];
 
     // Update Person entity for profile changes
     if (updates.firstName !== undefined || updates.lastName !== undefined ||

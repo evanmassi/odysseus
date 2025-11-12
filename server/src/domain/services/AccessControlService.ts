@@ -2,6 +2,7 @@ import { User } from '@domain/entities/User';
 import { Tube } from '@domain/entities/Tube';
 import { Researcher } from '@domain/entities/Researcher';
 import { Configuration } from '@domain/entities/Configuration';
+import { Location } from '@domain/valueObjects/Location';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -109,7 +110,7 @@ export class AccessControlService {
   /**
    * Check if user can move tube to a different location
    */
-  async canMoveTube(user: User, tube: Tube, newLocation: any): Promise<AccessResult> {
+  async canMoveTube(user: User, tube: Tube, newLocation: Location): Promise<AccessResult> {
     // First check if user can edit the tube
     const editCheck = await this.canEditTube(user, tube);
     if (!editCheck.allowed) {

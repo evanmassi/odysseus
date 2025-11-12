@@ -8,6 +8,93 @@
 import type { AuditLogEntry } from '@odysseus/shared-schemas';
 
 /**
+ * Type Definitions for Parsed Audit Log Details
+ */
+
+/**
+ * Represents a single change record in audit logs
+ */
+interface AuditChangeRecord {
+  field: string;
+  oldValue: unknown;
+  newValue: unknown;
+}
+
+/**
+ * Type guard to validate if an unknown value is an AuditChangeRecord
+ */
+function isAuditChangeRecord(value: unknown): value is AuditChangeRecord {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'field' in value &&
+    typeof (value as Record<string, unknown>)['field'] === 'string' &&
+    'oldValue' in value &&
+    'newValue' in value
+  );
+}
+
+/**
+ * Type guard to check if parsed details has a changes array
+ */
+function hasChangesArray(details: unknown): details is { changes: unknown[] } & Record<string, unknown> {
+  return (
+    typeof details === 'object' &&
+    details !== null &&
+    'changes' in details &&
+    Array.isArray((details as Record<string, unknown>)['changes'])
+  );
+}
+
+/**
+ * Safely parse audit log details JSON string
+ * Returns an object or empty object on parse failure
+ */
+function parseAuditDetailsJson(detailsJson: string): Record<string, unknown> {
+  try {
+    const parsed: unknown = JSON.parse(detailsJson);
+    if (typeof parsed === 'object' && parsed !== null) {
+      return parsed as Record<string, unknown>;
+    }
+    return {};
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Safely get a string property from details object
+ */
+function getStringProperty(details: Record<string, unknown>, key: string): string {
+  const value = details[key];
+  return typeof value === 'string' ? value : '';
+}
+
+/**
+ * Safely get a number property from details object
+ */
+function getNumberProperty(details: Record<string, unknown>, key: string): number {
+  const value = details[key];
+  return typeof value === 'number' ? value : 0;
+}
+
+/**
+ * Find a change record by field name from a validated changes array
+ */
+function findChangeByField(
+  details: Record<string, unknown>,
+  fieldName: string
+): AuditChangeRecord | undefined {
+  if (!hasChangesArray(details)) {
+    return undefined;
+  }
+
+  return details.changes
+    .filter(isAuditChangeRecord)
+    .find((change) => change.field === fieldName);
+}
+
+/**
  * Format audit log entry details for display
  *
  * Parses the JSON details field and formats it based on entity type and action.
@@ -18,49 +105,54 @@ import type { AuditLogEntry } from '@odysseus/shared-schemas';
  */
 export function formatAuditDetails(entry: AuditLogEntry): string {
   try {
-    const details = JSON.parse(entry.details);
+    const details = parseAuditDetailsJson(entry.details);
     const action = entry.action;
     const entityType = entry.entityType;
 
     // TUBES: Show location or bulk update count
     if (entityType === 'tube') {
-      if (action === 'tube_bulk_updated' && details.count) {
-        return `${details.count} tube${details.count !== 1 ? 's' : ''} updated`;
+      if (action === 'tube_bulk_updated') {
+        const count = getNumberProperty(details, 'count');
+        if (count > 0) {
+          return `${count} tube${count !== 1 ? 's' : ''} updated`;
+        }
       }
-      if (details.displayLocation) return details.displayLocation;
-      if (details.location) return details.location;
+      const displayLocation = getStringProperty(details, 'displayLocation');
+      if (displayLocation) return displayLocation;
+      const location = getStringProperty(details, 'location');
+      if (location) return location;
       return '-';
     }
 
     // TANK EVENTS
     if (entityType === 'tank') {
       if (action === 'tank_created') {
-        const tankName = details.tankName || details.tankId || '';
+        const tankName = getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
         return `Tank '${tankName}'`;
       }
       if (action === 'tank_deleted') {
-        const tankName = details.tankName || details.tankId || '';
+        const tankName = getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
         return `Tank '${tankName}'`;
       }
-      if (action === 'tank_updated' && details.changes) {
-        const nameChange = details.changes.find((c: any) => c.field === 'name');
+      if (action === 'tank_updated') {
+        const nameChange = findChangeByField(details, 'name');
         if (nameChange) {
           return `Tank '${nameChange.oldValue}' renamed to '${nameChange.newValue}'`;
         }
-        const activeChange = details.changes.find((c: any) => c.field === 'isActive');
+        const activeChange = findChangeByField(details, 'isActive');
         if (activeChange) {
-          const tankName = nameChange?.newValue || details.tankId || '';
+          const tankName = getStringProperty(details, 'tankId') || '';
           return `Tank '${tankName}' ${activeChange.newValue ? 'activated' : 'deactivated'}`;
         }
       }
-      const tankName = details.tankId || '';
+      const tankName = getStringProperty(details, 'tankId') || '';
       return `Tank '${tankName}'`;
     }
 
     // RACK EVENTS
     if (entityType === 'rack') {
-      const tankName = details.tankName || details.tankId || '';
-      const rackName = details.rackName || `Rack ${details.rackId}` || '';
+      const tankName = getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
+      const rackName = getStringProperty(details, 'rackName') || `Rack ${getStringProperty(details, 'rackId')}` || '';
       const path = `${tankName}/${rackName}`;
 
       if (action === 'rack_created') {
@@ -69,13 +161,13 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
       if (action === 'rack_deleted') {
         return path;
       }
-      if (action === 'rack_updated' && details.changes) {
-        const nameChange = details.changes.find((c: any) => c.field === 'name');
+      if (action === 'rack_updated') {
+        const nameChange = findChangeByField(details, 'name');
         if (nameChange) {
           const oldPath = `${tankName}/${nameChange.oldValue}`;
           return `${oldPath} renamed to '${nameChange.newValue}'`;
         }
-        const activeChange = details.changes.find((c: any) => c.field === 'isActive');
+        const activeChange = findChangeByField(details, 'isActive');
         if (activeChange) {
           return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
         }
@@ -85,9 +177,9 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
 
     // BOX EVENTS
     if (entityType === 'box') {
-      const tankName = details.tankName || details.tankId || '';
-      const rackName = details.rackName || `Rack ${details.rackId}` || '';
-      const boxName = details.boxName || `Box ${details.boxId}` || '';
+      const tankName = getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
+      const rackName = getStringProperty(details, 'rackName') || `Rack ${getStringProperty(details, 'rackId')}` || '';
+      const boxName = getStringProperty(details, 'boxName') || `Box ${getStringProperty(details, 'boxId')}` || '';
       const path = `${tankName}/${rackName}/${boxName}`;
 
       if (action === 'box_created') {
@@ -96,18 +188,18 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
       if (action === 'box_deleted') {
         return path;
       }
-      if (action === 'box_updated' && details.changes) {
-        const nameChange = details.changes.find((c: any) => c.field === 'name');
+      if (action === 'box_updated') {
+        const nameChange = findChangeByField(details, 'name');
         if (nameChange) {
           const oldPath = `${tankName}/${rackName}/Box ${nameChange.oldValue}`;
           return `${oldPath} renamed to 'Box ${nameChange.newValue}'`;
         }
-        const rowChange = details.changes.find((c: any) => c.field === 'gridConfig.rows');
-        const colChange = details.changes.find((c: any) => c.field === 'gridConfig.cols');
+        const rowChange = findChangeByField(details, 'gridConfig.rows');
+        const colChange = findChangeByField(details, 'gridConfig.cols');
         if (rowChange && colChange) {
           return `${path} resized to ${rowChange.newValue}x${colChange.newValue}`;
         }
-        const activeChange = details.changes.find((c: any) => c.field === 'isActive');
+        const activeChange = findChangeByField(details, 'isActive');
         if (activeChange) {
           return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
         }
@@ -117,42 +209,45 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
 
     // LAB EVENTS
     if (entityType === 'lab') {
-      if (action === 'lab_name_changed' && details.oldName && details.newName) {
-        return `'${details.oldName}' renamed to '${details.newName}'`;
+      const oldName = getStringProperty(details, 'oldName');
+      const newName = getStringProperty(details, 'newName');
+      if (action === 'lab_name_changed' && oldName && newName) {
+        return `'${oldName}' renamed to '${newName}'`;
       }
-      return details.newName || '-';
+      return newName || '-';
     }
 
     // RESEARCHER EVENTS
     if (entityType === 'researcher') {
-      const researcherName = details.researcherName || '-';
-      const createdBy = details.createdBy || '';
-      const updatedBy = details.updatedBy || '';
-      const deactivatedBy = details.deactivatedBy || '';
-      const reactivatedBy = details.reactivatedBy || '';
+      const researcherName = getStringProperty(details, 'researcherName') || '-';
+      const createdBy = getStringProperty(details, 'createdBy');
+      const updatedBy = getStringProperty(details, 'updatedBy');
+      const deactivatedBy = getStringProperty(details, 'deactivatedBy');
+      const reactivatedBy = getStringProperty(details, 'reactivatedBy');
 
       if (action === 'researcher_created') {
-        const emailPart = details.email ? ` (${details.email})` : '';
+        const email = getStringProperty(details, 'email');
+        const emailPart = email ? ` (${email})` : '';
         return `${researcherName}${emailPart} by ${createdBy}`;
       }
-      if (action === 'researcher_updated' && details.changes) {
-        const emailChange = details.changes.find((c: any) => c.field === 'email');
+      if (action === 'researcher_updated') {
+        const emailChange = findChangeByField(details, 'email');
         if (emailChange) {
           return `${researcherName}: Email changed to ${emailChange.newValue} by ${updatedBy}`;
         }
-        const positionChange = details.changes.find((c: any) => c.field === 'position');
+        const positionChange = findChangeByField(details, 'position');
         if (positionChange) {
           return `${researcherName}: Position changed to '${positionChange.newValue}' by ${updatedBy}`;
         }
-        const firstNameChange = details.changes.find((c: any) => c.field === 'firstName');
-        const lastNameChange = details.changes.find((c: any) => c.field === 'lastName');
+        const firstNameChange = findChangeByField(details, 'firstName');
+        const lastNameChange = findChangeByField(details, 'lastName');
         if (firstNameChange || lastNameChange) {
           return `${researcherName}: Name updated by ${updatedBy}`;
         }
         return `${researcherName} updated by ${updatedBy}`;
       }
       if (action === 'researcher_deactivated') {
-        const tubeCount = details.tubesReassignedCount || 0;
+        const tubeCount = getNumberProperty(details, 'tubesReassignedCount');
         const tubeText = tubeCount > 0 ? ` (${tubeCount} tubes reassigned to Unknown)` : '';
         return `${researcherName}${tubeText} by ${deactivatedBy}`;
       }
@@ -164,15 +259,15 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
 
     // USER EVENTS
     if (entityType === 'user') {
-      const username = details.username || '-';
-      const changedBy = details.changedBy || '';
-      const linkedBy = details.linkedBy || '';
-      const unlinkedBy = details.unlinkedBy || '';
-      const deletedBy = details.deletedBy || '';
+      const username = getStringProperty(details, 'username') || '-';
+      const changedBy = getStringProperty(details, 'changedBy');
+      const linkedBy = getStringProperty(details, 'linkedBy');
+      const unlinkedBy = getStringProperty(details, 'unlinkedBy');
+      const deletedBy = getStringProperty(details, 'deletedBy');
 
       if (action === 'user_created') {
-        const role = details.role || 'user';
-        const isFirstUser = details.username && username === details.username && !changedBy;
+        const role = getStringProperty(details, 'role') || 'user';
+        const isFirstUser = username !== '-' && !changedBy;
         return isFirstUser ? `${username} (Role: ${role}) - First user setup` : `${username} (Role: ${role})`;
       }
       if (action === 'user_logged_in') {
@@ -182,18 +277,18 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
         return username;
       }
       if (action === 'user_role_changed') {
-        const newRole = details.newRole || '';
+        const newRole = getStringProperty(details, 'newRole');
         return `Role changed to ${newRole}`;
       }
       if (action === 'user_password_changed') {
         return 'Password changed';
       }
       if (action === 'user_linked_to_researcher') {
-        const researcherName = details.researcherName || '';
+        const researcherName = getStringProperty(details, 'researcherName');
         return `${username} linked to researcher ${researcherName} by ${linkedBy}`;
       }
       if (action === 'user_unlinked_from_researcher') {
-        const researcherName = details.researcherName || '';
+        const researcherName = getStringProperty(details, 'researcherName');
         return `${username} unlinked from researcher ${researcherName} by ${unlinkedBy}`;
       }
       if (action === 'user_deleted') {

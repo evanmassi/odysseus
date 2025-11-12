@@ -10,12 +10,14 @@ import { useCallback, useMemo } from 'react';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
 import type { TubeData } from '@shared/types/tubeTypes';
+import type { TubeFieldTypeMap, ValidFieldPath, ValidFieldValue } from '@app/types/fieldTypeMapping';
+import { hasValue as hasValueGuard, isObject } from '@app/types/fieldTypeMapping';
 
 /**
  * Two-state conflict analysis result
  * Treats empty as a distinct value - empty vs filled = conflict
  */
-export interface FieldConflictAnalysis<T = any> {
+export interface FieldConflictAnalysis<T extends ValidFieldValue = ValidFieldValue> {
   /** State of the field across selected items */
   state: 'common' | 'conflict';
 
@@ -42,53 +44,67 @@ export interface FieldConflictAnalysis<T = any> {
 }
 
 /**
- * Simple field resolver interface
+ * Simple field resolver interface with method overloads for type safety
  */
 export interface SimpleFieldResolver {
-  /** Get a field value from tube data using dot notation */
-  getTubeValue: <T = any>(tube: TubeData, fieldPath: string) => T | undefined;
+  /** Get a field value from tube data using dot notation (type-safe overload) */
+  getTubeValue<K extends ValidFieldPath>(tube: TubeData, fieldPath: K): TubeFieldTypeMap[K];
+  /** Get a field value from tube data using dot notation (flexible overload) */
+  getTubeValue<T extends ValidFieldValue = ValidFieldValue>(tube: TubeData, fieldPath: string): T | undefined;
 
-  /** Get field values from multiple tubes */
-  getTubeValues: <T = any>(tubes: TubeData[], fieldPath: string) => (T | undefined)[];
+  /** Get field values from multiple tubes (type-safe overload) */
+  getTubeValues<K extends ValidFieldPath>(tubes: TubeData[], fieldPath: K): TubeFieldTypeMap[K][];
+  /** Get field values from multiple tubes (flexible overload) */
+  getTubeValues<T extends ValidFieldValue = ValidFieldValue>(tubes: TubeData[], fieldPath: string): (T | undefined)[];
 
   /** Check if a tube has a meaningful value for a field */
   tubeHasValue: (tube: TubeData, fieldPath: string) => boolean;
 
-  /** Get unique values for a field across all tubes */
-  getUniqueTubeValues: <T = any>(tubes: TubeData[], fieldPath: string) => T[];
+  /** Get unique values for a field across all tubes (type-safe overload) */
+  getUniqueTubeValues<K extends ValidFieldPath>(tubes: TubeData[], fieldPath: K): NonNullable<TubeFieldTypeMap[K]>[];
+  /** Get unique values for a field across all tubes (flexible overload) */
+  getUniqueTubeValues<T extends ValidFieldValue = ValidFieldValue>(tubes: TubeData[], fieldPath: string): T[];
 
-  /** Find tubes where field has specific value */
-  findTubesByFieldValue: <T = any>(tubes: TubeData[], fieldPath: string, value: T) => TubeData[];
+  /** Find tubes where field has specific value (type-safe overload) */
+  findTubesByFieldValue<K extends ValidFieldPath>(tubes: TubeData[], fieldPath: K, value: TubeFieldTypeMap[K]): TubeData[];
+  /** Find tubes where field has specific value (flexible overload) */
+  findTubesByFieldValue<T extends ValidFieldValue = ValidFieldValue>(tubes: TubeData[], fieldPath: string, value: T): TubeData[];
 
   /** Analyze field conflicts in selected tubes using three-state model */
-  analyzeFieldConflicts: <T = any>(tubes: TubeData[], fieldPath: string) => FieldConflictAnalysis<T>;
+  analyzeFieldConflicts<T extends ValidFieldValue = ValidFieldValue>(tubes: TubeData[], fieldPath: string): FieldConflictAnalysis<T>;
 }
 
 /**
  * Get nested property value using dot notation
  */
-function getNestedValue(obj: any, path: string): any {
-  if (!obj || !path) return undefined;
-  
-  return path.split('.').reduce((current, key) => {
-    return current && typeof current === 'object' ? current[key] : undefined;
+function getNestedValue(obj: unknown, path: string): unknown {
+  if (!isObject(obj) || !path) return undefined;
+
+  return path.split('.').reduce<unknown>((current, key) => {
+    if (isObject(current) && key in current) {
+      return current[key];
+    }
+    return undefined;
   }, obj);
 }
 
 /**
- * Check if a value is meaningful (not null, undefined, or empty string)
+ * Local wrapper for hasValue type guard (maintains backward compatibility)
  */
-function hasValue(value: any): boolean {
-  return value !== undefined && value !== null && value !== '';
+function hasValue(value: unknown): boolean {
+  return hasValueGuard(value);
 }
 
 /**
  * Hook providing simple field resolution for new Zod-based data structures
  */
 export function useSimpleFieldResolver(): SimpleFieldResolver {
-  const getTubeValue = useCallback(<T = any>(tube: TubeData, fieldPath: string): T | undefined => {
+  const getTubeValue = useCallback(<T extends ValidFieldValue = ValidFieldValue>(
+    tube: TubeData,
+    fieldPath: string
+  ): T | undefined => {
     try {
-      return getNestedValue(tube, fieldPath) as T;
+      return getNestedValue(tube, fieldPath) as T | undefined;
     } catch (error) {
       // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn(`Failed to get tube value for field '${fieldPath}':`, error);
@@ -96,7 +112,10 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
     }
   }, []);
 
-  const getTubeValues = useCallback(<T = any>(tubes: TubeData[], fieldPath: string): (T | undefined)[] => {
+  const getTubeValues = useCallback(<T extends ValidFieldValue = ValidFieldValue>(
+    tubes: TubeData[],
+    fieldPath: string
+  ): (T | undefined)[] => {
     return tubes.map(tube => getTubeValue<T>(tube, fieldPath));
   }, [getTubeValue]);
 
@@ -105,20 +124,23 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
     return hasValue(value);
   }, [getTubeValue]);
 
-  const getUniqueTubeValues = useCallback(<T = any>(tubes: TubeData[], fieldPath: string): T[] => {
+  const getUniqueTubeValues = useCallback(<T extends ValidFieldValue = ValidFieldValue>(
+    tubes: TubeData[],
+    fieldPath: string
+  ): T[] => {
     const allValues = getTubeValues<T>(tubes, fieldPath);
-    const filteredValues = allValues.filter((value): value is T => 
+    const filteredValues = allValues.filter((value): value is T =>
       value !== undefined && value !== null && value !== ''
     );
-    const uniqueValues = filteredValues.filter((value, index, array) => 
+    const uniqueValues = filteredValues.filter((value, index, array) =>
       array.indexOf(value) === index
     );
     return uniqueValues;
   }, [getTubeValues]);
 
-  const findTubesByFieldValue = useCallback(<T = any>(
-    tubes: TubeData[], 
-    fieldPath: string, 
+  const findTubesByFieldValue = useCallback(<T extends ValidFieldValue = ValidFieldValue>(
+    tubes: TubeData[],
+    fieldPath: string,
     value: T
   ): TubeData[] => {
     return tubes.filter(tube => {
@@ -127,7 +149,7 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
     });
   }, [getTubeValue]);
 
-  const analyzeFieldConflicts = useCallback(<T = any>(
+  const analyzeFieldConflicts = useCallback(<T extends ValidFieldValue = ValidFieldValue>(
     tubes: TubeData[],
     fieldPath: string
   ): FieldConflictAnalysis<T> => {
@@ -159,7 +181,7 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
     if (isDateField) {
       // Normalize all dates to YYYY-MM-DD strings for comparison
       normalizedValues = allValues.map(v =>
-        hasValue(v) ? (normalizeDateString(v as any) as T) : undefined
+        hasValue(v) ? (normalizeDateString(v as unknown) as T) : undefined
       );
     } else {
       // Use raw values for non-date fields
@@ -252,8 +274,8 @@ export type TubeFieldPath = typeof TUBE_FIELD_PATHS[keyof typeof TUBE_FIELD_PATH
  * Type-safe tube field resolver
  */
 export interface TypeSafeTubeResolver {
-  getValue<K extends keyof typeof TUBE_FIELD_PATHS>(tube: TubeData, field: K): any;
-  getValues<K extends keyof typeof TUBE_FIELD_PATHS>(tubes: TubeData[], field: K): any[];
+  getValue<K extends keyof typeof TUBE_FIELD_PATHS>(tube: TubeData, field: K): ValidFieldValue | undefined;
+  getValues<K extends keyof typeof TUBE_FIELD_PATHS>(tubes: TubeData[], field: K): (ValidFieldValue | undefined)[];
   hasValue<K extends keyof typeof TUBE_FIELD_PATHS>(tube: TubeData, field: K): boolean;
 }
 

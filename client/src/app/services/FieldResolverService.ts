@@ -2,10 +2,12 @@
  * Field Resolver Service - Moved from application layer
  */
 
-// Import the authoritative FieldResolverHook interface from hooks layer
+import type { TubeData } from '@odysseus/shared-schemas';
+
 import type { FieldResolverHook } from '../hooks/useFieldResolver';
 import type { FieldResolutionOptions } from '@domains/tubes/types/FieldResolver';
-
+import type { TubeFieldTypeMap, ValidFieldPath, ValidFieldValue } from '@app/types/fieldTypeMapping';
+import { hasValue, isObject } from '@app/types/fieldTypeMapping';
 
 export interface PerformanceMetrics {
   totalResolutions: number;
@@ -16,26 +18,56 @@ export interface PerformanceMetrics {
 }
 
 export class FieldResolverService {
-  static resolveField(tube: any, fieldKey: string, options?: FieldResolutionOptions): any {
-    // Simple field resolution for legacy compatibility
-    if (!tube) return undefined;
-    
-    // Handle nested field access (e.g., 'location.tankId')
+  /**
+   * Resolve field value from tube data
+   *
+   * Overload 1: Type-safe access with known field paths
+   */
+  static resolveField<K extends ValidFieldPath>(
+    tube: TubeData,
+    fieldKey: K,
+    options?: FieldResolutionOptions
+  ): TubeFieldTypeMap[K];
+
+  /**
+   * Resolve field value from tube data
+   *
+   * Overload 2: Flexible access with dynamic field paths
+   */
+  static resolveField<T extends ValidFieldValue = ValidFieldValue>(
+    tube: TubeData,
+    fieldKey: string,
+    options?: FieldResolutionOptions
+  ): T | undefined;
+
+  /**
+   * Resolve field value from tube data (implementation)
+   */
+  static resolveField(
+    tube: unknown,
+    fieldKey: string,
+    options?: FieldResolutionOptions
+  ): unknown {
+    if (!isObject(tube)) return undefined;
+
     const keys = fieldKey.split('.');
-    let value = tube;
-    
+    let value: unknown = tube;
+
     for (const key of keys) {
-      if (value && typeof value === 'object' && key in value) {
+      if (isObject(value) && key in value) {
         value = value[key];
       } else {
         return options?.defaultValue;
       }
     }
-    
+
     return value;
   }
 
-  static formatValue(value: any, _fieldKey: string): string {
+  /**
+   * Format field value for display
+   */
+  static formatValue(value: unknown, _fieldKey: string): string {
     if (value === null || value === undefined) return '';
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (typeof value === 'number') return value.toString();
@@ -43,41 +75,49 @@ export class FieldResolverService {
     return String(value);
   }
 
-  static validateValue(value: any, _fieldKey: string): boolean {
-    // Basic validation - can be enhanced based on fieldKey
-    return value !== null && value !== undefined && value !== '';
+  /**
+   * Validate field value
+   */
+  static validateValue(value: unknown, _fieldKey: string): boolean {
+    return hasValue(value);
   }
 
   getFieldResolver(): FieldResolverHook {
     return {
-      getValue: <T = any>(tube: any, fieldKey: string, options?: FieldResolutionOptions) => 
-        FieldResolverService.resolveField(tube, fieldKey, options) as T,
-      
-      getValues: <T = any>(tubes: any[], fieldKey: string, options?: FieldResolutionOptions) => 
-        tubes.map(tube => FieldResolverService.resolveField(tube, fieldKey, options) as T),
-      
-      hasValue: (tube: any, fieldKey: string) => {
+      getValue: <T extends ValidFieldValue = ValidFieldValue>(
+        tube: TubeData,
+        fieldKey: string,
+        options?: FieldResolutionOptions
+      ) => FieldResolverService.resolveField(tube, fieldKey, options) as T | undefined,
+
+      getValues: <T extends ValidFieldValue = ValidFieldValue>(
+        tubes: TubeData[],
+        fieldKey: string,
+        options?: FieldResolutionOptions
+      ) => tubes.map(tube => FieldResolverService.resolveField(tube, fieldKey, options) as T | undefined),
+
+      hasValue: (tube: TubeData, fieldKey: string) => {
         const value = FieldResolverService.resolveField(tube, fieldKey);
-        return value !== undefined && value !== null && value !== '';
+        return hasValue(value);
       },
-      
-      resolveField: <T = any>(tube: any, fieldKey: string) => ({
-        value: FieldResolverService.resolveField(tube, fieldKey) as T,
+
+      resolveField: <T extends ValidFieldValue = ValidFieldValue>(tube: TubeData, fieldKey: string) => ({
+        value: FieldResolverService.resolveField(tube, fieldKey) as T | undefined,
         resolved: true,
         resolvedPath: fieldKey,
         exists: true
       }),
-      
+
       getFieldPath: (_fieldKey: string) => _fieldKey,
-      
+
       isValidField: (_fieldKey: string) => true,
-      
+
       getAvailableFields: () => [],
-      
+
       validateConfiguration: () => {},
-      
-      resolver: null as any,
-      
+
+      resolver: null,
+
       metrics: {
         totalResolutions: 0,
         averageResolutionTime: 0,

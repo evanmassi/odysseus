@@ -5,6 +5,7 @@
 import { initializeApp, App } from 'firebase-admin/app';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
 import { getAuth, Auth } from 'firebase-admin/auth';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 import { applicationDefault } from 'firebase-admin/app';
 import { logger } from '../../utils/logger';
 
@@ -212,7 +213,7 @@ class FirebaseService {
   /**
    * Verify a user's Firebase token
    */
-  public async verifyUserToken(token: string): Promise<any> {
+  public async verifyUserToken(token: string): Promise<DecodedIdToken> {
     if (!this.auth) {
       throw new Error('Firebase Auth not initialized');
     }

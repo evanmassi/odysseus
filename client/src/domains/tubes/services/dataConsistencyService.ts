@@ -3,6 +3,8 @@ import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { queryKeys } from '@app/queryKeys';
 import { useStorageStore } from '@domains/storage';
 
+import type { TubeData } from '@shared/types/tubeTypes';
+import type { TankConfiguration } from '@odysseus/shared-schemas';
 import type { useQueryClient } from '@tanstack/react-query';
 
 /**
@@ -32,7 +34,7 @@ export class DataConsistencyService {
       
       // If we have tube data, use the tank ID from the actual data
       if (Array.isArray(tubes) && tubes.length > 0) {
-        const actualTankIds = [...new Set(tubes.map((t: any) => t.location?.tankId || t.tankId).filter(Boolean))];
+        const actualTankIds = [...new Set(tubes.map((t: TubeData) => t.location?.tankId).filter(Boolean))];
         if (actualTankIds.length > 0) {
           const authoritative = actualTankIds[0]; // Use first real tank ID
           // eslint-disable-next-line no-console -- Info logging for operational visibility
@@ -91,7 +93,7 @@ export class DataConsistencyService {
   /**
    * Force update tank ID directly in the configuration store
    */
-  private forceUpdateTankId(oldTank: any, newTankId: string): void {
+  private forceUpdateTankId(oldTank: TankConfiguration, newTankId: string): void {
     const configStore = useStorageStore.getState();
     
     try {

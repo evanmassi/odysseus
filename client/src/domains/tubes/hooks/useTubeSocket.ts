@@ -19,8 +19,12 @@ import { queryKeys } from '@app/queryKeys';
 import type { TubeData } from '@domains/tubes/types';
 import type { Socket } from 'socket.io-client';
 
-
-
+// Extend Window interface for Odysseus socket storage
+declare global {
+  interface Window {
+    __odysseusSocket?: Socket;
+  }
+}
 
 /**
  * Socket connection manager hook
@@ -275,8 +279,8 @@ export const useTubeSocket = () => {
     });
 
     // Store socket in a way that can be accessed for cleanup
-    (window as any).__odysseusSocket = socket;
-    
+    window.__odysseusSocket = socket;
+
     return socket;
   }, [queryClient]);
 
@@ -284,17 +288,17 @@ export const useTubeSocket = () => {
   const disconnectSocket = useCallback(() => {
     // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🔌 [Socket] Disconnecting socket');
-    
-    const socket = (window as any).__odysseusSocket as Socket;
+
+    const socket = window.__odysseusSocket;
     if (socket) {
       socket.disconnect();
-      delete (window as any).__odysseusSocket;
+      delete window.__odysseusSocket;
     }
   }, []);
 
   // Get current socket
   const getSocket = useCallback(() => {
-    return (window as any).__odysseusSocket as Socket | null;
+    return window.__odysseusSocket ?? null;
   }, []);
 
   // Get connection status
@@ -336,13 +340,13 @@ export const useAutoSocket = () => {
 
 /**
  * Socket-aware query hook
- * 
+ *
  * Provides real-time data with socket integration
  */
 export const useRealtimeTubes = (
   filters: {
     tankId?: string;
-    rackId?: number;
+    rackId?: string;  // Match TubeQueryFilters type
     boxId?: string;
   } = {}
 ) => {

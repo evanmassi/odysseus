@@ -13,11 +13,13 @@
 
 import { env } from '@shared/config';
 
+import type { User } from '@domains/authentication/types';
+import type { SessionDebugInfo } from '@domains/authentication/types/debug';
 import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
-import type { 
-  TokenPair, 
-  SessionStatus, 
-  SessionConfig, 
+import type {
+  TokenPair,
+  SessionStatus,
+  SessionConfig,
   SessionManagerState,
   TokenValidation,
   SessionStorage,
@@ -413,9 +415,9 @@ export class SessionManager implements TokenProvider {
   /**
    * Development-only debugging information
    */
-  getDebugInfo(): any {
+  getDebugInfo(): SessionDebugInfo | { status: string } {
     if (!env.isDev()) {
-      return null;
+      return { status: 'Production mode - debug info disabled' };
     }
 
     const tokens = this.storage.getTokens();
@@ -425,7 +427,7 @@ export class SessionManager implements TokenProvider {
 
     const validation = this.validateTokens(tokens);
     const timeUntilExpiry = Math.floor(validation.expiresIn / 60000);
-    const timeUntilRefresh = this.state.nextRefreshTime 
+    const timeUntilRefresh = this.state.nextRefreshTime
       ? Math.floor((this.state.nextRefreshTime.getTime() - Date.now()) / 60000)
       : null;
 
@@ -477,7 +479,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
     localStorage.removeItem(this.TOKENS_KEY);
   }
 
-  getUser(): any | null {
+  getUser(): User | null {
     try {
       const stored = localStorage.getItem(this.USER_KEY);
       return stored ? JSON.parse(stored) : null;
@@ -488,7 +490,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
     }
   }
 
-  setUser(user: any): void {
+  setUser(user: User): void {
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
   }
 

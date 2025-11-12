@@ -7,6 +7,7 @@
 
 import { httpClient } from '@infra/api/httpClient';
 
+import type { RetentionMetrics, RetentionPolicy } from '../types/metrics';
 import type {
   AdminUser,
   AdminResearcher,
@@ -242,11 +243,11 @@ export class AdminService {
   /**
    * Get unlinked researchers (not associated with any user)
    */
-  async getUnlinkedResearchers(): Promise<{ success: boolean; researchers: any[] }> {
+  async getUnlinkedResearchers(): Promise<{ success: boolean; researchers: AdminResearcher[] }> {
     try {
       const response = await httpClient.get<{
         success: boolean;
-        data: { researchers: any[] };
+        data: { researchers: AdminResearcher[] };
       }>('/admin/researchers/unlinked');
 
       return {
@@ -283,11 +284,11 @@ export class AdminService {
   /**
    * Create standalone researcher (no user link)
    */
-  async createResearcher(data: { firstName: string; lastName: string; email: string; position?: string; department?: string }): Promise<{ success: boolean; researcher: any }> {
+  async createResearcher(data: { firstName: string; lastName: string; email: string; position?: string; department?: string }): Promise<{ success: boolean; researcher: AdminResearcher }> {
     try {
       const response = await httpClient.post<{
         success: boolean;
-        data: any;
+        data: AdminResearcher;
       }>('/researchers', data);
 
       return {
@@ -586,7 +587,7 @@ export class AdminService {
       const response = await httpClient.get<{
         success: boolean;
         data: {
-          metrics: any;
+          metrics: RetentionMetrics;
         };
         meta?: { timing: number };
       }>('/admin/audit/retention/metrics');
@@ -619,7 +620,7 @@ export class AdminService {
       const response = await httpClient.get<{
         success: boolean;
         data: {
-          policy: any;
+          policy: RetentionPolicy;
         };
         meta?: { timing: number };
       }>('/admin/audit/retention/policy');
