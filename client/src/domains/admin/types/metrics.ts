@@ -5,24 +5,31 @@
  */
 
 /**
- * Retention metrics for data lifecycle management
+ * Retention metrics for audit log lifecycle management
  */
 export interface RetentionMetrics {
-  totalTubes: number;
-  tubesMarkedForDeletion: number;
-  tubesReadyForDeletion: number;
-  oldestTube: string | null;
-  averageAge: number;
+  activeTable: {
+    count: number;
+    oldestEntry: Date | null;
+    newestEntry: Date | null;
+    retentionDays: number;
+  };
+  archiveTable: {
+    count: number;
+    oldestEntry: Date | null;
+    retentionDays: number;
+  };
+  nextArchivalDate: Date | null;
+  performanceWarning: boolean;
 }
 
 /**
- * Retention policy configuration
+ * Retention policy configuration for audit logs
  */
 export interface RetentionPolicy {
-  enabled: boolean;
-  retentionDays: number;
-  gracePeriodDays: number;
-  autoDelete: boolean;
-  lastModified: string;
-  modifiedBy: string;
+  activeRetentionDays: number;
+  totalRetentionDays: number;
+  archiveRetentionDays: number;
+  enableAutoArchival: boolean;
+  activeTableWarningThreshold: number;
 }

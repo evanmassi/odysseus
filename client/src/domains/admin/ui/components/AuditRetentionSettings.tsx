@@ -11,30 +11,7 @@ import React, { useState, useEffect } from 'react';
 import { RefreshCw, Archive, Download, FileClock, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
 
 import { adminService } from '@domains/admin/services/AdminService';
-
-interface RetentionMetrics {
-  activeTable: {
-    count: number;
-    oldestEntry: Date | null;
-    newestEntry: Date | null;
-    retentionDays: number;
-  };
-  archiveTable: {
-    count: number;
-    oldestEntry: Date | null;
-    retentionDays: number;
-  };
-  nextArchivalDate: Date | null;
-  performanceWarning: boolean;
-}
-
-interface RetentionPolicy {
-  activeRetentionDays: number;
-  totalRetentionDays: number;
-  archiveRetentionDays: number;
-  enableAutoArchival: boolean;
-  activeTableWarningThreshold: number;
-}
+import type { RetentionMetrics, RetentionPolicy } from '@domains/admin/types/metrics';
 
 interface AuditRetentionSettingsProps {
   /** Start in collapsed mode */

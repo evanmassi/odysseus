@@ -180,9 +180,15 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
 
     if (isDateField) {
       // Normalize all dates to YYYY-MM-DD strings for comparison
-      normalizedValues = allValues.map(v =>
-        hasValue(v) ? (normalizeDateString(v as unknown) as T) : undefined
-      );
+      normalizedValues = allValues.map(v => {
+        if (!hasValue(v)) return undefined;
+        // Type guard: ensure value is string, Date, or null/undefined for date normalization
+        if (typeof v === 'string' || v instanceof Date || v === null || v === undefined) {
+          return normalizeDateString(v) as T;
+        }
+        // If value is not a valid date type, return undefined
+        return undefined;
+      });
     } else {
       // Use raw values for non-date fields
       normalizedValues = allValues.map(v => hasValue(v) ? v : undefined);

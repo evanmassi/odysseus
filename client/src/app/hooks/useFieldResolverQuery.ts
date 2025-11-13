@@ -17,6 +17,7 @@ import { useTubesQuery } from '@domains/tubes/hooks/useTubesQuery';
 
 import { useSimpleFieldResolver, type SimpleFieldResolver } from './useSimpleFieldResolver';
 
+import type { ValidFieldValue } from '@app/types/fieldTypeMapping';
 import type { Researcher } from '@odysseus/shared-schemas';
 import type { TubeData } from '@shared/types/tubeTypes';
 
@@ -32,13 +33,13 @@ export interface UseFieldResolverQueryResult extends SimpleFieldResolver {
     error: Error | null;
     refetch: () => void;
     /** Get field values from all tubes */
-    getFieldValues: <T>(fieldPath: string) => T[];
+    getFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string) => T[];
     /** Find tubes where field has specific value */
-    findByFieldValue: <T>(fieldPath: string, value: T) => TubeData[];
+    findByFieldValue: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string, value: T) => TubeData[];
     /** Get unique values for a field across all tubes */
-    getUniqueFieldValues: <T>(fieldPath: string) => T[];
+    getUniqueFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string) => T[];
     /** Analyze conflicts in selected tubes */
-    analyzeConflicts: <T>(selectedTubes: TubeData[], fieldPath: string) => {
+    analyzeConflicts: <T extends ValidFieldValue = ValidFieldValue>(selectedTubes: TubeData[], fieldPath: string) => {
       hasConflict: boolean;
       values: (T | undefined)[];
       commonValue: T | undefined;
@@ -111,19 +112,19 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
       error: tubesQuery.error,
       refetch: tubesQuery.refetch,
 
-      getFieldValues: <T>(fieldPath: string): T[] => {
+      getFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
         return fieldResolver.getTubeValues<T>(tubes, fieldPath).filter(v => v !== undefined) as T[];
       },
 
-      findByFieldValue: <T>(fieldPath: string, value: T): TubeData[] => {
+      findByFieldValue: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string, value: T): TubeData[] => {
         return fieldResolver.findTubesByFieldValue(tubes, fieldPath, value);
       },
 
-      getUniqueFieldValues: <T>(fieldPath: string): T[] => {
+      getUniqueFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
         return fieldResolver.getUniqueTubeValues<T>(tubes, fieldPath);
       },
 
-      analyzeConflicts: <T>(selectedTubes: TubeData[], fieldPath: string) => {
+      analyzeConflicts: <T extends ValidFieldValue = ValidFieldValue>(selectedTubes: TubeData[], fieldPath: string) => {
         return fieldResolver.analyzeFieldConflicts<T>(selectedTubes, fieldPath);
       },
 
@@ -205,20 +206,20 @@ export function useFieldResolverTubes() {
       hasValue: fieldResolver.tubeHasValue,
       
       // Field-based utilities
-      getFieldValues: <T>(fieldPath: string): T[] => {
+      getFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
         return fieldResolver.getTubeValues<T>(tubes, fieldPath).filter(v => v !== undefined) as T[];
       },
 
-      findByFieldValue: <T>(fieldPath: string, value: T): TubeData[] => {
+      findByFieldValue: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string, value: T): TubeData[] => {
         return fieldResolver.findTubesByFieldValue(tubes, fieldPath, value);
       },
 
-      getUniqueFieldValues: <T>(fieldPath: string): T[] => {
+      getUniqueFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
         return fieldResolver.getUniqueTubeValues<T>(tubes, fieldPath);
       },
 
       // Conflict analysis for TubeInfoPanel
-      analyzeFieldConflicts: <T>(selectedTubes: TubeData[], fieldPath: string) => {
+      analyzeFieldConflicts: <T extends ValidFieldValue = ValidFieldValue>(selectedTubes: TubeData[], fieldPath: string) => {
         return fieldResolver.analyzeFieldConflicts<T>(selectedTubes, fieldPath);
       }
     };

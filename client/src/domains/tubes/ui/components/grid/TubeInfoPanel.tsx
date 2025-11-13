@@ -157,7 +157,15 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
     }
     // For multiple tubes, check if all have same value
     const analysis = analyzeFieldConflicts(selectedTubes, path);
-    return analysis.hasConflict ? undefined : analysis.commonValue;
+    if (analysis.hasConflict) return undefined;
+
+    // Type guard: Filter out non-display types (boolean, Date, complex objects)
+    const value = analysis.commonValue;
+    if (typeof value === 'string' || typeof value === 'number' || value === null || value === undefined) {
+      return value;
+    }
+    // For Date or complex types, return undefined (not displayable as primitive)
+    return undefined;
   };
 
   // Format values for display

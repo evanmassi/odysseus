@@ -82,7 +82,7 @@ function isDateField(key: string, typeName?: string): boolean {
 }
 
 // Only transform strings and numbers to dates, preserving booleans/arrays/objects
-function isValidDateValue(value: any): boolean {
+function isValidDateValue(value: unknown): boolean {
   // Only strings and numbers can be transformed to dates
   // Explicitly exclude booleans, null, objects, arrays
   return (typeof value === 'string' || typeof value === 'number') && value !== null;
@@ -92,46 +92,46 @@ function isValidDateValue(value: any): boolean {
  * Safe date parsing with validation
  * Handles multiple date formats from different APIs
  */
-function parseDate(value: any): Date | null {
+function parseDate(value: unknown): Date | null {
   if (!value) return null;
-  
+
   // Already a Date object
   if (value instanceof Date) return value;
-  
+
   // Parse string/number to Date
   if (typeof value === 'string' || typeof value === 'number') {
     const parsed = new Date(value);
-    
+
     // Validate parsed date
     if (isNaN(parsed.getTime())) {
       // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn(`[API TRANSFORMER] Invalid date value: ${value}`);
       return null;
     }
-    
+
     return parsed;
   }
-  
+
   // eslint-disable-next-line no-console -- Warning logging for production monitoring
   console.warn(`[API TRANSFORMER] Unparseable date type: ${typeof value}, value:`, value);
   return null;
 }
 
 // Deep transform with date field conversion, recursively handling nested objects and arrays
-function transformObject(obj: any, typeName?: string): any {
+function transformObject(obj: unknown, typeName?: string): unknown {
   if (obj === null || obj === undefined) return obj;
-  
+
   // Handle arrays
   if (Array.isArray(obj)) {
     return obj.map(item => transformObject(item, typeName));
   }
-  
+
   // Handle primitive types - PRESERVE EXACTLY AS-IS
   if (typeof obj !== 'object') return obj;
-  
+
   // Transform object properties
-  const transformed: any = {};
-  
+  const transformed: Record<string, unknown> = {};
+
   for (const [key, value] of Object.entries(obj)) {
     // Only transform if it's a date field AND a string/number
     if (isDateField(key, typeName) && isValidDateValue(value)) {
@@ -146,7 +146,7 @@ function transformObject(obj: any, typeName?: string): any {
       transformed[key] = value;
     }
   }
-  
+
   return transformed;
 }
 
@@ -156,8 +156,12 @@ function transformObject(obj: any, typeName?: string): any {
  * @param response - Raw API response data
  * @param typeName - Optional type hint for explicit field mapping
  * @returns Transformed response with proper Date objects
+ *
+ * Note: Generic default is `any` for backward compatibility with existing code.
+ * Callers should provide explicit type parameter for type safety.
  */
-export function transformApiResponse<T = any>(response: any, typeName?: string): T {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Backward compatibility: default generic allows gradual migration to typed calls
+export function transformApiResponse<T = any>(response: unknown, typeName?: string): T {
   const transformed = transformObject(response, typeName);
   return transformed as T;
 }
@@ -167,24 +171,25 @@ export function transformApiResponse<T = any>(response: any, typeName?: string):
  * Provides explicit type safety for critical business objects
  */
 export const ResponseTransformers = {
-  TokenPair: (data: any) => transformApiResponse(data, 'TokenPair'),
-  RefreshResponse: (data: any) => transformApiResponse(data, 'RefreshResponse'),
-  LoginResponse: (data: any) => {
-    const transformed = transformApiResponse(data, 'LoginResponse');
+  TokenPair: (data: unknown) => transformApiResponse(data, 'TokenPair'),
+  RefreshResponse: (data: unknown) => transformApiResponse(data, 'RefreshResponse'),
+  LoginResponse: (data: unknown) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Type assertion needed for nested property access before transformation
+    const transformed = transformApiResponse(data, 'LoginResponse') as any;
     // Ensure nested TokenPair is also transformed
     if (transformed.tokens) {
       transformed.tokens = transformApiResponse(transformed.tokens, 'TokenPair');
     }
     return transformed;
   },
-  User: (data: any) => transformApiResponse(data, 'User'),
-  Person: (data: any) => transformApiResponse(data, 'Person'),
-  ActiveSession: (data: any) => transformApiResponse(data, 'ActiveSession'),
-  TubeData: (data: any) => transformApiResponse(data, 'TubeData'),
-  Researcher: (data: any) => transformApiResponse(data, 'Researcher'),
-  AdminUser: (data: any) => transformApiResponse(data, 'AdminUser'),
-  SystemMetrics: (data: any) => transformApiResponse(data, 'SystemMetrics'),
-  AuditLogEntry: (data: any) => transformApiResponse(data, 'AuditLogEntry')
+  User: (data: unknown) => transformApiResponse(data, 'User'),
+  Person: (data: unknown) => transformApiResponse(data, 'Person'),
+  ActiveSession: (data: unknown) => transformApiResponse(data, 'ActiveSession'),
+  TubeData: (data: unknown) => transformApiResponse(data, 'TubeData'),
+  Researcher: (data: unknown) => transformApiResponse(data, 'Researcher'),
+  AdminUser: (data: unknown) => transformApiResponse(data, 'AdminUser'),
+  SystemMetrics: (data: unknown) => transformApiResponse(data, 'SystemMetrics'),
+  AuditLogEntry: (data: unknown) => transformApiResponse(data, 'AuditLogEntry')
 } as const;
 
 /**
@@ -194,31 +199,31 @@ export const TransformationDebug = {
   /**
    * Log all detected date fields in an object
    */
-  logDateFields(obj: any, typeName?: string): void {
+  logDateFields(obj: unknown, typeName?: string): void {
     if (typeof obj !== 'object' || !obj) return;
 
     const _dateFields = Object.keys(obj).filter(key => isDateField(key, typeName));
   },
-  
+
   /**
    * Test date field detection
    */
   testFieldDetection(fieldName: string, typeName?: string): boolean {
     return isDateField(fieldName, typeName);
   },
-  
+
   /**
    * Validate transformation result
    */
-  validateDates(obj: any): { valid: number; invalid: number; fields: string[] } {
+  validateDates(obj: unknown): { valid: number; invalid: number; fields: string[] } {
     const result = { valid: 0, invalid: 0, fields: [] as string[] };
-    
-    function checkObject(current: any, path = ''): void {
+
+    function checkObject(current: unknown, path = ''): void {
       if (!current || typeof current !== 'object') return;
-      
+
       for (const [key, value] of Object.entries(current)) {
         const fullPath = path ? `${path}.${key}` : key;
-        
+
         if (value instanceof Date) {
           if (isNaN(value.getTime())) {
             result.invalid++;
@@ -232,7 +237,7 @@ export const TransformationDebug = {
         }
       }
     }
-    
+
     checkObject(obj);
     return result;
   }
@@ -242,5 +247,5 @@ export const TransformationDebug = {
  * Export for development debugging
  */
 if (env.isDev()) {
-  (window as any).__ODYSSEUS_API_TRANSFORMER_DEBUG__ = TransformationDebug;
+  (window as Window & { __ODYSSEUS_API_TRANSFORMER_DEBUG__?: typeof TransformationDebug }).__ODYSSEUS_API_TRANSFORMER_DEBUG__ = TransformationDebug;
 }

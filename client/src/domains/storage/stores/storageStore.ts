@@ -601,7 +601,7 @@ export const useStorageStore = create<ConfigurationState>()(
 
           // Check if we have existing racks to migrate
           const equipment = currentLab.equipment as Record<string, unknown>;
-          const existingRacks = hasRacks(equipment) ? equipment.racks : undefined;
+          const existingRacks = hasRacks(equipment) ? equipment['racks'] : undefined;
 
           const tanks = existingRacks ? [
             {
@@ -612,7 +612,7 @@ export const useStorageStore = create<ConfigurationState>()(
               createdAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
               defaultGridConfig: DEFAULT_GRID_CONFIG,
-              racks: existingRacks // Use existing racks
+              racks: existingRacks as any // Type-safe cast: hasRacks already validated structure
             }
           ] : [
             {
@@ -652,7 +652,7 @@ export const useStorageStore = create<ConfigurationState>()(
           // Remove old racks property if it exists
           const updatedEquipment = updatedLab.equipment as Record<string, unknown>;
           if (hasRacks(updatedEquipment)) {
-            delete updatedEquipment.racks;
+            Reflect.deleteProperty(updatedEquipment, 'racks');
           }
 
           // Update in availableLabs (single source of truth)
@@ -682,13 +682,14 @@ export const useStorageStore = create<ConfigurationState>()(
         }
 
         const configObj = config as Record<string, unknown>;
-        const currentLab = configObj.currentLab;
+        const currentLab = configObj['currentLab'];
 
         if (!hasEquipment(currentLab)) {
           return config;
         }
 
         // Check if migration is needed (has racks but no tanks)
+        const equipment = currentLab.equipment as Record<string, unknown>;
         if (hasRacks(currentLab.equipment) && !hasTanks(currentLab.equipment)) {
           // Create a default tank with the existing racks
           const defaultTank = {
@@ -699,12 +700,12 @@ export const useStorageStore = create<ConfigurationState>()(
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             defaultGridConfig: DEFAULT_GRID_CONFIG,
-            racks: currentLab.equipment.racks
+            racks: equipment['racks']
           };
 
           // Update the structure
-          currentLab.equipment.tanks = [defaultTank];
-          delete (currentLab.equipment as Record<string, unknown>).racks;
+          equipment['tanks'] = [defaultTank];
+          delete equipment['racks'];
         }
 
         return config;
@@ -733,49 +734,49 @@ export const useStorageStore = create<ConfigurationState>()(
           const state = persistedState as Record<string, unknown>;
 
           // Migrate all grid configurations in the stored state
-          if (state.currentLab && hasEquipment(state.currentLab)) {
-            const equipment = state.currentLab.equipment;
+          if (state['currentLab'] && hasEquipment(state['currentLab'])) {
+            const equipment = (state['currentLab'] as Record<string, unknown>)['equipment'] as Record<string, unknown>;
 
             if (hasTanks(equipment)) {
-              equipment.tanks = (equipment.tanks as unknown[]).map((tank: unknown) => {
+              equipment['tanks'] = (equipment['tanks'] as unknown[]).map((tank: unknown) => {
                 const tankObj = tank as Record<string, unknown>;
                 return {
                   ...tankObj,
-                  defaultGridConfig: migrateGridConfig(tankObj.defaultGridConfig),
-                  racks: Array.isArray(tankObj.racks)
-                    ? tankObj.racks.map((rack: unknown) => {
+                  defaultGridConfig: migrateGridConfig(tankObj['defaultGridConfig']),
+                  racks: Array.isArray(tankObj['racks'])
+                    ? (tankObj['racks'] as unknown[]).map((rack: unknown) => {
                         const rackObj = rack as Record<string, unknown>;
                         return {
                           ...rackObj,
-                          boxes: Array.isArray(rackObj.boxes)
-                            ? rackObj.boxes.map((box: unknown) => {
+                          boxes: Array.isArray(rackObj['boxes'])
+                            ? (rackObj['boxes'] as unknown[]).map((box: unknown) => {
                                 const boxObj = box as Record<string, unknown>;
                                 return {
                                   ...boxObj,
-                                  gridConfig: migrateGridConfig(boxObj.gridConfig)
+                                  gridConfig: migrateGridConfig(boxObj['gridConfig'])
                                 };
                               })
-                            : rackObj.boxes
+                            : rackObj['boxes']
                         };
                       })
-                    : tankObj.racks
+                    : tankObj['racks']
                 };
               });
             }
           }
 
           // Migrate default grid configs
-          if (state.currentLab && hasEquipment(state.currentLab)) {
-            const equipment = state.currentLab.equipment as Record<string, unknown>;
+          if (state['currentLab'] && hasEquipment(state['currentLab'])) {
+            const equipment = (state['currentLab'] as Record<string, unknown>)['equipment'] as Record<string, unknown>;
 
             if ('defaultGridConfig' in equipment) {
-              equipment.defaultGridConfig = migrateGridConfig(equipment.defaultGridConfig);
+              equipment['defaultGridConfig'] = migrateGridConfig(equipment['defaultGridConfig']);
             }
 
-            if ('defaultBoxConfig' in equipment && typeof equipment.defaultBoxConfig === 'object' && equipment.defaultBoxConfig !== null) {
-              const boxConfig = equipment.defaultBoxConfig as Record<string, unknown>;
+            if ('defaultBoxConfig' in equipment && typeof equipment['defaultBoxConfig'] === 'object' && equipment['defaultBoxConfig'] !== null) {
+              const boxConfig = equipment['defaultBoxConfig'] as Record<string, unknown>;
               if ('gridConfig' in boxConfig) {
-                boxConfig.gridConfig = migrateGridConfig(boxConfig.gridConfig);
+                boxConfig['gridConfig'] = migrateGridConfig(boxConfig['gridConfig']);
               }
             }
           }

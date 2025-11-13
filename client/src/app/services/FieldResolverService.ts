@@ -36,7 +36,7 @@ export class FieldResolverService {
    *
    * Overload 2: Flexible access with dynamic field paths
    */
-  static resolveField<T extends ValidFieldValue = ValidFieldValue>(
+  static resolveField<T = ValidFieldValue>(
     tube: TubeData,
     fieldKey: string,
     options?: FieldResolutionOptions
@@ -86,13 +86,13 @@ export class FieldResolverService {
 
   getFieldResolver(): FieldResolverHook {
     return {
-      getValue: <T extends ValidFieldValue = ValidFieldValue>(
+      getValue: <T = ValidFieldValue>(
         tube: TubeData,
         fieldKey: string,
         options?: FieldResolutionOptions
       ) => FieldResolverService.resolveField(tube, fieldKey, options) as T | undefined,
 
-      getValues: <T extends ValidFieldValue = ValidFieldValue>(
+      getValues: <T = ValidFieldValue>(
         tubes: TubeData[],
         fieldKey: string,
         options?: FieldResolutionOptions
@@ -103,7 +103,7 @@ export class FieldResolverService {
         return hasValue(value);
       },
 
-      resolveField: <T extends ValidFieldValue = ValidFieldValue>(tube: TubeData, fieldKey: string) => ({
+      resolveField: <T = ValidFieldValue>(tube: TubeData, fieldKey: string) => ({
         value: FieldResolverService.resolveField(tube, fieldKey) as T | undefined,
         resolved: true,
         resolvedPath: fieldKey,
@@ -118,7 +118,25 @@ export class FieldResolverService {
 
       validateConfiguration: () => {},
 
-      resolver: null,
+      // Minimal FieldResolver implementation for compatibility
+      resolver: {
+        getValue: <T = any>(tube: TubeData, fieldKey: string, options?: FieldResolutionOptions) =>
+          FieldResolverService.resolveField(tube, fieldKey, options) as T | undefined,
+        getValues: <T = any>(tubes: TubeData[], fieldKey: string, options?: FieldResolutionOptions) =>
+          tubes.map(t => FieldResolverService.resolveField(t, fieldKey, options) as T | undefined),
+        hasValue: (tube: TubeData, fieldKey: string) =>
+          hasValue(FieldResolverService.resolveField(tube, fieldKey)),
+        resolveField: <T = any>(tube: TubeData, fieldKey: string) => ({
+          value: FieldResolverService.resolveField(tube, fieldKey) as T | undefined,
+          resolved: true,
+          resolvedPath: fieldKey,
+          exists: true
+        }),
+        getFieldPath: (fieldKey: string) => fieldKey,
+        isValidField: (_fieldKey: string) => true,
+        getAvailableFields: () => [],
+        validateConfiguration: () => {}
+      },
 
       metrics: {
         totalResolutions: 0,

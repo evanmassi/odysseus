@@ -11,6 +11,7 @@ import { useTubesQuery } from '@domains/tubes/hooks/useTubesQuery';
 
 import { useSimpleFieldResolver } from './useSimpleFieldResolver';
 
+import type { ValidFieldValue } from '@app/types/fieldTypeMapping';
 import type { TubeData } from '@shared/types/tubeTypes';
 
 /**
@@ -34,18 +35,18 @@ export function useTubesWithFieldResolver() {
     hasValue: fieldResolver.tubeHasValue,
     
     // Utility functions for TubeInfoPanel
-    analyzeFieldConflicts: <T>(selectedTubes: TubeData[], fieldPath: string) => {
+    analyzeFieldConflicts: <T extends ValidFieldValue = ValidFieldValue>(selectedTubes: TubeData[], fieldPath: string) => {
       return fieldResolver.analyzeFieldConflicts<T>(selectedTubes, fieldPath);
     },
-    
+
     // Get unique values for a field across all tubes
-    getUniqueFieldValues: <T>(fieldPath: string): T[] => {
+    getUniqueFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
       if (!tubesQuery.data) return [];
       return fieldResolver.getUniqueTubeValues<T>(tubesQuery.data, fieldPath);
     },
 
     // Find tubes by field value
-    findByFieldValue: <T>(fieldPath: string, value: T): TubeData[] => {
+    findByFieldValue: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string, value: T): TubeData[] => {
       if (!tubesQuery.data) return [];
       return fieldResolver.findTubesByFieldValue(tubesQuery.data, fieldPath, value);
     }

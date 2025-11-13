@@ -53,14 +53,14 @@ export interface UseFieldResolverOptions {
  */
 export interface FieldResolverHook extends FieldResolver {
   /** Resolve a single field value from tube data */
-  getValue: <T extends ValidFieldValue = ValidFieldValue>(
+  getValue: <T = ValidFieldValue>(
     tube: TubeData,
     fieldKey: ValidTubeFieldKey | string,
     options?: FieldResolutionOptions
   ) => T | undefined;
 
   /** Resolve field values from multiple tube data objects */
-  getValues: <T extends ValidFieldValue = ValidFieldValue>(
+  getValues: <T = ValidFieldValue>(
     tubes: TubeData[],
     fieldKey: ValidTubeFieldKey | string,
     options?: FieldResolutionOptions
@@ -73,7 +73,7 @@ export interface FieldResolverHook extends FieldResolver {
   ) => boolean;
 
   /** Get detailed field resolution information */
-  resolveField: <T extends ValidFieldValue = ValidFieldValue>(
+  resolveField: <T = ValidFieldValue>(
     tube: TubeData,
     fieldKey: ValidTubeFieldKey | string
   ) => FieldResolutionResult<T>;
@@ -151,7 +151,7 @@ export function useFieldResolver(
   metricsEnabledRef.current = enableMetrics;
 
   // Memoized getValue function with default options merged
-  const getValue = useCallback(<T extends ValidFieldValue = ValidFieldValue>(
+  const getValue = useCallback(<T = ValidFieldValue>(
     tube: TubeData,
     fieldKey: ValidTubeFieldKey | string,
     options: FieldResolutionOptions = {}
@@ -173,7 +173,7 @@ export function useFieldResolver(
   }, [resolver, defaultResolutionOptions]);
 
   // Memoized getValues function for bulk operations
-  const getValues = useCallback(<T extends ValidFieldValue = ValidFieldValue>(
+  const getValues = useCallback(<T = ValidFieldValue>(
     tubes: TubeData[],
     fieldKey: ValidTubeFieldKey | string,
     options: FieldResolutionOptions = {}
@@ -210,7 +210,7 @@ export function useFieldResolver(
   }, [resolver]);
 
   // Memoized resolveField function for detailed resolution
-  const resolveField = useCallback(<T extends ValidFieldValue = ValidFieldValue>(
+  const resolveField = useCallback(<T = ValidFieldValue>(
     tube: TubeData,
     fieldKey: ValidTubeFieldKey | string
   ): FieldResolutionResult<T> => {
