@@ -16,12 +16,11 @@ interface TreeLineOverlayProps {
   expandedRacks: Set<string>;
 }
 
-const LINE_OFFSET = 4; // Distance from left edge to connection point
+// Visual alignment offset to position lines at the bottom-left corner of button content
+// Accounts for border (1px) + left padding (~10px) to align with icon/chevron
+const LINE_OFFSET = 12;
 
-export function TreeLineOverlay({
-  expandedTanks,
-  expandedRacks
-}: TreeLineOverlayProps) {
+export function TreeLineOverlay({ expandedTanks, expandedRacks }: TreeLineOverlayProps) {
   const [lines, setLines] = useState<TreeLine[]>([]);
 
   const calculateAllLines = useCallback(() => {
@@ -43,11 +42,12 @@ export function TreeLineOverlay({
 
       const tankRect = tankButton.getBoundingClientRect();
       const tankX = tankRect.left - containerRect.left + LINE_OFFSET;
-      const tankBottomY = tankRect.bottom - containerRect.top;
+      const tankBottomY = tankRect.bottom - containerRect.top - 2;
 
       // Find all racks under this tank
       const rackItems = tankItem.querySelectorAll('[data-level="rack"]');
       let deepestY = tankBottomY;
+      let lastRackY = tankBottomY;
 
       rackItems.forEach(rackItem => {
         const rackId = (rackItem as HTMLElement).dataset['id'];
@@ -60,6 +60,9 @@ export function TreeLineOverlay({
         const rackX = rackRect.left - containerRect.left + LINE_OFFSET;
         const rackY = rackRect.top - containerRect.top + rackRect.height / 2;
 
+        // Track last rack's Y position for vertical line ending
+        lastRackY = rackY;
+
         // Add horizontal branch from tank to rack
         allLines.push({
           id: `rack-branch-${tankId}-${rackId}`,
@@ -69,7 +72,7 @@ export function TreeLineOverlay({
           y2: rackY,
           strokeWidth: 3,
           color: 'var(--color-storage-tank-bg)',
-          type: 'rack-branch'
+          type: 'rack-branch',
         });
 
         deepestY = Math.max(deepestY, rackRect.bottom - containerRect.top);
@@ -79,6 +82,7 @@ export function TreeLineOverlay({
         if (expandedRacks.has(compositeKey)) {
           const boxItems = rackItem.querySelectorAll('[data-level="box"]');
           let deepestBoxY = rackRect.bottom - containerRect.top;
+          let lastBoxY = rackRect.bottom - containerRect.top;
 
           boxItems.forEach(boxItem => {
             const boxButton = boxItem.querySelector('button');
@@ -87,6 +91,9 @@ export function TreeLineOverlay({
             const boxRect = boxButton.getBoundingClientRect();
             const boxX = boxRect.left - containerRect.left + LINE_OFFSET;
             const boxY = boxRect.top - containerRect.top + boxRect.height / 2;
+
+            // Track last box's Y position for vertical line ending
+            lastBoxY = boxY;
 
             // Add horizontal branch from rack to box
             allLines.push({
@@ -97,7 +104,7 @@ export function TreeLineOverlay({
               y2: boxY,
               strokeWidth: 2,
               color: 'var(--color-storage-rack-bg)',
-              type: 'box-branch'
+              type: 'box-branch',
             });
 
             deepestBoxY = Math.max(deepestBoxY, boxRect.bottom - containerRect.top);
@@ -108,12 +115,12 @@ export function TreeLineOverlay({
             allLines.push({
               id: `rack-vertical-${tankId}-${rackId}`,
               x1: rackX,
-              y1: rackRect.bottom - containerRect.top,
+              y1: rackRect.bottom - containerRect.top - 2,
               x2: rackX,
-              y2: deepestBoxY,
+              y2: lastBoxY,
               strokeWidth: 2,
               color: 'var(--color-storage-rack-bg)',
-              type: 'rack-vertical'
+              type: 'rack-vertical',
             });
           }
 
@@ -128,10 +135,10 @@ export function TreeLineOverlay({
           x1: tankX,
           y1: tankBottomY,
           x2: tankX,
-          y2: deepestY,
+          y2: lastRackY,
           strokeWidth: 3,
           color: 'var(--color-storage-tank-bg)',
-          type: 'tank-vertical'
+          type: 'tank-vertical',
         });
       }
     });
@@ -161,7 +168,7 @@ export function TreeLineOverlay({
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
-        zIndex: 0
+        zIndex: 0,
       }}
     >
       <style>
@@ -172,7 +179,7 @@ export function TreeLineOverlay({
         `}
       </style>
 
-      {lines.map((line) => (
+      {lines.map(line => (
         <line
           key={line.id}
           x1={line.x1}
