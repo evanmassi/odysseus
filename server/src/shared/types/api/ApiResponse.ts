@@ -1,12 +1,11 @@
 /**
- * Shared API Types
- * 
- * Common types used across the API layer for consistent request/response formats.
+ * Standardized API Response Format
+ *
+ * Provides consistent response structure across all endpoints.
+ * Consolidated from shared/types/ApiTypes.ts and presentation/responses/ApiResponse.ts
  */
 
-// STANDARD API RESPONSE FORMAT
-
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: ApiError;
@@ -16,8 +15,8 @@ export interface ApiResponse<T = any> {
 export interface ApiError {
   code: string;
   message: string;
-  details?: any;
-  field?: string; // For validation errors
+  details?: unknown;
+  field?: string;
 }
 
 export interface ApiResponseMeta {
@@ -27,8 +26,6 @@ export interface ApiResponseMeta {
   pagination?: PaginationMeta;
   executionTime?: number;
 }
-
-// PAGINATION TYPES
 
 export interface PaginationMeta {
   page: number;
@@ -46,11 +43,9 @@ export interface PaginationRequest {
   sortOrder?: 'asc' | 'desc';
 }
 
-// SEARCH TYPES
-
 export interface SearchRequest {
   query?: string;
-  filters?: Record<string, any>;
+  filters?: Record<string, unknown>;
   pagination?: PaginationRequest;
 }
 
@@ -70,21 +65,17 @@ export interface SearchFacetValue {
   count: number;
 }
 
-// VALIDATION TYPES
-
-export interface ValidationError {
+export interface ApiValidationError {
   field: string;
   message: string;
   code: string;
-  value?: any;
+  value?: unknown;
 }
 
-export interface ValidationResult {
+export interface ApiValidationResult {
   isValid: boolean;
-  errors: ValidationError[];
+  errors: ApiValidationError[];
 }
-
-// AUDIT TYPES
 
 export interface AuditInfo {
   createdBy: string;
@@ -94,31 +85,29 @@ export interface AuditInfo {
   version: number;
 }
 
-// ERROR CODES
-
 export const API_ERROR_CODES = {
   // Authentication & Authorization
   UNAUTHORIZED: 'UNAUTHORIZED',
   FORBIDDEN: 'FORBIDDEN',
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
   SESSION_EXPIRED: 'SESSION_EXPIRED',
-  
+
   // Validation
   VALIDATION_FAILED: 'VALIDATION_FAILED',
   INVALID_INPUT: 'INVALID_INPUT',
   REQUIRED_FIELD_MISSING: 'REQUIRED_FIELD_MISSING',
-  
+
   // Business Logic
   RESOURCE_NOT_FOUND: 'RESOURCE_NOT_FOUND',
   RESOURCE_ALREADY_EXISTS: 'RESOURCE_ALREADY_EXISTS',
   BUSINESS_RULE_VIOLATION: 'BUSINESS_RULE_VIOLATION',
   OPERATION_NOT_ALLOWED: 'OPERATION_NOT_ALLOWED',
-  
+
   // System
   INTERNAL_SERVER_ERROR: 'INTERNAL_SERVER_ERROR',
   SERVICE_UNAVAILABLE: 'SERVICE_UNAVAILABLE',
   RATE_LIMIT_EXCEEDED: 'RATE_LIMIT_EXCEEDED',
-  
+
   // Data
   DATA_CONFLICT: 'DATA_CONFLICT',
   DATA_INTEGRITY_VIOLATION: 'DATA_INTEGRITY_VIOLATION',
@@ -127,41 +116,39 @@ export const API_ERROR_CODES = {
 
 export type ApiErrorCode = typeof API_ERROR_CODES[keyof typeof API_ERROR_CODES];
 
-// HTTP STATUS MAPPINGS
-
 export const ERROR_STATUS_MAPPINGS: Record<ApiErrorCode, number> = {
   // 401 Unauthorized
   UNAUTHORIZED: 401,
   INVALID_CREDENTIALS: 401,
   SESSION_EXPIRED: 401,
-  
+
   // 403 Forbidden
   FORBIDDEN: 403,
   OPERATION_NOT_ALLOWED: 403,
-  
+
   // 400 Bad Request
   VALIDATION_FAILED: 400,
   INVALID_INPUT: 400,
   REQUIRED_FIELD_MISSING: 400,
   BUSINESS_RULE_VIOLATION: 400,
-  
+
   // 404 Not Found
   RESOURCE_NOT_FOUND: 404,
-  
+
   // 409 Conflict
   RESOURCE_ALREADY_EXISTS: 409,
   DATA_CONFLICT: 409,
   OPTIMISTIC_LOCK_FAILURE: 409,
-  
+
   // 422 Unprocessable Entity
   DATA_INTEGRITY_VIOLATION: 422,
-  
+
   // 429 Too Many Requests
   RATE_LIMIT_EXCEEDED: 429,
-  
+
   // 500 Internal Server Error
   INTERNAL_SERVER_ERROR: 500,
-  
+
   // 503 Service Unavailable
   SERVICE_UNAVAILABLE: 503
 };

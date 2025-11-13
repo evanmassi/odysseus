@@ -1,5 +1,5 @@
 import { SearchFilters } from '@odysseus/shared-schemas';
-import { TubeSearchCriteria } from '@domain/repositories/TubeRepository';
+import type { TubeSearchCriteria } from '@domain/types/repository';
 
 /**
  * SearchCriteriaMapper - Maps presentation layer filters to domain criteria

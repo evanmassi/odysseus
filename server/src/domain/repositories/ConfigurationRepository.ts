@@ -1,6 +1,7 @@
 import { Configuration } from '@domain/entities/Configuration';
 import { Location } from '@domain/valueObjects/Location';
 import type { SecurityConfig, SystemMetrics, SyncStatus } from '@odysseus/shared-schemas';
+import type { EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } from '@domain/types/repository/Stats';
 
 /**
  * Configuration Repository Interface
@@ -273,40 +274,6 @@ export interface ConfigurationHistory {
   configuration: Configuration;
 }
 
-/**
- * Equipment hierarchy summary
- */
-export interface EquipmentSummary {
-  totalTanks: number;
-  totalRacks: number;
-  totalBoxes: number;
-  totalPositions: number;
-  tankSummaries: Array<{
-    tankId: string;
-    tankName: string;
-    rackCount: number;
-    boxCount: number;
-    positionCount: number;
-    isActive: boolean;
-  }>;
-}
-
-/**
- * Capacity information for equipment
- */
-export interface CapacityInfo {
-  totalCapacity: number; // Total positions across all equipment
-  availableCapacity: number; // Positions not occupied by tubes
-  utilizationRate: number; // Percentage of capacity used
-  capacityByTank: Array<{
-    tankId: string;
-    tankName: string;
-    capacity: number;
-    used: number;
-    available: number;
-    utilizationRate: number;
-  }>;
-}
 
 /**
  * Configuration export format for backups
@@ -407,20 +374,6 @@ export interface ConfigurationValidationResult {
   errors: string[];
   warnings: string[];
   recommendations?: string[];
-}
-
-/**
- * Repository statistics
- */
-export interface ConfigurationRepositoryStats {
-  currentVersion: number;
-  totalHistoryEntries: number;
-  totalSnapshots: number;
-  configurationSize: number; // Size in bytes
-  lastUpdated: Date;
-  averageUpdateFrequency: number; // Updates per day
-  oldestSnapshot?: Date;
-  newestSnapshot?: Date;
 }
 
 /**

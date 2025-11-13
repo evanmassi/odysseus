@@ -1,5 +1,6 @@
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
-import type { AuditRepository, PaginatedResult } from '@domain/repositories/AuditRepository';
+import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { PaginatedResult } from '@domain/types/repository';
 import { AuditArchiveRepository } from '@infrastructure/repositories/AuditArchiveRepository';
 import { AUDIT_RETENTION_CONFIG } from '@config/auditConfig';
 import { logger } from '@utils/logger';

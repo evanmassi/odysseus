@@ -1,4 +1,5 @@
-import { UserRepository, UserRepositoryStats, UserSearchCriteria, UserActivitySummary } from '@domain/repositories/UserRepository';
+import { UserRepository } from '@domain/repositories/UserRepository';
+import type { UserRepositoryStats, UserSearchCriteria, UserActivitySummary } from '@domain/types/repository';
 import { User } from '@domain/entities/User';
 import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { UserMapper, UserRow } from '@infrastructure/database/mappers/UserMapper';

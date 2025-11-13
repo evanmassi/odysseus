@@ -1,6 +1,7 @@
 import type { Database } from 'better-sqlite3';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
-import type { AuditRepository, PaginatedResult, QueryOptions } from '@domain/repositories/AuditRepository';
+import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { logger } from '@utils/logger';
 

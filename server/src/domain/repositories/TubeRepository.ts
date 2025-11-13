@@ -1,5 +1,7 @@
 import { Tube } from '@domain/entities/Tube';
 import { Location } from '@domain/valueObjects/Location';
+import type { TubeSearchCriteria } from '@domain/types/repository/SearchCriteria';
+import type { TubeRepositoryStats } from '@domain/types/repository/Stats';
 
 /**
  * Tube Repository Interface
@@ -162,86 +164,4 @@ export interface TubeRepository {
    * Get repository statistics
    */
   getStats(): Promise<TubeRepositoryStats>;
-}
-
-/**
- * Search criteria for tube queries
- */
-export interface TubeSearchCriteria {
-  // Generic query - searches across ALL fields
-  query?: string;
-
-  // Location criteria (array-based for multiple selection support)
-  tankIds?: string[];
-  rackIds?: string[];
-  boxIds?: string[];
-
-  // Legacy single-value location filters (kept for backwards compatibility)
-  tankId?: string;
-  rackId?: string;
-  boxId?: string;
-
-  // Position criteria - supports alphanumeric labels (e.g., "C5") or numeric (e.g., "23")
-  // NOTE: Position label is box-specific. When using positionLabel, you should filter
-  // by a single boxId to ensure correct interpretation of the label.
-  positionLabel?: string;
-
-  // Sample criteria (array-based for multiple selection support)
-  cellTypes?: string[];
-  lotNumbers?: string[];
-  donorInternalIds?: string[];
-  donorSourceIds?: string[];
-  cultureConditions?: string[];
-
-  // Legacy single-value sample filters (kept for backwards compatibility)
-  cellType?: string;
-  researcher?: string;
-  donorInternalId?: string;
-  donorSourceId?: string;
-
-  // Researcher criteria (array-based for multiple selection support)
-  researcherIds?: string[];
-
-  // Date range criteria
-  // Date-only fields are strings (YYYY-MM-DD) to prevent timezone bugs
-  dateFrom?: string;
-  dateTo?: string;
-  createdAfter?: Date;
-  createdBefore?: Date;
-
-  // Status criteria
-  hasConcentration?: boolean;
-  isComplete?: boolean;
-  isExpired?: boolean;
-
-  // Pagination
-  limit?: number;
-  offset?: number;
-
-  // Sorting
-  sortBy?: 'createdAt' | 'updatedAt' | 'position' | 'researcherId' | 'cellType';
-  sortOrder?: 'asc' | 'desc';
-
-  // Grouping
-  groupBy?: 'auto' | 'none' | 'donor' | 'cellType' | 'researcher' | 'lotNumber' | 'media' | 'location';
-}
-
-/**
- * Repository statistics
- */
-export interface TubeRepositoryStats {
-  totalTubes: number;
-  tubesByTank: Record<string, number>;
-  tubesByResearcher: Record<string, number>;
-  averageTubesPerBox: number;
-  oldestTube?: {
-    id: string;
-    createdAt: Date;
-  };
-  newestTube?: {
-    id: string;
-    createdAt: Date;
-  };
-  completionRate: number; // Percentage of tubes with complete sample data
-  expirationRate: number; // Percentage of expired tubes
 }

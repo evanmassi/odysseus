@@ -1,4 +1,6 @@
 import { Researcher } from '@domain/entities/Researcher';
+import type { ResearcherSearchCriteria } from '@domain/types/repository/SearchCriteria';
+import type { ResearcherUsageStats, ResearcherRepositoryStats } from '@domain/types/repository/Stats';
 
 /**
  * Researcher Repository Interface
@@ -164,7 +166,7 @@ export interface ResearcherRepository {
   /**
    * Validate researcher name format (without creating entity)
    */
-  validateName(firstName: string, lastName: string): Promise<ValidationResult>;
+  validateName(firstName: string, lastName: string): Promise<ResearcherValidationResult>;
   
   /**
    * Check for potential duplicates before creation
@@ -246,36 +248,9 @@ export interface ResearcherRepository {
 }
 
 /**
- * Search criteria for researcher queries
- */
-export interface ResearcherSearchCriteria {
-  // Name criteria
-  name?: string; // Exact match
-  namePattern?: string; // Partial match
-  
-  // Status criteria
-  isActive?: boolean;
-  
-  // Date criteria
-  createdAfter?: Date;
-  createdBefore?: Date;
-  
-  // Integration criteria
-  hasTubes?: boolean; // Has tubes assigned
-  
-  // Pagination
-  limit?: number;
-  offset?: number;
-  
-  // Sorting
-  sortBy?: 'name' | 'firstName' | 'lastName' | 'createdAt' | 'active';
-  sortOrder?: 'asc' | 'desc';
-}
-
-/**
  * Validation result for researcher names
  */
-export interface ValidationResult {
+export interface ResearcherValidationResult {
   isValid: boolean;
   errors: string[];
   warnings?: string[]; // Non-blocking issues
@@ -293,44 +268,4 @@ export interface DuplicateCheckResult {
     isActive: boolean;
   };
   similarNames: string[]; // Names that are similar but not exact duplicates
-}
-
-/**
- * Researcher usage statistics
- */
-export interface ResearcherUsageStats {
-  researcherId: string;
-  researcherName: string;
-  isActive: boolean;
-  tubeCount: number;
-  lastTubeCreated?: Date;
-  activeTubes: number; // Non-expired tubes
-  expiredTubes: number;
-}
-
-/**
- * Repository statistics for researcher management
- */
-export interface ResearcherRepositoryStats {
-  totalResearchers: number;
-  activeResearchers: number;
-  inactiveResearchers: number;
-  researchersWithTubes: number;
-  researchersWithoutTubes: number;
-  averageTubesPerResearcher: number;
-  mostProductiveResearcher?: {
-    id: string;
-    name: string;
-    tubeCount: number;
-  };
-  oldestResearcher?: {
-    id: string;
-    name: string;
-    createdAt: Date;
-  };
-  newestResearcher?: {
-    id: string;
-    name: string;
-    createdAt: Date;
-  };
 }

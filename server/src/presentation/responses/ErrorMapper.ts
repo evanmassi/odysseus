@@ -5,7 +5,8 @@
  * This ensures consistent error handling across all endpoints.
  */
 
-import { ResponseBuilder, ApiResponse } from './ApiResponse';
+import { ResponseBuilder } from '@presentation/utilities/ResponseBuilder';
+import type { ApiResponse } from '@shared/types/api/ApiResponse';
 import { DomainError } from '@domain/errors/DomainError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';

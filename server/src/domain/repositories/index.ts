@@ -14,10 +14,14 @@
  */
 
 // Repository Interfaces
-export { TubeRepository, TubeSearchCriteria, TubeRepositoryStats } from './TubeRepository';
-export { UserRepository, UserSearchCriteria, UserActivitySummary, UserRepositoryStats } from './UserRepository';
-export { ResearcherRepository, ResearcherSearchCriteria, ResearcherUsageStats, ResearcherRepositoryStats, ValidationResult, DuplicateCheckResult } from './ResearcherRepository';
-export { ConfigurationRepository, ConfigurationHistory, EquipmentSummary, CapacityInfo, ConfigurationExport, ConfigurationSnapshot, ApiConfigurationResponse, FrontendConfiguration, ConfigurationValidationResult, ConfigurationRepositoryStats, MaintenanceResult } from './ConfigurationRepository';
+export { TubeRepository } from './TubeRepository';
+export { UserRepository } from './UserRepository';
+export { ResearcherRepository, ResearcherValidationResult, DuplicateCheckResult } from './ResearcherRepository';
+export { ConfigurationRepository, ConfigurationHistory, ConfigurationExport, ConfigurationSnapshot, ApiConfigurationResponse, FrontendConfiguration, ConfigurationValidationResult, MaintenanceResult } from './ConfigurationRepository';
+
+// Repository Types (re-exported from centralized locations)
+export type { TubeSearchCriteria, ResearcherSearchCriteria, UserSearchCriteria } from '@domain/types/repository/SearchCriteria';
+export type { TubeRepositoryStats, ResearcherUsageStats, ResearcherRepositoryStats, UserActivitySummary, UserRepositoryStats, EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } from '@domain/types/repository/Stats';
 export { RefreshTokenRepository } from './RefreshTokenRepository';
 
 // Import types for use in interfaces below

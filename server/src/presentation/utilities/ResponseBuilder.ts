@@ -1,46 +1,17 @@
 /**
- * Standardized API Response Format
- * 
- * Provides consistent response structure across all endpoints.
- * Replaces the inconsistent response formats throughout the application.
+ * Response Builder - Factory for creating standardized API responses
+ *
+ * Provides utility methods for building consistent response objects.
+ * Extracted from presentation/responses/ApiResponse.ts
  */
 
 import { randomUUID } from 'crypto';
+import type {
+  ApiResponse,
+  ApiResponseMeta,
+  PaginationMeta
+} from '@shared/types/api/ApiResponse';
 
-export interface ApiResponse<T = any> {
-  success: boolean;
-  data?: T;
-  error?: ApiError;
-  meta: ApiResponseMeta;
-}
-
-export interface ApiError {
-  code: string;
-  message: string;
-  details?: any;
-  field?: string; // For validation errors
-}
-
-export interface ApiResponseMeta {
-  timestamp: string;
-  requestId: string;
-  version: string;
-  executionTime?: number;
-  pagination?: PaginationMeta;
-}
-
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-}
-
-/**
- * Response Builder - Factory for creating standardized responses
- */
 export class ResponseBuilder {
   private static readonly API_VERSION = '1.0.0';
 
@@ -48,7 +19,7 @@ export class ResponseBuilder {
    * Create a successful response
    */
   static success<T>(
-    data: T, 
+    data: T,
     meta?: Partial<ApiResponseMeta>
   ): ApiResponse<T> {
     return {
@@ -69,7 +40,7 @@ export class ResponseBuilder {
   static error(
     code: string,
     message: string,
-    details?: any,
+    details?: unknown,
     field?: string,
     meta?: Partial<ApiResponseMeta>
   ): ApiResponse {
@@ -101,7 +72,16 @@ export class ResponseBuilder {
     meta?: Partial<ApiResponseMeta>
   ): ApiResponse<T[]> {
     const totalPages = Math.ceil(total / limit);
-    
+
+    const pagination: PaginationMeta = {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1
+    };
+
     return {
       success: true,
       data: items,
@@ -109,14 +89,7 @@ export class ResponseBuilder {
         timestamp: new Date().toISOString(),
         requestId: randomUUID(),
         version: ResponseBuilder.API_VERSION,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages,
-          hasNextPage: page < totalPages,
-          hasPreviousPage: page > 1
-        },
+        pagination,
         ...meta
       }
     };
@@ -131,7 +104,7 @@ export class ResponseBuilder {
     meta?: Partial<ApiResponseMeta>
   ): ApiResponse<T> {
     const executionTime = Date.now() - startTime;
-    
+
     return ResponseBuilder.success(data, {
       ...meta,
       executionTime
@@ -151,7 +124,7 @@ export class ResponseBuilder {
   static validationError(
     field: string,
     message: string,
-    value?: any
+    value?: unknown
   ): ApiResponse {
     return ResponseBuilder.error(
       'VALIDATION_FAILED',
@@ -169,7 +142,7 @@ export class ResponseBuilder {
   }
 
   /**
-   * Create a forbidden error response  
+   * Create a forbidden error response
    */
   static forbidden(message: string = 'Access forbidden'): ApiResponse {
     return ResponseBuilder.error('FORBIDDEN', message);
@@ -179,17 +152,17 @@ export class ResponseBuilder {
    * Create a not found error response
    */
   static notFound(resource: string, identifier?: string): ApiResponse {
-    const message = identifier 
+    const message = identifier
       ? `${resource} not found: ${identifier}`
       : `${resource} not found`;
-    
+
     return ResponseBuilder.error('NOT_FOUND', message);
   }
 
   /**
    * Create a conflict error response
    */
-  static conflict(message: string, details?: any): ApiResponse {
+  static conflict(message: string, details?: unknown): ApiResponse {
     return ResponseBuilder.error('CONFLICT', message, details);
   }
 
@@ -198,7 +171,7 @@ export class ResponseBuilder {
    */
   static internalError(
     message: string = 'Internal server error',
-    details?: any
+    details?: unknown
   ): ApiResponse {
     return ResponseBuilder.error('INTERNAL_SERVER_ERROR', message, details);
   }

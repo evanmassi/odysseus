@@ -1,11 +1,13 @@
 import {
   ResearcherRepository,
+  ResearcherValidationResult,
+  DuplicateCheckResult
+} from '@domain/repositories/ResearcherRepository';
+import type {
   ResearcherRepositoryStats,
   ResearcherSearchCriteria,
-  ValidationResult,
-  DuplicateCheckResult,
   ResearcherUsageStats
-} from '@domain/repositories/ResearcherRepository';
+} from '@domain/types/repository';
 import { Researcher } from '@domain/entities/Researcher';
 import { Person } from '@domain/entities/Person';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
@@ -337,7 +339,7 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
 
   // VALIDATION OPERATIONS
 
-  async validateName(firstName: string, lastName: string): Promise<ValidationResult> {
+  async validateName(firstName: string, lastName: string): Promise<ResearcherValidationResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
 

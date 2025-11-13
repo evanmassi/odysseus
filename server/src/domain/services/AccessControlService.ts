@@ -7,6 +7,7 @@ import { UserRepository } from '@domain/repositories/UserRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
+import type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
 
 /**
  * AccessControlService
@@ -110,7 +111,7 @@ export class AccessControlService {
   /**
    * Check if user can move tube to a different location
    */
-  async canMoveTube(user: User, tube: Tube, newLocation: Location): Promise<AccessResult> {
+  async canMoveTube(user: User, tube: Tube, newLocation?: Location): Promise<AccessResult> {
     // First check if user can edit the tube
     const editCheck = await this.canEditTube(user, tube);
     if (!editCheck.allowed) {
@@ -166,7 +167,7 @@ export class AccessControlService {
             accessResult = await this.canDeleteTube(user, tube);
             break;
           case 'move':
-            accessResult = await this.canMoveTube(user, tube, null); // Location checked separately
+            accessResult = await this.canMoveTube(user, tube, undefined); // Location checked separately
             break;
           default:
             accessResult = this.createDeniedResult('Unknown operation');
@@ -388,7 +389,7 @@ export class AccessControlService {
         result = await this.canDeleteTube(user, tube);
         break;
       case 'move':
-        result = await this.canMoveTube(user, tube, null);
+        result = await this.canMoveTube(user, tube, undefined);
         break;
       default:
         throw new PermissionError(`Unknown operation: ${operation}`);
@@ -557,19 +558,3 @@ export class AccessControlService {
   }
 }
 
-// TYPES AND INTERFACES
-
-export interface AccessResult {
-  allowed: boolean;
-  reason: string;
-  metadata?: any;
-}
-
-export interface BulkAccessResult {
-  allowed: boolean;
-  allowedTubes: string[];
-  deniedTubes: string[];
-  errors: string[];
-}
-
-export type BulkOperation = 'edit' | 'delete' | 'move';

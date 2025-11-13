@@ -1,6 +1,7 @@
 import { Database } from 'better-sqlite3';
 import { Tube } from '@domain/entities/Tube';
-import { TubeRepository, TubeSearchCriteria, TubeRepositoryStats } from '@domain/repositories/TubeRepository';
+import { TubeRepository } from '@domain/repositories/TubeRepository';
+import type { TubeSearchCriteria, TubeRepositoryStats } from '@domain/types/repository';
 import { Location } from '@domain/valueObjects/Location';
 import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { TubeMapper, TubeRow } from '@infrastructure/database/mappers/TubeMapper';

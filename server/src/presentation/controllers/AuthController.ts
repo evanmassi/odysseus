@@ -6,7 +6,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { ResponseBuilder } from '@presentation/responses/ApiResponse';
+import { ResponseBuilder } from '@presentation/utilities/ResponseBuilder';
 import { ErrorMapper } from '@presentation/responses/ErrorMapper';
 import { logger } from '@utils/logger';
 import type { EventBus } from '@application/contracts/EventBus';

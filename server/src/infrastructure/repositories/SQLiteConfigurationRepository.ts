@@ -1,4 +1,5 @@
-import { ConfigurationRepository, ConfigurationHistory, EquipmentSummary, ConfigurationExport, ConfigurationValidationResult, ConfigurationRepositoryStats, ConfigurationSnapshot, CapacityInfo, ApiConfigurationResponse, FrontendConfiguration, MaintenanceResult } from '@domain/repositories/ConfigurationRepository';
+import { ConfigurationRepository, ConfigurationHistory, ConfigurationExport, ConfigurationValidationResult, ConfigurationSnapshot, ApiConfigurationResponse, FrontendConfiguration, MaintenanceResult } from '@domain/repositories/ConfigurationRepository';
+import type { EquipmentSummary, ConfigurationRepositoryStats, CapacityInfo } from '@domain/types/repository';
 import { Configuration } from '@domain/entities/Configuration';
 import { Location } from '@domain/valueObjects/Location';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';

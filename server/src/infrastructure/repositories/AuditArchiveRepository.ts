@@ -1,5 +1,5 @@
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
-import type { PaginatedResult } from '@domain/repositories/AuditRepository';
+import type { PaginatedResult } from '@domain/types/repository';
 import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { logger } from '@utils/logger';
 

@@ -1,4 +1,6 @@
 import { User } from '@domain/entities/User';
+import type { UserSearchCriteria } from '@domain/types/repository/SearchCriteria';
+import type { UserActivitySummary, UserRepositoryStats } from '@domain/types/repository/Stats';
 
 /**
  * User Repository Interface
@@ -212,79 +214,4 @@ export interface UserRepository {
    * Clean up old/expired session data
    */
   cleanupExpiredSessions(): Promise<number>; // Returns count of cleaned up sessions
-}
-
-/**
- * Search criteria for user queries
- */
-export interface UserSearchCriteria {
-  // Basic criteria
-  username?: string;
-  role?: 'admin' | 'user';
-  
-  // Date criteria
-  createdAfter?: Date;
-  createdBefore?: Date;
-  lastActivityAfter?: Date;
-  lastActivityBefore?: Date;
-  
-  // Status criteria
-  isActive?: boolean; // Has recent activity
-  isLocked?: boolean;
-  
-  // Pagination
-  limit?: number;
-  offset?: number;
-  
-  // Sorting
-  sortBy?: 'username' | 'createdAt' | 'lastActivity' | 'role';
-  sortOrder?: 'asc' | 'desc';
-}
-
-/**
- * User activity summary for audit purposes
- */
-export interface UserActivitySummary {
-  userId: string;
-  username: string;
-  role: 'admin' | 'user';
-  createdAt: Date;
-  lastActivity: Date;
-  totalSessions: number;
-  failedLoginAttempts: number;
-  isCurrentlyLocked: boolean;
-  daysSinceCreation: number;
-  daysSinceLastActivity: number;
-}
-
-/**
- * Repository statistics for user management
- */
-export interface UserRepositoryStats {
-  totalUsers: number;
-  adminCount: number;
-  regularUserCount: number;
-  activeUsers: {
-    last24Hours: number;
-    lastWeek: number;
-    lastMonth: number;
-  };
-  inactiveUsers: number;
-  lockedUsers: number;
-  averageSessionsPerUser: number;
-  oldestUser?: {
-    id: string;
-    username: string;
-    createdAt: Date;
-  };
-  mostRecentUser?: {
-    id: string;
-    username: string;
-    createdAt: Date;
-  };
-  mostActiveUser?: {
-    id: string;
-    username: string;
-    lastActivity: Date;
-  };
 }

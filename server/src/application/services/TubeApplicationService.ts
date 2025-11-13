@@ -1,5 +1,5 @@
 import { TubeRepository } from '@domain/repositories/TubeRepository';
-import type { TubeSearchCriteria } from '@domain/repositories/TubeRepository';
+import type { TubeSearchCriteria } from '@domain/types/repository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';

@@ -13,6 +13,8 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import type { ConfigurationUpdateData } from '@domain/types/configuration';
+import type { DomainValidationResult, BulkValidationResult } from '@domain/types/validation';
+import type { TubeCreationData, TubeUpdateData } from '@domain/types/services';
 
 /**
  * ValidationService
@@ -45,8 +47,8 @@ export class ValidationService {
   async validateTubeCreation(
     tubeData: TubeCreationData,
     user: User
-  ): Promise<ValidationResult> {
-    const result: ValidationResult = {
+  ): Promise<DomainValidationResult> {
+    const result: DomainValidationResult = {
       isValid: true,
       errors: [],
       warnings: []
@@ -119,8 +121,8 @@ export class ValidationService {
     tube: Tube,
     updates: TubeUpdateData,
     user: User
-  ): Promise<ValidationResult> {
-    const result: ValidationResult = {
+  ): Promise<DomainValidationResult> {
+    const result: DomainValidationResult = {
       isValid: true,
       errors: [],
       warnings: []
@@ -205,8 +207,8 @@ export class ValidationService {
   /**
    * Validation for tube deletion
    */
-  async validateTubeDeletion(tube: Tube, user: User): Promise<ValidationResult> {
-    const result: ValidationResult = {
+  async validateTubeDeletion(tube: Tube, user: User): Promise<DomainValidationResult> {
+    const result: DomainValidationResult = {
       isValid: true,
       errors: [],
       warnings: []
@@ -281,7 +283,7 @@ export class ValidationService {
           continue;
         }
 
-        let validation: ValidationResult;
+        let validation: DomainValidationResult;
         
         if (operation === 'update' && updates) {
           validation = await this.validateTubeUpdate(tube, updates, user);
@@ -337,8 +339,8 @@ export class ValidationService {
    * Validate researcher ID reference
    * Validates researcher ID instead of name
    */
-  async validateResearcherIdReference(researcherId: string): Promise<ValidationResult> {
-    const result: ValidationResult = {
+  async validateResearcherIdReference(researcherId: string): Promise<DomainValidationResult> {
+    const result: DomainValidationResult = {
       isValid: true,
       errors: [],
       warnings: []
@@ -372,10 +374,10 @@ export class ValidationService {
    */
   async validateConfigurationUpdate(
     currentConfig: Configuration,
-    updates: ConfigurationUpdateData,
+    updatedConfig: Configuration,
     user: User
-  ): Promise<ValidationResult> {
-    const result: ValidationResult = {
+  ): Promise<DomainValidationResult> {
+    const result: DomainValidationResult = {
       isValid: true,
       errors: [],
       warnings: []
@@ -396,8 +398,8 @@ export class ValidationService {
     }
 
     // 2. Validate configuration changes don't break existing tubes
-    if (this.isEquipmentBeingRemoved(updates)) {
-      const equipmentValidation = await this.validateEquipmentRemoval(updates);
+    if (this.isEquipmentBeingRemovedInConfig(currentConfig, updatedConfig)) {
+      const equipmentValidation = await this.validateEquipmentRemovalInConfig(currentConfig, updatedConfig);
       if (!equipmentValidation.isValid) {
         result.isValid = false;
         result.errors.push(...equipmentValidation.errors);
@@ -406,7 +408,7 @@ export class ValidationService {
     }
 
     // 3. Business rules for configuration changes
-    const businessRules = await this.validateConfigurationBusinessRules(currentConfig, updates);
+    const businessRules = await this.validateConfigurationBusinessRulesForConfig(updatedConfig);
     if (!businessRules.isValid) {
       result.isValid = false;
       result.errors.push(...businessRules.errors);
@@ -443,8 +445,8 @@ export class ValidationService {
   private async validateTubeBusinessRules(
     tubeData: TubeCreationData | any,
     operation: 'create' | 'update'
-  ): Promise<ValidationResult> {
-    const result: ValidationResult = {
+  ): Promise<DomainValidationResult> {
+    const result: DomainValidationResult = {
       isValid: true,
       errors: [],
       warnings: []
@@ -488,31 +490,40 @@ export class ValidationService {
     return result;
   }
 
-  private isEquipmentBeingRemoved(updates: ConfigurationUpdateData): boolean {
-    // Check if any equipment is being marked as inactive or removed
-    return updates.tanks?.some(tank => !tank.isActive) ||
-           updates.equipment?.racks?.some(rack => !rack.isActive) ||
-           updates.equipment?.boxes?.some(box => !box.isActive);
+  private isEquipmentBeingRemovedInConfig(currentConfig: Configuration, updatedConfig: Configuration): boolean {
+    // Compare configurations to detect if any equipment is being deactivated
+    const currentTanks = currentConfig.tanks;
+    const updatedTanks = updatedConfig.tanks;
+
+    // Check if any tanks were deactivated
+    for (const currentTank of currentTanks) {
+      const updatedTank = updatedTanks.find(t => t.id === currentTank.id);
+      if (updatedTank && currentTank.isActive && !updatedTank.isActive) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  private async validateEquipmentRemoval(updates: ConfigurationUpdateData): Promise<ValidationResult> {
-    const result: ValidationResult = {
+  private async validateEquipmentRemovalInConfig(currentConfig: Configuration, updatedConfig: Configuration): Promise<DomainValidationResult> {
+    const result: DomainValidationResult = {
       isValid: true,
       errors: [],
       warnings: []
     };
 
-    // Check if any tubes would be affected by equipment removal
-    // This is a simplified implementation - could be more comprehensive
-    
-    if (updates.tanks) {
-      for (const tank of updates.tanks) {
-        if (!tank.isActive) {
-          const tubeCount = await this.tubeRepository.countByTank(tank.id);
-          if (tubeCount > 0) {
-            result.isValid = false;
-            result.errors.push(`Cannot deactivate tank '${tank.id}' - it contains ${tubeCount} tubes`);
-          }
+    const currentTanks = currentConfig.tanks;
+    const updatedTanks = updatedConfig.tanks;
+
+    // Check each tank that's being deactivated
+    for (const currentTank of currentTanks) {
+      const updatedTank = updatedTanks.find(t => t.id === currentTank.id);
+      if (updatedTank && currentTank.isActive && !updatedTank.isActive) {
+        const tubeCount = await this.tubeRepository.countByTank(currentTank.id);
+        if (tubeCount > 0) {
+          result.isValid = false;
+          result.errors.push(`Cannot deactivate tank '${currentTank.id}' - it contains ${tubeCount} tubes`);
         }
       }
     }
@@ -520,95 +531,21 @@ export class ValidationService {
     return result;
   }
 
-  private async validateConfigurationBusinessRules(
-    currentConfig: Configuration,
-    updates: ConfigurationUpdateData
-  ): Promise<ValidationResult> {
-    const result: ValidationResult = {
+  private async validateConfigurationBusinessRulesForConfig(config: Configuration): Promise<DomainValidationResult> {
+    const result: DomainValidationResult = {
       isValid: true,
       errors: [],
       warnings: []
     };
 
     // Business rule: Ensure at least one tank remains active
-    if (updates.tanks) {
-      const activeTanks = updates.tanks.filter(tank => tank.isActive);
-      if (activeTanks.length === 0) {
-        result.isValid = false;
-        result.errors.push('At least one tank must remain active');
-      }
+    const activeTanks = config.tanks.filter(tank => tank.isActive);
+    if (activeTanks.length === 0) {
+      result.isValid = false;
+      result.errors.push('At least one tank must remain active');
     }
 
     return result;
   }
 }
 
-// TYPES AND INTERFACES
-
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-}
-
-export interface BulkValidationResult {
-  isValid: boolean;
-  validItems: Array<{
-    id: string;
-    warnings: string[];
-  }>;
-  invalidItems: Array<{
-    id: string;
-    errors: string[];
-    warnings?: string[];
-  }>;
-  warnings: string[];
-}
-
-/**
- * Tube creation data with nested structure matching shared schemas
- */
-export interface TubeCreationData {
-  location: {
-    tankId: string;
-    rackId: string;
-    boxId: string;
-    position: number;
-  };
-  sample: {
-    cellType?: string;
-    donorInternalId?: string;
-    donorSourceId?: string;
-    concentration?: number;
-    concentrationUnit?: 'c/v' | 'c/mL';
-    date?: string;
-    media?: MediaData | string;
-    cultureCondition?: string;
-    lotNumber?: string;
-    notes?: string;
-  };
-  researcherId?: string;}
-
-/**
- * Tube update data for PATCH operations
- */
-export interface TubeUpdateData {
-  location?: {
-    tankId?: string;
-    rackId?: string;
-    boxId?: string;
-    position?: number;
-  };
-  sample?: {
-    cellType?: string;
-    donorInternalId?: string;
-    donorSourceId?: string;
-    concentration?: number;
-    concentrationUnit?: 'c/v' | 'c/mL';
-    date?: string;
-    media?: MediaData | string;
-    cultureCondition?: string;
-    lotNumber?: string;
-    notes?: string;
-  };
-  researcherId?: string;}

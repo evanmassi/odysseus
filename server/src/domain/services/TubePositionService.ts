@@ -6,6 +6,7 @@ import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepos
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import type { PositionConflict } from '@domain/types/position';
+import type { PositionValidation, PositionValidationWithWarnings, PositionValidationResult, BoxStatistics } from '@domain/types/services';
 
 /**
  * TubePositionService
@@ -72,8 +73,8 @@ export class TubePositionService {
   /**
    * Validate equipment configuration exists for this location
    */
-  async validateEquipmentConfiguration(location: Location): Promise<ValidationResult> {
-    const result: ValidationResult = { isValid: true, errors: [] };
+  async validateEquipmentConfiguration(location: Location): Promise<PositionValidation> {
+    const result: PositionValidation = { isValid: true, errors: [] };
 
     try {
       const isValid = await this.configurationRepository.isLocationValid(location);
@@ -139,8 +140,8 @@ export class TubePositionService {
   /**
    * Apply business rules specific to position placement
    */
-  async applyPositionBusinessRules(location: Location): Promise<ValidationResultWithWarnings> {
-    const result: ValidationResultWithWarnings = { isValid: true, errors: [], warnings: [] };
+  async applyPositionBusinessRules(location: Location): Promise<PositionValidationWithWarnings> {
+    const result: PositionValidationWithWarnings = { isValid: true, errors: [], warnings: [] };
 
     try {
       // Business Rule: Check for overcrowding in a box
@@ -350,7 +351,7 @@ export class TubePositionService {
       return {
         isValid: false,
         reason: result.errors.join('; '),
-        conflicts: result.warnings
+        conflicts: undefined
       };
     }
   }
@@ -430,30 +431,6 @@ export class TubePositionService {
 
 // TYPES AND INTERFACES
 
-interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-}
-
-interface ValidationResultWithWarnings extends ValidationResult {
-  warnings?: string[];
-}
-
-interface ConflictCheckResult extends ValidationResult {
+interface ConflictCheckResult extends PositionValidation {
   conflictingTube?: Tube;
-}
-
-export interface PositionValidationResult extends ValidationResultWithWarnings {
-  conflictingTube?: Tube;
-}
-
-export interface BoxStatistics {
-  totalCapacity: number;
-  occupiedCount: number;
-  availableCount: number;
-  occupancyRate: number;
-  researcherCount: number;
-  cellTypeCount: number;
-  availablePositions: number[];
-  occupiedPositions: number[];
 }

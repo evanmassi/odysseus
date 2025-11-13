@@ -14,9 +14,15 @@
  */
 
 // Domain Services
-export { TubePositionService, PositionValidationResult, BoxStatistics } from './TubePositionService';
-export { AccessControlService, AccessResult, BulkAccessResult, BulkOperation } from './AccessControlService';
-export { ValidationService, ValidationResult, BulkValidationResult, TubeCreationData, TubeUpdateData } from './ValidationService';
+export { TubePositionService } from './TubePositionService';
+export { AccessControlService } from './AccessControlService';
+export { ValidationService } from './ValidationService';
+
+// Service Types (re-exported from centralized locations)
+export type { PositionValidation, PositionValidationWithWarnings, PositionValidationResult, BoxStatistics } from '@domain/types/services';
+export type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
+export type { TubeCreationData, TubeUpdateData } from '@domain/types/services';
+export type { DomainValidationResult, BulkValidationResult } from '@domain/types/validation';
 export { RolePermissionService, UserRole as UserRoleType, RolePermissionComparison, PermissionAuditReport } from './RolePermissionService';
 
 // Import types for interfaces

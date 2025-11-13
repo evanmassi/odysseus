@@ -1,31 +1,5 @@
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
-
-/**
- * Pagination Result
- *
- * Standard paginated response structure used across all repositories
- */
-export interface PaginatedResult<T> {
-  items: T[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
-    hasMore: boolean;
-  };
-}
-
-/**
- * Query Options
- *
- * Common query parameters for filtering and pagination
- */
-export interface QueryOptions {
-  limit?: number;
-  offset?: number;
-  dateFrom?: Date;
-  dateTo?: Date;
-}
+import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 
 /**
  * Audit Repository Interface
