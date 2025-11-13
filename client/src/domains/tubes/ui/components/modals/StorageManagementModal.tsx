@@ -21,7 +21,8 @@ import type {
   TankConfiguration,
   RackConfiguration,
   BoxConfiguration,
-  GridConfiguration} from '@domains/storage';
+  GridConfiguration,
+} from '@domains/storage';
 
 interface StorageManagementModalProps {
   isOpen: boolean;
@@ -31,7 +32,6 @@ interface StorageManagementModalProps {
 export function StorageManagementModal({ isOpen, onClose }: StorageManagementModalProps) {
   // Use proper Zustand selectors for reactive updates
   const currentLab = useStorageStore(state => state.currentLab);
-  
 
   const updateTank = useStorageStore(state => state.updateTank);
   const addTank = useStorageStore(state => state.addTank);
@@ -48,7 +48,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
   // React Query mutation for server sync
   const saveConfigurationMutation = useSaveStorageMutation();
-  
+
   // Helper function to save configuration to server
   const saveToServerWithReactQuery = async () => {
     const state = useStorageStore.getState();
@@ -56,14 +56,23 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
     // Explicitly type the mutation parameters
     await saveConfigurationMutation.mutateAsync({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Zustand store state type compatibility with mutation
       systemConfig: systemConfig as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Zustand store state type compatibility with mutation
       currentLab: currentLab as any,
     });
   };
-  
+
   const [editingTank, setEditingTank] = useState<TankConfiguration | null>(null);
-  const [editingBox, setEditingBox] = useState<{ tankId: string; rackId: string; box: BoxConfiguration } | null>(null);
-  const [editingRack, setEditingRack] = useState<{ tankId: string; rack: RackConfiguration } | null>(null);
+  const [editingBox, setEditingBox] = useState<{
+    tankId: string;
+    rackId: string;
+    box: BoxConfiguration;
+  } | null>(null);
+  const [editingRack, setEditingRack] = useState<{
+    tankId: string;
+    rack: RackConfiguration;
+  } | null>(null);
   const [selectedGridTemplate, setSelectedGridTemplate] = useState<GridConfiguration | null>(null);
   const [collapsedTanks, setCollapsedTanks] = useState<Set<string>>(new Set());
   const [collapsedRacks, setCollapsedRacks] = useState<Set<string>>(() => {
@@ -163,7 +172,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
         id: nextBoxLetter,
         name: NAMING_PATTERNS.BOX.DEFAULT_NAME(boxIndex),
         gridConfig: currentLab.equipment.defaultGridConfig,
-        position: boxIndex + 1 // Add position property (1-indexed)
+        position: boxIndex + 1, // Add position property (1-indexed)
       };
 
       addBoxToRack(currentLab.id, tankId, rackId, newBox);
@@ -189,22 +198,31 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           // Always close modal after mutation completes (success or error)
           modalService.hideDeleteConfirm();
         }
-      }
+      },
     });
   };
 
-  const handleUpdateBoxGrid = async (tankId: string, rackId: string, boxId: string, gridConfig: GridConfiguration) => {
+  const handleUpdateBoxGrid = async (
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    gridConfig: GridConfiguration
+  ) => {
     updateBox(currentLab.id, tankId, rackId, boxId, { gridConfig });
     setEditingBox(null);
-    
+
     // Save to server (SessionManager handles authentication automatically)
     await saveToServerWithReactQuery();
   };
 
-  const handleUpdateRack = async (tankId: string, rackId: string, updates: Partial<RackConfiguration>) => {
+  const handleUpdateRack = async (
+    tankId: string,
+    rackId: string,
+    updates: Partial<RackConfiguration>
+  ) => {
     updateRack(currentLab.id, tankId, rackId, updates);
     setEditingRack(null);
-    
+
     // Save to server (SessionManager handles authentication automatically)
     await saveToServerWithReactQuery();
   };
@@ -228,7 +246,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           // Always close modal after mutation completes (success or error)
           modalService.hideDeleteConfirm();
         }
-      }
+      },
     });
   };
 
@@ -279,7 +297,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
         } finally {
           modalService.hideDeleteConfirm();
         }
-      }
+      },
     });
   };
 
@@ -298,9 +316,14 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">Manage Storage</h2>
-              <p className="text-sm text-white/90 mt-0.5">Configure liquid nitrogen storage tanks, racks, and boxes</p>
+              <p className="text-sm text-white/90 mt-0.5">
+                Configure liquid nitrogen storage tanks, racks, and boxes
+              </p>
             </div>
-            <button onClick={onClose} className="p-1 hover:bg-white/20 rounded-lg transition-colors">
+            <button
+              onClick={onClose}
+              className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+            >
               <X size={20} />
             </button>
           </div>
@@ -321,201 +344,248 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
             {/* Tanks List */}
             <div className="space-y-1.5">
-              {currentLab.equipment.tanks.map((tank) => (
-                    <div key={tank.id} className="border border-gray-300 rounded-lg bg-white">
-                      {/* Tank Header - Compact horizontal spacing */}
-                      <div className="bg-slate-600 px-2 py-1.5 border-b border-slate-700 rounded-t-lg">
-                        <div className="flex items-center gap-2">
+              {currentLab.equipment.tanks.map(tank => (
+                <div key={tank.id} className="border border-gray-300 rounded-lg bg-white">
+                  {/* Tank Header - Compact horizontal spacing */}
+                  <div className="bg-slate-600 px-2 py-1.5 border-b border-slate-700 rounded-t-lg">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => toggleTankCollapse(tank.id)}
+                        className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-700 -mx-1 px-1 py-1 rounded text-left"
+                        aria-expanded={!collapsedTanks.has(tank.id)}
+                        aria-controls={`tank-content-${tank.id}`}
+                        aria-label={`${collapsedTanks.has(tank.id) ? 'Expand' : 'Collapse'} tank ${tank.name}`}
+                      >
+                        <div className="text-slate-200 flex-shrink-0" aria-hidden="true">
+                          {collapsedTanks.has(tank.id) ? (
+                            <ChevronRight size={16} />
+                          ) : (
+                            <ChevronDown size={16} />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+                          <TankIcon
+                            className="text-white flex-shrink-0"
+                            size={24}
+                            aria-hidden="true"
+                          />
+                          <h3 className="text-base font-semibold text-white truncate min-w-[80px]">
+                            {tank.name}
+                          </h3>
+                          <span className="text-xs px-2 py-1 bg-slate-700 rounded text-white flex items-center gap-1.5">
+                            <span>{tank.location}</span>
+                            <span>•</span>
+                            <span>
+                              {tank.racks.length} {tank.racks.length === 1 ? 'rack' : 'racks'}
+                            </span>
+                          </span>
+                        </div>
+                      </button>
+                      <div className="flex items-center gap-0.5 flex-shrink-0">
+                        <button
+                          onClick={() => setEditingTank(tank)}
+                          className="text-slate-200 hover:bg-slate-700 p-1 rounded"
+                          title="Edit tank"
+                        >
+                          <Edit3 size={16} />
+                        </button>
+                        {currentLab.equipment.tanks.length > 1 && (
                           <button
-                            type="button"
-                            onClick={() => toggleTankCollapse(tank.id)}
-                            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-700 -mx-1 px-1 py-1 rounded text-left"
-                            aria-expanded={!collapsedTanks.has(tank.id)}
-                            aria-controls={`tank-content-${tank.id}`}
-                            aria-label={`${collapsedTanks.has(tank.id) ? 'Expand' : 'Collapse'} tank ${tank.name}`}
+                            onClick={() => handleDeleteTank(tank.id)}
+                            className="text-red-300 hover:bg-red-900 p-1 rounded"
+                            title="Delete tank"
                           >
-                            <div className="text-slate-200 flex-shrink-0" aria-hidden="true">
-                              {collapsedTanks.has(tank.id) ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
-                            </div>
-                            <div className="flex-1 min-w-0 flex items-center gap-1.5">
-                              <TankIcon className="text-white flex-shrink-0" size={24} aria-hidden="true" />
-                              <h3 className="text-base font-semibold text-white truncate min-w-[80px]">{tank.name}</h3>
-                              <span className="text-xs px-2 py-1 bg-slate-700 rounded text-white flex items-center gap-1.5">
-                                <span>{tank.location}</span>
-                                <span>•</span>
-                                <span>{tank.racks.length} {tank.racks.length === 1 ? 'rack' : 'racks'}</span>
-                              </span>
-                            </div>
+                            <Trash2 size={16} />
                           </button>
-                          <div className="flex items-center gap-0.5 flex-shrink-0">
-                            <button
-                              onClick={() => setEditingTank(tank)}
-                              className="text-slate-200 hover:bg-slate-700 p-1 rounded"
-                              title="Edit tank"
-                            >
-                              <Edit3 size={16} />
-                            </button>
-                            {currentLab.equipment.tanks.length > 1 && (
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tank content - collapsible */}
+                  {!collapsedTanks.has(tank.id) && (
+                    <div id={`tank-content-${tank.id}`} className="p-2">
+                      <div className="space-y-1.5">
+                        {tank.racks.map((rack, rackIndex) => {
+                          const rackKey = `${tank.id}-rack-${rack.id}`;
+                          return (
+                            <div key={rack.id} className="ml-2">
+                              {/* Rack Row - Tight horizontal spacing */}
+                              <div className="flex items-center gap-1.5 py-1 px-1.5 bg-slate-400 rounded border border-slate-500">
+                                <span className="text-slate-600 font-mono text-sm flex-shrink-0">
+                                  {rackIndex === tank.racks.length - 1 ? '└' : '├'}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleRackCollapse(rackKey)}
+                                  className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-500 -mx-1 px-1 py-0.5 rounded text-left"
+                                  aria-expanded={!collapsedRacks.has(rackKey)}
+                                  aria-controls={`rack-content-${rackKey}`}
+                                  aria-label={`${collapsedRacks.has(rackKey) ? 'Expand' : 'Collapse'} ${rack.name}`}
+                                >
+                                  <div className="text-white flex-shrink-0" aria-hidden="true">
+                                    {collapsedRacks.has(rackKey) ? (
+                                      <ChevronRight size={12} />
+                                    ) : (
+                                      <ChevronDown size={12} />
+                                    )}
+                                  </div>
+                                  <RackIcon
+                                    className="text-white flex-shrink-0"
+                                    size={18}
+                                    aria-hidden="true"
+                                  />
+                                  <span className="font-medium text-white text-sm inline-block min-w-[60px]">
+                                    {rack.name}
+                                  </span>
+                                  <span className="text-xs px-2 py-0.5 bg-slate-500 rounded text-white">
+                                    {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
+                                  </span>
+                                </button>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                  <button
+                                    onClick={() => setEditingRack({ tankId: tank.id, rack })}
+                                    className="text-slate-100 hover:bg-slate-500 p-1 rounded"
+                                    title="Edit rack"
+                                  >
+                                    <Edit3 size={14} />
+                                  </button>
+                                  {tank.racks.length > 1 && (
+                                    <button
+                                      onClick={() => handleDeleteRack(tank.id, rack.id)}
+                                      className="text-red-300 hover:bg-red-900 p-1 rounded"
+                                      title="Delete rack"
+                                    >
+                                      <Trash2 size={14} />
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Boxes under this rack - collapsible */}
+                              {!collapsedRacks.has(rackKey) && (
+                                <div
+                                  id={`rack-content-${rackKey}`}
+                                  className="ml-5 mt-0.5 space-y-0.5"
+                                >
+                                  {rack.boxes.map((box, boxIndex) => (
+                                    <div
+                                      key={box.id}
+                                      className="flex items-center gap-1.5 py-0.5 px-1.5 bg-slate-200 rounded border border-slate-300"
+                                    >
+                                      <span className="text-slate-400 font-mono text-xs flex-shrink-0">
+                                        {boxIndex === rack.boxes.length - 1 ? '└' : '├'}
+                                      </span>
+                                      <BoxIcon className="text-slate-700 flex-shrink-0" size={16} />
+                                      <span className="font-medium text-slate-800 text-xs inline-block w-16">
+                                        {box.name}
+                                      </span>
+                                      <span className="text-xs px-2 py-1 bg-slate-300 rounded text-slate-700">
+                                        {box.gridConfig.rows}×{box.gridConfig.cols}
+                                      </span>
+                                      <div className="flex-1"></div>
+                                      <div className="flex items-center gap-1 flex-shrink-0">
+                                        <button
+                                          onClick={() =>
+                                            setEditingBox({ tankId: tank.id, rackId: rack.id, box })
+                                          }
+                                          className="text-slate-700 hover:bg-slate-300 p-1 rounded"
+                                          title="Change grid size"
+                                        >
+                                          <Edit3 size={12} />
+                                        </button>
+                                        {rack.boxes.length > 1 && (
+                                          <button
+                                            onClick={() =>
+                                              handleRemoveBox(tank.id, rack.id, box.id)
+                                            }
+                                            className="text-red-700 hover:bg-red-200 p-1 rounded"
+                                            title="Remove this box"
+                                          >
+                                            <Trash2 size={12} />
+                                          </button>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+
+                                  {/* Add Box Button with Bulk Input */}
+                                  <div className="flex items-center gap-1.5 py-0.5 px-1.5">
+                                    <span className="text-slate-400 font-mono text-xs">└</span>
+                                    <div className="flex items-center gap-2">
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        max="26"
+                                        value={boxCountToAdd[`${tank.id}-${rack.id}`] || 1}
+                                        onChange={e =>
+                                          setBoxCountToAdd(prev => ({
+                                            ...prev,
+                                            [`${tank.id}-${rack.id}`]: Math.max(
+                                              1,
+                                              Math.min(26, parseInt(e.target.value) || 1)
+                                            ),
+                                          }))
+                                        }
+                                        className="input-number-sm w-14 px-2 py-0.5"
+                                        title="Number of boxes to add"
+                                      />
+                                      <button
+                                        onClick={() => handleAddBox(tank.id, rack.id)}
+                                        className="flex items-center gap-1 bg-slate-200 text-slate-800 px-2 py-1 rounded hover:bg-slate-300 text-xs"
+                                      >
+                                        <Plus size={12} />
+                                        Add{' '}
+                                        {(boxCountToAdd[`${tank.id}-${rack.id}`] || 1) > 1
+                                          ? 'Boxes'
+                                          : 'Box'}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+
+                        {/* Add Rack Button with Bulk Input */}
+                        <div className="ml-2 mt-1">
+                          <div className="flex items-center gap-1.5 py-1 px-1.5">
+                            <span className="text-gray-400 font-mono text-xs">└</span>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="number"
+                                min="1"
+                                max="50"
+                                value={rackCountToAdd[tank.id] || 1}
+                                onChange={e =>
+                                  setRackCountToAdd(prev => ({
+                                    ...prev,
+                                    [tank.id]: Math.max(
+                                      1,
+                                      Math.min(50, parseInt(e.target.value) || 1)
+                                    ),
+                                  }))
+                                }
+                                className="input-number-sm w-14 px-2 py-1 text-sm"
+                                title="Number of racks to add"
+                              />
                               <button
-                                onClick={() => handleDeleteTank(tank.id)}
-                                className="text-red-300 hover:bg-red-900 p-1 rounded"
-                                title="Delete tank"
+                                onClick={() => handleCreateRack(tank.id)}
+                                className="flex items-center gap-1 bg-slate-400 text-white px-2 py-1 rounded hover:bg-slate-500 text-sm"
                               >
-                                <Trash2 size={16} />
+                                <Plus size={12} />
+                                Add {(rackCountToAdd[tank.id] || 1) > 1 ? 'Racks' : 'Rack'}
                               </button>
-                            )}
+                            </div>
                           </div>
                         </div>
                       </div>
-
-                      {/* Tank content - collapsible */}
-                      {!collapsedTanks.has(tank.id) && (
-                        <div id={`tank-content-${tank.id}`} className="p-2">
-                          <div className="space-y-1.5">
-                            {tank.racks.map((rack, rackIndex) => {
-                              const rackKey = `${tank.id}-rack-${rack.id}`;
-                              return (
-                                <div key={rack.id} className="ml-2">
-                                  {/* Rack Row - Tight horizontal spacing */}
-                                  <div className="flex items-center gap-1.5 py-1 px-1.5 bg-slate-400 rounded border border-slate-500">
-                                    <span className="text-slate-600 font-mono text-sm flex-shrink-0">
-                                      {rackIndex === tank.racks.length - 1 ? '└' : '├'}
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => toggleRackCollapse(rackKey)}
-                                      className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-500 -mx-1 px-1 py-0.5 rounded text-left"
-                                      aria-expanded={!collapsedRacks.has(rackKey)}
-                                      aria-controls={`rack-content-${rackKey}`}
-                                      aria-label={`${collapsedRacks.has(rackKey) ? 'Expand' : 'Collapse'} ${rack.name}`}
-                                    >
-                                      <div className="text-white flex-shrink-0" aria-hidden="true">
-                                        {collapsedRacks.has(rackKey) ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-                                      </div>
-                                      <RackIcon className="text-white flex-shrink-0" size={18} aria-hidden="true" />
-                                      <span className="font-medium text-white text-sm inline-block min-w-[60px]">{rack.name}</span>
-                                      <span className="text-xs px-2 py-0.5 bg-slate-500 rounded text-white">
-                                        {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
-                                      </span>
-                                    </button>
-                                    <div className="flex items-center gap-1 flex-shrink-0">
-                                      <button
-                                        onClick={() => setEditingRack({ tankId: tank.id, rack })}
-                                        className="text-slate-100 hover:bg-slate-500 p-1 rounded"
-                                        title="Edit rack"
-                                      >
-                                        <Edit3 size={14} />
-                                      </button>
-                                      {tank.racks.length > 1 && (
-                                        <button
-                                          onClick={() => handleDeleteRack(tank.id, rack.id)}
-                                          className="text-red-300 hover:bg-red-900 p-1 rounded"
-                                          title="Delete rack"
-                                        >
-                                          <Trash2 size={14} />
-                                        </button>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Boxes under this rack - collapsible */}
-                                  {!collapsedRacks.has(rackKey) && (
-                                    <div id={`rack-content-${rackKey}`} className="ml-5 mt-0.5 space-y-0.5">
-                                      {rack.boxes.map((box, boxIndex) => (
-                                        <div key={box.id} className="flex items-center gap-1.5 py-0.5 px-1.5 bg-slate-200 rounded border border-slate-300">
-                                          <span className="text-slate-400 font-mono text-xs flex-shrink-0">
-                                            {boxIndex === rack.boxes.length - 1 ? '└' : '├'}
-                                          </span>
-                                          <BoxIcon className="text-slate-700 flex-shrink-0" size={16} />
-                                          <span className="font-medium text-slate-800 text-xs inline-block w-16">{box.name}</span>
-                                          <span className="text-xs px-2 py-1 bg-slate-300 rounded text-slate-700">
-                                            {box.gridConfig.rows}×{box.gridConfig.cols}
-                                          </span>
-                                          <div className="flex-1"></div>
-                                          <div className="flex items-center gap-1 flex-shrink-0">
-                                            <button
-                                              onClick={() => setEditingBox({ tankId: tank.id, rackId: rack.id, box })}
-                                              className="text-slate-700 hover:bg-slate-300 p-1 rounded"
-                                              title="Change grid size"
-                                            >
-                                              <Edit3 size={12} />
-                                            </button>
-                                            {rack.boxes.length > 1 && (
-                                              <button
-                                                onClick={() => handleRemoveBox(tank.id, rack.id, box.id)}
-                                                className="text-red-700 hover:bg-red-200 p-1 rounded"
-                                                title="Remove this box"
-                                              >
-                                                <Trash2 size={12} />
-                                              </button>
-                                            )}
-                                          </div>
-                                        </div>
-                                      ))}
-
-                                      {/* Add Box Button with Bulk Input */}
-                                      <div className="flex items-center gap-1.5 py-0.5 px-1.5">
-                                        <span className="text-slate-400 font-mono text-xs">└</span>
-                                        <div className="flex items-center gap-2">
-                                          <input
-                                            type="number"
-                                            min="1"
-                                            max="26"
-                                            value={boxCountToAdd[`${tank.id}-${rack.id}`] || 1}
-                                            onChange={(e) => setBoxCountToAdd(prev => ({
-                                              ...prev,
-                                              [`${tank.id}-${rack.id}`]: Math.max(1, Math.min(26, parseInt(e.target.value) || 1))
-                                            }))}
-                                            className="input-number-sm w-14 px-2 py-0.5"
-                                            title="Number of boxes to add"
-                                          />
-                                          <button
-                                            onClick={() => handleAddBox(tank.id, rack.id)}
-                                            className="flex items-center gap-1 bg-slate-200 text-slate-800 px-2 py-1 rounded hover:bg-slate-300 text-xs"
-                                          >
-                                            <Plus size={12} />
-                                            Add {(boxCountToAdd[`${tank.id}-${rack.id}`] || 1) > 1 ? 'Boxes' : 'Box'}
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-
-                            {/* Add Rack Button with Bulk Input */}
-                            <div className="ml-2 mt-1">
-                              <div className="flex items-center gap-1.5 py-1 px-1.5">
-                                <span className="text-gray-400 font-mono text-xs">└</span>
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    max="50"
-                                    value={rackCountToAdd[tank.id] || 1}
-                                    onChange={(e) => setRackCountToAdd(prev => ({
-                                      ...prev,
-                                      [tank.id]: Math.max(1, Math.min(50, parseInt(e.target.value) || 1))
-                                    }))}
-                                    className="input-number-sm w-14 px-2 py-1 text-sm"
-                                    title="Number of racks to add"
-                                  />
-                                  <button
-                                    onClick={() => handleCreateRack(tank.id)}
-                                    className="flex items-center gap-1 bg-slate-400 text-white px-2 py-1 rounded hover:bg-slate-500 text-sm"
-                                  >
-                                    <Plus size={12} />
-                                    Add {(rackCountToAdd[tank.id] || 1) > 1 ? 'Racks' : 'Rack'}
-                                  </button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  ))}
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -524,13 +594,18 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
             role="presentation"
-            onKeyDown={(e) => {
+            onKeyDown={e => {
               if (e.key === 'Enter') {
                 e.preventDefault();
                 const template = selectedGridTemplate ?? editingBox.box.gridConfig;
                 void (async () => {
                   try {
-                    await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
+                    await handleUpdateBoxGrid(
+                      editingBox.tankId,
+                      editingBox.rackId,
+                      editingBox.box.id,
+                      template
+                    );
                   } catch (error) {
                     // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
                     console.error('Failed to update box grid:', error);
@@ -552,7 +627,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               <h3 id="box-edit-title" className="text-lg font-semibold mb-4">
                 Configure {editingBox.box.name} Grid Size
               </h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label htmlFor="box-grid-template" className="block text-sm font-medium mb-2">
@@ -562,14 +637,14 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                     id="box-grid-template"
                     className="w-full border rounded-lg px-3 py-2"
                     value={`${editingBox.box.gridConfig.rows}x${editingBox.box.gridConfig.cols}`}
-                    onChange={(e) => {
+                    onChange={e => {
                       const [rows, cols] = e.target.value.split('x').map(Number);
                       const template = gridTemplates.find(t => t.rows === rows && t.cols === cols);
                       if (template) setSelectedGridTemplate(template);
                     }}
                     aria-label="Select grid template for box"
                   >
-                    {gridTemplates.map((template) => (
+                    {gridTemplates.map(template => (
                       <option
                         key={`${template.rows}x${template.cols}`}
                         value={`${template.rows}x${template.cols}`}
@@ -579,12 +654,9 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                     ))}
                   </select>
                 </div>
-                
+
                 <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => setEditingBox(null)}
-                    className="btn-cancel"
-                  >
+                  <button onClick={() => setEditingBox(null)} className="btn-cancel">
                     Cancel
                   </button>
                   <button
@@ -592,7 +664,12 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       const template = selectedGridTemplate ?? editingBox.box.gridConfig;
                       void (async () => {
                         try {
-                          await handleUpdateBoxGrid(editingBox.tankId, editingBox.rackId, editingBox.box.id, template);
+                          await handleUpdateBoxGrid(
+                            editingBox.tankId,
+                            editingBox.rackId,
+                            editingBox.box.id,
+                            template
+                          );
                         } catch (error) {
                           // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
                           console.error('Failed to update box grid:', error);
@@ -616,7 +693,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
             role="presentation"
-            onKeyDown={(e) => {
+            onKeyDown={e => {
               if (e.key === 'Enter' && editingRack.rack.name.trim()) {
                 e.preventDefault();
                 void (async () => {
@@ -625,7 +702,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       name: editingRack.rack.name,
                       location: editingRack.rack.location,
                       description: editingRack.rack.description,
-                      isActive: editingRack.rack.isActive
+                      isActive: editingRack.rack.isActive,
                     });
                   } catch (error) {
                     // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
@@ -646,12 +723,17 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               aria-modal="true"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 id="rack-edit-title" className="text-lg font-bold">Edit Rack</h3>
-                <button onClick={() => setEditingRack(null)} className="p-1 hover:bg-gray-100 rounded">
+                <h3 id="rack-edit-title" className="text-lg font-bold">
+                  Edit Rack
+                </h3>
+                <button
+                  onClick={() => setEditingRack(null)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
                   <X size={16} />
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 <div>
                   <label htmlFor="rack-name" className="block text-sm font-medium mb-2">
@@ -662,7 +744,12 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                     type="text"
                     className="input w-full"
                     value={editingRack.rack.name}
-                    onChange={(e) => setEditingRack({ ...editingRack, rack: { ...editingRack.rack, name: e.target.value } })}
+                    onChange={e =>
+                      setEditingRack({
+                        ...editingRack,
+                        rack: { ...editingRack.rack, name: e.target.value },
+                      })
+                    }
                     placeholder="Rack 1"
                     required
                     aria-required="true"
@@ -678,7 +765,12 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                     className="input w-full resize-none"
                     rows={3}
                     value={editingRack.rack.description ?? ''}
-                    onChange={(e) => setEditingRack({ ...editingRack, rack: { ...editingRack.rack, description: e.target.value } })}
+                    onChange={e =>
+                      setEditingRack({
+                        ...editingRack,
+                        rack: { ...editingRack.rack, description: e.target.value },
+                      })
+                    }
                     placeholder="Optional description"
                   />
                 </div>
@@ -688,28 +780,32 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                     type="checkbox"
                     id="rackActive"
                     checked={editingRack.rack.isActive}
-                    onChange={(e) => setEditingRack({ ...editingRack, rack: { ...editingRack.rack, isActive: e.target.checked } })}
+                    onChange={e =>
+                      setEditingRack({
+                        ...editingRack,
+                        rack: { ...editingRack.rack, isActive: e.target.checked },
+                      })
+                    }
                   />
                   <label htmlFor="rackActive" className="text-sm font-medium">
                     Active (visible in rack selector)
                   </label>
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 mt-6">
-                <button
-                  onClick={() => setEditingRack(null)}
-                  className="btn-cancel"
-                >
+                <button onClick={() => setEditingRack(null)} className="btn-cancel">
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleUpdateRack(editingRack.tankId, editingRack.rack.id, {
-                    name: editingRack.rack.name,
-                    location: editingRack.rack.location,
-                    description: editingRack.rack.description,
-                    isActive: editingRack.rack.isActive
-                  })}
+                  onClick={() =>
+                    handleUpdateRack(editingRack.tankId, editingRack.rack.id, {
+                      name: editingRack.rack.name,
+                      location: editingRack.rack.location,
+                      description: editingRack.rack.description,
+                      isActive: editingRack.rack.isActive,
+                    })
+                  }
                   className="btn-primary flex items-center gap-2"
                 >
                   <Save size={16} />
@@ -725,7 +821,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           <div
             className="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
             role="presentation"
-            onKeyDown={(e) => {
+            onKeyDown={e => {
               if (e.key === 'Enter' && editingTank.name.trim()) {
                 e.preventDefault();
                 void (async () => {
@@ -733,7 +829,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                     await handleUpdateTank(editingTank.id, {
                       name: editingTank.name.trim(),
                       location: editingTank.location?.trim() || '',
-                      isActive: editingTank.isActive
+                      isActive: editingTank.isActive,
                     });
                   } catch (error) {
                     // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
@@ -756,16 +852,24 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
                   <TankIcon className="text-odysseus-blue" size={22} />
-                  <h3 id="tank-edit-title" className="text-lg font-bold">Edit Tank Configuration</h3>
+                  <h3 id="tank-edit-title" className="text-lg font-bold">
+                    Edit Tank Configuration
+                  </h3>
                 </div>
-                <button onClick={() => setEditingTank(null)} className="p-1 hover:bg-gray-100 rounded">
+                <button
+                  onClick={() => setEditingTank(null)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                >
                   <X size={16} />
                 </button>
               </div>
-              
+
               <div className="space-y-5">
                 <div>
-                  <label htmlFor="tank-name" className="block text-sm font-semibold mb-2 text-gray-700">
+                  <label
+                    htmlFor="tank-name"
+                    className="block text-sm font-semibold mb-2 text-gray-700"
+                  >
                     Tank Name *
                   </label>
                   <input
@@ -773,7 +877,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                     type="text"
                     className="input w-full text-lg font-medium"
                     value={editingTank.name}
-                    onChange={(e) => setEditingTank({ ...editingTank, name: e.target.value })}
+                    onChange={e => setEditingTank({ ...editingTank, name: e.target.value })}
                     placeholder="Main Cryogenic Storage"
                     required
                     aria-required="true"
@@ -787,7 +891,10 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                 </div>
 
                 <div>
-                  <label htmlFor="tank-location" className="block text-sm font-semibold mb-2 text-gray-700">
+                  <label
+                    htmlFor="tank-location"
+                    className="block text-sm font-semibold mb-2 text-gray-700"
+                  >
                     Physical Location
                   </label>
                   <input
@@ -795,7 +902,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                     type="text"
                     className="input w-full"
                     value={editingTank.location || ''}
-                    onChange={(e) => setEditingTank({ ...editingTank, location: e.target.value })}
+                    onChange={e => setEditingTank({ ...editingTank, location: e.target.value })}
                     placeholder="Lab Room 101, Building A"
                   />
                 </div>
@@ -803,11 +910,11 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="font-medium text-gray-700 mb-2">Tank Status</h4>
                   <div className="flex items-center gap-3">
-                    <input 
+                    <input
                       type="checkbox"
                       id="tankActive"
                       checked={editingTank.isActive}
-                      onChange={(e) => setEditingTank({ ...editingTank, isActive: e.target.checked })}
+                      onChange={e => setEditingTank({ ...editingTank, isActive: e.target.checked })}
                       className="w-4 h-4 text-blue-600"
                     />
                     <label htmlFor="tankActive" className="text-sm font-medium">
@@ -823,17 +930,29 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                   <h4 className="font-medium text-blue-700 mb-1">Tank Statistics</h4>
                   <div className="text-sm text-blue-600 space-y-1">
                     <p>• {editingTank.racks.length} racks configured</p>
-                    <p>• {editingTank.racks.reduce((total, rack) => total + rack.boxes.length, 0)} storage boxes</p>
-                    <p>• {editingTank.racks.reduce((total, rack) => total + rack.boxes.reduce((rackTotal, box) => rackTotal + getGridTotalPositions(box.gridConfig), 0), 0)} total positions</p>
+                    <p>
+                      • {editingTank.racks.reduce((total, rack) => total + rack.boxes.length, 0)}{' '}
+                      storage boxes
+                    </p>
+                    <p>
+                      •{' '}
+                      {editingTank.racks.reduce(
+                        (total, rack) =>
+                          total +
+                          rack.boxes.reduce(
+                            (rackTotal, box) => rackTotal + getGridTotalPositions(box.gridConfig),
+                            0
+                          ),
+                        0
+                      )}{' '}
+                      total positions
+                    </p>
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex justify-end gap-3 mt-8 pt-4 border-t">
-                <button
-                  onClick={() => setEditingTank(null)}
-                  className="btn-cancel"
-                >
+                <button onClick={() => setEditingTank(null)} className="btn-cancel">
                   Cancel
                 </button>
                 <button
@@ -844,7 +963,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                           await handleUpdateTank(editingTank.id, {
                             name: editingTank.name.trim(),
                             location: editingTank.location?.trim() || '',
-                            isActive: editingTank.isActive
+                            isActive: editingTank.isActive,
                           });
                         } catch (error) {
                           // eslint-disable-next-line no-console -- Error logging needed for debugging production issues

@@ -27,8 +27,11 @@ export interface HistoryAction {
   description: string;
   timestamp: Date;
   data: {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic undo/redo data for flexible action types
     before?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic undo/redo data for flexible action types
     after?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic undo/redo data for flexible action types
     items?: any[];
   };
   undo: () => Promise<void>;

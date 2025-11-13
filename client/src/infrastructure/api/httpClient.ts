@@ -8,7 +8,7 @@ import {
   batchEnvelopeSchema,
   ApiError,
   type PaginatedResult,
-  type BatchResult
+  type BatchResult,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -41,7 +41,7 @@ export class HttpClient {
     this.timeout = config.timeout || 10000;
     this.defaultHeaders = {
       'Content-Type': 'application/json',
-      ...config.headers
+      ...config.headers,
     };
   }
 
@@ -59,14 +59,14 @@ export class HttpClient {
         method,
         headers: requestHeaders,
         body: data ? JSON.stringify(data) : undefined,
-        signal: AbortSignal.timeout(this.timeout)
+        signal: AbortSignal.timeout(this.timeout),
       });
 
       const responseData = await response.json().catch(() => null);
 
       if (!response.ok) {
         const errorParsed = errorEnvelopeSchema.safeParse(responseData);
-        
+
         if (errorParsed.success) {
           throw new ApiError(
             errorParsed.data.error,
@@ -75,7 +75,7 @@ export class HttpClient {
             errorParsed.data.details
           );
         }
-        
+
         throw new ApiError(
           responseData?.message || `HTTP ${response.status}: ${response.statusText}`,
           response.status,
@@ -87,7 +87,7 @@ export class HttpClient {
         data: responseData,
         status: response.status,
         statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
+        headers: Object.fromEntries(response.headers.entries()),
       };
     } catch (error) {
       if (error instanceof Error) {
@@ -105,47 +105,39 @@ export class HttpClient {
 
     if (url.includes('/auth/login') || url.includes('/auth/register')) {
       return ResponseTransformers.LoginResponse(data);
-    }
-    else if (url.includes('/auth/refresh')) {
+    } else if (url.includes('/auth/refresh')) {
       return ResponseTransformers.RefreshResponse(data);
-    }
-    else if (url.includes('/users/me/profile')) {
+    } else if (url.includes('/users/me/profile')) {
       return ResponseTransformers.Person(data);
-    }
-    else if (url.includes('/users/me/sessions')) {
+    } else if (url.includes('/users/me/sessions')) {
       if (Array.isArray(data)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
         return data.map((session: any) => ResponseTransformers.ActiveSession(session));
       }
       return ResponseTransformers.ActiveSession(data);
-    }
-    else if (url.includes('/users/me/settings')) {
+    } else if (url.includes('/users/me/settings')) {
       return transformApiResponse(data, 'UserSettingsResponse');
-    }
-    else if (url.includes('/configuration')) {
+    } else if (url.includes('/configuration')) {
       return transformApiResponse(data, 'ConfigurationResponse');
-    }
-    else if (url.includes('/tubes')) {
+    } else if (url.includes('/tubes')) {
       return transformApiResponse(data, 'TubeData');
-    }
-    else if (url.includes('/researchers')) {
+    } else if (url.includes('/researchers')) {
       return ResponseTransformers.Researcher(data);
-    }
-    else if (url.includes('/admin/users')) {
+    } else if (url.includes('/admin/users')) {
       if (Array.isArray(data)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
         return data.map((user: any) => ResponseTransformers.AdminUser(user));
       }
       return ResponseTransformers.AdminUser(data);
-    }
-    else if (url.includes('/admin/metrics')) {
+    } else if (url.includes('/admin/metrics')) {
       return ResponseTransformers.SystemMetrics(data);
-    }
-    else if (url.includes('/admin/audit')) {
+    } else if (url.includes('/admin/audit')) {
       if (Array.isArray(data)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
         return data.map((entry: any) => ResponseTransformers.AuditLogEntry(entry));
       }
       return ResponseTransformers.AuditLogEntry(data);
-    }
-    else {
+    } else {
       return transformApiResponse(data);
     }
   }
@@ -154,15 +146,26 @@ export class HttpClient {
     return this.request<T>('GET', url, undefined, headers);
   }
 
-  async post<T = unknown>(url: string, data?: unknown, headers?: Record<string, string>): Promise<ApiResponse<T>> {
+  async post<T = unknown>(
+    url: string,
+    data?: unknown,
+    headers?: Record<string, string>
+  ): Promise<ApiResponse<T>> {
     return this.request<T>('POST', url, data, headers);
   }
 
-  async put<T = unknown>(url: string, data?: unknown, headers?: Record<string, string>): Promise<ApiResponse<T>> {
+  async put<T = unknown>(
+    url: string,
+    data?: unknown,
+    headers?: Record<string, string>
+  ): Promise<ApiResponse<T>> {
     return this.request<T>('PUT', url, data, headers);
   }
 
-  async delete<T = unknown>(url: string, headers?: Record<string, string>): Promise<ApiResponse<T>> {
+  async delete<T = unknown>(
+    url: string,
+    headers?: Record<string, string>
+  ): Promise<ApiResponse<T>> {
     return this.request<T>('DELETE', url, undefined, headers);
   }
 
@@ -170,14 +173,14 @@ export class HttpClient {
    * GET request that unwraps envelope and validates data
    */
   async getData<T>(
-    url: string, 
+    url: string,
     dataSchema: z.ZodType<T>,
     headers?: Record<string, string>
   ): Promise<T> {
     const response = await this.get(url, headers);
-    
+
     const envelope = successEnvelopeSchema(dataSchema).parse(response.data);
-    
+
     return envelope.data;
   }
 
@@ -234,10 +237,7 @@ export class HttpClient {
   /**
    * DELETE request (returns void)
    */
-  async deleteData(
-    url: string,
-    headers?: Record<string, string>
-  ): Promise<void> {
+  async deleteData(url: string, headers?: Record<string, string>): Promise<void> {
     await this.delete(url, headers);
   }
 
@@ -266,9 +266,9 @@ export class HttpClient {
     headers?: Record<string, string>
   ): Promise<PaginatedResult<T>> {
     const response = await this.get(url, headers);
-    
+
     const envelope = paginatedEnvelopeSchema(itemSchema).parse(response.data);
-    
+
     return {
       items: envelope.data,
       pagination: envelope.pagination ?? {
@@ -277,8 +277,8 @@ export class HttpClient {
         limit: envelope.data.length,
         totalPages: 1,
         hasNext: false,
-        hasPrev: false
-      }
+        hasPrev: false,
+      },
     };
   }
 
@@ -311,7 +311,7 @@ export class HttpClient {
 const API_BASE_URL = import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api';
 
 export const httpClient = new HttpClient({
-  baseURL: API_BASE_URL
+  baseURL: API_BASE_URL,
 });
 
 // Session Manager Integration
@@ -348,7 +348,11 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
 
   // Token injection for methods with data (POST, PUT)
   const injectWithData = async <T>(
-    originalMethod: (url: string, data?: unknown, headers?: Record<string, string>) => Promise<ApiResponse<T>>,
+    originalMethod: (
+      url: string,
+      data?: unknown,
+      headers?: Record<string, string>
+    ) => Promise<ApiResponse<T>>,
     url: string,
     data: unknown,
     headers: Record<string, string> | undefined,
@@ -365,19 +369,27 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
   };
 
   // Override methods with correct signatures
-  httpClient.get = async function<T = unknown>(url: string, headers?: Record<string, string>) {
+  httpClient.get = async function <T = unknown>(url: string, headers?: Record<string, string>) {
     return injectNoData<T>(originalGet, url, headers, sessionManager);
   };
 
-  httpClient.delete = async function<T = unknown>(url: string, headers?: Record<string, string>) {
+  httpClient.delete = async function <T = unknown>(url: string, headers?: Record<string, string>) {
     return injectNoData<T>(originalDelete, url, headers, sessionManager);
   };
 
-  httpClient.post = async function<T = unknown>(url: string, data?: unknown, headers?: Record<string, string>) {
+  httpClient.post = async function <T = unknown>(
+    url: string,
+    data?: unknown,
+    headers?: Record<string, string>
+  ) {
     return injectWithData<T>(originalPost, url, data, headers, sessionManager);
   };
 
-  httpClient.put = async function<T = unknown>(url: string, data?: unknown, headers?: Record<string, string>) {
+  httpClient.put = async function <T = unknown>(
+    url: string,
+    data?: unknown,
+    headers?: Record<string, string>
+  ) {
     return injectWithData<T>(originalPut, url, data, headers, sessionManager);
   };
 }

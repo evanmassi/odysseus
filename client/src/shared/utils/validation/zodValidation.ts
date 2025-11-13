@@ -13,6 +13,7 @@ import type { ZodSchema } from 'zod';
  * Modern validation result interface
  * Replaces LegacyValidationResult with enhanced error handling
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic default for flexible validation data types
 export interface ValidationResult<T = any> {
   success: boolean;
   data?: T;
@@ -35,35 +36,32 @@ export interface FieldValidationResult {
  * Validate data against a Zod schema
  * INDUSTRY STANDARD: Type-safe validation with detailed error reporting
  */
-export function validateWithSchema<T>(
-  schema: ZodSchema<T>,
-  data: unknown
-): ValidationResult<T> {
+export function validateWithSchema<T>(schema: ZodSchema<T>, data: unknown): ValidationResult<T> {
   try {
     const validatedData = schema.parse(data);
     return {
       success: true,
-      data: validatedData
+      data: validatedData,
     };
   } catch (error) {
     if (error instanceof ZodError) {
       const errors: Record<string, string> = {};
-      
+
       error.issues.forEach(issue => {
         const path = issue.path.join('.');
         errors[path || 'root'] = issue.message;
       });
-      
+
       return {
         success: false,
         error: `Validation failed: ${Object.values(errors).join(', ')}`,
-        errors
+        errors,
       };
     }
-    
+
     return {
       success: false,
-      error: 'Unknown validation error'
+      error: 'Unknown validation error',
     };
   }
 }
@@ -79,7 +77,7 @@ export function safeParseWithResult<T>(
   const result = validateWithSchema(schema, data);
   return {
     result,
-    parsed: result.success ? result.data : undefined
+    parsed: result.success ? result.data : undefined,
   };
 }
 
@@ -97,7 +95,7 @@ export function validateField<T>(
   return {
     isValid: result.success,
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: empty fieldName uses 'field', empty error uses result.error
-    error: result.success ? undefined : (result.errors?.[fieldName || 'field'] || result.error)
+    error: result.success ? undefined : result.errors?.[fieldName || 'field'] || result.error,
   };
 }
 
@@ -105,16 +103,14 @@ export function validateField<T>(
  * Batch validation for multiple fields
  * Returns combined validation result
  */
-export function validateFields(
-  validations: Record<string, FieldValidationResult>
-): {
+export function validateFields(validations: Record<string, FieldValidationResult>): {
   isValid: boolean;
   errors: Record<string, string>;
   warnings: Record<string, string>;
 } {
   const errors: Record<string, string> = {};
   const warnings: Record<string, string> = {};
-  
+
   Object.entries(validations).forEach(([field, result]) => {
     if (!result.isValid && result.error) {
       errors[field] = result.error;
@@ -123,11 +119,11 @@ export function validateFields(
       warnings[field] = result.warning;
     }
   });
-  
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
-    warnings
+    warnings,
   };
 }
 
@@ -152,36 +148,36 @@ export async function validateAsync<T>(
 ): Promise<ValidationResult<T>> {
   // First, validate with schema
   const schemaResult = validateWithSchema(schema, data);
-  
+
   if (!schemaResult.success) {
     return schemaResult;
   }
-  
+
   // Then run async validations
   if (asyncValidations && schemaResult.data) {
     try {
       const asyncErrors = await Promise.all(
         asyncValidations.map(validation => validation(schemaResult.data!))
       );
-      
+
       const errors = asyncErrors.filter(Boolean) as string[];
-      
+
       if (errors.length > 0) {
         return {
           success: false,
           error: errors.join(', '),
-          errors: { async: errors.join(', ') }
+          errors: { async: errors.join(', ') },
         };
       }
     } catch (error) {
       return {
         success: false,
         error: 'Async validation failed',
-        errors: { async: error instanceof Error ? error.message : 'Unknown async error' }
+        errors: { async: error instanceof Error ? error.message : 'Unknown async error' },
       };
     }
   }
-  
+
   return schemaResult;
 }
 
@@ -194,33 +190,34 @@ export const ValidationPatterns = {
   optional: z.string().optional(),
   email: z.string().email('Invalid email format'),
   url: z.string().url('Invalid URL format'),
-  
-  // Numeric patterns  
+
+  // Numeric patterns
   positiveNumber: z.number().positive('Must be a positive number'),
   nonNegativeNumber: z.number().min(0, 'Cannot be negative'),
-  integerRange: (min: number, max: number) => 
+  integerRange: (min: number, max: number) =>
     z.number().int().min(min, `Must be at least ${min}`).max(max, `Must be at most ${max}`),
-  
+
   // Date patterns
   isoDate: z.string().datetime('Invalid date format'),
   dateString: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format'),
-  
+
   // Common business patterns
-  identifier: z.string().regex(/^[A-Z0-9-_]+$/i, 'Only letters, numbers, dashes, and underscores allowed'),
+  identifier: z
+    .string()
+    .regex(/^[A-Z0-9-_]+$/i, 'Only letters, numbers, dashes, and underscores allowed'),
   alphanumeric: z.string().regex(/^[A-Z0-9]+$/i, 'Only letters and numbers allowed'),
-  
+
   // Array patterns
   nonEmptyArray: <T>(schema: ZodSchema<T>) => z.array(schema).min(1, 'At least one item required'),
-  uniqueArray: <T>(schema: ZodSchema<T>) => z.array(schema).refine(
-    arr => new Set(arr).size === arr.length,
-    'All items must be unique'
-  )
+  uniqueArray: <T>(schema: ZodSchema<T>) =>
+    z.array(schema).refine(arr => new Set(arr).size === arr.length, 'All items must be unique'),
 } as const;
 
 /**
  * Enhanced validation with warnings
  * Supports both errors and warnings in validation
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic default for flexible validation data types
 export interface ValidationWithWarnings<T = any> extends ValidationResult<T> {
   warnings?: Record<string, string>;
   hasWarnings?: boolean;
@@ -232,14 +229,14 @@ export function validateWithWarnings<T>(
   warningChecks?: Array<(data: T) => { field: string; message: string } | null>
 ): ValidationWithWarnings<T> {
   const result = validateWithSchema(schema, data);
-  
+
   if (!result.success) {
     return result;
   }
-  
+
   // Check for warnings
   const warnings: Record<string, string> = {};
-  
+
   if (warningChecks && result.data) {
     warningChecks.forEach(check => {
       const warning = check(result.data!);
@@ -248,10 +245,10 @@ export function validateWithWarnings<T>(
       }
     });
   }
-  
+
   return {
     ...result,
     warnings,
-    hasWarnings: Object.keys(warnings).length > 0
+    hasWarnings: Object.keys(warnings).length > 0,
   };
 }

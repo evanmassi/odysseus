@@ -1,10 +1,10 @@
 /**
  * Authentication HTTP Client
- * 
+ *
  * Dedicated HTTP client for authentication endpoints only.
  * Prevents circular dependency with SessionManager by providing
  * a pure HTTP transport layer without token injection.
- * 
+ *
  * Purpose:
  * - Handle /login, /refresh, /logout endpoints
  * - No automatic token injection (prevents circular dependency)
@@ -18,6 +18,7 @@ export interface AuthApiErrorData {
   message: string;
   status: number;
   code?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Error details structure varies by error type
   details?: any;
 }
 
@@ -26,6 +27,7 @@ export class AuthApiError extends Error implements AuthApiErrorData {
     message: string,
     public status: number,
     public code?: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Error details structure varies by error type
     public details?: any
   ) {
     super(message);
@@ -35,7 +37,7 @@ export class AuthApiError extends Error implements AuthApiErrorData {
 
 /**
  * Pure HTTP client for authentication operations
- * 
+ *
  * This client intentionally does NOT:
  * - Inject authentication tokens (prevents circular dependency)
  * - Handle 401 retries (auth endpoints handle their own errors)
@@ -46,7 +48,9 @@ export class AuthHttpClient {
   private readonly baseURL: string;
   private readonly timeout: number;
 
-  constructor(config: { baseURL: string; timeout?: number } = { baseURL: 'http://localhost:3001/api' }) {
+  constructor(
+    config: { baseURL: string; timeout?: number } = { baseURL: 'http://localhost:3001/api' }
+  ) {
     this.baseURL = config.baseURL;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
     this.timeout = config.timeout || 30000;
@@ -54,24 +58,26 @@ export class AuthHttpClient {
 
   /**
    * POST request for authentication endpoints
-   * 
+   *
    * @param path - API path (e.g., '/public/auth/login')
    * @param data - Request payload
    * @returns Promise with parsed JSON response
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client, accepts any request body
   async post<T = any>(path: string, data: any): Promise<T> {
     return this.request<T>(path, {
       method: 'POST',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
     });
   }
 
   /**
    * GET request for authentication endpoints (if needed)
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client response type
   async get<T = any>(path: string): Promise<T> {
     return this.request<T>(path, {
-      method: 'GET'
+      method: 'GET',
     });
   }
 
@@ -80,11 +86,11 @@ export class AuthHttpClient {
    */
   private async request<T>(path: string, options: RequestInit): Promise<T> {
     const url = `${this.baseURL}${path}`;
-    
+
     // Build headers - NO Authorization header
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...(options.headers as Record<string, string>)
+      ...(options.headers as Record<string, string>),
     };
 
     try {
@@ -95,7 +101,7 @@ export class AuthHttpClient {
       const response = await fetch(url, {
         ...options,
         headers,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
@@ -113,12 +119,13 @@ export class AuthHttpClient {
       }
 
       // Apply response transformation (converts date strings to Date objects)
-      const typeHint = path.includes('/refresh') ? 'RefreshResponse' 
-                     : path.includes('/login') ? 'LoginResponse'
-                     : undefined;
-      
-      return transformApiResponse<T>(responseData, typeHint);
+      const typeHint = path.includes('/refresh')
+        ? 'RefreshResponse'
+        : path.includes('/login')
+          ? 'LoginResponse'
+          : undefined;
 
+      return transformApiResponse<T>(responseData, typeHint);
     } catch (error) {
       if (error instanceof AuthApiError) {
         throw error;

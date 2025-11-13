@@ -12,7 +12,7 @@ export interface AppBootstrapState {
   };
 }
 
-export type BootstrapStep = 
+export type BootstrapStep =
   | 'initialization'
   | 'auth-check'
   | 'socket-connection'
@@ -41,6 +41,7 @@ export interface BootstrapError {
   step: BootstrapStep;
   code: string;
   retryable: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic error details with varying structure
   details?: Record<string, any>;
 }
 

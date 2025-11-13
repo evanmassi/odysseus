@@ -5,11 +5,13 @@
 import { hasValue, isObject } from '@app/types/fieldTypeMapping';
 
 import type { FieldResolverHook } from '../hooks/useFieldResolver';
-import type { TubeFieldTypeMap, ValidFieldPath, ValidFieldValue } from '@app/types/fieldTypeMapping';
+import type {
+  TubeFieldTypeMap,
+  ValidFieldPath,
+  ValidFieldValue,
+} from '@app/types/fieldTypeMapping';
 import type { FieldResolutionOptions } from '@domains/tubes/types/FieldResolver';
 import type { TubeData } from '@odysseus/shared-schemas';
-
-
 
 export interface PerformanceMetrics {
   totalResolutions: number;
@@ -45,11 +47,7 @@ export class FieldResolverService {
   /**
    * Resolve field value from tube data (implementation)
    */
-  static resolveField(
-    tube: unknown,
-    fieldKey: string,
-    options?: FieldResolutionOptions
-  ): unknown {
+  static resolveField(tube: unknown, fieldKey: string, options?: FieldResolutionOptions): unknown {
     if (!isObject(tube)) return undefined;
 
     const keys = fieldKey.split('.');
@@ -96,7 +94,10 @@ export class FieldResolverService {
         tubes: TubeData[],
         fieldKey: string,
         options?: FieldResolutionOptions
-      ) => tubes.map(tube => FieldResolverService.resolveField(tube, fieldKey, options) as T | undefined),
+      ) =>
+        tubes.map(
+          tube => FieldResolverService.resolveField(tube, fieldKey, options) as T | undefined
+        ),
 
       hasValue: (tube: TubeData, fieldKey: string) => {
         const value = FieldResolverService.resolveField(tube, fieldKey);
@@ -107,7 +108,7 @@ export class FieldResolverService {
         value: FieldResolverService.resolveField(tube, fieldKey) as T | undefined,
         resolved: true,
         resolvedPath: fieldKey,
-        exists: true
+        exists: true,
       }),
 
       getFieldPath: (_fieldKey: string) => _fieldKey,
@@ -120,22 +121,29 @@ export class FieldResolverService {
 
       // Minimal FieldResolver implementation for compatibility
       resolver: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Implements FieldResolver domain interface
         getValue: <T = any>(tube: TubeData, fieldKey: string, options?: FieldResolutionOptions) =>
           FieldResolverService.resolveField(tube, fieldKey, options) as T | undefined,
-        getValues: <T = any>(tubes: TubeData[], fieldKey: string, options?: FieldResolutionOptions) =>
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Implements FieldResolver domain interface
+        getValues: <T = any>(
+          tubes: TubeData[],
+          fieldKey: string,
+          options?: FieldResolutionOptions
+        ) =>
           tubes.map(t => FieldResolverService.resolveField(t, fieldKey, options) as T | undefined),
         hasValue: (tube: TubeData, fieldKey: string) =>
           hasValue(FieldResolverService.resolveField(tube, fieldKey)),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Implements FieldResolver domain interface
         resolveField: <T = any>(tube: TubeData, fieldKey: string) => ({
           value: FieldResolverService.resolveField(tube, fieldKey) as T | undefined,
           resolved: true,
           resolvedPath: fieldKey,
-          exists: true
+          exists: true,
         }),
         getFieldPath: (fieldKey: string) => fieldKey,
         isValidField: (_fieldKey: string) => true,
         getAvailableFields: () => [],
-        validateConfiguration: () => {}
+        validateConfiguration: () => {},
       },
 
       metrics: {
@@ -143,8 +151,8 @@ export class FieldResolverService {
         averageResolutionTime: 0,
         cacheHits: 0,
         cacheMisses: 0,
-        errorCount: 0
-      } as PerformanceMetrics
+        errorCount: 0,
+      } as PerformanceMetrics,
     };
   }
 }

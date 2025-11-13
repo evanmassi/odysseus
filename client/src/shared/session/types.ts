@@ -22,23 +22,23 @@
  * Persistent state that survives app restart (stored in localStorage).
  */
 export interface TokenPair {
-  accessToken: string;         // Short-lived JWT (30 minutes)
-  refreshToken: string;        // Long-lived secure token (7 days)
-  accessTokenExpiry: Date;     // When access token expires
-  refreshTokenExpiry: Date;    // When refresh token expires
-  tokenType: 'Bearer';         // OAuth 2.0 Bearer token type
-  sessionTimeoutMinutes?: number;  // Idle timeout duration (from SecurityConfig)
+  accessToken: string; // Short-lived JWT (30 minutes)
+  refreshToken: string; // Long-lived secure token (7 days)
+  accessTokenExpiry: Date; // When access token expires
+  refreshTokenExpiry: Date; // When refresh token expires
+  tokenType: 'Bearer'; // OAuth 2.0 Bearer token type
+  sessionTimeoutMinutes?: number; // Idle timeout duration (from SecurityConfig)
 }
 
 /**
  * Session status for UI state management
  */
-export type SessionStatus = 
-  | 'authenticated'      // Valid session, tokens active
-  | 'refreshing'         // Refreshing expired access token  
-  | 'expired'           // Refresh token expired, login required
-  | 'invalid'           // Session invalid, login required
-  | 'unauthenticated';  // No session, login required
+export type SessionStatus =
+  | 'authenticated' // Valid session, tokens active
+  | 'refreshing' // Refreshing expired access token
+  | 'expired' // Refresh token expired, login required
+  | 'invalid' // Session invalid, login required
+  | 'unauthenticated'; // No session, login required
 
 /**
  * Enhanced login response from backend
@@ -65,9 +65,9 @@ export interface RefreshResponse {
  * Session manager configuration
  */
 export interface SessionConfig {
-  refreshBufferMinutes: number;    // Refresh token N minutes before expiry (default: 5)
-  maxRetries: number;              // Max refresh attempts (default: 3)
-  retryDelayMs: number;           // Delay between retries (default: 1000)
+  refreshBufferMinutes: number; // Refresh token N minutes before expiry (default: 5)
+  maxRetries: number; // Max refresh attempts (default: 3)
+  retryDelayMs: number; // Delay between retries (default: 1000)
 }
 
 /**
@@ -85,8 +85,8 @@ export interface SessionManagerState {
  */
 export interface TokenValidation {
   isValid: boolean;
-  expiresIn: number;              // Milliseconds until expiry
-  needsRefresh: boolean;          // True if should refresh soon
+  expiresIn: number; // Milliseconds until expiry
+  needsRefresh: boolean; // True if should refresh soon
 }
 
 /**
@@ -96,7 +96,9 @@ export interface SessionStorage {
   getTokens(): TokenPair | null;
   setTokens(tokens: TokenPair): void;
   clearTokens(): void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic user data structure from session storage
   getUser(): any | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic user data structure for session storage
   setUser(user: any): void;
   clearUser(): void;
 }
@@ -108,13 +110,14 @@ export interface SessionError {
   code: string;
   message: string;
   retryable: boolean;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic error details with varying structure
   details?: any;
 }
 
 /**
  * Session manager events
  */
-export type SessionEvent = 
+export type SessionEvent =
   | { type: 'token_refreshed'; tokens: TokenPair }
   | { type: 'token_refresh_failed'; error: SessionError }
   | { type: 'session_expired' }

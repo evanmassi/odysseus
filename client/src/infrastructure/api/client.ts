@@ -23,7 +23,10 @@ export class ApiError extends Error {
  * Validation error for schema validation failures
  */
 export class ValidationError extends Error {
-  constructor(message: string, public issues: unknown[]) {
+  constructor(
+    message: string,
+    public issues: unknown[]
+  ) {
     super(`Validation Error: ${message}`);
     this.name = 'ValidationError';
   }
@@ -58,7 +61,7 @@ export class ApiClient {
     this.baseURL = config.baseURL.replace(/\/$/, ''); // Remove trailing slash
     this.defaultHeaders = {
       'Content-Type': 'application/json',
-      ...config.headers
+      ...config.headers,
     };
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
     this.timeout = config.timeout || 30000;
@@ -67,11 +70,7 @@ export class ApiClient {
   /**
    * Make a GET request with schema validation
    */
-  async get<T>(
-    endpoint: string, 
-    schema: ZodSchema<T>, 
-    options?: RequestOptions
-  ): Promise<T> {
+  async get<T>(endpoint: string, schema: ZodSchema<T>, options?: RequestOptions): Promise<T> {
     const response = await this.fetch('GET', endpoint, undefined, options);
     return this.validateAndReturn(response, schema);
   }
@@ -105,11 +104,7 @@ export class ApiClient {
   /**
    * Make a DELETE request with schema validation
    */
-  async delete<T>(
-    endpoint: string,
-    schema: ZodSchema<T>,
-    options?: RequestOptions
-  ): Promise<T> {
+  async delete<T>(endpoint: string, schema: ZodSchema<T>, options?: RequestOptions): Promise<T> {
     const response = await this.fetch('DELETE', endpoint, undefined, options);
     return this.validateAndReturn(response, schema);
   }
@@ -124,16 +119,16 @@ export class ApiClient {
     options?: RequestOptions
   ): Promise<Response> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
     const headers = {
       ...this.defaultHeaders,
-      ...options?.headers
+      ...options?.headers,
     };
 
     const controller = new AbortController();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid
     const timeout = options?.timeout || this.timeout;
-    
+
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
     try {
@@ -141,27 +136,31 @@ export class ApiClient {
         method,
         headers,
         body: data ? JSON.stringify(data) : undefined,
-        signal: controller.signal
+        signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new ApiError(response.status, response.statusText, await this.safeJsonParse(response));
+        throw new ApiError(
+          response.status,
+          response.statusText,
+          await this.safeJsonParse(response)
+        );
       }
 
       return response;
     } catch (error) {
       clearTimeout(timeoutId);
-      
+
       if (error instanceof ApiError) {
         throw error;
       }
-      
+
       if (error instanceof DOMException && error.name === 'AbortError') {
         throw new ApiError(408, 'Request Timeout');
       }
-      
+
       throw new ApiError(500, 'Network Error', error);
     }
   }
@@ -171,12 +170,13 @@ export class ApiClient {
    */
   private async validateAndReturn<T>(response: Response, schema: ZodSchema<T>): Promise<T> {
     const rawData = await this.safeJsonParse(response);
-    
+
     try {
       return schema.parse(rawData);
     } catch (error) {
       throw new ValidationError(
         'Response data validation failed',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Access Zod error issues property
         (error as any).issues || [error]
       );
     }
@@ -187,11 +187,11 @@ export class ApiClient {
    */
   private async safeJsonParse(response: Response): Promise<unknown> {
     const text = await response.text();
-    
+
     if (!text) {
       return null;
     }
-    
+
     try {
       return JSON.parse(text);
     } catch {
@@ -226,7 +226,7 @@ export class ApiClient {
  */
 export const apiClient = new ApiClient({
   baseURL: 'http://localhost:3001/api',
-  timeout: 30000
+  timeout: 30000,
 });
 
 /**

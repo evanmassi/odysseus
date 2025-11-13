@@ -1,10 +1,10 @@
 /**
  * Socket → Query Cache Bridge
  * Phase 3: Socket Integration and Real-time Updates
- * 
+ *
  * Centralized bridge between Socket.IO events and React Query cache.
  * Replaces domain-specific socket handlers with unified cache management.
- * 
+ *
  * Architecture:
  * - Event-driven cache invalidation
  * - Type-safe socket event handling
@@ -14,7 +14,12 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { websocketMessageSchema, tubeDataSchema, type TubeData, type Researcher } from '@odysseus/shared-schemas';
+import {
+  websocketMessageSchema,
+  tubeDataSchema,
+  type TubeData,
+  type Researcher,
+} from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
 import { queryKeys } from '@app/queryKeys';
@@ -32,58 +37,66 @@ export { queryKeys } from '@app/queryKeys';
  */
 const tubeEventSchemas = {
   tube_created: z.object({
-    tube: z.object({
-      id: z.string(),
-      location: z.object({
-        tankId: z.string(),
-        rackId: z.string(),
-        boxId: z.string(),
-        position: z.number()
-      }),
-      // Add other required fields as needed
-    }).passthrough()
-  }),
-  
-  tube_updated: z.object({
-    tube: z.object({
-      id: z.string(),
-      location: z.object({
-        tankId: z.string(),
-        rackId: z.string(),
-        boxId: z.string(),
-        position: z.number()
+    tube: z
+      .object({
+        id: z.string(),
+        location: z.object({
+          tankId: z.string(),
+          rackId: z.string(),
+          boxId: z.string(),
+          position: z.number(),
+        }),
+        // Add other required fields as needed
       })
-    }).passthrough()
+      .passthrough(),
   }),
-  
+
+  tube_updated: z.object({
+    tube: z
+      .object({
+        id: z.string(),
+        location: z.object({
+          tankId: z.string(),
+          rackId: z.string(),
+          boxId: z.string(),
+          position: z.number(),
+        }),
+      })
+      .passthrough(),
+  }),
+
   tube_deleted: z.object({
-    tubeId: z.string()
+    tubeId: z.string(),
   }),
-  
+
   tubes_bulk_updated: z.object({
     tubes: z.array(tubeDataSchema),
-    count: z.number()
-  })
+    count: z.number(),
+  }),
 } as const;
 
 const researcherEventSchemas = {
   researcher_created: z.object({
-    researcher: z.object({
-      id: z.string(),
-      name: z.string()
-    }).passthrough()
+    researcher: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+      })
+      .passthrough(),
   }),
 
   researcher_updated: z.object({
-    researcher: z.object({
-      id: z.string(),
-      name: z.string()
-    }).passthrough()
+    researcher: z
+      .object({
+        id: z.string(),
+        name: z.string(),
+      })
+      .passthrough(),
   }),
 
   researcher_deleted: z.object({
-    researcherId: z.string()
-  })
+    researcherId: z.string(),
+  }),
 } as const;
 
 const configurationEventSchemas = {
@@ -92,7 +105,7 @@ const configurationEventSchemas = {
     eventCount: z.number(),
     updatedAt: z.string(),
     changedBy: z.string(),
-  })
+  }),
 } as const;
 
 /**
@@ -162,7 +175,7 @@ export class SocketQueryBridge {
     // eslint-disable-next-line no-console -- Info logging for operational visibility
     console.log('🌐 [SocketBridge] Browser back online');
     void this.queryClient.invalidateQueries({
-      queryKey: queryKeys.storage.storage()
+      queryKey: queryKeys.storage.storage(),
     });
     notifications.info('Connection restored - syncing latest data');
   };
@@ -190,13 +203,14 @@ export class SocketQueryBridge {
       // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('✅ [SocketBridge] Connected to server', {
         socketId: this.socket?.id,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Initialize version tracking from current cache (if not already set)
       if (this.lastKnownConfigVersion === null) {
         const currentConfig = this.queryClient.getQueryData(
           queryKeys.storage.storage()
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query cache data with unknown structure before validation
         ) as any;
         const currentVersion = currentConfig?.configuration?.systemConfig?.version;
 
@@ -204,13 +218,13 @@ export class SocketQueryBridge {
           this.lastKnownConfigVersion = currentVersion;
           // eslint-disable-next-line no-console -- Info logging for operational visibility
           console.log('🔢 [SocketBridge] Initialized version tracking', {
-            version: currentVersion
+            version: currentVersion,
           });
         }
       } else {
         // eslint-disable-next-line no-console -- Info logging for operational visibility
         console.log('🔢 [SocketBridge] Version tracking preserved from previous connection', {
-          version: this.lastKnownConfigVersion
+          version: this.lastKnownConfigVersion,
         });
       }
 
@@ -222,7 +236,7 @@ export class SocketQueryBridge {
       // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('⚠️ [SocketBridge] Disconnected from server', {
         reason,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Only show notification for unexpected disconnections
@@ -236,7 +250,7 @@ export class SocketQueryBridge {
       console.error('❌ [SocketBridge] Connection error:', {
         error: error.message,
         stack: error.stack,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Don't spam notifications on repeated connection errors
@@ -258,7 +272,7 @@ export class SocketQueryBridge {
 
         // Add to individual tube cache
         this.queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
-        
+
         // Add to list queries if they exist (don't create new data)
         this.queryClient.setQueriesData(
           { queryKey: queryKeys.tubes.lists() },
@@ -275,7 +289,11 @@ export class SocketQueryBridge {
         // Update location-specific queries (nested structure)
         if (tube.location?.tankId && tube.location?.rackId && tube.location?.boxId) {
           this.queryClient.setQueryData(
-            queryKeys.tubes.location(tube.location.tankId, tube.location.rackId, tube.location.boxId),
+            queryKeys.tubes.location(
+              tube.location.tankId,
+              tube.location.rackId,
+              tube.location.boxId
+            ),
             (oldData: TubeData[] | undefined) => {
               if (!oldData) return undefined;
               const exists = oldData.some((item: TubeData) => item.id === tube.id);
@@ -286,7 +304,6 @@ export class SocketQueryBridge {
 
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-
       } catch (error) {
         // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [SocketBridge] Invalid tube_created event:', error);
@@ -306,24 +323,27 @@ export class SocketQueryBridge {
           { queryKey: queryKeys.tubes.lists() },
           (oldData: TubeData[] | undefined) => {
             if (!oldData) return undefined;
-            return oldData.map((item: TubeData) => item.id === tube.id ? tube : item);
+            return oldData.map((item: TubeData) => (item.id === tube.id ? tube : item));
           }
         );
 
         // Update location-specific queries (nested structure)
         if (tube.location?.tankId && tube.location?.rackId && tube.location?.boxId) {
           this.queryClient.setQueryData(
-            queryKeys.tubes.location(tube.location.tankId, tube.location.rackId, tube.location.boxId),
+            queryKeys.tubes.location(
+              tube.location.tankId,
+              tube.location.rackId,
+              tube.location.boxId
+            ),
             (oldData: TubeData[] | undefined) => {
               if (!oldData) return undefined;
-              return oldData.map((item: TubeData) => item.id === tube.id ? tube : item);
+              return oldData.map((item: TubeData) => (item.id === tube.id ? tube : item));
             }
           );
         }
 
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-
       } catch (error) {
         // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [SocketBridge] Invalid tube_updated event:', error);
@@ -346,19 +366,18 @@ export class SocketQueryBridge {
             return oldData.filter((item: TubeData) => item.id !== tubeId);
           }
         );
-        
+
         // Invalidate location queries (we don't know which location)
         void this.queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.lists(),
-          predicate: (query) => {
+          predicate: query => {
             const key = query.queryKey as string[];
             return key.includes('location');
-          }
+          },
         });
 
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-        
       } catch (error) {
         // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [SocketBridge] Invalid tube_deleted event:', error);
@@ -391,17 +410,16 @@ export class SocketQueryBridge {
             return updatedData;
           }
         );
-        
+
         // Invalidate location and stats queries
         void this.queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.lists(),
-          predicate: (query) => {
+          predicate: query => {
             const key = query.queryKey as string[];
             return key.includes('location');
-          }
+          },
         });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-        
       } catch (error) {
         // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [SocketBridge] Invalid tubes_bulk_updated event:', error);
@@ -409,7 +427,7 @@ export class SocketQueryBridge {
     });
   }
 
-  // RESEARCHER EVENT HANDLERS  
+  // RESEARCHER EVENT HANDLERS
 
   private setupResearcherEventHandlers(): void {
     if (!this.socket) return;
@@ -430,7 +448,6 @@ export class SocketQueryBridge {
 
         // Invalidate tube statistics (researcher affects stats)
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-
       } catch (error) {
         // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [SocketBridge] Invalid researcher_created event:', error);
@@ -446,13 +463,14 @@ export class SocketQueryBridge {
           { queryKey: queryKeys.researchers.lists() },
           (oldData: Researcher[] | undefined) => {
             if (!oldData) return undefined;
-            return oldData.map((item: Researcher) => item.id === researcher.id ? researcher : item);
+            return oldData.map((item: Researcher) =>
+              item.id === researcher.id ? researcher : item
+            );
           }
         );
 
         // Invalidate tube statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-
       } catch (error) {
         // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [SocketBridge] Invalid researcher_updated event:', error);
@@ -474,7 +492,6 @@ export class SocketQueryBridge {
 
         // Invalidate tube statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-
       } catch (error) {
         // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error('❌ [SocketBridge] Invalid researcher_deleted event:', error);
@@ -489,13 +506,16 @@ export class SocketQueryBridge {
 
     this.socket.on('configuration_updated', async (data: unknown) => {
       try {
-        const { eventTypes, eventCount, updatedAt, changedBy } = configurationEventSchemas.configuration_updated.parse(data);
+        const { eventTypes, eventCount, updatedAt, changedBy } =
+          configurationEventSchemas.configuration_updated.parse(data);
 
         // eslint-disable-next-line no-console -- Info logging for operational visibility
-        console.log(
-          `🔔 [SocketBridge] Configuration updated event received`,
-          { eventTypes, eventCount, updatedAt, changedBy }
-        );
+        console.log(`🔔 [SocketBridge] Configuration updated event received`, {
+          eventTypes,
+          eventCount,
+          updatedAt,
+          changedBy,
+        });
 
         // Check if version actually changed before notifying user
         const versionChanged = await this.invalidateConfigurationIfChanged();
@@ -508,7 +528,6 @@ export class SocketQueryBridge {
           // eslint-disable-next-line no-console -- Info logging for operational visibility
           console.log('⚠️ [SocketBridge] Configuration version unchanged, skipping notification');
         }
-
       } catch (error) {
         // Log detailed error information for debugging
         // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
@@ -516,19 +535,22 @@ export class SocketQueryBridge {
           error: error instanceof Error ? error.message : String(error),
           stack: error instanceof Error ? error.stack : undefined,
           receivedData: data,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         // Graceful degradation: invalidate cache anyway to ensure data consistency
         try {
           await this.queryClient.invalidateQueries({
-            queryKey: queryKeys.storage.storage()
+            queryKey: queryKeys.storage.storage(),
           });
           // eslint-disable-next-line no-console -- Info logging for operational visibility
           console.log('✅ [SocketBridge] Fallback: Successfully invalidated configuration cache');
         } catch (fallbackError) {
           // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error('❌ [SocketBridge] Critical: Failed to invalidate cache in error handler:', fallbackError);
+          console.error(
+            '❌ [SocketBridge] Critical: Failed to invalidate cache in error handler:',
+            fallbackError
+          );
           // Last resort: show user notification to refresh
           notifications.error('Configuration sync error. Please refresh the page.');
         }
@@ -548,26 +570,27 @@ export class SocketQueryBridge {
       // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('🔍 [SocketBridge] Starting version check', {
         lastKnownVersion: currentVersion,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       // Invalidate cache first
       await this.queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.storage()
+        queryKey: queryKeys.storage.storage(),
       });
 
       // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('♻️  [SocketBridge] Cache invalidated, fetching fresh data...');
 
       // Fetch fresh data from server (this waits for the network request to complete)
-      const freshData = await this.queryClient.fetchQuery({
-        queryKey: queryKeys.storage.storage()
-      }) as any;
+      const freshData = (await this.queryClient.fetchQuery({
+        queryKey: queryKeys.storage.storage(),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query result with unknown structure before validation
+      })) as any;
 
       // eslint-disable-next-line no-console -- Info logging for operational visibility
       console.log('📦 [SocketBridge] Fresh data received from server', {
         version: freshData?.configuration?.systemConfig?.version,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       const newVersion = freshData?.configuration?.systemConfig?.version;
@@ -576,7 +599,7 @@ export class SocketQueryBridge {
       if (currentVersion === null && newVersion !== undefined) {
         // eslint-disable-next-line no-console -- Info logging for operational visibility
         console.log('🔢 [SocketBridge] First version seen, initializing tracking', {
-          version: newVersion
+          version: newVersion,
         });
         this.lastKnownConfigVersion = newVersion;
         // On first event, always assume it changed (we have no baseline)
@@ -593,7 +616,7 @@ export class SocketQueryBridge {
           console.warn('⚠️ [SocketBridge] Database reset detected!', {
             previous: currentVersion,
             current: newVersion,
-            difference: currentVersion - newVersion
+            difference: currentVersion - newVersion,
           });
 
           // Show warning notification to user
@@ -617,7 +640,12 @@ export class SocketQueryBridge {
           previous: currentVersion,
           current: newVersion,
           changed: versionChanged,
-          direction: newVersion > currentVersion ? 'forward' : newVersion < currentVersion ? 'backward' : 'unchanged'
+          direction:
+            newVersion > currentVersion
+              ? 'forward'
+              : newVersion < currentVersion
+                ? 'backward'
+                : 'unchanged',
         });
 
         // Update tracked version for next comparison
@@ -628,7 +656,6 @@ export class SocketQueryBridge {
 
       // If we can't determine versions, assume it changed to be safe
       return true;
-
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       console.error('❌ [SocketBridge] Error checking configuration version:', error);

@@ -8,9 +8,20 @@
 
 import React, { useState, useEffect } from 'react';
 
-import { RefreshCw, Archive, Download, FileClock, AlertTriangle, CheckCircle, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import {
+  RefreshCw,
+  Archive,
+  Download,
+  FileClock,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
 
 import { adminService } from '@domains/admin/services/AdminService';
+
 import type { RetentionMetrics, RetentionPolicy } from '@domains/admin/types/metrics';
 
 interface AuditRetentionSettingsProps {
@@ -24,7 +35,9 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [archiving, setArchiving] = useState(false);
-  const [archiveResult, setArchiveResult] = useState<{ archived: number; deleted: number } | null>(null);
+  const [archiveResult, setArchiveResult] = useState<{ archived: number; deleted: number } | null>(
+    null
+  );
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
   // Load metrics and policy
@@ -174,7 +187,9 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           <div className="flex items-center gap-2">
             <StatusIcon className={`w-4 h-4 ${currentStatus.iconClass}`} aria-hidden="true" />
             <span className={`text-sm font-medium ${currentStatus.headingClass}`}>
-              Retention: {metrics ? formatNumber(metrics.activeTable.count) : '-'} active • {metrics ? formatNumber(metrics.archiveTable.count) : '-'} archived • {currentStatus.text}
+              Retention: {metrics ? formatNumber(metrics.activeTable.count) : '-'} active •{' '}
+              {metrics ? formatNumber(metrics.archiveTable.count) : '-'} archived •{' '}
+              {currentStatus.text}
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -209,10 +224,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
               <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
               <span>Refresh</span>
             </button>
-            <button
-              onClick={() => setIsCollapsed(true)}
-              className="p-1 hover:bg-gray-100 rounded"
-            >
+            <button onClick={() => setIsCollapsed(true)} className="p-1 hover:bg-gray-100 rounded">
               <ChevronUp className="w-4 h-4 text-gray-600" />
             </button>
           </div>
@@ -226,8 +238,9 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           <div>
             <h5 className="alert-warning-heading text-sm">Performance Warning</h5>
             <p className="alert-warning-text text-xs mt-1">
-              Active audit log table is approaching the warning threshold ({policy?.activeTableWarningThreshold?.toLocaleString()} entries).
-              Consider reducing the active retention period or investigating log volume.
+              Active audit log table is approaching the warning threshold (
+              {policy?.activeTableWarningThreshold?.toLocaleString()} entries). Consider reducing
+              the active retention period or investigating log volume.
             </p>
           </div>
         </div>
@@ -240,7 +253,8 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           <div>
             <h5 className="alert-success-heading text-sm">Archival Completed</h5>
             <p className="alert-success-text text-xs mt-1">
-              Archived {archiveResult.archived} entries and deleted {archiveResult.deleted} expired entries.
+              Archived {archiveResult.archived} entries and deleted {archiveResult.deleted} expired
+              entries.
             </p>
           </div>
         </div>
@@ -260,19 +274,27 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div>
               <div className="text-gray-500">Active Retention</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">{policy.activeRetentionDays} days</div>
+              <div className="text-sm font-semibold text-gray-900 mt-1">
+                {policy.activeRetentionDays} days
+              </div>
             </div>
             <div>
               <div className="text-gray-500">Archive Retention</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">{policy.archiveRetentionDays} days</div>
+              <div className="text-sm font-semibold text-gray-900 mt-1">
+                {policy.archiveRetentionDays} days
+              </div>
             </div>
             <div>
               <div className="text-gray-500">Total Retention</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">{policy.totalRetentionDays} days</div>
+              <div className="text-sm font-semibold text-gray-900 mt-1">
+                {policy.totalRetentionDays} days
+              </div>
             </div>
             <div>
               <div className="text-gray-500">Auto Archival</div>
-              <div className={`text-sm font-semibold mt-1 ${policy.enableAutoArchival ? 'text-success-bg' : 'text-danger-bg'}`}>
+              <div
+                className={`text-sm font-semibold mt-1 ${policy.enableAutoArchival ? 'text-success-bg' : 'text-danger-bg'}`}
+              >
                 {policy.enableAutoArchival ? 'Enabled' : 'Disabled'}
               </div>
             </div>
@@ -368,8 +390,8 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </button>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          Manual archival will move logs older than {policy?.activeRetentionDays} days to the archive table
-          and delete logs older than {policy?.totalRetentionDays} days.
+          Manual archival will move logs older than {policy?.activeRetentionDays} days to the
+          archive table and delete logs older than {policy?.totalRetentionDays} days.
         </p>
       </div>
     </div>

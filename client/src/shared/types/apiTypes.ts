@@ -6,6 +6,7 @@ import type { TubeData, UpdateTubeRequest } from './tubeTypes';
 import type { ValidationError } from './validationTypes';
 
 // Generic API response wrapper
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic default for flexible API response data types
 export interface APIResponse<T = any> {
   success: boolean;
   data?: T;
@@ -46,6 +47,7 @@ export interface QueryOptions {
   offset?: number;
   orderBy?: string;
   orderDirection?: 'ASC' | 'DESC';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic filters with varying field types
   filters?: any;
   useCache?: boolean;
 }
@@ -57,6 +59,7 @@ export interface LocationQuery {
 }
 
 // WebSocket event types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic default for flexible WebSocket event data types
 export interface SocketEvent<T = any> {
   type: string;
   data: T;

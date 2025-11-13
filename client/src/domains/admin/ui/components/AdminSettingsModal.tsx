@@ -1,7 +1,17 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 
 import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
-import { X, Shield, Activity, AlertTriangle, Save, RefreshCw, Cog, Gauge, UsersRound } from 'lucide-react';
+import {
+  X,
+  Shield,
+  Activity,
+  AlertTriangle,
+  Save,
+  RefreshCw,
+  Cog,
+  Gauge,
+  UsersRound,
+} from 'lucide-react';
 
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ResearcherIcon } from '@shared/ui/components/icons';
@@ -11,7 +21,12 @@ import { adminService } from '../../services/AdminService';
 
 import { TabSkeleton } from './TabSkeleton';
 
-import type { SecurityConfig, AdminUser, SystemMetrics, SyncStatus } from '@odysseus/shared-schemas';
+import type {
+  SecurityConfig,
+  AdminUser,
+  SystemMetrics,
+  SyncStatus,
+} from '@odysseus/shared-schemas';
 
 // Lazy-load tab components for code splitting
 const SecurityTab = lazy(() =>
@@ -36,7 +51,9 @@ interface AdminSettingsModalProps {
 }
 
 export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<'security' | 'users' | 'researchers' | 'system' | 'monitoring'>('system');
+  const [activeTab, setActiveTab] = useState<
+    'security' | 'users' | 'researchers' | 'system' | 'monitoring'
+  >('system');
   const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [isSaving, setSaving] = useState(false);
@@ -49,7 +66,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const trapRef = useFocusTrap({
     isOpen,
     restoreFocus: true,
-    autoFocusFirstInput: false // Focus first focusable element (tab button)
+    autoFocusFirstInput: false, // Focus first focusable element (tab button)
   });
 
   // Load current configuration and data
@@ -92,7 +109,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         // API returned unsuccessfully or invalid data - set empty array as fallback
         setUsers([]);
         // eslint-disable-next-line no-console -- Warning logging for production monitoring
-        console.warn('Failed to load users: API returned unsuccessful response or invalid data format');
+        console.warn(
+          'Failed to load users: API returned unsuccessful response or invalid data format'
+        );
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
@@ -133,6 +152,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     Object.keys(config).forEach(key => {
       const configKey = key as keyof SecurityConfig;
       if (config[configKey] !== originalConfig[configKey]) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic property assignment to partial config object
         (changes as any)[configKey] = config[configKey];
       }
     });
@@ -162,7 +182,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const loadSyncStatus = async () => {
     try {
       const { httpClient } = await import('@infra/api/httpClient');
-      const response = await httpClient.get<{ success: boolean; sync: SyncStatus }>('/admin/sync-status');
+      const response = await httpClient.get<{ success: boolean; sync: SyncStatus }>(
+        '/admin/sync-status'
+      );
 
       if (response.data.success) {
         setSyncStatus(response.data.sync);
@@ -177,7 +199,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const createInviteCode = async (role: 'admin' | 'user' = 'user') => {
     try {
       const { httpClient } = await import('@infra/api/httpClient');
-      const response = await httpClient.post<{ success: boolean; inviteCode: string }>('/admin/create-invite', { role });
+      const response = await httpClient.post<{ success: boolean; inviteCode: string }>(
+        '/admin/create-invite',
+        { role }
+      );
 
       if (response.data.success) {
         setInviteCode(response.data.inviteCode);
@@ -214,7 +239,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-in fade-in duration-[180ms]">
-      <div ref={trapRef} className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-5xl h-[85vh] mx-4 overflow-hidden animate-slide-up-fade flex flex-col">
+      <div
+        ref={trapRef}
+        className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-5xl h-[85vh] mx-4 overflow-hidden animate-slide-up-fade flex flex-col"
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-danger-hover via-danger-bg to-danger-hover px-6 py-3 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -263,10 +291,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
             <div className="p-6 min-w-0">
               {activeTab === 'security' && (
                 <Suspense fallback={<TabSkeleton />}>
-                  <SecurityTab
-                    config={config}
-                    onChange={handleConfigChange}
-                  />
+                  <SecurityTab config={config} onChange={handleConfigChange} />
                 </Suspense>
               )}
 
@@ -283,9 +308,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
               {activeTab === 'researchers' && (
                 <Suspense fallback={<TabSkeleton />}>
-                  <ResearcherManagementTab
-                    onResearcherUpdate={loadSystemStats}
-                  />
+                  <ResearcherManagementTab onResearcherUpdate={loadSystemStats} />
                 </Suspense>
               )}
 
@@ -318,10 +341,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
               <span className="truncate">Changes apply to all users immediately</span>
             </div>
             <div className="flex space-x-2 flex-shrink-0">
-              <button
-                onClick={onClose}
-                className="btn-cancel"
-              >
+              <button onClick={onClose} className="btn-cancel">
                 Cancel
               </button>
               <button

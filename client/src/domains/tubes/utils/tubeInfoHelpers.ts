@@ -44,9 +44,9 @@ export interface ConflictInfo {
 }
 
 /**
-* Convert TubeData to CreateTubeRequest format
-* CreateTubeRequest doesn't include id (that's generated server-side)
-*/
+ * Convert TubeData to CreateTubeRequest format
+ * CreateTubeRequest doesn't include id (that's generated server-side)
+ */
 function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeRequest> {
   return {
     // id is not part of CreateTubeRequest - it's generated on creation
@@ -62,9 +62,9 @@ function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeReques
       media: tubeData.sample.media,
       cultureCondition: tubeData.sample.cultureCondition,
       lotNumber: tubeData.sample.lotNumber,
-      notes: tubeData.sample.notes
+      notes: tubeData.sample.notes,
     },
-    researcherId: tubeData.researcherId
+    researcherId: tubeData.researcherId,
   };
 }
 
@@ -76,7 +76,7 @@ export function analyzeTubeConflicts(tubes: TubeData[]): ConflictInfo {
     return {
       hasConflicts: false,
       conflictingFields: new Set(),
-      commonValues: {}
+      commonValues: {},
     };
   }
 
@@ -84,7 +84,7 @@ export function analyzeTubeConflicts(tubes: TubeData[]): ConflictInfo {
     return {
       hasConflicts: false,
       conflictingFields: new Set(),
-      commonValues: convertTubeDataToFormData(tubes[0])
+      commonValues: convertTubeDataToFormData(tubes[0]),
     };
   }
 
@@ -92,9 +92,7 @@ export function analyzeTubeConflicts(tubes: TubeData[]): ConflictInfo {
   const commonValues: Partial<CreateTubeRequest> = {};
 
   // Get all field keys from configuration
-  const allFieldKeys = TUBE_FIELD_CONFIG
-    .flatMap(section => section.fields)
-    .map(field => field.key);
+  const allFieldKeys = TUBE_FIELD_CONFIG.flatMap(section => section.fields).map(field => field.key);
 
   // Get field resolver service for accessing nested data
   const fieldResolverService = getFieldResolverApplicationService();
@@ -102,19 +100,22 @@ export function analyzeTubeConflicts(tubes: TubeData[]): ConflictInfo {
 
   // Check each field for conflicts
   allFieldKeys.forEach(fieldKey => {
-    const values = tubes.map(tube => {
-      // Use field resolver to access nested properties
-      try {
-        return fieldResolver.getValue(tube as TubeData, fieldKey);
-      } catch (error) {
-        // If field is not configured in resolver, return undefined
-        return undefined;
-      }
-    }).filter(value => value !== undefined && value !== null && value !== '');
+    const values = tubes
+      .map(tube => {
+        // Use field resolver to access nested properties
+        try {
+          return fieldResolver.getValue(tube as TubeData, fieldKey);
+        } catch (error) {
+          // If field is not configured in resolver, return undefined
+          return undefined;
+        }
+      })
+      .filter(value => value !== undefined && value !== null && value !== '');
     const uniqueValues = [...new Set(values)];
 
     if (uniqueValues.length === 1 && uniqueValues[0]) {
       // All tubes have the same value for this field
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic field assignment to partial object
       (commonValues as any)[fieldKey] = uniqueValues[0];
     } else if (uniqueValues.length > 1) {
       // Conflicting values
@@ -126,7 +127,7 @@ export function analyzeTubeConflicts(tubes: TubeData[]): ConflictInfo {
   return {
     hasConflicts: conflictingFields.size > 0,
     conflictingFields,
-    commonValues
+    commonValues,
   };
 }
 
@@ -135,14 +136,14 @@ export function analyzeTubeConflicts(tubes: TubeData[]): ConflictInfo {
  */
 export function formatPositionRanges(tubes: TubeData[]): string {
   if (tubes.length === 0) return '';
-  
+
   // Remove duplicates and sort positions
   const uniquePositions = [...new Set(tubes.map(t => t.location.position))].sort((a, b) => a - b);
   const ranges: string[] = [];
-  
+
   let start = uniquePositions[0];
   let end = uniquePositions[0];
-  
+
   for (let i = 1; i < uniquePositions.length; i++) {
     if (uniquePositions[i] === end + 1) {
       // Consecutive position
@@ -157,33 +158,37 @@ export function formatPositionRanges(tubes: TubeData[]): string {
       start = end = uniquePositions[i];
     }
   }
-  
+
   // Add final range
   if (start === end) {
     ranges.push(start.toString());
   } else {
     ranges.push(`${start}-${end}`);
   }
-  
+
   return ranges.join(', ');
 }
 
 /**
-* Get position summary for tubes
-*/
-export function getPositionSummary(tubes: TubeData[], tankName?: string, rackName?: string): string {
-if (tubes.length === 0) return '';
+ * Get position summary for tubes
+ */
+export function getPositionSummary(
+  tubes: TubeData[],
+  tankName?: string,
+  rackName?: string
+): string {
+  if (tubes.length === 0) return '';
 
-const firstTube = tubes[0];
-const box = firstTube.location.boxId;
-const positions = formatPositionRanges(tubes);
+  const firstTube = tubes[0];
+  const box = firstTube.location.boxId;
+  const positions = formatPositionRanges(tubes);
 
-const rackDisplay = rackName ?? `Rack ${firstTube.location.rackId}`;
+  const rackDisplay = rackName ?? `Rack ${firstTube.location.rackId}`;
 
-if (tubes.length === 1) {
-  return `${rackDisplay} • Box ${box} • Position ${positions}`;
-} else {
-  return `${rackDisplay} • Box ${box} • Positions ${positions}`;
+  if (tubes.length === 1) {
+    return `${rackDisplay} • Box ${box} • Position ${positions}`;
+  } else {
+    return `${rackDisplay} • Box ${box} • Positions ${positions}`;
   }
 }
 

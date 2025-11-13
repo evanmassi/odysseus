@@ -1,10 +1,10 @@
 /**
  * Tube Field Access Service - Domain Service Implementation
- * 
+ *
  * Domain service that encapsulates the business logic for resolving nested field
  * access patterns in tube data structures. This service implements the core
  * business capability of accessing structured data through consistent field identifiers.
- * 
+ *
  * Following DDD principles:
  * - Encapsulates complex field resolution business logic
  * - Provides consistent interface for domain field access
@@ -13,16 +13,19 @@
  * - Enables safe navigation of nested data structures
  */
 
-import { DomainError, FieldResolutionError, FieldPathError } from '@shared/domain/errors/DomainError';
+import {
+  DomainError,
+  FieldResolutionError,
+  FieldPathError,
+} from '@shared/domain/errors/DomainError';
 
 import type {
   FieldResolver,
   FieldPathMapping,
   FieldResolutionOptions,
-  FieldResolutionResult
+  FieldResolutionResult,
 } from '../types/FieldResolver';
 import type { TubeData } from '@shared/types/tubeTypes';
-
 
 /**
  * Performance monitoring for field resolution operations
@@ -46,7 +49,7 @@ export class TubeFieldAccessService implements FieldResolver {
   private readonly pathMapping: FieldPathMapping;
   private readonly performanceMetrics: PerformanceMetrics;
   private readonly pathCache: Map<string, string[]>;
-  
+
   constructor(pathMapping: FieldPathMapping) {
     this.pathMapping = { ...pathMapping }; // Defensive copy
     this.performanceMetrics = {
@@ -54,97 +57,94 @@ export class TubeFieldAccessService implements FieldResolver {
       averageResolutionTime: 0,
       cacheHits: 0,
       cacheMisses: 0,
-      errorCount: 0
+      errorCount: 0,
     };
     this.pathCache = new Map();
-    
+
     // Validate configuration on construction
     this.validateConfiguration();
   }
 
   // CORE RESOLUTION METHODS
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Implements FieldResolver domain interface
   getValue<T = any>(
-    data: TubeData, 
-    fieldKey: string, 
+    data: TubeData,
+    fieldKey: string,
     options: FieldResolutionOptions = {}
   ): T | undefined {
     const startTime = performance.now();
-    
+
     try {
       this.performanceMetrics.totalResolutions++;
-      
+
       // Validate inputs
       this.validateFieldKey(fieldKey);
       this.validateDataObject(data);
-      
+
       const path = this.getFieldPath(fieldKey);
       const value = this.resolvePath(data, path);
-      
+
       // Apply transformation if provided
       const finalValue = options.transform ? options.transform(value) : value;
-      
+
       // Handle missing values
       if (finalValue === undefined || finalValue === null) {
         if (options.throwOnMissing === true) {
-          throw new FieldPathError(path, fieldKey, { 
+          throw new FieldPathError(path, fieldKey, {
             dataId: data.id,
-            options 
+            options,
           });
         }
         return options.defaultValue as T;
       }
-      
+
       this.updatePerformanceMetrics(startTime);
       return finalValue as T;
-      
     } catch (error) {
       this.performanceMetrics.errorCount++;
       this.updatePerformanceMetrics(startTime);
-      
+
       if (error instanceof DomainError) {
         throw error;
       }
-      
+
       // Wrap unexpected errors in domain error
-      throw new FieldPathError(
-        this.pathMapping[fieldKey] || 'unknown',
-        fieldKey,
-        { 
-          originalError: error instanceof Error ? error.message : String(error),
-          dataId: data.id,
-          options
-        }
-      );
+      throw new FieldPathError(this.pathMapping[fieldKey] || 'unknown', fieldKey, {
+        originalError: error instanceof Error ? error.message : String(error),
+        dataId: data.id,
+        options,
+      });
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Implements FieldResolver domain interface
   getValues<T = any>(
-    data: TubeData[], 
+    data: TubeData[],
     fieldKey: string,
     options: FieldResolutionOptions = {}
   ): (T | undefined)[] {
     // Validate inputs
     this.validateFieldKey(fieldKey);
-    
+
     if (!Array.isArray(data)) {
       throw new DomainError('Data must be an array for bulk resolution', 'INVALID_INPUT');
     }
-    
+
     // Use single path resolution for all items (performance optimization)
     const path = this.getFieldPath(fieldKey);
     const compiledPath = this.compilePath(path);
-    
+
     return data.map(item => {
       try {
         this.validateDataObject(item);
         const value = this.resolveCompiledPath(item, compiledPath);
         const finalValue = options.transform ? options.transform(value) : value;
-        
+
         if (finalValue === undefined || finalValue === null) {
           return options.defaultValue as T;
         }
-        
+
         return finalValue as T;
       } catch (error) {
         if (options.throwOnMissing === true) {
@@ -157,17 +157,18 @@ export class TubeFieldAccessService implements FieldResolver {
 
   hasValue(data: TubeData, fieldKey: string): boolean {
     try {
-      const value = this.getValue(data, fieldKey, { 
+      const value = this.getValue(data, fieldKey, {
         throwOnMissing: false,
-        defaultValue: null 
+        defaultValue: null,
       });
-      
+
       // Business rule: meaningful value check
-      return value !== null && 
-             value !== undefined && 
-             value !== '' &&
-             !(Array.isArray(value) && value.length === 0);
-             
+      return (
+        value !== null &&
+        value !== undefined &&
+        value !== '' &&
+        !(Array.isArray(value) && value.length === 0)
+      );
     } catch (error) {
       return false;
     }
@@ -175,15 +176,13 @@ export class TubeFieldAccessService implements FieldResolver {
 
   getFieldPath(fieldKey: string): string {
     const path = this.pathMapping[fieldKey];
-    
+
     if (!path) {
-      throw new FieldResolutionError(
-        fieldKey,
-        this.getAvailableFields(),
-        { service: 'TubeFieldAccessService' }
-      );
+      throw new FieldResolutionError(fieldKey, this.getAvailableFields(), {
+        service: 'TubeFieldAccessService',
+      });
     }
-    
+
     return path;
   }
 
@@ -191,37 +190,34 @@ export class TubeFieldAccessService implements FieldResolver {
     return fieldKey in this.pathMapping;
   }
 
-  resolveField<T = any>(
-    data: TubeData, 
-    fieldKey: string
-  ): FieldResolutionResult<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Implements FieldResolver domain interface
+  resolveField<T = any>(data: TubeData, fieldKey: string): FieldResolutionResult<T> {
     let resolved = false;
     let value: T | undefined = undefined;
     let resolvedPath = '';
     let exists = false;
-    
+
     try {
       this.validateFieldKey(fieldKey);
       resolvedPath = this.getFieldPath(fieldKey);
-      
+
       // Check if the path exists in the data structure
       exists = this.pathExists(data, resolvedPath);
-      
+
       if (exists) {
         value = this.resolvePath(data, resolvedPath) as T;
         resolved = true;
       }
-      
     } catch (error) {
       // Resolution failed, but we still return metadata
       resolved = false;
     }
-    
+
     return {
       value,
       resolved,
       resolvedPath,
-      exists
+      exists,
     };
   }
 
@@ -231,30 +227,20 @@ export class TubeFieldAccessService implements FieldResolver {
 
   validateConfiguration(): void {
     if (!this.pathMapping || typeof this.pathMapping !== 'object') {
-      throw new DomainError(
-        'Field path mapping must be a valid object',
-        'INVALID_CONFIGURATION'
-      );
+      throw new DomainError('Field path mapping must be a valid object', 'INVALID_CONFIGURATION');
     }
-    
+
     const keys = Object.keys(this.pathMapping);
     if (keys.length === 0) {
-      throw new DomainError(
-        'Field path mapping cannot be empty',
-        'EMPTY_CONFIGURATION'
-      );
+      throw new DomainError('Field path mapping cannot be empty', 'EMPTY_CONFIGURATION');
     }
-    
+
     // Validate each mapping
     Object.entries(this.pathMapping).forEach(([fieldKey, path]) => {
       if (!fieldKey || fieldKey.trim() === '') {
-        throw new DomainError(
-          'Field key cannot be empty',
-          'INVALID_FIELD_KEY',
-          { fieldKey }
-        );
+        throw new DomainError('Field key cannot be empty', 'INVALID_FIELD_KEY', { fieldKey });
       }
-      
+
       if (!path || path.trim() === '') {
         throw new DomainError(
           `Path cannot be empty for field key: ${fieldKey}`,
@@ -262,7 +248,7 @@ export class TubeFieldAccessService implements FieldResolver {
           { fieldKey }
         );
       }
-      
+
       // Validate path format
       if (!/^[a-zA-Z0-9_.]+$/.test(path)) {
         throw new DomainError(
@@ -337,16 +323,16 @@ export class TubeFieldAccessService implements FieldResolver {
    */
   private compilePath(path: string): string[] {
     let compiled = this.pathCache.get(path);
-    
+
     if (compiled) {
       this.performanceMetrics.cacheHits++;
       return compiled;
     }
-    
+
     this.performanceMetrics.cacheMisses++;
     compiled = path.split('.');
     this.pathCache.set(path, compiled);
-    
+
     return compiled;
   }
 
@@ -381,11 +367,9 @@ export class TubeFieldAccessService implements FieldResolver {
    */
   private validateFieldKey(fieldKey: string): void {
     if (!fieldKey || typeof fieldKey !== 'string') {
-      throw new DomainError(
-        'Field key must be a non-empty string',
-        'INVALID_FIELD_KEY',
-        { fieldKey }
-      );
+      throw new DomainError('Field key must be a non-empty string', 'INVALID_FIELD_KEY', {
+        fieldKey,
+      });
     }
   }
 
@@ -394,11 +378,9 @@ export class TubeFieldAccessService implements FieldResolver {
    */
   private validateDataObject(data: unknown): void {
     if (!data || typeof data !== 'object') {
-      throw new DomainError(
-        'Data must be a valid object',
-        'INVALID_DATA_OBJECT',
-        { dataType: typeof data }
-      );
+      throw new DomainError('Data must be a valid object', 'INVALID_DATA_OBJECT', {
+        dataType: typeof data,
+      });
     }
   }
 
@@ -409,10 +391,9 @@ export class TubeFieldAccessService implements FieldResolver {
     const duration = performance.now() - startTime;
     const total = this.performanceMetrics.totalResolutions;
     const currentAvg = this.performanceMetrics.averageResolutionTime;
-    
+
     // Calculate rolling average
-    this.performanceMetrics.averageResolutionTime = 
-      ((currentAvg * (total - 1)) + duration) / total;
+    this.performanceMetrics.averageResolutionTime = (currentAvg * (total - 1) + duration) / total;
   }
 }
 
@@ -439,10 +420,12 @@ export function getDefaultTubeFieldAccessService(
     if (pathMapping) {
       defaultInstance = new TubeFieldAccessService(pathMapping);
     } else {
-      throw new Error('Default field mapping not available. Use getFieldResolverApplicationService() instead.');
+      throw new Error(
+        'Default field mapping not available. Use getFieldResolverApplicationService() instead.'
+      );
     }
   }
-  
+
   return defaultInstance;
 }
 

@@ -9,12 +9,12 @@
  * - Consistent error handling and loading states
  */
 
-import { 
-  useQuery, 
+import {
+  useQuery,
   useInfiniteQuery,
   useQueryClient,
   type UseQueryOptions,
-  type UseInfiniteQueryOptions
+  type UseInfiniteQueryOptions,
 } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
@@ -37,57 +37,63 @@ export const useTubes = (
     boxId?: string;
     searchTerm?: string;
   } = {},
-  options: Omit<UseQueryOptions<TubeData[], Error, TubeData[]>, 'queryKey' | 'queryFn' | 'select'> = {}
+  options: Omit<
+    UseQueryOptions<TubeData[], Error, TubeData[]>,
+    'queryKey' | 'queryFn' | 'select'
+  > = {}
 ) => {
   return useQuery<TubeData[], Error, TubeData[]>({
     queryKey: queryKeys.tubes.lists(),
     queryFn: async (): Promise<TubeData[]> => {
-      return await TubeService.fetchTubes() as TubeData[];
+      return (await TubeService.fetchTubes()) as TubeData[];
     },
     select: (tubes: TubeData[]): TubeData[] => {
       let filtered = tubes;
-      
+
       if (filters.tankId) {
         filtered = filtered.filter(tube => tube.location.tankId === filters.tankId);
       }
-      
+
       if (filters.rackId !== undefined) {
         filtered = filtered.filter(tube => tube.location.rackId === filters.rackId);
       }
-      
+
       if (filters.boxId) {
         filtered = filtered.filter(tube => tube.location.boxId === filters.boxId);
       }
-      
+
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
-        filtered = filtered.filter(tube =>
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
-          tube.sample.cellType?.toLowerCase().includes(searchLower) ||
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
-          tube.sample.donorInternalId?.toLowerCase().includes(searchLower) ||
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
-          tube.sample.donorSourceId?.toLowerCase().includes(searchLower) ||
-          tube.sample.notes?.toLowerCase().includes(searchLower)
+        filtered = filtered.filter(
+          tube =>
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
+            tube.sample.cellType?.toLowerCase().includes(searchLower) ||
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
+            tube.sample.donorInternalId?.toLowerCase().includes(searchLower) ||
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
+            tube.sample.donorSourceId?.toLowerCase().includes(searchLower) ||
+            tube.sample.notes?.toLowerCase().includes(searchLower)
         );
       }
-      
+
       return filtered;
     },
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    ...options
+    ...options,
   });
 };
 
 /**
  * Get tubes by specific location (tank/rack/box)
- * 
+ *
  * Replaces: tubeStore.loadTubesForLocation()
  */
 export const useTubesByLocation = (
   tankId: string,
-  rackId: string,  boxId: string,  options: Omit<UseQueryOptions<TubeData[]>, 'queryKey' | 'queryFn'> = {}
+  rackId: string,
+  boxId: string,
+  options: Omit<UseQueryOptions<TubeData[]>, 'queryKey' | 'queryFn'> = {}
 ) => {
   return useQuery({
     queryKey: queryKeys.tubes.location(tankId, rackId, boxId),
@@ -97,13 +103,13 @@ export const useTubesByLocation = (
     enabled: !!(tankId && rackId && boxId), // Only run if all params provided
     staleTime: 5 * 60 * 1000, // 5 minutes - WebSocket keeps data fresh
     gcTime: 10 * 60 * 1000,
-    ...options
+    ...options,
   });
 };
 
 /**
  * Get single tube by ID
- * 
+ *
  * New functionality - enables individual tube queries
  */
 export const useTube = (
@@ -118,50 +124,57 @@ export const useTube = (
     enabled: !!id, // Only run if ID provided
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000, // Individual tubes cached longer
-    ...options
+    ...options,
   });
 };
 
 /**
  * Get tubes with infinite scrolling for large datasets
- * 
+ *
  * Replaces: tubeStore.loadMoreTubes() pagination logic
  */
 export const useInfiniteTubes = (
   filters: {
     tankId?: string;
-    rackId?: string;    boxId?: string;    searchTerm?: string;
+    rackId?: string;
+    boxId?: string;
+    searchTerm?: string;
   } = {},
-  options: Omit<UseInfiniteQueryOptions<any, Error, any, any, number>, 'queryKey' | 'queryFn' | 'getNextPageParam' | 'initialPageParam'> = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query generic types for flexible query data structure
+  options: Omit<
+    UseInfiniteQueryOptions<any, Error, any, any, number>,
+    'queryKey' | 'queryFn' | 'getNextPageParam' | 'initialPageParam'
+  > = {}
 ) => {
   return useInfiniteQuery({
     queryKey: queryKeys.tubes.paginated(filters),
     queryFn: async ({ pageParam }: { pageParam: number }) => {
       let tubes = await TubeService.fetchTubes();
-      
+
       // Apply client-side filtering
       if (filters.tankId) {
         tubes = tubes.filter(tube => tube.location.tankId === filters.tankId);
       }
-      
+
       if (filters.rackId !== undefined) {
         tubes = tubes.filter(tube => tube.location.rackId === filters.rackId);
       }
-      
+
       if (filters.boxId) {
         tubes = tubes.filter(tube => tube.location.boxId === filters.boxId);
       }
-      
+
       if (filters.searchTerm) {
         const searchLower = filters.searchTerm.toLowerCase();
-        tubes = tubes.filter(tube =>
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
-          tube.sample.cellType?.toLowerCase().includes(searchLower) ||
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
-          tube.sample.donorInternalId?.toLowerCase().includes(searchLower) ||
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
-          tube.sample.donorSourceId?.toLowerCase().includes(searchLower) ||
-          tube.sample.notes?.toLowerCase().includes(searchLower)
+        tubes = tubes.filter(
+          tube =>
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
+            tube.sample.cellType?.toLowerCase().includes(searchLower) ||
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
+            tube.sample.donorInternalId?.toLowerCase().includes(searchLower) ||
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for multi-field search
+            tube.sample.donorSourceId?.toLowerCase().includes(searchLower) ||
+            tube.sample.notes?.toLowerCase().includes(searchLower)
         );
       }
 
@@ -170,24 +183,25 @@ export const useInfiniteTubes = (
       return {
         tubes,
         nextOffset: hasMore ? pageParam + 50 : undefined,
-        hasMore
+        hasMore,
       };
     },
-    getNextPageParam: (lastPage) => lastPage.nextOffset,
+    getNextPageParam: lastPage => lastPage.nextOffset,
     initialPageParam: 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    ...options
+    ...options,
   });
 };
 
 /**
  * Search tubes with advanced filtering
- * 
+ *
  * New functionality - dedicated search queries
  */
 export const useSearchTubes = (
   query: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic search filters with varying field types
   filters: Record<string, any> = {},
   options: Omit<UseQueryOptions<TubeData[]>, 'queryKey' | 'queryFn'> = {}
 ) => {
@@ -199,13 +213,13 @@ export const useSearchTubes = (
     enabled: !!query && query.length >= 2, // Only search with 2+ characters
     staleTime: 2 * 60 * 1000, // Search results stale faster
     gcTime: 5 * 60 * 1000,
-    ...options
+    ...options,
   });
 };
 
 /**
  * Get bulk tubes by IDs
- * 
+ *
  * Used by bulk operations and multi-select scenarios
  */
 export const useBulkTubes = (
@@ -220,15 +234,13 @@ export const useBulkTubes = (
       }
 
       // Fetch all tubes in parallel
-      const tubes = await Promise.all(
-        tubeIds.map(id => TubeService.fetchTubeById(id))
-      );
+      const tubes = await Promise.all(tubeIds.map(id => TubeService.fetchTubeById(id)));
       return tubes;
     },
     enabled: tubeIds.length > 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    ...options
+    ...options,
   });
 };
 
@@ -236,33 +248,35 @@ export const useBulkTubes = (
 
 /**
  * Prefetch tubes for a location (for smooth navigation)
- * 
+ *
  * Replaces: Manual cache warming in navigation
  */
 export const usePrefetchTubeLocation = () => {
   const queryClient = useQueryClient();
-  
+
   const prefetchLocation = async (tankId: string, rackId: string, boxId: string) => {
     await queryClient.prefetchQuery({
       queryKey: queryKeys.tubes.location(tankId, rackId, boxId),
       queryFn: async () => {
         return await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
       },
-      staleTime: 2 * 60 * 1000
+      staleTime: 2 * 60 * 1000,
     });
   };
-  
+
   return { prefetchLocation };
 };
 
 /**
  * Get tube statistics and aggregations
- * 
+ *
  * New functionality - analytics queries
  */
 export const useTubeStats = (
   tankId?: string,
-  rackId?: string,  boxId?: string,  options: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'> = {}
+  rackId?: string,
+  boxId?: string, // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic stats data structure
+  options: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'> = {}
 ) => {
   return useQuery({
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string IDs are invalid, use 'all' for aggregated queries
@@ -270,7 +284,7 @@ export const useTubeStats = (
     queryFn: async () => {
       // Get all tubes for statistics
       let tubes = await TubeService.fetchTubes();
-      
+
       // Filter by location if specified
       if (tankId && tankId !== 'all') {
         tubes = tubes.filter(tube => tube.location.tankId === tankId);
@@ -281,7 +295,7 @@ export const useTubeStats = (
       if (boxId) {
         tubes = tubes.filter(tube => tube.location.boxId === boxId);
       }
-      
+
       // Calculate statistics
       const stats = {
         total: tubes.length,
@@ -291,34 +305,35 @@ export const useTubeStats = (
         byResearcher: {} as Record<string, number>,
         byCellType: {} as Record<string, number>,
         emptyPositions: 0,
-        occupiedPositions: tubes.length
+        occupiedPositions: tubes.length,
       };
-      
+
       tubes.forEach(tube => {
         // Tank statistics
         stats.byTank[tube.location.tankId] = (stats.byTank[tube.location.tankId] || 0) + 1;
-        
+
         // Rack statistics
         stats.byRack[tube.location.rackId] = (stats.byRack[tube.location.rackId] || 0) + 1;
-        
+
         // Box statistics
         stats.byBox[tube.location.boxId] = (stats.byBox[tube.location.boxId] || 0) + 1;
-        
+
         // Researcher statistics
         if (tube.researcherId) {
           stats.byResearcher[tube.researcherId] = (stats.byResearcher[tube.researcherId] || 0) + 1;
         }
-        
+
         // Cell type statistics
         if (tube.sample.cellType) {
-          stats.byCellType[tube.sample.cellType] = (stats.byCellType[tube.sample.cellType] || 0) + 1;
+          stats.byCellType[tube.sample.cellType] =
+            (stats.byCellType[tube.sample.cellType] || 0) + 1;
         }
       });
 
       return stats;
     },
     staleTime: 10 * 60 * 1000, // Statistics stale slower (10 minutes)
-    gcTime: 30 * 60 * 1000,   // Keep stats longer in cache
-    ...options
+    gcTime: 30 * 60 * 1000, // Keep stats longer in cache
+    ...options,
   });
 };

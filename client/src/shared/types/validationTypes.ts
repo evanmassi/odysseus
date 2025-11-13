@@ -34,6 +34,7 @@ export interface FormValidationOptions {
   stopOnFirstError?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic validator for flexible value types and validation context
 export type ValidatorFunction<T = any> = (value: T, context?: any) => FieldValidationResult;
 
 export interface FieldValidator {

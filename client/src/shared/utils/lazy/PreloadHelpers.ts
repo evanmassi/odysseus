@@ -73,9 +73,8 @@ import { useCallback, useState, useMemo, useEffect } from 'react';
  * }
  * ```
  */
-export function createPreloadHook<T = any>(
-  importFn: () => Promise<T>
-) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic default for flexible component types
+export function createPreloadHook<T = any>(importFn: () => Promise<T>) {
   return function usePreload() {
     const [isPreloaded, setIsPreloaded] = useState(false);
 
@@ -136,10 +135,13 @@ export function createPreloadHook<T = any>(
      * </button>
      * ```
      */
-    const triggerProps = useMemo(() => ({
-      onMouseEnter: preload,
-      onFocus: preload,
-    }), [preload]);
+    const triggerProps = useMemo(
+      () => ({
+        onMouseEnter: preload,
+        onFocus: preload,
+      }),
+      [preload]
+    );
 
     return {
       /** Manually trigger preload (for programmatic use) */
@@ -287,10 +289,7 @@ export function usePreloadOnMount(
  * }
  * ```
  */
-export function usePreloadOnIdle(
-  preloadFn: () => void | Promise<void>,
-  delayMs: number = 2000
-) {
+export function usePreloadOnIdle(preloadFn: () => void | Promise<void>, delayMs: number = 2000) {
   useEffect(() => {
     const timer = setTimeout(() => {
       if ('requestIdleCallback' in window) {
@@ -329,7 +328,10 @@ export function usePreloadOnIdle(
  * ]);
  * ```
  */
-export async function batchPreload(importFns: Array<() => Promise<any>>): Promise<PromiseSettledResult<any>[]> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic import promises for flexible component types
+export async function batchPreload(
+  importFns: Array<() => Promise<any>>
+): Promise<PromiseSettledResult<any>[]> {
   const results = await Promise.allSettled(importFns.map(fn => fn()));
 
   // Log failures in development

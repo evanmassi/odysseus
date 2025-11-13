@@ -1,10 +1,10 @@
 /**
  * Tube Field Configuration - Infrastructure Layer
- * 
+ *
  * Configuration that defines how tube fields should be displayed, validated,
  * and processed across the application. This configuration works in conjunction
  * with the Field Resolver service to provide consistent field handling.
- * 
+ *
  * Architecture Benefits:
  * - Single source of truth for field display configuration
  * - Resolver-compatible field definitions
@@ -15,11 +15,16 @@
 import { env } from '@shared/config';
 import { formatToScientificNotation } from '@shared/utils/scientificNotation';
 
-import type { ValidTubeFieldKey} from './fieldPathMapping';
+import type { ValidTubeFieldKey } from './fieldPathMapping';
 import type { FieldResolver } from '@domains/tubes/types/FieldResolver';
 
-
-export type FieldDisplayType = 'text' | 'select' | 'date' | 'concentration' | 'textarea' | 'readonly';
+export type FieldDisplayType =
+  | 'text'
+  | 'select'
+  | 'date'
+  | 'concentration'
+  | 'textarea'
+  | 'readonly';
 
 /**
  * Field configuration for display and form rendering
@@ -39,10 +44,13 @@ export interface TubeFieldConfig {
   /** Grid column span for layout */
   gridSpan?: number;
   /** Custom renderer function */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic field value and tube data for flexible rendering
   customRenderer?: (value: any, tube: any) => React.ReactNode;
   /** Field validation function */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic field value for flexible validation
   validator?: (value: any) => boolean;
   /** Value transformation for display */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic field value transformation
   displayTransform?: (value: any) => any;
   /** Options for select fields */
   selectOptions?: Array<{ value: string; label: string }>;
@@ -87,7 +95,7 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
         required: false,
         gridSpan: 1,
         validator: (value: string) => !value || value.length <= 100,
-        displayTransform: (value: string) => value?.trim()
+        displayTransform: (value: string) => value?.trim(),
       },
       {
         key: 'donorInternalId',
@@ -96,7 +104,7 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
         placeholder: 'Internal tracking ID',
         required: false,
         gridSpan: 1,
-        validator: (value: string) => !value || /^[A-Za-z0-9\-_]+$/.test(value)
+        validator: (value: string) => !value || /^[A-Za-z0-9\-_]+$/.test(value),
       },
       {
         key: 'donorSourceId',
@@ -105,9 +113,9 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
         placeholder: 'External source ID',
         required: false,
         gridSpan: 1,
-        validator: (value: string) => !value || value.length <= 50
-      }
-    ]
+        validator: (value: string) => !value || value.length <= 50,
+      },
+    ],
   },
   {
     key: 'sample',
@@ -133,7 +141,7 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
           if (!value) return true;
           const numValue = typeof value === 'string' ? parseFloat(value) : value;
           return !isNaN(numValue) && numValue > 0;
-        }
+        },
       },
       {
         key: 'concentrationUnit',
@@ -144,8 +152,8 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
         selectOptions: [
           { value: '', label: 'Select unit' },
           { value: 'c/v', label: 'c/v' },
-          { value: 'c/mL', label: 'c/mL' }
-        ]
+          { value: 'c/mL', label: 'c/mL' },
+        ],
       },
       {
         key: 'media',
@@ -154,7 +162,7 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
         placeholder: 'e.g., RPMI +10% HI-FBS',
         required: false,
         gridSpan: 1,
-        validator: (value: string) => !value || value.length <= 100
+        validator: (value: string) => !value || value.length <= 100,
       },
       {
         key: 'cultureCondition',
@@ -163,7 +171,7 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
         placeholder: 'e.g., 5% O₂, 37°C',
         required: false,
         gridSpan: 1,
-        validator: (value: string) => !value || value.length <= 100
+        validator: (value: string) => !value || value.length <= 100,
       },
       {
         key: 'lotNumber',
@@ -172,7 +180,7 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
         placeholder: 'e.g., LOT001, BATCH-2025-01',
         required: false,
         gridSpan: 1,
-        validator: (value: string) => !value || /^[A-Za-z0-9\-_]+$/.test(value)
+        validator: (value: string) => !value || /^[A-Za-z0-9\-_]+$/.test(value),
       },
       {
         key: 'date',
@@ -184,9 +192,9 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
           if (!value) return true;
           const date = new Date(value);
           return !isNaN(date.getTime()) && date <= new Date();
-        }
-      }
-    ]
+        },
+      },
+    ],
   },
   {
     key: 'metadata',
@@ -208,7 +216,7 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
           // This will be populated dynamically by components
           // Components should inject researcher data
           return [{ value: '', label: 'Select researcher' }];
-        }
+        },
       },
       {
         key: 'notes',
@@ -217,10 +225,10 @@ export const TUBE_FIELD_SECTIONS: TubeFieldSection[] = [
         placeholder: 'Additional notes and observations...',
         required: false,
         gridSpan: 1,
-        validator: (value: string) => !value || value.length <= 1000
-      }
-    ]
-  }
+        validator: (value: string) => !value || value.length <= 1000,
+      },
+    ],
+  },
 ];
 
 /**
@@ -257,37 +265,39 @@ export class TubeFieldConfigurationService {
   /**
    * Get field value using resolver with display transformation
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tube data and field values
   getDisplayValue(tube: any, fieldKey: ValidTubeFieldKey): any {
     const config = this.getFieldConfig(fieldKey);
     const rawValue = this.fieldResolver.getValue(tube, fieldKey);
-    
+
     if (config?.displayTransform) {
       return config.displayTransform(rawValue);
     }
-    
+
     return rawValue;
   }
 
   /**
    * Validate field value using configuration rules
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic field value for validation
   validateFieldValue(fieldKey: ValidTubeFieldKey, value: any): boolean {
     const config = this.getFieldConfig(fieldKey);
-    
+
     if (!config) {
       throw new Error(`No configuration found for field: ${fieldKey}`);
     }
-    
+
     // Check required fields
     if (config.required && (!value || value === '')) {
       return false;
     }
-    
+
     // Apply custom validator if provided
     if (config.validator) {
       return config.validator(value);
     }
-    
+
     return true;
   }
 
@@ -318,31 +328,33 @@ export class TubeFieldConfigurationService {
   validateConfiguration(): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
     const allFields = this.getAllFields();
-    
+
     // Check that all field keys can be resolved
     allFields.forEach(field => {
       if (!this.fieldResolver.isValidField(field.key)) {
         errors.push(`Field '${field.key}' cannot be resolved by field resolver`);
       }
     });
-    
+
     // Check for duplicate field keys
     const fieldKeys = allFields.map(f => f.key);
     const duplicates = fieldKeys.filter((key, index) => fieldKeys.indexOf(key) !== index);
     if (duplicates.length > 0) {
       errors.push(`Duplicate field keys found: ${duplicates.join(', ')}`);
     }
-    
+
     // Check section keys are unique
     const sectionKeys = TUBE_FIELD_SECTIONS.map(s => s.key);
-    const duplicateSections = sectionKeys.filter((key, index) => sectionKeys.indexOf(key) !== index);
+    const duplicateSections = sectionKeys.filter(
+      (key, index) => sectionKeys.indexOf(key) !== index
+    );
     if (duplicateSections.length > 0) {
       errors.push(`Duplicate section keys found: ${duplicateSections.join(', ')}`);
     }
-    
+
     return {
       isValid: errors.length === 0,
-      errors
+      errors,
     };
   }
 }
@@ -357,23 +369,20 @@ export class FieldRenderingUtils {
   static getFieldClasses(config: TubeFieldConfig, hasError: boolean = false): string {
     const baseClasses = 'field-input transition-all duration-200';
     const typeClasses = {
-      'text': 'text-input',
-      'select': 'select-input',
-      'date': 'date-input',
-      'concentration': 'concentration-input',
-      'textarea': 'textarea-input',
-      'readonly': 'readonly-input'
+      text: 'text-input',
+      select: 'select-input',
+      date: 'date-input',
+      concentration: 'concentration-input',
+      textarea: 'textarea-input',
+      readonly: 'readonly-input',
     };
-    
+
     const errorClasses = hasError ? 'border-red-500 focus:border-red-500' : '';
     const requiredClasses = config.required ? 'required-field' : '';
-    
-    return [
-      baseClasses,
-      typeClasses[config.displayType],
-      errorClasses,
-      requiredClasses
-    ].filter(Boolean).join(' ');
+
+    return [baseClasses, typeClasses[config.displayType], errorClasses, requiredClasses]
+      .filter(Boolean)
+      .join(' ');
   }
 
   /**
@@ -386,9 +395,9 @@ export class FieldRenderingUtils {
       3: 'col-span-3',
       4: 'col-span-4',
       5: 'col-span-5',
-      6: 'col-span-6'
+      6: 'col-span-6',
     };
-    
+
     return spanClasses[gridSpan as keyof typeof spanClasses] || 'col-span-1';
   }
 
@@ -396,19 +405,20 @@ export class FieldRenderingUtils {
    * Format field value for display
    */
   static formatDisplayValue(
-    value: any, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic field value formatting
+    value: any,
     config: TubeFieldConfig
   ): string {
     if (value === null || value === undefined) {
       return '';
     }
-    
+
     // Apply display transformation if configured
     if (config.displayTransform) {
       const transformed = config.displayTransform(value);
       return String(transformed || '');
     }
-    
+
     // Default formatting by type
     switch (config.displayType) {
       case 'date':
@@ -416,14 +426,14 @@ export class FieldRenderingUtils {
           return value.toISOString().split('T')[0]; // YYYY-MM-DD format
         }
         return String(value);
-        
+
       case 'concentration':
         if (typeof value === 'number' && value >= 1000) {
           // Format large numbers in scientific notation
           return value.toExponential(2);
         }
         return String(value);
-        
+
       default:
         return String(value);
     }
@@ -433,9 +443,10 @@ export class FieldRenderingUtils {
 /**
  * Validation utilities for field configuration
  */
-export function validateTubeFieldConfiguration(
-  fieldResolver: FieldResolver
-): { isValid: boolean; errors: string[] } {
+export function validateTubeFieldConfiguration(fieldResolver: FieldResolver): {
+  isValid: boolean;
+  errors: string[];
+} {
   const configService = new TubeFieldConfigurationService(fieldResolver);
   return configService.validateConfiguration();
 }
@@ -449,23 +460,23 @@ export const FieldConfigDevUtils = {
    */
   logConfigurationAnalysis(fieldResolver: FieldResolver): void {
     if (!env.isDev()) return;
-    
+
     const allFields = TUBE_FIELD_SECTIONS.flatMap(s => s.fields);
     const analysis = {
       totalSections: TUBE_FIELD_SECTIONS.length,
       totalFields: allFields.length,
       fieldsByType: {} as Record<FieldDisplayType, number>,
       requiredFields: allFields.filter(f => f.required).length,
-      resolverCompatibility: allFields.filter(f => fieldResolver.isValidField(f.key)).length
+      resolverCompatibility: allFields.filter(f => fieldResolver.isValidField(f.key)).length,
     };
-    
+
     // Count by type
     allFields.forEach(field => {
       analysis.fieldsByType[field.displayType] =
         (analysis.fieldsByType[field.displayType] || 0) + 1;
     });
   },
-  
+
   /**
    * Validate that all fields can be resolved
    */
@@ -477,7 +488,7 @@ export const FieldConfigDevUtils = {
     const allFields = TUBE_FIELD_SECTIONS.flatMap(s => s.fields);
     const invalidFields: string[] = [];
     const validFields: string[] = [];
-    
+
     allFields.forEach(field => {
       if (fieldResolver.isValidField(field.key)) {
         validFields.push(field.key);
@@ -485,13 +496,13 @@ export const FieldConfigDevUtils = {
         invalidFields.push(field.key);
       }
     });
-    
+
     return {
       valid: invalidFields.length === 0,
       invalidFields,
-      validFields
+      validFields,
     };
-  }
+  },
 };
 
 /**
@@ -506,28 +517,26 @@ export function createTubeFieldConfigurationService(
 /**
  * Runtime validation to ensure configuration and resolver compatibility
  */
-export function initializeTubeFieldConfiguration(
-  fieldResolver: FieldResolver
-): void {
+export function initializeTubeFieldConfiguration(fieldResolver: FieldResolver): void {
   // Validate that configuration is compatible with resolver
   const validation = validateTubeFieldConfiguration(fieldResolver);
-  
+
   if (!validation.isValid) {
     const errorMessage = `Tube field configuration validation failed:\n${validation.errors.join('\n')}`;
     throw new Error(errorMessage);
   }
-  
+
   // Development logging
   if (env.isDev()) {
     FieldConfigDevUtils.logConfigurationAnalysis(fieldResolver);
-    
+
     const resolutionValidation = FieldConfigDevUtils.validateFieldResolution(fieldResolver);
     if (!resolutionValidation.valid) {
       // eslint-disable-next-line no-console -- Warning logging for production monitoring
       console.warn('Some fields cannot be resolved:', resolutionValidation.invalidFields);
     }
   }
-  
+
   // eslint-disable-next-line no-console -- Info logging for operational visibility
   console.log('Tube field configuration initialized successfully');
 }

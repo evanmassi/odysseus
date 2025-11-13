@@ -33,6 +33,7 @@ import type { FieldValues } from 'react-hook-form';
  */
 export function extractDirtyFields<T extends FieldValues>(
   formData: T,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- React Hook Form dirtyFields structure with nested boolean/object values
   dirtyFields: Partial<Record<keyof T, any>>
 ): Partial<T> {
   // Base case: if no dirty fields, return empty object
@@ -40,6 +41,7 @@ export function extractDirtyFields<T extends FieldValues>(
     return {};
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic result object built from form data keys
   const result: any = {};
 
   for (const key in dirtyFields) {
@@ -83,6 +85,7 @@ export function extractDirtyFields<T extends FieldValues>(
  * Check if any fields are dirty in a form
  * Useful for showing "unsaved changes" warnings
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- React Hook Form dirtyFields structure with nested boolean/object values
 export function hasAnyDirtyFields(dirtyFields: Record<string, any>): boolean {
   if (!dirtyFields) return false;
 
@@ -120,6 +123,7 @@ export function hasAnyDirtyFields(dirtyFields: Record<string, any>): boolean {
  * // cellType excluded because empty
  */
 export function extractNonEmptyFields<T extends FieldValues>(formData: T): Partial<T> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic result object built from form data keys
   const result: any = {};
 
   for (const key in formData) {
@@ -134,6 +138,7 @@ export function extractNonEmptyFields<T extends FieldValues>(formData: T): Parti
       // Handle nested objects (like sample)
       if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
         // Check if it's a Date object (type assertion needed for generic type parameter)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Type assertion for generic form value to check Date instance
         if ((value as any) instanceof Date) {
           result[key] = value;
         } else {

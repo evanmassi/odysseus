@@ -1,7 +1,7 @@
 /**
  * Optimistic Updates Service
  * Phase 3 Step 3: Advanced optimistic updates with rollback and conflict resolution
- * 
+ *
  * Provides intelligent optimistic updates that feel instant while handling
  * network failures, conflicts, and edge cases gracefully.
  */
@@ -9,12 +9,12 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
-
 import type { QueryClient, UseMutationOptions } from '@tanstack/react-query';
 
 /**
  * Optimistic update context for rollback
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic default for flexible cache data types
 export interface OptimisticContext<TData = any> {
   previousData: TData | undefined;
   tempId?: string;
@@ -27,10 +27,10 @@ export interface OptimisticContext<TData = any> {
  * Conflict resolution strategies
  */
 export enum ConflictResolution {
-  SERVER_WINS = 'server-wins',      // Server data always takes precedence
-  CLIENT_WINS = 'client-wins',      // Client/user action takes precedence
-  MERGE_SMART = 'merge-smart',      // Intelligent merging based on timestamps
-  ASK_USER = 'ask-user'             // Show UI to let user decide
+  SERVER_WINS = 'server-wins', // Server data always takes precedence
+  CLIENT_WINS = 'client-wins', // Client/user action takes precedence
+  MERGE_SMART = 'merge-smart', // Intelligent merging based on timestamps
+  ASK_USER = 'ask-user', // Show UI to let user decide
 }
 
 /**
@@ -47,34 +47,35 @@ export interface DataConflict<T> {
 /**
  * Optimistic mutation options
  */
-export interface OptimisticMutationOptions<TData, TError, TVariables, TContext> 
+export interface OptimisticMutationOptions<TData, TError, TVariables, TContext>
   extends UseMutationOptions<TData, TError, TVariables, TContext> {
-  
   // Optimistic update configuration
   optimisticUpdate?: {
-    queryKeys: string[][];              // Queries to update optimistically
-    updateFn: (variables: TVariables, oldData: any) => any;  // How to update the data
-    generateTempId?: (variables: TVariables) => string;      // Generate temp ID for new items
-    conflictResolution?: ConflictResolution;                 // How to handle conflicts
+    queryKeys: string[][]; // Queries to update optimistically
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic cache data manipulation, type varies by query
+    updateFn: (variables: TVariables, oldData: any) => any; // How to update the data
+    generateTempId?: (variables: TVariables) => string; // Generate temp ID for new items
+    conflictResolution?: ConflictResolution; // How to handle conflicts
   };
-  
+
   // User feedback configuration
   feedback?: {
-    loading?: string;      // Message while mutation in progress
-    success?: string;      // Message on success
-    error?: string;        // Message on error
-    rollback?: string;     // Message when rolling back
+    loading?: string; // Message while mutation in progress
+    success?: string; // Message on success
+    error?: string; // Message on error
+    rollback?: string; // Message when rolling back
   };
 }
 
 /**
  * Optimistic Updates Service
- * 
+ *
  * Handles all optimistic update logic with proper rollback and conflict resolution
  */
 export class OptimisticUpdatesService {
   private queryClient: QueryClient;
   private pendingMutations: Map<string, OptimisticContext> = new Map();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Conflict queue handles mixed data types
   private conflictQueue: Array<DataConflict<any>> = [];
 
   constructor(queryClient: QueryClient) {
@@ -98,13 +99,14 @@ export class OptimisticUpdatesService {
         let customContext;
         if (options.onMutate) {
           // TanStack Query v5: onMutate receives variables and mutation context
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query mutation context placeholder
           customContext = await options.onMutate(variables, {} as any);
         }
 
         // Handle optimistic updates
         if (optimisticUpdate) {
           const context = await this.applyOptimisticUpdate(variables, optimisticUpdate);
-          
+
           // Show loading feedback
           if (feedback?.loading) {
             toast.loading(feedback.loading, { id: context.tempId });
@@ -116,14 +118,15 @@ export class OptimisticUpdatesService {
         return customContext;
       },
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query context type varies by mutation
       onSuccess: (data: TData, variables: TVariables, context: any) => {
         // Handle optimistic success
         if (context?.optimistic) {
           const optimisticContext = context.optimistic as OptimisticContext;
-          
+
           // Replace temp data with real server data
           this.replaceOptimisticData(optimisticContext, data);
-          
+
           // Clear pending mutation
           if (optimisticContext.tempId) {
             this.pendingMutations.delete(optimisticContext.tempId);
@@ -131,8 +134,8 @@ export class OptimisticUpdatesService {
 
           // Show success feedback
           if (feedback?.success) {
-            toast.success(feedback.success, { 
-              id: optimisticContext.tempId 
+            toast.success(feedback.success, {
+              id: optimisticContext.tempId,
             });
           } else {
             // Dismiss loading toast
@@ -145,21 +148,23 @@ export class OptimisticUpdatesService {
         // Run user's custom onSuccess
         if (options.onSuccess) {
           // TanStack Query v5: onSuccess receives data, variables, context, and mutation
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query mutation placeholder
           options.onSuccess(data, variables, context, {} as any);
         }
       },
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query context type varies by mutation
       onError: (error: TError, variables: TVariables, context: any) => {
         // Handle optimistic error - rollback
         if (context?.optimistic) {
           const optimisticContext = context.optimistic as OptimisticContext;
-          
+
           // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [OptimisticUpdates] Mutation failed, rolling back:', error);
-          
+
           // Rollback optimistic changes
           this.rollbackOptimisticUpdate(optimisticContext);
-          
+
           // Clear pending mutation
           if (optimisticContext.tempId) {
             this.pendingMutations.delete(optimisticContext.tempId);
@@ -168,24 +173,31 @@ export class OptimisticUpdatesService {
           // Show error feedback
           // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error message should fall through to default for UX
           const errorMessage = feedback?.error || 'Action failed. Changes have been reverted.';
-          toast.error(errorMessage, { 
+          toast.error(errorMessage, {
             id: optimisticContext.tempId,
-            duration: 5000
+            duration: 5000,
           });
         }
 
         // Run user's custom onError
         if (options.onError) {
           // TanStack Query v5: onError receives error, variables, context, and mutation
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query mutation placeholder
           options.onError(error, variables, context, {} as any);
         }
       },
 
-      onSettled: (data: TData | undefined, error: TError | null, variables: TVariables, context: any) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query context type varies by mutation
+      onSettled: (
+        data: TData | undefined,
+        error: TError | null,
+        variables: TVariables,
+        context: any
+      ) => {
         // Always invalidate affected queries to ensure consistency
         if (context?.optimistic) {
           const optimisticContext = context.optimistic as OptimisticContext;
-          
+
           // Invalidate all affected queries
           optimisticContext.rollbackQueries.forEach(queryKey => {
             void this.queryClient.invalidateQueries({ queryKey });
@@ -195,9 +207,10 @@ export class OptimisticUpdatesService {
         // Run user's custom onSettled
         if (options.onSettled) {
           // TanStack Query v5: onSettled receives data, error, variables, context, and mutation
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query mutation placeholder
           options.onSettled(data, error, variables, context, {} as any);
         }
-      }
+      },
     });
   }
 
@@ -206,21 +219,21 @@ export class OptimisticUpdatesService {
    */
   private async applyOptimisticUpdate<TVariables>(
     variables: TVariables,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic mutation options, types vary by use case
     config: NonNullable<OptimisticMutationOptions<any, any, TVariables, any>['optimisticUpdate']>
   ): Promise<OptimisticContext> {
     const { queryKeys, updateFn, generateTempId } = config;
-    
+
     // Cancel any outgoing refetches for affected queries
-    await Promise.all(
-      queryKeys.map(queryKey => 
-        this.queryClient.cancelQueries({ queryKey })
-      )
-    );
+    await Promise.all(queryKeys.map(queryKey => this.queryClient.cancelQueries({ queryKey })));
 
     // Generate temp ID if needed
-    const tempId = generateTempId ? generateTempId(variables) : `temp-${Date.now()}-${Math.random()}`;
+    const tempId = generateTempId
+      ? generateTempId(variables)
+      : `temp-${Date.now()}-${Math.random()}`;
 
     // Snapshot current data for rollback
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Snapshot object stores mixed query data types
     const previousData: any = {};
     const rollbackQueries: string[][] = [];
 
@@ -240,7 +253,7 @@ export class OptimisticUpdatesService {
       tempId,
       timestamp: Date.now(),
       userAction: JSON.stringify(variables),
-      rollbackQueries
+      rollbackQueries,
     };
 
     // Track pending mutation
@@ -252,26 +265,30 @@ export class OptimisticUpdatesService {
   /**
    * Replace optimistic data with real server data
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic server response, type varies by endpoint
   private replaceOptimisticData(context: OptimisticContext, serverData: any): void {
     // Update queries with server data
     context.rollbackQueries.forEach(queryKey => {
       const currentData = this.queryClient.getQueryData(queryKey);
-      
+
       if (Array.isArray(currentData)) {
         // For arrays, replace temp items with server data
         const newData = currentData.map(item => {
-          if (item.id === context.tempId || (typeof item.id === 'string' && item.id.startsWith('temp-'))) {
+          if (
+            item.id === context.tempId ||
+            (typeof item.id === 'string' && item.id.startsWith('temp-'))
+          ) {
             return { ...serverData, id: serverData.id };
           }
           return item;
         });
-        
+
         this.queryClient.setQueryData(queryKey, newData);
       } else if (currentData && typeof currentData === 'object') {
         // For objects, merge server data
         this.queryClient.setQueryData(queryKey, {
           ...currentData,
-          ...serverData
+          ...serverData,
         });
       }
     });
@@ -302,20 +319,20 @@ export class OptimisticUpdatesService {
     switch (resolution) {
       case ConflictResolution.SERVER_WINS:
         return conflict.serverValue;
-        
+
       case ConflictResolution.CLIENT_WINS:
         return conflict.clientValue;
-        
+
       case ConflictResolution.MERGE_SMART:
         // Use most recent timestamp
-        return conflict.clientTimestamp > conflict.serverTimestamp 
-          ? conflict.clientValue 
+        return conflict.clientTimestamp > conflict.serverTimestamp
+          ? conflict.clientValue
           : conflict.serverValue;
-          
+
       case ConflictResolution.ASK_USER:
         // This would show a modal/dialog for user to choose
         return this.showConflictResolutionUI(conflict);
-        
+
       default:
         return conflict.serverValue;
     }
@@ -328,7 +345,9 @@ export class OptimisticUpdatesService {
     // This would integrate with your modal system
     // For now, default to server wins
     // eslint-disable-next-line no-console -- Warning logging for production monitoring
-    console.warn('⚠️ [OptimisticUpdates] User conflict resolution UI not implemented, defaulting to server');
+    console.warn(
+      '⚠️ [OptimisticUpdates] User conflict resolution UI not implemented, defaulting to server'
+    );
     return conflict.serverValue;
   }
 
@@ -352,16 +371,16 @@ export class OptimisticUpdatesService {
   public cancelAllOptimisticUpdates(): void {
     // eslint-disable-next-line no-console -- Warning logging for production monitoring
     console.warn('🚨 [OptimisticUpdates] Emergency rollback - cancelling all optimistic updates');
-    
+
     Array.from(this.pendingMutations.values()).forEach(context => {
       this.rollbackOptimisticUpdate(context);
     });
-    
+
     this.pendingMutations.clear();
-    
+
     toast.error('Connection issues detected. All pending changes have been reverted.', {
       duration: 5000,
-      position: 'bottom-right'
+      position: 'bottom-right',
     });
   }
 }
@@ -373,50 +392,40 @@ export const OptimisticPatterns = {
   /**
    * Create item pattern
    */
-  createItem: <T extends { id: string }>(
-    queryKey: string[],
-    _listPath?: string
-  ) => ({
+  createItem: <T extends { id: string }>(queryKey: string[], _listPath?: string) => ({
     queryKeys: [queryKey],
     updateFn: (variables: Partial<T>, oldData: T[] | undefined) => {
       if (!oldData) return [variables];
       return [...oldData, { ...variables, id: `temp-${Date.now()}` }];
     },
     generateTempId: () => `temp-${Date.now()}-${Math.random()}`,
-    conflictResolution: ConflictResolution.SERVER_WINS
+    conflictResolution: ConflictResolution.SERVER_WINS,
   }),
 
   /**
    * Update item pattern
    */
-  updateItem: <T extends { id: string }>(
-    queryKey: string[],
-    itemId: string
-  ) => ({
+  updateItem: <T extends { id: string }>(queryKey: string[], itemId: string) => ({
     queryKeys: [queryKey],
     updateFn: (variables: Partial<T>, oldData: T[] | undefined) => {
       if (!oldData) return oldData;
-      return oldData.map(item => 
-        item.id === itemId ? { ...item, ...variables } : item
-      );
+      return oldData.map(item => (item.id === itemId ? { ...item, ...variables } : item));
     },
-    conflictResolution: ConflictResolution.MERGE_SMART
+    conflictResolution: ConflictResolution.MERGE_SMART,
   }),
 
   /**
    * Delete item pattern
    */
-  deleteItem: <T extends { id: string }>(
-    queryKey: string[],
-    itemId: string
-  ) => ({
+  deleteItem: <T extends { id: string }>(queryKey: string[], itemId: string) => ({
     queryKeys: [queryKey],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic delete variables, not type-specific
     updateFn: (variables: any, oldData: T[] | undefined) => {
       if (!oldData) return oldData;
       return oldData.filter(item => item.id !== itemId);
     },
-    conflictResolution: ConflictResolution.CLIENT_WINS
-  })
+    conflictResolution: ConflictResolution.CLIENT_WINS,
+  }),
 };
 
 /**

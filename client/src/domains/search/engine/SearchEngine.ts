@@ -8,7 +8,6 @@ import { groupTubesByRelevance } from '../lib/searchUtils';
 import type { TubeData } from '@domains/tubes/types';
 import type { SearchResult, GroupedResult, Researcher } from '@odysseus/shared-schemas';
 
-
 /**
  * Highlighted text segment for rendering
  */
@@ -73,14 +72,14 @@ export class SearchEngine {
       if (match.index > lastIndex) {
         segments.push({
           text: text.substring(lastIndex, match.index),
-          isMatch: false
+          isMatch: false,
         });
       }
 
       // Add the match
       segments.push({
         text: match[0],
-        isMatch: true
+        isMatch: true,
       });
 
       lastIndex = regex.lastIndex;
@@ -90,7 +89,7 @@ export class SearchEngine {
     if (lastIndex < text.length) {
       segments.push({
         text: text.substring(lastIndex),
-        isMatch: false
+        isMatch: false,
       });
     }
 
@@ -116,9 +115,7 @@ export class SearchEngine {
     }
 
     // Create lookup map for O(1) access
-    const researcherMap = new Map(
-      researchers.map(r => [r.id, `${r.firstName} ${r.lastName}`])
-    );
+    const researcherMap = new Map(researchers.map(r => [r.id, `${r.firstName} ${r.lastName}`]));
 
     return results.map(group => ({
       ...group,
@@ -127,11 +124,11 @@ export class SearchEngine {
           const researcherName = researcherMap.get(tube.researcherId);
           return {
             ...tube,
-            researcherName // Add researcher name for display
+            researcherName, // Add researcher name for display
           } as TubeData & { researcherName?: string };
         }
         return tube;
-      })
+      }),
     }));
   }
 
@@ -160,15 +157,19 @@ export class SearchEngine {
     }
 
     // Convert API response to TubeData format
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
     const tubes: TubeData[] = serverResult.data.map((tube: any) => ({
       ...tube,
       sample: {
         ...tube.sample,
         // Ensure concentration is a number
-        concentration: typeof tube.sample.concentration === 'string'
-          ? (tube.sample.concentration ? Number(tube.sample.concentration) : undefined)
-          : tube.sample.concentration
-      }
+        concentration:
+          typeof tube.sample.concentration === 'string'
+            ? tube.sample.concentration
+              ? Number(tube.sample.concentration)
+              : undefined
+            : tube.sample.concentration,
+      },
     }));
 
     // Progressive enhancement: Use server-side grouping if available, otherwise client-side
@@ -190,7 +191,7 @@ export class SearchEngine {
       grouped,
       total: tubes.length,
       query,
-      hasResults: tubes.length > 0
+      hasResults: tubes.length > 0,
     };
   }
 
@@ -224,7 +225,11 @@ export class SearchEngine {
     // Select the tubes for immediate visibility
     const positionKeys = tubes.map(tube =>
       toPositionKey(
-        { tankId: tube.location.tankId || tankId, rackId: tube.location.rackId, boxId: tube.location.boxId },
+        {
+          tankId: tube.location.tankId || tankId,
+          rackId: tube.location.rackId,
+          boxId: tube.location.boxId,
+        },
         tube.location.position
       )
     );
