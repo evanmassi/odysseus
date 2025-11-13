@@ -241,6 +241,8 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
         }
         const firstNameChange = findChangeByField(details, 'firstName');
         const lastNameChange = findChangeByField(details, 'lastName');
+        // Intentional OR - checking if either name field changed
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (firstNameChange || lastNameChange) {
           return `${researcherName}: Name updated by ${updatedBy}`;
         }

@@ -13,16 +13,16 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import {
-  DEFAULT_GRID_CONFIG,
-  GRID_TEMPLATES,
-} from '../utils/gridHelpers';
-import {
   isGridConfiguration,
   isLegacyGridConfig,
   hasEquipment,
   hasRacks,
   hasTanks
 } from '../types/migrations';
+import {
+  DEFAULT_GRID_CONFIG,
+  GRID_TEMPLATES,
+} from '../utils/gridHelpers';
 
 import type {
   LabConfiguration,

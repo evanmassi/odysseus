@@ -13,9 +13,9 @@
 
 import { env } from '@shared/config';
 
+import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
 import type { User } from '@domains/authentication/types';
 import type { SessionDebugInfo } from '@domains/authentication/types/debug';
-import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
 import type {
   TokenPair,
   SessionStatus,

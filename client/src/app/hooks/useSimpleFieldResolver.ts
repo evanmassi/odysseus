@@ -7,11 +7,11 @@
 
 import { useCallback, useMemo } from 'react';
 
+import { hasValue as hasValueGuard, isObject } from '@app/types/fieldTypeMapping';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
-import type { TubeData } from '@shared/types/tubeTypes';
 import type { TubeFieldTypeMap, ValidFieldPath, ValidFieldValue } from '@app/types/fieldTypeMapping';
-import { hasValue as hasValueGuard, isObject } from '@app/types/fieldTypeMapping';
+import type { TubeData } from '@shared/types/tubeTypes';
 
 /**
  * Two-state conflict analysis result

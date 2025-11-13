@@ -18,8 +18,8 @@ import { configureHttpClientWithSessionManager } from '@infra/api/httpClient';
 import { env } from '@shared/config';
 
 import { authService } from '../services/AuthenticationService';
-import type { AuthDebugInfo } from '../types/debug';
 
+import type { AuthDebugInfo } from '../types/debug';
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
 import type {
   TokenPair,

@@ -4,8 +4,8 @@
  * Type definitions for API responses from authentication endpoints.
  */
 
-import type { TokenPair } from '@shared/session/types';
 import type { User } from './index';
+import type { TokenPair } from '@shared/session/types';
 
 /**
  * Standard authentication response with user and tokens

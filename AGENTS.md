@@ -1569,3 +1569,290 @@ const ttl = 120000; // 2 minutes in milliseconds
 - Follow naming conventions and file structures from existing code and ensure they meet typical industry standards
 - Respect architectural patterns already in place, but suggest optimizing if there is unnecessary technical debt or duplicate functions.
 - Create a reports dir in a given project that should contain detailed work we've accomplished.
+
+## Code Quality & Type Safety Best Practices
+
+### Learned from Lint Error Resolution & Type Organization
+
+This section captures critical patterns learned from fixing hundreds of lint errors and organizing the type system. Following these practices from the start prevents 90% of common errors and technical debt.
+
+---
+
+### 1. Type Safety: Define Types at Creation
+
+**Do it right immediately - never defer type definition.**
+
+#### Rules:
+- **Never use `any`** - Define proper types immediately
+- **No implicit returns** - Always explicitly type function returns
+- **Create types in centralized locations first** - Don't define inline, then refactor later
+- **Use `type` imports** - `import type { ... }` for type-only imports
+
+#### Type Organization:
+```typescript
+// ✅ CORRECT - Types defined in centralized location
+// File: server/src/domain/types/services/AccessControl.ts
+export interface AccessResult {
+  allowed: boolean;
+  reason: string;
+  metadata?: any;
+}
+
+// File: MyService.ts
+import type { AccessResult } from '@domain/types/services';
+
+// ❌ WRONG - Types defined inline
+// File: MyService.ts
+interface AccessResult {  // This creates duplication!
+  allowed: boolean;
+  reason: string;
+}
+```
+
+#### Know Where Types Belong:
+- **Repository types** → `domain/types/repository/`
+  - SearchCriteria.ts - Query/filter types
+  - Stats.ts - Statistics and summary types
+  - QueryOptions.ts - Pagination and query options
+
+- **Service types** → `domain/types/services/`
+  - AccessControl.ts - Permission/access types
+  - TubePosition.ts - Position validation types
+  - Validation.ts - Validation-specific types
+
+- **Domain types** → `domain/types/`
+  - validation.ts - DomainValidationResult, BulkValidationResult
+  - configuration.ts - ConfigurationUpdateData, etc.
+
+---
+
+### 2. Promise/Async Discipline: No Floating Promises
+
+**Every Promise must be awaited or explicitly handled.**
+
+#### Rules:
+- **Never ignore Promises** - They hide errors
+- **Always await or `.catch()`** - No silent failures
+- **Use proper error boundaries** - Async functions need try/catch
+
+```typescript
+// ❌ WRONG - Floating promise (lint error)
+someAsyncFunction(); // Fire-and-forget hides errors
+
+// ✅ CORRECT - Explicitly awaited
+await someAsyncFunction();
+
+// ✅ CORRECT - Explicitly handled
+someAsyncFunction().catch(error => {
+  logger.error('Failed to execute:', error);
+});
+
+// ✅ CORRECT - Intentionally fire-and-forget with void
+void someAsyncFunction(); // Makes intent explicit
+```
+
+#### Error Boundaries:
+```typescript
+// ✅ CORRECT - Proper async error handling
+async function handleSubmit() {
+  try {
+    await createTube(tubeData);
+    await refreshCache();
+  } catch (error) {
+    toast.error('Failed to create tube');
+    logger.error(error);
+  }
+}
+```
+
+---
+
+### 3. Accessibility: Build It In From Day One
+
+**Every interactive element needs proper ARIA labels and keyboard support.**
+
+#### Rules:
+- **Every clickable element** → onClick + onKeyDown
+- **Every image** → alt text (no exceptions)
+- **Every form field** → aria-label or associated label
+- **Focus management** → Handle keyboard navigation
+
+```typescript
+// ❌ WRONG - Missing keyboard support
+<div onClick={handleClick}>Delete</div>
+
+// ✅ CORRECT - Full accessibility
+<div
+  role="button"
+  tabIndex={0}
+  onClick={handleClick}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  }}
+  aria-label="Delete tube"
+>
+  Delete
+</div>
+
+// ❌ WRONG - Missing alt text
+<img src={icon} />
+
+// ✅ CORRECT - Descriptive alt text
+<img src={icon} alt="Warning icon indicating validation error" />
+```
+
+---
+
+### 4. Import Hygiene: Clean As You Code
+
+**Remove unused imports immediately - don't leave them "for later".**
+
+#### Rules:
+- **Delete unused imports** - As soon as you remove code
+- **No dead code** - "I'll use it later" = technical debt
+- **Type-only imports** - Use `import type` when possible
+
+```typescript
+// ❌ WRONG - Unused imports left in file
+import { useState, useEffect, useMemo } from 'react';  // Only using useState
+import type { TubeData } from '@odysseus/shared-schemas';  // Not used
+
+// ✅ CORRECT - Only import what's used
+import { useState } from 'react';
+```
+
+---
+
+### 5. Clean Architecture: Respect Layer Boundaries
+
+**Domain layer never imports from application or presentation.**
+
+#### Rules:
+- **Domain entities** → Pure business logic, zero dependencies
+- **Domain services** → Use repository interfaces, not implementations
+- **Entities stay immutable** → Use `readonly` for arrays/objects
+- **No infrastructure in domain** → Keep it pure
+
+```typescript
+// ❌ WRONG - Domain importing from infrastructure
+// File: domain/services/TubeService.ts
+import { SQLiteDatabase } from '@infrastructure/database';  // NO!
+
+// ✅ CORRECT - Domain using interfaces only
+// File: domain/services/TubeService.ts
+import type { TubeRepository } from '@domain/repositories';
+
+// ❌ WRONG - Mutable entity arrays
+export class Configuration {
+  tanks: Tank[];  // Can be mutated externally
+}
+
+// ✅ CORRECT - Immutable entity arrays
+export class Configuration {
+  get tanks(): readonly Tank[] {
+    return this._tanks;
+  }
+}
+```
+
+---
+
+### 6. Null vs Undefined: TypeScript Best Practices
+
+**Use `undefined` for optional values, avoid `null`.**
+
+#### Rules:
+- **Optional parameters** → Use `param?: Type` (undefined)
+- **Avoid `null`** → Use `undefined` instead
+- **Explicit undefined okay** → When intent must be clear
+
+```typescript
+// ❌ WRONG - Using null
+function canMoveTube(user: User, tube: Tube, location: Location | null) {
+  // null creates type ambiguity
+}
+
+// ✅ CORRECT - Using optional parameter
+function canMoveTube(user: User, tube: Tube, location?: Location) {
+  // undefined is TypeScript idiomatic
+}
+
+// ❌ WRONG - Passing null
+canMoveTube(user, tube, null);
+
+// ✅ CORRECT - Passing undefined or omitting
+canMoveTube(user, tube, undefined);
+canMoveTube(user, tube);  // Best - omit optional param
+```
+
+---
+
+### 7. Configuration vs Data: Use Proper Types
+
+**When comparing or validating domain entities, use the entity type, not partial DTOs.**
+
+#### Rules:
+- **Validation methods** → Accept full entities when comparing states
+- **Don't force type conversions** → If you need Configuration, accept Configuration
+- **DTOs for transport** → Use DTOs for API boundaries, not internal validation
+
+```typescript
+// ❌ WRONG - Forcing entity → DTO conversion
+interface ValidationService {
+  validateConfigurationUpdate(
+    current: Configuration,
+    updates: ConfigurationUpdateData  // Partial DTO - loses type info
+  ): Promise<ValidationResult>;
+}
+
+// ✅ CORRECT - Accept full entities for comparison
+interface ValidationService {
+  validateConfigurationUpdate(
+    currentConfig: Configuration,
+    updatedConfig: Configuration  // Full entity with all type info
+  ): Promise<ValidationResult>;
+}
+```
+
+---
+
+### 8. Remove Dead Code Immediately
+
+**Code that isn't called is technical debt.**
+
+#### Rules:
+- **Delete unused helper methods** - Don't leave them "just in case"
+- **Remove refactored code** - Old implementations after creating new ones
+- **Check usage before committing** - Search codebase for references
+
+```typescript
+// ❌ WRONG - Leaving old unused methods
+private isEquipmentBeingRemoved(updates: ConfigurationUpdateData): boolean {
+  // This method is no longer called after refactor
+  return updates.tanks?.some(tank => !tank.isActive);
+}
+
+// New method created, but old one left in file
+
+// ✅ CORRECT - Remove the old method entirely
+// Old method deleted, only new implementation remains
+```
+
+---
+
+### Prevention Philosophy
+
+**"Do it right immediately" > "I'll fix it later"**
+
+Your codebase demands:
+- ✅ **Proper types from line one** - Not `any` placeholders
+- ✅ **Proper error handling** - Not floating promises
+- ✅ **Proper accessibility** - Not "we'll add ARIA later"
+- ✅ **Clean imports** - Not unused cruft
+- ✅ **Respect architecture** - Not shortcuts
+- ✅ **Delete dead code** - Not zombie functions
+
+**Result:** Following these practices from the start prevents 90% of lint errors, type mismatches, and technical debt. The discipline saves hours of refactoring later.

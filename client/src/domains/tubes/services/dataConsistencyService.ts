@@ -3,8 +3,8 @@ import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { queryKeys } from '@app/queryKeys';
 import { useStorageStore } from '@domains/storage';
 
-import type { TubeData } from '@shared/types/tubeTypes';
 import type { TankConfiguration } from '@odysseus/shared-schemas';
+import type { TubeData } from '@shared/types/tubeTypes';
 import type { useQueryClient } from '@tanstack/react-query';
 
 /**

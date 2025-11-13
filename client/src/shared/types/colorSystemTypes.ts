@@ -89,16 +89,16 @@ export const adaptTubeDataForColorSystem = (tubeData: TubeData): ColorSystemTube
 
   return {
     id: tubeData.id,
-    cellType: tubeData.sample?.cellType || '',
-    researcherId: tubeData.researcherId || '',
-    position: tubeData.location?.position || 0,
+    cellType: tubeData.sample?.cellType ?? '',
+    researcherId: tubeData.researcherId ?? '',
+    position: tubeData.location?.position ?? 0,
     media: mediaString,
     lotNumber: tubeData.sample?.lotNumber,
     date: dateString,
     donorInternalId: tubeData.sample?.donorInternalId,
     donorSourceId: tubeData.sample?.donorSourceId,
     // Use donorInternalId as fallback for legacy 'donor' field
-    donor: tubeData.sample?.donorInternalId || tubeData.sample?.donorSourceId,
+    donor: tubeData.sample?.donorInternalId ?? tubeData.sample?.donorSourceId,
     // Use cellType as cellLine (they're the same in current schema)
     cellLine: tubeData.sample?.cellType,
     cultureCondition: tubeData.sample?.cultureCondition

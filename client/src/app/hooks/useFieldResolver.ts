@@ -26,6 +26,7 @@ import {
   getFieldResolverApplicationService
 } from '../services/FieldResolverService';
 
+import type { ValidFieldValue } from '@app/types/fieldTypeMapping';
 import type {
   FieldResolver,
   FieldResolutionOptions,
@@ -33,7 +34,6 @@ import type {
 } from '@domains/tubes/types/FieldResolver';
 import type { ValidTubeFieldKey } from '@infra/configuration/fieldPathMapping';
 import type { TubeData } from '@shared/types/tubeTypes';
-import type { ValidFieldValue } from '@app/types/fieldTypeMapping';
 
 /**
  * Hook configuration options

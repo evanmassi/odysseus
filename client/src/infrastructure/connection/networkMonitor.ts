@@ -10,8 +10,8 @@ import { useEffect, useState } from 'react';
 
 import { toast } from 'react-hot-toast';
 
+import type { NavigatorWithConnection } from '@shared/types';
 import type { QueryClient } from '@tanstack/react-query';
-import type { NetworkInformation, NavigatorWithConnection } from '@shared/types';
 
 /**
  * Network status and quality metrics
@@ -263,7 +263,7 @@ export class NetworkMonitor {
 
     // Use Network Information API if available (experimental browser API)
     const nav = navigator as NavigatorWithConnection;
-    const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
+    const connection = nav.connection ?? nav.mozConnection ?? nav.webkitConnection;
 
     if (connection) {
       const { downlink, rtt, effectiveType } = connection;
@@ -287,7 +287,7 @@ export class NetworkMonitor {
    */
   private setupNetworkInformationAPI(): void {
     const nav = navigator as NavigatorWithConnection;
-    const connection = nav.connection || nav.mozConnection || nav.webkitConnection;
+    const connection = nav.connection ?? nav.mozConnection ?? nav.webkitConnection;
 
     if (connection) {
       connection.addEventListener('change', () => {

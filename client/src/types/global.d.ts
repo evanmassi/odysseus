@@ -22,6 +22,7 @@ declare global {
   /**
    * GlobalThis augmentation for Node-style debugging
    */
+  // eslint-disable-next-line no-var
   var __ODYSSEUS_SESSION_DEBUG__: (() => AuthDebugInfo | null) | undefined;
 }
 

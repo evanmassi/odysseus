@@ -12,12 +12,9 @@ import {
 import { queryClient } from '@app/queryClient';
 import { httpClient } from '@infra/api/httpClient';
 
-import type { TokenPair } from '@shared/session/types';
 import type {
   AuthResponse,
-  RegisterWithResearcherResponse,
-  AuthApiResponse,
-  RegisterWithResearcherApiResponse
+  RegisterWithResearcherResponse
 } from '../types/api';
 
 // Domain types (keep existing types intact)
