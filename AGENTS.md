@@ -1213,24 +1213,7 @@ TubeService.test.ts
 
 ## Known Issues & Future Improvements
 
-### Cache Warming Service (Temporarily Disabled)
-**Status:** 🔴 Disabled in `client/src/infrastructure/cache/cacheWarmingService.ts`
-
-**Issue:** Bypasses standardized architecture:
-- Uses raw `fetch()` instead of `httpClient`
-- Calls non-existent endpoints
-- Runs before authentication completes
-
-**Impact:** First screen load shows loading states for ~1-2 seconds. App functionality is unaffected.
-
-**Future Fix:**
-- Refactor to use domain services
-- Only prefetch data for first render
-- Run after authentication
-- Use proper httpClient with auth injection
-- Estimated effort: 2-3 hours
-
-**Alternative:** Remove entirely and rely on Socket.IO + React Query caching.
+_No known architectural issues. CacheWarmingService was removed (2025-01-14) in favor of Socket.IO + React Query on-demand caching._
 
 ## Instructions for AI Agents
 

@@ -134,23 +134,11 @@ export class AppBootstrapService {
         throw socketError;
       }
 
-      // TEMPORARILY DISABLED: Cache warming needs refactoring
-      // See AGENTS.md "Known Issues" section for details
-      // TODO: Refactor to use domain services instead of raw fetch()
+      // Data loading handled by React Query (on-demand, component-driven)
+      // Components call hooks (useTubesQuery, useResearchersQuery, etc.)
+      // Socket.IO keeps cache fresh via real-time invalidation
       this.updateStep('data-loading', false);
       this.updateStep('data-loading', true);
-
-      /* DISABLED - Needs refactoring to use httpClient and domain services
-      try {
-        console.log('🔥 [Bootstrap] Starting intelligent cache warming');
-        await initializeCacheWarming(queryClient);
-        console.log('[Bootstrap] Cache warming completed');
-        this.updateStep('data-loading', true);
-      } catch (warmingError) {
-        console.warn('⚠️ [Bootstrap] Cache warming failed, continuing without prefetch:', warmingError);
-        this.updateStep('data-loading', true);
-      }
-      */
 
       // Complete
       this.updateStep('complete', true);
