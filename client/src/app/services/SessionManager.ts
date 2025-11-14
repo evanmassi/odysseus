@@ -14,7 +14,6 @@
 import { env } from '@shared/config';
 
 import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
-import type { User } from '@domains/authentication/types';
 import type { SessionDebugInfo } from '@domains/authentication/types/debug';
 import type {
   TokenPair,
@@ -24,7 +23,7 @@ import type {
   TokenValidation,
   SessionStorage,
   RefreshResponse,
-  TokenProvider
+  TokenProvider,
 } from '@shared/session/types';
 
 /**
@@ -48,7 +47,7 @@ export class SessionManager implements TokenProvider {
     isRefreshing: false,
     lastRefreshTime: null,
     refreshAttempts: 0,
-    nextRefreshTime: null
+    nextRefreshTime: null,
   };
 
   private refreshTimer: NodeJS.Timeout | null = null;
@@ -76,11 +75,19 @@ export class SessionManager implements TokenProvider {
       refreshBufferMinutes: 5,
       maxRetries: 3,
       retryDelayMs: 1000,
-      ...config
+      ...config,
     };
 
     // Start background inactivity checker (60 second intervals)
     this.startInactivityChecker();
+
+    // Restore token refresh schedule on page reload
+    // When the app reloads, tokens are loaded from localStorage but the
+    // refresh timer is not set. This ensures tokens refresh automatically.
+    const existingTokens = this.storage.getTokens();
+    if (existingTokens) {
+      this.scheduleTokenRefresh(existingTokens.accessTokenExpiry);
+    }
   }
 
   /**
@@ -153,7 +160,7 @@ export class SessionManager implements TokenProvider {
     }
 
     const validation = this.validateTokens(tokens);
-    
+
     // Check if refresh token is expired
     if (tokens.refreshTokenExpiry <= new Date()) {
       return 'expired';
@@ -179,7 +186,7 @@ export class SessionManager implements TokenProvider {
     return {
       isValid: expiresIn > 60000, // Valid if more than 1 minute remaining
       expiresIn,
-      needsRefresh: expiresIn <= bufferMs // Refresh if within buffer time
+      needsRefresh: expiresIn <= bufferMs, // Refresh if within buffer time
     };
   }
 
@@ -226,7 +233,7 @@ export class SessionManager implements TokenProvider {
     for (let attempt = 1; attempt <= this.config.maxRetries; attempt++) {
       try {
         const response = await this.authHttpClient.post('/public/auth/refresh', {
-          refreshToken: tokens.refreshToken
+          refreshToken: tokens.refreshToken,
         });
 
         if (response.success) {
@@ -242,7 +249,7 @@ export class SessionManager implements TokenProvider {
           const updatedTokens: TokenPair = {
             ...tokens,
             accessToken: refreshData.accessToken,
-            accessTokenExpiry: refreshData.accessTokenExpiry
+            accessTokenExpiry: refreshData.accessTokenExpiry,
           };
 
           this.setTokens(updatedTokens);
@@ -253,7 +260,6 @@ export class SessionManager implements TokenProvider {
         } else {
           throw new Error('Refresh request failed');
         }
-
       } catch (error) {
         // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
         console.error(`❌ Token refresh attempt ${attempt} failed:`, error);
@@ -323,6 +329,8 @@ export class SessionManager implements TokenProvider {
   /**
    * Clear session and logout
    *
+   * Clears only tokens. User data is cleared by auth store's clearAuth().
+   *
    * @param reason - Why the session is being cleared (for UX messaging)
    */
   clearSession(reason: 'idle_timeout' | 'token_expired' | 'manual_logout' = 'manual_logout'): void {
@@ -332,16 +340,15 @@ export class SessionManager implements TokenProvider {
       this.refreshTimer = null;
     }
 
-    // Clear storage
+    // Clear token storage (user cleared by Zustand auth store)
     this.storage.clearTokens();
-    this.storage.clearUser();
 
     // Reset state
     this.state = {
       isRefreshing: false,
       lastRefreshTime: null,
       refreshAttempts: 0,
-      nextRefreshTime: null
+      nextRefreshTime: null,
     };
 
     this.refreshPromise = null;
@@ -437,7 +444,7 @@ export class SessionManager implements TokenProvider {
       nextRefreshIn: timeUntilRefresh ? `${timeUntilRefresh} minutes` : 'Not scheduled',
       isRefreshing: this.state.isRefreshing,
       refreshAttempts: this.state.refreshAttempts,
-      lastRefresh: this.state.lastRefreshTime?.toLocaleTimeString() ?? 'Never'
+      lastRefresh: this.state.lastRefreshTime?.toLocaleTimeString() ?? 'Never',
     };
   }
 }
@@ -445,12 +452,11 @@ export class SessionManager implements TokenProvider {
 /**
  * Session storage implementation using localStorage
  *
- * Stores persistent token state that survives app restart.
+ * Stores only token state. User data is persisted by Zustand auth store.
  * Activity tracking is not persisted (handled in-memory by SessionManager).
  */
 export class LocalStorageSessionStorage implements SessionStorage {
   private readonly TOKENS_KEY = 'odysseus-tokens';
-  private readonly USER_KEY = 'odysseus-user';
 
   getTokens(): TokenPair | null {
     try {
@@ -462,7 +468,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
       return {
         ...parsed,
         accessTokenExpiry: new Date(parsed.accessTokenExpiry),
-        refreshTokenExpiry: new Date(parsed.refreshTokenExpiry)
+        refreshTokenExpiry: new Date(parsed.refreshTokenExpiry),
       };
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
@@ -477,24 +483,5 @@ export class LocalStorageSessionStorage implements SessionStorage {
 
   clearTokens(): void {
     localStorage.removeItem(this.TOKENS_KEY);
-  }
-
-  getUser(): User | null {
-    try {
-      const stored = localStorage.getItem(this.USER_KEY);
-      return stored ? JSON.parse(stored) : null;
-    } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to parse stored user:', error);
-      return null;
-    }
-  }
-
-  setUser(user: User): void {
-    localStorage.setItem(this.USER_KEY, JSON.stringify(user));
-  }
-
-  clearUser(): void {
-    localStorage.removeItem(this.USER_KEY);
   }
 }

@@ -15,6 +15,7 @@ export interface AppBootstrapState {
 export type BootstrapStep =
   | 'initialization'
   | 'auth-check'
+  | 'session-restore'
   | 'socket-connection'
   | 'data-loading'
   | 'complete'

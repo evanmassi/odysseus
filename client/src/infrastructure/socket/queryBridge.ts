@@ -13,13 +13,7 @@
  * - Connection lifecycle management
  */
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {
-  websocketMessageSchema,
-  tubeDataSchema,
-  type TubeData,
-  type Researcher,
-} from '@odysseus/shared-schemas';
+import { tubeDataSchema, type TubeData, type Researcher } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
 import { queryKeys } from '@app/queryKeys';
@@ -172,8 +166,6 @@ export class SocketQueryBridge {
 
   // Bound handlers for cleanup
   private handleOnline = () => {
-    // eslint-disable-next-line no-console -- Info logging for operational visibility
-    console.log('🌐 [SocketBridge] Browser back online');
     void this.queryClient.invalidateQueries({
       queryKey: queryKeys.storage.storage(),
     });
@@ -181,8 +173,6 @@ export class SocketQueryBridge {
   };
 
   private handleOffline = () => {
-    // eslint-disable-next-line no-console -- Info logging for operational visibility
-    console.log('📴 [SocketBridge] Browser went offline');
     notifications.warning('No internet connection - working in offline mode');
   };
 
@@ -200,11 +190,6 @@ export class SocketQueryBridge {
 
     this.socket.on('connect', () => {
       this.isConnected = true;
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log('✅ [SocketBridge] Connected to server', {
-        socketId: this.socket?.id,
-        timestamp: new Date().toISOString(),
-      });
 
       // Initialize version tracking from current cache (if not already set)
       if (this.lastKnownConfigVersion === null) {
@@ -216,16 +201,7 @@ export class SocketQueryBridge {
 
         if (currentVersion) {
           this.lastKnownConfigVersion = currentVersion;
-          // eslint-disable-next-line no-console -- Info logging for operational visibility
-          console.log('🔢 [SocketBridge] Initialized version tracking', {
-            version: currentVersion,
-          });
         }
-      } else {
-        // eslint-disable-next-line no-console -- Info logging for operational visibility
-        console.log('🔢 [SocketBridge] Version tracking preserved from previous connection', {
-          version: this.lastKnownConfigVersion,
-        });
       }
 
       notifications.success('Connected to server');
@@ -524,9 +500,6 @@ export class SocketQueryBridge {
           // Generate context-aware notification message
           const message = this.generateConfigurationUpdateMessage(eventTypes, eventCount);
           notifications.info(message);
-        } else {
-          // eslint-disable-next-line no-console -- Info logging for operational visibility
-          console.log('⚠️ [SocketBridge] Configuration version unchanged, skipping notification');
         }
       } catch (error) {
         // Log detailed error information for debugging
@@ -543,8 +516,6 @@ export class SocketQueryBridge {
           await this.queryClient.invalidateQueries({
             queryKey: queryKeys.storage.storage(),
           });
-          // eslint-disable-next-line no-console -- Info logging for operational visibility
-          console.log('✅ [SocketBridge] Fallback: Successfully invalidated configuration cache');
         } catch (fallbackError) {
           // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error(
@@ -567,19 +538,10 @@ export class SocketQueryBridge {
     try {
       const currentVersion = this.lastKnownConfigVersion;
 
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log('🔍 [SocketBridge] Starting version check', {
-        lastKnownVersion: currentVersion,
-        timestamp: new Date().toISOString(),
-      });
-
       // Invalidate cache first
       await this.queryClient.invalidateQueries({
         queryKey: queryKeys.storage.storage(),
       });
-
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log('♻️  [SocketBridge] Cache invalidated, fetching fresh data...');
 
       // Fetch fresh data from server (this waits for the network request to complete)
       const freshData = (await this.queryClient.fetchQuery({
@@ -587,20 +549,10 @@ export class SocketQueryBridge {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query result with unknown structure before validation
       })) as any;
 
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log('📦 [SocketBridge] Fresh data received from server', {
-        version: freshData?.configuration?.systemConfig?.version,
-        timestamp: new Date().toISOString(),
-      });
-
       const newVersion = freshData?.configuration?.systemConfig?.version;
 
       // If this is the first time we're seeing a version, initialize tracking
       if (currentVersion === null && newVersion !== undefined) {
-        // eslint-disable-next-line no-console -- Info logging for operational visibility
-        console.log('🔢 [SocketBridge] First version seen, initializing tracking', {
-          version: newVersion,
-        });
         this.lastKnownConfigVersion = newVersion;
         // On first event, always assume it changed (we have no baseline)
         return true;
@@ -627,26 +579,11 @@ export class SocketQueryBridge {
           // Clear all localStorage to prevent stale data issues
           try {
             localStorage.removeItem('odysseus-configuration-store');
-            // eslint-disable-next-line no-console -- Info logging for operational visibility
-            console.log('🗑️  [SocketBridge] Cleared localStorage after database reset');
           } catch (clearError) {
             // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
             console.error('❌ [SocketBridge] Failed to clear localStorage:', clearError);
           }
         }
-
-        // eslint-disable-next-line no-console -- Info logging for operational visibility
-        console.log('📊 [SocketBridge] Version check:', {
-          previous: currentVersion,
-          current: newVersion,
-          changed: versionChanged,
-          direction:
-            newVersion > currentVersion
-              ? 'forward'
-              : newVersion < currentVersion
-                ? 'backward'
-                : 'unchanged',
-        });
 
         // Update tracked version for next comparison
         this.lastKnownConfigVersion = newVersion;
@@ -725,19 +662,15 @@ export class SocketQueryBridge {
   private setupReconnectionHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.on('reconnect', (attemptNumber: number) => {
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log(`🔄 [SocketBridge] Reconnected after ${attemptNumber} attempts`);
-
+    this.socket.on('reconnect', (_attemptNumber: number) => {
       // Invalidate all queries to refetch fresh data after reconnection
       void this.queryClient.invalidateQueries();
 
       notifications.success('Reconnected to server - data refreshed');
     });
 
-    this.socket.on('reconnect_attempt', (attemptNumber: number) => {
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log(`🔄 [SocketBridge] Reconnection attempt ${attemptNumber}...`);
+    this.socket.on('reconnect_attempt', (_attemptNumber: number) => {
+      // Silent reconnection attempts
     });
 
     this.socket.on('reconnect_failed', () => {

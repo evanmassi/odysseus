@@ -339,11 +339,36 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
     const authHeaders = await buildAuthHeaders(sessionManager);
     const requestHeaders = { ...headers, ...authHeaders };
 
-    const response = await originalMethod(url, requestHeaders);
-    if (response && response.data) {
-      response.data = httpClient.applyResponseTransformation(response.data, url) as T;
+    try {
+      const response = await originalMethod(url, requestHeaders);
+      if (response && response.data) {
+        response.data = httpClient.applyResponseTransformation(response.data, url) as T;
+      }
+      return response;
+    } catch (error) {
+      // Handle 401 Unauthorized - token may have expired between validation checks
+      if (error instanceof ApiError && error.status === 401) {
+        // Attempt to refresh token and retry the request once
+        const newToken = await sessionManager.getValidAccessToken();
+
+        if (newToken) {
+          // Token refreshed successfully, retry the request with new token
+          const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
+          const retryResponse = await originalMethod(url, retryHeaders);
+
+          if (retryResponse && retryResponse.data) {
+            retryResponse.data = httpClient.applyResponseTransformation(
+              retryResponse.data,
+              url
+            ) as T;
+          }
+          return retryResponse;
+        }
+      }
+
+      // Either not a 401 error, or token refresh failed - rethrow
+      throw error;
     }
-    return response;
   };
 
   // Token injection for methods with data (POST, PUT)
@@ -361,11 +386,36 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
     const authHeaders = await buildAuthHeaders(sessionManager);
     const requestHeaders = { ...headers, ...authHeaders };
 
-    const response = await originalMethod(url, data, requestHeaders);
-    if (response && response.data) {
-      response.data = httpClient.applyResponseTransformation(response.data, url) as T;
+    try {
+      const response = await originalMethod(url, data, requestHeaders);
+      if (response && response.data) {
+        response.data = httpClient.applyResponseTransformation(response.data, url) as T;
+      }
+      return response;
+    } catch (error) {
+      // Handle 401 Unauthorized - token may have expired between validation checks
+      if (error instanceof ApiError && error.status === 401) {
+        // Attempt to refresh token and retry the request once
+        const newToken = await sessionManager.getValidAccessToken();
+
+        if (newToken) {
+          // Token refreshed successfully, retry the request with new token
+          const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
+          const retryResponse = await originalMethod(url, data, retryHeaders);
+
+          if (retryResponse && retryResponse.data) {
+            retryResponse.data = httpClient.applyResponseTransformation(
+              retryResponse.data,
+              url
+            ) as T;
+          }
+          return retryResponse;
+        }
+      }
+
+      // Either not a 401 error, or token refresh failed - rethrow
+      throw error;
     }
-    return response;
   };
 
   // Override methods with correct signatures

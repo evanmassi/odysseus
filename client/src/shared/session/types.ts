@@ -91,16 +91,13 @@ export interface TokenValidation {
 
 /**
  * Session persistence interface
+ *
+ * Handles only token storage. User data is persisted by Zustand auth store.
  */
 export interface SessionStorage {
   getTokens(): TokenPair | null;
   setTokens(tokens: TokenPair): void;
   clearTokens(): void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic user data structure from session storage
-  getUser(): any | null;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic user data structure for session storage
-  setUser(user: any): void;
-  clearUser(): void;
 }
 
 /**

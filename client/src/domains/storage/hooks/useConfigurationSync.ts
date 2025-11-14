@@ -41,23 +41,9 @@ export function useConfigurationSync() {
 
       // Cache invalidation: Check if versions match
       if (cachedVersion !== serverVersion) {
-        // eslint-disable-next-line no-console -- Info logging for operational visibility
-        console.log('🔄 [ConfigSync] Version mismatch detected - invalidating cache');
-        // eslint-disable-next-line no-console -- Info logging for operational visibility
-        console.log(`   Cached: v${cachedVersion} → Server: v${serverVersion}`);
-
         // Clear localStorage to force fresh data
         localStorage.removeItem('odysseus-configuration-store');
-
-        // eslint-disable-next-line no-console -- Info logging for operational visibility
-        console.log('🗑️  [ConfigSync] Cleared stale localStorage cache');
-      } else {
-        // eslint-disable-next-line no-console -- Info logging for operational visibility
-        console.log(`✅ [ConfigSync] Cache valid (v${serverVersion})`);
       }
-
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log('📥 [ConfigSync] Syncing configuration from server');
 
       // Ensure systemConfig.availableLabs contains the current lab
       // The server sends currentLab separately, but we need to update availableLabs
@@ -68,9 +54,9 @@ export function useConfigurationSync() {
       useStorageStore.setState({
         systemConfig: {
           ...serverSystemConfig,
-          availableLabs: updatedAvailableLabs
+          availableLabs: updatedAvailableLabs,
         },
-        currentLab: serverCurrentLab
+        currentLab: serverCurrentLab,
       });
     }
   }, [isSuccess, data]);
@@ -80,36 +66,24 @@ export function useConfigurationSync() {
     if (isError && !hasInitialized.current && !saveMutation.isPending) {
       hasInitialized.current = true;
 
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('⚠️ [ConfigSync] No configuration on server (fresh install).');
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log('📤 [ConfigSync] Saving initial configuration to server...');
-
       const store = useStorageStore.getState();
 
-      // Log what we're about to send
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log('📋 [ConfigSync] Client config to save:', {
-        systemConfig: store.systemConfig,
-        currentLabTanks: store.currentLab.equipment.tanks.length,
-        firstTank: store.currentLab.equipment.tanks[0]?.racks[0]?.boxes[0]
-      });
-
-      saveMutation.mutate({
-        systemConfig: store.systemConfig,
-        currentLab: store.currentLab
-      }, {
-        onSuccess: () => {
-          // eslint-disable-next-line no-console -- Info logging for operational visibility
-          console.log('✅ [ConfigSync] Initial configuration saved to server');
-          hasSynced.current = true;
+      saveMutation.mutate(
+        {
+          systemConfig: store.systemConfig,
+          currentLab: store.currentLab,
         },
-        onError: (saveError) => {
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error('❌ [ConfigSync] Failed to save initial configuration:', saveError);
-          hasInitialized.current = false; // Allow retry on error
+        {
+          onSuccess: () => {
+            hasSynced.current = true;
+          },
+          onError: saveError => {
+            // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
+            console.error('❌ [ConfigSync] Failed to save initial configuration:', saveError);
+            hasInitialized.current = false; // Allow retry on error
+          },
         }
-      });
+      );
     }
   }, [isError, saveMutation]);
 
@@ -121,41 +95,23 @@ export function useConfigurationSync() {
         return;
       }
 
-      // Another tab updated localStorage
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log('🔄 [ConfigSync] Storage change detected from another tab');
-
       try {
         if (e.newValue) {
           const parsedState = JSON.parse(e.newValue);
           const newVersion = parsedState?.state?.systemConfig?.version;
           const currentVersion = useStorageStore.getState().systemConfig.version;
 
-          // eslint-disable-next-line no-console -- Info logging for operational visibility
-          console.log('📊 [ConfigSync] Multi-tab version check:', {
-            current: currentVersion,
-            incoming: newVersion
-          });
-
           // Only sync if version is newer
           if (newVersion && newVersion > currentVersion) {
-            // eslint-disable-next-line no-console -- Info logging for operational visibility
-            console.log('✅ [ConfigSync] Syncing newer configuration from other tab');
-
             // Invalidate React Query cache to refetch from server
             void queryClient.invalidateQueries({
-              queryKey: queryKeys.storage.storage()
+              queryKey: queryKeys.storage.storage(),
             });
-          } else {
-            // eslint-disable-next-line no-console -- Info logging for operational visibility
-            console.log('⚠️ [ConfigSync] Ignoring older/same version from other tab');
           }
         } else {
           // Storage was cleared in another tab
-          // eslint-disable-next-line no-console -- Info logging for operational visibility
-          console.log('🗑️  [ConfigSync] Storage cleared in another tab, refetching from server');
           void queryClient.invalidateQueries({
-            queryKey: queryKeys.storage.storage()
+            queryKey: queryKeys.storage.storage(),
           });
         }
       } catch (error) {
@@ -163,7 +119,7 @@ export function useConfigurationSync() {
         console.error('❌ [ConfigSync] Error parsing storage event:', error);
         // On error, refetch to be safe
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.storage.storage()
+          queryKey: queryKeys.storage.storage(),
         });
       }
     };
@@ -171,19 +127,14 @@ export function useConfigurationSync() {
     // Listen for storage events (only fires in other tabs)
     window.addEventListener('storage', handleStorageChange);
 
-    // eslint-disable-next-line no-console -- Info logging for operational visibility
-    console.log('👂 [ConfigSync] Listening for multi-tab storage events');
-
     return () => {
       window.removeEventListener('storage', handleStorageChange);
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      console.log('🔇 [ConfigSync] Stopped listening for storage events');
     };
   }, [queryClient]);
 
   return {
     isSyncing: !isSuccess && !isError && !hasSynced.current,
     isError: isError && !hasInitialized.current,
-    isSynced: hasSynced.current
+    isSynced: hasSynced.current,
   };
 }

@@ -21,9 +21,7 @@ import { authService } from '../services/AuthenticationService';
 
 import type { AuthDebugInfo } from '../types/debug';
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
-import type {
-  TokenPair,
-  SessionStatus} from '@shared/session/types';
+import type { TokenPair, SessionStatus } from '@shared/session/types';
 
 // User interface (unchanged for compatibility)
 export interface User {
@@ -58,7 +56,9 @@ interface AuthActions {
   // Primary authentication methods
   login: (username: string, password: string) => Promise<boolean>;
   register: (username: string, password: string) => Promise<boolean>;
-  registerWithResearcher: (request: RegisterWithResearcherRequest) => Promise<{ success: boolean; status?: 'approved' | 'pending'; message?: string }>;
+  registerWithResearcher: (
+    request: RegisterWithResearcherRequest
+  ) => Promise<{ success: boolean; status?: 'approved' | 'pending'; message?: string }>;
   logout: () => Promise<void>;
   verify: () => Promise<boolean>;
   checkFirstTime: () => Promise<boolean>;
@@ -85,14 +85,10 @@ const sessionStorage = new LocalStorageSessionStorage();
 
 // Create session manager with callback for session expiration
 // Callback pattern: SessionManager notifies auth store when session expires
-const sessionManager = new SessionManager(
-  authHttpClient,
-  sessionStorage,
-  (reason) => {
-    // When session expires, clear auth store and trigger UI update
-    useAuthStore.getState().clearAuth(reason);
-  }
-);
+const sessionManager = new SessionManager(authHttpClient, sessionStorage, reason => {
+  // When session expires, clear auth store and trigger UI update
+  useAuthStore.getState().clearAuth(reason);
+});
 
 // Configure httpClient to use SessionManager for automatic token handling
 configureHttpClientWithSessionManager(sessionManager);
@@ -104,7 +100,7 @@ export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
       // STATE
-      
+
       user: null,
       tokens: null,
       sessionStatus: 'unauthenticated',
@@ -126,22 +122,23 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const result = await authService.login({ username, password });
 
-          // AuthService now returns AuthResponse directly (not wrapped in success object)
+          const userWithActivity = {
+            ...result.user,
+            lastActivity: new Date().toISOString(), // Ensure lastActivity is set
+          };
+
           // Set tokens in session manager (handles HTTP client + storage)
           sessionManager.setTokens(result.tokens);
 
-          // Update store state
+          // Update store state (Zustand persist automatically saves user)
           set({
-            user: {
-              ...result.user,
-              lastActivity: new Date().toISOString() // Ensure lastActivity is set
-            },
+            user: userWithActivity,
             tokens: result.tokens,
             sessionStatus: 'authenticated',
-            isAuthenticated: true, // Update reactive authentication state
+            isAuthenticated: true,
             isLoading: false,
             error: null,
-            logoutReason: null // Clear any previous logout reason
+            logoutReason: null,
           });
 
           return true;
@@ -149,10 +146,10 @@ export const useAuthStore = create<AuthStore>()(
           const errorMessage = error instanceof Error ? error.message : 'Login error';
           // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
           console.error('❌ [AUTH STORE] Login exception:', error);
-          
+
           set({
             error: errorMessage,
-            isLoading: false
+            isLoading: false,
           });
           return false;
         }
@@ -167,20 +164,22 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const result = await authService.register({ username, password });
 
-          // AuthService now returns AuthResponse directly (not wrapped in success object)
+          const userWithActivity = {
+            ...result.user,
+            lastActivity: new Date().toISOString(), // Ensure lastActivity is set
+          };
+
           // Set tokens in session manager
           sessionManager.setTokens(result.tokens);
 
-          // Update store state
+          // Update store state (Zustand persist automatically saves user)
           set({
-            user: {
-              ...result.user,
-              lastActivity: new Date().toISOString() // Ensure lastActivity is set
-            },
+            user: userWithActivity,
             tokens: result.tokens,
             sessionStatus: 'authenticated',
+            isAuthenticated: true,
             isLoading: false,
-            error: null
+            error: null,
           });
 
           return true;
@@ -191,7 +190,7 @@ export const useAuthStore = create<AuthStore>()(
 
           set({
             error: errorMessage,
-            isLoading: false
+            isLoading: false,
           });
           return false;
         }
@@ -211,24 +210,27 @@ export const useAuthStore = create<AuthStore>()(
 
           // Case 1: Approved (first user) - Has tokens, authenticate immediately
           if (result.status === 'approved' && result.tokens) {
+            const userWithActivity = {
+              ...result.user,
+              lastActivity: new Date().toISOString(),
+            };
+
             sessionManager.setTokens(result.tokens);
 
+            // Update store state (Zustand persist automatically saves user)
             set({
-              user: {
-                ...result.user,
-                lastActivity: new Date().toISOString()
-              },
+              user: userWithActivity,
               tokens: result.tokens,
               sessionStatus: 'authenticated',
               isAuthenticated: true,
               isLoading: false,
-              error: null
+              error: null,
             });
 
             return {
               success: true,
               status: 'approved',
-              message: result.message
+              message: result.message,
             };
           }
 
@@ -240,19 +242,18 @@ export const useAuthStore = create<AuthStore>()(
               sessionStatus: 'unauthenticated',
               isAuthenticated: false,
               isLoading: false,
-              error: null
+              error: null,
             });
 
             return {
               success: true,
               status: 'pending',
-              message: result.message
+              message: result.message,
             };
           }
 
           // Unexpected state
           throw new Error('Invalid registration response status');
-
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Registration error';
           // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
@@ -260,12 +261,12 @@ export const useAuthStore = create<AuthStore>()(
 
           set({
             error: errorMessage,
-            isLoading: false
+            isLoading: false,
           });
 
           return {
             success: false,
-            message: errorMessage
+            message: errorMessage,
           };
         }
       },
@@ -296,11 +297,11 @@ export const useAuthStore = create<AuthStore>()(
           set({
             user: {
               ...result.user,
-              lastActivity: new Date().toISOString() // Ensure lastActivity is set
+              lastActivity: new Date().toISOString(), // Ensure lastActivity is set
             },
             tokens: sessionManager.getTokens(),
             sessionStatus: 'authenticated',
-            error: null
+            error: null,
           });
           return true;
         } catch (error) {
@@ -336,7 +337,10 @@ export const useAuthStore = create<AuthStore>()(
           await authService.logout();
         } catch (error) {
           // eslint-disable-next-line no-console -- Warning logging for production monitoring
-          console.warn('⚠️ [AUTH STORE] Backend logout failed (clearing local session anyway):', error);
+          console.warn(
+            '⚠️ [AUTH STORE] Backend logout failed (clearing local session anyway):',
+            error
+          );
         }
 
         // Always clear local session regardless of backend response
@@ -360,19 +364,26 @@ export const useAuthStore = create<AuthStore>()(
 
       /**
        * Initialize store from persistent storage
+       *
+       * Tokens loaded from SessionManager, user already rehydrated by Zustand persist.
        */
       initializeFromStorage: () => {
         const tokens = sessionManager.getTokens();
-        const user = sessionStorage.getUser();
+        const user = get().user; // Get from Zustand state (already persisted/rehydrated)
 
         if (tokens && user) {
+          // Both tokens and user available - restore authenticated session
           set({
-            user,
             tokens,
-            sessionStatus: sessionManager.getSessionStatus()
+            sessionStatus: sessionManager.getSessionStatus(),
+            isAuthenticated: true,
           });
         } else {
-          set({ sessionStatus: 'unauthenticated' });
+          // Missing tokens or user - unauthenticated
+          set({
+            sessionStatus: 'unauthenticated',
+            isAuthenticated: false,
+          });
         }
       },
 
@@ -387,7 +398,7 @@ export const useAuthStore = create<AuthStore>()(
           tokens,
           sessionStatus: 'authenticated',
           isLoading: false,
-          error: null
+          error: null,
         });
       },
 
@@ -404,7 +415,7 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: false, // Clear authentication state
           isLoading: false,
           error: null,
-          logoutReason: reason
+          logoutReason: reason,
         });
       },
 
@@ -447,28 +458,22 @@ export const useAuthStore = create<AuthStore>()(
             hasTokens: !!storeState.tokens,
             sessionStatus: storeState.sessionStatus,
             isLoading: storeState.isLoading,
-            error: storeState.error
+            error: storeState.error,
           },
-          sessionManager: sessionDebug
+          sessionManager: sessionDebug,
         };
-      }
+      },
     }),
     {
       name: 'odysseus-auth-enhanced',
-      
+
       // Only persist user data, tokens handled by SessionManager
-      partialize: (state) => ({
-        user: state.user
+      partialize: state => ({
+        user: state.user,
       }),
-      
-      // Initialize session manager on rehydration
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          // Let SessionManager handle token restoration
-          const authStore = useAuthStore.getState();
-          authStore.initializeFromStorage();
-        }
-      }
+
+      // Session restoration moved to AppBootstrapService for reliable, predictable initialization
+      // onRehydrateStorage removed - it fires multiple times with unpredictable state
     }
   )
 );

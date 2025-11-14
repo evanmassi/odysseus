@@ -3,6 +3,7 @@
  */
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
+import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { initializeNetworkMonitor, cleanupNetworkMonitor } from '@infra/connection/networkMonitor';
 import { initializeOptimisticUpdates } from '@infra/optimistic/optimisticUpdates';
 import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
@@ -19,8 +20,8 @@ export class AppBootstrapService {
     error: null,
     steps: [...BOOTSTRAP_STEPS],
     flags: {
-      firstTimeSetupRequired: false
-    }
+      firstTimeSetupRequired: false,
+    },
   };
 
   private listeners: Array<(state: AppBootstrapState) => void> = [];
@@ -51,7 +52,7 @@ export class AppBootstrapService {
       this.state.steps[stepIndex] = {
         ...this.state.steps[stepIndex],
         completed,
-        error
+        error,
       };
     }
     if (error) {
@@ -98,6 +99,21 @@ export class AppBootstrapService {
         throw error;
       }
 
+      // Restore session from SessionManager
+      // SessionManager already loaded tokens in constructor, now sync with auth store
+      this.updateStep('session-restore', false);
+      try {
+        const authStore = useAuthStore.getState();
+        authStore.initializeFromStorage();
+        this.updateStep('session-restore', true);
+      } catch (error) {
+        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
+        console.error('❌ [Bootstrap] Session restoration failed:', error);
+        // Non-fatal: Continue bootstrap even if session restoration fails
+        // User will simply need to log in again
+        this.updateStep('session-restore', true);
+      }
+
       // Initialize advanced real-time systems
       this.updateStep('socket-connection', false);
       try {
@@ -123,7 +139,7 @@ export class AppBootstrapService {
       // TODO: Refactor to use domain services instead of raw fetch()
       this.updateStep('data-loading', false);
       this.updateStep('data-loading', true);
-      
+
       /* DISABLED - Needs refactoring to use httpClient and domain services
       try {
         console.log('🔥 [Bootstrap] Starting intelligent cache warming');
@@ -141,7 +157,6 @@ export class AppBootstrapService {
       this.state.isLoading = false;
       this.isInitialized = true;
       this.notify();
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Bootstrap failed';
       this.updateStep('error', false, errorMessage);
@@ -163,7 +178,7 @@ export class AppBootstrapService {
     this.state.steps = this.state.steps.map(step => ({
       ...step,
       completed: false,
-      error: undefined
+      error: undefined,
     }));
 
     this.isInitialized = false; // Reset flag to allow retry
