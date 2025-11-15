@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
 import { useSearch } from '@domains/search';
+import { logger } from '@shared/infrastructure/logger';
 
 import { FilterPanel } from './FilterPanel';
 import { SearchResults } from './SearchResults';
@@ -66,8 +67,7 @@ export function SearchContainer(_props: SearchContainerProps) {
         try {
           await handleSearch();
         } catch (error) {
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error('Search failed:', error);
+          logger.error('Search failed', { error });
           // Error already shown by React Query
         }
       })();
@@ -105,7 +105,7 @@ export function SearchContainer(_props: SearchContainerProps) {
               type="text"
               placeholder="Search tubes..."
               value={query}
-              onChange={(e) => search(e.target.value)}
+              onChange={e => search(e.target.value)}
               onKeyPress={handleKeyPress}
               className="input-compact w-56 pl-8 pr-16 bg-white"
             />

@@ -12,6 +12,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
+import { logger } from '@shared/infrastructure/logger';
 
 import { useStorageStore } from '../stores/storageStore';
 
@@ -78,8 +79,7 @@ export function useConfigurationSync() {
             hasSynced.current = true;
           },
           onError: saveError => {
-            // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-            console.error('❌ [ConfigSync] Failed to save initial configuration:', saveError);
+            logger.error('Failed to save initial configuration', { saveError });
             hasInitialized.current = false; // Allow retry on error
           },
         }
@@ -115,8 +115,7 @@ export function useConfigurationSync() {
           });
         }
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [ConfigSync] Error parsing storage event:', error);
+        logger.error('Error parsing storage event', { error });
         // On error, refetch to be safe
         void queryClient.invalidateQueries({
           queryKey: queryKeys.storage.storage(),

@@ -10,6 +10,8 @@ import { useEffect, useState } from 'react';
 
 import { toast } from 'react-hot-toast';
 
+import { logger } from '@shared/infrastructure/logger';
+
 import type { NavigatorWithConnection } from '@shared/types';
 import type { QueryClient } from '@tanstack/react-query';
 
@@ -19,10 +21,10 @@ import type { QueryClient } from '@tanstack/react-query';
 export interface NetworkStatus {
   isOnline: boolean;
   isHighQuality: boolean;
-  downlink?: number;      // Connection speed in Mbps
+  downlink?: number; // Connection speed in Mbps
   effectiveType?: string; // '2g', '3g', '4g', etc.
-  rtt?: number;          // Round trip time in ms
-  lastConnected: number;  // Timestamp of last successful connection
+  rtt?: number; // Round trip time in ms
+  lastConnected: number; // Timestamp of last successful connection
   reconnectAttempts: number;
 }
 
@@ -31,18 +33,18 @@ export interface NetworkStatus {
  */
 export enum ConnectionQuality {
   EXCELLENT = 'excellent', // > 10 Mbps, < 100ms RTT
-  GOOD = 'good',          // > 1 Mbps, < 300ms RTT  
-  FAIR = 'fair',          // > 0.5 Mbps, < 1000ms RTT
-  POOR = 'poor',          // < 0.5 Mbps, > 1000ms RTT
-  OFFLINE = 'offline'
+  GOOD = 'good', // > 1 Mbps, < 300ms RTT
+  FAIR = 'fair', // > 0.5 Mbps, < 1000ms RTT
+  POOR = 'poor', // < 0.5 Mbps, > 1000ms RTT
+  OFFLINE = 'offline',
 }
 
 /**
  * Network event types for listeners
  */
-export type NetworkEvent = 
+export type NetworkEvent =
   | 'online'
-  | 'offline' 
+  | 'offline'
   | 'quality-change'
   | 'reconnect-attempt'
   | 'reconnect-success'
@@ -50,7 +52,7 @@ export type NetworkEvent =
 
 /**
  * Network Monitor Service
- * 
+ *
  * Provides comprehensive network monitoring with intelligent reconnection
  */
 export class NetworkMonitor {
@@ -67,7 +69,7 @@ export class NetworkMonitor {
       isOnline: navigator.onLine,
       isHighQuality: true,
       lastConnected: Date.now(),
-      reconnectAttempts: 0
+      reconnectAttempts: 0,
     };
 
     this.initializeMonitoring();
@@ -105,19 +107,18 @@ export class NetworkMonitor {
 
       // Refetch all stale queries
       await this.queryClient.refetchQueries({ stale: true });
-      
+
       // Show user feedback
       toast.success('Connection restored - syncing data', {
         duration: 3000,
-        position: 'bottom-right'
+        position: 'bottom-right',
       });
-      
+
       this.notifyListeners('online');
       this.notifyListeners('reconnect-success');
     } else {
       // False positive - still offline
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('⚠️ [NetworkMonitor] False online event - still no server connectivity');
+      logger.warn('False online event - still no server connectivity');
       this.handleOffline();
     }
   }
@@ -128,16 +129,16 @@ export class NetworkMonitor {
   private handleOffline(): void {
     this.status.isOnline = false;
     this.status.isHighQuality = false;
-    
+
     // Show user feedback
     toast.error('Connection lost - working offline', {
       duration: 5000,
-      position: 'bottom-right'
+      position: 'bottom-right',
     });
-    
+
     // Start reconnection attempts
     this.startReconnectionAttempts();
-    
+
     this.notifyListeners('offline');
   }
 
@@ -146,10 +147,10 @@ export class NetworkMonitor {
    */
   private startReconnectionAttempts(): void {
     if (this.reconnectTimeout) return; // Already attempting
-    
+
     const attemptReconnect = async () => {
       if (this.status.isOnline) return; // Already reconnected
-      
+
       this.status.reconnectAttempts++;
 
       this.notifyListeners('reconnect-attempt');
@@ -163,19 +164,18 @@ export class NetworkMonitor {
 
       // Schedule next attempt with exponential backoff (max 30 seconds)
       const delay = Math.min(1000 * Math.pow(2, this.status.reconnectAttempts - 1), 30000);
-      
+
       this.reconnectTimeout = setTimeout(attemptReconnect, delay);
-      
+
       if (this.status.reconnectAttempts >= 10) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [NetworkMonitor] Maximum reconnection attempts reached');
+        logger.error('Maximum reconnection attempts reached');
         this.notifyListeners('reconnect-failed');
-        
+
         toast.error('Unable to reconnect. Please check your connection.', {
           duration: 0, // Persistent until dismissed
-          position: 'bottom-right'
+          position: 'bottom-right',
         });
-        
+
         // Stop attempting after 10 tries, but user can manually retry
         if (this.reconnectTimeout) {
           clearTimeout(this.reconnectTimeout);
@@ -183,7 +183,7 @@ export class NetworkMonitor {
         }
       }
     };
-    
+
     // Start first attempt after 1 second
     this.reconnectTimeout = setTimeout(attemptReconnect, 1000);
   }
@@ -197,13 +197,12 @@ export class NetworkMonitor {
       const response = await fetch('/api/public/health', {
         method: 'GET',
         cache: 'no-cache',
-        signal: AbortSignal.timeout(5000) // 5 second timeout
+        signal: AbortSignal.timeout(5000), // 5 second timeout
       });
-      
+
       return response.ok;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Debug logging for non-critical failures
-      console.debug('🔍 [NetworkMonitor] Server ping failed:', error);
+      logger.debug('Server ping failed', { error });
       return false;
     }
   }
@@ -225,9 +224,10 @@ export class NetworkMonitor {
   private async checkConnectionQuality(): Promise<void> {
     const quality = this.getConnectionQuality();
     const wasHighQuality = this.status.isHighQuality;
-    
-    this.status.isHighQuality = quality === ConnectionQuality.EXCELLENT || quality === ConnectionQuality.GOOD;
-    
+
+    this.status.isHighQuality =
+      quality === ConnectionQuality.EXCELLENT || quality === ConnectionQuality.GOOD;
+
     // Notify if quality changed significantly
     if (wasHighQuality !== this.status.isHighQuality) {
       // Adjust React Query behavior based on connection quality
@@ -237,8 +237,8 @@ export class NetworkMonitor {
           queries: {
             networkMode: 'online',
             retry: 3,
-            staleTime: 5 * 60 * 1000
-          }
+            staleTime: 5 * 60 * 1000,
+          },
         });
       } else {
         // Low quality - be more conservative
@@ -246,11 +246,11 @@ export class NetworkMonitor {
           queries: {
             networkMode: 'online',
             retry: 1, // Fewer retries on slow connections
-            staleTime: 10 * 60 * 1000 // Use cached data longer
-          }
+            staleTime: 10 * 60 * 1000, // Use cached data longer
+          },
         });
       }
-      
+
       this.notifyListeners('quality-change');
     }
   }
@@ -342,8 +342,7 @@ export class NetworkMonitor {
       try {
         callback(this.status);
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [NetworkMonitor] Listener error:', error);
+        logger.error('Network monitor listener error', { error });
       }
     });
   }
@@ -363,9 +362,9 @@ export class NetworkMonitor {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
-    
+
     this.status.reconnectAttempts = 0;
-    
+
     const isOnline = await this.pingServer();
     if (isOnline) {
       await this.handleOnline();
@@ -380,22 +379,22 @@ export class NetworkMonitor {
   public destroy(): void {
     window.removeEventListener('online', this.handleOnline.bind(this));
     window.removeEventListener('offline', this.handleOffline.bind(this));
-    
+
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
     }
-    
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
-    
+
     if (this.qualityCheckInterval) {
       clearInterval(this.qualityCheckInterval);
       this.qualityCheckInterval = null;
     }
-    
+
     this.listeners.clear();
   }
 }
@@ -408,7 +407,7 @@ export function useNetworkStatus(queryClient: QueryClient) {
     isOnline: navigator.onLine,
     isHighQuality: true,
     lastConnected: Date.now(),
-    reconnectAttempts: 0
+    reconnectAttempts: 0,
   });
 
   const [monitor] = useState(() => new NetworkMonitor(queryClient));
@@ -444,16 +443,16 @@ export function useNetworkStatus(queryClient: QueryClient) {
     retryConnection: () => monitor.retryConnection(),
     getConnectionQuality: () => {
       if (!status.isOnline) return ConnectionQuality.OFFLINE;
-      
+
       if (status.downlink && status.rtt) {
         if (status.downlink > 10 && status.rtt < 100) return ConnectionQuality.EXCELLENT;
         if (status.downlink > 1 && status.rtt < 300) return ConnectionQuality.GOOD;
         if (status.downlink > 0.5 && status.rtt < 1000) return ConnectionQuality.FAIR;
         return ConnectionQuality.POOR;
       }
-      
+
       return status.isHighQuality ? ConnectionQuality.GOOD : ConnectionQuality.FAIR;
-    }
+    },
   };
 }
 

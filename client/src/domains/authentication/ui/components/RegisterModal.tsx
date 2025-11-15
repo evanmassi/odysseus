@@ -8,18 +8,29 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import { UserRound, KeyRound, Mail, Building2, BriefcaseBusiness, Info, Eye, EyeOff } from 'lucide-react';
+import {
+  UserRound,
+  KeyRound,
+  Mail,
+  Building2,
+  BriefcaseBusiness,
+  Info,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 
-import { authService, type PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthenticationService';
+import {
+  authService,
+  type PasswordRequirements as PasswordConfig,
+} from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';
 
 import { PasswordRequirements } from './PasswordRequirements';
 import { RegistrationSuccessModal } from './RegistrationSuccessModal';
-
-
 
 interface RegisterModalProps {
   onSwitchToLogin?: () => void;
@@ -69,7 +80,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
   const trapRef = useFocusTrap({
     isOpen: true,
     restoreFocus: true,
-    initialFocusRef: firstNameInputRef
+    initialFocusRef: firstNameInputRef,
   });
 
   const { registerWithResearcher } = useAuthStore();
@@ -79,8 +90,14 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
     if (!firstName.trim() || !lastName.trim()) {
       return '';
     }
-    const cleanFirst = firstName.trim().toLowerCase().replace(/[^a-z]/g, '');
-    const cleanLast = lastName.trim().toLowerCase().replace(/[^a-z]/g, '');
+    const cleanFirst = firstName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z]/g, '');
+    const cleanLast = lastName
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z]/g, '');
     if (!cleanFirst || !cleanLast) {
       return '';
     }
@@ -94,8 +111,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         const requirements = await authService.getPasswordRequirements();
         setPasswordConfig(requirements);
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('Failed to load password requirements:', error);
+        logger.error('Failed to load password requirements', { error });
         // Keep default requirements on error
       }
     }
@@ -168,7 +184,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         department: department.trim() || undefined,
         position: position.trim() || undefined,
         password,
-        createResearcher
+        createResearcher,
       });
 
       if (result.success) {
@@ -176,12 +192,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         setRegistrationResult({
           username: usernamePreview,
           email: email.trim(),
-          status: result.status as 'approved' | 'pending'
+          status: result.status as 'approved' | 'pending',
         });
         setShowSuccessModal(true);
       } else {
         // Check if it's an email-specific error
-        const errorMessage = result.message ?? 'Registration failed. Please check your information and try again.';
+        const errorMessage =
+          result.message ?? 'Registration failed. Please check your information and try again.';
         if (errorMessage.toLowerCase().includes('email')) {
           setEmailError(errorMessage);
           setEmailTouched(true);
@@ -217,7 +234,10 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50 animate-in fade-in duration-150">
-      <div ref={trapRef} className="bg-odysseus-surface rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl shadow-blue-500/20 border border-odysseus-border animate-zoom-in-95 max-h-[95vh] overflow-y-auto">
+      <div
+        ref={trapRef}
+        className="bg-odysseus-surface rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl shadow-blue-500/20 border border-odysseus-border animate-zoom-in-95 max-h-[95vh] overflow-y-auto"
+      >
         <div className="text-center mb-5">
           <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
             <img src={xcellbioLogo} alt="XcellBio" className="w-full h-full object-contain" />
@@ -231,7 +251,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           <div className="grid grid-cols-2 gap-3 items-start">
             {/* First Name Column with Username */}
             <div className="space-y-1.5">
-              <div className={`auth-input-container ${getFieldBorderClass(firstNameTouched, firstName.trim().length > 0)}`}>
+              <div
+                className={`auth-input-container ${getFieldBorderClass(firstNameTouched, firstName.trim().length > 0)}`}
+              >
                 <label
                   htmlFor="firstName"
                   className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
@@ -239,13 +261,16 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   First Name <span className="text-red-500">*</span>
                 </label>
                 <div className="relative px-3 py-2">
-                  <UserRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+                  <UserRound
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                    size={16}
+                  />
                   <input
                     ref={firstNameInputRef}
                     type="text"
                     id="firstName"
                     value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
+                    onChange={e => setFirstName(e.target.value)}
                     onBlur={() => setFirstNameTouched(true)}
                     className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                     placeholder="First name"
@@ -259,7 +284,8 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
               <div className="min-h-[18px] ml-1">
                 {usernamePreview ? (
                   <p className="text-[10px] text-gray-600">
-                    Username: <span className="font-mono font-semibold text-blue-700">{usernamePreview}</span>
+                    Username:{' '}
+                    <span className="font-mono font-semibold text-blue-700">{usernamePreview}</span>
                   </p>
                 ) : (
                   <p className="text-[10px] text-gray-400">Username:</p>
@@ -268,7 +294,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             </div>
 
             {/* Last Name */}
-            <div className={`auth-input-container ${getFieldBorderClass(lastNameTouched, lastName.trim().length > 0)}`}>
+            <div
+              className={`auth-input-container ${getFieldBorderClass(lastNameTouched, lastName.trim().length > 0)}`}
+            >
               <label
                 htmlFor="lastName"
                 className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
@@ -276,12 +304,15 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                 Last Name <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
-                <UserRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+                <UserRound
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                  size={16}
+                />
                 <input
                   type="text"
                   id="lastName"
                   value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  onChange={e => setLastName(e.target.value)}
                   onBlur={() => setLastNameTouched(true)}
                   className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                   placeholder="Last name"
@@ -297,7 +328,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           <div className="space-y-3">
             {/* Email */}
             <div className="space-y-1">
-              <div className={`auth-input-container ${emailError ? 'input-field-error' : getFieldBorderClass(emailTouched, emailIsValid)}`}>
+              <div
+                className={`auth-input-container ${emailError ? 'input-field-error' : getFieldBorderClass(emailTouched, emailIsValid)}`}
+              >
                 <label
                   htmlFor="email"
                   className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
@@ -305,16 +338,19 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   Email <span className="text-red-500">*</span>
                 </label>
                 <div className="relative px-3 py-2">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+                  <Mail
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                    size={16}
+                  />
                   <input
                     type="email"
                     id="email"
                     value={email}
-                    onChange={(e) => {
+                    onChange={e => {
                       setEmail(e.target.value);
                       setEmailError(null); // Clear error when user types
                     }}
-                    onBlur={(e) => {
+                    onBlur={e => {
                       setEmail(e.target.value.trim());
                       setEmailTouched(true);
                     }}
@@ -342,12 +378,15 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   Department
                 </label>
                 <div className="relative px-3 py-2">
-                  <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+                  <Building2
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                    size={16}
+                  />
                   <input
                     type="text"
                     id="department"
                     value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
+                    onChange={e => setDepartment(e.target.value)}
                     className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                     placeholder="Department name"
                     disabled={isLoading}
@@ -365,12 +404,15 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   Position
                 </label>
                 <div className="relative px-3 py-2">
-                  <BriefcaseBusiness className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+                  <BriefcaseBusiness
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                    size={16}
+                  />
                   <input
                     type="text"
                     id="position"
                     value={position}
-                    onChange={(e) => setPosition(e.target.value)}
+                    onChange={e => setPosition(e.target.value)}
                     className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                     placeholder="Title or role"
                     disabled={isLoading}
@@ -387,7 +429,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   <input
                     type="checkbox"
                     checked={createResearcher}
-                    onChange={(e) => setCreateResearcher(e.target.checked)}
+                    onChange={e => setCreateResearcher(e.target.checked)}
                     disabled={isLoading}
                     className="sr-only peer"
                   />
@@ -403,7 +445,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           {/* Password Fields Group */}
           <div className="pt-4 border-t border-odysseus-border space-y-3.5">
             <div>
-              <div className={`auth-input-container ${getFieldBorderClass(passwordTouched, passwordMeetsRequirements)}`}>
+              <div
+                className={`auth-input-container ${getFieldBorderClass(passwordTouched, passwordMeetsRequirements)}`}
+              >
                 <label
                   htmlFor="password"
                   className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
@@ -411,12 +455,15 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative px-3 py-2">
-                  <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+                  <KeyRound
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                    size={16}
+                  />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     id="password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={e => setPassword(e.target.value)}
                     onBlur={() => setPasswordTouched(true)}
                     className="pl-7 pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                     placeholder="Choose a secure password"
@@ -447,7 +494,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
             {/* Confirm Password */}
             <div>
-              <div className={`auth-input-container ${getFieldBorderClass(!!confirmPassword, password === confirmPassword)}`}>
+              <div
+                className={`auth-input-container ${getFieldBorderClass(!!confirmPassword, password === confirmPassword)}`}
+              >
                 <label
                   htmlFor="confirmPassword"
                   className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
@@ -455,12 +504,15 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   Confirm Password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative px-3 py-2">
-                  <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+                  <KeyRound
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                    size={16}
+                  />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     id="confirmPassword"
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={e => setConfirmPassword(e.target.value)}
                     className="pl-7 pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                     placeholder="Confirm password"
                     required

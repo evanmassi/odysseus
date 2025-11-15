@@ -121,12 +121,19 @@ module.exports = {
     '@tanstack/query/stable-query-client': 'error',
     
     // General code quality
-    'no-console': 'warn',
+    'no-console': 'error', // Enforce structured logging via ClientLogger
     'no-debugger': 'error',
     'prefer-const': 'error',
     'no-var': 'error',
   },
   overrides: [
+    {
+      // Logger implementation needs console access
+      files: ['**/shared/infrastructure/logger/**/*', '**/ClientLogger.ts'],
+      rules: {
+        'no-console': 'off',
+      },
+    },
     {
       // Test files can be less strict
       files: ['**/__tests__/**/*', '**/*.test.*', '**/*.spec.*'],

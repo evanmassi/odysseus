@@ -14,10 +14,10 @@ export interface NavigationResult {
 
 /**
  * Grid Navigation Service
- * 
+ *
  * Provides atomic navigation operations that prevent race conditions
  * and ensure data consistency during location changes.
- * 
+ *
  * Key principles:
  * - Single atomic operation per navigation
  * - Automatic data loading coordination
@@ -47,8 +47,6 @@ export class GridNavigationService {
     this.isNavigating = true;
 
     try {
-  
-      
       const tubeStore = useTubeStore.getState();
 
       // Atomic state update - all at once, no cascading
@@ -59,27 +57,24 @@ export class GridNavigationService {
       // Force fresh load of ALL tubes to ensure state consistency
       const { useAuthStore } = await import('@/domains/authentication');
       const authStore = useAuthStore.getState();
-      
+
       if (authStore.isAuthenticated) {
         // Note: Data loading is now handled by React Query in components
         // The React Query hooks will automatically refetch when the location changes
       } else {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error(`❌ ATOMIC NAVIGATION: User not authenticated`);
+        const { logger } = await import('@shared/infrastructure/logger');
+        logger.error('Atomic navigation: User not authenticated');
         return { success: false, error: 'Authentication required', location };
       }
 
-
-      
       return { success: true, location };
-
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ ATOMIC NAVIGATION: Navigation failed:', error);
-      return { 
-        success: false, 
+      const { logger } = await import('@shared/infrastructure/logger');
+      logger.error('Atomic navigation failed', { error });
+      return {
+        success: false,
         error: error instanceof Error ? error.message : 'Navigation failed',
-        location 
+        location,
       };
     } finally {
       this.isNavigating = false;
@@ -96,22 +91,30 @@ export class GridNavigationService {
 
     const racks = getCurrentRacks(tankId);
     if (racks.length === 0) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error(`🐛 DEBUG: No racks found for tank "${tankId}"`);
-      return { success: false, error: 'No racks available in tank', location: { tankId, rackId: '1', boxId: 'A' } };
+      const { logger } = await import('@shared/infrastructure/logger');
+      logger.error(`No racks found for tank "${tankId}"`);
+      return {
+        success: false,
+        error: 'No racks available in tank',
+        location: { tankId, rackId: '1', boxId: 'A' },
+      };
     }
 
     const boxes = getCurrentBoxes(tankId, racks[0].id);
     if (boxes.length === 0) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error(`🐛 DEBUG: No boxes found for tank "${tankId}", rack ${racks[0].id}`);
-      return { success: false, error: 'No boxes available in rack', location: { tankId, rackId: String(racks[0].id), boxId: 'A' } };
+      const { logger } = await import('@shared/infrastructure/logger');
+      logger.error(`No boxes found for tank "${tankId}", rack ${racks[0].id}`);
+      return {
+        success: false,
+        error: 'No boxes available in rack',
+        location: { tankId, rackId: String(racks[0].id), boxId: 'A' },
+      };
     }
 
     return this.navigateToLocation({
       tankId,
       rackId: String(racks[0].id),
-      boxId: boxes[0].id
+      boxId: boxes[0].id,
     });
   }
 
@@ -124,13 +127,17 @@ export class GridNavigationService {
 
     const boxes = getCurrentBoxes(tankId, rackId);
     if (boxes.length === 0) {
-      return { success: false, error: 'No boxes available in rack', location: { tankId, rackId, boxId: 'A' } };
+      return {
+        success: false,
+        error: 'No boxes available in rack',
+        location: { tankId, rackId, boxId: 'A' },
+      };
     }
 
     return this.navigateToLocation({
       tankId,
       rackId,
-      boxId: boxes[0].id
+      boxId: boxes[0].id,
     });
   }
 
@@ -142,7 +149,7 @@ export class GridNavigationService {
     return {
       tankId: currentTank,
       rackId: currentRack,
-      boxId: currentBox
+      boxId: currentBox,
     };
   }
 

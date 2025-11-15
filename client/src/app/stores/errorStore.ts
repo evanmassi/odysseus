@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { logger } from '@shared/infrastructure/logger';
+
 interface ErrorState {
   errors: string[];
 }
@@ -14,29 +16,30 @@ interface ErrorStore extends ErrorState, ErrorActions {}
 export const useErrorStore = create<ErrorStore>((set, get) => ({
   // State
   errors: [],
-  
+
   // Actions
-  addError: (error) => {
+  addError: error => {
     const timestamp = new Date().toLocaleTimeString();
     const formattedError = `[${timestamp}] ${error}`;
-    
+
     const { errors } = get();
     set({ errors: [...errors, formattedError].slice(-10) }); // Keep last 10 errors
-    
-    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-    console.error('Odysseus Error:', error);
+
+    logger.error('Odysseus Error', { error });
   },
-  
+
   clearErrors: () => {
     set({ errors: [] });
   },
 }));
 
 // Global error handlers
-window.addEventListener('error', (event) => {
-  useErrorStore.getState().addError(`JavaScript Error: ${event.message} at ${event.filename}:${event.lineno}`);
+window.addEventListener('error', event => {
+  useErrorStore
+    .getState()
+    .addError(`JavaScript Error: ${event.message} at ${event.filename}:${event.lineno}`);
 });
 
-window.addEventListener('unhandledrejection', (event) => {
+window.addEventListener('unhandledrejection', event => {
   useErrorStore.getState().addError(`Unhandled Promise Rejection: ${event.reason}`);
 });

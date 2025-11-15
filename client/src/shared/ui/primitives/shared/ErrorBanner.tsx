@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 
 import { AlertTriangle, X, Copy } from 'lucide-react';
 
+import { logger } from '@shared/infrastructure/logger';
+
 interface ErrorDisplayProps {
   errors: string[];
   onClear: () => void;
@@ -20,8 +22,7 @@ export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
       try {
         await navigator.clipboard.writeText(errorText);
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('Failed to copy errors to clipboard:', error);
+        logger.error('Failed to copy errors to clipboard', { error });
       }
     })();
   };
@@ -40,7 +41,10 @@ export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
               </h3>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {errors.slice(-3).map((error, index) => (
-                  <div key={index} className="text-xs text-red-700 font-mono bg-red-100 p-2 rounded">
+                  <div
+                    key={index}
+                    className="text-xs text-red-700 font-mono bg-red-100 p-2 rounded"
+                  >
                     {error}
                   </div>
                 ))}
@@ -53,19 +57,13 @@ export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
                   <Copy size={12} />
                   <span>Copy All Errors</span>
                 </button>
-                <button
-                  onClick={onClear}
-                  className="text-xs text-red-600 hover:text-red-800"
-                >
+                <button onClick={onClear} className="text-xs text-red-600 hover:text-red-800">
                   Clear
                 </button>
               </div>
             </div>
           </div>
-          <button
-            onClick={() => setIsVisible(false)}
-            className="text-red-400 hover:text-red-600"
-          >
+          <button onClick={() => setIsVisible(false)} className="text-red-400 hover:text-red-600">
             <X size={16} />
           </button>
         </div>

@@ -13,6 +13,7 @@
  */
 
 import { env } from '@shared/config';
+import { logger } from '@shared/infrastructure/logger';
 import { formatToScientificNotation } from '@shared/utils/scientificNotation';
 
 import type { ValidTubeFieldKey } from './fieldPathMapping';
@@ -532,11 +533,11 @@ export function initializeTubeFieldConfiguration(fieldResolver: FieldResolver): 
 
     const resolutionValidation = FieldConfigDevUtils.validateFieldResolution(fieldResolver);
     if (!resolutionValidation.valid) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('Some fields cannot be resolved:', resolutionValidation.invalidFields);
+      logger.warn('Some fields cannot be resolved', {
+        invalidFields: resolutionValidation.invalidFields,
+      });
     }
   }
 
-  // eslint-disable-next-line no-console -- Info logging for operational visibility
-  console.log('Tube field configuration initialized successfully');
+  logger.info('Tube field configuration initialized successfully');
 }

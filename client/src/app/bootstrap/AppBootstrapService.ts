@@ -7,6 +7,7 @@ import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { initializeNetworkMonitor, cleanupNetworkMonitor } from '@infra/connection/networkMonitor';
 import { initializeOptimisticUpdates } from '@infra/optimistic/optimisticUpdates';
 import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
+import { logger } from '@shared/infrastructure/logger';
 
 import { BOOTSTRAP_STEPS } from './constants';
 
@@ -65,8 +66,7 @@ export class AppBootstrapService {
   async bootstrap(queryClient: QueryClient): Promise<void> {
     // GUARD: Prevent duplicate bootstrap in React StrictMode
     if (this.isInitialized) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('[Bootstrap] Already initialized, skipping duplicate bootstrap');
+      logger.warn('Bootstrap already initialized, skipping duplicate');
       return;
     }
 
@@ -93,8 +93,7 @@ export class AppBootstrapService {
 
         this.updateStep('auth-check', true);
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [Bootstrap] Auth check failed:', error);
+        logger.error('Bootstrap auth check failed', { error });
         this.updateStep('auth-check', false, 'Failed to check authentication status');
         throw error;
       }
@@ -107,8 +106,7 @@ export class AppBootstrapService {
         authStore.initializeFromStorage();
         this.updateStep('session-restore', true);
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [Bootstrap] Session restoration failed:', error);
+        logger.error('Bootstrap session restoration failed', { error });
         // Non-fatal: Continue bootstrap even if session restoration fails
         // User will simply need to log in again
         this.updateStep('session-restore', true);
@@ -128,8 +126,7 @@ export class AppBootstrapService {
 
         this.updateStep('socket-connection', true);
       } catch (socketError) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [Bootstrap] Real-time systems initialization failed:', socketError);
+        logger.error('Bootstrap real-time systems initialization failed', { socketError });
         this.updateStep('socket-connection', false, 'Failed to initialize real-time systems');
         throw socketError;
       }

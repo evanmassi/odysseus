@@ -8,11 +8,23 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
-import { RefreshCw, SlidersHorizontal, ChevronLeft, ChevronRight, X, Archive, TestTube, UserRound, Icon, Rows3, Box } from 'lucide-react';
-
+import {
+  RefreshCw,
+  SlidersHorizontal,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Archive,
+  TestTube,
+  UserRound,
+  Icon,
+  Rows3,
+  Box,
+} from 'lucide-react';
 
 import { adminService } from '@domains/admin/services/AdminService';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
+import { logger } from '@shared/infrastructure/logger';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
@@ -58,8 +70,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
       setPagination(result.pagination);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load audit log');
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to load audit log:', err);
+      logger.error('Failed to load audit log', { err });
     } finally {
       setLoading(false);
     }
@@ -105,7 +116,10 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
   const goToPreviousPage = () => {
     if ((filters.offset ?? 0) > 0) {
-      setFilters(prev => ({ ...prev, offset: Math.max(0, (prev.offset ?? 0) - (prev.limit ?? 50)) }));
+      setFilters(prev => ({
+        ...prev,
+        offset: Math.max(0, (prev.offset ?? 0) - (prev.limit ?? 50)),
+      }));
     }
   };
 
@@ -179,13 +193,20 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   // Get entity icon component
   const getEntityIcon = (entityType: string) => {
     switch (entityType) {
-      case 'tube': return TestTube;
-      case 'user': return UserRound;
-      case 'researcher': return 'researcher'; // Custom component
-      case 'tank': return 'tank'; // Custom from @lucide/lab
-      case 'rack': return Rows3;
-      case 'box': return Box;
-      default: return null;
+      case 'tube':
+        return TestTube;
+      case 'user':
+        return UserRound;
+      case 'researcher':
+        return 'researcher'; // Custom component
+      case 'tank':
+        return 'tank'; // Custom from @lucide/lab
+      case 'rack':
+        return Rows3;
+      case 'box':
+        return Box;
+      default:
+        return null;
     }
   };
 
@@ -213,7 +234,11 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
             className={`btn-refresh-compact flex items-center space-x-1 ${
               includeArchive ? 'bg-action text-white border-action hover:bg-action-hover' : ''
             }`}
-            title={includeArchive ? 'Currently showing active + archived logs' : 'Currently showing active logs only'}
+            title={
+              includeArchive
+                ? 'Currently showing active + archived logs'
+                : 'Currently showing active logs only'
+            }
           >
             <Archive size={12} />
             <span>{includeArchive ? 'With Archive' : 'Active Only'}</span>
@@ -261,9 +286,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-8 text-sm text-gray-500">
-          Loading audit log...
-        </div>
+        <div className="text-center py-8 text-sm text-gray-500">Loading audit log...</div>
       )}
 
       {/* Error State */}
@@ -280,7 +303,9 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
             <table className="w-full text-xs">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
-                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-32">Timestamp</th>
+                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-32">
+                    Timestamp
+                  </th>
                   <th className="px-2 py-2 text-left font-semibold text-gray-700 w-24">User</th>
                   <th className="px-2 py-2 text-left font-semibold text-gray-700 w-20">Item</th>
                   <th className="px-2 py-2 text-left font-semibold text-gray-700">Details</th>
@@ -288,7 +313,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {entries.map((entry) => (
+                {entries.map(entry => (
                   <tr key={entry.id} className="hover:bg-gray-50">
                     <td className="px-2 py-2 whitespace-nowrap text-gray-600">
                       {formatTimestamp(entry.timestamp)}
@@ -317,7 +342,10 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                         <span className="text-gray-400 text-xs">-</span>
                       )}
                     </td>
-                    <td className="px-2 py-2 text-gray-700 max-w-md truncate" title={formatAuditDetails(entry)}>
+                    <td
+                      className="px-2 py-2 text-gray-700 max-w-md truncate"
+                      title={formatAuditDetails(entry)}
+                    >
                       {formatAuditDetails(entry)}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
@@ -335,16 +363,16 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
       {/* Empty State */}
       {!loading && !error && (!entries || entries.length === 0) && (
-        <div className="text-center py-8 text-sm text-gray-500">
-          No audit log entries found.
-        </div>
+        <div className="text-center py-8 text-sm text-gray-500">No audit log entries found.</div>
       )}
 
       {/* Pagination */}
       {!loading && entries && entries.length > 0 && (
         <div className="flex items-center justify-between text-xs text-gray-600">
           <div>
-            Showing {(filters.offset ?? 0) + 1} - {Math.min((filters.offset ?? 0) + (entries?.length ?? 0), pagination?.total ?? 0)} of {(pagination?.total ?? 0).toLocaleString()}
+            Showing {(filters.offset ?? 0) + 1} -{' '}
+            {Math.min((filters.offset ?? 0) + (entries?.length ?? 0), pagination?.total ?? 0)} of{' '}
+            {(pagination?.total ?? 0).toLocaleString()}
           </div>
 
           <div className="flex items-center gap-2">

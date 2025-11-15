@@ -1,10 +1,10 @@
 /**
  * Field Resolver React Hook - Application Layer
- * 
+ *
  * Application layer integration that provides React components with access to
  * the field resolution domain service. This hook abstracts the domain service
  * complexity and provides a React-friendly interface for field access.
- * 
+ *
  * Architecture Benefits:
  * - Clean separation between domain logic and presentation layer
  * - Consistent field access patterns across all React components
@@ -15,22 +15,18 @@
 
 import { useCallback, useMemo, useRef } from 'react';
 
-import {
-  TubeFieldAccessService
-} from '@domains/tubes/services/TubeFieldAccessService';
+import { TubeFieldAccessService } from '@domains/tubes/services/TubeFieldAccessService';
 import { env } from '@shared/config';
 import { DomainError } from '@shared/domain/errors/DomainError';
+import { logger } from '@shared/infrastructure/logger';
 
-
-import {
-  getFieldResolverApplicationService
-} from '../services/FieldResolverService';
+import { getFieldResolverApplicationService } from '../services/FieldResolverService';
 
 import type { ValidFieldValue } from '@app/types/fieldTypeMapping';
 import type {
   FieldResolver,
   FieldResolutionOptions,
-  FieldResolutionResult
+  FieldResolutionResult,
 } from '@domains/tubes/types/FieldResolver';
 import type { ValidTubeFieldKey } from '@infra/configuration/fieldPathMapping';
 import type { TubeData } from '@shared/types/tubeTypes';
@@ -67,10 +63,7 @@ export interface FieldResolverHook extends FieldResolver {
   ) => (T | undefined)[];
 
   /** Check if a field has a meaningful value */
-  hasValue: (
-    tube: TubeData,
-    fieldKey: ValidTubeFieldKey | string
-  ) => boolean;
+  hasValue: (tube: TubeData, fieldKey: ValidTubeFieldKey | string) => boolean;
 
   /** Get detailed field resolution information */
   resolveField: <T = ValidFieldValue>(
@@ -96,19 +89,19 @@ export interface FieldResolverHook extends FieldResolver {
 
 /**
  * React Hook: useFieldResolver
- * 
+ *
  * Provides React components with access to field resolution capabilities.
  * Automatically handles memoization and performance optimization for React
  * rendering cycles.
- * 
+ *
  * Usage Examples:
  * ```tsx
  * function TubeDisplay({ tube }: { tube: TubeData }) {
  *   const { getValue, hasValue } = useFieldResolver();
- *   
+ *
  *   const cellType = getValue(tube, 'cellType');
  *   const hasConcentration = hasValue(tube, 'concentration');
- *   
+ *
  *   return (
  *     <div>
  *       <div>Cell Type: {cellType || 'Unknown'}</div>
@@ -118,13 +111,11 @@ export interface FieldResolverHook extends FieldResolver {
  * }
  * ```
  */
-export function useFieldResolver(
-  options: UseFieldResolverOptions = {}
-): FieldResolverHook {
+export function useFieldResolver(options: UseFieldResolverOptions = {}): FieldResolverHook {
   const {
     resolver: customResolver,
     enableMetrics = false,
-    defaultResolutionOptions = {}
+    defaultResolutionOptions = {},
   } = options;
 
   // Get resolver instance (memoized for performance)
@@ -132,7 +123,7 @@ export function useFieldResolver(
     if (customResolver) {
       return customResolver;
     }
-    
+
     try {
       // Use the properly initialized field resolver service
       const fieldResolverService = getFieldResolverApplicationService();
@@ -151,105 +142,113 @@ export function useFieldResolver(
   metricsEnabledRef.current = enableMetrics;
 
   // Memoized getValue function with default options merged
-  const getValue = useCallback(<T = ValidFieldValue>(
-    tube: TubeData,
-    fieldKey: ValidTubeFieldKey | string,
-    options: FieldResolutionOptions = {}
-  ): T | undefined => {
-    const mergedOptions = { ...defaultResolutionOptions, ...options };
+  const getValue = useCallback(
+    <T = ValidFieldValue>(
+      tube: TubeData,
+      fieldKey: ValidTubeFieldKey | string,
+      options: FieldResolutionOptions = {}
+    ): T | undefined => {
+      const mergedOptions = { ...defaultResolutionOptions, ...options };
 
-    try {
-      return resolver.getValue<T>(tube, fieldKey, mergedOptions);
-    } catch (error) {
-      // In React context, we generally want to handle errors gracefully
-      if (env.isDev()) {
-        // eslint-disable-next-line no-console -- Warning logging for production monitoring
-        console.warn(`Field resolution failed for key '${fieldKey}':`, error);
+      try {
+        return resolver.getValue<T>(tube, fieldKey, mergedOptions);
+      } catch (error) {
+        // In React context, we generally want to handle errors gracefully
+        if (env.isDev()) {
+          logger.warn(`Field resolution failed for key '${fieldKey}'`, { error, fieldKey });
+        }
+
+        // Return default value instead of throwing in React components
+        return mergedOptions.defaultValue as T | undefined;
       }
-
-      // Return default value instead of throwing in React components
-      return mergedOptions.defaultValue as T | undefined;
-    }
-  }, [resolver, defaultResolutionOptions]);
+    },
+    [resolver, defaultResolutionOptions]
+  );
 
   // Memoized getValues function for bulk operations
-  const getValues = useCallback(<T = ValidFieldValue>(
-    tubes: TubeData[],
-    fieldKey: ValidTubeFieldKey | string,
-    options: FieldResolutionOptions = {}
-  ): (T | undefined)[] => {
-    const mergedOptions = { ...defaultResolutionOptions, ...options };
+  const getValues = useCallback(
+    <T = ValidFieldValue>(
+      tubes: TubeData[],
+      fieldKey: ValidTubeFieldKey | string,
+      options: FieldResolutionOptions = {}
+    ): (T | undefined)[] => {
+      const mergedOptions = { ...defaultResolutionOptions, ...options };
 
-    try {
-      return resolver.getValues<T>(tubes, fieldKey, mergedOptions);
-    } catch (error) {
-      if (env.isDev()) {
-        // eslint-disable-next-line no-console -- Warning logging for production monitoring
-        console.warn(`Bulk field resolution failed for key '${fieldKey}':`, error);
+      try {
+        return resolver.getValues<T>(tubes, fieldKey, mergedOptions);
+      } catch (error) {
+        if (env.isDev()) {
+          logger.warn(`Bulk field resolution failed for key '${fieldKey}'`, { error, fieldKey });
+        }
+
+        // Return array of default values on error
+        return tubes.map(() => mergedOptions.defaultValue as T | undefined);
       }
-
-      // Return array of default values on error
-      return tubes.map(() => mergedOptions.defaultValue as T | undefined);
-    }
-  }, [resolver, defaultResolutionOptions]);
+    },
+    [resolver, defaultResolutionOptions]
+  );
 
   // Memoized hasValue function
-  const hasValue = useCallback((
-    tube: TubeData, 
-    fieldKey: ValidTubeFieldKey | string
-  ): boolean => {
-    try {
-      return resolver.hasValue(tube, fieldKey);
-    } catch (error) {
-      if (env.isDev()) {
-        // eslint-disable-next-line no-console -- Warning logging for production monitoring
-        console.warn(`hasValue check failed for key '${fieldKey}':`, error);
+  const hasValue = useCallback(
+    (tube: TubeData, fieldKey: ValidTubeFieldKey | string): boolean => {
+      try {
+        return resolver.hasValue(tube, fieldKey);
+      } catch (error) {
+        if (env.isDev()) {
+          logger.warn(`hasValue check failed for key '${fieldKey}'`, { error, fieldKey });
+        }
+        return false;
       }
-      return false;
-    }
-  }, [resolver]);
+    },
+    [resolver]
+  );
 
   // Memoized resolveField function for detailed resolution
-  const resolveField = useCallback(<T = ValidFieldValue>(
-    tube: TubeData,
-    fieldKey: ValidTubeFieldKey | string
-  ): FieldResolutionResult<T> => {
-    try {
-      return resolver.resolveField<T>(tube, fieldKey);
-    } catch (error) {
-      if (env.isDev()) {
-        // eslint-disable-next-line no-console -- Warning logging for production monitoring
-        console.warn(`Field resolution details failed for key '${fieldKey}':`, error);
-      }
+  const resolveField = useCallback(
+    <T = ValidFieldValue>(
+      tube: TubeData,
+      fieldKey: ValidTubeFieldKey | string
+    ): FieldResolutionResult<T> => {
+      try {
+        return resolver.resolveField<T>(tube, fieldKey);
+      } catch (error) {
+        if (env.isDev()) {
+          logger.warn(`Field resolution details failed for key '${fieldKey}'`, { error, fieldKey });
+        }
 
-      return {
-        value: undefined,
-        resolved: false,
-        resolvedPath: '',
-        exists: false
-      };
-    }
-  }, [resolver]);
+        return {
+          value: undefined,
+          resolved: false,
+          resolvedPath: '',
+          exists: false,
+        };
+      }
+    },
+    [resolver]
+  );
 
   // Memoized getFieldPath function
-  const getFieldPath = useCallback((
-    fieldKey: ValidTubeFieldKey | string
-  ): string => {
-    try {
-      return resolver.getFieldPath(fieldKey);
-    } catch (error) {
-      if (env.isDev()) {
-        // eslint-disable-next-line no-console -- Warning logging for production monitoring
-        console.warn(`getFieldPath failed for key '${fieldKey}':`, error);
+  const getFieldPath = useCallback(
+    (fieldKey: ValidTubeFieldKey | string): string => {
+      try {
+        return resolver.getFieldPath(fieldKey);
+      } catch (error) {
+        if (env.isDev()) {
+          logger.warn(`getFieldPath failed for key '${fieldKey}'`, { error, fieldKey });
+        }
+        return fieldKey; // Fallback to field key itself
       }
-      return fieldKey; // Fallback to field key itself
-    }
-  }, [resolver]);
+    },
+    [resolver]
+  );
 
   // Memoized isValidField function
-  const isValidField = useCallback((fieldKey: string): boolean => {
-    return resolver.isValidField(fieldKey);
-  }, [resolver]);
+  const isValidField = useCallback(
+    (fieldKey: string): boolean => {
+      return resolver.isValidField(fieldKey);
+    },
+    [resolver]
+  );
 
   // Memoized getAvailableFields function
   const getAvailableFields = useCallback((): string[] => {
@@ -259,11 +258,11 @@ export function useFieldResolver(
   // Get performance metrics if enabled and supported
   const metrics = useMemo(() => {
     if (!enableMetrics) return undefined;
-    
+
     if (resolver instanceof TubeFieldAccessService) {
       return resolver.getPerformanceMetrics();
     }
-    
+
     return undefined;
   }, [resolver, enableMetrics]);
 
@@ -277,7 +276,7 @@ export function useFieldResolver(
     getAvailableFields,
     validateConfiguration: () => resolver.validateConfiguration(),
     resolver,
-    metrics
+    metrics,
   };
 }
 
@@ -312,11 +311,11 @@ export const FieldResolverDevUtils = {
         value: resolution.value,
         resolved: resolution.resolved,
         path: resolution.resolvedPath,
-        exists: resolution.exists
+        exists: resolution.exists,
       };
     });
   },
-  
+
   /**
    * Validate that all expected fields can be resolved
    */
@@ -326,26 +325,28 @@ export const FieldResolverDevUtils = {
     expectedFields: (ValidTubeFieldKey | string)[]
   ): { valid: boolean; errors: string[] } {
     const errors: string[] = [];
-    
+
     expectedFields.forEach(fieldKey => {
       if (!resolver.isValidField(fieldKey)) {
         errors.push(`Invalid field key: ${fieldKey}`);
         return;
       }
-      
+
       try {
         const resolution = resolver.resolveField(tube, fieldKey);
         if (!resolution.resolved && resolution.exists) {
           errors.push(`Field '${fieldKey}' exists but could not be resolved`);
         }
       } catch (error) {
-        errors.push(`Field '${fieldKey}' threw error: ${error instanceof Error ? error.message : String(error)}`);
+        errors.push(
+          `Field '${fieldKey}' threw error: ${error instanceof Error ? error.message : String(error)}`
+        );
       }
     });
-    
+
     return {
       valid: errors.length === 0,
-      errors
+      errors,
     };
-  }
+  },
 };

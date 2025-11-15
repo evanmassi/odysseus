@@ -6,9 +6,18 @@
  */
 import { useState, useEffect, useMemo } from 'react';
 
-import { UserRound, Mail, Building2, BriefcaseBusiness, KeyRound, Save, RefreshCw } from 'lucide-react';
+import {
+  UserRound,
+  Mail,
+  Building2,
+  BriefcaseBusiness,
+  KeyRound,
+  Save,
+  RefreshCw,
+} from 'lucide-react';
 
 import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
+import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';
 
 import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
@@ -104,7 +113,8 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
     if (firstName !== profile?.firstName) updateData.firstName = firstName.trim();
     if (lastName !== profile?.lastName) updateData.lastName = lastName.trim();
     if (email !== profile?.email) updateData.email = email.trim();
-    if (department !== (profile?.department ?? '')) updateData.department = department.trim() || undefined;
+    if (department !== (profile?.department ?? ''))
+      updateData.department = department.trim() || undefined;
     if (position !== (profile?.position ?? '')) updateData.position = position.trim() || undefined;
 
     updateProfile(updateData, {
@@ -117,8 +127,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
         }
       },
       onError: (error: Error) => {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [AccountTab] Update failed:', error);
+        logger.error('AccountTab update failed', { error });
         if (error.message.includes('password')) {
           setPasswordTouched(true);
         }
@@ -147,7 +156,9 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
         {/* Name Fields */}
         <div className="grid grid-cols-2 gap-3">
           {/* First Name */}
-          <div className={`auth-input-container ${getFieldBorderClass(firstNameTouched, firstName.trim().length > 0)}`}>
+          <div
+            className={`auth-input-container ${getFieldBorderClass(firstNameTouched, firstName.trim().length > 0)}`}
+          >
             <label
               htmlFor="account-firstName"
               className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
@@ -155,12 +166,15 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               First Name <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
-              <UserRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+              <UserRound
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                size={16}
+              />
               <input
                 type="text"
                 id="account-firstName"
                 value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                onChange={e => setFirstName(e.target.value)}
                 onBlur={() => setFirstNameTouched(true)}
                 className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                 placeholder="First name"
@@ -172,7 +186,9 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           </div>
 
           {/* Last Name */}
-          <div className={`auth-input-container ${getFieldBorderClass(lastNameTouched, lastName.trim().length > 0)}`}>
+          <div
+            className={`auth-input-container ${getFieldBorderClass(lastNameTouched, lastName.trim().length > 0)}`}
+          >
             <label
               htmlFor="account-lastName"
               className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
@@ -180,12 +196,15 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               Last Name <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
-              <UserRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+              <UserRound
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                size={16}
+              />
               <input
                 type="text"
                 id="account-lastName"
                 value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                onChange={e => setLastName(e.target.value)}
                 onBlur={() => setLastNameTouched(true)}
                 className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                 placeholder="Last name"
@@ -206,15 +225,18 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             Email <span className="text-red-500">*</span>
           </label>
           <div className="relative px-3 py-2">
-            <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+            <Mail
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+              size={16}
+            />
             <input
               type="email"
               id="account-email"
               value={email}
-              onChange={(e) => {
+              onChange={e => {
                 setEmail(e.target.value);
               }}
-              onBlur={(e) => {
+              onBlur={e => {
                 setEmail(e.target.value.trim());
                 setEmailTouched(true);
               }}
@@ -238,12 +260,15 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               Department
             </label>
             <div className="relative px-3 py-2">
-              <Building2 className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+              <Building2
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                size={16}
+              />
               <input
                 type="text"
                 id="account-department"
                 value={department}
-                onChange={(e) => setDepartment(e.target.value)}
+                onChange={e => setDepartment(e.target.value)}
                 className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                 placeholder="Department name"
                 disabled={isUpdating}
@@ -261,12 +286,15 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               Position
             </label>
             <div className="relative px-3 py-2">
-              <BriefcaseBusiness className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+              <BriefcaseBusiness
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                size={16}
+              />
               <input
                 type="text"
                 id="account-position"
                 value={position}
-                onChange={(e) => setPosition(e.target.value)}
+                onChange={e => setPosition(e.target.value)}
                 className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                 placeholder="Title or role"
                 disabled={isUpdating}
@@ -284,7 +312,9 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               <p className="text-xs text-gray-600">Enter your current password to save changes</p>
             </div>
 
-            <div className={`auth-input-container ${getFieldBorderClass(passwordTouched, currentPassword.trim().length > 0)}`}>
+            <div
+              className={`auth-input-container ${getFieldBorderClass(passwordTouched, currentPassword.trim().length > 0)}`}
+            >
               <label
                 htmlFor="account-currentPassword"
                 className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(passwordTouched, currentPassword.trim().length > 0)}`}
@@ -292,12 +322,15 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 Current Password <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
-                <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+                <KeyRound
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                  size={16}
+                />
                 <input
                   type="password"
                   id="account-currentPassword"
                   value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  onChange={e => setCurrentPassword(e.target.value)}
                   onBlur={() => setPasswordTouched(true)}
                   className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
                   placeholder="Enter current password"
@@ -313,11 +346,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               disabled={isUpdating || !currentPassword.trim()}
               className="btn btn-primary flex items-center space-x-2 text-sm px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed mt-3"
             >
-              {isUpdating ? (
-                <RefreshCw size={14} className="animate-spin" />
-              ) : (
-                <Save size={14} />
-              )}
+              {isUpdating ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
               <span>{isUpdating ? 'Saving...' : 'Save Changes'}</span>
             </button>
           </div>

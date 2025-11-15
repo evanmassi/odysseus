@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 
+import { logger } from '@shared/infrastructure/logger';
+
 import type { StorageHierarchy, SelectedLocation } from './storageNavigatorTypes';
 
 export const useStorageNavigation = (
@@ -14,7 +16,7 @@ export const useStorageNavigation = (
   const [expandedRacks, setExpandedRacks] = useState<Set<string>>(new Set());
 
   const toggleTank = useCallback((tankId: string) => {
-    setExpandedTanks((prev) => {
+    setExpandedTanks(prev => {
       const next = new Set(prev);
       if (next.has(tankId)) {
         next.delete(tankId);
@@ -27,7 +29,7 @@ export const useStorageNavigation = (
 
   const toggleRack = useCallback((tankId: string, rackId: string) => {
     const compositeKey = `${tankId}-${rackId}`;
-    setExpandedRacks((prev) => {
+    setExpandedRacks(prev => {
       const next = new Set(prev);
       if (next.has(compositeKey)) {
         next.delete(compositeKey);
@@ -38,53 +40,68 @@ export const useStorageNavigation = (
     });
   }, []);
 
-  const selectTank = useCallback((tankId: string) => {
-    const tank = data.tanks.find(t => t.id === tankId);
-    if (!tank || tank.racks.length === 0) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('No racks available in tank:', tankId);
-      return;
-    }
+  const selectTank = useCallback(
+    (tankId: string) => {
+      const tank = data.tanks.find(t => t.id === tankId);
+      if (!tank || tank.racks.length === 0) {
+        logger.warn('No racks available in tank', { tankId });
+        return;
+      }
 
-    const firstRack = tank.racks[0];
-    if (firstRack.boxes.length === 0) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('No boxes available in rack:', firstRack.id);
-      return;
-    }
+      const firstRack = tank.racks[0];
+      if (firstRack.boxes.length === 0) {
+        logger.warn('No boxes available in rack', { rackId: firstRack.id });
+        return;
+      }
 
-    const firstBox = firstRack.boxes[0];
-    onSelect({ tankId, rackId: firstRack.id, boxId: firstBox.id });
-  }, [data, onSelect]);
+      const firstBox = firstRack.boxes[0];
+      onSelect({ tankId, rackId: firstRack.id, boxId: firstBox.id });
+    },
+    [data, onSelect]
+  );
 
-  const selectRack = useCallback((tankId: string, rackId: string) => {
-    const tank = data.tanks.find(t => t.id === tankId);
-    const rack = tank?.racks.find(r => r.id === rackId);
-    if (!rack || rack.boxes.length === 0) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('No boxes available in rack:', rackId);
-      return;
-    }
+  const selectRack = useCallback(
+    (tankId: string, rackId: string) => {
+      const tank = data.tanks.find(t => t.id === tankId);
+      const rack = tank?.racks.find(r => r.id === rackId);
+      if (!rack || rack.boxes.length === 0) {
+        logger.warn('No boxes available in rack', { rackId });
+        return;
+      }
 
-    const firstBox = rack.boxes[0];
-    onSelect({ tankId, rackId, boxId: firstBox.id });
-  }, [data, onSelect]);
+      const firstBox = rack.boxes[0];
+      onSelect({ tankId, rackId, boxId: firstBox.id });
+    },
+    [data, onSelect]
+  );
 
-  const selectBox = useCallback((tankId: string, rackId: string, boxId: string) => {
-    onSelect({ tankId, rackId, boxId });
-  }, [onSelect]);
+  const selectBox = useCallback(
+    (tankId: string, rackId: string, boxId: string) => {
+      onSelect({ tankId, rackId, boxId });
+    },
+    [onSelect]
+  );
 
-  const isTankSelected = useCallback((tankId: string) => {
-    return selected.tankId === tankId;
-  }, [selected]);
+  const isTankSelected = useCallback(
+    (tankId: string) => {
+      return selected.tankId === tankId;
+    },
+    [selected]
+  );
 
-  const isRackSelected = useCallback((tankId: string, rackId: string) => {
-    return selected.tankId === tankId && selected.rackId === rackId;
-  }, [selected]);
+  const isRackSelected = useCallback(
+    (tankId: string, rackId: string) => {
+      return selected.tankId === tankId && selected.rackId === rackId;
+    },
+    [selected]
+  );
 
-  const isBoxSelected = useCallback((tankId: string, rackId: string, boxId: string) => {
-    return selected.tankId === tankId && selected.rackId === rackId && selected.boxId === boxId;
-  }, [selected]);
+  const isBoxSelected = useCallback(
+    (tankId: string, rackId: string, boxId: string) => {
+      return selected.tankId === tankId && selected.rackId === rackId && selected.boxId === boxId;
+    },
+    [selected]
+  );
 
   return {
     expandedTanks,

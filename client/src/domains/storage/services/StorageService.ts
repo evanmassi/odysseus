@@ -1,12 +1,13 @@
 import {
   ConfigurationResponseSchema,
   SaveConfigurationRequestSchema,
-  DeleteTankResponseSchema
+  DeleteTankResponseSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
 import { httpClient } from '@infra/api/httpClient';
 import { InfrastructureError } from '@shared/errors/AppError';
+import { logger } from '@shared/infrastructure/logger';
 
 import type {
   ConfigurationResponse,
@@ -14,7 +15,8 @@ import type {
   SystemConfiguration,
   LabConfiguration,
   PositionDisplayConfig,
-  POSITION_DISPLAY_PRESETS} from '@odysseus/shared-schemas';
+  POSITION_DISPLAY_PRESETS,
+} from '@odysseus/shared-schemas';
 
 /**
  * Modern Storage Service with Zod validation and proper error handling
@@ -28,13 +30,10 @@ export class StorageService {
       const response = await httpClient.getData('/configuration', ConfigurationResponseSchema);
       return response;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [StorageService] Load configuration failed:', error);
-      throw new InfrastructureError(
-        'API_ERROR',
-        'Failed to load configuration from server',
-        { originalError: error }
-      );
+      logger.error('StorageService load configuration failed', { error });
+      throw new InfrastructureError('API_ERROR', 'Failed to load configuration from server', {
+        originalError: error,
+      });
     }
   }
 
@@ -47,18 +46,17 @@ export class StorageService {
   ): Promise<void> {
     try {
       const requestData = SaveConfigurationRequestSchema.parse({
-        configuration: { systemConfig, currentLab }
+        configuration: { systemConfig, currentLab },
       });
 
       await httpClient.put('/configuration', requestData);
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [StorageService] Save configuration failed:', error);
-      throw new InfrastructureError(
-        'API_ERROR',
-        'Failed to save configuration to server',
-        { originalError: error, systemConfig, currentLab }
-      );
+      logger.error('StorageService save configuration failed', { error });
+      throw new InfrastructureError('API_ERROR', 'Failed to save configuration to server', {
+        originalError: error,
+        systemConfig,
+        currentLab,
+      });
     }
   }
 
@@ -69,11 +67,10 @@ export class StorageService {
     try {
       return await httpClient.deleteWithData(`/tanks/${tankId}`, DeleteTankResponseSchema);
     } catch (error) {
-      throw new InfrastructureError(
-        'API_ERROR',
-        `Failed to delete tank ${tankId}`,
-        { originalError: error, tankId }
-      );
+      throw new InfrastructureError('API_ERROR', `Failed to delete tank ${tankId}`, {
+        originalError: error,
+        tankId,
+      });
     }
   }
 
@@ -125,13 +122,10 @@ export class StorageService {
         description: response.description as Record<string, string>,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [StorageService] Get position display presets failed:', error);
-      throw new InfrastructureError(
-        'API_ERROR',
-        'Failed to fetch position display presets',
-        { originalError: error }
-      );
+      logger.error('StorageService get position display presets failed', { error });
+      throw new InfrastructureError('API_ERROR', 'Failed to fetch position display presets', {
+        originalError: error,
+      });
     }
   }
 
@@ -160,8 +154,7 @@ export class StorageService {
         positionDisplay,
       });
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [StorageService] Update box position display failed:', error);
+      logger.error('StorageService update box position display failed', { error });
       throw new InfrastructureError(
         'API_ERROR',
         `Failed to update position display for box ${boxId}`,
@@ -187,13 +180,11 @@ export class StorageService {
         positionDisplay,
       });
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [StorageService] Update lab default position display failed:', error);
-      throw new InfrastructureError(
-        'API_ERROR',
-        'Failed to update lab default position display',
-        { originalError: error, positionDisplay }
-      );
+      logger.error('StorageService update lab default position display failed', { error });
+      throw new InfrastructureError('API_ERROR', 'Failed to update lab default position display', {
+        originalError: error,
+        positionDisplay,
+      });
     }
   }
 }

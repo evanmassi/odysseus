@@ -140,8 +140,8 @@ export const useInfiniteTubes = (
     boxId?: string;
     searchTerm?: string;
   } = {},
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query generic types for flexible query data structure
   options: Omit<
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query generic types for flexible query data structure
     UseInfiniteQueryOptions<any, Error, any, any, number>,
     'queryKey' | 'queryFn' | 'getNextPageParam' | 'initialPageParam'
   > = {}

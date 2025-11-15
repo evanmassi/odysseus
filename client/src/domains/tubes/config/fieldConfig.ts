@@ -3,16 +3,28 @@
  * Single source of truth for field ordering, labels, types, and rendering
  */
 
-import { formatToScientificNotation, isScientificNotationInput } from '@shared/utils/scientificNotation';
+import { logger } from '@shared/infrastructure/logger';
+import {
+  formatToScientificNotation,
+  isScientificNotationInput,
+} from '@shared/utils/scientificNotation';
 
 export type FieldType = 'text' | 'select' | 'date' | 'concentration' | 'textarea';
 
 // Dot-notation field keys for tube form configuration (editable fields only)
 export type TubeFormFieldKey =
-  | 'sample.cellType' | 'sample.donorInternalId' | 'sample.donorSourceId'
-  | 'sample.concentration' | 'sample.concentrationUnit' | 'sample.date'
-  | 'sample.media.type' | 'sample.media.supplements' | 'sample.media.selection'
-  | 'sample.cultureCondition' | 'sample.lotNumber' | 'sample.notes'
+  | 'sample.cellType'
+  | 'sample.donorInternalId'
+  | 'sample.donorSourceId'
+  | 'sample.concentration'
+  | 'sample.concentrationUnit'
+  | 'sample.date'
+  | 'sample.media.type'
+  | 'sample.media.supplements'
+  | 'sample.media.selection'
+  | 'sample.cultureCondition'
+  | 'sample.lotNumber'
+  | 'sample.notes'
   | 'researcherId';
 
 export interface BaseFieldConfig {
@@ -56,11 +68,11 @@ export interface TextareaFieldConfig extends BaseFieldConfig {
   minHeight?: string;
 }
 
-export type FieldConfig = 
-  | TextFieldConfig 
-  | SelectFieldConfig 
-  | DateFieldConfig 
-  | ConcentrationFieldConfig 
+export type FieldConfig =
+  | TextFieldConfig
+  | SelectFieldConfig
+  | DateFieldConfig
+  | ConcentrationFieldConfig
   | TextareaFieldConfig;
 
 export interface SectionConfig {
@@ -96,23 +108,23 @@ export const TUBE_FIELD_CONFIG: SectionConfig[] = [
         type: 'text',
         placeholder: 'e.g., Jurkat, HEK293',
         required: true,
-        gridSpan: 2 // Full width (row 1)
+        gridSpan: 2, // Full width (row 1)
       },
       {
         key: 'sample.donorInternalId',
         label: 'Internal ID',
         type: 'text',
         placeholder: 'Internal tracking ID',
-        gridSpan: 1 // 1 of 2 columns (row 2, left)
+        gridSpan: 1, // 1 of 2 columns (row 2, left)
       },
       {
         key: 'sample.donorSourceId',
         label: 'Source ID',
         type: 'text',
         placeholder: 'Original source ID',
-        gridSpan: 1 // 1 of 2 columns (row 2, right)
-      }
-    ]
+        gridSpan: 1, // 1 of 2 columns (row 2, right)
+      },
+    ],
   },
   {
     key: 'sample',
@@ -125,33 +137,33 @@ export const TUBE_FIELD_CONFIG: SectionConfig[] = [
         key: 'sample.cultureCondition',
         label: 'Culture Condition',
         type: 'text',
-        placeholder: 'e.g., 5% O₂, 37°C'
+        placeholder: 'e.g., 5% O₂, 37°C',
       },
       {
         key: 'sample.lotNumber',
         label: 'Lot #',
         type: 'text',
-        placeholder: 'LOT001'
+        placeholder: 'LOT001',
       },
       {
         key: 'sample.media.type',
         label: 'Media',
         type: 'text',
-        placeholder: 'e.g., RPMI-1640, DMEM'
+        placeholder: 'e.g., RPMI-1640, DMEM',
       },
       {
         key: 'sample.media.supplements',
         label: 'Supplements',
         type: 'text',
         placeholder: 'e.g., 10% FBS, 1% P/S',
-        compact: true // Group closer with Media
+        compact: true, // Group closer with Media
       },
       {
         key: 'sample.media.selection',
         label: 'Selection',
         type: 'text',
         placeholder: 'e.g., Puromycin 2μg/ml',
-        compact: true // Group closer with Media
+        compact: true, // Group closer with Media
       },
       {
         key: 'sample.concentration',
@@ -161,23 +173,23 @@ export const TUBE_FIELD_CONFIG: SectionConfig[] = [
         unitKey: 'sample.concentrationUnit',
         unitOptions: [
           { value: 'c/v', label: 'c/v' },
-          { value: 'c/mL', label: 'c/mL' }
+          { value: 'c/mL', label: 'c/mL' },
         ],
         formatHandler: handleConcentrationFormat,
-        formatTriggers: ['Enter']
+        formatTriggers: ['Enter'],
       },
       {
         key: 'sample.date',
         label: 'Date',
-        type: 'date'
+        type: 'date',
       },
       {
         key: 'researcherId',
         label: 'Researcher',
         type: 'select',
-        getOptions: () => [] // Will be populated dynamically with researcher options
-      }
-    ]
+        getOptions: () => [], // Will be populated dynamically with researcher options
+      },
+    ],
   },
   {
     key: 'notes',
@@ -191,10 +203,10 @@ export const TUBE_FIELD_CONFIG: SectionConfig[] = [
         label: '', // Empty label since section title already says "NOTES"
         type: 'textarea',
         placeholder: 'Additional notes and observations...',
-        minHeight: 'min-h-[60px]'
-      }
-    ]
-  }
+        minHeight: 'min-h-[60px]',
+      },
+    ],
+  },
 ];
 
 /**
@@ -224,7 +236,7 @@ export const getSectionConfig = (sectionKey: string): SectionConfig | undefined 
  */
 export const validateFieldCoverage = (): boolean => {
   const configKeys = new Set(getAllFields().map(field => field.key));
-  
+
   // Add unit keys from concentration fields
   getAllFields().forEach(field => {
     if (field.type === 'concentration') {
@@ -232,27 +244,34 @@ export const validateFieldCoverage = (): boolean => {
       configKeys.add(concentrationConfig.unitKey);
     }
   });
-  
+
   // Only validate editable fields that match CreateTubeRequest schema
   const formDataKeys: TubeFormFieldKey[] = [
-    'sample.cellType', 'sample.donorInternalId', 'sample.donorSourceId', 'sample.concentration',
-    'sample.concentrationUnit', 'sample.date', 'researcherId',
-    'sample.media.type', 'sample.media.supplements', 'sample.media.selection',
-    'sample.cultureCondition', 'sample.lotNumber', 'sample.notes'
+    'sample.cellType',
+    'sample.donorInternalId',
+    'sample.donorSourceId',
+    'sample.concentration',
+    'sample.concentrationUnit',
+    'sample.date',
+    'researcherId',
+    'sample.media.type',
+    'sample.media.supplements',
+    'sample.media.selection',
+    'sample.cultureCondition',
+    'sample.lotNumber',
+    'sample.notes',
   ];
-  
+
   const missingKeys = formDataKeys.filter(key => !configKeys.has(key));
   const extraKeys = Array.from(configKeys).filter(key => !formDataKeys.includes(key));
-  
+
   if (missingKeys.length > 0) {
-    // eslint-disable-next-line no-console -- Warning logging for production monitoring
-    console.warn('Missing field configurations for:', missingKeys);
+    logger.warn('Missing field configurations', { missingKeys });
   }
   if (extraKeys.length > 0) {
-    // eslint-disable-next-line no-console -- Warning logging for production monitoring
-    console.warn('Extra field configurations found:', extraKeys);
+    logger.warn('Extra field configurations found', { extraKeys });
   }
-  
+
   return missingKeys.length === 0 && extraKeys.length === 0;
 };
 

@@ -22,17 +22,15 @@ import {
   type UpdateTubeRequest,
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
-  type TubeData
+  type TubeData,
 } from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
 import { queryKeys } from '@app/queryKeys';
+import { logger } from '@shared/infrastructure/logger';
 
-import {
-  useCreateTubeMutation,
-  useUpdateTubeMutation
-} from './useTubeMutations';
+import { useCreateTubeMutation, useUpdateTubeMutation } from './useTubeMutations';
 
 import type { UseFormReturn, FieldValues } from 'react-hook-form';
 import type { ZodType } from 'zod';
@@ -64,7 +62,10 @@ export interface TubeFormSubmissionResult {
  * @template TInput - Form input type (pre-Zod transformation, must be valid form values)
  * @template TOutput - API output type (post-Zod transformation)
  */
-function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeRequest | UpdateTubeRequest>(
+function useTubeForm<
+  TInput extends FieldValues,
+  TOutput extends CreateTubeRequest | UpdateTubeRequest,
+>(
   schema: ZodType<TOutput>,
   config: {
     mode: 'create' | 'edit';
@@ -89,7 +90,7 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
     resolver: zodResolver(schema as any),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic defaultValues require any for type compatibility across TInput instances
     defaultValues: initialData as any,
-    mode: 'onChange' // Real-time validation for immediate feedback
+    mode: 'onChange', // Real-time validation for immediate feedback
   });
 
   // React Query mutations
@@ -101,32 +102,38 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
    *
    * @param payload - Validated payload (post-transformation)
    */
-  const validateCompletePayload = useCallback((payload: TOutput): { warnings: Record<string, string> } => {
-    const warnings: Record<string, string> = {};
+  const validateCompletePayload = useCallback(
+    (payload: TOutput): { warnings: Record<string, string> } => {
+      const warnings: Record<string, string> = {};
 
-    // Warning: Duplicate position check (only if we have location)
-    if ('location' in payload && payload.location) {
-      // Get existing tubes for duplicate validation (fresh on every validation)
-      const existingTubes = queryClient.getQueryData<TubeData[]>(queryKeys.tubes.all) ?? [];
+      // Warning: Duplicate position check (only if we have location)
+      if ('location' in payload && payload.location) {
+        // Get existing tubes for duplicate validation (fresh on every validation)
+        const existingTubes = queryClient.getQueryData<TubeData[]>(queryKeys.tubes.all) ?? [];
 
-      const filteredTubes = mode === 'edit' && tubeId
-        ? existingTubes.filter(tube => tube.id !== tubeId)
-        : existingTubes;
+        const filteredTubes =
+          mode === 'edit' && tubeId
+            ? existingTubes.filter(tube => tube.id !== tubeId)
+            : existingTubes;
 
-      const duplicate = filteredTubes.find(tube =>
-        tube.location.tankId === payload.location!.tankId &&
-        tube.location.rackId === payload.location!.rackId &&
-        tube.location.boxId === payload.location!.boxId &&
-        tube.location.position === payload.location!.position
-      );
+        const duplicate = filteredTubes.find(
+          tube =>
+            tube.location.tankId === payload.location!.tankId &&
+            tube.location.rackId === payload.location!.rackId &&
+            tube.location.boxId === payload.location!.boxId &&
+            tube.location.position === payload.location!.position
+        );
 
-      if (duplicate) {
-        warnings['position'] = `Position ${payload.location!.position} in Tank ${payload.location!.tankId}, Rack ${payload.location!.rackId}, Box ${payload.location!.boxId} is already occupied`;
+        if (duplicate) {
+          warnings['position'] =
+            `Position ${payload.location!.position} in Tank ${payload.location!.tankId}, Rack ${payload.location!.rackId}, Box ${payload.location!.boxId} is already occupied`;
+        }
       }
-    }
 
-    return { warnings };
-  }, [queryClient, mode, tubeId]);
+      return { warnings };
+    },
+    [queryClient, mode, tubeId]
+  );
 
   /**
    * Form submission handler with context support
@@ -136,91 +143,91 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
    * - Zod validates and transforms: INPUT → OUTPUT type
    * - Mutation receives OUTPUT type (post-transformation: concentration is number)
    */
-  const submitTube = useCallback(async (data: TInput, ctx?: SubmitContext): Promise<TubeFormSubmissionResult> => {
-    try {
-      let result: TubeData;
+  const submitTube = useCallback(
+    async (data: TInput, ctx?: SubmitContext): Promise<TubeFormSubmissionResult> => {
+      try {
+        let result: TubeData;
 
-      if (mode === 'create') {
-        if (!ctx?.location) {
-          throw new Error('Location is required for create mode');
+        if (mode === 'create') {
+          if (!ctx?.location) {
+            throw new Error('Location is required for create mode');
+          }
+
+          // Merge form data with context location
+          const formInputWithLocation = {
+            ...data,
+            location: ctx.location,
+          };
+
+          // Zod validates and transforms INPUT → OUTPUT
+          // Input: concentration as string ("1.5e6")
+          // Output: concentration as number (1500000)
+          const validatedPayload = schema.parse(formInputWithLocation) as TOutput;
+
+          // Validate complete payload and show warnings (non-blocking)
+          const { warnings } = validateCompletePayload(validatedPayload);
+          if (Object.keys(warnings).length > 0) {
+            logger.warn('Tube creation warnings', { warnings });
+          }
+
+          // Type assertion: we know TOutput is CreateTubeRequest when mode === 'create'
+          result = await createTubeMutation.mutateAsync(validatedPayload as CreateTubeRequest);
+        } else {
+          if (!tubeId) {
+            throw new Error('Tube ID is required for edit mode');
+          }
+
+          // Merge form data with optional context location
+          const formInputWithContext = {
+            ...data,
+            ...(ctx?.location && { location: ctx.location }),
+          };
+
+          // Zod validates and transforms INPUT → OUTPUT
+          const validatedPayload = schema.parse(formInputWithContext) as TOutput;
+
+          // Validate complete payload and show warnings (non-blocking)
+          const { warnings } = validateCompletePayload(validatedPayload);
+          if (Object.keys(warnings).length > 0) {
+            logger.warn('Tube update warnings', { warnings });
+          }
+
+          // Type assertion: we know TOutput is UpdateTubeRequest when mode === 'edit'
+          result = await updateTubeMutation.mutateAsync({
+            id: tubeId,
+            updates: validatedPayload as UpdateTubeRequest,
+          });
         }
 
-        // Merge form data with context location
-        const formInputWithLocation = {
-          ...data,
-          location: ctx.location
+        // Call success callback
+        onSuccess?.(result);
+
+        return {
+          success: true,
+          data: result,
         };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : 'An unexpected error occurred';
+        onError?.(error instanceof Error ? error : new Error(errorMessage));
 
-        // Zod validates and transforms INPUT → OUTPUT
-        // Input: concentration as string ("1.5e6")
-        // Output: concentration as number (1500000)
-        const validatedPayload = schema.parse(formInputWithLocation) as TOutput;
-
-        // Validate complete payload and show warnings (non-blocking)
-        const { warnings } = validateCompletePayload(validatedPayload);
-        if (Object.keys(warnings).length > 0) {
-          // eslint-disable-next-line no-console -- Warning logging for production monitoring
-          console.warn('Tube creation warnings:', warnings);
-        }
-
-        // Type assertion: we know TOutput is CreateTubeRequest when mode === 'create'
-        result = await createTubeMutation.mutateAsync(validatedPayload as CreateTubeRequest);
-
-      } else {
-        if (!tubeId) {
-          throw new Error('Tube ID is required for edit mode');
-        }
-
-        // Merge form data with optional context location
-        const formInputWithContext = {
-          ...data,
-          ...(ctx?.location && { location: ctx.location })
+        return {
+          success: false,
+          error: errorMessage,
         };
-
-        // Zod validates and transforms INPUT → OUTPUT
-        const validatedPayload = schema.parse(formInputWithContext) as TOutput;
-
-        // Validate complete payload and show warnings (non-blocking)
-        const { warnings } = validateCompletePayload(validatedPayload);
-        if (Object.keys(warnings).length > 0) {
-          // eslint-disable-next-line no-console -- Warning logging for production monitoring
-          console.warn('Tube update warnings:', warnings);
-        }
-
-        // Type assertion: we know TOutput is UpdateTubeRequest when mode === 'edit'
-        result = await updateTubeMutation.mutateAsync({
-          id: tubeId,
-          updates: validatedPayload as UpdateTubeRequest
-        });
       }
-
-      // Call success callback
-      onSuccess?.(result);
-
-      return {
-        success: true,
-        data: result
-      };
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
-      onError?.(error instanceof Error ? error : new Error(errorMessage));
-
-      return {
-        success: false,
-        error: errorMessage
-      };
-    }
-  }, [
-    mode,
-    tubeId,
-    createTubeMutation,
-    updateTubeMutation,
-    validateCompletePayload,
-    schema,
-    onSuccess,
-    onError
-  ]);
+    },
+    [
+      mode,
+      tubeId,
+      createTubeMutation,
+      updateTubeMutation,
+      validateCompletePayload,
+      schema,
+      onSuccess,
+      onError,
+    ]
+  );
 
   // Loading state
   const isSubmitting = createTubeMutation.isPending || updateTubeMutation.isPending;
@@ -230,10 +237,10 @@ function useTubeForm<TInput extends FieldValues, TOutput extends CreateTubeReque
   const submitError = createTubeMutation.error || updateTubeMutation.error;
 
   return {
-    form,          // Pure React Hook Form instance
-    submitTube,    // Custom async submission logic
-    isSubmitting,  // Combined loading state
-    submitError    // Combined error state
+    form, // Pure React Hook Form instance
+    submitTube, // Custom async submission logic
+    isSubmitting, // Combined loading state
+    submitError, // Combined error state
   };
 }
 
@@ -252,17 +259,17 @@ export function useCreateTubeForm(config?: {
   onError?: (error: Error) => void;
 }): {
   form: UseFormReturn<CreateTubeFormInput>;
-  submitTube: (data: CreateTubeFormInput, location: TubeData['location']) => Promise<TubeFormSubmissionResult>;
+  submitTube: (
+    data: CreateTubeFormInput,
+    location: TubeData['location']
+  ) => Promise<TubeFormSubmissionResult>;
   isSubmitting: boolean;
   submitError: Error | null;
 } {
-  const base = useTubeForm<CreateTubeFormInput, CreateTubeRequest>(
-    createTubeRequestSchema,
-    {
-      mode: 'create',
-      ...config
-    }
-  );
+  const base = useTubeForm<CreateTubeFormInput, CreateTubeRequest>(createTubeRequestSchema, {
+    mode: 'create',
+    ...config,
+  });
 
   // Wrapper: location is required parameter
   const submitTube = useCallback(
@@ -275,7 +282,7 @@ export function useCreateTubeForm(config?: {
     form: base.form,
     submitTube,
     isSubmitting: base.isSubmitting,
-    submitError: base.submitError
+    submitError: base.submitError,
   };
 }
 
@@ -299,14 +306,11 @@ export function useEditTubeForm(
   isSubmitting: boolean;
   submitError: Error | null;
 } {
-  return useTubeForm<UpdateTubeFormInput, UpdateTubeRequest>(
-    updateTubeRequestSchema,
-    {
-      mode: 'edit',
-      tubeId,
-      ...config
-    }
-  );
+  return useTubeForm<UpdateTubeFormInput, UpdateTubeRequest>(updateTubeRequestSchema, {
+    mode: 'edit',
+    tubeId,
+    ...config,
+  });
 }
 
 // UTILITY HOOKS
@@ -330,17 +334,17 @@ export function useTubeFormTransform() {
         media: {
           type: tubeData.sample.media?.type ?? '',
           supplements: tubeData.sample.media?.supplements ?? '',
-          selection: tubeData.sample.media?.selection ?? ''
+          selection: tubeData.sample.media?.selection ?? '',
         },
         cultureCondition: tubeData.sample.cultureCondition ?? '',
         lotNumber: tubeData.sample.lotNumber ?? '',
-        notes: tubeData.sample.notes ?? ''
+        notes: tubeData.sample.notes ?? '',
       },
-      researcherId: tubeData.researcherId
+      researcherId: tubeData.researcherId,
     };
   }, []);
 
   return {
-    transformToFormData
+    transformToFormData,
   };
 }

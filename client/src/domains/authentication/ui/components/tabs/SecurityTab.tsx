@@ -12,6 +12,7 @@ import { KeyRound, Save, RefreshCw, Eye, EyeOff, Shield, MonitorSmartphone } fro
 import { authService } from '@domains/authentication/services/AuthenticationService';
 import { useChangePassword } from '@domains/users/hooks/useChangePassword';
 import { AnimatedCheckmark } from '@shared/components';
+import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';
 
 import { PasswordRequirements } from '../PasswordRequirements';
@@ -50,8 +51,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
         const requirements = await authService.getPasswordRequirements();
         setPasswordRequirements(requirements);
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('Failed to fetch password requirements:', error);
+        logger.error('Failed to fetch password requirements', { error });
       }
     };
     void fetchRequirements();
@@ -142,10 +142,12 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           }
         },
         onError: (error: Error) => {
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error('❌ [SecurityTab] Password change failed:', error);
+          logger.error('❌ [SecurityTab] Password change failed', { error });
           // Check if error is due to incorrect password
-          if (error.message.toLowerCase().includes('incorrect') || error.message.toLowerCase().includes('invalid')) {
+          if (
+            error.message.toLowerCase().includes('incorrect') ||
+            error.message.toLowerCase().includes('invalid')
+          ) {
             setCurrentPasswordError('Current password is incorrect');
           }
           notifications.error(error.message || 'Failed to change password');
@@ -174,12 +176,15 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               Current Password <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
-              <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+              <KeyRound
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                size={16}
+              />
               <input
                 type={showCurrentPassword ? 'text' : 'password'}
                 id="security-currentPassword"
                 value={currentPassword}
-                onChange={(e) => {
+                onChange={e => {
                   setCurrentPassword(e.target.value);
                   setShowSuccess(false);
                   // Clear error when user starts typing
@@ -205,15 +210,15 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           </div>
 
           {currentPasswordError && (
-            <p className="text-[10px] text-red-600 ml-1 mt-1">
-              {currentPasswordError}
-            </p>
+            <p className="text-[10px] text-red-600 ml-1 mt-1">{currentPasswordError}</p>
           )}
         </div>
 
         {/* New Password */}
         <div className="space-y-1">
-          <div className={`auth-input-container ${getFieldBorderClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}>
+          <div
+            className={`auth-input-container ${getFieldBorderClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}
+          >
             <label
               htmlFor="security-newPassword"
               className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}
@@ -221,12 +226,15 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               New Password <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
-              <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+              <KeyRound
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                size={16}
+              />
               <input
                 type={showNewPassword ? 'text' : 'password'}
                 id="security-newPassword"
                 value={newPassword}
-                onChange={(e) => {
+                onChange={e => {
                   setNewPassword(e.target.value);
                   setShowSuccess(false);
                 }}
@@ -265,7 +273,9 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
 
         {/* Confirm Password */}
         <div className="space-y-1">
-          <div className={`auth-input-container ${getFieldBorderClass(confirmPasswordTouched, passwordsMatch)}`}>
+          <div
+            className={`auth-input-container ${getFieldBorderClass(confirmPasswordTouched, passwordsMatch)}`}
+          >
             <label
               htmlFor="security-confirmPassword"
               className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(confirmPasswordTouched, passwordsMatch)}`}
@@ -273,12 +283,15 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               Confirm Password <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
-              <KeyRound className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted" size={16} />
+              <KeyRound
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                size={16}
+              />
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
                 id="security-confirmPassword"
                 value={confirmPassword}
-                onChange={(e) => {
+                onChange={e => {
                   setConfirmPassword(e.target.value);
                   setShowSuccess(false);
                 }}
@@ -301,9 +314,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           </div>
 
           {confirmPasswordTouched && !passwordsMatch && confirmPassword.length > 0 && (
-            <p className="text-[10px] text-red-600 ml-1 mt-1">
-              Passwords do not match
-            </p>
+            <p className="text-[10px] text-red-600 ml-1 mt-1">Passwords do not match</p>
           )}
         </div>
 
@@ -315,11 +326,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               disabled={!isFormValid || isChanging}
               className="btn btn-primary flex items-center space-x-2 text-sm px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             >
-              {isChanging ? (
-                <RefreshCw size={14} className="animate-spin" />
-              ) : (
-                <Save size={14} />
-              )}
+              {isChanging ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
               <span>{isChanging ? 'Changing Password...' : 'Change Password'}</span>
             </button>
 
@@ -327,7 +334,9 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
             {showSuccess && (
               <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-1.5 flex items-center space-x-2 animate-in fade-in slide-in-from-right-2 duration-300">
                 <AnimatedCheckmark size={24} />
-                <span className="text-xs font-medium text-green-900">Password changed successfully</span>
+                <span className="text-xs font-medium text-green-900">
+                  Password changed successfully
+                </span>
               </div>
             )}
           </div>

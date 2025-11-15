@@ -6,16 +6,14 @@
  */
 import {
   type RegisterWithResearcherRequest,
-  type VerificationStatusResponse
+  type VerificationStatusResponse,
 } from '@odysseus/shared-schemas';
 
 import { queryClient } from '@app/queryClient';
 import { httpClient } from '@infra/api/httpClient';
+import { logger } from '@shared/infrastructure/logger';
 
-import type {
-  AuthResponse,
-  RegisterWithResearcherResponse
-} from '../types/api';
+import type { AuthResponse, RegisterWithResearcherResponse } from '../types/api';
 
 // Domain types (keep existing types intact)
 export interface User {
@@ -56,7 +54,10 @@ export class AuthService {
    */
   async register(request: RegisterRequest): Promise<AuthResponse> {
     try {
-      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>('/public/auth/register', request);
+      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>(
+        '/public/auth/register',
+        request
+      );
 
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
@@ -64,7 +65,7 @@ export class AuthService {
         // Return enhanced response with token pair
         return {
           user: responseData.user,
-          tokens: responseData.tokens
+          tokens: responseData.tokens,
         };
       }
 
@@ -83,9 +84,14 @@ export class AuthService {
    * First user: Auto-approved as admin (returns tokens)
    * Subsequent users: Pending approval (no tokens)
    */
-  async registerWithResearcher(request: RegisterWithResearcherRequest): Promise<RegisterWithResearcherResponse> {
+  async registerWithResearcher(
+    request: RegisterWithResearcherRequest
+  ): Promise<RegisterWithResearcherResponse> {
     try {
-      const response = await httpClient.post<{ success: boolean; data: RegisterWithResearcherResponse }>('/public/auth/register-with-researcher', request);
+      const response = await httpClient.post<{
+        success: boolean;
+        data: RegisterWithResearcherResponse;
+      }>('/public/auth/register-with-researcher', request);
 
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
@@ -95,7 +101,7 @@ export class AuthService {
           user: responseData.user,
           tokens: responseData.tokens, // undefined for pending users
           status: responseData.status,
-          message: responseData.message
+          message: responseData.message,
         };
       }
 
@@ -114,18 +120,21 @@ export class AuthService {
   async login(request: LoginRequest): Promise<AuthResponse> {
     try {
       // HttpClient automatically transforms dates using existing responseTransformers
-      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>('/public/auth/login', request);
-      
+      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>(
+        '/public/auth/login',
+        request
+      );
+
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
-        
+
         // Return transformed response (dates automatically converted by HttpClient)
         return {
           user: responseData.user,
-          tokens: responseData.tokens
+          tokens: responseData.tokens,
         };
       }
-      
+
       throw new Error('Login failed');
     } catch (error) {
       if (error && typeof error === 'object' && 'message' in error) {
@@ -154,7 +163,9 @@ export class AuthService {
    */
   async checkFirstTime(): Promise<boolean> {
     try {
-      const response = await httpClient.get<{ success: boolean; data: { isFirstTime: boolean } }>('/public/auth/first-time');
+      const response = await httpClient.get<{ success: boolean; data: { isFirstTime: boolean } }>(
+        '/public/auth/first-time'
+      );
 
       if (response.data.success && response.data.data) {
         return response.data.data.isFirstTime;
@@ -162,8 +173,7 @@ export class AuthService {
 
       return false;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to check first-time setup:', error);
+      logger.error('Failed to check first-time setup', { error });
       return false;
     }
   }
@@ -173,7 +183,9 @@ export class AuthService {
    */
   async getPasswordRequirements(): Promise<PasswordRequirements> {
     try {
-      const response = await httpClient.get<{ success: boolean; data: PasswordRequirements }>('/public/auth/password-requirements');
+      const response = await httpClient.get<{ success: boolean; data: PasswordRequirements }>(
+        '/public/auth/password-requirements'
+      );
 
       if (response.data.success && response.data.data) {
         return response.data.data;
@@ -183,16 +195,15 @@ export class AuthService {
       return {
         passwordMinLength: 8,
         requireStrongPasswords: false,
-        passwordRequireSpecialChars: false
+        passwordRequireSpecialChars: false,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to get password requirements:', error);
+      logger.error('Failed to get password requirements', { error });
       // Return safe defaults on error
       return {
         passwordMinLength: 8,
         requireStrongPasswords: false,
-        passwordRequireSpecialChars: false
+        passwordRequireSpecialChars: false,
       };
     }
   }
@@ -203,7 +214,10 @@ export class AuthService {
    */
   async verifyEmail(token: string): Promise<void> {
     try {
-      const response = await httpClient.post<{ success: boolean; message: string }>('/public/auth/verify-email', { token });
+      const response = await httpClient.post<{ success: boolean; message: string }>(
+        '/public/auth/verify-email',
+        { token }
+      );
 
       if (!response.data.success) {
         throw new Error(response.data.message || 'Email verification failed');
@@ -244,7 +258,9 @@ export class AuthService {
    */
   async getVerificationStatus(): Promise<VerificationStatusResponse> {
     try {
-      const response = await httpClient.get<VerificationStatusResponse>('/auth/verification-status');
+      const response = await httpClient.get<VerificationStatusResponse>(
+        '/auth/verification-status'
+      );
       return response.data;
     } catch (error) {
       if (error && typeof error === 'object' && 'message' in error) {
@@ -261,7 +277,7 @@ export class AuthService {
     try {
       await httpClient.post('/public/auth/reset-password', {
         token,
-        newPassword
+        newPassword,
       });
     } catch (error) {
       if (error && typeof error === 'object' && 'message' in error) {
@@ -278,7 +294,6 @@ export class AuthService {
     // SessionManager will handle token cleanup and HTTP client state
     queryClient.clear(); // Clear all React Query cache on logout
   }
-
 }
 
 // Singleton instance

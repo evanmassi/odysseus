@@ -1,12 +1,14 @@
 /**
  * Socket Service - Centralized Socket Management
  * Phase 3: Socket Integration and Real-time Updates
- * 
+ *
  * Industry-standard socket connection management with proper lifecycle handling.
  * Integrates with the Socket → Query Cache Bridge for real-time updates.
  */
 
 import { io } from 'socket.io-client';
+
+import { logger } from '@shared/infrastructure/logger';
 
 import { getSocketBridge, cleanupSocketBridge } from './queryBridge';
 
@@ -25,13 +27,13 @@ const SOCKET_CONFIG = {
     reconnectionDelayMax: 5000,
     maxReconnectionAttempts: 5,
     timeout: 20000,
-    forceNew: true
-  }
+    forceNew: true,
+  },
 } as const;
 
 /**
  * Socket Service Class
- * 
+ *
  * Manages socket lifecycle and integrates with React Query cache
  */
 export class SocketService {
@@ -48,8 +50,7 @@ export class SocketService {
    */
   public async initialize(): Promise<void> {
     if (this.isInitialized) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('⚠️ [SocketService] Already initialized, skipping');
+      logger.warn('Socket service already initialized, skipping');
       return;
     }
 
@@ -65,10 +66,8 @@ export class SocketService {
       await this.waitForConnection();
 
       this.isInitialized = true;
-      
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [SocketService] Failed to initialize:', error);
+      logger.error('Socket service failed to initialize', { error });
       throw error;
     }
   }
@@ -165,7 +164,7 @@ export class SocketService {
       // Set up temporary listeners
       this.socket.on('connect', onConnect);
       this.socket.on('connect_error', onError);
-      
+
       // Set timeout
       const timeoutId = setTimeout(onTimeout, SOCKET_CONFIG.options.timeout);
     });

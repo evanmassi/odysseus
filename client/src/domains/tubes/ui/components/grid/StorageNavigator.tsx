@@ -15,9 +15,10 @@ import { useState, useMemo, useCallback } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { gridNavigationService } from '@domains/grid';
-import { useStorageStore , getGridDisplayName } from '@domains/storage';
+import { useStorageStore, getGridDisplayName } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
 import { useListKeyboardNavigation } from '@shared/hooks/keyboard';
+import { logger } from '@shared/infrastructure/logger';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AnimatedTreeLineOverlay } from './AnimatedTreeLineOverlay';
@@ -48,7 +49,6 @@ export function StorageNavigator() {
     return new Set([`${firstTank.id}-${firstRack.id}`]);
   });
 
-
   // Click handlers: Navigate + Toggle expansion
   const handleTankClick = async (tankId: string) => {
     // Toggle expansion
@@ -65,8 +65,7 @@ export function StorageNavigator() {
     // Navigate to first rack/box in this tank
     const result = await gridNavigationService.navigateToTank(tankId);
     if (!result.success) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to navigate to tank:', result.error);
+      logger.error('Failed to navigate to tank', { error: result.error });
     }
   };
 
@@ -87,16 +86,14 @@ export function StorageNavigator() {
     // Navigate to first box in this rack
     const result = await gridNavigationService.navigateToRack(tankId, rackId);
     if (!result.success) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to navigate to rack:', result.error);
+      logger.error('Failed to navigate to rack', { error: result.error });
     }
   };
 
   const handleBoxClick = async (tankId: string, rackId: string, boxId: string) => {
     const result = await gridNavigationService.navigateToLocation({ tankId, rackId, boxId });
     if (!result.success) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to navigate to box:', result.error);
+      logger.error('Failed to navigate to box', { error: result.error });
     }
   };
 
@@ -118,7 +115,7 @@ export function StorageNavigator() {
         id: `tank-${tank.id}`,
         type: 'tank',
         tankId: tank.id,
-        action: () => handleTankClick(tank.id)
+        action: () => handleTankClick(tank.id),
       });
 
       // If tank is expanded, add rack items
@@ -134,7 +131,7 @@ export function StorageNavigator() {
             type: 'rack',
             tankId: tank.id,
             rackId: rack.id,
-            action: () => handleRackClick(tank.id, rack.id)
+            action: () => handleRackClick(tank.id, rack.id),
           });
 
           // If rack is expanded, add box items
@@ -148,7 +145,7 @@ export function StorageNavigator() {
                 tankId: tank.id,
                 rackId: rack.id,
                 boxName: box.name,
-                action: () => handleBoxClick(tank.id, rack.id, box.id)
+                action: () => handleBoxClick(tank.id, rack.id, box.id),
               });
             });
           }
@@ -160,15 +157,12 @@ export function StorageNavigator() {
   }, [tanks, expandedTanks, expandedRacks, getCurrentRacks, getCurrentBoxes]);
 
   // Handle item selection from keyboard
-  const handleItemSelect = useCallback((item: typeof visibleItems[number], _index: number) => {
+  const handleItemSelect = useCallback((item: (typeof visibleItems)[number], _index: number) => {
     item.action();
   }, []);
 
   // Keyboard navigation hook
-  const {
-    getItemProps,
-    getContainerProps,
-  } = useListKeyboardNavigation(
+  const { getItemProps, getContainerProps } = useListKeyboardNavigation(
     visibleItems,
     handleItemSelect,
     false // Single selection only
@@ -182,15 +176,9 @@ export function StorageNavigator() {
     currentTank === tankId && currentRack === rackId && currentBox === boxId;
 
   return (
-    <div
-      className="storage-navigator"
-      {...getContainerProps()}
-    >
-      <AnimatedTreeLineOverlay
-        expandedTanks={expandedTanks}
-        expandedRacks={expandedRacks}
-      />
-      {tanks.map((tank) => {
+    <div className="storage-navigator" {...getContainerProps()}>
+      <AnimatedTreeLineOverlay expandedTanks={expandedTanks} expandedRacks={expandedRacks} />
+      {tanks.map(tank => {
         const isExpanded = expandedTanks.has(tank.id);
         const isSelected = isTankInSelectionPath(tank.id);
         const tankRacks = getCurrentRacks(tank.id);
@@ -200,7 +188,7 @@ export function StorageNavigator() {
             key={tank.id}
             className={`selector-level tank-level ${isExpanded ? 'expanded' : ''}`}
             data-tank-id={tank.id}
-            style={{'--rack-count': tankRacks.length} as React.CSSProperties}
+            style={{ '--rack-count': tankRacks.length } as React.CSSProperties}
           >
             <button
               onClick={() => handleTankClick(tank.id)}
@@ -224,7 +212,7 @@ export function StorageNavigator() {
 
             <div className={`selector-children-wrapper ${isExpanded ? 'expanded' : ''}`}>
               <div className="selector-children-content">
-                {tankRacks.map((rack) => {
+                {tankRacks.map(rack => {
                   const rackKey = `${tank.id}-${rack.id}`;
                   const isRackExpanded = expandedRacks.has(rackKey);
                   const isRackSelected = isRackInSelectionPath(tank.id, rack.id);
@@ -235,14 +223,20 @@ export function StorageNavigator() {
                       key={rack.id}
                       className={`selector-level rack-level ${isRackExpanded ? 'expanded' : ''}`}
                       data-rack-id={rack.id}
-                      style={{'--box-count': rackBoxes.length} as React.CSSProperties}
+                      style={{ '--box-count': rackBoxes.length } as React.CSSProperties}
                     >
                       <button
                         onClick={() => handleRackClick(tank.id, rack.id)}
                         className={`selector-button rack-button ${isRackSelected ? 'selected' : ''}`}
-                        title={rack.location ? `${isRackExpanded ? 'Collapse' : 'Expand'} ${rack.name} - ${rack.location}` : `${isRackExpanded ? 'Collapse' : 'Expand'} ${rack.name}`}
+                        title={
+                          rack.location
+                            ? `${isRackExpanded ? 'Collapse' : 'Expand'} ${rack.name} - ${rack.location}`
+                            : `${isRackExpanded ? 'Collapse' : 'Expand'} ${rack.name}`
+                        }
                         data-button-id={`rack-${tank.id}-${rack.id}`}
-                        {...getItemProps(visibleItems.findIndex(item => item.id === `rack-${tank.id}-${rack.id}`))}
+                        {...getItemProps(
+                          visibleItems.findIndex(item => item.id === `rack-${tank.id}-${rack.id}`)
+                        )}
                       >
                         <div className="button-content">
                           <RackIcon className="selector-icon" size={18} />
@@ -257,9 +251,11 @@ export function StorageNavigator() {
                         </div>
                       </button>
 
-                      <div className={`selector-children-wrapper ${isRackExpanded ? 'expanded' : ''}`}>
+                      <div
+                        className={`selector-children-wrapper ${isRackExpanded ? 'expanded' : ''}`}
+                      >
                         <div className="selector-children-content">
-                          {rackBoxes.map((box) => {
+                          {rackBoxes.map(box => {
                             const boxSelected = isBoxSelected(tank.id, rack.id, box.id);
 
                             return (
@@ -273,13 +269,19 @@ export function StorageNavigator() {
                                   className={`selector-button box-button ${boxSelected ? 'selected' : ''}`}
                                   title={`${box.name} - ${getGridDisplayName(box.gridConfig)}`}
                                   data-button-id={`box-${tank.id}-${rack.id}-${box.id}`}
-                                  {...getItemProps(visibleItems.findIndex(item => item.id === `box-${tank.id}-${rack.id}-${box.id}`))}
+                                  {...getItemProps(
+                                    visibleItems.findIndex(
+                                      item => item.id === `box-${tank.id}-${rack.id}-${box.id}`
+                                    )
+                                  )}
                                 >
                                   <div className="button-content gap-0">
                                     <BoxIcon className="selector-icon" size={16} />
                                     <span className="box-text flex items-center gap-0">
                                       <span className="inline-block w-5 text-center">{box.id}</span>
-                                      <span>({box.gridConfig.rows}×{box.gridConfig.cols})</span>
+                                      <span>
+                                        ({box.gridConfig.rows}×{box.gridConfig.cols})
+                                      </span>
                                     </span>
                                   </div>
                                 </button>

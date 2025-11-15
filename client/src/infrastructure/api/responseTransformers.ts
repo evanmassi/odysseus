@@ -10,24 +10,25 @@
  */
 
 import { env } from '@shared/config';
+import { logger } from '@shared/infrastructure/logger';
 
 // Date field detection using naming patterns and explicit mappings
 const DATE_FIELD_PATTERNS = [
-  /.*[Dd]ate.*$/,        // createdDate, lastDate, updateDate
-  /.*[Aa]t$/,           // createdAt, updatedAt, lastActivity
-  /.*[Ee]xpiry$/,       // tokenExpiry, accessTokenExpiry
-  /.*[Ee]xpires$/,      // expires, sessionExpires
-  /.*[Tt]imestamp$/     // timestamp, lastTimestamp
+  /.*[Dd]ate.*$/, // createdDate, lastDate, updateDate
+  /.*[Aa]t$/, // createdAt, updatedAt, lastActivity
+  /.*[Ee]xpiry$/, // tokenExpiry, accessTokenExpiry
+  /.*[Ee]xpires$/, // expires, sessionExpires
+  /.*[Tt]imestamp$/, // timestamp, lastTimestamp
 ];
 
 // Exclude fields that match date patterns but are NOT dates
 const DATE_FIELD_EXCLUSIONS = [
-  /.*executionTime$/,    // API execution time in milliseconds
-  /.*responseTime$/,     // Response time metrics
-  /.*duration$/,         // Duration values
-  /.*timeout$/,          // Timeout values
-  /.*interval$/,         // Interval values
-  /.*delay$/,            // Delay values
+  /.*executionTime$/, // API execution time in milliseconds
+  /.*responseTime$/, // Response time metrics
+  /.*duration$/, // Duration values
+  /.*timeout$/, // Timeout values
+  /.*interval$/, // Interval values
+  /.*delay$/, // Delay values
 ];
 
 /**
@@ -35,24 +36,24 @@ const DATE_FIELD_EXCLUSIONS = [
  * Ensures bulletproof transformation for known types
  */
 const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
-  'TokenPair': new Set(['accessTokenExpiry', 'refreshTokenExpiry']),
-  'RefreshResponse': new Set(['accessTokenExpiry']),
-  'LoginResponse': new Set(['createdAt', 'accessTokenExpiry', 'refreshTokenExpiry', 'timestamp']),
-  'User': new Set(['lastActivity']),
-  'Person': new Set(['createdAt', 'updatedAt']),
-  'ActiveSession': new Set(['createdAt', 'lastUsedAt', 'expiresAt']),
-  'TubeData': new Set(['createdAt', 'updatedAt', 'date']),
-  'Researcher': new Set(['createdAt', 'updatedAt']),
-  'TankConfiguration': new Set(['createdAt', 'updatedAt']),
-  'LabConfiguration': new Set(['createdAt', 'updatedAt']),
-  'ConfigurationResponse': new Set(['createdAt', 'updatedAt']), // Handles nested configs (labs, tanks, racks, boxes)
-  'UserSettings': new Set([]), // User settings has no date fields
-  'UserSettingsResponse': new Set([]), // Response envelope for user settings
-  'AdminUser': new Set(['createdAt', 'lastActivity']),
-  'SystemMetrics': new Set(['lastBackup']),
-  'AuditLogEntry': new Set(['timestamp']),
-  'SocketEventPayload': new Set(['timestamp', 'updatedAt']), // Socket.IO configuration_updated events
-  'ConfigurationUpdateEvent': new Set(['timestamp', 'updatedAt']) // Socket.IO configuration events
+  TokenPair: new Set(['accessTokenExpiry', 'refreshTokenExpiry']),
+  RefreshResponse: new Set(['accessTokenExpiry']),
+  LoginResponse: new Set(['createdAt', 'accessTokenExpiry', 'refreshTokenExpiry', 'timestamp']),
+  User: new Set(['lastActivity']),
+  Person: new Set(['createdAt', 'updatedAt']),
+  ActiveSession: new Set(['createdAt', 'lastUsedAt', 'expiresAt']),
+  TubeData: new Set(['createdAt', 'updatedAt', 'date']),
+  Researcher: new Set(['createdAt', 'updatedAt']),
+  TankConfiguration: new Set(['createdAt', 'updatedAt']),
+  LabConfiguration: new Set(['createdAt', 'updatedAt']),
+  ConfigurationResponse: new Set(['createdAt', 'updatedAt']), // Handles nested configs (labs, tanks, racks, boxes)
+  UserSettings: new Set([]), // User settings has no date fields
+  UserSettingsResponse: new Set([]), // Response envelope for user settings
+  AdminUser: new Set(['createdAt', 'lastActivity']),
+  SystemMetrics: new Set(['lastBackup']),
+  AuditLogEntry: new Set(['timestamp']),
+  SocketEventPayload: new Set(['timestamp', 'updatedAt']), // Socket.IO configuration_updated events
+  ConfigurationUpdateEvent: new Set(['timestamp', 'updatedAt']), // Socket.IO configuration events
 };
 
 // Type-safe date field detection with exclusion patterns to prevent false positives
@@ -74,8 +75,9 @@ function isDateField(key: string, typeName?: string): boolean {
   // Warn in development when using regex fallback
   if (env.isDev() && matched) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty typeName should display as 'unknown'
-    // eslint-disable-next-line no-console -- Warning logging for production monitoring
-    console.warn(`⚠️ [API TRANSFORMER] Using regex fallback for field "${key}" in type "${typeName ?? 'unknown'}". Consider adding explicit mapping to EXPLICIT_DATE_FIELDS.`);
+    logger.warn(
+      `Using regex fallback for field "${key}" in type "${typeName ?? 'unknown'}". Consider adding explicit mapping to EXPLICIT_DATE_FIELDS.`
+    );
   }
 
   return matched;
@@ -104,16 +106,14 @@ function parseDate(value: unknown): Date | null {
 
     // Validate parsed date
     if (isNaN(parsed.getTime())) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn(`[API TRANSFORMER] Invalid date value: ${value}`);
+      logger.warn(`Invalid date value: ${value}`);
       return null;
     }
 
     return parsed;
   }
 
-  // eslint-disable-next-line no-console -- Warning logging for production monitoring
-  console.warn(`[API TRANSFORMER] Unparseable date type: ${typeof value}, value:`, value);
+  logger.warn(`Unparseable date type: ${typeof value}`, { value });
   return null;
 }
 
@@ -189,7 +189,7 @@ export const ResponseTransformers = {
   Researcher: (data: unknown) => transformApiResponse(data, 'Researcher'),
   AdminUser: (data: unknown) => transformApiResponse(data, 'AdminUser'),
   SystemMetrics: (data: unknown) => transformApiResponse(data, 'SystemMetrics'),
-  AuditLogEntry: (data: unknown) => transformApiResponse(data, 'AuditLogEntry')
+  AuditLogEntry: (data: unknown) => transformApiResponse(data, 'AuditLogEntry'),
 } as const;
 
 /**
@@ -240,12 +240,14 @@ export const TransformationDebug = {
 
     checkObject(obj);
     return result;
-  }
+  },
 };
 
 /**
  * Export for development debugging
  */
 if (env.isDev()) {
-  (window as Window & { __ODYSSEUS_API_TRANSFORMER_DEBUG__?: typeof TransformationDebug }).__ODYSSEUS_API_TRANSFORMER_DEBUG__ = TransformationDebug;
+  (
+    window as Window & { __ODYSSEUS_API_TRANSFORMER_DEBUG__?: typeof TransformationDebug }
+  ).__ODYSSEUS_API_TRANSFORMER_DEBUG__ = TransformationDebug;
 }

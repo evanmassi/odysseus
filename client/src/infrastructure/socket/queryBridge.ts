@@ -17,6 +17,7 @@ import { tubeDataSchema, type TubeData, type Researcher } from '@odysseus/shared
 import { z } from 'zod';
 
 import { queryKeys } from '@app/queryKeys';
+import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
 import type { QueryClient } from '@tanstack/react-query';
@@ -127,8 +128,7 @@ export class SocketQueryBridge {
    */
   public initializeSocket(socket: Socket): void {
     if (this.isInitialized) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('⚠️ [SocketBridge] Already initialized, skipping duplicate initialization');
+      logger.warn('Socket bridge already initialized, skipping duplicate initialization');
       return;
     }
 
@@ -209,8 +209,7 @@ export class SocketQueryBridge {
 
     this.socket.on('disconnect', (reason: string) => {
       this.isConnected = false;
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('⚠️ [SocketBridge] Disconnected from server', {
+      logger.warn('Disconnected from server', {
         reason,
         timestamp: new Date().toISOString(),
       });
@@ -222,8 +221,7 @@ export class SocketQueryBridge {
     });
 
     this.socket.on('connect_error', (error: Error) => {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [SocketBridge] Connection error:', {
+      logger.error('Socket connection error', {
         error: error.message,
         stack: error.stack,
         timestamp: new Date().toISOString(),
@@ -281,8 +279,7 @@ export class SocketQueryBridge {
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [SocketBridge] Invalid tube_created event:', error);
+        logger.error('Invalid tube_created event', { error });
       }
     });
 
@@ -321,8 +318,7 @@ export class SocketQueryBridge {
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [SocketBridge] Invalid tube_updated event:', error);
+        logger.error('Invalid tube_updated event', { error });
       }
     });
 
@@ -355,8 +351,7 @@ export class SocketQueryBridge {
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [SocketBridge] Invalid tube_deleted event:', error);
+        logger.error('Invalid tube_deleted event', { error });
       }
     });
 
@@ -397,8 +392,7 @@ export class SocketQueryBridge {
         });
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [SocketBridge] Invalid tubes_bulk_updated event:', error);
+        logger.error('Invalid tubes_bulk_updated event', { error });
       }
     });
   }
@@ -425,8 +419,7 @@ export class SocketQueryBridge {
         // Invalidate tube statistics (researcher affects stats)
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [SocketBridge] Invalid researcher_created event:', error);
+        logger.error('Invalid researcher_created event', { error });
       }
     });
 
@@ -448,8 +441,7 @@ export class SocketQueryBridge {
         // Invalidate tube statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [SocketBridge] Invalid researcher_updated event:', error);
+        logger.error('Invalid researcher_updated event', { error });
       }
     });
 
@@ -469,8 +461,7 @@ export class SocketQueryBridge {
         // Invalidate tube statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [SocketBridge] Invalid researcher_deleted event:', error);
+        logger.error('Invalid researcher_deleted event', { error });
       }
     });
   }
@@ -485,8 +476,7 @@ export class SocketQueryBridge {
         const { eventTypes, eventCount, updatedAt, changedBy } =
           configurationEventSchemas.configuration_updated.parse(data);
 
-        // eslint-disable-next-line no-console -- Info logging for operational visibility
-        console.log(`🔔 [SocketBridge] Configuration updated event received`, {
+        logger.info('Configuration updated event received', {
           eventTypes,
           eventCount,
           updatedAt,
@@ -503,8 +493,7 @@ export class SocketQueryBridge {
         }
       } catch (error) {
         // Log detailed error information for debugging
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('❌ [SocketBridge] Error handling configuration_updated event:', {
+        logger.error('Error handling configuration_updated event', {
           error: error instanceof Error ? error.message : String(error),
           stack: error instanceof Error ? error.stack : undefined,
           receivedData: data,
@@ -517,11 +506,7 @@ export class SocketQueryBridge {
             queryKey: queryKeys.storage.storage(),
           });
         } catch (fallbackError) {
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error(
-            '❌ [SocketBridge] Critical: Failed to invalidate cache in error handler:',
-            fallbackError
-          );
+          logger.error('Critical: Failed to invalidate cache in error handler', { fallbackError });
           // Last resort: show user notification to refresh
           notifications.error('Configuration sync error. Please refresh the page.');
         }
@@ -564,8 +549,7 @@ export class SocketQueryBridge {
 
         // Detect database reset (version went backward)
         if (newVersion < currentVersion) {
-          // eslint-disable-next-line no-console -- Warning logging for production monitoring
-          console.warn('⚠️ [SocketBridge] Database reset detected!', {
+          logger.warn('Database reset detected', {
             previous: currentVersion,
             current: newVersion,
             difference: currentVersion - newVersion,
@@ -580,8 +564,7 @@ export class SocketQueryBridge {
           try {
             localStorage.removeItem('odysseus-configuration-store');
           } catch (clearError) {
-            // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-            console.error('❌ [SocketBridge] Failed to clear localStorage:', clearError);
+            logger.error('Failed to clear localStorage', { clearError });
           }
         }
 
@@ -594,8 +577,7 @@ export class SocketQueryBridge {
       // If we can't determine versions, assume it changed to be safe
       return true;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [SocketBridge] Error checking configuration version:', error);
+      logger.error('Error checking configuration version', { error });
       // On error, assume it changed to be safe
       return true;
     }
@@ -674,14 +656,12 @@ export class SocketQueryBridge {
     });
 
     this.socket.on('reconnect_failed', () => {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [SocketBridge] Failed to reconnect to server after all attempts');
+      logger.error('Failed to reconnect to server after all attempts');
       notifications.error('Failed to reconnect to server. Please refresh the page.');
     });
 
     this.socket.on('reconnect_error', (error: Error) => {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [SocketBridge] Reconnection error:', error);
+      logger.error('Reconnection error', { error });
     });
   }
 

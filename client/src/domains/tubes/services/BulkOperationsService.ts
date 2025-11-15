@@ -5,13 +5,14 @@
  */
 
 import { httpClient } from '@infra/api/httpClient';
+import { logger } from '@shared/infrastructure/logger';
 
 import type {
   BulkUpdateItem,
   BulkUpdateProgress,
   BulkUpdateError,
   BulkProgressCallback,
-  BulkUpdateResult
+  BulkUpdateResult,
 } from '@shared/types/bulkOperations';
 
 /**
@@ -30,8 +31,7 @@ export class BulkOperationsService {
       const response = await httpClient.get<{ status: string }>('/health');
       return response.data.status === 'healthy';
     } catch (error) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('Server health check failed, falling back to individual updates');
+      logger.warn('Server health check failed, falling back to individual updates', { error });
       return false;
     }
   }
@@ -40,7 +40,7 @@ export class BulkOperationsService {
    * Perform bulk update with progress tracking
    */
   async bulkUpdateTubes(
-    updates: BulkUpdateItem[], 
+    updates: BulkUpdateItem[],
     onProgress?: BulkProgressCallback
   ): Promise<BulkUpdateResult> {
     const startTime = Date.now();
@@ -55,7 +55,7 @@ export class BulkOperationsService {
       current: 0,
       total: updates.length,
       phase: 'preparing',
-      errors: []
+      errors: [],
     });
 
     try {
@@ -66,10 +66,8 @@ export class BulkOperationsService {
 
       // Single batch processing
       return await this.processSingleBatch(updates, onProgress, startTime);
-      
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Bulk update failed:', error);
+      logger.error('Bulk update failed', { error });
       return {
         success: false,
         totalProcessed: 0,
@@ -79,20 +77,24 @@ export class BulkOperationsService {
         errorCount: 1,
         total: updates.length,
         results: [],
-        errors: [{
-          itemId: 'system',
-          tubeId: 'system',
-          error: error instanceof Error ? error.message : 'Unknown error'
-        }],
+        errors: [
+          {
+            itemId: 'system',
+            tubeId: 'system',
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        ],
         duration: Date.now() - startTime,
         response: {
           updated: 0,
-          errors: [{
-            itemId: 'system',
-            tubeId: 'system',
-            error: error instanceof Error ? error.message : 'Unknown error'
-          }]
-        }
+          errors: [
+            {
+              itemId: 'system',
+              tubeId: 'system',
+              error: error instanceof Error ? error.message : 'Unknown error',
+            },
+          ],
+        },
       };
     }
   }
@@ -115,17 +117,17 @@ export class BulkOperationsService {
 
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
-      
+
       onProgress?.({
         completed: i * BulkOperationsService.BATCH_SIZE,
         current: i * BulkOperationsService.BATCH_SIZE,
         total: updates.length,
         phase: 'updating',
-        errors: allErrors
+        errors: allErrors,
       });
 
       const batchResult = await this.processSingleBatch(batch, onProgress);
-      
+
       if (batchResult.response) {
         totalUpdated += batchResult.response.updated;
         allErrors = [...allErrors, ...batchResult.response.errors];
@@ -150,8 +152,8 @@ export class BulkOperationsService {
       duration: Date.now() - startTime,
       response: {
         updated: totalUpdated,
-        errors: allErrors
-      }
+        errors: allErrors,
+      },
     };
   }
 
@@ -170,7 +172,7 @@ export class BulkOperationsService {
         current: 0,
         total: updates.length,
         phase: 'updating',
-        errors: []
+        errors: [],
       });
 
       const response = await httpClient.put<{
@@ -182,13 +184,13 @@ export class BulkOperationsService {
       }>('/tubes/bulk-update', { updates });
 
       const result = response.data;
-      
+
       onProgress?.({
         current: result.updated,
         total: result.total,
         completed: result.updated,
         phase: 'completing',
-        errors: result.errors || []
+        errors: result.errors || [],
       });
 
       return {
@@ -204,17 +206,17 @@ export class BulkOperationsService {
         duration: Date.now() - startTime,
         response: {
           updated: result.updated,
-          errors: result.errors || []
-        }
+          errors: result.errors || [],
+        },
       };
-
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error(`Bulk update attempt ${retryCount + 1} failed:`, error);
-      
+      logger.error(`Bulk update attempt ${retryCount + 1} failed`, { error });
+
       // Retry logic for transient errors
       if (retryCount < BulkOperationsService.MAX_RETRIES) {
-        await new Promise(resolve => setTimeout(resolve, BulkOperationsService.RETRY_DELAY * (retryCount + 1)));
+        await new Promise(resolve =>
+          setTimeout(resolve, BulkOperationsService.RETRY_DELAY * (retryCount + 1))
+        );
         return await this.processSingleBatch(updates, onProgress, startTime, retryCount + 1);
       }
 
@@ -239,29 +241,29 @@ export class BulkOperationsService {
       total: updates.length,
       completed: 0,
       phase: 'preparing',
-      errors: []
+      errors: [],
     });
 
     for (let i = 0; i < updates.length; i++) {
       const { id, data: tubeUpdates } = updates[i];
-      
+
       try {
         const success = await tubeStore.updateTube(id, tubeUpdates, '');
-        
+
         if (success) {
           updated++;
         } else {
           errors.push({
             itemId: id,
             tubeId: id,
-            error: 'Update failed'
+            error: 'Update failed',
           });
         }
       } catch (error) {
         errors.push({
           itemId: id,
           tubeId: id,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? error.message : 'Unknown error',
         });
       }
 
@@ -271,7 +273,7 @@ export class BulkOperationsService {
         total: updates.length,
         completed: updated,
         phase: 'updating',
-        errors: errors
+        errors: errors,
       });
 
       // Small delay to prevent overwhelming the server
@@ -285,7 +287,7 @@ export class BulkOperationsService {
       total: updates.length,
       completed: updated,
       phase: 'completing',
-      errors: errors
+      errors: errors,
     });
 
     return {
@@ -301,8 +303,8 @@ export class BulkOperationsService {
       duration: 0,
       response: {
         updated,
-        errors
-      }
+        errors,
+      },
     };
   }
 }

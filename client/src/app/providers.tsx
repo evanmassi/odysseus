@@ -1,6 +1,6 @@
 /**
  * Application Providers Setup
- * 
+ *
  * Clean composition root that eliminates provider hell from App.tsx.
  * Centralizes all app-wide providers in proper order.
  */
@@ -12,10 +12,11 @@ import { Toaster } from 'react-hot-toast';
 
 // Performance debugging removed for clean build
 import { env } from '@shared/config';
-import { 
-  ConnectionStatusIndicator, 
-  RealtimeSyncIndicator, 
-  OfflineBanner 
+import { logger } from '@shared/infrastructure/logger';
+import {
+  ConnectionStatusIndicator,
+  RealtimeSyncIndicator,
+  OfflineBanner,
 } from '@shared/ui/components/ConnectionStatusIndicator';
 
 import { queryClient } from './queryClient';
@@ -31,18 +32,16 @@ export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       {/* React Query DevTools - only in development */}
-      {env.isDev() && (
-        <ReactQueryDevtools initialIsOpen={false} />
-      )}
-      
+      {env.isDev() && <ReactQueryDevtools initialIsOpen={false} />}
+
       {/* Cache Performance Monitoring - only in development */}
       {/* Performance debugging removed for clean build */}
-      
+
       {/* Connection Status & Real-time Indicators */}
       <OfflineBanner />
       <RealtimeSyncIndicator />
       <ConnectionStatusIndicator />
-      
+
       {/* Toast notifications */}
       <Toaster
         position="top-right"
@@ -56,7 +55,7 @@ export function Providers({ children }: ProvidersProps) {
           },
         }}
       />
-      
+
       {children}
     </QueryClientProvider>
   );
@@ -70,10 +69,7 @@ interface ErrorBoundaryState {
   error?: Error;
 }
 
-export class ErrorBoundary extends Component<
-  { children: React.ReactNode },
-  ErrorBoundaryState
-> {
+export class ErrorBoundary extends Component<{ children: React.ReactNode }, ErrorBoundaryState> {
   constructor(props: { children: React.ReactNode }) {
     super(props);
     this.state = { hasError: false };
@@ -84,8 +80,7 @@ export class ErrorBoundary extends Component<
   }
 
   override componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-    console.error('App Error Boundary:', error, errorInfo);
+    logger.error('App Error Boundary caught error', { error, errorInfo });
   }
 
   override render() {
@@ -97,10 +92,7 @@ export class ErrorBoundary extends Component<
             <p className="text-odysseus-muted mb-4">
               An unexpected error occurred. Please try refreshing the page.
             </p>
-            <button
-              onClick={() => window.location.reload()}
-              className="btn btn-primary w-full"
-            >
+            <button onClick={() => window.location.reload()} className="btn btn-primary w-full">
               Refresh Page
             </button>
           </div>
@@ -118,9 +110,7 @@ export class ErrorBoundary extends Component<
 export function AppProviders({ children }: ProvidersProps) {
   return (
     <ErrorBoundary>
-      <Providers>
-        {children}
-      </Providers>
+      <Providers>{children}</Providers>
     </ErrorBoundary>
   );
 }

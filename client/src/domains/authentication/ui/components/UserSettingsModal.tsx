@@ -10,20 +10,20 @@ import { X, Save, RefreshCw, Cog, Table2, UserRound, Shield, AlertTriangle } fro
 
 import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';
 
 import { useUserSettings, useUserSettingsActions } from '../../hooks/useUserSettings';
 
 import type { UserSettings, PositionDisplayPreference } from '@odysseus/shared-schemas';
 
-
 // Lazy-load tab components for code splitting
 const PositionDisplayPreferenceTab = lazy(() =>
-  import('./tabs/PositionDisplayPreferenceTab').then(m => ({ default: m.PositionDisplayPreferenceTab }))
+  import('./tabs/PositionDisplayPreferenceTab').then(m => ({
+    default: m.PositionDisplayPreferenceTab,
+  }))
 );
-const AccountTab = lazy(() =>
-  import('./tabs/AccountTab').then(m => ({ default: m.AccountTab }))
-);
+const AccountTab = lazy(() => import('./tabs/AccountTab').then(m => ({ default: m.AccountTab })));
 const SecurityTab = lazy(() =>
   import('./tabs/SecurityTab').then(m => ({ default: m.SecurityTab }))
 );
@@ -73,14 +73,12 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
           onClose();
         },
         onError: (error: Error) => {
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error('❌ [UserSettingsModal] Save failed:', error);
+          logger.error('UserSettingsModal save failed', { error });
           notifications.error(`Failed to save settings: ${error.message}`);
         },
       });
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [UserSettingsModal] Failed to save settings:', error);
+      logger.error('UserSettingsModal failed to save settings', { error });
       notifications.error('Failed to save settings');
     }
   };
@@ -196,11 +194,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
                 disabled={isSaving || !hasChanges}
                 className="btn btn-primary flex items-center space-x-2 text-sm px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isSaving ? (
-                  <RefreshCw size={14} className="animate-spin" />
-                ) : (
-                  <Save size={14} />
-                )}
+                {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
                 <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
               </button>
             </div>

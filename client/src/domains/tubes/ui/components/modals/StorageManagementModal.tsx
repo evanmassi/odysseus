@@ -12,6 +12,7 @@ import {
   createRackFromDefaults,
   getNextTankNumber,
 } from '@domains/storage';
+import { logger } from '@shared/infrastructure/logger';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils/notifications';
 
@@ -291,8 +292,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
           notifications.success('Tank deleted successfully');
         } catch (error) {
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error('Failed to delete tank:', error);
+          logger.error('Failed to delete tank', { error });
           notifications.error('Failed to delete tank. Please try again.');
         } finally {
           modalService.hideDeleteConfirm();
@@ -607,8 +607,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       template
                     );
                   } catch (error) {
-                    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-                    console.error('Failed to update box grid:', error);
+                    logger.error('Failed to update box grid', { error });
                     notifications.error('Failed to save changes. Please try again.');
                   }
                 })();
@@ -671,8 +670,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                             template
                           );
                         } catch (error) {
-                          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-                          console.error('Failed to update box grid:', error);
+                          logger.error('Failed to update box grid', { error });
                           notifications.error('Failed to save changes. Please try again.');
                         }
                       })();
@@ -705,8 +703,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       isActive: editingRack.rack.isActive,
                     });
                   } catch (error) {
-                    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-                    console.error('Failed to update rack:', error);
+                    logger.error('Failed to update rack', { error });
                     notifications.error('Failed to save changes. Please try again.');
                   }
                 })();
@@ -832,8 +829,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       isActive: editingTank.isActive,
                     });
                   } catch (error) {
-                    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-                    console.error('Failed to update tank:', error);
+                    logger.error('Failed to update tank', { error });
                     notifications.error('Failed to save changes. Please try again.');
                   }
                 })();
@@ -966,8 +962,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                             isActive: editingTank.isActive,
                           });
                         } catch (error) {
-                          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-                          console.error('Failed to update tank:', error);
+                          logger.error('Failed to update tank', { error });
                           notifications.error('Failed to save changes. Please try again.');
                         }
                       })();

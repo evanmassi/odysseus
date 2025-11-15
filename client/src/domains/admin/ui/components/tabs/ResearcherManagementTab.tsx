@@ -15,6 +15,7 @@ import { useState, useEffect } from 'react';
 
 import { RefreshCw, AlertCircle, Trash2, Plus } from 'lucide-react';
 
+import { logger } from '@shared/infrastructure/logger';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils';
 
@@ -22,8 +23,6 @@ import { adminService } from '../../../services/AdminService';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
-
-
 
 /**
  * ResearcherManagementTab Props Interface
@@ -51,9 +50,7 @@ export interface ResearcherManagementTabProps {
  * />
  * ```
  */
-export function ResearcherManagementTab({
-  onResearcherUpdate,
-}: ResearcherManagementTabProps) {
+export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManagementTabProps) {
   const [researchers, setResearchers] = useState<AdminResearcher[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -83,8 +80,7 @@ export function ResearcherManagementTab({
         setResearchers(sorted);
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to load researchers:', error);
+      logger.error('Failed to load researchers', { error });
       notifications.error('Failed to load researchers');
     } finally {
       setLoading(false);
@@ -109,11 +105,17 @@ export function ResearcherManagementTab({
     }
 
     if (researcher.linkedUserId) {
-      notifications.error(`Cannot delete researcher linked to user account "${researcher.linkedUsername}"`);
+      notifications.error(
+        `Cannot delete researcher linked to user account "${researcher.linkedUsername}"`
+      );
       return;
     }
 
-    if (!confirm(`Are you sure you want to delete researcher "${researcherName}"? This action cannot be undone.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to delete researcher "${researcherName}"? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -129,11 +131,12 @@ export function ResearcherManagementTab({
         notifications.error('Failed to delete researcher');
       }
     } catch (error: unknown) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to delete researcher:', error);
+      logger.error('Failed to delete researcher', { error });
 
       // Extract error message from API response
-      const errorMessage = (error as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Failed to delete researcher';
+      const errorMessage =
+        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Failed to delete researcher';
       notifications.error(errorMessage);
     } finally {
       setDeleting(null);
@@ -226,7 +229,7 @@ export function ResearcherManagementTab({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {researchers.length > 0 ? (
-              researchers.map((researcher) => (
+              researchers.map(researcher => (
                 <tr key={researcher.id} className="hover:bg-gray-50">
                   {/* Researcher Info Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
@@ -302,7 +305,9 @@ export function ResearcherManagementTab({
                       }
                       disabled={!canDelete(researcher) || deleting === researcher.id}
                       className="flex items-center space-x-1 px-2 py-1 bg-danger-bg text-white rounded-lg hover:bg-danger-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs font-medium"
-                      title={!canDelete(researcher) ? getDeletionStatus(researcher) : 'Delete researcher'}
+                      title={
+                        !canDelete(researcher) ? getDeletionStatus(researcher) : 'Delete researcher'
+                      }
                     >
                       {deleting === researcher.id ? (
                         <RefreshCw size={12} className="animate-spin" />
@@ -353,7 +358,8 @@ export function ResearcherManagementTab({
               <AlertCircle size={10} className="text-white" />
             </div>
             <p className="text-xs text-action-hover/90">
-              <strong className="text-action-hover">Safe Deletion:</strong> Researchers can only be deleted with zero tubes and no linked user.
+              <strong className="text-action-hover">Safe Deletion:</strong> Researchers can only be
+              deleted with zero tubes and no linked user.
             </p>
           </div>
         </div>

@@ -4,14 +4,18 @@ import { gridNavigationService } from '@domains/grid';
 import { useStorageStore } from '@domains/storage';
 import { useConfigurationSync } from '@domains/storage/hooks/useConfigurationSync';
 import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
-import { useTubeStore , TubeInfoPanel } from '@domains/tubes';
+import { useTubeStore, TubeInfoPanel } from '@domains/tubes';
 import { useTubesByLocation } from '@domains/tubes/hooks';
-import { useBulkDeleteTubesMutation, usePasteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';
+import {
+  useBulkDeleteTubesMutation,
+  usePasteTubesMutation,
+} from '@domains/tubes/hooks/useTubeMutations';
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
 import { BatchTubeEditorModal } from '@domains/tubes/ui/components/modals/BatchTubeEditorModal';
 import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
 import { OverwriteConfirmDialog } from '@domains/tubes/ui/components/modals/OverwriteConfirmDialog';
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
+import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey } from '@shared/types/grid';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
@@ -22,7 +26,10 @@ import { useModalStore } from '../../stores/modalStore';
 
 import { AppHeader } from './AppHeader';
 
-import type { StorageHierarchy, SelectedLocation } from '@domains/storage/ui/components/storage-navigator';
+import type {
+  StorageHierarchy,
+  SelectedLocation,
+} from '@domains/storage/ui/components/storage-navigator';
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey } from '@shared/types/grid';
 
@@ -51,18 +58,12 @@ export function Dashboard() {
   useConfigurationSync();
 
   // ARCHITECTURAL IMPROVEMENT: Only UI state from TubeStore, React Query handles data
-  const {
-    currentTank,
-    currentRack,
-    currentBox,
-    selectedPositions,
-    setSelection,
-    clearSelection
-  } = useTubeStore(); // Only UI state, server data handled by React Query in components
+  const { currentTank, currentRack, currentBox, selectedPositions, setSelection, clearSelection } =
+    useTubeStore(); // Only UI state, server data handled by React Query in components
 
   // Server state from React Query for selection analysis
   const { data: tubes = [] } = useTubesByLocation(currentTank, currentRack, currentBox);
-  
+
   // Socket connection is now managed centrally by AppBootstrapService
   // Real-time updates are handled automatically via Socket → Query Cache Bridge
   // No manual socket management needed in components
@@ -90,63 +91,63 @@ export function Dashboard() {
     return activeElement && storageNavigatorRef.current?.contains(activeElement);
   };
 
-
-
-
-
   // Auth store subscribed for reactive updates
 
   const getCurrentTanks = useStorageStore(state => state.getCurrentTanks);
-  
+
   // Get actual tank and rack names for display
   const tanks = getCurrentTanks();
   const currentTankObj = tanks.find(tank => tank.id === currentTank);
   const tankDisplayName = currentTankObj?.name ?? `Tank ${currentTank}`;
-  
+
   const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === currentRack);
   const rackDisplayName = currentRackObj?.name ?? `Rack ${currentRack}`;
   const modalService = useModalStore();
 
-  const storageHierarchy: StorageHierarchy = useMemo(() => ({
-    tanks: tanks.map(tank => ({
-      id: tank.id,
-      name: tank.name,
-      racks: tank.racks.map(rack => ({
-        id: rack.id,
-        name: rack.name,
-        boxes: rack.boxes
-          .filter(box => box.position !== undefined)
-          .map(box => ({
-            id: box.id,
-            name: box.name,
-            position: box.position!
-          }))
-      }))
-    }))
-  }), [tanks]);
+  const storageHierarchy: StorageHierarchy = useMemo(
+    () => ({
+      tanks: tanks.map(tank => ({
+        id: tank.id,
+        name: tank.name,
+        racks: tank.racks.map(rack => ({
+          id: rack.id,
+          name: rack.name,
+          boxes: rack.boxes
+            .filter(box => box.position !== undefined)
+            .map(box => ({
+              id: box.id,
+              name: box.name,
+              position: box.position!,
+            })),
+        })),
+      })),
+    }),
+    [tanks]
+  );
 
-  const selectedLocation: SelectedLocation = useMemo(() => ({
-    tankId: currentTank,
-    rackId: currentRack,
-    boxId: currentBox
-  }), [currentTank, currentRack, currentBox]);
+  const selectedLocation: SelectedLocation = useMemo(
+    () => ({
+      tankId: currentTank,
+      rackId: currentRack,
+      boxId: currentBox,
+    }),
+    [currentTank, currentRack, currentBox]
+  );
 
   const handleStorageNavigationSelect = async (location: SelectedLocation) => {
     if (!location.tankId || !location.rackId || !location.boxId) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Invalid location: missing required fields', location);
+      logger.error('Invalid location: missing required fields', { location });
       return;
     }
 
     const result = await gridNavigationService.navigateToLocation({
       tankId: location.tankId,
       rackId: location.rackId,
-      boxId: location.boxId
+      boxId: location.boxId,
     });
 
     if (!result.success) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Navigation failed:', result.error);
+      logger.error('Navigation failed', { error: result.error });
       notifications.error(`Navigation failed: ${result.error}`);
     }
   };
@@ -166,7 +167,7 @@ export function Dashboard() {
       positions: positionKeys,
       rackId: currentRack,
       boxId: currentBox,
-      preserveSelection: positionKeys.length > 1  // Preserve multi-selection for batch adds
+      preserveSelection: positionKeys.length > 1, // Preserve multi-selection for batch adds
     });
   };
 
@@ -179,14 +180,13 @@ export function Dashboard() {
     const tubeId = typeof input === 'string' ? input : input.id;
 
     if (!tubeId) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('[Dashboard] handleEditTube called with invalid input:', input);
+      logger.warn('handleEditTube called with invalid input', { input });
       return;
     }
 
     modalService.showTubeEditorModal({
       mode: 'edit',
-      tubeId
+      tubeId,
     });
   };
 
@@ -198,12 +198,11 @@ export function Dashboard() {
   const handleBatchEditTubes = (inputs: Array<string | TubeData>) => {
     // Normalize: extract IDs from objects or use string IDs directly
     const tubeIds = inputs
-      .map(item => typeof item === 'string' ? item : item.id)
+      .map(item => (typeof item === 'string' ? item : item.id))
       .filter((id): id is string => Boolean(id));
 
     if (tubeIds.length === 0) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('[Dashboard] Batch edit requested but no valid tube IDs found:', inputs);
+      logger.warn('Batch edit requested but no valid tube IDs found', { inputs });
       return;
     }
 
@@ -216,7 +215,7 @@ export function Dashboard() {
     modalService.showTubeEditorModal({
       mode: 'batch',
       tubeIds,
-      preserveSelection: true  // Maintain multi-selection after batch operation
+      preserveSelection: true, // Maintain multi-selection after batch operation
     });
   };
 
@@ -232,7 +231,6 @@ export function Dashboard() {
     clearSelection();
   };
 
-
   // Selection analysis for header
   const selectionAnalysis = (() => {
     if (selectedPositions.size === 0) {
@@ -243,30 +241,32 @@ export function Dashboard() {
         hasEmpty: false,
         hasFilled: false,
         isMixed: false,
-        totalSelected: 0
+        totalSelected: 0,
       };
     }
 
     const selectedTubes = Array.from(selectedPositions || [])
       .map(key => {
         const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return tubes.find(t =>
-          t.location.tankId === tankId &&
-          t.location.rackId === rackId &&
-          t.location.boxId === boxId &&
-          t.location.position === position
+        return tubes.find(
+          t =>
+            t.location.tankId === tankId &&
+            t.location.rackId === rackId &&
+            t.location.boxId === boxId &&
+            t.location.position === position
         );
       })
       .filter((tube): tube is TubeData => tube !== undefined);
-    
+
     const emptyPositions = new Set(
       Array.from(selectedPositions || []).filter(key => {
         const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return !tubes.find(t =>
-          t.location.tankId === tankId &&
-          t.location.rackId === rackId &&
-          t.location.boxId === boxId &&
-          t.location.position === position
+        return !tubes.find(
+          t =>
+            t.location.tankId === tankId &&
+            t.location.rackId === rackId &&
+            t.location.boxId === boxId &&
+            t.location.position === position
         );
       })
     );
@@ -274,11 +274,12 @@ export function Dashboard() {
     const filledPositions = new Set(
       Array.from(selectedPositions || []).filter(key => {
         const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return tubes.find(t =>
-          t.location.tankId === tankId &&
-          t.location.rackId === rackId &&
-          t.location.boxId === boxId &&
-          t.location.position === position
+        return tubes.find(
+          t =>
+            t.location.tankId === tankId &&
+            t.location.rackId === rackId &&
+            t.location.boxId === boxId &&
+            t.location.position === position
         );
       })
     );
@@ -290,10 +291,9 @@ export function Dashboard() {
       hasEmpty: emptyPositions.size > 0,
       hasFilled: filledPositions.size > 0,
       isMixed: emptyPositions.size > 0 && filledPositions.size > 0,
-      totalSelected: selectedPositions.size
+      totalSelected: selectedPositions.size,
     };
   })();
-
 
   // SINGLE GRID CONTROLLER INSTANCE - All other components receive actions as props
   const gridController = useGridController({
@@ -306,12 +306,14 @@ export function Dashboard() {
       await bulkDeleteTubesMutation.mutateAsync({ tubeIds });
 
       if (!silent) {
-        notifications.success(`Successfully deleted ${tubeIds.length} tube${tubeIds.length > 1 ? 's' : ''}`);
+        notifications.success(
+          `Successfully deleted ${tubeIds.length} tube${tubeIds.length > 1 ? 's' : ''}`
+        );
       }
     },
-    onPasteTubes: async (tubes) => {
+    onPasteTubes: async tubes => {
       await pasteTubesMutation.mutateAsync({ tubes });
-    }
+    },
   });
 
   return (
@@ -332,11 +334,11 @@ export function Dashboard() {
             getCopyLabel: gridController.getCopyLabel,
             getCutLabel: gridController.getCutLabel,
             getPasteLabel: gridController.getPasteLabel,
-            selection: gridController.selection
+            selection: gridController.selection,
           }}
         />
       </div>
-      
+
       {/* Height-Driven Main Layout */}
       <div className="main-layout">
         {/* Storage Navigator - Tank/Rack/Box */}
@@ -366,7 +368,9 @@ export function Dashboard() {
         <div className="grid-section">
           <div className="component-card">
             <div className="component-title">
-              <h4>{tankDisplayName} • {rackDisplayName} • Box {currentBox}</h4>
+              <h4>
+                {tankDisplayName} • {rackDisplayName} • Box {currentBox}
+              </h4>
             </div>
             <div className="grid-container" ref={gridContainerRef}>
               <ErrorBoundary>
@@ -375,7 +379,9 @@ export function Dashboard() {
                   rackId={currentRack}
                   boxId={currentBox}
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for conditional selection
-                  selectedPositions={isStorageNavigatorFocused() || isSelectorActive ? new Set() : selectedPositions}
+                  selectedPositions={
+                    isStorageNavigatorFocused() || isSelectorActive ? new Set() : selectedPositions
+                  }
                   onSelectionChange={handleSelectionChange}
                   _onEditTube={handleEditTube}
                   _onBatchEditTubes={handleBatchEditTubes}
@@ -394,9 +400,7 @@ export function Dashboard() {
               <h4>Tube Information</h4>
             </div>
             <div className="component-body">
-              <TubeInfoPanel 
-                selectedTubes={selectionAnalysis.selectedTubes}
-              />
+              <TubeInfoPanel selectedTubes={selectionAnalysis.selectedTubes} />
             </div>
           </div>
         </div>
@@ -404,10 +408,7 @@ export function Dashboard() {
 
       {/* Unified Tube Modal - Rendered based on modalStore state */}
       {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'add' && (
-        <SuspenseBoundary
-          fallback={<ModalSkeleton size="lg" />}
-          name="TubeEditorModal"
-        >
+        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal">
           <TubeEditorModal
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
             rackId={modalService.tubeEditorModal.rackId || currentRack}
@@ -420,10 +421,7 @@ export function Dashboard() {
       )}
 
       {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'edit' && (
-        <SuspenseBoundary
-          fallback={<ModalSkeleton size="lg" />}
-          name="TubeEditorModal"
-        >
+        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal">
           <TubeEditorModal
             tubeId={modalService.tubeEditorModal.tubeId}
             onClose={handleCloseModal}
@@ -431,25 +429,25 @@ export function Dashboard() {
         </SuspenseBoundary>
       )}
 
-      {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'batch' && modalService.tubeEditorModal.tubeIds && (() => {
-        // Resolve tube IDs to tube objects for BatchEditModal
-        const resolvedTubes = modalService.tubeEditorModal.tubeIds!
-          .map(id => tubes.find(t => t.id === id))
-          .filter((tube): tube is TubeData => tube !== undefined);
+      {modalService.tubeEditorModal.isOpen &&
+        modalService.tubeEditorModal.mode === 'batch' &&
+        modalService.tubeEditorModal.tubeIds &&
+        (() => {
+          // Resolve tube IDs to tube objects for BatchEditModal
+          const resolvedTubes = modalService.tubeEditorModal
+            .tubeIds!.map(id => tubes.find(t => t.id === id))
+            .filter((tube): tube is TubeData => tube !== undefined);
 
-        return (
-          <SuspenseBoundary
-            fallback={<ModalSkeleton size="lg" />}
-            name="BatchTubeEditorModal"
-          >
-            <BatchTubeEditorModal
-              tubeIds={modalService.tubeEditorModal.tubeIds}
-              tubes={resolvedTubes}
-              onClose={handleCloseModal}
-            />
-          </SuspenseBoundary>
-        );
-      })()}
+          return (
+            <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="BatchTubeEditorModal">
+              <BatchTubeEditorModal
+                tubeIds={modalService.tubeEditorModal.tubeIds}
+                tubes={resolvedTubes}
+                onClose={handleCloseModal}
+              />
+            </SuspenseBoundary>
+          );
+        })()}
 
       {/* Unified System Delete Confirmation Dialog */}
       <DeleteConfirmDialog

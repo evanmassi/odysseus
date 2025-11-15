@@ -1,7 +1,13 @@
-import { useState, useMemo , useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
-
-import { type CreateTubeFormInput, type CreateTubeRequest, type UpdateTubeRequest, updateTubeRequestSchema, formatConcentrationDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+import {
+  type CreateTubeFormInput,
+  type CreateTubeRequest,
+  type UpdateTubeRequest,
+  updateTubeRequestSchema,
+  formatConcentrationDisplay,
+  EQUIPMENT_DEFAULTS,
+} from '@odysseus/shared-schemas';
 import { AlertCircle, XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
@@ -11,9 +17,13 @@ import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
 import { useCreateTubeForm } from '@domains/tubes/hooks/useTubeForm';
-import { useBulkUpdateTubesMutation, useBulkDeleteTubesMutation } from '@domains/tubes/hooks/useTubeMutations';
+import {
+  useBulkUpdateTubesMutation,
+  useBulkDeleteTubesMutation,
+} from '@domains/tubes/hooks/useTubeMutations';
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
+import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateFormatter';
 
@@ -28,11 +38,9 @@ import type { BulkUpdateProgress, BulkUpdateResult } from '@shared/types/bulkOpe
 import type { TubeData } from '@shared/types/tubeTypes';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
-
-
 export interface BatchTubeEditorModalProps {
-  tubeIds: string[];     // Accept IDs, fetch own data
-  tubes?: TubeData[];     // Legacy support - will be removed
+  tubeIds: string[]; // Accept IDs, fetch own data
+  tubes?: TubeData[]; // Legacy support - will be removed
   onClose: () => void;
 }
 
@@ -78,9 +86,9 @@ function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeFormIn
       media: tubeData.sample.media ?? { type: '', supplements: '', selection: '' },
       cultureCondition: tubeData.sample.cultureCondition ?? '',
       lotNumber: tubeData.sample.lotNumber ?? '',
-      notes: tubeData.sample.notes ?? ''
+      notes: tubeData.sample.notes ?? '',
     },
-    researcherId: tubeData.researcherId
+    researcherId: tubeData.researcherId,
   };
 }
 
@@ -90,7 +98,11 @@ function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeFormIn
  * Note: This local function was removed - now using centralized transform
  */
 
-export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onClose }: BatchTubeEditorModalProps) {
+export default function BatchTubeEditorModal({
+  tubeIds,
+  tubes: legacyTubes,
+  onClose,
+}: BatchTubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { analyzeFieldConflicts } = useFieldResolverQuery();
   const modalService = useModalStore();
@@ -123,7 +135,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
   // (Enter naturally submits form)
   useModalKeyboardNav({
     onEscape: onClose,
-    enabled: true
+    enabled: true,
   });
 
   // Analyze all editable fields for conflicts across selected tubes
@@ -141,7 +153,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
       cultureCondition: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.cultureCondition),
       lotNumber: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.lotNumber),
       notes: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.notes),
-      researcherId: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.researcherId)
+      researcherId: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.researcherId),
     } satisfies BatchEditConflictAnalysis;
 
     // Extract conflicting fields
@@ -160,27 +172,56 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
       sample: {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show empty for user to fill
         cellType: analysis.cellType.state !== 'conflict' ? analysis.cellType.commonValue || '' : '',
-        donorInternalId: analysis.donorInternalId.state !== 'conflict' ? analysis.donorInternalId.commonValue ?? '' : '',
+        donorInternalId:
+          analysis.donorInternalId.state !== 'conflict'
+            ? (analysis.donorInternalId.commonValue ?? '')
+            : '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- donorSourceId is optional field, but following same pattern as cellType above
-        donorSourceId: analysis.donorSourceId.state !== 'conflict' ? analysis.donorSourceId.commonValue || '' : '',
-        concentration: analysis.concentration.state !== 'conflict'
-          ? (analysis.concentration.commonValue ? formatConcentrationDisplay(analysis.concentration.commonValue) : undefined)
-          : undefined,
-        concentrationUnit: analysis.concentrationUnit.state !== 'conflict' ? analysis.concentrationUnit.commonValue : undefined,
-        date: analysis.date.state !== 'conflict'
-          ? (analysis.date.commonValue ? formatDateForInput(analysis.date.commonValue) : '')
-          : '',
+        donorSourceId:
+          analysis.donorSourceId.state !== 'conflict'
+            ? analysis.donorSourceId.commonValue || ''
+            : '',
+        concentration:
+          analysis.concentration.state !== 'conflict'
+            ? analysis.concentration.commonValue
+              ? formatConcentrationDisplay(analysis.concentration.commonValue)
+              : undefined
+            : undefined,
+        concentrationUnit:
+          analysis.concentrationUnit.state !== 'conflict'
+            ? analysis.concentrationUnit.commonValue
+            : undefined,
+        date:
+          analysis.date.state !== 'conflict'
+            ? analysis.date.commonValue
+              ? formatDateForInput(analysis.date.commonValue)
+              : ''
+            : '',
         media: {
-          type: analysis['media.type'].state !== 'conflict' ? analysis['media.type'].commonValue ?? '' : '',
-          supplements: analysis['media.supplements'].state !== 'conflict' ? analysis['media.supplements'].commonValue ?? '' : '',
-          selection: analysis['media.selection'].state !== 'conflict' ? analysis['media.selection'].commonValue ?? '' : ''
+          type:
+            analysis['media.type'].state !== 'conflict'
+              ? (analysis['media.type'].commonValue ?? '')
+              : '',
+          supplements:
+            analysis['media.supplements'].state !== 'conflict'
+              ? (analysis['media.supplements'].commonValue ?? '')
+              : '',
+          selection:
+            analysis['media.selection'].state !== 'conflict'
+              ? (analysis['media.selection'].commonValue ?? '')
+              : '',
         },
-        cultureCondition: analysis.cultureCondition.state !== 'conflict' ? analysis.cultureCondition.commonValue ?? '' : '',
-        lotNumber: analysis.lotNumber.state !== 'conflict' ? analysis.lotNumber.commonValue ?? '' : '',
-        notes: analysis.notes.state !== 'conflict' ? analysis.notes.commonValue ?? '' : ''
+        cultureCondition:
+          analysis.cultureCondition.state !== 'conflict'
+            ? (analysis.cultureCondition.commonValue ?? '')
+            : '',
+        lotNumber:
+          analysis.lotNumber.state !== 'conflict' ? (analysis.lotNumber.commonValue ?? '') : '',
+        notes: analysis.notes.state !== 'conflict' ? (analysis.notes.commonValue ?? '') : '',
       },
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty researcherId in batch edit context indicates "not set"
-      researcherId: analysis.researcherId.state !== 'conflict' ? analysis.researcherId.commonValue || '' : ''
+      researcherId:
+        analysis.researcherId.state !== 'conflict' ? analysis.researcherId.commonValue || '' : '',
     };
   }, [conflictAnalysis]);
 
@@ -193,14 +234,14 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
     total: 0,
     completed: 0,
     phase: 'preparing',
-    errors: []
+    errors: [],
   });
   const [result, setResult] = useState<BulkUpdateResult | null>(null);
-  
+
   // Only using form for field editing UI, not the submit handler
   // Actual submission uses bulk mutations
   const { form, isSubmitting: formSubmitting } = useCreateTubeForm({
-    initialData: resolvedData
+    initialData: resolvedData,
   });
 
   // CRITICAL: Subscribe to formState by destructuring in render phase (React Hook Form v7 Proxy pattern)
@@ -218,7 +259,8 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
   // Bulk operations
   const bulkUpdateMutation = useBulkUpdateTubesMutation();
   const bulkDeleteMutation = useBulkDeleteTubesMutation();
-  const isSubmitting = formSubmitting || bulkUpdateMutation.isPending || bulkDeleteMutation.isPending;
+  const isSubmitting =
+    formSubmitting || bulkUpdateMutation.isPending || bulkDeleteMutation.isPending;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -237,16 +279,16 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
       const bulkResult = await bulkUpdateMutation.mutateAsync({
         tubeIds,
         updates: validatedUpdates,
-        onProgress: (progress) => {
+        onProgress: progress => {
           setProgress({
             current: progress.completed,
             total: progress.total,
             completed: progress.completed,
             currentTubeId: progress.currentId,
             phase: 'updating',
-            errors: []
+            errors: [],
           });
-        }
+        },
       });
 
       setResult(bulkResult);
@@ -260,8 +302,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
         notifications.error('Some tubes failed to update');
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Batch update error:', error);
+      logger.error('Batch update error', { error });
       notifications.error('Failed to update tubes');
       setShowProgress(false);
     }
@@ -275,8 +316,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
   const handleRetryFailures = async () => {
     if (!result || result.success) return;
 
-    const failedTubeIds = result.errors
-      .map(error => error.itemId); // Note: retryable logic needs to be implemented if needed
+    const failedTubeIds = result.errors.map(error => error.itemId); // Note: retryable logic needs to be implemented if needed
 
     if (failedTubeIds.length === 0) {
       notifications.info('No retryable failures found');
@@ -299,16 +339,16 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
       const retryResult = await bulkUpdateMutation.mutateAsync({
         tubeIds: failedTubeIds,
         updates: validatedUpdates,
-        onProgress: (progress) => {
+        onProgress: progress => {
           setProgress({
             current: progress.completed,
             total: progress.total,
             completed: progress.completed,
             currentTubeId: progress.currentId,
             phase: 'updating',
-            errors: []
+            errors: [],
           });
-        }
+        },
       });
       setResult(retryResult);
 
@@ -317,11 +357,12 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
         setShowProgress(false);
         onClose();
       } else {
-        notifications.warning(`⚠️ Retry completed: ${retryResult.successCount}/${retryResult.totalProcessed} successful`);
+        notifications.warning(
+          `⚠️ Retry completed: ${retryResult.successCount}/${retryResult.totalProcessed} successful`
+        );
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Retry error:', error);
+      logger.error('Retry error', { error });
       notifications.error('Retry failed');
       setShowProgress(false);
     }
@@ -331,53 +372,61 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
     try {
       const deleteResult = await bulkDeleteMutation.mutateAsync({
         tubeIds,
-        onProgress: (progress) => {
+        onProgress: progress => {
           setProgress({
             current: progress.completed,
             total: progress.total,
             completed: progress.completed,
             currentTubeId: progress.currentId,
             phase: 'updating',
-            errors: []
+            errors: [],
           });
-        }
+        },
       });
 
       if (deleteResult.success) {
         notifications.delete(`Deleted ${deleteResult.successCount} tubes successfully`);
         onClose();
       } else {
-        notifications.error(`Deleted ${deleteResult.successCount} of ${deleteResult.totalProcessed} tubes`);
+        notifications.error(
+          `Deleted ${deleteResult.successCount} of ${deleteResult.totalProcessed} tubes`
+        );
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Batch delete error:', error);
+      logger.error('Batch delete error', { error });
       notifications.error('Failed to delete tubes');
     } finally {
       setShowDeleteConfirm(false);
     }
   };
 
-  const tankId = tubes[0]?.location.tankId || "";
-  const rackId = tubes[0]?.location.rackId || "";
-  const boxId = tubes[0]?.location.boxId || "";
+  const tankId = tubes[0]?.location.tankId || '';
+  const rackId = tubes[0]?.location.rackId || '';
+  const boxId = tubes[0]?.location.boxId || '';
 
   // Filter errors to only show errors for dirty fields
   // Special handling for cross-field validation (e.g., concentration + unit refinement)
   // NOTE: No useMemo - recalculates on every render, but this is fine (cheap object traversal)
   // This ensures filtered errors update immediately when validation runs
   const RELATED_FIELDS: Record<string, string[]> = {
-    'concentration': ['concentrationUnit'],
-    'concentrationUnit': ['concentration']
+    concentration: ['concentrationUnit'],
+    concentrationUnit: ['concentration'],
   };
 
-  const isRelatedFieldDirty = (fieldKey: string, parentDirtyNode: Record<string, unknown> | null | undefined): boolean => {
+  const isRelatedFieldDirty = (
+    fieldKey: string,
+    parentDirtyNode: Record<string, unknown> | null | undefined
+  ): boolean => {
     if (!parentDirtyNode) return false;
     const relatedFields = RELATED_FIELDS[fieldKey] || [];
     return relatedFields.some(relatedKey => parentDirtyNode?.[relatedKey] === true);
   };
 
-  const filterNode = (errorNode: Record<string, unknown> | null | undefined, dirtyNode: Record<string, unknown> | null | undefined, path = ''): Record<string, unknown> | undefined => {
+  const filterNode = (
+    errorNode: Record<string, unknown> | null | undefined,
+    dirtyNode: Record<string, unknown> | null | undefined,
+    path = ''
+  ): Record<string, unknown> | undefined => {
     if (!errorNode || typeof errorNode !== 'object') return undefined;
 
     const filtered: Record<string, unknown> = {};
@@ -449,13 +498,12 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
 
   return (
     <>
-    <BaseModal
-      title={`Edit ${tubes.length} Tubes`}
-      icon={<Edit className="w-5 h-5 text-white" />}
-      onClose={onClose}
-      dataAttribute="data-batch-edit-modal"
-    >
-
+      <BaseModal
+        title={`Edit ${tubes.length} Tubes`}
+        icon={<Edit className="w-5 h-5 text-white" />}
+        onClose={onClose}
+        dataAttribute="data-batch-edit-modal"
+      >
         {conflicts.length > 0 && (
           <div className="alert-warning mb-3">
             <div className="flex items-center space-x-2 alert-warning-heading">
@@ -568,7 +616,7 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
                 </button>
               )}
             </div>
-            
+
             <div className="max-h-32 overflow-y-auto space-y-2">
               {result.errors.slice(0, 5).map((error, index) => (
                 <div key={index} className="text-sm text-red-700 flex items-start space-x-2">
@@ -597,25 +645,25 @@ export default function BatchTubeEditorModal({ tubeIds, tubes: legacyTubes, onCl
             )}
           </div>
         )}
-    </BaseModal>
+      </BaseModal>
 
-    {/* Progress Modal */}
-    <BulkProgressModal
-      isOpen={showProgress}
-      progress={progress}
-      onClose={handleProgressClose}
-      canClose={!isSubmitting && result !== null}
-    />
+      {/* Progress Modal */}
+      <BulkProgressModal
+        isOpen={showProgress}
+        progress={progress}
+        onClose={handleProgressClose}
+        canClose={!isSubmitting && result !== null}
+      />
 
-    <DeleteConfirmDialog
-      isOpen={showDeleteConfirm}
-      title="Delete All Tubes"
-      message={`Are you sure you want to delete all ${tubes.length} tubes? This action cannot be undone and will permanently remove all selected tubes from your inventory.`}
-      confirmText={`Delete All ${tubes.length}`}
-      onConfirm={handleBatchDelete}
-      onCancel={() => setShowDeleteConfirm(false)}
-      isLoading={isSubmitting}
-    />
+      <DeleteConfirmDialog
+        isOpen={showDeleteConfirm}
+        title="Delete All Tubes"
+        message={`Are you sure you want to delete all ${tubes.length} tubes? This action cannot be undone and will permanently remove all selected tubes from your inventory.`}
+        confirmText={`Delete All ${tubes.length}`}
+        onConfirm={handleBatchDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        isLoading={isSubmitting}
+      />
     </>
   );
 }

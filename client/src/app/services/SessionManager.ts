@@ -12,6 +12,7 @@
  */
 
 import { env } from '@shared/config';
+import { logger } from '@shared/infrastructure/logger';
 
 import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
 import type { SessionDebugInfo } from '@domains/authentication/types/debug';
@@ -110,8 +111,7 @@ export class SessionManager implements TokenProvider {
 
       if (timeSinceLastActivity > idleTimeoutMs) {
         // Session timed out due to inactivity
-        // eslint-disable-next-line no-console -- Session timeout event logging for debugging authentication issues
-        console.log('⏱️ Session timed out due to inactivity');
+        logger.info('Session timed out due to inactivity');
         this.clearSession('idle_timeout');
         return null;
       }
@@ -217,15 +217,13 @@ export class SessionManager implements TokenProvider {
   private async performTokenRefresh(): Promise<boolean> {
     const tokens = this.storage.getTokens();
     if (!tokens) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ No tokens available for refresh');
+      logger.error('No tokens available for refresh');
       return false;
     }
 
     // Check if refresh token is still valid
     if (tokens.refreshTokenExpiry <= new Date()) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ Refresh token expired');
+      logger.error('Refresh token expired');
       this.clearSession();
       return false;
     }
@@ -261,8 +259,7 @@ export class SessionManager implements TokenProvider {
           throw new Error('Refresh request failed');
         }
       } catch (error) {
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error(`❌ Token refresh attempt ${attempt} failed:`, error);
+        logger.error(`Token refresh attempt ${attempt} failed`, { error, attempt });
 
         if (attempt < this.config.maxRetries) {
           // Wait before retry with exponential backoff
@@ -273,8 +270,7 @@ export class SessionManager implements TokenProvider {
     }
 
     // All retry attempts failed
-    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-    console.error('❌ Token refresh failed after all retry attempts');
+    logger.error('Token refresh failed after all retry attempts');
     this.clearSession();
     return false;
   }
@@ -316,8 +312,7 @@ export class SessionManager implements TokenProvider {
 
       this.refreshTimer = setTimeout(() => {
         this.refreshTokens().catch(error => {
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error('❌ Automatic token refresh failed:', error);
+          logger.error('Automatic token refresh failed', { error });
         });
       }, delay);
     } else {
@@ -393,8 +388,7 @@ export class SessionManager implements TokenProvider {
 
       if (timeSinceLastActivity > idleTimeoutMs) {
         // Session timed out - clear interval and logout
-        // eslint-disable-next-line no-console -- Session timeout event logging for debugging authentication issues
-        console.log('⏱️ [Inactivity Checker] Session timed out due to inactivity');
+        logger.info('Session timed out due to inactivity');
         this.clearSession('idle_timeout');
       }
     }, 60000); // 60 seconds
@@ -471,8 +465,7 @@ export class LocalStorageSessionStorage implements SessionStorage {
         refreshTokenExpiry: new Date(parsed.refreshTokenExpiry),
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to parse stored tokens:', error);
+      logger.error('Failed to parse stored tokens', { error });
       return null;
     }
   }

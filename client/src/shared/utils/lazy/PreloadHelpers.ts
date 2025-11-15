@@ -35,6 +35,8 @@
 
 import { useCallback, useState, useMemo, useEffect } from 'react';
 
+import { logger } from '@shared/infrastructure/logger';
+
 /**
  * Create a preload hook for any lazy-loaded component
  *
@@ -102,8 +104,7 @@ export function createPreloadHook<T = any>(importFn: () => Promise<T>) {
         await importFn();
         setIsPreloaded(true);
       } catch (error) {
-        // eslint-disable-next-line no-console -- Warning logging for production monitoring
-        console.warn('[PreloadHelpers] Preload failed, will lazy load on render:', error);
+        logger.warn('[PreloadHelpers] Preload failed, will lazy load on render', { error });
         // Don't throw - component will lazy load normally on render
         // This handles transient network errors gracefully
       }
@@ -328,18 +329,19 @@ export function usePreloadOnIdle(preloadFn: () => void | Promise<void>, delayMs:
  * ]);
  * ```
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic import promises for flexible component types
 export async function batchPreload(
-  importFns: Array<() => Promise<any>>
+  importFns: Array<() => Promise<any>> // eslint-disable-line @typescript-eslint/no-explicit-any -- Dynamic import promises for flexible component types
 ): Promise<PromiseSettledResult<any>[]> {
+  // eslint-disable-line @typescript-eslint/no-explicit-any -- Dynamic import promises for flexible component types
   const results = await Promise.allSettled(importFns.map(fn => fn()));
 
   // Log failures in development
   if (process.env['NODE_ENV'] === 'development') {
     results.forEach((result, index) => {
       if (result.status === 'rejected') {
-        // eslint-disable-next-line no-console -- Warning logging for production monitoring
-        console.warn(`[PreloadHelpers] Batch preload failed for import #${index}:`, result.reason);
+        logger.warn(`[PreloadHelpers] Batch preload failed for import #${index}`, {
+          reason: result.reason,
+        });
       }
     });
   }

@@ -9,6 +9,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
+import { logger } from '@shared/infrastructure/logger';
+
 import type { QueryClient, UseMutationOptions } from '@tanstack/react-query';
 
 /**
@@ -159,8 +161,7 @@ export class OptimisticUpdatesService {
         if (context?.optimistic) {
           const optimisticContext = context.optimistic as OptimisticContext;
 
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error('❌ [OptimisticUpdates] Mutation failed, rolling back:', error);
+          logger.error('Optimistic mutation failed, rolling back', { error });
 
           // Rollback optimistic changes
           this.rollbackOptimisticUpdate(optimisticContext);
@@ -187,11 +188,11 @@ export class OptimisticUpdatesService {
         }
       },
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query context type varies by mutation
       onSettled: (
         data: TData | undefined,
         error: TError | null,
         variables: TVariables,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TanStack Query context type varies by mutation
         context: any
       ) => {
         // Always invalidate affected queries to ensure consistency
@@ -344,10 +345,7 @@ export class OptimisticUpdatesService {
   private async showConflictResolutionUI<T>(conflict: DataConflict<T>): Promise<T> {
     // This would integrate with your modal system
     // For now, default to server wins
-    // eslint-disable-next-line no-console -- Warning logging for production monitoring
-    console.warn(
-      '⚠️ [OptimisticUpdates] User conflict resolution UI not implemented, defaulting to server'
-    );
+    logger.warn('User conflict resolution UI not implemented, defaulting to server');
     return conflict.serverValue;
   }
 
@@ -369,8 +367,7 @@ export class OptimisticUpdatesService {
    * Cancel all pending optimistic updates (emergency rollback)
    */
   public cancelAllOptimisticUpdates(): void {
-    // eslint-disable-next-line no-console -- Warning logging for production monitoring
-    console.warn('🚨 [OptimisticUpdates] Emergency rollback - cancelling all optimistic updates');
+    logger.warn('Emergency rollback - cancelling all optimistic updates');
 
     Array.from(this.pendingMutations.values()).forEach(context => {
       this.rollbackOptimisticUpdate(context);

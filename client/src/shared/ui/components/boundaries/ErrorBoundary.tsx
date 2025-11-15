@@ -1,14 +1,22 @@
 /**
  * Error Boundary Component
- * 
+ *
  * Professional error boundary with retry functionality and proper error reporting
  * Handles runtime errors in React component tree
  */
 
 import type { ReactNode, ErrorInfo } from 'react';
-import React, { Component, useState, useCallback, useEffect, forwardRef, createElement } from 'react';
+import React, {
+  Component,
+  useState,
+  useCallback,
+  useEffect,
+  forwardRef,
+  createElement,
+} from 'react';
 
 import { env } from '@shared/config';
+import { logger } from '@shared/infrastructure/logger';
 
 // Error boundary state
 interface ErrorBoundaryState {
@@ -21,28 +29,30 @@ interface ErrorBoundaryState {
 // Error boundary props
 export interface ErrorBoundaryProps {
   children: ReactNode;
-  
+
   // Error handling
-  fallback?: React.ComponentType<{
-    error: Error;
-    errorInfo: ErrorInfo | null;
-    retry: () => void;
-    errorId: string;
-  }> | ((props: {
-    error: Error;
-    errorInfo: ErrorInfo | null;
-    retry: () => void;
-    errorId: string;
-  }) => ReactNode);
-  
+  fallback?:
+    | React.ComponentType<{
+        error: Error;
+        errorInfo: ErrorInfo | null;
+        retry: () => void;
+        errorId: string;
+      }>
+    | ((props: {
+        error: Error;
+        errorInfo: ErrorInfo | null;
+        retry: () => void;
+        errorId: string;
+      }) => ReactNode);
+
   // Callbacks
   onError?: (error: Error, errorInfo: ErrorInfo, errorId: string) => void;
   onRetry?: () => void;
-  
+
   // Configuration
   isolate?: boolean; // Prevent error propagation
   level?: 'page' | 'section' | 'component'; // Error boundary level
-  
+
   // Debugging
   name?: string; // For debugging purposes
 }
@@ -57,9 +67,15 @@ interface DefaultErrorFallbackProps {
   name?: string;
 }
 
-const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retry, errorId, level = 'component', name }) => {
+const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
+  error,
+  retry,
+  errorId,
+  level = 'component',
+  name,
+}) => {
   const isDevelopment = env.isDev();
-  
+
   return (
     <div
       className="flex flex-col items-center justify-center p-8 min-h-[200px] border-2 border-dashed border-error-300 bg-error-50 rounded-lg"
@@ -74,18 +90,13 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
           <line x1="9" y1="9" x2="15" y2="15" />
         </svg>
       </div>
-      
-      <h2 className="text-xl font-bold text-error-900 mb-2">
-        Something went wrong
-      </h2>
-      
+
+      <h2 className="text-xl font-bold text-error-900 mb-2">Something went wrong</h2>
+
       <p className="text-error-700 text-center mb-4 max-w-md">
-        {isDevelopment 
-          ? error.message 
-          : `An error occurred while rendering this ${level}.`
-        }
+        {isDevelopment ? error.message : `An error occurred while rendering this ${level}.`}
       </p>
-      
+
       {isDevelopment && (
         <details className="mb-4 max-w-2xl w-full">
           <summary className="cursor-pointer text-error-600 font-medium mb-2">
@@ -111,7 +122,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
           </div>
         </details>
       )}
-      
+
       <div className="flex space-x-3">
         <button
           onClick={retry}
@@ -126,10 +137,8 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
               // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
               console.group(`🚨 Error Boundary: ${name ?? 'Unknown'}`);
-              // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-              console.error('Error:', error);
-              // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-              console.error('Error ID:', errorId);
+              logger.error('Error', { error });
+              logger.error('Error ID', { errorId });
               // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
               console.groupEnd();
             }}
@@ -139,7 +148,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({ error, retr
           </button>
         )}
       </div>
-      
+
       {level === 'page' && (
         <button
           onClick={() => window.location.reload()}
@@ -160,10 +169,10 @@ const generateErrorId = (): string => {
 // Main Error Boundary class component
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   private errorId: string = '';
-  
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    
+
     this.state = {
       hasError: false,
       error: null,
@@ -171,44 +180,41 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       errorId: null,
     };
   }
-  
+
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     const errorId = generateErrorId();
-    
+
     return {
       hasError: true,
       error,
       errorId,
     };
   }
-  
+
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error ID is invalid, generate unique ID
     const errorId = this.state.errorId || generateErrorId();
-    
+
     this.setState({
       errorInfo,
       errorId,
     });
-    
+
     // Log error for monitoring
     if (env.isDev()) {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
       // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
       console.group(`🚨 Error Boundary Caught Error: ${this.props.name ?? 'Unknown'}`);
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Error:', error);
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Error Info:', errorInfo);
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Error ID:', errorId);
+      logger.error('Error', { error });
+      logger.error('Error Info', { errorInfo });
+      logger.error('Error ID', { errorId });
       // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
       console.groupEnd();
     }
-    
+
     // Call error callback
     this.props.onError?.(error, errorInfo, errorId);
-    
+
     // In production, you might want to send this to an error reporting service
     if (env.isProd()) {
       // Example: Send to error reporting service
@@ -221,10 +227,10 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       // });
     }
   }
-  
+
   handleRetry = () => {
     this.props.onRetry?.();
-    
+
     this.setState({
       hasError: false,
       error: null,
@@ -232,11 +238,11 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       errorId: null,
     });
   };
-  
+
   override render() {
     if (this.state.hasError && this.state.error) {
       const FallbackComponent = this.props.fallback ?? DefaultErrorFallback;
-      
+
       const fallbackProps = {
         error: this.state.error,
         errorInfo: this.state.errorInfo,
@@ -245,7 +251,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         level: this.props.level,
         name: this.props.name,
       };
-      
+
       // Handle function vs component fallback
       if (typeof FallbackComponent === 'function') {
         return <FallbackComponent {...fallbackProps} />;
@@ -253,7 +259,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         return createElement(FallbackComponent, fallbackProps);
       }
     }
-    
+
     return this.props.children;
   }
 }
@@ -267,8 +273,7 @@ export const useErrorHandler = () => {
 
     // Log error
     if (env.isDev()) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Handled error:', error);
+      logger.error('Handled error', { error });
     }
   }, []);
 
@@ -297,7 +302,7 @@ export const withErrorBoundary = <P extends object>(
 
     return (
       <ErrorBoundary {...errorBoundaryConfig}>
-        <Component {...componentProps as P} />
+        <Component {...(componentProps as P)} />
       </ErrorBoundary>
     );
   });
@@ -309,14 +314,14 @@ export const withErrorBoundary = <P extends object>(
 };
 
 // Error boundary for specific scenarios
-export const PageErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = (props) => (
+export const PageErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = props => (
   <ErrorBoundary {...props} level="page" />
 );
 
-export const SectionErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = (props) => (
+export const SectionErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = props => (
   <ErrorBoundary {...props} level="section" />
 );
 
-export const ComponentErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = (props) => (
+export const ComponentErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = props => (
   <ErrorBoundary {...props} level="component" />
 );

@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
 import { queryKeys } from '@app/queryKeys';
+import { logger } from '@shared/infrastructure/logger';
 
 import { StorageService } from '../services/StorageService';
 
@@ -72,9 +73,8 @@ export const useUpdateBoxPositionDisplayMutation = () => {
       });
 
       // Show success feedback
-      const formatName = variables.positionDisplay?.format === 'numeric'
-        ? 'Numeric (1-81)'
-        : 'Alphanumeric (A1-I9)';
+      const formatName =
+        variables.positionDisplay?.format === 'numeric' ? 'Numeric (1-81)' : 'Alphanumeric (A1-I9)';
 
       toast.success(
         variables.positionDisplay
@@ -85,8 +85,7 @@ export const useUpdateBoxPositionDisplayMutation = () => {
 
     onError: (error: unknown, _variables) => {
       // Show error feedback
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [useUpdateBoxPositionDisplayMutation] Failed:', error);
+      logger.error('useUpdateBoxPositionDisplayMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`Failed to update position display: ${message}`);
     },
@@ -112,11 +111,8 @@ export const useUpdateLabDefaultPositionDisplayMutation = () => {
 
   return useMutation({
     mutationKey: ['storage', 'updateLabDefaultPositionDisplay'],
-    mutationFn: ({
-      positionDisplay,
-    }: {
-      positionDisplay: PositionDisplayConfig | null;
-    }) => StorageService.updateLabDefaultPositionDisplay(positionDisplay),
+    mutationFn: ({ positionDisplay }: { positionDisplay: PositionDisplayConfig | null }) =>
+      StorageService.updateLabDefaultPositionDisplay(positionDisplay),
 
     onSuccess: (_, variables) => {
       // Invalidate storage cache to reflect updated configuration
@@ -125,9 +121,8 @@ export const useUpdateLabDefaultPositionDisplayMutation = () => {
       });
 
       // Show success feedback
-      const formatName = variables.positionDisplay?.format === 'numeric'
-        ? 'Numeric (1-81)'
-        : 'Alphanumeric (A1-I9)';
+      const formatName =
+        variables.positionDisplay?.format === 'numeric' ? 'Numeric (1-81)' : 'Alphanumeric (A1-I9)';
 
       toast.success(
         variables.positionDisplay
@@ -138,8 +133,7 @@ export const useUpdateLabDefaultPositionDisplayMutation = () => {
 
     onError: (error: unknown, _variables) => {
       // Show error feedback
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('❌ [useUpdateLabDefaultPositionDisplayMutation] Failed:', error);
+      logger.error('useUpdateLabDefaultPositionDisplayMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`Failed to update lab default: ${message}`);
     },

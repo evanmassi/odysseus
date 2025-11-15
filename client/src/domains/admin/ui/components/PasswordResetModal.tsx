@@ -19,9 +19,9 @@ import { X, Eye, EyeOff, Copy, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { logger } from '@shared/infrastructure/logger';
 
 import { adminService } from '../../services/AdminService';
-
 
 interface PasswordResetModalProps {
   userId: string;
@@ -34,7 +34,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
   userId,
   username,
   onClose,
-  onSuccess
+  onSuccess,
 }) => {
   const [activeTab, setActiveTab] = useState<'direct' | 'token'>('direct');
   const [newPassword, setNewPassword] = useState('');
@@ -49,7 +49,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
   const trapRef = useFocusTrap({
     isOpen: true,
     restoreFocus: true,
-    autoFocusFirstInput: true
+    autoFocusFirstInput: true,
   });
 
   const handleDirectReset = async () => {
@@ -96,8 +96,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
           toast.success('Reset link copied to clipboard');
           setTimeout(() => setCopied(false), 2000);
         } catch (error) {
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          console.error('Failed to copy to clipboard:', error);
+          logger.error('Failed to copy to clipboard', { error });
           toast.error('Failed to copy link. Please copy manually.');
         }
       })();
@@ -135,7 +134,8 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         </div>
 
         <p className="text-sm text-gray-600 mb-4">
-          Reset password for user: <span className="font-semibold text-action-hover">{username}</span>
+          Reset password for user:{' '}
+          <span className="font-semibold text-action-hover">{username}</span>
         </p>
 
         {/* Tabs */}
@@ -164,129 +164,129 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
         {/* Tab Content - Fixed height to prevent shifting */}
         <div className="min-h-[200px] flex flex-col">
-        {activeTab === 'direct' ? (
-          <div className="flex-1 flex flex-col">
-            {/* Password Input */}
-            <div className="mb-4">
-              <div className={`auth-input-container ${
-                newPassword.length >= 4 ? 'border-green-500' : 'border-gray-300'
-              }`}>
-                <label
-                  htmlFor="newPassword"
-                  className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
-                    newPassword.length >= 4 ? 'text-green-700' : 'text-gray-700'
+          {activeTab === 'direct' ? (
+            <div className="flex-1 flex flex-col">
+              {/* Password Input */}
+              <div className="mb-4">
+                <div
+                  className={`auth-input-container ${
+                    newPassword.length >= 4 ? 'border-green-500' : 'border-gray-300'
                   }`}
                 >
-                  New Password
-                </label>
-                <div className="relative px-3 py-2">
-                  <input
-                    id="newPassword"
-                    type={showPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
-                    placeholder="Enter new password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 rounded focus-enhanced"
+                  <label
+                    htmlFor="newPassword"
+                    className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
+                      newPassword.length >= 4 ? 'text-green-700' : 'text-gray-700'
+                    }`}
                   >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
+                    New Password
+                  </label>
+                  <div className="relative px-3 py-2">
+                    <input
+                      id="newPassword"
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={e => setNewPassword(e.target.value)}
+                      className="pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                      placeholder="Enter new password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 rounded focus-enhanced"
+                    >
+                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
-              </div>
-              {newPassword && (
-                <p className={`text-xs mt-1 ml-1 ${getPasswordStrengthColor(newPassword)}`}>
-                  Strength: {getPasswordStrength(newPassword)}
-                </p>
-              )}
-            </div>
-
-            {/* Require Password Change Toggle */}
-            <div className="mb-4">
-              <label className="flex items-center space-x-2 cursor-pointer group">
-                <div className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={requirePasswordChange}
-                    onChange={(e) => setRequirePasswordChange(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-7 h-4 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action"></div>
-                </div>
-                <span className="text-sm text-gray-700 group-hover:text-gray-900">
-                  Require password change on next login
-                </span>
-              </label>
-            </div>
-
-            {/* Reset Button */}
-            <div className="mt-auto">
-              <button
-                onClick={handleDirectReset}
-                disabled={isLoading || !newPassword}
-                className="w-full btn btn-primary h-11 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? 'Resetting...' : 'Reset Password'}
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex flex-col">
-            {!resetUrl ? (
-              <div className="flex-1 flex flex-col">
-                <p className="text-sm text-gray-600 mb-4">
-                  Generate a one-time password reset link that expires in 15 minutes.
-                  Share this link with the user to let them set their own password.
-                </p>
-                <div className="mt-auto">
-                  <button
-                    onClick={handleGenerateToken}
-                    disabled={isLoading}
-                    className="w-full btn btn-primary h-11 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {isLoading ? 'Generating...' : 'Generate Reset Link'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div>
-                <p className="text-sm font-medium text-gray-700 mb-2">
-                  Reset Link Generated
-                </p>
-                <div className="bg-gray-100 p-3 rounded-md mb-3 break-all text-sm">
-                  {resetUrl}
-                </div>
-                <button
-                  onClick={handleCopyUrl}
-                  className="w-full btn btn-primary h-11 text-base font-semibold flex items-center justify-center gap-2 mb-3"
-                >
-                  {copied ? (
-                    <>
-                      <Check size={18} />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={18} />
-                      Copy Link
-                    </>
-                  )}
-                </button>
-                {expiresAt && (
-                  <p className="text-xs text-gray-600 text-center">
-                    Expires: {new Date(expiresAt).toLocaleString()}
+                {newPassword && (
+                  <p className={`text-xs mt-1 ml-1 ${getPasswordStrengthColor(newPassword)}`}>
+                    Strength: {getPasswordStrength(newPassword)}
                   </p>
                 )}
-                <p className="text-xs text-gray-600 mt-3">
-                  Share this link with the user. They can use it once to set a new password.
-                </p>
               </div>
-            )}
-          </div>
-        )}
+
+              {/* Require Password Change Toggle */}
+              <div className="mb-4">
+                <label className="flex items-center space-x-2 cursor-pointer group">
+                  <div className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={requirePasswordChange}
+                      onChange={e => setRequirePasswordChange(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-7 h-4 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action"></div>
+                  </div>
+                  <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                    Require password change on next login
+                  </span>
+                </label>
+              </div>
+
+              {/* Reset Button */}
+              <div className="mt-auto">
+                <button
+                  onClick={handleDirectReset}
+                  disabled={isLoading || !newPassword}
+                  className="w-full btn btn-primary h-11 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? 'Resetting...' : 'Reset Password'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col">
+              {!resetUrl ? (
+                <div className="flex-1 flex flex-col">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Generate a one-time password reset link that expires in 15 minutes. Share this
+                    link with the user to let them set their own password.
+                  </p>
+                  <div className="mt-auto">
+                    <button
+                      onClick={handleGenerateToken}
+                      disabled={isLoading}
+                      className="w-full btn btn-primary h-11 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isLoading ? 'Generating...' : 'Generate Reset Link'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-sm font-medium text-gray-700 mb-2">Reset Link Generated</p>
+                  <div className="bg-gray-100 p-3 rounded-md mb-3 break-all text-sm">
+                    {resetUrl}
+                  </div>
+                  <button
+                    onClick={handleCopyUrl}
+                    className="w-full btn btn-primary h-11 text-base font-semibold flex items-center justify-center gap-2 mb-3"
+                  >
+                    {copied ? (
+                      <>
+                        <Check size={18} />
+                        Copied!
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={18} />
+                        Copy Link
+                      </>
+                    )}
+                  </button>
+                  {expiresAt && (
+                    <p className="text-xs text-gray-600 text-center">
+                      Expires: {new Date(expiresAt).toLocaleString()}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-600 mt-3">
+                    Share this link with the user. They can use it once to set a new password.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

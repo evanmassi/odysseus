@@ -6,8 +6,9 @@ import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
 import { env } from '@shared/config';
+import { logger } from '@shared/infrastructure/logger';
 
-import type { DefaultOptions} from '@tanstack/react-query';
+import type { DefaultOptions } from '@tanstack/react-query';
 
 /**
  * Type Guards for Error Handling
@@ -69,11 +70,7 @@ function hasDetails(error: unknown): error is { details: Record<string, unknown>
  * Type guard for React Query Query objects
  */
 function isQuery(query: unknown): query is { queryKey: unknown } {
-  return (
-    typeof query === 'object' &&
-    query !== null &&
-    'queryKey' in query
-  );
+  return typeof query === 'object' && query !== null && 'queryKey' in query;
 }
 
 /**
@@ -95,33 +92,33 @@ function isMutation(mutation: unknown): mutation is { options: { mutationKey?: u
 export const CACHE_TIMES = {
   // Fast-changing data (updated frequently via socket)
   REAL_TIME: {
-    staleTime: 3 * 60 * 1000,      // 3 minutes - socket keeps it fresh
-    gcTime: 15 * 60 * 1000,        // 15 minutes - keep in memory longer
+    staleTime: 3 * 60 * 1000, // 3 minutes - socket keeps it fresh
+    gcTime: 15 * 60 * 1000, // 15 minutes - keep in memory longer
   },
-  
+
   // Medium-changing data (occasional socket updates)
   MEDIUM: {
-    staleTime: 10 * 60 * 1000,     // 10 minutes
-    gcTime: 30 * 60 * 1000,        // 30 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes
   },
-  
+
   // Slow-changing data (rare socket updates)
   STABLE: {
-    staleTime: 30 * 60 * 1000,     // 30 minutes  
-    gcTime: 60 * 60 * 1000,        // 1 hour
+    staleTime: 30 * 60 * 1000, // 30 minutes
+    gcTime: 60 * 60 * 1000, // 1 hour
   },
-  
+
   // Configuration data (almost never changes)
   CONFIG: {
-    staleTime: 60 * 60 * 1000,     // 1 hour
-    gcTime: 2 * 60 * 60 * 1000,    // 2 hours
+    staleTime: 60 * 60 * 1000, // 1 hour
+    gcTime: 2 * 60 * 60 * 1000, // 2 hours
   },
-  
+
   // Search results (dynamic, short-lived)
   SEARCH: {
-    staleTime: 2 * 60 * 1000,      // 2 minutes
-    gcTime: 10 * 60 * 1000,        // 10 minutes
-  }
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  },
 } as const;
 
 /**
@@ -165,11 +162,11 @@ const mutationRetryLogic = (failureCount: number, error: unknown): boolean => {
  */
 const retryDelay = (attemptIndex: number): number => {
   // Exponential backoff: 1s, 2s, 4s, capped at 30s
-  const exponentialDelay = Math.min(1000 * (2 ** attemptIndex), 30000);
-  
+  const exponentialDelay = Math.min(1000 * 2 ** attemptIndex, 30000);
+
   // Add jitter to prevent thundering herd
   const jitter = Math.random() * 1000;
-  
+
   return exponentialDelay + jitter;
 };
 
@@ -178,11 +175,10 @@ const retryDelay = (attemptIndex: number): number => {
  */
 const handleQueryError = (error: unknown, query: unknown): void => {
   if (env.isDev()) {
-    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-    console.error('Query failed:', {
+    logger.error('Query failed', {
       queryKey: isQuery(query) ? query.queryKey : 'unknown',
       error: hasMessage(error) ? error.message : String(error),
-      status: hasStatus(error) ? error.status : undefined
+      status: hasStatus(error) ? error.status : undefined,
     });
   }
 
@@ -199,32 +195,36 @@ const handleQueryError = (error: unknown, query: unknown): void => {
 /**
  * Global error handler for mutations
  */
-const handleMutationError = (error: unknown, variables: unknown, context: unknown, mutation: unknown): void => {
+const handleMutationError = (
+  error: unknown,
+  variables: unknown,
+  context: unknown,
+  mutation: unknown
+): void => {
   if (env.isDev()) {
     // Extract original error if wrapped by InfrastructureError
-    const originalError = hasDetails(error) &&
-      typeof error.details['originalError'] !== 'undefined'
+    const originalError =
+      hasDetails(error) && typeof error.details['originalError'] !== 'undefined'
         ? error.details['originalError']
         : error;
 
-    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-    console.error('Mutation failed:', {
+    logger.error('Mutation failed', {
       mutationKey: isMutation(mutation) ? mutation.options.mutationKey : 'unknown',
       wrapperMessage: hasMessage(error) ? error.message : undefined,
       originalError: originalError,
       status: hasStatus(error)
         ? error.status
-        : (hasStatus(originalError) ? originalError.status : undefined),
+        : hasStatus(originalError)
+          ? originalError.status
+          : undefined,
       errorDetails: hasDetails(error) ? error.details : undefined,
       variables,
     });
 
     // Log full error object for deep inspection
-    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-    console.error('Full error object:', error);
+    logger.error('Full error object', { error });
     if (originalError !== error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Original unwrapped error:', originalError);
+      logger.error('Original unwrapped error', { originalError });
     }
   }
 
@@ -246,30 +246,30 @@ const defaultOptions: DefaultOptions = {
     // Use medium timing as default (most data types)
     staleTime: CACHE_TIMES.MEDIUM.staleTime,
     gcTime: CACHE_TIMES.MEDIUM.gcTime,
-    
+
     // Disable window focus refetch (rely on socket updates)
     refetchOnWindowFocus: false,
-    
+
     // Enable reconnect refetch (sync after network issues)
     refetchOnReconnect: true,
-    
+
     // Disable mount refetch if data exists (socket keeps it fresh)
     refetchOnMount: false, // Socket updates keep data fresh
-    
+
     // Smart retry strategy
     retry: retryLogic,
     retryDelay: retryDelay,
-    
+
     // TanStack Query v5: onError moved to queryCache/mutationCache (handled below)
-    
+
     // Enable background refetching for stale data
     refetchInterval: false, // Disabled by default, enabled per-query if needed
     refetchIntervalInBackground: false,
-    
+
     // Network mode - continue with cached data when offline
     networkMode: 'online', // 'online' | 'always' | 'offlineFirst'
   },
-  
+
   mutations: {
     // Smart retry - only retry transient failures (5xx, network), never client errors (4xx) or success
     retry: mutationRetryLogic,
@@ -277,7 +277,7 @@ const defaultOptions: DefaultOptions = {
 
     // Network mode for mutations
     networkMode: 'online',
-  }
+  },
 };
 
 /**
@@ -287,38 +287,38 @@ export const cacheMetrics = {
   hits: 0,
   misses: 0,
   invalidations: 0,
-  
+
   recordHit(): void {
     this.hits++;
   },
-  
+
   recordMiss(): void {
     this.misses++;
   },
-  
+
   recordInvalidation(): void {
     this.invalidations++;
   },
-  
+
   getHitRate(): number {
     const total = this.hits + this.misses;
     return total === 0 ? 0 : this.hits / total;
   },
-  
+
   reset(): void {
     this.hits = 0;
     this.misses = 0;
     this.invalidations = 0;
   },
-  
+
   getStats(): { hits: number; misses: number; hitRate: string; invalidations: number } {
     return {
       hits: this.hits,
       misses: this.misses,
       hitRate: `${(this.getHitRate() * 100).toFixed(1)}%`,
-      invalidations: this.invalidations
+      invalidations: this.invalidations,
     };
-  }
+  },
 };
 
 /**
@@ -326,7 +326,7 @@ export const cacheMetrics = {
  */
 export const queryClient = new QueryClient({
   defaultOptions,
-  
+
   // TanStack Query v5: Error handling through queryCache and mutationCache
   queryCache: new QueryCache({
     onError: (error, query) => {
@@ -340,8 +340,6 @@ export const queryClient = new QueryClient({
   }),
 });
 
-
-
 /**
  * Domain-specific query options for different data types
  * Use these in individual hooks for optimal caching per domain
@@ -353,14 +351,14 @@ export const DOMAIN_QUERY_OPTIONS = {
     gcTime: CACHE_TIMES.REAL_TIME.gcTime,
     refetchOnMount: false, // Socket keeps it fresh
   },
-  
+
   // Researcher data - occasionally updated
   researchers: {
     staleTime: CACHE_TIMES.STABLE.staleTime,
     gcTime: CACHE_TIMES.STABLE.gcTime,
     refetchOnMount: false, // Socket keeps it fresh
   },
-  
+
   // Configuration data - rarely changes
   configuration: {
     staleTime: CACHE_TIMES.CONFIG.staleTime,
@@ -369,18 +367,18 @@ export const DOMAIN_QUERY_OPTIONS = {
     refetchOnWindowFocus: false,
     refetchOnReconnect: false, // Very stable data
   },
-  
+
   // Search results - dynamic and short-lived
   search: {
     staleTime: CACHE_TIMES.SEARCH.staleTime,
     gcTime: CACHE_TIMES.SEARCH.gcTime,
     refetchOnMount: true, // Always fresh search results
   },
-  
+
   // Statistics - derived data that changes with tube updates
   statistics: {
     staleTime: CACHE_TIMES.REAL_TIME.staleTime,
     gcTime: CACHE_TIMES.REAL_TIME.gcTime,
     refetchOnMount: false, // Invalidated by socket events
-  }
+  },
 } as const;

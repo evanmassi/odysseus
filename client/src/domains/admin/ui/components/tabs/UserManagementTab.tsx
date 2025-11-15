@@ -14,8 +14,21 @@
 
 import { useState, useEffect } from 'react';
 
-import { RefreshCw, UserRound, CheckCircle, XCircle, Clock, UserRoundCheck, Unlink2, Trash2, Link2, UsersRound, KeyRound } from 'lucide-react';
+import {
+  RefreshCw,
+  UserRound,
+  CheckCircle,
+  XCircle,
+  Clock,
+  UserRoundCheck,
+  Unlink2,
+  Trash2,
+  Link2,
+  UsersRound,
+  KeyRound,
+} from 'lucide-react';
 
+import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../services/AdminService';
@@ -23,7 +36,6 @@ import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
-
 
 /**
  * UserManagementTab Props Interface
@@ -76,7 +88,10 @@ export function UserManagementTab({
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
   const [linkingUser, setLinkingUser] = useState<{ id: string; username: string } | null>(null);
   const [unlinkedResearchers, setUnlinkedResearchers] = useState<AdminResearcher[]>([]);
-  const [passwordResetModal, setPasswordResetModal] = useState<{ userId: string; username: string } | null>(null);
+  const [passwordResetModal, setPasswordResetModal] = useState<{
+    userId: string;
+    username: string;
+  } | null>(null);
 
   /**
    * Load pending users on component mount and when user list updates
@@ -97,7 +112,7 @@ export function UserManagementTab({
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to load pending users:', error);
+      logger.error('Failed to load pending users', { error });
     } finally {
       setLoadingPending(false);
     }
@@ -120,7 +135,7 @@ export function UserManagementTab({
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to update user role:', error);
+      logger.error('Failed to update user role', { error });
       notifications.error('Failed to update user role');
     } finally {
       setUpdating(null);
@@ -132,7 +147,9 @@ export function UserManagementTab({
    * Prompts for confirmation before deletion and refreshes list on success
    */
   const deleteUser = async (userId: string, username: string) => {
-    if (!confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)) {
+    if (
+      !confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)
+    ) {
       return;
     }
 
@@ -147,7 +164,7 @@ export function UserManagementTab({
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to delete user:', error);
+      logger.error('Failed to delete user', { error });
       notifications.error('Failed to delete user');
     }
   };
@@ -170,7 +187,7 @@ export function UserManagementTab({
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to approve user:', error);
+      logger.error('Failed to approve user', { error });
       notifications.error('Failed to approve user');
     } finally {
       setProcessingApproval(null);
@@ -182,7 +199,11 @@ export function UserManagementTab({
    * User is denied access to the system
    */
   const rejectUser = async (userId: string, username: string) => {
-    if (!confirm(`Are you sure you want to reject user "${username}"? They will not be able to access the system.`)) {
+    if (
+      !confirm(
+        `Are you sure you want to reject user "${username}"? They will not be able to access the system.`
+      )
+    ) {
       return;
     }
 
@@ -199,7 +220,7 @@ export function UserManagementTab({
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to reject user:', error);
+      logger.error('Failed to reject user', { error });
       notifications.error('Failed to reject user');
     } finally {
       setProcessingApproval(null);
@@ -211,7 +232,11 @@ export function UserManagementTab({
    * Preserves researcher record for tube history
    */
   const unlinkResearcher = async (userId: string, username: string) => {
-    if (!confirm(`Unlink researcher profile from "${username}"? The researcher record will be preserved for tube history.`)) {
+    if (
+      !confirm(
+        `Unlink researcher profile from "${username}"? The researcher record will be preserved for tube history.`
+      )
+    ) {
       return;
     }
 
@@ -227,7 +252,7 @@ export function UserManagementTab({
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to unlink researcher:', error);
+      logger.error('Failed to unlink researcher', { error });
       notifications.error('Failed to unlink researcher');
     } finally {
       setUpdating(null);
@@ -247,7 +272,7 @@ export function UserManagementTab({
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Failed to load unlinked researchers:', error);
+      logger.error('Failed to load unlinked researchers', { error });
       notifications.error('Failed to load available researchers');
     }
   };
@@ -258,11 +283,10 @@ export function UserManagementTab({
   const handleLinkExisting = async (researcherId: string) => {
     if (!linkingUser) return;
 
-    // eslint-disable-next-line no-console -- Info logging for operational visibility
-    console.log('[DEBUG] Linking researcher to user:', {
+    logger.info('[DEBUG] Linking researcher to user', {
       userId: linkingUser.id,
       username: linkingUser.username,
-      researcherId
+      researcherId,
     });
 
     await adminService.linkResearcherToUser(linkingUser.id, researcherId);
@@ -275,11 +299,10 @@ export function UserManagementTab({
   const handleCreateAndLink = async (data: CreateResearcherProfile) => {
     if (!linkingUser) return;
 
-    // eslint-disable-next-line no-console -- Info logging for operational visibility
-    console.log('[DEBUG] Creating and linking researcher to user:', {
+    logger.info('[DEBUG] Creating and linking researcher to user', {
       userId: linkingUser.id,
       username: linkingUser.username,
-      researcherData: data
+      researcherData: data,
     });
 
     await adminService.createAndLinkResearcher(linkingUser.id, data);
@@ -317,7 +340,7 @@ export function UserManagementTab({
           </div>
 
           <div className="space-y-2">
-            {pendingUsers.map((user) => (
+            {pendingUsers.map(user => (
               <div
                 key={user.id}
                 className="bg-white border border-warning-border rounded-lg p-2 flex items-center justify-between"
@@ -390,7 +413,7 @@ export function UserManagementTab({
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {(users?.length ?? 0) > 0 ? (
-              users.map((user) => (
+              users.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50">
                   {/* User Info Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
@@ -419,7 +442,7 @@ export function UserManagementTab({
                   <td className="px-3 py-2 whitespace-nowrap">
                     <select
                       value={user.role || 'user'}
-                      onChange={(e) => updateUserRole(user.id, e.target.value as 'admin' | 'user')}
+                      onChange={e => updateUserRole(user.id, e.target.value as 'admin' | 'user')}
                       disabled={updating === user.id}
                       className="select-sm px-1.5 py-0.5"
                     >
@@ -454,7 +477,9 @@ export function UserManagementTab({
                   <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-2">
                       <button
-                        onClick={() => setPasswordResetModal({ userId: user.id, username: user.username })}
+                        onClick={() =>
+                          setPasswordResetModal({ userId: user.id, username: user.username })
+                        }
                         className="btn-password-compact flex items-center space-x-1"
                         title="Reset password"
                       >
@@ -505,16 +530,10 @@ export function UserManagementTab({
         <h4 className="text-sm font-medium text-gray-900 mb-2">Invite New Users</h4>
 
         <div className="grid grid-cols-2 gap-2 mb-3">
-          <button
-            onClick={() => onCreateInvite('user')}
-            className="btn btn-secondary text-xs"
-          >
+          <button onClick={() => onCreateInvite('user')} className="btn btn-secondary text-xs">
             Create User Invite
           </button>
-          <button
-            onClick={() => onCreateInvite('admin')}
-            className="btn btn-secondary text-xs"
-          >
+          <button onClick={() => onCreateInvite('admin')} className="btn btn-secondary text-xs">
             Create Admin Invite
           </button>
         </div>

@@ -1,6 +1,6 @@
 /**
  * Suspense Boundary Component
- * 
+ *
  * Professional Suspense boundary with proper error handling and loading states
  * Provides consistent lazy loading experience across the application
  */
@@ -9,29 +9,30 @@ import type { ReactNode } from 'react';
 import React, { Suspense, useCallback, useState, forwardRef } from 'react';
 
 import { env } from '@shared/config';
+import { logger } from '@shared/infrastructure/logger';
 
 import { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
 
 // Suspense boundary configuration
 interface SuspenseBoundaryProps {
   children: ReactNode;
-  
+
   // Loading fallback
   fallback?: ReactNode;
-  
+
   // Error handling
   onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   errorFallback?: ErrorBoundaryProps['fallback'];
-  
+
   // Accessibility
   'aria-label'?: string;
-  
+
   // Performance
   timeout?: number; // Max time before showing error
-  
+
   // Styling
   className?: string;
-  
+
   // Debug info
   name?: string; // For debugging lazy loading
 }
@@ -43,17 +44,19 @@ interface DefaultLoadingFallbackProps {
   'aria-label'?: string;
 }
 
-const DefaultLoadingFallback: React.FC<DefaultLoadingFallbackProps> = ({ name, className = '', 'aria-label': ariaLabel }) => (
-  <div 
+const DefaultLoadingFallback: React.FC<DefaultLoadingFallbackProps> = ({
+  name,
+  className = '',
+  'aria-label': ariaLabel,
+}) => (
+  <div
     className={`flex items-center justify-center p-8 ${className}`}
     role="status"
     aria-label={ariaLabel ?? `Loading ${name ?? 'component'}...`}
   >
     <div className="flex items-center space-x-3">
       <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary-600 border-t-transparent" />
-      <span className="text-neutral-600 text-sm">
-        {name ? `Loading ${name}...` : 'Loading...'}
-      </span>
+      <span className="text-neutral-600 text-sm">{name ? `Loading ${name}...` : 'Loading...'}</span>
     </div>
   </div>
 );
@@ -103,14 +106,10 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
     ),
     [className, name]
   );
-  
+
   // Default loading fallback with timeout
   const loadingFallback = fallback ?? (
-    <DefaultLoadingFallback
-      name={name}
-      className={className}
-      aria-label={ariaLabel}
-    />
+    <DefaultLoadingFallback name={name} className={className} aria-label={ariaLabel} />
   );
 
   // Error boundary configuration - omit children since we use JSX children pattern
@@ -122,25 +121,21 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown Component'
         // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
         console.group(`🚨 Lazy Loading Error: ${name ?? 'Unknown Component'}`);
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('Error:', error);
-        // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-        console.error('Error Info:', errorInfo);
+        logger.error('Error', { error });
+        logger.error('Error Info', { errorInfo });
         // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
         console.groupEnd();
       }
-      
+
       // Call custom error handler
       onError?.(error, errorInfo);
     },
     isolate: true, // Prevent error propagation to parent boundaries
   };
-  
+
   return (
     <ErrorBoundary {...errorBoundaryConfig}>
-      <Suspense fallback={loadingFallback}>
-        {children}
-      </Suspense>
+      <Suspense fallback={loadingFallback}>{children}</Suspense>
     </ErrorBoundary>
   );
 };
@@ -156,7 +151,7 @@ export const withSuspenseBoundary = <P extends object>(
 
     return (
       <SuspenseBoundary {...config}>
-        <LazyComponent {...componentProps as P} />
+        <LazyComponent {...(componentProps as P)} />
       </SuspenseBoundary>
     );
   });
@@ -177,15 +172,17 @@ export const useLazyLoadingState = (componentName?: string) => {
     setError(null);
   }, []);
 
-  const handleLoadError = useCallback((error: Error) => {
-    setIsLoading(false);
-    setError(error);
+  const handleLoadError = useCallback(
+    (error: Error) => {
+      setIsLoading(false);
+      setError(error);
 
-    if (env.isDev()) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error(`Failed to load lazy component: ${componentName}`, error);
-    }
-  }, [componentName]);
+      if (env.isDev()) {
+        logger.error(`Failed to load lazy component: ${componentName}`, { error });
+      }
+    },
+    [componentName]
+  );
 
   const retry = useCallback(() => {
     setIsLoading(true);
@@ -210,8 +207,7 @@ export const preloadLazyComponent = async (
     await importFn();
   } catch (error) {
     if (env.isDev()) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('Failed to preload lazy component:', error);
+      logger.warn('Failed to preload lazy component', { error });
     }
   }
 };
@@ -224,8 +220,7 @@ export const preloadLazyComponents = async (
     await Promise.all(importFns.map(preloadLazyComponent));
   } catch (error) {
     if (env.isDev()) {
-      // eslint-disable-next-line no-console -- Warning logging for production monitoring
-      console.warn('Failed to preload some lazy components:', error);
+      logger.warn('Failed to preload some lazy components', { error });
     }
   }
 };

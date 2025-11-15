@@ -8,6 +8,8 @@ import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS, SYSTEM_DEFAULTS } from '@odysseus/
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { logger } from '@shared/infrastructure/logger';
+
 import {
   isGridConfiguration,
   isLegacyGridConfig,
@@ -613,8 +615,7 @@ export const useStorageStore = create<ConfigurationState>()(
 
         // Server synchronization methods (DEPRECATED - use React Query hooks)
         loadFromServer: async () => {
-          // eslint-disable-next-line no-console -- Warning logging for production monitoring
-          console.warn(
+          logger.warn(
             '⚠️ ConfigurationStore.loadFromServer() is deprecated. Use useLoadConfigurationQuery() hook instead.'
           );
 
@@ -744,8 +745,7 @@ export const useStorageStore = create<ConfigurationState>()(
         },
 
         saveToServer: async () => {
-          // eslint-disable-next-line no-console -- Warning logging for production monitoring
-          console.warn(
+          logger.warn(
             '⚠️ ConfigurationStore.saveToServer() is deprecated. Use useSaveConfigurationMutation() hook instead.'
           );
 

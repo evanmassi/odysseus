@@ -11,9 +11,9 @@ import React, { Component } from 'react';
 import { AlertTriangle, RefreshCw, Home, Bug, ExternalLink } from 'lucide-react';
 
 import { env } from '@shared/config/environment';
+import { logger } from '@shared/infrastructure/logger';
 
 import type { AppInitializationError } from '@shared/errors/AppError';
-
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
@@ -32,12 +32,12 @@ interface AppErrorBoundaryState {
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
   constructor(props: AppErrorBoundaryProps) {
     super(props);
-    
+
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: this.generateErrorId()
+      errorId: this.generateErrorId(),
     };
   }
 
@@ -45,23 +45,22 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     return {
       hasError: true,
       error,
-      errorId: Date.now().toString(36) + Math.random().toString(36).substr(2)
+      errorId: Date.now().toString(36) + Math.random().toString(36).substr(2),
     };
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     this.setState({
       error,
-      errorInfo
+      errorInfo,
     });
 
     // Log error for debugging
-    // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-    console.error('🛑 [ERROR BOUNDARY] React error caught:', {
+    logger.error('Error boundary caught React error', {
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
-      errorId: this.state.errorId
+      errorId: this.state.errorId,
     });
 
     // Call custom error handler if provided
@@ -81,14 +80,13 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
   private reportError(error: Error, errorInfo: ErrorInfo): void {
     // TODO: Send to error reporting service (Sentry, LogRocket, etc.)
-    // eslint-disable-next-line no-console -- Placeholder for error reporting service (TODO: replace with Sentry/LogRocket)
-    console.log('📊 [ERROR REPORTING] Error would be reported to monitoring service:', {
+    logger.info('Error would be reported to monitoring service', {
       message: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
       userAgent: navigator.userAgent,
       timestamp: new Date().toISOString(),
-      errorId: this.state.errorId
+      errorId: this.state.errorId,
     });
   }
 
@@ -96,13 +94,13 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     if (this.props.onRetry) {
       this.props.onRetry();
     }
-    
+
     // Reset error boundary state
     this.setState({
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: this.generateErrorId()
+      errorId: this.generateErrorId(),
     });
   };
 
@@ -121,10 +119,11 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       stack: this.state.error?.stack,
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
-      componentStack: this.state.errorInfo?.componentStack
+      componentStack: this.state.errorInfo?.componentStack,
     };
 
-    navigator.clipboard.writeText(JSON.stringify(errorDetails, null, 2))
+    navigator.clipboard
+      .writeText(JSON.stringify(errorDetails, null, 2))
       .then(() => {
         alert('Error details copied to clipboard');
       })
@@ -149,11 +148,9 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="w-8 h-8 text-red-500" />
               </div>
-              
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                Something went wrong
-              </h1>
-              
+
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h1>
+
               <p className="text-gray-600">
                 The application encountered an unexpected error and needs to recover.
               </p>
@@ -164,15 +161,11 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
               <div className="flex items-start space-x-3">
                 <Bug className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-red-800 mb-1">
-                    Error Details
-                  </h4>
+                  <h4 className="text-sm font-medium text-red-800 mb-1">Error Details</h4>
                   <p className="text-sm text-red-700 break-words">
                     {this.state.error?.message ?? 'Unknown error occurred'}
                   </p>
-                  <p className="text-xs text-red-600 mt-2">
-                    Error ID: {this.state.errorId}
-                  </p>
+                  <p className="text-xs text-red-600 mt-2">Error ID: {this.state.errorId}</p>
                 </div>
               </div>
             </div>
@@ -235,7 +228,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             {/* Support Actions */}
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-sm font-medium text-gray-700 mb-3">Need Help?</h3>
-              
+
               <div className="space-y-2">
                 <button
                   onClick={this.copyErrorDetails}
@@ -244,18 +237,17 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
                   <ExternalLink className="w-4 h-4" />
                   <span>Copy error details for support</span>
                 </button>
-                
+
                 <p className="text-xs text-gray-500">
-                  If this error persists, please contact your system administrator with the error ID above.
+                  If this error persists, please contact your system administrator with the error ID
+                  above.
                 </p>
               </div>
             </div>
 
             {/* Footer */}
             <div className="mt-6 text-center border-t border-gray-200 pt-4">
-              <p className="text-xs text-gray-500">
-                Odysseus Laboratory Management System
-              </p>
+              <p className="text-xs text-gray-500">Odysseus Laboratory Management System</p>
             </div>
           </div>
         </div>
@@ -281,22 +273,19 @@ export function BootstrapError({ error, onRetry, canRetry }: BootstrapErrorProps
       <div className="flex items-start space-x-4">
         <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" />
         <div className="flex-1">
-          <h3 className="text-lg font-medium text-red-800 mb-2">
-            Initialization Failed
-          </h3>
-          <p className="text-red-700 mb-3">
-            {error.message}
-          </p>
+          <h3 className="text-lg font-medium text-red-800 mb-2">Initialization Failed</h3>
+          <p className="text-red-700 mb-3">{error.message}</p>
           <div className="text-sm text-red-600 mb-4">
-            <p>Phase: <span className="font-mono">{error.phase}</span></p>
-            <p>Code: <span className="font-mono">{error.code}</span></p>
+            <p>
+              Phase: <span className="font-mono">{error.phase}</span>
+            </p>
+            <p>
+              Code: <span className="font-mono">{error.code}</span>
+            </p>
           </div>
-          
+
           {canRetry && error.retryable && onRetry && (
-            <button
-              onClick={onRetry}
-              className="btn-danger inline-flex items-center space-x-2"
-            >
+            <button onClick={onRetry} className="btn-danger inline-flex items-center space-x-2">
               <RefreshCw className="w-4 h-4" />
               <span>Retry Initialization</span>
             </button>

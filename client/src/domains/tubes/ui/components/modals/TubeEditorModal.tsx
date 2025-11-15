@@ -21,7 +21,6 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 
-
 import {
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
@@ -31,7 +30,7 @@ import {
   type Researcher,
   updateTubeRequestSchema,
   formatConcentrationDisplay,
-  EQUIPMENT_DEFAULTS
+  EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
 import { MapPin, AlertTriangle, Edit, Plus, Save, Trash2 } from 'lucide-react';
 
@@ -40,9 +39,13 @@ import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
-import { useUpdateTubeMutation, useDeleteTubeMutation } from '@domains/tubes/hooks/useTubeMutations';
+import {
+  useUpdateTubeMutation,
+  useDeleteTubeMutation,
+} from '@domains/tubes/hooks/useTubeMutations';
 import { useTubesQuery, useTubeQuery } from '@domains/tubes/hooks/useTubesQuery';
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
+import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateFormatter';
@@ -121,7 +124,7 @@ function EditModeContent({ tubeId, onClose }: EditModeContentProps) {
   // (Enter naturally submits form)
   useModalKeyboardNav({
     onEscape: onClose,
-    enabled: true
+    enabled: true,
   });
 
   // Loading state while fetching tube
@@ -180,18 +183,22 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
       media: {
         type: tube.sample.media?.type ?? '',
         supplements: tube.sample.media?.supplements ?? '',
-        selection: tube.sample.media?.selection ?? ''
+        selection: tube.sample.media?.selection ?? '',
       },
       cultureCondition: tube.sample.cultureCondition ?? '',
       lotNumber: tube.sample.lotNumber ?? '',
-      notes: tube.sample.notes ?? ''
+      notes: tube.sample.notes ?? '',
     },
-    researcherId: tube.researcherId ?? ''
+    researcherId: tube.researcherId ?? '',
   };
 
   // Use edit mode hook - fully type-safe wrapper
-  const { form, submitTube, isSubmitting: formSubmitting } = useEditTubeForm(tubeId, {
-    initialData
+  const {
+    form,
+    submitTube,
+    isSubmitting: formSubmitting,
+  } = useEditTubeForm(tubeId, {
+    initialData,
   });
 
   const deleteMutation = useDeleteTubeMutation();
@@ -239,65 +246,65 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
       mode="edit"
     >
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-          <LocationDisplay
-            tankId={tube.location.tankId}
-            rackId={tube.location.rackId}
-            boxId={tube.location.boxId}
-            position={tube.location.position}
-          />
+        <LocationDisplay
+          tankId={tube.location.tankId}
+          rackId={tube.location.rackId}
+          boxId={tube.location.boxId}
+          position={tube.location.position}
+        />
 
-          <TubeForm
-            control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
-            register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
-            errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
-            trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
-            researchers={researchers}
-            isLoading={isSubmitting}
-          />
+        <TubeForm
+          control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
+          register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
+          errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
+          trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
+          researchers={researchers}
+          isLoading={isSubmitting}
+        />
 
-          <div className="flex justify-end space-x-4 pt-4 border-t border-odysseus-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-secondary px-6"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger px-6"
-              disabled={isSubmitting}
-              onClick={() => {
-                modalService.showDeleteConfirm({
-                  title: 'Delete Tube',
-                  message: `Are you sure you want to delete this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
-                  onConfirm: handleDelete
-                });
-              }}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Delete Tube
-            </button>
-            <button
-              type="submit"
-              className={`btn px-8 ${isFormValid ? 'btn-primary' : 'btn-secondary'}`}
-              disabled={isSubmitting || !isFormValid}
-            >
-              {isSubmitting ? (
-                <div className="flex items-center space-x-2">
-                  <div className="spinner w-4 h-4"></div>
-                  <span>Updating...</span>
-                </div>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Update Tube
-                </>
-              )}
-            </button>
-          </div>
-        </form>
+        <div className="flex justify-end space-x-4 pt-4 border-t border-odysseus-border">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-secondary px-6"
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="btn btn-danger px-6"
+            disabled={isSubmitting}
+            onClick={() => {
+              modalService.showDeleteConfirm({
+                title: 'Delete Tube',
+                message: `Are you sure you want to delete this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
+                onConfirm: handleDelete,
+              });
+            }}
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Delete Tube
+          </button>
+          <button
+            type="submit"
+            className={`btn px-8 ${isFormValid ? 'btn-primary' : 'btn-secondary'}`}
+            disabled={isSubmitting || !isFormValid}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center space-x-2">
+                <div className="spinner w-4 h-4"></div>
+                <span>Updating...</span>
+              </div>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Update Tube
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </BaseModal>
   );
 }
@@ -310,7 +317,7 @@ function CreateModeContent({
   onClose,
   rackId: _rackId,
   boxId: _boxId,
-  selectedPositions
+  selectedPositions,
 }: TubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: allTubes = [] } = useTubesQuery();
@@ -348,7 +355,7 @@ function CreateModeContent({
   // (Enter naturally submits form)
   useModalKeyboardNav({
     onEscape: onClose,
-    enabled: true
+    enabled: true,
   });
 
   // Parse selected positions from string format
@@ -362,8 +369,8 @@ function CreateModeContent({
           tankId,
           rackId,
           boxId,
-          position
-        }
+          position,
+        },
       };
     });
   }, [selectedPositions]);
@@ -375,11 +382,12 @@ function CreateModeContent({
 
     for (const parsed of parsedPositions) {
       const { tankId, rackId, boxId, position } = parsed.location;
-      const existingTube = allTubes.find(t =>
-        t.location.tankId === tankId &&
-        t.location.rackId === rackId &&
-        t.location.boxId === boxId &&
-        t.location.position === position
+      const existingTube = allTubes.find(
+        t =>
+          t.location.tankId === tankId &&
+          t.location.rackId === rackId &&
+          t.location.boxId === boxId &&
+          t.location.position === position
       );
 
       if (existingTube) {
@@ -394,7 +402,7 @@ function CreateModeContent({
       occupiedPositions,
       hasEmpty: emptyPositions.length > 0,
       hasOccupied: occupiedPositions.length > 0,
-      isMixed: emptyPositions.length > 0 && occupiedPositions.length > 0
+      isMixed: emptyPositions.length > 0 && occupiedPositions.length > 0,
     };
   }, [parsedPositions, allTubes]);
 
@@ -435,39 +443,46 @@ function CreateModeContent({
   }, [parsedPositions, currentLab, getBox, userSettings]);
 
   // Default values use FORM INPUT type (pre-transformation)
-  const defaultValues = useMemo((): Partial<CreateTubeFormInput> => ({
-    location: parsedPositions[0]?.location,
-    sample: {
-      cellType: '',
-      donorInternalId: '',
-      donorSourceId: '',
-      concentration: undefined,
-      concentrationUnit: undefined,
-      date: '',
-      media: {
-        type: '',
-        supplements: '',
-        selection: ''
+  const defaultValues = useMemo(
+    (): Partial<CreateTubeFormInput> => ({
+      location: parsedPositions[0]?.location,
+      sample: {
+        cellType: '',
+        donorInternalId: '',
+        donorSourceId: '',
+        concentration: undefined,
+        concentrationUnit: undefined,
+        date: '',
+        media: {
+          type: '',
+          supplements: '',
+          selection: '',
+        },
+        cultureCondition: '',
+        lotNumber: '',
+        notes: '',
       },
-      cultureCondition: '',
-      lotNumber: '',
-      notes: ''
-    },
-    researcherId: ''
-  }), [parsedPositions]);
+      researcherId: '',
+    }),
+    [parsedPositions]
+  );
 
   // Use create mode hook
   // Only show individual notifications for single tube creation, not batch operations
   const isSingleTube = parsedPositions.length === 1;
   const { form, submitTube, isSubmitting } = useCreateTubeForm({
     initialData: defaultValues,
-    onSuccess: isSingleTube ? (data) => {
-      notifications.create(`Successfully created tube at position ${data.location.position}`); // Minty Frost
-      onClose();
-    } : undefined, // Batch mode: notification handled after all tubes are created
-    onError: isSingleTube ? (error) => {
-      notifications.error(`Failed to create tube: ${error.message}`);
-    } : undefined // Batch mode: errors handled in handleFormSubmit
+    onSuccess: isSingleTube
+      ? data => {
+          notifications.create(`Successfully created tube at position ${data.location.position}`); // Minty Frost
+          onClose();
+        }
+      : undefined, // Batch mode: notification handled after all tubes are created
+    onError: isSingleTube
+      ? error => {
+          notifications.error(`Failed to create tube: ${error.message}`);
+        }
+      : undefined, // Batch mode: errors handled in handleFormSubmit
   });
 
   /**
@@ -511,7 +526,9 @@ function CreateModeContent({
           }
         } catch (error) {
           errorCount++;
-          errors.push(`Position ${location.position}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          errors.push(
+            `Position ${location.position}: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
         }
       }
 
@@ -522,17 +539,19 @@ function CreateModeContent({
             // Validate and transform raw form data through Zod schema
             const validatedUpdates = updateTubeRequestSchema.parse({
               sample: formData.sample,
-              researcherId: formData.researcherId
+              researcherId: formData.researcherId,
             });
 
             await updateTubeMutation.mutateAsync({
               id: tubeId,
-              updates: validatedUpdates
+              updates: validatedUpdates,
             });
             successCount++;
           } catch (error) {
             errorCount++;
-            errors.push(`Position ${location.position}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            errors.push(
+              `Position ${location.position}: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
           }
         }
       }
@@ -546,16 +565,20 @@ function CreateModeContent({
         const positionRange = batchLocationDisplay?.positionRanges ?? '';
 
         if (createCount > 0 && updateCount > 0) {
-          notifications.create(`Successfully filled ${successCount} positions (${createCount} new, ${updateCount} updated) at ${positionRange}`); // Minty Frost
+          notifications.create(
+            `Successfully filled ${successCount} positions (${createCount} new, ${updateCount} updated) at ${positionRange}`
+          ); // Minty Frost
         } else if (createCount > 0) {
-          const message = successCount > 1
-            ? `Successfully created ${successCount} tubes at positions ${positionRange}`
-            : `Successfully created tube at position ${positionRange}`;
+          const message =
+            successCount > 1
+              ? `Successfully created ${successCount} tubes at positions ${positionRange}`
+              : `Successfully created tube at position ${positionRange}`;
           notifications.create(message); // Minty Frost
         } else {
-          const message = successCount > 1
-            ? `Successfully updated ${successCount} tubes at positions ${positionRange}`
-            : `Successfully updated tube at position ${positionRange}`;
+          const message =
+            successCount > 1
+              ? `Successfully updated ${successCount} tubes at positions ${positionRange}`
+              : `Successfully updated tube at position ${positionRange}`;
           notifications.update(message); // Minty Frost
         }
         onClose();
@@ -564,8 +587,7 @@ function CreateModeContent({
           `Processed ${successCount} of ${parsedPositions.length} positions. ${errorCount} failed.`
         );
         if (errors.length > 0) {
-          // eslint-disable-next-line no-console -- Warning logging for production monitoring
-          console.warn('Tube operation errors:', errors);
+          logger.warn('Tube operation errors', { errors });
         }
       } else {
         notifications.error('Failed to process any positions');
@@ -573,10 +595,8 @@ function CreateModeContent({
           notifications.error(errors[0]);
         }
       }
-
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      console.error('Tube creation error:', error);
+      logger.error('Tube creation error', { error });
       notifications.error('An unexpected error occurred during tube creation');
     }
   };
@@ -593,97 +613,97 @@ function CreateModeContent({
       mode="create"
     >
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-            {/* Location Display */}
-            {parsedPositions.length === 1 && parsedPositions[0] && (
-              <LocationDisplay
-                tankId={parsedPositions[0].location.tankId}
-                rackId={parsedPositions[0].location.rackId}
-                boxId={parsedPositions[0].location.boxId}
-                position={parsedPositions[0].location.position}
-              />
-            )}
-            {parsedPositions.length > 1 && batchLocationDisplay && (
-              <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-teal-50 to-cyan-50 border-2 border-teal-500 rounded-lg shadow-md">
-                <MapPin className="w-4 h-4 text-teal-500 flex-shrink-0" />
-                <div className="flex items-center gap-2 text-sm font-medium text-odysseus-dark">
-                  <span className="font-semibold">{batchLocationDisplay.tankName}</span>
-                  <span className="text-odysseus-muted">•</span>
-                  <span>{batchLocationDisplay.rackName}</span>
-                  <span className="text-odysseus-muted">•</span>
-                  <span>{batchLocationDisplay.boxName}</span>
-                  <span className="text-odysseus-muted">•</span>
-                  <span className="font-semibold">Positions {batchLocationDisplay.positionRanges}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Mixed Selection Warning */}
-            {positionAnalysis.isMixed && (
-              <div className="alert-warning">
-                <div className="flex items-start space-x-3">
-                  <AlertTriangle className="w-5 h-5 alert-warning-icon flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <h3 className="alert-warning-heading mb-1">
-                      Mixed Selection Detected
-                    </h3>
-                    <p className="alert-warning-text mb-3">
-                      You&apos;ve selected {positionAnalysis.emptyPositions.length} empty and {positionAnalysis.occupiedPositions.length} occupied position{positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}.
-                      By default, only empty positions will be filled.
-                    </p>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={allowOverwrite}
-                        onChange={(e) => setAllowOverwrite(e.target.checked)}
-                        className="w-4 h-4 text-warning-text border-warning-border rounded focus:ring-warning-bg"
-                      />
-                      <span className="text-sm font-medium alert-warning-heading">
-                        Overwrite occupied positions (this will replace existing tube data)
-                      </span>
-                    </label>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <TubeForm
-              control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
-              register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
-              errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
-              trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
-              researchers={researchers}
-              isLoading={isSubmitting}
-            />
-
-            {/* Form Actions */}
-            <div className="flex justify-end space-x-4 pt-4 border-t border-odysseus-border">
-              <button
-                type="button"
-                onClick={onClose}
-                className="btn btn-secondary px-6"
-                disabled={isSubmitting}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className={`btn px-8 ${isFormValid ? 'btn-primary' : 'btn-secondary'}`}
-                disabled={isSubmitting || !isFormValid}
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="spinner w-4 h-4"></div>
-                    <span>Adding...</span>
-                  </div>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4 mr-2" />
-                    {parsedPositions.length === 1 ? 'Add Tube' : `Add ${parsedPositions.length} Tubes`}
-                  </>
-                )}
-              </button>
+        {/* Location Display */}
+        {parsedPositions.length === 1 && parsedPositions[0] && (
+          <LocationDisplay
+            tankId={parsedPositions[0].location.tankId}
+            rackId={parsedPositions[0].location.rackId}
+            boxId={parsedPositions[0].location.boxId}
+            position={parsedPositions[0].location.position}
+          />
+        )}
+        {parsedPositions.length > 1 && batchLocationDisplay && (
+          <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-teal-50 to-cyan-50 border-2 border-teal-500 rounded-lg shadow-md">
+            <MapPin className="w-4 h-4 text-teal-500 flex-shrink-0" />
+            <div className="flex items-center gap-2 text-sm font-medium text-odysseus-dark">
+              <span className="font-semibold">{batchLocationDisplay.tankName}</span>
+              <span className="text-odysseus-muted">•</span>
+              <span>{batchLocationDisplay.rackName}</span>
+              <span className="text-odysseus-muted">•</span>
+              <span>{batchLocationDisplay.boxName}</span>
+              <span className="text-odysseus-muted">•</span>
+              <span className="font-semibold">Positions {batchLocationDisplay.positionRanges}</span>
             </div>
-          </form>
+          </div>
+        )}
+
+        {/* Mixed Selection Warning */}
+        {positionAnalysis.isMixed && (
+          <div className="alert-warning">
+            <div className="flex items-start space-x-3">
+              <AlertTriangle className="w-5 h-5 alert-warning-icon flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="alert-warning-heading mb-1">Mixed Selection Detected</h3>
+                <p className="alert-warning-text mb-3">
+                  You&apos;ve selected {positionAnalysis.emptyPositions.length} empty and{' '}
+                  {positionAnalysis.occupiedPositions.length} occupied position
+                  {positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}. By default, only empty
+                  positions will be filled.
+                </p>
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={allowOverwrite}
+                    onChange={e => setAllowOverwrite(e.target.checked)}
+                    className="w-4 h-4 text-warning-text border-warning-border rounded focus:ring-warning-bg"
+                  />
+                  <span className="text-sm font-medium alert-warning-heading">
+                    Overwrite occupied positions (this will replace existing tube data)
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <TubeForm
+          control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
+          register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
+          errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
+          trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
+          researchers={researchers}
+          isLoading={isSubmitting}
+        />
+
+        {/* Form Actions */}
+        <div className="flex justify-end space-x-4 pt-4 border-t border-odysseus-border">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-secondary px-6"
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            className={`btn px-8 ${isFormValid ? 'btn-primary' : 'btn-secondary'}`}
+            disabled={isSubmitting || !isFormValid}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center space-x-2">
+                <div className="spinner w-4 h-4"></div>
+                <span>Adding...</span>
+              </div>
+            ) : (
+              <>
+                <Plus className="w-4 h-4 mr-2" />
+                {parsedPositions.length === 1 ? 'Add Tube' : `Add ${parsedPositions.length} Tubes`}
+              </>
+            )}
+          </button>
+        </div>
+      </form>
     </BaseModal>
   );
 }

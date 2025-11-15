@@ -1,6 +1,6 @@
 /**
  * Grid Position Manager
- * 
+ *
  * Centralized position management service that provides a single source of truth
  * for the current focused position in the grid. Handles validation, bounds checking,
  * and event emission for position changes from any source (mouse, keyboard, programmatic).
@@ -8,6 +8,8 @@
 
 import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
+
+import { logger } from '@shared/infrastructure/logger';
 
 export type PositionSource = 'mouse' | 'keyboard' | 'programmatic' | 'search';
 
@@ -45,19 +47,20 @@ const useGridPositionStore = create<GridPositionStore>()(
     // Actions
     setPosition: (position: number, source: PositionSource) => {
       const state = get();
-      
+
       // Validate position bounds
       if (!state.validatePosition(position)) {
-        // eslint-disable-next-line no-console -- Warning logging for production monitoring
-        console.warn(`Invalid grid position: ${position}. Keeping current: ${state.currentPosition}`);
+        logger.warn(
+          `Invalid grid position: ${position}. Keeping current: ${state.currentPosition}`
+        );
         return;
       }
 
       // Only update if position actually changed
       if (state.currentPosition !== position) {
-        set({ 
-          currentPosition: position, 
-          lastSource: source 
+        set({
+          currentPosition: position,
+          lastSource: source,
         });
       }
     },
@@ -65,14 +68,15 @@ const useGridPositionStore = create<GridPositionStore>()(
     setGridContext: (context: GridPositionState['gridContext']) => {
       const state = get();
       set({ gridContext: context });
-      
+
       // Reset position to 1 when context changes (new box/rack/tank)
-      if (context && (
-        !state.gridContext ||
-        state.gridContext.tankId !== context.tankId ||
-        state.gridContext.rackId !== context.rackId ||
-        state.gridContext.boxId !== context.boxId
-      )) {
+      if (
+        context &&
+        (!state.gridContext ||
+          state.gridContext.tankId !== context.tankId ||
+          state.gridContext.rackId !== context.rackId ||
+          state.gridContext.boxId !== context.boxId)
+      ) {
         set({ currentPosition: 1, lastSource: 'programmatic' });
       }
     },
@@ -80,14 +84,14 @@ const useGridPositionStore = create<GridPositionStore>()(
     validatePosition: (position: number): boolean => {
       const { gridContext } = get();
       if (!gridContext) return true; // Allow any position if no context set
-      
+
       const maxPosition = gridContext.gridSize * gridContext.gridSize;
       return position >= 1 && position <= maxPosition && Number.isInteger(position);
     },
 
     resetToDefault: () => {
       set({ currentPosition: 1, lastSource: 'programmatic' });
-    }
+    },
   }))
 );
 
@@ -97,7 +101,7 @@ const useGridPositionStore = create<GridPositionStore>()(
  */
 export class GridPositionManager {
   private static instance: GridPositionManager;
-  
+
   public static getInstance(): GridPositionManager {
     if (!GridPositionManager.instance) {
       GridPositionManager.instance = new GridPositionManager();
@@ -125,9 +129,9 @@ export class GridPositionManager {
   public setGridContext(tankId: string, rackId: string, boxId: string, gridSize: number): void {
     useGridPositionStore.getState().setGridContext({
       tankId,
-      rackId, 
+      rackId,
       boxId,
-      gridSize
+      gridSize,
     });
   }
 
@@ -136,7 +140,7 @@ export class GridPositionManager {
    */
   public subscribe(callback: (position: number, source: PositionSource) => void): () => void {
     return useGridPositionStore.subscribe(
-      (state) => ({ position: state.currentPosition, source: state.lastSource }),
+      state => ({ position: state.currentPosition, source: state.lastSource }),
       ({ position, source }) => callback(position, source),
       { equalityFn: (a, b) => a.position === b.position }
     );
@@ -167,5 +171,5 @@ export class GridPositionManager {
 // Export singleton instance
 export const gridPositionManager = GridPositionManager.getInstance();
 
-// Export store hook for React components  
+// Export store hook for React components
 export { useGridPositionStore };
