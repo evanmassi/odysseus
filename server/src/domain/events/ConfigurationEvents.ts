@@ -296,3 +296,231 @@ export class LabNameChangedEvent extends DomainEvent {
     return 'system-configuration';
   }
 }
+
+/**
+ * Rack Assigned Event
+ *
+ * Fired when a rack is assigned to a user.
+ */
+export class RackAssignedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly tankId: string,
+    public readonly tankName: string,
+    public readonly rackId: string,
+    public readonly rackName: string,
+    public readonly assignedUserId: string,
+    public readonly assignedUsername: string
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'RackAssigned';
+  }
+
+  getAggregateId(): string {
+    return `${this.tankId}-${this.rackId}`;
+  }
+}
+
+/**
+ * Rack Unassigned Event
+ *
+ * Fired when a rack is unassigned from a user.
+ */
+export class RackUnassignedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly tankId: string,
+    public readonly tankName: string,
+    public readonly rackId: string,
+    public readonly rackName: string,
+    public readonly previousUserId: string,
+    public readonly previousUsername: string
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'RackUnassigned';
+  }
+
+  getAggregateId(): string {
+    return `${this.tankId}-${this.rackId}`;
+  }
+}
+
+/**
+ * Rack Reassigned Event
+ *
+ * Fired when a rack is reassigned from one user to another.
+ */
+export class RackReassignedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly tankId: string,
+    public readonly tankName: string,
+    public readonly rackId: string,
+    public readonly rackName: string,
+    public readonly previousUserId: string,
+    public readonly previousUsername: string,
+    public readonly newUserId: string,
+    public readonly newUsername: string
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'RackReassigned';
+  }
+
+  getAggregateId(): string {
+    return `${this.tankId}-${this.rackId}`;
+  }
+}
+
+/**
+ * Box Assigned Event
+ *
+ * Fired when a box is assigned to a user.
+ */
+export class BoxAssignedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly tankId: string,
+    public readonly tankName: string,
+    public readonly rackId: string,
+    public readonly rackName: string,
+    public readonly boxId: string,
+    public readonly boxName: string,
+    public readonly assignedUserId: string,
+    public readonly assignedUsername: string
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'BoxAssigned';
+  }
+
+  getAggregateId(): string {
+    return `${this.tankId}-${this.rackId}-${this.boxId}`;
+  }
+}
+
+/**
+ * Box Unassigned Event
+ *
+ * Fired when a box is unassigned from a user.
+ */
+export class BoxUnassignedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly tankId: string,
+    public readonly tankName: string,
+    public readonly rackId: string,
+    public readonly rackName: string,
+    public readonly boxId: string,
+    public readonly boxName: string,
+    public readonly previousUserId: string,
+    public readonly previousUsername: string
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'BoxUnassigned';
+  }
+
+  getAggregateId(): string {
+    return `${this.tankId}-${this.rackId}-${this.boxId}`;
+  }
+}
+
+/**
+ * Box Reassigned Event
+ *
+ * Fired when a box is reassigned from one user to another.
+ */
+export class BoxReassignedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly tankId: string,
+    public readonly tankName: string,
+    public readonly rackId: string,
+    public readonly rackName: string,
+    public readonly boxId: string,
+    public readonly boxName: string,
+    public readonly previousUserId: string,
+    public readonly previousUsername: string,
+    public readonly newUserId: string,
+    public readonly newUsername: string
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'BoxReassigned';
+  }
+
+  getAggregateId(): string {
+    return `${this.tankId}-${this.rackId}-${this.boxId}`;
+  }
+}
+
+/**
+ * Rack Label Updated Event
+ *
+ * Fired when a rack's custom label is updated.
+ */
+export class RackLabelUpdatedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly tankId: string,
+    public readonly tankName: string,
+    public readonly rackId: string,
+    public readonly rackName: string,
+    public readonly oldLabel: string | undefined,
+    public readonly newLabel: string | undefined
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'RackLabelUpdated';
+  }
+
+  getAggregateId(): string {
+    return `${this.tankId}-${this.rackId}`;
+  }
+}
+
+/**
+ * Box Label Updated Event
+ *
+ * Fired when a box's custom label is updated.
+ */
+export class BoxLabelUpdatedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly tankId: string,
+    public readonly tankName: string,
+    public readonly rackId: string,
+    public readonly rackName: string,
+    public readonly boxId: string,
+    public readonly boxName: string,
+    public readonly oldLabel: string | undefined,
+    public readonly newLabel: string | undefined
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'BoxLabelUpdated';
+  }
+
+  getAggregateId(): string {
+    return `${this.tankId}-${this.rackId}-${this.boxId}`;
+  }
+}

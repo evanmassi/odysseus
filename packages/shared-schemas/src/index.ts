@@ -193,6 +193,11 @@ export {
   type DeleteTankResponse
 } from './storage/configurationSchemas';
 
+// Storage Formatters
+export {
+  formatResourceDisplayName
+} from './storage/formatters';
+
 // Position Display Schemas & Utilities
 export {
   // Schemas

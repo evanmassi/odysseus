@@ -23,6 +23,8 @@ export const BoxConfigurationSchema = z.object({
   description: z.string().optional(),
   color: z.string().optional(),
   specialInstructions: z.string().optional(),
+  assignedUserId: z.string().optional(),
+  customLabel: z.string().max(50).optional(),
 }).strict();
 
 /**
@@ -36,6 +38,8 @@ export const RackConfigurationSchema = z.object({
   description: z.string().optional(),
   isActive: z.boolean().default(true),
   boxes: z.array(BoxConfigurationSchema),
+  assignedUserId: z.string().optional(),
+  customLabel: z.string().max(50).optional(),
 }).strict();
 
 /**

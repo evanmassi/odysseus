@@ -9,6 +9,16 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
+import {
+  RackAssignedEvent,
+  RackUnassignedEvent,
+  RackReassignedEvent,
+  BoxAssignedEvent,
+  BoxUnassignedEvent,
+  BoxReassignedEvent,
+  RackLabelUpdatedEvent,
+  BoxLabelUpdatedEvent
+} from '@domain/events/ConfigurationEvents';
 
 // CONFIGURATION COMMAND CONTRACTS
 
@@ -409,6 +419,50 @@ export class UpdateConfigurationCommandHandler {
     const afterVersion = currentConfig.version;
     console.log(`[ConfigurationCommand] Version change: ${beforeVersion} → ${afterVersion}`);
 
+    // Detect assignment changes and validate
+    const assignmentChanges = this.detectAssignmentChanges(
+      Configuration.fromData(beforeSnapshot),
+      currentConfig
+    );
+
+    // Validate each assignment change
+    for (const change of assignmentChanges) {
+      if (change.type === 'assign') {
+        // Check if assigned user exists
+        const assignedUser = await this.userRepository.findById(change.userId!);
+        if (!assignedUser) {
+          throw new ValidationError(`User ${change.userId} does not exist`);
+        }
+        // TODO: When user deactivation is implemented, check assignedUser.isActive here
+        // if (!assignedUser.isActive) {
+        //   throw new ValidationError(
+        //     `User ${assignedUser.username} is inactive and cannot be assigned resources`
+        //   );
+        // }
+      }
+    }
+
+    // Enforce cascade logic: When rack unassigned, clear cascaded boxes
+    const cascadeConfigData = currentConfig.toData() as any;
+    for (const change of assignmentChanges) {
+      if (change.type === 'unassign' && change.resourceType === 'rack') {
+        // Find the rack in the new configuration
+        const rack = this.findRack(currentConfig, change.resourceId);
+
+        if (rack) {
+          // Clear boxes that cascaded from this rack (no explicit assignment)
+          rack.boxes.forEach((box: any) => {
+            if (!box.assignedUserId) {
+              // This box had no explicit assignment - it was cascaded from the rack
+              // Clear its custom label (ownership is gone)
+              box.customLabel = undefined;
+            }
+            // Boxes WITH explicit assignedUserId are left alone (preserve other users' assignments)
+          });
+        }
+      }
+    }
+
     // Validate the configuration update
     const validationResult = await this.validationService.validateConfigurationUpdate(
       Configuration.fromData(beforeSnapshot), // old state
@@ -429,6 +483,176 @@ export class UpdateConfigurationCommandHandler {
       command.userId
     );
 
+    // Detect label changes
+    const labelChanges = this.detectLabelChanges(
+      Configuration.fromData(beforeSnapshot),
+      currentConfig
+    );
+
+    // Emit assignment events
+    const configData = currentConfig.toData() as any;
+    for (const change of assignmentChanges) {
+      // Find tank and rack/box names
+      let tankName = '';
+      let rackName = '';
+      let boxName = '';
+
+      for (const tank of configData.tanks) {
+        for (const rack of tank.racks) {
+          if (change.resourceType === 'rack' && rack.id === change.resourceId) {
+            tankName = tank.name;
+            rackName = rack.name;
+            break;
+          }
+          for (const box of (rack.boxes as any[])) {
+            if (change.resourceType === 'box' && box.id === change.resourceId) {
+              tankName = tank.name;
+              rackName = rack.name;
+              boxName = box.name;
+              break;
+            }
+          }
+        }
+      }
+
+      // Get usernames for events
+      let assignedUsername = '';
+      let previousUsername = '';
+
+      if (change.userId) {
+        const assignedUser = await this.userRepository.findById(change.userId);
+        assignedUsername = assignedUser?.username || 'Unknown';
+      }
+
+      if (change.previousUserId) {
+        const previousUser = await this.userRepository.findById(change.previousUserId);
+        previousUsername = previousUser?.username || 'Unknown';
+      }
+
+      // Emit events
+      if (change.resourceType === 'rack') {
+        if (change.type === 'assign') {
+          // Check if this is a reassignment (had previous user)
+          if (change.previousUserId) {
+            changeEvents.push(new RackReassignedEvent(
+              command.userId,
+              change.tankId,
+              tankName,
+              change.rackId,
+              rackName,
+              change.previousUserId,
+              previousUsername,
+              change.userId!,
+              assignedUsername
+            ));
+          } else {
+            changeEvents.push(new RackAssignedEvent(
+              command.userId,
+              change.tankId,
+              tankName,
+              change.rackId,
+              rackName,
+              change.userId!,
+              assignedUsername
+            ));
+          }
+        } else {
+          changeEvents.push(new RackUnassignedEvent(
+            command.userId,
+            change.tankId,
+            tankName,
+            change.rackId,
+            rackName,
+            change.previousUserId!,
+            previousUsername
+          ));
+        }
+      } else {
+        // Box events
+        if (change.type === 'assign') {
+          // Check if this is a reassignment
+          if (change.previousUserId) {
+            changeEvents.push(new BoxReassignedEvent(
+              command.userId,
+              change.tankId,
+              tankName,
+              change.rackId,
+              rackName,
+              change.boxId!,
+              boxName,
+              change.previousUserId,
+              previousUsername,
+              change.userId!,
+              assignedUsername
+            ));
+          } else {
+            changeEvents.push(new BoxAssignedEvent(
+              command.userId,
+              change.tankId,
+              tankName,
+              change.rackId,
+              rackName,
+              change.boxId!,
+              boxName,
+              change.userId!,
+              assignedUsername
+            ));
+          }
+        } else {
+          changeEvents.push(new BoxUnassignedEvent(
+            command.userId,
+            change.tankId,
+            tankName,
+            change.rackId,
+            rackName,
+            change.boxId!,
+            boxName,
+            change.previousUserId!,
+            previousUsername
+          ));
+        }
+      }
+    }
+
+    // Emit label events
+    for (const change of labelChanges) {
+      // Find tank and rack/box names from config
+      const tank = configData.tanks.find((t: any) => t.id === change.tankId);
+      const tankName = tank?.name || '';
+
+      if (change.type === 'rack') {
+        const rack = tank?.racks.find((r: any) => r.id === change.rackId);
+        const rackName = rack?.name || '';
+
+        changeEvents.push(new RackLabelUpdatedEvent(
+          command.userId,
+          change.tankId,
+          tankName,
+          change.rackId,
+          rackName,
+          change.oldLabel,
+          change.newLabel
+        ));
+      } else {
+        const rack = tank?.racks.find((r: any) => r.id === change.rackId);
+        const rackName = rack?.name || '';
+        const box = rack?.boxes.find((b: any) => b.id === change.boxId);
+        const boxName = box?.name || '';
+
+        changeEvents.push(new BoxLabelUpdatedEvent(
+          command.userId,
+          change.tankId,
+          tankName,
+          change.rackId,
+          rackName,
+          change.boxId!,
+          boxName,
+          change.oldLabel,
+          change.newLabel
+        ));
+      }
+    }
+
     // Save the updated configuration (with incremented version) FIRST
     // This ensures the database has the new version before Socket events fire
     await this.configurationRepository.save(currentConfig);
@@ -448,6 +672,159 @@ export class UpdateConfigurationCommandHandler {
       throw new ValidationError(`User not found: ${userId}`);
     }
     return user;
+  }
+
+  /**
+   * Find a rack by ID across all tanks in configuration
+   */
+  private findRack(config: Configuration, rackId: string): any | undefined {
+    const configData = config.toData();
+    for (const tank of configData.tanks) {
+      const rack = tank.racks.find((r: any) => r.id === rackId);
+      if (rack) return rack;
+    }
+    return undefined;
+  }
+
+  /**
+   * Detect changes in resource assignments between configurations
+   * Compares assignedUserId fields on racks and boxes
+   */
+  private detectAssignmentChanges(
+    before: Configuration,
+    after: Configuration
+  ): AssignmentChange[] {
+    const changes: AssignmentChange[] = [];
+    const beforeData = before.toData() as any;
+    const afterData = after.toData() as any;
+
+    // Compare each tank
+    afterData.tanks.forEach((tank: any) => {
+      const beforeTank = beforeData.tanks.find((t: any) => t.id === tank.id);
+      if (!beforeTank) return;
+
+      // Compare each rack
+      tank.racks.forEach((rack: any) => {
+        const beforeRack = beforeTank.racks.find((r: any) => r.id === rack.id);
+        if (!beforeRack) return;
+
+        // Rack assignment changed
+        if (rack.assignedUserId !== beforeRack.assignedUserId) {
+          if (rack.assignedUserId) {
+            changes.push({
+              type: 'assign',
+              resourceType: 'rack',
+              resourceId: rack.id,
+              userId: rack.assignedUserId,
+              previousUserId: beforeRack.assignedUserId,
+              tankId: tank.id,
+              rackId: rack.id
+            });
+          } else {
+            changes.push({
+              type: 'unassign',
+              resourceType: 'rack',
+              resourceId: rack.id,
+              previousUserId: beforeRack.assignedUserId,
+              tankId: tank.id,
+              rackId: rack.id
+            });
+          }
+        }
+
+        // Compare each box
+        rack.boxes.forEach((box: any) => {
+          const beforeBox = beforeRack.boxes.find((b: any) => b.id === box.id);
+          if (!beforeBox) return;
+
+          // Box assignment changed
+          if (box.assignedUserId !== beforeBox.assignedUserId) {
+            if (box.assignedUserId) {
+              changes.push({
+                type: 'assign',
+                resourceType: 'box',
+                resourceId: box.id,
+                userId: box.assignedUserId,
+                previousUserId: beforeBox.assignedUserId,
+                tankId: tank.id,
+                rackId: rack.id,
+                boxId: box.id
+              });
+            } else {
+              changes.push({
+                type: 'unassign',
+                resourceType: 'box',
+                resourceId: box.id,
+                previousUserId: beforeBox.assignedUserId,
+                tankId: tank.id,
+                rackId: rack.id,
+                boxId: box.id
+              });
+            }
+          }
+        });
+      });
+    });
+
+    return changes;
+  }
+
+  /**
+   * Detect changes in custom labels between configurations
+   * Compares customLabel fields on racks and boxes
+   */
+  private detectLabelChanges(
+    before: Configuration,
+    after: Configuration
+  ): { type: 'rack' | 'box'; resourceId: string; oldLabel?: string; newLabel?: string; tankId: string; rackId: string; boxId?: string }[] {
+    const changes: { type: 'rack' | 'box'; resourceId: string; oldLabel?: string; newLabel?: string; tankId: string; rackId: string; boxId?: string }[] = [];
+    const beforeData = before.toData() as any;
+    const afterData = after.toData() as any;
+
+    // Compare each tank
+    afterData.tanks.forEach((tank: any) => {
+      const beforeTank = beforeData.tanks.find((t: any) => t.id === tank.id);
+      if (!beforeTank) return;
+
+      // Compare each rack
+      tank.racks.forEach((rack: any) => {
+        const beforeRack = beforeTank.racks.find((r: any) => r.id === rack.id);
+        if (!beforeRack) return;
+
+        // Rack label changed
+        if (rack.customLabel !== beforeRack.customLabel) {
+          changes.push({
+            type: 'rack',
+            resourceId: rack.id,
+            oldLabel: beforeRack.customLabel,
+            newLabel: rack.customLabel,
+            tankId: tank.id,
+            rackId: rack.id
+          });
+        }
+
+        // Compare each box
+        rack.boxes.forEach((box: any) => {
+          const beforeBox = beforeRack.boxes.find((b: any) => b.id === box.id);
+          if (!beforeBox) return;
+
+          // Box label changed
+          if (box.customLabel !== beforeBox.customLabel) {
+            changes.push({
+              type: 'box',
+              resourceId: box.id,
+              oldLabel: beforeBox.customLabel,
+              newLabel: box.customLabel,
+              tankId: tank.id,
+              rackId: rack.id,
+              boxId: box.id
+            });
+          }
+        });
+      });
+    });
+
+    return changes;
   }
 }
 
@@ -620,6 +997,23 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
     }
     return user;
   }
+}
+
+// ASSIGNMENT TYPES
+
+/**
+ * Assignment Change Tracking
+ * Used to detect and validate resource assignment changes
+ */
+export interface AssignmentChange {
+  type: 'assign' | 'unassign';
+  resourceType: 'rack' | 'box';
+  resourceId: string;
+  userId?: string;
+  previousUserId?: string;
+  tankId: string;
+  rackId: string;
+  boxId?: string;
 }
 
 // RESPONSE TYPES

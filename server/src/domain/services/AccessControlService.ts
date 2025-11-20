@@ -8,6 +8,7 @@ import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
+import type { RackConfiguration, BoxConfiguration } from '@odysseus/shared-schemas';
 
 /**
  * AccessControlService
@@ -319,6 +320,62 @@ export class AccessControlService {
     }
 
     return this.createAllowedResult();
+  }
+
+  // RESOURCE ASSIGNMENT OPERATIONS
+
+  /**
+   * Check if user can assign resources (racks/boxes) to users
+   * Only admins can assign resources
+   */
+  canAssignResource(user: User): boolean {
+    return user.isAdmin();
+  }
+
+  /**
+   * Check if user can edit a resource (rack or box)
+   *
+   * Implements ownership cascade:
+   * - Admins can edit any resource
+   * - User can edit if explicitly assigned to them
+   * - User can edit box if no explicit assignment and they own the parent rack
+   */
+  canEditResource(
+    user: User,
+    resource: RackConfiguration | BoxConfiguration,
+    parentRack?: RackConfiguration
+  ): boolean {
+    // Admin can edit anything
+    if (user.isAdmin()) {
+      return true;
+    }
+
+    // Explicit assignment to this resource
+    if (resource.assignedUserId === user.id) {
+      return true;
+    }
+
+    // Ownership cascade (boxes only)
+    // If box has no explicit assignment, check rack ownership
+    if (parentRack && !resource.assignedUserId && parentRack.assignedUserId === user.id) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if user can be assigned resources
+   * User must be active to receive resource assignments
+   *
+   * Note: Currently returns true for all users since User entity
+   * doesn't have isActive field yet. When user deactivation is implemented,
+   * this will check user.isActive
+   */
+  canBeAssignedResources(user: User): boolean {
+    // TODO: Add isActive field to User entity and check it here
+    // return user.isActive;
+    return true;
   }
 
   // ADMIN OPERATIONS

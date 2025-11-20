@@ -275,6 +275,17 @@ export class UserApplicationService {
   /**
    * Delete user
    * Unlinks researcher profile but preserves it for tube history
+   *
+   * Resource Assignment Behavior:
+   * - Users with assigned resources (racks/boxes) CANNOT be deleted
+   * - Admin must unassign all resources before deletion
+   * - This prevents orphaned resource assignments
+   *
+   * User Deactivation Behavior (when implemented):
+   * - Deactivated users retain their resource assignments (for audit trail)
+   * - Deactivated users cannot be assigned NEW resources
+   * - Deactivated users cannot edit their assigned resources
+   * - Only active users can be assigned resources
    */
   async deleteUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
@@ -296,6 +307,43 @@ export class UserApplicationService {
       const adminCount = await this.userRepository.countByRole('admin');
       if (adminCount <= 1) {
         throw new ValidationError('Cannot delete the last admin user', { adminCount });
+      }
+    }
+
+    // Check if user has assigned resources (racks/boxes)
+    if (this.configurationRepository) {
+      const config = await this.configurationRepository.getCurrent();
+      if (config) {
+        const configData = config.toData() as any;
+        let assignedResourceCount = 0;
+        const assignedResources: string[] = [];
+
+        // Check all racks and boxes for assignments to this user
+        for (const tank of configData.tanks) {
+          for (const rack of tank.racks) {
+            if (rack.assignedUserId === targetUser.id) {
+              assignedResourceCount++;
+              assignedResources.push(`Rack: ${rack.name}`);
+            }
+            for (const box of rack.boxes) {
+              if (box.assignedUserId === targetUser.id) {
+                assignedResourceCount++;
+                assignedResources.push(`Box: ${box.name} in ${rack.name}`);
+              }
+            }
+          }
+        }
+
+        if (assignedResourceCount > 0) {
+          throw new ValidationError(
+            `Cannot delete user with ${assignedResourceCount} assigned resource(s). Unassign resources first.`,
+            {
+              userId: targetUser.id,
+              assignedResourceCount,
+              assignedResources
+            }
+          );
+        }
       }
     }
 
