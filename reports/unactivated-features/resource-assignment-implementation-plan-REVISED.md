@@ -996,47 +996,61 @@ updateBox(labId, tankId, rackId, boxId, { assignedUserId: userId });
 ### New Frontend Code Required
 
 #### 1. useUsersQuery Hook
-**File:** `client/src/domains/users/hooks/useUsersQuery.ts` (NEW FILE)
+**File:** `client/src/domains/admin/hooks/useUsersQuery.ts` (NEW FILE)
 
 ```typescript
 import { useQuery } from '@tanstack/react-query';
+import type { UseQueryOptions } from '@tanstack/react-query';
 import { queryKeys } from '@app/queryKeys';
-import { AdminService } from '@domains/admin/services/AdminService';
+import { AdminService } from '../services/AdminService';
+import type { AdminUser } from '@odysseus/shared-schemas';
 
 /**
- * Fetch all users for assignment dropdown
+ * Fetch all users for assignment dropdown (admin only)
  * Reuses existing AdminService.getUsers() method
  */
-export const useUsersQuery = () => {
+export function useUsersQuery(options?: {
+  queryOptions?: Omit<UseQueryOptions<AdminUser[]>, 'queryKey' | 'queryFn'>;
+}) {
+  const adminService = new AdminService();
+
   return useQuery({
-    queryKey: queryKeys.users.all,
-    queryFn: async () => {
-      const result = await AdminService.getUsers();
+    queryKey: queryKeys.admin.users(),
+    queryFn: async (): Promise<AdminUser[]> => {
+      const result = await adminService.getUsers();
       return result.users;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - users don't change often
+    staleTime: 30 * 60 * 1000, // 30 minutes - users don't change often
+    gcTime: 60 * 60 * 1000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    ...options?.queryOptions,
   });
-};
+}
 ```
 
-**Total:** ~15 lines
+**Total:** ~25 lines
 
 #### 2. Export from index
-**File:** `client/src/domains/users/index.ts`
+**File:** `client/src/domains/admin/index.ts`
 
 ```typescript
 export { useUsersQuery } from './hooks/useUsersQuery';
 ```
 
-#### 3. Add queryKeys
+#### 3. Add admin query keys
 **File:** `client/src/app/queryKeys.ts`
 
 ```typescript
 export const queryKeys = {
   // ... existing keys ...
-  users: {
-    all: ['users'] as const,
+
+  // Admin domain (admin-only operations)
+  admin: {
+    all: ['admin'] as const,
+    users: () => [...queryKeys.admin.all, 'users'] as const,
   },
+
   // ... rest of keys ...
 };
 ```
@@ -1053,7 +1067,7 @@ export const queryKeys = {
 
 ```typescript
 import { Users as UsersRound, Tag } from 'lucide-react'; // Add Tag icon
-import { useUsersQuery } from '@domains/users';
+import { useUsersQuery } from '@domains/admin';
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import Select from 'react-select'; // For searchable user dropdown
 
@@ -2300,33 +2314,35 @@ describe('AccessControlService - Assignments', () => {
 **Tasks:**
 
 1. **Create useUsersQuery hook:**
-   - File: `client/src/domains/users/hooks/useUsersQuery.ts` (NEW)
-   - Implement hook (~15 lines)
+   - File: `client/src/domains/admin/hooks/useUsersQuery.ts` (NEW)
+   - Implement hook (~25 lines)
    - Reuses existing `AdminService.getUsers()`
+   - Use 30min staleTime (STABLE data)
 
 2. **Export hook:**
-   - File: `client/src/domains/users/index.ts`
+   - File: `client/src/domains/admin/index.ts`
    - Add export: `export { useUsersQuery } from './hooks/useUsersQuery';`
 
-3. **Add query keys:**
+3. **Add admin query keys:**
    - File: `client/src/app/queryKeys.ts`
-   - Add users section:
+   - Add admin namespace:
      ```typescript
-     users: {
-       all: ['users'] as const,
+     admin: {
+       all: ['admin'] as const,
+       users: () => [...queryKeys.admin.all, 'users'] as const,
      }
      ```
 
 4. **Test hook:**
    ```typescript
    // Manual test in browser console:
-   // Should fetch users and cache for 5 minutes
+   // Should fetch users and cache for 30 minutes
    ```
 
 **Deliverables:**
 - ✅ useUsersQuery hook created
-- ✅ Hook exported from domains/users
-- ✅ Query keys added
+- ✅ Hook exported from domains/admin
+- ✅ Query keys added (admin namespace)
 - ✅ Hook tested in browser
 
 ---

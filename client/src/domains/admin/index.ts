@@ -10,8 +10,17 @@
 // Services
 export { adminService, AdminService } from './services/AdminService';
 
+// Hooks
+export { useUsersQuery } from './hooks/useUsersQuery';
+
 // Re-export admin types from shared-schemas for convenience
-export type { AdminUser, SecurityConfig, SystemMetrics, SyncStatus, AuditLogEntry } from '@odysseus/shared-schemas';
+export type {
+  AdminUser,
+  SecurityConfig,
+  SystemMetrics,
+  SyncStatus,
+  AuditLogEntry,
+} from '@odysseus/shared-schemas';
 export { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 
 // UI Components

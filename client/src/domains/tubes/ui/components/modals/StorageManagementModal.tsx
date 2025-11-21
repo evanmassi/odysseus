@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
 
-import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
-import { Plus, Edit3, Trash2, Save, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { NAMING_PATTERNS, formatResourceDisplayName } from '@odysseus/shared-schemas';
+import {
+  Plus,
+  Edit3,
+  Trash2,
+  Save,
+  X,
+  ChevronDown,
+  ChevronRight,
+  Tag,
+  UsersRound,
+} from 'lucide-react';
+import Select from 'react-select';
 
 import { useModalStore } from '@app/stores/modalStore';
+import { useUsersQuery } from '@domains/admin';
+import { useAuthState } from '@domains/authentication/hooks/useAuth';
 import {
   useStorageStore,
   useSaveStorageMutation,
@@ -24,6 +37,7 @@ import type {
   BoxConfiguration,
   GridConfiguration,
 } from '@domains/storage';
+import type { AdminUser } from '@odysseus/shared-schemas';
 
 interface StorageManagementModalProps {
   isOpen: boolean;
@@ -46,6 +60,10 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const getAvailableGridTemplates = useStorageStore(state => state.getAvailableGridTemplates);
   // Auth store subscribed for reactive updates
   const modalService = useModalStore();
+
+  // Resource assignment - fetch users and current user
+  const { data: users = [] } = useUsersQuery();
+  const { user: currentUser } = useAuthState();
 
   // React Query mutation for server sync
   const saveConfigurationMutation = useSaveStorageMutation();
@@ -75,6 +93,13 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     rack: RackConfiguration;
   } | null>(null);
   const [selectedGridTemplate, setSelectedGridTemplate] = useState<GridConfiguration | null>(null);
+  const [editingLabel, setEditingLabel] = useState<{
+    type: 'rack' | 'box';
+    tankId: string;
+    rackId: string;
+    boxId?: string;
+    currentLabel?: string;
+  } | null>(null);
   const [collapsedTanks, setCollapsedTanks] = useState<Set<string>>(new Set());
   const [collapsedRacks, setCollapsedRacks] = useState<Set<string>>(() => {
     // Start with all racks collapsed
@@ -115,6 +140,97 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
       }
       return newSet;
     });
+  };
+
+  // Resource assignment helper functions
+  const getUserInitials = (userId: string): string => {
+    const user = users.find((u: AdminUser) => u.id === userId);
+    if (!user) return '?';
+
+    const first = user.username.charAt(0);
+    const last = user.username.charAt(1) || '';
+    return (first + last).toUpperCase();
+  };
+
+  const canEditResource = (
+    resource: RackConfiguration | BoxConfiguration,
+    parentRack?: RackConfiguration
+  ): boolean => {
+    if (!currentUser) return false;
+    if (currentUser.role === 'admin') return true;
+    if (resource.assignedUserId === currentUser.id) return true;
+
+    // Cascade: rack owner can edit unassigned boxes
+    if (parentRack && !resource.assignedUserId && parentRack.assignedUserId === currentUser.id) {
+      return true;
+    }
+
+    return false;
+  };
+
+  const handleAssignRack = async (
+    tankId: string,
+    rackId: string,
+    userId: string | undefined
+  ): Promise<void> => {
+    try {
+      updateRack(currentLab.id, tankId, rackId, {
+        assignedUserId: userId,
+        customLabel: userId ? undefined : '', // Clear label when unassigning
+      });
+
+      await saveToServerWithReactQuery();
+      notifications.success(userId ? 'Rack assigned' : 'Rack unassigned');
+    } catch (error) {
+      logger.error('Failed to assign rack', { error });
+      notifications.error('Failed to update assignment');
+    }
+  };
+
+  const handleAssignBox = async (
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    userId: string | undefined
+  ): Promise<void> => {
+    try {
+      updateBox(currentLab.id, tankId, rackId, boxId, {
+        assignedUserId: userId,
+        customLabel: userId ? undefined : '', // Clear label when unassigning
+      });
+
+      await saveToServerWithReactQuery();
+      notifications.success(userId ? 'Box assigned' : 'Box unassigned');
+    } catch (error) {
+      logger.error('Failed to assign box', { error });
+      notifications.error('Failed to update assignment');
+    }
+  };
+
+  const handleUpdateCustomLabel = async (
+    type: 'rack' | 'box',
+    tankId: string,
+    rackId: string,
+    boxId: string | undefined,
+    label: string
+  ): Promise<void> => {
+    try {
+      if (type === 'rack') {
+        updateRack(currentLab.id, tankId, rackId, {
+          customLabel: label.trim() || undefined,
+        });
+      } else if (boxId) {
+        updateBox(currentLab.id, tankId, rackId, boxId, {
+          customLabel: label.trim() || undefined,
+        });
+      }
+
+      await saveToServerWithReactQuery();
+      notifications.success('Custom label updated');
+    } catch (error) {
+      logger.error('Failed to update custom label', { error });
+      notifications.error('Failed to update label');
+    }
   };
 
   if (!isOpen) return null;
@@ -409,13 +525,47 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       <div className="space-y-1.5">
                         {tank.racks.map((rack, rackIndex) => {
                           const rackKey = `${tank.id}-rack-${rack.id}`;
+                          const isOwnedByCurrentUser =
+                            currentUser && rack.assignedUserId === currentUser.id;
+                          const isUnassigned = !rack.assignedUserId;
+                          const bgClass = isOwnedByCurrentUser
+                            ? 'bg-blue-100'
+                            : isUnassigned
+                              ? 'bg-yellow-50'
+                              : 'bg-slate-400';
+
                           return (
                             <div key={rack.id} className="ml-2">
-                              {/* Rack Row - Tight horizontal spacing */}
-                              <div className="flex items-center gap-1.5 py-1 px-1.5 bg-slate-400 rounded border border-slate-500">
+                              {/* Rack Row - with ownership indication */}
+                              <div
+                                className={`flex items-center gap-1.5 py-1 px-1.5 ${bgClass} rounded border border-slate-500`}
+                              >
                                 <span className="text-slate-600 font-mono text-sm flex-shrink-0">
                                   {rackIndex === tank.racks.length - 1 ? '└' : '├'}
                                 </span>
+
+                                {/* Ownership Badge */}
+                                <div
+                                  className="flex-shrink-0"
+                                  title={
+                                    rack.assignedUserId
+                                      ? `Owned by ${users.find((u: AdminUser) => u.id === rack.assignedUserId)?.username ?? 'Unknown'}`
+                                      : 'Unassigned'
+                                  }
+                                >
+                                  {rack.assignedUserId ? (
+                                    <div
+                                      className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isOwnedByCurrentUser ? 'bg-blue-500 text-white' : 'bg-gray-400 text-white'}`}
+                                    >
+                                      {getUserInitials(rack.assignedUserId)}
+                                    </div>
+                                  ) : (
+                                    <div className="w-6 h-6 rounded-full bg-yellow-400 flex items-center justify-center">
+                                      <UsersRound size={14} className="text-yellow-800" />
+                                    </div>
+                                  )}
+                                </div>
+
                                 <button
                                   type="button"
                                   onClick={() => toggleRackCollapse(rackKey)}
@@ -424,7 +574,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                                   aria-controls={`rack-content-${rackKey}`}
                                   aria-label={`${collapsedRacks.has(rackKey) ? 'Expand' : 'Collapse'} ${rack.name}`}
                                 >
-                                  <div className="text-white flex-shrink-0" aria-hidden="true">
+                                  <div className="text-slate-700 flex-shrink-0" aria-hidden="true">
                                     {collapsedRacks.has(rackKey) ? (
                                       <ChevronRight size={12} />
                                     ) : (
@@ -432,21 +582,79 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                                     )}
                                   </div>
                                   <RackIcon
-                                    className="text-white flex-shrink-0"
+                                    className="text-slate-700 flex-shrink-0"
                                     size={18}
                                     aria-hidden="true"
                                   />
-                                  <span className="font-medium text-white text-sm inline-block min-w-[60px]">
-                                    {rack.name}
+                                  <span className="font-medium text-slate-800 text-sm inline-block min-w-[60px]">
+                                    {formatResourceDisplayName(rack.name, rack.customLabel)}
                                   </span>
                                   <span className="text-xs px-2 py-0.5 bg-slate-500 rounded text-white">
                                     {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
                                   </span>
                                 </button>
+
+                                {/* Assignment Dropdown (admin only) */}
+                                {currentUser?.role === 'admin' && (
+                                  <div className="w-40 flex-shrink-0">
+                                    <Select
+                                      value={
+                                        rack.assignedUserId
+                                          ? {
+                                              value: rack.assignedUserId,
+                                              label:
+                                                users.find(
+                                                  (u: AdminUser) => u.id === rack.assignedUserId
+                                                )?.username ?? 'Unknown',
+                                            }
+                                          : null
+                                      }
+                                      onChange={option =>
+                                        void handleAssignRack(tank.id, rack.id, option?.value)
+                                      }
+                                      options={users
+                                        .filter((u: AdminUser) => u.isActive)
+                                        .map((u: AdminUser) => ({
+                                          value: u.id,
+                                          label: u.username,
+                                        }))}
+                                      isClearable
+                                      placeholder="Assign..."
+                                      className="text-xs"
+                                      styles={{
+                                        control: base => ({
+                                          ...base,
+                                          minHeight: '28px',
+                                          fontSize: '12px',
+                                        }),
+                                        menu: base => ({ ...base, fontSize: '12px' }),
+                                      }}
+                                    />
+                                  </div>
+                                )}
+
                                 <div className="flex items-center gap-1 flex-shrink-0">
+                                  {/* Custom Label Button */}
+                                  {canEditResource(rack) && (
+                                    <button
+                                      onClick={() =>
+                                        setEditingLabel({
+                                          type: 'rack',
+                                          tankId: tank.id,
+                                          rackId: rack.id,
+                                          currentLabel: rack.customLabel ?? '',
+                                        })
+                                      }
+                                      className="text-slate-700 hover:bg-slate-500 p-1 rounded"
+                                      title="Edit custom label"
+                                    >
+                                      <Tag size={14} />
+                                    </button>
+                                  )}
+
                                   <button
                                     onClick={() => setEditingRack({ tankId: tank.id, rack })}
-                                    className="text-slate-100 hover:bg-slate-500 p-1 rounded"
+                                    className="text-slate-700 hover:bg-slate-500 p-1 rounded"
                                     title="Edit rack"
                                   >
                                     <Edit3 size={14} />
@@ -454,7 +662,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                                   {tank.racks.length > 1 && (
                                     <button
                                       onClick={() => handleDeleteRack(tank.id, rack.id)}
-                                      className="text-red-300 hover:bg-red-900 p-1 rounded"
+                                      className="text-red-700 hover:bg-red-900 p-1 rounded"
                                       title="Delete rack"
                                     >
                                       <Trash2 size={14} />
@@ -469,46 +677,155 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                                   id={`rack-content-${rackKey}`}
                                   className="ml-5 mt-0.5 space-y-0.5"
                                 >
-                                  {rack.boxes.map((box, boxIndex) => (
-                                    <div
-                                      key={box.id}
-                                      className="flex items-center gap-1.5 py-0.5 px-1.5 bg-slate-200 rounded border border-slate-300"
-                                    >
-                                      <span className="text-slate-400 font-mono text-xs flex-shrink-0">
-                                        {boxIndex === rack.boxes.length - 1 ? '└' : '├'}
-                                      </span>
-                                      <BoxIcon className="text-slate-700 flex-shrink-0" size={16} />
-                                      <span className="font-medium text-slate-800 text-xs inline-block w-16">
-                                        {box.name}
-                                      </span>
-                                      <span className="text-xs px-2 py-1 bg-slate-300 rounded text-slate-700">
-                                        {box.gridConfig.rows}×{box.gridConfig.cols}
-                                      </span>
-                                      <div className="flex-1"></div>
-                                      <div className="flex items-center gap-1 flex-shrink-0">
-                                        <button
-                                          onClick={() =>
-                                            setEditingBox({ tankId: tank.id, rackId: rack.id, box })
+                                  {rack.boxes.map((box, boxIndex) => {
+                                    // Ownership cascade: box owner or rack owner (if box unassigned)
+                                    const effectiveOwnerId =
+                                      box.assignedUserId ?? rack.assignedUserId;
+                                    const isOwnedByCurrentUser =
+                                      currentUser && effectiveOwnerId === currentUser.id;
+                                    const isUnassigned = !effectiveOwnerId;
+                                    const boxBgClass = isOwnedByCurrentUser
+                                      ? 'bg-blue-50'
+                                      : isUnassigned
+                                        ? 'bg-yellow-50'
+                                        : 'bg-slate-200';
+
+                                    return (
+                                      <div
+                                        key={box.id}
+                                        className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border border-slate-300`}
+                                      >
+                                        <span className="text-slate-400 font-mono text-xs flex-shrink-0">
+                                          {boxIndex === rack.boxes.length - 1 ? '└' : '├'}
+                                        </span>
+
+                                        {/* Ownership Badge */}
+                                        <div
+                                          className="flex-shrink-0"
+                                          title={
+                                            effectiveOwnerId
+                                              ? `Owned by ${users.find((u: AdminUser) => u.id === effectiveOwnerId)?.username ?? 'Unknown'}`
+                                              : 'Unassigned'
                                           }
-                                          className="text-slate-700 hover:bg-slate-300 p-1 rounded"
-                                          title="Change grid size"
                                         >
-                                          <Edit3 size={12} />
-                                        </button>
-                                        {rack.boxes.length > 1 && (
+                                          {effectiveOwnerId ? (
+                                            <div
+                                              className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${isOwnedByCurrentUser ? 'bg-blue-500 text-white' : 'bg-gray-400 text-white'}`}
+                                            >
+                                              {getUserInitials(effectiveOwnerId)}
+                                            </div>
+                                          ) : (
+                                            <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center">
+                                              <UsersRound size={12} className="text-yellow-800" />
+                                            </div>
+                                          )}
+                                        </div>
+
+                                        <BoxIcon
+                                          className="text-slate-700 flex-shrink-0"
+                                          size={16}
+                                        />
+                                        <span className="font-medium text-slate-800 text-xs inline-block min-w-[60px]">
+                                          {formatResourceDisplayName(box.name, box.customLabel)}
+                                        </span>
+                                        <span className="text-xs px-2 py-1 bg-slate-300 rounded text-slate-700">
+                                          {box.gridConfig.rows}×{box.gridConfig.cols}
+                                        </span>
+
+                                        {/* Assignment Dropdown (admin only) */}
+                                        {currentUser?.role === 'admin' && (
+                                          <div className="w-32 flex-shrink-0">
+                                            <Select
+                                              value={
+                                                box.assignedUserId
+                                                  ? {
+                                                      value: box.assignedUserId,
+                                                      label:
+                                                        users.find(
+                                                          (u: AdminUser) =>
+                                                            u.id === box.assignedUserId
+                                                        )?.username ?? 'Unknown',
+                                                    }
+                                                  : null
+                                              }
+                                              onChange={option =>
+                                                void handleAssignBox(
+                                                  tank.id,
+                                                  rack.id,
+                                                  box.id,
+                                                  option?.value
+                                                )
+                                              }
+                                              options={users
+                                                .filter((u: AdminUser) => u.isActive)
+                                                .map((u: AdminUser) => ({
+                                                  value: u.id,
+                                                  label: u.username,
+                                                }))}
+                                              isClearable
+                                              placeholder="Assign..."
+                                              className="text-xs"
+                                              styles={{
+                                                control: base => ({
+                                                  ...base,
+                                                  minHeight: '24px',
+                                                  fontSize: '11px',
+                                                }),
+                                                menu: base => ({ ...base, fontSize: '11px' }),
+                                              }}
+                                            />
+                                          </div>
+                                        )}
+
+                                        <div className="flex-1"></div>
+                                        <div className="flex items-center gap-1 flex-shrink-0">
+                                          {/* Custom Label Button */}
+                                          {canEditResource(box, rack) && (
+                                            <button
+                                              onClick={() =>
+                                                setEditingLabel({
+                                                  type: 'box',
+                                                  tankId: tank.id,
+                                                  rackId: rack.id,
+                                                  boxId: box.id,
+                                                  currentLabel: box.customLabel ?? '',
+                                                })
+                                              }
+                                              className="text-slate-700 hover:bg-slate-300 p-1 rounded"
+                                              title="Edit custom label"
+                                            >
+                                              <Tag size={12} />
+                                            </button>
+                                          )}
+
                                           <button
                                             onClick={() =>
-                                              handleRemoveBox(tank.id, rack.id, box.id)
+                                              setEditingBox({
+                                                tankId: tank.id,
+                                                rackId: rack.id,
+                                                box,
+                                              })
                                             }
-                                            className="text-red-700 hover:bg-red-200 p-1 rounded"
-                                            title="Remove this box"
+                                            className="text-slate-700 hover:bg-slate-300 p-1 rounded"
+                                            title="Change grid size"
                                           >
-                                            <Trash2 size={12} />
+                                            <Edit3 size={12} />
                                           </button>
-                                        )}
+                                          {rack.boxes.length > 1 && (
+                                            <button
+                                              onClick={() =>
+                                                handleRemoveBox(tank.id, rack.id, box.id)
+                                              }
+                                              className="text-red-700 hover:bg-red-200 p-1 rounded"
+                                              title="Remove this box"
+                                            >
+                                              <Trash2 size={12} />
+                                            </button>
+                                          )}
+                                        </div>
                                       </div>
-                                    </div>
-                                  ))}
+                                    );
+                                  })}
 
                                   {/* Add Box Button with Bulk Input */}
                                   <div className="flex items-center gap-1.5 py-0.5 px-1.5">
@@ -973,6 +1290,165 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                 >
                   <Save size={16} />
                   Save Changes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Label Editing Modal */}
+        {editingLabel && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
+            role="presentation"
+            onKeyDown={(e: React.KeyboardEvent) => {
+              if (e.key === 'Enter' && editingLabel.currentLabel !== undefined) {
+                e.preventDefault();
+                void (async () => {
+                  try {
+                    await handleUpdateCustomLabel(
+                      editingLabel.type,
+                      editingLabel.tankId,
+                      editingLabel.rackId,
+                      editingLabel.boxId,
+                      editingLabel.currentLabel ?? ''
+                    );
+                    setEditingLabel(null);
+                  } catch (error) {
+                    logger.error('Failed to update custom label', { error });
+                    notifications.error('Failed to save label');
+                  }
+                })();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                setEditingLabel(null);
+              }
+            }}
+          >
+            <div
+              className="bg-white rounded-lg p-6 w-96 shadow-xl"
+              role="dialog"
+              aria-labelledby="label-edit-title"
+              aria-modal="true"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 id="label-edit-title" className="text-lg font-bold">
+                  Edit Custom Label
+                </h3>
+                <button
+                  onClick={() => setEditingLabel(null)}
+                  className="p-1 hover:bg-gray-100 rounded"
+                  aria-label="Close modal"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* Generic Name (Read-only) */}
+                <div>
+                  <div className="block text-sm font-medium mb-2 text-gray-700">
+                    Generic Name (System)
+                  </div>
+                  <div className="px-3 py-2 bg-gray-100 rounded text-gray-700 font-medium">
+                    {(() => {
+                      const tank = currentLab.equipment.tanks.find(
+                        t => t.id === editingLabel.tankId
+                      );
+                      const rack = tank?.racks.find(r => r.id === editingLabel.rackId);
+                      if (editingLabel.type === 'rack') {
+                        return rack?.name ?? '';
+                      } else {
+                        const box = rack?.boxes.find(b => b.id === editingLabel.boxId);
+                        return box?.name ?? '';
+                      }
+                    })()}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Generic name is visible to all users and cannot be changed here
+                  </p>
+                </div>
+
+                {/* Custom Label Input */}
+                <div>
+                  <label
+                    htmlFor="custom-label-input"
+                    className="block text-sm font-medium mb-2 text-gray-700"
+                  >
+                    Your Custom Label (Optional)
+                  </label>
+                  <input
+                    id="custom-label-input"
+                    type="text"
+                    className="input w-full"
+                    value={editingLabel.currentLabel ?? ''}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setEditingLabel({
+                        ...editingLabel,
+                        currentLabel: e.target.value,
+                      })
+                    }
+                    placeholder="e.g., My Lab Samples"
+                    maxLength={50}
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {editingLabel.currentLabel?.length ?? 0}/50 characters · Leave blank to remove
+                    custom label
+                  </p>
+                </div>
+
+                {/* Preview */}
+                <div className="bg-blue-50 p-3 rounded">
+                  <div className="block text-sm font-medium mb-1 text-blue-700">Preview</div>
+                  <div className="text-sm font-medium text-blue-900">
+                    {(() => {
+                      const tank = currentLab.equipment.tanks.find(
+                        t => t.id === editingLabel.tankId
+                      );
+                      const rack = tank?.racks.find(r => r.id === editingLabel.rackId);
+                      if (editingLabel.type === 'rack') {
+                        return formatResourceDisplayName(
+                          rack?.name ?? '',
+                          editingLabel.currentLabel
+                        );
+                      } else {
+                        const box = rack?.boxes.find(b => b.id === editingLabel.boxId);
+                        return formatResourceDisplayName(
+                          box?.name ?? '',
+                          editingLabel.currentLabel
+                        );
+                      }
+                    })()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 mt-6">
+                <button onClick={() => setEditingLabel(null)} className="btn-cancel">
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    void (async () => {
+                      try {
+                        await handleUpdateCustomLabel(
+                          editingLabel.type,
+                          editingLabel.tankId,
+                          editingLabel.rackId,
+                          editingLabel.boxId,
+                          editingLabel.currentLabel ?? ''
+                        );
+                        setEditingLabel(null);
+                      } catch (error) {
+                        logger.error('Failed to update custom label', { error });
+                        notifications.error('Failed to save label');
+                      }
+                    })();
+                  }}
+                  className="btn-primary flex items-center gap-2"
+                >
+                  <Save size={16} />
+                  Save Label
                 </button>
               </div>
             </div>

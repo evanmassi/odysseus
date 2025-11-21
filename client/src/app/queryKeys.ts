@@ -8,7 +8,7 @@ import type {
   TubeQueryFilters,
   ResearcherQueryFilters,
   SearchFilters,
-  AdvancedSearchOptions
+  AdvancedSearchOptions,
 } from '@odysseus/shared-schemas';
 
 export const queryKeys = {
@@ -27,11 +27,19 @@ export const queryKeys = {
     sessions: () => [...queryKeys.users.all, 'sessions'] as const,
   },
 
+  // Admin (admin-only operations)
+  admin: {
+    all: ['admin'] as const,
+    users: () => [...queryKeys.admin.all, 'users'] as const,
+  },
+
   // Tubes (unified)
   tubes: {
     all: ['tubes'] as const,
     list: (filters?: TubeQueryFilters) =>
-      filters ? [...queryKeys.tubes.all, 'list', filters] as const : [...queryKeys.tubes.all, 'list'] as const,
+      filters
+        ? ([...queryKeys.tubes.all, 'list', filters] as const)
+        : ([...queryKeys.tubes.all, 'list'] as const),
     lists: () => [...queryKeys.tubes.all, 'list'] as const, // Canonical base query
     detail: (id: string) => [...queryKeys.tubes.all, 'detail', id] as const,
     location: (tankId: string, rackId: string, boxId: string) =>
@@ -42,19 +50,23 @@ export const queryKeys = {
     paginated: (filters?: TubeQueryFilters) =>
       [...queryKeys.tubes.all, 'paginated', filters] as const,
   },
-  
+
   // Researchers (unified with socket bridge)
   researchers: {
     all: ['researchers'] as const,
     list: (filters?: ResearcherQueryFilters) =>
-      filters ? [...queryKeys.researchers.all, 'list', filters] as const : [...queryKeys.researchers.all, 'list'] as const,
+      filters
+        ? ([...queryKeys.researchers.all, 'list', filters] as const)
+        : ([...queryKeys.researchers.all, 'list'] as const),
     lists: () => [...queryKeys.researchers.all, 'list'] as const, // Canonical base query
     admin: (filters?: ResearcherQueryFilters) =>
-      filters ? [...queryKeys.researchers.all, 'admin', filters] as const : [...queryKeys.researchers.all, 'admin'] as const,
+      filters
+        ? ([...queryKeys.researchers.all, 'admin', filters] as const)
+        : ([...queryKeys.researchers.all, 'admin'] as const),
     detail: (id: string) => [...queryKeys.researchers.all, 'detail', id] as const,
     stats: () => [...queryKeys.researchers.all, 'stats'] as const,
   },
-  
+
   // Search (expanded from distributed searchQueryKeys)
   search: {
     all: ['search'] as const,
@@ -80,5 +92,5 @@ export const queryKeys = {
     storage: () => [...queryKeys.storage.all, 'data'] as const,
     exists: () => [...queryKeys.storage.all, 'exists'] as const,
     positionDisplayPresets: () => [...queryKeys.storage.all, 'positionDisplayPresets'] as const,
-  }
+  },
 } as const;
