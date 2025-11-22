@@ -23,7 +23,7 @@ const AdminSettingsModal = lazy(() =>
 );
 
 const StorageManagementModal = lazy(() =>
-  import('@domains/tubes/ui/components/modals/StorageManagementModal').then(m => ({
+  import('@domains/storage/ui/components/modals/StorageManagementModal').then(m => ({
     default: m.StorageManagementModal
   }))
 );
@@ -40,7 +40,7 @@ const useLazyAdminSettings = PreloadHelpers.createHook(
 );
 
 const useLazyStorageManagement = PreloadHelpers.createHook(
-  () => import('@domains/tubes/ui/components/modals/StorageManagementModal')
+  () => import('@domains/storage/ui/components/modals/StorageManagementModal')
 );
 
 const useLazyUserSettings = PreloadHelpers.createHook(
