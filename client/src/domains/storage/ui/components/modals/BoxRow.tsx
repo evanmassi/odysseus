@@ -45,16 +45,9 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
     <div
       className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border border-slate-300`}
     >
-      <span className="text-slate-400 font-mono text-xs flex-shrink-0">
-        {isLast ? '└' : '├'}
-      </span>
+      <span className="text-slate-400 font-mono text-xs flex-shrink-0">{isLast ? '└' : '├'}</span>
 
-      <OwnershipBadge
-        userId={effectiveOwnerId}
-        users={users}
-        size="sm"
-        isOwnedByCurrentUser={isBoxOwnedByUser}
-      />
+      <OwnershipBadge userId={effectiveOwnerId} size="sm" isOwnedByCurrentUser={isBoxOwnedByUser} />
 
       <BoxIcon className="text-slate-700 flex-shrink-0" size={16} />
       <span className="font-medium text-slate-800 text-xs inline-block min-w-[60px]">

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
-import { Plus, Save, X } from 'lucide-react';
+import { Plus, X } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useUsersQuery } from '@domains/admin';
@@ -9,7 +9,6 @@ import { useAuthState } from '@domains/authentication/hooks/useAuth';
 import {
   useStorageStore,
   useSaveStorageMutation,
-  getGridTotalPositions,
   createTankFromDefaults,
   createRackFromDefaults,
   getNextTankNumber,
@@ -17,10 +16,9 @@ import {
 import { useResourceAssignment } from '@domains/storage/hooks/useResourceAssignment';
 import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
 import { useResourcePermissions } from '@domains/storage/hooks/useResourcePermissions';
+import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
-
-import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
 
 import { BoxEditModal } from './BoxEditModal';
 import { CustomLabelEditModal } from './CustomLabelEditModal';
@@ -35,7 +33,6 @@ import type {
   BoxConfiguration,
   GridConfiguration,
 } from '@domains/storage';
-import type { AdminUser } from '@odysseus/shared-schemas';
 
 interface StorageManagementModalProps {
   isOpen: boolean;
@@ -81,10 +78,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   };
 
   // Resource assignment hooks
-  const { getUserInitials, isOwnedByCurrentUser } = useResourceOwnership(
-    users,
-    currentUser?.id
-  );
+  const { getUserInfo, isOwnedByCurrentUser } = useResourceOwnership(users, currentUser?.id);
   const { canEditResource } = useResourcePermissions(currentUser);
   const { assignRack, assignBox, updateCustomLabel } = useResourceAssignment(
     currentLab.id,
@@ -147,7 +141,6 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     tankId: string;
     rack: RackConfiguration;
   } | null>(null);
-  const [selectedGridTemplate, setSelectedGridTemplate] = useState<GridConfiguration | null>(null);
   const [editingLabel, setEditingLabel] = useState<{
     type: 'rack' | 'box';
     tankId: string;
@@ -393,6 +386,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const contextValue = {
     users,
     currentUser,
+    getUserInfo,
     isOwnedByCurrentUser,
     canEditResource,
     onEditTank: setEditingTank,

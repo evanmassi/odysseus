@@ -61,13 +61,10 @@ export function RackRow({
       <div
         className={`flex items-center gap-1.5 py-1 px-1.5 ${bgClass} rounded border border-slate-500`}
       >
-        <span className="text-slate-600 font-mono text-sm flex-shrink-0">
-          {isLast ? '└' : '├'}
-        </span>
+        <span className="text-slate-600 font-mono text-sm flex-shrink-0">{isLast ? '└' : '├'}</span>
 
         <OwnershipBadge
           userId={rack.assignedUserId}
-          users={users}
           size="md"
           isOwnedByCurrentUser={isRackOwnedByUser}
         />

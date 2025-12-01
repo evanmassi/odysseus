@@ -1,10 +1,15 @@
 import { useMemo } from 'react';
 
-import type { AdminUser } from '@odysseus/shared-schemas';
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
+import type { AdminUser } from '@odysseus/shared-schemas';
+
+interface UserInfo {
+  initials: string;
+  username: string;
+}
 
 interface UseResourceOwnershipResult {
-  getUserInitials: (userId: string) => string;
+  getUserInfo: (userId: string) => UserInfo | null;
   getEffectiveOwner: (
     resource: BoxConfiguration,
     parentRack: RackConfiguration
@@ -23,15 +28,18 @@ export function useResourceOwnership(
   users: AdminUser[],
   currentUserId: string | undefined
 ): UseResourceOwnershipResult {
-  const getUserInitials = useMemo(
-    () => (userId: string): string => {
-      const user = users.find(u => u.id === userId);
-      if (!user) return '?';
+  const getUserInfo = useMemo(
+    () =>
+      (userId: string): UserInfo | null => {
+        const user = users.find(u => u.id === userId);
+        if (!user) return null;
 
-      const first = user.username.charAt(0);
-      const last = user.username.charAt(1) || '';
-      return (first + last).toUpperCase();
-    },
+        const first = user.username.charAt(0);
+        const last = user.username.charAt(1) || '';
+        const initials = (first + last).toUpperCase();
+
+        return { initials, username: user.username };
+      },
     [users]
   );
 
@@ -45,20 +53,13 @@ export function useResourceOwnership(
 
   const isOwnedByCurrentUser = useMemo(
     () =>
-      (
-        resource: RackConfiguration | BoxConfiguration,
-        parentRack?: RackConfiguration
-      ): boolean => {
+      (resource: RackConfiguration | BoxConfiguration, parentRack?: RackConfiguration): boolean => {
         if (!currentUserId) return false;
 
         if (resource.assignedUserId === currentUserId) return true;
 
         // Cascade: box inherits rack owner if unassigned
-        if (
-          parentRack &&
-          !resource.assignedUserId &&
-          parentRack.assignedUserId === currentUserId
-        ) {
+        if (parentRack && !resource.assignedUserId && parentRack.assignedUserId === currentUserId) {
           return true;
         }
 
@@ -68,7 +69,7 @@ export function useResourceOwnership(
   );
 
   return {
-    getUserInitials,
+    getUserInfo,
     getEffectiveOwner,
     isOwnedByCurrentUser,
   };

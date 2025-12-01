@@ -3,12 +3,18 @@ import { createContext, useContext } from 'react';
 import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
 import type { AdminUser } from '@odysseus/shared-schemas';
 
+interface UserInfo {
+  initials: string;
+  username: string;
+}
+
 interface StorageManagementContextValue {
   // Data
   users: AdminUser[];
   currentUser: { id: string; role?: string } | null;
 
   // Business logic functions
+  getUserInfo: (userId: string) => UserInfo | null;
   isOwnedByCurrentUser: (
     resource: RackConfiguration | BoxConfiguration,
     parentRack?: RackConfiguration
@@ -33,12 +39,7 @@ interface StorageManagementContextValue {
   // Box handlers
   onEditBox: (tankId: string, rackId: string, box: BoxConfiguration) => void;
   onDeleteBox: (tankId: string, rackId: string, boxId: string) => void;
-  onAssignBox: (
-    tankId: string,
-    rackId: string,
-    boxId: string,
-    userId: string | undefined
-  ) => void;
+  onAssignBox: (tankId: string, rackId: string, boxId: string, userId: string | undefined) => void;
   onEditBoxLabel: (tankId: string, rackId: string, boxId: string, currentLabel: string) => void;
 }
 

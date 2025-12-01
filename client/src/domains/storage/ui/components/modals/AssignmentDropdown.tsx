@@ -1,7 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 
-import type { AdminUser } from '@odysseus/shared-schemas';
 import Select, { type CSSObjectWithLabel } from 'react-select';
+
+import type { AdminUser } from '@odysseus/shared-schemas';
 
 interface AssignmentDropdownProps {
   value: string | undefined;
@@ -28,17 +29,9 @@ const STYLES_MD = {
   menu: (base: CSSObjectWithLabel) => ({ ...base, fontSize: '12px' }),
 };
 
-export function AssignmentDropdown({
-  value,
-  users,
-  onChange,
-  size,
-}: AssignmentDropdownProps) {
+export function AssignmentDropdown({ value, users, onChange, size }: AssignmentDropdownProps) {
   const options = useMemo(
-    () =>
-      users
-        .filter(u => u.isActive)
-        .map(u => ({ value: u.id, label: u.username })),
+    () => users.filter(u => u.isActive).map(u => ({ value: u.id, label: u.username })),
     [users]
   );
 
