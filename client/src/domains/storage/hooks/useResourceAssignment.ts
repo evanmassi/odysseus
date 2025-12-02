@@ -8,7 +8,7 @@ interface UseResourceAssignmentResult {
     tankId: string,
     rackId: string,
     boxId: string,
-    userId: string | undefined
+    userId: string | null | undefined
   ) => Promise<void>;
   updateCustomLabel: (
     type: 'rack' | 'box',
@@ -33,6 +33,22 @@ export function useResourceAssignment(
 
   const assignRack = useCallback(
     async (tankId: string, rackId: string, userId: string | undefined): Promise<void> => {
+      // When unassigning rack, also reset all boxes to undefined (clean slate)
+      if (userId === undefined) {
+        const state = useStorageStore.getState();
+        const tank = state.currentLab.equipment.tanks.find(t => t.id === tankId);
+        const rack = tank?.racks.find(r => r.id === rackId);
+        if (rack) {
+          for (const box of rack.boxes) {
+            // Reset each box to undefined (inherit) and clear labels
+            updateBox(labId, tankId, rackId, box.id, {
+              assignedUserId: undefined,
+              customLabel: '',
+            });
+          }
+        }
+      }
+
       updateRack(labId, tankId, rackId, {
         assignedUserId: userId,
         customLabel: userId ? undefined : '', // Clear label when unassigning
@@ -40,7 +56,7 @@ export function useResourceAssignment(
 
       await saveToServer();
     },
-    [labId, updateRack, saveToServer]
+    [labId, updateRack, updateBox, saveToServer]
   );
 
   const assignBox = useCallback(
@@ -48,11 +64,12 @@ export function useResourceAssignment(
       tankId: string,
       rackId: string,
       boxId: string,
-      userId: string | undefined
+      userId: string | null | undefined
     ): Promise<void> => {
       updateBox(labId, tankId, rackId, boxId, {
         assignedUserId: userId,
-        customLabel: userId ? undefined : '', // Clear label when unassigning
+        // Clear label when making common (null) or reverting to inherit (undefined)
+        customLabel: typeof userId === 'string' ? undefined : '',
       });
 
       await saveToServer();

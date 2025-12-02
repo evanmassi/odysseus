@@ -84,6 +84,8 @@ export const adminUserSchema = z.object({
   isActive: z.boolean().default(true),
   status: z.enum(['pending', 'approved', 'rejected']).default('approved'),
   requirePasswordChange: z.boolean().optional().default(false),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
 });
 
 export type AdminUser = z.infer<typeof adminUserSchema>;

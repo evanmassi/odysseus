@@ -34,7 +34,7 @@ export function TankRow({
   collapsedRacks,
   canDeleteTank,
 }: TankRowProps) {
-  const { onEditTank, onDeleteTank, onAddRack } = useStorageManagementContext();
+  const { onEditTank, onDeleteTank, onAddRack, canManageStorage } = useStorageManagementContext();
   return (
     <div className="border border-gray-300 rounded-lg bg-white">
       {/* Tank Header */}
@@ -43,7 +43,7 @@ export function TankRow({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-700 -mx-1 px-1 py-1 rounded text-left"
+            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/20 transition-colors -mx-1 px-1 py-1 rounded text-left"
             aria-expanded={!collapsed}
             aria-controls={`tank-content-${tank.id}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} tank ${tank.name}`}
@@ -65,24 +65,26 @@ export function TankRow({
               </span>
             </div>
           </button>
-          <div className="flex items-center gap-0.5 flex-shrink-0">
-            <button
-              onClick={() => onEditTank(tank)}
-              className="text-slate-200 hover:bg-slate-700 p-1 rounded"
-              title="Edit tank"
-            >
-              <Edit3 size={16} />
-            </button>
-            {canDeleteTank && (
+          {canManageStorage && (
+            <div className="flex items-center gap-0.5 flex-shrink-0">
               <button
-                onClick={() => onDeleteTank(tank.id)}
-                className="text-red-300 hover:bg-red-900 p-1 rounded"
-                title="Delete tank"
+                onClick={() => onEditTank(tank)}
+                className="text-slate-200 hover:bg-white/20 transition-colors p-1 rounded"
+                title="Edit tank"
               >
-                <Trash2 size={16} />
+                <Edit3 size={16} />
               </button>
-            )}
-          </div>
+              {canDeleteTank && (
+                <button
+                  onClick={() => onDeleteTank(tank.id)}
+                  className="text-red-300 hover:bg-red-500/20 transition-colors p-1 rounded"
+                  title="Delete tank"
+                >
+                  <Trash2 size={16} />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -107,32 +109,34 @@ export function TankRow({
               );
             })}
 
-            {/* Add Rack Button with Bulk Input */}
-            <div className="ml-2 mt-1">
-              <div className="flex items-center gap-1.5 py-1 px-1.5">
-                <span className="text-gray-400 font-mono text-xs">└</span>
-                <div className="flex items-center gap-2">
-                  <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={rackCountToAdd}
-                    onChange={e =>
-                      onRackCountChange(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))
-                    }
-                    className="input-number-sm w-14 px-2 py-1 text-sm"
-                    title="Number of racks to add"
-                  />
-                  <button
-                    onClick={() => onAddRack(tank.id)}
-                    className="flex items-center gap-1 bg-slate-400 text-white px-2 py-1 rounded hover:bg-slate-500 text-sm"
-                  >
-                    <Plus size={12} />
-                    Add {rackCountToAdd > 1 ? 'Racks' : 'Rack'}
-                  </button>
+            {/* Add Rack Button with Bulk Input (Admin Only) */}
+            {canManageStorage && (
+              <div className="ml-2 mt-1">
+                <div className="flex items-center gap-1.5 py-1 px-1.5">
+                  <span className="text-gray-400 font-mono text-xs">└</span>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="50"
+                      value={rackCountToAdd}
+                      onChange={e =>
+                        onRackCountChange(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))
+                      }
+                      className="input-number-sm w-14 px-2 py-1 text-sm"
+                      title="Number of racks to add"
+                    />
+                    <button
+                      onClick={() => onAddRack(tank.id)}
+                      className="flex items-center gap-1 bg-slate-400 text-white px-2 py-1 rounded hover:bg-slate-500 text-sm"
+                    >
+                      <Plus size={12} />
+                      Add {rackCountToAdd > 1 ? 'Racks' : 'Rack'}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

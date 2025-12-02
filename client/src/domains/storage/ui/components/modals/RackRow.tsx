@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
@@ -39,6 +39,7 @@ export function RackRow({
     currentUser,
     isOwnedByCurrentUser,
     canEditResource,
+    canManageStorage,
     onAssignRack,
     onEditRackLabel,
     onEditRack,
@@ -50,10 +51,30 @@ export function RackRow({
   const isRackOwnedByUser = isOwnedByCurrentUser(rack);
   const isUnassigned = !rack.assignedUserId;
   const bgClass = isRackOwnedByUser
-    ? 'bg-blue-100'
+    ? 'bg-ice-100'
     : isUnassigned
-      ? 'bg-yellow-50'
-      : 'bg-slate-400';
+      ? 'bg-warning-light'
+      : 'bg-slate-300';
+
+  // Calculate owned boxes for collapsed notation
+  const ownedBoxInfo = useMemo(() => {
+    if (!currentUser?.id) return null;
+
+    const userOwnsRack = rack.assignedUserId === currentUser.id;
+
+    if (userOwnsRack) {
+      // User owns rack - count boxes that inherit (undefined) or are explicitly assigned to user
+      // null = explicitly common (not owned), so exclude those
+      const ownedCount = rack.boxes.filter(
+        box => box.assignedUserId === undefined || box.assignedUserId === currentUser.id
+      ).length;
+      return ownedCount === rack.boxes.length ? 'all' : ownedCount;
+    } else {
+      // User doesn't own rack - count boxes explicitly assigned to user
+      const ownedCount = rack.boxes.filter(box => box.assignedUserId === currentUser.id).length;
+      return ownedCount > 0 ? ownedCount : null;
+    }
+  }, [rack.boxes, rack.assignedUserId, currentUser?.id]);
 
   return (
     <div className="ml-2">
@@ -72,7 +93,7 @@ export function RackRow({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-500 -mx-1 px-1 py-0.5 rounded text-left"
+          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-black/10 transition-colors -mx-1 px-1 py-0.5 rounded text-left"
           aria-expanded={!collapsed}
           aria-controls={`rack-content-${rackKey}`}
           aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
@@ -87,6 +108,11 @@ export function RackRow({
           <span className="text-xs px-2 py-0.5 bg-slate-500 rounded text-white">
             {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
           </span>
+          {collapsed && ownedBoxInfo !== null && (
+            <span className="text-xs text-blue-700 italic">
+              you own {ownedBoxInfo === 'all' ? 'all' : ownedBoxInfo}
+            </span>
+          )}
         </button>
 
         {/* Assignment Dropdown (admin only) */}
@@ -94,34 +120,39 @@ export function RackRow({
           <AssignmentDropdown
             value={rack.assignedUserId}
             users={users}
-            onChange={userId => onAssignRack(tankId, rack.id, userId)}
+            onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
             size="md"
           />
         )}
 
         <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Custom Label Button */}
+          {/* Custom Label Button (for owners) */}
           {canEditResource(rack) && (
             <CustomLabelButton
               onClick={() => onEditRackLabel(tankId, rack.id, rack.customLabel ?? '')}
             />
           )}
 
-          <button
-            onClick={() => onEditRack(tankId, rack)}
-            className="text-slate-700 hover:bg-slate-500 p-1 rounded"
-            title="Edit rack"
-          >
-            <Edit3 size={14} />
-          </button>
-          {canDeleteRack && (
-            <button
-              onClick={() => onDeleteRack(tankId, rack.id)}
-              className="text-red-700 hover:bg-red-900 p-1 rounded"
-              title="Delete rack"
-            >
-              <Trash2 size={14} />
-            </button>
+          {/* Edit/Delete buttons (Admin Only) */}
+          {canManageStorage && (
+            <>
+              <button
+                onClick={() => onEditRack(tankId, rack)}
+                className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded"
+                title="Edit rack"
+              >
+                <Edit3 size={14} />
+              </button>
+              {canDeleteRack && (
+                <button
+                  onClick={() => onDeleteRack(tankId, rack.id)}
+                  className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded"
+                  title="Delete rack"
+                >
+                  <Trash2 size={14} />
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -140,30 +171,32 @@ export function RackRow({
             />
           ))}
 
-          {/* Add Box Button with Bulk Input */}
-          <div className="flex items-center gap-1.5 py-0.5 px-1.5">
-            <span className="text-slate-400 font-mono text-xs">└</span>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                min="1"
-                max="26"
-                value={boxCountToAdd}
-                onChange={e =>
-                  onBoxCountChange(Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))
-                }
-                className="input-number-sm w-14 px-2 py-0.5"
-                title="Number of boxes to add"
-              />
-              <button
-                onClick={() => onAddBox(tankId, rack.id)}
-                className="flex items-center gap-1 bg-slate-200 text-slate-800 px-2 py-1 rounded hover:bg-slate-300 text-xs"
-              >
-                <Plus size={12} />
-                Add {boxCountToAdd > 1 ? 'Boxes' : 'Box'}
-              </button>
+          {/* Add Box Button with Bulk Input (Admin Only) */}
+          {canManageStorage && (
+            <div className="flex items-center gap-1.5 py-0.5 px-1.5">
+              <span className="text-slate-400 font-mono text-xs">└</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="1"
+                  max="26"
+                  value={boxCountToAdd}
+                  onChange={e =>
+                    onBoxCountChange(Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))
+                  }
+                  className="input-number-sm w-14 px-2 py-0.5"
+                  title="Number of boxes to add"
+                />
+                <button
+                  onClick={() => onAddBox(tankId, rack.id)}
+                  className="flex items-center gap-1 bg-slate-200 text-slate-800 px-2 py-1 rounded hover:bg-slate-300 text-xs"
+                >
+                  <Plus size={12} />
+                  Add {boxCountToAdd > 1 ? 'Boxes' : 'Box'}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
     </div>

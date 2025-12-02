@@ -372,23 +372,42 @@ export class AuthController {
       const query = new GetAllUsersQuery(false); // Don't include inactive by default
       const users = await this.getAllUsersHandler.handle(query);
 
-      // Enrich user data with researcher information
+      // Enrich user data with Person name information
       const enrichedUsers = await Promise.all(
         users.map(async (user) => {
           const publicData = user.toPublicData();
 
-          // If user has a linked researcher, fetch researcher details
+          // Priority 1: User's direct personId
+          if (publicData.personId) {
+            try {
+              const person = await this.personRepository.findById(publicData.personId);
+              if (person) {
+                return {
+                  ...publicData,
+                  firstName: person.firstName,
+                  lastName: person.lastName
+                };
+              }
+            } catch (error) {
+              logger.warn('Failed to fetch person details for user', {
+                userId: user.id,
+                personId: publicData.personId,
+                error
+              });
+            }
+          }
+
+          // Priority 2: Linked researcher's person
           if (publicData.researcherId) {
             try {
               const researcher = await this.researcherRepository.findById(publicData.researcherId);
               if (researcher) {
-                // Get Person data for researcher name
                 const person = await this.personRepository.findById(researcher.personId);
                 if (person) {
                   return {
                     ...publicData,
-                    researcherFirstName: person.firstName,
-                    researcherLastName: person.lastName
+                    firstName: person.firstName,
+                    lastName: person.lastName
                   };
                 }
               }

@@ -23,7 +23,8 @@ export const BoxConfigurationSchema = z.object({
   description: z.string().optional(),
   color: z.string().optional(),
   specialInstructions: z.string().optional(),
-  assignedUserId: z.string().optional(),
+  // null = explicitly unassigned/common, undefined = inherit from rack
+  assignedUserId: z.string().nullable().optional(),
   customLabel: z.string().max(50).optional(),
 }).strict();
 

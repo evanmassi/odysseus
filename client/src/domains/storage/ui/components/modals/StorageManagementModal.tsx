@@ -18,6 +18,7 @@ import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnershi
 import { useResourcePermissions } from '@domains/storage/hooks/useResourcePermissions';
 import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
 import { logger } from '@shared/infrastructure/logger';
+import { TankIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils/notifications';
 
 import { BoxEditModal } from './BoxEditModal';
@@ -79,7 +80,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
   // Resource assignment hooks
   const { getUserInfo, isOwnedByCurrentUser } = useResourceOwnership(users, currentUser?.id);
-  const { canEditResource } = useResourcePermissions(currentUser);
+  const { canEditResource, canManageStorage } = useResourcePermissions(currentUser);
   const { assignRack, assignBox, updateCustomLabel } = useResourceAssignment(
     currentLab.id,
     saveToServerWithReactQuery
@@ -104,11 +105,18 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     tankId: string,
     rackId: string,
     boxId: string,
-    userId: string | undefined
+    userId: string | null | undefined
   ): Promise<void> => {
     try {
       await assignBox(tankId, rackId, boxId, userId);
-      notifications.success(userId ? 'Box assigned' : 'Box unassigned');
+      // Different messages for: assigned to user, made common, or inherit from rack
+      const message =
+        typeof userId === 'string'
+          ? 'Box assigned'
+          : userId === null
+            ? 'Box set to common'
+            : 'Box set to inherit from rack';
+      notifications.success(message);
     } catch (error) {
       logger.error('Failed to assign box', { error });
       notifications.error('Failed to update assignment');
@@ -389,6 +397,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     getUserInfo,
     isOwnedByCurrentUser,
     canEditResource,
+    canManageStorage,
     onEditTank: setEditingTank,
     onDeleteTank: handleDeleteTank,
     onAddRack: handleCreateRack,
@@ -408,18 +417,21 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-in fade-in duration-[180ms]">
-      <div className="bg-white rounded-xl shadow-2xl w-[60%] h-[85%] max-w-2xl max-h-[800px] flex flex-col animate-slide-up-fade">
-        <div className="sticky top-0 bg-gradient-to-r from-slate-600 via-slate-400 to-slate-600 px-6 py-4 text-white rounded-t-xl">
+      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-[60%] h-[85%] max-w-2xl max-h-[800px] flex flex-col overflow-hidden animate-slide-up-fade">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-slate-600 via-slate-500 to-slate-600 px-6 py-3 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-bold">Manage Storage</h2>
-              <p className="text-sm text-white/90 mt-0.5">
-                Configure liquid nitrogen storage tanks, racks, and boxes
-              </p>
+            <div className="flex items-center space-x-3">
+              <TankIcon size={24} />
+              <div>
+                <h2 className="text-lg font-bold">Manage Storage</h2>
+                <p className="text-white/80 text-xs">Storage Layout & Assignments</p>
+              </div>
             </div>
             <button
               onClick={onClose}
-              className="p-1 hover:bg-white/20 rounded-lg transition-colors"
+              className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+              aria-label="Close modal"
             >
               <X size={20} />
             </button>
@@ -428,16 +440,18 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
         <div className="flex-1 p-3 overflow-y-auto">
           <div className="space-y-2">
-            {/* Add New Tank Button */}
-            <div className="flex justify-end">
-              <button
-                onClick={() => handleAddNewTank()}
-                className="flex items-center gap-2 bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-medium text-sm"
-              >
-                <Plus size={16} />
-                Add New Tank
-              </button>
-            </div>
+            {/* Add New Tank Button (Admin Only) */}
+            {canManageStorage && (
+              <div className="flex justify-end">
+                <button
+                  onClick={() => handleAddNewTank()}
+                  className="flex items-center gap-2 bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-medium text-sm"
+                >
+                  <Plus size={16} />
+                  Add New Tank
+                </button>
+              </div>
+            )}
 
             {/* Tanks List */}
             <StorageManagementContext.Provider value={contextValue}>
@@ -463,6 +477,22 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                 ))}
               </div>
             </StorageManagementContext.Provider>
+          </div>
+        </div>
+
+        {/* Ownership Legend */}
+        <div className="px-4 py-2 border-t border-slate-200 bg-slate-50 flex items-center gap-4 text-xs text-slate-600">
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded-full bg-ice-600 flex-shrink-0" />
+            <span>Assigned to You</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded-full bg-slate-400 flex-shrink-0" />
+            <span>Assigned to Another User</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-4 h-4 rounded-full bg-warning-bg flex-shrink-0" />
+            <span>Unassigned/Common</span>
           </div>
         </div>
 

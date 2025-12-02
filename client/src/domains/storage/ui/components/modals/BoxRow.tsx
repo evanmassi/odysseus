@@ -26,19 +26,23 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
     currentUser,
     isOwnedByCurrentUser,
     canEditResource,
+    canManageStorage,
     onAssignBox,
     onEditBoxLabel,
     onEditBox,
     onDeleteBox,
   } = useStorageManagementContext();
 
-  const effectiveOwnerId = box.assignedUserId ?? rack.assignedUserId;
+  // null = explicitly unassigned/common, undefined = inherit from rack
+  const effectiveOwnerId =
+    box.assignedUserId === null ? undefined : (box.assignedUserId ?? rack.assignedUserId);
   const isBoxOwnedByUser = isOwnedByCurrentUser(box, rack);
+  const isExplicitlyCommon = box.assignedUserId === null;
   const isUnassigned = !effectiveOwnerId;
   const boxBgClass = isBoxOwnedByUser
-    ? 'bg-blue-50'
-    : isUnassigned
-      ? 'bg-yellow-50'
+    ? 'bg-ice-50'
+    : isUnassigned || isExplicitlyCommon
+      ? 'bg-warning-light'
       : 'bg-slate-200';
 
   return (
@@ -57,6 +61,8 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
         {box.gridConfig.rows}×{box.gridConfig.cols}
       </span>
 
+      <div className="flex-1"></div>
+
       {/* Assignment Dropdown (admin only) */}
       {currentUser?.role === 'admin' && (
         <AssignmentDropdown
@@ -64,35 +70,41 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
           users={users}
           onChange={userId => onAssignBox(tankId, rackId, box.id, userId)}
           size="sm"
+          showCommonOption
+          parentUserId={rack.assignedUserId}
         />
       )}
 
-      <div className="flex-1"></div>
       <div className="flex items-center gap-1 flex-shrink-0">
-        {/* Custom Label Button */}
+        {/* Custom Label Button (for owners) */}
         {canEditResource(box, rack) && (
           <CustomLabelButton
             onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
             size={12}
-            className="text-slate-700 hover:bg-slate-300 p-1 rounded"
+            className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded"
           />
         )}
 
-        <button
-          onClick={() => onEditBox(tankId, rackId, box)}
-          className="text-slate-700 hover:bg-slate-300 p-1 rounded"
-          title="Change grid size"
-        >
-          <Edit3 size={12} />
-        </button>
-        {rack.boxes.length > 1 && (
-          <button
-            onClick={() => onDeleteBox(tankId, rackId, box.id)}
-            className="text-red-700 hover:bg-red-200 p-1 rounded"
-            title="Remove this box"
-          >
-            <Trash2 size={12} />
-          </button>
+        {/* Edit/Delete buttons (Admin Only) */}
+        {canManageStorage && (
+          <>
+            <button
+              onClick={() => onEditBox(tankId, rackId, box)}
+              className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded"
+              title="Change grid size"
+            >
+              <Edit3 size={12} />
+            </button>
+            {rack.boxes.length > 1 && (
+              <button
+                onClick={() => onDeleteBox(tankId, rackId, box.id)}
+                className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded"
+                title="Remove this box"
+              >
+                <Trash2 size={12} />
+              </button>
+            )}
+          </>
         )}
       </div>
     </div>

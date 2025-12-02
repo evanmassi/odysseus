@@ -568,6 +568,7 @@ export class User {
     lastActivity: string;
     status: 'pending' | 'approved' | 'rejected';
     researcherId?: string;
+    personId?: string;
   } {
     return {
       id: this._id,
@@ -576,7 +577,8 @@ export class User {
       createdAt: this._createdAt.toISOString(),
       lastActivity: this._lastActivity.toISOString(),
       status: this._status,
-      researcherId: this._researcherId
+      researcherId: this._researcherId,
+      personId: this._personId
     };
   }
 

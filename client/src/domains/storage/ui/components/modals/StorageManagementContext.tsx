@@ -23,6 +23,7 @@ interface StorageManagementContextValue {
     resource: RackConfiguration | BoxConfiguration,
     parentRack?: RackConfiguration
   ) => boolean;
+  canManageStorage: boolean;
 
   // Tank handlers
   onEditTank: (tank: TankConfiguration) => void;
@@ -39,7 +40,12 @@ interface StorageManagementContextValue {
   // Box handlers
   onEditBox: (tankId: string, rackId: string, box: BoxConfiguration) => void;
   onDeleteBox: (tankId: string, rackId: string, boxId: string) => void;
-  onAssignBox: (tankId: string, rackId: string, boxId: string, userId: string | undefined) => void;
+  onAssignBox: (
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    userId: string | null | undefined
+  ) => void;
   onEditBoxLabel: (tankId: string, rackId: string, boxId: string, currentLabel: string) => void;
 }
 

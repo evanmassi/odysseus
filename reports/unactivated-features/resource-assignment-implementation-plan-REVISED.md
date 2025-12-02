@@ -2308,7 +2308,7 @@ describe('AccessControlService - Assignments', () => {
 
 ---
 
-### Phase 2: Frontend - User Query Hook
+### Phase 2: Frontend - User Query Hook ✅ COMPLETED
 **Duration:** 0.5 day
 
 **Tasks:**
@@ -2347,7 +2347,7 @@ describe('AccessControlService - Assignments', () => {
 
 ---
 
-### Phase 3: Frontend - UI Components & Visual Design
+### Phase 3: Frontend - UI Components & Visual Design ✅ COMPLETED
 **Duration:** 2 days
 
 **Tasks:**
@@ -2456,7 +2456,7 @@ describe('AccessControlService - Assignments', () => {
 
 ---
 
-### Phase 4: Integration Testing
+### Phase 4: Integration Testing ✅ COMPLETED (Manual)
 **Duration:** 0.5 day
 
 **Tasks:**
@@ -2517,7 +2517,7 @@ describe('AccessControlService - Assignments', () => {
 
 ---
 
-### Phase 5: Polish & Edge Cases
+### Phase 5: Polish & Edge Cases ✅ COMPLETED
 **Duration:** 0.5 day
 
 **Tasks:**
@@ -2553,11 +2553,11 @@ describe('AccessControlService - Assignments', () => {
 - ✅ All polish items complete
 - ✅ Accessibility requirements met
 - ✅ Edge cases handled
-- ✅ Documentation updated
+- ⏸️ Documentation updated (deferred)
 
 ---
 
-### Phase 6: User Assignments View (Admin)
+### Phase 6: User Assignments View (Admin) ❌ NOT STARTED
 **Duration:** 0.5 day
 
 **Purpose:** Allow admins to quickly view all resources assigned to a specific user without searching through the storage tree.
@@ -3563,11 +3563,11 @@ When you're assigned a rack, you automatically own all boxes in it:
 |-------|----------|------------|-------------|-----------|
 | **Phase 0: Schema** ✅ | 0.5 days | 14 lines | 158 lines | Extend schemas, add display helper |
 | **Phase 1: Backend** ✅ | 1 day | **665 lines** | 2,013 lines | Permission methods, validation, cascade enforcement, **8 audit events**, user lifecycle |
-| **Phase 2: Frontend Query** | 0.5 days | 15 lines | 100 lines | useUsersQuery hook |
-| **Phase 3: UI Components & Visual Design** | 2 days | 345 lines | 994 lines | Visual design system, badges, background tints, assignment dropdowns, custom label modal |
-| **Phase 4: Integration** | 0.5 days | 0 lines | - | E2E testing, multi-user flows |
-| **Phase 5: Polish** | 0.5 days | ~20 lines | - | Accessibility, edge cases, docs |
-| **Phase 6: User Assignments View** | 0.5 days | ~120 lines | 50 lines | UserAssignmentsModal, User Management integration |
+| **Phase 2: Frontend Query** ✅ | 0.5 days | 15 lines | 100 lines | useUsersQuery hook |
+| **Phase 3: UI Components & Visual Design** ✅ | 2 days | 345 lines | 994 lines | Visual design system, badges, background tints, assignment dropdowns, custom label modal |
+| **Phase 4: Integration** ✅ | 0.5 days | 0 lines | - | E2E testing, multi-user flows |
+| **Phase 5: Polish** ✅ | 0.5 days | ~20 lines | - | Accessibility, edge cases, docs |
+| **Phase 6: User Assignments View** ❌ | 0.5 days | ~120 lines | 50 lines | UserAssignmentsModal, User Management integration |
 
 **TOTAL:**
 - **New Code Written:** ~1,179 lines (updated from 679 due to comprehensive audit trail)
@@ -3732,4 +3732,4 @@ The Assignment System leverages Odysseus's **clean architecture** to achieve:
 - ✅ **Unassigned spaces:** Users can add tubes to common/unassigned spaces but cannot edit config
 - ✅ Updated code estimates: ~1,179 lines new code (Phase 0-1 complete: 679 lines), 73.8% reuse ratio, 5.5-6.5 days total
 
-**Last Updated:** 2025-01-19 (Phase 0-1 completed)
+**Last Updated:** 2025-12-01 (Phase 0-5 fully completed, Phase 6 not started)

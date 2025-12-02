@@ -337,8 +337,9 @@ export class AccessControlService {
    *
    * Implements ownership cascade:
    * - Admins can edit any resource
+   * - null = explicitly unassigned/common - anyone can edit
    * - User can edit if explicitly assigned to them
-   * - User can edit box if no explicit assignment and they own the parent rack
+   * - User can edit box if undefined (inherit) and they own the parent rack
    */
   canEditResource(
     user: User,
@@ -350,14 +351,19 @@ export class AccessControlService {
       return true;
     }
 
+    // null = explicitly unassigned/common - anyone can edit
+    if (resource.assignedUserId === null) {
+      return true;
+    }
+
     // Explicit assignment to this resource
     if (resource.assignedUserId === user.id) {
       return true;
     }
 
     // Ownership cascade (boxes only)
-    // If box has no explicit assignment, check rack ownership
-    if (parentRack && !resource.assignedUserId && parentRack.assignedUserId === user.id) {
+    // If box has undefined assignment (inherit), check rack ownership
+    if (parentRack && resource.assignedUserId === undefined && parentRack.assignedUserId === user.id) {
       return true;
     }
 
