@@ -11,7 +11,7 @@ interface CustomLabelButtonProps {
 export function CustomLabelButton({
   onClick,
   size = 14,
-  className = 'text-slate-700 hover:bg-black/10 transition-colors p-1 rounded',
+  className = 'text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default',
 }: CustomLabelButtonProps) {
   return (
     <button onClick={onClick} className={className} title="Edit custom label">

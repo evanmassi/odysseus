@@ -41,6 +41,7 @@ interface ConfigurationState {
   setCurrentLab: (labId: string) => void;
   addLab: (lab: LabConfiguration) => void;
   updateLab: (labId: string, updates: Partial<LabConfiguration>) => void;
+  replaceLab: (labId: string, lab: LabConfiguration) => void;
   deleteLab: (labId: string) => void;
 
   // Tank management
@@ -291,6 +292,21 @@ export const useStorageStore = create<ConfigurationState>()(
           const { systemConfig } = get();
           const updatedLabs = systemConfig.availableLabs.map(lab =>
             lab.id === labId ? { ...lab, ...updates, updatedAt: new Date().toISOString() } : lab
+          );
+
+          syncedSet({
+            systemConfig: {
+              ...systemConfig,
+              availableLabs: updatedLabs,
+            },
+          });
+          // currentLab automatically synced
+        },
+
+        replaceLab: (labId: string, lab: LabConfiguration) => {
+          const { systemConfig } = get();
+          const updatedLabs = systemConfig.availableLabs.map(existing =>
+            existing.id === labId ? { ...lab, updatedAt: new Date().toISOString() } : existing
           );
 
           syncedSet({

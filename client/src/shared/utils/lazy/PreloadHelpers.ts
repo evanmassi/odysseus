@@ -330,9 +330,10 @@ export function usePreloadOnIdle(preloadFn: () => void | Promise<void>, delayMs:
  * ```
  */
 export async function batchPreload(
-  importFns: Array<() => Promise<any>> // eslint-disable-line @typescript-eslint/no-explicit-any -- Dynamic import promises for flexible component types
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dynamic imports return varying module types
+  importFns: Array<() => Promise<any>>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Return type matches input promise types
 ): Promise<PromiseSettledResult<any>[]> {
-  // eslint-disable-line @typescript-eslint/no-explicit-any -- Dynamic import promises for flexible component types
   const results = await Promise.allSettled(importFns.map(fn => fn()));
 
   // Log failures in development

@@ -160,6 +160,25 @@ export default {
           'selected-border': 'var(--color-storage-selected-border)',
           'selected-shadow': 'var(--color-storage-selected-shadow)',
         },
+        ownership: {
+          user: {
+            bg: 'var(--color-ownership-user-bg)',
+            light: 'var(--color-ownership-user-light)',
+            medium: 'var(--color-ownership-user-medium)',
+            border: 'var(--color-ownership-user-border)',
+          },
+          unassigned: {
+            bg: 'var(--color-ownership-unassigned-bg)',
+            light: 'var(--color-ownership-unassigned-light)',
+            border: 'var(--color-ownership-unassigned-border)',
+          },
+          other: {
+            bg: 'var(--color-ownership-other-bg)',
+            light: 'var(--color-ownership-other-light)',
+            medium: 'var(--color-ownership-other-medium)',
+            border: 'var(--color-ownership-other-border)',
+          },
+        },
       },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif']

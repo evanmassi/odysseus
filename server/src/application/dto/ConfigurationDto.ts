@@ -91,7 +91,7 @@ export class ConfigurationDto {
     return {
       id: tankData.id,
       name: tankData.name,
-      location: 'Main Lab',
+      location: tankData.location,
       isActive: tankData.isActive,
       createdAt: updatedAt,
       updatedAt: updatedAt,
@@ -110,6 +110,8 @@ export class ConfigurationDto {
       capacity: rackData.capacity,
       location: 'Main Lab',
       isActive: rackData.isActive,
+      assignedUserId: rackData.assignedUserId,
+      customLabel: rackData.customLabel,
       boxes: rackData.boxes.map((box, index) => this.transformBox(box, index))
     };
   }
@@ -135,7 +137,9 @@ export class ConfigurationDto {
         ...boxData.gridConfig,
         template: 'standard' as const
       },
-      position: index + 1
+      position: index + 1,
+      assignedUserId: boxData.assignedUserId,
+      customLabel: boxData.customLabel
     };
   }
 
@@ -155,6 +159,7 @@ export class ConfigurationDto {
         tanks: currentLab.equipment.tanks.map(tank => ({
           id: tank.id,
           name: tank.name,
+          location: tank.location,
           isActive: tank.isActive,
           maxRacks: tank.racks.length,
           racks: tank.racks.map(rack => ({
@@ -163,6 +168,8 @@ export class ConfigurationDto {
             capacity: rack.capacity,
             maxBoxes: rack.boxes.length,
             isActive: rack.isActive,
+            assignedUserId: rack.assignedUserId,
+            customLabel: rack.customLabel,
             boxes: rack.boxes.map(box => ({
               name: box.id,  // Client id:"A" → Server name:"A"
               gridConfig: {
@@ -170,7 +177,9 @@ export class ConfigurationDto {
                 cols: box.gridConfig.cols
               },
               maxPositions: box.gridConfig.rows * box.gridConfig.cols,
-              isActive: true
+              isActive: true,
+              assignedUserId: box.assignedUserId,
+              customLabel: box.customLabel
             }))
           }))
         }))

@@ -23,7 +23,7 @@
   }
 
   .btn-secondary {
-    @apply btn border border-odysseus-border bg-odysseus-surface text-odysseus-secondary hover:bg-odysseus-surface-hover hover:border-odysseus-primary hover:shadow-md h-10 px-4 py-2;
+    @apply btn border border-odysseus-border bg-odysseus-surface text-odysseus-secondary hover:bg-odysseus-surface-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-danger {
@@ -51,7 +51,7 @@
   }
 
   .btn-warning {
-    @apply btn bg-warning-bg text-warning-btnText hover:bg-warning-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-warning-bg text-warning-btnText hover:bg-warning-hover hover:shadow-lg h-10 px-4 py-2;
   }
 
   .btn-success {
@@ -67,15 +67,15 @@
   }
 
   .btn-cancel {
-    @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 h-10 px-4 py-2;
+    @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 h-10 px-4 py-2;
   }
 
   .btn-refresh {
-    @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400 h-10 px-4 py-2;
+    @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 h-10 px-4 py-2;
   }
 
   .btn-refresh-compact {
-    @apply btn-compact border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 hover:border-gray-400;
+    @apply btn-compact border border-gray-300 bg-white text-gray-700 hover:bg-gray-100;
   }
 
   /* Compact Button Variants - For tables, inline actions, and space-constrained UIs */
@@ -102,7 +102,7 @@
   }
 
   .btn-secondary-compact {
-    @apply btn-compact border border-odysseus-border bg-odysseus-surface text-odysseus-secondary hover:bg-odysseus-surface-hover hover:border-odysseus-primary;
+    @apply btn-compact border border-odysseus-border bg-odysseus-surface text-odysseus-secondary hover:bg-odysseus-surface-hover;
   }
 
   .btn-danger-compact {

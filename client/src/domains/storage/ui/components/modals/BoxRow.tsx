@@ -40,14 +40,26 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
   const isExplicitlyCommon = box.assignedUserId === null;
   const isUnassigned = !effectiveOwnerId;
   const boxBgClass = isBoxOwnedByUser
-    ? 'bg-ice-50'
+    ? 'bg-ownership-user-light'
     : isUnassigned || isExplicitlyCommon
-      ? 'bg-warning-light'
-      : 'bg-slate-200';
+      ? 'bg-ownership-unassigned-light'
+      : 'bg-ownership-other-light';
+
+  const boxBorderClass = isBoxOwnedByUser
+    ? 'border-ownership-user-border'
+    : isUnassigned || isExplicitlyCommon
+      ? 'border-ownership-unassigned-border'
+      : 'border-ownership-other-border';
+
+  const badgeClass = isBoxOwnedByUser
+    ? 'bg-ownership-user-bg text-white'
+    : isUnassigned || isExplicitlyCommon
+      ? 'bg-ownership-unassigned-bg text-white'
+      : 'bg-ownership-other-bg text-white';
 
   return (
     <div
-      className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border border-slate-300`}
+      className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border ${boxBorderClass}`}
     >
       <span className="text-slate-400 font-mono text-xs flex-shrink-0">{isLast ? '└' : '├'}</span>
 
@@ -57,7 +69,7 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
       <span className="font-medium text-slate-800 text-xs inline-block min-w-[60px]">
         {formatResourceDisplayName(box.name, box.customLabel)}
       </span>
-      <span className="text-xs px-2 py-1 bg-slate-300 rounded text-slate-700">
+      <span className={`text-xs px-2 py-1 rounded ${badgeClass}`}>
         {box.gridConfig.rows}×{box.gridConfig.cols}
       </span>
 
@@ -81,7 +93,7 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
           <CustomLabelButton
             onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
             size={12}
-            className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded"
+            className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
           />
         )}
 
@@ -90,7 +102,7 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
           <>
             <button
               onClick={() => onEditBox(tankId, rackId, box)}
-              className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded"
+              className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
               title="Change grid size"
             >
               <Edit3 size={12} />
@@ -98,7 +110,7 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
             {rack.boxes.length > 1 && (
               <button
                 onClick={() => onDeleteBox(tankId, rackId, box.id)}
-                className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded"
+                className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
                 title="Remove this box"
               >
                 <Trash2 size={12} />

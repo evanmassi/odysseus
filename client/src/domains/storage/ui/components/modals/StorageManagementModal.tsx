@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Save, RefreshCw } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useUsersQuery } from '@domains/admin';
@@ -13,10 +13,23 @@ import {
   createRackFromDefaults,
   getNextTankNumber,
 } from '@domains/storage';
-import { useResourceAssignment } from '@domains/storage/hooks/useResourceAssignment';
 import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
 import { useResourcePermissions } from '@domains/storage/hooks/useResourcePermissions';
-import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
+import {
+  addTankToLab,
+  updateTankInLab,
+  deleteTankFromLab,
+  addRackToLab,
+  updateRackInLab,
+  deleteRackFromLab,
+  addBoxToLab,
+  updateBoxInLab,
+  deleteBoxFromLab,
+  assignRackInLab,
+  assignBoxInLab,
+  updateCustomLabelInLab,
+} from '@domains/storage/utils/storageLocalUpdates';
+import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
 import { TankIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils/notifications';
@@ -29,6 +42,7 @@ import { TankEditModal } from './TankEditModal';
 import { TankRow } from './TankRow';
 
 import type {
+  LabConfiguration,
   TankConfiguration,
   RackConfiguration,
   BoxConfiguration,
@@ -41,20 +55,10 @@ interface StorageManagementModalProps {
 }
 
 export function StorageManagementModal({ isOpen, onClose }: StorageManagementModalProps) {
-  // Use proper Zustand selectors for reactive updates
+  // Store access (read-only for initial data)
   const currentLab = useStorageStore(state => state.currentLab);
-
-  const updateTank = useStorageStore(state => state.updateTank);
-  const addTank = useStorageStore(state => state.addTank);
-  const deleteTank = useStorageStore(state => state.deleteTank);
-  const updateBox = useStorageStore(state => state.updateBox);
-  const updateRack = useStorageStore(state => state.updateRack);
-  const addRack = useStorageStore(state => state.addRack);
-  const addBoxToRack = useStorageStore(state => state.addBoxToRack);
-  const deleteBox = useStorageStore(state => state.deleteBox);
-  const deleteRack = useStorageStore(state => state.deleteRack);
+  const replaceLab = useStorageStore(state => state.replaceLab);
   const getAvailableGridTemplates = useStorageStore(state => state.getAvailableGridTemplates);
-  // Auth store subscribed for reactive updates
   const modalService = useModalStore();
 
   // Resource assignment - fetch users and current user
@@ -64,81 +68,81 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   // React Query mutation for server sync
   const saveConfigurationMutation = useSaveStorageMutation();
 
-  // Helper function to save configuration to server
-  const saveToServerWithReactQuery = async () => {
-    const state = useStorageStore.getState();
-    const { systemConfig, currentLab } = state;
+  // ========== LOCAL STATE PATTERN ==========
+  // Draft state for editing (not committed until Save)
+  const [localLab, setLocalLab] = useState<LabConfiguration | null>(null);
+  const [originalLab, setOriginalLab] = useState<LabConfiguration | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-    // Explicitly type the mutation parameters
-    await saveConfigurationMutation.mutateAsync({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Zustand store state type compatibility with mutation
-      systemConfig: systemConfig as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Zustand store state type compatibility with mutation
-      currentLab: currentLab as any,
-    });
+  // Clone configuration when modal opens
+  useEffect(() => {
+    if (isOpen && currentLab) {
+      const cloned = structuredClone(currentLab);
+      setLocalLab(cloned);
+      setOriginalLab(structuredClone(currentLab));
+    }
+  }, [isOpen, currentLab]);
+
+  // Focus trap - only active when modal is fully ready (localLab populated)
+  const trapRef = useFocusTrap({
+    isOpen: isOpen && !!localLab,
+    restoreFocus: true,
+    autoFocusFirstInput: false,
+    initialFocusDelay: 100,
+  });
+
+  // Check for unsaved changes
+  const hasChanges =
+    localLab && originalLab ? JSON.stringify(localLab) !== JSON.stringify(originalLab) : false;
+
+  // ========== SAVE / CANCEL HANDLERS ==========
+  const handleSave = async () => {
+    if (!localLab) return;
+
+    setIsSaving(true);
+    try {
+      // Commit to store
+      replaceLab(localLab.id, localLab);
+
+      // Save to server
+      const state = useStorageStore.getState();
+      await saveConfigurationMutation.mutateAsync({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        systemConfig: state.systemConfig as any,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        currentLab: state.currentLab as any,
+      });
+
+      // Update original to reflect saved state
+      setOriginalLab(structuredClone(localLab));
+      notifications.success('Storage configuration saved successfully');
+      onClose();
+    } catch (error) {
+      logger.error('Failed to save storage configuration', { error });
+      notifications.error('Failed to save changes');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  // Resource assignment hooks
+  const handleClose = () => {
+    if (hasChanges) {
+      modalService.showUnsavedConfirm({
+        onConfirm: () => {
+          modalService.hideUnsavedConfirm();
+          onClose();
+        },
+      });
+    } else {
+      onClose();
+    }
+  };
+
+  // ========== RESOURCE HOOKS ==========
   const { getUserInfo, isOwnedByCurrentUser } = useResourceOwnership(users, currentUser?.id);
   const { canEditResource, canManageStorage } = useResourcePermissions(currentUser);
-  const { assignRack, assignBox, updateCustomLabel } = useResourceAssignment(
-    currentLab.id,
-    saveToServerWithReactQuery
-  );
 
-  // Wrap assignment operations with notifications
-  const handleAssignRack = async (
-    tankId: string,
-    rackId: string,
-    userId: string | undefined
-  ): Promise<void> => {
-    try {
-      await assignRack(tankId, rackId, userId);
-      notifications.success(userId ? 'Rack assigned' : 'Rack unassigned');
-    } catch (error) {
-      logger.error('Failed to assign rack', { error });
-      notifications.error('Failed to update assignment');
-    }
-  };
-
-  const handleAssignBox = async (
-    tankId: string,
-    rackId: string,
-    boxId: string,
-    userId: string | null | undefined
-  ): Promise<void> => {
-    try {
-      await assignBox(tankId, rackId, boxId, userId);
-      // Different messages for: assigned to user, made common, or inherit from rack
-      const message =
-        typeof userId === 'string'
-          ? 'Box assigned'
-          : userId === null
-            ? 'Box set to common'
-            : 'Box set to inherit from rack';
-      notifications.success(message);
-    } catch (error) {
-      logger.error('Failed to assign box', { error });
-      notifications.error('Failed to update assignment');
-    }
-  };
-
-  const handleUpdateCustomLabel = async (
-    type: 'rack' | 'box',
-    tankId: string,
-    rackId: string,
-    boxId: string | undefined,
-    label: string
-  ): Promise<void> => {
-    try {
-      await updateCustomLabel(type, tankId, rackId, boxId, label);
-      notifications.success('Custom label updated');
-    } catch (error) {
-      logger.error('Failed to update custom label', { error });
-      notifications.error('Failed to update label');
-    }
-  };
-
+  // ========== UI STATE ==========
   const [editingTank, setEditingTank] = useState<TankConfiguration | null>(null);
   const [editingBox, setEditingBox] = useState<{
     tankId: string;
@@ -198,10 +202,40 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     });
   };
 
-  if (!isOpen) return null;
+  // ========== LOCAL STATE HANDLERS ==========
+  // All handlers now update localLab instead of store + auto-save
 
-  const handleCreateRack = async (tankId: string) => {
-    const tank = currentLab.equipment.tanks.find(t => t.id === tankId);
+  const handleAssignRack = (tankId: string, rackId: string, userId: string | undefined) => {
+    if (!localLab) return;
+    setLocalLab(assignRackInLab(localLab, tankId, rackId, userId));
+  };
+
+  const handleAssignBox = (
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    userId: string | null | undefined
+  ) => {
+    if (!localLab) return;
+    setLocalLab(assignBoxInLab(localLab, tankId, rackId, boxId, userId));
+  };
+
+  const handleUpdateCustomLabel = (
+    type: 'rack' | 'box',
+    tankId: string,
+    rackId: string,
+    boxId: string | undefined,
+    label: string
+  ) => {
+    if (!localLab) return;
+    setLocalLab(updateCustomLabelInLab(localLab, type, tankId, rackId, boxId, label));
+    setEditingLabel(null);
+  };
+
+  const handleCreateRack = (tankId: string) => {
+    if (!localLab) return;
+
+    const tank = localLab.equipment.tanks.find(t => t.id === tankId);
     if (!tank) return;
 
     // Get count from state (default 1 if not set)
@@ -209,108 +243,97 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     const highestRackId = Math.max(0, ...tank.racks.map(r => Number(r.id) || 0));
 
     const newRackKeys: string[] = [];
+    let updatedLab = localLab;
 
     // Create N racks
     for (let i = 0; i < count; i++) {
       const newRackNumber = highestRackId + 1 + i;
 
-      // Create rack from creator - ensures fresh defaults from EQUIPMENT_DEFAULTS
       const newRack = createRackFromDefaults(
         tankId,
         newRackNumber,
-        currentLab.equipment.defaultGridConfig
+        localLab.equipment.defaultGridConfig
       );
 
-      addRack(currentLab.id, tankId, newRack);
-
-      // Track for bulk collapse
+      updatedLab = addRackToLab(updatedLab, tankId, newRack);
       newRackKeys.push(`${tankId}-rack-${newRack.id}`);
     }
 
-    // Collapse all newly created racks (better UX when adding many racks)
+    setLocalLab(updatedLab);
+
+    // Collapse all newly created racks
     setCollapsedRacks(prev => new Set([...prev, ...newRackKeys]));
 
-    // Reset count to 1 for next operation
+    // Reset count to 1
     setRackCountToAdd(prev => ({ ...prev, [tankId]: 1 }));
-
-    // Save to server (SessionManager handles authentication automatically)
-    await saveToServerWithReactQuery();
   };
 
-  const handleAddBox = async (tankId: string, rackId: string) => {
-    const tank = currentLab.equipment.tanks.find(t => t.id === tankId);
+  const handleAddBox = (tankId: string, rackId: string) => {
+    if (!localLab) return;
+
+    const tank = localLab.equipment.tanks.find(t => t.id === tankId);
     const rack = tank?.racks.find(r => r.id === rackId);
     if (!rack) return;
 
-    // Get count from state (default 1 if not set)
     const rackKey = `${tankId}-${rackId}`;
     const count = boxCountToAdd[rackKey] || 1;
 
-    // Create N boxes
+    let updatedLab = localLab;
+
     for (let i = 0; i < count; i++) {
       const boxIndex = rack.boxes.length + i;
       const nextBoxLetter = NAMING_PATTERNS.BOX.LETTER_NAME(boxIndex);
       const newBox: BoxConfiguration = {
         id: nextBoxLetter,
         name: NAMING_PATTERNS.BOX.DEFAULT_NAME(boxIndex),
-        gridConfig: currentLab.equipment.defaultGridConfig,
-        position: boxIndex + 1, // Add position property (1-indexed)
+        gridConfig: localLab.equipment.defaultGridConfig,
+        position: boxIndex + 1,
       };
 
-      addBoxToRack(currentLab.id, tankId, rackId, newBox);
+      updatedLab = addBoxToLab(updatedLab, tankId, rackId, newBox);
     }
 
-    // Reset count to 1 for next operation
+    setLocalLab(updatedLab);
     setBoxCountToAdd(prev => ({ ...prev, [rackKey]: 1 }));
-
-    // Save to server (SessionManager handles authentication automatically)
-    await saveToServerWithReactQuery();
   };
 
-  const handleRemoveBox = async (tankId: string, rackId: string, boxId: string) => {
+  const handleRemoveBox = (tankId: string, rackId: string, boxId: string) => {
     modalService.showDeleteConfirm({
       title: 'Delete Box',
       message: `Are you sure you want to delete this box? This will remove all tubes in this box.`,
-      onConfirm: async () => {
-        try {
-          deleteBox(currentLab.id, tankId, rackId, boxId);
-          // Save to server (SessionManager handles authentication automatically)
-          await saveToServerWithReactQuery();
-        } finally {
-          // Always close modal after mutation completes (success or error)
-          modalService.hideDeleteConfirm();
-        }
+      onConfirm: () => {
+        if (!localLab) return;
+        setLocalLab(deleteBoxFromLab(localLab, tankId, rackId, boxId));
+        modalService.hideDeleteConfirm();
       },
     });
   };
 
-  const handleUpdateBoxGrid = async (
+  const handleUpdateBoxGrid = (
     tankId: string,
     rackId: string,
     boxId: string,
     gridConfig: GridConfiguration
   ) => {
-    updateBox(currentLab.id, tankId, rackId, boxId, { gridConfig });
+    if (!localLab) return;
+    setLocalLab(updateBoxInLab(localLab, tankId, rackId, boxId, { gridConfig }));
     setEditingBox(null);
-
-    // Save to server (SessionManager handles authentication automatically)
-    await saveToServerWithReactQuery();
   };
 
-  const handleUpdateRack = async (
+  const handleUpdateRack = (
     tankId: string,
     rackId: string,
     updates: Partial<RackConfiguration>
   ) => {
-    updateRack(currentLab.id, tankId, rackId, updates);
+    if (!localLab) return;
+    setLocalLab(updateRackInLab(localLab, tankId, rackId, updates));
     setEditingRack(null);
-
-    // Save to server (SessionManager handles authentication automatically)
-    await saveToServerWithReactQuery();
   };
 
-  const handleDeleteRack = async (tankId: string, rackId: string) => {
-    const tank = currentLab.equipment.tanks.find(t => t.id === tankId);
+  const handleDeleteRack = (tankId: string, rackId: string) => {
+    if (!localLab) return;
+
+    const tank = localLab.equipment.tanks.find(t => t.id === tankId);
     if (!tank || tank.racks.length <= 1) {
       alert('Cannot delete the last rack in a tank');
       return;
@@ -319,43 +342,32 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     modalService.showDeleteConfirm({
       title: 'Delete Rack',
       message: `Are you sure you want to delete this rack? This will remove all tubes in the rack.`,
-      onConfirm: async () => {
-        try {
-          deleteRack(currentLab.id, tankId, rackId);
-          // Save to server (SessionManager handles authentication automatically)
-          await saveToServerWithReactQuery();
-        } finally {
-          // Always close modal after mutation completes (success or error)
-          modalService.hideDeleteConfirm();
-        }
+      onConfirm: () => {
+        if (!localLab) return;
+        setLocalLab(deleteRackFromLab(localLab, tankId, rackId));
+        modalService.hideDeleteConfirm();
       },
     });
   };
 
-  const handleAddNewTank = async () => {
-    // Get next available tank number
-    const newTankNumber = getNextTankNumber(currentLab.equipment.tanks);
+  const handleAddNewTank = () => {
+    if (!localLab) return;
 
-    // Create tank from factory - ensures fresh defaults from EQUIPMENT_DEFAULTS
-    // No cloning old configuration - prevents data drift
-    const newTank = createTankFromDefaults(
-      newTankNumber,
-      currentLab.equipment.defaultGridConfig,
-      1 // Start with 1 rack (user can add more)
-    );
+    const newTankNumber = getNextTankNumber(localLab.equipment.tanks);
 
-    addTank(currentLab.id, newTank);
+    const newTank = createTankFromDefaults(newTankNumber, localLab.equipment.defaultGridConfig, 1);
 
-    // Collapse the new tank's rack by default (cleaner UI)
+    setLocalLab(addTankToLab(localLab, newTank));
+
+    // Collapse the new tank's rack by default
     const newRackKey = `${newTank.id}-rack-${newTank.racks[0].id}`;
     setCollapsedRacks(prev => new Set([...prev, newRackKey]));
-
-    // Save to server (SessionManager handles authentication automatically)
-    await saveToServerWithReactQuery();
   };
 
-  const handleDeleteTank = async (tankId: string) => {
-    if (currentLab.equipment.tanks.length <= 1) {
+  const handleDeleteTank = (tankId: string) => {
+    if (!localLab) return;
+
+    if (localLab.equipment.tanks.length <= 1) {
       alert('Cannot delete the last tank in the laboratory');
       return;
     }
@@ -363,32 +375,22 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     modalService.showDeleteConfirm({
       title: 'Delete Tank',
       message: `Are you sure you want to delete this tank? This will remove all racks, boxes, and tubes in this tank.`,
-      onConfirm: async () => {
-        try {
-          // Update configuration state (remove tank)
-          void deleteTank(currentLab.id, tankId);
-
-          // Save to server via configuration update (Clean Architecture)
-          await saveToServerWithReactQuery();
-
-          notifications.success('Tank deleted successfully');
-        } catch (error) {
-          logger.error('Failed to delete tank', { error });
-          notifications.error('Failed to delete tank. Please try again.');
-        } finally {
-          modalService.hideDeleteConfirm();
-        }
+      onConfirm: () => {
+        if (!localLab) return;
+        setLocalLab(deleteTankFromLab(localLab, tankId));
+        modalService.hideDeleteConfirm();
       },
     });
   };
 
-  const handleUpdateTank = async (tankId: string, updates: Partial<TankConfiguration>) => {
-    updateTank(currentLab.id, tankId, updates);
+  const handleUpdateTank = (tankId: string, updates: Partial<TankConfiguration>) => {
+    if (!localLab) return;
+    setLocalLab(updateTankInLab(localLab, tankId, updates));
     setEditingTank(null);
-
-    // Save to server (SessionManager handles authentication automatically)
-    await saveToServerWithReactQuery();
   };
+
+  // ========== RENDER ==========
+  if (!isOpen || !localLab) return null;
 
   // Context value - provides all handlers and data to row components
   const contextValue = {
@@ -417,7 +419,10 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-in fade-in duration-[180ms]">
-      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-[60%] h-[85%] max-w-2xl max-h-[800px] flex flex-col overflow-hidden animate-slide-up-fade">
+      <div
+        ref={trapRef}
+        className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-[60%] h-[85%] max-w-2xl max-h-[800px] flex flex-col overflow-hidden animate-slide-up-fade"
+      >
         {/* Header */}
         <div className="bg-gradient-to-r from-slate-600 via-slate-500 to-slate-600 px-6 py-3 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -429,8 +434,9 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               </div>
             </div>
             <button
-              onClick={onClose}
-              className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+              onClick={handleClose}
+              disabled={isSaving}
+              className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors disabled:opacity-50 focus-ring-light"
               aria-label="Close modal"
             >
               <X size={20} />
@@ -444,8 +450,8 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
             {canManageStorage && (
               <div className="flex justify-end">
                 <button
-                  onClick={() => handleAddNewTank()}
-                  className="flex items-center gap-2 bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-medium text-sm"
+                  onClick={handleAddNewTank}
+                  className="flex items-center gap-2 bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-medium text-sm focus-ring-default"
                 >
                   <Plus size={16} />
                   Add New Tank
@@ -456,7 +462,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
             {/* Tanks List */}
             <StorageManagementContext.Provider value={contextValue}>
               <div className="space-y-1.5">
-                {currentLab.equipment.tanks.map(tank => (
+                {localLab.equipment.tanks.map(tank => (
                   <TankRow
                     key={tank.id}
                     tank={tank}
@@ -472,7 +478,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
                     }
                     collapsedRacks={collapsedRacks}
-                    canDeleteTank={currentLab.equipment.tanks.length > 1}
+                    canDeleteTank={localLab.equipment.tanks.length > 1}
                   />
                 ))}
               </div>
@@ -480,19 +486,42 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           </div>
         </div>
 
-        {/* Ownership Legend */}
-        <div className="px-4 py-2 border-t border-slate-200 bg-slate-50 flex items-center gap-4 text-xs text-slate-600">
-          <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded-full bg-ice-600 flex-shrink-0" />
-            <span>Assigned to You</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded-full bg-slate-400 flex-shrink-0" />
-            <span>Assigned to Another User</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded-full bg-warning-bg flex-shrink-0" />
-            <span>Unassigned/Common</span>
+        {/* Footer with Legend and Save/Cancel */}
+        <div className="border-t border-gray-200 px-4 py-3 bg-gray-50 flex-shrink-0">
+          <div className="flex items-center justify-between gap-4">
+            {/* Ownership Legend */}
+            <div className="flex items-center gap-4 text-xs text-slate-600 flex-shrink min-w-0">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-ice-600 flex-shrink-0" />
+                <span>Assigned to You</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-slate-400 flex-shrink-0" />
+                <span>Another User</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-warning-bg flex-shrink-0" />
+                <span>Unassigned/Common</span>
+              </div>
+            </div>
+
+            {/* Save/Cancel Buttons */}
+            <div className="flex items-center space-x-2 flex-shrink-0">
+              <button onClick={handleClose} className="btn-cancel" disabled={isSaving}>
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={isSaving || !hasChanges}
+                className="btn btn-primary flex items-center space-x-2 text-sm px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+                <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                {hasChanges && !isSaving && (
+                  <span className="w-2 h-2 rounded-full bg-amber-500" title="Unsaved changes" />
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -533,20 +562,11 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               boxId: editingLabel.boxId,
               initialLabel: editingLabel.currentLabel,
             }}
-            currentLab={currentLab}
+            currentLab={localLab}
             onSave={handleUpdateCustomLabel}
             onClose={() => setEditingLabel(null)}
           />
         )}
-
-        {/* Delete Confirmation Dialog */}
-        <DeleteConfirmDialog
-          isOpen={modalService.deleteConfirm.isOpen}
-          title={modalService.deleteConfirm.title}
-          message={modalService.deleteConfirm.message}
-          onConfirm={modalService.deleteConfirm.onConfirm}
-          onCancel={modalService.deleteConfirm.onCancel}
-        />
       </div>
     </div>
   );

@@ -170,16 +170,15 @@ export default function BatchTubeEditorModal({
 
     return {
       sample: {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show empty for user to fill
-        cellType: analysis.cellType.state !== 'conflict' ? analysis.cellType.commonValue || '' : '',
+        cellType:
+          analysis.cellType.state !== 'conflict' ? (analysis.cellType.commonValue ?? '') : '',
         donorInternalId:
           analysis.donorInternalId.state !== 'conflict'
             ? (analysis.donorInternalId.commonValue ?? '')
             : '',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- donorSourceId is optional field, but following same pattern as cellType above
         donorSourceId:
           analysis.donorSourceId.state !== 'conflict'
-            ? analysis.donorSourceId.commonValue || ''
+            ? (analysis.donorSourceId.commonValue ?? '')
             : '',
         concentration:
           analysis.concentration.state !== 'conflict'
@@ -219,9 +218,8 @@ export default function BatchTubeEditorModal({
           analysis.lotNumber.state !== 'conflict' ? (analysis.lotNumber.commonValue ?? '') : '',
         notes: analysis.notes.state !== 'conflict' ? (analysis.notes.commonValue ?? '') : '',
       },
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty researcherId in batch edit context indicates "not set"
       researcherId:
-        analysis.researcherId.state !== 'conflict' ? analysis.researcherId.commonValue || '' : '',
+        analysis.researcherId.state !== 'conflict' ? (analysis.researcherId.commonValue ?? '') : '',
     };
   }, [conflictAnalysis]);
 

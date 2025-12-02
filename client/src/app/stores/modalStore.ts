@@ -1,6 +1,6 @@
 /**
  * MODAL STORE
- * 
+ *
  * Declarative modal API with complete lifecycle management.
  * Replaces old Zustand-based system with type-safe, scalable architecture.
  */
@@ -28,21 +28,31 @@ interface OverwriteConfirmState {
   previousFocusElement?: HTMLElement | null;
 }
 
+interface UnsavedConfirmState {
+  isOpen: boolean;
+  title: string;
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  previousFocusElement?: HTMLElement | null;
+}
+
 interface TubeEditorModalState {
   isOpen: boolean;
   mode: 'add' | 'edit' | 'batch';
-  tubeId?: string;        // Single edit mode - tube ID only
-  tubeIds?: string[];     // Batch edit mode - tube IDs only
-  positions?: PositionKey[];   // Add mode - position keys
+  tubeId?: string; // Single edit mode - tube ID only
+  tubeIds?: string[]; // Batch edit mode - tube IDs only
+  positions?: PositionKey[]; // Add mode - position keys
   rackId?: string;
   boxId?: string;
   previousFocusElement?: HTMLElement | null;
-  preserveSelection?: boolean;  // Don't restore focus to specific position (for batch operations)
+  preserveSelection?: boolean; // Don't restore focus to specific position (for batch operations)
 }
 
 interface LocalModalState {
   deleteConfirm: DeleteConfirmState;
   overwriteConfirm: OverwriteConfirmState;
+  unsavedConfirm: UnsavedConfirmState;
   tubeEditorModal: TubeEditorModalState;
 }
 
@@ -64,14 +74,22 @@ interface ModalActions {
   }) => void;
   hideOverwriteConfirm: () => void;
 
+  showUnsavedConfirm: (config: {
+    title?: string;
+    message?: string;
+    onConfirm: () => void;
+    onCancel?: () => void;
+  }) => void;
+  hideUnsavedConfirm: () => void;
+
   showTubeEditorModal: (config: {
     mode: 'add' | 'edit' | 'batch';
-    tubeId?: string;        // Single edit mode
-    tubeIds?: string[];     // Batch edit mode
-    positions?: PositionKey[];   // Add mode
+    tubeId?: string; // Single edit mode
+    tubeIds?: string[]; // Batch edit mode
+    positions?: PositionKey[]; // Add mode
     rackId?: string;
     boxId?: string;
-    preserveSelection?: boolean;  // Don't restore focus to specific position (for batch operations)
+    preserveSelection?: boolean; // Don't restore focus to specific position (for batch operations)
   }) => void;
   hideTubeEditorModal: () => void;
 
@@ -83,7 +101,7 @@ const initialDeleteConfirm: DeleteConfirmState = {
   title: '',
   message: '',
   onConfirm: () => {},
-  onCancel: () => {}
+  onCancel: () => {},
 };
 
 const initialOverwriteConfirm: OverwriteConfirmState = {
@@ -91,12 +109,20 @@ const initialOverwriteConfirm: OverwriteConfirmState = {
   title: '',
   message: '',
   onConfirm: () => {},
-  onCancel: () => {}
+  onCancel: () => {},
+};
+
+const initialUnsavedConfirm: UnsavedConfirmState = {
+  isOpen: false,
+  title: 'Unsaved Changes',
+  message: 'You have unsaved changes. Are you sure you want to close?',
+  onConfirm: () => {},
+  onCancel: () => {},
 };
 
 const initialTubeEditorModal: TubeEditorModalState = {
   isOpen: false,
-  mode: 'add'
+  mode: 'add',
 };
 
 /**
@@ -106,10 +132,11 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
   // Initial state
   deleteConfirm: initialDeleteConfirm,
   overwriteConfirm: initialOverwriteConfirm,
+  unsavedConfirm: initialUnsavedConfirm,
   tubeEditorModal: initialTubeEditorModal,
 
   // Delete confirmation actions
-  showDeleteConfirm: (config) => {
+  showDeleteConfirm: config => {
     // Capture focus BEFORE modal opens (before React renders)
     const previousFocusElement = document.activeElement as HTMLElement;
 
@@ -120,8 +147,8 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
         message: config.message,
         onConfirm: config.onConfirm,
         onCancel: config.onCancel ?? (() => get().hideDeleteConfirm()),
-        previousFocusElement
-      }
+        previousFocusElement,
+      },
     });
   },
 
@@ -130,7 +157,7 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
   },
 
   // Overwrite confirmation actions
-  showOverwriteConfirm: (config) => {
+  showOverwriteConfirm: config => {
     // Capture focus BEFORE modal opens (before React renders)
     const previousFocusElement = document.activeElement as HTMLElement;
 
@@ -142,8 +169,8 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
         confirmText: config.confirmText,
         onConfirm: config.onConfirm,
         onCancel: config.onCancel ?? (() => get().hideOverwriteConfirm()),
-        previousFocusElement
-      }
+        previousFocusElement,
+      },
     });
   },
 
@@ -151,13 +178,33 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
     set({ overwriteConfirm: initialOverwriteConfirm });
   },
 
+  // Unsaved changes confirmation actions
+  showUnsavedConfirm: config => {
+    const previousFocusElement = document.activeElement as HTMLElement;
+
+    set({
+      unsavedConfirm: {
+        isOpen: true,
+        title: config.title ?? 'Unsaved Changes',
+        message: config.message ?? 'You have unsaved changes. Are you sure you want to close?',
+        onConfirm: config.onConfirm,
+        onCancel: config.onCancel ?? (() => get().hideUnsavedConfirm()),
+        previousFocusElement,
+      },
+    });
+  },
+
+  hideUnsavedConfirm: () => {
+    set({ unsavedConfirm: initialUnsavedConfirm });
+  },
+
   // Tube modal actions
-  showTubeEditorModal: (config) => {
+  showTubeEditorModal: config => {
     // Capture focus BEFORE modal opens (before React renders)
     // For batch operations with preserveSelection, don't capture focus element
     const previousFocusElement = config.preserveSelection
       ? null
-      : document.activeElement as HTMLElement;
+      : (document.activeElement as HTMLElement);
 
     set({
       tubeEditorModal: {
@@ -169,8 +216,8 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
         rackId: config.rackId,
         boxId: config.boxId,
         previousFocusElement,
-        preserveSelection: config.preserveSelection
-      }
+        preserveSelection: config.preserveSelection,
+      },
     });
   },
 
@@ -183,9 +230,10 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
     set({
       deleteConfirm: initialDeleteConfirm,
       overwriteConfirm: initialOverwriteConfirm,
-      tubeEditorModal: initialTubeEditorModal
+      unsavedConfirm: initialUnsavedConfirm,
+      tubeEditorModal: initialTubeEditorModal,
     });
-  }
+  },
 }));
 
 /**
@@ -193,20 +241,23 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
  */
 export const useModalStore = () => {
   const state = modalStore();
-  
+
   return {
     // State
     deleteConfirm: state.deleteConfirm,
     overwriteConfirm: state.overwriteConfirm,
+    unsavedConfirm: state.unsavedConfirm,
     tubeEditorModal: state.tubeEditorModal,
-    
+
     // Actions
     showDeleteConfirm: state.showDeleteConfirm,
     hideDeleteConfirm: state.hideDeleteConfirm,
     showOverwriteConfirm: state.showOverwriteConfirm,
     hideOverwriteConfirm: state.hideOverwriteConfirm,
+    showUnsavedConfirm: state.showUnsavedConfirm,
+    hideUnsavedConfirm: state.hideUnsavedConfirm,
     showTubeEditorModal: state.showTubeEditorModal,
     hideTubeEditorModal: state.hideTubeEditorModal,
-    hideAllModals: state.hideAllModals
+    hideAllModals: state.hideAllModals,
   };
 };

@@ -19,6 +19,7 @@ import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey } from '@shared/types/grid';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
+import { UnsavedConfirmDialog } from '@shared/ui/components/UnsavedConfirmDialog';
 import { notifications } from '@shared/utils/notifications';
 
 import { useGridController } from '../../hooks/grid';
@@ -378,8 +379,9 @@ export function Dashboard() {
                   tankId={currentTank}
                   rackId={currentRack}
                   boxId={currentBox}
-                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for conditional selection
                   selectedPositions={
+                    // Boolean OR logic - both operands are booleans, not null-coalescing
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isStorageNavigatorFocused() || isSelectorActive ? new Set() : selectedPositions
                   }
                   onSelectionChange={handleSelectionChange}
@@ -466,6 +468,15 @@ export function Dashboard() {
         confirmText={modalService.overwriteConfirm.confirmText}
         onConfirm={modalService.overwriteConfirm.onConfirm}
         onCancel={modalService.overwriteConfirm.onCancel}
+      />
+
+      {/* Unified System Unsaved Changes Confirmation Dialog */}
+      <UnsavedConfirmDialog
+        isOpen={modalService.unsavedConfirm.isOpen}
+        title={modalService.unsavedConfirm.title}
+        message={modalService.unsavedConfirm.message}
+        onConfirm={modalService.unsavedConfirm.onConfirm}
+        onCancel={modalService.unsavedConfirm.onCancel}
       />
     </div>
   );

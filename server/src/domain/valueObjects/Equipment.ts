@@ -26,13 +26,21 @@ export class Tank {
     private readonly _name: string,
     private readonly _racks: Rack[],
     private readonly _maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
-    private readonly _isActive: boolean = true
+    private readonly _isActive: boolean = true,
+    private readonly _location: string = 'Main Lab'
   ) {
     this.validate();
   }
 
-  static create(id: string, name: string, racks: Rack[] = [], maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK, isActive: boolean = true): Tank {
-    return new Tank(id, name, racks, maxRacks, isActive);
+  static create(
+    id: string,
+    name: string,
+    racks: Rack[] = [],
+    maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
+    isActive: boolean = true,
+    location: string = 'Main Lab'
+  ): Tank {
+    return new Tank(id, name, racks, maxRacks, isActive, location);
   }
 
   private validate(): void {
@@ -79,14 +87,16 @@ export class Tank {
     name: string;
     racks: ReturnType<Rack['toData']>[];
     maxRacks: number;
-    isActive: boolean
+    isActive: boolean;
+    location: string;
   } {
     return {
       id: this._id,
       name: this._name,
       racks: this._racks.map(r => r.toData()),
       maxRacks: this._maxRacks,
-      isActive: this._isActive
+      isActive: this._isActive,
+      location: this._location
     };
   }
 
@@ -96,6 +106,7 @@ export class Tank {
   get racks(): readonly Rack[] { return this._racks; }
   get maxRacks(): number { return this._maxRacks; }
   get isActive(): boolean { return this._isActive; }
+  get location(): string { return this._location; }
 }
 
 /**
@@ -109,7 +120,9 @@ export class Rack {
     private readonly _boxes: Box[],
     private readonly _maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
     private readonly _capacity: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
-    private readonly _isActive: boolean = true
+    private readonly _isActive: boolean = true,
+    private readonly _assignedUserId?: string,
+    private readonly _customLabel?: string
   ) {
     this.validate();
   }
@@ -120,9 +133,11 @@ export class Rack {
     boxes: Box[] = [],
     maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
     capacity: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
-    isActive: boolean = true
+    isActive: boolean = true,
+    assignedUserId?: string,
+    customLabel?: string
   ): Rack {
-    return new Rack(String(id), name, boxes, maxBoxes, capacity, isActive);
+    return new Rack(String(id), name, boxes, maxBoxes, capacity, isActive, assignedUserId, customLabel);
   }
 
   private validate(): void {
@@ -172,7 +187,9 @@ export class Rack {
     boxes: ReturnType<Box['toData']>[];
     maxBoxes: number;
     capacity: number;
-    isActive: boolean
+    isActive: boolean;
+    assignedUserId?: string;
+    customLabel?: string;
   } {
     return {
       id: this._id,
@@ -180,7 +197,9 @@ export class Rack {
       boxes: this._boxes.map(b => b.toData()),
       maxBoxes: this._maxBoxes,
       capacity: this._capacity,
-      isActive: this._isActive
+      isActive: this._isActive,
+      assignedUserId: this._assignedUserId,
+      customLabel: this._customLabel
     };
   }
 
@@ -191,6 +210,8 @@ export class Rack {
   get maxBoxes(): number { return this._maxBoxes; }
   get capacity(): number { return this._capacity; }
   get isActive(): boolean { return this._isActive; }
+  get assignedUserId(): string | undefined { return this._assignedUserId; }
+  get customLabel(): string | undefined { return this._customLabel; }
   get validBoxNames(): string[] { return this.getValidBoxNames(); }
 }
 
@@ -206,7 +227,9 @@ export class Box {
     private readonly _gridConfig: { rows: number; cols: number },
     private readonly _maxPositions: number = Box.POSITIONS_PER_BOX,
     private readonly _positionDisplay: PositionDisplayConfig | undefined,
-    private readonly _isActive: boolean = true
+    private readonly _isActive: boolean = true,
+    private readonly _assignedUserId?: string | null,
+    private readonly _customLabel?: string
   ) {
     this.validate();
   }
@@ -219,10 +242,12 @@ export class Box {
     },
     maxPositions?: number,
     positionDisplay?: PositionDisplayConfig,
-    isActive: boolean = true
+    isActive: boolean = true,
+    assignedUserId?: string | null,
+    customLabel?: string
   ): Box {
     const positions = maxPositions || (gridConfig.rows * gridConfig.cols);
-    return new Box(name, gridConfig, positions, positionDisplay, isActive);
+    return new Box(name, gridConfig, positions, positionDisplay, isActive, assignedUserId, customLabel);
   }
 
   private validate(): void {
@@ -334,14 +359,18 @@ export class Box {
     gridConfig: { rows: number; cols: number };
     maxPositions: number;
     positionDisplay?: PositionDisplayConfig;
-    isActive: boolean
+    isActive: boolean;
+    assignedUserId?: string | null;
+    customLabel?: string;
   } {
     return {
       name: this._name.toUpperCase(),
       gridConfig: this._gridConfig,
       maxPositions: this._maxPositions,
       positionDisplay: this._positionDisplay,
-      isActive: this._isActive
+      isActive: this._isActive,
+      assignedUserId: this._assignedUserId,
+      customLabel: this._customLabel
     };
   }
 
@@ -351,6 +380,8 @@ export class Box {
   get maxPositions(): number { return this._maxPositions; }
   get positionDisplay(): PositionDisplayConfig | undefined { return this._positionDisplay; }
   get isActive(): boolean { return this._isActive; }
+  get assignedUserId(): string | null | undefined { return this._assignedUserId; }
+  get customLabel(): string | undefined { return this._customLabel; }
   get gridSize(): number { return Math.sqrt(this._maxPositions); }
 }
 

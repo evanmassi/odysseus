@@ -443,7 +443,6 @@ export class UpdateConfigurationCommandHandler {
     }
 
     // Enforce cascade logic: When rack unassigned, clear cascaded boxes
-    const cascadeConfigData = currentConfig.toData() as any;
     for (const change of assignmentChanges) {
       if (change.type === 'unassign' && change.resourceType === 'rack') {
         // Find the rack in the new configuration
@@ -451,7 +450,7 @@ export class UpdateConfigurationCommandHandler {
 
         if (rack) {
           // Clear boxes that cascaded from this rack (no explicit assignment)
-          rack.boxes.forEach((box: any) => {
+          rack.boxes.forEach(box => {
             if (!box.assignedUserId) {
               // This box had no explicit assignment - it was cascaded from the rack
               // Clear its custom label (ownership is gone)
@@ -490,7 +489,7 @@ export class UpdateConfigurationCommandHandler {
     );
 
     // Emit assignment events
-    const configData = currentConfig.toData() as any;
+    const configData = currentConfig.toData();
     for (const change of assignmentChanges) {
       // Find tank and rack/box names
       let tankName = '';
@@ -504,8 +503,8 @@ export class UpdateConfigurationCommandHandler {
             rackName = rack.name;
             break;
           }
-          for (const box of (rack.boxes as any[])) {
-            if (change.resourceType === 'box' && box.id === change.resourceId) {
+          for (const box of rack.boxes) {
+            if (change.resourceType === 'box' && box.name === change.resourceId) {
               tankName = tank.name;
               rackName = rack.name;
               boxName = box.name;
@@ -617,11 +616,11 @@ export class UpdateConfigurationCommandHandler {
     // Emit label events
     for (const change of labelChanges) {
       // Find tank and rack/box names from config
-      const tank = configData.tanks.find((t: any) => t.id === change.tankId);
+      const tank = configData.tanks.find(t => t.id === change.tankId);
       const tankName = tank?.name || '';
 
       if (change.type === 'rack') {
-        const rack = tank?.racks.find((r: any) => r.id === change.rackId);
+        const rack = tank?.racks.find(r => r.id === change.rackId);
         const rackName = rack?.name || '';
 
         changeEvents.push(new RackLabelUpdatedEvent(
@@ -634,9 +633,9 @@ export class UpdateConfigurationCommandHandler {
           change.newLabel
         ));
       } else {
-        const rack = tank?.racks.find((r: any) => r.id === change.rackId);
+        const rack = tank?.racks.find(r => r.id === change.rackId);
         const rackName = rack?.name || '';
-        const box = rack?.boxes.find((b: any) => b.id === change.boxId);
+        const box = rack?.boxes.find(b => b.name === change.boxId);
         const boxName = box?.name || '';
 
         changeEvents.push(new BoxLabelUpdatedEvent(
@@ -677,10 +676,10 @@ export class UpdateConfigurationCommandHandler {
   /**
    * Find a rack by ID across all tanks in configuration
    */
-  private findRack(config: Configuration, rackId: string): any | undefined {
+  private findRack(config: Configuration, rackId: string) {
     const configData = config.toData();
     for (const tank of configData.tanks) {
-      const rack = tank.racks.find((r: any) => r.id === rackId);
+      const rack = tank.racks.find(r => r.id === rackId);
       if (rack) return rack;
     }
     return undefined;
@@ -695,17 +694,17 @@ export class UpdateConfigurationCommandHandler {
     after: Configuration
   ): AssignmentChange[] {
     const changes: AssignmentChange[] = [];
-    const beforeData = before.toData() as any;
-    const afterData = after.toData() as any;
+    const beforeData = before.toData();
+    const afterData = after.toData();
 
     // Compare each tank
-    afterData.tanks.forEach((tank: any) => {
-      const beforeTank = beforeData.tanks.find((t: any) => t.id === tank.id);
+    afterData.tanks.forEach(tank => {
+      const beforeTank = beforeData.tanks.find(t => t.id === tank.id);
       if (!beforeTank) return;
 
       // Compare each rack
-      tank.racks.forEach((rack: any) => {
-        const beforeRack = beforeTank.racks.find((r: any) => r.id === rack.id);
+      tank.racks.forEach(rack => {
+        const beforeRack = beforeTank.racks.find(r => r.id === rack.id);
         if (!beforeRack) return;
 
         // Rack assignment changed
@@ -733,8 +732,8 @@ export class UpdateConfigurationCommandHandler {
         }
 
         // Compare each box
-        rack.boxes.forEach((box: any) => {
-          const beforeBox = beforeRack.boxes.find((b: any) => b.id === box.id);
+        rack.boxes.forEach(box => {
+          const beforeBox = beforeRack.boxes.find(b => b.name === box.name);
           if (!beforeBox) return;
 
           // Box assignment changed
@@ -743,22 +742,22 @@ export class UpdateConfigurationCommandHandler {
               changes.push({
                 type: 'assign',
                 resourceType: 'box',
-                resourceId: box.id,
+                resourceId: box.name,
                 userId: box.assignedUserId,
                 previousUserId: beforeBox.assignedUserId,
                 tankId: tank.id,
                 rackId: rack.id,
-                boxId: box.id
+                boxId: box.name
               });
             } else {
               changes.push({
                 type: 'unassign',
                 resourceType: 'box',
-                resourceId: box.id,
+                resourceId: box.name,
                 previousUserId: beforeBox.assignedUserId,
                 tankId: tank.id,
                 rackId: rack.id,
-                boxId: box.id
+                boxId: box.name
               });
             }
           }
@@ -778,17 +777,17 @@ export class UpdateConfigurationCommandHandler {
     after: Configuration
   ): { type: 'rack' | 'box'; resourceId: string; oldLabel?: string; newLabel?: string; tankId: string; rackId: string; boxId?: string }[] {
     const changes: { type: 'rack' | 'box'; resourceId: string; oldLabel?: string; newLabel?: string; tankId: string; rackId: string; boxId?: string }[] = [];
-    const beforeData = before.toData() as any;
-    const afterData = after.toData() as any;
+    const beforeData = before.toData();
+    const afterData = after.toData();
 
     // Compare each tank
-    afterData.tanks.forEach((tank: any) => {
-      const beforeTank = beforeData.tanks.find((t: any) => t.id === tank.id);
+    afterData.tanks.forEach(tank => {
+      const beforeTank = beforeData.tanks.find(t => t.id === tank.id);
       if (!beforeTank) return;
 
       // Compare each rack
-      tank.racks.forEach((rack: any) => {
-        const beforeRack = beforeTank.racks.find((r: any) => r.id === rack.id);
+      tank.racks.forEach(rack => {
+        const beforeRack = beforeTank.racks.find(r => r.id === rack.id);
         if (!beforeRack) return;
 
         // Rack label changed
@@ -804,20 +803,20 @@ export class UpdateConfigurationCommandHandler {
         }
 
         // Compare each box
-        rack.boxes.forEach((box: any) => {
-          const beforeBox = beforeRack.boxes.find((b: any) => b.id === box.id);
+        rack.boxes.forEach(box => {
+          const beforeBox = beforeRack.boxes.find(b => b.name === box.name);
           if (!beforeBox) return;
 
           // Box label changed
           if (box.customLabel !== beforeBox.customLabel) {
             changes.push({
               type: 'box',
-              resourceId: box.id,
+              resourceId: box.name,
               oldLabel: beforeBox.customLabel,
               newLabel: box.customLabel,
               tankId: tank.id,
               rackId: rack.id,
-              boxId: box.id
+              boxId: box.name
             });
           }
         });
@@ -1009,8 +1008,8 @@ export interface AssignmentChange {
   type: 'assign' | 'unassign';
   resourceType: 'rack' | 'box';
   resourceId: string;
-  userId?: string;
-  previousUserId?: string;
+  userId?: string | null;
+  previousUserId?: string | null;
   tankId: string;
   rackId: string;
   boxId?: string;

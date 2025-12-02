@@ -21,15 +21,15 @@ export function OwnershipBadge({ userId, size, isOwnedByCurrentUser }: Ownership
   if (!userInfo) {
     return (
       <div
-        className={`${sizeClass} rounded-full bg-warning-bg flex items-center justify-center flex-shrink-0`}
+        className={`${sizeClass} rounded-full bg-ownership-unassigned-bg flex items-center justify-center flex-shrink-0`}
         title="Unassigned/Common"
       >
-        <UsersRound size={iconSize} className="text-warning-btnText" />
+        <UsersRound size={iconSize} className="text-white" />
       </div>
     );
   }
 
-  const bgColor = isOwnedByCurrentUser ? 'bg-ice-600' : 'bg-slate-400';
+  const bgColor = isOwnedByCurrentUser ? 'bg-ownership-user-bg' : 'bg-ownership-other-bg';
 
   return (
     <div

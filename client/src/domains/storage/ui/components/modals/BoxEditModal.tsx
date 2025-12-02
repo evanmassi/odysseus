@@ -14,7 +14,7 @@ interface BoxEditModalProps {
     rackId: string,
     boxId: string,
     gridConfig: GridConfiguration
-  ) => Promise<void>;
+  ) => void | Promise<void>;
   onClose: () => void;
 }
 
@@ -90,7 +90,10 @@ export function BoxEditModal({
             <button onClick={onClose} className="btn-cancel">
               Cancel
             </button>
-            <button onClick={() => void handleSave()} className="btn-primary flex items-center gap-2">
+            <button
+              onClick={() => void handleSave()}
+              className="btn-primary flex items-center gap-2"
+            >
               <Save size={16} />
               Save Changes
             </button>

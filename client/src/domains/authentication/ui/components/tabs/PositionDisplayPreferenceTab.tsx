@@ -46,8 +46,8 @@ export function PositionDisplayPreferenceTab({
       <div>
         <h4 className="text-base font-semibold text-gray-900 mb-2">Position Display Format</h4>
         <p className="text-xs text-gray-600 mb-3">
-          Choose how position labels are displayed throughout the application.
-          This is your personal preference and won&apos;t affect other users.
+          Choose how position labels are displayed throughout the application. This is your personal
+          preference and won&apos;t affect other users.
         </p>
 
         {/* Segmented Control with Inline Descriptions */}
@@ -56,42 +56,56 @@ export function PositionDisplayPreferenceTab({
           <button
             type="button"
             onClick={() => handleFormatChange('numeric')}
-            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative ${
+            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
               currentFormat === 'numeric'
                 ? 'bg-action border-action text-white shadow-md'
                 : 'bg-white border-gray-300 text-gray-700 hover:border-action hover:bg-action/10'
             }`}
           >
             {savedFormat === 'numeric' && (
-              <span className={`absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded ${
-                currentFormat === 'numeric'
-                  ? 'bg-white/20 text-white'
-                  : 'bg-action text-white'
-              }`}>
+              <span
+                className={`absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded ${
+                  currentFormat === 'numeric' ? 'bg-white/20 text-white' : 'bg-action text-white'
+                }`}
+              >
                 Active
               </span>
             )}
             <h5 className="text-sm font-semibold mb-1">Numeric</h5>
-            <p className={`text-xs mb-2 ${currentFormat === 'numeric' ? 'text-white/80' : 'text-gray-600'}`}>
+            <p
+              className={`text-xs mb-2 ${currentFormat === 'numeric' ? 'text-white/80' : 'text-gray-600'}`}
+            >
               Sequential numbers
             </p>
             <div className="flex items-center space-x-1 text-xs">
-              <span className={`font-mono px-1.5 py-0.5 rounded ${
-                currentFormat === 'numeric'
-                  ? 'bg-action-hover text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>1</span>
-              <span className={`font-mono px-1.5 py-0.5 rounded ${
-                currentFormat === 'numeric'
-                  ? 'bg-action-hover text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>2</span>
+              <span
+                className={`font-mono px-1.5 py-0.5 rounded ${
+                  currentFormat === 'numeric'
+                    ? 'bg-action-hover text-white'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                1
+              </span>
+              <span
+                className={`font-mono px-1.5 py-0.5 rounded ${
+                  currentFormat === 'numeric'
+                    ? 'bg-action-hover text-white'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                2
+              </span>
               <span>...</span>
-              <span className={`font-mono px-1.5 py-0.5 rounded ${
-                currentFormat === 'numeric'
-                  ? 'bg-action-hover text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>81</span>
+              <span
+                className={`font-mono px-1.5 py-0.5 rounded ${
+                  currentFormat === 'numeric'
+                    ? 'bg-action-hover text-white'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                81
+              </span>
             </div>
           </button>
 
@@ -99,42 +113,58 @@ export function PositionDisplayPreferenceTab({
           <button
             type="button"
             onClick={() => handleFormatChange('alphanumeric')}
-            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative ${
+            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
               currentFormat === 'alphanumeric'
                 ? 'bg-action border-action text-white shadow-md'
                 : 'bg-white border-gray-300 text-gray-700 hover:border-action hover:bg-action/10'
             }`}
           >
             {savedFormat === 'alphanumeric' && (
-              <span className={`absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded ${
-                currentFormat === 'alphanumeric'
-                  ? 'bg-white/20 text-white'
-                  : 'bg-action text-white'
-              }`}>
+              <span
+                className={`absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded ${
+                  currentFormat === 'alphanumeric'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-action text-white'
+                }`}
+              >
                 Active
               </span>
             )}
             <h5 className="text-sm font-semibold mb-1">Alphanumeric</h5>
-            <p className={`text-xs mb-2 ${currentFormat === 'alphanumeric' ? 'text-white/80' : 'text-gray-600'}`}>
+            <p
+              className={`text-xs mb-2 ${currentFormat === 'alphanumeric' ? 'text-white/80' : 'text-gray-600'}`}
+            >
               Row letter + column
             </p>
             <div className="flex items-center space-x-1 text-xs">
-              <span className={`font-mono px-1.5 py-0.5 rounded ${
-                currentFormat === 'alphanumeric'
-                  ? 'bg-action-hover text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>A1</span>
-              <span className={`font-mono px-1.5 py-0.5 rounded ${
-                currentFormat === 'alphanumeric'
-                  ? 'bg-action-hover text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>B2</span>
+              <span
+                className={`font-mono px-1.5 py-0.5 rounded ${
+                  currentFormat === 'alphanumeric'
+                    ? 'bg-action-hover text-white'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                A1
+              </span>
+              <span
+                className={`font-mono px-1.5 py-0.5 rounded ${
+                  currentFormat === 'alphanumeric'
+                    ? 'bg-action-hover text-white'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                B2
+              </span>
               <span>...</span>
-              <span className={`font-mono px-1.5 py-0.5 rounded ${
-                currentFormat === 'alphanumeric'
-                  ? 'bg-action-hover text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>I9</span>
+              <span
+                className={`font-mono px-1.5 py-0.5 rounded ${
+                  currentFormat === 'alphanumeric'
+                    ? 'bg-action-hover text-white'
+                    : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                I9
+              </span>
             </div>
           </button>
 
@@ -142,18 +172,18 @@ export function PositionDisplayPreferenceTab({
           <button
             type="button"
             onClick={() => handleFormatChange(null)}
-            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative ${
+            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
               !currentFormat
                 ? 'bg-action border-action text-white shadow-md'
                 : 'bg-white border-gray-300 text-gray-700 hover:border-action hover:bg-action/10'
             }`}
           >
             {!savedFormat && (
-              <span className={`absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded ${
-                !currentFormat
-                  ? 'bg-white/20 text-white'
-                  : 'bg-action text-white'
-              }`}>
+              <span
+                className={`absolute top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded ${
+                  !currentFormat ? 'bg-white/20 text-white' : 'bg-action text-white'
+                }`}
+              >
                 Active
               </span>
             )}
@@ -162,22 +192,28 @@ export function PositionDisplayPreferenceTab({
               Alphanumeric format
             </p>
             <div className="flex items-center space-x-1 text-xs">
-              <span className={`font-mono px-1.5 py-0.5 rounded ${
-                !currentFormat
-                  ? 'bg-action-hover text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>A1</span>
-              <span className={`font-mono px-1.5 py-0.5 rounded ${
-                !currentFormat
-                  ? 'bg-action-hover text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>B2</span>
+              <span
+                className={`font-mono px-1.5 py-0.5 rounded ${
+                  !currentFormat ? 'bg-action-hover text-white' : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                A1
+              </span>
+              <span
+                className={`font-mono px-1.5 py-0.5 rounded ${
+                  !currentFormat ? 'bg-action-hover text-white' : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                B2
+              </span>
               <span>...</span>
-              <span className={`font-mono px-1.5 py-0.5 rounded ${
-                !currentFormat
-                  ? 'bg-action-hover text-white'
-                  : 'bg-gray-100 text-gray-700'
-              }`}>I9</span>
+              <span
+                className={`font-mono px-1.5 py-0.5 rounded ${
+                  !currentFormat ? 'bg-action-hover text-white' : 'bg-gray-100 text-gray-700'
+                }`}
+              >
+                I9
+              </span>
             </div>
           </button>
         </div>

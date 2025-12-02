@@ -20,7 +20,7 @@ interface CustomLabelEditModalProps {
     rackId: string,
     boxId: string | undefined,
     label: string
-  ) => Promise<void>;
+  ) => void | Promise<void>;
   onClose: () => void;
 }
 
@@ -36,7 +36,7 @@ export function CustomLabelEditModal({
   const rack = tank?.racks.find(r => r.id === resourceInfo.rackId);
   const box = rack?.boxes.find(b => b.id === resourceInfo.boxId);
 
-  const genericName = resourceInfo.type === 'rack' ? rack?.name ?? '' : box?.name ?? '';
+  const genericName = resourceInfo.type === 'rack' ? (rack?.name ?? '') : (box?.name ?? '');
 
   const previewName = formatResourceDisplayName(genericName, label);
 
@@ -75,7 +75,11 @@ export function CustomLabelEditModal({
           <h3 id="label-edit-title" className="text-lg font-bold">
             Edit Custom Label
           </h3>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded" aria-label="Close modal">
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 rounded"
+            aria-label="Close modal"
+          >
             <X size={16} />
           </button>
         </div>

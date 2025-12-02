@@ -67,6 +67,7 @@ export class Configuration {
     tanks: Array<{
       id: string;
       name: string;
+      location?: string;
       racks: Array<{
         id: number | string;
         name: string;
@@ -76,10 +77,14 @@ export class Configuration {
           maxPositions?: number;
           positionDisplay?: PositionDisplayConfig;
           isActive?: boolean;
+          assignedUserId?: string | null;
+          customLabel?: string;
         }>;
         maxBoxes?: number;
         capacity?: number;
         isActive?: boolean;
+        assignedUserId?: string;
+        customLabel?: string;
       }>;
       maxRacks?: number;
       isActive?: boolean;
@@ -103,8 +108,10 @@ export class Configuration {
             boxData.name,
             boxData.gridConfig || { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
             boxData.maxPositions,
-            boxData.positionDisplay, // positionDisplay config
-            boxData.isActive ?? true
+            boxData.positionDisplay,
+            boxData.isActive ?? true,
+            boxData.assignedUserId,
+            boxData.customLabel
           )
         );
 
@@ -123,7 +130,9 @@ export class Configuration {
           boxes,
           effectiveCapacity,
           effectiveCapacity,
-          rackData.isActive ?? true
+          rackData.isActive ?? true,
+          rackData.assignedUserId,
+          rackData.customLabel
         );
       });
 
@@ -132,7 +141,8 @@ export class Configuration {
         tankData.name,
         racks,
         tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
-        tankData.isActive ?? true
+        tankData.isActive ?? true,
+        tankData.location || 'Main Lab'
       );
     });
 
@@ -573,6 +583,7 @@ export class Configuration {
     tanks: Array<{
       id: string;
       name: string;
+      location?: string;
       racks: Array<{
         id: number | string;
         name: string;
@@ -582,10 +593,14 @@ export class Configuration {
           maxPositions?: number;
           positionDisplay?: PositionDisplayConfig;
           isActive?: boolean;
+          assignedUserId?: string | null;
+          customLabel?: string;
         }>;
         maxBoxes?: number;
         capacity?: number;
         isActive?: boolean;
+        assignedUserId?: string;
+        customLabel?: string;
       }>;
       maxRacks?: number;
       isActive?: boolean;
@@ -608,7 +623,9 @@ export class Configuration {
             boxData.gridConfig || { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
             boxData.maxPositions,
             boxData.positionDisplay,
-            boxData.isActive ?? true
+            boxData.isActive ?? true,
+            boxData.assignedUserId,
+            boxData.customLabel
           )
         );
 
@@ -625,7 +642,9 @@ export class Configuration {
           boxes,
           effectiveCapacity,
           effectiveCapacity,
-          rackData.isActive ?? true
+          rackData.isActive ?? true,
+          rackData.assignedUserId,
+          rackData.customLabel
         );
       });
 
@@ -634,7 +653,8 @@ export class Configuration {
         tankData.name,
         racks,
         tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
-        tankData.isActive ?? true
+        tankData.isActive ?? true,
+        tankData.location || 'Main Lab'
       );
     });
 
@@ -661,6 +681,7 @@ export class Configuration {
     tanks: Array<{
       id: string;
       name: string;
+      location: string;
       racks: Array<{
         id: string;
         name: string;
@@ -670,10 +691,14 @@ export class Configuration {
           maxPositions: number;
           positionDisplay?: PositionDisplayConfig;
           isActive: boolean;
+          assignedUserId?: string | null;
+          customLabel?: string;
         }>;
         maxBoxes: number;
         capacity: number;
         isActive: boolean;
+        assignedUserId?: string;
+        customLabel?: string;
       }>;
       maxRacks: number;
       isActive: boolean;

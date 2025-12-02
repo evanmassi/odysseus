@@ -9,7 +9,7 @@ import type { TankConfiguration } from '@domains/storage';
 
 interface TankEditModalProps {
   initialTank: TankConfiguration;
-  onSave: (tankId: string, updates: Partial<TankConfiguration>) => Promise<void>;
+  onSave: (tankId: string, updates: Partial<TankConfiguration>) => void | Promise<void>;
   onClose: () => void;
 }
 
@@ -122,7 +122,10 @@ export function TankEditModal({ initialTank, onSave, onClose }: TankEditModalPro
             <h4 className="font-medium text-blue-700 mb-1">Tank Statistics</h4>
             <div className="text-sm text-blue-600 space-y-1">
               <p>• {editedTank.racks.length} racks configured</p>
-              <p>• {editedTank.racks.reduce((total, rack) => total + rack.boxes.length, 0)} storage boxes</p>
+              <p>
+                • {editedTank.racks.reduce((total, rack) => total + rack.boxes.length, 0)} storage
+                boxes
+              </p>
               <p>
                 •{' '}
                 {editedTank.racks.reduce(

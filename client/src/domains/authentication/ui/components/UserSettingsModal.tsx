@@ -6,8 +6,18 @@
  */
 import { useState, useEffect, lazy, Suspense } from 'react';
 
-import { X, Save, RefreshCw, Cog, Table2, UserRound, Shield, AlertTriangle } from 'lucide-react';
+import {
+  X,
+  Save,
+  RefreshCw,
+  Settings,
+  Table2,
+  UserRound,
+  Shield,
+  AlertTriangle,
+} from 'lucide-react';
 
+import { useModalStore } from '@app/stores/modalStore';
 import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
@@ -41,6 +51,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   // Fetch user settings
   const { settings, isLoading } = useUserSettings();
   const { updateSettings, isSaving } = useUserSettingsActions();
+  const modalService = useModalStore();
 
   // Focus trap (only active when modal is open)
   const trapRef = useFocusTrap({
@@ -88,6 +99,19 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   // Check if there are any unsaved changes
   const hasChanges = JSON.stringify(localSettings) !== JSON.stringify(originalSettings);
 
+  const handleClose = () => {
+    if (hasChanges) {
+      modalService.showUnsavedConfirm({
+        onConfirm: () => {
+          modalService.hideUnsavedConfirm();
+          onClose();
+        },
+      });
+    } else {
+      onClose();
+    }
+  };
+
   const tabs = [
     { id: 'account', label: 'Account', icon: UserRound },
     { id: 'security', label: 'Security', icon: Shield },
@@ -104,14 +128,14 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         <div className="bg-gradient-to-r from-action-hover via-action to-action-hover px-6 py-3 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Cog className="w-6 h-6" />
+              <Settings className="w-6 h-6" />
               <div>
                 <h2 className="text-lg font-bold">User Settings</h2>
                 <p className="text-white/80 text-xs">Account & Personal Preferences</p>
               </div>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="btn-header-menu text-white/80 hover:text-white hover:bg-primary-hover/50"
               aria-label="Close settings"
             >
@@ -186,7 +210,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
               <span className="truncate">These settings apply only to your account.</span>
             </div>
             <div className="flex space-x-2 flex-shrink-0">
-              <button onClick={onClose} className="btn-cancel">
+              <button onClick={handleClose} className="btn-cancel">
                 Cancel
               </button>
               <button

@@ -8,11 +8,12 @@ import {
   AlertTriangle,
   Save,
   RefreshCw,
-  Cog,
+  ShieldUser,
   Gauge,
   UsersRound,
 } from 'lucide-react';
 
+import { useModalStore } from '@app/stores/modalStore';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
 import { ResearcherIcon } from '@shared/ui/components/icons';
@@ -62,6 +63,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const [systemStats, setSystemStats] = useState<SystemMetrics | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [inviteCode, setInviteCode] = useState<string>('');
+  const modalService = useModalStore();
 
   // Focus trap (only active when modal is open)
   const trapRef = useFocusTrap({
@@ -223,6 +225,19 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     return config[configKey] !== originalConfig[configKey];
   });
 
+  const handleClose = () => {
+    if (hasChanges) {
+      modalService.showUnsavedConfirm({
+        onConfirm: () => {
+          modalService.hideUnsavedConfirm();
+          onClose();
+        },
+      });
+    } else {
+      onClose();
+    }
+  };
+
   const tabs = [
     { id: 'system', label: 'System', icon: Gauge },
     { id: 'security', label: 'Security', icon: Shield },
@@ -241,14 +256,14 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         <div className="bg-gradient-to-r from-danger-hover via-danger-bg to-danger-hover px-6 py-3 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Cog className="w-6 h-6" />
+              <ShieldUser className="w-6 h-6" />
               <div>
                 <h2 className="text-lg font-bold">Admin Settings</h2>
                 <p className="text-white/80 text-xs">Security & System Configuration</p>
               </div>
             </div>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="btn-header-menu text-white/80 hover:text-white hover:bg-danger-hover/50"
             >
               <X size={20} />
@@ -335,7 +350,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
               <span className="truncate">Changes apply to all users immediately</span>
             </div>
             <div className="flex space-x-2 flex-shrink-0">
-              <button onClick={onClose} className="btn-cancel">
+              <button onClick={handleClose} className="btn-cancel">
                 Cancel
               </button>
               <button

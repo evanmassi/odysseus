@@ -166,6 +166,21 @@
     --color-storage-selected-shadow: rgba(190, 238, 249, 0.8);
     --storage-selected-inset-shadow: inset 0 0 5px 2px var(--color-storage-selected-shadow);
 
+    /* Ownership Theme - Storage assignment colors */
+    --color-ownership-user-bg: var(--color-ice-600);
+    --color-ownership-user-light: var(--color-ice-50);
+    --color-ownership-user-medium: var(--color-ice-100);
+    --color-ownership-user-border: var(--color-ice-400);
+
+    --color-ownership-unassigned-bg: var(--color-warning-bg);
+    --color-ownership-unassigned-light: var(--color-warning-light);
+    --color-ownership-unassigned-border: #fbbf24;
+
+    --color-ownership-other-bg: #94a3b8;
+    --color-ownership-other-light: #e2e8f0;
+    --color-ownership-other-medium: #cbd5e1;
+    --color-ownership-other-border: #94a3b8;
+
     /* Focus Ring System */
     --focus-ring-color: #4a7db5;
     --focus-ring-glow-inner: #d1f9ff;
