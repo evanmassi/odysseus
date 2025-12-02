@@ -122,6 +122,18 @@ export class ConfigurationRouteModule implements RouteModule {
       this.configurationController.getPositionDisplayPresets.bind(this.configurationController)
     );
 
+    /**
+     * PUT /api/configuration/resource-label
+     * Update custom label for a rack or box
+     *
+     * Access: Any authenticated user (uses fine-grained canEditResource permission)
+     * Used by: Frontend when users set custom labels on their assigned resources
+     * Note: Not admin-only - owners can set labels on their own resources
+     */
+    router.put('/resource-label',
+      this.configurationController.updateResourceLabel.bind(this.configurationController)
+    );
+
     // ADMIN CONFIGURATION ROUTES (Admin Only)
 
     /**
@@ -215,7 +227,7 @@ export class ConfigurationRouteModule implements RouteModule {
    * Get route count for monitoring
    */
   getRouteCount(): number {
-    return 11; // Total number of routes configured
+    return 12; // Total number of routes configured
   }
 
   // MIDDLEWARE FUNCTIONS

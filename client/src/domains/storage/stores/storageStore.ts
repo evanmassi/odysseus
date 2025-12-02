@@ -109,7 +109,6 @@ const DEFAULT_BOX_CONFIG: BoxConfiguration = {
   id: 'default-box',
   name: 'Standard Box',
   gridConfig: DEFAULT_GRID_CONFIG,
-  description: 'Standard laboratory storage box with 9x9 grid',
 };
 
 /**
@@ -129,7 +128,6 @@ const DEFAULT_TANK_CONFIG: TankConfiguration = {
       id: '1',
       name: NAMING_PATTERNS.RACK.DEFAULT_NAME(1),
       capacity: EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
-      location: NAMING_PATTERNS.TANK.DEFAULT_LOCATION,
       isActive: true,
       boxes: Array.from({ length: EQUIPMENT_DEFAULTS.BOXES_PER_RACK }, (_, i) => ({
         id: NAMING_PATTERNS.BOX.LETTER_NAME(i),

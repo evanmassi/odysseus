@@ -108,7 +108,6 @@ export class ConfigurationDto {
       id: rackData.id,
       name: rackData.name,
       capacity: rackData.capacity,
-      location: 'Main Lab',
       isActive: rackData.isActive,
       assignedUserId: rackData.assignedUserId,
       customLabel: rackData.customLabel,

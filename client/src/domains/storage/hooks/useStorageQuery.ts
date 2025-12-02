@@ -4,20 +4,14 @@ import { queryKeys } from '@app/queryKeys';
 
 import { StorageService } from '../services/StorageService';
 
-import type {
-  SystemConfiguration,
-  LabConfiguration
-} from '@odysseus/shared-schemas';
+import type { SystemConfiguration, LabConfiguration } from '@odysseus/shared-schemas';
 
 /**
  * Load Storage Configuration Hook
  *
  * Loads the complete lab configuration from the server
  */
-export const useLoadStorageQuery = (config?: {
-  enabled?: boolean;
-  staleTime?: number;
-}) => {
+export const useLoadStorageQuery = (config?: { enabled?: boolean; staleTime?: number }) => {
   return useQuery({
     queryKey: queryKeys.storage.storage(),
     queryFn: () => StorageService.loadConfiguration(),
@@ -34,10 +28,7 @@ export const useLoadStorageQuery = (config?: {
  *
  * Checks if configuration exists on server
  */
-export const useStorageExistsQuery = (config?: {
-  enabled?: boolean;
-  staleTime?: number;
-}) => {
+export const useStorageExistsQuery = (config?: { enabled?: boolean; staleTime?: number }) => {
   return useQuery({
     queryKey: queryKeys.storage.exists(),
     queryFn: () => StorageService.checkConfigurationExists(),
@@ -59,7 +50,10 @@ export const useSaveStorageMutation = () => {
 
   return useMutation({
     mutationKey: ['storage', 'save'],
-    mutationFn: ({ systemConfig, currentLab }: {
+    mutationFn: ({
+      systemConfig,
+      currentLab,
+    }: {
       systemConfig: SystemConfiguration;
       currentLab: LabConfiguration;
     }) => StorageService.saveConfiguration(systemConfig, currentLab),
@@ -67,10 +61,45 @@ export const useSaveStorageMutation = () => {
     onSuccess: () => {
       // Invalidate storage cache to reflect server state
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.storage()
+        queryKey: queryKeys.storage.storage(),
       });
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.exists()
+        queryKey: queryKeys.storage.exists(),
+      });
+    },
+  });
+};
+
+/**
+ * Update Resource Label Mutation Hook
+ *
+ * Updates custom label for a rack or box using fine-grained permissions.
+ * Users can update labels on resources they own, not just admins.
+ * Invalidates storage cache on success to keep UI in sync.
+ */
+export const useUpdateResourceLabelMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ['storage', 'updateResourceLabel'],
+    mutationFn: ({
+      resourceType,
+      tankId,
+      rackId,
+      boxId,
+      customLabel,
+    }: {
+      resourceType: 'rack' | 'box';
+      tankId: string;
+      rackId: string;
+      boxId?: string;
+      customLabel?: string;
+    }) => StorageService.updateResourceLabel(resourceType, tankId, rackId, boxId, customLabel),
+
+    onSuccess: () => {
+      // Invalidate storage cache to reflect updated labels
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.storage.storage(),
       });
     },
   });

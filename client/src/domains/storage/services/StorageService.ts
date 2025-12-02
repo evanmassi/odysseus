@@ -187,4 +187,41 @@ export class StorageService {
       });
     }
   }
+
+  /**
+   * Update custom label for a rack or box
+   *
+   * Uses fine-grained permissions (canEditResource) to allow resource owners
+   * to set their own labels, not just admins.
+   *
+   * @param resourceType - 'rack' or 'box'
+   * @param tankId - Tank identifier
+   * @param rackId - Rack identifier
+   * @param boxId - Box identifier (required for box type)
+   * @param customLabel - New label (empty/undefined = clear label)
+   */
+  static async updateResourceLabel(
+    resourceType: 'rack' | 'box',
+    tankId: string,
+    rackId: string,
+    boxId: string | undefined,
+    customLabel: string | undefined
+  ): Promise<void> {
+    try {
+      await httpClient.put('/configuration/resource-label', {
+        resourceType,
+        tankId,
+        rackId,
+        boxId,
+        customLabel,
+      });
+    } catch (error) {
+      logger.error('StorageService update resource label failed', { error });
+      throw new InfrastructureError(
+        'API_ERROR',
+        `Failed to update label for ${resourceType} ${resourceType === 'box' ? boxId : rackId}`,
+        { originalError: error, resourceType, tankId, rackId, boxId, customLabel }
+      );
+    }
+  }
 }

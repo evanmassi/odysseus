@@ -14,6 +14,7 @@ export {
   useLoadStorageQuery,
   useStorageExistsQuery,
   useSaveStorageMutation,
+  useUpdateResourceLabelMutation,
   useStorageSync,
 } from './hooks/useStorageQuery';
 export { useConfigurationSync } from './hooks/useConfigurationSync';

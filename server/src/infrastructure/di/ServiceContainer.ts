@@ -2,7 +2,7 @@ import { RepositoryFactory } from '@infrastructure/repositories';
 
 // CQRS Command Handlers
 import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler, GetUserSettingsQueryHandler } from '@application/commands/UserCommands';
-import { UpdateSystemConfigurationCommandHandler, UpdateEquipmentConfigurationCommandHandler, ResetConfigurationToDefaultCommandHandler, ImportConfigurationCommandHandler, UpdateConfigurationCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler } from '@application/commands/ConfigurationCommands';
+import { UpdateSystemConfigurationCommandHandler, UpdateEquipmentConfigurationCommandHandler, ResetConfigurationToDefaultCommandHandler, ImportConfigurationCommandHandler, UpdateConfigurationCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/ConfigurationCommands';
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 
@@ -85,6 +85,7 @@ export class ServiceContainer {
   private updateConfigurationHandler?: UpdateConfigurationCommandHandler;
   private updateBoxPositionDisplayHandler?: UpdateBoxPositionDisplayCommandHandler;
   private updateLabDefaultPositionDisplayHandler?: UpdateLabDefaultPositionDisplayCommandHandler;
+  private updateResourceLabelHandler?: UpdateResourceLabelCommandHandler;
   private updateUserSettingsHandler?: UpdateUserSettingsCommandHandler;
   private getUserSettingsHandler?: GetUserSettingsQueryHandler;
 
@@ -418,6 +419,19 @@ export class ServiceContainer {
     return this.updateLabDefaultPositionDisplayHandler;
   }
 
+  getUpdateResourceLabelHandler(): UpdateResourceLabelCommandHandler {
+    if (!this.updateResourceLabelHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.updateResourceLabelHandler = new UpdateResourceLabelCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getAccessControlService(),
+        this.getEventBus()
+      );
+    }
+    return this.updateResourceLabelHandler;
+  }
+
   getUpdateUserSettingsHandler(): UpdateUserSettingsCommandHandler {
     if (!this.updateUserSettingsHandler) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -583,7 +597,8 @@ export class ServiceContainer {
         this.getImportConfigurationHandler(),
         this.getUpdateConfigurationHandler(),
         this.getUpdateBoxPositionDisplayHandler(),
-        this.getUpdateLabDefaultPositionDisplayHandler()
+        this.getUpdateLabDefaultPositionDisplayHandler(),
+        this.getUpdateResourceLabelHandler()
       );
     }
     return this.configurationController;

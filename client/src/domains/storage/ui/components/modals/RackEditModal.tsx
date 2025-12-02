@@ -21,8 +21,6 @@ export function RackEditModal({ initialRack, tankId, onSave, onClose }: RackEdit
   const handleSave = async () => {
     await onSave(tankId, editedRack.id, {
       name: editedRack.name,
-      location: editedRack.location,
-      description: editedRack.description,
       isActive: editedRack.isActive,
     });
     onClose();
@@ -71,20 +69,6 @@ export function RackEditModal({ initialRack, tankId, onSave, onClose }: RackEdit
               placeholder="Rack 1"
               required
               aria-required="true"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="rack-description" className="block text-sm font-medium mb-2">
-              Description
-            </label>
-            <textarea
-              id="rack-description"
-              className="input w-full resize-none"
-              rows={3}
-              value={editedRack.description ?? ''}
-              onChange={e => setEditedRack({ ...editedRack, description: e.target.value })}
-              placeholder="Optional description"
             />
           </div>
 

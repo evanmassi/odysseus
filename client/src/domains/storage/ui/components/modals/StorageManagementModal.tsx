@@ -9,6 +9,7 @@ import { useAuthState } from '@domains/authentication/hooks/useAuth';
 import {
   useStorageStore,
   useSaveStorageMutation,
+  useUpdateResourceLabelMutation,
   createTankFromDefaults,
   createRackFromDefaults,
   getNextTankNumber,
@@ -65,8 +66,9 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const { data: users = [] } = useUsersQuery();
   const { user: currentUser } = useAuthState();
 
-  // React Query mutation for server sync
+  // React Query mutations for server sync
   const saveConfigurationMutation = useSaveStorageMutation();
+  const updateLabelMutation = useUpdateResourceLabelMutation();
 
   // ========== LOCAL STATE PATTERN ==========
   // Draft state for editing (not committed until Save)
@@ -220,7 +222,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     setLocalLab(assignBoxInLab(localLab, tankId, rackId, boxId, userId));
   };
 
-  const handleUpdateCustomLabel = (
+  const handleUpdateCustomLabel = async (
     type: 'rack' | 'box',
     tankId: string,
     rackId: string,
@@ -228,7 +230,42 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     label: string
   ) => {
     if (!localLab) return;
-    setLocalLab(updateCustomLabelInLab(localLab, type, tankId, rackId, boxId, label));
+
+    try {
+      // Use mutation for API call + automatic cache invalidation
+      await updateLabelMutation.mutateAsync({
+        resourceType: type,
+        tankId,
+        rackId,
+        boxId,
+        customLabel: label || undefined,
+      });
+
+      // Update local modal state for immediate UI feedback
+      // (React Query cache invalidation will sync the store on next query)
+      const updatedLab = updateCustomLabelInLab(localLab, type, tankId, rackId, boxId, label);
+      setLocalLab(updatedLab);
+
+      // Update original to match - label changes are saved immediately, not part of draft
+      if (originalLab) {
+        setOriginalLab(updateCustomLabelInLab(originalLab, type, tankId, rackId, boxId, label));
+      }
+
+      notifications.success('Label updated successfully');
+    } catch (error) {
+      logger.error('Failed to update resource label', {
+        error,
+        type,
+        tankId,
+        rackId,
+        boxId,
+        label,
+      });
+      notifications.error(
+        'Failed to update label. You may not have permission to edit this resource.'
+      );
+    }
+
     setEditingLabel(null);
   };
 

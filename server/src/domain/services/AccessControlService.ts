@@ -11,6 +11,14 @@ import type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/type
 import type { RackConfiguration, BoxConfiguration } from '@odysseus/shared-schemas';
 
 /**
+ * Minimal interface for resource ownership checking
+ * Only requires assignedUserId since that's all canEditResource uses
+ */
+export interface ResourceWithOwnership {
+  assignedUserId?: string | null;
+}
+
+/**
  * AccessControlService
  * 
  * Domain service that handles complex access control and permission logic
@@ -340,11 +348,14 @@ export class AccessControlService {
    * - null = explicitly unassigned/common - anyone can edit
    * - User can edit if explicitly assigned to them
    * - User can edit box if undefined (inherit) and they own the parent rack
+   *
+   * Uses minimal ResourceWithOwnership interface to avoid type coupling
+   * with full schema types - only assignedUserId is needed for this check
    */
   canEditResource(
     user: User,
-    resource: RackConfiguration | BoxConfiguration,
-    parentRack?: RackConfiguration
+    resource: ResourceWithOwnership,
+    parentRack?: ResourceWithOwnership
   ): boolean {
     // Admin can edit anything
     if (user.isAdmin()) {

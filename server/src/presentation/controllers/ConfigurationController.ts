@@ -12,7 +12,8 @@ import {
   ImportConfigurationCommandHandler,
   UpdateConfigurationCommandHandler,
   UpdateBoxPositionDisplayCommandHandler,
-  UpdateLabDefaultPositionDisplayCommandHandler
+  UpdateLabDefaultPositionDisplayCommandHandler,
+  UpdateResourceLabelCommandHandler
 } from '@application/commands/ConfigurationCommands';
 import { POSITION_DISPLAY_PRESETS } from '@odysseus/shared-schemas';
 // import { ApiError } from '../../shared/errors/ApiError';
@@ -53,7 +54,8 @@ export class ConfigurationController {
     private importConfigurationHandler: ImportConfigurationCommandHandler,
     private updateConfigurationHandler: UpdateConfigurationCommandHandler,
     private updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler,
-    private updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler
+    private updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler,
+    private updateResourceLabelHandler: UpdateResourceLabelCommandHandler
   ) {}
 
   // QUERY ENDPOINTS
@@ -405,6 +407,70 @@ export class ConfigurationController {
 
     } catch (error) {
       this.handleError(error, res, 'Failed to update lab default position display');
+    }
+  }
+
+  /**
+   * PUT /api/configuration/resource-label
+   * Update custom label for a rack or box
+   *
+   * This endpoint uses fine-grained permissions (canEditResource) rather than
+   * admin-only config management permissions, allowing resource owners to
+   * set their own labels.
+   */
+  async updateResourceLabel(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { resourceType, tankId, rackId, boxId, customLabel } = req.body;
+
+      if (!resourceType || !['rack', 'box'].includes(resourceType)) {
+        res.status(400).json({
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'resourceType must be "rack" or "box"'
+          }
+        });
+        return;
+      }
+
+      if (!tankId || !rackId) {
+        res.status(400).json({
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'tankId and rackId are required'
+          }
+        });
+        return;
+      }
+
+      if (resourceType === 'box' && !boxId) {
+        res.status(400).json({
+          error: {
+            code: 'INVALID_REQUEST',
+            message: 'boxId is required for box label updates'
+          }
+        });
+        return;
+      }
+
+      const updatedConfiguration = await this.updateResourceLabelHandler.handle({
+        userId,
+        resourceType,
+        tankId,
+        rackId,
+        boxId,
+        customLabel
+      });
+
+      res.json({
+        success: true,
+        message: `Label updated for ${resourceType} ${resourceType === 'box' ? boxId : rackId}`,
+        version: updatedConfiguration.version,
+        lastUpdated: updatedConfiguration.updatedAt
+      });
+
+    } catch (error) {
+      this.handleError(error, res, 'Failed to update resource label');
     }
   }
 

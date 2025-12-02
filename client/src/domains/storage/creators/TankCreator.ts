@@ -6,16 +6,14 @@
  * Prevents data drift and ensures consistency across tank/rack/box creation.
  */
 
-import {
-  EQUIPMENT_DEFAULTS,
-  NAMING_PATTERNS,
-} from '@odysseus/shared-schemas';
+import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 
 import type {
   TankConfiguration,
   RackConfiguration,
   BoxConfiguration,
-  GridConfiguration} from '@odysseus/shared-schemas';
+  GridConfiguration,
+} from '@odysseus/shared-schemas';
 
 /**
  * Create a fresh box configuration from defaults
@@ -62,7 +60,6 @@ export function createRackFromDefaults(
     id: rackId,
     name: NAMING_PATTERNS.RACK.DEFAULT_NAME(rackNumber),
     capacity: EQUIPMENT_DEFAULTS.BOXES_PER_RACK, // Backend uses this for maxBoxes
-    location: NAMING_PATTERNS.TANK.DEFAULT_LOCATION,
     isActive: true,
     boxes,
   };
@@ -85,9 +82,8 @@ export function createTankFromDefaults(
   const tankId = NAMING_PATTERNS.TANK.ID_PATTERN(tankNumber);
 
   // Generate default racks (1, 2, 3)
-  const racks: RackConfiguration[] = Array.from(
-    { length: numRacks },
-    (_, i) => createRackFromDefaults(tankId, i + 1, gridConfig)
+  const racks: RackConfiguration[] = Array.from({ length: numRacks }, (_, i) =>
+    createRackFromDefaults(tankId, i + 1, gridConfig)
   );
 
   return {

@@ -228,11 +228,7 @@ export function StorageNavigator() {
                       <button
                         onClick={() => handleRackClick(tank.id, rack.id)}
                         className={`selector-button rack-button ${isRackSelected ? 'selected' : ''}`}
-                        title={
-                          rack.location
-                            ? `${isRackExpanded ? 'Collapse' : 'Expand'} ${rack.name} - ${rack.location}`
-                            : `${isRackExpanded ? 'Collapse' : 'Expand'} ${rack.name}`
-                        }
+                        title={`${isRackExpanded ? 'Collapse' : 'Expand'} ${rack.name}`}
                         data-button-id={`rack-${tank.id}-${rack.id}`}
                         {...getItemProps(
                           visibleItems.findIndex(item => item.id === `rack-${tank.id}-${rack.id}`)

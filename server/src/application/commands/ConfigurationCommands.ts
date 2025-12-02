@@ -3,12 +3,14 @@ import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepos
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ValidationService } from '@domain/services/ValidationService';
 import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
+import { AccessControlService } from '@domain/services/AccessControlService';
 import { User } from '@domain/entities/User';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
+import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
 import {
   RackAssignedEvent,
   RackUnassignedEvent,
@@ -442,23 +444,10 @@ export class UpdateConfigurationCommandHandler {
       }
     }
 
-    // Enforce cascade logic: When rack unassigned, clear cascaded boxes
+    // Enforce cascade logic: When rack unassigned, clear labels on inheriting boxes
     for (const change of assignmentChanges) {
       if (change.type === 'unassign' && change.resourceType === 'rack') {
-        // Find the rack in the new configuration
-        const rack = this.findRack(currentConfig, change.resourceId);
-
-        if (rack) {
-          // Clear boxes that cascaded from this rack (no explicit assignment)
-          rack.boxes.forEach(box => {
-            if (!box.assignedUserId) {
-              // This box had no explicit assignment - it was cascaded from the rack
-              // Clear its custom label (ownership is gone)
-              box.customLabel = undefined;
-            }
-            // Boxes WITH explicit assignedUserId are left alone (preserve other users' assignments)
-          });
-        }
+        currentConfig.clearInheritedBoxLabelsForRack(change.tankId, change.rackId);
       }
     }
 
@@ -671,18 +660,6 @@ export class UpdateConfigurationCommandHandler {
       throw new ValidationError(`User not found: ${userId}`);
     }
     return user;
-  }
-
-  /**
-   * Find a rack by ID across all tanks in configuration
-   */
-  private findRack(config: Configuration, rackId: string) {
-    const configData = config.toData();
-    for (const tank of configData.tanks) {
-      const rack = tank.racks.find(r => r.id === rackId);
-      if (rack) return rack;
-    }
-    return undefined;
   }
 
   /**
@@ -1025,4 +1002,164 @@ export interface ImportResult {
   configuration: Configuration | null;
   warnings: string[];
   errors: string[];
+}
+
+/**
+ * Update Resource Label Command
+ *
+ * Allows resource owners to set a custom label on their assigned resources.
+ * This uses fine-grained permissions (canEditResource) rather than admin-only
+ * config management permissions.
+ */
+export interface UpdateResourceLabelCommand {
+  userId: string;
+  resourceType: 'rack' | 'box';
+  tankId: string;
+  rackId: string;
+  boxId?: string; // Required for box type
+  customLabel?: string; // Empty/undefined = clear label
+}
+
+/**
+ * Update Resource Label Command Handler
+ *
+ * Handles updating custom labels on racks and boxes.
+ * Uses AccessControlService.canEditResource() for permission checking,
+ * allowing resource owners (not just admins) to set their own labels.
+ *
+ * @example
+ * await handler.handle({
+ *   userId: 'user-id',
+ *   resourceType: 'rack',
+ *   tankId: 'tank-1',
+ *   rackId: '1',
+ *   customLabel: 'My Samples'
+ * });
+ */
+export class UpdateResourceLabelCommandHandler {
+  constructor(
+    private configurationRepository: ConfigurationRepository,
+    private userRepository: UserRepository,
+    private accessControlService: AccessControlService,
+    private eventBus: EventBus
+  ) {}
+
+  async handle(command: UpdateResourceLabelCommand): Promise<Configuration> {
+    // Validate required fields
+    if (command.resourceType === 'box' && !command.boxId) {
+      throw new ValidationError('boxId is required for box label updates');
+    }
+
+    // Validate label length (matches client-side 50 char limit)
+    const MAX_LABEL_LENGTH = 50;
+    if (command.customLabel && command.customLabel.length > MAX_LABEL_LENGTH) {
+      throw new ValidationError(`Custom label cannot exceed ${MAX_LABEL_LENGTH} characters`);
+    }
+
+    // Get current configuration
+    const currentConfig = await this.configurationRepository.getCurrent();
+    if (!currentConfig) {
+      throw new ValidationError('No configuration found. Initialize system first.');
+    }
+
+    // Get user for permission validation
+    const user = await this.getUserById(command.userId);
+
+    // Get resource and parent for permission check
+    let resource: ResourceWithOwnership & { customLabel?: string } | null = null;
+    let parentRack: ResourceWithOwnership | undefined = undefined;
+    let tankName = '';
+    let rackName = '';
+    let boxName = '';
+
+    if (command.resourceType === 'rack') {
+      const result = currentConfig.getRack(command.tankId, command.rackId);
+      if (!result) {
+        throw new ValidationError(
+          `Rack '${command.rackId}' not found in tank '${command.tankId}'`
+        );
+      }
+      resource = result.rack;
+      tankName = result.tank.name;
+      rackName = result.rack.name;
+    } else {
+      const result = currentConfig.getBox(command.tankId, command.rackId, command.boxId!);
+      if (!result) {
+        throw new ValidationError(
+          `Box '${command.boxId}' not found in tank '${command.tankId}', rack '${command.rackId}'`
+        );
+      }
+      resource = result.box;
+      parentRack = result.rack;
+      tankName = result.tank.name;
+      rackName = result.rack.name;
+      boxName = result.box.name;
+    }
+
+    // Check permission using AccessControlService
+    const canEdit = this.accessControlService.canEditResource(
+      user,
+      resource,
+      parentRack
+    );
+
+    if (!canEdit) {
+      throw new PermissionError(
+        `User ${user.username} does not have permission to edit this ${command.resourceType}'s label`
+      );
+    }
+
+    // Store old label for event
+    const oldLabel = resource.customLabel;
+
+    // Update the label
+    currentConfig.updateResourceCustomLabel(
+      command.resourceType,
+      command.tankId,
+      command.rackId,
+      command.boxId,
+      command.customLabel
+    );
+
+    // Save the updated configuration
+    await this.configurationRepository.save(currentConfig);
+
+    // Emit label change event if label actually changed
+    const newLabel = command.customLabel?.trim() || undefined;
+    if (oldLabel !== newLabel) {
+      if (command.resourceType === 'rack') {
+        this.eventBus.publish(new RackLabelUpdatedEvent(
+          command.userId,
+          command.tankId,
+          tankName,
+          command.rackId,
+          rackName,
+          oldLabel,
+          newLabel
+        ));
+      } else {
+        this.eventBus.publish(new BoxLabelUpdatedEvent(
+          command.userId,
+          command.tankId,
+          tankName,
+          command.rackId,
+          rackName,
+          command.boxId!,
+          boxName,
+          oldLabel,
+          newLabel
+        ));
+      }
+    }
+
+    return currentConfig;
+  }
+
+  private async getUserById(userId: string): Promise<User> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new ValidationError(`User not found: ${userId}`);
+    }
+    return user;
+  }
 }

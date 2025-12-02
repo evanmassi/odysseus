@@ -20,9 +20,6 @@ export const BoxConfigurationSchema = z.object({
   gridConfig: GridConfigurationSchema,
   positionDisplay: positionDisplayConfigSchema.optional(),
   position: z.number().optional(),
-  description: z.string().optional(),
-  color: z.string().optional(),
-  specialInstructions: z.string().optional(),
   // null = explicitly unassigned/common, undefined = inherit from rack
   assignedUserId: z.string().nullable().optional(),
   customLabel: z.string().max(50).optional(),
@@ -35,8 +32,6 @@ export const RackConfigurationSchema = z.object({
   id: z.string(),
   name: z.string(),
   capacity: z.number(),
-  location: z.string().optional(),
-  description: z.string().optional(),
   isActive: z.boolean().default(true),
   boxes: z.array(BoxConfigurationSchema),
   assignedUserId: z.string().optional(),

@@ -454,13 +454,16 @@ export class Configuration {
     }
 
     // Create updated box with new position display config
+    // Preserve all existing properties including assignedUserId and customLabel
     const oldBox = rack.boxes[boxIndex];
     const updatedBox = Box.create(
       oldBox.name,
       oldBox.gridConfig,
       oldBox.maxPositions,
       positionDisplay === null ? undefined : positionDisplay,
-      oldBox.isActive
+      oldBox.isActive,
+      oldBox.assignedUserId,
+      oldBox.customLabel
     );
 
     // Create new boxes array with updated box
@@ -468,13 +471,16 @@ export class Configuration {
     newBoxes[boxIndex] = updatedBox;
 
     // Create new rack with updated boxes
+    // Preserve all existing properties including assignedUserId and customLabel
     const updatedRack = Rack.create(
       rack.id,
       rack.name,
       newBoxes,
       rack.maxBoxes,
       rack.capacity,
-      rack.isActive
+      rack.isActive,
+      rack.assignedUserId,
+      rack.customLabel
     );
 
     // Create new racks array with updated rack
@@ -482,12 +488,14 @@ export class Configuration {
     newRacks[rackIndex] = updatedRack;
 
     // Create new tank with updated racks
+    // Preserve tank.location
     const updatedTank = Tank.create(
       tank.id,
       tank.name,
       newRacks as Rack[],
       tank.maxRacks,
-      tank.isActive
+      tank.isActive,
+      tank.location
     );
 
     // Create new tanks array with updated tank
@@ -504,6 +512,236 @@ export class Configuration {
       new Date(),
       this._version + 1
     );
+  }
+
+  /**
+   * Clear custom labels from boxes that inherit ownership from a rack
+   *
+   * When a rack is unassigned, boxes that were "inheriting" ownership (no explicit
+   * assignedUserId) should have their custom labels cleared since the ownership
+   * context is gone. Boxes with explicit assignments are left untouched.
+   *
+   * @param tankId - Tank containing the rack
+   * @param rackId - Rack that was unassigned
+   */
+  clearInheritedBoxLabelsForRack(tankId: string, rackId: string): void {
+    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
+    if (tankIndex === -1) return; // Tank not found, nothing to do
+
+    const tank = this._equipment.tanks[tankIndex];
+    const rackIndex = tank.racks.findIndex(r => r.id === rackId);
+    if (rackIndex === -1) return; // Rack not found, nothing to do
+
+    const rack = tank.racks[rackIndex];
+
+    // Check if any boxes need label clearing
+    const hasInheritingBoxesWithLabels = rack.boxes.some(
+      box => !box.assignedUserId && box.customLabel
+    );
+
+    if (!hasInheritingBoxesWithLabels) return; // No changes needed
+
+    // Create new boxes, clearing labels on those without explicit assignments
+    const updatedBoxes = rack.boxes.map(box => {
+      if (!box.assignedUserId && box.customLabel) {
+        // This box was inheriting from rack - clear its label
+        return Box.create(
+          box.name,
+          box.gridConfig,
+          box.maxPositions,
+          box.positionDisplay,
+          box.isActive,
+          box.assignedUserId,
+          undefined // Clear the label
+        );
+      }
+      return box; // Keep boxes with explicit assignments unchanged
+    });
+
+    // Rebuild rack with updated boxes
+    const updatedRack = Rack.create(
+      rack.id,
+      rack.name,
+      updatedBoxes,
+      rack.maxBoxes,
+      rack.capacity,
+      rack.isActive,
+      rack.assignedUserId,
+      rack.customLabel
+    );
+
+    // Rebuild tank with updated rack
+    const updatedRacks = [...tank.racks];
+    updatedRacks[rackIndex] = updatedRack;
+
+    const updatedTank = Tank.create(
+      tank.id,
+      tank.name,
+      updatedRacks as Rack[],
+      tank.maxRacks,
+      tank.isActive,
+      tank.location
+    );
+
+    // Rebuild equipment with updated tank
+    const updatedTanks = [...this._equipment.tanks];
+    updatedTanks[tankIndex] = updatedTank;
+
+    this._equipment = EquipmentConfiguration.create(updatedTanks);
+    this.touch();
+  }
+
+  /**
+   * Update custom label for a rack or box
+   *
+   * Allows resource owners to set a custom label on their assigned resources.
+   * Uses mutable pattern (like clearInheritedBoxLabelsForRack) since this is
+   * called as part of a command that handles its own persistence.
+   *
+   * @param resourceType - 'rack' or 'box'
+   * @param tankId - Tank containing the resource
+   * @param rackId - Rack ID (for rack) or parent rack ID (for box)
+   * @param boxId - Box ID (only for box type)
+   * @param customLabel - New label (empty string or undefined to clear)
+   */
+  updateResourceCustomLabel(
+    resourceType: 'rack' | 'box',
+    tankId: string,
+    rackId: string,
+    boxId: string | undefined,
+    customLabel: string | undefined
+  ): void {
+    const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
+    if (tankIndex === -1) {
+      throw new ValidationError(`Tank '${tankId}' not found`);
+    }
+
+    const tank = this._equipment.tanks[tankIndex];
+    const rackIndex = tank.racks.findIndex(r => r.id === rackId);
+    if (rackIndex === -1) {
+      throw new ValidationError(`Rack '${rackId}' not found in tank '${tankId}'`);
+    }
+
+    const rack = tank.racks[rackIndex];
+    const normalizedLabel = customLabel?.trim() || undefined;
+
+    if (resourceType === 'rack') {
+      // Update rack label
+      const updatedRack = Rack.create(
+        rack.id,
+        rack.name,
+        [...rack.boxes] as Box[],
+        rack.maxBoxes,
+        rack.capacity,
+        rack.isActive,
+        rack.assignedUserId,
+        normalizedLabel
+      );
+
+      const updatedRacks = [...tank.racks];
+      updatedRacks[rackIndex] = updatedRack;
+
+      const updatedTank = Tank.create(
+        tank.id,
+        tank.name,
+        updatedRacks as Rack[],
+        tank.maxRacks,
+        tank.isActive,
+        tank.location
+      );
+
+      const updatedTanks = [...this._equipment.tanks];
+      updatedTanks[tankIndex] = updatedTank;
+
+      this._equipment = EquipmentConfiguration.create(updatedTanks);
+    } else {
+      // Update box label
+      if (!boxId) {
+        throw new ValidationError('boxId is required for box label update');
+      }
+
+      const boxIndex = rack.boxes.findIndex(b => b.name === boxId.toUpperCase());
+      if (boxIndex === -1) {
+        throw new ValidationError(`Box '${boxId}' not found in rack '${rackId}'`);
+      }
+
+      const box = rack.boxes[boxIndex];
+      const updatedBox = Box.create(
+        box.name,
+        box.gridConfig,
+        box.maxPositions,
+        box.positionDisplay,
+        box.isActive,
+        box.assignedUserId,
+        normalizedLabel
+      );
+
+      const updatedBoxes = [...rack.boxes];
+      updatedBoxes[boxIndex] = updatedBox;
+
+      const updatedRack = Rack.create(
+        rack.id,
+        rack.name,
+        updatedBoxes,
+        rack.maxBoxes,
+        rack.capacity,
+        rack.isActive,
+        rack.assignedUserId,
+        rack.customLabel
+      );
+
+      const updatedRacks = [...tank.racks];
+      updatedRacks[rackIndex] = updatedRack;
+
+      const updatedTank = Tank.create(
+        tank.id,
+        tank.name,
+        updatedRacks as Rack[],
+        tank.maxRacks,
+        tank.isActive,
+        tank.location
+      );
+
+      const updatedTanks = [...this._equipment.tanks];
+      updatedTanks[tankIndex] = updatedTank;
+
+      this._equipment = EquipmentConfiguration.create(updatedTanks);
+    }
+
+    this.touch();
+  }
+
+  /**
+   * Get a rack by ID for permission checking
+   */
+  getRack(tankId: string, rackId: string): { rack: ReturnType<Rack['toData']>; tank: ReturnType<Tank['toData']> } | null {
+    const tank = this._equipment.tanks.find(t => t.id === tankId);
+    if (!tank) return null;
+
+    const rack = tank.racks.find(r => r.id === rackId);
+    if (!rack) return null;
+
+    return { rack: rack.toData(), tank: tank.toData() };
+  }
+
+  /**
+   * Get a box by ID for permission checking
+   */
+  getBox(tankId: string, rackId: string, boxId: string): {
+    box: ReturnType<Box['toData']>;
+    rack: ReturnType<Rack['toData']>;
+    tank: ReturnType<Tank['toData']>
+  } | null {
+    const tank = this._equipment.tanks.find(t => t.id === tankId);
+    if (!tank) return null;
+
+    const rack = tank.racks.find(r => r.id === rackId);
+    if (!rack) return null;
+
+    const box = rack.boxes.find(b => b.name === boxId.toUpperCase());
+    if (!box) return null;
+
+    return { box: box.toData(), rack: rack.toData(), tank: tank.toData() };
   }
 
   /**
