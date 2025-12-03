@@ -456,6 +456,7 @@ export function Dashboard() {
         isOpen={modalService.deleteConfirm.isOpen}
         title={modalService.deleteConfirm.title}
         message={modalService.deleteConfirm.message}
+        confirmText={modalService.deleteConfirm.confirmText}
         onConfirm={modalService.deleteConfirm.onConfirm}
         onCancel={modalService.deleteConfirm.onCancel}
       />

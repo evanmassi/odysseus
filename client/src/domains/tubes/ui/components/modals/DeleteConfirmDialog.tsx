@@ -5,12 +5,14 @@
  * Provides a domain-specific interface for delete confirmations.
  */
 
+import type { ReactNode } from 'react';
+
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 
 interface DeleteConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: ReactNode;
   confirmText?: string;
   onConfirm: () => void;
   onCancel: () => void;

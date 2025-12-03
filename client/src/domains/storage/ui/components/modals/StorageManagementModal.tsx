@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
-import { Plus, X, Save, RefreshCw } from 'lucide-react';
+import { Plus, X, Save, RefreshCw, ListTree, UsersRound } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useUsersQuery } from '@domains/admin';
@@ -35,6 +35,7 @@ import { logger } from '@shared/infrastructure/logger';
 import { TankIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils/notifications';
 
+import { AssignmentsByUserView } from './AssignmentsByUserView';
 import { BoxEditModal } from './BoxEditModal';
 import { CustomLabelEditModal } from './CustomLabelEditModal';
 import { RackEditModal } from './RackEditModal';
@@ -75,6 +76,9 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const [localLab, setLocalLab] = useState<LabConfiguration | null>(null);
   const [originalLab, setOriginalLab] = useState<LabConfiguration | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // View mode: tree (default) or byUser (assignment summary)
+  const [viewMode, setViewMode] = useState<'tree' | 'byUser'>('tree');
 
   // Clone configuration when modal opens
   useEffect(() => {
@@ -426,6 +430,138 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
     setEditingTank(null);
   };
 
+  // ========== BULK ASSIGNMENT HANDLERS ==========
+  const handleBulkUnassign = (userId: string) => {
+    if (!localLab) return;
+
+    // Count resources to show in confirmation
+    let rackCount = 0;
+    let boxCount = 0;
+    for (const tank of localLab.equipment.tanks) {
+      for (const rack of tank.racks) {
+        if (rack.assignedUserId === userId) rackCount++;
+        for (const box of rack.boxes) {
+          // Count explicitly assigned boxes and inherited boxes
+          if (box.assignedUserId === userId) {
+            boxCount++;
+          } else if (box.assignedUserId === undefined && rack.assignedUserId === userId) {
+            boxCount++;
+          }
+        }
+      }
+    }
+
+    const userInfo = getUserInfo(userId);
+    const username = userInfo?.username ?? 'this user';
+
+    modalService.showDeleteConfirm({
+      title: 'Unassign All Resources',
+      confirmText: 'Unassign All',
+      message: (
+        <>
+          Are you sure you want to unassign{' '}
+          <strong>
+            {rackCount} rack{rackCount !== 1 ? 's' : ''}
+          </strong>{' '}
+          and{' '}
+          <strong>
+            {boxCount} box{boxCount !== 1 ? 'es' : ''}
+          </strong>{' '}
+          from <strong>{username}</strong>? They will become unassigned/common.
+        </>
+      ),
+      onConfirm: () => {
+        if (!localLab) return;
+
+        let updatedLab = localLab;
+
+        for (const tank of localLab.equipment.tanks) {
+          for (const rack of tank.racks) {
+            // Unassign rack if owned by this user
+            if (rack.assignedUserId === userId) {
+              updatedLab = assignRackInLab(updatedLab, tank.id, rack.id, undefined);
+            }
+            // Unassign boxes explicitly assigned to this user
+            for (const box of rack.boxes) {
+              if (box.assignedUserId === userId) {
+                updatedLab = assignBoxInLab(updatedLab, tank.id, rack.id, box.id, null);
+              }
+            }
+          }
+        }
+
+        setLocalLab(updatedLab);
+        modalService.hideDeleteConfirm();
+      },
+    });
+  };
+
+  const handleBulkReassign = (fromUserId: string, toUserId: string) => {
+    if (!localLab) return;
+
+    // Count resources to show in confirmation
+    let rackCount = 0;
+    let boxCount = 0;
+    for (const tank of localLab.equipment.tanks) {
+      for (const rack of tank.racks) {
+        if (rack.assignedUserId === fromUserId) rackCount++;
+        for (const box of rack.boxes) {
+          if (box.assignedUserId === fromUserId) {
+            boxCount++;
+          } else if (box.assignedUserId === undefined && rack.assignedUserId === fromUserId) {
+            boxCount++;
+          }
+        }
+      }
+    }
+
+    const fromUserInfo = getUserInfo(fromUserId);
+    const toUserInfo = getUserInfo(toUserId);
+    const fromUsername = fromUserInfo?.username ?? 'this user';
+    const toUsername = toUserInfo?.username ?? 'the selected user';
+
+    modalService.showDeleteConfirm({
+      title: 'Reassign All Resources',
+      confirmText: 'Reassign All',
+      message: (
+        <>
+          Are you sure you want to reassign{' '}
+          <strong>
+            {rackCount} rack{rackCount !== 1 ? 's' : ''}
+          </strong>{' '}
+          and{' '}
+          <strong>
+            {boxCount} box{boxCount !== 1 ? 'es' : ''}
+          </strong>{' '}
+          from <strong>{fromUsername}</strong> to <strong>{toUsername}</strong>?
+        </>
+      ),
+      onConfirm: () => {
+        if (!localLab) return;
+
+        let updatedLab = localLab;
+
+        for (const tank of localLab.equipment.tanks) {
+          for (const rack of tank.racks) {
+            // Reassign rack if owned by fromUser
+            if (rack.assignedUserId === fromUserId) {
+              updatedLab = assignRackInLab(updatedLab, tank.id, rack.id, toUserId);
+            }
+            // Reassign boxes explicitly assigned to fromUser
+            for (const box of rack.boxes) {
+              if (box.assignedUserId === fromUserId) {
+                updatedLab = assignBoxInLab(updatedLab, tank.id, rack.id, box.id, toUserId);
+              }
+            }
+          }
+        }
+
+        setLocalLab(updatedLab);
+        modalService.hideDeleteConfirm();
+      },
+    });
+  };
+
   // ========== RENDER ==========
   if (!isOpen || !localLab) return null;
 
@@ -481,46 +617,86 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           </div>
         </div>
 
-        <div className="flex-1 p-3 overflow-y-auto">
-          <div className="space-y-2">
-            {/* Add New Tank Button (Admin Only) */}
-            {canManageStorage && (
-              <div className="flex justify-end">
-                <button
-                  onClick={handleAddNewTank}
-                  className="flex items-center gap-2 bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-medium text-sm focus-ring-default"
-                >
-                  <Plus size={16} />
-                  Add New Tank
-                </button>
-              </div>
-            )}
+        {/* View Mode Tabs */}
+        <div className="flex items-center gap-1 px-4 py-2 border-b border-gray-200 bg-gray-50">
+          <button
+            type="button"
+            onClick={() => setViewMode('tree')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus-ring-default ${
+              viewMode === 'tree'
+                ? 'bg-slate-600 text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-300'
+            }`}
+          >
+            <ListTree size={14} />
+            By Location
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('byUser')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus-ring-default ${
+              viewMode === 'byUser'
+                ? 'bg-slate-600 text-white'
+                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-300'
+            }`}
+          >
+            <UsersRound size={14} />
+            By User
+          </button>
+        </div>
 
-            {/* Tanks List */}
-            <StorageManagementContext.Provider value={contextValue}>
-              <div className="space-y-1.5">
-                {localLab.equipment.tanks.map(tank => (
-                  <TankRow
-                    key={tank.id}
-                    tank={tank}
-                    collapsed={collapsedTanks.has(tank.id)}
-                    rackCountToAdd={rackCountToAdd[tank.id] || 1}
-                    boxCountToAdd={boxCountToAdd}
-                    onToggleCollapse={() => toggleTankCollapse(tank.id)}
-                    onToggleRackCollapse={toggleRackCollapse}
-                    onRackCountChange={count =>
-                      setRackCountToAdd(prev => ({ ...prev, [tank.id]: count }))
-                    }
-                    onBoxCountChange={(rackKey, count) =>
-                      setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
-                    }
-                    collapsedRacks={collapsedRacks}
-                    canDeleteTank={localLab.equipment.tanks.length > 1}
-                  />
-                ))}
-              </div>
-            </StorageManagementContext.Provider>
-          </div>
+        <div className="flex-1 p-3 overflow-y-auto">
+          {viewMode === 'tree' ? (
+            <div className="space-y-2">
+              {/* Add New Tank Button (Admin Only) */}
+              {canManageStorage && (
+                <div className="flex justify-end">
+                  <button
+                    onClick={handleAddNewTank}
+                    className="flex items-center gap-2 bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-medium text-sm focus-ring-default"
+                  >
+                    <Plus size={16} />
+                    Add New Tank
+                  </button>
+                </div>
+              )}
+
+              {/* Tanks List */}
+              <StorageManagementContext.Provider value={contextValue}>
+                <div className="space-y-1.5">
+                  {localLab.equipment.tanks.map(tank => (
+                    <TankRow
+                      key={tank.id}
+                      tank={tank}
+                      collapsed={collapsedTanks.has(tank.id)}
+                      rackCountToAdd={rackCountToAdd[tank.id] || 1}
+                      boxCountToAdd={boxCountToAdd}
+                      onToggleCollapse={() => toggleTankCollapse(tank.id)}
+                      onToggleRackCollapse={toggleRackCollapse}
+                      onRackCountChange={count =>
+                        setRackCountToAdd(prev => ({ ...prev, [tank.id]: count }))
+                      }
+                      onBoxCountChange={(rackKey, count) =>
+                        setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
+                      }
+                      collapsedRacks={collapsedRacks}
+                      canDeleteTank={localLab.equipment.tanks.length > 1}
+                    />
+                  ))}
+                </div>
+              </StorageManagementContext.Provider>
+            </div>
+          ) : (
+            <AssignmentsByUserView
+              lab={localLab}
+              getUserInfo={getUserInfo}
+              currentUserId={currentUser?.id}
+              canManageStorage={canManageStorage}
+              users={users}
+              onBulkUnassign={handleBulkUnassign}
+              onBulkReassign={handleBulkReassign}
+            />
+          )}
         </div>
 
         {/* Footer with Legend and Save/Cancel */}

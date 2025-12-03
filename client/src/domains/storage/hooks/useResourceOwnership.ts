@@ -6,6 +6,8 @@ import type { AdminUser } from '@odysseus/shared-schemas';
 interface UserInfo {
   initials: string;
   username: string;
+  firstName?: string;
+  lastName?: string;
 }
 
 interface UseResourceOwnershipResult {
@@ -45,7 +47,12 @@ export function useResourceOwnership(
           initials = (first + last).toUpperCase();
         }
 
-        return { initials, username: user.username };
+        return {
+          initials,
+          username: user.username,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        };
       },
     [users]
   );

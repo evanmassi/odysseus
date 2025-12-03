@@ -5,6 +5,8 @@
  * Replaces old Zustand-based system with type-safe, scalable architecture.
  */
 
+import type { ReactNode } from 'react';
+
 import { create } from 'zustand';
 
 import { type PositionKey } from '@shared/types/grid';
@@ -12,7 +14,8 @@ import { type PositionKey } from '@shared/types/grid';
 interface DeleteConfirmState {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: ReactNode;
+  confirmText?: string;
   onConfirm: () => void;
   onCancel: () => void;
   previousFocusElement?: HTMLElement | null;
@@ -59,7 +62,8 @@ interface LocalModalState {
 interface ModalActions {
   showDeleteConfirm: (config: {
     title: string;
-    message: string;
+    message: ReactNode;
+    confirmText?: string;
     onConfirm: () => void;
     onCancel?: () => void;
   }) => void;
@@ -145,6 +149,7 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
         isOpen: true,
         title: config.title,
         message: config.message,
+        confirmText: config.confirmText,
         onConfirm: config.onConfirm,
         onCancel: config.onCancel ?? (() => get().hideDeleteConfirm()),
         previousFocusElement,

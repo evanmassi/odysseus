@@ -23,7 +23,7 @@
  * />
  */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import { X, AlertTriangle } from 'lucide-react';
 
@@ -40,8 +40,8 @@ export interface ConfirmDialogProps {
   /** Dialog title */
   title: string;
 
-  /** Confirmation message */
-  message: string;
+  /** Confirmation message - can include React elements for formatting */
+  message: ReactNode;
 
   /** Text for confirm button (e.g., "Delete", "Overwrite") */
   confirmText?: string;
