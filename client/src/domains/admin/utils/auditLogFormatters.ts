@@ -37,7 +37,9 @@ function isAuditChangeRecord(value: unknown): value is AuditChangeRecord {
 /**
  * Type guard to check if parsed details has a changes array
  */
-function hasChangesArray(details: unknown): details is { changes: unknown[] } & Record<string, unknown> {
+function hasChangesArray(
+  details: unknown
+): details is { changes: unknown[] } & Record<string, unknown> {
   return (
     typeof details === 'object' &&
     details !== null &&
@@ -89,9 +91,7 @@ function findChangeByField(
     return undefined;
   }
 
-  return details.changes
-    .filter(isAuditChangeRecord)
-    .find((change) => change.field === fieldName);
+  return details.changes.filter(isAuditChangeRecord).find(change => change.field === fieldName);
 }
 
 /**
@@ -127,11 +127,13 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
     // TANK EVENTS
     if (entityType === 'tank') {
       if (action === 'tank_created') {
-        const tankName = getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
+        const tankName =
+          getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
         return `Tank '${tankName}'`;
       }
       if (action === 'tank_deleted') {
-        const tankName = getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
+        const tankName =
+          getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
         return `Tank '${tankName}'`;
       }
       if (action === 'tank_updated') {
@@ -151,8 +153,12 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
 
     // RACK EVENTS
     if (entityType === 'rack') {
-      const tankName = getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
-      const rackName = getStringProperty(details, 'rackName') || `Rack ${getStringProperty(details, 'rackId')}` || '';
+      const tankName =
+        getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
+      const rackName =
+        getStringProperty(details, 'rackName') ||
+        `Rack ${getStringProperty(details, 'rackId')}` ||
+        '';
       const path = `${tankName}/${rackName}`;
 
       if (action === 'rack_created') {
@@ -172,14 +178,44 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
           return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
         }
       }
+      if (action === 'rack_label_updated') {
+        const oldLabel = details['oldLabel'] as string | null;
+        const newLabel = details['newLabel'] as string | null;
+        if (oldLabel && newLabel) {
+          return `${path}: Label changed from '${oldLabel}' to '${newLabel}'`;
+        } else if (newLabel) {
+          return `${path}: Label set to '${newLabel}'`;
+        } else if (oldLabel) {
+          return `${path}: Label '${oldLabel}' removed`;
+        }
+        return path;
+      }
+      if (action === 'rack_assigned') {
+        const newOwner = details['newOwner'] as { username?: string } | null;
+        return `${path} assigned to ${newOwner?.username ?? 'user'}`;
+      }
+      if (action === 'rack_unassigned') {
+        const previousOwner = details['previousOwner'] as { username?: string } | null;
+        return `${path} unassigned from ${previousOwner?.username ?? 'user'}`;
+      }
+      if (action === 'rack_reassigned') {
+        const previousOwner = details['previousOwner'] as { username?: string } | null;
+        const newOwner = details['newOwner'] as { username?: string } | null;
+        return `${path}: ${previousOwner?.username ?? 'user'} → ${newOwner?.username ?? 'user'}`;
+      }
       return path;
     }
 
     // BOX EVENTS
     if (entityType === 'box') {
-      const tankName = getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
-      const rackName = getStringProperty(details, 'rackName') || `Rack ${getStringProperty(details, 'rackId')}` || '';
-      const boxName = getStringProperty(details, 'boxName') || `Box ${getStringProperty(details, 'boxId')}` || '';
+      const tankName =
+        getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
+      const rackName =
+        getStringProperty(details, 'rackName') ||
+        `Rack ${getStringProperty(details, 'rackId')}` ||
+        '';
+      const boxName =
+        getStringProperty(details, 'boxName') || `Box ${getStringProperty(details, 'boxId')}` || '';
       const path = `${tankName}/${rackName}/${boxName}`;
 
       if (action === 'box_created') {
@@ -203,6 +239,31 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
         if (activeChange) {
           return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
         }
+      }
+      if (action === 'box_label_updated') {
+        const oldLabel = details['oldLabel'] as string | null;
+        const newLabel = details['newLabel'] as string | null;
+        if (oldLabel && newLabel) {
+          return `${path}: Label changed from '${oldLabel}' to '${newLabel}'`;
+        } else if (newLabel) {
+          return `${path}: Label set to '${newLabel}'`;
+        } else if (oldLabel) {
+          return `${path}: Label '${oldLabel}' removed`;
+        }
+        return path;
+      }
+      if (action === 'box_assigned') {
+        const newOwner = details['newOwner'] as { username?: string } | null;
+        return `${path} assigned to ${newOwner?.username ?? 'user'}`;
+      }
+      if (action === 'box_unassigned') {
+        const previousOwner = details['previousOwner'] as { username?: string } | null;
+        return `${path} unassigned from ${previousOwner?.username ?? 'user'}`;
+      }
+      if (action === 'box_reassigned') {
+        const previousOwner = details['previousOwner'] as { username?: string } | null;
+        const newOwner = details['newOwner'] as { username?: string } | null;
+        return `${path}: ${previousOwner?.username ?? 'user'} → ${newOwner?.username ?? 'user'}`;
       }
       return path;
     }
@@ -270,7 +331,9 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
       if (action === 'user_created') {
         const role = getStringProperty(details, 'role') || 'user';
         const isFirstUser = username !== '-' && !changedBy;
-        return isFirstUser ? `${username} (Role: ${role}) - First user setup` : `${username} (Role: ${role})`;
+        return isFirstUser
+          ? `${username} (Role: ${role}) - First user setup`
+          : `${username} (Role: ${role})`;
       }
       if (action === 'user_logged_in') {
         return username;
@@ -297,6 +360,23 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
         return `${username} by ${deletedBy}`;
       }
       return username;
+    }
+
+    // BULK CONFIGURATION EVENTS
+    if (entityType === 'configuration') {
+      const fromUser = details['fromUser'] as { username?: string } | null;
+      const toUser = details['toUser'] as { username?: string } | null;
+      const racksAffected = getNumberProperty(details, 'racksAffected');
+      const boxesAffected = getNumberProperty(details, 'boxesAffected');
+      const resourceSummary = `${racksAffected} rack${racksAffected !== 1 ? 's' : ''}, ${boxesAffected} box${boxesAffected !== 1 ? 'es' : ''}`;
+
+      if (action === 'resources_bulk_unassigned') {
+        return `${resourceSummary} unassigned from ${fromUser?.username ?? 'user'}`;
+      }
+      if (action === 'resources_bulk_reassigned') {
+        return `${resourceSummary}: ${fromUser?.username ?? 'user'} → ${toUser?.username ?? 'user'}`;
+      }
+      return resourceSummary;
     }
 
     return '-';

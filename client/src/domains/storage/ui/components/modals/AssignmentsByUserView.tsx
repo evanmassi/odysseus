@@ -76,7 +76,7 @@ export function AssignmentsByUserView({
   onBulkReassign,
 }: AssignmentsByUserViewProps) {
   // Track expanded/collapsed users
-  const [expandedUsers, setExpandedUsers] = React.useState<Set<string | null>>(() => new Set());
+  const [expandedUsers, setExpandedUsers] = useState<Set<string | null>>(() => new Set());
 
   // Track which user row is showing the reassign dropdown
   const [reassigningUserId, setReassigningUserId] = useState<string | null>(null);

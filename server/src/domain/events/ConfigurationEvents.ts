@@ -524,3 +524,55 @@ export class BoxLabelUpdatedEvent extends DomainEvent {
     return `${this.tankId}-${this.rackId}-${this.boxId}`;
   }
 }
+
+/**
+ * Bulk Resources Unassigned Event
+ *
+ * Fired when multiple resources are unassigned from a user at once.
+ */
+export class BulkResourcesUnassignedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly fromUserId: string,
+    public readonly fromUsername: string,
+    public readonly racksAffected: number,
+    public readonly boxesAffected: number
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'BulkResourcesUnassigned';
+  }
+
+  getAggregateId(): string {
+    return 'system-configuration';
+  }
+}
+
+/**
+ * Bulk Resources Reassigned Event
+ *
+ * Fired when multiple resources are reassigned from one user to another.
+ */
+export class BulkResourcesReassignedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly fromUserId: string,
+    public readonly fromUsername: string,
+    public readonly toUserId: string,
+    public readonly toUsername: string,
+    public readonly racksAffected: number,
+    public readonly boxesAffected: number
+  ) {
+    super();
+  }
+
+  eventName(): string {
+    return 'BulkResourcesReassigned';
+  }
+
+  getAggregateId(): string {
+    return 'system-configuration';
+  }
+}

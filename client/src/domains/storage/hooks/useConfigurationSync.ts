@@ -23,15 +23,13 @@ export function useConfigurationSync() {
   const saveMutation = useSaveStorageMutation();
   const queryClient = useQueryClient();
 
-  // Track if we've already synced to prevent infinite loops
-  const hasSynced = useRef(false);
+  // Track if initial save has been attempted (for fresh installs only)
   const hasInitialized = useRef(false);
 
-  // Sync server data to client store with cache invalidation
+  // Sync server data to client store whenever React Query data changes
+  // React Query's caching ensures this only runs when data actually changes
   useEffect(() => {
-    if (isSuccess && data && !hasSynced.current) {
-      hasSynced.current = true;
-
+    if (isSuccess && data) {
       const serverSystemConfig = data.configuration.systemConfig;
       const serverCurrentLab = data.configuration.currentLab;
       const serverVersion = serverSystemConfig.version;
@@ -75,9 +73,6 @@ export function useConfigurationSync() {
           currentLab: store.currentLab,
         },
         {
-          onSuccess: () => {
-            hasSynced.current = true;
-          },
           onError: saveError => {
             logger.error('Failed to save initial configuration', { saveError });
             hasInitialized.current = false; // Allow retry on error
@@ -132,8 +127,8 @@ export function useConfigurationSync() {
   }, [queryClient]);
 
   return {
-    isSyncing: !isSuccess && !isError && !hasSynced.current,
+    isSyncing: !isSuccess && !isError,
     isError: isError && !hasInitialized.current,
-    isSynced: hasSynced.current,
+    isSynced: isSuccess,
   };
 }

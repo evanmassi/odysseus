@@ -17,7 +17,17 @@ import {
   BoxAddedEvent,
   BoxDeletedEvent,
   BoxUpdatedEvent,
-  LabNameChangedEvent
+  LabNameChangedEvent,
+  RackAssignedEvent,
+  RackUnassignedEvent,
+  RackReassignedEvent,
+  BoxAssignedEvent,
+  BoxUnassignedEvent,
+  BoxReassignedEvent,
+  RackLabelUpdatedEvent,
+  BoxLabelUpdatedEvent,
+  BulkResourcesUnassignedEvent,
+  BulkResourcesReassignedEvent
 } from '@domain/events/ConfigurationEvents';
 import {
   UserCreatedEvent,
@@ -85,6 +95,22 @@ export class AuditEventHandler {
     this.eventBus.subscribe('BoxDeleted', this.handleBoxDeleted.bind(this) as any);
     this.eventBus.subscribe('BoxUpdated', this.handleBoxUpdated.bind(this) as any);
     this.eventBus.subscribe('LabNameChanged', this.handleLabNameChanged.bind(this) as any);
+
+    // Assignment events
+    this.eventBus.subscribe('RackAssigned', this.handleRackAssigned.bind(this) as any);
+    this.eventBus.subscribe('RackUnassigned', this.handleRackUnassigned.bind(this) as any);
+    this.eventBus.subscribe('RackReassigned', this.handleRackReassigned.bind(this) as any);
+    this.eventBus.subscribe('BoxAssigned', this.handleBoxAssigned.bind(this) as any);
+    this.eventBus.subscribe('BoxUnassigned', this.handleBoxUnassigned.bind(this) as any);
+    this.eventBus.subscribe('BoxReassigned', this.handleBoxReassigned.bind(this) as any);
+
+    // Label events
+    this.eventBus.subscribe('RackLabelUpdated', this.handleRackLabelUpdated.bind(this) as any);
+    this.eventBus.subscribe('BoxLabelUpdated', this.handleBoxLabelUpdated.bind(this) as any);
+
+    // Bulk assignment events
+    this.eventBus.subscribe('BulkResourcesUnassigned', this.handleBulkResourcesUnassigned.bind(this) as any);
+    this.eventBus.subscribe('BulkResourcesReassigned', this.handleBulkResourcesReassigned.bind(this) as any);
 
     // User events
     this.eventBus.subscribe('UserCreated', this.handleUserCreated.bind(this) as any);
@@ -708,6 +734,409 @@ export class AuditEventHandler {
     }
   }
 
+  // ASSIGNMENT EVENT HANDLERS
+
+  /**
+   * Handle RackAssigned event
+   *
+   * Logs when a rack is assigned to a user (from unassigned state).
+   */
+  private async handleRackAssigned(event: RackAssignedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'rack_assigned',
+        entityType: 'rack',
+        entityId: `${event.tankId}-${event.rackId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          previousOwner: null,
+          newOwner: {
+            userId: event.assignedUserId,
+            username: event.assignedUsername,
+          },
+          assignedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log rack assigned event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+      });
+    }
+  }
+
+  /**
+   * Handle RackUnassigned event
+   *
+   * Logs when a rack is unassigned (made common).
+   */
+  private async handleRackUnassigned(event: RackUnassignedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'rack_unassigned',
+        entityType: 'rack',
+        entityId: `${event.tankId}-${event.rackId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          previousOwner: {
+            userId: event.previousUserId,
+            username: event.previousUsername,
+          },
+          newOwner: null,
+          unassignedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log rack unassigned event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+      });
+    }
+  }
+
+  /**
+   * Handle RackReassigned event
+   *
+   * Logs when a rack is reassigned from one user to another.
+   */
+  private async handleRackReassigned(event: RackReassignedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'rack_reassigned',
+        entityType: 'rack',
+        entityId: `${event.tankId}-${event.rackId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          previousOwner: {
+            userId: event.previousUserId,
+            username: event.previousUsername,
+          },
+          newOwner: {
+            userId: event.newUserId,
+            username: event.newUsername,
+          },
+          reassignedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log rack reassigned event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+      });
+    }
+  }
+
+  /**
+   * Handle BoxAssigned event
+   *
+   * Logs when a box is assigned to a user (from unassigned state).
+   */
+  private async handleBoxAssigned(event: BoxAssignedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'box_assigned',
+        entityType: 'box',
+        entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          boxId: event.boxId,
+          boxName: event.boxName,
+          previousOwner: null,
+          newOwner: {
+            userId: event.assignedUserId,
+            username: event.assignedUsername,
+          },
+          assignedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log box assigned event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+        boxId: event.boxId,
+      });
+    }
+  }
+
+  /**
+   * Handle BoxUnassigned event
+   *
+   * Logs when a box is unassigned (made common).
+   */
+  private async handleBoxUnassigned(event: BoxUnassignedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'box_unassigned',
+        entityType: 'box',
+        entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          boxId: event.boxId,
+          boxName: event.boxName,
+          previousOwner: {
+            userId: event.previousUserId,
+            username: event.previousUsername,
+          },
+          newOwner: null,
+          unassignedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log box unassigned event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+        boxId: event.boxId,
+      });
+    }
+  }
+
+  /**
+   * Handle BoxReassigned event
+   *
+   * Logs when a box is reassigned from one user to another.
+   */
+  private async handleBoxReassigned(event: BoxReassignedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'box_reassigned',
+        entityType: 'box',
+        entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          boxId: event.boxId,
+          boxName: event.boxName,
+          previousOwner: {
+            userId: event.previousUserId,
+            username: event.previousUsername,
+          },
+          newOwner: {
+            userId: event.newUserId,
+            username: event.newUsername,
+          },
+          reassignedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log box reassigned event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+        boxId: event.boxId,
+      });
+    }
+  }
+
+  // LABEL EVENT HANDLERS
+
+  /**
+   * Handle RackLabelUpdated event
+   *
+   * Logs when a rack's custom label is created, updated, or removed.
+   */
+  private async handleRackLabelUpdated(event: RackLabelUpdatedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'rack_label_updated',
+        entityType: 'rack',
+        entityId: `${event.tankId}-${event.rackId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          oldLabel: event.oldLabel || null,
+          newLabel: event.newLabel || null,
+          updatedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log rack label updated event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+      });
+    }
+  }
+
+  /**
+   * Handle BoxLabelUpdated event
+   *
+   * Logs when a box's custom label is created, updated, or removed.
+   */
+  private async handleBoxLabelUpdated(event: BoxLabelUpdatedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'box_label_updated',
+        entityType: 'box',
+        entityId: `${event.tankId}-${event.rackId}-${event.boxId}`,
+        details: {
+          tankId: event.tankId,
+          tankName: event.tankName,
+          rackId: event.rackId,
+          rackName: event.rackName,
+          boxId: event.boxId,
+          boxName: event.boxName,
+          oldLabel: event.oldLabel || null,
+          newLabel: event.newLabel || null,
+          updatedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log box label updated event', {
+        error: error instanceof Error ? error.message : String(error),
+        tankId: event.tankId,
+        rackId: event.rackId,
+        boxId: event.boxId,
+      });
+    }
+  }
+
+  // BULK ASSIGNMENT EVENT HANDLERS
+
+  /**
+   * Handle BulkResourcesUnassigned event
+   *
+   * Logs when multiple resources are unassigned from a user at once.
+   */
+  private async handleBulkResourcesUnassigned(event: BulkResourcesUnassignedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'resources_bulk_unassigned',
+        entityType: 'configuration',
+        details: {
+          fromUser: {
+            userId: event.fromUserId,
+            username: event.fromUsername,
+          },
+          racksAffected: event.racksAffected,
+          boxesAffected: event.boxesAffected,
+          unassignedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log bulk resources unassigned event', {
+        error: error instanceof Error ? error.message : String(error),
+        fromUserId: event.fromUserId,
+      });
+    }
+  }
+
+  /**
+   * Handle BulkResourcesReassigned event
+   *
+   * Logs when multiple resources are reassigned from one user to another.
+   */
+  private async handleBulkResourcesReassigned(event: BulkResourcesReassignedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.userId);
+      const username = user?.username || event.userId;
+
+      await this.auditService.logAction({
+        userId: event.userId,
+        username: username,
+        action: 'resources_bulk_reassigned',
+        entityType: 'configuration',
+        details: {
+          fromUser: {
+            userId: event.fromUserId,
+            username: event.fromUsername,
+          },
+          toUser: {
+            userId: event.toUserId,
+            username: event.toUsername,
+          },
+          racksAffected: event.racksAffected,
+          boxesAffected: event.boxesAffected,
+          reassignedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log bulk resources reassigned event', {
+        error: error instanceof Error ? error.message : String(error),
+        fromUserId: event.fromUserId,
+        toUserId: event.toUserId,
+      });
+    }
+  }
+
   // RESEARCHER EVENT HANDLERS
 
   private async handleResearcherCreated(event: ResearcherCreatedEvent): Promise<void> {
@@ -1041,6 +1470,19 @@ export class AuditEventHandler {
     this.eventBus.unsubscribe('BoxDeleted', this.handleBoxDeleted.bind(this) as any);
     this.eventBus.unsubscribe('BoxUpdated', this.handleBoxUpdated.bind(this) as any);
     this.eventBus.unsubscribe('LabNameChanged', this.handleLabNameChanged.bind(this) as any);
+
+    this.eventBus.unsubscribe('RackAssigned', this.handleRackAssigned.bind(this) as any);
+    this.eventBus.unsubscribe('RackUnassigned', this.handleRackUnassigned.bind(this) as any);
+    this.eventBus.unsubscribe('RackReassigned', this.handleRackReassigned.bind(this) as any);
+    this.eventBus.unsubscribe('BoxAssigned', this.handleBoxAssigned.bind(this) as any);
+    this.eventBus.unsubscribe('BoxUnassigned', this.handleBoxUnassigned.bind(this) as any);
+    this.eventBus.unsubscribe('BoxReassigned', this.handleBoxReassigned.bind(this) as any);
+
+    this.eventBus.unsubscribe('RackLabelUpdated', this.handleRackLabelUpdated.bind(this) as any);
+    this.eventBus.unsubscribe('BoxLabelUpdated', this.handleBoxLabelUpdated.bind(this) as any);
+
+    this.eventBus.unsubscribe('BulkResourcesUnassigned', this.handleBulkResourcesUnassigned.bind(this) as any);
+    this.eventBus.unsubscribe('BulkResourcesReassigned', this.handleBulkResourcesReassigned.bind(this) as any);
 
     this.eventBus.unsubscribe('UserCreated', this.handleUserCreated.bind(this) as any);
     this.eventBus.unsubscribe('UserPasswordChanged', this.handleUserPasswordChanged.bind(this) as any);
