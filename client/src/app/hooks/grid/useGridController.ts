@@ -10,7 +10,7 @@ import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import { tubeDataToCreateRequest } from '@odysseus/shared-schemas';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useStorageStore } from '@domains/storage';
+import { useStorageData } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
@@ -21,10 +21,12 @@ import { notifications } from '@shared/utils/notifications';
 import { validatePasteOperation } from '@shared/utils/pasteValidation';
 
 import type { ClipboardData } from '@shared/types/clipboard';
-import type { PositionKey, GridControllerProps, GridControllerReturn, TubeClipboardItem } from '@shared/types/grid';
-
-
-
+import type {
+  PositionKey,
+  GridControllerProps,
+  GridControllerReturn,
+  TubeClipboardItem,
+} from '@shared/types/grid';
 
 export const useGridController = ({
   tankId,
@@ -34,7 +36,7 @@ export const useGridController = ({
   onSelectionChange,
   resolveTubeIdAtPosition,
   onDeleteTubes,
-  onPasteTubes
+  onPasteTubes,
 }: GridControllerProps): GridControllerReturn => {
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
 
@@ -45,7 +47,7 @@ export const useGridController = ({
   const setMousePositionStore = useGridUiStore(state => state.setMousePosition);
 
   const modalService = useModalStore();
-  const { getBox } = useStorageStore();
+  const { getBox } = useStorageData();
 
   // Click timer for double-click detection
   const clickTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -63,12 +65,12 @@ export const useGridController = ({
   const [contextMenu, setContextMenu] = useState({
     isOpen: false,
     x: 0,
-    y: 0
+    y: 0,
   });
-  
+
   // Get tube data for the current location
   const { data: tubes = [] } = useTubesByLocation(tankId, rackId, boxId);
-  
+
   // Create a lookup map for position -> tubeId resolution
   const positionToTubeMap = useMemo(() => {
     const map = new Map<number, string>();
@@ -83,11 +85,16 @@ export const useGridController = ({
   // Default tube resolution if not provided
   const resolveTube = useMemo(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Function fallback: use provided resolver or default implementation
-    () => resolveTubeIdAtPosition || ((position: number) => positionToTubeMap.get(position) ?? null),
+    () =>
+      resolveTubeIdAtPosition || ((position: number) => positionToTubeMap.get(position) ?? null),
     [resolveTubeIdAtPosition, positionToTubeMap]
   );
 
-  const handlePositionClick = (position: number, event: React.MouseEvent | React.KeyboardEvent, gridSize: number = 9) => {
+  const handlePositionClick = (
+    position: number,
+    event: React.MouseEvent | React.KeyboardEvent,
+    gridSize: number = 9
+  ) => {
     // Clear any pending click timer
     if (clickTimerRef.current) {
       clearTimeout(clickTimerRef.current);
@@ -177,7 +184,7 @@ export const useGridController = ({
       hasEmptySelection: emptyCount > 0,
       isMixed: filledCount > 0 && emptyCount > 0,
       allFilled: filledCount > 0 && emptyCount === 0,
-      allEmpty: emptyCount > 0 && filledCount === 0
+      allEmpty: emptyCount > 0 && filledCount === 0,
     };
   }, [selectedPositions, resolveTube]);
 
@@ -191,7 +198,7 @@ export const useGridController = ({
         mode: 'add',
         positions,
         rackId,
-        boxId
+        boxId,
       });
     } else if (selectionAnalysis.allFilled) {
       // All filled - open edit modal
@@ -207,13 +214,13 @@ export const useGridController = ({
       if (selectedTubeIds.length === 1) {
         modalService.showTubeEditorModal({
           mode: 'edit',
-          tubeId: selectedTubeIds[0]
+          tubeId: selectedTubeIds[0],
         });
       } else {
         modalService.showTubeEditorModal({
           mode: 'batch',
           tubeIds: selectedTubeIds,
-          preserveSelection: true  // Maintain multi-selection after batch operation
+          preserveSelection: true, // Maintain multi-selection after batch operation
         });
       }
     }
@@ -240,7 +247,7 @@ export const useGridController = ({
       // Filled position - open edit modal
       modalService.showTubeEditorModal({
         mode: 'edit',
-        tubeId
+        tubeId,
       });
     } else {
       // Empty position - open add modal
@@ -248,7 +255,7 @@ export const useGridController = ({
         mode: 'add',
         positions: [positionKey],
         rackId,
-        boxId
+        boxId,
       });
     }
   };
@@ -259,15 +266,18 @@ export const useGridController = ({
     onSelectionChange(newSelection);
   };
 
-  const isPositionSelected = useCallback((position: number) => {
-    const positionKey = toPositionKey(ctx, position);
-    return selectedPositions.has(positionKey);
-  }, [ctx, selectedPositions]);
+  const isPositionSelected = useCallback(
+    (position: number) => {
+      const positionKey = toPositionKey(ctx, position);
+      return selectedPositions.has(positionKey);
+    },
+    [ctx, selectedPositions]
+  );
 
   // Helper: Get selected positions in current box
   const selectedPositionsInThisBox = useCallback((): number[] => {
     const positions: number[] = [];
-    selectedPositions.forEach((key) => {
+    selectedPositions.forEach(key => {
       const { tankId: t, rackId: r, boxId: b, position } = parsePositionKey(key);
       if (t === tankId && r === rackId && b === boxId) {
         positions.push(position);
@@ -282,7 +292,7 @@ export const useGridController = ({
     if (positions.length === 0) return;
 
     const items: TubeClipboardItem[] = positions
-      .map((position) => {
+      .map(position => {
         const tubeId = resolveTube(position);
         return tubeId ? { tubeId, fromPosition: position } : null;
       })
@@ -310,7 +320,7 @@ export const useGridController = ({
     if (positions.length === 0) return;
 
     const items: TubeClipboardItem[] = positions
-      .map((position) => {
+      .map(position => {
         const tubeId = resolveTube(position);
         return tubeId ? { tubeId, fromPosition: position } : null;
       })
@@ -339,179 +349,200 @@ export const useGridController = ({
   // Paste operation - dual-mode behavior
   // 1. Fill Mode: More targets than clipboard → Repeat pattern (Excel fill handle)
   // 2. Spatial Pattern Mode: Equal/fewer targets → Preserve 2D layout
-  const paste = useCallback(async (options?: { targetStart?: number }) => {
-    let clipData = clipboard;
+  const paste = useCallback(
+    async (options?: { targetStart?: number }) => {
+      let clipData = clipboard;
 
-    // Try OS clipboard if no in-app clipboard
-    if (!clipData) {
-      clipData = await readClipboardOS();
-      if (clipData) setClipboard(clipData);
-    }
+      // Try OS clipboard if no in-app clipboard
+      if (!clipData) {
+        clipData = await readClipboardOS();
+        if (clipData) setClipboard(clipData);
+      }
 
-    if (!clipData || clipData.tubes.length === 0) return;
+      if (!clipData || clipData.tubes.length === 0) return;
 
-    // Determine target positions
-    const selectedPositions = selectedPositionsInThisBox();
+      // Determine target positions
+      const selectedPositions = selectedPositionsInThisBox();
 
-    // Two paste modes based on selection size
-    const shouldFillTargets = selectedPositions.length > clipData.tubes.length;
+      // Two paste modes based on selection size
+      const shouldFillTargets = selectedPositions.length > clipData.tubes.length;
 
-    let tubesToPaste: ReturnType<typeof tubeDataToCreateRequest>[];
+      let tubesToPaste: ReturnType<typeof tubeDataToCreateRequest>[];
 
-    if (shouldFillTargets) {
-      // Fill Mode: Repeat clipboard pattern across all selected positions
-      // Matches Excel's fill handle behavior
-      tubesToPaste = selectedPositions.map((targetPos, i) => {
-        const sourceTube = clipData.tubes[i % clipData.tubes.length];
-        return tubeDataToCreateRequest(sourceTube, {
-          tankId: ctx.tankId,
-          rackId: ctx.rackId,
-          boxId: ctx.boxId,
-          position: targetPos
-        });
-      });
-    } else {
-      // Spatial Pattern Mode: Preserve relative positioning of clipboard items
-      // Matches Excel's copy/paste of multi-cell ranges
-      const anchorPosition = selectedPositions.length > 0
-        ? Math.min(...selectedPositions)
-        : options?.targetStart;
-
-      if (anchorPosition === undefined) return;
-
-      // Validate paste operation across different grid configurations
-      const sourceGridConfig = getBox(
-        (clipData.sourceLocation ?? ctx).tankId,
-        (clipData.sourceLocation ?? ctx).rackId,
-        (clipData.sourceLocation ?? ctx).boxId
-      )?.gridConfig;
-
-      const targetGridConfig = getBox(tankId, rackId, boxId)?.gridConfig;
-
-      // Perform validation if both grid configs are available
-      if (sourceGridConfig && targetGridConfig) {
-        const sourcePositions = clipData.tubes.map(tube => tube.location.position);
-        const validation = validatePasteOperation(
-          sourcePositions,
-          anchorPosition,
-          sourceGridConfig,
-          targetGridConfig
-        );
-
-        // Show warning modal if validation failed
-        if (!validation.isValid) {
-          const userConfirmed = await new Promise<boolean>((resolve) => {
-            modalService.showOverwriteConfirm({
-              title: 'Paste Warning',
-              message: validation.warnings.join('\n\n') + '\n\nDo you want to continue?',
-              confirmText: 'Paste Anyway',
-              onConfirm: () => {
-                modalService.hideOverwriteConfirm();
-                resolve(true);
-              },
-              onCancel: () => {
-                modalService.hideOverwriteConfirm();
-                resolve(false);
-              }
-            });
+      if (shouldFillTargets) {
+        // Fill Mode: Repeat clipboard pattern across all selected positions
+        // Matches Excel's fill handle behavior
+        tubesToPaste = selectedPositions.map((targetPos, i) => {
+          const sourceTube = clipData.tubes[i % clipData.tubes.length];
+          return tubeDataToCreateRequest(sourceTube, {
+            tankId: ctx.tankId,
+            rackId: ctx.rackId,
+            boxId: ctx.boxId,
+            position: targetPos,
           });
+        });
+      } else {
+        // Spatial Pattern Mode: Preserve relative positioning of clipboard items
+        // Matches Excel's copy/paste of multi-cell ranges
+        const anchorPosition =
+          selectedPositions.length > 0 ? Math.min(...selectedPositions) : options?.targetStart;
 
-          if (!userConfirmed) {
-            // User cancelled - clear clipboard and exit
-            return;
+        if (anchorPosition === undefined) return;
+
+        // Validate paste operation across different grid configurations
+        const sourceGridConfig = getBox(
+          (clipData.sourceLocation ?? ctx).tankId,
+          (clipData.sourceLocation ?? ctx).rackId,
+          (clipData.sourceLocation ?? ctx).boxId
+        )?.gridConfig;
+
+        const targetGridConfig = getBox(tankId, rackId, boxId)?.gridConfig;
+
+        // Perform validation if both grid configs are available
+        if (sourceGridConfig && targetGridConfig) {
+          const sourcePositions = clipData.tubes.map(tube => tube.location.position);
+          const validation = validatePasteOperation(
+            sourcePositions,
+            anchorPosition,
+            sourceGridConfig,
+            targetGridConfig
+          );
+
+          // Show warning modal if validation failed
+          if (!validation.isValid) {
+            const userConfirmed = await new Promise<boolean>(resolve => {
+              modalService.showOverwriteConfirm({
+                title: 'Paste Warning',
+                message: validation.warnings.join('\n\n') + '\n\nDo you want to continue?',
+                confirmText: 'Paste Anyway',
+                onConfirm: () => {
+                  modalService.hideOverwriteConfirm();
+                  resolve(true);
+                },
+                onCancel: () => {
+                  modalService.hideOverwriteConfirm();
+                  resolve(false);
+                },
+              });
+            });
+
+            if (!userConfirmed) {
+              // User cancelled - clear clipboard and exit
+              return;
+            }
           }
+        }
+
+        const sourcePositions = clipData.tubes.map(tube => tube.location.position);
+        const minSourcePosition = Math.min(...sourcePositions);
+
+        tubesToPaste = clipData.tubes.map(sourceTube => {
+          const relativePosition = sourceTube.location.position - minSourcePosition;
+          const newPosition = anchorPosition + relativePosition;
+
+          return tubeDataToCreateRequest(sourceTube, {
+            tankId: ctx.tankId,
+            rackId: ctx.rackId,
+            boxId: ctx.boxId,
+            position: newPosition,
+          });
+        });
+      }
+
+      // Detect position conflicts before paste
+      const conflictingPositions = tubesToPaste.filter(tubeData => {
+        const existingTube = tubes.find(
+          t =>
+            t.location.tankId === tubeData.location.tankId &&
+            t.location.rackId === tubeData.location.rackId &&
+            t.location.boxId === tubeData.location.boxId &&
+            t.location.position === tubeData.location.position
+        );
+        return existingTube !== undefined;
+      });
+
+      // If conflicts detected, ask user for confirmation
+      if (conflictingPositions.length > 0) {
+        const conflictingTubes = conflictingPositions.map(tubeData => {
+          return tubes.find(
+            t =>
+              t.location.tankId === tubeData.location.tankId &&
+              t.location.rackId === tubeData.location.rackId &&
+              t.location.boxId === tubeData.location.boxId &&
+              t.location.position === tubeData.location.position
+          )!;
+        });
+
+        const userConfirmed = await new Promise<boolean>(resolve => {
+          modalService.showOverwriteConfirm({
+            title: 'Overwrite Confirmation',
+            message: `${conflictingPositions.length} position${conflictingPositions.length > 1 ? 's are' : ' is'} already occupied. Do you want to overwrite ${conflictingPositions.length > 1 ? 'these tubes' : 'this tube'}?`,
+            confirmText: 'Overwrite',
+            onConfirm: () => {
+              modalService.hideOverwriteConfirm();
+              resolve(true);
+            },
+            onCancel: () => {
+              modalService.hideOverwriteConfirm();
+              resolve(false);
+            },
+          });
+        });
+
+        if (!userConfirmed) {
+          // User cancelled - exit without pasting
+          return;
+        }
+
+        // User confirmed - delete conflicting tubes first (atomic operation)
+        const conflictingTubeIds = conflictingTubes.map(t => t.id);
+        if (onDeleteTubes && conflictingTubeIds.length > 0) {
+          await onDeleteTubes(conflictingTubeIds, true); // Silent delete - notification comes from paste
         }
       }
 
-      const sourcePositions = clipData.tubes.map(tube => tube.location.position);
-      const minSourcePosition = Math.min(...sourcePositions);
-
-      tubesToPaste = clipData.tubes.map((sourceTube) => {
-        const relativePosition = sourceTube.location.position - minSourcePosition;
-        const newPosition = anchorPosition + relativePosition;
-
-        return tubeDataToCreateRequest(sourceTube, {
-          tankId: ctx.tankId,
-          rackId: ctx.rackId,
-          boxId: ctx.boxId,
-          position: newPosition
-        });
-      });
-    }
-
-    // Detect position conflicts before paste
-    const conflictingPositions = tubesToPaste.filter(tubeData => {
-      const existingTube = tubes.find(t =>
-        t.location.tankId === tubeData.location.tankId &&
-        t.location.rackId === tubeData.location.rackId &&
-        t.location.boxId === tubeData.location.boxId &&
-        t.location.position === tubeData.location.position
-      );
-      return existingTube !== undefined;
-    });
-
-    // If conflicts detected, ask user for confirmation
-    if (conflictingPositions.length > 0) {
-      const conflictingTubes = conflictingPositions.map(tubeData => {
-        return tubes.find(t =>
-          t.location.tankId === tubeData.location.tankId &&
-          t.location.rackId === tubeData.location.rackId &&
-          t.location.boxId === tubeData.location.boxId &&
-          t.location.position === tubeData.location.position
-        )!;
-      });
-
-      const userConfirmed = await new Promise<boolean>((resolve) => {
-        modalService.showOverwriteConfirm({
-          title: 'Overwrite Confirmation',
-          message: `${conflictingPositions.length} position${conflictingPositions.length > 1 ? 's are' : ' is'} already occupied. Do you want to overwrite ${conflictingPositions.length > 1 ? 'these tubes' : 'this tube'}?`,
-          confirmText: 'Overwrite',
-          onConfirm: () => {
-            modalService.hideOverwriteConfirm();
-            resolve(true);
-          },
-          onCancel: () => {
-            modalService.hideOverwriteConfirm();
-            resolve(false);
-          }
-        });
-      });
-
-      if (!userConfirmed) {
-        // User cancelled - exit without pasting
-        return;
+      // Call paste mutation
+      if (onPasteTubes) {
+        await onPasteTubes(tubesToPaste);
       }
 
-      // User confirmed - delete conflicting tubes first (atomic operation)
-      const conflictingTubeIds = conflictingTubes.map(t => t.id);
-      if (onDeleteTubes && conflictingTubeIds.length > 0) {
-        await onDeleteTubes(conflictingTubeIds, true); // Silent delete - notification comes from paste
+      // Delete source tubes after successful paste (cut operation only)
+      if (clipData.operation === 'cut') {
+        const tubeIds = clipData.tubes.map(tube => tube.id).filter(Boolean);
+        if (onDeleteTubes && tubeIds.length > 0) {
+          // Silent delete - notification handled below
+          await onDeleteTubes(tubeIds, true);
+        }
+
+        // Show moved notification for cut operations - Light Amber (matches cut)
+        notifications.move(
+          `Moved ${tubesToPaste.length} tube${tubesToPaste.length > 1 ? 's' : ''}`
+        );
+      } else {
+        // Show pasted notification for copy operations - Icy Blue (matches copy)
+        notifications.paste(
+          `Pasted ${tubesToPaste.length} tube${tubesToPaste.length > 1 ? 's' : ''}`
+        );
       }
-    }
 
-    // Call paste mutation
-    if (onPasteTubes) {
-      await onPasteTubes(tubesToPaste);
-    }
-
-    // Delete source tubes after successful paste (cut operation only)
-    if (clipData.operation === 'cut') {
-      const tubeIds = clipData.tubes.map(tube => tube.id).filter(Boolean);
-      if (onDeleteTubes && tubeIds.length > 0) {
-        // Silent delete - notification handled below
-        await onDeleteTubes(tubeIds, true);
-      }
-
-      // Show moved notification for cut operations - Light Amber (matches cut)
-      notifications.move(`Moved ${tubesToPaste.length} tube${tubesToPaste.length > 1 ? 's' : ''}`);
-    } else {
-      // Show pasted notification for copy operations - Icy Blue (matches copy)
-      notifications.paste(`Pasted ${tubesToPaste.length} tube${tubesToPaste.length > 1 ? 's' : ''}`);
-    }
-
-    // Clear clipboard after successful paste (both copy and cut)
-    setClipboard(null);
-  }, [clipboard, selectedPositionsInThisBox, setClipboard, onPasteTubes, onDeleteTubes, ctx, getBox, tankId, rackId, boxId, modalService, tubes]);
+      // Clear clipboard after successful paste (both copy and cut)
+      setClipboard(null);
+    },
+    [
+      clipboard,
+      selectedPositionsInThisBox,
+      setClipboard,
+      onPasteTubes,
+      onDeleteTubes,
+      ctx,
+      getBox,
+      tankId,
+      rackId,
+      boxId,
+      modalService,
+      tubes,
+    ]
+  );
 
   // Delete operation with confirmation modal
   const deleteSelectedTubes = useCallback(async () => {
@@ -542,7 +573,7 @@ export const useGridController = ({
       onCancel: () => {
         // Just close the modal, keep selection
         modalService.hideDeleteConfirm();
-      }
+      },
     });
   }, [selectedPositionsInThisBox, resolveTube, onDeleteTubes, onSelectionChange, modalService]);
 
@@ -610,7 +641,7 @@ export const useGridController = ({
         mode: 'add',
         positions,
         rackId,
-        boxId
+        boxId,
       });
     },
     edit: () => {
@@ -627,13 +658,13 @@ export const useGridController = ({
       if (selectedTubeIds.length === 1) {
         modalService.showTubeEditorModal({
           mode: 'edit',
-          tubeId: selectedTubeIds[0]
+          tubeId: selectedTubeIds[0],
         });
       } else {
         modalService.showTubeEditorModal({
           mode: 'batch',
           tubeIds: selectedTubeIds,
-          preserveSelection: true  // Maintain multi-selection after batch operation
+          preserveSelection: true, // Maintain multi-selection after batch operation
         });
       }
     },
@@ -670,17 +701,21 @@ export const useGridController = ({
       count: clipboard?.tubes?.length ?? 0,
       cutPositions: useMemo(() => {
         if (clipboard?.operation === 'cut') {
-          return new Set(clipboard.tubes.map(tube =>
-            toPositionKey(clipboard.sourceLocation ?? ctx, tube.location.position)
-          ));
+          return new Set(
+            clipboard.tubes.map(tube =>
+              toPositionKey(clipboard.sourceLocation ?? ctx, tube.location.position)
+            )
+          );
         }
         return new Set<PositionKey>();
       }, [clipboard, ctx]),
       copyPositions: useMemo(() => {
         if (clipboard?.operation === 'copy') {
-          return new Set(clipboard.tubes.map(tube =>
-            toPositionKey(clipboard.sourceLocation ?? ctx, tube.location.position)
-          ));
+          return new Set(
+            clipboard.tubes.map(tube =>
+              toPositionKey(clipboard.sourceLocation ?? ctx, tube.location.position)
+            )
+          );
         }
         return new Set<PositionKey>();
       }, [clipboard, ctx]),

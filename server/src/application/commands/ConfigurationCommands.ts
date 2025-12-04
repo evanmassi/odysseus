@@ -19,7 +19,9 @@ import {
   BoxUnassignedEvent,
   BoxReassignedEvent,
   RackLabelUpdatedEvent,
-  BoxLabelUpdatedEvent
+  BoxLabelUpdatedEvent,
+  BulkResourcesUnassignedEvent,
+  BulkResourcesReassignedEvent
 } from '@domain/events/ConfigurationEvents';
 
 // CONFIGURATION COMMAND CONTRACTS
@@ -477,9 +479,93 @@ export class UpdateConfigurationCommandHandler {
       currentConfig
     );
 
-    // Emit assignment events
+    // Emit assignment events with bulk detection
+    // When 3+ resources are affected for the same user, emit a bulk event instead of individual events
     const configData = currentConfig.toData();
+    const BULK_THRESHOLD = 3;
+
+    // Group changes for bulk detection
+    // Key format: "unassign:{previousUserId}" or "reassign:{previousUserId}:{userId}"
+    const changeGroups = new Map<string, AssignmentChange[]>();
+
     for (const change of assignmentChanges) {
+      let groupKey: string;
+
+      if (change.type === 'unassign') {
+        // Pure unassign (no new owner)
+        groupKey = `unassign:${change.previousUserId}`;
+      } else if (change.previousUserId && change.userId) {
+        // Reassignment (from one user to another)
+        groupKey = `reassign:${change.previousUserId}:${change.userId}`;
+      } else {
+        // New assignment (no previous owner) - not eligible for bulk
+        groupKey = `assign:${change.userId}:${change.resourceId}`;
+      }
+
+      const existing = changeGroups.get(groupKey) ?? [];
+      existing.push(change);
+      changeGroups.set(groupKey, existing);
+    }
+
+    // Track which changes are handled by bulk events
+    const bulkHandledChanges = new Set<AssignmentChange>();
+
+    // Process bulk operations first
+    for (const [groupKey, changes] of changeGroups) {
+      if (changes.length < BULK_THRESHOLD) continue;
+
+      const racksAffected = changes.filter(c => c.resourceType === 'rack').length;
+      const boxesAffected = changes.filter(c => c.resourceType === 'box').length;
+
+      // Only emit bulk event if we have meaningful counts
+      if (racksAffected + boxesAffected < BULK_THRESHOLD) continue;
+
+      if (groupKey.startsWith('unassign:')) {
+        const fromUserId = changes[0].previousUserId!;
+        const fromUser = await this.userRepository.findById(fromUserId);
+        const fromUsername = fromUser?.username ?? 'Unknown';
+
+        changeEvents.push(new BulkResourcesUnassignedEvent(
+          command.userId,
+          fromUserId,
+          fromUsername,
+          racksAffected,
+          boxesAffected
+        ));
+
+        // Mark all changes in this group as handled
+        for (const change of changes) {
+          bulkHandledChanges.add(change);
+        }
+      } else if (groupKey.startsWith('reassign:')) {
+        const fromUserId = changes[0].previousUserId!;
+        const toUserId = changes[0].userId!;
+        const fromUser = await this.userRepository.findById(fromUserId);
+        const toUser = await this.userRepository.findById(toUserId);
+        const fromUsername = fromUser?.username ?? 'Unknown';
+        const toUsername = toUser?.username ?? 'Unknown';
+
+        changeEvents.push(new BulkResourcesReassignedEvent(
+          command.userId,
+          fromUserId,
+          fromUsername,
+          toUserId,
+          toUsername,
+          racksAffected,
+          boxesAffected
+        ));
+
+        // Mark all changes in this group as handled
+        for (const change of changes) {
+          bulkHandledChanges.add(change);
+        }
+      }
+    }
+
+    // Emit individual events for changes not handled by bulk events
+    for (const change of assignmentChanges) {
+      if (bulkHandledChanges.has(change)) continue;
+
       // Find tank and rack/box names
       let tankName = '';
       let rackName = '';
@@ -509,12 +595,12 @@ export class UpdateConfigurationCommandHandler {
 
       if (change.userId) {
         const assignedUser = await this.userRepository.findById(change.userId);
-        assignedUsername = assignedUser?.username || 'Unknown';
+        assignedUsername = assignedUser?.username ?? 'Unknown';
       }
 
       if (change.previousUserId) {
         const previousUser = await this.userRepository.findById(change.previousUserId);
-        previousUsername = previousUser?.username || 'Unknown';
+        previousUsername = previousUser?.username ?? 'Unknown';
       }
 
       // Emit events

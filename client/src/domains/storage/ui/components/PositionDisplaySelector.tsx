@@ -11,7 +11,7 @@ import {
   usePositionDisplayPresetsQuery,
   useUpdateBoxPositionDisplayMutation,
 } from '@domains/storage/hooks/useBoxPositionDisplay';
-import { useStorageStore } from '@domains/storage/stores/storageStore';
+import { useStorageData } from '@domains/storage/hooks/useStorageData';
 import {
   getPositionDisplayForBox,
   hasCustomPositionDisplay,
@@ -77,12 +77,12 @@ export const PositionDisplaySelector: React.FC<PositionDisplaySelectorProps> = (
   const updateMutation = useUpdateBoxPositionDisplayMutation();
 
   // Get current lab configuration to check for lab default
-  const currentLab = useStorageStore((state) => state.currentLab);
+  const { currentLab } = useStorageData();
   const labDefault = currentLab?.settings?.defaultPositionDisplay;
 
   // Get current display configuration
-  const currentConfig = getPositionDisplayForBox(tankId, rackId, boxId, gridConfig);
-  const hasCustomConfig = hasCustomPositionDisplay(tankId, rackId, boxId);
+  const currentConfig = getPositionDisplayForBox(tankId, rackId, boxId, gridConfig, currentLab);
+  const hasCustomConfig = hasCustomPositionDisplay(tankId, rackId, boxId, currentLab);
 
   // Build select options
   const options: SelectOption[] = useMemo(() => {

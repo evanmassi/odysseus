@@ -37,7 +37,7 @@ import { MapPin, AlertTriangle, Edit, Plus, Save, Trash2 } from 'lucide-react';
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
-import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
+import { useStorageData, formatPositionRangesForBox } from '@domains/storage';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useUpdateTubeMutation,
@@ -322,8 +322,7 @@ function CreateModeContent({
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: allTubes = [] } = useTubesQuery();
   const updateTubeMutation = useUpdateTubeMutation();
-  const currentLab = useStorageStore(state => state.currentLab);
-  const getBox = useStorageStore(state => state.getBox);
+  const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();
   const modalService = useModalStore();
 
@@ -411,7 +410,7 @@ function CreateModeContent({
     if (parsedPositions.length === 0) return null;
 
     const firstLocation = parsedPositions[0].location;
-    const tanks = currentLab.equipment?.tanks || [];
+    const tanks = currentLab?.equipment?.tanks ?? [];
     const tank = tanks.find(t => t.id === firstLocation.tankId);
     const tankName = tank?.name ?? `Tank ${firstLocation.tankId}`;
 
@@ -436,6 +435,7 @@ function CreateModeContent({
       firstLocation.rackId,
       firstLocation.boxId,
       gridConfig,
+      currentLab,
       userSettings
     );
 

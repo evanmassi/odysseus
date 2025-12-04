@@ -5,9 +5,9 @@ import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import {
   useGridDragSelection,
   useGridKeyboardNavigation,
-  useGridFontSizing
+  useGridFontSizing,
 } from '@app/hooks/grid';
-import { useStorageStore, getGridTotalPositions } from '@domains/storage';
+import { useStorageData, getGridTotalPositions } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
 import { toPositionKey } from '@shared/types/grid';
@@ -20,7 +20,6 @@ import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey, GridControllerReturn } from '@shared/types/grid';
 
 import '@shared/styles/legacy/colorIndicators.css';
-
 
 /**
  * TubeGrid Props Interface
@@ -51,34 +50,32 @@ export function TubeGrid({
   _onEditTube,
   _onBatchEditTubes,
   _onAddTubes,
-  gridController
+  gridController,
 }: TubeGridProps) {
   // Component manages its own selection via props, no need for store selection
-  
+
   // Server state from React Query
   const {
     data: tubes = [],
     isLoading,
-    error
+    error,
   } = useTubesByLocation(tankId, rackId, boxId, {
-    staleTime: 2 * 60 * 1000
+    staleTime: 2 * 60 * 1000,
   });
-  const { getBox } = useStorageStore();
+  const { getBox } = useStorageData();
   // Auth store subscribed for reactive updates
 
   // Data loading is now handled by GridNavigationService
   // This component just displays the current data from the store
-  
+
   // Use the specific tankId passed from parent
   const boxConfig = getBox(tankId, rackId, boxId);
   const gridConfig = boxConfig?.gridConfig ?? {
     rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
     cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-    template: 'standard'
+    template: 'standard',
   };
-  
 
-  
   // Grid reference
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -89,7 +86,9 @@ export function TubeGrid({
   const setClipboard = useGridUiStore(state => state.setClipboard);
 
   // UI-related state only
-  const [quickEditMode, setQuickEditMode] = useState<{ position: number; field: string } | null>(null);
+  const [quickEditMode, setQuickEditMode] = useState<{ position: number; field: string } | null>(
+    null
+  );
   const [focusedPosition, setFocusedPosition] = useState<number>(1);
 
   // Custom hooks for separation of concerns
@@ -100,7 +99,7 @@ export function TubeGrid({
     gridConfig,
     selectedPositions,
     onSelectionChange,
-    ctx
+    ctx,
   });
 
   // Keyboard navigation hook (arrow keys, shortcuts)
@@ -112,27 +111,31 @@ export function TubeGrid({
     onSelectionChange,
     controller: gridController,
     ctx,
-    setClipboard
+    setClipboard,
   });
 
   // Font sizing hook (responsive font calculation)
   const fontSizing = useGridFontSizing({
     gridRef,
-    gridConfig
+    gridConfig,
   });
 
   // Create dynamic grid based on configuration
   const positions = Array.from({ length: getGridTotalPositions(gridConfig) }, (_, i) => i + 1);
-  
+
   // Tubes are already filtered by location from React Query hook
   const currentTubes = tubes;
-  
+
   // Create lookup for quick access (memoized for performance)
   const tubesByPosition = useMemo(
-    () => currentTubes.reduce((acc, tube) => {
-      acc[tube.location.position] = tube;
-      return acc;
-    }, {} as Record<number, TubeData>),
+    () =>
+      currentTubes.reduce(
+        (acc, tube) => {
+          acc[tube.location.position] = tube;
+          return acc;
+        },
+        {} as Record<number, TubeData>
+      ),
     [currentTubes]
   );
 
@@ -154,10 +157,7 @@ export function TubeGrid({
     const target = event.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
 
-    controller.contextMenu.show(
-      rect.left + rect.width / 2,
-      rect.top + rect.height / 2
-    );
+    controller.contextMenu.show(rect.left + rect.width / 2, rect.top + rect.height / 2);
   };
 
   // Focus grid on mount
@@ -172,7 +172,7 @@ export function TubeGrid({
     if (!gridRef.current) return;
 
     const selectedElements = gridRef.current.querySelectorAll('.selected');
-    selectedElements.forEach((el) => {
+    selectedElements.forEach(el => {
       const element = el as HTMLElement;
       element.style.animation = 'none';
       element.offsetHeight; // Force reflow to restart animation
@@ -189,7 +189,7 @@ export function TubeGrid({
     width: 'min(100%, 80vh)', // Keeps grid inside viewport
     maxWidth: '100%',
     // Remove fixed height and aspectRatio - let children control their own aspect ratio
-    placeItems: 'center'
+    placeItems: 'center',
   };
 
   // Loading state indicator
@@ -230,7 +230,7 @@ export function TubeGrid({
             ...gridStyle,
             outline: 'none !important',
             outlineOffset: '0 !important',
-            WebkitTapHighlightColor: 'transparent'
+            WebkitTapHighlightColor: 'transparent',
           }}
           role="grid"
           aria-label={`Tube storage grid for ${boxId ? `Box ${boxId}` : `Rack ${rackId}`}, ${positions.length} positions`}
@@ -245,41 +245,41 @@ export function TubeGrid({
             }
           }}
         >
-        {positions.map((position) => {
-          const positionKey = toPositionKey(ctx, position);
-          const tube = tubesByPosition[position];
-          const selected = controller.isPositionSelected(position);
-          const isCut = controller.clipboard.cutPositions.has(positionKey);
-          const isCopied = controller.clipboard.copyPositions.has(positionKey);
-          const inDragPreview = dragSelection.dragPreview.has(positionKey);
-          const isKeyboardFocused = position === focusedPosition;
+          {positions.map(position => {
+            const positionKey = toPositionKey(ctx, position);
+            const tube = tubesByPosition[position];
+            const selected = controller.isPositionSelected(position);
+            const isCut = controller.clipboard.cutPositions.has(positionKey);
+            const isCopied = controller.clipboard.copyPositions.has(positionKey);
+            const inDragPreview = dragSelection.dragPreview.has(positionKey);
+            const isKeyboardFocused = position === focusedPosition;
 
-          return (
-            <GridPosition
-              key={position}
-              position={position}
-              tankId={tankId}
-              rackId={rackId}
-              boxId={boxId}
-              tube={tube}
-              selected={selected}
-              isDragPreview={inDragPreview && !selected}
-              isCut={isCut}
-              isCopied={isCopied}
-              _isKeyboardFocused={isKeyboardFocused}
-              quickEditMode={quickEditMode}
-              gridConfig={gridConfig}
-              fontSize={fontSizing.fontSize}
-              onPositionClick={handlePositionClick}
-              onPositionRightClick={handlePositionRightClick}
-              onPositionDoubleClick={controller.handlePositionDoubleClick}
-              onMouseDown={dragSelection.handleMouseDown}
-              onMouseMove={dragSelection.handleMouseMove}
-              onQuickEditSave={() => {}}
-              onQuickEditCancel={() => setQuickEditMode(null)}
-            />
-          );
-        })}
+            return (
+              <GridPosition
+                key={position}
+                position={position}
+                tankId={tankId}
+                rackId={rackId}
+                boxId={boxId}
+                tube={tube}
+                selected={selected}
+                isDragPreview={inDragPreview && !selected}
+                isCut={isCut}
+                isCopied={isCopied}
+                _isKeyboardFocused={isKeyboardFocused}
+                quickEditMode={quickEditMode}
+                gridConfig={gridConfig}
+                fontSize={fontSizing.fontSize}
+                onPositionClick={handlePositionClick}
+                onPositionRightClick={handlePositionRightClick}
+                onPositionDoubleClick={controller.handlePositionDoubleClick}
+                onMouseDown={dragSelection.handleMouseDown}
+                onMouseMove={dragSelection.handleMouseMove}
+                onQuickEditSave={() => {}}
+                onQuickEditCancel={() => setQuickEditMode(null)}
+              />
+            );
+          })}
         </div>
       </div>
 

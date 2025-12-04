@@ -1,13 +1,16 @@
-
 import React, { useMemo } from 'react';
 
-import { formatConcentrationDisplay, formatResearcherDropdownDisplay, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
+import {
+  formatConcentrationDisplay,
+  formatResearcherDropdownDisplay,
+  EQUIPMENT_DEFAULTS,
+} from '@odysseus/shared-schemas';
 import { MapPin } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks';
 import { useUserSettings } from '@domains/authentication';
 import { useResearchersQuery } from '@domains/researchers';
-import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
+import { useStorageData, formatPositionRangesForBox } from '@domains/storage';
 import { parsePositionKey } from '@shared/types/grid';
 import { formatDateForDisplay } from '@shared/utils/dateFormatter';
 
@@ -17,7 +20,6 @@ import { InfoSection } from '../displays/InfoSection';
 
 import type { Researcher } from '@odysseus/shared-schemas';
 import type { TubeData } from '@shared/types/tubeTypes';
-
 
 interface TubeInfoPanelProps {
   selectedTubes: TubeData[];
@@ -46,8 +48,7 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
 
   // Get current location and configuration
   const { currentTank, currentRack, currentBox, selectedPositions } = useTubeStore();
-  const getCurrentTanks = useStorageStore(state => state.getCurrentTanks);
-  const getBox = useStorageStore(state => state.getBox);
+  const { currentLab, getCurrentTanks, getBox } = useStorageData();
   const tanks = getCurrentTanks();
   const currentTankObj = tanks.find(tank => tank.id === currentTank);
   const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === currentRack);
@@ -79,22 +80,25 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
       firstTube.location.rackId,
       firstTube.location.boxId,
       gridConfig,
+      currentLab,
       userSettings
     );
 
     const positionLabel = selectedTubes.length === 1 ? 'Position' : 'Positions';
     return `${rackName} • Box ${box} • ${positionLabel} ${formattedPositions}`;
-  }, [selectedTubes, rackName, currentBoxObj, userSettings]);
+  }, [selectedTubes, rackName, currentBoxObj, currentLab, userSettings]);
 
   if (selectedTubes.length === 0) {
     // Show position info even when no tubes selected
     const positionCount = selectedPositions.size;
 
     // Extract position numbers from position keys
-    const positions = Array.from(selectedPositions).map(key => {
-      const parsed = parsePositionKey(key);
-      return parsed.position;
-    }).sort((a, b) => a - b);
+    const positions = Array.from(selectedPositions)
+      .map(key => {
+        const parsed = parsePositionKey(key);
+        return parsed.position;
+      })
+      .sort((a, b) => a - b);
 
     // Get grid config for position formatting
     const gridConfig = currentBoxObj?.gridConfig ?? {
@@ -103,13 +107,23 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
       template: 'standard' as const,
     };
 
-    const formattedPositions = positions.length > 0
-      ? formatPositionRangesForBox(positions, currentTank, currentRack, currentBox, gridConfig, userSettings)
-      : '';
+    const formattedPositions =
+      positions.length > 0
+        ? formatPositionRangesForBox(
+            positions,
+            currentTank,
+            currentRack,
+            currentBox,
+            gridConfig,
+            currentLab,
+            userSettings
+          )
+        : '';
 
-    const positionText = positionCount > 0
-      ? `No tube${positionCount > 1 ? 's' : ''} at ${positionCount > 1 ? 'these' : 'this'} position${positionCount > 1 ? 's' : ''}`
-      : 'Select a position to view tube information';
+    const positionText =
+      positionCount > 0
+        ? `No tube${positionCount > 1 ? 's' : ''} at ${positionCount > 1 ? 'these' : 'this'} position${positionCount > 1 ? 's' : ''}`
+        : 'Select a position to view tube information';
 
     return (
       <div style={{ minWidth: '280px' }}>
@@ -120,13 +134,14 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
               <MapPin className="w-3 h-3" />
               Position{positionCount > 1 ? 's' : ''}
             </div>
-            <div className="font-semibold text-odysseus-dark mt-0.5 text-xs">
-              {tankName}
-            </div>
+            <div className="font-semibold text-odysseus-dark mt-0.5 text-xs">{tankName}</div>
             <div className="font-bold text-odysseus-dark text-xs">
               {rackName} • Box {currentBox}
               {formattedPositions && (
-                <span> • Position{positionCount > 1 ? 's' : ''} {formattedPositions}</span>
+                <span>
+                  {' '}
+                  • Position{positionCount > 1 ? 's' : ''} {formattedPositions}
+                </span>
               )}
             </div>
           </div>
@@ -134,13 +149,21 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
           {/* Placeholder Message */}
           <div className="text-center py-8">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-odysseus-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg
+                className="w-8 h-8 text-odysseus-muted"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
             </div>
-            <p className="text-odysseus-muted font-medium text-xs">
-              {positionText}
-            </p>
+            <p className="text-odysseus-muted font-medium text-xs">{positionText}</p>
           </div>
         </div>
       </div>
@@ -161,7 +184,12 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
 
     // Type guard: Filter out non-display types (boolean, Date, complex objects)
     const value = analysis.commonValue;
-    if (typeof value === 'string' || typeof value === 'number' || value === null || value === undefined) {
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      value === null ||
+      value === undefined
+    ) {
       return value;
     }
     // For Date or complex types, return undefined (not displayable as primitive)
@@ -185,16 +213,21 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
   const notes = getDisplayValue('sample.notes');
 
   // Format complex values
-  const formattedConcentration = concentration !== undefined
-    ? formatConcentrationDisplay(concentration as number, concentrationUnit as 'c/v' | 'c/mL' | undefined)
-    : undefined;
+  const formattedConcentration =
+    concentration !== undefined
+      ? formatConcentrationDisplay(
+          concentration as number,
+          concentrationUnit as 'c/v' | 'c/mL' | undefined
+        )
+      : undefined;
   const formattedDate = date ? formatDateForDisplay(date as string | Date) : undefined;
 
   // Researcher display with historical name tracking
   const researcherDisplay = (() => {
-    const currentName = researcherId && researcherMap.has(researcherId as string)
-      ? formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!)
-      : undefined;
+    const currentName =
+      researcherId && researcherMap.has(researcherId as string)
+        ? formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!)
+        : undefined;
 
     const historicalName = createdByName as string | undefined;
 
@@ -228,7 +261,7 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
     'sample.concentrationUnit',
     'sample.date',
     'researcherId',
-    'sample.notes'
+    'sample.notes',
   ]);
 
   return (
@@ -240,12 +273,8 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
             <MapPin className="w-3 h-3" />
             Position{selectedTubes.length > 1 ? 's' : ''}
           </div>
-          <div className="font-semibold text-odysseus-dark mt-0.5 text-xs">
-            {tankName}
-          </div>
-          <div className="font-bold text-odysseus-dark text-xs">
-            {positionSummary}
-          </div>
+          <div className="font-semibold text-odysseus-dark mt-0.5 text-xs">{tankName}</div>
+          <div className="font-bold text-odysseus-dark text-xs">{positionSummary}</div>
           {selectedTubes.length > 1 && (
             <div className="text-odysseus-muted mt-0.5 text-xs">
               {selectedTubes.length} tube{selectedTubes.length > 1 ? 's' : ''} selected
@@ -291,9 +320,7 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
         {/* Notes */}
         {notes && (
           <InfoSection title="NOTES" color="gray">
-            <div className="text-odysseus-secondary text-xs leading-tight pr-4">
-              {notes}
-            </div>
+            <div className="text-odysseus-secondary text-xs leading-tight pr-4">{notes}</div>
           </InfoSection>
         )}
       </div>

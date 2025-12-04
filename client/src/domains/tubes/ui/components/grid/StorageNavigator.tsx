@@ -15,7 +15,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { gridNavigationService } from '@domains/grid';
-import { useStorageStore, getGridDisplayName } from '@domains/storage';
+import { useStorageData, getGridDisplayName } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
 import { useListKeyboardNavigation } from '@shared/hooks/keyboard';
 import { logger } from '@shared/infrastructure/logger';
@@ -27,9 +27,7 @@ export function StorageNavigator() {
   const { currentTank, currentRack, currentBox } = useTubeStore();
 
   // Get configuration methods
-  const getCurrentTanks = useStorageStore(state => state.getCurrentTanks);
-  const getCurrentRacks = useStorageStore(state => state.getCurrentRacks);
-  const getCurrentBoxes = useStorageStore(state => state.getCurrentBoxes);
+  const { currentLab, getCurrentTanks, getCurrentRacks, getCurrentBoxes } = useStorageData();
 
   const tanks = getCurrentTanks();
 
@@ -50,52 +48,58 @@ export function StorageNavigator() {
   });
 
   // Click handlers: Navigate + Toggle expansion
-  const handleTankClick = async (tankId: string) => {
-    // Toggle expansion
-    setExpandedTanks(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(tankId)) {
-        newSet.delete(tankId);
-      } else {
-        newSet.add(tankId);
+  const handleTankClick = useCallback(
+    async (tankId: string) => {
+      // Toggle expansion
+      setExpandedTanks(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(tankId)) {
+          newSet.delete(tankId);
+        } else {
+          newSet.add(tankId);
+        }
+        return newSet;
+      });
+
+      // Navigate to first rack/box in this tank
+      const result = await gridNavigationService.navigateToTank(tankId, currentLab);
+      if (!result.success) {
+        logger.error('Failed to navigate to tank', { error: result.error });
       }
-      return newSet;
-    });
+    },
+    [currentLab]
+  );
 
-    // Navigate to first rack/box in this tank
-    const result = await gridNavigationService.navigateToTank(tankId);
-    if (!result.success) {
-      logger.error('Failed to navigate to tank', { error: result.error });
-    }
-  };
+  const handleRackClick = useCallback(
+    async (tankId: string, rackId: string) => {
+      const rackKey = `${tankId}-${rackId}`;
 
-  const handleRackClick = async (tankId: string, rackId: string) => {
-    const rackKey = `${tankId}-${rackId}`;
+      // Toggle expansion
+      setExpandedRacks(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(rackKey)) {
+          newSet.delete(rackKey);
+        } else {
+          newSet.add(rackKey);
+        }
+        return newSet;
+      });
 
-    // Toggle expansion
-    setExpandedRacks(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(rackKey)) {
-        newSet.delete(rackKey);
-      } else {
-        newSet.add(rackKey);
+      // Navigate to first box in this rack
+      const result = await gridNavigationService.navigateToRack(tankId, rackId, currentLab);
+      if (!result.success) {
+        logger.error('Failed to navigate to rack', { error: result.error });
       }
-      return newSet;
-    });
+    },
+    [currentLab]
+  );
 
-    // Navigate to first box in this rack
-    const result = await gridNavigationService.navigateToRack(tankId, rackId);
-    if (!result.success) {
-      logger.error('Failed to navigate to rack', { error: result.error });
-    }
-  };
-
-  const handleBoxClick = async (tankId: string, rackId: string, boxId: string) => {
+  const handleBoxClick = useCallback(async (tankId: string, rackId: string, boxId: string) => {
     const result = await gridNavigationService.navigateToLocation({ tankId, rackId, boxId });
     if (!result.success) {
       logger.error('Failed to navigate to box', { error: result.error });
     }
-  };
+  }, []);
 
   // Build flat list of all visible items for keyboard navigation
   // Memoized to prevent recalculation on every render
@@ -154,7 +158,16 @@ export function StorageNavigator() {
     });
 
     return items;
-  }, [tanks, expandedTanks, expandedRacks, getCurrentRacks, getCurrentBoxes]);
+  }, [
+    tanks,
+    expandedTanks,
+    expandedRacks,
+    getCurrentRacks,
+    getCurrentBoxes,
+    handleTankClick,
+    handleRackClick,
+    handleBoxClick,
+  ]);
 
   // Handle item selection from keyboard
   const handleItemSelect = useCallback((item: (typeof visibleItems)[number], _index: number) => {

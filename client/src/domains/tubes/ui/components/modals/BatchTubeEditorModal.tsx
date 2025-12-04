@@ -15,7 +15,7 @@ import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
-import { useStorageStore, formatPositionRangesForBox } from '@domains/storage';
+import { useStorageData, formatPositionRangesForBox } from '@domains/storage';
 import { useCreateTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useBulkUpdateTubesMutation,
@@ -467,8 +467,7 @@ export default function BatchTubeEditorModal({
   const hasRelevantErrors = Object.keys(filteredErrors).length > 0;
 
   // Get user-friendly location names
-  const getCurrentTanks = useStorageStore(state => state.getCurrentTanks);
-  const getBox = useStorageStore(state => state.getBox);
+  const { currentLab, getCurrentTanks, getBox } = useStorageData();
   const tanks = getCurrentTanks();
   const currentTankObj = tanks.find(tank => tank.id === tankId);
   const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === rackId);
@@ -491,6 +490,7 @@ export default function BatchTubeEditorModal({
     rackId,
     boxId,
     gridConfig,
+    currentLab,
     userSettings
   );
 

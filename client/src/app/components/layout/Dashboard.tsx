@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 
 import { gridNavigationService } from '@domains/grid';
-import { useStorageStore } from '@domains/storage';
+import { useStorageData } from '@domains/storage';
 import { useConfigurationSync } from '@domains/storage/hooks/useConfigurationSync';
 import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
 import { useTubeStore, TubeInfoPanel } from '@domains/tubes';
@@ -94,7 +94,7 @@ export function Dashboard() {
 
   // Auth store subscribed for reactive updates
 
-  const getCurrentTanks = useStorageStore(state => state.getCurrentTanks);
+  const { getCurrentTanks } = useStorageData();
 
   // Get actual tank and rack names for display
   const tanks = getCurrentTanks();

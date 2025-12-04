@@ -18,6 +18,7 @@ export {
   useStorageSync,
 } from './hooks/useStorageQuery';
 export { useConfigurationSync } from './hooks/useConfigurationSync';
+export { useStorageData, getStorageDataFromCache } from './hooks/useStorageData';
 
 // Services
 export { StorageService } from './services/StorageService';
@@ -82,5 +83,8 @@ export {
   formatPositionRangesForBox,
 } from './utils/positionDisplayUtils';
 
-// UI Store (Local Storage State)
-export * from './stores/storageStore';
+// Default Configuration (for fresh installs)
+export {
+  createDefaultConfiguration,
+  createDefaultSystemConfig,
+} from './utils/defaultConfiguration';

@@ -18,10 +18,9 @@ import {
   type PositionDisplayConfig,
   type PositionDisplayPreference,
   type UserSettings,
-  type GridConfiguration
+  type GridConfiguration,
+  type LabConfiguration,
 } from '@odysseus/shared-schemas';
-
-import { useStorageStore } from '../stores/storageStore';
 
 /**
  * Convert user preference to full position display config
@@ -71,6 +70,7 @@ function preferenceToConfig(
  * @param rackId - Rack identifier
  * @param boxId - Box identifier
  * @param gridConfig - Grid configuration for dimensions
+ * @param currentLab - Current lab configuration (from React Query)
  * @param userSettings - Optional user settings (for user preference tier)
  * @returns Resolved position display configuration
  */
@@ -79,13 +79,15 @@ function getResolvedPositionDisplay(
   rackId: string,
   boxId: string,
   gridConfig: GridConfiguration,
+  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): PositionDisplayConfig {
-  const state = useStorageStore.getState();
-
   // 1. Check for box-specific override (highest priority)
   // Box overrides are full configs, validated by schema
-  const boxOverride = state.getBoxPositionDisplay(tankId, rackId, boxId);
+  const tank = currentLab?.equipment.tanks.find(t => t.id === tankId);
+  const rack = tank?.racks?.find(r => r.id === rackId);
+  const box = rack?.boxes?.find(b => b.id === boxId);
+  const boxOverride = box?.positionDisplay;
   if (boxOverride) {
     return boxOverride;
   }
@@ -93,12 +95,15 @@ function getResolvedPositionDisplay(
   // 2. Check for user preference
   // User preferences are format-only, converted to full config here
   if (userSettings?.defaultPositionDisplay) {
-    return preferenceToConfig(userSettings.defaultPositionDisplay, gridConfig.rows, gridConfig.cols);
+    return preferenceToConfig(
+      userSettings.defaultPositionDisplay,
+      gridConfig.rows,
+      gridConfig.cols
+    );
   }
 
   // 3. Check for lab-wide default
   // Lab defaults are full configs, validated by schema
-  const currentLab = state.currentLab;
   const labDefault = currentLab?.settings?.defaultPositionDisplay;
   if (labDefault) {
     return labDefault;
@@ -111,19 +116,19 @@ function getResolvedPositionDisplay(
 /**
  * Format a numeric position to display label using box's configuration
  *
- * Automatically retrieves position display config from storage store.
- * 4-Tier Hierarchy: box override → user preference → lab default → system default
+ * Uses 4-tier hierarchy: box override → user preference → lab default → system default
  *
  * @param position - 1-based position number (1-81 for 9x9 grid)
  * @param tankId - Tank identifier
  * @param rackId - Rack identifier
  * @param boxId - Box identifier
  * @param gridConfig - Grid configuration for dimensions
+ * @param currentLab - Current lab configuration (from React Query)
  * @param userSettings - Optional user settings for user preference tier
  * @returns Formatted label ("23" or "C5" depending on config)
  *
  * @example
- * formatPositionForBox(23, 'tank-1', '1', 'A', { rows: 9, cols: 9 }) // "C5"
+ * formatPositionForBox(23, 'tank-1', '1', 'A', { rows: 9, cols: 9 }, currentLab) // "C5"
  */
 export function formatPositionForBox(
   position: number,
@@ -131,9 +136,17 @@ export function formatPositionForBox(
   rackId: string,
   boxId: string,
   gridConfig: GridConfiguration,
+  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): string {
-  const config = getResolvedPositionDisplay(tankId, rackId, boxId, gridConfig, userSettings);
+  const config = getResolvedPositionDisplay(
+    tankId,
+    rackId,
+    boxId,
+    gridConfig,
+    currentLab,
+    userSettings
+  );
 
   // Config is guaranteed to be valid by schema validation and preference conversion
   return positionToLabel(position, gridConfig.rows, gridConfig.cols, config);
@@ -142,20 +155,20 @@ export function formatPositionForBox(
 /**
  * Parse a display label to numeric position using box's configuration
  *
- * Automatically retrieves position display config from storage store.
- * 4-Tier Hierarchy: box override → user preference → lab default → system default
+ * Uses 4-tier hierarchy: box override → user preference → lab default → system default
  *
  * @param label - Display label ("23" or "C5")
  * @param tankId - Tank identifier
  * @param rackId - Rack identifier
  * @param boxId - Box identifier
  * @param gridConfig - Grid configuration for dimensions
+ * @param currentLab - Current lab configuration (from React Query)
  * @param userSettings - Optional user settings for user preference tier
  * @returns 1-based position number
  * @throws Error if label is invalid
  *
  * @example
- * parsePositionLabelForBox('C5', 'tank-1', '1', 'A', { rows: 9, cols: 9 }) // 23
+ * parsePositionLabelForBox('C5', 'tank-1', '1', 'A', { rows: 9, cols: 9 }, currentLab) // 23
  */
 export function parsePositionLabelForBox(
   label: string,
@@ -163,9 +176,17 @@ export function parsePositionLabelForBox(
   rackId: string,
   boxId: string,
   gridConfig: GridConfiguration,
+  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): number {
-  const config = getResolvedPositionDisplay(tankId, rackId, boxId, gridConfig, userSettings);
+  const config = getResolvedPositionDisplay(
+    tankId,
+    rackId,
+    boxId,
+    gridConfig,
+    currentLab,
+    userSettings
+  );
   return labelToPosition(label, gridConfig.rows, gridConfig.cols, config);
 }
 
@@ -177,6 +198,7 @@ export function parsePositionLabelForBox(
  * @param rackId - Rack identifier
  * @param boxId - Box identifier
  * @param gridConfig - Grid configuration for dimensions
+ * @param currentLab - Current lab configuration (from React Query)
  * @param userSettings - Optional user settings for user preference tier
  * @returns true if label is valid, false otherwise
  */
@@ -186,9 +208,17 @@ export function isValidLabelForBox(
   rackId: string,
   boxId: string,
   gridConfig: GridConfiguration,
+  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): boolean {
-  const config = getResolvedPositionDisplay(tankId, rackId, boxId, gridConfig, userSettings);
+  const config = getResolvedPositionDisplay(
+    tankId,
+    rackId,
+    boxId,
+    gridConfig,
+    currentLab,
+    userSettings
+  );
   return isValidPositionLabel(label, gridConfig.rows, gridConfig.cols, config);
 }
 
@@ -199,16 +229,17 @@ export function isValidLabelForBox(
  * @param rackId - Rack identifier
  * @param boxId - Box identifier
  * @param gridConfig - Grid configuration for dimensions
+ * @param currentLab - Current lab configuration (from React Query)
  * @param userSettings - Optional user settings for user preference tier
  * @returns Array of all valid position labels in order
  *
  * @example
  * // Box with numeric config
- * generateLabelsForBox('tank-1', '1', 'A', { rows: 3, cols: 3 })
+ * generateLabelsForBox('tank-1', '1', 'A', { rows: 3, cols: 3 }, currentLab)
  * // ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
  *
  * // Box with alphanumeric config
- * generateLabelsForBox('tank-1', '1', 'B', { rows: 3, cols: 3 })
+ * generateLabelsForBox('tank-1', '1', 'B', { rows: 3, cols: 3 }, currentLab)
  * // ["A1", "A2", "A3", "B1", "B2", "B3", "C1", "C2", "C3"]
  */
 export function generateLabelsForBox(
@@ -216,9 +247,17 @@ export function generateLabelsForBox(
   rackId: string,
   boxId: string,
   gridConfig: GridConfiguration,
+  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): string[] {
-  const config = getResolvedPositionDisplay(tankId, rackId, boxId, gridConfig, userSettings);
+  const config = getResolvedPositionDisplay(
+    tankId,
+    rackId,
+    boxId,
+    gridConfig,
+    currentLab,
+    userSettings
+  );
   return generatePositionLabels(gridConfig.rows, gridConfig.cols, config);
 }
 
@@ -231,6 +270,7 @@ export function generateLabelsForBox(
  * @param rackId - Rack identifier
  * @param boxId - Box identifier
  * @param gridConfig - Grid configuration for dimensions
+ * @param currentLab - Current lab configuration (from React Query)
  * @param userSettings - Optional user settings for user preference tier
  * @returns Position display configuration
  */
@@ -239,9 +279,10 @@ export function getPositionDisplayForBox(
   rackId: string,
   boxId: string,
   gridConfig: GridConfiguration,
+  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): PositionDisplayConfig {
-  return getResolvedPositionDisplay(tankId, rackId, boxId, gridConfig, userSettings);
+  return getResolvedPositionDisplay(tankId, rackId, boxId, gridConfig, currentLab, userSettings);
 }
 
 /**
@@ -250,15 +291,19 @@ export function getPositionDisplayForBox(
  * @param tankId - Tank identifier
  * @param rackId - Rack identifier
  * @param boxId - Box identifier
+ * @param currentLab - Current lab configuration (from React Query)
  * @returns true if box has custom config, false if using default
  */
 export function hasCustomPositionDisplay(
   tankId: string,
   rackId: string,
-  boxId: string
+  boxId: string,
+  currentLab: LabConfiguration | null
 ): boolean {
-  const positionDisplay = useStorageStore.getState().getBoxPositionDisplay(tankId, rackId, boxId);
-  return positionDisplay !== undefined;
+  const tank = currentLab?.equipment.tanks.find(t => t.id === tankId);
+  const rack = tank?.racks?.find(r => r.id === rackId);
+  const box = rack?.boxes?.find(b => b.id === boxId);
+  return box?.positionDisplay !== undefined;
 }
 
 /**
@@ -272,16 +317,17 @@ export function hasCustomPositionDisplay(
  * @param rackId - Rack identifier
  * @param boxId - Box identifier
  * @param gridConfig - Grid configuration for dimensions
+ * @param currentLab - Current lab configuration (from React Query)
  * @param userSettings - Optional user settings for user preference tier
  * @returns Formatted ranges string (e.g., "A1-A3, C5-C7" or "1-3, 23-25")
  *
  * @example
  * // With alphanumeric format
- * formatPositionRangesForBox([1,2,3,23,24,25], 'T1', 'R1', 'A', grid, settings)
+ * formatPositionRangesForBox([1,2,3,23,24,25], 'T1', 'R1', 'A', grid, currentLab, settings)
  * // "A1-A3, C5-C7"
  *
  * // With numeric format
- * formatPositionRangesForBox([1,2,3,23,24,25], 'T1', 'R1', 'A', grid, settings)
+ * formatPositionRangesForBox([1,2,3,23,24,25], 'T1', 'R1', 'A', grid, currentLab, settings)
  * // "1-3, 23-25"
  */
 export function formatPositionRangesForBox(
@@ -290,11 +336,20 @@ export function formatPositionRangesForBox(
   rackId: string,
   boxId: string,
   gridConfig: GridConfiguration,
+  currentLab: LabConfiguration | null,
   userSettings?: UserSettings | null
 ): string {
   if (positions.length === 0) return '';
   if (positions.length === 1) {
-    return formatPositionForBox(positions[0], tankId, rackId, boxId, gridConfig, userSettings);
+    return formatPositionForBox(
+      positions[0],
+      tankId,
+      rackId,
+      boxId,
+      gridConfig,
+      currentLab,
+      userSettings
+    );
   }
 
   // Remove duplicates and sort
@@ -321,13 +376,29 @@ export function formatPositionRangesForBox(
 
   // Convert ranges to labels using box-specific formatting
   const formattedRanges = ranges.map(({ start, end }) => {
-    const startLabel = formatPositionForBox(start, tankId, rackId, boxId, gridConfig, userSettings);
+    const startLabel = formatPositionForBox(
+      start,
+      tankId,
+      rackId,
+      boxId,
+      gridConfig,
+      currentLab,
+      userSettings
+    );
 
     if (start === end) {
       return startLabel;
     }
 
-    const endLabel = formatPositionForBox(end, tankId, rackId, boxId, gridConfig, userSettings);
+    const endLabel = formatPositionForBox(
+      end,
+      tankId,
+      rackId,
+      boxId,
+      gridConfig,
+      currentLab,
+      userSettings
+    );
     return `${startLabel}-${endLabel}`;
   });
 

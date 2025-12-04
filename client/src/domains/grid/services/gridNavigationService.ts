@@ -1,5 +1,7 @@
 import { useTubeStore } from '@domains/tubes';
 
+import type { LabConfiguration } from '@odysseus/shared-schemas';
+
 export interface GridLocation {
   tankId: string;
   rackId: string;
@@ -83,13 +85,17 @@ export class GridNavigationService {
 
   /**
    * Navigate to tank (selects first available rack and box)
+   * @param tankId - The tank to navigate to
+   * @param currentLab - Current lab configuration (from React Query)
    */
-  public async navigateToTank(tankId: string): Promise<NavigationResult> {
-    // Import configuration store to get first available rack/box
-    const { useStorageStore } = await import('@/domains/storage');
-    const { getCurrentRacks, getCurrentBoxes } = useStorageStore.getState();
+  public async navigateToTank(
+    tankId: string,
+    currentLab: LabConfiguration | null
+  ): Promise<NavigationResult> {
+    // Get racks from the passed lab configuration
+    const tank = currentLab?.equipment.tanks.find(t => t.id === tankId);
+    const racks = tank?.racks ?? [];
 
-    const racks = getCurrentRacks(tankId);
     if (racks.length === 0) {
       const { logger } = await import('@shared/infrastructure/logger');
       logger.error(`No racks found for tank "${tankId}"`);
@@ -100,7 +106,7 @@ export class GridNavigationService {
       };
     }
 
-    const boxes = getCurrentBoxes(tankId, racks[0].id);
+    const boxes = racks[0].boxes ?? [];
     if (boxes.length === 0) {
       const { logger } = await import('@shared/infrastructure/logger');
       logger.error(`No boxes found for tank "${tankId}", rack ${racks[0].id}`);
@@ -120,12 +126,20 @@ export class GridNavigationService {
 
   /**
    * Navigate to rack (selects first available box)
+   * @param tankId - The tank containing the rack
+   * @param rackId - The rack to navigate to
+   * @param currentLab - Current lab configuration (from React Query)
    */
-  public async navigateToRack(tankId: string, rackId: string): Promise<NavigationResult> {
-    const { useStorageStore } = await import('@/domains/storage');
-    const { getCurrentBoxes } = useStorageStore.getState();
+  public async navigateToRack(
+    tankId: string,
+    rackId: string,
+    currentLab: LabConfiguration | null
+  ): Promise<NavigationResult> {
+    // Get boxes from the passed lab configuration
+    const tank = currentLab?.equipment.tanks.find(t => t.id === tankId);
+    const rack = tank?.racks?.find(r => r.id === rackId);
+    const boxes = rack?.boxes ?? [];
 
-    const boxes = getCurrentBoxes(tankId, rackId);
     if (boxes.length === 0) {
       return {
         success: false,

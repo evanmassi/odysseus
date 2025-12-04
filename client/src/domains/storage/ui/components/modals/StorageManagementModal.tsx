@@ -7,7 +7,7 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useUsersQuery } from '@domains/admin';
 import { useAuthState } from '@domains/authentication/hooks/useAuth';
 import {
-  useStorageStore,
+  useStorageData,
   useSaveStorageMutation,
   useUpdateResourceLabelMutation,
   createTankFromDefaults,
@@ -57,10 +57,8 @@ interface StorageManagementModalProps {
 }
 
 export function StorageManagementModal({ isOpen, onClose }: StorageManagementModalProps) {
-  // Store access (read-only for initial data)
-  const currentLab = useStorageStore(state => state.currentLab);
-  const replaceLab = useStorageStore(state => state.replaceLab);
-  const getAvailableGridTemplates = useStorageStore(state => state.getAvailableGridTemplates);
+  // Server state from React Query (via useStorageData)
+  const { currentLab, systemConfig, getAvailableGridTemplates } = useStorageData();
   const modalService = useModalStore();
 
   // Resource assignment - fetch users and current user
@@ -103,20 +101,19 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
   // ========== SAVE / CANCEL HANDLERS ==========
   const handleSave = async () => {
-    if (!localLab) return;
+    if (!localLab || !systemConfig) return;
 
     setIsSaving(true);
     try {
-      // Commit to store
-      replaceLab(localLab.id, localLab);
+      // Update availableLabs with the modified lab
+      const updatedAvailableLabs = systemConfig.availableLabs.map(lab =>
+        lab.id === localLab.id ? localLab : lab
+      );
 
-      // Save to server
-      const state = useStorageStore.getState();
+      // Save directly to server - React Query invalidation will refresh the data
       await saveConfigurationMutation.mutateAsync({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        systemConfig: state.systemConfig as any,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        currentLab: state.currentLab as any,
+        systemConfig: { ...systemConfig, availableLabs: updatedAvailableLabs },
+        currentLab: localLab,
       });
 
       // Update original to reflect saved state
@@ -170,7 +167,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const [collapsedRacks, setCollapsedRacks] = useState<Set<string>>(() => {
     // Start with all racks collapsed
     const allRackKeys = new Set<string>();
-    currentLab.equipment.tanks.forEach(tank => {
+    currentLab?.equipment.tanks.forEach(tank => {
       tank.racks.forEach(rack => {
         allRackKeys.add(`${tank.id}-rack-${rack.id}`);
       });

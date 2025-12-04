@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-import { useStorageStore } from '@domains/storage';
+import { useStorageData } from '@domains/storage';
 
 interface AnimatedTreeLine {
   id: string;
@@ -23,12 +23,12 @@ const LINE_OFFSET = 8; // Distance into button for connection point
 
 export function AnimatedTreeLineOverlay({
   expandedTanks,
-  expandedRacks
+  expandedRacks,
 }: AnimatedTreeLineOverlayProps) {
   const [lines, setLines] = useState<AnimatedTreeLine[]>([]);
 
   // Get configuration methods
-  const getCurrentTanks = useStorageStore(state => state.getCurrentTanks);
+  const { getCurrentTanks } = useStorageData();
 
   const tanks = getCurrentTanks();
 
@@ -44,7 +44,9 @@ export function AnimatedTreeLineOverlay({
       const tankId = tank.id;
       if (!expandedTanks.has(tankId)) return;
 
-      const tankButton = container.querySelector(`[data-tank-id="${tankId}"] .tank-button`) as HTMLElement;
+      const tankButton = container.querySelector(
+        `[data-tank-id="${tankId}"] .tank-button`
+      ) as HTMLElement;
       if (!tankButton) return;
 
       const tankRect = tankButton.getBoundingClientRect();
@@ -74,7 +76,7 @@ export function AnimatedTreeLineOverlay({
           y2: rackY,
           color: '#5987b6', // Tank color - matches tank button
           strokeWidth: 3,
-          type: 'rack-branch'
+          type: 'rack-branch',
         });
 
         deepestY = Math.max(deepestY, rackRect.bottom - containerRect.top);
@@ -98,7 +100,7 @@ export function AnimatedTreeLineOverlay({
               y2: boxY,
               color: '#7a9fc5', // Rack color - matches rack button
               strokeWidth: 1,
-              type: 'box-branch'
+              type: 'box-branch',
             });
 
             deepestBoxY = Math.max(deepestBoxY, boxRect.bottom - containerRect.top);
@@ -113,7 +115,7 @@ export function AnimatedTreeLineOverlay({
               y2: deepestBoxY,
               color: '#7a9fc5', // Rack color - matches rack button
               strokeWidth: 1,
-              type: 'rack-vertical'
+              type: 'rack-vertical',
             });
           }
 
@@ -130,7 +132,7 @@ export function AnimatedTreeLineOverlay({
         y2: deepestY,
         color: '#5987b6', // Tank color - matches tank button
         strokeWidth: 3,
-        type: 'tank-vertical'
+        type: 'tank-vertical',
       });
     });
 
@@ -159,7 +161,7 @@ export function AnimatedTreeLineOverlay({
         width: '100%',
         height: '100%',
         pointerEvents: 'none',
-        zIndex: 0
+        zIndex: 0,
       }}
     >
       <style>
@@ -169,8 +171,8 @@ export function AnimatedTreeLineOverlay({
           }
         `}
       </style>
-      
-      {lines.map((line) => (
+
+      {lines.map(line => (
         <line
           key={line.id}
           x1={line.x1}
