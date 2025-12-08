@@ -549,9 +549,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
         <div className="mt-3 p-2 bg-frost rounded-lg border border-action/30">
           <div className="flex items-start space-x-1.5">
-            <div className="w-4 h-4 rounded-full bg-action flex items-center justify-center flex-shrink-0 mt-0.5">
-              <Info className="w-2.5 h-2.5 text-white" />
-            </div>
+            <Info size={18} className="text-action-hover flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="text-xs font-bold text-action-hover mb-0.5">Registration</h3>
               <p className="text-xs text-action-hover/90 leading-snug">

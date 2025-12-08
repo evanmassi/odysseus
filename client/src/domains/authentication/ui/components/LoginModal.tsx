@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 
-import { KeyRound, UserRound, Mail, Eye, EyeOff } from 'lucide-react';
+import { KeyRound, UserRound, Mail, Eye, EyeOff, Info } from 'lucide-react';
 
 import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
@@ -29,7 +29,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   const trapRef = useFocusTrap({
     isOpen: true,
     restoreFocus: true,
-    initialFocusRef: usernameInputRef
+    initialFocusRef: usernameInputRef,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -76,7 +76,8 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
       await authService.resendVerificationEmail(username);
       notifications.success('Verification email sent! Check your inbox.');
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to resend verification email';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to resend verification email';
       notifications.error(errorMessage);
     } finally {
       setIsResending(false);
@@ -85,15 +86,19 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
   // Check if error is about email verification
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check multiple error conditions
-  const isEmailVerificationError = loginError?.toLowerCase().includes('email not verified') ||
-                                    loginError?.toLowerCase().includes('verify your email');
+  const isEmailVerificationError =
+    loginError?.toLowerCase().includes('email not verified') ||
+    loginError?.toLowerCase().includes('verify your email');
 
   // Check if error is about password change requirement
   const isPasswordChangeRequired = loginError?.toLowerCase().includes('password change required');
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50 animate-in fade-in duration-150">
-      <div ref={trapRef} className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-blue-500/20 border border-odysseus-border animate-zoom-in-95">
+      <div
+        ref={trapRef}
+        className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-blue-500/20 border border-odysseus-border animate-zoom-in-95"
+      >
         <div className="text-center mb-8">
           <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
             <img src={xcellbioLogo} alt="XcellBio" className="w-full h-full object-contain" />
@@ -105,12 +110,24 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         {/* Session Timeout Banner */}
         {logoutReason === 'idle_timeout' && (
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
-            <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            <svg
+              className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
             </svg>
             <div className="flex-1">
               <p className="text-sm font-semibold text-yellow-800">Session Timed Out</p>
-              <p className="text-xs text-yellow-700 mt-1">Your session expired due to inactivity. Please log in again.</p>
+              <p className="text-xs text-yellow-700 mt-1">
+                Your session expired due to inactivity. Please log in again.
+              </p>
             </div>
           </div>
         )}
@@ -150,12 +167,25 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         {loginError && isPasswordChangeRequired && (
           <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg animate-in slide-in-from-top-2 duration-300">
             <div className="flex items-start gap-3">
-              <svg className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <svg
+                className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
               </svg>
               <div className="flex-1">
                 <p className="text-sm font-semibold text-yellow-800">Password Change Required</p>
-                <p className="text-xs text-yellow-700 mt-1">Your password must be changed. Please contact an administrator for a password reset link.</p>
+                <p className="text-xs text-yellow-700 mt-1">
+                  Your password must be changed. Please contact an administrator for a password
+                  reset link.
+                </p>
               </div>
             </div>
           </div>
@@ -164,8 +194,18 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         {/* Generic Login Error Banner */}
         {loginError && !isEmailVerificationError && !isPasswordChangeRequired && (
           <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
-            <svg className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <svg
+              className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
             </svg>
             <div className="flex-1">
               <p className="text-sm font-semibold text-red-800">Login Failed</p>
@@ -176,7 +216,9 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Username or Email */}
-          <div className={`auth-input-container ${loginError ? 'input-field-error' : 'border-gray-300'}`}>
+          <div
+            className={`auth-input-container ${loginError ? 'input-field-error' : 'border-gray-300'}`}
+          >
             <label
               htmlFor="username"
               className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide ${loginError ? 'text-validation-error-label' : 'text-gray-700'}`}
@@ -184,13 +226,16 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
               Username or Email
             </label>
             <div className="relative px-3 py-2">
-              <UserRound className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-odysseus-muted'}`} size={16} />
+              <UserRound
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-odysseus-muted'}`}
+                size={16}
+              />
               <input
                 ref={usernameInputRef}
                 type="text"
                 id="username"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={e => setUsername(e.target.value)}
                 className={`pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45 ${loginError ? 'text-validation-error-text' : ''}`}
                 placeholder="Your username or email"
                 required
@@ -200,7 +245,9 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
           </div>
 
           {/* Password */}
-          <div className={`auth-input-container ${loginError ? 'input-field-error' : 'border-gray-300'}`}>
+          <div
+            className={`auth-input-container ${loginError ? 'input-field-error' : 'border-gray-300'}`}
+          >
             <label
               htmlFor="password"
               className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide ${loginError ? 'text-validation-error-label' : 'text-gray-700'}`}
@@ -208,12 +255,15 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
               Password
             </label>
             <div className="relative px-3 py-2">
-              <KeyRound className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-odysseus-muted'}`} size={16} />
+              <KeyRound
+                className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-odysseus-muted'}`}
+                size={16}
+              />
               <input
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={e => setPassword(e.target.value)}
                 className={`pl-7 pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45 ${loginError ? 'text-validation-error-text' : ''}`}
                 placeholder="Your password"
                 required
@@ -229,7 +279,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
               </button>
             </div>
           </div>
-          
+
           <button
             type="submit"
             disabled={isLoading}
@@ -245,18 +295,15 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
             )}
           </button>
         </form>
-        
+
         <div className="mt-3 p-2 bg-frost rounded-lg border border-action/30">
           <div className="flex items-start space-x-1.5">
-            <div className="w-4 h-4 rounded-full bg-action flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-              </svg>
-            </div>
+            <Info size={18} className="text-action-hover flex-shrink-0 mt-0.5" />
             <div>
               <h3 className="text-xs font-bold text-action-hover mb-0.5">Security Notice</h3>
               <p className="text-xs text-action-hover/90 leading-snug">
-                Your credentials are encrypted and stored securely. Never share your password with unauthorized users.
+                Your credentials are encrypted and stored securely. Never share your password with
+                unauthorized users.
               </p>
             </div>
           </div>

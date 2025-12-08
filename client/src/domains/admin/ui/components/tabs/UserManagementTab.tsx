@@ -27,6 +27,7 @@ import {
   UsersRound,
   KeyRound,
 } from 'lucide-react';
+import Select, { type CSSObjectWithLabel } from 'react-select';
 
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';
@@ -37,6 +38,50 @@ import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
+
+// Role dropdown types and styles
+interface RoleOption {
+  value: 'admin' | 'user';
+  label: string;
+}
+
+const ROLE_OPTIONS: RoleOption[] = [
+  { value: 'user', label: 'User' },
+  { value: 'admin', label: 'Admin' },
+];
+
+const getFocusBoxShadow = () =>
+  `0 0 0 var(--focus-ring-width) var(--focus-ring-color), 0 0 0 5px var(--focus-ring-glow-inner), 0 0 0 8px var(--focus-ring-glow-outer)`;
+
+const ROLE_SELECT_STYLES = {
+  control: (base: CSSObjectWithLabel, state: { isFocused: boolean }) => ({
+    ...base,
+    minHeight: '26px',
+    fontSize: '12px',
+    boxShadow: state.isFocused ? getFocusBoxShadow() : base.boxShadow,
+    borderColor: state.isFocused ? 'var(--focus-ring-color)' : base.borderColor,
+    '&:hover': {
+      borderColor: state.isFocused ? 'var(--focus-ring-color)' : base.borderColor,
+    },
+  }),
+  menu: (base: CSSObjectWithLabel) => ({
+    ...base,
+    fontSize: '12px',
+    width: 'auto',
+    minWidth: '100%',
+  }),
+  menuPortal: (base: CSSObjectWithLabel) => ({
+    ...base,
+    zIndex: 9999,
+  }),
+  dropdownIndicator: (base: CSSObjectWithLabel) => ({
+    ...base,
+    padding: '4px',
+  }),
+  indicatorSeparator: () => ({
+    display: 'none',
+  }),
+};
 
 /**
  * UserManagementTab Props Interface
@@ -415,7 +460,7 @@ export function UserManagementTab({
             {(users?.length ?? 0) > 0 ? (
               users.map(user => (
                 <tr key={user.id} className="hover:bg-gray-50">
-                  {/* User Info Cell */}
+                  {/* User Cell - Name with username below */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     <div className="flex items-center">
                       <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-2">
@@ -423,7 +468,12 @@ export function UserManagementTab({
                       </div>
                       <div>
                         <div className="flex items-center gap-1">
-                          <span className="text-sm font-medium text-gray-900">{user.username}</span>
+                          <span className="text-sm font-medium text-gray-900">
+                            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy */}
+                            {user.lastName || user.firstName
+                              ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`
+                              : user.username}
+                          </span>
                           {user.requirePasswordChange && (
                             <span
                               className="text-warning-text text-xs flex items-center gap-0.5"
@@ -433,25 +483,34 @@ export function UserManagementTab({
                             </span>
                           )}
                         </div>
-                        <div className="text-[10px] text-gray-400">{user.id}</div>
+                        <div className="text-xs text-gray-500">{user.username}</div>
                       </div>
                     </div>
                   </td>
 
                   {/* Role Select Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
-                    <select
-                      value={user.role || 'user'}
-                      onChange={e => updateUserRole(user.id, e.target.value as 'admin' | 'user')}
-                      disabled={updating === user.id}
-                      className="select-sm px-1.5 py-0.5"
-                    >
-                      <option value="user">User</option>
-                      <option value="admin">Admin</option>
-                    </select>
-                    {updating === user.id && (
-                      <RefreshCw size={12} className="inline ml-2 animate-spin text-gray-400" />
-                    )}
+                    <div className="flex items-center gap-2">
+                      <div className="w-20">
+                        <Select<RoleOption>
+                          value={ROLE_OPTIONS.find(o => o.value === (user.role ?? 'user'))}
+                          onChange={option => {
+                            if (option) {
+                              void updateUserRole(user.id, option.value);
+                            }
+                          }}
+                          options={ROLE_OPTIONS}
+                          isDisabled={updating === user.id}
+                          isSearchable={false}
+                          styles={ROLE_SELECT_STYLES}
+                          menuPortalTarget={document.body}
+                          menuPlacement="auto"
+                        />
+                      </div>
+                      {updating === user.id && (
+                        <RefreshCw size={12} className="animate-spin text-gray-400" />
+                      )}
+                    </div>
                   </td>
 
                   {/* Researcher Status Cell */}

@@ -349,9 +349,7 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
       <div className="pt-6 border-t border-gray-200">
         <div className="bg-frost border border-action/30 rounded-lg p-2">
           <div className="flex items-center space-x-1.5">
-            <div className="w-4 h-4 rounded-full bg-action flex items-center justify-center flex-shrink-0">
-              <AlertCircle size={10} className="text-white" />
-            </div>
+            <AlertCircle size={18} className="text-action-hover flex-shrink-0" />
             <p className="text-xs text-action-hover/90">
               <strong className="text-action-hover">Safe Deletion:</strong> Researchers can only be
               deleted with zero tubes and no linked user.

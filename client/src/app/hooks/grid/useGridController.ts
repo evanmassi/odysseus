@@ -84,8 +84,8 @@ export const useGridController = ({
 
   // Default tube resolution if not provided
   const resolveTube = useMemo(
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Function fallback: use provided resolver or default implementation
     () =>
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Function fallback: use provided resolver or default implementation
       resolveTubeIdAtPosition || ((position: number) => positionToTubeMap.get(position) ?? null),
     [resolveTubeIdAtPosition, positionToTubeMap]
   );
