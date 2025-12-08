@@ -91,3 +91,7 @@ export {
 
 // User Assignment Utilities
 export { extractAssignedUserIds } from './utils/extractAssignedUserIds';
+
+// Label Change Detection
+export { extractLabelChanges } from './utils/extractLabelChanges';
+export type { LabelChange } from './utils/extractLabelChanges';

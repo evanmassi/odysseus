@@ -9,10 +9,12 @@ import { useAuthState } from '@domains/authentication/hooks/useAuth';
 import {
   useStorageData,
   useSaveStorageMutation,
+  useUpdateResourceLabelMutation,
   createTankFromDefaults,
   createRackFromDefaults,
   getNextTankNumber,
   extractAssignedUserIds,
+  extractLabelChanges,
 } from '@domains/storage';
 import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
 import { useResourcePermissions } from '@domains/storage/hooks/useResourcePermissions';
@@ -63,8 +65,9 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const modalService = useModalStore();
   const { user: currentUser } = useAuthState();
 
-  // React Query mutation for server sync
+  // React Query mutations for server sync
   const saveConfigurationMutation = useSaveStorageMutation();
+  const updateLabelMutation = useUpdateResourceLabelMutation();
 
   // ========== LOCAL STATE PATTERN ==========
   // Draft state for editing (not committed until Save)
@@ -72,8 +75,11 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const [originalLab, setOriginalLab] = useState<LabConfiguration | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // All users for admin dropdown (admin-only endpoint, returns empty for non-admins)
-  const { data: allUsers = [] } = useUsersQuery();
+  // All users for admin dropdown (admin-only endpoint, only fetch for admins)
+  const isAdmin = currentUser?.role === 'admin';
+  const { data: allUsers = [] } = useUsersQuery({
+    queryOptions: { enabled: isAdmin },
+  });
 
   // Assigned users for display (public endpoint, works for everyone)
   const assignedUserIds = useMemo(() => extractAssignedUserIds(localLab), [localLab]);
@@ -139,20 +145,41 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
   // ========== SAVE / CANCEL HANDLERS ==========
   const handleSave = async () => {
-    if (!localLab || !systemConfig) return;
+    if (!localLab || !systemConfig || !originalLab) return;
 
     setIsSaving(true);
     try {
-      // Update availableLabs with the modified lab
-      const updatedAvailableLabs = systemConfig.availableLabs.map(lab =>
-        lab.id === localLab.id ? localLab : lab
-      );
+      if (isAdmin) {
+        // Admin: Full configuration save (can change structure, assignments, labels)
+        const updatedAvailableLabs = systemConfig.availableLabs.map(lab =>
+          lab.id === localLab.id ? localLab : lab
+        );
 
-      // Save directly to server - React Query invalidation will refresh the data
-      await saveConfigurationMutation.mutateAsync({
-        systemConfig: { ...systemConfig, availableLabs: updatedAvailableLabs },
-        currentLab: localLab,
-      });
+        await saveConfigurationMutation.mutateAsync({
+          systemConfig: { ...systemConfig, availableLabs: updatedAvailableLabs },
+          currentLab: localLab,
+        });
+      } else {
+        // Non-admin: Only save label changes via dedicated endpoint
+        const labelChanges = extractLabelChanges(originalLab, localLab);
+
+        if (labelChanges.length === 0) {
+          notifications.info('No changes to save');
+          onClose();
+          return;
+        }
+
+        // Save each label change via the fine-grained endpoint
+        for (const change of labelChanges) {
+          await updateLabelMutation.mutateAsync({
+            resourceType: change.type,
+            tankId: change.tankId,
+            rackId: change.rackId,
+            boxId: change.boxId,
+            customLabel: change.customLabel || undefined,
+          });
+        }
+      }
 
       // Update original to reflect saved state
       setOriginalLab(structuredClone(localLab));
