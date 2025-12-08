@@ -121,6 +121,17 @@ export class SQLiteUserRepository implements UserRepository {
     return UserMapper.fromRows(rows);
   }
 
+  async findByIds(ids: string[]): Promise<User[]> {
+    if (ids.length === 0) return [];
+
+    const placeholders = ids.map(() => '?').join(',');
+    const rows = await this.context.queryMany<UserRow>(
+      `SELECT * FROM users WHERE id IN (${placeholders})`,
+      ids
+    );
+    return UserMapper.fromRows(rows);
+  }
+
   async save(user: User): Promise<void> {
     const row = UserMapper.toRow(user);
 

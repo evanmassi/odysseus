@@ -608,7 +608,9 @@ export class ServiceContainer {
     if (!this.userController) {
       this.userController = new UserController(
         this.getUpdateUserSettingsHandler(),
-        this.getGetUserSettingsHandler()
+        this.getGetUserSettingsHandler(),
+        this.repositoryFactory.getUserRepository(),
+        this.repositoryFactory.getPersonRepository()
       );
     }
     return this.userController;

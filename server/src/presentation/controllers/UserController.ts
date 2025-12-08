@@ -3,18 +3,21 @@ import {
   UpdateUserSettingsCommandHandler,
   GetUserSettingsQueryHandler
 } from '@application/commands/UserCommands';
-import { userSettingsSchema } from '@odysseus/shared-schemas';
+import { UserRepository } from '@domain/repositories/UserRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
+import { userSettingsSchema, userLookupRequestSchema } from '@odysseus/shared-schemas';
 
 /**
  * User Controller
  *
- * Handles user-related HTTP requests (settings, profile, etc.)
- * Currently focused on user settings management.
+ * Handles user-related HTTP requests (settings, profile, lookup, etc.)
  */
 export class UserController {
   constructor(
     private updateUserSettingsHandler: UpdateUserSettingsCommandHandler,
-    private getUserSettingsHandler: GetUserSettingsQueryHandler
+    private getUserSettingsHandler: GetUserSettingsQueryHandler,
+    private userRepository: UserRepository,
+    private personRepository: PersonRepository
   ) {}
 
   /**
@@ -59,6 +62,48 @@ export class UserController {
       });
     } catch (error) {
       this.handleError(error, res, 'Failed to update user settings');
+    }
+  }
+
+  /**
+   * POST /api/users/lookup
+   * Look up display info for a list of user IDs
+   * Access: Any authenticated user
+   *
+   * Uses batch queries to avoid N+1 performance issues.
+   */
+  async lookupUsers(req: Request, res: Response): Promise<void> {
+    try {
+      const { userIds } = userLookupRequestSchema.parse(req.body);
+
+      // Batch fetch all users
+      const users = await this.userRepository.findByIds(userIds);
+
+      // Collect all personIds that need to be fetched
+      const personIds = users
+        .map(u => u.toPublicData().personId)
+        .filter((id): id is string => id != null);
+
+      // Batch fetch all persons in one query
+      const persons = await this.personRepository.findByIds(personIds);
+      const personMap = new Map(persons.map(p => [p.id, p]));
+
+      // Build response with person names
+      const displayUsers = users.map(user => {
+        const publicData = user.toPublicData();
+        const person = publicData.personId ? personMap.get(publicData.personId) : null;
+
+        return {
+          id: publicData.id,
+          username: publicData.username,
+          firstName: person?.firstName,
+          lastName: person?.lastName,
+        };
+      });
+
+      res.json({ success: true, users: displayUsers });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to lookup users');
     }
   }
 

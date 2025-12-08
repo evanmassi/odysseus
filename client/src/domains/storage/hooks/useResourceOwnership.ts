@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
-import type { AdminUser } from '@odysseus/shared-schemas';
+import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
 interface UserInfo {
   initials: string;
@@ -27,7 +27,7 @@ interface UseResourceOwnershipResult {
  * Handles user initials, ownership cascade, and ownership checks
  */
 export function useResourceOwnership(
-  users: AdminUser[],
+  users: UserDisplayInfo[],
   currentUserId: string | undefined
 ): UseResourceOwnershipResult {
   const getUserInfo = useMemo(

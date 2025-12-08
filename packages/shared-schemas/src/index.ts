@@ -356,6 +356,19 @@ export {
   type UserSettingsResponse
 } from './users/userSettingsSchemas';
 
+// User Lookup Schemas (Public endpoint for display info)
+export {
+  // Schemas
+  userLookupRequestSchema,
+  userDisplayInfoSchema,
+  userLookupResponseSchema,
+
+  // Types
+  type UserLookupRequest,
+  type UserDisplayInfo,
+  type UserLookupResponse
+} from './users/userLookupSchemas';
+
 // Person Schemas (Core profile entity)
 export {
   // Schemas

@@ -2,14 +2,14 @@ import React, { useMemo, useCallback } from 'react';
 
 import Select, { type CSSObjectWithLabel } from 'react-select';
 
-import type { AdminUser } from '@odysseus/shared-schemas';
+import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
 // Special value for explicitly unassigned/common boxes
 const COMMON_VALUE = '__COMMON__';
 
 interface AssignmentDropdownProps {
   value: string | null | undefined;
-  users: AdminUser[];
+  users: UserDisplayInfo[];
   onChange: (userId: string | null | undefined) => void;
   size: 'sm' | 'md';
   /** Show "Unassigned/Common" option - only for boxes that can be made common */
@@ -90,21 +90,17 @@ export function AssignmentDropdown({
 }: AssignmentDropdownProps) {
   const userOptions = useMemo(
     (): AssignmentOption[] =>
-      users
-        .filter(u => u.status === 'approved')
-        .map(u => {
-          const label =
-            u.firstName && u.lastName
-              ? `${u.lastName}, ${u.firstName} (${u.username})`
-              : u.username;
-          return {
-            value: u.id,
-            label,
-            firstName: u.firstName,
-            lastName: u.lastName,
-            username: u.username,
-          };
-        }),
+      users.map(u => {
+        const label =
+          u.firstName && u.lastName ? `${u.lastName}, ${u.firstName} (${u.username})` : u.username;
+        return {
+          value: u.id,
+          label,
+          firstName: u.firstName,
+          lastName: u.lastName,
+          username: u.username,
+        };
+      }),
     [users]
   );
 

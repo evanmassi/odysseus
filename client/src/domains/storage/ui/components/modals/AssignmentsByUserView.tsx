@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { formatResourceDisplayName, type AdminUser } from '@odysseus/shared-schemas';
+import { formatResourceDisplayName, type UserDisplayInfo } from '@odysseus/shared-schemas';
 import { UsersRound, ChevronDown, ChevronRight, UserRoundX, UserRoundPen } from 'lucide-react';
 
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
@@ -25,7 +25,7 @@ interface AssignmentsByUserViewProps {
   /** Whether current user can manage storage (admin) */
   canManageStorage?: boolean;
   /** List of users for reassignment dropdown */
-  users?: AdminUser[];
+  users?: UserDisplayInfo[];
   /** Called when admin wants to unassign all resources from a user */
   onBulkUnassign?: (userId: string) => void;
   /** Called when admin wants to reassign all resources from one user to another */

@@ -50,7 +50,13 @@ export interface UserRepository {
    * Find all users in the system
    */
   findAll(): Promise<User[]>;
-  
+
+  /**
+   * Find multiple users by their IDs
+   * Returns only found users (no errors for missing IDs)
+   */
+  findByIds(ids: string[]): Promise<User[]>;
+
   /**
    * Save a user (create or update)
    * Repository determines if it's create vs update based on existence

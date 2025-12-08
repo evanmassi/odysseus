@@ -46,4 +46,12 @@ export interface PersonRepository {
    * @returns Array of all Person entities
    */
   findAll(): Promise<Person[]>;
+
+  /**
+   * Find multiple persons by their IDs
+   * Returns only found persons (no errors for missing IDs)
+   * @param ids - Array of person IDs to look up
+   * @returns Array of found Person entities
+   */
+  findByIds(ids: string[]): Promise<Person[]>;
 }

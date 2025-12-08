@@ -64,4 +64,15 @@ export class SQLitePersonRepository implements PersonRepository {
     );
     return PersonMapper.fromRows(rows);
   }
+
+  async findByIds(ids: string[]): Promise<Person[]> {
+    if (ids.length === 0) return [];
+
+    const placeholders = ids.map(() => '?').join(',');
+    const rows = await this.context.queryMany<PersonRow>(
+      `SELECT * FROM persons WHERE id IN (${placeholders})`,
+      ids
+    );
+    return PersonMapper.fromRows(rows);
+  }
 }

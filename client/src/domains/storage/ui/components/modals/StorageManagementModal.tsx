@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { Plus, X, Save, RefreshCw, ListTree, UsersRound } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useUsersQuery } from '@domains/admin';
 import { useAuthState } from '@domains/authentication/hooks/useAuth';
 import {
   useStorageData,
@@ -12,6 +11,7 @@ import {
   createTankFromDefaults,
   createRackFromDefaults,
   getNextTankNumber,
+  extractAssignedUserIds,
 } from '@domains/storage';
 import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
 import { useResourcePermissions } from '@domains/storage/hooks/useResourcePermissions';
@@ -29,6 +29,7 @@ import {
   assignBoxInLab,
   updateCustomLabelInLab,
 } from '@domains/storage/utils/storageLocalUpdates';
+import { useUserLookupQuery } from '@domains/users';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
 import { TankIcon } from '@shared/ui/components/icons';
@@ -59,9 +60,6 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   // Server state from React Query (via useStorageData)
   const { currentLab, systemConfig, getAvailableGridTemplates } = useStorageData();
   const modalService = useModalStore();
-
-  // Resource assignment - fetch users and current user
-  const { data: users = [] } = useUsersQuery();
   const { user: currentUser } = useAuthState();
 
   // React Query mutation for server sync
@@ -72,6 +70,10 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const [localLab, setLocalLab] = useState<LabConfiguration | null>(null);
   const [originalLab, setOriginalLab] = useState<LabConfiguration | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Resource assignment - fetch only users that are assigned to resources
+  const assignedUserIds = useMemo(() => extractAssignedUserIds(localLab), [localLab]);
+  const { data: users = [] } = useUserLookupQuery(assignedUserIds);
 
   // View mode: tree (default) or byUser (assignment summary)
   const [viewMode, setViewMode] = useState<'tree' | 'byUser'>('tree');

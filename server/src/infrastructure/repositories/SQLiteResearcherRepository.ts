@@ -66,6 +66,17 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
     return ResearcherMapper.fromRows(rows);
   }
 
+  async findByIds(ids: string[]): Promise<Researcher[]> {
+    if (ids.length === 0) return [];
+
+    const placeholders = ids.map(() => '?').join(',');
+    const rows = await this.context.queryMany<ResearcherRow>(
+      `SELECT * FROM researchers WHERE id IN (${placeholders})`,
+      ids
+    );
+    return ResearcherMapper.fromRows(rows);
+  }
+
   async save(researcher: Researcher): Promise<void> {
     const row = ResearcherMapper.toRow(researcher);
 

@@ -372,57 +372,65 @@ export class AuthController {
       const query = new GetAllUsersQuery(false); // Don't include inactive by default
       const users = await this.getAllUsersHandler.handle(query);
 
+      // Batch fetch all related data to avoid N+1 queries
+      const publicDataList = users.map(u => u.toPublicData());
+
+      // Collect IDs for batch fetching
+      const directPersonIds = publicDataList
+        .map(u => u.personId)
+        .filter((id): id is string => id != null);
+      const researcherIds = publicDataList
+        .map(u => u.researcherId)
+        .filter((id): id is string => id != null);
+
+      // Batch fetch persons (direct) and researchers
+      const [directPersons, researchers] = await Promise.all([
+        this.personRepository.findByIds(directPersonIds),
+        this.researcherRepository.findByIds(researcherIds)
+      ]);
+
+      // Collect researcher's personIds and batch fetch those too
+      const researcherPersonIds = researchers
+        .map(r => r.personId)
+        .filter((id): id is string => id != null);
+      const researcherPersons = await this.personRepository.findByIds(researcherPersonIds);
+
+      // Build lookup maps
+      const directPersonMap = new Map(directPersons.map(p => [p.id, p]));
+      const researcherMap = new Map(researchers.map(r => [r.id, r]));
+      const researcherPersonMap = new Map(researcherPersons.map(p => [p.id, p]));
+
       // Enrich user data with Person name information
-      const enrichedUsers = await Promise.all(
-        users.map(async (user) => {
-          const publicData = user.toPublicData();
+      const enrichedUsers = publicDataList.map(publicData => {
+        // Priority 1: User's direct personId
+        if (publicData.personId) {
+          const person = directPersonMap.get(publicData.personId);
+          if (person) {
+            return {
+              ...publicData,
+              firstName: person.firstName,
+              lastName: person.lastName
+            };
+          }
+        }
 
-          // Priority 1: User's direct personId
-          if (publicData.personId) {
-            try {
-              const person = await this.personRepository.findById(publicData.personId);
-              if (person) {
-                return {
-                  ...publicData,
-                  firstName: person.firstName,
-                  lastName: person.lastName
-                };
-              }
-            } catch (error) {
-              logger.warn('Failed to fetch person details for user', {
-                userId: user.id,
-                personId: publicData.personId,
-                error
-              });
+        // Priority 2: Linked researcher's person
+        if (publicData.researcherId) {
+          const researcher = researcherMap.get(publicData.researcherId);
+          if (researcher) {
+            const person = researcherPersonMap.get(researcher.personId);
+            if (person) {
+              return {
+                ...publicData,
+                firstName: person.firstName,
+                lastName: person.lastName
+              };
             }
           }
+        }
 
-          // Priority 2: Linked researcher's person
-          if (publicData.researcherId) {
-            try {
-              const researcher = await this.researcherRepository.findById(publicData.researcherId);
-              if (researcher) {
-                const person = await this.personRepository.findById(researcher.personId);
-                if (person) {
-                  return {
-                    ...publicData,
-                    firstName: person.firstName,
-                    lastName: person.lastName
-                  };
-                }
-              }
-            } catch (error) {
-              logger.warn('Failed to fetch researcher details for user', {
-                userId: user.id,
-                researcherId: publicData.researcherId,
-                error
-              });
-            }
-          }
-
-          return publicData;
-        })
-      );
+        return publicData;
+      });
 
       const response = ResponseBuilder.withTiming(startTime, {
         users: enrichedUsers

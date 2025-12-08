@@ -88,3 +88,6 @@ export {
   createDefaultConfiguration,
   createDefaultSystemConfig,
 } from './utils/defaultConfiguration';
+
+// User Assignment Utilities
+export { extractAssignedUserIds } from './utils/extractAssignedUserIds';

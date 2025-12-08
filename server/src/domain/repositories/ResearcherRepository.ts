@@ -25,7 +25,13 @@ export interface ResearcherRepository {
    * Find all researchers in the system
    */
   findAll(): Promise<Researcher[]>;
-  
+
+  /**
+   * Find multiple researchers by their IDs
+   * Returns only found researchers (no errors for missing IDs)
+   */
+  findByIds(ids: string[]): Promise<Researcher[]>;
+
   /**
    * Save a researcher (create or update)
    * Repository determines if it's create vs update based on existence

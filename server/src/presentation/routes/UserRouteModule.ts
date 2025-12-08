@@ -4,6 +4,8 @@ import { PersonController } from '@presentation/controllers/PersonController';
 import { SessionController } from '@presentation/controllers/SessionController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
+import { validateBody } from '@middleware/Validation';
+import { userLookupRequestSchema } from '@odysseus/shared-schemas';
 
 /**
  * User Route Module
@@ -115,12 +117,24 @@ export class UserRouteModule implements RouteModule {
     router.delete('/me/sessions/all',
       this.sessionController.revokeAllOtherSessions.bind(this.sessionController)
     );
+
+    /**
+     * POST /api/users/lookup
+     * Look up display info for multiple users by ID
+     *
+     * Access: Any authenticated user
+     * Used by: Storage Management Modal for ownership display
+     */
+    router.post('/lookup',
+      validateBody(userLookupRequestSchema),
+      this.userController.lookupUsers.bind(this.userController)
+    );
   }
 
   /**
    * Get route count for monitoring
    */
   getRouteCount(): number {
-    return 7; // Total number of routes configured
+    return 8; // Total number of routes configured
   }
 }

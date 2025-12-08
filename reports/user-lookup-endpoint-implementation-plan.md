@@ -15,6 +15,7 @@ Create a public user lookup endpoint that any authenticated user can access:
 - `POST /api/users/lookup` - accepts list of user IDs, returns minimal display info
 - Only fetches users that are actually needed (scalable)
 - Returns limited data (no sensitive admin info like roles, status, etc.)
+- Uses batch queries to avoid N+1 performance issues
 
 ---
 
@@ -59,7 +60,7 @@ export type UserLookupResponse = z.infer<typeof userLookupResponseSchema>;
 
 ```typescript
 import { httpClient } from '@infra/api/httpClient';
-import type { UserDisplayInfo, UserLookupRequest } from '@odysseus/shared-schemas';
+import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
 export class UserLookupService {
   async lookupUsers(userIds: string[]): Promise<UserDisplayInfo[]> {
@@ -96,6 +97,35 @@ export function useUserLookupQuery(userIds: string[]) {
     staleTime: 30 * 60 * 1000, // 30 minutes - display info rarely changes
     gcTime: 60 * 60 * 1000, // 1 hour
   });
+}
+```
+
+### 4. Client Utility: `client/src/domains/storage/utils/extractAssignedUserIds.ts`
+
+**Purpose:** Reusable utility to extract unique assigned user IDs from lab configuration
+
+```typescript
+import type { LabConfiguration } from '@domains/storage';
+
+/**
+ * Extracts all unique assigned user IDs from a lab configuration.
+ * Collects IDs from both rack and box assignments.
+ */
+export function extractAssignedUserIds(lab: LabConfiguration | null): string[] {
+  if (!lab) return [];
+
+  const ids = new Set<string>();
+
+  for (const tank of lab.equipment.tanks) {
+    for (const rack of tank.racks) {
+      if (rack.assignedUserId) ids.add(rack.assignedUserId);
+      for (const box of rack.boxes) {
+        if (box.assignedUserId) ids.add(box.assignedUserId);
+      }
+    }
+  }
+
+  return Array.from(ids);
 }
 ```
 
@@ -141,12 +171,55 @@ async findByIds(ids: string[]): Promise<User[]> {
 
 ---
 
-### 3. Server: `server/src/presentation/controllers/UserController.ts`
+### 3. Server: `server/src/domain/repositories/PersonRepository.ts`
+
+**Add method to interface:**
+
+```typescript
+/**
+ * Find multiple persons by their IDs
+ * Returns only found persons (no errors for missing IDs)
+ */
+findByIds(ids: string[]): Promise<Person[]>;
+```
+
+**Location:** After `findAll()` method
+
+---
+
+### 4. Server: `server/src/infrastructure/repositories/SQLitePersonRepository.ts`
+
+**Add implementation:**
+
+```typescript
+async findByIds(ids: string[]): Promise<Person[]> {
+  if (ids.length === 0) return [];
+
+  const placeholders = ids.map(() => '?').join(',');
+  const rows = await this.context.queryMany<PersonRow>(
+    `SELECT * FROM persons WHERE id IN (${placeholders})`,
+    ids
+  );
+
+  return rows.map(row => PersonMapper.fromRow(row));
+}
+```
+
+**Location:** After `findAll()` method
+
+---
+
+### 5. Server: `server/src/presentation/controllers/UserController.ts`
 
 **Add method and dependencies:**
 
 ```typescript
-// Add to constructor
+// Add imports
+import { UserRepository } from '@domain/repositories/UserRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
+import { userLookupRequestSchema } from '@odysseus/shared-schemas';
+
+// Update constructor
 constructor(
   private updateUserSettingsHandler: UpdateUserSettingsCommandHandler,
   private getUserSettingsHandler: GetUserSettingsQueryHandler,
@@ -158,37 +231,37 @@ constructor(
  * POST /api/users/lookup
  * Look up display info for a list of user IDs
  * Access: Any authenticated user
+ *
+ * Uses batch queries to avoid N+1 performance issues.
  */
 async lookupUsers(req: Request, res: Response): Promise<void> {
   try {
     const { userIds } = userLookupRequestSchema.parse(req.body);
 
+    // Batch fetch all users
     const users = await this.userRepository.findByIds(userIds);
 
-    // Enrich with Person names
-    const displayUsers = await Promise.all(
-      users.map(async (user) => {
-        const publicData = user.toPublicData();
-        let firstName: string | undefined;
-        let lastName: string | undefined;
+    // Collect all personIds that need to be fetched
+    const personIds = users
+      .map(u => u.toPublicData().personId)
+      .filter((id): id is string => id != null);
 
-        // Try to get name from Person entity
-        if (publicData.personId) {
-          const person = await this.personRepository.findById(publicData.personId);
-          if (person) {
-            firstName = person.firstName;
-            lastName = person.lastName;
-          }
-        }
+    // Batch fetch all persons in one query
+    const persons = await this.personRepository.findByIds(personIds);
+    const personMap = new Map(persons.map(p => [p.id, p]));
 
-        return {
-          id: publicData.id,
-          username: publicData.username,
-          firstName,
-          lastName,
-        };
-      })
-    );
+    // Build response with person names
+    const displayUsers = users.map(user => {
+      const publicData = user.toPublicData();
+      const person = publicData.personId ? personMap.get(publicData.personId) : null;
+
+      return {
+        id: publicData.id,
+        username: publicData.username,
+        firstName: person?.firstName,
+        lastName: person?.lastName,
+      };
+    });
 
     res.json({ success: true, users: displayUsers });
   } catch (error) {
@@ -199,11 +272,17 @@ async lookupUsers(req: Request, res: Response): Promise<void> {
 
 ---
 
-### 4. Server: `server/src/presentation/routes/UserRouteModule.ts`
+### 6. Server: `server/src/presentation/routes/UserRouteModule.ts`
 
-**Add route:**
+**Add imports and route:**
 
 ```typescript
+// Add imports
+import { validateBody } from '@middleware/Validation';
+import { userLookupRequestSchema } from '@odysseus/shared-schemas';
+
+// Add route in configure() method:
+
 /**
  * POST /api/users/lookup
  * Look up display info for multiple users by ID
@@ -218,11 +297,10 @@ router.post('/lookup',
 ```
 
 **Location:** Add after existing routes in `configure()` method
-**Also add:** Import for `validateBody` and `userLookupRequestSchema`
 
 ---
 
-### 5. Server: `server/src/infrastructure/di/ServiceContainer.ts`
+### 7. Server: `server/src/infrastructure/di/ServiceContainer.ts`
 
 **Update UserController instantiation:**
 
@@ -244,7 +322,7 @@ getUserController(): UserController {
 
 ---
 
-### 6. Shared: `packages/shared-schemas/src/index.ts`
+### 8. Shared: `packages/shared-schemas/src/index.ts`
 
 **Add exports:**
 
@@ -262,7 +340,7 @@ export {
 
 ---
 
-### 7. Client: `client/src/app/queryKeys.ts`
+### 9. Client: `client/src/app/queryKeys.ts`
 
 **Add lookup query key:**
 
@@ -272,15 +350,15 @@ users: {
   settings: () => [...queryKeys.users.all, 'settings'] as const,
   profile: () => [...queryKeys.users.all, 'profile'] as const,
   sessions: () => [...queryKeys.users.all, 'sessions'] as const,
-  lookup: (userIds: string[]) => [...queryKeys.users.all, 'lookup', userIds.sort().join(',')] as const,  // NEW
+  lookup: (userIds: string[]) => [...queryKeys.users.all, 'lookup', [...userIds].sort()] as const,
 },
 ```
 
-**Note:** Sort userIds to ensure consistent cache keys regardless of order
+**Note:** Sorted array ensures consistent keys regardless of input order. React Query deep-compares arrays natively - no custom hash needed.
 
 ---
 
-### 8. Client: `client/src/domains/users/index.ts`
+### 10. Client: `client/src/domains/users/index.ts`
 
 **Add exports:**
 
@@ -291,7 +369,17 @@ export { useUserLookupQuery } from './hooks/useUserLookupQuery';
 
 ---
 
-### 9. Client: `client/src/domains/storage/ui/components/modals/StorageManagementModal.tsx`
+### 11. Client: `client/src/domains/storage/index.ts`
+
+**Add export for utility:**
+
+```typescript
+export { extractAssignedUserIds } from './utils/extractAssignedUserIds';
+```
+
+---
+
+### 12. Client: `client/src/domains/storage/ui/components/modals/StorageManagementModal.tsx`
 
 **Replace useUsersQuery with useUserLookupQuery:**
 
@@ -303,24 +391,14 @@ const { data: users = [] } = useUsersQuery();
 
 // AFTER
 import { useUserLookupQuery } from '@domains/users';
+import { extractAssignedUserIds } from '@domains/storage';
 // ...
 
 // Extract unique user IDs from storage configuration
-const assignedUserIds = useMemo(() => {
-  if (!localLab) return [];
-  const ids = new Set<string>();
-
-  for (const tank of localLab.equipment.tanks) {
-    for (const rack of tank.racks) {
-      if (rack.assignedUserId) ids.add(rack.assignedUserId);
-      for (const box of rack.boxes) {
-        if (box.assignedUserId) ids.add(box.assignedUserId);
-      }
-    }
-  }
-
-  return Array.from(ids);
-}, [localLab]);
+const assignedUserIds = useMemo(
+  () => extractAssignedUserIds(localLab),
+  [localLab]
+);
 
 const { data: users = [] } = useUserLookupQuery(assignedUserIds);
 ```
@@ -329,7 +407,7 @@ const { data: users = [] } = useUserLookupQuery(assignedUserIds);
 
 ---
 
-### 10. Client: `client/src/domains/storage/hooks/useResourceOwnership.ts`
+### 13. Client: `client/src/domains/storage/hooks/useResourceOwnership.ts`
 
 **Update type import:**
 
@@ -361,17 +439,22 @@ export function useResourceOwnership(
 
 ## Implementation Order
 
-1. **Shared schemas** - Create types first (shared-schemas)
-2. **Server repository** - Add `findByIds` to interface and implementation
-3. **Server controller** - Add `lookupUsers` method
-4. **Server routes** - Wire up POST /api/users/lookup
-5. **Server DI** - Update ServiceContainer
-6. **Build shared-schemas** - `npm run build` in packages/shared-schemas
-7. **Client service** - Create UserLookupService
-8. **Client hook** - Create useUserLookupQuery
-9. **Client queryKeys** - Add lookup key
-10. **Client exports** - Update users domain index
-11. **Update consumers** - StorageManagementModal, useResourceOwnership
+1. **Shared schemas** - Create `userLookupSchemas.ts`
+2. **Shared exports** - Update `packages/shared-schemas/src/index.ts`
+3. **Build shared-schemas** - `npm run build` in packages/shared-schemas
+4. **Server PersonRepository** - Add `findByIds` to interface
+5. **Server SQLitePersonRepository** - Add `findByIds` implementation
+6. **Server UserRepository** - Add `findByIds` to interface
+7. **Server SQLiteUserRepository** - Add `findByIds` implementation
+8. **Server UserController** - Add `lookupUsers` method with batch queries
+9. **Server UserRouteModule** - Wire up POST /api/users/lookup
+10. **Server ServiceContainer** - Update UserController instantiation
+11. **Client utility** - Create `extractAssignedUserIds.ts`
+12. **Client service** - Create `UserLookupService.ts`
+13. **Client hook** - Create `useUserLookupQuery.ts`
+14. **Client queryKeys** - Add lookup key
+15. **Client exports** - Update users and storage domain indexes
+16. **Update consumers** - StorageManagementModal, useResourceOwnership
 
 ---
 
@@ -384,6 +467,7 @@ export function useResourceOwnership(
 - [ ] Empty storage (no assignments) doesn't cause errors
 - [ ] Large number of assignments doesn't cause performance issues
 - [ ] User lookup caches properly (no repeated requests)
+- [ ] Server logs show only 2 queries (users + persons) not N+1
 
 ---
 

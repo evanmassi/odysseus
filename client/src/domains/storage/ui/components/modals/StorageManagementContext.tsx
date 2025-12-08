@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 
 import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
-import type { AdminUser } from '@odysseus/shared-schemas';
+import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
 interface UserInfo {
   initials: string;
@@ -10,7 +10,7 @@ interface UserInfo {
 
 interface StorageManagementContextValue {
   // Data
-  users: AdminUser[];
+  users: UserDisplayInfo[];
   currentUser: { id: string; role?: string } | null;
 
   // Business logic functions

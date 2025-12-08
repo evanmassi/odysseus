@@ -25,6 +25,7 @@ export const queryKeys = {
     settings: () => [...queryKeys.users.all, 'settings'] as const,
     profile: () => [...queryKeys.users.all, 'profile'] as const,
     sessions: () => [...queryKeys.users.all, 'sessions'] as const,
+    lookup: (userIds: string[]) => [...queryKeys.users.all, 'lookup', [...userIds].sort()] as const,
   },
 
   // Admin (admin-only operations)
