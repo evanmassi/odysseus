@@ -139,7 +139,6 @@ export {
   formatResearcherListDisplay,
   formatResearcherDropdownDisplay,
   formatResearcherFullDisplay,
-  sortResearchers,
 
   // Duplicate Detection
   calculateNameSimilarity,
@@ -379,5 +378,9 @@ export {
   // Types
   type Person,
   type UpdatePersonProfile,
-  type PersonProfileResponse
+  type PersonProfileResponse,
+  type NameSortable,
+
+  // Utilities
+  sortByName
 } from './persons/personSchemas';

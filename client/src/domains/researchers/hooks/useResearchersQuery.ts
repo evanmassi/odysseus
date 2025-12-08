@@ -10,7 +10,7 @@ import {
   type UpdateResearcherProfile,
   formatResearcherDropdownDisplay,
   formatResearcherListDisplay,
-  sortResearchers
+  sortByName,
 } from '@odysseus/shared-schemas';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
@@ -21,7 +21,6 @@ import { queryKeys } from '@app/queryKeys';
 import { ResearcherService } from '../services/ResearcherService';
 
 import type { UseQueryOptions } from '@tanstack/react-query';
-
 
 /**
  * Hook to fetch all researchers (basic data only)
@@ -37,10 +36,10 @@ export function useResearchersQuery(options?: {
     queryKey: queryKeys.researchers.list(filters),
     queryFn: async (): Promise<Researcher[]> => {
       const researchers = await ResearcherService.list({ filters });
-      return researchers.sort(sortResearchers);
+      return sortByName(researchers);
     },
     ...DOMAIN_QUERY_OPTIONS.researchers,
-    ...queryOptions
+    ...queryOptions,
   });
 }
 
@@ -58,25 +57,28 @@ export function useAdminResearchersQuery(options?: {
     queryKey: queryKeys.researchers.admin(filters),
     queryFn: async (): Promise<AdminResearcher[]> => {
       const researchers = await ResearcherService.list({ admin: true, filters });
-      return researchers.sort(sortResearchers);
+      return sortByName(researchers);
     },
     ...DOMAIN_QUERY_OPTIONS.researchers,
-    ...queryOptions
+    ...queryOptions,
   });
 }
 
 /**
  * Hook to fetch a single researcher by ID
  */
-export function useResearcherQuery(researcherId: string, options?: {
-  queryOptions?: Omit<UseQueryOptions<AdminResearcher>, 'queryKey' | 'queryFn'>;
-}) {
+export function useResearcherQuery(
+  researcherId: string,
+  options?: {
+    queryOptions?: Omit<UseQueryOptions<AdminResearcher>, 'queryKey' | 'queryFn'>;
+  }
+) {
   return useQuery({
     queryKey: queryKeys.researchers.detail(researcherId),
     queryFn: () => ResearcherService.get(researcherId),
     staleTime: 10 * 60 * 1000,
     enabled: !!researcherId,
-    ...options?.queryOptions
+    ...options?.queryOptions,
   });
 }
 
@@ -88,15 +90,18 @@ export function useCreateResearcherMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (researcherData: CreateResearcherProfile) => ResearcherService.create(researcherData),
-    onSuccess: (newResearcher) => {
+    mutationFn: (researcherData: CreateResearcherProfile) =>
+      ResearcherService.create(researcherData),
+    onSuccess: newResearcher => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-      toast.success(`Researcher "${formatResearcherDropdownDisplay(newResearcher)}" created successfully`);
+      toast.success(
+        `Researcher "${formatResearcherDropdownDisplay(newResearcher)}" created successfully`
+      );
     },
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`Failed to create researcher: ${message}`);
-    }
+    },
   });
 }
 
@@ -120,15 +125,19 @@ export function useUpdateResearcherMutation() {
       // Show appropriate success message based on what was updated
       if (variables.data.active !== undefined) {
         const action = variables.data.active ? 'reactivated' : 'deactivated';
-        toast.success(`Researcher "${formatResearcherListDisplay(updatedResearcher)}" ${action} successfully`);
+        toast.success(
+          `Researcher "${formatResearcherListDisplay(updatedResearcher)}" ${action} successfully`
+        );
       } else {
-        toast.success(`Researcher "${formatResearcherListDisplay(updatedResearcher)}" updated successfully`);
+        toast.success(
+          `Researcher "${formatResearcherListDisplay(updatedResearcher)}" updated successfully`
+        );
       }
     },
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`Failed to update researcher: ${message}`);
-    }
+    },
   });
 }
 
@@ -137,7 +146,7 @@ export function useUpdateResearcherMutation() {
  */
 export function useDeleteResearcherMutation() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (researcherId: string) => ResearcherService.delete(researcherId),
     onSuccess: (_, researcherId) => {
@@ -148,10 +157,9 @@ export function useDeleteResearcherMutation() {
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : 'Unknown error';
       toast.error(`Failed to delete researcher: ${message}`);
-    }
+    },
   });
 }
-
 
 /**
  * Hook to get active researchers only (commonly used in forms)
@@ -160,13 +168,16 @@ export function useDeleteResearcherMutation() {
  * Uses client-side filtering for small-medium datasets.
  */
 export function useActiveResearchersQuery(options?: {
-  queryOptions?: Omit<UseQueryOptions<Researcher[], Error, Researcher[]>, 'queryKey' | 'queryFn' | 'select'>;
+  queryOptions?: Omit<
+    UseQueryOptions<Researcher[], Error, Researcher[]>,
+    'queryKey' | 'queryFn' | 'select'
+  >;
 }) {
   return useQuery<Researcher[], Error, Researcher[]>({
     queryKey: queryKeys.researchers.lists(),
     queryFn: () => ResearcherService.list(),
-    select: (researchers) => researchers.filter(r => r.active !== false),
+    select: researchers => researchers.filter(r => r.active !== false),
     ...DOMAIN_QUERY_OPTIONS.researchers,
-    ...options?.queryOptions
+    ...options?.queryOptions,
   });
 }

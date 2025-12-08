@@ -53,3 +53,76 @@ export const personProfileResponseSchema = z.object({
 });
 
 export type PersonProfileResponse = z.infer<typeof personProfileResponseSchema>;
+
+/**
+ * Name Sortable Interface
+ *
+ * Objects that can be sorted by name. Supports flexible field presence:
+ * - Researchers: have firstName/lastName (required)
+ * - Users: have username (required), firstName/lastName (optional)
+ */
+export interface NameSortable {
+  lastName?: string;
+  firstName?: string;
+  username?: string;
+}
+
+/**
+ * Sort an array of person-like objects by name
+ *
+ * Sorting priority: lastName → firstName → username
+ * - Handles hyphenated last names (e.g., "Smith-Johnson" sorts as "Smith")
+ * - Empty/missing values sort to the end
+ * - Case-insensitive comparison
+ *
+ * @param items - Array of objects with name fields
+ * @returns New sorted array (does not mutate original)
+ *
+ * @example
+ * ```typescript
+ * // Sort researchers
+ * const sorted = sortByName(researchers);
+ *
+ * // Sort users (falls back to username when names missing)
+ * const sortedUsers = sortByName(users);
+ * ```
+ */
+export function sortByName<T extends NameSortable>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    // Extract sort key from lastName, handling hyphenated names
+    const getLastNameKey = (name?: string): string => {
+      if (!name?.trim()) return '\uffff'; // Sort empty to end
+      const parts = name.split('-');
+      return parts[0].trim().toLowerCase();
+    };
+
+    const getFirstNameKey = (name?: string): string => {
+      if (!name?.trim()) return '\uffff'; // Sort empty to end
+      return name.trim().toLowerCase();
+    };
+
+    const getUsernameKey = (name?: string): string => {
+      if (!name?.trim()) return '\uffff'; // Sort empty to end
+      return name.trim().toLowerCase();
+    };
+
+    // Primary: lastName
+    const lastNameA = getLastNameKey(a.lastName);
+    const lastNameB = getLastNameKey(b.lastName);
+    if (lastNameA !== lastNameB) {
+      return lastNameA.localeCompare(lastNameB);
+    }
+
+    // Secondary: firstName
+    const firstNameA = getFirstNameKey(a.firstName);
+    const firstNameB = getFirstNameKey(b.firstName);
+    if (firstNameA !== firstNameB) {
+      return firstNameA.localeCompare(firstNameB);
+    }
+
+    // Tertiary: username (fallback for users without names)
+    const usernameA = getUsernameKey(a.username);
+    const usernameB = getUsernameKey(b.username);
+    return usernameA.localeCompare(usernameB);
+  });
+}

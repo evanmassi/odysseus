@@ -1512,7 +1512,8 @@ const ttl = 120000; // 2 minutes in milliseconds
 - The Bash tool handles both PowerShell and cmd commands automatically
 
 **File System Operations:**
-- Use Windows native commands: `dir`, `del`, `copy`, `move`, `mkdir`, `rmdir`
+- Use Windows native commands: `dir`, `copy`, `move`, `mkdir`, `rmdir`
+- For deleting files: Use `powershell -Command "Remove-Item -Force 'path'"` (cmd's `del` is unreliable through Bash tool)
 - NEVER use Unix commands: `ls`, `rm`, `cp`, `mv` (they may fail or behave unexpectedly)
 
 **Cross-Platform Tools:**

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
-import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
+import { NAMING_PATTERNS, sortByName } from '@odysseus/shared-schemas';
 import { Plus, X, Save, RefreshCw, ListTree, UsersRound } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
@@ -85,16 +85,18 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const assignedUserIds = useMemo(() => extractAssignedUserIds(localLab), [localLab]);
   const { data: assignedUsers = [] } = useUserLookupQuery(assignedUserIds);
 
-  // For dropdowns: use all users (admin) - converted to UserDisplayInfo shape
+  // For dropdowns: use all users (admin) - converted to UserDisplayInfo shape, sorted by name
   // For display: use assigned users (everyone)
   const dropdownUsers = useMemo(
     () =>
-      allUsers.map(u => ({
-        id: u.id,
-        username: u.username,
-        firstName: u.firstName,
-        lastName: u.lastName,
-      })),
+      sortByName(
+        allUsers.map(u => ({
+          id: u.id,
+          username: u.username,
+          firstName: u.firstName,
+          lastName: u.lastName,
+        }))
+      ),
     [allUsers]
   );
 

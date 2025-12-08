@@ -1,6 +1,6 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 
-import { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
+import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
 import {
   X,
   Shield,
@@ -106,7 +106,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       const response = await adminService.getUsers();
 
       if (response.success && Array.isArray(response.users)) {
-        setUsers(response.users);
+        setUsers(sortByName(response.users));
       } else {
         // API returned unsuccessfully or invalid data - set empty array as fallback
         setUsers([]);

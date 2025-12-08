@@ -147,31 +147,6 @@ export const formatResearcherFullDisplay = (person: Pick<Person, 'firstName' | '
 };
 
 /**
- * Sorting utility for persons by name
- * Sorts by last name, with special handling for hyphenated names
- * Hyphenated names sort by the first part of the hyphen
- */
-export const sortResearchers = (a: Pick<Person, 'firstName' | 'lastName'>, b: Pick<Person, 'firstName' | 'lastName'>): number => {
-  // Extract primary sort key from last name
-  // For hyphenated names like "Smith-Johnson", use "Smith"
-  const getLastNameSortKey = (lastName: string): string => {
-    const parts = lastName.split('-');
-    return parts[0].trim().toLowerCase();
-  };
-
-  const aKey = getLastNameSortKey(a.lastName);
-  const bKey = getLastNameSortKey(b.lastName);
-
-  // Primary sort: last name (using first part if hyphenated)
-  if (aKey !== bKey) {
-    return aKey.localeCompare(bKey);
-  }
-
-  // Secondary sort: if last names match, sort by first name
-  return a.firstName.toLowerCase().localeCompare(b.firstName.toLowerCase());
-};
-
-/**
  * Name similarity detection utilities
  * Used for duplicate prevention when creating researchers
  */

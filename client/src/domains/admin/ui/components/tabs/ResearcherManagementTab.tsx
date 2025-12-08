@@ -13,6 +13,7 @@
 
 import { useState, useEffect } from 'react';
 
+import { sortByName } from '@odysseus/shared-schemas';
 import { RefreshCw, AlertCircle, Trash2, Plus } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
@@ -71,13 +72,7 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
     try {
       const response = await adminService.getResearchers();
       if (response.success) {
-        // Sort researchers alphabetically by last name, then first name
-        const sorted = [...response.researchers].sort((a, b) => {
-          const lastNameCompare = a.lastName.localeCompare(b.lastName);
-          if (lastNameCompare !== 0) return lastNameCompare;
-          return a.firstName.localeCompare(b.firstName);
-        });
-        setResearchers(sorted);
+        setResearchers(sortByName(response.researchers));
       }
     } catch (error) {
       logger.error('Failed to load researchers', { error });
