@@ -249,7 +249,8 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.deleteUserHandler = new DeleteUserCommandHandler(
         repositories.users,
-        this.getEventBus()
+        this.getEventBus(),
+        repositories.configurations
       );
     }
     return this.deleteUserHandler;

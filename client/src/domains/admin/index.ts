@@ -12,6 +12,7 @@ export { adminService, AdminService } from './services/AdminService';
 
 // Hooks
 export { useUsersQuery } from './hooks/useUsersQuery';
+export { useDeleteUserMutation } from './hooks/useUserMutations';
 
 // Re-export admin types from shared-schemas for convenience
 export type {

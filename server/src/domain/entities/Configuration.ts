@@ -592,6 +592,106 @@ export class Configuration {
   }
 
   /**
+   * Clear all resource assignments for a specific user
+   *
+   * Called when a user is deleted to prevent orphaned assignment references.
+   * Clears both assignedUserId and customLabel on affected racks and boxes.
+   *
+   * @param userId - The user ID whose assignments should be cleared
+   * @returns true if any assignments were cleared, false otherwise
+   */
+  clearAllAssignmentsForUser(userId: string): boolean {
+    let hasChanges = false;
+
+    const updatedTanks = this._equipment.tanks.map(tank => {
+      const updatedRacks = tank.racks.map(rack => {
+        const rackNeedsUpdate = rack.assignedUserId === userId;
+
+        // Update boxes - clear if explicitly assigned to this user
+        const updatedBoxes = rack.boxes.map(box => {
+          if (box.assignedUserId === userId) {
+            hasChanges = true;
+            return Box.create(
+              box.name,
+              box.gridConfig,
+              box.maxPositions,
+              box.positionDisplay,
+              box.isActive,
+              undefined, // Clear assignment
+              undefined  // Clear custom label
+            );
+          }
+          // Also clear inherited box labels if rack is being unassigned
+          if (rackNeedsUpdate && !box.assignedUserId && box.customLabel) {
+            hasChanges = true;
+            return Box.create(
+              box.name,
+              box.gridConfig,
+              box.maxPositions,
+              box.positionDisplay,
+              box.isActive,
+              box.assignedUserId,
+              undefined // Clear inherited label
+            );
+          }
+          return box;
+        });
+
+        if (rackNeedsUpdate) {
+          hasChanges = true;
+          return Rack.create(
+            rack.id,
+            rack.name,
+            updatedBoxes,
+            rack.maxBoxes,
+            rack.capacity,
+            rack.isActive,
+            undefined, // Clear assignment
+            undefined  // Clear custom label
+          );
+        }
+
+        // Return rack with potentially updated boxes
+        if (updatedBoxes !== rack.boxes) {
+          return Rack.create(
+            rack.id,
+            rack.name,
+            updatedBoxes,
+            rack.maxBoxes,
+            rack.capacity,
+            rack.isActive,
+            rack.assignedUserId,
+            rack.customLabel
+          );
+        }
+
+        return rack;
+      });
+
+      // Return tank with updated racks if any changed
+      if (updatedRacks.some((r, i) => r !== tank.racks[i])) {
+        return Tank.create(
+          tank.id,
+          tank.name,
+          updatedRacks as Rack[],
+          tank.maxRacks,
+          tank.isActive,
+          tank.location
+        );
+      }
+
+      return tank;
+    });
+
+    if (hasChanges) {
+      this._equipment = EquipmentConfiguration.create(updatedTanks);
+      this.touch();
+    }
+
+    return hasChanges;
+  }
+
+  /**
    * Update custom label for a rack or box
    *
    * Allows resource owners to set a custom label on their assigned resources.

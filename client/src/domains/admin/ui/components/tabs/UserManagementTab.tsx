@@ -31,6 +31,7 @@ import {
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';
 
+import { useDeleteUserMutation } from '../../../hooks/useUserMutations';
 import { adminService } from '../../../services/AdminService';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
@@ -93,6 +94,10 @@ export function UserManagementTab({
     username: string;
   } | null>(null);
 
+  // Mutation hook for user deletion
+  // Handles cache invalidation for users list and storage configuration
+  const deleteUserMutation = useDeleteUserMutation();
+
   /**
    * Load pending users on component mount and when user list updates
    */
@@ -144,29 +149,24 @@ export function UserManagementTab({
 
   /**
    * Delete user with confirmation
-   * Prompts for confirmation before deletion and refreshes list on success
+   * Uses mutation hook for proper cache invalidation (users list + storage config)
    */
-  const deleteUser = async (userId: string, username: string) => {
+  const handleDeleteUser = (userId: string, username: string) => {
     if (
       !confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)
     ) {
       return;
     }
 
-    try {
-      const response = await adminService.deleteUser(userId);
-
-      if (response.success) {
+    deleteUserMutation.mutate(userId, {
+      onSuccess: () => {
         notifications.success(`User "${username}" deleted successfully`);
-        onUserUpdate();
-      } else {
+        onUserUpdate(); // Also trigger parent refresh for any local state
+      },
+      onError: () => {
         notifications.error('Failed to delete user');
-      }
-    } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      logger.error('Failed to delete user', { error });
-      notifications.error('Failed to delete user');
-    }
+      },
+    });
   };
 
   /**
@@ -504,10 +504,15 @@ export function UserManagementTab({
                         </button>
                       )}
                       <button
-                        onClick={() => deleteUser(user.id, user.username)}
+                        onClick={() => handleDeleteUser(user.id, user.username)}
+                        disabled={deleteUserMutation.isPending}
                         className="btn-danger-compact flex items-center space-x-1"
                       >
-                        <Trash2 size={12} />
+                        {deleteUserMutation.isPending ? (
+                          <RefreshCw size={12} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={12} />
+                        )}
                         <span>Delete</span>
                       </button>
                     </div>

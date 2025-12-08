@@ -11,6 +11,7 @@ import { UserRepository } from '@domain/repositories/UserRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { PasswordService } from '@application/contracts/PasswordService';
+import { logger } from '@utils/logger';
 import { EventBus } from '@application/contracts/EventBus';
 import {
   UserCreatedEvent,
@@ -289,7 +290,8 @@ export class DeleteUserCommand extends BaseCommand {
 export class DeleteUserCommandHandler implements CommandHandler<DeleteUserCommand, void> {
   constructor(
     private userRepository: UserRepository,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private configurationRepository: ConfigurationRepository
   ) {}
 
   async handle(command: DeleteUserCommand): Promise<void> {
@@ -301,6 +303,19 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
 
     // Store user data for event before deletion
     const username = user.username;
+
+    // Clear all resource assignments for this user before deletion
+    // This prevents orphaned assignedUserId references in storage configuration
+    const configuration = await this.configurationRepository.getCurrent();
+    if (configuration) {
+      const hadAssignments = configuration.clearAllAssignmentsForUser(command.userId);
+      if (hadAssignments) {
+        await this.configurationRepository.save(configuration);
+        logger.info(`Cleared resource assignments for deleted user ${username}`, {
+          userId: command.userId,
+        });
+      }
+    }
 
     // Delete user
     await this.userRepository.delete(command.userId);
