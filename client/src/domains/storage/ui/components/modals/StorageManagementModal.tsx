@@ -4,6 +4,7 @@ import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { Plus, X, Save, RefreshCw, ListTree, UsersRound } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
+import { useUsersQuery } from '@domains/admin';
 import { useAuthState } from '@domains/authentication/hooks/useAuth';
 import {
   useStorageData,
@@ -71,9 +72,42 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const [originalLab, setOriginalLab] = useState<LabConfiguration | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Resource assignment - fetch only users that are assigned to resources
+  // All users for admin dropdown (admin-only endpoint, returns empty for non-admins)
+  const { data: allUsers = [] } = useUsersQuery();
+
+  // Assigned users for display (public endpoint, works for everyone)
   const assignedUserIds = useMemo(() => extractAssignedUserIds(localLab), [localLab]);
-  const { data: users = [] } = useUserLookupQuery(assignedUserIds);
+  const { data: assignedUsers = [] } = useUserLookupQuery(assignedUserIds);
+
+  // For dropdowns: use all users (admin) - converted to UserDisplayInfo shape
+  // For display: use assigned users (everyone)
+  const dropdownUsers = useMemo(
+    () =>
+      allUsers.map(u => ({
+        id: u.id,
+        username: u.username,
+        firstName: u.firstName,
+        lastName: u.lastName,
+      })),
+    [allUsers]
+  );
+
+  // Merge for display - assigned users plus any from allUsers not already included
+  const displayUsers = useMemo(() => {
+    const userMap = new Map(assignedUsers.map(u => [u.id, u]));
+    // Add any users from allUsers that aren't already in assignedUsers
+    allUsers.forEach(u => {
+      if (!userMap.has(u.id)) {
+        userMap.set(u.id, {
+          id: u.id,
+          username: u.username,
+          firstName: u.firstName,
+          lastName: u.lastName,
+        });
+      }
+    });
+    return Array.from(userMap.values());
+  }, [allUsers, assignedUsers]);
 
   // View mode: tree (default) or byUser (assignment summary)
   const [viewMode, setViewMode] = useState<'tree' | 'byUser'>('tree');
@@ -146,7 +180,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   };
 
   // ========== RESOURCE HOOKS ==========
-  const { getUserInfo, isOwnedByCurrentUser } = useResourceOwnership(users, currentUser?.id);
+  const { getUserInfo, isOwnedByCurrentUser } = useResourceOwnership(displayUsers, currentUser?.id);
   const { canEditResource, canManageStorage } = useResourcePermissions(currentUser);
 
   // ========== UI STATE ==========
@@ -536,7 +570,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
 
   // Context value - provides all handlers and data to row components
   const contextValue = {
-    users,
+    users: dropdownUsers,
     currentUser,
     getUserInfo,
     isOwnedByCurrentUser,
@@ -661,7 +695,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               getUserInfo={getUserInfo}
               currentUserId={currentUser?.id}
               canManageStorage={canManageStorage}
-              users={users}
+              users={dropdownUsers}
               onBulkUnassign={handleBulkUnassign}
               onBulkReassign={handleBulkReassign}
             />
