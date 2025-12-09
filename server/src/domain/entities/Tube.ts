@@ -17,7 +17,13 @@ export class Tube {
     private _researcherId: string | undefined,
     private readonly _createdAt: Date,
     private _updatedAt: Date,
-    private readonly _createdByName?: string
+    private readonly _createdByName?: string,
+    // Lock fields
+    private _isLocked: boolean = false,
+    private _lockedBy?: string,
+    private _lockNote?: string,
+    private _lockedAt?: Date,
+    private _sharedWithUserIds: string[] = []
   ) {
     this.validate();
   }
@@ -66,7 +72,12 @@ export class Tube {
       data.researcherId,
       now,
       now,
-      data.createdByName
+      data.createdByName,
+      false, // isLocked
+      undefined, // lockedBy
+      undefined, // lockNote
+      undefined, // lockedAt
+      [] // sharedWithUserIds
     );
   }
 
@@ -95,6 +106,12 @@ export class Tube {
       createdAt: string | Date;
       updatedAt: string | Date;
     };
+    // Lock fields
+    isLocked?: boolean;
+    lockedBy?: string;
+    lockNote?: string;
+    lockedAt?: string;
+    sharedWithUserIds?: string[];
   }): Tube {
     const location = Location.create(data.location);
     const sample = SampleData.create(data.sample);
@@ -110,7 +127,12 @@ export class Tube {
       typeof data.timestamps.updatedAt === 'string'
         ? new Date(data.timestamps.updatedAt)
         : data.timestamps.updatedAt,
-      data.createdByName
+      data.createdByName,
+      data.isLocked ?? false,
+      data.lockedBy,
+      data.lockNote,
+      data.lockedAt ? new Date(data.lockedAt) : undefined,
+      data.sharedWithUserIds ?? []
     );
   }
 
@@ -177,6 +199,120 @@ export class Tube {
   }
 
   /**
+   * Business method: Lock the tube
+   * Returns a new Tube instance with lock applied
+   */
+  lock(userId: string, note?: string): Tube {
+    if (this._isLocked) {
+      throw new ValidationError('Tube is already locked');
+    }
+
+    return new Tube(
+      this._id,
+      this._location,
+      this._sample,
+      this._researcherId,
+      this._createdAt,
+      new Date(),
+      this._createdByName,
+      true, // isLocked
+      userId, // lockedBy
+      note, // lockNote
+      new Date(), // lockedAt
+      [] // sharedWithUserIds - starts empty
+    );
+  }
+
+  /**
+   * Business method: Unlock the tube
+   * Returns a new Tube instance with lock removed
+   */
+  unlock(): Tube {
+    if (!this._isLocked) {
+      throw new ValidationError('Tube is not locked');
+    }
+
+    return new Tube(
+      this._id,
+      this._location,
+      this._sample,
+      this._researcherId,
+      this._createdAt,
+      new Date(),
+      this._createdByName,
+      false, // isLocked
+      undefined, // lockedBy - cleared
+      undefined, // lockNote - cleared
+      undefined, // lockedAt - cleared
+      [] // sharedWithUserIds - cleared on unlock
+    );
+  }
+
+  /**
+   * Business method: Share access with additional users
+   * Returns a new Tube instance with updated shared users
+   */
+  shareWith(userIds: string[]): Tube {
+    const newSharedIds = [...new Set([...this._sharedWithUserIds, ...userIds])];
+
+    return new Tube(
+      this._id,
+      this._location,
+      this._sample,
+      this._researcherId,
+      this._createdAt,
+      new Date(),
+      this._createdByName,
+      this._isLocked,
+      this._lockedBy,
+      this._lockNote,
+      this._lockedAt,
+      newSharedIds
+    );
+  }
+
+  /**
+   * Business method: Revoke access from specific users
+   * Returns a new Tube instance with updated shared users
+   */
+  revokeAccess(userIds: string[]): Tube {
+    const newSharedIds = this._sharedWithUserIds.filter(id => !userIds.includes(id));
+
+    return new Tube(
+      this._id,
+      this._location,
+      this._sample,
+      this._researcherId,
+      this._createdAt,
+      new Date(),
+      this._createdByName,
+      this._isLocked,
+      this._lockedBy,
+      this._lockNote,
+      this._lockedAt,
+      newSharedIds
+    );
+  }
+
+  /**
+   * Business query: Check if tube is locked by a specific user
+   */
+  isLockedBy(userId: string): boolean {
+    return this._isLocked && this._lockedBy === userId;
+  }
+
+  /**
+   * Business query: Check if a user can access this tube
+   * Access granted if: not locked, user owns lock, or user has shared access
+   */
+  canBeAccessedBy(userId: string): boolean {
+    if (!this._isLocked) return true;
+    if (this._lockedBy === userId) return true;
+    if (this._sharedWithUserIds.includes(userId)) return true;
+    return false;
+  }
+
+  /**
    * Business method: Update entire tube data (returns new instance)
    * Accepts nested structure matching UpdateTubeRequest schema
    * Implements PATCH tri-state semantics:
@@ -215,7 +351,7 @@ export class Tube {
       ? undefined
       : (updates.researcherId !== undefined ? updates.researcherId : this._researcherId);
 
-    // Return new tube instance with updates
+    // Return new tube instance with updates (preserve lock state)
     return new Tube(
       this._id,
       newLocation,
@@ -223,7 +359,12 @@ export class Tube {
       newResearcherId,
       this._createdAt,
       new Date(), // Update timestamp
-      this._createdByName // Preserve historical creator name
+      this._createdByName, // Preserve historical creator name
+      this._isLocked,
+      this._lockedBy,
+      this._lockNote,
+      this._lockedAt,
+      this._sharedWithUserIds
     );
   }
 
@@ -302,6 +443,11 @@ export class Tube {
       createdAt: string;
       updatedAt: string;
     };
+    isLocked?: boolean;
+    lockedBy?: string;
+    lockNote?: string;
+    lockedAt?: string;
+    sharedWithUserIds?: string[];
   } {
     return {
       id: this._id,
@@ -312,7 +458,12 @@ export class Tube {
       timestamps: {
         createdAt: this._createdAt.toISOString(),
         updatedAt: this._updatedAt.toISOString()
-      }
+      },
+      isLocked: this._isLocked || undefined,
+      lockedBy: this._lockedBy,
+      lockNote: this._lockNote,
+      lockedAt: this._lockedAt?.toISOString(),
+      sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined
     };
   }
 
@@ -387,6 +538,43 @@ export class Tube {
    */
   get createdByName(): string | undefined {
     return this._createdByName;
+  }
+
+  // LOCK GETTERS
+
+  /**
+   * Get lock status
+   */
+  get isLocked(): boolean {
+    return this._isLocked;
+  }
+
+  /**
+   * Get user ID of who locked the tube
+   */
+  get lockedBy(): string | undefined {
+    return this._lockedBy;
+  }
+
+  /**
+   * Get lock note
+   */
+  get lockNote(): string | undefined {
+    return this._lockNote;
+  }
+
+  /**
+   * Get lock timestamp (returns copy for immutability)
+   */
+  get lockedAt(): Date | undefined {
+    return this._lockedAt ? new Date(this._lockedAt) : undefined;
+  }
+
+  /**
+   * Get array of user IDs with shared access
+   */
+  get sharedWithUserIds(): string[] {
+    return [...this._sharedWithUserIds];
   }
 
   // CONVENIENCE GETTERS - Direct access to nested properties

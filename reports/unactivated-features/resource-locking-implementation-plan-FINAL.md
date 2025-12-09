@@ -784,21 +784,22 @@ Actions to log:
 
 ---
 
-### Phase 2: Domain Layer
+### Phase 2: Domain Layer ✓ COMPLETED
 
 **Goal:** Business logic complete
 
-1. Create `server/src/domain/events/TubeLockEvents.ts`
-2. Update `server/src/domain/events/index.ts` - export new events
-3. Update `server/src/domain/entities/Tube.ts` - add fields and methods
-4. Update `server/src/infrastructure/database/mappers/TubeMapper.ts` - handle lock fields
-5. Update `server/src/infrastructure/repositories/SQLiteTubeRepository.ts` - map lock columns
-6. Update `server/src/domain/services/AccessControlService.ts` - add lock check methods
-7. Update `server/src/domain/types/services/AccessControl.ts` - add result interfaces
-8. Update `server/src/domain/services/ConfigurationChangeDetector.ts` - detect sharedWithUserIds changes
-9. Add container sharing events to `server/src/domain/events/ConfigurationEvents.ts`
+1. ✓ Created `server/src/domain/events/TubeLockEvents.ts`
+2. ✓ Updated `server/src/domain/events/index.ts` - exported new events
+3. ✓ Updated `server/src/domain/entities/Tube.ts` - added lock fields and methods
+4. ✓ Updated `server/src/infrastructure/database/mappers/TubeMapper.ts` - handled lock fields
+5. ✓ Updated `server/src/infrastructure/repositories/SQLiteTubeRepository.ts` - mapped lock columns
+6. ✓ Updated `server/src/domain/services/AccessControlService.ts` - added lock check methods
+7. ✓ Verified `server/src/domain/types/services/AccessControl.ts` - existing interfaces sufficient
+8. ✓ Updated `server/src/domain/services/ConfigurationChangeDetector.ts` - detects sharedWithUserIds changes
+9. ✓ Added container sharing events to `server/src/domain/events/ConfigurationEvents.ts`
+10. ✓ Updated `server/src/domain/valueObjects/Equipment.ts` - added sharedWithUserIds to Rack/Box
 
-**Verification:** Server compiles and starts
+**Verification:** Server and client TypeScript compile successfully
 
 ---
 

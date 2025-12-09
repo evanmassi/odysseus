@@ -12,3 +12,6 @@ export * from './UserEvents';
 
 // Tube events
 export * from './TubeEvents';
+
+// Tube lock events
+export * from './TubeLockEvents';

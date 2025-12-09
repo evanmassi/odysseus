@@ -37,14 +37,16 @@ export class SQLiteTubeRepository implements TubeRepository {
       INSERT OR REPLACE INTO tubes (
         id, tankId, rackId, boxId, position, cellType, donorInternalId,
         donorSourceId, concentration, concentrationUnit, date, researcherId, createdByName,
-        media, cultureCondition, lotNumber, notes, createdAt, updatedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        media, cultureCondition, lotNumber, notes, createdAt, updatedAt,
+        isLocked, lockedBy, lockNote, lockedAt, sharedWithUserIds
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `, [
       row.id, row.tankId, row.rackId, row.boxId, row.position,
       row.cellType, row.donorInternalId, row.donorSourceId,
       row.concentration, row.concentrationUnit, row.date, row.researcherId, row.createdByName,
       row.media, row.cultureCondition, row.lotNumber, row.notes,
-      row.createdAt, row.updatedAt
+      row.createdAt, row.updatedAt,
+      row.isLocked, row.lockedBy, row.lockNote, row.lockedAt, row.sharedWithUserIds
     ]);
   }
 
@@ -236,12 +238,18 @@ export class SQLiteTubeRepository implements TubeRepository {
     tubes.concentrationUnit,
     tubes.date,
     tubes.researcherId,
+    tubes.createdByName,
     tubes.media,
     tubes.cultureCondition,
     tubes.lotNumber,
     tubes.notes,
     tubes.createdAt,
-    tubes.updatedAt
+    tubes.updatedAt,
+    tubes.isLocked,
+    tubes.lockedBy,
+    tubes.lockNote,
+    tubes.lockedAt,
+    tubes.sharedWithUserIds
   `.trim();
 
   /**
@@ -634,14 +642,16 @@ export class SQLiteTubeRepository implements TubeRepository {
           INSERT OR REPLACE INTO tubes (
             id, tankId, rackId, boxId, position, cellType, donorInternalId,
             donorSourceId, concentration, concentrationUnit, date, researcherId,
-            media, cultureCondition, lotNumber, notes, createdAt, updatedAt
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            media, cultureCondition, lotNumber, notes, createdAt, updatedAt,
+            isLocked, lockedBy, lockNote, lockedAt, sharedWithUserIds
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `, [
           row.id, row.tankId, row.rackId, row.boxId, row.position,
           row.cellType, row.donorInternalId, row.donorSourceId,
           row.concentration, row.concentrationUnit, row.date, row.researcherId,
           row.media, row.cultureCondition, row.lotNumber, row.notes,
-          row.createdAt, row.updatedAt
+          row.createdAt, row.updatedAt,
+          row.isLocked, row.lockedBy, row.lockNote, row.lockedAt, row.sharedWithUserIds
         ]);
       }
     });

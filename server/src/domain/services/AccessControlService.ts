@@ -129,8 +129,145 @@ export class AccessControlService {
 
     // Additional business rule: Check if destination is in a restricted area
     // (This could be enhanced with location-based restrictions)
-    
+
     return this.createAllowedResult();
+  }
+
+  // TUBE LOCK OPERATIONS
+
+  /**
+   * Check if user can lock a tube
+   *
+   * Lock permission rules:
+   * - Admins can lock any tube
+   * - Users can lock tubes in their assigned space (via rack/box assignment)
+   * - Users can lock tubes in common space (no assignment)
+   * - Users cannot lock tubes in another user's assigned space
+   */
+  canLockTube(
+    user: User,
+    tube: Tube,
+    containerInfo?: { rack?: ResourceWithOwnership; box?: ResourceWithOwnership }
+  ): AccessResult {
+    // Already locked
+    if (tube.isLocked) {
+      return this.createDeniedResult('Tube is already locked');
+    }
+
+    // Admin can lock any tube
+    if (user.isAdmin()) {
+      return this.createAllowedResult('Admin access');
+    }
+
+    // Check container assignment
+    if (containerInfo) {
+      const { rack, box } = containerInfo;
+
+      // Box-level assignment takes precedence
+      if (box?.assignedUserId !== undefined && box.assignedUserId !== null) {
+        if (box.assignedUserId !== user.id) {
+          return this.createDeniedResult('Cannot lock tube in another user\'s assigned box');
+        }
+        return this.createAllowedResult('Box owner');
+      }
+
+      // Rack-level assignment
+      if (rack?.assignedUserId !== undefined && rack.assignedUserId !== null) {
+        if (rack.assignedUserId !== user.id) {
+          return this.createDeniedResult('Cannot lock tube in another user\'s assigned rack');
+        }
+        return this.createAllowedResult('Rack owner');
+      }
+    }
+
+    // Common space - anyone can lock
+    return this.createAllowedResult('Common space');
+  }
+
+  /**
+   * Check if user can unlock a tube
+   *
+   * Unlock permission rules:
+   * - Admins can unlock any tube
+   * - Lock owner can unlock their own locks
+   * - Users with shared access cannot unlock (only edit)
+   */
+  canUnlockTube(user: User, tube: Tube): AccessResult {
+    // Not locked
+    if (!tube.isLocked) {
+      return this.createDeniedResult('Tube is not locked');
+    }
+
+    // Admin can unlock any tube
+    if (user.isAdmin()) {
+      return this.createAllowedResult('Admin access');
+    }
+
+    // Lock owner can unlock
+    if (tube.lockedBy === user.id) {
+      return this.createAllowedResult('Lock owner');
+    }
+
+    return this.createDeniedResult('Only the lock owner or an administrator can unlock this tube');
+  }
+
+  /**
+   * Check if user can access a locked tube for editing
+   *
+   * Access rules:
+   * - Not locked = access granted
+   * - Admin = access granted
+   * - Lock owner = access granted
+   * - Shared user = access granted
+   * - Others = denied
+   */
+  canAccessLockedTube(user: User, tube: Tube): AccessResult {
+    // Not locked - no restriction
+    if (!tube.isLocked) {
+      return this.createAllowedResult('Tube is not locked');
+    }
+
+    // Admin bypass
+    if (user.isAdmin()) {
+      return this.createAllowedResult('Admin access');
+    }
+
+    // Lock owner
+    if (tube.lockedBy === user.id) {
+      return this.createAllowedResult('Lock owner');
+    }
+
+    // Shared access
+    if (tube.sharedWithUserIds.includes(user.id)) {
+      return this.createAllowedResult('Shared access');
+    }
+
+    return this.createDeniedResult('Tube is locked by another user');
+  }
+
+  /**
+   * Check if user can share access to a locked tube
+   *
+   * Share permission rules:
+   * - Admin can share any locked tube
+   * - Lock owner can share their locked tubes
+   */
+  canShareTubeAccess(user: User, tube: Tube): AccessResult {
+    if (!tube.isLocked) {
+      return this.createDeniedResult('Cannot share access to an unlocked tube');
+    }
+
+    // Admin can share any tube
+    if (user.isAdmin()) {
+      return this.createAllowedResult('Admin access');
+    }
+
+    // Lock owner can share
+    if (tube.lockedBy === user.id) {
+      return this.createAllowedResult('Lock owner');
+    }
+
+    return this.createDeniedResult('Only the lock owner or an administrator can share access');
   }
 
   // BULK OPERATIONS

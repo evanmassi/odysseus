@@ -11,7 +11,11 @@ import {
   BoxAddedEvent,
   BoxDeletedEvent,
   BoxUpdatedEvent,
-  LabNameChangedEvent
+  LabNameChangedEvent,
+  RackAccessSharedEvent,
+  RackAccessRevokedEvent,
+  BoxAccessSharedEvent,
+  BoxAccessRevokedEvent
 } from '@domain/events/ConfigurationEvents';
 
 /**
@@ -195,10 +199,49 @@ export class ConfigurationChangeDetector {
           summary.racksUpdated++;
         }
 
+        // Detect sharedWithUserIds changes
+        const sharingEvents = this.detectRackSharingChanges(
+          oldRack, newRack, tankId, tankName, userId
+        );
+        events.push(...sharingEvents);
+
         // Detect box-level changes within this rack
         const boxEvents = this.detectBoxChanges(oldRack.boxes, newRack.boxes, tankId, tankName, newRack.id, newRack.name, userId, summary);
         events.push(...boxEvents);
       }
+    }
+
+    return events;
+  }
+
+  /**
+   * Detect sharing changes for a rack
+   */
+  private detectRackSharingChanges(
+    oldRack: Rack,
+    newRack: Rack,
+    tankId: string,
+    tankName: string,
+    userId: string
+  ): any[] {
+    const events: any[] = [];
+    const oldShared = new Set(oldRack.sharedWithUserIds);
+    const newShared = new Set(newRack.sharedWithUserIds);
+
+    // Find newly shared users
+    const addedUsers = newRack.sharedWithUserIds.filter(id => !oldShared.has(id));
+    if (addedUsers.length > 0) {
+      events.push(new RackAccessSharedEvent(
+        userId, tankId, tankName, newRack.id, newRack.name, addedUsers
+      ));
+    }
+
+    // Find revoked users
+    const revokedUsers = oldRack.sharedWithUserIds.filter(id => !newShared.has(id));
+    if (revokedUsers.length > 0) {
+      events.push(new RackAccessRevokedEvent(
+        userId, tankId, tankName, newRack.id, newRack.name, revokedUsers
+      ));
     }
 
     return events;
@@ -273,7 +316,48 @@ export class ConfigurationChangeDetector {
           events.push(new BoxUpdatedEvent(userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name, boxChanges));
           summary.boxesUpdated++;
         }
+
+        // Detect sharedWithUserIds changes
+        const sharingEvents = this.detectBoxSharingChanges(
+          oldBox, newBox, tankId, tankName, rackId, rackName, userId
+        );
+        events.push(...sharingEvents);
       }
+    }
+
+    return events;
+  }
+
+  /**
+   * Detect sharing changes for a box
+   */
+  private detectBoxSharingChanges(
+    oldBox: Box,
+    newBox: Box,
+    tankId: string,
+    tankName: string,
+    rackId: string,
+    rackName: string,
+    userId: string
+  ): any[] {
+    const events: any[] = [];
+    const oldShared = new Set(oldBox.sharedWithUserIds);
+    const newShared = new Set(newBox.sharedWithUserIds);
+
+    // Find newly shared users
+    const addedUsers = newBox.sharedWithUserIds.filter(id => !oldShared.has(id));
+    if (addedUsers.length > 0) {
+      events.push(new BoxAccessSharedEvent(
+        userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name, addedUsers
+      ));
+    }
+
+    // Find revoked users
+    const revokedUsers = oldBox.sharedWithUserIds.filter(id => !newShared.has(id));
+    if (revokedUsers.length > 0) {
+      events.push(new BoxAccessRevokedEvent(
+        userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name, revokedUsers
+      ));
     }
 
     return events;

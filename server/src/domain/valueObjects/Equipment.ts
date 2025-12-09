@@ -122,7 +122,8 @@ export class Rack {
     private readonly _capacity: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
     private readonly _isActive: boolean = true,
     private readonly _assignedUserId?: string,
-    private readonly _customLabel?: string
+    private readonly _customLabel?: string,
+    private readonly _sharedWithUserIds: string[] = []
   ) {
     this.validate();
   }
@@ -135,9 +136,10 @@ export class Rack {
     capacity: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
     isActive: boolean = true,
     assignedUserId?: string,
-    customLabel?: string
+    customLabel?: string,
+    sharedWithUserIds: string[] = []
   ): Rack {
-    return new Rack(String(id), name, boxes, maxBoxes, capacity, isActive, assignedUserId, customLabel);
+    return new Rack(String(id), name, boxes, maxBoxes, capacity, isActive, assignedUserId, customLabel, sharedWithUserIds);
   }
 
   private validate(): void {
@@ -190,6 +192,7 @@ export class Rack {
     isActive: boolean;
     assignedUserId?: string;
     customLabel?: string;
+    sharedWithUserIds?: string[];
   } {
     return {
       id: this._id,
@@ -199,7 +202,8 @@ export class Rack {
       capacity: this._capacity,
       isActive: this._isActive,
       assignedUserId: this._assignedUserId,
-      customLabel: this._customLabel
+      customLabel: this._customLabel,
+      sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined
     };
   }
 
@@ -212,6 +216,7 @@ export class Rack {
   get isActive(): boolean { return this._isActive; }
   get assignedUserId(): string | undefined { return this._assignedUserId; }
   get customLabel(): string | undefined { return this._customLabel; }
+  get sharedWithUserIds(): string[] { return [...this._sharedWithUserIds]; }
   get validBoxNames(): string[] { return this.getValidBoxNames(); }
 }
 
@@ -229,7 +234,8 @@ export class Box {
     private readonly _positionDisplay: PositionDisplayConfig | undefined,
     private readonly _isActive: boolean = true,
     private readonly _assignedUserId?: string | null,
-    private readonly _customLabel?: string
+    private readonly _customLabel?: string,
+    private readonly _sharedWithUserIds: string[] = []
   ) {
     this.validate();
   }
@@ -244,10 +250,11 @@ export class Box {
     positionDisplay?: PositionDisplayConfig,
     isActive: boolean = true,
     assignedUserId?: string | null,
-    customLabel?: string
+    customLabel?: string,
+    sharedWithUserIds: string[] = []
   ): Box {
     const positions = maxPositions || (gridConfig.rows * gridConfig.cols);
-    return new Box(name, gridConfig, positions, positionDisplay, isActive, assignedUserId, customLabel);
+    return new Box(name, gridConfig, positions, positionDisplay, isActive, assignedUserId, customLabel, sharedWithUserIds);
   }
 
   private validate(): void {
@@ -362,6 +369,7 @@ export class Box {
     isActive: boolean;
     assignedUserId?: string | null;
     customLabel?: string;
+    sharedWithUserIds?: string[];
   } {
     return {
       name: this._name.toUpperCase(),
@@ -370,7 +378,8 @@ export class Box {
       positionDisplay: this._positionDisplay,
       isActive: this._isActive,
       assignedUserId: this._assignedUserId,
-      customLabel: this._customLabel
+      customLabel: this._customLabel,
+      sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined
     };
   }
 
@@ -382,6 +391,7 @@ export class Box {
   get isActive(): boolean { return this._isActive; }
   get assignedUserId(): string | null | undefined { return this._assignedUserId; }
   get customLabel(): string | undefined { return this._customLabel; }
+  get sharedWithUserIds(): string[] { return [...this._sharedWithUserIds]; }
   get gridSize(): number { return Math.sqrt(this._maxPositions); }
 }
 

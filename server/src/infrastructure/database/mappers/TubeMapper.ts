@@ -35,6 +35,12 @@ export interface TubeRow {
   notes?: string;
   createdAt: string;
   updatedAt: string;
+  // Lock fields
+  isLocked?: number; // SQLite uses 0/1 for boolean
+  lockedBy?: string;
+  lockNote?: string;
+  lockedAt?: string;
+  sharedWithUserIds?: string; // JSON array string
 }
 
 /**
@@ -56,6 +62,10 @@ export class TubeMapper {
     const mediaData = sampleData.media;
     const mediaJson = mediaData ? JSON.stringify(mediaData) : undefined;
 
+    // Serialize sharedWithUserIds array to JSON string
+    const sharedWithUserIds = tube.sharedWithUserIds;
+    const sharedJson = sharedWithUserIds.length > 0 ? JSON.stringify(sharedWithUserIds) : undefined;
+
     return {
       id: tube.id,
       tankId: location.tankId,
@@ -75,7 +85,13 @@ export class TubeMapper {
       lotNumber: sampleData.lotNumber || undefined,
       notes: sampleData.notes || undefined,
       createdAt: SqliteDateMapper.toDbDateTime(tube.createdAt),
-      updatedAt: SqliteDateMapper.toDbDateTime(tube.updatedAt)
+      updatedAt: SqliteDateMapper.toDbDateTime(tube.updatedAt),
+      // Lock fields
+      isLocked: tube.isLocked ? 1 : 0,
+      lockedBy: tube.lockedBy,
+      lockNote: tube.lockNote,
+      lockedAt: tube.lockedAt ? SqliteDateMapper.toDbDateTime(tube.lockedAt) : undefined,
+      sharedWithUserIds: sharedJson
     };
   }
 
@@ -116,6 +132,12 @@ export class TubeMapper {
       notes: nullToUndefined(row.notes)
     });
 
+    // Parse sharedWithUserIds JSON array
+    const sharedWithUserIdsJson = nullToUndefined(row.sharedWithUserIds);
+    const sharedWithUserIds: string[] = sharedWithUserIdsJson
+      ? JSON.parse(sharedWithUserIdsJson)
+      : [];
+
     // Reconstruct Tube entity with nested structure
     return Tube.fromData({
       id: row.id,
@@ -142,7 +164,13 @@ export class TubeMapper {
       timestamps: {
         createdAt: SqliteDateMapper.fromDbDateTime(row.createdAt)!.toISOString(),
         updatedAt: SqliteDateMapper.fromDbDateTime(row.updatedAt)!.toISOString()
-      }
+      },
+      // Lock fields
+      isLocked: row.isLocked === 1,
+      lockedBy: nullToUndefined(row.lockedBy),
+      lockNote: nullToUndefined(row.lockNote),
+      lockedAt: row.lockedAt ? SqliteDateMapper.fromDbDateTime(row.lockedAt)?.toISOString() : undefined,
+      sharedWithUserIds
     });
   }
 

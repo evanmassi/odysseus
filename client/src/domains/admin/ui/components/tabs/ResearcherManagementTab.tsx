@@ -293,9 +293,13 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
                   {/* Active Status Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     {researcher.active ? (
-                      <BadgeCheck size={18} className="text-green-600" title="Active" />
+                      <span title="Active">
+                        <BadgeCheck size={18} className="text-green-600" />
+                      </span>
                     ) : (
-                      <BadgeX size={18} className="text-gray-400" title="Inactive" />
+                      <span title="Inactive">
+                        <BadgeX size={18} className="text-gray-400" />
+                      </span>
                     )}
                   </td>
 
