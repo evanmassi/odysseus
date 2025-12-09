@@ -85,10 +85,11 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   };
 
   // Check if error is about email verification
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check multiple error conditions
+  /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check multiple error conditions */
   const isEmailVerificationError =
     loginError?.toLowerCase().includes('email not verified') ||
     loginError?.toLowerCase().includes('verify your email');
+  /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
   // Check if error is about password change requirement
   const isPasswordChangeRequired = loginError?.toLowerCase().includes('password change required');

@@ -7,11 +7,11 @@ import { toast } from 'react-hot-toast';
  * - Mint Frost: Update/Edit/Add operations
  */
 const COLORS = {
-  lightAmber: '#FFF0D9',    // Cut/Move - Pale Amber Frost
-  icyBlue: '#D9F3FF',       // Copy/Paste - Ice Blue
-  mintyFrost: '#E3F8E6',    // Update/Edit/Add - Mint Frost
-  success: '#10B981',       // Generic success
-  error: '#EF4444',         // Errors
+  lightAmber: '#FFF0D9', // Cut/Move - Pale Amber Frost
+  icyBlue: '#D9F3FF', // Copy/Paste - Ice Blue
+  mintyFrost: '#E3F8E6', // Update/Edit/Add - Mint Frost
+  success: '#10B981', // Generic success
+  error: '#EF4444', // Errors
 } as const;
 
 export const notifications = {
@@ -142,6 +142,18 @@ export const notifications = {
       style: {
         background: COLORS.success,
         color: '#fff',
+      },
+    });
+  },
+
+  /** Lock/Unlock operation - Mint Frost (same as update) */
+  lock: (message: string) => {
+    toast.success(message, {
+      duration: 2000,
+      position: 'bottom-right',
+      style: {
+        background: COLORS.mintyFrost,
+        color: '#065F46', // Dark green text
       },
     });
   },

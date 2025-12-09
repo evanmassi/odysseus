@@ -1,6 +1,6 @@
 /**
  * Tube Hooks Barrel Export
- * 
+ *
  * Clean barrel exports for all tube-related React Query hooks.
  * Provides a single import point for all tube domain functionality.
  */
@@ -14,7 +14,7 @@ export {
   useSearchTubes,
   useBulkTubes,
   usePrefetchTubeLocation,
-  useTubeStats
+  useTubeStats,
 } from './useTubeQueries';
 
 // Mutation hooks (write operations)
@@ -23,15 +23,22 @@ export {
   useUpdateTubeMutation,
   useDeleteTubeMutation,
   useBulkUpdateTubesMutation,
-  useBulkDeleteTubesMutation
+  useBulkDeleteTubesMutation,
 } from './useTubeMutations';
 
-// Socket integration hooks
+// Lock mutation hooks
 export {
-  useTubeSocket,
-  useAutoSocket,
-  useRealtimeTubes
-} from './useTubeSocket';
+  useLockTubesMutation,
+  useUnlockTubesMutation,
+  useShareTubeAccessMutation,
+  useRevokeTubeAccessMutation,
+} from './useTubeLockMutations';
+
+// Lock access control hooks
+export { useTubeAccessControl } from './useTubeAccessControl';
+
+// Socket integration hooks
+export { useTubeSocket, useAutoSocket, useRealtimeTubes } from './useTubeSocket';
 
 // Performance-optimized hooks
 export {
@@ -40,7 +47,7 @@ export {
   usePrefetchAdjacentLocations,
   useSmartPrefetch,
   useBackgroundRefresh,
-  useQueryPerformanceMetrics
+  useQueryPerformanceMetrics,
 } from './useOptimizedTubeQueries';
 
 // Form hooks (public API - generic implementation is private)
@@ -49,5 +56,5 @@ export {
   useEditTubeForm,
   useTubeFormTransform,
   type TubeFormSubmissionResult,
-  type SubmitContext
+  type SubmitContext,
 } from './useTubeForm';

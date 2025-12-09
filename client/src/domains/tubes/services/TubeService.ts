@@ -10,9 +10,21 @@ import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type TubeQueryFilters,
+  type LockTubesRequest,
+  type UnlockTubesRequest,
+  type ShareTubeAccessRequest,
+  type RevokeTubeAccessRequest,
+  type BatchLockResult,
+  type BatchUnlockResult,
+  type ShareAccessResult,
+  type RevokeAccessResult,
   tubeDataSchema,
   createTubeRequestSchema,
   updateTubeRequestSchema,
+  batchLockResultSchema,
+  batchUnlockResultSchema,
+  shareAccessResultSchema,
+  revokeAccessResultSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api/httpClient';
@@ -29,15 +41,17 @@ export class TubeService {
    * Ensures all dates are in YYYY-MM-DD format to prevent timezone bugs
    * @private
    */
-  private static normalizeTubeDates<T extends Partial<CreateTubeRequest> | Partial<UpdateTubeRequest>>(data: T): T {
+  private static normalizeTubeDates<
+    T extends Partial<CreateTubeRequest> | Partial<UpdateTubeRequest>,
+  >(data: T): T {
     if (!data.sample?.date) return data;
 
     return {
       ...data,
       sample: {
         ...data.sample,
-        date: normalizeDateString(data.sample.date)
-      }
+        date: normalizeDateString(data.sample.date),
+      },
     };
   }
 
@@ -45,19 +59,19 @@ export class TubeService {
    * Fetch all tubes with optional filtering
    */
   static async fetchTubes(filters?: TubeQueryFilters): Promise<TubeData[]> {
-    const queryParams = filters ? new URLSearchParams({
-      ...filters.tankId && { tankId: filters.tankId },
-      ...filters.rackId && { rackId: filters.rackId },
-      ...filters.boxId && { boxId: filters.boxId },
-      ...filters.researcherId && { researcherId: filters.researcherId },
-      ...filters.cellType && { cellType: filters.cellType },
-      ...filters.dateFrom && { dateFrom: filters.dateFrom },
-      ...filters.dateTo && { dateTo: filters.dateTo },
-    }) : null;
+    const queryParams = filters
+      ? new URLSearchParams({
+          ...(filters.tankId && { tankId: filters.tankId }),
+          ...(filters.rackId && { rackId: filters.rackId }),
+          ...(filters.boxId && { boxId: filters.boxId }),
+          ...(filters.researcherId && { researcherId: filters.researcherId }),
+          ...(filters.cellType && { cellType: filters.cellType }),
+          ...(filters.dateFrom && { dateFrom: filters.dateFrom }),
+          ...(filters.dateTo && { dateTo: filters.dateTo }),
+        })
+      : null;
 
-    const url = queryParams 
-      ? `${this.BASE_PATH}?${queryParams.toString()}`
-      : this.BASE_PATH;
+    const url = queryParams ? `${this.BASE_PATH}?${queryParams.toString()}` : this.BASE_PATH;
 
     return await httpClient.getArray(url, tubeDataSchema);
   }
@@ -105,10 +119,7 @@ export class TubeService {
     boxId: string
   ): Promise<TubeData[]> {
     const queryParams = new URLSearchParams({ tankId, rackId, boxId });
-    return await httpClient.getArray(
-      `/tubes/location?${queryParams.toString()}`,
-      tubeDataSchema
-    );
+    return await httpClient.getArray(`/tubes/location?${queryParams.toString()}`, tubeDataSchema);
   }
 
   /**
@@ -127,10 +138,7 @@ export class TubeService {
       queryParams.append('offset', options.offset.toString());
     }
 
-    return await httpClient.getArray(
-      `/tubes/search?${queryParams.toString()}`,
-      tubeDataSchema
-    );
+    return await httpClient.getArray(`/tubes/search?${queryParams.toString()}`, tubeDataSchema);
   }
 
   /**
@@ -139,9 +147,7 @@ export class TubeService {
    * Handles both copy (duplicate) and cut (recreate) operations.
    * Uses standard POST /tubes endpoint which accepts both single object and arrays.
    */
-  static async pasteTubes(
-    tubes: CreateTubeRequest[]
-  ): Promise<TubeData[]> {
+  static async pasteTubes(tubes: CreateTubeRequest[]): Promise<TubeData[]> {
     // Normalize dates to YYYY-MM-DD format to prevent timezone bugs
     const normalizedTubes = tubes.map(tube => this.normalizeTubeDates(tube));
     const validatedRequests = normalizedTubes.map(tube => createTubeRequestSchema.parse(tube));
@@ -155,11 +161,15 @@ export class TubeService {
    */
   static async bulkUpdateTubes(
     updates: Array<{ id: string; data: UpdateTubeRequest }>
-  ): Promise<{ success: boolean; updated: string[]; failed: Array<{ id: string; error: string }> }> {
+  ): Promise<{
+    success: boolean;
+    updated: string[];
+    failed: Array<{ id: string; error: string }>;
+  }> {
     // Normalize dates to YYYY-MM-DD format to prevent timezone bugs
     const normalizedUpdates = updates.map(update => ({
       id: update.id,
-      updates: this.normalizeTubeDates(update.data)
+      updates: this.normalizeTubeDates(update.data),
     }));
 
     const response = await httpClient.post<{
@@ -174,4 +184,47 @@ export class TubeService {
     return response.data.data;
   }
 
+  // ============================================
+  // TUBE LOCKING METHODS
+  // ============================================
+
+  /**
+   * Lock tubes
+   * Batch lock with partial success pattern
+   */
+  static async lockTubes(request: LockTubesRequest): Promise<BatchLockResult> {
+    return await httpClient.postData(`${this.BASE_PATH}/lock`, request, batchLockResultSchema);
+  }
+
+  /**
+   * Unlock tubes
+   * Batch unlock with partial success pattern
+   */
+  static async unlockTubes(request: UnlockTubesRequest): Promise<BatchUnlockResult> {
+    return await httpClient.postData(`${this.BASE_PATH}/unlock`, request, batchUnlockResultSchema);
+  }
+
+  /**
+   * Share tube access with other users
+   * Batch share with partial success pattern
+   */
+  static async shareTubeAccess(request: ShareTubeAccessRequest): Promise<ShareAccessResult> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/share-access`,
+      request,
+      shareAccessResultSchema
+    );
+  }
+
+  /**
+   * Revoke tube access from users
+   * Batch revoke with partial success pattern
+   */
+  static async revokeTubeAccess(request: RevokeTubeAccessRequest): Promise<RevokeAccessResult> {
+    return await httpClient.postData(
+      `${this.BASE_PATH}/revoke-access`,
+      request,
+      revokeAccessResultSchema
+    );
+  }
 }

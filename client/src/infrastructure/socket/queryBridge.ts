@@ -68,6 +68,36 @@ const tubeEventSchemas = {
     tubes: z.array(tubeDataSchema),
     count: z.number(),
   }),
+
+  // Tube lock events
+  tubes_locked: z.object({
+    tubeIds: z.array(z.string()),
+    count: z.number(),
+    lockedBy: z.string(),
+    lockNote: z.string().optional(),
+    updatedAt: z.string(),
+  }),
+
+  tubes_unlocked: z.object({
+    tubeIds: z.array(z.string()),
+    count: z.number(),
+    unlockedBy: z.string(),
+    updatedAt: z.string(),
+  }),
+
+  tube_access_shared: z.object({
+    tubeIds: z.array(z.string()),
+    sharedWithUserIds: z.array(z.string()),
+    sharedBy: z.string(),
+    updatedAt: z.string(),
+  }),
+
+  tube_access_revoked: z.object({
+    tubeIds: z.array(z.string()),
+    revokedUserIds: z.array(z.string()),
+    revokedBy: z.string(),
+    updatedAt: z.string(),
+  }),
 } as const;
 
 const researcherEventSchemas = {
@@ -135,6 +165,7 @@ export class SocketQueryBridge {
     this.socket = socket;
     this.setupConnectionHandlers();
     this.setupTubeEventHandlers();
+    this.setupTubeLockEventHandlers();
     this.setupResearcherEventHandlers();
     this.setupConfigurationEventHandlers();
     this.setupReconnectionHandlers();
@@ -393,6 +424,88 @@ export class SocketQueryBridge {
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
         logger.error('Invalid tubes_bulk_updated event', { error });
+      }
+    });
+  }
+
+  // TUBE LOCK EVENT HANDLERS
+
+  private setupTubeLockEventHandlers(): void {
+    if (!this.socket) return;
+
+    // Tubes Locked
+    this.socket.on('tubes_locked', (data: unknown) => {
+      try {
+        const { tubeIds, count } = tubeEventSchemas.tubes_locked.parse(data);
+
+        logger.info('Tubes locked event received', { count, tubeIds: tubeIds.slice(0, 5) });
+
+        // Invalidate all affected tubes to refetch with lock state
+        tubeIds.forEach(tubeId => {
+          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
+        });
+
+        // Invalidate list queries to show lock state
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      } catch (error) {
+        logger.error('Invalid tubes_locked event', { error });
+      }
+    });
+
+    // Tubes Unlocked
+    this.socket.on('tubes_unlocked', (data: unknown) => {
+      try {
+        const { tubeIds, count } = tubeEventSchemas.tubes_unlocked.parse(data);
+
+        logger.info('Tubes unlocked event received', { count, tubeIds: tubeIds.slice(0, 5) });
+
+        // Invalidate all affected tubes to refetch without lock state
+        tubeIds.forEach(tubeId => {
+          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
+        });
+
+        // Invalidate list queries to show unlock state
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      } catch (error) {
+        logger.error('Invalid tubes_unlocked event', { error });
+      }
+    });
+
+    // Tube Access Shared
+    this.socket.on('tube_access_shared', (data: unknown) => {
+      try {
+        const { tubeIds } = tubeEventSchemas.tube_access_shared.parse(data);
+
+        logger.info('Tube access shared event received', { tubeCount: tubeIds.length });
+
+        // Invalidate affected tubes to refetch with updated sharing
+        tubeIds.forEach(tubeId => {
+          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
+        });
+
+        // Invalidate list queries
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      } catch (error) {
+        logger.error('Invalid tube_access_shared event', { error });
+      }
+    });
+
+    // Tube Access Revoked
+    this.socket.on('tube_access_revoked', (data: unknown) => {
+      try {
+        const { tubeIds } = tubeEventSchemas.tube_access_revoked.parse(data);
+
+        logger.info('Tube access revoked event received', { tubeCount: tubeIds.length });
+
+        // Invalidate affected tubes to refetch with updated sharing
+        tubeIds.forEach(tubeId => {
+          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
+        });
+
+        // Invalidate list queries
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      } catch (error) {
+        logger.error('Invalid tube_access_revoked event', { error });
       }
     });
   }
