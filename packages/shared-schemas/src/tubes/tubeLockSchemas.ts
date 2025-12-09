@@ -1,0 +1,97 @@
+/**
+ * Tube Lock Schemas
+ *
+ * Zod schemas for tube locking operations.
+ * Supports batch lock/unlock and access sharing.
+ */
+
+import { z } from 'zod';
+
+/**
+ * Lock tubes request schema
+ * Lock one or more tubes with optional note
+ */
+export const lockTubesRequestSchema = z.object({
+  tubeIds: z.array(z.string().min(1)).min(1).max(100),
+  lockNote: z.string().max(100).optional(),
+});
+
+/**
+ * Unlock tubes request schema
+ */
+export const unlockTubesRequestSchema = z.object({
+  tubeIds: z.array(z.string().min(1)).min(1).max(100),
+});
+
+/**
+ * Share tube access request schema
+ * Grant access to locked tubes for specific users
+ */
+export const shareTubeAccessRequestSchema = z.object({
+  tubeIds: z.array(z.string().min(1)).min(1),
+  userIds: z.array(z.string().min(1)).min(1),
+});
+
+/**
+ * Revoke tube access request schema
+ * Remove shared access from locked tubes
+ */
+export const revokeTubeAccessRequestSchema = z.object({
+  tubeIds: z.array(z.string().min(1)).min(1),
+  userIds: z.array(z.string().min(1)).min(1),
+});
+
+/**
+ * Skipped tube info for partial success responses
+ */
+export const skippedTubeSchema = z.object({
+  tubeId: z.string(),
+  reason: z.string(),
+});
+
+/**
+ * Batch lock result schema
+ * Supports partial success pattern
+ */
+export const batchLockResultSchema = z.object({
+  locked: z.array(z.string()),
+  skipped: z.array(skippedTubeSchema),
+});
+
+/**
+ * Batch unlock result schema
+ * Supports partial success pattern
+ */
+export const batchUnlockResultSchema = z.object({
+  unlocked: z.array(z.string()),
+  skipped: z.array(skippedTubeSchema),
+});
+
+/**
+ * Share access result schema
+ */
+export const shareAccessResultSchema = z.object({
+  shared: z.array(z.string()),
+  skipped: z.array(skippedTubeSchema),
+});
+
+/**
+ * Revoke access result schema
+ */
+export const revokeAccessResultSchema = z.object({
+  revoked: z.array(z.string()),
+  skipped: z.array(skippedTubeSchema),
+});
+
+// Request types
+export type LockTubesRequest = z.infer<typeof lockTubesRequestSchema>;
+export type UnlockTubesRequest = z.infer<typeof unlockTubesRequestSchema>;
+export type ShareTubeAccessRequest = z.infer<typeof shareTubeAccessRequestSchema>;
+export type RevokeTubeAccessRequest = z.infer<typeof revokeTubeAccessRequestSchema>;
+
+// Result types
+export type SkippedTube = z.infer<typeof skippedTubeSchema>;
+export type BatchLockResult = z.infer<typeof batchLockResultSchema>;
+export type BatchUnlockResult = z.infer<typeof batchUnlockResultSchema>;
+export type ShareAccessResult = z.infer<typeof shareAccessResultSchema>;
+export type RevokeAccessResult = z.infer<typeof revokeAccessResultSchema>;

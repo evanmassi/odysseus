@@ -22,6 +22,8 @@ export const BoxConfigurationSchema = z.object({
   position: z.number().optional(),
   // null = explicitly unassigned/common, undefined = inherit from rack
   assignedUserId: z.string().nullable().optional(),
+  // Users who can access tubes in this box (in addition to assignee)
+  sharedWithUserIds: z.array(z.string()).optional(),
   customLabel: z.string().max(50).optional(),
 }).strict();
 
@@ -35,6 +37,8 @@ export const RackConfigurationSchema = z.object({
   isActive: z.boolean().default(true),
   boxes: z.array(BoxConfigurationSchema),
   assignedUserId: z.string().optional(),
+  // Users who can access tubes in this rack (in addition to assignee)
+  sharedWithUserIds: z.array(z.string()).optional(),
   customLabel: z.string().max(50).optional(),
 }).strict();
 

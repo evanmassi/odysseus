@@ -96,7 +96,13 @@ export const tubeDataSchema = z.object({
   sample: tubeSampleSchema,
   researcherId: z.string().optional(),
   createdByName: z.string().optional(),
-  timestamps: tubeTimestampsSchema
+  timestamps: tubeTimestampsSchema,
+  // Lock fields
+  isLocked: z.boolean().optional(),
+  lockedBy: z.string().optional(),
+  lockNote: z.string().max(100).optional(),
+  lockedAt: z.string().datetime().optional(),
+  sharedWithUserIds: z.array(z.string()).optional(),
 });
 
 /**

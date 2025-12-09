@@ -83,6 +83,35 @@ export {
   tubeDataArrayToCreateRequests
 } from './tubes/tubeMappers';
 
+// Tube Lock Schemas (Lock/Unlock operations)
+export {
+  // Request Schemas
+  lockTubesRequestSchema,
+  unlockTubesRequestSchema,
+  shareTubeAccessRequestSchema,
+  revokeTubeAccessRequestSchema,
+
+  // Result Schemas
+  skippedTubeSchema,
+  batchLockResultSchema,
+  batchUnlockResultSchema,
+  shareAccessResultSchema,
+  revokeAccessResultSchema,
+
+  // Request Types
+  type LockTubesRequest,
+  type UnlockTubesRequest,
+  type ShareTubeAccessRequest,
+  type RevokeTubeAccessRequest,
+
+  // Result Types
+  type SkippedTube,
+  type BatchLockResult,
+  type BatchUnlockResult,
+  type ShareAccessResult,
+  type RevokeAccessResult,
+} from './tubes/tubeLockSchemas';
+
 // Search Schemas (Phase 2 - Migrated)
 export {
   // Schemas

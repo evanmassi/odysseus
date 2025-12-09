@@ -99,8 +99,14 @@ export class SQLiteContext {
         notes TEXT,
         createdAt TEXT NOT NULL,
         updatedAt TEXT NOT NULL,
+        isLocked INTEGER DEFAULT 0,
+        lockedBy TEXT,
+        lockNote TEXT,
+        lockedAt TEXT,
+        sharedWithUserIds TEXT,
         UNIQUE(tankId, rackId, boxId, position),
-        FOREIGN KEY (researcherId) REFERENCES researchers(id)
+        FOREIGN KEY (researcherId) REFERENCES researchers(id),
+        FOREIGN KEY (lockedBy) REFERENCES users(id)
       )
     `);
 
@@ -239,6 +245,10 @@ export class SQLiteContext {
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_lot_number ON tubes(lotNumber)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_culture_condition ON tubes(cultureCondition)');
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_date ON tubes(date)');
+
+    // Lock-related indexes
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_is_locked ON tubes(isLocked)');
+    this.db.exec('CREATE INDEX IF NOT EXISTS idx_tubes_locked_by ON tubes(lockedBy)');
     
     // User authentication indexes
     this.db.exec('CREATE INDEX IF NOT EXISTS idx_users_api_key ON users(apiKey)');
