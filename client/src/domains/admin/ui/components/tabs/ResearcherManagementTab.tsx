@@ -17,6 +17,7 @@ import { sortByName } from '@odysseus/shared-schemas';
 import { RefreshCw, AlertCircle, Trash2, Plus, BadgeCheck, BadgeX } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
+import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils';
 
@@ -56,6 +57,10 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    researcherId: string;
+    researcherName: string;
+  } | null>(null);
 
   /**
    * Load researchers on component mount
@@ -83,10 +88,10 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
   };
 
   /**
-   * Delete researcher with confirmation
+   * Delete researcher - opens confirmation dialog
    * Only allowed if researcher has zero tubes AND no linked user
    */
-  const deleteResearcher = async (researcherId: string, researcherName: string) => {
+  const deleteResearcher = (researcherId: string, researcherName: string) => {
     const researcher = researchers.find(r => r.id === researcherId);
 
     if (!researcher) {
@@ -106,24 +111,25 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
       return;
     }
 
-    if (
-      !confirm(
-        `Are you sure you want to delete researcher "${researcherName}"? This action cannot be undone.`
-      )
-    ) {
-      return;
-    }
+    setConfirmDialog({ researcherId, researcherName });
+  };
 
+  /**
+   * Execute researcher deletion after confirmation
+   */
+  const executeDeleteResearcher = async (researcherId: string, researcherName: string) => {
     setDeleting(researcherId);
     try {
       const response = await adminService.deleteResearcher(researcherId);
 
       if (response.success) {
         notifications.success(`Researcher "${researcherName}" deleted successfully`);
+        setConfirmDialog(null);
         await loadResearchers();
         onResearcherUpdate?.();
       } else {
         notifications.error('Failed to delete researcher');
+        setConfirmDialog(null);
       }
     } catch (error: unknown) {
       logger.error('Failed to delete researcher', { error });
@@ -133,6 +139,7 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
         'Failed to delete researcher';
       notifications.error(errorMessage);
+      setConfirmDialog(null);
     } finally {
       setDeleting(null);
     }
@@ -369,6 +376,22 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
         onCreateResearcher={handleCreateResearcher}
         onLinkExisting={async () => {}}
       />
+
+      {/* Confirmation Dialog */}
+      {confirmDialog && (
+        <ConfirmDialog
+          isOpen={true}
+          variant="danger"
+          title="Delete Researcher"
+          message={`Are you sure you want to delete researcher "${confirmDialog.researcherName}"? This action cannot be undone.`}
+          confirmText="Delete"
+          onConfirm={() => {
+            void executeDeleteResearcher(confirmDialog.researcherId, confirmDialog.researcherName);
+          }}
+          onCancel={() => setConfirmDialog(null)}
+          isLoading={deleting === confirmDialog.researcherId}
+        />
+      )}
     </div>
   );
 }

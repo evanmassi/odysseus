@@ -166,7 +166,7 @@ export function ConfirmDialog({
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="p-2 rounded-lg hover:bg-odysseus-surface-hover text-odysseus-muted hover:text-odysseus-dark transition-all duration-200 disabled:opacity-50"
+            className="p-2 rounded-lg hover:bg-odysseus-surface-hover text-odysseus-muted hover:text-odysseus-dark transition-all duration-200 disabled:opacity-50 focus-ring-default"
             aria-label="Close dialog"
             type="button"
           >

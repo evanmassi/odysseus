@@ -30,6 +30,7 @@ import {
 import Select, { type CSSObjectWithLabel } from 'react-select';
 
 import { logger } from '@shared/infrastructure/logger';
+import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 import { useDeleteUserMutation } from '../../../hooks/useUserMutations';
@@ -138,6 +139,11 @@ export function UserManagementTab({
     userId: string;
     username: string;
   } | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    type: 'delete' | 'reject' | 'unlink';
+    userId: string;
+    username: string;
+  } | null>(null);
 
   // Mutation hook for user deletion
   // Handles cache invalidation for users list and storage configuration
@@ -193,23 +199,26 @@ export function UserManagementTab({
   };
 
   /**
-   * Delete user with confirmation
-   * Uses mutation hook for proper cache invalidation (users list + storage config)
+   * Delete user - opens confirmation dialog
    */
   const handleDeleteUser = (userId: string, username: string) => {
-    if (
-      !confirm(`Are you sure you want to delete user "${username}"? This action cannot be undone.`)
-    ) {
-      return;
-    }
+    setConfirmDialog({ type: 'delete', userId, username });
+  };
 
+  /**
+   * Execute user deletion after confirmation
+   * Uses mutation hook for proper cache invalidation (users list + storage config)
+   */
+  const executeDeleteUser = (userId: string, username: string) => {
     deleteUserMutation.mutate(userId, {
       onSuccess: () => {
         notifications.success(`User "${username}" deleted successfully`);
-        onUserUpdate(); // Also trigger parent refresh for any local state
+        setConfirmDialog(null);
+        onUserUpdate();
       },
       onError: () => {
         notifications.error('Failed to delete user');
+        setConfirmDialog(null);
       },
     });
   };
@@ -240,65 +249,69 @@ export function UserManagementTab({
   };
 
   /**
-   * Reject pending user
+   * Reject pending user - opens confirmation dialog
+   */
+  const rejectUser = (userId: string, username: string) => {
+    setConfirmDialog({ type: 'reject', userId, username });
+  };
+
+  /**
+   * Execute user rejection after confirmation
    * User is denied access to the system
    */
-  const rejectUser = async (userId: string, username: string) => {
-    if (
-      !confirm(
-        `Are you sure you want to reject user "${username}"? They will not be able to access the system.`
-      )
-    ) {
-      return;
-    }
-
+  const executeRejectUser = async (userId: string, username: string) => {
     setProcessingApproval(userId);
     try {
       const response = await adminService.rejectUser(userId);
 
       if (response.success) {
         notifications.success(`User "${username}" rejected`);
+        setConfirmDialog(null);
         await loadPendingUsers();
         onUserUpdate();
       } else {
         notifications.error('Failed to reject user');
+        setConfirmDialog(null);
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to reject user', { error });
       notifications.error('Failed to reject user');
+      setConfirmDialog(null);
     } finally {
       setProcessingApproval(null);
     }
   };
 
   /**
-   * Unlink researcher profile from user
+   * Unlink researcher profile from user - opens confirmation dialog
+   */
+  const unlinkResearcher = (userId: string, username: string) => {
+    setConfirmDialog({ type: 'unlink', userId, username });
+  };
+
+  /**
+   * Execute unlink after confirmation
    * Preserves researcher record for tube history
    */
-  const unlinkResearcher = async (userId: string, username: string) => {
-    if (
-      !confirm(
-        `Unlink researcher profile from "${username}"? The researcher record will be preserved for tube history.`
-      )
-    ) {
-      return;
-    }
-
+  const executeUnlinkResearcher = async (userId: string, username: string) => {
     setUpdating(userId);
     try {
       const response = await adminService.unlinkResearcherFromUser(userId);
 
       if (response.success) {
         notifications.success(`Researcher unlinked from "${username}"`);
+        setConfirmDialog(null);
         onUserUpdate();
       } else {
         notifications.error('Failed to unlink researcher');
+        setConfirmDialog(null);
       }
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to unlink researcher', { error });
       notifications.error('Failed to unlink researcher');
+      setConfirmDialog(null);
     } finally {
       setUpdating(null);
     }
@@ -649,6 +662,52 @@ export function UserManagementTab({
             setPasswordResetModal(null);
             onUserUpdate();
           }}
+        />
+      )}
+
+      {/* Confirmation Dialog */}
+      {confirmDialog && (
+        <ConfirmDialog
+          isOpen={true}
+          variant={confirmDialog.type === 'unlink' ? 'warning' : 'danger'}
+          title={
+            confirmDialog.type === 'delete'
+              ? 'Delete User'
+              : confirmDialog.type === 'reject'
+                ? 'Reject User'
+                : 'Unlink Researcher'
+          }
+          message={
+            confirmDialog.type === 'delete'
+              ? `Are you sure you want to delete user "${confirmDialog.username}"? This action cannot be undone.`
+              : confirmDialog.type === 'reject'
+                ? `Are you sure you want to reject user "${confirmDialog.username}"? They will not be able to access the system.`
+                : `Unlink researcher profile from "${confirmDialog.username}"? The researcher record will be preserved for tube history.`
+          }
+          confirmText={
+            confirmDialog.type === 'delete'
+              ? 'Delete'
+              : confirmDialog.type === 'reject'
+                ? 'Reject'
+                : 'Unlink'
+          }
+          onConfirm={() => {
+            if (confirmDialog.type === 'delete') {
+              executeDeleteUser(confirmDialog.userId, confirmDialog.username);
+            } else if (confirmDialog.type === 'reject') {
+              void executeRejectUser(confirmDialog.userId, confirmDialog.username);
+            } else {
+              void executeUnlinkResearcher(confirmDialog.userId, confirmDialog.username);
+            }
+          }}
+          onCancel={() => setConfirmDialog(null)}
+          isLoading={
+            confirmDialog.type === 'delete'
+              ? deleteUserMutation.isPending
+              : confirmDialog.type === 'reject'
+                ? processingApproval === confirmDialog.userId
+                : updating === confirmDialog.userId
+          }
         />
       )}
     </div>
