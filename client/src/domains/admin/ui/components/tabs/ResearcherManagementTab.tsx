@@ -14,7 +14,7 @@
 import { useState, useEffect } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
-import { RefreshCw, AlertCircle, Trash2, Plus } from 'lucide-react';
+import { RefreshCw, AlertCircle, Trash2, Plus, BadgeCheck, BadgeX } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
 import { ResearcherIcon } from '@shared/ui/components/icons';
@@ -242,10 +242,17 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
                   </td>
 
                   {/* Position Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{researcher.position ?? '—'}</div>
+                  <td className="px-3 py-2 whitespace-nowrap max-w-[150px]">
+                    <div
+                      className="text-sm text-gray-900 truncate"
+                      title={researcher.position ?? undefined}
+                    >
+                      {researcher.position ?? '—'}
+                    </div>
                     {researcher.department && (
-                      <div className="text-xs text-gray-500">{researcher.department}</div>
+                      <div className="text-xs text-gray-500 truncate" title={researcher.department}>
+                        {researcher.department}
+                      </div>
                     )}
                   </td>
 
@@ -278,15 +285,11 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
 
                   {/* Active Status Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        researcher.active
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {researcher.active ? 'Active' : 'Inactive'}
-                    </span>
+                    {researcher.active ? (
+                      <BadgeCheck size={18} className="text-green-600" title="Active" />
+                    ) : (
+                      <BadgeX size={18} className="text-gray-400" title="Inactive" />
+                    )}
                   </td>
 
                   {/* Actions Cell */}
@@ -299,17 +302,16 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
                         )
                       }
                       disabled={!canDelete(researcher) || deleting === researcher.id}
-                      className="flex items-center space-x-1 px-2 py-1 bg-danger-bg text-white rounded-lg hover:bg-danger-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs font-medium"
+                      className="btn-danger-compact"
                       title={
                         !canDelete(researcher) ? getDeletionStatus(researcher) : 'Delete researcher'
                       }
                     >
                       {deleting === researcher.id ? (
-                        <RefreshCw size={12} className="animate-spin" />
+                        <RefreshCw size={16} className="animate-spin" />
                       ) : (
-                        <Trash2 size={12} />
+                        <Trash2 size={16} />
                       )}
-                      <span>Delete</span>
                     </button>
                   </td>
                 </tr>

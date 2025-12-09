@@ -446,7 +446,7 @@ export function UserManagementTab({
                 Role
               </th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Linked Researcher
+                Researcher
               </th>
               <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Last Active
@@ -534,45 +534,44 @@ export function UserManagementTab({
 
                   {/* Actions Cell */}
                   <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <button
                         onClick={() =>
                           setPasswordResetModal({ userId: user.id, username: user.username })
                         }
-                        className="btn-password-compact flex items-center space-x-1"
+                        className="btn-password-compact"
                         title="Reset password"
                       >
-                        <KeyRound size={12} />
-                        <span>Reset Password</span>
+                        <KeyRound size={16} />
                       </button>
                       {user.researcherId ? (
                         <button
                           onClick={() => unlinkResearcher(user.id, user.username)}
-                          className="btn-primary-compact flex items-center space-x-1"
+                          className="btn-primary-compact"
+                          title="Unlink researcher"
                         >
-                          <Unlink2 size={12} />
-                          <span>Unlink</span>
+                          <Unlink2 size={16} />
                         </button>
                       ) : (
                         <button
                           onClick={() => openLinkModal({ id: user.id, username: user.username })}
-                          className="btn-primary-compact flex items-center space-x-1"
+                          className="btn-primary-compact"
+                          title="Link researcher"
                         >
-                          <Link2 size={12} />
-                          <span>Link</span>
+                          <Link2 size={16} />
                         </button>
                       )}
                       <button
                         onClick={() => handleDeleteUser(user.id, user.username)}
                         disabled={deleteUserMutation.isPending}
-                        className="btn-danger-compact flex items-center space-x-1"
+                        className="btn-danger-compact"
+                        title="Delete user"
                       >
                         {deleteUserMutation.isPending ? (
-                          <RefreshCw size={12} className="animate-spin" />
+                          <RefreshCw size={16} className="animate-spin" />
                         ) : (
-                          <Trash2 size={12} />
+                          <Trash2 size={16} />
                         )}
-                        <span>Delete</span>
                       </button>
                     </div>
                   </td>

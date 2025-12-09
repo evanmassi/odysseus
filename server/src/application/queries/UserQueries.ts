@@ -67,14 +67,15 @@ export class GetAllUsersQueryHandler implements QueryHandler<GetAllUsersQuery, U
 
   async handle(query: GetAllUsersQuery): Promise<User[]> {
     const allUsers = await this.userRepository.findAll();
-    
+
+    // Filter to only approved users (pending users shown separately in approval queue)
+    const approvedUsers = allUsers.filter(user => user.isApproved());
+
     if (query.includeInactive) {
-      return allUsers;
+      return approvedUsers;
     }
-    
-    // OAuth 2.0 Note: All users are considered "active" with token-based authentication
-    // Remove activity filtering since tokens provide implicit activity validation
-    return allUsers;
+
+    return approvedUsers;
   }
 }
 
