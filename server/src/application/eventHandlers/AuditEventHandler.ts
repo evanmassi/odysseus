@@ -8,6 +8,12 @@ import {
   BulkTubesUpdatedEvent,
 } from '@domain/events/TubeEvents';
 import {
+  TubesLockedEvent,
+  TubesUnlockedEvent,
+  TubeAccessSharedEvent,
+  TubeAccessRevokedEvent,
+} from '@domain/events/TubeLockEvents';
+import {
   TankUpdatedEvent,
   TankAddedEvent,
   TankDeletedEvent,
@@ -83,6 +89,12 @@ export class AuditEventHandler {
     this.eventBus.subscribe('TubeLocationChanged', this.handleTubeLocationChanged.bind(this) as any);
     this.eventBus.subscribe('TubeDeleted', this.handleTubeDeleted.bind(this) as any);
     this.eventBus.subscribe('BulkTubesUpdated', this.handleBulkTubesUpdated.bind(this) as any);
+
+    // Tube lock events
+    this.eventBus.subscribe('TubesLocked', this.handleTubesLocked.bind(this) as any);
+    this.eventBus.subscribe('TubesUnlocked', this.handleTubesUnlocked.bind(this) as any);
+    this.eventBus.subscribe('TubeAccessShared', this.handleTubeAccessShared.bind(this) as any);
+    this.eventBus.subscribe('TubeAccessRevoked', this.handleTubeAccessRevoked.bind(this) as any);
 
     // Configuration events
     this.eventBus.subscribe('TankUpdated', this.handleTankUpdated.bind(this) as any);
@@ -390,6 +402,160 @@ export class AuditEventHandler {
       logger.error('Failed to log bulk tubes updated event', {
         error: error instanceof Error ? error.message : String(error),
         tubeCount: event.tubeIds.length,
+      });
+    }
+  }
+
+  // TUBE LOCK EVENT HANDLERS
+
+  /**
+   * Resolve usernames for a list of user IDs
+   */
+  private async resolveUsernames(userIds: string[]): Promise<Array<{ userId: string; username: string }>> {
+    const resolved: Array<{ userId: string; username: string }> = [];
+    for (const userId of userIds) {
+      const user = await this.userRepository.findById(userId);
+      resolved.push({
+        userId,
+        username: user?.username || userId
+      });
+    }
+    return resolved;
+  }
+
+  /**
+   * Handle TubesLocked event
+   *
+   * Logs batch tube lock operation with count summary.
+   */
+  private async handleTubesLocked(event: TubesLockedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.lockedBy);
+      const username = user?.username || event.lockedBy;
+
+      await this.auditService.logAction({
+        userId: event.lockedBy,
+        username: username,
+        action: 'tubes_locked',
+        entityType: 'tube',
+        details: {
+          tubeCount: event.tubeIds.length,
+          tubeIds: event.tubeIds.slice(0, 10), // First 10 for reference
+          hasMore: event.tubeIds.length > 10,
+          lockNote: event.lockNote,
+          lockedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log tubes locked event', {
+        error: error instanceof Error ? error.message : String(error),
+        count: event.tubeIds.length,
+      });
+    }
+  }
+
+  /**
+   * Handle TubesUnlocked event
+   *
+   * Logs batch tube unlock operation with count summary.
+   */
+  private async handleTubesUnlocked(event: TubesUnlockedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.unlockedBy);
+      const username = user?.username || event.unlockedBy;
+
+      await this.auditService.logAction({
+        userId: event.unlockedBy,
+        username: username,
+        action: 'tubes_unlocked',
+        entityType: 'tube',
+        details: {
+          tubeCount: event.tubeIds.length,
+          tubeIds: event.tubeIds.slice(0, 10), // First 10 for reference
+          hasMore: event.tubeIds.length > 10,
+          unlockedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log tubes unlocked event', {
+        error: error instanceof Error ? error.message : String(error),
+        count: event.tubeIds.length,
+      });
+    }
+  }
+
+  /**
+   * Handle TubeAccessShared event
+   *
+   * Logs when tube access is shared with other users.
+   * Resolves usernames for better audit readability.
+   */
+  private async handleTubeAccessShared(event: TubeAccessSharedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.sharedBy);
+      const username = user?.username || event.sharedBy;
+
+      // Resolve usernames for shared users
+      const sharedWithUsers = await this.resolveUsernames(event.sharedWithUserIds);
+
+      await this.auditService.logAction({
+        userId: event.sharedBy,
+        username: username,
+        action: 'tube_access_shared',
+        entityType: 'tube',
+        details: {
+          tubeCount: event.tubeIds.length,
+          tubeIds: event.tubeIds.slice(0, 10), // First 10 for reference
+          hasMoreTubes: event.tubeIds.length > 10,
+          sharedWithUsers: sharedWithUsers,
+          sharedWithCount: event.sharedWithUserIds.length,
+          sharedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log tube access shared event', {
+        error: error instanceof Error ? error.message : String(error),
+        tubeIds: event.tubeIds,
+      });
+    }
+  }
+
+  /**
+   * Handle TubeAccessRevoked event
+   *
+   * Logs when tube access is revoked from users.
+   * Resolves usernames for better audit readability.
+   */
+  private async handleTubeAccessRevoked(event: TubeAccessRevokedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.revokedBy);
+      const username = user?.username || event.revokedBy;
+
+      // Resolve usernames for revoked users
+      const revokedUsers = await this.resolveUsernames(event.revokedUserIds);
+
+      await this.auditService.logAction({
+        userId: event.revokedBy,
+        username: username,
+        action: 'tube_access_revoked',
+        entityType: 'tube',
+        details: {
+          tubeCount: event.tubeIds.length,
+          tubeIds: event.tubeIds.slice(0, 10), // First 10 for reference
+          hasMoreTubes: event.tubeIds.length > 10,
+          revokedUsers: revokedUsers,
+          revokedCount: event.revokedUserIds.length,
+          revokedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log tube access revoked event', {
+        error: error instanceof Error ? error.message : String(error),
+        tubeIds: event.tubeIds,
       });
     }
   }
@@ -1459,6 +1625,11 @@ export class AuditEventHandler {
     this.eventBus.unsubscribe('TubeLocationChanged', this.handleTubeLocationChanged.bind(this) as any);
     this.eventBus.unsubscribe('TubeDeleted', this.handleTubeDeleted.bind(this) as any);
     this.eventBus.unsubscribe('BulkTubesUpdated', this.handleBulkTubesUpdated.bind(this) as any);
+
+    this.eventBus.unsubscribe('TubesLocked', this.handleTubesLocked.bind(this) as any);
+    this.eventBus.unsubscribe('TubesUnlocked', this.handleTubesUnlocked.bind(this) as any);
+    this.eventBus.unsubscribe('TubeAccessShared', this.handleTubeAccessShared.bind(this) as any);
+    this.eventBus.unsubscribe('TubeAccessRevoked', this.handleTubeAccessRevoked.bind(this) as any);
 
     this.eventBus.unsubscribe('TankUpdated', this.handleTankUpdated.bind(this) as any);
     this.eventBus.unsubscribe('TankAdded', this.handleTankAdded.bind(this) as any);

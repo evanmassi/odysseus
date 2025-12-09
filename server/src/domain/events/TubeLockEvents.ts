@@ -2,36 +2,59 @@
  * Tube Lock Domain Events
  *
  * Events related to tube locking and access sharing.
+ * All events are batch-oriented for efficient socket and audit handling.
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
 
-export class TubeLockChangedEvent extends DomainEvent {
+export class TubesLockedEvent extends DomainEvent {
   constructor(
-    public readonly tubeId: string,
-    public readonly isLocked: boolean,
-    public readonly lockedBy: string | undefined,
-    public readonly lockNote: string | undefined,
-    public readonly changedBy: string
+    public readonly tubeIds: string[],
+    public readonly lockedBy: string,
+    public readonly lockNote: string | undefined
   ) {
     super(1);
   }
 
   eventName(): string {
-    return 'TubeLockChanged';
+    return 'TubesLocked';
   }
 
   getAggregateId(): string {
-    return this.tubeId;
+    return this.tubeIds.length === 1 ? this.tubeIds[0] : `batch-${this.tubeIds.length}`;
   }
 
   protected getEventData(): Record<string, unknown> {
     return {
-      tubeId: this.tubeId,
-      isLocked: this.isLocked,
+      tubeIds: this.tubeIds,
+      count: this.tubeIds.length,
       lockedBy: this.lockedBy,
-      lockNote: this.lockNote,
-      changedBy: this.changedBy
+      lockNote: this.lockNote
+    };
+  }
+}
+
+export class TubesUnlockedEvent extends DomainEvent {
+  constructor(
+    public readonly tubeIds: string[],
+    public readonly unlockedBy: string
+  ) {
+    super(1);
+  }
+
+  eventName(): string {
+    return 'TubesUnlocked';
+  }
+
+  getAggregateId(): string {
+    return this.tubeIds.length === 1 ? this.tubeIds[0] : `batch-${this.tubeIds.length}`;
+  }
+
+  protected getEventData(): Record<string, unknown> {
+    return {
+      tubeIds: this.tubeIds,
+      count: this.tubeIds.length,
+      unlockedBy: this.unlockedBy
     };
   }
 }

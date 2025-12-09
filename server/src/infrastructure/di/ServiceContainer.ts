@@ -19,6 +19,7 @@ import type { Server as SocketIOServer } from 'socket.io';
 // Controllers
 import { AuthController } from '@presentation/controllers/AuthController';
 import { TubeController } from '@presentation/controllers/TubeController';
+import { TubeLockController } from '@presentation/controllers/TubeLockController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { SearchController } from '@presentation/controllers/SearchController';
@@ -104,6 +105,7 @@ export class ServiceContainer {
   // Controllers
   private authController?: AuthController;
   private tubeController?: TubeController;
+  private tubeLockController?: TubeLockController;
   private researcherController?: ResearcherController;
   private configurationController?: ConfigurationController;
   private searchController?: SearchController;
@@ -811,6 +813,15 @@ export class ServiceContainer {
       );
     }
     return this.tubeController;
+  }
+
+  getTubeLockController(): TubeLockController {
+    if (!this.tubeLockController) {
+      this.tubeLockController = new TubeLockController(
+        this.getTubeApplicationService()
+      );
+    }
+    return this.tubeLockController;
   }
 
   getResearcherController(): ResearcherController {

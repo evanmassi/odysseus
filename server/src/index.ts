@@ -169,7 +169,8 @@ class OdysseusServer {
     registry.registerModule(new PublicRouteModule(authController, configurationRepository));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, configurationRepository));
     registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, authMiddleware, configurationRepository));
-    registry.registerModule(new ResourceRouteModule(tubeController, researcherController, authMiddleware, configurationRepository));
+    const tubeLockController = this.serviceContainer.getTubeLockController();
+    registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, authMiddleware, configurationRepository));
     registry.registerModule(new ConfigurationRouteModule(configurationController, authMiddleware));
     registry.registerModule(new SearchRouteModule(searchController, authMiddleware, configurationRepository));
     registry.registerModule(new UserRouteModule(userController, personController, sessionController, authMiddleware));

@@ -33,6 +33,12 @@ import {
   BulkTubesUpdatedEvent
 } from '@domain/events/TubeEvents';
 import {
+  TubesLockedEvent,
+  TubesUnlockedEvent,
+  TubeAccessSharedEvent,
+  TubeAccessRevokedEvent
+} from '@domain/events/TubeLockEvents';
+import {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
@@ -80,6 +86,12 @@ export class SocketEventHandler {
     this.eventBus.subscribe('TubeLocationChanged', this.handleTubeUpdated.bind(this) as any);
     this.eventBus.subscribe('TubeDeleted', this.handleTubeDeleted.bind(this) as any);
     this.eventBus.subscribe('BulkTubesUpdated', this.handleBulkTubesUpdated.bind(this) as any);
+
+    // Tube lock events
+    this.eventBus.subscribe('TubesLocked', this.handleTubesLocked.bind(this) as any);
+    this.eventBus.subscribe('TubesUnlocked', this.handleTubesUnlocked.bind(this) as any);
+    this.eventBus.subscribe('TubeAccessShared', this.handleTubeAccessShared.bind(this) as any);
+    this.eventBus.subscribe('TubeAccessRevoked', this.handleTubeAccessRevoked.bind(this) as any);
 
     // Researcher events
     this.eventBus.subscribe('ResearcherCreated', this.handleResearcherCreated.bind(this) as any);
@@ -227,5 +239,102 @@ export class SocketEventHandler {
   ): Promise<void> {
     // Researcher updated events are already handled by ResearcherController
     // No additional Socket emission needed here
+  }
+
+  // TUBE LOCK EVENT HANDLERS
+
+  private async handleTubesLocked(event: TubesLockedEvent): Promise<void> {
+    try {
+      const payload = {
+        tubeIds: event.tubeIds,
+        count: event.tubeIds.length,
+        lockedBy: event.lockedBy,
+        lockNote: event.lockNote,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tubes_locked Socket event', {
+        count: event.tubeIds.length,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('tubes_locked', payload);
+    } catch (error) {
+      logger.error('Failed to emit tubes_locked event', {
+        error: error instanceof Error ? error.message : String(error),
+        count: event.tubeIds.length
+      });
+    }
+  }
+
+  private async handleTubesUnlocked(event: TubesUnlockedEvent): Promise<void> {
+    try {
+      const payload = {
+        tubeIds: event.tubeIds,
+        count: event.tubeIds.length,
+        unlockedBy: event.unlockedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tubes_unlocked Socket event', {
+        count: event.tubeIds.length,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('tubes_unlocked', payload);
+    } catch (error) {
+      logger.error('Failed to emit tubes_unlocked event', {
+        error: error instanceof Error ? error.message : String(error),
+        count: event.tubeIds.length
+      });
+    }
+  }
+
+  private async handleTubeAccessShared(event: TubeAccessSharedEvent): Promise<void> {
+    try {
+      const payload = {
+        tubeIds: event.tubeIds,
+        sharedWithUserIds: event.sharedWithUserIds,
+        sharedBy: event.sharedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tube_access_shared Socket event', {
+        tubeCount: event.tubeIds.length,
+        userCount: event.sharedWithUserIds.length,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('tube_access_shared', payload);
+    } catch (error) {
+      logger.error('Failed to emit tube_access_shared event', {
+        error: error instanceof Error ? error.message : String(error),
+        tubeIds: event.tubeIds
+      });
+    }
+  }
+
+  private async handleTubeAccessRevoked(event: TubeAccessRevokedEvent): Promise<void> {
+    try {
+      const payload = {
+        tubeIds: event.tubeIds,
+        revokedUserIds: event.revokedUserIds,
+        revokedBy: event.revokedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tube_access_revoked Socket event', {
+        tubeCount: event.tubeIds.length,
+        userCount: event.revokedUserIds.length,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('tube_access_revoked', payload);
+    } catch (error) {
+      logger.error('Failed to emit tube_access_revoked event', {
+        error: error instanceof Error ? error.message : String(error),
+        tubeIds: event.tubeIds
+      });
+    }
   }
 }

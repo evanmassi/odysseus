@@ -13,6 +13,10 @@ import {
   updateTubeRequestSchema,
   tubeLocationSchema,
   createResearcherProfileSchema,
+  lockTubesRequestSchema,
+  unlockTubesRequestSchema,
+  shareTubeAccessRequestSchema,
+  revokeTubeAccessRequestSchema,
   type CreateResearcherProfile
 } from '@odysseus/shared-schemas';
 
@@ -54,9 +58,19 @@ export const BulkUpdateHttpSchema = z.object({
 // Business rules constants moved to domain value objects
 // Complex data type definitions handled by domain entities
 
+// Tube Lock HTTP Schemas - direct re-export from shared-schemas
+export const LockTubesHttpSchema = lockTubesRequestSchema;
+export const UnlockTubesHttpSchema = unlockTubesRequestSchema;
+export const ShareTubeAccessHttpSchema = shareTubeAccessRequestSchema;
+export const RevokeTubeAccessHttpSchema = revokeTubeAccessRequestSchema;
+
 // Export HTTP validation types only
 export type CreateTubeHttpData = z.infer<typeof CreateTubeHttpSchema>;
 export type UpdateTubeHttpData = z.infer<typeof UpdateTubeHttpSchema>;
 export type CreateResearcherHttpData = z.infer<typeof CreateResearcherHttpSchema>;
 export type BulkUpdateHttpData = z.infer<typeof BulkUpdateHttpSchema>;
 export type LocationQueryData = z.infer<typeof LocationQuerySchema>;
+export type LockTubesHttpData = z.infer<typeof LockTubesHttpSchema>;
+export type UnlockTubesHttpData = z.infer<typeof UnlockTubesHttpSchema>;
+export type ShareTubeAccessHttpData = z.infer<typeof ShareTubeAccessHttpSchema>;
+export type RevokeTubeAccessHttpData = z.infer<typeof RevokeTubeAccessHttpSchema>;

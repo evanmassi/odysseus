@@ -20,6 +20,23 @@ import {
   TubeDeletedEvent,
   BulkTubesUpdatedEvent
 } from '@domain/events/TubeEvents';
+import {
+  TubesLockedEvent,
+  TubesUnlockedEvent,
+  TubeAccessSharedEvent,
+  TubeAccessRevokedEvent
+} from '@domain/events/TubeLockEvents';
+import type {
+  LockTubesRequest,
+  UnlockTubesRequest,
+  ShareTubeAccessRequest,
+  RevokeTubeAccessRequest,
+  BatchLockResult,
+  BatchUnlockResult,
+  ShareAccessResult,
+  RevokeAccessResult,
+  SkippedTube
+} from '@application/dto/TubeLockDto';
 
 /**
  * TubeApplicationService
@@ -387,6 +404,211 @@ export class TubeApplicationService {
       deleted,
       failed
     };
+  }
+
+  /**
+   * Lock tubes
+   * Batch lock with partial success pattern
+   */
+  async lockTubes(
+    request: LockTubesRequest,
+    authenticatedUser: User
+  ): Promise<BatchLockResult> {
+    const locked: string[] = [];
+    const skipped: SkippedTube[] = [];
+
+    for (const tubeId of request.tubeIds) {
+      const tube = await this.tubeRepository.findById(tubeId);
+
+      if (!tube) {
+        skipped.push({ tubeId, reason: 'Tube not found' });
+        continue;
+      }
+
+      // Check lock permission
+      const accessResult = this.accessControlService.canLockTube(authenticatedUser, tube);
+      if (!accessResult.allowed) {
+        skipped.push({ tubeId, reason: accessResult.reason });
+        continue;
+      }
+
+      // Skip if already locked
+      if (tube.isLocked) {
+        skipped.push({ tubeId, reason: 'Tube is already locked' });
+        continue;
+      }
+
+      // Lock the tube
+      const lockedTube = tube.lock(authenticatedUser.id, request.lockNote);
+      await this.tubeRepository.save(lockedTube);
+
+      locked.push(tubeId);
+    }
+
+    // Publish single batch event after all tubes processed
+    if (locked.length > 0) {
+      await this.eventBus.publish(new TubesLockedEvent(
+        locked,
+        authenticatedUser.id,
+        request.lockNote
+      ));
+    }
+
+    return { locked, skipped };
+  }
+
+  /**
+   * Unlock tubes
+   * Batch unlock with partial success pattern
+   */
+  async unlockTubes(
+    request: UnlockTubesRequest,
+    authenticatedUser: User
+  ): Promise<BatchUnlockResult> {
+    const unlocked: string[] = [];
+    const skipped: SkippedTube[] = [];
+
+    for (const tubeId of request.tubeIds) {
+      const tube = await this.tubeRepository.findById(tubeId);
+
+      if (!tube) {
+        skipped.push({ tubeId, reason: 'Tube not found' });
+        continue;
+      }
+
+      // Check unlock permission
+      const accessResult = this.accessControlService.canUnlockTube(authenticatedUser, tube);
+      if (!accessResult.allowed) {
+        skipped.push({ tubeId, reason: accessResult.reason });
+        continue;
+      }
+
+      // Skip if not locked
+      if (!tube.isLocked) {
+        skipped.push({ tubeId, reason: 'Tube is not locked' });
+        continue;
+      }
+
+      // Unlock the tube
+      const unlockedTube = tube.unlock();
+      await this.tubeRepository.save(unlockedTube);
+
+      unlocked.push(tubeId);
+    }
+
+    // Publish single batch event after all tubes processed
+    if (unlocked.length > 0) {
+      await this.eventBus.publish(new TubesUnlockedEvent(
+        unlocked,
+        authenticatedUser.id
+      ));
+    }
+
+    return { unlocked, skipped };
+  }
+
+  /**
+   * Share tube access with other users
+   * Batch share with partial success pattern
+   */
+  async shareTubeAccess(
+    request: ShareTubeAccessRequest,
+    authenticatedUser: User
+  ): Promise<ShareAccessResult> {
+    const shared: string[] = [];
+    const skipped: SkippedTube[] = [];
+
+    for (const tubeId of request.tubeIds) {
+      const tube = await this.tubeRepository.findById(tubeId);
+
+      if (!tube) {
+        skipped.push({ tubeId, reason: 'Tube not found' });
+        continue;
+      }
+
+      // Check share permission
+      const accessResult = this.accessControlService.canShareTubeAccess(authenticatedUser, tube);
+      if (!accessResult.allowed) {
+        skipped.push({ tubeId, reason: accessResult.reason });
+        continue;
+      }
+
+      // Must be locked to share access
+      if (!tube.isLocked) {
+        skipped.push({ tubeId, reason: 'Tube must be locked to share access' });
+        continue;
+      }
+
+      // Share with all users
+      const updatedTube = tube.shareWith(request.userIds);
+
+      await this.tubeRepository.save(updatedTube);
+
+      shared.push(tubeId);
+    }
+
+    // Publish single batch event after all tubes processed
+    if (shared.length > 0) {
+      await this.eventBus.publish(new TubeAccessSharedEvent(
+        shared,
+        request.userIds,
+        authenticatedUser.id
+      ));
+    }
+
+    return { shared, skipped };
+  }
+
+  /**
+   * Revoke tube access from users
+   * Batch revoke with partial success pattern
+   */
+  async revokeTubeAccess(
+    request: RevokeTubeAccessRequest,
+    authenticatedUser: User
+  ): Promise<RevokeAccessResult> {
+    const revoked: string[] = [];
+    const skipped: SkippedTube[] = [];
+
+    for (const tubeId of request.tubeIds) {
+      const tube = await this.tubeRepository.findById(tubeId);
+
+      if (!tube) {
+        skipped.push({ tubeId, reason: 'Tube not found' });
+        continue;
+      }
+
+      // Check share permission (same as share access)
+      const accessResult = this.accessControlService.canShareTubeAccess(authenticatedUser, tube);
+      if (!accessResult.allowed) {
+        skipped.push({ tubeId, reason: accessResult.reason });
+        continue;
+      }
+
+      // Must be locked to revoke access
+      if (!tube.isLocked) {
+        skipped.push({ tubeId, reason: 'Tube must be locked to revoke access' });
+        continue;
+      }
+
+      // Revoke from all users
+      const updatedTube = tube.revokeAccess(request.userIds);
+
+      await this.tubeRepository.save(updatedTube);
+
+      revoked.push(tubeId);
+    }
+
+    // Publish single batch event after all tubes processed
+    if (revoked.length > 0) {
+      await this.eventBus.publish(new TubeAccessRevokedEvent(
+        revoked,
+        request.userIds,
+        authenticatedUser.id
+      ));
+    }
+
+    return { revoked, skipped };
   }
 }
 

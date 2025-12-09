@@ -9,18 +9,30 @@ import { Router, RequestHandler } from 'express';
 import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { TubeController } from '@presentation/controllers/TubeController';
+import { TubeLockController } from '@presentation/controllers/TubeLockController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { createRateLimitMiddleware } from '@middleware/RateLimiting';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { validateBody, validateParams, validateQuery } from '@middleware/Validation';
-import { CreateTubeHttpSchema, UpdateTubeHttpSchema, CreateResearcherHttpSchema, BulkUpdateHttpSchema, LocationQuerySchema } from '@validation/schemas';
+import {
+  CreateTubeHttpSchema,
+  UpdateTubeHttpSchema,
+  CreateResearcherHttpSchema,
+  BulkUpdateHttpSchema,
+  LocationQuerySchema,
+  LockTubesHttpSchema,
+  UnlockTubesHttpSchema,
+  ShareTubeAccessHttpSchema,
+  RevokeTubeAccessHttpSchema
+} from '@validation/schemas';
 
 export class ResourceRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;
 
   constructor(
     private tubeController: TubeController,
+    private tubeLockController: TubeLockController,
     private researcherController: ResearcherController,
     private authMiddleware: AuthMiddleware,
     configurationRepository: ConfigurationRepository
@@ -91,6 +103,28 @@ export class ResourceRouteModule implements RouteModule {
     router.post('/tubes/bulk-update',
       validateBody(BulkUpdateHttpSchema),
       this.tubeController.bulkUpdateTubes.bind(this.tubeController)
+    );
+
+    // TUBE LOCK ROUTES
+
+    router.post('/tubes/lock',
+      validateBody(LockTubesHttpSchema),
+      this.tubeLockController.lockTubes.bind(this.tubeLockController)
+    );
+
+    router.post('/tubes/unlock',
+      validateBody(UnlockTubesHttpSchema),
+      this.tubeLockController.unlockTubes.bind(this.tubeLockController)
+    );
+
+    router.post('/tubes/share-access',
+      validateBody(ShareTubeAccessHttpSchema),
+      this.tubeLockController.shareTubeAccess.bind(this.tubeLockController)
+    );
+
+    router.post('/tubes/revoke-access',
+      validateBody(RevokeTubeAccessHttpSchema),
+      this.tubeLockController.revokeTubeAccess.bind(this.tubeLockController)
     );
 
     // RESEARCHER ROUTES
