@@ -9,4 +9,4 @@ export * from './gridClipboard';
 export * from './notifications';
 export * from './positionRangeFormatter';
 export * from './scientificNotation';
-// Removed: tubeDataConverter (dead code - no longer needed with clean architecture)
+export * from './tubeAccessControl';

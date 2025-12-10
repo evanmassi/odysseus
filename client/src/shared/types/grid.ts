@@ -70,7 +70,6 @@ export interface GridNavigationReturn {
  * Components use the functions they need from this shared interface
  */
 export interface LockContext {
-  currentUserId: string;
   // Permission checks
   canLockTube: (tube: TubeData) => boolean;
   canUnlockTube: (tube: TubeData) => boolean;
@@ -102,8 +101,12 @@ export interface GridControllerProps {
   lockContext?: LockContext;
   isUnlocking?: boolean;
 
+  // Access control
+  // Current user ID for shared access checks
+  currentUserId?: string;
   // View-only mode (container assigned to another user)
-  // When true, all tube operations are disabled
+  // When true, 'add' operations are blocked client-side
+  // Modify operations check tube-level shared access before proceeding
   isViewOnlySpace?: boolean;
 }
 

@@ -367,7 +367,6 @@ export function Dashboard() {
     };
 
     return {
-      currentUserId: user.id,
       // Permission checks
       canLockTube: accessControl.canLockTube,
       canUnlockTube: accessControl.canUnlockTube,
@@ -469,7 +468,8 @@ export function Dashboard() {
     onShareAccess: handleShareAccess,
     lockContext,
     isUnlocking: unlockTubesMutation.isPending,
-    // View-only mode (container assigned to another user)
+    // Access control for view-only spaces with shared access
+    currentUserId: user?.id,
     isViewOnlySpace,
   });
 

@@ -187,7 +187,27 @@ export class TubeApplicationService {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
-    this.accessControlService.requireCanViewTube(authenticatedUser, tube);
+    // Check view access: container ownership OR shared access
+    const containerInfo = await this.getContainerInfo(
+      tube.location.tankId,
+      tube.location.rackId,
+      tube.location.boxId
+    );
+    if (containerInfo) {
+      const tubeAccess = this.accessControlService.canAccessTubeForModification(
+        authenticatedUser,
+        tube,
+        containerInfo
+      );
+      if (!tubeAccess.allowed) {
+        throw new PermissionError(tubeAccess.reason, {
+          tubeId: id,
+          tankId: tube.location.tankId,
+          rackId: tube.location.rackId,
+          boxId: tube.location.boxId,
+        });
+      }
+    }
 
     return TubeDto.toResponse(tube);
   }
@@ -256,7 +276,7 @@ export class TubeApplicationService {
 
   /**
    * Update tube
-   *Trust Zod-validated input, check business rules only
+   * Trust Zod-validated input, check business rules only
    */
   async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User): Promise<TubeResponse> {
     const existingTube = await this.tubeRepository.findById(id);
@@ -265,19 +285,20 @@ export class TubeApplicationService {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
-    // Check container access first (assignment protects the container)
+    // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
       existingTube.location.tankId,
       existingTube.location.rackId,
       existingTube.location.boxId
     );
     if (containerInfo) {
-      const containerAccess = this.accessControlService.canAccessContainer(
+      const tubeAccess = this.accessControlService.canAccessTubeForModification(
         authenticatedUser,
+        existingTube,
         containerInfo
       );
-      if (!containerAccess.allowed) {
-        throw new PermissionError(containerAccess.reason, {
+      if (!tubeAccess.allowed) {
+        throw new PermissionError(tubeAccess.reason, {
           tubeId: id,
           tankId: existingTube.location.tankId,
           rackId: existingTube.location.rackId,
@@ -286,8 +307,8 @@ export class TubeApplicationService {
       }
     }
 
-    // Check permissions
-    this.accessControlService.requireCanEditTube(authenticatedUser, existingTube);
+    // Note: Authorization is handled by canAccessTubeForModification above
+    // which checks container access OR shared access to the tube
 
     // If position is changing, validate new position (business rule)
     const hasLocationUpdate = request.location && (
@@ -394,19 +415,20 @@ export class TubeApplicationService {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
-    // Check container access first (assignment protects the container)
+    // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
       tube.location.tankId,
       tube.location.rackId,
       tube.location.boxId
     );
     if (containerInfo) {
-      const containerAccess = this.accessControlService.canAccessContainer(
+      const tubeAccess = this.accessControlService.canAccessTubeForModification(
         authenticatedUser,
+        tube,
         containerInfo
       );
-      if (!containerAccess.allowed) {
-        throw new PermissionError(containerAccess.reason, {
+      if (!tubeAccess.allowed) {
+        throw new PermissionError(tubeAccess.reason, {
           tubeId: id,
           tankId: tube.location.tankId,
           rackId: tube.location.rackId,
@@ -415,7 +437,8 @@ export class TubeApplicationService {
       }
     }
 
-    this.accessControlService.requireCanDeleteTube(authenticatedUser, tube);
+    // Note: Authorization is handled by canAccessTubeForModification above
+    // which checks container access OR shared access to the tube
 
     await this.tubeRepository.delete(id);
 
@@ -429,6 +452,7 @@ export class TubeApplicationService {
 
   /**
    * Bulk update tubes
+   * Each tube is authorized individually via updateTube's canAccessTubeForModification check
    */
   async bulkUpdateTubes(
     request: BulkUpdateRequest,
@@ -438,7 +462,8 @@ export class TubeApplicationService {
     updated: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
-    this.accessControlService.requireCanBulkEditTubes(authenticatedUser);
+    // No upfront permission check - each tube is authorized individually
+    // This allows users to batch edit tubes they have access to (own space or shared access)
 
     const updated: string[] = [];
     const failed: Array<{ id: string; error: string }> = [];

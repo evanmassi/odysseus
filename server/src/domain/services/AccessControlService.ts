@@ -520,6 +520,38 @@ export class AccessControlService {
   }
 
   /**
+   * Check if user can access a tube for modification operations
+   *
+   * This combines container-level and tube-level access checks:
+   * 1. If user has container access → allowed
+   * 2. If container access denied, check if user has shared access to this specific tube
+   * 3. Shared access grants permission to modify tubes even in another user's container
+   *
+   * Note: This is for MODIFY operations only (edit/delete/copy/cut).
+   * ADD operations (creating new tubes) require container access - shared access doesn't help.
+   */
+  canAccessTubeForModification(
+    user: User,
+    tube: Tube,
+    containerInfo: { rack?: ResourceWithOwnership; box?: ResourceWithOwnership }
+  ): AccessResult {
+    // First check container access
+    const containerAccess = this.canAccessContainer(user, containerInfo);
+    if (containerAccess.allowed) {
+      return containerAccess;
+    }
+
+    // Container access denied - check if user has shared access to this specific tube
+    // Shared access overrides container restrictions for the tubes you're shared on
+    if (tube.sharedWithUserIds.includes(user.id)) {
+      return this.createAllowedResult('Shared access to tube');
+    }
+
+    // No container access and no shared access
+    return containerAccess; // Return original container denial message
+  }
+
+  /**
    * Check if user can assign resources (racks/boxes) to users
    * Only admins can assign resources
    */
