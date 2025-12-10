@@ -101,6 +101,10 @@ export interface GridControllerProps {
   onShareAccess?: (tubeIds: string[]) => void;
   lockContext?: LockContext;
   isUnlocking?: boolean;
+
+  // View-only mode (container assigned to another user)
+  // When true, all tube operations are disabled
+  isViewOnlySpace?: boolean;
 }
 
 export interface GridControllerReturn {

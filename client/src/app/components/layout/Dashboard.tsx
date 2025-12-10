@@ -145,7 +145,54 @@ export function Dashboard() {
 
   const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === currentRack);
   const rackDisplayName = currentRackObj?.name ?? `Rack ${currentRack}`;
+  const currentBoxObj = currentRackObj?.boxes?.find(box => box.id === currentBox);
   const modalService = useModalStore();
+
+  // Compute if current container is view-only (assigned to another user)
+  // This determines if tube operations should be disabled
+  const { isViewOnlySpace, spaceOwnerId } = useMemo(() => {
+    if (!user) return { isViewOnlySpace: true, spaceOwnerId: undefined };
+    if (user.role === 'admin') return { isViewOnlySpace: false, spaceOwnerId: undefined };
+
+    // Box-level assignment takes precedence
+    if (currentBoxObj?.assignedUserId !== undefined && currentBoxObj.assignedUserId !== null) {
+      const isViewOnly = currentBoxObj.assignedUserId !== user.id;
+      return {
+        isViewOnlySpace: isViewOnly,
+        spaceOwnerId: isViewOnly ? currentBoxObj.assignedUserId : undefined,
+      };
+    }
+
+    // null box assignment = common space (box explicitly unassigned)
+    if (currentBoxObj?.assignedUserId === null) {
+      return { isViewOnlySpace: false, spaceOwnerId: undefined };
+    }
+
+    // Box assignment is undefined (inherit from rack)
+    // Check rack-level assignment
+    if (currentRackObj?.assignedUserId !== undefined && currentRackObj.assignedUserId !== null) {
+      const isViewOnly = currentRackObj.assignedUserId !== user.id;
+      return {
+        isViewOnlySpace: isViewOnly,
+        spaceOwnerId: isViewOnly ? currentRackObj.assignedUserId : undefined,
+      };
+    }
+
+    // No assignment = common space
+    return { isViewOnlySpace: false, spaceOwnerId: undefined };
+  }, [user, currentBoxObj?.assignedUserId, currentRackObj?.assignedUserId]);
+
+  // Fetch display name for space owner (if in view-only mode)
+  const spaceOwnerIds = useMemo(() => (spaceOwnerId ? [spaceOwnerId] : []), [spaceOwnerId]);
+  const { data: spaceOwnerUsers = [] } = useUserLookupQuery(spaceOwnerIds);
+  const spaceOwnerName = useMemo(() => {
+    if (!spaceOwnerId || spaceOwnerUsers.length === 0) return undefined;
+    const ownerUser = spaceOwnerUsers.find(u => u.id === spaceOwnerId);
+    if (!ownerUser) return undefined;
+    return ownerUser.firstName && ownerUser.lastName
+      ? `${ownerUser.firstName} ${ownerUser.lastName}`
+      : ownerUser.username;
+  }, [spaceOwnerId, spaceOwnerUsers]);
 
   const storageHierarchy: StorageHierarchy = useMemo(
     () => ({
@@ -422,6 +469,8 @@ export function Dashboard() {
     onShareAccess: handleShareAccess,
     lockContext,
     isUnlocking: unlockTubesMutation.isPending,
+    // View-only mode (container assigned to another user)
+    isViewOnlySpace,
   });
 
   return (
@@ -444,6 +493,7 @@ export function Dashboard() {
             getPasteLabel: gridController.getPasteLabel,
             selection: gridController.selection,
           }}
+          isViewOnlySpace={isViewOnlySpace}
         />
       </div>
 
@@ -497,6 +547,8 @@ export function Dashboard() {
                   _onAddTubes={handleAddTube}
                   gridController={gridController}
                   lockContext={lockContext}
+                  isViewOnlySpace={isViewOnlySpace}
+                  spaceOwnerName={spaceOwnerName}
                 />
               </ErrorBoundary>
             </div>

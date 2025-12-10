@@ -766,6 +766,7 @@ export class ServiceContainer {
         repositories.users,
         repositories.researchers,
         repositories.persons,
+        repositories.configurations,
         this.getTubePositionService(),
         this.getAccessControlService(),
         this.getEventBus()

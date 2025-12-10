@@ -28,6 +28,9 @@ import type {
   TubeClipboardItem,
 } from '@shared/types/grid';
 
+// View-only mode warning message
+const VIEW_ONLY_WARNING = 'This space is assigned to another user. You cannot modify tubes here.';
+
 export const useGridController = ({
   tankId,
   rackId,
@@ -42,8 +45,18 @@ export const useGridController = ({
   onShareAccess,
   lockContext,
   isUnlocking = false,
+  isViewOnlySpace = false,
 }: GridControllerProps): GridControllerReturn => {
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
+
+  // Guard for view-only mode - returns true if blocked (caller should return early)
+  const guardViewOnly = useCallback((): boolean => {
+    if (isViewOnlySpace) {
+      notifications.warning(VIEW_ONLY_WARNING);
+      return true;
+    }
+    return false;
+  }, [isViewOnlySpace]);
 
   // ✅ FIXED: Individual Zustand selectors for reactivity
   // When clipboard changes, this hook MUST re-render so copyPositions/cutPositions memos recalculate
@@ -219,6 +232,8 @@ export const useGridController = ({
 
   // Unified modal opener - single source of truth for selection-based modal logic
   const openModal = useCallback(() => {
+    if (guardViewOnly()) return;
+
     const positions = Array.from(selectedPositions);
 
     if (selectionAnalysis.isMixed || selectionAnalysis.allEmpty) {
@@ -253,9 +268,19 @@ export const useGridController = ({
         });
       }
     }
-  }, [selectionAnalysis, selectedPositions, modalService, rackId, boxId, resolveTube]);
+  }, [
+    selectionAnalysis,
+    selectedPositions,
+    modalService,
+    rackId,
+    boxId,
+    resolveTube,
+    guardViewOnly,
+  ]);
 
   const handlePositionDoubleClick = (position: number) => {
+    if (guardViewOnly()) return;
+
     // CRITICAL: Clear pending click timer to prevent selection change during modal
     if (clickTimerRef.current) {
       clearTimeout(clickTimerRef.current);
@@ -317,6 +342,8 @@ export const useGridController = ({
 
   // Copy operation
   const copy = useCallback(async () => {
+    if (guardViewOnly()) return;
+
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
 
@@ -341,10 +368,12 @@ export const useGridController = ({
 
     // Show copy notification
     notifications.copy(`Copied ${items.length} tube${items.length > 1 ? 's' : ''}`);
-  }, [selectedPositionsInThisBox, resolveTube, tubes, ctx, setClipboard]);
+  }, [selectedPositionsInThisBox, resolveTube, tubes, ctx, setClipboard, guardViewOnly]);
 
   // Cut operation (copy + delete)
   const cut = useCallback(async () => {
+    if (guardViewOnly()) return;
+
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
 
@@ -373,13 +402,23 @@ export const useGridController = ({
     // Note: Tubes are NOT deleted here - they'll be deleted after successful paste
     // Clear selection after cut
     onSelectionChange(new Set());
-  }, [selectedPositionsInThisBox, resolveTube, tubes, ctx, setClipboard, onSelectionChange]);
+  }, [
+    selectedPositionsInThisBox,
+    resolveTube,
+    tubes,
+    ctx,
+    setClipboard,
+    onSelectionChange,
+    guardViewOnly,
+  ]);
 
   // Paste operation - dual-mode behavior
   // 1. Fill Mode: More targets than clipboard → Repeat pattern (Excel fill handle)
   // 2. Spatial Pattern Mode: Equal/fewer targets → Preserve 2D layout
   const paste = useCallback(
     async (options?: { targetStart?: number }) => {
+      if (guardViewOnly()) return;
+
       let clipData = clipboard;
 
       // Try OS clipboard if no in-app clipboard
@@ -570,11 +609,14 @@ export const useGridController = ({
       boxId,
       modalService,
       tubes,
+      guardViewOnly,
     ]
   );
 
   // Delete operation with confirmation modal
   const deleteSelectedTubes = useCallback(async () => {
+    if (guardViewOnly()) return;
+
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
 
@@ -604,10 +646,18 @@ export const useGridController = ({
         modalService.hideDeleteConfirm();
       },
     });
-  }, [selectedPositionsInThisBox, resolveTube, onDeleteTubes, onSelectionChange, modalService]);
+  }, [
+    selectedPositionsInThisBox,
+    resolveTube,
+    onDeleteTubes,
+    onSelectionChange,
+    modalService,
+    guardViewOnly,
+  ]);
 
   // Lock toggle operation (Shift+L behavior)
   const toggleLock = useCallback(async () => {
+    if (guardViewOnly()) return;
     if (!lockContext || isUnlocking) return;
 
     const positions = selectedPositionsInThisBox();
@@ -643,10 +693,12 @@ export const useGridController = ({
     onLockTubes,
     onUnlockTubes,
     isUnlocking,
+    guardViewOnly,
   ]);
 
   // Lock operation (opens modal)
   const lockTubes = useCallback(() => {
+    if (guardViewOnly()) return;
     if (!lockContext || !onLockTubes) return;
 
     const positions = selectedPositionsInThisBox();
@@ -668,10 +720,11 @@ export const useGridController = ({
     }
 
     onLockTubes(lockableTubeIds);
-  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onLockTubes]);
+  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onLockTubes, guardViewOnly]);
 
   // Unlock operation (direct action, no modal needed)
   const unlockTubes = useCallback(async () => {
+    if (guardViewOnly()) return;
     if (!lockContext || !onUnlockTubes || isUnlocking) return;
 
     const positions = selectedPositionsInThisBox();
@@ -693,10 +746,19 @@ export const useGridController = ({
     }
 
     await onUnlockTubes(unlockableTubeIds);
-  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onUnlockTubes, isUnlocking]);
+  }, [
+    lockContext,
+    selectedPositionsInThisBox,
+    resolveTube,
+    tubes,
+    onUnlockTubes,
+    isUnlocking,
+    guardViewOnly,
+  ]);
 
   // Share access operation (opens modal)
   const shareAccess = useCallback(() => {
+    if (guardViewOnly()) return;
     if (!lockContext || !onShareAccess) return;
 
     const positions = selectedPositionsInThisBox();
@@ -718,7 +780,7 @@ export const useGridController = ({
     }
 
     onShareAccess(sharableTubeIds);
-  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onShareAccess]);
+  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onShareAccess, guardViewOnly]);
 
   // Mouse position handler
   const setMousePosition = (position: { x: number; y: number } | null) => {

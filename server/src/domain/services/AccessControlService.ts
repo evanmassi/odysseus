@@ -470,6 +470,56 @@ export class AccessControlService {
   // RESOURCE ASSIGNMENT OPERATIONS
 
   /**
+   * Check if user can access a container (rack/box) for tube operations
+   *
+   * Container access rules (for tube operations like create/edit/delete/lock):
+   * - Admins can access any container
+   * - null assignment = common space, anyone can access
+   * - User can access if assigned to them at box level
+   * - User can access if box assignment is undefined (inherit) and rack is assigned to them
+   * - Users cannot access containers assigned to other users
+   *
+   * This protects the container - all tube operations require container access.
+   */
+  canAccessContainer(
+    user: User,
+    containerInfo: { rack?: ResourceWithOwnership; box?: ResourceWithOwnership }
+  ): AccessResult {
+    // Admin can access any container
+    if (user.isAdmin()) {
+      return this.createAllowedResult('Admin access');
+    }
+
+    const { rack, box } = containerInfo;
+
+    // Box-level assignment takes precedence
+    if (box?.assignedUserId !== undefined && box.assignedUserId !== null) {
+      if (box.assignedUserId !== user.id) {
+        return this.createDeniedResult('This box is assigned to another user');
+      }
+      return this.createAllowedResult('Box owner');
+    }
+
+    // null box assignment = common space (box explicitly unassigned)
+    if (box?.assignedUserId === null) {
+      return this.createAllowedResult('Common space (box)');
+    }
+
+    // Box assignment is undefined (inherit from rack)
+    // Check rack-level assignment
+    if (rack?.assignedUserId !== undefined && rack.assignedUserId !== null) {
+      if (rack.assignedUserId !== user.id) {
+        return this.createDeniedResult('This rack is assigned to another user');
+      }
+      return this.createAllowedResult('Rack owner');
+    }
+
+    // null rack assignment = common space (rack explicitly unassigned)
+    // No assignment at all = common space
+    return this.createAllowedResult('Common space');
+  }
+
+  /**
    * Check if user can assign resources (racks/boxes) to users
    * Only admins can assign resources
    */

@@ -3,6 +3,7 @@ import type { TubeSearchCriteria } from '@domain/types/repository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
+import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { Tube } from '@domain/entities/Tube';
 import { User } from '@domain/entities/User';
 import { TubePositionService } from '@domain/services/TubePositionService';
@@ -52,10 +53,31 @@ export class TubeApplicationService {
     private userRepository: UserRepository,
     private researcherRepository: ResearcherRepository,
     private personRepository: PersonRepository,
+    private configurationRepository: ConfigurationRepository,
     private tubePositionService: TubePositionService,
     private accessControlService: AccessControlService,
     private eventBus: EventBus
   ) {}
+
+  /**
+   * Helper: Get container info (rack + box) for a tube location
+   * Used for container assignment permission checks
+   */
+  private async getContainerInfo(tankId: string, rackId: string, boxId: string): Promise<{
+    rack: { assignedUserId?: string | null };
+    box: { assignedUserId?: string | null };
+  } | null> {
+    const config = await this.configurationRepository.getCurrent();
+    if (!config) return null;
+
+    const result = config.getBox(tankId, rackId, boxId);
+    if (!result) return null;
+
+    return {
+      rack: { assignedUserId: result.rack.assignedUserId },
+      box: { assignedUserId: result.box.assignedUserId },
+    };
+  }
 
   /**
    * Create a new tube
@@ -67,6 +89,26 @@ export class TubeApplicationService {
 
     // 2. Map DTO to domain (thin, no logic)
     const tubeData = TubeDto.fromCreateRequest(request);
+
+    // 2.5. Check container access (assignment protects the container)
+    const containerInfo = await this.getContainerInfo(
+      tubeData.location.tankId,
+      tubeData.location.rackId,
+      tubeData.location.boxId
+    );
+    if (containerInfo) {
+      const containerAccess = this.accessControlService.canAccessContainer(
+        authenticatedUser,
+        containerInfo
+      );
+      if (!containerAccess.allowed) {
+        throw new PermissionError(containerAccess.reason, {
+          tankId: tubeData.location.tankId,
+          rackId: tubeData.location.rackId,
+          boxId: tubeData.location.boxId,
+        });
+      }
+    }
 
     // 3. Check position availability (business rule)
     const positionResult = await this.tubePositionService.validatePosition(
@@ -223,6 +265,27 @@ export class TubeApplicationService {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
+    // Check container access first (assignment protects the container)
+    const containerInfo = await this.getContainerInfo(
+      existingTube.location.tankId,
+      existingTube.location.rackId,
+      existingTube.location.boxId
+    );
+    if (containerInfo) {
+      const containerAccess = this.accessControlService.canAccessContainer(
+        authenticatedUser,
+        containerInfo
+      );
+      if (!containerAccess.allowed) {
+        throw new PermissionError(containerAccess.reason, {
+          tubeId: id,
+          tankId: existingTube.location.tankId,
+          rackId: existingTube.location.rackId,
+          boxId: existingTube.location.boxId,
+        });
+      }
+    }
+
     // Check permissions
     this.accessControlService.requireCanEditTube(authenticatedUser, existingTube);
 
@@ -247,6 +310,23 @@ export class TubeApplicationService {
       );
 
       if (positionChanged) {
+        // Also check destination container access for moves
+        const destContainerInfo = await this.getContainerInfo(newTankId, newRackId, newBoxId);
+        if (destContainerInfo) {
+          const destAccess = this.accessControlService.canAccessContainer(
+            authenticatedUser,
+            destContainerInfo
+          );
+          if (!destAccess.allowed) {
+            throw new PermissionError(`Cannot move tube: ${destAccess.reason}`, {
+              tubeId: id,
+              destinationTankId: newTankId,
+              destinationRackId: newRackId,
+              destinationBoxId: newBoxId,
+            });
+          }
+        }
+
         const positionResult = await this.tubePositionService.validatePosition(
           newTankId,
           newRackId,
@@ -312,6 +392,27 @@ export class TubeApplicationService {
 
     if (!tube) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
+    }
+
+    // Check container access first (assignment protects the container)
+    const containerInfo = await this.getContainerInfo(
+      tube.location.tankId,
+      tube.location.rackId,
+      tube.location.boxId
+    );
+    if (containerInfo) {
+      const containerAccess = this.accessControlService.canAccessContainer(
+        authenticatedUser,
+        containerInfo
+      );
+      if (!containerAccess.allowed) {
+        throw new PermissionError(containerAccess.reason, {
+          tubeId: id,
+          tankId: tube.location.tankId,
+          rackId: tube.location.rackId,
+          boxId: tube.location.boxId,
+        });
+      }
     }
 
     this.accessControlService.requireCanDeleteTube(authenticatedUser, tube);
@@ -425,8 +526,29 @@ export class TubeApplicationService {
         continue;
       }
 
-      // Check lock permission
-      const accessResult = this.accessControlService.canLockTube(authenticatedUser, tube);
+      // Check container access first (assignment protects the container)
+      const containerInfo = await this.getContainerInfo(
+        tube.location.tankId,
+        tube.location.rackId,
+        tube.location.boxId
+      );
+      if (containerInfo) {
+        const containerAccess = this.accessControlService.canAccessContainer(
+          authenticatedUser,
+          containerInfo
+        );
+        if (!containerAccess.allowed) {
+          skipped.push({ tubeId, reason: containerAccess.reason });
+          continue;
+        }
+      }
+
+      // Check lock permission (with container info for lock-specific rules)
+      const accessResult = this.accessControlService.canLockTube(
+        authenticatedUser,
+        tube,
+        containerInfo ?? undefined
+      );
       if (!accessResult.allowed) {
         skipped.push({ tubeId, reason: accessResult.reason });
         continue;

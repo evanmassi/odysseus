@@ -81,6 +81,8 @@ interface HeaderProps {
       emptyCount: number;
     };
   };
+  // View-only mode (container assigned to another user)
+  isViewOnlySpace?: boolean;
 }
 
 export function AppHeader({
@@ -89,6 +91,7 @@ export function AppHeader({
   onClearSelection,
   tubes = [],
   gridController,
+  isViewOnlySpace = false,
 }: HeaderProps) {
   const { isAuthenticated, user, logout } = useAuthStore();
 
@@ -189,77 +192,99 @@ export function AppHeader({
           {/* Compact Single-Row Control Buttons */}
           {selectionAnalysis.hasSelection && gridController && (
             <div className="flex items-center space-x-2">
-              {/* Unified Modal Button - Context-aware label, single action (Minty Frost) */}
-              <button
-                onClick={gridController.openModal}
-                className="btn-header-control-compact-edit"
-                title={
-                  gridController.selection.isMixed
-                    ? 'Add tubes to mixed selection (overwrite prompt will appear)'
-                    : gridController.selection.hasFilledSelection
-                      ? 'Edit selected tube(s)'
-                      : 'Add new tube(s) to selected position(s)'
-                }
-              >
-                {gridController.selection.hasFilledSelection &&
-                !gridController.selection.isMixed ? (
-                  <Edit className="w-3 h-3 mr-1" />
-                ) : (
-                  <Plus className="w-3 h-3 mr-1" />
-                )}
-                {gridController.selection.isMixed
-                  ? gridController.selection.emptyCount + gridController.selection.filledCount === 1
-                    ? 'Add Tube'
-                    : `Add ${gridController.selection.emptyCount + gridController.selection.filledCount} Tubes`
-                  : gridController.selection.hasFilledSelection
-                    ? gridController.selection.filledCount === 1
-                      ? 'Edit Tube'
-                      : `Edit ${gridController.selection.filledCount} Tubes`
-                    : gridController.selection.emptyCount === 1
-                      ? 'Add Tube'
-                      : `Add ${gridController.selection.emptyCount} Tubes`}
-              </button>
-
-              {/* Delete Tube(s) - Only for filled positions */}
-              {selectionAnalysis.hasFilled && gridController && (
-                <button
-                  onClick={gridController.delete}
-                  className="btn-header-control-compact-danger"
-                >
-                  <Trash2 className="w-3 h-3 mr-1" />
-                  Delete{' '}
-                  {selectionAnalysis.selectedTubes.length === 1
-                    ? 'Tube'
-                    : `${selectionAnalysis.selectedTubes.length} Tubes`}
-                </button>
-              )}
-
-              {/* Separator */}
-              {selectionAnalysis.hasFilled && <div className="w-0.5 h-4 bg-white/60 mx-1"></div>}
-
-              {/* Copy/Cut - Only for filled positions */}
-              {selectionAnalysis.hasFilled && gridController && (
+              {/* Show view-only indicator if in view-only mode - no tube operations allowed */}
+              {isViewOnlySpace ? (
+                <div className="text-white/80 text-sm px-3 py-1 bg-amber-500/60 rounded-lg flex items-center gap-2">
+                  <span className="font-medium">View Only</span>
+                </div>
+              ) : (
                 <>
-                  <button onClick={gridController.copy} className="btn-header-control-compact-copy">
-                    <Copy className="w-3 h-3 mr-1" />
-                    {gridController.getCopyLabel()}
+                  {/* Unified Modal Button - Context-aware label, single action (Minty Frost) */}
+                  <button
+                    onClick={gridController.openModal}
+                    className="btn-header-control-compact-edit"
+                    title={
+                      gridController.selection.isMixed
+                        ? 'Add tubes to mixed selection (overwrite prompt will appear)'
+                        : gridController.selection.hasFilledSelection
+                          ? 'Edit selected tube(s)'
+                          : 'Add new tube(s) to selected position(s)'
+                    }
+                  >
+                    {gridController.selection.hasFilledSelection &&
+                    !gridController.selection.isMixed ? (
+                      <Edit className="w-3 h-3 mr-1" />
+                    ) : (
+                      <Plus className="w-3 h-3 mr-1" />
+                    )}
+                    {gridController.selection.isMixed
+                      ? gridController.selection.emptyCount +
+                          gridController.selection.filledCount ===
+                        1
+                        ? 'Add Tube'
+                        : `Add ${gridController.selection.emptyCount + gridController.selection.filledCount} Tubes`
+                      : gridController.selection.hasFilledSelection
+                        ? gridController.selection.filledCount === 1
+                          ? 'Edit Tube'
+                          : `Edit ${gridController.selection.filledCount} Tubes`
+                        : gridController.selection.emptyCount === 1
+                          ? 'Add Tube'
+                          : `Add ${gridController.selection.emptyCount} Tubes`}
                   </button>
-                  <button onClick={gridController.cut} className="btn-header-control-compact-cut">
-                    <Scissors className="w-3 h-3 mr-1" />
-                    {gridController.getCutLabel()}
-                  </button>
+
+                  {/* Delete Tube(s) - Only for filled positions */}
+                  {selectionAnalysis.hasFilled && gridController && (
+                    <button
+                      onClick={gridController.delete}
+                      className="btn-header-control-compact-danger"
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Delete{' '}
+                      {selectionAnalysis.selectedTubes.length === 1
+                        ? 'Tube'
+                        : `${selectionAnalysis.selectedTubes.length} Tubes`}
+                    </button>
+                  )}
+
+                  {/* Separator */}
+                  {selectionAnalysis.hasFilled && (
+                    <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
+                  )}
+
+                  {/* Copy/Cut - Only for filled positions */}
+                  {selectionAnalysis.hasFilled && gridController && (
+                    <>
+                      <button
+                        onClick={gridController.copy}
+                        className="btn-header-control-compact-copy"
+                      >
+                        <Copy className="w-3 h-3 mr-1" />
+                        {gridController.getCopyLabel()}
+                      </button>
+                      <button
+                        onClick={gridController.cut}
+                        className="btn-header-control-compact-cut"
+                      >
+                        <Scissors className="w-3 h-3 mr-1" />
+                        {gridController.getCutLabel()}
+                      </button>
+                    </>
+                  )}
+
+                  {/* Paste - Show when clipboard has data and user has selection (Icy Blue) */}
+                  {gridController?.canPaste && selectionAnalysis.hasSelection && (
+                    <button
+                      onClick={gridController.paste}
+                      className="btn-header-control-compact-copy"
+                    >
+                      <ClipboardPaste className="w-3 h-3 mr-1" />
+                      {gridController.getPasteLabel()}
+                    </button>
+                  )}
                 </>
               )}
 
-              {/* Paste - Show when clipboard has data and user has selection (Icy Blue) */}
-              {gridController?.canPaste && selectionAnalysis.hasSelection && (
-                <button onClick={gridController.paste} className="btn-header-control-compact-copy">
-                  <ClipboardPaste className="w-3 h-3 mr-1" />
-                  {gridController.getPasteLabel()}
-                </button>
-              )}
-
-              {/* Clear Selection */}
+              {/* Clear Selection - Always available */}
               <button onClick={onClearSelection} className="btn-header-control-compact-secondary">
                 <X className="w-3 h-3 mr-1" />
                 Clear
