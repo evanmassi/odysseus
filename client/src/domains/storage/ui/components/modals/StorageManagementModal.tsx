@@ -4,7 +4,6 @@ import { NAMING_PATTERNS, sortByName } from '@odysseus/shared-schemas';
 import { Plus, X, Save, RefreshCw, ListTree, UsersRound } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useUsersQuery } from '@domains/admin';
 import { useAuthState } from '@domains/authentication/hooks/useAuth';
 import {
   useStorageData,
@@ -32,7 +31,7 @@ import {
   assignBoxInLab,
   updateCustomLabelInLab,
 } from '@domains/storage/utils/storageLocalUpdates';
-import { useUserLookupQuery } from '@domains/users';
+import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
 import { TankIcon } from '@shared/ui/components/icons';
@@ -75,47 +74,28 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   const [originalLab, setOriginalLab] = useState<LabConfiguration | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // All users for admin dropdown (admin-only endpoint, only fetch for admins)
+  // All active users for dropdown (public endpoint, works for everyone)
   const isAdmin = currentUser?.role === 'admin';
-  const { data: allUsers = [] } = useUsersQuery({
-    queryOptions: { enabled: isAdmin },
-  });
+  const { data: activeUsers = [] } = useActiveUsersQuery();
 
-  // Assigned users for display (public endpoint, works for everyone)
+  // Assigned users for display - used to resolve names for users who may no longer be active
   const assignedUserIds = useMemo(() => extractAssignedUserIds(localLab), [localLab]);
   const { data: assignedUsers = [] } = useUserLookupQuery(assignedUserIds);
 
-  // For dropdowns: use all users (admin) - converted to UserDisplayInfo shape, sorted by name
-  // For display: use assigned users (everyone)
-  const dropdownUsers = useMemo(
-    () =>
-      sortByName(
-        allUsers.map(u => ({
-          id: u.id,
-          username: u.username,
-          firstName: u.firstName,
-          lastName: u.lastName,
-        }))
-      ),
-    [allUsers]
-  );
+  // For dropdowns: use all active users, sorted by name
+  const dropdownUsers = useMemo(() => sortByName(activeUsers), [activeUsers]);
 
-  // Merge for display - assigned users plus any from allUsers not already included
+  // Merge for display - active users plus any assigned users not in active list (e.g., deactivated)
   const displayUsers = useMemo(() => {
-    const userMap = new Map(assignedUsers.map(u => [u.id, u]));
-    // Add any users from allUsers that aren't already in assignedUsers
-    allUsers.forEach(u => {
+    const userMap = new Map(activeUsers.map(u => [u.id, u]));
+    // Add any assigned users that aren't in the active list (e.g., deactivated users)
+    assignedUsers.forEach(u => {
       if (!userMap.has(u.id)) {
-        userMap.set(u.id, {
-          id: u.id,
-          username: u.username,
-          firstName: u.firstName,
-          lastName: u.lastName,
-        });
+        userMap.set(u.id, u);
       }
     });
     return Array.from(userMap.values());
-  }, [allUsers, assignedUsers]);
+  }, [activeUsers, assignedUsers]);
 
   // View mode: tree (default) or byUser (assignment summary)
   const [viewMode, setViewMode] = useState<'tree' | 'byUser'>('tree');

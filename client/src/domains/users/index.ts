@@ -32,3 +32,4 @@ export {
   useRevokeAllSessionsMutation,
 } from './hooks/useUserSessions';
 export { useUserLookupQuery } from './hooks/useUserLookupQuery';
+export { useActiveUsersQuery } from './hooks/useActiveUsersQuery';

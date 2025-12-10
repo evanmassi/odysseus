@@ -108,6 +108,46 @@ export class UserController {
   }
 
   /**
+   * GET /api/users/list
+   * Get all active, approved users for sharing/assignment
+   * Access: Any authenticated user
+   *
+   * Returns minimal display info for user selection dropdowns.
+   */
+  async listActiveUsers(_req: Request, res: Response): Promise<void> {
+    try {
+      // Get all approved users
+      const users = await this.userRepository.findByStatus('approved');
+
+      // Collect all personIds for batch lookup
+      const personIds = users
+        .map(u => u.toPublicData().personId)
+        .filter((id): id is string => id != null);
+
+      // Batch fetch all persons
+      const persons = await this.personRepository.findByIds(personIds);
+      const personMap = new Map(persons.map(p => [p.id, p]));
+
+      // Build response with minimal display info
+      const displayUsers = users.map(user => {
+        const publicData = user.toPublicData();
+        const person = publicData.personId ? personMap.get(publicData.personId) : null;
+
+        return {
+          id: publicData.id,
+          username: publicData.username,
+          firstName: person?.firstName,
+          lastName: person?.lastName,
+        };
+      });
+
+      res.json({ success: true, users: displayUsers });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to list active users');
+    }
+  }
+
+  /**
    * Extract user ID from authenticated request
    */
   private extractUserId(req: Request): string {

@@ -390,11 +390,13 @@ export {
   userLookupRequestSchema,
   userDisplayInfoSchema,
   userLookupResponseSchema,
+  activeUsersListResponseSchema,
 
   // Types
   type UserLookupRequest,
   type UserDisplayInfo,
-  type UserLookupResponse
+  type UserLookupResponse,
+  type ActiveUsersListResponse
 } from './users/userLookupSchemas';
 
 // Person Schemas (Core profile entity)

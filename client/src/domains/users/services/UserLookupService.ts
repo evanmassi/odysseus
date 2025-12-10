@@ -24,6 +24,19 @@ export class UserLookupService {
 
     return response.data.users;
   }
+
+  /**
+   * Get all active, approved users for sharing/assignment
+   * @returns Array of user display info objects
+   */
+  async listActiveUsers(): Promise<UserDisplayInfo[]> {
+    const response = await httpClient.get<{
+      success: boolean;
+      users: UserDisplayInfo[];
+    }>('/users/list');
+
+    return response.data.users;
+  }
 }
 
 export const userLookupService = new UserLookupService();

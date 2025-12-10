@@ -13,8 +13,8 @@ import { useState, useMemo } from 'react';
 
 import { Share2, X, UserPlus, Users } from 'lucide-react';
 
-import { useUsersQuery } from '@domains/admin/hooks/useUsersQuery';
 import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
+import { useActiveUsersQuery } from '@domains/users';
 import { notifications } from '@shared/utils/notifications';
 
 import { BaseModal } from './BaseModal';
@@ -55,12 +55,12 @@ export function ShareAccessModal({
   const shareMutation = useShareTubeAccessMutation();
   const revokeMutation = useRevokeTubeAccessMutation();
 
-  // Fetch users for the dropdown
-  const { data: allUsers = [], isLoading: isLoadingUsers } = useUsersQuery();
+  // Fetch active users for the dropdown (server filters to approved users only)
+  const { data: allUsers = [], isLoading: isLoadingUsers } = useActiveUsersQuery();
 
-  // Filter to active users excluding current user
+  // Filter out current user from available users
   const availableUsers = useMemo(() => {
-    return allUsers.filter(u => u.isActive && u.id !== currentUserId);
+    return allUsers.filter(u => u.id !== currentUserId);
   }, [allUsers, currentUserId]);
 
   // Get currently shared user IDs across all selected tubes
@@ -76,11 +76,10 @@ export function ShareAccessModal({
   const getUserName = (userId: string): string => {
     const user = allUsers.find(u => u.id === userId);
     if (!user) return userId;
-    // AdminUser has firstName, lastName, username, email
     if (user.firstName && user.lastName) {
       return `${user.firstName} ${user.lastName}`;
     }
-    return user.username ?? user.email ?? userId;
+    return user.username ?? userId;
   };
 
   // Handle sharing access
@@ -219,13 +218,8 @@ export function ShareAccessModal({
                       <span className="ml-3 text-sm text-gray-700">
                         {user.firstName && user.lastName
                           ? `${user.firstName} ${user.lastName}`
-                          : (user.username ?? user.email ?? user.id)}
+                          : (user.username ?? user.id)}
                       </span>
-                      {user.role && (
-                        <span className="ml-auto text-xs text-gray-400 capitalize">
-                          {user.role}
-                        </span>
-                      )}
                     </label>
                   );
                 })}

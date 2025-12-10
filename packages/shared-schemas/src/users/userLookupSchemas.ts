@@ -31,3 +31,11 @@ export const userLookupResponseSchema = z.object({
 });
 
 export type UserLookupResponse = z.infer<typeof userLookupResponseSchema>;
+
+// Active users list response (public endpoint - any authenticated user)
+export const activeUsersListResponseSchema = z.object({
+  success: z.boolean(),
+  users: z.array(userDisplayInfoSchema),
+});
+
+export type ActiveUsersListResponse = z.infer<typeof activeUsersListResponseSchema>;
