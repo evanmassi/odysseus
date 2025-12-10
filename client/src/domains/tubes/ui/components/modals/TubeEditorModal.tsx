@@ -32,7 +32,7 @@ import {
   formatConcentrationDisplay,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { MapPin, AlertTriangle, Edit, Plus, Save, Trash2 } from 'lucide-react';
+import { MapPin, AlertTriangle, Edit, Plus, Save, Trash2, Lock } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
@@ -46,7 +46,7 @@ import {
 import { useTubesQuery, useTubeQuery } from '@domains/tubes/hooks/useTubesQuery';
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
 import { logger } from '@shared/infrastructure/logger';
-import { parsePositionKey, type PositionKey } from '@shared/types/grid';
+import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/grid';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateFormatter';
 
@@ -73,6 +73,9 @@ export interface TubeEditorModalProps {
   rackId?: string;
   boxId?: string;
   selectedPositions?: Set<PositionKey>;
+
+  // Lock context (optional - for lock-enabled editing)
+  lockContext?: LockContext;
 }
 
 /**
@@ -80,13 +83,13 @@ export interface TubeEditorModalProps {
  * Automatically detects mode based on props
  */
 export function TubeEditorModal(props: TubeEditorModalProps) {
-  const { tubeId, onClose } = props;
+  const { tubeId, onClose, lockContext } = props;
 
   // Mode detection
   const isEditMode = Boolean(tubeId);
 
   if (isEditMode) {
-    return <EditModeContent tubeId={tubeId!} onClose={onClose} />;
+    return <EditModeContent tubeId={tubeId!} onClose={onClose} lockContext={lockContext} />;
   } else {
     return <CreateModeContent {...props} onClose={onClose} />;
   }
@@ -99,9 +102,10 @@ export function TubeEditorModal(props: TubeEditorModalProps) {
 interface EditModeContentProps {
   tubeId: string;
   onClose: () => void;
+  lockContext?: LockContext;
 }
 
-function EditModeContent({ tubeId, onClose }: EditModeContentProps) {
+function EditModeContent({ tubeId, onClose, lockContext }: EditModeContentProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const modalService = useModalStore();
 
@@ -144,6 +148,10 @@ function EditModeContent({ tubeId, onClose }: EditModeContentProps) {
   // Use updatedAt timestamp as unique key to force form remount when data changes
   const formKey = `edit-tube-${tube.id}-${tube.timestamps.updatedAt}`;
 
+  // Check if user is locked out of this tube
+  const isLockedOut = lockContext?.isLockedOutFrom(tube) ?? false;
+  const lockOwnerName = lockContext?.getLockOwnerName(tube);
+
   return (
     <EditModeForm
       key={formKey}
@@ -152,6 +160,8 @@ function EditModeContent({ tubeId, onClose }: EditModeContentProps) {
       researchers={researchers}
       onClose={onClose}
       modalService={modalService}
+      isLockedOut={isLockedOut}
+      lockOwnerName={lockOwnerName}
     />
   );
 }
@@ -166,9 +176,19 @@ interface EditModeFormProps {
   researchers: Researcher[];
   onClose: () => void;
   modalService: ReturnType<typeof useModalStore>;
+  isLockedOut?: boolean;
+  lockOwnerName?: string;
 }
 
-function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: EditModeFormProps) {
+function EditModeForm({
+  tube,
+  tubeId,
+  researchers,
+  onClose,
+  modalService,
+  isLockedOut = false,
+  lockOwnerName,
+}: EditModeFormProps) {
   // Build initialData from tube - uses FORM INPUT type (pre-transformation)
   // concentration as string, date as string
   const initialData: Partial<UpdateTubeFormInput> = {
@@ -239,8 +259,14 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
 
   return (
     <BaseModal
-      title="Edit Tube"
-      icon={<Edit className="w-5 h-5 text-white" />}
+      title={isLockedOut ? 'View Tube (Read Only)' : 'Edit Tube'}
+      icon={
+        isLockedOut ? (
+          <Lock className="w-5 h-5 text-white" />
+        ) : (
+          <Edit className="w-5 h-5 text-white" />
+        )
+      }
       onClose={onClose}
       dataAttribute="data-tube-modal"
       mode="edit"
@@ -253,14 +279,33 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
           position={tube.location.position}
         />
 
-        <TubeForm
-          control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
-          register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
-          errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
-          trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
-          researchers={researchers}
-          isLoading={isSubmitting}
-        />
+        {/* Lock Warning Banner */}
+        {isLockedOut && (
+          <div className="flex items-start gap-3 p-3 bg-red-50 border-2 border-red-300 rounded-lg">
+            <Lock className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <h3 className="font-semibold text-red-700">This tube is locked</h3>
+              <p className="text-sm text-red-600">
+                {lockOwnerName ? `Locked by ${lockOwnerName}. ` : ''}
+                You cannot edit this tube until the lock owner unlocks it or shares access with you.
+              </p>
+              {tube.lockNote && (
+                <p className="text-sm text-red-600 mt-1 italic">&quot;{tube.lockNote}&quot;</p>
+              )}
+            </div>
+          </div>
+        )}
+
+        <fieldset disabled={isLockedOut} className={isLockedOut ? 'opacity-60' : ''}>
+          <TubeForm
+            control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
+            register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
+            errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
+            trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
+            researchers={researchers}
+            isLoading={isSubmitting}
+          />
+        </fieldset>
 
         <div className="flex justify-end space-x-4 pt-4 border-t border-odysseus-border">
           <button
@@ -269,40 +314,44 @@ function EditModeForm({ tube, tubeId, researchers, onClose, modalService }: Edit
             className="btn btn-secondary px-6"
             disabled={isSubmitting}
           >
-            Cancel
+            {isLockedOut ? 'Close' : 'Cancel'}
           </button>
-          <button
-            type="button"
-            className="btn btn-danger px-6"
-            disabled={isSubmitting}
-            onClick={() => {
-              modalService.showDeleteConfirm({
-                title: 'Delete Tube',
-                message: `Are you sure you want to delete this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
-                onConfirm: handleDelete,
-              });
-            }}
-          >
-            <Trash2 className="w-4 h-4 mr-2" />
-            Delete Tube
-          </button>
-          <button
-            type="submit"
-            className={`btn px-8 ${isFormValid ? 'btn-primary' : 'btn-secondary'}`}
-            disabled={isSubmitting || !isFormValid}
-          >
-            {isSubmitting ? (
-              <div className="flex items-center space-x-2">
-                <div className="spinner w-4 h-4"></div>
-                <span>Updating...</span>
-              </div>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Update Tube
-              </>
-            )}
-          </button>
+          {!isLockedOut && (
+            <>
+              <button
+                type="button"
+                className="btn btn-danger px-6"
+                disabled={isSubmitting}
+                onClick={() => {
+                  modalService.showDeleteConfirm({
+                    title: 'Delete Tube',
+                    message: `Are you sure you want to delete this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
+                    onConfirm: handleDelete,
+                  });
+                }}
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Tube
+              </button>
+              <button
+                type="submit"
+                className={`btn px-8 ${isFormValid ? 'btn-primary' : 'btn-secondary'}`}
+                disabled={isSubmitting || !isFormValid}
+              >
+                {isSubmitting ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="spinner w-4 h-4"></div>
+                    <span>Updating...</span>
+                  </div>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Update Tube
+                  </>
+                )}
+              </button>
+            </>
+          )}
         </div>
       </form>
     </BaseModal>

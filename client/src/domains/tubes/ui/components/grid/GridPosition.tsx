@@ -11,6 +11,7 @@ import {
   getConditionStyleForBox,
   parseDonorInfo,
 } from '../../../utils/colorSystem';
+import { LockIndicator } from '../LockIndicator';
 
 import type { GridConfiguration } from '@domains/storage';
 import type { TubeData } from '@domains/tubes/types';
@@ -66,6 +67,10 @@ interface GridPositionProps {
   onMouseMove: (position: number) => void;
   onQuickEditSave: (position: number, field: string, value: string) => void;
   onQuickEditCancel: () => void;
+  // Lock indicator props (optional - for lock-enabled grids)
+  isLockedOut?: boolean;
+  lockOwnerName?: string;
+  lockNote?: string;
 }
 
 export const GridPosition = memo<GridPositionProps>(
@@ -91,6 +96,9 @@ export const GridPosition = memo<GridPositionProps>(
     onMouseMove,
     onQuickEditSave,
     onQuickEditCancel,
+    isLockedOut,
+    lockOwnerName,
+    lockNote,
   }) => {
     const isQuickEdit = quickEditMode?.position === position;
 
@@ -139,6 +147,7 @@ export const GridPosition = memo<GridPositionProps>(
         ${isDragPreview ? 'drag-preview' : ''}
         ${isCut ? 'cut-tube' : ''}
         ${isCopied ? 'copied-tube' : ''}
+        ${isLockedOut ? 'opacity-70' : ''}
         rounded-lg
       `}
         style={
@@ -192,6 +201,15 @@ export const GridPosition = memo<GridPositionProps>(
               height: `${fontSize.positionFont + 2}px`,
             }}
             title={`Condition: ${tube.sample.cultureCondition}`}
+          />
+        )}
+
+        {/* Lock indicator - bottom-left (only for tubes locked by others) */}
+        {tube && isLockedOut && lockOwnerName && (
+          <LockIndicator
+            lockedByName={lockOwnerName}
+            lockNote={lockNote}
+            size={fontSize.positionFont}
           />
         )}
 

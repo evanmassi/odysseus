@@ -600,61 +600,49 @@ export class TubeAccessRevokedEvent extends DomainEvent {
 
 ---
 
-### Keyboard Shortcut Behavior: Shift+L
+### Keyboard Shortcut Behavior: Shift+L (Toggle)
 
 **Verified:** No conflicts with existing shortcuts. Only `Shift+Arrow` is used for range selection.
 
 **Toggle Lock Behavior:**
 
+Shift+L acts as a **toggle** - the standard UX pattern (like Ctrl+B for bold/unbold):
+- If selected tubes are **unlocked** → Lock them (opens modal for optional note)
+- If selected tubes are **locked by current user** → Unlock them
+- If **mixed state** → Prioritizes locking unlocked tubes first
+
 ```typescript
 // In useGridController.ts
-const lockAll = useCallback(async () => {
+const toggleLock = useCallback(async () => {
   const selectedTubes = getSelectedTubes();
   if (selectedTubes.length === 0) return;
 
-  // Filter to only tubes that CAN be locked (unlocked + user has permission)
-  const lockableTubes = selectedTubes.filter(t =>
-    !t.isLocked && canLockTube(t)
-  );
+  // Categorize selected tubes
+  const unlocked = selectedTubes.filter(t => !t.isLocked && canLockTube(t));
+  const ownedLocks = selectedTubes.filter(t => t.isLocked && t.lockedBy === currentUserId);
 
-  if (lockableTubes.length === 0) {
-    notifications.warning('No tubes can be locked');
-    return;
+  // Priority: If any can be locked, lock them. Otherwise unlock owned.
+  if (unlocked.length > 0) {
+    // Open lock modal for unlocked tubes
+    modalService.showLockTubesModal({
+      tubeIds: unlocked.map(t => t.id),
+    });
+  } else if (ownedLocks.length > 0) {
+    // Unlock owned locks directly (no modal needed)
+    const result = await unlockTubesMutation.mutateAsync({
+      tubeIds: ownedLocks.map(t => t.id),
+    });
+    const count = result.unlocked.length;
+    notifications.lock(`Unlocked ${count} tube${count !== 1 ? 's' : ''}`);
+  } else {
+    notifications.warning('No tubes can be locked or unlocked');
   }
+}, [getSelectedTubes, canLockTube, currentUserId, unlockTubesMutation]);
 
-  // Open lock modal to get optional note
-  modalService.showLockTubesModal({
-    tubeIds: lockableTubes.map(t => t.id),
-  });
-}, [getSelectedTubes, canLockTube]);
-
-const unlockOwned = useCallback(async () => {
-  const selectedTubes = getSelectedTubes();
-  if (selectedTubes.length === 0) return;
-
-  // Filter to only tubes user owns locks on
-  const ownedLocks = selectedTubes.filter(t =>
-    t.isLocked && t.lockedBy === currentUserId
-  );
-
-  if (ownedLocks.length === 0) {
-    notifications.warning('No owned locks to unlock');
-    return;
-  }
-
-  const result = await unlockTubesMutation.mutateAsync({
-    tubeIds: ownedLocks.map(t => t.id),
-  });
-
-  const count = result.unlocked.length;
-  notifications.update(`Unlocked ${count} tube${count !== 1 ? 's' : ''}`);
-}, [getSelectedTubes, currentUserId, unlockTubesMutation]);
-
-// Shift+L: Always tries to LOCK ALL selected tubes
-// (If all are already locked by user, they would use Unlock from context menu)
+// Shift+L: Toggle lock/unlock based on current state
 const handleShiftL = useCallback(() => {
-  lockAll();
-}, [lockAll]);
+  toggleLock();
+}, [toggleLock]);
 ```
 
 **Context Menu Logic:**
@@ -803,37 +791,37 @@ Actions to log:
 
 ---
 
-### Phase 3: Application & API
+### Phase 3: Application & API ✓ COMPLETED
 
 **Goal:** API endpoints working
 
-1. Create `server/src/application/dto/TubeLockDto.ts`
-2. Update `server/src/application/services/TubeApplicationService.ts` - add lock methods
-3. Create `server/src/presentation/controllers/TubeLockController.ts`
-4. Update `server/src/infrastructure/di/ServiceContainer.ts` - register controller
-5. Update `server/src/presentation/routes/ResourceRouteModule.ts` - add routes
-6. Update `server/src/middleware/Validation.ts` - add lock validation schemas
-7. Update `server/src/application/eventHandlers/SocketEventHandler.ts` - emit lock events
-8. Update `server/src/application/eventHandlers/AuditEventHandler.ts` - log lock actions
+1. ✓ Created `server/src/application/dto/TubeLockDto.ts`
+2. ✓ Updated `server/src/application/services/TubeApplicationService.ts` - added lock methods
+3. ✓ Created `server/src/presentation/controllers/TubeLockController.ts`
+4. ✓ Updated `server/src/infrastructure/di/ServiceContainer.ts` - registered controller
+5. ✓ Updated `server/src/presentation/routes/ResourceRouteModule.ts` - added routes
+6. ✓ Updated `server/src/middleware/Validation.ts` - added lock validation schemas
+7. ✓ Updated `server/src/application/eventHandlers/SocketEventHandler.ts` - emits lock events (batched)
+8. ✓ Updated `server/src/application/eventHandlers/AuditEventHandler.ts` - logs lock actions (batched)
 
-**Verification:** API endpoints respond correctly via curl/Postman
+**Verification:** API endpoints respond correctly, TypeScript compiles
 
 ---
 
-### Phase 4: Frontend Core
+### Phase 4: Frontend Core ✓ COMPLETED
 
 **Goal:** Lock functionality working in UI
 
-1. Update `client/src/domains/tubes/services/TubeService.ts` - add lock methods
-2. Create `client/src/domains/tubes/hooks/useTubeLockMutations.ts`
-3. Create `client/src/domains/tubes/hooks/useTubeAccessControl.ts`
-4. Update `client/src/domains/tubes/hooks/index.ts` - export new hooks
-5. Update `client/src/infrastructure/socket/queryBridge.ts` - handle lock events
-6. Create `client/src/domains/tubes/ui/components/LockIndicator.tsx`
-7. Create `client/src/domains/tubes/ui/components/modals/LockTubesModal.tsx`
-8. Update `client/src/shared/utils/notifications.ts` - add lock notification
+1. ✓ Updated `client/src/domains/tubes/services/TubeService.ts` - added lock methods
+2. ✓ Created `client/src/domains/tubes/hooks/useTubeLockMutations.ts`
+3. ✓ Created `client/src/domains/tubes/hooks/useTubeAccessControl.ts`
+4. ✓ Updated `client/src/domains/tubes/hooks/index.ts` - exported new hooks
+5. ✓ Updated `client/src/infrastructure/socket/queryBridge.ts` - handles lock events
+6. ✓ Created `client/src/domains/tubes/ui/components/LockIndicator.tsx`
+7. ✓ Created `client/src/domains/tubes/ui/components/modals/LockTubesModal.tsx`
+8. ✓ Updated `client/src/shared/utils/notifications.ts` - added `notifications.lock()` method
 
-**Verification:** Can lock/unlock tubes programmatically, Socket events work
+**Verification:** TypeScript compiles, ESLint passes, Socket event schemas validated
 
 ---
 
@@ -842,8 +830,8 @@ Actions to log:
 **Goal:** Complete UI integration
 
 1. Update `client/src/shared/ui/primitives/shared/ContextMenu.tsx` - add lock actions
-2. Update `client/src/app/hooks/grid/useGridKeyboardNavigation.ts` - add Shift+L, Shift+S
-3. Update `client/src/app/hooks/grid/useGridController.ts` - add lock actions
+2. Update `client/src/app/hooks/grid/useGridKeyboardNavigation.ts` - add Shift+L (toggle lock/unlock), Shift+S (share)
+3. Update `client/src/app/hooks/grid/useGridController.ts` - add lock actions with toggle logic
 4. Update `client/src/domains/tubes/ui/components/grid/TubeGrid.tsx` - wire up
 5. Update `client/src/domains/tubes/ui/components/grid/GridPosition.tsx` - render LockIndicator
 6. Update `client/src/domains/tubes/ui/components/TubeInfoPanel.tsx` - show lock details
@@ -895,7 +883,8 @@ Actions to log:
 - [ ] Dimming effect on locked-out tubes
 - [ ] Tooltip shows lock owner as "Display Name (username)"
 - [ ] Context menu shows Lock/Unlock appropriately
-- [ ] Shift+L locks all selected (unlocked) tubes
+- [ ] Shift+L toggles lock state (locks unlocked tubes, unlocks owned locks)
+- [ ] Shift+L with mixed state prioritizes locking unlocked tubes
 - [ ] Shift+S opens share modal for owned locks
 - [ ] TubeInfoPanel shows lock details
 - [ ] TubeEditorModal shows read-only warning when locked out

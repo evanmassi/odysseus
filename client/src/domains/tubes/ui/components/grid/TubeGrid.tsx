@@ -17,7 +17,7 @@ import { ContextMenu } from '../../../../../shared/ui/primitives/shared/ContextM
 import { GridPosition } from './GridPosition';
 
 import type { TubeData } from '@domains/tubes/types';
-import type { PositionKey, GridControllerReturn } from '@shared/types/grid';
+import type { PositionKey, GridControllerReturn, LockContext } from '@shared/types/grid';
 
 import '@shared/styles/legacy/colorIndicators.css';
 
@@ -34,6 +34,8 @@ interface TubeGridProps {
   _onBatchEditTubes?: (tubeIds: string[]) => void;
   _onAddTubes?: (positions: PositionKey[]) => void;
   gridController: GridControllerReturn;
+  // Lock context (optional - for lock-enabled grids)
+  lockContext?: LockContext;
 }
 
 /**
@@ -51,6 +53,7 @@ export function TubeGrid({
   _onBatchEditTubes,
   _onAddTubes,
   gridController,
+  lockContext,
 }: TubeGridProps) {
   // Component manages its own selection via props, no need for store selection
 
@@ -254,6 +257,11 @@ export function TubeGrid({
             const inDragPreview = dragSelection.dragPreview.has(positionKey);
             const isKeyboardFocused = position === focusedPosition;
 
+            // Lock state for this tube
+            const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
+            const lockOwnerName =
+              tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
+
             return (
               <GridPosition
                 key={position}
@@ -277,6 +285,9 @@ export function TubeGrid({
                 onMouseMove={dragSelection.handleMouseMove}
                 onQuickEditSave={() => {}}
                 onQuickEditCancel={() => setQuickEditMode(null)}
+                isLockedOut={isLockedOut}
+                lockOwnerName={lockOwnerName}
+                lockNote={tube?.lockNote}
               />
             );
           })}
@@ -297,6 +308,13 @@ export function TubeGrid({
         onCut={controller.actions.cut}
         onPaste={controller.actions.paste}
         canPaste={controller.clipboard.hasData}
+        lockableCount={controller.selection.lockableCount}
+        unlockableCount={controller.selection.unlockableCount}
+        sharableCount={controller.selection.sharableCount}
+        onLock={controller.actions.lock}
+        onUnlock={controller.actions.unlock}
+        onShare={controller.actions.shareAccess}
+        isUnlocking={controller.selection.isUnlocking}
       />
     </div>
   );

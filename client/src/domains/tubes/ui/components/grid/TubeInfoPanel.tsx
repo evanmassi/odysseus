@@ -5,7 +5,7 @@ import {
   formatResearcherDropdownDisplay,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { MapPin } from 'lucide-react';
+import { Lock, MapPin, Users } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks';
 import { useUserSettings } from '@domains/authentication';
@@ -19,13 +19,16 @@ import { FieldValue } from '../displays/FieldValue';
 import { InfoSection } from '../displays/InfoSection';
 
 import type { Researcher } from '@odysseus/shared-schemas';
+import type { LockContext } from '@shared/types/grid';
 import type { TubeData } from '@shared/types/tubeTypes';
 
 interface TubeInfoPanelProps {
   selectedTubes: TubeData[];
+  /** Lock context for displaying lock information */
+  lockContext?: LockContext;
 }
 
-export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
+export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps) {
   // Use new React Query + Field Resolver hook
   const { getTubeValue, analyzeFieldConflicts, tubes } = useFieldResolverQuery();
 
@@ -322,6 +325,62 @@ export function TubeInfoPanel({ selectedTubes }: TubeInfoPanelProps) {
           <InfoSection title="NOTES" color="gray">
             <div className="text-odysseus-secondary text-xs leading-tight pr-4">{notes}</div>
           </InfoSection>
+        )}
+
+        {/* Lock Information - Only show for locked tubes */}
+        {firstTube.isLocked && lockContext && (
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg px-2 py-2 border-2 border-amber-400 shadow-md">
+            <div className="font-bold text-amber-600 uppercase tracking-wider text-xs flex items-center gap-1 mb-1">
+              <Lock className="w-3 h-3" />
+              Lock Status
+            </div>
+            <div className="space-y-1 text-xs">
+              {/* Lock Owner */}
+              <div className="flex items-center gap-1">
+                <span className="text-odysseus-muted">Locked by:</span>
+                <span className="font-medium text-odysseus-dark">
+                  {lockContext.isLockedByCurrentUser(firstTube)
+                    ? 'You'
+                    : (lockContext.getLockOwnerName(firstTube) ?? 'Unknown')}
+                </span>
+              </div>
+
+              {/* Lock Note */}
+              {firstTube.lockNote && (
+                <div className="flex items-start gap-1">
+                  <span className="text-odysseus-muted">Note:</span>
+                  <span className="text-odysseus-dark italic">
+                    &quot;{firstTube.lockNote}&quot;
+                  </span>
+                </div>
+              )}
+
+              {/* Shared Users */}
+              {firstTube.sharedWithUserIds && firstTube.sharedWithUserIds.length > 0 && (
+                <div className="flex items-start gap-1 mt-1">
+                  <Users className="w-3 h-3 text-odysseus-muted mt-0.5" />
+                  <div>
+                    <span className="text-odysseus-muted">Shared with: </span>
+                    <span className="text-odysseus-dark">
+                      {lockContext.getSharedUserNames(firstTube).join(', ') ||
+                        `${firstTube.sharedWithUserIds.length} user(s)`}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Access Status */}
+              <div className="mt-1 pt-1 border-t border-amber-200">
+                {lockContext.isLockedByCurrentUser(firstTube) ? (
+                  <span className="text-green-600 font-medium">You own this lock</span>
+                ) : lockContext.isLockedOutFrom(firstTube) ? (
+                  <span className="text-red-500 font-medium">You cannot edit this tube</span>
+                ) : (
+                  <span className="text-green-600 font-medium">You have shared access</span>
+                )}
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

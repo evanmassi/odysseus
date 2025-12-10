@@ -37,6 +37,11 @@ export const useGridController = ({
   resolveTubeIdAtPosition,
   onDeleteTubes,
   onPasteTubes,
+  onLockTubes,
+  onUnlockTubes,
+  onShareAccess,
+  lockContext,
+  isUnlocking = false,
 }: GridControllerProps): GridControllerReturn => {
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
 
@@ -163,15 +168,36 @@ export const useGridController = ({
     }
   };
 
-  // Helper: Analyze selected positions (empty vs filled)
+  // Helper: Analyze selected positions (empty vs filled, lock state)
   const selectionAnalysis = useMemo(() => {
     let filledCount = 0;
     let emptyCount = 0;
+    let lockableCount = 0;
+    let unlockableCount = 0;
+    let sharableCount = 0;
 
     Array.from(selectedPositions).forEach(positionKey => {
       const { position } = parsePositionKey(positionKey);
-      if (resolveTube(position) !== null) {
+      const tubeId = resolveTube(position);
+
+      if (tubeId !== null) {
         filledCount++;
+
+        // Lock analysis (only if lockContext provided)
+        if (lockContext) {
+          const tube = tubes.find(t => t.id === tubeId);
+          if (tube) {
+            if (lockContext.canLockTube(tube)) {
+              lockableCount++;
+            }
+            if (lockContext.canUnlockTube(tube)) {
+              unlockableCount++;
+            }
+            if (lockContext.canShareTubeAccess(tube)) {
+              sharableCount++;
+            }
+          }
+        }
       } else {
         emptyCount++;
       }
@@ -185,8 +211,11 @@ export const useGridController = ({
       isMixed: filledCount > 0 && emptyCount > 0,
       allFilled: filledCount > 0 && emptyCount === 0,
       allEmpty: emptyCount > 0 && filledCount === 0,
+      lockableCount,
+      unlockableCount,
+      sharableCount,
     };
-  }, [selectedPositions, resolveTube]);
+  }, [selectedPositions, resolveTube, tubes, lockContext]);
 
   // Unified modal opener - single source of truth for selection-based modal logic
   const openModal = useCallback(() => {
@@ -577,6 +606,120 @@ export const useGridController = ({
     });
   }, [selectedPositionsInThisBox, resolveTube, onDeleteTubes, onSelectionChange, modalService]);
 
+  // Lock toggle operation (Shift+L behavior)
+  const toggleLock = useCallback(async () => {
+    if (!lockContext || isUnlocking) return;
+
+    const positions = selectedPositionsInThisBox();
+    if (positions.length === 0) return;
+
+    // Get tubes for selected positions
+    const selectedTubes = positions
+      .map(position => {
+        const tubeId = resolveTube(position);
+        return tubeId ? tubes.find(t => t.id === tubeId) : null;
+      })
+      .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
+
+    if (selectedTubes.length === 0) return;
+
+    // Categorize tubes
+    const lockable = selectedTubes.filter(t => lockContext.canLockTube(t));
+    const unlockable = selectedTubes.filter(t => lockContext.canUnlockTube(t));
+
+    // Priority: Lock unlocked tubes first, then unlock owned locks
+    if (lockable.length > 0 && onLockTubes) {
+      onLockTubes(lockable.map(t => t.id));
+    } else if (unlockable.length > 0 && onUnlockTubes) {
+      await onUnlockTubes(unlockable.map(t => t.id));
+    } else {
+      notifications.warning('No tubes can be locked or unlocked');
+    }
+  }, [
+    lockContext,
+    selectedPositionsInThisBox,
+    resolveTube,
+    tubes,
+    onLockTubes,
+    onUnlockTubes,
+    isUnlocking,
+  ]);
+
+  // Lock operation (opens modal)
+  const lockTubes = useCallback(() => {
+    if (!lockContext || !onLockTubes) return;
+
+    const positions = selectedPositionsInThisBox();
+    if (positions.length === 0) return;
+
+    const lockableTubeIds = positions
+      .map(position => {
+        const tubeId = resolveTube(position);
+        if (!tubeId) return null;
+        const tube = tubes.find(t => t.id === tubeId);
+        if (!tube || !lockContext.canLockTube(tube)) return null;
+        return tubeId;
+      })
+      .filter((id): id is string => id !== null);
+
+    if (lockableTubeIds.length === 0) {
+      notifications.warning('No tubes can be locked');
+      return;
+    }
+
+    onLockTubes(lockableTubeIds);
+  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onLockTubes]);
+
+  // Unlock operation (direct action, no modal needed)
+  const unlockTubes = useCallback(async () => {
+    if (!lockContext || !onUnlockTubes || isUnlocking) return;
+
+    const positions = selectedPositionsInThisBox();
+    if (positions.length === 0) return;
+
+    const unlockableTubeIds = positions
+      .map(position => {
+        const tubeId = resolveTube(position);
+        if (!tubeId) return null;
+        const tube = tubes.find(t => t.id === tubeId);
+        if (!tube || !lockContext.canUnlockTube(tube)) return null;
+        return tubeId;
+      })
+      .filter((id): id is string => id !== null);
+
+    if (unlockableTubeIds.length === 0) {
+      notifications.warning('No tubes can be unlocked');
+      return;
+    }
+
+    await onUnlockTubes(unlockableTubeIds);
+  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onUnlockTubes, isUnlocking]);
+
+  // Share access operation (opens modal)
+  const shareAccess = useCallback(() => {
+    if (!lockContext || !onShareAccess) return;
+
+    const positions = selectedPositionsInThisBox();
+    if (positions.length === 0) return;
+
+    const sharableTubeIds = positions
+      .map(position => {
+        const tubeId = resolveTube(position);
+        if (!tubeId) return null;
+        const tube = tubes.find(t => t.id === tubeId);
+        if (!tube || !lockContext.canShareTubeAccess(tube)) return null;
+        return tubeId;
+      })
+      .filter((id): id is string => id !== null);
+
+    if (sharableTubeIds.length === 0) {
+      notifications.warning('No tubes available for sharing');
+      return;
+    }
+
+    onShareAccess(sharableTubeIds);
+  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onShareAccess]);
+
   // Mouse position handler
   const setMousePosition = (position: { x: number; y: number } | null) => {
     setMousePositionStore(position);
@@ -672,6 +815,11 @@ export const useGridController = ({
     cut,
     paste,
     delete: deleteSelectedTubes,
+    // Lock actions (only available when lock context/callbacks provided)
+    ...(lockContext && onLockTubes ? { toggleLock } : {}),
+    ...(lockContext && onLockTubes ? { lock: lockTubes } : {}),
+    ...(lockContext && onUnlockTubes ? { unlock: unlockTubes } : {}),
+    ...(lockContext && onShareAccess ? { shareAccess } : {}),
   };
 
   // Grid context menu methods (domain-driven architecture)
@@ -734,6 +882,10 @@ export const useGridController = ({
       isMixed: selectionAnalysis.isMixed,
       filledCount: selectionAnalysis.filledCount,
       emptyCount: selectionAnalysis.emptyCount,
+      lockableCount: selectionAnalysis.lockableCount,
+      unlockableCount: selectionAnalysis.unlockableCount,
+      sharableCount: selectionAnalysis.sharableCount,
+      isUnlocking,
     },
     getCopyLabel,
     getCutLabel,

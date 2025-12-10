@@ -52,11 +52,25 @@ interface TubeEditorModalState {
   preserveSelection?: boolean; // Don't restore focus to specific position (for batch operations)
 }
 
+interface LockTubesModalState {
+  isOpen: boolean;
+  tubeIds: string[];
+  previousFocusElement?: HTMLElement | null;
+}
+
+interface ShareAccessModalState {
+  isOpen: boolean;
+  tubeIds: string[];
+  previousFocusElement?: HTMLElement | null;
+}
+
 interface LocalModalState {
   deleteConfirm: DeleteConfirmState;
   overwriteConfirm: OverwriteConfirmState;
   unsavedConfirm: UnsavedConfirmState;
   tubeEditorModal: TubeEditorModalState;
+  lockTubesModal: LockTubesModalState;
+  shareAccessModal: ShareAccessModalState;
 }
 
 interface ModalActions {
@@ -97,6 +111,12 @@ interface ModalActions {
   }) => void;
   hideTubeEditorModal: () => void;
 
+  showLockTubesModal: (tubeIds: string[]) => void;
+  hideLockTubesModal: () => void;
+
+  showShareAccessModal: (tubeIds: string[]) => void;
+  hideShareAccessModal: () => void;
+
   hideAllModals: () => void;
 }
 
@@ -129,6 +149,16 @@ const initialTubeEditorModal: TubeEditorModalState = {
   mode: 'add',
 };
 
+const initialLockTubesModal: LockTubesModalState = {
+  isOpen: false,
+  tubeIds: [],
+};
+
+const initialShareAccessModal: ShareAccessModalState = {
+  isOpen: false,
+  tubeIds: [],
+};
+
 /**
  * Global modal store
  */
@@ -138,6 +168,8 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
   overwriteConfirm: initialOverwriteConfirm,
   unsavedConfirm: initialUnsavedConfirm,
   tubeEditorModal: initialTubeEditorModal,
+  lockTubesModal: initialLockTubesModal,
+  shareAccessModal: initialShareAccessModal,
 
   // Delete confirmation actions
   showDeleteConfirm: config => {
@@ -230,6 +262,38 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
     set({ tubeEditorModal: initialTubeEditorModal });
   },
 
+  // Lock tubes modal actions
+  showLockTubesModal: tubeIds => {
+    const previousFocusElement = document.activeElement as HTMLElement;
+    set({
+      lockTubesModal: {
+        isOpen: true,
+        tubeIds,
+        previousFocusElement,
+      },
+    });
+  },
+
+  hideLockTubesModal: () => {
+    set({ lockTubesModal: initialLockTubesModal });
+  },
+
+  // Share access modal actions
+  showShareAccessModal: tubeIds => {
+    const previousFocusElement = document.activeElement as HTMLElement;
+    set({
+      shareAccessModal: {
+        isOpen: true,
+        tubeIds,
+        previousFocusElement,
+      },
+    });
+  },
+
+  hideShareAccessModal: () => {
+    set({ shareAccessModal: initialShareAccessModal });
+  },
+
   // Utility to hide all modals
   hideAllModals: () => {
     set({
@@ -237,6 +301,8 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
       overwriteConfirm: initialOverwriteConfirm,
       unsavedConfirm: initialUnsavedConfirm,
       tubeEditorModal: initialTubeEditorModal,
+      lockTubesModal: initialLockTubesModal,
+      shareAccessModal: initialShareAccessModal,
     });
   },
 }));
@@ -253,6 +319,8 @@ export const useModalStore = () => {
     overwriteConfirm: state.overwriteConfirm,
     unsavedConfirm: state.unsavedConfirm,
     tubeEditorModal: state.tubeEditorModal,
+    lockTubesModal: state.lockTubesModal,
+    shareAccessModal: state.shareAccessModal,
 
     // Actions
     showDeleteConfirm: state.showDeleteConfirm,
@@ -263,6 +331,10 @@ export const useModalStore = () => {
     hideUnsavedConfirm: state.hideUnsavedConfirm,
     showTubeEditorModal: state.showTubeEditorModal,
     hideTubeEditorModal: state.hideTubeEditorModal,
+    showLockTubesModal: state.showLockTubesModal,
+    hideLockTubesModal: state.hideLockTubesModal,
+    showShareAccessModal: state.showShareAccessModal,
+    hideShareAccessModal: state.hideShareAccessModal,
     hideAllModals: state.hideAllModals,
   };
 };

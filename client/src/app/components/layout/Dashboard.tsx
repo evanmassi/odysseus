@@ -1,11 +1,16 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useCallback } from 'react';
 
+import { useAuthStore } from '@domains/authentication';
 import { gridNavigationService } from '@domains/grid';
 import { useStorageData } from '@domains/storage';
 import { useConfigurationSync } from '@domains/storage/hooks/useConfigurationSync';
 import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
 import { useTubeStore, TubeInfoPanel } from '@domains/tubes';
-import { useTubesByLocation } from '@domains/tubes/hooks';
+import {
+  useTubesByLocation,
+  useTubeAccessControl,
+  useUnlockTubesMutation,
+} from '@domains/tubes/hooks';
 import {
   useBulkDeleteTubesMutation,
   usePasteTubesMutation,
@@ -13,8 +18,11 @@ import {
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
 import { BatchTubeEditorModal } from '@domains/tubes/ui/components/modals/BatchTubeEditorModal';
 import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
+import { LockTubesModal } from '@domains/tubes/ui/components/modals/LockTubesModal';
 import { OverwriteConfirmDialog } from '@domains/tubes/ui/components/modals/OverwriteConfirmDialog';
+import { ShareAccessModal } from '@domains/tubes/ui/components/modals/ShareAccessModal';
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
+import { useUserLookupQuery } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey } from '@shared/types/grid';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
@@ -58,6 +66,9 @@ export function Dashboard() {
   // Sync server configuration to client store on mount
   useConfigurationSync();
 
+  // Get current user for lock operations
+  const { user } = useAuthStore();
+
   // ARCHITECTURAL IMPROVEMENT: Only UI state from TubeStore, React Query handles data
   const { currentTank, currentRack, currentBox, selectedPositions, setSelection, clearSelection } =
     useTubeStore(); // Only UI state, server data handled by React Query in components
@@ -72,6 +83,37 @@ export function Dashboard() {
   // React Query mutations for server operations
   const bulkDeleteTubesMutation = useBulkDeleteTubesMutation();
   const pasteTubesMutation = usePasteTubesMutation();
+  const unlockTubesMutation = useUnlockTubesMutation();
+
+  // Lock access control hook
+  const accessControl = useTubeAccessControl(user);
+
+  // Collect unique user IDs from locked tubes for display name lookup
+  const lockRelatedUserIds = useMemo(() => {
+    const userIds = new Set<string>();
+    tubes.forEach(tube => {
+      if (tube.isLocked) {
+        if (tube.lockedBy) userIds.add(tube.lockedBy);
+        tube.sharedWithUserIds?.forEach(id => userIds.add(id));
+      }
+    });
+    // Remove current user - we display "You" for them
+    if (user?.id) userIds.delete(user.id);
+    return Array.from(userIds);
+  }, [tubes, user?.id]);
+
+  // Fetch display info for lock-related users
+  const { data: lockUsers = [] } = useUserLookupQuery(lockRelatedUserIds);
+
+  // Create lookup map for user display names
+  const userDisplayMap = useMemo(() => {
+    const map = new Map<string, string>();
+    lockUsers.forEach(u => {
+      const displayName = u.firstName && u.lastName ? `${u.firstName} ${u.lastName}` : u.username;
+      map.set(u.id, displayName);
+    });
+    return map;
+  }, [lockUsers]);
 
   // Preloading disabled (uncomment for lazy loading)
   // const { preload: preloadTubeEditor } = useLazyTubeEditor();
@@ -232,6 +274,65 @@ export function Dashboard() {
     clearSelection();
   };
 
+  // Lock operation handlers
+  const handleLockTubes = useCallback(
+    (tubeIds: string[]) => {
+      modalService.showLockTubesModal(tubeIds);
+    },
+    [modalService]
+  );
+
+  const handleUnlockTubes = useCallback(
+    async (tubeIds: string[]) => {
+      const count = tubeIds.length;
+      await notifications.promise(unlockTubesMutation.mutateAsync({ tubeIds }), {
+        loading: `Unlocking ${count} tube${count !== 1 ? 's' : ''}...`,
+        success: `Unlocked ${count} tube${count !== 1 ? 's' : ''}`,
+        error: 'Failed to unlock tubes',
+      });
+    },
+    [unlockTubesMutation]
+  );
+
+  const handleShareAccess = useCallback(
+    (tubeIds: string[]) => {
+      modalService.showShareAccessModal(tubeIds);
+    },
+    [modalService]
+  );
+
+  // Unified lock context - shared across all components
+  // Each component uses the functions it needs from this interface
+  const lockContext = useMemo(() => {
+    if (!user) return undefined;
+
+    const getLockOwnerName = (tube: TubeData): string | undefined => {
+      if (!tube.isLocked || !tube.lockedBy) return undefined;
+      if (tube.lockedBy === user.id) return 'You';
+      return userDisplayMap.get(tube.lockedBy) ?? tube.lockedBy;
+    };
+
+    const getSharedUserNames = (tube: TubeData): string[] => {
+      if (!tube.sharedWithUserIds || tube.sharedWithUserIds.length === 0) return [];
+      return tube.sharedWithUserIds.map(id =>
+        id === user.id ? 'You' : (userDisplayMap.get(id) ?? id)
+      );
+    };
+
+    return {
+      currentUserId: user.id,
+      // Permission checks
+      canLockTube: accessControl.canLockTube,
+      canUnlockTube: accessControl.canUnlockTube,
+      canShareTubeAccess: accessControl.canShareTubeAccess,
+      isLockedByCurrentUser: accessControl.isLockedByCurrentUser,
+      isLockedOutFrom: accessControl.isLockedOutFrom,
+      // Display helpers
+      getLockOwnerName,
+      getSharedUserNames,
+    };
+  }, [user, accessControl, userDisplayMap]);
+
   // Selection analysis for header
   const selectionAnalysis = (() => {
     if (selectedPositions.size === 0) {
@@ -315,6 +416,12 @@ export function Dashboard() {
     onPasteTubes: async tubes => {
       await pasteTubesMutation.mutateAsync({ tubes });
     },
+    // Lock operations
+    onLockTubes: handleLockTubes,
+    onUnlockTubes: handleUnlockTubes,
+    onShareAccess: handleShareAccess,
+    lockContext,
+    isUnlocking: unlockTubesMutation.isPending,
   });
 
   return (
@@ -389,6 +496,7 @@ export function Dashboard() {
                   _onBatchEditTubes={handleBatchEditTubes}
                   _onAddTubes={handleAddTube}
                   gridController={gridController}
+                  lockContext={lockContext}
                 />
               </ErrorBoundary>
             </div>
@@ -402,7 +510,10 @@ export function Dashboard() {
               <h4>Tube Information</h4>
             </div>
             <div className="component-body">
-              <TubeInfoPanel selectedTubes={selectionAnalysis.selectedTubes} />
+              <TubeInfoPanel
+                selectedTubes={selectionAnalysis.selectedTubes}
+                lockContext={lockContext}
+              />
             </div>
           </div>
         </div>
@@ -427,6 +538,7 @@ export function Dashboard() {
           <TubeEditorModal
             tubeId={modalService.tubeEditorModal.tubeId}
             onClose={handleCloseModal}
+            lockContext={lockContext}
           />
         </SuspenseBoundary>
       )}
@@ -479,6 +591,26 @@ export function Dashboard() {
         onConfirm={modalService.unsavedConfirm.onConfirm}
         onCancel={modalService.unsavedConfirm.onCancel}
       />
+
+      {/* Lock Tubes Modal */}
+      {modalService.lockTubesModal.isOpen && (
+        <LockTubesModal
+          tubeIds={modalService.lockTubesModal.tubeIds}
+          onClose={modalService.hideLockTubesModal}
+          onSuccess={handleClearSelection}
+        />
+      )}
+
+      {/* Share Access Modal */}
+      {modalService.shareAccessModal.isOpen && user && (
+        <ShareAccessModal
+          tubes={modalService.shareAccessModal.tubeIds
+            .map(id => tubes.find(t => t.id === id))
+            .filter((t): t is TubeData => t !== undefined)}
+          currentUserId={user.id}
+          onClose={modalService.hideShareAccessModal}
+        />
+      )}
     </div>
   );
 }

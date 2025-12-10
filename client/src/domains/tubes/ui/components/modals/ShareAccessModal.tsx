@@ -1,0 +1,267 @@
+/**
+ * ShareAccessModal - Modal for sharing tube access with other users
+ *
+ * Allows lock owners to:
+ * - Share access to locked tubes with specific users
+ * - View currently shared users
+ * - Revoke access from users
+ *
+ * @module tubes/ui/components/modals
+ */
+
+import { useState, useMemo } from 'react';
+
+import { Share2, X, UserPlus, Users } from 'lucide-react';
+
+import { useUsersQuery } from '@domains/admin/hooks/useUsersQuery';
+import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
+import { notifications } from '@shared/utils/notifications';
+
+import { BaseModal } from './BaseModal';
+
+import type { TubeData } from '@domains/tubes/types';
+
+export interface ShareAccessModalProps {
+  /** Tubes to share access for (must be locked by current user) */
+  tubes: TubeData[];
+  /** Current user's ID */
+  currentUserId: string;
+  /** Close handler */
+  onClose: () => void;
+  /** Optional callback after successful share/revoke */
+  onSuccess?: () => void;
+}
+
+/**
+ * ShareAccessModal Component
+ *
+ * @example
+ * ```tsx
+ * <ShareAccessModal
+ *   tubes={selectedLockedTubes}
+ *   currentUserId={user.id}
+ *   onClose={() => setShowShareModal(false)}
+ *   onSuccess={() => clearSelection()}
+ * />
+ * ```
+ */
+export function ShareAccessModal({
+  tubes,
+  currentUserId,
+  onClose,
+  onSuccess,
+}: ShareAccessModalProps) {
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const shareMutation = useShareTubeAccessMutation();
+  const revokeMutation = useRevokeTubeAccessMutation();
+
+  // Fetch users for the dropdown
+  const { data: allUsers = [], isLoading: isLoadingUsers } = useUsersQuery();
+
+  // Filter to active users excluding current user
+  const availableUsers = useMemo(() => {
+    return allUsers.filter(u => u.isActive && u.id !== currentUserId);
+  }, [allUsers, currentUserId]);
+
+  // Get currently shared user IDs across all selected tubes
+  const currentlySharedUserIds = useMemo(() => {
+    const sharedSet = new Set<string>();
+    tubes.forEach(tube => {
+      tube.sharedWithUserIds?.forEach(userId => sharedSet.add(userId));
+    });
+    return Array.from(sharedSet);
+  }, [tubes]);
+
+  // Get user display name
+  const getUserName = (userId: string): string => {
+    const user = allUsers.find(u => u.id === userId);
+    if (!user) return userId;
+    // AdminUser has firstName, lastName, username, email
+    if (user.firstName && user.lastName) {
+      return `${user.firstName} ${user.lastName}`;
+    }
+    return user.username ?? user.email ?? userId;
+  };
+
+  // Handle sharing access
+  const handleShare = async () => {
+    if (selectedUserIds.length === 0) {
+      notifications.warning('Please select at least one user to share with');
+      return;
+    }
+
+    try {
+      const result = await shareMutation.mutateAsync({
+        tubeIds: tubes.map(t => t.id),
+        userIds: selectedUserIds,
+      });
+
+      const sharedCount = result.shared.length;
+      const skippedCount = result.skipped.length;
+
+      if (sharedCount > 0 && skippedCount === 0) {
+        notifications.lock(`Shared access to ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}`);
+        setSelectedUserIds([]);
+        onSuccess?.();
+      } else if (sharedCount > 0 && skippedCount > 0) {
+        notifications.lock(
+          `Shared ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
+        );
+        setSelectedUserIds([]);
+      } else {
+        notifications.warning('No tubes were shared');
+      }
+    } catch (error) {
+      notifications.error('Failed to share tube access');
+    }
+  };
+
+  // Handle revoking access
+  const handleRevoke = async (userId: string) => {
+    try {
+      const result = await revokeMutation.mutateAsync({
+        tubeIds: tubes.map(t => t.id),
+        userIds: [userId],
+      });
+
+      const revokedCount = result.revoked.length;
+      if (revokedCount > 0) {
+        notifications.lock(`Revoked access from ${getUserName(userId)}`);
+        onSuccess?.();
+      } else {
+        notifications.warning('No access was revoked');
+      }
+    } catch (error) {
+      notifications.error('Failed to revoke access');
+    }
+  };
+
+  // Toggle user selection
+  const toggleUserSelection = (userId: string) => {
+    setSelectedUserIds(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    );
+  };
+
+  const isProcessing = shareMutation.isPending || revokeMutation.isPending;
+  const tubeCount = tubes.length;
+
+  return (
+    <BaseModal
+      title={`Share Access - ${tubeCount} Tube${tubeCount !== 1 ? 's' : ''}`}
+      icon={<Share2 size={24} className="text-white" />}
+      onClose={onClose}
+      className="max-w-lg"
+    >
+      <div className="space-y-4">
+        {/* Currently Shared Users */}
+        {currentlySharedUserIds.length > 0 && (
+          <div>
+            <h4 className="block text-sm font-medium text-gray-700 mb-2">
+              <Users className="inline-block w-4 h-4 mr-1" />
+              Currently Shared With
+            </h4>
+            <div className="space-y-2">
+              {currentlySharedUserIds.map(userId => (
+                <div
+                  key={userId}
+                  className="flex items-center justify-between px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg"
+                >
+                  <span className="text-sm text-blue-800">{getUserName(userId)}</span>
+                  <button
+                    type="button"
+                    onClick={() => handleRevoke(userId)}
+                    disabled={isProcessing}
+                    className="p-1 text-blue-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                    title="Revoke access"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Add Users Section */}
+        <div>
+          <h4 className="block text-sm font-medium text-gray-700 mb-2">
+            <UserPlus className="inline-block w-4 h-4 mr-1" />
+            Share With Users
+          </h4>
+
+          {isLoadingUsers ? (
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-action"></div>
+              <span className="ml-2 text-sm text-gray-500">Loading users...</span>
+            </div>
+          ) : availableUsers.length === 0 ? (
+            <p className="text-sm text-gray-500 py-2">No other users available</p>
+          ) : (
+            <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+              {availableUsers
+                .filter(u => !currentlySharedUserIds.includes(u.id))
+                .map(user => {
+                  const isSelected = selectedUserIds.includes(user.id);
+                  return (
+                    <label
+                      key={user.id}
+                      className={`flex items-center px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors ${
+                        isSelected ? 'bg-action/10' : ''
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleUserSelection(user.id)}
+                        className="w-4 h-4 text-action border-gray-300 rounded focus:ring-action"
+                      />
+                      <span className="ml-3 text-sm text-gray-700">
+                        {user.firstName && user.lastName
+                          ? `${user.firstName} ${user.lastName}`
+                          : (user.username ?? user.email ?? user.id)}
+                      </span>
+                      {user.role && (
+                        <span className="ml-auto text-xs text-gray-400 capitalize">
+                          {user.role}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+            </div>
+          )}
+        </div>
+
+        {/* Info text */}
+        <p className="text-sm text-gray-600">
+          Shared users can edit the locked tubes without unlocking them. Only you (the lock owner)
+          can unlock the tubes or revoke access.
+        </p>
+
+        {/* Actions */}
+        <div className="flex justify-end space-x-3 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          >
+            {currentlySharedUserIds.length > 0 ? 'Done' : 'Cancel'}
+          </button>
+          {selectedUserIds.length > 0 && (
+            <button
+              type="button"
+              onClick={handleShare}
+              disabled={isProcessing}
+              className="px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50"
+            >
+              {isProcessing
+                ? 'Sharing...'
+                : `Share with ${selectedUserIds.length} User${selectedUserIds.length !== 1 ? 's' : ''}`}
+            </button>
+          )}
+        </div>
+      </div>
+    </BaseModal>
+  );
+}

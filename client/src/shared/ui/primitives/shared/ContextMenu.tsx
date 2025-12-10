@@ -1,6 +1,17 @@
 import { useEffect, useRef } from 'react';
 
-import { Plus, Edit, Trash2, Copy, Scissors, ClipboardPaste, X } from 'lucide-react';
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Copy,
+  Scissors,
+  ClipboardPaste,
+  X,
+  Lock,
+  Unlock,
+  Share2,
+} from 'lucide-react';
 
 interface ContextMenuProps {
   isVisible: boolean;
@@ -16,6 +27,14 @@ interface ContextMenuProps {
   onCut: () => void;
   onPaste: () => void;
   canPaste?: boolean;
+  // Lock-related props
+  lockableCount?: number;
+  unlockableCount?: number;
+  sharableCount?: number;
+  onLock?: () => void;
+  onUnlock?: () => void;
+  onShare?: () => void;
+  isUnlocking?: boolean;
 }
 
 export function ContextMenu({
@@ -32,6 +51,13 @@ export function ContextMenu({
   onCut,
   onPaste,
   canPaste = false,
+  lockableCount = 0,
+  unlockableCount = 0,
+  sharableCount = 0,
+  onLock,
+  onUnlock,
+  onShare,
+  isUnlocking = false,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -50,7 +76,7 @@ export function ContextMenu({
       x = Math.max(10, viewportWidth - estimatedWidth - 10);
     }
 
-    // Adjust vertical position  
+    // Adjust vertical position
     if (y + estimatedHeight > viewportHeight) {
       y = Math.max(10, viewportHeight - estimatedHeight - 10);
     }
@@ -110,61 +136,128 @@ export function ContextMenu({
   // Smart action list - only show relevant actions
   const actions = [
     // Unified Open action - always show when positions selected (Edit/Add)
-    ...(selectedCount > 0 ? [{
-      icon: getOpenIcon(),
-      label: getOpenLabel(),
-      shortcut: 'Enter',
-      onClick: onOpen,
-      variant: 'edit' as const, // Minty Frost - matches update/edit/add operations
-      disabled: false,
-    }] : []),
+    ...(selectedCount > 0
+      ? [
+          {
+            icon: getOpenIcon(),
+            label: getOpenLabel(),
+            shortcut: 'Enter',
+            onClick: onOpen,
+            variant: 'edit' as const, // Minty Frost - matches update/edit/add operations
+            disabled: false,
+          },
+        ]
+      : []),
 
     // Delete, Copy, Cut - only for tubes that exist
-    ...(hasFilledSelection ? [
-      {
-        icon: Trash2,
-        label: getLabel('Delete', selectedCount),
-        shortcut: 'Del',
-        onClick: onDelete,
-        variant: 'danger' as const,
-        disabled: false,
-      },
-      {
-        icon: Copy,
-        label: getLabel('Copy', selectedCount),
-        shortcut: 'Ctrl+C',
-        onClick: () => {
-          onCopy();
-          onClose(); // Close menu after copy
-        },
-        variant: 'copy' as const, // Icy Blue - matches copy operation
-        disabled: false,
-      },
-      {
-        icon: Scissors,
-        label: getLabel('Cut', selectedCount),
-        shortcut: 'Ctrl+X',
-        onClick: () => {
-          onCut();
-          onClose(); // Close menu after cut
-        },
-        variant: 'cut' as const, // Light Amber - matches cut/move operations
-        disabled: false,
-      },
-    ] : []),
+    ...(hasFilledSelection
+      ? [
+          {
+            icon: Trash2,
+            label: getLabel('Delete', selectedCount),
+            shortcut: 'Del',
+            onClick: onDelete,
+            variant: 'danger' as const,
+            disabled: false,
+          },
+          {
+            icon: Copy,
+            label: getLabel('Copy', selectedCount),
+            shortcut: 'Ctrl+C',
+            onClick: () => {
+              onCopy();
+              onClose(); // Close menu after copy
+            },
+            variant: 'copy' as const, // Icy Blue - matches copy operation
+            disabled: false,
+          },
+          {
+            icon: Scissors,
+            label: getLabel('Cut', selectedCount),
+            shortcut: 'Ctrl+X',
+            onClick: () => {
+              onCut();
+              onClose(); // Close menu after cut
+            },
+            variant: 'cut' as const, // Light Amber - matches cut/move operations
+            disabled: false,
+          },
+        ]
+      : []),
 
     // Paste - show when clipboard has data and positions are selected
-    ...(canPaste && selectedCount > 0 ? [{
-      icon: ClipboardPaste,
-      label: getLabel('Paste', clipboardCount),
-      shortcut: 'Ctrl+V',
-      onClick: () => {
-        onPaste();
-        onClose(); // Close menu after paste
-      },
-      variant: 'copy' as const, // Icy Blue - matches copy/paste operations
-      disabled: false,
-    }] : []),
+    ...(canPaste && selectedCount > 0
+      ? [
+          {
+            icon: ClipboardPaste,
+            label: getLabel('Paste', clipboardCount),
+            shortcut: 'Ctrl+V',
+            onClick: () => {
+              onPaste();
+              onClose(); // Close menu after paste
+            },
+            variant: 'copy' as const, // Icy Blue - matches copy/paste operations
+            disabled: false,
+          },
+        ]
+      : []),
+
+    // Lock - show when there are lockable tubes
+    ...(lockableCount > 0 && onLock
+      ? [
+          {
+            icon: Lock,
+            label: lockableCount === 1 ? 'Lock Tube' : `Lock ${lockableCount} Tubes`,
+            shortcut: 'Shift+L',
+            onClick: () => {
+              onLock();
+              onClose();
+            },
+            variant: 'edit' as const, // Minty Frost - matches update operations
+            disabled: false,
+          },
+        ]
+      : []),
+
+    // Unlock - show when there are unlockable tubes (user owns the locks)
+    ...(unlockableCount > 0 && onUnlock
+      ? [
+          {
+            icon: Unlock,
+            label: isUnlocking
+              ? 'Unlocking...'
+              : unlockableCount === 1
+                ? 'Unlock Tube'
+                : `Unlock ${unlockableCount} Tubes`,
+            shortcut: 'Shift+L',
+            onClick: () => {
+              if (!isUnlocking) {
+                onUnlock();
+                onClose();
+              }
+            },
+            variant: 'edit' as const,
+            disabled: isUnlocking,
+          },
+        ]
+      : []),
+
+    // Share Access - show when there are sharable tubes (user owns the locks)
+    ...(sharableCount > 0 && onShare
+      ? [
+          {
+            icon: Share2,
+            label: sharableCount === 1 ? 'Share Access' : `Share ${sharableCount} Tubes`,
+            shortcut: 'Shift+S',
+            onClick: () => {
+              onShare();
+              onClose();
+            },
+            variant: 'copy' as const, // Icy Blue
+            disabled: false,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -192,13 +285,14 @@ export function ContextMenu({
       {/* Actions */}
       <div className="p-2 space-y-2">
         {actions.map(({ icon: Icon, label, shortcut, onClick, variant, disabled = false }) => {
-          const baseClasses = "w-full flex items-center justify-between py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed";
+          const baseClasses =
+            'w-full flex items-center justify-between py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
 
           const variantClasses = {
-            edit: "bg-edit-bg text-white hover:bg-edit-hover",
-            copy: "bg-copy-bg text-white hover:bg-copy-hover",
-            cut: "bg-cut-bg text-white hover:bg-cut-hover",
-            danger: "bg-danger-bg text-white hover:bg-danger-hover",
+            edit: 'bg-edit-bg text-white hover:bg-edit-hover',
+            copy: 'bg-copy-bg text-white hover:bg-copy-hover',
+            cut: 'bg-cut-bg text-white hover:bg-cut-hover',
+            danger: 'bg-danger-bg text-white hover:bg-danger-hover',
           };
 
           return (

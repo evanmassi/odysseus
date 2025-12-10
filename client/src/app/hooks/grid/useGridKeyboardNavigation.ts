@@ -50,6 +50,8 @@ export interface UseGridKeyboardNavigationReturn {
  * - Ctrl+A: Select all
  * - Escape: Clear selection and clipboard
  * - Ctrl+C/X/V: Copy/Cut/Paste
+ * - Shift+L: Toggle lock/unlock
+ * - Shift+S: Share access
  *
  * @param props - Grid configuration, focus state, and action handlers
  * @returns Keyboard event handler
@@ -204,6 +206,24 @@ export function useGridKeyboardNavigation(
             // Error notification already shown by paste handler
           }
         })();
+        return;
+      }
+
+      // Shift+L - Toggle lock/unlock
+      if (key === 'L' && shiftKey && !ctrlKey && !metaKey) {
+        event.preventDefault();
+        if (controller.actions.toggleLock) {
+          void controller.actions.toggleLock();
+        }
+        return;
+      }
+
+      // Shift+S - Share access (for owned locked tubes)
+      if (key === 'S' && shiftKey && !ctrlKey && !metaKey) {
+        event.preventDefault();
+        if (controller.actions.shareAccess) {
+          controller.actions.shareAccess();
+        }
         return;
       }
     },

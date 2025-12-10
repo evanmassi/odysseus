@@ -34,11 +34,11 @@ export const toPositionKey = (ctx: PositionContext, position: Position): Positio
  */
 export const parsePositionKey = (key: PositionKey) => {
   const [tankId, rackId, boxId, posStr] = key.split(':');
-  return { 
-    tankId, 
-    rackId, 
-    boxId, 
-    position: Number(posStr) as Position 
+  return {
+    tankId,
+    rackId,
+    boxId,
+    position: Number(posStr) as Position,
   };
 };
 
@@ -65,6 +65,23 @@ export interface GridNavigationReturn {
   setMousePosition?: (position: number) => void; // Optional for TubeGrid integration
 }
 
+/**
+ * Unified lock context for all lock-related operations
+ * Components use the functions they need from this shared interface
+ */
+export interface LockContext {
+  currentUserId: string;
+  // Permission checks
+  canLockTube: (tube: TubeData) => boolean;
+  canUnlockTube: (tube: TubeData) => boolean;
+  canShareTubeAccess: (tube: TubeData) => boolean;
+  isLockedByCurrentUser: (tube: TubeData) => boolean;
+  isLockedOutFrom: (tube: TubeData) => boolean;
+  // Display helpers
+  getLockOwnerName: (tube: TubeData) => string | undefined;
+  getSharedUserNames: (tube: TubeData) => string[];
+}
+
 // Grid controller interfaces
 export interface GridControllerProps {
   tankId: string;
@@ -77,10 +94,21 @@ export interface GridControllerProps {
   resolveTubeIdAtPosition?: (position: number) => string | null;
   onDeleteTubes?: (tubeIds: string[], silent?: boolean) => Promise<void>;
   onPasteTubes?: (tubes: CreateTubeRequest[]) => Promise<void>;
+
+  // Lock callbacks (optional - for lock-enabled grids)
+  onLockTubes?: (tubeIds: string[]) => void;
+  onUnlockTubes?: (tubeIds: string[]) => Promise<void>;
+  onShareAccess?: (tubeIds: string[]) => void;
+  lockContext?: LockContext;
+  isUnlocking?: boolean;
 }
 
 export interface GridControllerReturn {
-  handlePositionClick: (position: number, event: React.MouseEvent | React.KeyboardEvent, gridSize?: number) => void;
+  handlePositionClick: (
+    position: number,
+    event: React.MouseEvent | React.KeyboardEvent,
+    gridSize?: number
+  ) => void;
   handlePositionDoubleClick: (position: number) => void;
   handleBulkSelection: (positions: number[]) => void;
   isPositionSelected: (position: number) => boolean;
@@ -94,7 +122,7 @@ export interface GridControllerReturn {
   cut: () => Promise<void>;
   paste: (options?: { targetStart?: number }) => Promise<void>;
   delete: () => Promise<void>;
-  
+
   // Action methods
   actions: {
     select: (position: number) => void;
@@ -107,6 +135,11 @@ export interface GridControllerReturn {
     cut: () => Promise<void>;
     paste: (options?: { targetStart?: number }) => Promise<void>;
     delete: () => Promise<void>;
+    // Lock actions (optional - only available when lock hooks are provided)
+    toggleLock?: () => Promise<void>;
+    lock?: () => void;
+    unlock?: () => Promise<void>;
+    shareAccess?: () => void;
   };
 
   // Grid selection operations state
@@ -132,8 +165,13 @@ export interface GridControllerReturn {
     isMixed: boolean;
     filledCount: number;
     emptyCount: number;
+    // Lock-related counts (optional - populated when lock context available)
+    lockableCount?: number;
+    unlockableCount?: number;
+    sharableCount?: number;
+    isUnlocking?: boolean;
   };
-  
+
   // Label methods for UI
   getCopyLabel: () => string;
   getCutLabel: () => string;
