@@ -95,6 +95,18 @@
     --color-warning-light: #fef3c7;
     --color-warning-border: #fde68a;
 
+    /* Lock Action Theme (Slate) */
+    --color-lock-bg: #64748b;
+    --color-lock-hover: #475569;
+    --color-lock-text: #64748b;
+    --color-lock-btnText: #ffffff;
+
+    /* Share Action Theme (Indigo) */
+    --color-share-bg: #6366f1;
+    --color-share-hover: #4f46e5;
+    --color-share-text: #6366f1;
+    --color-share-btnText: #ffffff;
+
     /* Success Theme */
     --color-success-bg: #22c55e;
     --color-success-hover: #16a34a;

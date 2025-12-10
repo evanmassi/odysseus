@@ -362,4 +362,48 @@
       0 0 0 6px var(--focus-ring-glow-outer),
       0 0 8px 6px var(--focus-ring-blur);
   }
+
+  .btn-header-control-compact-lock {
+    @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
+    @apply bg-lock-bg text-lock-btnText border border-lock-bg;
+    transition:
+      all 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .btn-header-control-compact-lock:hover {
+    @apply shadow-md scale-105 bg-lock-hover;
+  }
+
+  .btn-header-control-compact-lock:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
+  .btn-header-control-compact-share {
+    @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
+    @apply bg-share-bg text-share-btnText border border-share-bg;
+    transition:
+      all 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .btn-header-control-compact-share:hover {
+    @apply shadow-md scale-105 bg-share-hover;
+  }
+
+  .btn-header-control-compact-share:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
 }

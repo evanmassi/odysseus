@@ -13,6 +13,9 @@ import {
   X,
   Settings,
   ShieldUser,
+  Lock,
+  Unlock,
+  Share2,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -71,15 +74,19 @@ interface HeaderProps {
     paste: () => void;
     delete: () => void;
     canPaste: boolean;
-    getCopyLabel: () => string;
-    getCutLabel: () => string;
-    getPasteLabel: () => string;
     selection: {
       hasFilledSelection: boolean;
       isMixed: boolean;
-      filledCount: number;
-      emptyCount: number;
+      // Lock-related counts
+      lockableCount?: number;
+      unlockableCount?: number;
+      sharableCount?: number;
+      isUnlocking?: boolean;
     };
+    // Lock actions (optional)
+    lock?: () => void;
+    unlock?: () => Promise<void>;
+    shareAccess?: () => void;
   };
   // View-only mode (container assigned to another user)
   isViewOnlySpace?: boolean;
@@ -192,6 +199,16 @@ export function AppHeader({
           {/* Compact Single-Row Control Buttons */}
           {selectionAnalysis.hasSelection && gridController && (
             <div className="flex items-center space-x-2">
+              {/* Selection count - only show when more than 1 selected */}
+              {selectedPositions.size > 1 && (
+                <>
+                  <span className="text-edit-bg text-sm font-medium">
+                    {selectedPositions.size} selected
+                  </span>
+                  <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
+                </>
+              )}
+
               {/* Show view-only indicator if in view-only mode - no tube operations allowed */}
               {isViewOnlySpace ? (
                 <div className="text-white/80 text-sm px-3 py-1 bg-amber-500/60 rounded-lg flex items-center gap-2">
@@ -199,7 +216,7 @@ export function AppHeader({
                 </div>
               ) : (
                 <>
-                  {/* Unified Modal Button - Context-aware label, single action (Minty Frost) */}
+                  {/* Section 1: Add/Edit */}
                   <button
                     onClick={gridController.openModal}
                     className="btn-header-control-compact-edit"
@@ -217,74 +234,108 @@ export function AppHeader({
                     ) : (
                       <Plus className="w-3 h-3 mr-1" />
                     )}
-                    {gridController.selection.isMixed
-                      ? gridController.selection.emptyCount +
-                          gridController.selection.filledCount ===
-                        1
-                        ? 'Add Tube'
-                        : `Add ${gridController.selection.emptyCount + gridController.selection.filledCount} Tubes`
-                      : gridController.selection.hasFilledSelection
-                        ? gridController.selection.filledCount === 1
-                          ? 'Edit Tube'
-                          : `Edit ${gridController.selection.filledCount} Tubes`
-                        : gridController.selection.emptyCount === 1
-                          ? 'Add Tube'
-                          : `Add ${gridController.selection.emptyCount} Tubes`}
+                    {gridController.selection.hasFilledSelection &&
+                    !gridController.selection.isMixed
+                      ? 'Edit'
+                      : 'Add'}
                   </button>
 
-                  {/* Delete Tube(s) - Only for filled positions */}
-                  {selectionAnalysis.hasFilled && gridController && (
-                    <button
-                      onClick={gridController.delete}
-                      className="btn-header-control-compact-danger"
-                    >
-                      <Trash2 className="w-3 h-3 mr-1" />
-                      Delete{' '}
-                      {selectionAnalysis.selectedTubes.length === 1
-                        ? 'Tube'
-                        : `${selectionAnalysis.selectedTubes.length} Tubes`}
-                    </button>
-                  )}
-
-                  {/* Separator */}
-                  {selectionAnalysis.hasFilled && (
-                    <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
-                  )}
-
-                  {/* Copy/Cut - Only for filled positions */}
-                  {selectionAnalysis.hasFilled && gridController && (
+                  {/* Section 2: Copy, Cut, Paste */}
+                  {(selectionAnalysis.hasFilled || gridController?.canPaste) && (
                     <>
+                      <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
+                      {selectionAnalysis.hasFilled && (
+                        <>
+                          <button
+                            onClick={gridController.copy}
+                            className="btn-header-control-compact-copy"
+                          >
+                            <Copy className="w-3 h-3 mr-1" />
+                            Copy
+                          </button>
+                          <button
+                            onClick={gridController.cut}
+                            className="btn-header-control-compact-cut"
+                          >
+                            <Scissors className="w-3 h-3 mr-1" />
+                            Cut
+                          </button>
+                        </>
+                      )}
+                      {gridController?.canPaste && selectionAnalysis.hasSelection && (
+                        <button
+                          onClick={gridController.paste}
+                          className="btn-header-control-compact-copy"
+                        >
+                          <ClipboardPaste className="w-3 h-3 mr-1" />
+                          Paste
+                        </button>
+                      )}
+                    </>
+                  )}
+
+                  {/* Section 3: Delete */}
+                  {selectionAnalysis.hasFilled && (
+                    <>
+                      <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
                       <button
-                        onClick={gridController.copy}
-                        className="btn-header-control-compact-copy"
+                        onClick={gridController.delete}
+                        className="btn-header-control-compact-danger"
                       >
-                        <Copy className="w-3 h-3 mr-1" />
-                        {gridController.getCopyLabel()}
-                      </button>
-                      <button
-                        onClick={gridController.cut}
-                        className="btn-header-control-compact-cut"
-                      >
-                        <Scissors className="w-3 h-3 mr-1" />
-                        {gridController.getCutLabel()}
+                        <Trash2 className="w-3 h-3 mr-1" />
+                        Delete
                       </button>
                     </>
                   )}
 
-                  {/* Paste - Show when clipboard has data and user has selection (Icy Blue) */}
-                  {gridController?.canPaste && selectionAnalysis.hasSelection && (
-                    <button
-                      onClick={gridController.paste}
-                      className="btn-header-control-compact-copy"
-                    >
-                      <ClipboardPaste className="w-3 h-3 mr-1" />
-                      {gridController.getPasteLabel()}
-                    </button>
-                  )}
+                  {/* Section 4: Lock, Unlock, Share */}
+                  {selectionAnalysis.hasFilled &&
+                    ((gridController.selection.lockableCount ?? 0) > 0 ||
+                      (gridController.selection.unlockableCount ?? 0) > 0 ||
+                      (gridController.selection.sharableCount ?? 0) > 0) && (
+                      <>
+                        <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
+                        {(gridController.selection.lockableCount ?? 0) > 0 &&
+                          gridController.lock && (
+                            <button
+                              onClick={gridController.lock}
+                              className="btn-header-control-compact-lock"
+                              title="Lock selected tubes"
+                            >
+                              <Lock className="w-3 h-3 mr-1" />
+                              Lock
+                            </button>
+                          )}
+                        {(gridController.selection.unlockableCount ?? 0) > 0 &&
+                          gridController.unlock && (
+                            <button
+                              onClick={gridController.unlock}
+                              disabled={gridController.selection.isUnlocking}
+                              className="btn-header-control-compact-lock disabled:opacity-50"
+                              title="Unlock selected tubes"
+                            >
+                              <Unlock className="w-3 h-3 mr-1" />
+                              {gridController.selection.isUnlocking ? 'Unlocking...' : 'Unlock'}
+                            </button>
+                          )}
+                        {(gridController.selection.sharableCount ?? 0) > 0 &&
+                          gridController.shareAccess && (
+                            <button
+                              onClick={gridController.shareAccess}
+                              className="btn-header-control-compact-share"
+                              title="Share access to locked tubes"
+                            >
+                              <Share2 className="w-3 h-3 mr-1" />
+                              Share
+                            </button>
+                          )}
+                      </>
+                    )}
                 </>
               )}
 
-              {/* Clear Selection - Always available */}
+              {/* Section 5: Clear (always last) */}
+              <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
               <button onClick={onClearSelection} className="btn-header-control-compact-secondary">
                 <X className="w-3 h-3 mr-1" />
                 Clear

@@ -69,6 +69,7 @@ interface GridPositionProps {
   onQuickEditCancel: () => void;
   // Lock indicator props (optional - for lock-enabled grids)
   isLockedOut?: boolean;
+  isLockedByCurrentUser?: boolean;
   lockOwnerName?: string;
   lockNote?: string;
 }
@@ -97,6 +98,7 @@ export const GridPosition = memo<GridPositionProps>(
     onQuickEditSave,
     onQuickEditCancel,
     isLockedOut,
+    isLockedByCurrentUser,
     lockOwnerName,
     lockNote,
   }) => {
@@ -204,12 +206,22 @@ export const GridPosition = memo<GridPositionProps>(
           />
         )}
 
-        {/* Lock indicator - bottom-left (only for tubes locked by others) */}
+        {/* Lock indicator - bottom-left */}
+        {/* Red lock for others' locks (with dimming), black lock for own locks (no dimming) */}
         {tube && isLockedOut && lockOwnerName && (
           <LockIndicator
             lockedByName={lockOwnerName}
             lockNote={lockNote}
             size={fontSize.positionFont}
+            variant="other"
+          />
+        )}
+        {tube && isLockedByCurrentUser && (
+          <LockIndicator
+            lockedByName="You"
+            lockNote={lockNote}
+            size={fontSize.positionFont}
+            variant="own"
           />
         )}
 

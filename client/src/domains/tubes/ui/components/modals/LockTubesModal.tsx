@@ -10,7 +10,7 @@
 
 import { useState } from 'react';
 
-import { Lock } from 'lucide-react';
+import { Info, Lock } from 'lucide-react';
 
 import { useLockTubesMutation } from '@domains/tubes/hooks';
 import { notifications } from '@shared/utils/notifications';
@@ -69,9 +69,21 @@ export function LockTubesModal({ tubeIds, onClose, onSuccess }: LockTubesModalPr
     }
   };
 
+  const tubeCount = tubeIds.length;
+  const buttonLabel = lockMutation.isPending
+    ? 'Locking...'
+    : `Lock ${tubeCount} Tube${tubeCount !== 1 ? 's' : ''}`;
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !lockMutation.isPending) {
+      e.preventDefault();
+      void handleLock();
+    }
+  };
+
   return (
     <BaseModal
-      title={`Lock ${tubeIds.length} Tube${tubeIds.length !== 1 ? 's' : ''}`}
+      title={`Lock ${tubeCount} Tube${tubeCount !== 1 ? 's' : ''}`}
       icon={<Lock size={24} className="text-white" />}
       onClose={onClose}
       className="max-w-md"
@@ -87,20 +99,24 @@ export function LockTubesModal({ tubeIds, onClose, onSuccess }: LockTubesModalPr
             type="text"
             value={lockNote}
             onChange={e => setLockNote(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="e.g., Project X - Donor 123"
             maxLength={100}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-action focus:border-action"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-action-focus focus:border-action-focus"
           />
           <p className="text-xs text-gray-500 mt-1">
-            Add an optional note to help others understand why these tubes are locked.
+            Add an optional note so others know why these tubes are locked.
           </p>
         </div>
 
         {/* Info text */}
-        <p className="text-sm text-gray-600">
-          Locking prevents other users from editing or moving these tubes. You can unlock them at
-          any time or share access with specific users.
-        </p>
+        <div className="flex items-start gap-2 text-sm text-gray-600">
+          <Info size={16} className="flex-shrink-0 mt-0.5" />
+          <p>
+            Locking prevents other users from editing or moving these tubes. You can unlock or share
+            access anytime.
+          </p>
+        </div>
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">
@@ -115,9 +131,10 @@ export function LockTubesModal({ tubeIds, onClose, onSuccess }: LockTubesModalPr
             type="button"
             onClick={handleLock}
             disabled={lockMutation.isPending}
-            className="px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50"
           >
-            {lockMutation.isPending ? 'Locking...' : 'Lock Tubes'}
+            <Lock size={16} />
+            {buttonLabel}
           </button>
         </div>
       </div>

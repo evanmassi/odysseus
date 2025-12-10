@@ -488,10 +488,11 @@ export function Dashboard() {
             paste: gridController.actions.paste,
             delete: gridController.actions.delete,
             canPaste: gridController.clipboard.hasData,
-            getCopyLabel: gridController.getCopyLabel,
-            getCutLabel: gridController.getCutLabel,
-            getPasteLabel: gridController.getPasteLabel,
             selection: gridController.selection,
+            // Lock actions
+            lock: gridController.actions.lock,
+            unlock: gridController.actions.unlock,
+            shareAccess: gridController.actions.shareAccess,
           }}
           isViewOnlySpace={isViewOnlySpace}
         />

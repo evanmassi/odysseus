@@ -279,6 +279,8 @@ export function TubeGrid({
 
             // Lock state for this tube
             const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
+            const isLockedByCurrentUser =
+              tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
             const lockOwnerName =
               tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
 
@@ -306,6 +308,7 @@ export function TubeGrid({
                 onQuickEditSave={() => {}}
                 onQuickEditCancel={() => setQuickEditMode(null)}
                 isLockedOut={isLockedOut}
+                isLockedByCurrentUser={isLockedByCurrentUser}
                 lockOwnerName={lockOwnerName}
                 lockNote={tube?.lockNote}
               />
@@ -320,7 +323,6 @@ export function TubeGrid({
         selectedCount={selectedPositions.size}
         hasFilledSelection={controller.selection.hasFilledSelection}
         isMixedSelection={controller.selection.isMixed}
-        clipboardCount={controller.clipboard.count}
         onClose={controller.contextMenu.hide}
         onOpen={controller.openModal}
         onDelete={controller.actions.delete}

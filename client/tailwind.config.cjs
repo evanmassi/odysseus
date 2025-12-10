@@ -88,6 +88,18 @@ export default {
           light: 'var(--color-warning-light)',
           border: 'var(--color-warning-border)',
         },
+        lock: {
+          bg: 'var(--color-lock-bg)',
+          hover: 'var(--color-lock-hover)',
+          text: 'var(--color-lock-text)',
+          btnText: 'var(--color-lock-btnText)',
+        },
+        share: {
+          bg: 'var(--color-share-bg)',
+          hover: 'var(--color-share-hover)',
+          text: 'var(--color-share-text)',
+          btnText: 'var(--color-share-btnText)',
+        },
         success: {
           bg: 'var(--color-success-bg)',
           hover: 'var(--color-success-hover)',

@@ -1,3 +1,10 @@
+/**
+ * Context Menu Component
+ *
+ * Windows 11-style context menu with clean, minimal design.
+ * Gray icons, subtle hover states, keyboard shortcuts on the right.
+ */
+
 import { useEffect, useRef } from 'react';
 
 import {
@@ -7,10 +14,10 @@ import {
   Copy,
   Scissors,
   ClipboardPaste,
-  X,
   Lock,
   Unlock,
   Share2,
+  type LucideIcon,
 } from 'lucide-react';
 
 interface ContextMenuProps {
@@ -19,15 +26,13 @@ interface ContextMenuProps {
   selectedCount: number;
   hasFilledSelection: boolean;
   isMixedSelection: boolean;
-  clipboardCount: number;
   onClose: () => void;
-  onOpen: () => void; // Unified modal opener
+  onOpen: () => void;
   onDelete: () => void;
   onCopy: () => void;
   onCut: () => void;
   onPaste: () => void;
   canPaste?: boolean;
-  // Lock-related props
   lockableCount?: number;
   unlockableCount?: number;
   sharableCount?: number;
@@ -37,13 +42,56 @@ interface ContextMenuProps {
   isUnlocking?: boolean;
 }
 
+/** Divider component for separating menu sections */
+function MenuDivider() {
+  return <div className="h-px bg-gray-200 my-1" />;
+}
+
+/** Menu item component */
+function MenuItem({
+  icon: Icon,
+  label,
+  shortcut,
+  onClick,
+  disabled = false,
+  danger = false,
+}: {
+  icon: LucideIcon;
+  label: string;
+  shortcut?: string;
+  onClick: () => void;
+  disabled?: boolean;
+  danger?: boolean;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`
+        w-full flex items-center justify-between py-2 px-3 rounded-md text-sm
+        transition-colors duration-150
+        disabled:opacity-40 disabled:cursor-not-allowed
+        ${danger ? 'text-gray-700 hover:bg-red-50 hover:text-red-600' : 'text-gray-700 hover:bg-gray-100'}
+      `}
+    >
+      <div className="flex items-center gap-3">
+        <Icon
+          size={16}
+          className={danger ? 'text-gray-400 group-hover:text-red-500' : 'text-gray-400'}
+        />
+        <span>{label}</span>
+      </div>
+      {shortcut && <span className="text-xs text-gray-400 font-mono ml-4">{shortcut}</span>}
+    </button>
+  );
+}
+
 export function ContextMenu({
   isVisible,
   position,
   selectedCount,
   hasFilledSelection,
   isMixedSelection,
-  clipboardCount,
   onClose,
   onOpen,
   onDelete,
@@ -61,22 +109,19 @@ export function ContextMenu({
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Calculate position once to keep menu in viewport
+  // Calculate position to keep menu in viewport
   const adjustedPosition = (() => {
-    // Use fixed size estimation to avoid recalculation
-    const estimatedWidth = 200;
-    const estimatedHeight = 300;
+    const estimatedWidth = 220;
+    const estimatedHeight = 320;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
     let { x, y } = position;
 
-    // Adjust horizontal position
     if (x + estimatedWidth > viewportWidth) {
       x = Math.max(10, viewportWidth - estimatedWidth - 10);
     }
 
-    // Adjust vertical position
     if (y + estimatedHeight > viewportHeight) {
       y = Math.max(10, viewportHeight - estimatedHeight - 10);
     }
@@ -84,7 +129,7 @@ export function ContextMenu({
     return { x, y };
   })();
 
-  // Handle click outside to close
+  // Handle click outside and escape to close
   useEffect(() => {
     if (!isVisible) return;
 
@@ -111,210 +156,135 @@ export function ContextMenu({
 
   if (!isVisible) return null;
 
-  // Helper: Generate dynamic action labels
-  const getLabel = (action: string, count: number): string => {
-    if (count === 0) return action;
-    if (count === 1) return `${action} Tube`;
-    return `${action} ${count} Tubes`;
-  };
+  // Determine Add/Edit label and icon
+  const isEditMode = hasFilledSelection && !isMixedSelection;
+  const openLabel = isEditMode ? 'Edit' : 'Add';
+  const OpenIcon = isEditMode ? Edit : Plus;
 
-  // Unified action label based on selection type
-  const getOpenLabel = () => {
-    if (isMixedSelection) {
-      return selectedCount === 1 ? 'Add Tube' : `Add ${selectedCount} Tubes`;
-    } else if (hasFilledSelection) {
-      return selectedCount === 1 ? 'Edit Tube' : `Edit ${selectedCount} Tubes`;
-    } else {
-      return selectedCount === 1 ? 'Add Tube' : `Add ${selectedCount} Tubes`;
-    }
-  };
-
-  const getOpenIcon = () => {
-    return hasFilledSelection && !isMixedSelection ? Edit : Plus;
-  };
-
-  // Smart action list - only show relevant actions
-  const actions = [
-    // Unified Open action - always show when positions selected (Edit/Add)
-    ...(selectedCount > 0
-      ? [
-          {
-            icon: getOpenIcon(),
-            label: getOpenLabel(),
-            shortcut: 'Enter',
-            onClick: onOpen,
-            variant: 'edit' as const, // Minty Frost - matches update/edit/add operations
-            disabled: false,
-          },
-        ]
-      : []),
-
-    // Delete, Copy, Cut - only for tubes that exist
-    ...(hasFilledSelection
-      ? [
-          {
-            icon: Trash2,
-            label: getLabel('Delete', selectedCount),
-            shortcut: 'Del',
-            onClick: onDelete,
-            variant: 'danger' as const,
-            disabled: false,
-          },
-          {
-            icon: Copy,
-            label: getLabel('Copy', selectedCount),
-            shortcut: 'Ctrl+C',
-            onClick: () => {
-              onCopy();
-              onClose(); // Close menu after copy
-            },
-            variant: 'copy' as const, // Icy Blue - matches copy operation
-            disabled: false,
-          },
-          {
-            icon: Scissors,
-            label: getLabel('Cut', selectedCount),
-            shortcut: 'Ctrl+X',
-            onClick: () => {
-              onCut();
-              onClose(); // Close menu after cut
-            },
-            variant: 'cut' as const, // Light Amber - matches cut/move operations
-            disabled: false,
-          },
-        ]
-      : []),
-
-    // Paste - show when clipboard has data and positions are selected
-    ...(canPaste && selectedCount > 0
-      ? [
-          {
-            icon: ClipboardPaste,
-            label: getLabel('Paste', clipboardCount),
-            shortcut: 'Ctrl+V',
-            onClick: () => {
-              onPaste();
-              onClose(); // Close menu after paste
-            },
-            variant: 'copy' as const, // Icy Blue - matches copy/paste operations
-            disabled: false,
-          },
-        ]
-      : []),
-
-    // Lock - show when there are lockable tubes
-    ...(lockableCount > 0 && onLock
-      ? [
-          {
-            icon: Lock,
-            label: lockableCount === 1 ? 'Lock Tube' : `Lock ${lockableCount} Tubes`,
-            shortcut: 'Shift+L',
-            onClick: () => {
-              onLock();
-              onClose();
-            },
-            variant: 'edit' as const, // Minty Frost - matches update operations
-            disabled: false,
-          },
-        ]
-      : []),
-
-    // Unlock - show when there are unlockable tubes (user owns the locks)
-    ...(unlockableCount > 0 && onUnlock
-      ? [
-          {
-            icon: Unlock,
-            label: isUnlocking
-              ? 'Unlocking...'
-              : unlockableCount === 1
-                ? 'Unlock Tube'
-                : `Unlock ${unlockableCount} Tubes`,
-            shortcut: 'Shift+L',
-            onClick: () => {
-              if (!isUnlocking) {
-                onUnlock();
-                onClose();
-              }
-            },
-            variant: 'edit' as const,
-            disabled: isUnlocking,
-          },
-        ]
-      : []),
-
-    // Share Access - show when there are sharable tubes (user owns the locks)
-    ...(sharableCount > 0 && onShare
-      ? [
-          {
-            icon: Share2,
-            label: sharableCount === 1 ? 'Share Access' : `Share ${sharableCount} Tubes`,
-            shortcut: 'Shift+S',
-            onClick: () => {
-              onShare();
-              onClose();
-            },
-            variant: 'copy' as const, // Icy Blue
-            disabled: false,
-          },
-        ]
-      : []),
-  ];
+  // Check which sections have content
+  const hasClipboardSection = hasFilledSelection || (canPaste && selectedCount > 0);
+  // Boolean OR logic for checking if any lock action is available
+  /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+  const hasLockSection =
+    (lockableCount > 0 && onLock) ||
+    (unlockableCount > 0 && onUnlock) ||
+    (sharableCount > 0 && onShare);
+  /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-odysseus-surface rounded-xl shadow-2xl border border-odysseus-border p-2 min-w-48 animate-in slide-in-from-top-2 duration-200"
+      className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 min-w-52"
       style={{
         left: adjustedPosition.x,
         top: adjustedPosition.y,
       }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b border-odysseus-border">
-        <span className="text-sm font-bold text-odysseus-dark">
-          {selectedCount} {selectedCount === 1 ? 'Tube' : 'Tubes'} Selected
-        </span>
-        <button
-          onClick={onClose}
-          className="p-1 rounded-lg hover:bg-odysseus-surface-hover text-odysseus-muted hover:text-odysseus-dark transition-all duration-200"
-        >
-          <X size={14} />
-        </button>
-      </div>
+      {/* Section 1: Add/Edit */}
+      {selectedCount > 0 && (
+        <>
+          <div className="px-1">
+            <MenuItem icon={OpenIcon} label={openLabel} shortcut="Enter" onClick={onOpen} />
+          </div>
+          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for divider visibility */}
+          {(hasClipboardSection || hasLockSection || hasFilledSelection) && <MenuDivider />}
+        </>
+      )}
 
-      {/* Actions */}
-      <div className="p-2 space-y-2">
-        {actions.map(({ icon: Icon, label, shortcut, onClick, variant, disabled = false }) => {
-          const baseClasses =
-            'w-full flex items-center justify-between py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed';
+      {/* Section 2: Copy, Cut, Paste */}
+      {hasClipboardSection && (
+        <>
+          <div className="px-1">
+            {hasFilledSelection && (
+              <>
+                <MenuItem
+                  icon={Copy}
+                  label="Copy"
+                  shortcut="Ctrl+C"
+                  onClick={() => {
+                    onCopy();
+                    onClose();
+                  }}
+                />
+                <MenuItem
+                  icon={Scissors}
+                  label="Cut"
+                  shortcut="Ctrl+X"
+                  onClick={() => {
+                    onCut();
+                    onClose();
+                  }}
+                />
+              </>
+            )}
+            {canPaste && selectedCount > 0 && (
+              <MenuItem
+                icon={ClipboardPaste}
+                label="Paste"
+                shortcut="Ctrl+V"
+                onClick={() => {
+                  onPaste();
+                  onClose();
+                }}
+              />
+            )}
+          </div>
+          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for divider visibility */}
+          {(hasLockSection || hasFilledSelection) && <MenuDivider />}
+        </>
+      )}
 
-          const variantClasses = {
-            edit: 'bg-edit-bg text-white hover:bg-edit-hover',
-            copy: 'bg-copy-bg text-white hover:bg-copy-hover',
-            cut: 'bg-cut-bg text-white hover:bg-cut-hover',
-            danger: 'bg-danger-bg text-white hover:bg-danger-hover',
-          };
+      {/* Section 3: Lock, Unlock, Share */}
+      {hasLockSection && (
+        <>
+          <div className="px-1">
+            {lockableCount > 0 && onLock && (
+              <MenuItem
+                icon={Lock}
+                label="Lock"
+                shortcut="Shift+L"
+                onClick={() => {
+                  onLock();
+                  onClose();
+                }}
+              />
+            )}
+            {unlockableCount > 0 && onUnlock && (
+              <MenuItem
+                icon={Unlock}
+                label={isUnlocking ? 'Unlocking...' : 'Unlock'}
+                shortcut="Shift+L"
+                onClick={() => {
+                  if (!isUnlocking) {
+                    onUnlock();
+                    onClose();
+                  }
+                }}
+                disabled={isUnlocking}
+              />
+            )}
+            {sharableCount > 0 && onShare && (
+              <MenuItem
+                icon={Share2}
+                label="Share"
+                shortcut="Shift+S"
+                onClick={() => {
+                  onShare();
+                  onClose();
+                }}
+              />
+            )}
+          </div>
+          {hasFilledSelection && <MenuDivider />}
+        </>
+      )}
 
-          return (
-            <button
-              key={label}
-              onClick={onClick}
-              disabled={disabled}
-              className={`${baseClasses} ${variantClasses[variant]}`}
-            >
-              <div className="flex items-center space-x-3 flex-1">
-                <Icon size={16} />
-                <span>{label}</span>
-              </div>
-              {shortcut && (
-                <span className="text-xs text-white/80 font-mono bg-black/20 px-2 py-1 rounded ml-4">
-                  {shortcut.toLowerCase()}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+      {/* Section 4: Delete (at bottom) */}
+      {hasFilledSelection && (
+        <div className="px-1">
+          <MenuItem icon={Trash2} label="Delete" shortcut="Del" onClick={onDelete} danger />
+        </div>
+      )}
     </div>
   );
 }
