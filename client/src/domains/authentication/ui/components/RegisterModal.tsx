@@ -24,7 +24,8 @@ import {
   type PasswordRequirements as PasswordConfig,
 } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
+import odysseusLogo from '@shared/assets/odysseus-logo-altered.png';
+import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.png';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';
@@ -120,13 +121,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
   // Helper function to get field border class for container
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'border-gray-300';
+    if (!touched) return 'border-slate-200';
     return isValid ? 'border-green-500' : 'input-field-error';
   };
 
   // Helper function to get label color class
   const getLabelColorClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'text-gray-700';
+    if (!touched) return 'text-slate-400';
     return isValid ? 'text-green-700' : 'text-validation-error-label';
   };
 
@@ -236,17 +237,19 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50 animate-in fade-in duration-150">
       <div
         ref={trapRef}
-        className="bg-odysseus-surface rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl shadow-blue-500/20 border border-odysseus-border animate-zoom-in-95 max-h-[95vh] overflow-y-auto"
+        className="bg-odysseus-surface rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl shadow-black/10 animate-zoom-in-95 max-h-[95vh] overflow-y-auto"
       >
-        <div className="text-center mb-5">
-          <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
-            <img src={xcellbioLogo} alt="XcellBio" className="w-full h-full object-contain" />
+        <div className="text-center mb-4">
+          <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
+            <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
           </div>
-          <h2 className="text-xl font-bold text-odysseus-dark mb-1">Welcome to Odysseus</h2>
-          <p className="text-sm text-odysseus-muted">Set up your account to get started</p>
+          <div className="mx-auto mb-4 flex items-center justify-center">
+            <img src={odysseusLogo} alt="Odysseus" className="h-10 w-auto" />
+          </div>
+          <p className="text-sm text-slate-400">Welcome · Create your account to get started</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {/* Name Fields Group */}
           <div className="grid grid-cols-2 gap-3 items-start">
             {/* First Name Column with Username */}
@@ -256,9 +259,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
               >
                 <label
                   htmlFor="firstName"
-                  className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
+                  className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
                 >
-                  First Name <span className="text-red-500">*</span>
+                  First name <span className="text-red-500">*</span>
                 </label>
                 <div className="relative px-3 py-2">
                   <UserRound
@@ -299,9 +302,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="lastName"
-                className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
+                className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
               >
-                Last Name <span className="text-red-500">*</span>
+                Last name <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <UserRound
@@ -325,7 +328,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           </div>
 
           {/* Contact & Work Info Group */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             {/* Email */}
             <div className="space-y-1">
               <div
@@ -333,7 +336,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
               >
                 <label
                   htmlFor="email"
-                  className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
+                  className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
                 >
                   Email <span className="text-red-500">*</span>
                 </label>
@@ -370,10 +373,10 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
             <div className="grid grid-cols-2 gap-3 items-start">
               {/* Department */}
-              <div className="auth-input-container border-gray-300">
+              <div className="auth-input-container border-slate-200">
                 <label
                   htmlFor="department"
-                  className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-700"
+                  className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium text-slate-400"
                 >
                   Department
                 </label>
@@ -396,10 +399,10 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
               </div>
 
               {/* Position */}
-              <div className="auth-input-container border-gray-300">
+              <div className="auth-input-container border-slate-200">
                 <label
                   htmlFor="position"
-                  className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-700"
+                  className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium text-slate-400"
                 >
                   Position
                 </label>
@@ -443,14 +446,14 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           </div>
 
           {/* Password Fields Group */}
-          <div className="pt-4 border-t border-odysseus-border space-y-3.5">
+          <div className="pt-3 border-t border-odysseus-border space-y-2">
             <div>
               <div
                 className={`auth-input-container ${getFieldBorderClass(passwordTouched, passwordMeetsRequirements)}`}
               >
                 <label
                   htmlFor="password"
-                  className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
+                  className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
                 >
                   Password <span className="text-red-500">*</span>
                 </label>
@@ -499,9 +502,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
               >
                 <label
                   htmlFor="confirmPassword"
-                  className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
+                  className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
                 >
-                  Confirm Password <span className="text-red-500">*</span>
+                  Confirm password <span className="text-red-500">*</span>
                 </label>
                 <div className="relative px-3 py-2">
                   <KeyRound
@@ -547,15 +550,12 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           </button>
         </form>
 
-        <div className="mt-3 p-2 bg-frost rounded-lg border border-action/30">
+        <div className="mt-3 p-2 bg-slate-50 rounded-lg">
           <div className="flex items-start space-x-1.5">
-            <Info size={18} className="text-action-hover flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-xs font-bold text-action-hover mb-0.5">Registration</h3>
-              <p className="text-xs text-action-hover/90 leading-snug">
-                New users require admin approval before accessing the system.
-              </p>
-            </div>
+            <Info size={16} className="text-slate-400 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-slate-500 leading-snug">
+              New users require admin approval before accessing the system.
+            </p>
           </div>
         </div>
 

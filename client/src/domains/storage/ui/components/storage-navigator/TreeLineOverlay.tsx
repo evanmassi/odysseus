@@ -16,9 +16,10 @@ interface TreeLineOverlayProps {
   expandedRacks: Set<string>;
 }
 
-// Visual alignment offset to position lines at the bottom-left corner of button content
-// Accounts for border (1px) + left padding (~10px) to align with icon/chevron
-const LINE_OFFSET = 12;
+// Visual alignment offset to position lines at the left edge of button content
+// Aligns with the icon area of each button
+const LINE_OFFSET = 11;
+const VERTICAL_OFFSET = -1;
 
 export function TreeLineOverlay({ expandedTanks, expandedRacks }: TreeLineOverlayProps) {
   const [lines, setLines] = useState<TreeLine[]>([]);
@@ -58,7 +59,7 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks }: TreeLineOverla
 
         const rackRect = rackButton.getBoundingClientRect();
         const rackX = rackRect.left - containerRect.left + LINE_OFFSET;
-        const rackY = rackRect.top - containerRect.top + rackRect.height / 2;
+        const rackY = rackRect.top - containerRect.top + rackRect.height / 2 + VERTICAL_OFFSET;
 
         // Track last rack's Y position for vertical line ending
         lastRackY = rackY;
@@ -70,8 +71,8 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks }: TreeLineOverla
           y1: rackY,
           x2: rackX,
           y2: rackY,
-          strokeWidth: 3,
-          color: 'var(--color-storage-tank-bg)',
+          strokeWidth: 1.5,
+          color: '#cbd5e1', // slate-300
           type: 'rack-branch',
         });
 
@@ -90,7 +91,7 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks }: TreeLineOverla
 
             const boxRect = boxButton.getBoundingClientRect();
             const boxX = boxRect.left - containerRect.left + LINE_OFFSET;
-            const boxY = boxRect.top - containerRect.top + boxRect.height / 2;
+            const boxY = boxRect.top - containerRect.top + boxRect.height / 2 + VERTICAL_OFFSET;
 
             // Track last box's Y position for vertical line ending
             lastBoxY = boxY;
@@ -102,8 +103,8 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks }: TreeLineOverla
               y1: boxY,
               x2: boxX,
               y2: boxY,
-              strokeWidth: 2,
-              color: 'var(--color-storage-rack-bg)',
+              strokeWidth: 1.5,
+              color: '#cbd5e1', // slate-300
               type: 'box-branch',
             });
 
@@ -118,8 +119,8 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks }: TreeLineOverla
               y1: rackRect.bottom - containerRect.top - 2,
               x2: rackX,
               y2: lastBoxY,
-              strokeWidth: 2,
-              color: 'var(--color-storage-rack-bg)',
+              strokeWidth: 1.5,
+              color: '#cbd5e1', // slate-300
               type: 'rack-vertical',
             });
           }
@@ -136,8 +137,8 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks }: TreeLineOverla
           y1: tankBottomY,
           x2: tankX,
           y2: lastRackY,
-          strokeWidth: 3,
-          color: 'var(--color-storage-tank-bg)',
+          strokeWidth: 1.5,
+          color: '#cbd5e1', // slate-300
           type: 'tank-vertical',
         });
       }
@@ -188,7 +189,7 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks }: TreeLineOverla
           y2={line.y2}
           stroke={line.color}
           strokeWidth={line.strokeWidth}
-          opacity={0.5}
+          opacity={0.7}
           className="tree-line"
         />
       ))}

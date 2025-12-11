@@ -1,4 +1,4 @@
-import { useState, lazy } from 'react';
+import { useState, lazy, useEffect, useRef } from 'react';
 
 import {
   LogOut,
@@ -20,8 +20,7 @@ import {
 
 import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
-import odysseusLogo from '@shared/assets/frozen-odysseus-logo.png';
-import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
+import odysseusLogo from '@shared/assets/odysseus-logo.png';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { SuspenseBoundary } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
@@ -112,6 +111,23 @@ export function AppHeader({
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
 
+  // Ref for hamburger menu to detect outside clicks
+  const hamburgerMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close hamburger menu when clicking outside
+  useEffect(() => {
+    if (!showHamburgerMenu) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (hamburgerMenuRef.current && !hamburgerMenuRef.current.contains(e.target as Node)) {
+        setShowHamburgerMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showHamburgerMenu]);
+
   const handleLogout = () => {
     // Socket cleanup is now handled centrally by AppBootstrapService
     void logout();
@@ -178,168 +194,163 @@ export function AppHeader({
   })();
 
   return (
-    <header className="bg-gradient-to-r from-frost to-ice-400 border-b border-ice-400/20 px-4 py-0.5">
+    <header className="bg-white px-4 py-0.5">
       <div className="flex justify-between items-center">
-        {/* Far Left: Logos */}
-        <div className="flex items-center space-x-4">
-          <img
-            src={xcellbioLogo}
-            alt="XcellBio"
-            className="h-8 w-auto opacity-90 drop-shadow-md drop-shadow-[0_0_4px_rgba(255,255,255,0.25)]"
-          />
-          <img
-            src={odysseusLogo}
-            alt="Odysseus"
-            className="h-8 w-auto opacity-90 scale-x-[1.4] mt-1 drop-shadow-md drop-shadow-[0_0_4px_rgba(255,255,255,0.25)]"
-          />
+        {/* Far Left: Logo */}
+        <div className="flex items-center">
+          <img src={odysseusLogo} alt="Odysseus" className="h-8 w-auto" />
         </div>
 
         {/* Right Side: Controls + Search + Hamburger */}
         <div className="flex items-center gap-3">
-          {/* Compact Single-Row Control Buttons */}
+          {/* Action Toolbar */}
           {selectionAnalysis.hasSelection && gridController && (
-            <div className="flex items-center space-x-2">
-              {/* Selection count - only show when more than 1 selected */}
-              {selectedPositions.size > 1 && (
+            <div className="flex items-center space-x-1">
+              {gridController && (
                 <>
-                  <span className="text-edit-bg text-sm font-medium">
-                    {selectedPositions.size} selected
-                  </span>
-                  <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
-                </>
-              )}
+                  {/* Selection count - only show when more than 1 selected */}
+                  {selectedPositions.size > 1 && (
+                    <span className="text-slate-400 text-xs mr-2">
+                      [{selectedPositions.size} selected]
+                    </span>
+                  )}
 
-              {/* Show view-only indicator if in view-only mode - no tube operations allowed */}
-              {isViewOnlySpace ? (
-                <div className="text-white/80 text-sm px-3 py-1 bg-amber-500/60 rounded-lg flex items-center gap-2">
-                  <span className="font-medium">View Only</span>
-                </div>
-              ) : (
-                <>
-                  {/* Section 1: Add/Edit */}
-                  <button
-                    onClick={gridController.openModal}
-                    className="btn-header-control-compact-edit"
-                    title={
-                      gridController.selection.isMixed
-                        ? 'Add tubes to mixed selection (overwrite prompt will appear)'
-                        : gridController.selection.hasFilledSelection
-                          ? 'Edit selected tube(s)'
-                          : 'Add new tube(s) to selected position(s)'
-                    }
-                  >
-                    {gridController.selection.hasFilledSelection &&
-                    !gridController.selection.isMixed ? (
-                      <Edit className="w-3 h-3 mr-1" />
-                    ) : (
-                      <Plus className="w-3 h-3 mr-1" />
-                    )}
-                    {gridController.selection.hasFilledSelection &&
-                    !gridController.selection.isMixed
-                      ? 'Edit'
-                      : 'Add'}
-                  </button>
-
-                  {/* Section 2: Copy, Cut, Paste */}
-                  {(selectionAnalysis.hasFilled || gridController?.canPaste) && (
+                  {/* Action buttons - hidden in view-only mode (banner shows on grid instead) */}
+                  {!isViewOnlySpace && (
                     <>
-                      <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
+                      {/* Section 1: Add/Edit */}
+                      <button
+                        onClick={gridController.openModal}
+                        className="btn-header-ghost"
+                        title={
+                          gridController.selection.isMixed
+                            ? 'Add tubes to mixed selection (overwrite prompt will appear)'
+                            : gridController.selection.hasFilledSelection
+                              ? 'Edit selected tube(s)'
+                              : 'Add new tube(s) to selected position(s)'
+                        }
+                      >
+                        {gridController.selection.hasFilledSelection &&
+                        !gridController.selection.isMixed ? (
+                          <Edit className="w-3 h-3 mr-1" />
+                        ) : (
+                          <Plus className="w-3 h-3 mr-1" />
+                        )}
+                        {gridController.selection.hasFilledSelection &&
+                        !gridController.selection.isMixed
+                          ? 'Edit'
+                          : 'Add'}
+                      </button>
+
+                      {/* Section 2: Copy, Cut, Paste */}
+                      {(selectionAnalysis.hasFilled || gridController?.canPaste) && (
+                        <>
+                          {selectionAnalysis.hasFilled && (
+                            <>
+                              <button
+                                onClick={gridController.copy}
+                                className="btn-header-ghost"
+                                title="Copy selected tube(s)"
+                              >
+                                <Copy className="w-3 h-3 mr-1" />
+                                Copy
+                              </button>
+                              <button
+                                onClick={gridController.cut}
+                                className="btn-header-ghost"
+                                title="Cut selected tube(s)"
+                              >
+                                <Scissors className="w-3 h-3 mr-1" />
+                                Cut
+                              </button>
+                            </>
+                          )}
+                          {gridController?.canPaste && selectionAnalysis.hasSelection && (
+                            <button
+                              onClick={gridController.paste}
+                              className="btn-header-ghost"
+                              title="Paste tube(s)"
+                            >
+                              <ClipboardPaste className="w-3 h-3 mr-1" />
+                              Paste
+                            </button>
+                          )}
+                        </>
+                      )}
+
+                      {/* Section 3: Delete */}
                       {selectionAnalysis.hasFilled && (
                         <>
+                          <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
                           <button
-                            onClick={gridController.copy}
-                            className="btn-header-control-compact-copy"
+                            onClick={gridController.delete}
+                            className="btn-header-ghost-danger"
+                            title="Delete selected tube(s)"
                           >
-                            <Copy className="w-3 h-3 mr-1" />
-                            Copy
-                          </button>
-                          <button
-                            onClick={gridController.cut}
-                            className="btn-header-control-compact-cut"
-                          >
-                            <Scissors className="w-3 h-3 mr-1" />
-                            Cut
+                            <Trash2 className="w-3 h-3 mr-1" />
+                            Delete
                           </button>
                         </>
                       )}
-                      {gridController?.canPaste && selectionAnalysis.hasSelection && (
-                        <button
-                          onClick={gridController.paste}
-                          className="btn-header-control-compact-copy"
-                        >
-                          <ClipboardPaste className="w-3 h-3 mr-1" />
-                          Paste
-                        </button>
-                      )}
+
+                      {/* Section 4: Lock, Unlock, Share */}
+                      {selectionAnalysis.hasFilled &&
+                        ((gridController.selection.lockableCount ?? 0) > 0 ||
+                          (gridController.selection.unlockableCount ?? 0) > 0 ||
+                          (gridController.selection.sharableCount ?? 0) > 0) && (
+                          <>
+                            <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
+                            {(gridController.selection.lockableCount ?? 0) > 0 &&
+                              gridController.lock && (
+                                <button
+                                  onClick={gridController.lock}
+                                  className="btn-header-ghost"
+                                  title="Lock selected tube(s)"
+                                >
+                                  <Lock className="w-3 h-3 mr-1" />
+                                  Lock
+                                </button>
+                              )}
+                            {(gridController.selection.unlockableCount ?? 0) > 0 &&
+                              gridController.unlock && (
+                                <button
+                                  onClick={gridController.unlock}
+                                  disabled={gridController.selection.isUnlocking}
+                                  className="btn-header-ghost disabled:opacity-50"
+                                  title="Unlock selected tube(s)"
+                                >
+                                  <Unlock className="w-3 h-3 mr-1" />
+                                  {gridController.selection.isUnlocking ? 'Unlocking...' : 'Unlock'}
+                                </button>
+                              )}
+                            {(gridController.selection.sharableCount ?? 0) > 0 &&
+                              gridController.shareAccess && (
+                                <button
+                                  onClick={gridController.shareAccess}
+                                  className="btn-header-ghost"
+                                  title="Share access to locked tube(s)"
+                                >
+                                  <Share2 className="w-3 h-3 mr-1" />
+                                  Share
+                                </button>
+                              )}
+                          </>
+                        )}
                     </>
                   )}
 
-                  {/* Section 3: Delete */}
-                  {selectionAnalysis.hasFilled && (
-                    <>
-                      <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
-                      <button
-                        onClick={gridController.delete}
-                        className="btn-header-control-compact-danger"
-                      >
-                        <Trash2 className="w-3 h-3 mr-1" />
-                        Delete
-                      </button>
-                    </>
-                  )}
-
-                  {/* Section 4: Lock, Unlock, Share */}
-                  {selectionAnalysis.hasFilled &&
-                    ((gridController.selection.lockableCount ?? 0) > 0 ||
-                      (gridController.selection.unlockableCount ?? 0) > 0 ||
-                      (gridController.selection.sharableCount ?? 0) > 0) && (
-                      <>
-                        <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
-                        {(gridController.selection.lockableCount ?? 0) > 0 &&
-                          gridController.lock && (
-                            <button
-                              onClick={gridController.lock}
-                              className="btn-header-control-compact-lock"
-                              title="Lock selected tubes"
-                            >
-                              <Lock className="w-3 h-3 mr-1" />
-                              Lock
-                            </button>
-                          )}
-                        {(gridController.selection.unlockableCount ?? 0) > 0 &&
-                          gridController.unlock && (
-                            <button
-                              onClick={gridController.unlock}
-                              disabled={gridController.selection.isUnlocking}
-                              className="btn-header-control-compact-lock disabled:opacity-50"
-                              title="Unlock selected tubes"
-                            >
-                              <Unlock className="w-3 h-3 mr-1" />
-                              {gridController.selection.isUnlocking ? 'Unlocking...' : 'Unlock'}
-                            </button>
-                          )}
-                        {(gridController.selection.sharableCount ?? 0) > 0 &&
-                          gridController.shareAccess && (
-                            <button
-                              onClick={gridController.shareAccess}
-                              className="btn-header-control-compact-share"
-                              title="Share access to locked tubes"
-                            >
-                              <Share2 className="w-3 h-3 mr-1" />
-                              Share
-                            </button>
-                          )}
-                      </>
-                    )}
+                  {/* Section 5: Clear (always last, visible even in view-only mode) */}
+                  {!isViewOnlySpace && <div className="w-px h-4 bg-slate-300 mx-0.5"></div>}
+                  <button
+                    onClick={onClearSelection}
+                    className="btn-header-ghost"
+                    title="Clear selection"
+                  >
+                    <X className="w-3 h-3 mr-1" />
+                    Clear
+                  </button>
                 </>
               )}
-
-              {/* Section 5: Clear (always last) */}
-              <div className="w-0.5 h-4 bg-white/60 mx-1"></div>
-              <button onClick={onClearSelection} className="btn-header-control-compact-secondary">
-                <X className="w-3 h-3 mr-1" />
-                Clear
-              </button>
             </div>
           )}
 
@@ -349,80 +360,84 @@ export function AppHeader({
           </div>
 
           {/* Hamburger Menu */}
-          <div className="relative">
+          <div className="relative" ref={hamburgerMenuRef}>
             <button
               onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
-              className="btn-header-menu text-white"
+              className="btn-header-ghost p-1.5"
             >
               <Menu size={20} />
             </button>
 
-            {/* Hamburger Menu Dropdown */}
+            {/* Hamburger Menu Dropdown - Windows 11 style like context menu */}
             {showHamburgerMenu && (
-              <div className="absolute top-10 right-0 bg-white rounded-lg shadow-xl border border-gray-200 py-1 z-50 w-auto whitespace-nowrap">
+              <div className="absolute top-10 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-50 min-w-48">
                 {/* User Info at Top */}
                 {isAuthenticated && user && (
-                  <>
-                    <div className="px-4 py-1.5 bg-gray-50 border-b border-gray-100">
-                      <div className="flex items-center space-x-2 text-sm">
-                        <UserRound size={20} className="text-action-hover" />
-                        <span className="text-action-hover font-semibold">{user.username}</span>
-                      </div>
+                  <div className="px-3 py-2 mb-1">
+                    <div className="flex items-center gap-3">
+                      <UserRound size={16} className="text-gray-400" />
+                      <span className="text-sm text-gray-700 font-medium">{user.username}</span>
                     </div>
-                  </>
+                  </div>
                 )}
+
+                <div className="h-px bg-gray-200 my-1" />
 
                 {/* User Settings */}
-                <button
-                  {...userSettingsTriggerProps}
-                  onClick={() => {
-                    setShowUserSettings(true);
-                    setShowHamburgerMenu(false);
-                  }}
-                  className="menu-item"
-                >
-                  <Settings size={20} />
-                  <span>{user?.role === 'admin' ? 'User Settings' : 'Settings'}</span>
-                </button>
-
-                {/* Storage Management */}
-                <button
-                  {...storageManagementTriggerProps}
-                  onClick={() => {
-                    setShowStorageManagement(true);
-                    setShowHamburgerMenu(false);
-                  }}
-                  className="menu-item"
-                >
-                  <TankIcon size={20} />
-                  <span>Manage Storage</span>
-                </button>
-
-                {/* Admin Settings - Only show to admins */}
-                {user?.role === 'admin' && (
+                <div className="px-1">
                   <button
-                    {...adminSettingsTriggerProps}
+                    {...userSettingsTriggerProps}
                     onClick={() => {
-                      setShowAdminPanel(true);
+                      setShowUserSettings(true);
                       setShowHamburgerMenu(false);
                     }}
-                    className="menu-item text-danger-hover"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                   >
-                    <ShieldUser size={20} />
-                    <span>Admin Settings</span>
+                    <Settings size={16} className="text-gray-400" />
+                    <span>{user?.role === 'admin' ? 'User Settings' : 'Settings'}</span>
                   </button>
-                )}
 
-                <hr className="my-0.5" />
-                <div className="bg-gray-50">
+                  {/* Storage Management */}
+                  <button
+                    {...storageManagementTriggerProps}
+                    onClick={() => {
+                      setShowStorageManagement(true);
+                      setShowHamburgerMenu(false);
+                    }}
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <TankIcon size={16} className="text-gray-400" />
+                    <span>Manage Storage</span>
+                  </button>
+
+                  {/* Admin Settings - Only show to admins */}
+                  {user?.role === 'admin' && (
+                    <button
+                      {...adminSettingsTriggerProps}
+                      onClick={() => {
+                        setShowAdminPanel(true);
+                        setShowHamburgerMenu(false);
+                      }}
+                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                    >
+                      <ShieldUser size={16} className="text-gray-400" />
+                      <span>Admin Settings</span>
+                    </button>
+                  )}
+                </div>
+
+                <div className="h-px bg-gray-200 my-1" />
+
+                {/* Logout */}
+                <div className="px-1">
                   <button
                     onClick={() => {
                       handleLogout();
                       setShowHamburgerMenu(false);
                     }}
-                    className="menu-item"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors"
                   >
-                    <LogOut size={20} />
+                    <LogOut size={16} className="text-gray-400" />
                     <span>Logout</span>
                   </button>
                 </div>

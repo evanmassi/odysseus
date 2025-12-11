@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
-import { ScanEye } from 'lucide-react';
 
 import {
   useGridDragSelection,
@@ -37,10 +36,6 @@ interface TubeGridProps {
   gridController: GridControllerReturn;
   // Lock context (optional - for lock-enabled grids)
   lockContext?: LockContext;
-  // View-only mode (container assigned to another user)
-  isViewOnlySpace?: boolean;
-  // Name of the user who owns this space (for display)
-  spaceOwnerName?: string;
 }
 
 /**
@@ -59,8 +54,6 @@ export function TubeGrid({
   _onAddTubes,
   gridController,
   lockContext,
-  isViewOnlySpace = false,
-  spaceOwnerName,
 }: TubeGridProps) {
   // Component manages its own selection via props, no need for store selection
 
@@ -231,19 +224,6 @@ export function TubeGrid({
 
   return (
     <div className="w-full h-full flex flex-col">
-      {/* View-Only Banner */}
-      {isViewOnlySpace && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-400 rounded-lg px-4 py-2 mb-3 flex items-center justify-center gap-3 shadow-sm">
-          <ScanEye className="w-5 h-5 text-amber-600 flex-shrink-0" />
-          <p className="text-sm text-amber-600">
-            <span className="font-semibold text-amber-700">View only</span>
-            {' · '}
-            Assigned to <span className="font-bold">{spaceOwnerName ?? 'another user'}</span>. You
-            can view, but not modify, tubes here.
-          </p>
-        </div>
-      )}
-
       {/* Main Grid Container */}
       <div className="flex-1 flex items-center justify-center">
         <div

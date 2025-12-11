@@ -57,6 +57,29 @@
       0 0 8px 6px var(--focus-ring-blur);
   }
 
+  /* Modern search input - background tint, no border until focus */
+  .input-search {
+    @apply flex h-8 w-full rounded-lg px-2 py-1 text-xs;
+    @apply bg-slate-100 border border-transparent;
+    @apply placeholder:text-slate-400;
+    @apply disabled:cursor-not-allowed disabled:opacity-50;
+    transition:
+      background-color 200ms,
+      border-color 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .input-search:focus {
+    @apply bg-white border-slate-200;
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: var(--focus-ring-offset);
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
   /* Form field inputs (ValidatedInput component) */
   .input-form-field {
     transition:

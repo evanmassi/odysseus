@@ -9,8 +9,10 @@
 
 import React, { useState } from 'react';
 
-import { CheckCircle, Copy, Check, Clock } from 'lucide-react';
+import { Copy, Check, Info } from 'lucide-react';
 
+import odysseusLogo from '@shared/assets/odysseus-logo-altered.png';
+import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.png';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 
 export interface RegistrationSuccessModalProps {
@@ -22,14 +24,14 @@ export interface RegistrationSuccessModalProps {
 export function RegistrationSuccessModal({
   username,
   status,
-  onClose
+  onClose,
 }: RegistrationSuccessModalProps) {
   const [copied, setCopied] = useState(false);
 
   // Focus trap for keyboard accessibility
   const trapRef = useFocusTrap({
     isOpen: true,
-    restoreFocus: true
+    restoreFocus: true,
   });
 
   const handleCopyUsername = async () => {
@@ -54,98 +56,76 @@ export function RegistrationSuccessModal({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-[60] animate-in fade-in duration-150">
-      <div ref={trapRef} className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-blue-500/20 border border-odysseus-border animate-zoom-in-95">
-        {/* Success Icon */}
-        <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
-            <CheckCircle className="w-10 h-10 text-white" />
+      <div
+        ref={trapRef}
+        className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10 animate-zoom-in-95"
+      >
+        {/* Logo Section */}
+        <div className="text-center mb-4">
+          <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
+            <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
           </div>
-        </div>
-
-        {/* Heading */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-odysseus-dark">
-            Account Created Successfully
-          </h2>
+          <div className="mx-auto mb-4 flex items-center justify-center">
+            <img src={odysseusLogo} alt="Odysseus" className="h-10 w-auto" />
+          </div>
+          <p className="text-sm text-slate-400">
+            {isPending
+              ? 'Account created · awaiting admin approval'
+              : 'Account created · ready to sign in'}
+          </p>
         </div>
 
         {/* Username Display with Copy */}
         <div className="mb-6">
-          <div className="text-xs font-semibold uppercase tracking-wide text-gray-700 mb-2">
-            Your Username
-          </div>
-          <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-300 rounded-lg">
-            <span className="flex-1 font-mono text-base font-semibold text-odysseus-dark" role="status" aria-label={`Your username is ${username}`}>
-              {username}
+          <div className="auth-input-container border-slate-200 relative">
+            <span className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium text-slate-400">
+              Your username
             </span>
-            <button
-              onClick={handleCopyUsername}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-odysseus-primary hover:text-odysseus-accent hover:bg-info-light rounded transition-colors"
-              type="button"
-              aria-label={`Copy username ${username}`}
-            >
-              {copied ? (
-                <>
-                  <Check size={14} />
-                  <span>Copied!</span>
-                </>
-              ) : (
-                <>
-                  <Copy size={14} />
-                  <span>Copy</span>
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-2 px-3 py-2">
+              <span
+                className="flex-1 font-mono text-sm font-semibold text-odysseus-dark"
+                role="status"
+                aria-label={`Your username is ${username}`}
+              >
+                {username}
+              </span>
+              <button
+                onClick={handleCopyUsername}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-action hover:text-action-hover rounded focus-enhanced transition-colors"
+                type="button"
+                aria-label={`Copy username ${username}`}
+              >
+                {copied ? (
+                  <>
+                    <Check size={14} />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={14} />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
-          <p className="text-xs text-gray-600 mt-2">
+          <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
             Please save this username for future login
           </p>
         </div>
 
         {/* Status Information */}
-        <div className="space-y-3 mb-6">
-          {isPending ? (
-            <>
-              {/* Email Verification Required - Not currently implemented */}
-              {/* <div className="alert-info flex items-start gap-3">
-                <Mail className="w-5 h-5 alert-info-icon flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="alert-info-heading mb-1">
-                    Step 1: Verify Your Email
-                  </h3>
-                  <p className="alert-info-text leading-relaxed">
-                    We've sent a verification link to <span className="font-medium">{email}</span>. Please check your inbox and click the link to verify your email address.
-                  </p>
-                </div>
-              </div> */}
-
-              {/* Pending Admin Approval */}
-              <div className="alert-warning flex items-start gap-3">
-                <Clock className="w-5 h-5 alert-warning-icon flex-shrink-0 mt-0.5" />
-                <div className="flex-1">
-                  <h3 className="alert-warning-heading mb-1">
-                    Administrator Approval Required
-                  </h3>
-                  <p className="alert-warning-text leading-relaxed">
-                    An administrator will review your account. You&apos;ll be notified when approved.
-                  </p>
-                </div>
-              </div>
-            </>
-          ) : (
-            /* Approved Status (First User) */
-            <div className="alert-success flex items-start gap-3">
-              <CheckCircle className="w-5 h-5 alert-success-icon flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="alert-success-heading mb-1">
-                  Account Approved
-                </h3>
-                <p className="alert-success-text leading-relaxed">
-                  You&apos;re all set! You can now log in with your username and password.
-                </p>
-              </div>
+        <div className="mb-6">
+          <div className="p-2 bg-slate-50 rounded-lg">
+            <div className="flex items-start space-x-1.5">
+              <Info size={16} className="text-slate-400 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-slate-500 leading-snug">
+                {isPending
+                  ? "An administrator will review your account. You'll be notified when approved."
+                  : "You're all set! You can now log in with your username and password."}
+              </p>
             </div>
-          )}
+          </div>
         </div>
 
         {/* Close Button */}
@@ -154,15 +134,8 @@ export function RegistrationSuccessModal({
           className="w-full btn btn-primary h-12 text-base font-bold shadow-lg"
           type="button"
         >
-          {isPending ? 'Close and Return to Login' : 'Continue to Login'}
+          {isPending ? 'Return to Login' : 'Continue to Login'}
         </button>
-
-        {/* Footer Note */}
-        {isPending && (
-          <p className="text-xs text-center text-gray-500 mt-4">
-            You can close this window. We&apos;ll notify you when your account is ready.
-          </p>
-        )}
       </div>
     </div>
   );

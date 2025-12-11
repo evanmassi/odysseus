@@ -238,7 +238,47 @@
       0 0 8px 6px var(--focus-ring-blur);
   }
 
-  /* Compact Header Control Buttons */
+  /* Ghost Header Buttons - Modern toolbar style */
+  .btn-header-ghost {
+    @apply inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded-md;
+    @apply bg-transparent text-slate-600 border border-transparent;
+    @apply hover:bg-white/80 hover:text-slate-800;
+    transition:
+      all 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .btn-header-ghost:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
+  /* Ghost Danger - Muted red, turns more red on hover */
+  .btn-header-ghost-danger {
+    @apply inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded-md;
+    @apply bg-transparent text-red-400 border border-transparent;
+    @apply hover:bg-red-50 hover:text-red-600;
+    transition:
+      all 200ms,
+      box-shadow 200ms,
+      outline 200ms;
+  }
+
+  .btn-header-ghost-danger:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: 2px;
+    box-shadow:
+      0 0 0 3px var(--focus-ring-glow-inner),
+      0 0 0 6px var(--focus-ring-glow-outer),
+      0 0 8px 6px var(--focus-ring-blur);
+  }
+
+  /* Legacy button classes - keeping for backwards compatibility */
   .btn-header-control-compact {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
     @apply bg-white/90 text-blue-800 border border-white/50;

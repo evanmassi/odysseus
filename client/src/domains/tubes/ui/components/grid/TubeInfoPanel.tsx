@@ -129,16 +129,15 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         : 'Select a position to view tube information';
 
     return (
-      <div style={{ minWidth: '280px' }}>
-        <div className="space-y-1.5">
-          {/* Position Display - Always Visible */}
-          <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-lg px-1.5 py-2 border-2 border-teal-500 shadow-md text-center">
-            <div className="font-bold text-teal-500 uppercase tracking-wider text-xs flex items-center justify-center gap-1">
+      <div className="p-1" style={{ minWidth: '280px' }}>
+        <div className="space-y-3">
+          {/* Position Header - Subtle background */}
+          <div className="bg-slate-50 rounded-md px-3 py-2">
+            <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-[10px] uppercase tracking-wider mb-0.5">
               <MapPin className="w-3 h-3" />
-              Position{positionCount > 1 ? 's' : ''}
+              <span>{tankName}</span>
             </div>
-            <div className="font-semibold text-odysseus-dark mt-0.5 text-xs">{tankName}</div>
-            <div className="font-bold text-odysseus-dark text-xs">
+            <div className="text-odysseus-dark font-semibold text-sm">
               {rackName} • Box {currentBox}
               {formattedPositions && (
                 <span>
@@ -150,10 +149,10 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </div>
 
           {/* Placeholder Message */}
-          <div className="text-center py-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center">
+          <div className="text-center py-6">
+            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
               <svg
-                className="w-8 h-8 text-odysseus-muted"
+                className="w-6 h-6 text-odysseus-dark/30"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -166,7 +165,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 />
               </svg>
             </div>
-            <p className="text-odysseus-muted font-medium text-xs">{positionText}</p>
+            <p className="text-odysseus-dark/40 text-xs">{positionText}</p>
           </div>
         </div>
       </div>
@@ -278,137 +277,103 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     formattedDate !== undefined ||
     researcherDisplay !== undefined;
 
+  // Lock information for pill badges
+  const lockInfo =
+    firstTube.isLocked && lockContext
+      ? {
+          isOwnLock: lockContext.isLockedByCurrentUser(firstTube),
+          isLockedOut: lockContext.isLockedOutFrom(firstTube),
+          ownerName: lockContext.getLockOwnerName(firstTube) ?? 'Unknown',
+          sharedNames: lockContext.getSharedUserNames(firstTube),
+          hasSharedUsers: firstTube.sharedWithUserIds && firstTube.sharedWithUserIds.length > 0,
+        }
+      : null;
+
   return (
-    <div style={{ minWidth: '280px' }}>
-      <div className="space-y-1.5">
-        {/* Position - Compact */}
-        <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-lg px-1.5 py-2 border-2 border-teal-500 shadow-md text-center">
-          <div className="font-bold text-teal-500 uppercase tracking-wider text-xs flex items-center justify-center gap-1">
+    <div className="p-1" style={{ minWidth: '280px' }}>
+      <div className="space-y-3">
+        {/* Position Header - Subtle background */}
+        <div className="bg-slate-50 rounded-md px-3 py-2">
+          <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-[10px] uppercase tracking-wider mb-0.5">
             <MapPin className="w-3 h-3" />
-            Position{selectedTubes.length > 1 ? 's' : ''}
+            <span>{tankName}</span>
           </div>
-          <div className="font-semibold text-odysseus-dark mt-0.5 text-xs">{tankName}</div>
-          <div className="font-bold text-odysseus-dark text-xs">{positionSummary}</div>
+          <div className="text-odysseus-dark font-semibold text-sm">{positionSummary}</div>
           {selectedTubes.length > 1 && (
-            <div className="text-odysseus-muted mt-0.5 text-xs">
-              {selectedTubes.length} tube{selectedTubes.length > 1 ? 's' : ''} selected
-              {hasConflicts && <span className="text-warning-text ml-1">• Some fields differ</span>}
+            <div className="text-odysseus-dark/50 text-xs mt-0.5">
+              {selectedTubes.length} tubes selected
+              {hasConflicts && <span className="text-amber-500 ml-1">• Values differ</span>}
             </div>
           )}
         </div>
 
-        {/* Donor Information */}
-        <InfoSection title="DONOR INFORMATION" color="primary">
-          <div className="mt-2 border-l-2 border-gray-300 pl-2">
-            <FieldValue label="Cell Type" value={cellType} />
+        {/* Lock Status - Pill badges */}
+        {lockInfo && (
+          <div className="flex flex-wrap gap-1.5">
+            <span
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                lockInfo.isOwnLock
+                  ? 'bg-slate-100 text-slate-600'
+                  : lockInfo.isLockedOut
+                    ? 'bg-red-50 text-red-600'
+                    : 'bg-amber-50 text-amber-600'
+              }`}
+            >
+              <Lock className="w-2.5 h-2.5" />
+              {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
+            </span>
+            {firstTube.lockNote && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
+                <Notebook className="w-2.5 h-2.5" />
+                {firstTube.lockNote}
+              </span>
+            )}
+            {lockInfo.hasSharedUsers && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-ice-50 text-edit-hover">
+                <UsersRound className="w-2.5 h-2.5" />
+                {lockInfo.sharedNames.length > 0
+                  ? lockInfo.sharedNames.join(', ')
+                  : `${firstTube.sharedWithUserIds!.length} user(s)`}
+              </span>
+            )}
           </div>
-          <div className="flex flex-col gap-0.5 mt-3 border-l-2 border-gray-300 pl-2">
-            <FieldValue label="Internal ID" value={donorInternalId} />
-            <FieldValue label="Source ID" value={donorSourceId} />
+        )}
+
+        {/* Donor Information */}
+        <InfoSection title="Donor Information">
+          {/* Cell Type - Prominent */}
+          {cellType && (
+            <div className="text-odysseus-dark font-semibold text-sm mb-1">{cellType}</div>
+          )}
+          {/* IDs in two columns - stacked layout for consistency */}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+            <FieldValue label="Internal ID" value={donorInternalId} inline={false} />
+            <FieldValue label="Source ID" value={donorSourceId} inline={false} />
           </div>
         </InfoSection>
 
         {/* Sample Information - Only show if at least one field has a value */}
         {hasSampleInfo && (
-          <InfoSection title="SAMPLE INFORMATION" color="secondary">
-            {/* Group 1: Culture Condition + Lot # */}
-            <div className="flex flex-col gap-0.5 mt-2 border-l-2 border-gray-300 pl-2">
-              <FieldValue label="Culture Condition" value={cultureCondition} />
-              <FieldValue label="Lot #" value={lotNumber} />
-            </div>
-
-            {/* Group 2: Media + Supplements + Selection */}
-            <div className="flex flex-col gap-0.5 mt-3 border-l-2 border-gray-300 pl-2">
-              <FieldValue label="Media" value={mediaType} />
-              <FieldValue label="Supplements" value={mediaSupplements} />
-              <FieldValue label="Selection" value={mediaSelection} />
-            </div>
-
-            {/* Group 3: Concentration + Date + Researcher */}
-            <div className="flex flex-col gap-0.5 mt-3 border-l-2 border-gray-300 pl-2">
-              <FieldValue label="Concentration" value={formattedConcentration} />
-              <FieldValue label="Date" value={formattedDate} />
-              <FieldValue label="Researcher" value={researcherDisplay} />
+          <InfoSection title="Sample Information">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+              <FieldValue label="Condition" value={cultureCondition} inline={false} />
+              <FieldValue label="Lot #" value={lotNumber} inline={false} />
+              <FieldValue label="Concentration" value={formattedConcentration} inline={false} />
+              <FieldValue label="Date" value={formattedDate} inline={false} />
+              <FieldValue label="Media" value={mediaType} inline={false} />
+              <FieldValue label="Supplements" value={mediaSupplements} inline={false} />
+              <FieldValue label="Selection" value={mediaSelection} inline={false} />
+              <FieldValue label="Researcher" value={researcherDisplay} inline={false} />
             </div>
           </InfoSection>
         )}
 
         {/* Notes */}
         {notes && (
-          <InfoSection title="NOTES" color="gray">
-            <div className="text-odysseus-secondary text-xs leading-tight pr-4">{notes}</div>
+          <InfoSection title="Notes">
+            <div className="text-odysseus-dark/70 text-xs leading-relaxed">{notes}</div>
           </InfoSection>
         )}
-
-        {/* Lock Information - Only show for locked tubes */}
-        {firstTube.isLocked &&
-          lockContext &&
-          (() => {
-            const isOwnLock = lockContext.isLockedByCurrentUser(firstTube);
-            const isLockedOut = lockContext.isLockedOutFrom(firstTube);
-            const ownerName = lockContext.getLockOwnerName(firstTube) ?? 'Unknown';
-            const sharedNames = lockContext.getSharedUserNames(firstTube);
-            const hasSharedUsers =
-              firstTube.sharedWithUserIds && firstTube.sharedWithUserIds.length > 0;
-
-            // Determine styling based on lock ownership/access
-            const containerClass = isOwnLock
-              ? 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-400'
-              : isLockedOut
-                ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-300'
-                : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-400';
-
-            const headerClass = isOwnLock
-              ? 'text-slate-700'
-              : isLockedOut
-                ? 'text-red-600'
-                : 'text-amber-600';
-
-            const headerText = isOwnLock ? 'Locked by You' : `Locked by ${ownerName}`;
-
-            return (
-              <div className={`rounded-lg px-2 py-2 border-2 shadow-md ${containerClass}`}>
-                <div
-                  className={`font-bold uppercase tracking-wider text-xs flex items-center gap-1 ${headerClass}`}
-                >
-                  <Lock className="w-3 h-3" />
-                  {headerText}
-                </div>
-                <div className="border-t border-current/20 my-1.5"></div>
-                <div className="space-y-1 text-xs">
-                  {/* Lock Note */}
-                  {firstTube.lockNote && (
-                    <div className="flex items-start gap-1 text-odysseus-dark">
-                      <Notebook className="w-3 h-3 text-odysseus-muted mt-0.5" />
-                      <div>
-                        <span className="text-odysseus-muted">Note: </span>
-                        <span className="italic">&quot;{firstTube.lockNote}&quot;</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Shared Users */}
-                  {hasSharedUsers && (
-                    <div className="flex items-start gap-1">
-                      <UsersRound className="w-3 h-3 text-odysseus-muted mt-0.5" />
-                      <div>
-                        <span className="text-odysseus-muted">Shared with: </span>
-                        <span className="text-odysseus-dark">
-                          {sharedNames.join(', ') ||
-                            `${firstTube.sharedWithUserIds!.length} user(s)`}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Access indicator - only show if locked out */}
-                  {isLockedOut && (
-                    <div className="text-red-500 font-medium mt-1">You cannot edit this tube</div>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
       </div>
     </div>
   );

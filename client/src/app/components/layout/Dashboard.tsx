@@ -1,5 +1,7 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
 
+import { ScanEye } from 'lucide-react';
+
 import { useAuthStore } from '@domains/authentication';
 import { gridNavigationService } from '@domains/grid';
 import { useStorageData } from '@domains/storage';
@@ -502,12 +504,12 @@ export function Dashboard() {
       <div className="main-layout">
         {/* Storage Navigator - Tank/Rack/Box */}
         <div className="storage-navigator-panel">
-          <div className="component-card">
-            <div className="component-title">
-              <h4>Navigator</h4>
+          <div className="h-full flex flex-col">
+            <div className="px-4 pt-4 pb-2">
+              <h4 className="text-sm font-semibold text-slate-400">Navigator</h4>
             </div>
             <div
-              className="component-body"
+              className="flex-1 pb-2 overflow-y-auto overflow-x-hidden scrollbar-hidden"
               ref={storageNavigatorRef}
               onFocus={() => setIsSelectorActive(true)}
               onBlur={() => setIsSelectorActive(false)}
@@ -525,13 +527,25 @@ export function Dashboard() {
 
         {/* Main Grid - Square Constraint */}
         <div className="grid-section">
-          <div className="component-card">
-            <div className="component-title">
-              <h4>
+          <div className="h-full flex flex-col">
+            <div className="px-4 pt-4 pb-2 flex items-center">
+              <h4 className="text-sm font-semibold text-slate-400">
                 {tankDisplayName} • {rackDisplayName} • Box {currentBox}
               </h4>
+              {isViewOnlySpace && (
+                <div className="flex-1 flex justify-end">
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 cursor-help"
+                    title="You can view, but not modify, tubes here."
+                  >
+                    <ScanEye className="w-2.5 h-2.5" />
+                    View Only - Assigned to{' '}
+                    <span className="font-semibold">{spaceOwnerName ?? 'another user'}</span>
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="grid-container" ref={gridContainerRef}>
+            <div className="grid-container flex-1" ref={gridContainerRef}>
               <ErrorBoundary>
                 <TubeGrid
                   tankId={currentTank}
@@ -548,8 +562,6 @@ export function Dashboard() {
                   _onAddTubes={handleAddTube}
                   gridController={gridController}
                   lockContext={lockContext}
-                  isViewOnlySpace={isViewOnlySpace}
-                  spaceOwnerName={spaceOwnerName}
                 />
               </ErrorBoundary>
             </div>
@@ -558,11 +570,11 @@ export function Dashboard() {
 
         {/* Info Panel - Flexible Width */}
         <div className="info-panel">
-          <div className="component-card">
-            <div className="component-title">
-              <h4>Tube Information</h4>
+          <div className="h-full flex flex-col">
+            <div className="px-4 pt-4 pb-2">
+              <h4 className="text-sm font-semibold text-slate-400">Tube Information</h4>
             </div>
-            <div className="component-body">
+            <div className="flex-1 px-2 pb-2 overflow-auto">
               <TubeInfoPanel
                 selectedTubes={selectionAnalysis.selectedTubes}
                 lockContext={lockContext}

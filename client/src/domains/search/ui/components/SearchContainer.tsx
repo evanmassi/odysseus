@@ -95,35 +95,29 @@ export function SearchContainer(_props: SearchContainerProps) {
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Compact Integrated Search Bar */}
+      {/* Modern Search Bar */}
       <div className="relative">
         <div className="flex items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2 w-3 h-3" style={{ color: '#76a6d8' }} />
+            <Search className="absolute left-2.5 top-2 w-3 h-3 text-slate-400" />
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search tubes..."
+              placeholder="Search..."
               value={query}
               onChange={e => search(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="input-compact w-56 pl-8 pr-16 bg-white"
+              className="input-search w-56 pl-8 pr-[4.5rem]"
             />
 
-            {/* Integrated Action Buttons */}
+            {/* Keyboard hint + Action Buttons */}
             <div className="absolute right-1 top-1 flex items-center space-x-1">
-              <button
-                onClick={handleSearch}
-                disabled={isSearching}
-                title="Search"
-                className="btn-icon-sm bg-action hover:bg-action-hover disabled:bg-gray-400 text-white"
-              >
-                {isSearching ? (
-                  <div className="animate-spin w-2.5 h-2.5 border border-white border-t-transparent rounded-full" />
-                ) : (
-                  <Search className="w-2.5 h-2.5" />
-                )}
-              </button>
+              {/* Keyboard shortcut hint - only show when empty */}
+              {!query && (
+                <span className="text-[10px] text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded">
+                  Ctrl+F
+                </span>
+              )}
 
               <button
                 onClick={() => setShowFilters(!showFilters)}
@@ -131,7 +125,7 @@ export function SearchContainer(_props: SearchContainerProps) {
                 className={`btn-icon-sm ${
                   hasActiveFilters || showFilters
                     ? 'bg-action text-white hover:bg-action-hover'
-                    : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                    : 'bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-700'
                 }`}
               >
                 <SlidersHorizontal className="w-2.5 h-2.5" />
@@ -140,7 +134,7 @@ export function SearchContainer(_props: SearchContainerProps) {
               <button
                 onClick={handleClear}
                 title="Clear"
-                className="btn-icon-sm bg-gray-200 hover:bg-gray-300 text-gray-600"
+                className="btn-icon-sm bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-700"
               >
                 <X className="w-2.5 h-2.5" />
               </button>

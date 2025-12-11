@@ -1,6 +1,7 @@
 /**
- * Storage Navigator - Single Source of Truth for all button styling
- * Uses CSS variables from client/src/shared/styles/base/variables.css
+ * Storage Navigator - Modern text-based tree navigation
+ * Clean, minimal design with indentation for hierarchy
+ * Selected items highlighted with subtle background accent
  */
 
 /* Base button styles - shared by all levels */
@@ -8,129 +9,108 @@
   /* Layout */
   display: flex;
   align-items: center;
-  margin-left: auto;
+  width: 100%;
   position: relative;
   z-index: 10;
 
   /* Typography */
-  color: white;
-  font-weight: 600;
-  font-size: 0.875rem;
+  color: #64748b; /* slate-500 */
+  font-weight: 500;
+  font-size: 0.8125rem;
   text-align: left;
 
-  /* Visual */
+  /* Visual - no background by default */
+  background-color: transparent;
   border-radius: 0.375rem;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  border: none;
 
   /* Interaction */
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
-/* Tank level - largest, darkest */
+/* Hover state - subtle gray background */
+.storage-nav-button:hover {
+  background-color: #f1f5f9; /* slate-100 */
+  color: #334155; /* slate-700 */
+}
+
+/* Selected state - action blue accent */
+.storage-nav-button.selected {
+  background-color: rgba(90, 143, 199, 0.12); /* action blue at 12% */
+  color: #5a8fc7; /* action blue */
+  font-weight: 600;
+}
+
+.storage-nav-button.selected:hover {
+  background-color: rgba(90, 143, 199, 0.2); /* action blue at 20% */
+}
+
+/* Tank level */
 .storage-nav-button--tank {
-  width: 100%;
   min-height: 2rem;
-  padding: 0.375rem 0.75rem 0.375rem 0.625rem;
-  gap: 0.25rem;
-  background-color: var(--color-storage-tank-bg);
-  /* border-color: var(--color-storage-tank-border); */
+  padding: 0.375rem 0.5rem;
+  gap: 0.5rem;
+  width: 100%;
+  margin-left: 0;
 }
 
-.storage-nav-button--tank:hover {
-  background-color: var(--color-storage-tank-hover);
-  transform: translateY(-0.125rem);
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-.storage-nav-button--tank.selected {
-  background-color: var(--color-storage-tank-selected);
-  box-shadow:
-    0 1px 2px 0 rgb(0 0 0 / 0.05),
-    var(--storage-selected-inset-shadow);
-}
-
-/* Rack level - medium, lighter */
+/* Rack level - indented via margin, width adjusted */
 .storage-nav-button--rack {
-  width: 90%;
   min-height: 1.75rem;
-  padding: 0.3rem 0.75rem 0.3rem 0.625rem;
-  gap: 0.25rem;
-  background-color: var(--color-storage-rack-bg);
-  /* border-color: var(--color-storage-rack-border); */
+  padding: 0.3rem 0.5rem;
+  gap: 0.5rem;
+  width: calc(100% - 1rem);
+  margin-left: 1rem;
 }
 
-.storage-nav-button--rack:hover {
-  background-color: var(--color-storage-rack-hover);
-  transform: translateY(-0.125rem);
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-.storage-nav-button--rack.selected {
-  background-color: var(--color-storage-rack-selected);
-  box-shadow:
-    0 1px 2px 0 rgb(0 0 0 / 0.05),
-    var(--storage-selected-inset-shadow);
-}
-
-/* Box level - smallest, lightest */
+/* Box level - more indented via margin, width adjusted */
 .storage-nav-button--box {
-  width: 80%;
   min-height: 1.5rem;
-  padding: 0.25rem 0.75rem 0.25rem 0.625rem;
-  gap: 0.375rem;
-  background-color: var(--color-storage-box-bg);
-  /* border-color: var(--color-storage-box-border); */
+  padding: 0.25rem 0.5rem;
+  gap: 0.5rem;
+  width: calc(100% - 2rem);
+  margin-left: 2rem;
 }
 
-.storage-nav-button--box:hover {
-  background-color: var(--color-storage-box-hover);
-  transform: translateY(-0.125rem);
-  box-shadow:
-    0 4px 6px -1px rgb(0 0 0 / 0.1),
-    0 2px 4px -2px rgb(0 0 0 / 0.1);
-}
-
-.storage-nav-button--box.selected {
-  background-color: var(--color-storage-box-selected);
-  box-shadow:
-    0 1px 2px 0 rgb(0 0 0 / 0.05),
-    var(--storage-selected-inset-shadow);
-}
-
-/* Focus ring - UNIFIED for all states */
+/* Focus ring */
 .storage-nav-button:focus-visible {
   outline: var(--focus-ring-width) solid var(--focus-ring-color);
   outline-offset: var(--focus-ring-offset);
-  /* Suppress inset shadow when focused so focus ring is clearly visible */
   box-shadow:
     0 0 0 3px var(--focus-ring-glow-inner),
     0 0 0 6px var(--focus-ring-glow-outer),
     0 0 8px 6px var(--focus-ring-blur) !important;
 }
 
-/* Icon container */
+/* Icon container - muted gray, matches text */
 .storage-nav-button__icon {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  color: #94a3b8; /* slate-400 */
 }
 
+.storage-nav-button:hover .storage-nav-button__icon {
+  color: #64748b; /* slate-500 */
+}
+
+.storage-nav-button.selected .storage-nav-button__icon {
+  color: #5a8fc7; /* action blue */
+}
+
+/* Icon sizes per level */
 .storage-nav-button--tank .storage-nav-button__icon {
-  width: 1.25rem;
-}
-
-.storage-nav-button--rack .storage-nav-button__icon {
   width: 1.125rem;
 }
 
-.storage-nav-button--box .storage-nav-button__icon {
+.storage-nav-button--rack .storage-nav-button__icon {
   width: 1rem;
+}
+
+.storage-nav-button--box .storage-nav-button__icon {
+  width: 0.875rem;
 }
 
 /* Text label */
@@ -141,20 +121,17 @@
   white-space: nowrap;
 }
 
-.storage-nav-button--tank .storage-nav-button__text {
-  margin-left: -0.125rem;
-}
-
-.storage-nav-button--rack .storage-nav-button__text {
-  margin-left: -0.125rem;
-}
-
-.storage-nav-button--box .storage-nav-button__text {
-  margin-left: -0.125rem;
-}
-
 /* Chevron indicator for expandable items */
 .storage-nav-button__chevron {
   flex-shrink: 0;
   transition: transform 0.2s ease;
+  color: #94a3b8; /* slate-400 */
+}
+
+.storage-nav-button:hover .storage-nav-button__chevron {
+  color: #64748b; /* slate-500 */
+}
+
+.storage-nav-button.selected .storage-nav-button__chevron {
+  color: #5a8fc7; /* action blue */
 }

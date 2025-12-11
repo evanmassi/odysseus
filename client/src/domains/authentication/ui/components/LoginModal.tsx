@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react';
 
-import { KeyRound, UserRound, Mail, Eye, EyeOff, Info } from 'lucide-react';
+import { KeyRound, UserRound, Mail, Eye, EyeOff } from 'lucide-react';
 
-import xcellbioLogo from '@shared/assets/frozen-xcellbio-logo.png';
+import odysseusLogo from '@shared/assets/odysseus-logo-altered.png';
+import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.png';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { notifications } from '@shared/utils';
 
@@ -98,14 +99,16 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50 animate-in fade-in duration-150">
       <div
         ref={trapRef}
-        className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-blue-500/20 border border-odysseus-border animate-zoom-in-95"
+        className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10 animate-zoom-in-95"
       >
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-            <img src={xcellbioLogo} alt="XcellBio" className="w-full h-full object-contain" />
+        <div className="text-center mb-4">
+          <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
+            <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
           </div>
-          <h2 className="text-2xl font-bold text-odysseus-dark mb-2">Welcome Back</h2>
-          <p className="text-odysseus-muted">Enter your credentials to access Odysseus</p>
+          <div className="mx-auto mb-4 flex items-center justify-center">
+            <img src={odysseusLogo} alt="Odysseus" className="h-10 w-auto" />
+          </div>
+          <p className="text-sm text-slate-400">Welcome back · sign in to continue</p>
         </div>
 
         {/* Session Timeout Banner */}
@@ -218,13 +221,13 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Username or Email */}
           <div
-            className={`auth-input-container ${loginError ? 'input-field-error' : 'border-gray-300'}`}
+            className={`auth-input-container ${loginError ? 'input-field-error' : 'border-slate-200'}`}
           >
             <label
               htmlFor="username"
-              className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide ${loginError ? 'text-validation-error-label' : 'text-gray-700'}`}
+              className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-slate-400'}`}
             >
-              Username or Email
+              Username or email
             </label>
             <div className="relative px-3 py-2">
               <UserRound
@@ -247,11 +250,11 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
           {/* Password */}
           <div
-            className={`auth-input-container ${loginError ? 'input-field-error' : 'border-gray-300'}`}
+            className={`auth-input-container ${loginError ? 'input-field-error' : 'border-slate-200'}`}
           >
             <label
               htmlFor="password"
-              className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-semibold uppercase tracking-wide ${loginError ? 'text-validation-error-label' : 'text-gray-700'}`}
+              className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-slate-400'}`}
             >
               Password
             </label>
@@ -296,19 +299,6 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
             )}
           </button>
         </form>
-
-        <div className="mt-3 p-2 bg-frost rounded-lg border border-action/30">
-          <div className="flex items-start space-x-1.5">
-            <Info size={18} className="text-action-hover flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-xs font-bold text-action-hover mb-0.5">Security Notice</h3>
-              <p className="text-xs text-action-hover/90 leading-snug">
-                Your credentials are encrypted and stored securely. Never share your password with
-                unauthorized users.
-              </p>
-            </div>
-          </div>
-        </div>
 
         {onSwitchToRegister && (
           <div className="mt-4 text-center">

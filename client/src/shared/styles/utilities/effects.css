@@ -10,4 +10,14 @@
   .glow-hover:hover {
     box-shadow: 0 0 30px rgba(37, 99, 235, 0.4);
   }
+
+  /* Hide scrollbar while preserving scroll functionality */
+  .scrollbar-hidden {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 }
