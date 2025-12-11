@@ -70,6 +70,7 @@ interface GridPositionProps {
   // Lock indicator props (optional - for lock-enabled grids)
   isLockedOut?: boolean;
   isLockedByCurrentUser?: boolean;
+  hasSharedAccess?: boolean;
   lockOwnerName?: string;
   lockNote?: string;
 }
@@ -99,6 +100,7 @@ export const GridPosition = memo<GridPositionProps>(
     onQuickEditCancel,
     isLockedOut,
     isLockedByCurrentUser,
+    hasSharedAccess,
     lockOwnerName,
     lockNote,
   }) => {
@@ -207,21 +209,29 @@ export const GridPosition = memo<GridPositionProps>(
         )}
 
         {/* Lock indicator - bottom-left */}
-        {/* Red lock for others' locks (with dimming), black lock for own locks (no dimming) */}
-        {tube && isLockedOut && lockOwnerName && (
-          <LockIndicator
-            lockedByName={lockOwnerName}
-            lockNote={lockNote}
-            size={fontSize.positionFont}
-            variant="other"
-          />
-        )}
+        {/* Black lock for own locks, amber for shared access, red for locked out */}
         {tube && isLockedByCurrentUser && (
           <LockIndicator
             lockedByName="You"
             lockNote={lockNote}
             size={fontSize.positionFont}
             variant="own"
+          />
+        )}
+        {tube && hasSharedAccess && lockOwnerName && (
+          <LockIndicator
+            lockedByName={lockOwnerName}
+            lockNote={lockNote}
+            size={fontSize.positionFont}
+            variant="shared"
+          />
+        )}
+        {tube && isLockedOut && lockOwnerName && (
+          <LockIndicator
+            lockedByName={lockOwnerName}
+            lockNote={lockNote}
+            size={fontSize.positionFont}
+            variant="other"
           />
         )}
 

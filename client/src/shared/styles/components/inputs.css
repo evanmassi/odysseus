@@ -131,7 +131,16 @@
   }
 
   .input-field-normal:focus {
-    @apply border-action-hover ring ring-action-hover ring-opacity-20 outline-none;
+    @apply border-action-focus ring-2 ring-action-focus outline-none;
+  }
+
+  /* Date input calendar picker icon */
+  input[type='date']::-webkit-calendar-picker-indicator {
+    @apply cursor-pointer rounded;
+  }
+
+  input[type='date']::-webkit-calendar-picker-indicator:focus {
+    @apply outline-none ring-2 ring-action-focus;
   }
 
   .input-field:disabled {

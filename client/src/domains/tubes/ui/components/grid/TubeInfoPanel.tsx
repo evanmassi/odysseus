@@ -5,7 +5,7 @@ import {
   formatResearcherDropdownDisplay,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { Lock, MapPin, Users } from 'lucide-react';
+import { Lock, MapPin, Notebook, UsersRound } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks';
 import { useUserSettings } from '@domains/authentication';
@@ -267,6 +267,17 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     'sample.notes',
   ]);
 
+  // Check if any sample information fields have values
+  const hasSampleInfo =
+    cultureCondition !== undefined ||
+    lotNumber !== undefined ||
+    mediaType !== undefined ||
+    mediaSupplements !== undefined ||
+    mediaSelection !== undefined ||
+    formattedConcentration !== undefined ||
+    formattedDate !== undefined ||
+    researcherDisplay !== undefined;
+
   return (
     <div style={{ minWidth: '280px' }}>
       <div className="space-y-1.5">
@@ -297,28 +308,30 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </div>
         </InfoSection>
 
-        {/* Sample Information */}
-        <InfoSection title="SAMPLE INFORMATION" color="secondary">
-          {/* Group 1: Culture Condition + Lot # */}
-          <div className="flex flex-col gap-0.5 mt-2 border-l-2 border-gray-300 pl-2">
-            <FieldValue label="Culture Condition" value={cultureCondition} />
-            <FieldValue label="Lot #" value={lotNumber} />
-          </div>
+        {/* Sample Information - Only show if at least one field has a value */}
+        {hasSampleInfo && (
+          <InfoSection title="SAMPLE INFORMATION" color="secondary">
+            {/* Group 1: Culture Condition + Lot # */}
+            <div className="flex flex-col gap-0.5 mt-2 border-l-2 border-gray-300 pl-2">
+              <FieldValue label="Culture Condition" value={cultureCondition} />
+              <FieldValue label="Lot #" value={lotNumber} />
+            </div>
 
-          {/* Group 2: Media + Supplements + Selection */}
-          <div className="flex flex-col gap-0.5 mt-3 border-l-2 border-gray-300 pl-2">
-            <FieldValue label="Media" value={mediaType} />
-            <FieldValue label="Supplements" value={mediaSupplements} />
-            <FieldValue label="Selection" value={mediaSelection} />
-          </div>
+            {/* Group 2: Media + Supplements + Selection */}
+            <div className="flex flex-col gap-0.5 mt-3 border-l-2 border-gray-300 pl-2">
+              <FieldValue label="Media" value={mediaType} />
+              <FieldValue label="Supplements" value={mediaSupplements} />
+              <FieldValue label="Selection" value={mediaSelection} />
+            </div>
 
-          {/* Group 3: Concentration + Date + Researcher */}
-          <div className="flex flex-col gap-0.5 mt-3 border-l-2 border-gray-300 pl-2">
-            <FieldValue label="Concentration" value={formattedConcentration} />
-            <FieldValue label="Date" value={formattedDate} />
-            <FieldValue label="Researcher" value={researcherDisplay} />
-          </div>
-        </InfoSection>
+            {/* Group 3: Concentration + Date + Researcher */}
+            <div className="flex flex-col gap-0.5 mt-3 border-l-2 border-gray-300 pl-2">
+              <FieldValue label="Concentration" value={formattedConcentration} />
+              <FieldValue label="Date" value={formattedDate} />
+              <FieldValue label="Researcher" value={researcherDisplay} />
+            </div>
+          </InfoSection>
+        )}
 
         {/* Notes */}
         {notes && (
@@ -328,60 +341,74 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         )}
 
         {/* Lock Information - Only show for locked tubes */}
-        {firstTube.isLocked && lockContext && (
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-lg px-2 py-2 border-2 border-amber-400 shadow-md">
-            <div className="font-bold text-amber-600 uppercase tracking-wider text-xs flex items-center gap-1 mb-1">
-              <Lock className="w-3 h-3" />
-              Lock Status
-            </div>
-            <div className="space-y-1 text-xs">
-              {/* Lock Owner */}
-              <div className="flex items-center gap-1">
-                <span className="text-odysseus-muted">Locked by:</span>
-                <span className="font-medium text-odysseus-dark">
-                  {lockContext.isLockedByCurrentUser(firstTube)
-                    ? 'You'
-                    : (lockContext.getLockOwnerName(firstTube) ?? 'Unknown')}
-                </span>
-              </div>
+        {firstTube.isLocked &&
+          lockContext &&
+          (() => {
+            const isOwnLock = lockContext.isLockedByCurrentUser(firstTube);
+            const isLockedOut = lockContext.isLockedOutFrom(firstTube);
+            const ownerName = lockContext.getLockOwnerName(firstTube) ?? 'Unknown';
+            const sharedNames = lockContext.getSharedUserNames(firstTube);
+            const hasSharedUsers =
+              firstTube.sharedWithUserIds && firstTube.sharedWithUserIds.length > 0;
 
-              {/* Lock Note */}
-              {firstTube.lockNote && (
-                <div className="flex items-start gap-1">
-                  <span className="text-odysseus-muted">Note:</span>
-                  <span className="text-odysseus-dark italic">
-                    &quot;{firstTube.lockNote}&quot;
-                  </span>
+            // Determine styling based on lock ownership/access
+            const containerClass = isOwnLock
+              ? 'bg-gradient-to-br from-slate-50 to-slate-100 border-slate-400'
+              : isLockedOut
+                ? 'bg-gradient-to-br from-red-50 to-red-100 border-red-300'
+                : 'bg-gradient-to-br from-amber-50 to-orange-50 border-amber-400';
+
+            const headerClass = isOwnLock
+              ? 'text-slate-700'
+              : isLockedOut
+                ? 'text-red-600'
+                : 'text-amber-600';
+
+            const headerText = isOwnLock ? 'Locked by You' : `Locked by ${ownerName}`;
+
+            return (
+              <div className={`rounded-lg px-2 py-2 border-2 shadow-md ${containerClass}`}>
+                <div
+                  className={`font-bold uppercase tracking-wider text-xs flex items-center gap-1 ${headerClass}`}
+                >
+                  <Lock className="w-3 h-3" />
+                  {headerText}
                 </div>
-              )}
+                <div className="border-t border-current/20 my-1.5"></div>
+                <div className="space-y-1 text-xs">
+                  {/* Lock Note */}
+                  {firstTube.lockNote && (
+                    <div className="flex items-start gap-1 text-odysseus-dark">
+                      <Notebook className="w-3 h-3 text-odysseus-muted mt-0.5" />
+                      <div>
+                        <span className="text-odysseus-muted">Note: </span>
+                        <span className="italic">&quot;{firstTube.lockNote}&quot;</span>
+                      </div>
+                    </div>
+                  )}
 
-              {/* Shared Users */}
-              {firstTube.sharedWithUserIds && firstTube.sharedWithUserIds.length > 0 && (
-                <div className="flex items-start gap-1 mt-1">
-                  <Users className="w-3 h-3 text-odysseus-muted mt-0.5" />
-                  <div>
-                    <span className="text-odysseus-muted">Shared with: </span>
-                    <span className="text-odysseus-dark">
-                      {lockContext.getSharedUserNames(firstTube).join(', ') ||
-                        `${firstTube.sharedWithUserIds.length} user(s)`}
-                    </span>
-                  </div>
+                  {/* Shared Users */}
+                  {hasSharedUsers && (
+                    <div className="flex items-start gap-1">
+                      <UsersRound className="w-3 h-3 text-odysseus-muted mt-0.5" />
+                      <div>
+                        <span className="text-odysseus-muted">Shared with: </span>
+                        <span className="text-odysseus-dark">
+                          {sharedNames.join(', ') ||
+                            `${firstTube.sharedWithUserIds!.length} user(s)`}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Access indicator - only show if locked out */}
+                  {isLockedOut && (
+                    <div className="text-red-500 font-medium mt-1">You cannot edit this tube</div>
+                  )}
                 </div>
-              )}
-
-              {/* Access Status */}
-              <div className="mt-1 pt-1 border-t border-amber-200">
-                {lockContext.isLockedByCurrentUser(firstTube) ? (
-                  <span className="text-green-600 font-medium">You own this lock</span>
-                ) : lockContext.isLockedOutFrom(firstTube) ? (
-                  <span className="text-red-500 font-medium">You cannot edit this tube</span>
-                ) : (
-                  <span className="text-green-600 font-medium">You have shared access</span>
-                )}
               </div>
-            </div>
-          </div>
-        )}
+            );
+          })()}
       </div>
     </div>
   );

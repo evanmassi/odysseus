@@ -281,6 +281,8 @@ export function TubeGrid({
             const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
             const isLockedByCurrentUser =
               tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
+            // Shared access: tube is locked, not by current user, but user has access (not locked out)
+            const hasSharedAccess = tube?.isLocked && !isLockedByCurrentUser && !isLockedOut;
             const lockOwnerName =
               tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
 
@@ -309,6 +311,7 @@ export function TubeGrid({
                 onQuickEditCancel={() => setQuickEditMode(null)}
                 isLockedOut={isLockedOut}
                 isLockedByCurrentUser={isLockedByCurrentUser}
+                hasSharedAccess={hasSharedAccess}
                 lockOwnerName={lockOwnerName}
                 lockNote={tube?.lockNote}
               />

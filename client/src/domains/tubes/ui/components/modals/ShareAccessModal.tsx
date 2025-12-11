@@ -11,7 +11,7 @@
 
 import { useState, useMemo } from 'react';
 
-import { Share2, X, UserPlus, Users } from 'lucide-react';
+import { Share2, X, UserRoundPlus, UsersRound } from 'lucide-react';
 
 import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
 import { useActiveUsersQuery } from '@domains/users';
@@ -77,7 +77,7 @@ export function ShareAccessModal({
     const user = allUsers.find(u => u.id === userId);
     if (!user) return userId;
     if (user.firstName && user.lastName) {
-      return `${user.firstName} ${user.lastName}`;
+      return `${user.firstName} ${user.lastName} (${user.username})`;
     }
     return user.username ?? userId;
   };
@@ -157,21 +157,21 @@ export function ShareAccessModal({
         {currentlySharedUserIds.length > 0 && (
           <div>
             <h4 className="block text-sm font-medium text-gray-700 mb-2">
-              <Users className="inline-block w-4 h-4 mr-1" />
+              <UsersRound className="inline-block w-4 h-4 mr-1" />
               Currently Shared With
             </h4>
             <div className="space-y-2">
               {currentlySharedUserIds.map(userId => (
                 <div
                   key={userId}
-                  className="flex items-center justify-between px-3 py-2 bg-blue-50 border border-blue-200 rounded-lg"
+                  className="flex items-center justify-between px-3 py-2 bg-action/10 border border-action rounded-lg"
                 >
-                  <span className="text-sm text-blue-800">{getUserName(userId)}</span>
+                  <span className="text-sm text-action font-medium">{getUserName(userId)}</span>
                   <button
                     type="button"
                     onClick={() => handleRevoke(userId)}
                     disabled={isProcessing}
-                    className="p-1 text-blue-600 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                    className="p-1 text-action hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-action-focus"
                     title="Revoke access"
                   >
                     <X size={16} />
@@ -185,7 +185,7 @@ export function ShareAccessModal({
         {/* Add Users Section */}
         <div>
           <h4 className="block text-sm font-medium text-gray-700 mb-2">
-            <UserPlus className="inline-block w-4 h-4 mr-1" />
+            <UserRoundPlus className="inline-block w-4 h-4 mr-1" />
             Share With Users
           </h4>
 
@@ -213,11 +213,12 @@ export function ShareAccessModal({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleUserSelection(user.id)}
-                        className="w-4 h-4 text-action border-gray-300 rounded focus:ring-action"
+                        className="w-4 h-4 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
+                        style={{ accentColor: 'var(--color-action-default)' }}
                       />
                       <span className="ml-3 text-sm text-gray-700">
                         {user.firstName && user.lastName
-                          ? `${user.firstName} ${user.lastName}`
+                          ? `${user.firstName} ${user.lastName} (${user.username})`
                           : (user.username ?? user.id)}
                       </span>
                     </label>
@@ -229,8 +230,8 @@ export function ShareAccessModal({
 
         {/* Info text */}
         <p className="text-sm text-gray-600">
-          Shared users can edit the locked tubes without unlocking them. Only you (the lock owner)
-          can unlock the tubes or revoke access.
+          Shared users can edit these locked tubes, but only you can unlock them or revoke their
+          access.
         </p>
 
         {/* Actions */}
@@ -238,7 +239,7 @@ export function ShareAccessModal({
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-action-focus"
           >
             {currentlySharedUserIds.length > 0 ? 'Done' : 'Cancel'}
           </button>
@@ -247,7 +248,7 @@ export function ShareAccessModal({
               type="button"
               onClick={handleShare}
               disabled={isProcessing}
-              className="px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-action-focus"
             >
               {isProcessing
                 ? 'Sharing...'

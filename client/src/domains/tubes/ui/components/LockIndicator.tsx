@@ -3,13 +3,14 @@
  *
  * Visual indicator for locked tubes showing:
  * - Black lock icon for tubes locked by current user (own locks)
+ * - Amber lock icon for tubes locked by others but shared with you
  * - Red lock icon for tubes locked by others (locked out)
  * - Tooltip with lock owner information
  *
  * Position: Bottom-left corner of tube grid cell
  */
 
-import { Lock } from 'lucide-react';
+import { Lock, ShieldCheck } from 'lucide-react';
 
 interface LockIndicatorProps {
   /** Name/username of the lock owner */
@@ -18,8 +19,8 @@ interface LockIndicatorProps {
   lockNote?: string;
   /** Size of the lock icon */
   size?: number;
-  /** Visual variant: 'own' for user's locks (black), 'other' for others' locks (red) */
-  variant?: 'own' | 'other';
+  /** Visual variant: 'own' (black), 'shared' (amber), 'other' (red) */
+  variant?: 'own' | 'shared' | 'other';
   /** Additional CSS classes */
   className?: string;
 }
@@ -35,6 +36,15 @@ interface LockIndicatorProps {
  *     lockedByName={lockOwnerDisplay}
  *     lockNote={tube.lockNote}
  *     variant="other"
+ *   />
+ * )}
+ *
+ * // For tubes locked by others but shared with you (amber)
+ * {hasSharedAccess(tube) && (
+ *   <LockIndicator
+ *     lockedByName={lockOwnerDisplay}
+ *     lockNote={tube.lockNote}
+ *     variant="shared"
  *   />
  * )}
  *
@@ -59,11 +69,15 @@ export function LockIndicator({
     ? `Locked by ${lockedByName}: "${lockNote}"`
     : `Locked by ${lockedByName}`;
 
-  const iconColor = variant === 'own' ? 'text-gray-700' : 'text-red-500';
+  const iconColor =
+    variant === 'own' ? 'text-gray-700' : variant === 'shared' ? 'text-gray-700' : 'text-red-500';
+
+  // Use ShieldCheck for shared access, Lock for own/other
+  const IconComponent = variant === 'shared' ? ShieldCheck : Lock;
 
   return (
     <div className={`absolute bottom-0.5 left-0.5 ${className}`} title={tooltipText}>
-      <Lock size={size} className={`${iconColor} drop-shadow-sm`} strokeWidth={2.5} />
+      <IconComponent size={size} className={`${iconColor} drop-shadow-sm`} strokeWidth={2.5} />
     </div>
   );
 }
