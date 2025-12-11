@@ -245,7 +245,10 @@ export default function BatchTubeEditorModal({
 
   // CRITICAL: Subscribe to formState by destructuring in render phase (React Hook Form v7 Proxy pattern)
   // Without this, component won't re-render when errors/dirtyFields change
-  const { errors, dirtyFields, isValid } = form.formState;
+  const { errors, dirtyFields, isValid, isDirty } = form.formState;
+
+  // Button should be disabled if form is invalid OR no changes have been made
+  const canSubmit = isValid && isDirty;
 
   // Reset form when resolved data changes to update dirty tracking baseline
   // This ensures defaultValues stay in sync with current tube selection
@@ -555,8 +558,8 @@ export default function BatchTubeEditorModal({
             </button>
             <button
               type="submit"
-              className={`btn px-8 ${isValid ? 'btn-primary' : 'btn-secondary'}`}
-              disabled={isSubmitting || !isValid}
+              className={`btn px-8 ${canSubmit ? 'btn-primary' : 'btn-secondary'}`}
+              disabled={isSubmitting || !canSubmit}
             >
               {isSubmitting ? (
                 <div className="flex items-center space-x-2">

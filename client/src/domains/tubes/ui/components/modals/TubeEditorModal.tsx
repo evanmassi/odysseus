@@ -254,8 +254,11 @@ function EditModeForm({
     }
   };
 
-  // Use React Hook Form's built-in validation state (more efficient)
-  const isFormValid = form.formState.isValid;
+  // Use React Hook Form's built-in validation and dirty state
+  const { isValid: isFormValid, isDirty } = form.formState;
+
+  // Button should be disabled if form is invalid OR no changes have been made
+  const canSubmit = isFormValid && isDirty;
 
   return (
     <BaseModal
@@ -329,8 +332,8 @@ function EditModeForm({
               </button>
               <button
                 type="submit"
-                className={`btn px-8 ${isFormValid ? 'btn-primary' : 'btn-secondary'}`}
-                disabled={isSubmitting || !isFormValid}
+                className={`btn px-8 ${canSubmit ? 'btn-primary' : 'btn-secondary'}`}
+                disabled={isSubmitting || !canSubmit}
               >
                 {isSubmitting ? (
                   <div className="flex items-center space-x-2">
