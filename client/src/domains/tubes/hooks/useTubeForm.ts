@@ -313,6 +313,37 @@ export function useEditTubeForm(
   });
 }
 
+/**
+ * Hook for batch tube editing
+ *
+ * Type-safe wrapper for editing multiple tubes simultaneously:
+ * - Uses UpdateTubeFormInput (no location required)
+ * - No tubeId needed (batch operations handle IDs separately)
+ * - Validates with updateTubeRequestSchema
+ */
+export function useBatchEditTubeForm(config?: {
+  initialData?: Partial<UpdateTubeFormInput>;
+  onSuccess?: (data: TubeData) => void;
+  onError?: (error: Error) => void;
+}): {
+  form: UseFormReturn<UpdateTubeFormInput>;
+  isSubmitting: boolean;
+  submitError: Error | null;
+} {
+  const base = useTubeForm<UpdateTubeFormInput, UpdateTubeRequest>(updateTubeRequestSchema, {
+    mode: 'edit',
+    // No tubeId - batch operations handle tube IDs separately via mutations
+    ...config,
+  });
+
+  return {
+    form: base.form,
+    isSubmitting: base.isSubmitting,
+    submitError: base.submitError,
+    // Note: submitTube not exposed - batch editor uses bulk mutations directly
+  };
+}
+
 // UTILITY HOOKS
 
 /**

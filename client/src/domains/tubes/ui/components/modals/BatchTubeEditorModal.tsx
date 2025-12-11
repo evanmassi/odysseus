@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 
 import {
-  type CreateTubeFormInput,
+  type UpdateTubeFormInput,
   type CreateTubeRequest,
   type UpdateTubeRequest,
   updateTubeRequestSchema,
@@ -16,7 +16,7 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox } from '@domains/storage';
-import { useCreateTubeForm } from '@domains/tubes/hooks/useTubeForm';
+import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useBulkUpdateTubesMutation,
   useBulkDeleteTubesMutation,
@@ -67,12 +67,12 @@ interface BatchEditConflictAnalysis {
 }
 
 /**
- * Convert TubeData to CreateTubeFormInput for form initialization
+ * Convert TubeData to UpdateTubeFormInput for form initialization
  * Only converts editable fields (sample + researcherId, no location)
  * Returns form INPUT type (pre-transformation)
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function convertTubeDataToFormData(tubeData: TubeData): Partial<CreateTubeFormInput> {
+function convertTubeDataToFormData(tubeData: TubeData): Partial<UpdateTubeFormInput> {
   return {
     sample: {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
@@ -238,13 +238,14 @@ export default function BatchTubeEditorModal({
 
   // Only using form for field editing UI, not the submit handler
   // Actual submission uses bulk mutations
-  const { form, isSubmitting: formSubmitting } = useCreateTubeForm({
+  // Uses useBatchEditTubeForm (updateTubeRequestSchema) - location not required for editing
+  const { form, isSubmitting: formSubmitting } = useBatchEditTubeForm({
     initialData: resolvedData,
   });
 
   // CRITICAL: Subscribe to formState by destructuring in render phase (React Hook Form v7 Proxy pattern)
   // Without this, component won't re-render when errors/dirtyFields change
-  const { errors, dirtyFields } = form.formState;
+  const { errors, dirtyFields, isValid } = form.formState;
 
   // Reset form when resolved data changes to update dirty tracking baseline
   // This ensures defaultValues stay in sync with current tube selection
@@ -463,9 +464,6 @@ export default function BatchTubeEditorModal({
 
   const filteredErrors = filterNode(errors, dirtyFields) ?? {};
 
-  // Check if there are any relevant errors (for button state)
-  const hasRelevantErrors = Object.keys(filteredErrors).length > 0;
-
   // Get user-friendly location names
   const { currentLab, getCurrentTanks, getBox } = useStorageData();
   const tanks = getCurrentTanks();
@@ -557,8 +555,8 @@ export default function BatchTubeEditorModal({
             </button>
             <button
               type="submit"
-              className={`btn px-8 ${!hasRelevantErrors ? 'btn-primary' : 'btn-secondary'}`}
-              disabled={isSubmitting || hasRelevantErrors}
+              className={`btn px-8 ${isValid ? 'btn-primary' : 'btn-secondary'}`}
+              disabled={isSubmitting || !isValid}
             >
               {isSubmitting ? (
                 <div className="flex items-center space-x-2">

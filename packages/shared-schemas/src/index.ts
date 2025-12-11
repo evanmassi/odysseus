@@ -56,6 +56,7 @@ export {
 // Tube Validation Utilities (Phase 1 - New)
 export {
   parseConcentration,
+  parseConcentrationInput,
   concentrationPreprocessor,
   concentrationPreprocessorNullable,
   parseDate,
