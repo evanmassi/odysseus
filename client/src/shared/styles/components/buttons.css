@@ -19,35 +19,35 @@
   }
 
   .btn-primary {
-    @apply btn bg-action text-white hover:bg-action-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-action text-white hover:bg-action-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-secondary {
-    @apply btn border border-odysseus-border bg-odysseus-surface text-odysseus-secondary hover:bg-odysseus-surface-hover hover:shadow-md h-10 px-4 py-2;
+    @apply btn bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-700 h-10 px-4 py-2 shadow-none;
   }
 
   .btn-danger {
-    @apply btn bg-danger-bg text-danger-btnText hover:bg-danger-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-red-100 text-red-700 hover:bg-red-200 h-10 px-4 py-2;
   }
 
   .btn-edit {
-    @apply btn bg-edit-bg text-edit-btnText hover:bg-edit-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-edit-bg text-edit-btnText hover:bg-edit-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-copy {
-    @apply btn bg-copy-bg text-copy-btnText hover:bg-copy-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-copy-bg text-copy-btnText hover:bg-copy-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-cut {
-    @apply btn bg-cut-bg text-cut-btnText hover:bg-cut-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-cut-bg text-cut-btnText hover:bg-cut-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-password {
-    @apply btn bg-password-bg text-white hover:bg-password-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-password-bg text-white hover:bg-password-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-clear {
-    @apply btn bg-clear-bg text-clear-text hover:bg-clear-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-clear-bg text-clear-text hover:bg-clear-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-warning {
@@ -55,15 +55,15 @@
   }
 
   .btn-success {
-    @apply btn bg-success-bg text-success-btnText hover:bg-success-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-success-bg text-success-btnText hover:bg-success-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-info {
-    @apply btn bg-info-bg text-info-btnText hover:bg-info-hover hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-info-bg text-info-btnText hover:bg-info-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-approve {
-    @apply btn bg-green-600 text-white hover:bg-green-700 hover:shadow-lg hover:scale-[1.02] h-10 px-4 py-2;
+    @apply btn bg-green-600 text-white hover:bg-green-700 hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-cancel {
@@ -106,7 +106,7 @@
   }
 
   .btn-danger-compact {
-    @apply btn-compact bg-danger-bg text-danger-btnText hover:bg-danger-hover hover:shadow-md;
+    @apply btn-compact bg-red-100 text-red-700 hover:bg-red-200 hover:shadow-md;
   }
 
   .btn-approve-compact {
@@ -184,7 +184,7 @@
   .btn-header-control {
     @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg;
     @apply bg-white/90 text-blue-800 border border-white/50;
-    @apply hover:bg-white hover:shadow-lg hover:scale-105;
+    @apply hover:bg-white hover:shadow-md;
     transition:
       all 200ms,
       box-shadow 200ms,
@@ -203,7 +203,7 @@
   .btn-header-control-secondary {
     @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg;
     @apply bg-white/70 text-blue-700 border border-white/40;
-    @apply hover:bg-white/90 hover:shadow-md hover:scale-105;
+    @apply hover:bg-white/90 hover:shadow-md;
     transition:
       all 200ms,
       box-shadow 200ms,
@@ -222,7 +222,7 @@
   .btn-header-control-danger {
     @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg;
     @apply bg-red-100 text-red-800 border border-red-200;
-    @apply hover:bg-red-200 hover:shadow-lg hover:scale-105;
+    @apply hover:bg-red-200 hover:shadow-md;
     transition:
       all 200ms,
       box-shadow 200ms,
@@ -282,7 +282,7 @@
   .btn-header-control-compact {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
     @apply bg-white/90 text-blue-800 border border-white/50;
-    @apply hover:bg-white hover:shadow-md hover:scale-105;
+    @apply hover:bg-white hover:shadow-md;
     transition:
       all 200ms,
       box-shadow 200ms,
@@ -301,7 +301,7 @@
   .btn-header-control-compact-secondary {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
     @apply bg-clear-bg text-clear-text border border-clear-bg;
-    @apply hover:bg-clear-hover hover:shadow-md hover:scale-105;
+    @apply hover:bg-clear-hover hover:shadow-md;
     transition:
       all 200ms,
       box-shadow 200ms,
@@ -320,7 +320,7 @@
   .btn-header-control-compact-danger {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
     @apply bg-danger-bg text-danger-btnText border border-danger-bg;
-    @apply hover:bg-danger-hover hover:shadow-md hover:scale-105;
+    @apply hover:bg-danger-hover hover:shadow-md;
     transition:
       all 200ms,
       box-shadow 200ms,
@@ -347,7 +347,7 @@
   }
 
   .btn-header-control-compact-edit:hover {
-    @apply shadow-md scale-105 bg-edit-hover;
+    @apply shadow-md bg-edit-hover;
   }
 
   .btn-header-control-compact-edit:focus {
@@ -369,7 +369,7 @@
   }
 
   .btn-header-control-compact-copy:hover {
-    @apply shadow-md scale-105 bg-copy-hover;
+    @apply shadow-md bg-copy-hover;
   }
 
   .btn-header-control-compact-copy:focus {
@@ -391,7 +391,7 @@
   }
 
   .btn-header-control-compact-cut:hover {
-    @apply shadow-md scale-105 bg-cut-hover;
+    @apply shadow-md bg-cut-hover;
   }
 
   .btn-header-control-compact-cut:focus {
@@ -413,7 +413,7 @@
   }
 
   .btn-header-control-compact-lock:hover {
-    @apply shadow-md scale-105 bg-lock-hover;
+    @apply shadow-md bg-lock-hover;
   }
 
   .btn-header-control-compact-lock:focus {
@@ -435,7 +435,7 @@
   }
 
   .btn-header-control-compact-share:hover {
-    @apply shadow-md scale-105 bg-share-hover;
+    @apply shadow-md bg-share-hover;
   }
 
   .btn-header-control-compact-share:focus {

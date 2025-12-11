@@ -5,7 +5,7 @@ import {
   formatResearcherDropdownDisplay,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { Lock, MapPin, Notebook, UsersRound } from 'lucide-react';
+import { AlertTriangle, Lock, MapPin, Notebook, UsersRound } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks';
 import { useUserSettings } from '@domains/authentication';
@@ -21,6 +21,36 @@ import { InfoSection } from '../displays/InfoSection';
 import type { Researcher } from '@odysseus/shared-schemas';
 import type { LockContext } from '@shared/types/grid';
 import type { TubeData } from '@shared/types/tubeTypes';
+
+// All field paths for conflict analysis
+const FIELD_PATHS = [
+  'sample.cellType',
+  'sample.donorInternalId',
+  'sample.donorSourceId',
+  'sample.cultureCondition',
+  'sample.lotNumber',
+  'sample.media.type',
+  'sample.media.supplements',
+  'sample.media.selection',
+  'sample.concentration',
+  'sample.concentrationUnit',
+  'sample.date',
+  'sample.notes',
+  'researcherId',
+  'createdByName',
+] as const;
+
+// Sample info field paths for checking section visibility
+const SAMPLE_INFO_PATHS = [
+  'sample.cultureCondition',
+  'sample.lotNumber',
+  'sample.media.type',
+  'sample.media.supplements',
+  'sample.media.selection',
+  'sample.concentration',
+  'sample.date',
+  'researcherId',
+] as const;
 
 interface TubeInfoPanelProps {
   selectedTubes: TubeData[];
@@ -90,6 +120,45 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     const positionLabel = selectedTubes.length === 1 ? 'Position' : 'Positions';
     return `${rackName} • Box ${box} • ${positionLabel} ${formattedPositions}`;
   }, [selectedTubes, rackName, currentBoxObj, currentLab, userSettings]);
+
+  // Memoized field analysis - compute all conflicts and values once
+  // IMPORTANT: Must be before early return to comply with Rules of Hooks
+  const fieldAnalysis = useMemo(() => {
+    if (selectedTubes.length === 0) {
+      return { mixedFields: new Set<string>(), values: {} };
+    }
+
+    const firstTube = selectedTubes[0];
+    const mixedFields = new Set<string>();
+    const values: Record<string, string | number | null | undefined> = {};
+
+    for (const path of FIELD_PATHS) {
+      if (selectedTubes.length === 1) {
+        values[path] = getTubeValue(firstTube, path);
+      } else {
+        const analysis = analyzeFieldConflicts(selectedTubes, path);
+        if (analysis.hasConflict) {
+          mixedFields.add(path);
+          values[path] = undefined;
+        } else {
+          // Type guard: Filter out non-display types
+          const value = analysis.commonValue;
+          if (
+            typeof value === 'string' ||
+            typeof value === 'number' ||
+            value === null ||
+            value === undefined
+          ) {
+            values[path] = value;
+          } else {
+            values[path] = undefined;
+          }
+        }
+      }
+    }
+
+    return { mixedFields, values };
+  }, [selectedTubes, getTubeValue, analyzeFieldConflicts]);
 
   if (selectedTubes.length === 0) {
     // Show position info even when no tubes selected
@@ -175,27 +244,14 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   // Get first tube for display (or common values if multiple selected)
   const firstTube = selectedTubes[0];
 
-  // Helper to get common value or first tube's value
-  const getDisplayValue = (path: string): string | number | null | undefined => {
-    if (selectedTubes.length === 1) {
-      return getTubeValue(firstTube, path);
-    }
-    // For multiple tubes, check if all have same value
-    const analysis = analyzeFieldConflicts(selectedTubes, path);
-    if (analysis.hasConflict) return undefined;
+  // Helper to check if a field has conflicting values
+  const isFieldMixed = (path: string): boolean => {
+    return fieldAnalysis.mixedFields.has(path);
+  };
 
-    // Type guard: Filter out non-display types (boolean, Date, complex objects)
-    const value = analysis.commonValue;
-    if (
-      typeof value === 'string' ||
-      typeof value === 'number' ||
-      value === null ||
-      value === undefined
-    ) {
-      return value;
-    }
-    // For Date or complex types, return undefined (not displayable as primitive)
-    return undefined;
+  // Helper to get display value for a field
+  const getDisplayValue = (path: string): string | number | null | undefined => {
+    return fieldAnalysis.values[path];
   };
 
   // Format values for display
@@ -266,7 +322,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     'sample.notes',
   ]);
 
-  // Check if any sample information fields have values
+  // Check if any sample information fields have values or are mixed
   const hasSampleInfo =
     cultureCondition !== undefined ||
     lotNumber !== undefined ||
@@ -275,7 +331,8 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     mediaSelection !== undefined ||
     formattedConcentration !== undefined ||
     formattedDate !== undefined ||
-    researcherDisplay !== undefined;
+    researcherDisplay !== undefined ||
+    SAMPLE_INFO_PATHS.some(path => fieldAnalysis.mixedFields.has(path));
 
   // Lock information for pill badges
   const lockInfo =
@@ -300,9 +357,14 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </div>
           <div className="text-odysseus-dark font-semibold text-sm">{positionSummary}</div>
           {selectedTubes.length > 1 && (
-            <div className="text-odysseus-dark/50 text-xs mt-0.5">
-              {selectedTubes.length} tubes selected
-              {hasConflicts && <span className="text-amber-500 ml-1">• Values differ</span>}
+            <div className="flex items-center text-odysseus-dark/50 text-xs mt-0.5">
+              <span>{selectedTubes.length} tubes selected</span>
+              {hasConflicts && (
+                <span className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-medium">
+                  <AlertTriangle className="w-2.5 h-2.5" />
+                  Mixed values
+                </span>
+              )}
             </div>
           )}
         </div>
@@ -342,13 +404,31 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {/* Donor Information */}
         <InfoSection title="Donor Information">
           {/* Cell Type - Prominent */}
-          {cellType && (
+          {cellType ? (
             <div className="text-odysseus-dark font-semibold text-sm mb-1">{cellType}</div>
-          )}
+          ) : isFieldMixed('sample.cellType') ? (
+            <div className="mb-1">
+              <div className="flex items-center gap-1 text-odysseus-dark/50 text-[10px]">
+                Cell Type
+                <AlertTriangle className="w-3 h-3 text-amber-500" />
+              </div>
+              <div className="text-odysseus-dark/30 text-sm">—</div>
+            </div>
+          ) : null}
           {/* IDs in two columns - stacked layout for consistency */}
           <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-            <FieldValue label="Internal ID" value={donorInternalId} inline={false} />
-            <FieldValue label="Source ID" value={donorSourceId} inline={false} />
+            <FieldValue
+              label="Internal ID"
+              value={donorInternalId}
+              inline={false}
+              isMixed={isFieldMixed('sample.donorInternalId')}
+            />
+            <FieldValue
+              label="Source ID"
+              value={donorSourceId}
+              inline={false}
+              isMixed={isFieldMixed('sample.donorSourceId')}
+            />
           </div>
         </InfoSection>
 
@@ -356,22 +436,69 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {hasSampleInfo && (
           <InfoSection title="Sample Information">
             <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-              <FieldValue label="Condition" value={cultureCondition} inline={false} />
-              <FieldValue label="Lot #" value={lotNumber} inline={false} />
-              <FieldValue label="Concentration" value={formattedConcentration} inline={false} />
-              <FieldValue label="Date" value={formattedDate} inline={false} />
-              <FieldValue label="Media" value={mediaType} inline={false} />
-              <FieldValue label="Supplements" value={mediaSupplements} inline={false} />
-              <FieldValue label="Selection" value={mediaSelection} inline={false} />
-              <FieldValue label="Researcher" value={researcherDisplay} inline={false} />
+              <FieldValue
+                label="Condition"
+                value={cultureCondition}
+                inline={false}
+                isMixed={isFieldMixed('sample.cultureCondition')}
+              />
+              <FieldValue
+                label="Lot #"
+                value={lotNumber}
+                inline={false}
+                isMixed={isFieldMixed('sample.lotNumber')}
+              />
+              <FieldValue
+                label="Concentration"
+                value={formattedConcentration}
+                inline={false}
+                isMixed={isFieldMixed('sample.concentration')}
+              />
+              <FieldValue
+                label="Date"
+                value={formattedDate}
+                inline={false}
+                isMixed={isFieldMixed('sample.date')}
+              />
+              <FieldValue
+                label="Media"
+                value={mediaType}
+                inline={false}
+                isMixed={isFieldMixed('sample.media.type')}
+              />
+              <FieldValue
+                label="Supplements"
+                value={mediaSupplements}
+                inline={false}
+                isMixed={isFieldMixed('sample.media.supplements')}
+              />
+              <FieldValue
+                label="Selection"
+                value={mediaSelection}
+                inline={false}
+                isMixed={isFieldMixed('sample.media.selection')}
+              />
+              <FieldValue
+                label="Researcher"
+                value={researcherDisplay}
+                inline={false}
+                isMixed={isFieldMixed('researcherId')}
+              />
             </div>
           </InfoSection>
         )}
 
         {/* Notes */}
-        {notes && (
+        {(Boolean(notes) || isFieldMixed('sample.notes')) && (
           <InfoSection title="Notes">
-            <div className="text-odysseus-dark/70 text-xs leading-relaxed">{notes}</div>
+            {notes ? (
+              <div className="text-odysseus-dark/70 text-xs leading-relaxed">{notes}</div>
+            ) : (
+              <div className="flex items-center gap-1">
+                <AlertTriangle className="w-3 h-3 text-amber-500" />
+                <span className="text-odysseus-dark/30 text-xs">—</span>
+              </div>
+            )}
           </InfoSection>
         )}
       </div>

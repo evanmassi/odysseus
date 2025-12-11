@@ -66,7 +66,7 @@ export function BaseModal({
   children,
   dataAttribute,
   className = '',
-  mode
+  mode,
 }: BaseModalProps) {
   // Focus trap for keyboard accessibility
   // Automatically restores focus to trigger element when modal closes
@@ -74,7 +74,7 @@ export function BaseModal({
   const trapRef = useFocusTrap({
     isOpen: true,
     restoreFocus: true,
-    autoFocusFirstInput: true
+    autoFocusFirstInput: true,
   });
 
   // Build data attributes object
@@ -99,31 +99,25 @@ export function BaseModal({
         <div
           ref={trapRef}
           {...dataAttrs}
-          className={`bg-odysseus-surface rounded-2xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl shadow-blue-500/20 border border-odysseus-border animate-zoom-in-98 pointer-events-auto ${className}`}
+          className={`bg-odysseus-surface rounded-2xl w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto shadow-2xl shadow-black/10 animate-zoom-in-98 pointer-events-auto ${className}`}
         >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-edit-hover via-edit-bg to-edit-hover">
-          <div className="flex items-center space-x-3">
-            <div className="p-1.5">
-              {icon}
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-3 border-b border-slate-200">
+            <div className="flex items-center space-x-3">
+              <div className="p-1.5 text-slate-500">{icon}</div>
+              <h2 className="text-xl font-semibold text-odysseus-dark">{title}</h2>
             </div>
-            <h2 className="text-xl font-bold text-white">
-              {title}
-            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-enhanced"
+              aria-label="Close modal"
+            >
+              <X size={20} />
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="btn-header-menu p-2 hover:bg-edit-hover text-white/80 hover:text-white"
-            aria-label="Close modal"
-          >
-            <X size={24} />
-          </button>
-        </div>
 
-        {/* Content */}
-        <div className="px-6 py-3">
-          {children}
-        </div>
+          {/* Content */}
+          <div className="px-6 py-3">{children}</div>
         </div>
       </div>
     </>

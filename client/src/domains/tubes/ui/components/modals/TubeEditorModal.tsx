@@ -260,13 +260,7 @@ function EditModeForm({
   return (
     <BaseModal
       title={isLockedOut ? 'View Tube (Read Only)' : 'Edit Tube'}
-      icon={
-        isLockedOut ? (
-          <Lock className="w-5 h-5 text-white" />
-        ) : (
-          <Edit className="w-5 h-5 text-white" />
-        )
-      }
+      icon={isLockedOut ? <Lock className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
       onClose={onClose}
       dataAttribute="data-tube-modal"
       mode="edit"
@@ -281,16 +275,16 @@ function EditModeForm({
 
         {/* Lock Warning Banner */}
         {isLockedOut && (
-          <div className="flex items-start gap-3 p-3 bg-red-50 border-2 border-red-300 rounded-lg">
-            <Lock className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg">
+            <Lock className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-red-700">This tube is locked</h3>
-              <p className="text-sm text-red-600">
+              <h3 className="text-sm font-medium text-red-700">This tube is locked</h3>
+              <p className="text-xs text-red-600">
                 {lockOwnerName ? `Locked by ${lockOwnerName}. ` : ''}
                 You cannot edit this tube until the lock owner unlocks it or shares access with you.
               </p>
               {tube.lockNote && (
-                <p className="text-sm text-red-600 mt-1 italic">&quot;{tube.lockNote}&quot;</p>
+                <p className="text-xs text-red-600 mt-1 italic">&quot;{tube.lockNote}&quot;</p>
               )}
             </div>
           </div>
@@ -656,7 +650,7 @@ function CreateModeContent({
   return (
     <BaseModal
       title={`Add ${parsedPositions.length > 1 ? parsedPositions.length : ''} Tube${parsedPositions.length > 1 ? 's' : ''}`}
-      icon={<Plus className="w-5 h-5 text-white" />}
+      icon={<Plus className="w-5 h-5" />}
       onClose={onClose}
       dataAttribute="data-tube-modal"
       mode="create"
@@ -672,8 +666,8 @@ function CreateModeContent({
           />
         )}
         {parsedPositions.length > 1 && batchLocationDisplay && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-teal-50 to-cyan-50 border-2 border-teal-500 rounded-lg shadow-md">
-            <MapPin className="w-4 h-4 text-teal-500 flex-shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg">
+            <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <div className="flex items-center gap-2 text-sm font-medium text-odysseus-dark">
               <span className="font-semibold">{batchLocationDisplay.tankName}</span>
               <span className="text-odysseus-muted">•</span>
@@ -688,12 +682,14 @@ function CreateModeContent({
 
         {/* Mixed Selection Warning */}
         {positionAnalysis.isMixed && (
-          <div className="alert-warning">
+          <div className="p-3 bg-amber-50 rounded-lg">
             <div className="flex items-start space-x-3">
-              <AlertTriangle className="w-5 h-5 alert-warning-icon flex-shrink-0 mt-0.5" />
+              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h3 className="alert-warning-heading mb-1">Mixed Selection Detected</h3>
-                <p className="alert-warning-text mb-3">
+                <h3 className="text-sm font-medium text-amber-700 mb-1">
+                  Mixed Selection Detected
+                </h3>
+                <p className="text-xs text-amber-600 mb-3">
                   You&apos;ve selected {positionAnalysis.emptyPositions.length} empty and{' '}
                   {positionAnalysis.occupiedPositions.length} occupied position
                   {positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}. By default, only empty
@@ -704,9 +700,9 @@ function CreateModeContent({
                     type="checkbox"
                     checked={allowOverwrite}
                     onChange={e => setAllowOverwrite(e.target.checked)}
-                    className="w-4 h-4 text-warning-text border-warning-border rounded focus:ring-warning-bg"
+                    className="w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-200"
                   />
-                  <span className="text-sm font-medium alert-warning-heading">
+                  <span className="text-xs font-medium text-amber-700">
                     Overwrite occupied positions (this will replace existing tube data)
                   </span>
                 </label>

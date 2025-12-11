@@ -146,7 +146,7 @@
   }
 
   .input-field-normal {
-    @apply border border-odysseus-border;
+    @apply border border-slate-200;
   }
 
   .input-field-normal:hover:not(:disabled) {
@@ -179,5 +179,18 @@
     @apply border-validation-error-ring outline-none;
     animation: pulseErrorRing 1.5s infinite;
     transition: border-color 0.3s;
+  }
+
+  /* Conflict state - for batch edit fields with mixed values */
+  .input-field-conflict {
+    @apply border border-amber-300 bg-amber-50/50;
+  }
+
+  .input-field-conflict:hover:not(:disabled) {
+    @apply border-amber-400;
+  }
+
+  .input-field-conflict:focus {
+    @apply border-amber-400 ring-2 ring-amber-200 outline-none;
   }
 }

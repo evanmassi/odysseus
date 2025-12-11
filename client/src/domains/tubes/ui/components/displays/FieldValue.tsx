@@ -2,9 +2,12 @@
  * Simple field value display component
  * Read-only presentation of a single field with label and value
  * Supports inline (Label: Value) or stacked layout
+ * Supports mixed state for multi-select scenarios
  */
 
 import React from 'react';
+
+import { AlertTriangle } from 'lucide-react';
 
 interface FieldValueProps {
   label: string;
@@ -12,6 +15,8 @@ interface FieldValueProps {
   className?: string;
   /** Use inline "Label: Value" format (default: true) */
   inline?: boolean;
+  /** Show "Mixed" indicator for conflicting values in multi-select */
+  isMixed?: boolean;
 }
 
 export const FieldValue: React.FC<FieldValueProps> = ({
@@ -19,23 +24,36 @@ export const FieldValue: React.FC<FieldValueProps> = ({
   value,
   className = '',
   inline = true,
+  isMixed = false,
 }) => {
-  // Don't render if no value
-  if (!value && value !== 0) return null;
+  // Don't render if no value and not mixed
+  if (!value && value !== 0 && !isMixed) return null;
 
   if (inline) {
     return (
       <div className={`text-xs ${className}`}>
         <span className="text-odysseus-dark/50">{label}:</span>{' '}
-        <span className="text-odysseus-dark font-bold">{value}</span>
+        {isMixed ? (
+          <>
+            <AlertTriangle className="inline w-3 h-3 text-amber-500 mr-0.5" />
+            <span className="text-odysseus-dark/30">—</span>
+          </>
+        ) : (
+          <span className="text-odysseus-dark font-bold">{value}</span>
+        )}
       </div>
     );
   }
 
   return (
     <div className={className}>
-      <div className="text-odysseus-dark/50 text-[10px]">{label}</div>
-      <div className="text-odysseus-dark font-bold text-xs">{value}</div>
+      <div className="flex items-center gap-1 text-odysseus-dark/50 text-[10px]">
+        {label}
+        {isMixed && <AlertTriangle className="w-3 h-3 text-amber-500" />}
+      </div>
+      <div className="text-odysseus-dark font-bold text-xs">
+        {isMixed ? <span className="text-odysseus-dark/30 font-normal">—</span> : value}
+      </div>
     </div>
   );
 };

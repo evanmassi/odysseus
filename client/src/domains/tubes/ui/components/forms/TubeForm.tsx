@@ -20,15 +20,36 @@ import {
   type CreateTubeRequest,
   type UpdateTubeRequest,
   type Researcher,
-  formatResearcherDropdownDisplay
+  formatResearcherDropdownDisplay,
 } from '@odysseus/shared-schemas';
+import { AlertTriangle } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 
 import { ValidatedInput } from '@shared/ui';
 
 import { ConcentrationInput } from '../../inputs/ConcentrationInput';
 
-import type { Control, UseFormRegister, FieldErrors, UseFormTrigger} from 'react-hook-form';
+import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
+
+// Mapping from conflict field keys to form field paths
+const CONFLICT_FIELD_MAP: Record<string, string> = {
+  cellType: 'sample.cellType',
+  donorInternalId: 'sample.donorInternalId',
+  donorSourceId: 'sample.donorSourceId',
+  concentration: 'sample.concentration',
+  concentrationUnit: 'sample.concentration', // Show on concentration field
+  date: 'sample.date',
+  'media.type': 'sample.media.type',
+  'media.supplements': 'sample.media.supplements',
+  'media.selection': 'sample.media.selection',
+  cultureCondition: 'sample.cultureCondition',
+  lotNumber: 'sample.lotNumber',
+  notes: 'sample.notes',
+  researcherId: 'researcherId',
+};
+
+// Conflict indicator icon for fields with mixed values
+const ConflictIcon = () => <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />;
 
 /**
  * Form values union - supports both create and edit modes
@@ -42,6 +63,7 @@ export interface TubeFormProps {
   trigger: UseFormTrigger<TubeFormValues>;
   researchers: Researcher[];
   isLoading: boolean;
+  conflictingFields?: string[]; // Fields with mixed values in batch edit mode
 }
 
 export const TubeForm = ({
@@ -50,10 +72,24 @@ export const TubeForm = ({
   errors,
   trigger,
   researchers,
-  isLoading
+  isLoading,
+  conflictingFields = [],
 }: TubeFormProps) => {
+  // Check if a field path has a conflict
+  const hasConflict = (fieldPath: string): boolean => {
+    return conflictingFields.some(conflictKey => CONFLICT_FIELD_MAP[conflictKey] === fieldPath);
+  };
+
+  // Get conflict indicator for a field
+  const getConflictBadge = (fieldPath: string) => {
+    return hasConflict(fieldPath) ? <ConflictIcon /> : undefined;
+  };
+
   // Helper function to get field errors from nested React Hook Form structure
-  const getFieldError = (fieldPath: string, errors: FieldErrors<CreateTubeRequest>): string | undefined => {
+  const getFieldError = (
+    fieldPath: string,
+    errors: FieldErrors<CreateTubeRequest>
+  ): string | undefined => {
     const pathParts = fieldPath.split('.');
     let currentError: unknown = errors;
 
@@ -84,7 +120,12 @@ export const TubeForm = ({
 
     // Check for refinement error at sample level (concentration/unit invariant)
     const sampleError = errors.sample;
-    if (sampleError && typeof sampleError === 'object' && 'message' in sampleError && typeof sampleError.message === 'string') {
+    if (
+      sampleError &&
+      typeof sampleError === 'object' &&
+      'message' in sampleError &&
+      typeof sampleError.message === 'string'
+    ) {
       return sampleError.message;
     }
 
@@ -93,9 +134,12 @@ export const TubeForm = ({
 
   return (
     <div className="space-y-3">
-      {/* ROW 1: DONOR INFORMATION */}
-      <div className="space-y-1.5">
-        <h3 className="text-xs font-semibold text-storage-tank-hover tracking-wide uppercase">Donor Information</h3>
+      {/* ROW 1: Donor Information */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <h3 className="text-[10px] font-medium text-slate-400">Donor information</h3>
+          <div className="flex-1 h-px bg-slate-200"></div>
+        </div>
         <div className="grid grid-cols-3 gap-2.5">
           <ValidatedInput
             label="Cell Type"
@@ -106,6 +150,8 @@ export const TubeForm = ({
             helperText={getFieldError('sample.cellType', errors)}
             disabled={isLoading}
             required
+            badge={getConflictBadge('sample.cellType')}
+            hasConflict={hasConflict('sample.cellType')}
           />
           <ValidatedInput
             label="Internal ID"
@@ -115,6 +161,8 @@ export const TubeForm = ({
             error={Boolean(getFieldError('sample.donorInternalId', errors))}
             helperText={getFieldError('sample.donorInternalId', errors)}
             disabled={isLoading}
+            badge={getConflictBadge('sample.donorInternalId')}
+            hasConflict={hasConflict('sample.donorInternalId')}
           />
           <ValidatedInput
             label="Source ID"
@@ -124,13 +172,18 @@ export const TubeForm = ({
             error={Boolean(getFieldError('sample.donorSourceId', errors))}
             helperText={getFieldError('sample.donorSourceId', errors)}
             disabled={isLoading}
+            badge={getConflictBadge('sample.donorSourceId')}
+            hasConflict={hasConflict('sample.donorSourceId')}
           />
         </div>
       </div>
 
-      {/* ROW 2: SAMPLE INFORMATION (PART 1) - Media Fields */}
-      <div className="space-y-1.5">
-        <h3 className="text-xs font-semibold text-storage-rack-hover tracking-wide uppercase">Sample Information</h3>
+      {/* ROW 2: Sample Information (Part 1) - Media Fields */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <h3 className="text-[10px] font-medium text-slate-400">Sample information</h3>
+          <div className="flex-1 h-px bg-slate-200"></div>
+        </div>
         <div className="grid grid-cols-4 gap-2.5">
           <div>
             <Controller
@@ -146,7 +199,7 @@ export const TubeForm = ({
                       value={String(value ?? '')}
                       unitValue={unitValue ?? ''}
                       onChange={onChange}
-                      onUnitChange={async (newUnit) => {
+                      onUnitChange={async newUnit => {
                         onUnitChange(newUnit);
                         await trigger('sample');
                       }}
@@ -156,8 +209,10 @@ export const TubeForm = ({
                         error: Boolean(getConcentrationError()),
                         warning: false,
                         helperText: getConcentrationError(),
-                        onBlur: () => {}
+                        onBlur: () => {},
                       }}
+                      badge={getConflictBadge('sample.concentration')}
+                      hasConflict={hasConflict('sample.concentration')}
                     />
                   )}
                 />
@@ -172,6 +227,8 @@ export const TubeForm = ({
             error={Boolean(getFieldError('sample.media.type', errors))}
             helperText={getFieldError('sample.media.type', errors)}
             disabled={isLoading}
+            badge={getConflictBadge('sample.media.type')}
+            hasConflict={hasConflict('sample.media.type')}
           />
           <ValidatedInput
             label="Supplements"
@@ -181,6 +238,8 @@ export const TubeForm = ({
             error={Boolean(getFieldError('sample.media.supplements', errors))}
             helperText={getFieldError('sample.media.supplements', errors)}
             disabled={isLoading}
+            badge={getConflictBadge('sample.media.supplements')}
+            hasConflict={hasConflict('sample.media.supplements')}
           />
           <ValidatedInput
             label="Selection"
@@ -190,6 +249,8 @@ export const TubeForm = ({
             error={Boolean(getFieldError('sample.media.selection', errors))}
             helperText={getFieldError('sample.media.selection', errors)}
             disabled={isLoading}
+            badge={getConflictBadge('sample.media.selection')}
+            hasConflict={hasConflict('sample.media.selection')}
           />
         </div>
       </div>
@@ -204,6 +265,8 @@ export const TubeForm = ({
           error={Boolean(getFieldError('sample.cultureCondition', errors))}
           helperText={getFieldError('sample.cultureCondition', errors)}
           disabled={isLoading}
+          badge={getConflictBadge('sample.cultureCondition')}
+          hasConflict={hasConflict('sample.cultureCondition')}
         />
         <ValidatedInput
           label="Lot #"
@@ -213,6 +276,8 @@ export const TubeForm = ({
           error={Boolean(getFieldError('sample.lotNumber', errors))}
           helperText={getFieldError('sample.lotNumber', errors)}
           disabled={isLoading}
+          badge={getConflictBadge('sample.lotNumber')}
+          hasConflict={hasConflict('sample.lotNumber')}
         />
         <ValidatedInput
           label="Date"
@@ -221,6 +286,8 @@ export const TubeForm = ({
           error={Boolean(getFieldError('sample.date', errors))}
           helperText={getFieldError('sample.date', errors)}
           disabled={isLoading}
+          badge={getConflictBadge('sample.date')}
+          hasConflict={hasConflict('sample.date')}
         />
         <ValidatedInput
           label="Researcher"
@@ -229,19 +296,24 @@ export const TubeForm = ({
           error={Boolean(getFieldError('researcherId', errors))}
           helperText={getFieldError('researcherId', errors)}
           disabled={isLoading}
+          badge={getConflictBadge('researcherId')}
+          hasConflict={hasConflict('researcherId')}
           options={[
             { value: '', label: 'Select researcher...' },
             ...researchers.map(r => ({
               value: r.id,
-              label: formatResearcherDropdownDisplay(r)
-            }))
+              label: formatResearcherDropdownDisplay(r),
+            })),
           ]}
         />
       </div>
 
-      {/* ROW 4: NOTES */}
-      <div className="space-y-1.5">
-        <h3 className="text-xs font-semibold text-storage-box-hover tracking-wide uppercase">Notes</h3>
+      {/* ROW 4: Notes */}
+      <div className="space-y-2">
+        <div className="flex items-center gap-3">
+          <h3 className="text-[10px] font-medium text-slate-400">Notes</h3>
+          <div className="flex-1 h-px bg-slate-200"></div>
+        </div>
         <ValidatedInput
           label=""
           type="textarea"
@@ -251,6 +323,8 @@ export const TubeForm = ({
           error={Boolean(getFieldError('sample.notes', errors))}
           helperText={getFieldError('sample.notes', errors)}
           disabled={isLoading}
+          badge={getConflictBadge('sample.notes')}
+          hasConflict={hasConflict('sample.notes')}
         />
       </div>
     </div>

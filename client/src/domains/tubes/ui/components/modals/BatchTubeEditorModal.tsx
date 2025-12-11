@@ -8,7 +8,7 @@ import {
   formatConcentrationDisplay,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { AlertCircle, XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
+import { AlertTriangle, XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
 import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
@@ -498,43 +498,24 @@ export default function BatchTubeEditorModal({
     <>
       <BaseModal
         title={`Edit ${tubes.length} Tubes`}
-        icon={<Edit className="w-5 h-5 text-white" />}
+        icon={<Edit className="w-5 h-5" />}
         onClose={onClose}
         dataAttribute="data-batch-edit-modal"
       >
         {conflicts.length > 0 && (
-          <div className="alert-warning mb-3">
-            <div className="flex items-center space-x-2 alert-warning-heading">
-              <AlertCircle size={18} />
-              <span>Conflicting Information Detected</span>
-            </div>
-            <p className="alert-warning-text mt-1">
-              These fields differ across tubes and have been cleared.
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {conflicts.map(field => {
-                // Format field names for display
-                const displayName = field
-                  .replace('media.', 'Media ')
-                  .replace(/([A-Z])/g, ' $1')
-                  .replace(/^./, str => str.toUpperCase())
-                  .replace(/ Id/g, ' ID')
-                  .trim();
-
-                return (
-                  <span key={field} className="alert-warning-accent">
-                    {displayName}
-                  </span>
-                );
-              })}
-            </div>
+          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg mb-3">
+            <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <span className="text-sm text-amber-700">
+              {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
+              {conflicts.length > 1 ? 'have' : 'has'} been cleared
+            </span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Position display - matches other modals */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-teal-50 to-cyan-50 border-2 border-teal-500 rounded-lg shadow-md">
-            <MapPin className="w-4 h-4 text-teal-500 flex-shrink-0" />
+          <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg">
+            <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <div className="flex items-center gap-2 text-sm font-medium text-odysseus-dark">
               <span className="font-semibold">{tankName}</span>
               <span className="text-odysseus-muted">•</span>
@@ -553,6 +534,7 @@ export default function BatchTubeEditorModal({
             trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
             researchers={researchers}
             isLoading={isSubmitting}
+            conflictingFields={conflicts}
           />
 
           <div className="flex justify-end space-x-4 pt-4 border-t border-odysseus-border">

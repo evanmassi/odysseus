@@ -2,7 +2,10 @@ import React from 'react';
 
 import { AlertCircle, AlertTriangle } from 'lucide-react';
 
-import { formatToScientificNotation, isScientificNotationInput } from '@shared/utils/scientificNotation';
+import {
+  formatToScientificNotation,
+  isScientificNotationInput,
+} from '@shared/utils/scientificNotation';
 
 interface ConcentrationFieldProps {
   label: string;
@@ -19,6 +22,8 @@ interface ConcentrationFieldProps {
     onBlur: () => void;
   };
   className?: string;
+  badge?: React.ReactNode; // Optional badge/icon shown next to label
+  hasConflict?: boolean; // Applies amber highlight for conflicting values in batch edit
 }
 
 export function ConcentrationInput({
@@ -30,13 +35,14 @@ export function ConcentrationInput({
   placeholder = 'e.g., 5e6',
   disabled = false,
   validation,
-  className = ''
+  className = '',
+  badge,
+  hasConflict = false,
 }: ConcentrationFieldProps) {
-  
   const unitOptions = [
     { value: '', label: '--' },
     { value: 'c/v', label: 'c/v' },
-    { value: 'c/mL', label: 'c/mL' }
+    { value: 'c/mL', label: 'c/mL' },
   ];
 
   const getInputClasses = () => {
@@ -44,6 +50,8 @@ export function ConcentrationInput({
       return 'input-field input-field-error';
     } else if (validation?.warning) {
       return 'input-field border-2 border-validation-warning-border bg-validation-warning-bg text-validation-warning-text';
+    } else if (hasConflict) {
+      return 'input-field input-field-conflict';
     } else if (value && !validation?.error && !validation?.warning) {
       return 'input-field input-field-normal border-validation-success-border bg-validation-success-bg';
     } else {
@@ -66,18 +74,18 @@ export function ConcentrationInput({
   // Format to scientific notation when appropriate
   const handleFormat = (inputValue: string): string => {
     if (!inputValue || inputValue.trim() === '') return inputValue;
-    
+
     // If it's already in scientific notation format, keep it
     if (isScientificNotationInput(inputValue) || inputValue.includes('E')) {
       return inputValue;
     }
-    
+
     // If it's a large number, format to scientific notation
     const numValue = parseFloat(inputValue);
     if (!isNaN(numValue) && numValue >= 1000) {
       return formatToScientificNotation(inputValue);
     }
-    
+
     return inputValue;
   };
 
@@ -100,7 +108,7 @@ export function ConcentrationInput({
     if (formatted !== value) {
       onChange(formatted);
     }
-    
+
     // Call validation onBlur if provided
     if (validation?.onBlur) {
       validation.onBlur();
@@ -110,24 +118,27 @@ export function ConcentrationInput({
   return (
     <div className={className}>
       <label className={getLabelClasses()}>
-        {label}
+        <span className="flex items-center gap-1.5">
+          {label}
+          {badge}
+        </span>
       </label>
-      
+
       <div className="flex gap-1">
         <input
           type="text"
           value={value}
-          onChange={(e) => handleInputChange(e.target.value)}
+          onChange={e => handleInputChange(e.target.value)}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
           className={`${getInputClasses()} flex-[7] min-w-0`}
         />
-        
+
         <select
           value={unitValue}
-          onChange={(e) => onUnitChange(e.target.value)}
+          onChange={e => onUnitChange(e.target.value)}
           disabled={disabled}
           className={`${getInputClasses()} flex-[3] relative z-50`}
         >
@@ -138,19 +149,26 @@ export function ConcentrationInput({
           ))}
         </select>
       </div>
-      
+
       {validation?.helperText && (
-        <div className={`
+        <div
+          className={`
           flex items-center mt-1 text-xs
-          ${validation.error
-            ? 'text-validation-error-helper'
-            : validation.warning
-            ? 'text-validation-warning-helper'
-            : 'text-odysseus-muted'
+          ${
+            validation.error
+              ? 'text-validation-error-helper'
+              : validation.warning
+                ? 'text-validation-warning-helper'
+                : 'text-odysseus-muted'
           }
-        `}>
-          {validation.error && <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-error-icon" />}
-          {validation.warning && <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-warning-icon" />}
+        `}
+        >
+          {validation.error && (
+            <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-error-icon" />
+          )}
+          {validation.warning && (
+            <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-warning-icon" />
+          )}
           <span>{validation.helperText}</span>
         </div>
       )}

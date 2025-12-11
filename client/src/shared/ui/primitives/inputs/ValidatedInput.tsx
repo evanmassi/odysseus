@@ -27,6 +27,8 @@ interface ValidationAwareInputProps {
   children?: React.ReactNode;
   options?: Array<{ value: string; label: string }>; // For select type
   autoFocus?: boolean;
+  badge?: React.ReactNode; // Optional badge/icon shown next to label
+  hasConflict?: boolean; // Applies amber highlight for conflicting values in batch edit
   'aria-invalid'?: boolean;
   'data-testid'?: string;
 }
@@ -49,6 +51,8 @@ export function ValidatedInput({
   children,
   options,
   autoFocus = false,
+  badge,
+  hasConflict = false,
   ...ariaProps
 }: ValidationAwareInputProps) {
   // Determine if controlled or uncontrolled
@@ -74,6 +78,8 @@ export function ValidatedInput({
       return 'input-field input-field-error w-full';
     } else if (warning) {
       return 'input-field w-full border-2 border-validation-warning-border bg-validation-warning-bg text-validation-warning-text';
+    } else if (hasConflict) {
+      return 'input-field input-field-conflict w-full';
     } else if (!isUncontrolled && value && !error && !warning) {
       return 'input-field input-field-normal w-full border-validation-success-border bg-validation-success-bg';
     } else {
@@ -116,7 +122,9 @@ export function ValidatedInput({
     return null;
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
     if (onChange) {
       onChange(e.target.value);
     }
@@ -125,10 +133,13 @@ export function ValidatedInput({
   return (
     <div className={`${className}`}>
       <label className={getLabelClasses()}>
-        {label}
-        {required && <span className="text-validation-error-required ml-1">*</span>}
+        <span className="flex items-center gap-1.5">
+          {label}
+          {required && <span className="text-validation-error-required">*</span>}
+          {badge}
+        </span>
       </label>
-      
+
       {type === 'select' ? (
         <select
           ref={inputRef as React.RefObject<HTMLSelectElement>}
@@ -170,14 +181,14 @@ export function ValidatedInput({
           {...ariaProps}
         />
       )}
-      
+
       {helperText && (
         <div className={getHelperTextClasses()}>
           {getIcon()}
           <span>{helperText}</span>
         </div>
       )}
-      
+
       {/* Character count for long fields */}
       {maxLength && !isUncontrolled && value && (
         <div className="text-xs text-gray-400 mt-1 text-right">

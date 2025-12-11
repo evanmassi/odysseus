@@ -71,10 +71,8 @@ export const LocationDisplay = ({
   }, [tankId, rackId, boxId, position, getCurrentTanks, currentLab, settings]);
 
   return (
-    <div
-      className={`flex items-center gap-2 px-3 py-2 bg-gradient-to-br from-teal-50 to-cyan-50 border-2 border-teal-500 rounded-lg shadow-md ${className}`}
-    >
-      <MapPin className="w-4 h-4 text-teal-500 flex-shrink-0" />
+    <div className={`flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg ${className}`}>
+      <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
       <div className="flex items-center gap-2 text-sm font-medium text-odysseus-dark">
         <span className="font-semibold">{locationDisplay.tankName}</span>
         <span className="text-odysseus-muted">•</span>
