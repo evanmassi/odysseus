@@ -1,5 +1,6 @@
 /**
  * Color System Types
+ * Types and utilities for tube color coding visualization
  */
 
 import type { TubeData } from '@odysseus/shared-schemas';
@@ -82,9 +83,9 @@ export const adaptTubeDataForColorSystem = (tubeData: TubeData): ColorSystemTube
 
   // Handle Date -> string conversion
   const dateString = tubeData.sample?.date
-    ? (typeof tubeData.sample.date === 'string'
-        ? tubeData.sample.date
-        : tubeData.sample.date.toISOString())
+    ? typeof tubeData.sample.date === 'string'
+      ? tubeData.sample.date
+      : tubeData.sample.date.toISOString()
     : undefined;
 
   return {
@@ -101,6 +102,6 @@ export const adaptTubeDataForColorSystem = (tubeData: TubeData): ColorSystemTube
     donor: tubeData.sample?.donorInternalId ?? tubeData.sample?.donorSourceId,
     // Use cellType as cellLine (they're the same in current schema)
     cellLine: tubeData.sample?.cellType,
-    cultureCondition: tubeData.sample?.cultureCondition
+    cultureCondition: tubeData.sample?.cultureCondition,
   };
 };

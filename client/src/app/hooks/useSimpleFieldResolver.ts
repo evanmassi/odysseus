@@ -12,6 +12,7 @@ import { logger } from '@shared/infrastructure/logger';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
 import type {
+  NormalizedFieldValue,
   TubeFieldTypeMap,
   ValidFieldPath,
   ValidFieldValue,
@@ -22,7 +23,7 @@ import type { TubeData } from '@shared/types/tubeTypes';
  * Two-state conflict analysis result
  * Treats empty as a distinct value - empty vs filled = conflict
  */
-export interface FieldConflictAnalysis<T extends ValidFieldValue = ValidFieldValue> {
+export interface FieldConflictAnalysis<T extends NormalizedFieldValue = NormalizedFieldValue> {
   /** State of the field across selected items */
   state: 'common' | 'conflict';
 
@@ -55,7 +56,7 @@ export interface SimpleFieldResolver {
   /** Get a field value from tube data using dot notation (type-safe overload) */
   getTubeValue<K extends ValidFieldPath>(tube: TubeData, fieldPath: K): TubeFieldTypeMap[K];
   /** Get a field value from tube data using dot notation (flexible overload) */
-  getTubeValue<T extends ValidFieldValue = ValidFieldValue>(
+  getTubeValue<T extends NormalizedFieldValue = NormalizedFieldValue>(
     tube: TubeData,
     fieldPath: string
   ): T | undefined;
@@ -63,7 +64,7 @@ export interface SimpleFieldResolver {
   /** Get field values from multiple tubes (type-safe overload) */
   getTubeValues<K extends ValidFieldPath>(tubes: TubeData[], fieldPath: K): TubeFieldTypeMap[K][];
   /** Get field values from multiple tubes (flexible overload) */
-  getTubeValues<T extends ValidFieldValue = ValidFieldValue>(
+  getTubeValues<T extends NormalizedFieldValue = NormalizedFieldValue>(
     tubes: TubeData[],
     fieldPath: string
   ): (T | undefined)[];
@@ -77,7 +78,7 @@ export interface SimpleFieldResolver {
     fieldPath: K
   ): NonNullable<TubeFieldTypeMap[K]>[];
   /** Get unique values for a field across all tubes (flexible overload) */
-  getUniqueTubeValues<T extends ValidFieldValue = ValidFieldValue>(
+  getUniqueTubeValues<T extends NormalizedFieldValue = NormalizedFieldValue>(
     tubes: TubeData[],
     fieldPath: string
   ): T[];
@@ -89,14 +90,14 @@ export interface SimpleFieldResolver {
     value: TubeFieldTypeMap[K]
   ): TubeData[];
   /** Find tubes where field has specific value (flexible overload) */
-  findTubesByFieldValue<T extends ValidFieldValue = ValidFieldValue>(
+  findTubesByFieldValue<T extends NormalizedFieldValue = NormalizedFieldValue>(
     tubes: TubeData[],
     fieldPath: string,
     value: T
   ): TubeData[];
 
   /** Analyze field conflicts in selected tubes using three-state model */
-  analyzeFieldConflicts<T extends ValidFieldValue = ValidFieldValue>(
+  analyzeFieldConflicts<T extends NormalizedFieldValue = NormalizedFieldValue>(
     tubes: TubeData[],
     fieldPath: string
   ): FieldConflictAnalysis<T>;
@@ -128,12 +129,17 @@ function hasValue(value: unknown): boolean {
  */
 export function useSimpleFieldResolver(): SimpleFieldResolver {
   const getTubeValue = useCallback(
-    <T extends ValidFieldValue = ValidFieldValue>(
+    <T extends NormalizedFieldValue = NormalizedFieldValue>(
       tube: TubeData,
       fieldPath: string
     ): T | undefined => {
       try {
-        return getNestedValue(tube, fieldPath) as T | undefined;
+        const value = getNestedValue(tube, fieldPath);
+        // Normalize Date objects to strings for consistent handling
+        if (value instanceof Date) {
+          return normalizeDateString(value) as T;
+        }
+        return value as T | undefined;
       } catch (error) {
         logger.warn(`Failed to get tube value for field '${fieldPath}'`, { error, fieldPath });
         return undefined;
@@ -143,7 +149,7 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
   );
 
   const getTubeValues = useCallback(
-    <T extends ValidFieldValue = ValidFieldValue>(
+    <T extends NormalizedFieldValue = NormalizedFieldValue>(
       tubes: TubeData[],
       fieldPath: string
     ): (T | undefined)[] => {
@@ -161,7 +167,10 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
   );
 
   const getUniqueTubeValues = useCallback(
-    <T extends ValidFieldValue = ValidFieldValue>(tubes: TubeData[], fieldPath: string): T[] => {
+    <T extends NormalizedFieldValue = NormalizedFieldValue>(
+      tubes: TubeData[],
+      fieldPath: string
+    ): T[] => {
       const allValues = getTubeValues<T>(tubes, fieldPath);
       const filteredValues = allValues.filter(
         (value): value is T => value !== undefined && value !== null && value !== ''
@@ -175,7 +184,7 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
   );
 
   const findTubesByFieldValue = useCallback(
-    <T extends ValidFieldValue = ValidFieldValue>(
+    <T extends NormalizedFieldValue = NormalizedFieldValue>(
       tubes: TubeData[],
       fieldPath: string,
       value: T
@@ -189,7 +198,7 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
   );
 
   const analyzeFieldConflicts = useCallback(
-    <T extends ValidFieldValue = ValidFieldValue>(
+    <T extends NormalizedFieldValue = NormalizedFieldValue>(
       tubes: TubeData[],
       fieldPath: string
     ): FieldConflictAnalysis<T> => {

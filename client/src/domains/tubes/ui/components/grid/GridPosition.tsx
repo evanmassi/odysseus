@@ -15,7 +15,7 @@ import { LockIndicator } from '../LockIndicator';
 
 import type { GridConfiguration } from '@domains/storage';
 import type { TubeData } from '@domains/tubes/types';
-import '@shared/styles/legacy/colorIndicators.css';
+import './colorIndicators.css';
 
 // Helper functions for enhanced CSS class generation
 function getPatternClass(pattern: string): string {

@@ -94,7 +94,8 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   // Format position summary with flexible display
   // IMPORTANT: Must be before early return to comply with Rules of Hooks
   const positionSummary = useMemo(() => {
-    if (selectedTubes.length === 0) return '';
+    if (selectedTubes.length === 0)
+      return { rackName: '', box: '', positionLabel: '', formattedPositions: '' };
 
     const firstTube = selectedTubes[0];
     const box = firstTube.location.boxId;

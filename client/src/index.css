@@ -18,8 +18,7 @@
 @import './shared/styles/utilities/effects.css';
 @import './shared/styles/utilities/responsive.css';
 
-/* Legacy Styles - To be integrated or deprecated */
-@import './shared/styles/legacy/notifications.css';
-@import './shared/styles/legacy/keyboardNavigation.css';
-@import './shared/styles/legacy/colorIndicators.css';
-@import './shared/styles/legacy/layout.css';
+/* Core Styles - Layout, Notifications & Accessibility */
+@import './shared/styles/components/notifications.css';
+@import './shared/styles/utilities/accessibility.css';
+@import './shared/styles/base/layout.css';

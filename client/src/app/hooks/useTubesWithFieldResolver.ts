@@ -1,6 +1,6 @@
 /**
  * Simplified React Query + Field Resolver Integration Hook - Phase 1
- * 
+ *
  * Provides tubes data from React Query with simple field resolver capabilities.
  * Uses the new simple field resolver that works with Zod schemas.
  */
@@ -11,7 +11,7 @@ import { useTubesQuery } from '@domains/tubes/hooks/useTubesQuery';
 
 import { useSimpleFieldResolver } from './useSimpleFieldResolver';
 
-import type { ValidFieldValue } from '@app/types/fieldTypeMapping';
+import type { NormalizedFieldValue } from '@app/types/fieldTypeMapping';
 import type { TubeData } from '@shared/types/tubeTypes';
 
 /**
@@ -22,33 +22,44 @@ export function useTubesWithFieldResolver() {
   const tubesQuery = useTubesQuery();
   const fieldResolver = useSimpleFieldResolver();
 
-  return useMemo(() => ({
-    // React Query data
-    tubes: tubesQuery.data,
-    isLoading: tubesQuery.isLoading,
-    error: tubesQuery.error,
-    refetch: tubesQuery.refetch,
-    
-    // Simple field resolver functions (updated API)
-    getValue: fieldResolver.getTubeValue,
-    getValues: fieldResolver.getTubeValues,
-    hasValue: fieldResolver.tubeHasValue,
-    
-    // Utility functions for TubeInfoPanel
-    analyzeFieldConflicts: <T extends ValidFieldValue = ValidFieldValue>(selectedTubes: TubeData[], fieldPath: string) => {
-      return fieldResolver.analyzeFieldConflicts<T>(selectedTubes, fieldPath);
-    },
+  return useMemo(
+    () => ({
+      // React Query data
+      tubes: tubesQuery.data,
+      isLoading: tubesQuery.isLoading,
+      error: tubesQuery.error,
+      refetch: tubesQuery.refetch,
 
-    // Get unique values for a field across all tubes
-    getUniqueFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
-      if (!tubesQuery.data) return [];
-      return fieldResolver.getUniqueTubeValues<T>(tubesQuery.data, fieldPath);
-    },
+      // Simple field resolver functions (updated API)
+      getValue: fieldResolver.getTubeValue,
+      getValues: fieldResolver.getTubeValues,
+      hasValue: fieldResolver.tubeHasValue,
 
-    // Find tubes by field value
-    findByFieldValue: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string, value: T): TubeData[] => {
-      if (!tubesQuery.data) return [];
-      return fieldResolver.findTubesByFieldValue(tubesQuery.data, fieldPath, value);
-    }
-  }), [tubesQuery, fieldResolver]);
+      // Utility functions for TubeInfoPanel
+      analyzeFieldConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        selectedTubes: TubeData[],
+        fieldPath: string
+      ) => {
+        return fieldResolver.analyzeFieldConflicts<T>(selectedTubes, fieldPath);
+      },
+
+      // Get unique values for a field across all tubes
+      getUniqueFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string
+      ): T[] => {
+        if (!tubesQuery.data) return [];
+        return fieldResolver.getUniqueTubeValues<T>(tubesQuery.data, fieldPath);
+      },
+
+      // Find tubes by field value
+      findByFieldValue: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string,
+        value: T
+      ): TubeData[] => {
+        if (!tubesQuery.data) return [];
+        return fieldResolver.findTubesByFieldValue(tubesQuery.data, fieldPath, value);
+      },
+    }),
+    [tubesQuery, fieldResolver]
+  );
 }

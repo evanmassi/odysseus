@@ -17,8 +17,8 @@ import { useTubeStore } from '@domains/tubes';
 // Import app-layer components (moved from @shared)
 import { ErrorBanner, ConnectionIndicator } from '@shared/ui';
 
-import '@shared/styles/legacy/notifications.css';
-import '@shared/styles/legacy/keyboardNavigation.css';
+import '@shared/styles/components/notifications.css';
+import '@shared/styles/utilities/accessibility.css';
 
 // Inner app component that uses React Query hooks - must be inside QueryClientProvider
 function AppContent() {
@@ -40,10 +40,7 @@ function AppContent() {
   if (isLoading) {
     return (
       <AppErrorBoundary onRetry={retry}>
-        <AppLoader 
-          context={bootstrapState}
-          onRetry={retry}
-        />
+        <AppLoader context={bootstrapState} onRetry={retry} />
       </AppErrorBoundary>
     );
   }
@@ -52,10 +49,7 @@ function AppContent() {
   if (isError) {
     return (
       <AppErrorBoundary onRetry={retry}>
-        <AppLoader 
-          context={bootstrapState}
-          onRetry={retry}
-        />
+        <AppLoader context={bootstrapState} onRetry={retry} />
       </AppErrorBoundary>
     );
   }
@@ -85,11 +79,14 @@ function AppContent() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           {/* Main app route */}
-          <Route path="*" element={
-            <AuthGateway>
-              <Dashboard />
-            </AuthGateway>
-          } />
+          <Route
+            path="*"
+            element={
+              <AuthGateway>
+                <Dashboard />
+              </AuthGateway>
+            }
+          />
         </Routes>
 
         {/* UI overlays and notifications */}

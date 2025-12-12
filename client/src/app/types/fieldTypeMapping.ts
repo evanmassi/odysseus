@@ -24,6 +24,12 @@ export type ComplexFieldValue = Record<string, FieldValue>;
 export type ValidFieldValue = FieldValue | ComplexFieldValue;
 
 /**
+ * Normalized field value - Date objects are converted to ISO strings
+ * Used by field resolver return types to reflect runtime normalization
+ */
+export type NormalizedFieldValue = Exclude<FieldValue, Date> | ComplexFieldValue;
+
+/**
  * Explicit mapping of known field paths to their TypeScript types
  *
  * This mapping ensures type-safe field access throughout the application.
@@ -43,7 +49,7 @@ export type TubeFieldTypeMap = {
   'sample.donorSourceId': string | undefined;
   'sample.concentration': number | undefined;
   'sample.concentrationUnit': 'c/v' | 'c/mL' | undefined;
-  'sample.date': string | Date | undefined;
+  'sample.date': string | undefined;
   'sample.media': TubeData['sample']['media'];
   'sample.media.type': string | undefined;
   'sample.media.supplements': string | undefined;
@@ -53,10 +59,10 @@ export type TubeFieldTypeMap = {
   'sample.notes': string | undefined;
 
   // Top-level fields
-  'researcherId': string | undefined;
-  'createdByName': string | undefined;
-  'timestamps.createdAt': string | Date;
-  'timestamps.updatedAt': string | Date;
+  researcherId: string | undefined;
+  createdByName: string | undefined;
+  'timestamps.createdAt': string;
+  'timestamps.updatedAt': string;
 };
 
 /**

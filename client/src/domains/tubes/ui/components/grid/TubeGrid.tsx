@@ -19,8 +19,6 @@ import { GridPosition } from './GridPosition';
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey, GridControllerReturn, LockContext } from '@shared/types/grid';
 
-import '@shared/styles/legacy/colorIndicators.css';
-
 /**
  * TubeGrid Props Interface
  */

@@ -1,9 +1,9 @@
 /**
  * React Query + Field Resolver Integration Hook - Phase 1
- * 
+ *
  * Combines React Query server state management with simple field resolver
  * for unified, type-safe data access patterns.
- * 
+ *
  * This replaces the legacy field resolver system with a lightweight,
  * Zod-compatible implementation focused on Phase 1 needs.
  */
@@ -17,10 +17,9 @@ import { useTubesQuery } from '@domains/tubes/hooks/useTubesQuery';
 
 import { useSimpleFieldResolver, type SimpleFieldResolver } from './useSimpleFieldResolver';
 
-import type { ValidFieldValue } from '@app/types/fieldTypeMapping';
+import type { NormalizedFieldValue } from '@app/types/fieldTypeMapping';
 import type { Researcher } from '@odysseus/shared-schemas';
 import type { TubeData } from '@shared/types/tubeTypes';
-
 
 /**
  * Enhanced data access interface combining React Query with field resolution
@@ -33,13 +32,23 @@ export interface UseFieldResolverQueryResult extends SimpleFieldResolver {
     error: Error | null;
     refetch: () => void;
     /** Get field values from all tubes */
-    getFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string) => T[];
+    getFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+      fieldPath: string
+    ) => T[];
     /** Find tubes where field has specific value */
-    findByFieldValue: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string, value: T) => TubeData[];
+    findByFieldValue: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+      fieldPath: string,
+      value: T
+    ) => TubeData[];
     /** Get unique values for a field across all tubes */
-    getUniqueFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string) => T[];
+    getUniqueFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+      fieldPath: string
+    ) => T[];
     /** Analyze conflicts in selected tubes */
-    analyzeConflicts: <T extends ValidFieldValue = ValidFieldValue>(selectedTubes: TubeData[], fieldPath: string) => {
+    analyzeConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+      selectedTubes: TubeData[],
+      fieldPath: string
+    ) => {
       hasConflict: boolean;
       values: (T | undefined)[];
       commonValue: T | undefined;
@@ -74,17 +83,17 @@ export interface UseFieldResolverQueryResult extends SimpleFieldResolver {
 
 /**
  * Hook that combines React Query data fetching with field resolver capabilities
- * 
+ *
  * Usage:
  * ```tsx
  * function TubeAnalysisPanel() {
  *   const { tubes, getTubeValue, researchers } = useFieldResolverQuery();
- *   
+ *
  *   if (tubes.isLoading) return <LoadingSpinner />;
- *   
+ *
  *   const cellTypes = tubes.getUniqueFieldValues('sample.cellType');
  *   const tcells = tubes.findByFieldValue('sample.cellType', 'T-cells');
- *   
+ *
  *   return (
  *     <div>
  *       <h3>Cell Types: {cellTypes.join(', ')}</h3>
@@ -112,29 +121,39 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
       error: tubesQuery.error,
       refetch: tubesQuery.refetch,
 
-      getFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
+      getFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string
+      ): T[] => {
         return fieldResolver.getTubeValues<T>(tubes, fieldPath).filter(v => v !== undefined) as T[];
       },
 
-      findByFieldValue: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string, value: T): TubeData[] => {
+      findByFieldValue: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string,
+        value: T
+      ): TubeData[] => {
         return fieldResolver.findTubesByFieldValue(tubes, fieldPath, value);
       },
 
-      getUniqueFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
+      getUniqueFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string
+      ): T[] => {
         return fieldResolver.getUniqueTubeValues<T>(tubes, fieldPath);
       },
 
-      analyzeConflicts: <T extends ValidFieldValue = ValidFieldValue>(selectedTubes: TubeData[], fieldPath: string) => {
+      analyzeConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        selectedTubes: TubeData[],
+        fieldPath: string
+      ) => {
         return fieldResolver.analyzeFieldConflicts<T>(selectedTubes, fieldPath);
       },
 
       /** Check if any of the specified fields have conflicts across selected tubes */
       hasAnyConflicts: (selectedTubes: TubeData[], fieldPaths: string[]): boolean => {
         if (selectedTubes.length <= 1) return false;
-        return fieldPaths.some(fieldPath =>
-          fieldResolver.analyzeFieldConflicts(selectedTubes, fieldPath).hasConflict
+        return fieldPaths.some(
+          fieldPath => fieldResolver.analyzeFieldConflicts(selectedTubes, fieldPath).hasConflict
         );
-      }
+      },
     };
   }, [tubesQuery, fieldResolver]);
 
@@ -159,28 +178,34 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
 
       getNames: () => {
         return researchers.map(r => formatResearcherDropdownDisplay(r)).sort();
-      }
+      },
     };
   }, [researchersQuery]);
 
   // Combined loading and error states
   const isLoading = tubesQuery.isLoading || researchersQuery.isLoading;
-  const errors = useMemo(() => [tubesQuery.error, researchersQuery.error], [tubesQuery.error, researchersQuery.error]);
+  const errors = useMemo(
+    () => [tubesQuery.error, researchersQuery.error],
+    [tubesQuery.error, researchersQuery.error]
+  );
   const hasErrors = errors.some(error => error !== null);
 
-  return useMemo(() => ({
-    // Simple field resolver capabilities
-    ...fieldResolver,
+  return useMemo(
+    () => ({
+      // Simple field resolver capabilities
+      ...fieldResolver,
 
-    // Enhanced data access
-    tubes: tubeUtils,
-    researchers: researcherUtils,
+      // Enhanced data access
+      tubes: tubeUtils,
+      researchers: researcherUtils,
 
-    // Combined states
-    isLoading,
-    hasErrors,
-    errors
-  }), [fieldResolver, tubeUtils, researcherUtils, isLoading, hasErrors, errors]);
+      // Combined states
+      isLoading,
+      hasErrors,
+      errors,
+    }),
+    [fieldResolver, tubeUtils, researcherUtils, isLoading, hasErrors, errors]
+  );
 }
 
 /**
@@ -204,26 +229,34 @@ export function useFieldResolverTubes() {
       getValue: fieldResolver.getTubeValue,
       getValues: fieldResolver.getTubeValues,
       hasValue: fieldResolver.tubeHasValue,
-      
+
       // Field-based utilities
-      getFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
+      getFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string
+      ): T[] => {
         return fieldResolver.getTubeValues<T>(tubes, fieldPath).filter(v => v !== undefined) as T[];
       },
 
-      findByFieldValue: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string, value: T): TubeData[] => {
+      findByFieldValue: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string,
+        value: T
+      ): TubeData[] => {
         return fieldResolver.findTubesByFieldValue(tubes, fieldPath, value);
       },
 
-      getUniqueFieldValues: <T extends ValidFieldValue = ValidFieldValue>(fieldPath: string): T[] => {
+      getUniqueFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string
+      ): T[] => {
         return fieldResolver.getUniqueTubeValues<T>(tubes, fieldPath);
       },
 
       // Conflict analysis for TubeInfoPanel
-      analyzeFieldConflicts: <T extends ValidFieldValue = ValidFieldValue>(selectedTubes: TubeData[], fieldPath: string) => {
+      analyzeFieldConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        selectedTubes: TubeData[],
+        fieldPath: string
+      ) => {
         return fieldResolver.analyzeFieldConflicts<T>(selectedTubes, fieldPath);
-      }
+      },
     };
   }, [tubesQuery, fieldResolver]);
 }
-
-

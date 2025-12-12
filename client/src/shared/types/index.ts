@@ -11,9 +11,6 @@ export type * from './bulkOperations';
 // Clipboard types
 export type * from './clipboard';
 
-// Color system types
-export type * from './colorSystemTypes';
-
 // Experimental browser API types
 export type * from './experimentalBrowserApis';
 

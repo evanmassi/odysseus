@@ -44,7 +44,7 @@ import type {
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey } from '@shared/types/grid';
 
-import '@shared/styles/legacy/layout.css';
+import '@shared/styles/base/layout.css';
 
 // Lazy loading (commented out - uncomment to re-enable code splitting)
 // const TubeEditorModal = lazy(() =>
@@ -365,7 +365,7 @@ export function Dashboard() {
       if (!tube.sharedWithUserIds || tube.sharedWithUserIds.length === 0) return [];
       return tube.sharedWithUserIds
         .filter(id => id === user.id || userDisplayMap.has(id))
-        .map(id => id === user.id ? 'You' : userDisplayMap.get(id)!);
+        .map(id => (id === user.id ? 'You' : userDisplayMap.get(id)!));
     };
 
     return {
