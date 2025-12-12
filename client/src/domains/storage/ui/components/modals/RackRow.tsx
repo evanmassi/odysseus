@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
@@ -50,49 +50,28 @@ export function RackRow({
   const rackKey = `${tankId}-rack-${rack.id}`;
   const isRackOwnedByUser = isOwnedByCurrentUser(rack);
   const isUnassigned = !rack.assignedUserId;
-  const bgClass = isRackOwnedByUser
-    ? 'bg-ownership-user-medium'
-    : isUnassigned
-      ? 'bg-ownership-unassigned-light'
-      : 'bg-ownership-other-medium';
 
-  const borderClass = isRackOwnedByUser
-    ? 'border-ownership-user-border'
+  // Left border accent with subtle tint (modern, less visual weight)
+  const leftBorderClass = isRackOwnedByUser
+    ? 'border-l-ownership-user-badge'
     : isUnassigned
-      ? 'border-ownership-unassigned-border'
-      : 'border-ownership-other-border';
+      ? 'border-l-ownership-unassigned-badge'
+      : 'border-l-ownership-other-badge';
 
+  const bgClass = isRackOwnedByUser ? 'bg-ice-50' : isUnassigned ? 'bg-amber-50/50' : 'bg-slate-50';
+
+  // Badge colors - centralized via CSS variables
   const badgeClass = isRackOwnedByUser
-    ? 'bg-ownership-user-bg text-white'
+    ? 'bg-ownership-user-badge text-white'
     : isUnassigned
-      ? 'bg-ownership-unassigned-bg text-white'
-      : 'bg-ownership-other-bg text-white';
-
-  // Calculate owned boxes for collapsed notation
-  const ownedBoxInfo = useMemo(() => {
-    if (!currentUser?.id) return null;
-
-    const userOwnsRack = rack.assignedUserId === currentUser.id;
-
-    if (userOwnsRack) {
-      // User owns rack - count boxes that inherit (undefined) or are explicitly assigned to user
-      // null = explicitly common (not owned), so exclude those
-      const ownedCount = rack.boxes.filter(
-        box => box.assignedUserId === undefined || box.assignedUserId === currentUser.id
-      ).length;
-      return ownedCount === rack.boxes.length ? 'all' : ownedCount;
-    } else {
-      // User doesn't own rack - count boxes explicitly assigned to user
-      const ownedCount = rack.boxes.filter(box => box.assignedUserId === currentUser.id).length;
-      return ownedCount > 0 ? ownedCount : null;
-    }
-  }, [rack.boxes, rack.assignedUserId, currentUser?.id]);
+      ? 'bg-ownership-unassigned-badge text-white'
+      : 'bg-ownership-other-badge text-white';
 
   return (
     <div className="ml-2">
       {/* Rack Row */}
       <div
-        className={`flex items-center gap-1.5 py-1 px-1.5 ${bgClass} rounded border ${borderClass}`}
+        className={`flex items-center gap-1.5 py-1 px-1.5 ${bgClass} rounded border border-gray-200 border-l-4 ${leftBorderClass}`}
       >
         <span className="text-slate-600 font-mono text-sm flex-shrink-0">{isLast ? '└' : '├'}</span>
 
@@ -120,11 +99,6 @@ export function RackRow({
           <span className={`text-xs px-2 py-0.5 rounded ${badgeClass}`}>
             {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
           </span>
-          {collapsed && ownedBoxInfo !== null && (
-            <span className="text-xs text-blue-700 italic">
-              you own {ownedBoxInfo === 'all' ? 'all' : ownedBoxInfo}
-            </span>
-          )}
         </button>
 
         {/* Assignment Dropdown (admin only) */}

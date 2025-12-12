@@ -229,17 +229,25 @@ export function AssignmentsByUserView({
         const isCurrentUser = userAssignment.userId === currentUserId;
         const isUnassigned = userAssignment.userId === null;
 
-        const headerBg = isCurrentUser
-          ? 'bg-ownership-user-light border-ownership-user-border'
+        // Left border accent with subtle tint (modern, less visual weight)
+        const headerLeftBorder = isCurrentUser
+          ? 'border-l-ownership-user-badge'
           : isUnassigned
-            ? 'bg-ownership-unassigned-light border-ownership-unassigned-border'
-            : 'bg-slate-100 border-slate-300';
+            ? 'border-l-ownership-unassigned-badge'
+            : 'border-l-ownership-other-badge';
 
-        const badgeBg = isCurrentUser
-          ? 'bg-ownership-user-bg'
+        const headerBg = isCurrentUser
+          ? 'bg-ice-50'
           : isUnassigned
-            ? 'bg-ownership-unassigned-bg'
-            : 'bg-ownership-other-bg';
+            ? 'bg-amber-50/50'
+            : 'bg-slate-50';
+
+        // Badge colors - centralized via CSS variables
+        const badgeBg = isCurrentUser
+          ? 'bg-ownership-user-badge'
+          : isUnassigned
+            ? 'bg-ownership-unassigned-badge'
+            : 'bg-ownership-other-badge';
 
         // Group assignments by rack for better display
         const racks = userAssignment.assignments.filter(a => a.type === 'rack');
@@ -251,7 +259,9 @@ export function AssignmentsByUserView({
         return (
           <div key={userAssignment.userId ?? 'unassigned'} className="rounded-lg overflow-hidden">
             {/* User Header */}
-            <div className={`flex items-center gap-3 px-3 py-2 ${headerBg} border rounded-lg`}>
+            <div
+              className={`flex items-center gap-3 px-3 py-2 ${headerBg} border border-gray-200 border-l-4 ${headerLeftBorder} rounded-lg`}
+            >
               {/* Expand/Collapse Button */}
               <button
                 type="button"
@@ -267,7 +277,7 @@ export function AssignmentsByUserView({
                 <div
                   className={`w-6 h-6 rounded-full ${badgeBg} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
                 >
-                  {isUnassigned ? <UsersRound size={12} /> : userAssignment.initials}
+                  {isUnassigned ? <UsersRound size={14} /> : userAssignment.initials}
                 </div>
 
                 {/* Username */}
@@ -436,32 +446,33 @@ export function AssignmentsByUserView({
                       return a.rackId.localeCompare(b.rackId);
                     });
 
-                  // Rack row styling
+                  // Rack row styling - left border accent with subtle tint
+                  const rackLeftBorderClass = isCurrentUser
+                    ? 'border-l-ownership-user-badge'
+                    : isUnassigned
+                      ? 'border-l-ownership-unassigned-badge'
+                      : 'border-l-ownership-other-badge';
                   const rackBgClass = isCurrentUser
-                    ? 'bg-ownership-user-medium'
+                    ? 'bg-ice-50'
                     : isUnassigned
-                      ? 'bg-ownership-unassigned-light'
-                      : 'bg-ownership-other-medium';
-                  const rackBorderClass = isCurrentUser
-                    ? 'border-ownership-user-border'
-                    : isUnassigned
-                      ? 'border-ownership-unassigned-border'
-                      : 'border-ownership-other-border';
+                      ? 'bg-amber-50/50'
+                      : 'bg-slate-50';
+                  // Badge colors - centralized via CSS variables
                   const rackBadgeClass = isCurrentUser
-                    ? 'bg-ownership-user-bg text-white'
+                    ? 'bg-ownership-user-badge text-white'
                     : isUnassigned
-                      ? 'bg-ownership-unassigned-bg text-white'
-                      : 'bg-ownership-other-bg text-white';
+                      ? 'bg-ownership-unassigned-badge text-white'
+                      : 'bg-ownership-other-badge text-white';
+                  const boxLeftBorderClass = isCurrentUser
+                    ? 'border-l-ownership-user-badge'
+                    : isUnassigned
+                      ? 'border-l-ownership-unassigned-badge'
+                      : 'border-l-ownership-other-badge';
                   const boxBgClass = isCurrentUser
-                    ? 'bg-ownership-user-light'
+                    ? 'bg-ice-50/50'
                     : isUnassigned
-                      ? 'bg-ownership-unassigned-light'
-                      : 'bg-ownership-other-light';
-                  const boxBorderClass = isCurrentUser
-                    ? 'border-ownership-user-border'
-                    : isUnassigned
-                      ? 'border-ownership-unassigned-border'
-                      : 'border-ownership-other-border';
+                      ? 'bg-amber-50/30'
+                      : 'bg-slate-50/50';
 
                   return rackGroups.map((rackGroup, rackIndex) => {
                     const isLastRack = rackIndex === rackGroups.length - 1;
@@ -470,7 +481,7 @@ export function AssignmentsByUserView({
                       <div key={`rack-${rackGroup.tankId}-${rackGroup.rackId}`}>
                         {/* Rack row - styled like tree view */}
                         <div
-                          className={`flex items-center gap-1.5 py-1 px-1.5 ${rackBgClass} rounded border ${rackBorderClass}`}
+                          className={`flex items-center gap-1.5 py-1 px-1.5 ${rackBgClass} rounded border border-gray-200 border-l-4 ${rackLeftBorderClass}`}
                         >
                           <span className="text-slate-600 font-mono text-sm flex-shrink-0">
                             {isLastRack ? '└' : '├'}
@@ -514,7 +525,7 @@ export function AssignmentsByUserView({
                               return (
                                 <div
                                   key={`box-${box.tankId}-${box.rackId}-${box.boxId}`}
-                                  className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border ${boxBorderClass}`}
+                                  className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border border-gray-200 border-l-4 ${boxLeftBorderClass}`}
                                 >
                                   <span className="text-slate-400 font-mono text-xs flex-shrink-0">
                                     {isLastBox ? '└' : '├'}

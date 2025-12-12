@@ -180,15 +180,18 @@
 
     /* Ownership Theme - Storage assignment colors */
     --color-ownership-user-bg: var(--color-ice-600);
+    --color-ownership-user-badge: var(--color-ice-400);
     --color-ownership-user-light: var(--color-ice-50);
     --color-ownership-user-medium: var(--color-ice-100);
     --color-ownership-user-border: var(--color-ice-400);
 
     --color-ownership-unassigned-bg: var(--color-warning-bg);
+    --color-ownership-unassigned-badge: #c9a95a;
     --color-ownership-unassigned-light: var(--color-warning-light);
     --color-ownership-unassigned-border: #fbbf24;
 
     --color-ownership-other-bg: #94a3b8;
+    --color-ownership-other-badge: #a1afc2;
     --color-ownership-other-light: #e2e8f0;
     --color-ownership-other-medium: #cbd5e1;
     --color-ownership-other-border: #94a3b8;

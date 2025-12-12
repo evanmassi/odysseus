@@ -609,19 +609,19 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
         className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-[60%] h-[85%] max-w-2xl max-h-[800px] flex flex-col overflow-hidden animate-slide-up-fade"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-slate-600 via-slate-500 to-slate-600 px-6 py-3 text-white flex-shrink-0">
+        <div className="bg-white px-6 py-3 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <TankIcon size={24} />
+              <TankIcon size={24} className="text-slate-600" />
               <div>
-                <h2 className="text-lg font-bold">Manage Storage</h2>
-                <p className="text-white/80 text-xs">Storage Layout & Assignments</p>
+                <h2 className="text-lg font-bold text-slate-800">Manage Storage</h2>
+                <p className="text-slate-500 text-xs">Storage Layout & Assignments</p>
               </div>
             </div>
             <button
               onClick={handleClose}
               disabled={isSaving}
-              className="p-1.5 rounded-lg text-white/80 hover:text-white hover:bg-white/20 transition-colors disabled:opacity-50 focus-ring-light"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50 focus-ring-default"
               aria-label="Close modal"
             >
               <X size={20} />
@@ -630,14 +630,14 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
         </div>
 
         {/* View Mode Tabs */}
-        <div className="flex items-center gap-1 px-4 py-2 border-b border-gray-200 bg-gray-50">
+        <div className="flex items-center gap-6 px-4 border-b border-gray-200 bg-white">
           <button
             type="button"
             onClick={() => setViewMode('tree')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus-ring-default ${
+            className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
               viewMode === 'tree'
-                ? 'bg-slate-600 text-white'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-300'
+                ? 'border-slate-600 text-slate-800'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             }`}
           >
             <ListTree size={14} />
@@ -646,10 +646,10 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           <button
             type="button"
             onClick={() => setViewMode('byUser')}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors focus-ring-default ${
+            className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
               viewMode === 'byUser'
-                ? 'bg-slate-600 text-white'
-                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-300'
+                ? 'border-slate-600 text-slate-800'
+                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
             }`}
           >
             <UsersRound size={14} />
@@ -712,27 +712,27 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
         </div>
 
         {/* Footer with Legend and Save/Cancel */}
-        <div className="border-t border-gray-200 px-4 py-3 bg-gray-50 flex-shrink-0">
+        <div className="border-t border-gray-200 px-4 py-2.5 bg-white flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
-            {/* Ownership Legend */}
-            <div className="flex items-center gap-4 text-xs text-slate-600 flex-shrink min-w-0">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-ice-600 flex-shrink-0" />
-                <span>Assigned to You</span>
+            {/* Ownership Legend - matches left border accent style */}
+            <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-shrink min-w-0">
+              <div className="flex items-center gap-1">
+                <div className="w-1 h-3 rounded-sm bg-ownership-user-badge flex-shrink-0" />
+                <span>You</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-slate-400 flex-shrink-0" />
-                <span>Another User</span>
+              <div className="flex items-center gap-1">
+                <div className="w-1 h-3 rounded-sm bg-ownership-other-badge flex-shrink-0" />
+                <span>Other</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-warning-bg flex-shrink-0" />
+              <div className="flex items-center gap-1">
+                <div className="w-1 h-3 rounded-sm bg-ownership-unassigned-badge flex-shrink-0" />
                 <span>Unassigned/Common</span>
               </div>
             </div>
 
             {/* Save/Cancel Buttons */}
             <div className="flex items-center space-x-2 flex-shrink-0">
-              <button onClick={handleClose} className="btn-cancel" disabled={isSaving}>
+              <button onClick={handleClose} className="btn btn-secondary px-6" disabled={isSaving}>
                 Cancel
               </button>
               <button

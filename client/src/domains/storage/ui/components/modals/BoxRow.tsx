@@ -39,27 +39,30 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
   const isBoxOwnedByUser = isOwnedByCurrentUser(box, rack);
   const isExplicitlyCommon = box.assignedUserId === null;
   const isUnassigned = !effectiveOwnerId;
+
+  // Left border accent with subtle tint (modern, less visual weight)
+  const leftBorderClass = isBoxOwnedByUser
+    ? 'border-l-ownership-user-badge'
+    : isUnassigned || isExplicitlyCommon
+      ? 'border-l-ownership-unassigned-badge'
+      : 'border-l-ownership-other-badge';
+
   const boxBgClass = isBoxOwnedByUser
-    ? 'bg-ownership-user-light'
+    ? 'bg-ice-50/50'
     : isUnassigned || isExplicitlyCommon
-      ? 'bg-ownership-unassigned-light'
-      : 'bg-ownership-other-light';
+      ? 'bg-amber-50/30'
+      : 'bg-slate-50/50';
 
-  const boxBorderClass = isBoxOwnedByUser
-    ? 'border-ownership-user-border'
-    : isUnassigned || isExplicitlyCommon
-      ? 'border-ownership-unassigned-border'
-      : 'border-ownership-other-border';
-
+  // Badge colors - centralized via CSS variables
   const badgeClass = isBoxOwnedByUser
-    ? 'bg-ownership-user-bg text-white'
+    ? 'bg-ownership-user-badge text-white'
     : isUnassigned || isExplicitlyCommon
-      ? 'bg-ownership-unassigned-bg text-white'
-      : 'bg-ownership-other-bg text-white';
+      ? 'bg-ownership-unassigned-badge text-white'
+      : 'bg-ownership-other-badge text-white';
 
   return (
     <div
-      className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border ${boxBorderClass}`}
+      className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border border-gray-200 border-l-4 ${leftBorderClass}`}
     >
       <span className="text-slate-400 font-mono text-xs flex-shrink-0">{isLast ? '└' : '├'}</span>
 

@@ -21,7 +21,7 @@ export function OwnershipBadge({ userId, size, isOwnedByCurrentUser }: Ownership
   if (!userInfo) {
     return (
       <div
-        className={`${sizeClass} rounded-full bg-ownership-unassigned-bg flex items-center justify-center flex-shrink-0`}
+        className={`${sizeClass} rounded-full bg-ownership-unassigned-badge flex items-center justify-center flex-shrink-0`}
         title="Unassigned/Common"
       >
         <UsersRound size={iconSize} className="text-white" />
@@ -29,7 +29,7 @@ export function OwnershipBadge({ userId, size, isOwnedByCurrentUser }: Ownership
     );
   }
 
-  const bgColor = isOwnedByCurrentUser ? 'bg-ownership-user-bg' : 'bg-ownership-other-bg';
+  const bgColor = isOwnedByCurrentUser ? 'bg-ownership-user-badge' : 'bg-ownership-other-badge';
 
   return (
     <div

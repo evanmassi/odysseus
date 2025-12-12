@@ -36,27 +36,27 @@ export function TankRow({
 }: TankRowProps) {
   const { onEditTank, onDeleteTank, onAddRack, canManageStorage } = useStorageManagementContext();
   return (
-    <div className="border border-gray-300 rounded-lg bg-white">
+    <div className="border border-gray-200 rounded-lg bg-white">
       {/* Tank Header */}
-      <div className="bg-slate-600 px-2 py-1.5 border-b border-slate-700 rounded-t-lg">
+      <div className="bg-slate-50 px-2 py-1.5 border-b border-gray-200 border-l-4 border-l-slate-600 rounded-t-lg">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-white/20 transition-colors -mx-1 px-1 py-1 rounded text-left focus-ring-light"
+            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-100 transition-colors -mx-1 px-1 py-1 rounded text-left focus-ring-default"
             aria-expanded={!collapsed}
             aria-controls={`tank-content-${tank.id}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} tank ${tank.name}`}
           >
-            <div className="text-slate-200 flex-shrink-0" aria-hidden="true">
+            <div className="text-slate-500 flex-shrink-0" aria-hidden="true">
               {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
             </div>
             <div className="flex-1 min-w-0 flex items-center gap-1.5">
-              <TankIcon className="text-white flex-shrink-0" size={24} aria-hidden="true" />
-              <h3 className="text-base font-semibold text-white truncate min-w-[80px]">
+              <TankIcon className="text-slate-600 flex-shrink-0" size={24} aria-hidden="true" />
+              <h3 className="text-base font-semibold text-slate-800 truncate min-w-[80px]">
                 {tank.name}
               </h3>
-              <span className="text-xs px-2 py-1 bg-slate-700 rounded text-white flex items-center gap-1.5">
+              <span className="text-xs px-2 py-1 bg-slate-200 rounded text-slate-600 flex items-center gap-1.5">
                 <span>{tank.location}</span>
                 <span>•</span>
                 <span>
@@ -69,7 +69,7 @@ export function TankRow({
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <button
                 onClick={() => onEditTank(tank)}
-                className="text-slate-200 hover:bg-white/20 transition-colors p-1 rounded focus-ring-light"
+                className="text-slate-500 hover:bg-slate-200 transition-colors p-1 rounded focus-ring-default"
                 title="Edit tank"
               >
                 <Edit3 size={16} />
@@ -77,7 +77,7 @@ export function TankRow({
               {canDeleteTank && (
                 <button
                   onClick={() => onDeleteTank(tank.id)}
-                  className="text-red-300 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-light"
+                  className="text-red-500 hover:bg-red-100 transition-colors p-1 rounded focus-ring-default"
                   title="Delete tank"
                 >
                   <Trash2 size={16} />
@@ -128,7 +128,7 @@ export function TankRow({
                     />
                     <button
                       onClick={() => onAddRack(tank.id)}
-                      className="flex items-center gap-1 bg-slate-400 text-white px-2 py-1 rounded hover:bg-slate-500 text-sm focus-ring-default"
+                      className="flex items-center gap-1 bg-slate-200 text-slate-700 px-2 py-1 rounded hover:bg-slate-300 text-sm focus-ring-default"
                     >
                       <Plus size={12} />
                       Add {rackCountToAdd > 1 ? 'Racks' : 'Rack'}
