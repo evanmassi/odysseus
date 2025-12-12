@@ -363,9 +363,9 @@ export function Dashboard() {
 
     const getSharedUserNames = (tube: TubeData): string[] => {
       if (!tube.sharedWithUserIds || tube.sharedWithUserIds.length === 0) return [];
-      return tube.sharedWithUserIds.map(id =>
-        id === user.id ? 'You' : (userDisplayMap.get(id) ?? id)
-      );
+      return tube.sharedWithUserIds
+        .filter(id => id === user.id || userDisplayMap.has(id))
+        .map(id => id === user.id ? 'You' : userDisplayMap.get(id)!);
     };
 
     return {
