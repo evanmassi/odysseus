@@ -5,7 +5,7 @@
 
 :root {
   /* Layout Heights */
-  --layout-header-height: 48px;
+  --layout-header-height: 56px;
 
   /* Design Tokens - Unified spacing and typography */
   --space-xs: 4px;
@@ -29,7 +29,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #ffffff;
+  background-color: #f1f5f9;
 }
 
 .app-header {
@@ -42,9 +42,9 @@
   display: flex;
   justify-content: center;
   gap: 20px;
-  padding: 0 16px 16px 16px;
+  padding: 16px;
   align-items: flex-start;
-  background-color: #ffffff;
+  background-color: #f1f5f9;
 }
 
 /* Selector Panels - Minimal Width */

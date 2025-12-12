@@ -24,8 +24,8 @@ import {
   type PasswordRequirements as PasswordConfig,
 } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import odysseusLogo from '@shared/assets/odysseus-logo-altered.png';
-import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.png';
+import odysseusLogo from '@shared/assets/odysseus-logo-altered.svg';
+import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils';

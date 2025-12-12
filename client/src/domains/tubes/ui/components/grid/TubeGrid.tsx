@@ -188,7 +188,7 @@ export function TubeGrid({
     display: 'grid',
     gridTemplateColumns: `repeat(${gridConfig.cols}, minmax(0, 1fr))`,
     gridAutoRows: '1fr',
-    gap: 'var(--grid-gap, 4px)',
+    gap: 'var(--grid-gap, 6px)',
     width: 'min(100%, 80vh)', // Keeps grid inside viewport
     maxWidth: '100%',
     // Remove fixed height and aspectRatio - let children control their own aspect ratio

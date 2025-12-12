@@ -454,99 +454,75 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                   type="button"
                   key={index}
                   onClick={() => handleGroupClick(group)}
-                  className="w-full text-left p-2.5 border border-gray-200 dark:border-gray-700 rounded-md hover:border-blue-300 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer transition-all"
+                  className="w-full text-left p-2.5 bg-slate-50 rounded-md hover:bg-slate-100 cursor-pointer transition-all"
                   aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
                 >
-                  {/* Line 1: Cell Type with tube count badge in top-right */}
-                  <div className="flex items-start justify-between mb-1">
-                    <div className="flex items-center space-x-1.5 flex-1 min-w-0">
-                      <TubeIcon className="text-black flex-shrink-0" size={14} aria-hidden="true" />
-                      <div className="text-xs font-semibold text-black">
+                  {/* Line 1: Cell Type with tube count badge */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <TubeIcon
+                        className="text-slate-700 flex-shrink-0"
+                        size={14}
+                        aria-hidden="true"
+                      />
+                      <span className="text-xs font-semibold text-slate-800">
                         {highlightText(cellType, query)}
-                      </div>
+                      </span>
                     </div>
-                    <span
-                      className="px-2 py-0.5 rounded-full text-xs font-medium ml-2 flex-shrink-0 text-white"
-                      style={{ backgroundColor: '#5987b6' }}
-                    >
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white bg-slate-500 flex-shrink-0">
                       {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}
                     </span>
                   </div>
 
-                  {/* Lines 2-4 with vertical indicator line */}
-                  <div className="flex">
-                    {/* Vertical line indicator */}
-                    <div className="ml-2 mr-2 mt-0.5 mb-1 border-l-2 border-gray-300"></div>
-
-                    <div className="flex-1">
-                      {/* Line 2: Donor IDs */}
+                  {/* Lines 2-4: Compact details with vertical indicator */}
+                  <div className="flex mt-1">
+                    <div className="ml-[11px] mr-2 border-l-2 border-slate-300"></div>
+                    <div className="flex-1 space-y-0.5 text-xs text-slate-700">
+                      {/* Line 2: Donor Internal ID · Donor Source ID */}
                       {(donorInternal || donorSource) && (
-                        <div className="text-xs text-black mb-1 flex items-center space-x-2">
-                          {donorInternal && (
-                            <>
-                              <span className="font-normal">Int. ID:</span>
-                              <span className="font-semibold">
-                                {highlightText(donorInternal, query)}
-                              </span>
-                            </>
+                        <div className="inline-flex items-center gap-1.5 flex-wrap">
+                          {donorInternal && <span>{highlightText(donorInternal, query)}</span>}
+                          {donorInternal && donorSource && (
+                            <span className="text-slate-300">·</span>
                           )}
-                          {donorInternal && donorSource && <span>•</span>}
-                          {donorSource && (
-                            <>
-                              <span className="font-normal">Src. ID:</span>
-                              <span className="font-semibold">
-                                {highlightText(donorSource, query)}
-                              </span>
-                            </>
-                          )}
+                          {donorSource && <span>{highlightText(donorSource, query)}</span>}
                         </div>
                       )}
 
-                      {/* Line 3: Culture Condition • LOT # */}
-                      <div className="text-xs text-black mb-1 flex items-center space-x-2">
-                        {cultureCondition && (
-                          <>
+                      {/* Line 3: Culture Condition · Lot Number · Concentration */}
+                      {(cultureCondition || lotNumber || concentration) && (
+                        <div className="inline-flex items-center gap-1.5 flex-wrap">
+                          {cultureCondition && (
                             <span>{highlightText(cultureCondition, query)}</span>
-                            {lotNumber && <span>•</span>}
-                          </>
-                        )}
-                        {lotNumber && (
-                          <>
-                            <span>LOT #: {highlightText(lotNumber, query)}</span>
-                          </>
-                        )}
-                      </div>
+                          )}
+                          {cultureCondition && lotNumber && (
+                            <span className="text-slate-300">·</span>
+                          )}
+                          {lotNumber && <span>{highlightText(lotNumber, query)}</span>}
+                          {(cultureCondition || lotNumber) && concentration && (
+                            <span className="text-slate-300">·</span>
+                          )}
+                          {concentration && <span>{concentration}</span>}
+                        </div>
+                      )}
 
-                      {/* Line 4: Concentration • Date • Researcher */}
-                      <div className="text-xs text-black mb-1 flex items-center space-x-2">
-                        {concentration && (
-                          <>
-                            <span>{concentration}</span>
-                            {(date || researcherName) && <span>•</span>}
-                          </>
-                        )}
-                        {date && (
-                          <>
-                            <span>{date}</span>
-                            {researcherName && <span>•</span>}
-                          </>
-                        )}
-                        {researcherName && <span>{highlightText(researcherName, query)}</span>}
-                      </div>
+                      {/* Line 4: Date · Researcher */}
+                      {(date || researcherName) && (
+                        <div className="inline-flex items-center gap-1.5 flex-wrap">
+                          {date && <span>{date}</span>}
+                          {date && researcherName && <span className="text-slate-300">·</span>}
+                          {researcherName && <span>{highlightText(researcherName, query)}</span>}
+                        </div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Line 5: Location with map icon aligned with tube icon above */}
-                  <div
-                    className="text-xs flex items-start space-x-1.5 min-w-0"
-                    style={{ color: '#5987b6' }}
-                  >
-                    <MapPin className="w-3 h-3 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                    <div className="flex items-baseline flex-wrap gap-x-2 gap-y-0.5 min-w-0">
-                      <span className="whitespace-nowrap">{location}</span>
-                      <span className="flex-shrink-0">•</span>
-                      <span>{formatPositions(group.tubes)}</span>
-                    </div>
+                  {/* Line 5: Location */}
+                  <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 mt-1">
+                    <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+                    <span>{location}</span>
+                    <span className="text-slate-300">·</span>
+                    <span>{formatPositions(group.tubes)}</span>
                   </div>
                 </button>
               );

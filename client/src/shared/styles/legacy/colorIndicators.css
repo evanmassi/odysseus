@@ -297,7 +297,7 @@
 /* ===================================== */
 
 .tube-position {
-  border: 2px solid var(--border-color, #c4c4c4); /* Dynamic border from CSS variable */
+  border: 1px solid #e5e7eb; /* Lighter, more subtle border */
   /* Performance optimizations - paint removed to allow marching ants overflow */
   contain: layout style;
   backface-visibility: hidden;

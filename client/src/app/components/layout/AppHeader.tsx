@@ -20,7 +20,7 @@ import {
 
 import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
-import odysseusLogo from '@shared/assets/odysseus-logo.png';
+import odysseusLogo from '@shared/assets/odysseus-logo.svg';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { SuspenseBoundary } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
@@ -194,8 +194,8 @@ export function AppHeader({
   })();
 
   return (
-    <header className="bg-white px-4 py-0.5">
-      <div className="flex justify-between items-center">
+    <header className="bg-white px-4 h-full flex items-center">
+      <div className="flex justify-between items-center w-full">
         {/* Far Left: Logo */}
         <div className="flex items-center">
           <img src={odysseusLogo} alt="Odysseus" className="h-8 w-auto" />

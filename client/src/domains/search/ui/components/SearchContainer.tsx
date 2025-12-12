@@ -143,21 +143,24 @@ export function SearchContainer(_props: SearchContainerProps) {
         </div>
       </div>
 
-      {/* Filters Panel */}
-      {showFilters && (
-        <div className="absolute top-full right-0 mt-2 w-96 h-[600px] bg-white border border-gray-300 rounded-lg shadow-lg z-50 flex flex-col overflow-hidden">
-          <FilterPanel onClose={() => setShowFilters(false)} />
-        </div>
-      )}
-
-      {/* Search Results */}
+      {/* Search Results & Filters Panel - Side by Side */}
       {showResults && (
-        <div className="absolute top-full right-0 mt-2 w-96 bg-white border border-gray-300 rounded-lg shadow-lg z-40">
-          <SearchResults
-            results={results}
-            isSearching={isSearching}
-            onClose={() => setShowResults(false)}
-          />
+        <div className="absolute top-full right-0 mt-2 flex gap-2 z-40">
+          {/* Filters Panel - Left */}
+          {showFilters && (
+            <div className="w-80 h-[500px] bg-white border border-gray-200 rounded-lg shadow-lg flex flex-col overflow-hidden">
+              <FilterPanel onClose={() => setShowFilters(false)} />
+            </div>
+          )}
+
+          {/* Search Results - Right */}
+          <div className="w-96 bg-white border border-gray-200 rounded-lg shadow-lg">
+            <SearchResults
+              results={results}
+              isSearching={isSearching}
+              onClose={() => setShowResults(false)}
+            />
+          </div>
         </div>
       )}
     </div>

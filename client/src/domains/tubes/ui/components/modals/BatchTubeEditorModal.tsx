@@ -519,11 +519,11 @@ export default function BatchTubeEditorModal({
             <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
             <div className="flex items-center gap-2 text-sm font-medium text-odysseus-dark">
               <span className="font-semibold">{tankName}</span>
-              <span className="text-odysseus-muted">•</span>
+              <span className="text-[10px] text-slate-300">•</span>
               <span>{rackName}</span>
-              <span className="text-odysseus-muted">•</span>
+              <span className="text-[10px] text-slate-300">•</span>
               <span>Box {boxId}</span>
-              <span className="text-odysseus-muted">•</span>
+              <span className="text-[10px] text-slate-300">•</span>
               <span className="font-semibold">Positions {positionRanges}</span>
             </div>
           </div>

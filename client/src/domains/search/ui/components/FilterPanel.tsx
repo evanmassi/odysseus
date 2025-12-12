@@ -2,17 +2,18 @@ import { useMemo, useState, useCallback } from 'react';
 
 import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
 import {
-  Users,
+  UsersRound,
   Calendar,
   X,
   ChevronDown,
   ChevronRight,
-  Microscope,
+  TestTube,
   Barcode,
-  UserCircle,
+  CircleUserRound,
   Fingerprint,
-  FlaskConical,
+  CircuitBoard,
   MapPin,
+  Microscope,
 } from 'lucide-react';
 
 import { useActiveResearchersQuery } from '@domains/researchers';
@@ -36,11 +37,11 @@ function FilterChip({ label, isSelected, onClick, showRemove = false }: FilterCh
     <button
       onClick={onClick}
       className={`
-        px-2 py-1 rounded-full text-xs font-medium transition-all
+        px-1.5 py-0.5 rounded-full text-xs font-medium transition-all focus-ring-default
         ${
           isSelected
             ? 'bg-action text-white shadow-sm hover:bg-action-hover'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-300'
+            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
         }
         ${showRemove ? 'flex items-center space-x-1.5' : ''}
       `}
@@ -60,7 +61,7 @@ function ActiveFilterChip({ label, onRemove }: ActiveFilterChipProps) {
   return (
     <button
       onClick={onRemove}
-      className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-slate-600 text-white hover:bg-slate-700 transition-all"
+      className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-slate-600 text-white hover:bg-slate-700 transition-all focus-ring-default"
       title={`Remove ${label}`}
     >
       <span>{label}</span>
@@ -90,7 +91,7 @@ function CollapsibleSection({
     <div className="border-b border-gray-200 last:border-b-0">
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between py-3 px-2 hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between py-3 px-2 hover:bg-gray-50 transition-colors focus-ring-default"
       >
         <div className="flex items-center space-x-2">
           {isOpen ? (
@@ -104,7 +105,7 @@ function CollapsibleSection({
           </div>
         </div>
         {count > 0 && (
-          <span className="px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+          <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs font-medium">
             {count}
           </span>
         )}
@@ -373,7 +374,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
         <div className="flex items-center space-x-2">
           <button
             onClick={clearSearch}
-            className="px-2 py-1 text-xs text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+            className="px-2 py-1 text-xs text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors focus-ring-default"
             title="Clear all filters"
           >
             Clear All
@@ -381,7 +382,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           {onClose && (
             <button
               onClick={onClose}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors"
+              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors focus-ring-default"
               title="Close filters"
             >
               <X className="w-4 h-4" />
@@ -466,7 +467,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
         {/* SAMPLE SECTION */}
         <CollapsibleSection
           title="Sample"
-          icon={<Microscope className="w-4 h-4" />}
+          icon={<TestTube className="w-4 h-4" />}
           count={getSectionCount('sample')}
           isOpen={openSections.sample}
           onToggle={() => toggleSection('sample')}
@@ -516,7 +517,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {filterOptions.donorInternalIds.length > 0 && (
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <UserCircle className="w-3.5 h-3.5" aria-hidden="true" />
+                  <CircleUserRound className="w-3.5 h-3.5" aria-hidden="true" />
                   <div className="text-xs font-medium text-gray-600">Donor Int. IDs</div>
                 </div>
                 <div
@@ -564,7 +565,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {filterOptions.cultureConditions.length > 0 && (
               <div>
                 <div className="flex items-center space-x-2 mb-2">
-                  <FlaskConical className="w-3.5 h-3.5" aria-hidden="true" />
+                  <CircuitBoard className="w-3.5 h-3.5" aria-hidden="true" />
                   <div className="text-xs font-medium text-gray-600">Culture Conditions</div>
                 </div>
                 <div
@@ -590,7 +591,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
         {filterOptions.researchers.length > 0 && (
           <CollapsibleSection
             title="Researcher"
-            icon={<Users className="w-4 h-4" />}
+            icon={<UsersRound className="w-4 h-4" />}
             count={getSectionCount('researcher')}
             isOpen={openSections.researcher}
             onToggle={() => toggleSection('researcher')}
@@ -629,7 +630,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 type="date"
                 value={filters.dateFrom ?? ''}
                 onChange={e => updateDateFilter('dateFrom', e.target.value)}
-                className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-action-focus focus:border-action-focus"
+                className="w-full text-sm border border-gray-300 rounded-md p-2 input-form-field"
                 aria-label="Filter start date"
               />
             </div>
@@ -645,7 +646,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 type="date"
                 value={filters.dateTo ?? ''}
                 onChange={e => updateDateFilter('dateTo', e.target.value)}
-                className="w-full text-sm border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-action-focus focus:border-action-focus"
+                className="w-full text-sm border border-gray-300 rounded-md p-2 input-form-field"
                 aria-label="Filter end date"
               />
             </div>
@@ -667,7 +668,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {hiddenCount > 0 && (
               <button
                 onClick={() => setShowAllFilters(!showAllFilters)}
-                className="px-2 py-0.5 rounded text-xs bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all"
+                className="px-2 py-0.5 rounded text-xs bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all focus-ring-default"
               >
                 {showAllFilters ? 'Show less' : `+${hiddenCount} more`}
               </button>

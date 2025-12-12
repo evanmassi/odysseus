@@ -504,7 +504,7 @@ export function Dashboard() {
       <div className="main-layout">
         {/* Storage Navigator - Tank/Rack/Box */}
         <div className="storage-navigator-panel">
-          <div className="h-full flex flex-col">
+          <div className="h-full flex flex-col bg-white rounded-lg">
             <div className="px-4 pt-4 pb-2">
               <h4 className="text-sm font-semibold text-slate-400">Navigator</h4>
             </div>
@@ -527,10 +527,14 @@ export function Dashboard() {
 
         {/* Main Grid - Square Constraint */}
         <div className="grid-section">
-          <div className="h-full flex flex-col">
+          <div className="h-full flex flex-col bg-white rounded-lg">
             <div className="px-4 pt-4 pb-2 flex items-center">
-              <h4 className="text-sm font-semibold text-slate-400">
-                {tankDisplayName} • {rackDisplayName} • Box {currentBox}
+              <h4 className="text-sm font-semibold text-slate-400 inline-flex items-center gap-1.5">
+                <span>{tankDisplayName}</span>
+                <span className="text-[10px] text-slate-300">•</span>
+                <span>{rackDisplayName}</span>
+                <span className="text-[10px] text-slate-300">•</span>
+                <span>Box {currentBox}</span>
               </h4>
               {isViewOnlySpace && (
                 <div className="flex-1 flex justify-end">
@@ -570,7 +574,7 @@ export function Dashboard() {
 
         {/* Info Panel - Flexible Width */}
         <div className="info-panel">
-          <div className="h-full flex flex-col">
+          <div className="h-full flex flex-col bg-white rounded-lg">
             <div className="px-4 pt-4 pb-2">
               <h4 className="text-sm font-semibold text-slate-400">Tube Information</h4>
             </div>

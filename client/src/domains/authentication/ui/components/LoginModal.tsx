@@ -2,8 +2,8 @@ import { useState, useRef } from 'react';
 
 import { KeyRound, UserRound, Mail, Eye, EyeOff } from 'lucide-react';
 
-import odysseusLogo from '@shared/assets/odysseus-logo-altered.png';
-import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.png';
+import odysseusLogo from '@shared/assets/odysseus-logo-altered.svg';
+import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { notifications } from '@shared/utils';
 

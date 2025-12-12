@@ -118,7 +118,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     );
 
     const positionLabel = selectedTubes.length === 1 ? 'Position' : 'Positions';
-    return `${rackName} • Box ${box} • ${positionLabel} ${formattedPositions}`;
+    return { rackName, box, positionLabel, formattedPositions };
   }, [selectedTubes, rackName, currentBoxObj, currentLab, userSettings]);
 
   // Memoized field analysis - compute all conflicts and values once
@@ -206,13 +206,17 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <MapPin className="w-3 h-3" />
               <span>{tankName}</span>
             </div>
-            <div className="text-odysseus-dark font-semibold text-sm">
-              {rackName} • Box {currentBox}
+            <div className="text-odysseus-dark font-semibold text-sm inline-flex items-center gap-1.5">
+              <span>{rackName}</span>
+              <span className="text-[10px] text-slate-300 font-normal">•</span>
+              <span>Box {currentBox}</span>
               {formattedPositions && (
-                <span>
-                  {' '}
-                  • Position{positionCount > 1 ? 's' : ''} {formattedPositions}
-                </span>
+                <>
+                  <span className="text-[10px] text-slate-300 font-normal">•</span>
+                  <span>
+                    Position{positionCount > 1 ? 's' : ''} {formattedPositions}
+                  </span>
+                </>
               )}
             </div>
           </div>
@@ -355,7 +359,15 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             <MapPin className="w-3 h-3" />
             <span>{tankName}</span>
           </div>
-          <div className="text-odysseus-dark font-semibold text-sm">{positionSummary}</div>
+          <div className="text-odysseus-dark font-semibold text-sm inline-flex items-center gap-1.5">
+            <span>{positionSummary.rackName}</span>
+            <span className="text-[10px] text-slate-300 font-normal">•</span>
+            <span>Box {positionSummary.box}</span>
+            <span className="text-[10px] text-slate-300 font-normal">•</span>
+            <span>
+              {positionSummary.positionLabel} {positionSummary.formattedPositions}
+            </span>
+          </div>
           {selectedTubes.length > 1 && (
             <div className="flex items-center text-odysseus-dark/50 text-xs mt-0.5">
               <span>{selectedTubes.length} tubes selected</span>
