@@ -125,18 +125,18 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-4xl h-[75vh] mx-4 overflow-hidden animate-slide-up-fade flex flex-col"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-action-hover via-action to-action-hover px-6 py-3 text-white flex-shrink-0">
+        <div className="bg-white px-6 py-3 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Settings className="w-6 h-6" />
+              <Settings className="w-6 h-6 text-slate-600" />
               <div>
-                <h2 className="text-lg font-bold">User Settings</h2>
-                <p className="text-white/80 text-xs">Account & Personal Preferences</p>
+                <h2 className="text-lg font-bold text-slate-800">User Settings</h2>
+                <p className="text-slate-500 text-xs">Account & Personal Preferences</p>
               </div>
             </div>
             <button
               onClick={handleClose}
-              className="btn-header-menu text-white/80 hover:text-white hover:bg-primary-hover/50"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-ring-default"
               aria-label="Close settings"
             >
               <X size={20} />
@@ -147,21 +147,22 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         <div className="flex flex-1 min-h-0">
           {/* Sidebar (only show if multiple tabs in future) */}
           {tabs.length > 1 && (
-            <div className="w-48 bg-gray-50 border-r border-gray-200 p-4">
-              <nav className="space-y-2">
+            <div className="w-48 bg-white border-r border-gray-200 py-4">
+              <nav className="space-y-1">
                 {tabs.map(tab => {
                   const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
                   return (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`nav-tab ${
-                        activeTab === tab.id
-                          ? 'bg-primary-light text-primary-hover border border-primary-border'
-                          : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                      className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-slate-100 ${
+                        isActive
+                          ? 'border-l-slate-600 bg-slate-50 text-slate-800'
+                          : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-800'
                       }`}
                     >
-                      <Icon size={20} />
+                      <Icon size={18} className={isActive ? 'text-slate-600' : 'text-slate-400'} />
                       <span className="font-medium text-sm">{tab.label}</span>
                     </button>
                   );
@@ -171,7 +172,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
           )}
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto min-w-0">
+          <div className="flex-1 overflow-y-auto min-w-0 focus:outline-none">
             <div className="p-6 min-w-0">
               {isLoading ? (
                 <TabSkeleton />
@@ -203,14 +204,14 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 px-6 py-3 bg-gray-50 flex-shrink-0">
+        <div className="border-t border-gray-200 px-6 py-2.5 bg-white flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center space-x-2 text-xs text-gray-600 flex-shrink min-w-0">
-              <AlertTriangle size={14} className="alert-warning-icon flex-shrink-0" />
+            <div className="flex items-center space-x-1.5 text-[11px] text-slate-400 flex-shrink min-w-0">
+              <AlertTriangle size={12} className="flex-shrink-0" />
               <span className="truncate">These settings apply only to your account.</span>
             </div>
             <div className="flex space-x-2 flex-shrink-0">
-              <button onClick={handleClose} className="btn-cancel">
+              <button onClick={handleClose} className="btn btn-secondary px-6">
                 Cancel
               </button>
               <button

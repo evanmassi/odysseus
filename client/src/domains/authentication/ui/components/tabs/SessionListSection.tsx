@@ -15,14 +15,8 @@ import { useUserSessions } from '@domains/users';
 import { notifications } from '@shared/utils';
 
 export function SessionListSection() {
-  const {
-    sessions,
-    isLoading,
-    revokeSession,
-    isRevoking,
-    revokeAll,
-    isRevokingAll,
-  } = useUserSessions();
+  const { sessions, isLoading, revokeSession, isRevoking, revokeAll, isRevokingAll } =
+    useUserSessions();
 
   const [showRevokeAllConfirm, setShowRevokeAllConfirm] = useState(false);
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
@@ -55,9 +49,7 @@ export function SessionListSection() {
   };
 
   const displayedSessions = useMemo(() => {
-    const sorted = [...sessions].sort((a, b) =>
-      b.lastUsedAt.getTime() - a.lastUsedAt.getTime()
-    );
+    const sorted = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
 
     const current = sorted.find(s => s.isCurrentSession);
     const others = sorted.filter(s => !s.isCurrentSession).slice(0, 4);
@@ -84,7 +76,9 @@ export function SessionListSection() {
   const handleRevokeAll = () => {
     revokeAll(undefined, {
       onSuccess: (revokedCount: number) => {
-        notifications.success(`Logged out from ${revokedCount} device${revokedCount !== 1 ? 's' : ''} successfully`);
+        notifications.success(
+          `Logged out from ${revokedCount} device${revokedCount !== 1 ? 's' : ''} successfully`
+        );
         setShowRevokeAllConfirm(false);
       },
       onError: (error: Error) => {
@@ -107,7 +101,8 @@ export function SessionListSection() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-600">
-          Showing {displayedSessions.length} of {sessions.length} active session{sessions.length !== 1 ? 's' : ''}
+          Showing {displayedSessions.length} of {sessions.length} active session
+          {sessions.length !== 1 ? 's' : ''}
         </p>
         {otherSessionsCount > 0 && (
           <button
@@ -130,30 +125,31 @@ export function SessionListSection() {
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                Device
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                Location
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Device</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Location</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
                 Last Active
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                Actions
-              </th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {displayedSessions.map((session) => {
+            {displayedSessions.map(session => {
               const { device, type } = parseUserAgent(session.userAgent);
               const DeviceIcon = session.isCurrentSession
                 ? MonitorCheck
-                : (type === 'desktop' ? Monitor : TabletSmartphone);
+                : type === 'desktop'
+                  ? Monitor
+                  : TabletSmartphone;
               const timestamp = formatTimestamp(session.lastUsedAt);
 
               return (
-                <tr key={session.id} className={session.isCurrentSession ? 'bg-green-50' : ''}>
+                <tr
+                  key={session.id}
+                  className={
+                    session.isCurrentSession ? 'bg-green-50/50 border-l-4 border-l-green-500' : ''
+                  }
+                >
                   <td className="px-4 py-3">
                     <div className="flex items-center space-x-3">
                       <DeviceIcon size={16} className="text-gray-400 flex-shrink-0" />
@@ -202,17 +198,19 @@ export function SessionListSection() {
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
-        {displayedSessions.map((session) => {
+        {displayedSessions.map(session => {
           const { device, type } = parseUserAgent(session.userAgent);
           const DeviceIcon = session.isCurrentSession
             ? MonitorCheck
-            : (type === 'desktop' ? Monitor : TabletSmartphone);
+            : type === 'desktop'
+              ? Monitor
+              : TabletSmartphone;
           const timestamp = formatTimestamp(session.lastUsedAt);
 
           return (
             <div
               key={session.id}
-              className={`border rounded-lg p-4 ${session.isCurrentSession ? 'bg-green-50 border-green-200' : 'border-gray-200 bg-white'}`}
+              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-green-50/50 border border-gray-200 border-l-4 border-l-green-500' : 'border border-gray-200 bg-white'}`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -242,7 +240,9 @@ export function SessionListSection() {
                 )}
               </div>
               <div className="space-y-1 text-xs text-gray-600">
-                <p><span className="font-medium">Location:</span> {session.ipAddress ?? 'Unknown'}</p>
+                <p>
+                  <span className="font-medium">Location:</span> {session.ipAddress ?? 'Unknown'}
+                </p>
                 <div>
                   <span className="font-medium">Last Active:</span>
                   <p className="ml-0 mt-0.5">{timestamp.relative}</p>

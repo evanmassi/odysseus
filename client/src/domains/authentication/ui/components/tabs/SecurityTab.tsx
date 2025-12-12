@@ -171,7 +171,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           <div className={`auth-input-container ${getCurrentPasswordBorderClass()}`}>
             <label
               htmlFor="security-currentPassword"
-              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getCurrentPasswordLabelClass()}`}
+              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getCurrentPasswordLabelClass()}`}
             >
               Current Password <span className="text-red-500">*</span>
             </label>
@@ -221,7 +221,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           >
             <label
               htmlFor="security-newPassword"
-              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}
+              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}
             >
               New Password <span className="text-red-500">*</span>
             </label>
@@ -278,7 +278,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           >
             <label
               htmlFor="security-confirmPassword"
-              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${getLabelColorClass(confirmPasswordTouched, passwordsMatch)}`}
+              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(confirmPasswordTouched, passwordsMatch)}`}
             >
               Confirm Password <span className="text-red-500">*</span>
             </label>
