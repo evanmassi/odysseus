@@ -209,24 +209,16 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">
                 Researcher
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Position
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Tubes
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Position</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Tubes</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">
                 Linked User
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Status</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -339,35 +331,29 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
       </div>
 
       {/* Statistics Summary */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-gray-50 p-2.5 rounded-lg border border-gray-200">
-          <div className="text-xs text-gray-600">Total Researchers</div>
-          <div className="text-xl font-bold text-gray-900 mt-0.5">{researchers.length}</div>
-        </div>
-        <div className="bg-blue-50 p-2.5 rounded-lg border border-blue-200">
-          <div className="text-xs text-blue-600">With Tubes</div>
-          <div className="text-xl font-bold text-blue-900 mt-0.5">
-            {researchers.filter(r => r.tubeCount > 0).length}
-          </div>
-        </div>
-        <div className="bg-green-50 p-2.5 rounded-lg border border-green-200">
-          <div className="text-xs text-green-600">Linked to Users</div>
-          <div className="text-xl font-bold text-green-900 mt-0.5">
-            {researchers.filter(r => r.linkedUserId).length}
-          </div>
-        </div>
+      <div className="flex items-center gap-1.5 text-sm text-slate-500">
+        <span>Total Researchers:</span>
+        <span className="font-semibold text-slate-700">{researchers.length}</span>
+        <span className="text-slate-300">•</span>
+        <span>With Tubes:</span>
+        <span className="font-semibold text-slate-700">
+          {researchers.filter(r => r.tubeCount > 0).length}
+        </span>
+        <span className="text-slate-300">•</span>
+        <span>Linked to Users:</span>
+        <span className="font-semibold text-slate-700">
+          {researchers.filter(r => r.linkedUserId).length}
+        </span>
       </div>
 
       {/* Safe Deletion Notice - Footnote */}
-      <div className="pt-6 border-t border-gray-200">
-        <div className="bg-frost border border-action/30 rounded-lg p-2">
-          <div className="flex items-center space-x-1.5">
-            <AlertCircle size={18} className="text-action-hover flex-shrink-0" />
-            <p className="text-xs text-action-hover/90">
-              <strong className="text-action-hover">Safe Deletion:</strong> Researchers can only be
-              deleted with zero tubes and no linked user.
-            </p>
-          </div>
+      <div className="p-2 bg-slate-50 rounded-lg">
+        <div className="flex items-start space-x-1.5">
+          <AlertCircle size={16} className="text-slate-400 flex-shrink-0 mt-0.5" />
+          <p className="text-xs text-slate-500 leading-snug">
+            <strong className="text-slate-600">Safe Deletion:</strong> Researchers can only be
+            deleted with zero tubes and no linked user.
+          </p>
         </div>
       </div>
 

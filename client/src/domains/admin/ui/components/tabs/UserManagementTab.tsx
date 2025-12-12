@@ -95,12 +95,6 @@ export interface UserManagementTabProps {
 
   /** Callback invoked when user list should be refreshed (after role change, deletion, etc.) */
   onUserUpdate: () => void;
-
-  /** Current invite code for new users */
-  inviteCode: string;
-
-  /** Callback invoked to create new invite code */
-  onCreateInvite: (role: 'admin' | 'user') => void;
 }
 
 /**
@@ -118,17 +112,10 @@ export interface UserManagementTabProps {
  * <UserManagementTab
  *   users={users}
  *   onUserUpdate={loadUsers}
- *   inviteCode={inviteCode}
- *   onCreateInvite={createInviteCode}
  * />
  * ```
  */
-export function UserManagementTab({
-  users = [],
-  onUserUpdate,
-  inviteCode,
-  onCreateInvite,
-}: UserManagementTabProps) {
+export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTabProps) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [pendingUsers, setPendingUsers] = useState<AdminUser[]>([]);
   const [_loadingPending, setLoadingPending] = useState(false);
@@ -452,21 +439,15 @@ export function UserManagementTab({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                User
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Role
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">User</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Role</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">
                 Researcher
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">
                 Last Active
               </th>
-              <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -480,13 +461,18 @@ export function UserManagementTab({
                         <UserRound size={14} className="text-gray-600" />
                       </div>
                       <div>
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1.5">
                           <span className="text-sm font-medium text-gray-900">
                             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy */}
                             {user.lastName || user.firstName
                               ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`
                               : user.username}
                           </span>
+                          {user.role === 'admin' && (
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                              Admin
+                            </span>
+                          )}
                           {user.requirePasswordChange && (
                             <span
                               className="text-warning-text text-xs flex items-center gap-0.5"
@@ -529,9 +515,9 @@ export function UserManagementTab({
                   {/* Researcher Status Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     {user.researcherId ? (
-                      <div className="flex items-center space-x-1 text-sm text-gray-900">
+                      <div className="flex items-center gap-1.5 text-sm text-slate-500">
                         <span>Linked</span>
-                        <UserRoundCheck size={14} className="text-green-600 flex-shrink-0" />
+                        <UserRoundCheck size={14} className="text-green-500 flex-shrink-0" />
                       </div>
                     ) : (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
@@ -599,40 +585,6 @@ export function UserManagementTab({
             )}
           </tbody>
         </table>
-      </div>
-
-      {/* Invite Section */}
-      <div className="bg-gray-50 p-2.5 rounded-lg">
-        <h4 className="text-sm font-medium text-gray-900 mb-2">Invite New Users</h4>
-
-        <div className="grid grid-cols-2 gap-2 mb-3">
-          <button onClick={() => onCreateInvite('user')} className="btn btn-secondary text-xs">
-            Create User Invite
-          </button>
-          <button onClick={() => onCreateInvite('admin')} className="btn btn-secondary text-xs">
-            Create Admin Invite
-          </button>
-        </div>
-
-        {inviteCode && (
-          <div className="bg-white border border-gray-200 rounded p-2">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-xs font-medium text-gray-900">Latest Invite Code:</div>
-                <div className="text-base font-mono text-blue-600">{inviteCode}</div>
-                <div className="text-xs text-gray-600 mt-0.5">
-                  Share this code with colleagues to invite them to your workspace
-                </div>
-              </div>
-              <button
-                onClick={() => navigator.clipboard.writeText(inviteCode)}
-                className="btn btn-secondary text-xs"
-              >
-                Copy
-              </button>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Link Researcher Modal */}

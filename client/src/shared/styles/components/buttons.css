@@ -71,11 +71,11 @@
   }
 
   .btn-refresh {
-    @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 h-10 px-4 py-2;
+    @apply btn bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-700 h-10 px-4 py-2 shadow-none;
   }
 
   .btn-refresh-compact {
-    @apply btn-compact border border-gray-300 bg-white text-gray-700 hover:bg-gray-100;
+    @apply btn-compact bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-700 shadow-none;
   }
 
   /* Compact Button Variants - For tables, inline actions, and space-constrained UIs */
@@ -98,23 +98,23 @@
   }
 
   .btn-primary-compact {
-    @apply btn-compact bg-action text-white hover:bg-action-hover hover:shadow-md;
+    @apply btn-compact bg-transparent text-slate-400 hover:bg-blue-50 hover:text-action;
   }
 
   .btn-secondary-compact {
-    @apply btn-compact border border-odysseus-border bg-odysseus-surface text-odysseus-secondary hover:bg-odysseus-surface-hover;
+    @apply btn-compact bg-transparent text-slate-400 hover:bg-slate-100 hover:text-slate-600;
   }
 
   .btn-danger-compact {
-    @apply btn-compact bg-red-100 text-red-700 hover:bg-red-200 hover:shadow-md;
+    @apply btn-compact bg-transparent text-slate-400 hover:bg-red-50 hover:text-red-600;
   }
 
   .btn-approve-compact {
-    @apply btn-compact bg-green-600 text-white hover:bg-green-700 hover:shadow-md;
+    @apply btn-compact bg-transparent text-slate-400 hover:bg-green-50 hover:text-green-600;
   }
 
   .btn-password-compact {
-    @apply btn-compact bg-password-bg text-white hover:bg-password-hover hover:shadow-md;
+    @apply btn-compact bg-transparent text-slate-400 hover:bg-amber-50 hover:text-amber-600;
   }
 
   /* Icon Button Size Modifiers - Combine with color classes (.btn-edit, .btn-danger, etc.) */

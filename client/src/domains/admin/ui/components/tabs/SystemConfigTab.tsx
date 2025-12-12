@@ -114,7 +114,9 @@ export function SystemConfigTab({
             <div className="flex items-center justify-between gap-4">
               {/* Sync Enabled Status */}
               <div className="flex items-center space-x-2 flex-1">
-                <div className={`w-2.5 h-2.5 rounded-full ${syncStatus?.enabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                <div
+                  className={`w-2.5 h-2.5 rounded-full ${syncStatus?.enabled ? 'bg-green-500' : 'bg-gray-400'}`}
+                ></div>
                 <span className="text-xs text-gray-700">
                   {syncStatus?.enabled ? 'Sync Enabled' : 'Local Mode'}
                 </span>
@@ -122,7 +124,9 @@ export function SystemConfigTab({
 
               {/* Firebase Connection Status */}
               <div className="flex items-center space-x-2 flex-1">
-                <div className={`w-2.5 h-2.5 rounded-full ${syncStatus?.firebase ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                <div
+                  className={`w-2.5 h-2.5 rounded-full ${syncStatus?.firebase ? 'bg-green-500' : 'bg-gray-400'}`}
+                ></div>
                 <span className="text-xs text-gray-700">
                   {syncStatus?.firebase ? 'Firebase Connected' : 'Firebase Offline'}
                 </span>
@@ -140,9 +144,7 @@ export function SystemConfigTab({
 
             {/* Workspace ID Display */}
             {syncStatus?.workspaceId && (
-              <div className="mt-2 text-xs text-gray-600">
-                Workspace: {syncStatus.workspaceId}
-              </div>
+              <div className="mt-2 text-xs text-gray-600">Workspace: {syncStatus.workspaceId}</div>
             )}
           </div>
         </div>
@@ -162,11 +164,11 @@ export function SystemConfigTab({
               <input
                 type="checkbox"
                 checked={config.enableDetailedLogging}
-                onChange={(e) => onChange('enableDetailedLogging', e.target.checked)}
+                onChange={e => onChange('enableDetailedLogging', e.target.checked)}
                 className="sr-only peer"
                 aria-label="Enable detailed logging for all system operations"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-danger-bg/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-danger-bg"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
             </label>
           </div>
         </div>

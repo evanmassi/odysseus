@@ -62,7 +62,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [systemStats, setSystemStats] = useState<SystemMetrics | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
-  const [inviteCode, setInviteCode] = useState<string>('');
   const modalService = useModalStore();
 
   // Focus trap (only active when modal is open)
@@ -193,26 +192,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     }
   };
 
-  const createInviteCode = async (role: 'admin' | 'user' = 'user') => {
-    try {
-      const { httpClient } = await import('@infra/api/httpClient');
-      const response = await httpClient.post<{ success: boolean; inviteCode: string }>(
-        '/admin/create-invite',
-        { role }
-      );
-
-      if (response.data.success) {
-        setInviteCode(response.data.inviteCode);
-        notifications.success('Invite code created successfully!');
-      } else {
-        notifications.error('Failed to create invite code');
-      }
-    } catch (error) {
-      logger.error('Failed to create invite code', { error });
-      notifications.error('Failed to create invite code');
-    }
-  };
-
   const handleConfigChange = (field: keyof SecurityConfig, value: boolean | number | string) => {
     setConfig(prev => ({ ...prev, [field]: value }));
   };
@@ -253,18 +232,19 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-5xl h-[85vh] mx-4 overflow-hidden animate-slide-up-fade flex flex-col"
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-danger-hover via-danger-bg to-danger-hover px-6 py-3 text-white flex-shrink-0">
+        <div className="bg-white px-6 py-3 border-b border-gray-200 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <ShieldUser className="w-6 h-6" />
+              <ShieldUser className="w-6 h-6 text-slate-600" />
               <div>
-                <h2 className="text-lg font-bold">Admin Settings</h2>
-                <p className="text-white/80 text-xs">Security & System Configuration</p>
+                <h2 className="text-lg font-bold text-slate-800">Admin Settings</h2>
+                <p className="text-slate-500 text-xs">Security & System Configuration</p>
               </div>
             </div>
             <button
               onClick={handleClose}
-              className="btn-header-menu text-white/80 hover:text-white hover:bg-danger-hover/50"
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-ring-default"
+              aria-label="Close settings"
             >
               <X size={20} />
             </button>
@@ -273,21 +253,25 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
         <div className="flex flex-1 min-h-0">
           {/* Sidebar */}
-          <div className="w-48 bg-gray-50 border-r border-gray-200 p-4">
-            <nav className="space-y-2">
+          <div className="w-48 bg-white border-r border-gray-200 py-4">
+            <nav className="space-y-1">
               {tabs.map(tab => {
                 const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`nav-tab ${
-                      activeTab === tab.id
-                        ? 'bg-danger-light text-danger-hover border border-danger-border'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-slate-100 ${
+                      isActive
+                        ? 'border-l-slate-600 bg-slate-50 text-slate-800'
+                        : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-800'
                     }`}
                   >
-                    <Icon size={tab.id === 'researchers' ? 24 : 20} />
+                    <Icon
+                      size={tab.id === 'researchers' ? 24 : 18}
+                      className={isActive ? 'text-slate-600' : 'text-slate-400'}
+                    />
                     <span className="font-medium text-sm">{tab.label}</span>
                   </button>
                 );
@@ -296,7 +280,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
           </div>
 
           {/* Content with Lazy-Loaded Tabs */}
-          <div className="flex-1 overflow-y-auto min-w-0">
+          <div className="flex-1 overflow-y-auto min-w-0 focus:outline-none">
             <div className="p-6 min-w-0">
               {activeTab === 'security' && (
                 <Suspense fallback={<TabSkeleton />}>
@@ -306,12 +290,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
               {activeTab === 'users' && (
                 <Suspense fallback={<TabSkeleton />}>
-                  <UserManagementTab
-                    users={users}
-                    onUserUpdate={loadUsers}
-                    inviteCode={inviteCode}
-                    onCreateInvite={createInviteCode}
-                  />
+                  <UserManagementTab users={users} onUserUpdate={loadUsers} />
                 </Suspense>
               )}
 
@@ -343,14 +322,14 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         </div>
 
         {/* Footer */}
-        <div className="border-t border-gray-200 px-6 py-3 bg-gray-50 flex-shrink-0">
+        <div className="border-t border-gray-200 px-6 py-2.5 bg-white flex-shrink-0">
           <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center space-x-2 text-xs text-gray-600 flex-shrink min-w-0">
-              <AlertTriangle size={14} className="alert-warning-icon flex-shrink-0" />
+            <div className="flex items-center space-x-1.5 text-[11px] text-slate-400 flex-shrink min-w-0">
+              <AlertTriangle size={12} className="flex-shrink-0" />
               <span className="truncate">Changes apply to all users immediately</span>
             </div>
             <div className="flex space-x-2 flex-shrink-0">
-              <button onClick={handleClose} className="btn-cancel">
+              <button onClick={handleClose} className="btn btn-secondary px-6">
                 Cancel
               </button>
               <button

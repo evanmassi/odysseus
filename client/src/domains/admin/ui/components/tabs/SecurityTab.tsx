@@ -68,11 +68,11 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
               <input
                 type="checkbox"
                 checked={config.useEnhancedAuth}
-                onChange={(e) => onChange('useEnhancedAuth', e.target.checked)}
+                onChange={e => onChange('useEnhancedAuth', e.target.checked)}
                 className="sr-only peer"
                 aria-label="Enable enhanced authentication"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-danger-bg/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-danger-bg"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
             </label>
           </div>
 
@@ -80,17 +80,19 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
           <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
             <div>
               <h5 className="text-sm font-medium text-gray-900">Strong Password Requirements</h5>
-              <p className="text-xs text-gray-600">Enforce complex password policies (uppercase, lowercase, numbers)</p>
+              <p className="text-xs text-gray-600">
+                Enforce complex password policies (uppercase, lowercase, numbers)
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
                 type="checkbox"
                 checked={config.requireStrongPasswords}
-                onChange={(e) => onChange('requireStrongPasswords', e.target.checked)}
+                onChange={e => onChange('requireStrongPasswords', e.target.checked)}
                 className="sr-only peer"
                 aria-label="Require strong password requirements"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-danger-bg/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-danger-bg"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
             </label>
           </div>
 
@@ -107,7 +109,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                   min="4"
                   max="128"
                   value={config.passwordMinLength}
-                  onChange={(e) => onChange('passwordMinLength', parseInt(e.target.value))}
+                  onChange={e => onChange('passwordMinLength', parseInt(e.target.value))}
                   className="input w-16 text-xs h-6 py-0 px-2"
                 />
                 <p className="text-[10px] text-gray-500 mt-0.5">(4-128 characters)</p>
@@ -123,11 +125,11 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 <input
                   type="checkbox"
                   checked={config.passwordRequireSpecialChars}
-                  onChange={(e) => onChange('passwordRequireSpecialChars', e.target.checked)}
+                  onChange={e => onChange('passwordRequireSpecialChars', e.target.checked)}
                   className="sr-only peer"
                   aria-label="Require special characters in passwords"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-danger-bg/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-danger-bg"></div>
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
               </label>
             </div>
           </div>
@@ -150,7 +152,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 min="5"
                 max="1440"
                 value={config.sessionTimeoutMinutes}
-                onChange={(e) => onChange('sessionTimeoutMinutes', parseInt(e.target.value))}
+                onChange={e => onChange('sessionTimeoutMinutes', parseInt(e.target.value))}
                 className="input w-16 text-xs h-6 py-0 px-2"
               />
               <p className="text-[10px] text-gray-500 mt-0.5">(5-1440 minutes)</p>
@@ -173,11 +175,11 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
               <input
                 type="checkbox"
                 checked={config.enableRateLimiting}
-                onChange={(e) => onChange('enableRateLimiting', e.target.checked)}
+                onChange={e => onChange('enableRateLimiting', e.target.checked)}
                 className="sr-only peer"
                 aria-label="Enable rate limiting to prevent brute force attacks"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-danger-bg/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-danger-bg"></div>
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
             </label>
           </div>
 
@@ -196,7 +198,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                     min="1"
                     max="50"
                     value={config.loginAttemptsPerMinute}
-                    onChange={(e) => onChange('loginAttemptsPerMinute', parseInt(e.target.value))}
+                    onChange={e => onChange('loginAttemptsPerMinute', parseInt(e.target.value))}
                     className="input w-16 text-xs h-6 py-0 px-2"
                   />
                   <p className="text-[10px] text-gray-500 mt-0.5">(1-50 attempts)</p>
@@ -215,7 +217,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                     min="1"
                     max="1440"
                     value={config.lockoutDurationMinutes}
-                    onChange={(e) => onChange('lockoutDurationMinutes', parseInt(e.target.value))}
+                    onChange={e => onChange('lockoutDurationMinutes', parseInt(e.target.value))}
                     className="input w-16 text-xs h-6 py-0 px-2"
                   />
                   <p className="text-[10px] text-gray-500 mt-0.5">(1-1440 minutes)</p>
