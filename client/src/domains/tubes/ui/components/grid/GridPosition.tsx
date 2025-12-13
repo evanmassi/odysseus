@@ -13,37 +13,12 @@ import {
 } from '../../../utils/colorSystem';
 import { LockIndicator } from '../LockIndicator';
 
+import { IndicatorSVG } from './IndicatorSVG';
+
 import type { GridConfiguration } from '@domains/storage';
 import type { TubeData } from '@domains/tubes/types';
+
 import './colorIndicators.css';
-
-// Helper functions for enhanced CSS class generation
-function getPatternClass(pattern: string): string {
-  switch (pattern) {
-    case 'stripe':
-      return 'striped';
-    case 'dot':
-      return 'dotted';
-    case 'cross':
-      return 'crossed';
-    case 'checkered':
-      return 'checkered';
-    case 'waves':
-      return 'waves';
-    case 'hatched':
-      return 'hatched';
-    case 'gradient':
-      return 'gradient';
-    default:
-      return '';
-  }
-}
-
-function getColorClass(color: string): string {
-  if (color === '#FFFF00') return 'yellow';
-  if (color === '#FFFFFF') return 'white';
-  return '';
-}
 
 interface GridPositionProps {
   position: number;
@@ -181,30 +156,27 @@ export const GridPosition = memo<GridPositionProps>(
           {formatPositionForBox(position, tankId, rackId, boxId, gridConfig, currentLab, settings)}
         </div>
 
-        {/* Lot number indicator - top-left */}
+        {/* Lot number indicator - top-left (square) */}
         {tube && lotStyle && (
-          <div
-            className={`lot-indicator ${getPatternClass(lotStyle.pattern)} ${getColorClass(lotStyle.color)}`}
-            style={{
-              backgroundColor: lotStyle.color,
-              border: lotStyle.color === '#FFFFFF' ? '2px solid #000000' : undefined,
-              width: `${fontSize.positionFont + 2}px`,
-              height: `${fontSize.positionFont + 2}px`,
-            }}
+          <IndicatorSVG
+            shape="square"
+            color={lotStyle.color}
+            pattern={lotStyle.pattern}
+            size={fontSize.positionFont + 2}
             title={`Lot #: ${tube.sample.lotNumber}`}
+            className="absolute top-0.5 left-0.5 z-[1]"
           />
         )}
 
-        {/* Condition indicator - bottom-right */}
+        {/* Condition indicator - bottom-right (triangle) */}
         {tube && conditionStyle && (
-          <div
-            className="condition-indicator"
-            style={{
-              backgroundColor: conditionStyle.color,
-              width: `${fontSize.positionFont + 2}px`,
-              height: `${fontSize.positionFont + 2}px`,
-            }}
+          <IndicatorSVG
+            shape="triangle"
+            color={conditionStyle.color}
+            pattern="solid"
+            size={fontSize.positionFont + 2}
             title={`Condition: ${tube.sample.cultureCondition}`}
+            className="absolute bottom-0.5 right-0.5 z-[1]"
           />
         )}
 

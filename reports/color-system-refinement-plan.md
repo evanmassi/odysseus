@@ -2,7 +2,7 @@
 
 **Created:** 2025-12-12
 **Last Updated:** 2025-12-12
-**Status:** Planning Complete - Ready for Implementation
+**Status:** Phase 1 Complete - Ready for Testing
 **Priority:** Medium
 
 ---
@@ -371,16 +371,17 @@ PBMC:         0   (baseline)
 - [x] Update all imports
 - [x] Verify build passes
 
-### Phase 1: Color System Logic Updates
-| Task | Location | Lines |
-|------|----------|-------|
-| [ ] Update palette parameters | `colorSystem.ts` | 45-51 |
-| [ ] Add `cellLinePalette` constant | `colorSystem.ts` | after 51 |
-| [ ] Add `UNKNOWN_FALLBACK_COLOR` constant | `colorSystem.ts` | after palette |
-| [ ] Add `isKnownCellLine()` function | `colorSystem.ts` | ~200 |
-| [ ] Add `getCellLineColor()` function | `colorSystem.ts` | ~210 |
-| [ ] Update `getTubeColor()` logic | `colorSystem.ts` | 344-381 |
-| [ ] Add cell therapy entries to brightness map | `colorSystem.ts` | 245-301 |
+### Phase 1: Color System Logic Updates ✅ COMPLETED 2025-12-12
+| Task | Location | Status |
+|------|----------|--------|
+| [x] Update palette parameters | `colorSystem.ts` lines 45-51 | Done |
+| [x] Add `cellLinePalette` constant | `colorSystem.ts` lines 53-70 | Done |
+| [x] Add `UNKNOWN_FALLBACK_COLOR` constant | `colorSystem.ts` line 73 | Done |
+| [x] Add `getCellLineColor()` function | `colorSystem.ts` lines 235-245 | Done |
+| [x] Update `getTubeColor()` logic | `colorSystem.ts` lines 399-453 | Done |
+| [x] Add cell therapy entries to brightness map | `colorSystem.ts` lines 345-357 | Done |
+
+**Note:** `isKnownCellLine()` function was removed (unused - `getCellLineColor()` handles detection by returning null for non-cell-lines).
 
 ### Phase 2: Testing & Validation
 - [ ] Verify donor colors are visually distinct

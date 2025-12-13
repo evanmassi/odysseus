@@ -43,12 +43,149 @@ interface LotStyle {
 
 // Enhanced donor color palette - LAB color space optimized for maximum visual distinction
 const donorColorPalette = generateOptimalColorPalette({
-  count: 96,
-  minDistance: 12, // ΔE units for clear visual distinction (reduced for larger palette)
-  lightRange: [55, 85], // Lighter colors for better black text readability
-  chromaRange: [25, 50], // Vivid but not overwhelming
+  count: 72, // Fewer colors but more visually distinct
+  minDistance: 18, // ΔE units for clear visual distinction (18 = clearly noticeable)
+  lightRange: [40, 75], // Wider range for better variety
+  chromaRange: [30, 55], // Muted but distinct (not washed out)
   seed: 12345, // Deterministic seed for consistent colors across sessions
 });
+
+// Category-based cell line color system
+// Each cell line has a pre-assigned muted color and pattern variants
+interface CellLineCategory {
+  name: string;
+  color: string;
+  patterns: string[];
+}
+
+const cellLineCategories: CellLineCategory[] = [
+  // Lab's commonly used cell lines (muted versions)
+  {
+    name: 'jurkat',
+    color: '#A85A4A', // Muted terracotta red
+    patterns: [
+      'jurkat',
+      'jur-kat',
+      'jur kat',
+      'jurkat t',
+      'jurkat-t',
+      // Clone annotations
+      'jurkat e6-1',
+      'jurkat e6.1',
+      'jurkat-e6-1',
+      'jurkat_e6-1',
+    ],
+  },
+  {
+    name: 'nalm6',
+    color: '#4A9A8F', // Muted teal
+    patterns: ['nalm6', 'nalm-6', 'nalm 6', 'nalm_6'],
+  },
+  {
+    name: 'lncap',
+    color: '#7B7FC4', // Muted periwinkle
+    patterns: [
+      'lncap',
+      // Strain suffixes
+      'lncap-fgc',
+      'lncap fgc',
+      'lncap_fgc',
+      'lncap clone fgc',
+    ],
+  },
+  {
+    name: '22rv1',
+    color: '#C9B86A', // Muted gold
+    patterns: ['22rv1', '22 rv1', '22-rv1', '22_rv1'],
+  },
+  {
+    name: 'skbr3',
+    color: '#9A7AA8', // Muted lavender
+    patterns: [
+      'skbr3',
+      'skbr-3',
+      'sk-br3',
+      'sk-br-3',
+      'sk br 3',
+      'sk br-3',
+      'sk-br 3',
+      'sk_br_3',
+      'sk_br3',
+    ],
+  },
+  {
+    name: 'panc1',
+    color: '#C9986A', // Muted sandy tan
+    patterns: [
+      // PANC-1 (pancreatic carcinoma - most common meaning)
+      'panc-1',
+      'panc1',
+      'panc 1',
+      'panc_1',
+      // PAN-1 (if literally meant)
+      'pan-1',
+      'pan1',
+      'pan 1',
+      'pan_1',
+    ],
+  },
+  {
+    name: 'mcf7',
+    color: '#3D5A73', // Muted slate blue
+    patterns: [
+      'mcf7',
+      'mcf-7',
+      'mcf 7',
+      'mcf_7',
+      'mcf-7 wt', // Subline tag
+    ],
+  },
+  {
+    name: 'a549',
+    color: '#C47A65', // Muted coral
+    patterns: [
+      'a549',
+      'a-549',
+      'a 549',
+      'a_549',
+      'nci-a549', // NCI prefix
+    ],
+  },
+  {
+    name: 'h1299',
+    color: '#4A6A6A', // Muted dark teal
+    patterns: [
+      'h1299',
+      'h-1299',
+      'h 1299',
+      'h_1299',
+      // NCI prefix variants
+      'nci-h1299',
+      'nci h1299',
+      'nci_h1299',
+    ],
+  },
+
+  // Additional common cell lines
+  {
+    name: 'hela',
+    color: '#8B6B4A', // Muted brown
+    patterns: ['hela', 'he-la', 'he la', 'he_la'],
+  },
+  {
+    name: 'k562',
+    color: '#B84A5A', // Muted crimson
+    patterns: ['k562', 'k-562', 'k 562', 'k_562'],
+  },
+  {
+    name: 'u937',
+    color: '#5A8AAA', // Muted steel blue
+    patterns: ['u937', 'u-937', 'u 937', 'u_937'],
+  },
+];
+
+// Light theme blue for tubes with missing donor/cell line info
+const UNKNOWN_FALLBACK_COLOR = '#b8d0e5';
 
 // Enhanced lot number indicators - LAB color space optimized with extended patterns
 const baseIndicatorColors = generateOptimalColorPalette({
@@ -210,6 +347,28 @@ function hashStringToIndex(str: string, maxIndex: number): number {
   return Math.abs(hash) % maxIndex;
 }
 
+// Get pre-assigned color for a known cell line (returns null if not a cell line)
+function getCellLineColor(cellType: string): string | null {
+  if (!cellType) return null;
+  const normalized = cellType.toLowerCase().trim();
+
+  for (const category of cellLineCategories) {
+    // Check exact pattern matches
+    if (category.patterns.includes(normalized)) {
+      return category.color;
+    }
+
+    // Check partial matches (pattern contained in input)
+    for (const pattern of category.patterns) {
+      if (normalized.includes(pattern)) {
+        return category.color;
+      }
+    }
+  }
+
+  return null;
+}
+
 // Get donor identifier from tube data
 function getDonorIdentifier(tubeData: ColorSystemTubeData): string {
   // Check new fields first
@@ -241,79 +400,270 @@ function createTubeSignature(tubeData: ColorSystemTubeData): string {
   return `${donorId}|${cellType}|${lotNumber}|${condition}`;
 }
 
-// Systematic cell type brightness mapping for predictable color families
-const cellTypeBrightnessMap = new Map<string, number>([
+// Category-based cell type brightness system
+// Each category has a single brightness value and an array of pattern variants
+interface CellTypeCategory {
+  name: string;
+  brightness: number;
+  patterns: string[];
+}
+
+const cellTypeCategories: CellTypeCategory[] = [
   // Primary cell types - base brightness (no offset)
-  ['pbmc', 0],
-  ['pbmcs', 0],
-  ['peripheral blood mononuclear cells', 0],
+  {
+    name: 'pbmc',
+    brightness: 0,
+    patterns: ['pbmc', 'pbmcs', 'peripheral blood mononuclear cells'],
+  },
 
   // T cell lineage - lighter shades
-  ['t cells', 25],
-  ['t cell', 25],
-  ['cd3+', 25],
-  ['cd4+', 20],
-  ['cd8+', 30],
-  ['th1', 15],
-  ['th2', 15],
-  ['th17', 15],
-  ['treg', 15],
-  ['regulatory t', 15],
+  {
+    name: 't-cells',
+    brightness: 25,
+    patterns: [
+      't cells',
+      't cell',
+      't-cells',
+      't-cell',
+      'tcells',
+      'tcell',
+      't-lymphocytes',
+      't-lymphocyte',
+      't lymphocytes',
+      't lymphocyte',
+      'cd3+',
+      'cd3',
+    ],
+  },
+  {
+    name: 'cd4-t-cells',
+    brightness: 20,
+    patterns: ['cd4+', 'cd4'],
+  },
+  {
+    name: 'cd8-t-cells',
+    brightness: 30,
+    patterns: ['cd8+', 'cd8'],
+  },
+  {
+    name: 't-helper-regulatory',
+    brightness: 15,
+    patterns: ['th1', 'th2', 'th17', 'treg', 'regulatory t'],
+  },
 
   // B cell lineage - medium-light shades
-  ['b cells', 18],
-  ['b cell', 18],
-  ['cd19+', 18],
-  ['cd20+', 18],
+  {
+    name: 'b-cells',
+    brightness: 18,
+    patterns: [
+      'b cells',
+      'b cell',
+      'b-cells',
+      'b-cell',
+      'bcells',
+      'bcell',
+      'b-lymphocytes',
+      'b-lymphocyte',
+      'b lymphocytes',
+      'b lymphocyte',
+      'cd19+',
+      'cd19',
+      'cd20+',
+      'cd20',
+    ],
+  },
 
   // NK cells - medium shades
-  ['nk cells', 10],
-  ['nk cell', 10],
-  ['natural killer', 10],
-  ['cd56+', 10],
+  {
+    name: 'nk-cells',
+    brightness: 10,
+    patterns: [
+      'nk cells',
+      'nk cell',
+      'nk-cells',
+      'nk-cell',
+      'nk',
+      'natural killer',
+      'cd56+',
+      'cd56',
+    ],
+  },
 
   // Monocyte/Macrophage lineage - darker shades
-  ['monocytes', -15],
-  ['monocyte', -15],
-  ['cd14+', -15],
-  ['cd16+', -10],
-  ['macrophages', -20],
-  ['macrophage', -20],
-  ['m1', -25],
-  ['m2', -18],
+  {
+    name: 'monocytes',
+    brightness: -15,
+    patterns: ['monocytes', 'monocyte', 'cd14+', 'cd14'],
+  },
+  {
+    name: 'cd16-monocytes',
+    brightness: -10,
+    patterns: ['cd16+', 'cd16'],
+  },
+  {
+    name: 'macrophages',
+    brightness: -20,
+    patterns: ['macrophages', 'macrophage'],
+  },
+  {
+    name: 'm1-macrophages',
+    brightness: -25,
+    patterns: ['m1'],
+  },
+  {
+    name: 'm2-macrophages',
+    brightness: -18,
+    patterns: ['m2'],
+  },
 
   // Dendritic cells - medium-dark
-  ['dendritic cells', -12],
-  ['dc', -12],
-  ['dendritic', -12],
+  {
+    name: 'dendritic-cells',
+    brightness: -12,
+    patterns: ['dendritic cells', 'dc', 'dendritic'],
+  },
 
   // Stem cells - very light
-  ['msc', 35],
-  ['mesenchymal', 35],
-  ['stem cells', 35],
-  ['hsc', 40],
+  {
+    name: 'mesenchymal-stem-cells',
+    brightness: 35,
+    patterns: ['msc', 'mesenchymal', 'stem cells'],
+  },
+  {
+    name: 'hematopoietic-stem-cells',
+    brightness: 40,
+    patterns: ['hsc'],
+  },
 
-  // Cell lines - distinctive offsets
-  ['hela', -8],
-  ['jurkat', 22],
-  ['k562', -5],
-  ['u937', -18],
-]);
+  // Cell lines - distinctive offsets (fallback if not caught by cell line detection)
+  {
+    name: 'hela-fallback',
+    brightness: -8,
+    patterns: ['hela'],
+  },
+  {
+    name: 'jurkat-fallback',
+    brightness: 22,
+    patterns: ['jurkat'],
+  },
+  {
+    name: 'k562-fallback',
+    brightness: -5,
+    patterns: ['k562'],
+  },
+  {
+    name: 'u937-fallback',
+    brightness: -18,
+    patterns: ['u937'],
+  },
+
+  // Cell therapy specific - CAR-T variants
+  {
+    name: 'car-t',
+    brightness: 25,
+    patterns: [
+      // Standard forms
+      'car-t',
+      'car-t cells',
+      'car-t cell',
+      'car-ts',
+      'cart',
+      'cart cells',
+      'cart cell',
+      'carts',
+      'car t',
+      'car t cells',
+      'car t cell',
+      // CAR+ variants
+      'car+',
+      'car+ t cells',
+      'car+ t cell',
+      'car positive',
+      'car positive t cells',
+      'car positive t cell',
+      'car-positive',
+      'car-positive t cells',
+      'car-positive t cell',
+      // Transduced
+      'transduced',
+      'transduced t cells',
+      'transduced t cell',
+      'chimeric antigen receptor',
+    ],
+  },
+
+  // Cell therapy specific - Untransduced variants
+  {
+    name: 'untransduced',
+    brightness: 12,
+    patterns: [
+      // Standard forms
+      'untransduced',
+      'untransduced t cells',
+      'untransduced t cell',
+      'utd',
+      'utd t cells',
+      'utd t cell',
+      // UTD "x" patterns (extra confirmed negative)
+      'utx',
+      'utxd',
+      'utdx',
+      'ut-dx',
+      'ut_dx',
+      'utd + x',
+      'utd +x',
+      'utd+x',
+      'utd-x',
+      'utd_x',
+      // Hyphenated/spaced variants
+      'un-transduced',
+      'un-transduced t cells',
+      'non-transduced',
+      'non-transduced t cells',
+      'nontransduced',
+      'nontransduced t cells',
+      'non transduced',
+      'non transduced t cells',
+      // Other synonyms
+      'unmodified',
+      'unmodified t cells',
+      'unmodified t cell',
+      'naive t cells',
+      'naive t cell',
+      'naïve t cells',
+      'naïve t cell',
+      'fresh t cells',
+      'fresh t cell',
+      'mock',
+      'mock transduced',
+    ],
+  },
+
+  // Cell therapy specific - TILs
+  {
+    name: 'tils',
+    brightness: 8,
+    patterns: ['tils', 'til', 'tumor-infiltrating lymphocytes', 'tumor infiltrating lymphocytes'],
+  },
+];
 
 function getCellTypeBrightnessOffset(cellType: string): number {
   if (!cellType) return 0;
 
   const normalized = cellType.toLowerCase().trim();
 
-  // Check exact matches first
-  if (cellTypeBrightnessMap.has(normalized)) {
-    return cellTypeBrightnessMap.get(normalized)!;
-  }
+  // Search through categories
+  for (const category of cellTypeCategories) {
+    // Check exact pattern matches
+    if (category.patterns.includes(normalized)) {
+      return category.brightness;
+    }
 
-  // Check partial matches
-  for (const [key, offset] of cellTypeBrightnessMap) {
-    if (normalized.includes(key) || key.includes(normalized)) {
-      return offset;
+    // Check partial matches (pattern contained in input or vice versa)
+    for (const pattern of category.patterns) {
+      if (normalized.includes(pattern) || pattern.includes(normalized)) {
+        return category.brightness;
+      }
     }
   }
 
@@ -356,19 +706,35 @@ export function getTubeColor(tubeData: any): ColorResult {
     };
   }
 
-  const donorId = getDonorIdentifier(adaptedData);
+  let finalColor: string;
+  const cellType = adaptedData.cellType || '';
 
-  // Get or assign base color for this donor using enhanced palette
-  let baseColor = globalCache.getDonorColor(donorId);
-  if (!baseColor) {
-    const colorIndex = hashStringToIndex(donorId, donorColorPalette.length);
-    baseColor = donorColorPalette[colorIndex];
-    globalCache.setDonorColor(donorId, baseColor);
+  // Step 1: Check if this is a known cell line (pre-assigned color)
+  const cellLineColor = getCellLineColor(cellType);
+  if (cellLineColor) {
+    finalColor = cellLineColor;
+  } else {
+    // Step 2: Check for donor IDs
+    const donorId = getDonorIdentifier(adaptedData);
+
+    if (donorId !== 'unknown') {
+      // Has donor ID - use donor palette
+      let baseColor = globalCache.getDonorColor(donorId);
+      if (!baseColor) {
+        const colorIndex = hashStringToIndex(donorId, donorColorPalette.length);
+        baseColor = donorColorPalette[colorIndex];
+        globalCache.setDonorColor(donorId, baseColor);
+      }
+
+      // Apply systematic cell type brightness offset
+      const brightnessOffset = getCellTypeBrightnessOffset(cellType);
+      finalColor = adjustColorBrightness(baseColor, brightnessOffset);
+    } else {
+      // Step 3: No donor ID and not a cell line - use theme fallback with brightness offset
+      const brightnessOffset = getCellTypeBrightnessOffset(cellType);
+      finalColor = adjustColorBrightness(UNKNOWN_FALLBACK_COLOR, brightnessOffset);
+    }
   }
-
-  // Apply systematic cell type brightness offset
-  const cellTypeBrightnessOffset = getCellTypeBrightnessOffset(adaptedData.cellType || '');
-  const finalColor = adjustColorBrightness(baseColor, cellTypeBrightnessOffset);
 
   // Store the color for this exact tube combination
   globalCache.setTubeColor(signature, finalColor);
