@@ -19,6 +19,8 @@ export {
 } from './hooks/useStorageQuery';
 export { useConfigurationSync } from './hooks/useConfigurationSync';
 export { useStorageData, getStorageDataFromCache } from './hooks/useStorageData';
+export { useLocationDisplayNames } from './hooks/useLocationDisplayNames';
+export type { LocationDisplayNames } from './hooks/useLocationDisplayNames';
 
 // Services
 export { StorageService } from './services/StorageService';

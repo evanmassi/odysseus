@@ -1,11 +1,13 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
 
-import { ScanEye } from 'lucide-react';
+import { formatResourceDisplayName } from '@odysseus/shared-schemas';
+import { ScanEye, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { gridNavigationService } from '@domains/grid';
-import { useStorageData } from '@domains/storage';
+import { useStorageData, useLocationDisplayNames } from '@domains/storage';
 import { useConfigurationSync } from '@domains/storage/hooks/useConfigurationSync';
+import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
 import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
 import { useTubeStore, TubeInfoPanel } from '@domains/tubes';
 import {
@@ -107,6 +109,10 @@ export function Dashboard() {
   // Fetch display info for lock-related users
   const { data: lockUsers = [] } = useUserLookupQuery(lockRelatedUserIds);
 
+  // Fetch current user's display info for navigator ownership badges
+  const currentUserIds = useMemo(() => (user?.id ? [user.id] : []), [user?.id]);
+  const { data: currentUserDisplayInfo = [] } = useUserLookupQuery(currentUserIds);
+
   // Create lookup map for user display names
   const userDisplayMap = useMemo(() => {
     const map = new Map<string, string>();
@@ -140,21 +146,24 @@ export function Dashboard() {
 
   const { getCurrentTanks } = useStorageData();
 
-  // Get actual tank and rack names for display
-  const tanks = getCurrentTanks();
-  const currentTankObj = tanks.find(tank => tank.id === currentTank);
-  const tankDisplayName = currentTankObj?.name ?? `Tank ${currentTank}`;
+  // Single source of truth for location display names (includes customLabels)
+  const {
+    tankName: tankDisplayName,
+    rackName: rackDisplayName,
+    boxName: boxDisplayName,
+    rack: currentRackObj,
+    box: currentBoxObj,
+  } = useLocationDisplayNames(currentTank, currentRack, currentBox);
 
-  const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === currentRack);
-  const rackDisplayName = currentRackObj?.name ?? `Rack ${currentRack}`;
-  const currentBoxObj = currentRackObj?.boxes?.find(box => box.id === currentBox);
+  const tanks = getCurrentTanks();
   const modalService = useModalStore();
 
-  // Compute if current container is view-only (assigned to another user)
-  // This determines if tube operations should be disabled
-  const { isViewOnlySpace, spaceOwnerId } = useMemo(() => {
-    if (!user) return { isViewOnlySpace: true, spaceOwnerId: undefined };
-    if (user.role === 'admin') return { isViewOnlySpace: false, spaceOwnerId: undefined };
+  // Compute if current container is view-only (assigned to another user) or common space
+  // This determines if tube operations should be disabled and what indicator to show
+  const { isViewOnlySpace, spaceOwnerId, isCommonSpace } = useMemo(() => {
+    if (!user) return { isViewOnlySpace: true, spaceOwnerId: undefined, isCommonSpace: false };
+    if (user.role === 'admin')
+      return { isViewOnlySpace: false, spaceOwnerId: undefined, isCommonSpace: false };
 
     // Box-level assignment takes precedence
     if (currentBoxObj?.assignedUserId !== undefined && currentBoxObj.assignedUserId !== null) {
@@ -162,12 +171,13 @@ export function Dashboard() {
       return {
         isViewOnlySpace: isViewOnly,
         spaceOwnerId: isViewOnly ? currentBoxObj.assignedUserId : undefined,
+        isCommonSpace: false,
       };
     }
 
     // null box assignment = common space (box explicitly unassigned)
     if (currentBoxObj?.assignedUserId === null) {
-      return { isViewOnlySpace: false, spaceOwnerId: undefined };
+      return { isViewOnlySpace: false, spaceOwnerId: undefined, isCommonSpace: true };
     }
 
     // Box assignment is undefined (inherit from rack)
@@ -177,11 +187,12 @@ export function Dashboard() {
       return {
         isViewOnlySpace: isViewOnly,
         spaceOwnerId: isViewOnly ? currentRackObj.assignedUserId : undefined,
+        isCommonSpace: false,
       };
     }
 
     // No assignment = common space
-    return { isViewOnlySpace: false, spaceOwnerId: undefined };
+    return { isViewOnlySpace: false, spaceOwnerId: undefined, isCommonSpace: true };
   }, [user, currentBoxObj?.assignedUserId, currentRackObj?.assignedUserId]);
 
   // Fetch display name for space owner (if in view-only mode)
@@ -203,19 +214,34 @@ export function Dashboard() {
         name: tank.name,
         racks: tank.racks.map(rack => ({
           id: rack.id,
-          name: rack.name,
+          name: formatResourceDisplayName(rack.name, rack.customLabel),
+          assignedUserId: rack.assignedUserId,
           boxes: rack.boxes
             .filter(box => box.position !== undefined)
             .map(box => ({
               id: box.id,
-              name: box.name,
+              name: formatResourceDisplayName(box.name, box.customLabel),
               position: box.position!,
+              assignedUserId: box.assignedUserId,
             })),
         })),
       })),
     }),
     [tanks]
   );
+
+  // Use shared hook for ownership/initials computation (single source of truth)
+  const { getUserInfo: getOwnershipUserInfo } = useResourceOwnership(
+    currentUserDisplayInfo,
+    user?.id
+  );
+
+  // Current user info for navigator ownership badges
+  const currentUserInfo = useMemo(() => {
+    if (!user) return undefined;
+    const ownershipInfo = getOwnershipUserInfo(user.id);
+    return ownershipInfo ? { id: user.id, initials: ownershipInfo.initials } : undefined;
+  }, [user, getOwnershipUserInfo]);
 
   const selectedLocation: SelectedLocation = useMemo(
     () => ({
@@ -521,6 +547,7 @@ export function Dashboard() {
                   data={storageHierarchy}
                   selected={selectedLocation}
                   onSelect={handleStorageNavigationSelect}
+                  currentUser={currentUserInfo}
                 />
               </ErrorBoundary>
             </div>
@@ -536,7 +563,7 @@ export function Dashboard() {
                 <span className="text-[10px] text-slate-300">•</span>
                 <span>{rackDisplayName}</span>
                 <span className="text-[10px] text-slate-300">•</span>
-                <span>Box {currentBox}</span>
+                <span>{boxDisplayName}</span>
               </h4>
               {isViewOnlySpace && (
                 <div className="flex-1 flex justify-end">
@@ -547,6 +574,17 @@ export function Dashboard() {
                     <ScanEye className="w-2.5 h-2.5" />
                     View Only - Assigned to{' '}
                     <span className="font-semibold">{spaceOwnerName ?? 'another user'}</span>
+                  </span>
+                </div>
+              )}
+              {isCommonSpace && (
+                <div className="flex-1 flex justify-end">
+                  <span
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 cursor-help"
+                    title="This space is available to all users."
+                  >
+                    <UsersRound className="w-2.5 h-2.5" />
+                    Unassigned/Common
                   </span>
                 </div>
               )}

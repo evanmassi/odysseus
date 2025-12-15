@@ -5,12 +5,16 @@ import {
   formatResearcherDropdownDisplay,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { AlertTriangle, Lock, MapPin, Notebook, UsersRound } from 'lucide-react';
+import { AlertTriangle, Lock, MapPin, Notebook, TestTube, UsersRound } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks';
 import { useUserSettings } from '@domains/authentication';
 import { useResearchersQuery } from '@domains/researchers';
-import { useStorageData, formatPositionRangesForBox } from '@domains/storage';
+import {
+  useStorageData,
+  useLocationDisplayNames,
+  formatPositionRangesForBox,
+} from '@domains/storage';
 import { parsePositionKey } from '@shared/types/grid';
 import { formatDateForDisplay } from '@shared/utils/dateFormatter';
 
@@ -81,24 +85,22 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
   // Get current location and configuration
   const { currentTank, currentRack, currentBox, selectedPositions } = useTubeStore();
-  const { currentLab, getCurrentTanks, getBox } = useStorageData();
-  const tanks = getCurrentTanks();
-  const currentTankObj = tanks.find(tank => tank.id === currentTank);
-  const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === currentRack);
-  const currentBoxObj = getBox(currentTank, currentRack, currentBox);
+  const { currentLab } = useStorageData();
 
-  // Get user-friendly names (not prefixed with "Tank" or "Rack")
-  const tankName = currentTankObj?.name ?? 'Unknown Tank';
-  const rackName = currentRackObj?.name ?? 'Unknown Rack';
+  // Single source of truth for location display names (includes customLabels)
+  const {
+    tankName,
+    rackName,
+    boxName,
+    box: currentBoxObj,
+  } = useLocationDisplayNames(currentTank, currentRack, currentBox);
 
   // Format position summary with flexible display
   // IMPORTANT: Must be before early return to comply with Rules of Hooks
   const positionSummary = useMemo(() => {
-    if (selectedTubes.length === 0)
-      return { rackName: '', box: '', positionLabel: '', formattedPositions: '' };
+    if (selectedTubes.length === 0) return { positionLabel: '', formattedPositions: '' };
 
     const firstTube = selectedTubes[0];
-    const box = firstTube.location.boxId;
     const positions = selectedTubes.map(t => t.location.position);
 
     // Get grid config for position formatting
@@ -119,8 +121,8 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     );
 
     const positionLabel = selectedTubes.length === 1 ? 'Position' : 'Positions';
-    return { rackName, box, positionLabel, formattedPositions };
-  }, [selectedTubes, rackName, currentBoxObj, currentLab, userSettings]);
+    return { positionLabel, formattedPositions };
+  }, [selectedTubes, currentBoxObj, currentLab, userSettings]);
 
   // Memoized field analysis - compute all conflicts and values once
   // IMPORTANT: Must be before early return to comply with Rules of Hooks
@@ -201,22 +203,21 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return (
       <div style={{ minWidth: '280px' }}>
         <div className="space-y-3">
-          {/* Position Header - Subtle background */}
-          <div className="bg-slate-50 rounded-md px-3 py-2">
-            <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-[10px] uppercase tracking-wider mb-0.5">
+          {/* Position Header - Vertical stack layout */}
+          <div className="bg-slate-50 rounded-md px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-[10px] uppercase tracking-wider mb-2">
               <MapPin className="w-3 h-3" />
               <span>{tankName}</span>
             </div>
-            <div className="text-odysseus-dark font-semibold text-sm inline-flex items-center gap-1.5">
-              <span>{rackName}</span>
-              <span className="text-[10px] text-slate-300 font-normal">•</span>
-              <span>Box {currentBox}</span>
+            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+              <span className="text-slate-400">Rack</span>
+              <span className="text-odysseus-dark font-medium">{rackName}</span>
+              <span className="text-slate-400">Box</span>
+              <span className="text-odysseus-dark font-medium">{boxName}</span>
               {formattedPositions && (
                 <>
-                  <span className="text-[10px] text-slate-300 font-normal">•</span>
-                  <span>
-                    Position{positionCount > 1 ? 's' : ''} {formattedPositions}
-                  </span>
+                  <span className="text-slate-400">Position{positionCount > 1 ? 's' : ''}</span>
+                  <span className="text-odysseus-dark font-medium">{formattedPositions}</span>
                 </>
               )}
             </div>
@@ -354,26 +355,30 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   return (
     <div style={{ minWidth: '280px' }}>
       <div className="space-y-3">
-        {/* Position Header - Subtle background */}
-        <div className="bg-slate-50 rounded-md px-3 py-2">
-          <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-[10px] uppercase tracking-wider mb-0.5">
+        {/* Position Header - Vertical stack layout */}
+        <div className="bg-slate-50 rounded-md px-3 py-2.5">
+          <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-[10px] uppercase tracking-wider mb-2">
             <MapPin className="w-3 h-3" />
             <span>{tankName}</span>
           </div>
-          <div className="text-odysseus-dark font-semibold text-sm inline-flex items-center gap-1.5">
-            <span>{positionSummary.rackName}</span>
-            <span className="text-[10px] text-slate-300 font-normal">•</span>
-            <span>Box {positionSummary.box}</span>
-            <span className="text-[10px] text-slate-300 font-normal">•</span>
-            <span>
-              {positionSummary.positionLabel} {positionSummary.formattedPositions}
+          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+            <span className="text-slate-400">Rack</span>
+            <span className="text-odysseus-dark font-medium">{rackName}</span>
+            <span className="text-slate-400">Box</span>
+            <span className="text-odysseus-dark font-medium">{boxName}</span>
+            <span className="text-slate-400">{positionSummary.positionLabel}</span>
+            <span className="text-odysseus-dark font-medium">
+              {positionSummary.formattedPositions}
             </span>
           </div>
           {selectedTubes.length > 1 && (
-            <div className="flex items-center text-odysseus-dark/50 text-xs mt-0.5">
-              <span>{selectedTubes.length} tubes selected</span>
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-200">
+              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+                <TestTube className="w-2.5 h-2.5" />
+                {selectedTubes.length} selected
+              </span>
               {hasConflicts && (
-                <span className="inline-flex items-center gap-1 ml-2 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-medium">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-medium">
                   <AlertTriangle className="w-2.5 h-2.5" />
                   Mixed values
                 </span>

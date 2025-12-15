@@ -15,7 +15,11 @@ import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
-import { useStorageData, formatPositionRangesForBox } from '@domains/storage';
+import {
+  useStorageData,
+  useLocationDisplayNames,
+  formatPositionRangesForBox,
+} from '@domains/storage';
 import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useBulkUpdateTubesMutation,
@@ -467,19 +471,19 @@ export default function BatchTubeEditorModal({
 
   const filteredErrors = filterNode(errors, dirtyFields) ?? {};
 
-  // Get user-friendly location names
-  const { currentLab, getCurrentTanks, getBox } = useStorageData();
-  const tanks = getCurrentTanks();
-  const currentTankObj = tanks.find(tank => tank.id === tankId);
-  const currentRackObj = currentTankObj?.racks?.find(rack => rack.id === rackId);
-  const tankName = currentTankObj?.name ?? 'Unknown Tank';
-  const rackName = currentRackObj?.name ?? 'Unknown Rack';
+  // Single source of truth for location display names (includes customLabels)
+  const {
+    tankName,
+    rackName,
+    boxName,
+    box: boxObj,
+  } = useLocationDisplayNames(tankId, rackId, boxId);
+  const { currentLab } = useStorageData();
 
   // Get user settings for position display preferences
   const { settings: userSettings } = useUserSettings();
 
   // Format position ranges for display with flexible formatting
-  const boxObj = getBox(tankId, rackId, boxId);
   const gridConfig = boxObj?.gridConfig ?? {
     rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
     cols: EQUIPMENT_DEFAULTS.GRID_COLS,
@@ -522,7 +526,7 @@ export default function BatchTubeEditorModal({
               <span className="text-[10px] text-slate-300">•</span>
               <span>{rackName}</span>
               <span className="text-[10px] text-slate-300">•</span>
-              <span>Box {boxId}</span>
+              <span>{boxName}</span>
               <span className="text-[10px] text-slate-300">•</span>
               <span className="font-semibold">Positions {positionRanges}</span>
             </div>

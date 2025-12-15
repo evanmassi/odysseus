@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 
 import { logger } from '@shared/infrastructure/logger';
 
@@ -9,18 +9,30 @@ export const useStorageNavigation = (
   selected: SelectedLocation,
   onSelect: (location: SelectedLocation) => void
 ) => {
-  // Initialize with all tanks expanded by default (only runs once on mount)
-  const [expandedTanks, setExpandedTanks] = useState<Set<string>>(() => {
-    return new Set(data.tanks.map(tank => tank.id));
-  });
+  // Track what user has explicitly collapsed (inverted logic for reliable initialization)
+  // Empty set = nothing collapsed = all tanks expanded by default
+  const [collapsedTanks, setCollapsedTanks] = useState<Set<string>>(new Set());
   const [expandedRacks, setExpandedRacks] = useState<Set<string>>(new Set());
 
+  // Derive expandedTanks from data - a tank is expanded if NOT in collapsedTanks
+  const expandedTanks = useMemo(() => {
+    const expanded = new Set<string>();
+    data.tanks.forEach(tank => {
+      if (!collapsedTanks.has(tank.id)) {
+        expanded.add(tank.id);
+      }
+    });
+    return expanded;
+  }, [data.tanks, collapsedTanks]);
+
   const toggleTank = useCallback((tankId: string) => {
-    setExpandedTanks(prev => {
+    setCollapsedTanks(prev => {
       const next = new Set(prev);
       if (next.has(tankId)) {
+        // Currently collapsed, expand it
         next.delete(tankId);
       } else {
+        // Currently expanded, collapse it
         next.add(tankId);
       }
       return next;

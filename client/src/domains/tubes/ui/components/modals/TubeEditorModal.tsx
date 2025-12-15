@@ -30,6 +30,7 @@ import {
   type Researcher,
   updateTubeRequestSchema,
   formatConcentrationDisplay,
+  formatResourceDisplayName,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
 import { MapPin, AlertTriangle, Edit, Plus, Save, Trash2, Lock } from 'lucide-react';
@@ -452,7 +453,7 @@ function CreateModeContent({
     };
   }, [parsedPositions, allTubes]);
 
-  // Get location display names for batch operations
+  // Get location display names for batch operations (includes customLabels)
   const batchLocationDisplay = useMemo(() => {
     if (parsedPositions.length === 0) return null;
 
@@ -462,10 +463,12 @@ function CreateModeContent({
     const tankName = tank?.name ?? `Tank ${firstLocation.tankId}`;
 
     const rack = tank?.racks?.find(r => r.id === firstLocation.rackId);
-    const rackName = rack?.name ?? `Rack ${firstLocation.rackId}`;
+    const rackGenericName = rack?.name ?? `Rack ${firstLocation.rackId}`;
+    const rackName = formatResourceDisplayName(rackGenericName, rack?.customLabel);
 
     const box = rack?.boxes?.find(b => b.id === firstLocation.boxId);
-    const boxName = box?.name ?? `Box ${firstLocation.boxId}`;
+    const boxGenericName = box?.name ?? `Box ${firstLocation.boxId}`;
+    const boxName = formatResourceDisplayName(boxGenericName, box?.customLabel);
 
     // Get box config for flexible position formatting
     const boxObj = getBox(firstLocation.tankId, firstLocation.rackId, firstLocation.boxId);

@@ -48,13 +48,13 @@
   background-color: #f1f5f9;
 }
 
-/* Storage Navigator Panel */
+/* Storage Navigator Panel - Flexible width for custom labels */
 .storage-navigator-panel {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-width: 220px;
-  max-width: 220px;
-  flex-shrink: 0;
+  max-width: 280px;
 }
 
 /* Grid Section - Square Constraint */
@@ -106,7 +106,7 @@
 @media (max-width: 1400px) {
   .storage-navigator-panel {
     min-width: 200px;
-    max-width: 220px;
+    max-width: 260px;
   }
 
   .grid-section {
@@ -117,7 +117,7 @@
 @media (max-width: 1200px) {
   .storage-navigator-panel {
     min-width: 180px;
-    max-width: 180px;
+    max-width: 240px;
   }
 
   .main-layout {

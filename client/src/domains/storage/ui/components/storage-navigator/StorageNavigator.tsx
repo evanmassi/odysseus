@@ -6,12 +6,40 @@ import { useStorageNavigation } from './useStorageNavigation';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
 
 import type { StorageNavigatorProps, VisibleTreeNode } from './storageNavigatorTypes';
+import type { OwnershipType } from '@shared/ui/components';
+
+// Helper to compute effective owner (handles inheritance cascade)
+function getEffectiveOwner(
+  assignedUserId: string | null | undefined,
+  parentAssignedUserId?: string | null
+): string | null | undefined {
+  // Box inherits from rack if undefined (not explicitly set)
+  return assignedUserId === undefined ? parentAssignedUserId : assignedUserId;
+}
+
+// Helper to compute ownership type for display
+function computeOwnershipType(
+  effectiveOwner: string | null | undefined,
+  currentUserId?: string
+): OwnershipType | undefined {
+  // null or undefined = unassigned/common
+  if (effectiveOwner === null || effectiveOwner === undefined) {
+    return 'unassigned';
+  }
+  // Owned by current user
+  if (currentUserId && effectiveOwner === currentUserId) {
+    return 'currentUser';
+  }
+  // Owned by someone else - return undefined to not show badge
+  return undefined;
+}
 
 export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
   data,
   selected,
   onSelect,
   className = '',
+  currentUser,
 }) => {
   const {
     expandedTanks,
@@ -194,6 +222,8 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                     ariaLevel={node?.ariaLevel}
                     ariaPosinset={node?.ariaPosinset}
                     ariaSetsize={node?.ariaSetsize}
+                    ownershipType={computeOwnershipType(rack.assignedUserId, currentUser?.id)}
+                    ownershipInitials={currentUser?.initials}
                   >
                     {rack.boxes.map((box, _boxIndex) => {
                       const boxSelected = isBoxSelected(tank.id, rack.id, box.id);
@@ -218,6 +248,11 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                           ariaLevel={node?.ariaLevel}
                           ariaPosinset={node?.ariaPosinset}
                           ariaSetsize={node?.ariaSetsize}
+                          ownershipType={computeOwnershipType(
+                            getEffectiveOwner(box.assignedUserId, rack.assignedUserId),
+                            currentUser?.id
+                          )}
+                          ownershipInitials={currentUser?.initials}
                         />
                       );
                     })}

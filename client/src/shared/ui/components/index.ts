@@ -6,3 +6,5 @@
 
 export { ConfirmDialog } from './ConfirmDialog';
 export type { ConfirmDialogProps } from './ConfirmDialog';
+
+export { OwnershipIndicatorBadge, type OwnershipType } from './badges';

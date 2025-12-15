@@ -221,8 +221,8 @@ export const GridPosition = memo<GridPositionProps>(
                 )}
                 {donorInfo.source && (
                   <div className="text-slate-600">
-                    {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty donorSourceId should fall back to computed source */}
                     <span className="text-slate-400">Source:</span>{' '}
+                    {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty donorSourceId should fall back to computed source */}
                     {tube.sample.donorSourceId || donorInfo.source}
                   </div>
                 )}

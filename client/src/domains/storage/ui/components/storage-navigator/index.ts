@@ -4,6 +4,8 @@ export type {
   Rack,
   Box,
   SelectedLocation,
+  CurrentUserInfo,
+  OwnershipType,
   StorageNavigatorProps,
   StorageNavigatorItemProps,
   VisibleTreeNode,

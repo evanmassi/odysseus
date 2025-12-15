@@ -16,6 +16,7 @@ import {
   Lock,
   Unlock,
   Share2,
+  TestTube,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -210,7 +211,8 @@ export function AppHeader({
                 <>
                   {/* Selection count - only show when more than 1 selected */}
                   {selectedPositions.size > 1 && (
-                    <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full mr-2">
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full mr-2">
+                      <TestTube className="w-3 h-3" />
                       {selectedPositions.size} selected
                     </span>
                   )}

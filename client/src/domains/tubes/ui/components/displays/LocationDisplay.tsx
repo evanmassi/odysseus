@@ -4,7 +4,8 @@
  * Read-only display of tube location using user-friendly display names
  * Format: "TankName • RackName • BoxName • Position X"
  *
- * Industry-standard component with proper type safety and configuration integration
+ * Uses useLocationDisplayNames hook as single source of truth for display names
+ * with customLabel support.
  */
 
 import { useMemo } from 'react';
@@ -13,7 +14,7 @@ import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import { MapPin } from 'lucide-react';
 
 import { useUserSettings } from '@domains/authentication/hooks/useUserSettings';
-import { useStorageData } from '@domains/storage';
+import { useStorageData, useLocationDisplayNames } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 
 export interface LocationDisplayProps {
@@ -31,56 +32,33 @@ export const LocationDisplay = ({
   position,
   className = '',
 }: LocationDisplayProps) => {
-  const { currentLab, getCurrentTanks } = useStorageData();
+  const { currentLab } = useStorageData();
   const { settings } = useUserSettings();
 
-  // Resolve display names from configuration
-  const locationDisplay = useMemo(() => {
-    const tanks = getCurrentTanks();
-    const tank = tanks.find(t => t.id === tankId);
-    const tankName = tank?.name ?? `Tank ${tankId}`;
+  // Single source of truth for location display names (includes customLabels)
+  const { tankName, rackName, boxName, box } = useLocationDisplayNames(tankId, rackId, boxId);
 
-    const rack = tank?.racks?.find(r => r.id === rackId);
-    const rackName = rack?.name ?? `Rack ${rackId}`;
-
-    const box = rack?.boxes?.find(b => b.id === boxId);
-    const boxName = box?.name ?? `Box ${boxId}`;
-
-    // Format position label using box's configuration
+  // Format position label using box's configuration
+  const positionLabel = useMemo(() => {
     const gridConfig = box?.gridConfig ?? {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
       template: 'standard' as const,
     };
-    const positionLabel = formatPositionForBox(
-      position,
-      tankId,
-      rackId,
-      boxId,
-      gridConfig,
-      currentLab,
-      settings
-    );
-
-    return {
-      tankName,
-      rackName,
-      boxName,
-      positionLabel,
-    };
-  }, [tankId, rackId, boxId, position, getCurrentTanks, currentLab, settings]);
+    return formatPositionForBox(position, tankId, rackId, boxId, gridConfig, currentLab, settings);
+  }, [box, position, tankId, rackId, boxId, currentLab, settings]);
 
   return (
     <div className={`flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg ${className}`}>
       <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
       <div className="flex items-center gap-2 text-sm font-medium text-odysseus-dark">
-        <span className="font-semibold">{locationDisplay.tankName}</span>
+        <span className="font-semibold">{tankName}</span>
         <span className="text-[10px] text-slate-300">•</span>
-        <span>{locationDisplay.rackName}</span>
+        <span>{rackName}</span>
         <span className="text-[10px] text-slate-300">•</span>
-        <span>{locationDisplay.boxName}</span>
+        <span>{boxName}</span>
         <span className="text-[10px] text-slate-300">•</span>
-        <span className="font-semibold">Position {locationDisplay.positionLabel}</span>
+        <span className="font-semibold">Position {positionLabel}</span>
       </div>
     </div>
   );
