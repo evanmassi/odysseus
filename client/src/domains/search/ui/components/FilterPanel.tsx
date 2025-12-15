@@ -20,6 +20,7 @@ import { useActiveResearchersQuery } from '@domains/researchers';
 import { useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { useTubes } from '@domains/tubes/hooks';
+import { Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
@@ -59,14 +60,15 @@ interface ActiveFilterChipProps {
 
 function ActiveFilterChip({ label, onRemove }: ActiveFilterChipProps) {
   return (
-    <button
-      onClick={onRemove}
-      className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-slate-600 text-white hover:bg-slate-700 transition-all focus-ring-default"
-      title={`Remove ${label}`}
-    >
-      <span>{label}</span>
-      <X className="w-2.5 h-2.5" />
-    </button>
+    <Tooltip content={`Remove ${label}`} side="bottom">
+      <button
+        onClick={onRemove}
+        className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-slate-600 text-white hover:bg-slate-700 transition-all focus-ring-default"
+      >
+        <span>{label}</span>
+        <X className="w-2.5 h-2.5" />
+      </button>
+    </Tooltip>
   );
 }
 
@@ -372,21 +374,23 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
       <div className="flex items-center justify-between p-3 border-b bg-gray-50 flex-shrink-0">
         <h3 className="text-sm font-bold text-gray-900">Filters</h3>
         <div className="flex items-center space-x-2">
-          <button
-            onClick={clearSearch}
-            className="px-2 py-1 text-xs text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors focus-ring-default"
-            title="Clear all filters"
-          >
-            Clear All
-          </button>
-          {onClose && (
+          <Tooltip content="Clear all filters" side="bottom">
             <button
-              onClick={onClose}
-              className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors focus-ring-default"
-              title="Close filters"
+              onClick={clearSearch}
+              className="px-2 py-1 text-xs text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors focus-ring-default"
             >
-              <X className="w-4 h-4" />
+              Clear All
             </button>
+          </Tooltip>
+          {onClose && (
+            <Tooltip content="Close filters" side="bottom">
+              <button
+                onClick={onClose}
+                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors focus-ring-default"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </Tooltip>
           )}
         </div>
       </div>

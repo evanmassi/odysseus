@@ -8,58 +8,55 @@
 import type { ReactNode } from 'react';
 
 // Modal size types
-export type ModalSize = 
-  | 'xs'            // Extra small (384px max-width)
-  | 'sm'            // Small (512px max-width)
-  | 'md'            // Medium (768px max-width) - default
-  | 'lg'            // Large (1024px max-width)
-  | 'xl'            // Extra large (1280px max-width)
-  | 'full';         // Full screen
+export type ModalSize =
+  | 'xs' // Extra small (384px max-width)
+  | 'sm' // Small (512px max-width)
+  | 'md' // Medium (768px max-width) - default
+  | 'lg' // Large (1024px max-width)
+  | 'xl' // Extra large (1280px max-width)
+  | 'full'; // Full screen
 
 // Modal variant types
-export type ModalVariant = 
-  | 'default'       // Standard modal
-  | 'centered'      // Centered modal (default)
-  | 'drawer'        // Side drawer modal
-  | 'fullscreen';   // Fullscreen modal
+export type ModalVariant =
+  | 'default' // Standard modal
+  | 'centered' // Centered modal (default)
+  | 'drawer' // Side drawer modal
+  | 'fullscreen'; // Fullscreen modal
 
 // Modal placement for drawer variant
-export type ModalPlacement = 
-  | 'top'
-  | 'right'
-  | 'bottom'
-  | 'left';
+export type ModalPlacement = 'top' | 'right' | 'bottom' | 'left';
 
 // Modal animation types
-export type ModalAnimation = 
-  | 'fade'          // Fade in/out
-  | 'scale'         // Scale up/down
-  | 'slide'         // Slide from placement direction
-  | 'none';         // No animation
+export type ModalAnimation =
+  | 'fade' // Fade in/out
+  | 'scale' // Scale up/down
+  | 'slide' // Slide from placement direction
+  | 'none'; // No animation
 
 // Modal backdrop types
-export type ModalBackdrop = 
-  | 'default'       // Dark backdrop
-  | 'light'         // Light backdrop
-  | 'blur'          // Blurred backdrop
-  | 'none';         // No backdrop
+export type ModalBackdrop =
+  | 'default' // Dark backdrop
+  | 'light' // Light backdrop
+  | 'blur' // Blurred backdrop
+  | 'frost' // White frosted glass backdrop
+  | 'none'; // No backdrop
 
 // Base modal props
 export interface BaseModalProps {
   // Visibility
   isOpen: boolean;
   onClose: () => void;
-  
+
   // Content
   children: ReactNode;
-  
+
   // Styling
   variant?: ModalVariant;
   size?: ModalSize;
   placement?: ModalPlacement; // For drawer variant
   animation?: ModalAnimation;
   backdrop?: ModalBackdrop;
-  
+
   // Behavior
   closeOnEscape?: boolean;
   closeOnBackdropClick?: boolean;
@@ -68,21 +65,21 @@ export interface BaseModalProps {
   restoreFocus?: boolean;
   trapFocus?: boolean;
   lockBodyScroll?: boolean;
-  
+
   // Accessibility
   'aria-label'?: string;
   'aria-labelledby'?: string;
   'aria-describedby'?: string;
   role?: 'dialog' | 'alertdialog';
-  
+
   // Custom styling
   className?: string;
   backdropClassName?: string;
   contentClassName?: string;
-  
+
   // Portal
   portalTarget?: Element | null;
-  
+
   // Event handlers
   onOpen?: () => void;
   onOpened?: () => void;
@@ -101,15 +98,15 @@ export interface ModalProps extends BaseModalProps {}
 // Modal header props
 export interface ModalHeaderProps {
   children: ReactNode;
-  
+
   // Close button
   showCloseButton?: boolean;
   onClose?: () => void;
   closeButtonLabel?: string;
-  
+
   // Styling
   className?: string;
-  
+
   // Accessibility
   id?: string; // For aria-labelledby
 }
@@ -117,17 +114,17 @@ export interface ModalHeaderProps {
 // Modal body props
 export interface ModalBodyProps {
   children: ReactNode;
-  
+
   // Scrolling
   scrollable?: boolean;
   maxHeight?: string | number;
-  
+
   // Padding
   padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
-  
+
   // Styling
   className?: string;
-  
+
   // Accessibility
   id?: string; // For aria-describedby
 }
@@ -135,11 +132,11 @@ export interface ModalBodyProps {
 // Modal footer props
 export interface ModalFooterProps {
   children: ReactNode;
-  
+
   // Layout
   justify?: 'start' | 'center' | 'end' | 'between' | 'around';
   spacing?: 'none' | 'sm' | 'md' | 'lg';
-  
+
   // Styling
   className?: string;
 }
@@ -174,17 +171,17 @@ export interface ConfirmationModalProps extends Omit<BaseModalProps, 'children'>
   // Content
   title: string;
   message: string | ReactNode;
-  
+
   // Actions
   confirmText?: string;
   cancelText?: string;
   onConfirm: () => void | Promise<void>;
   onCancel?: () => void;
-  
+
   // Styling
   confirmVariant?: 'primary' | 'danger' | 'success' | 'warning';
   isDestructive?: boolean;
-  
+
   // State
   isLoading?: boolean;
   loadingText?: string;
@@ -195,11 +192,11 @@ export interface AlertModalProps extends Omit<BaseModalProps, 'children'> {
   // Content
   title: string;
   message: string | ReactNode;
-  
+
   // Actions
   confirmText?: string;
   onConfirm?: () => void;
-  
+
   // Type
   type?: 'info' | 'success' | 'warning' | 'error';
 }
@@ -236,34 +233,34 @@ export interface ModalTheme {
   // Base styles
   overlay: string;
   content: string;
-  
+
   // Variant styles
   variants: ModalStyleVariants['variant'];
-  
+
   // Size styles
   sizes: ModalStyleVariants['size'];
-  
+
   // Placement styles (for drawer)
   placements: ModalStyleVariants['placement'];
-  
+
   // Animation styles
   animations: ModalStyleVariants['animation'];
-  
+
   // Backdrop styles
   backdrops: ModalStyleVariants['backdrop'];
-  
+
   // Component styles
   header: {
     base: string;
     closeButton: string;
   };
-  
+
   body: {
     base: string;
     scrollable: string;
     padding: Record<'none' | 'sm' | 'md' | 'lg' | 'xl', string>;
   };
-  
+
   footer: {
     base: string;
     justify: Record<'start' | 'center' | 'end' | 'between' | 'around', string>;
@@ -276,7 +273,7 @@ export const defaultModalProps: Partial<ModalProps> = {
   size: 'md',
   placement: 'right',
   animation: 'fade',
-  backdrop: 'default',
+  backdrop: 'frost',
   closeOnEscape: true,
   closeOnBackdropClick: true,
   preventClose: false,
@@ -320,5 +317,5 @@ export const isModalAnimation = (value: string): value is ModalAnimation => {
 };
 
 export const isModalBackdrop = (value: string): value is ModalBackdrop => {
-  return ['default', 'light', 'blur', 'none'].includes(value);
+  return ['default', 'light', 'blur', 'frost', 'none'].includes(value);
 };

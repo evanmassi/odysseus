@@ -4,6 +4,7 @@ import { Search, SlidersHorizontal, X } from 'lucide-react';
 
 import { useSearch } from '@domains/search';
 import { logger } from '@shared/infrastructure/logger';
+import { Tooltip } from '@shared/ui';
 
 import { FilterPanel } from './FilterPanel';
 import { SearchResults } from './SearchResults';
@@ -119,25 +120,27 @@ export function SearchContainer(_props: SearchContainerProps) {
                 </span>
               )}
 
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                title="Filters"
-                className={`btn-icon-sm ${
-                  hasActiveFilters || showFilters
-                    ? 'bg-action text-white hover:bg-action-hover'
-                    : 'bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-700'
-                }`}
-              >
-                <SlidersHorizontal className="w-2.5 h-2.5" />
-              </button>
+              <Tooltip content="Filters" side="bottom">
+                <button
+                  onClick={() => setShowFilters(!showFilters)}
+                  className={`btn-icon-sm ${
+                    hasActiveFilters || showFilters
+                      ? 'bg-action text-white hover:bg-action-hover'
+                      : 'bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-700'
+                  }`}
+                >
+                  <SlidersHorizontal className="w-2.5 h-2.5" />
+                </button>
+              </Tooltip>
 
-              <button
-                onClick={handleClear}
-                title="Clear"
-                className="btn-icon-sm bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-700"
-              >
-                <X className="w-2.5 h-2.5" />
-              </button>
+              <Tooltip content="Clear" side="bottom">
+                <button
+                  onClick={handleClear}
+                  className="btn-icon-sm bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+                >
+                  <X className="w-2.5 h-2.5" />
+                </button>
+              </Tooltip>
             </div>
           </div>
         </div>

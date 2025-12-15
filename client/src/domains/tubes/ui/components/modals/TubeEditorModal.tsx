@@ -247,10 +247,10 @@ function EditModeForm({
   const handleDelete = async () => {
     try {
       await deleteMutation.mutateAsync(tubeId);
-      notifications.delete('Tube deleted successfully');
+      notifications.delete('Tube removed successfully');
       onClose();
     } catch (error) {
-      notifications.error('Failed to delete tube');
+      notifications.error('Failed to remove tube');
     }
   };
 
@@ -321,14 +321,15 @@ function EditModeForm({
                 disabled={isSubmitting}
                 onClick={() => {
                   modalService.showDeleteConfirm({
-                    title: 'Delete Tube',
-                    message: `Are you sure you want to delete this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
+                    title: 'Remove Tube',
+                    message: `Are you sure you want to remove this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
+                    confirmText: 'Remove',
                     onConfirm: handleDelete,
                   });
                 }}
               >
                 <Trash2 className="w-4 h-4 mr-2" />
-                Delete Tube
+                Remove Tube
               </button>
               <button
                 type="submit"

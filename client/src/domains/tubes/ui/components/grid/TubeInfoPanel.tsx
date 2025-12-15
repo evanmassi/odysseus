@@ -199,7 +199,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         : 'Select a position to view tube information';
 
     return (
-      <div className="p-1" style={{ minWidth: '280px' }}>
+      <div style={{ minWidth: '280px' }}>
         <div className="space-y-3">
           {/* Position Header - Subtle background */}
           <div className="bg-slate-50 rounded-md px-3 py-2">
@@ -352,7 +352,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       : null;
 
   return (
-    <div className="p-1" style={{ minWidth: '280px' }}>
+    <div style={{ minWidth: '280px' }}>
       <div className="space-y-3">
         {/* Position Header - Subtle background */}
         <div className="bg-slate-50 rounded-md px-3 py-2">

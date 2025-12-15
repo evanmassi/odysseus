@@ -22,6 +22,7 @@
     "@lucide/lab": "^0.1.2",
     "@odysseus/shared-schemas": "*",
     "@radix-ui/react-collapsible": "^1.1.12",
+    "@radix-ui/react-tooltip": "^1.2.8",
     "@tanstack/react-query": "^5.90.1",
     "@types/react-select": "^5.0.0",
     "@types/react-window": "^1.8.8",

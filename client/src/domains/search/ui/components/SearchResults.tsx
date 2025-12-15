@@ -13,6 +13,7 @@ import { useSearch, useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubeStore } from '@domains/tubes';
+import { Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 
 import { SortDropdown } from './SortDropdown';
@@ -416,17 +417,18 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
           </div>
 
           {tubes.length > 0 && (
-            <button
-              onClick={handleExportResults}
-              className="flex items-center space-x-1 px-2 py-1 text-xs transition-colors"
-              style={{ color: '#5987b6' }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#4a7099')}
-              onMouseLeave={e => (e.currentTarget.style.color = '#5987b6')}
-              title="Export search results"
-            >
-              <Download className="w-3 h-3" />
-              <span>Export</span>
-            </button>
+            <Tooltip content="Export search results" side="bottom">
+              <button
+                onClick={handleExportResults}
+                className="flex items-center space-x-1 px-2 py-1 text-xs transition-colors"
+                style={{ color: '#5987b6' }}
+                onMouseEnter={e => (e.currentTarget.style.color = '#4a7099')}
+                onMouseLeave={e => (e.currentTarget.style.color = '#5987b6')}
+              >
+                <Download className="w-3 h-3" />
+                <span>Export</span>
+              </button>
+            </Tooltip>
           )}
         </div>
 

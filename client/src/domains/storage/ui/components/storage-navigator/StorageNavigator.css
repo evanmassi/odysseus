@@ -4,6 +4,17 @@
  * Selected items highlighted with subtle background accent
  */
 
+:root {
+  /* Storage Navigator Button Colors */
+  --storage-nav-text: #64748b;
+  --storage-nav-text-muted: #94a3b8;
+  --storage-nav-hover-bg: #f1f5f9;
+  --storage-nav-hover-text: #334155;
+  --storage-nav-selected-bg: #ebf2f8;
+  --storage-nav-selected-hover-bg: #dee9f4;
+  --storage-nav-selected-text: #5a8fc7;
+}
+
 /* Base button styles - shared by all levels */
 .storage-nav-button {
   /* Layout */
@@ -14,7 +25,7 @@
   z-index: 10;
 
   /* Typography */
-  color: #64748b; /* slate-500 */
+  color: var(--storage-nav-text);
   font-weight: 500;
   font-size: 0.8125rem;
   text-align: left;
@@ -31,19 +42,19 @@
 
 /* Hover state - subtle gray background */
 .storage-nav-button:hover {
-  background-color: #f1f5f9; /* slate-100 */
-  color: #334155; /* slate-700 */
+  background-color: var(--storage-nav-hover-bg);
+  color: var(--storage-nav-hover-text);
 }
 
 /* Selected state - action blue accent */
 .storage-nav-button.selected {
-  background-color: rgba(90, 143, 199, 0.12); /* action blue at 12% */
-  color: #5a8fc7; /* action blue */
+  background-color: var(--storage-nav-selected-bg);
+  color: var(--storage-nav-selected-text);
   font-weight: 600;
 }
 
 .storage-nav-button.selected:hover {
-  background-color: rgba(90, 143, 199, 0.2); /* action blue at 20% */
+  background-color: var(--storage-nav-selected-hover-bg);
 }
 
 /* Tank level */
@@ -89,15 +100,15 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  color: #94a3b8; /* slate-400 */
+  color: var(--storage-nav-text-muted);
 }
 
 .storage-nav-button:hover .storage-nav-button__icon {
-  color: #64748b; /* slate-500 */
+  color: var(--storage-nav-text);
 }
 
 .storage-nav-button.selected .storage-nav-button__icon {
-  color: #5a8fc7; /* action blue */
+  color: var(--storage-nav-selected-text);
 }
 
 /* Icon sizes per level */
@@ -125,13 +136,13 @@
 .storage-nav-button__chevron {
   flex-shrink: 0;
   transition: transform 0.2s ease;
-  color: #94a3b8; /* slate-400 */
+  color: var(--storage-nav-text-muted);
 }
 
 .storage-nav-button:hover .storage-nav-button__chevron {
-  color: #64748b; /* slate-500 */
+  color: var(--storage-nav-text);
 }
 
 .storage-nav-button.selected .storage-nav-button__chevron {
-  color: #5a8fc7; /* action blue */
+  color: var(--storage-nav-selected-text);
 }

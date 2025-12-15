@@ -102,17 +102,20 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
   });
 
   // Handle node selection from keyboard
-  const handleSelectNode = useCallback((node: VisibleTreeNode) => {
-    if (node.level === 'tank') {
-      toggleTank(node.id);
-      selectTank(node.id);
-    } else if (node.level === 'rack') {
-      toggleRack(node.tankId, node.id);
-      selectRack(node.tankId, node.rackId!);
-    } else if (node.level === 'box') {
-      selectBox(node.tankId, node.rackId!, node.boxId!);
-    }
-  }, [toggleTank, toggleRack, selectTank, selectRack, selectBox]);
+  const handleSelectNode = useCallback(
+    (node: VisibleTreeNode) => {
+      if (node.level === 'tank') {
+        toggleTank(node.id);
+        selectTank(node.id);
+      } else if (node.level === 'rack') {
+        toggleRack(node.tankId, node.id);
+        selectRack(node.tankId, node.rackId!);
+      } else if (node.level === 'box') {
+        selectBox(node.tankId, node.rackId!, node.boxId!);
+      }
+    },
+    [toggleTank, toggleRack, selectTank, selectRack, selectBox]
+  );
 
   // Keyboard navigation
   const { handleKeyDown } = useTreeKeyboardNavigation({
@@ -126,7 +129,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
 
   return (
     <nav
-      className={`w-full pl-2 pr-3 pb-2 flex flex-col gap-1 relative ${className}`}
+      className={`w-full p-3 flex flex-col gap-1 relative ${className}`}
       aria-label="Storage Navigator"
     >
       <div
@@ -134,95 +137,96 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
         aria-label="Storage hierarchy"
         onKeyDown={handleKeyDown}
         tabIndex={0}
-        className="flex flex-col gap-1"
+        className="relative flex flex-col gap-1"
       >
-        <TreeLineOverlay
-          expandedTanks={expandedTanks}
-          expandedRacks={expandedRacks}
-        />
+        <TreeLineOverlay expandedTanks={expandedTanks} expandedRacks={expandedRacks} />
         {data.tanks.map((tank, _tankIndex) => {
-        const tankExpanded = expandedTanks.has(tank.id);
-        const tankSelected = isTankSelected(tank.id);
-        const nodeIndex = visibleNodes.findIndex(n => n.id === tank.id && n.level === 'tank');
-        const node = visibleNodes[nodeIndex];
+          const tankExpanded = expandedTanks.has(tank.id);
+          const tankSelected = isTankSelected(tank.id);
+          const nodeIndex = visibleNodes.findIndex(n => n.id === tank.id && n.level === 'tank');
+          const node = visibleNodes[nodeIndex];
 
-        return (
-          <StorageNavigatorItem
-            key={tank.id}
-            id={tank.id}
-            name={tank.name}
-            level="tank"
-            isSelected={tankSelected}
-            isExpanded={tankExpanded}
-            onToggle={() => toggleTank(tank.id)}
-            onSelect={() => {
-              toggleTank(tank.id);
-              selectTank(tank.id);
-            }}
-            tabIndex={nodeIndex === focusedIndex ? 0 : -1}
-            buttonRef={node?.ref}
-            onFocus={() => setFocusedIndex(nodeIndex)}
-            ariaLevel={node?.ariaLevel}
-            ariaPosinset={node?.ariaPosinset}
-            ariaSetsize={node?.ariaSetsize}
-          >
-            {tank.racks.map((rack, _rackIndex) => {
-              const compositeKey = `${tank.id}-${rack.id}`;
-              const rackExpanded = expandedRacks.has(compositeKey);
-              const rackSelected = isRackSelected(tank.id, rack.id);
-              const nodeIndex = visibleNodes.findIndex(n => n.id === rack.id && n.level === 'rack');
-              const node = visibleNodes[nodeIndex];
+          return (
+            <StorageNavigatorItem
+              key={tank.id}
+              id={tank.id}
+              name={tank.name}
+              level="tank"
+              isSelected={tankSelected}
+              isExpanded={tankExpanded}
+              onToggle={() => toggleTank(tank.id)}
+              onSelect={() => {
+                toggleTank(tank.id);
+                selectTank(tank.id);
+              }}
+              tabIndex={nodeIndex === focusedIndex ? 0 : -1}
+              buttonRef={node?.ref}
+              onFocus={() => setFocusedIndex(nodeIndex)}
+              ariaLevel={node?.ariaLevel}
+              ariaPosinset={node?.ariaPosinset}
+              ariaSetsize={node?.ariaSetsize}
+            >
+              {tank.racks.map((rack, _rackIndex) => {
+                const compositeKey = `${tank.id}-${rack.id}`;
+                const rackExpanded = expandedRacks.has(compositeKey);
+                const rackSelected = isRackSelected(tank.id, rack.id);
+                const nodeIndex = visibleNodes.findIndex(
+                  n => n.id === rack.id && n.level === 'rack'
+                );
+                const node = visibleNodes[nodeIndex];
 
-              return (
-                <StorageNavigatorItem
-                  key={rack.id}
-                  id={rack.id}
-                  name={rack.name}
-                  level="rack"
-                  isSelected={rackSelected}
-                  isExpanded={rackExpanded}
-                  onToggle={() => toggleRack(tank.id, rack.id)}
-                  onSelect={() => {
-                    toggleRack(tank.id, rack.id);
-                    selectRack(tank.id, rack.id);
-                  }}
-                  tabIndex={nodeIndex === focusedIndex ? 0 : -1}
-                  buttonRef={node?.ref}
-                  onFocus={() => setFocusedIndex(nodeIndex)}
-                  ariaLevel={node?.ariaLevel}
-                  ariaPosinset={node?.ariaPosinset}
-                  ariaSetsize={node?.ariaSetsize}
-                >
-                  {rack.boxes.map((box, _boxIndex) => {
-                    const boxSelected = isBoxSelected(tank.id, rack.id, box.id);
-                    const nodeIndex = visibleNodes.findIndex(n => n.id === box.id && n.level === 'box');
-                    const node = visibleNodes[nodeIndex];
+                return (
+                  <StorageNavigatorItem
+                    key={rack.id}
+                    id={rack.id}
+                    name={rack.name}
+                    level="rack"
+                    isSelected={rackSelected}
+                    isExpanded={rackExpanded}
+                    onToggle={() => toggleRack(tank.id, rack.id)}
+                    onSelect={() => {
+                      toggleRack(tank.id, rack.id);
+                      selectRack(tank.id, rack.id);
+                    }}
+                    tabIndex={nodeIndex === focusedIndex ? 0 : -1}
+                    buttonRef={node?.ref}
+                    onFocus={() => setFocusedIndex(nodeIndex)}
+                    ariaLevel={node?.ariaLevel}
+                    ariaPosinset={node?.ariaPosinset}
+                    ariaSetsize={node?.ariaSetsize}
+                  >
+                    {rack.boxes.map((box, _boxIndex) => {
+                      const boxSelected = isBoxSelected(tank.id, rack.id, box.id);
+                      const nodeIndex = visibleNodes.findIndex(
+                        n => n.id === box.id && n.level === 'box'
+                      );
+                      const node = visibleNodes[nodeIndex];
 
-                    return (
-                      <StorageNavigatorItem
-                        key={box.id}
-                        id={box.id}
-                        name={box.name}
-                        level="box"
-                        isSelected={boxSelected}
-                        isExpanded={false}
-                        onToggle={() => {}}
-                        onSelect={() => selectBox(tank.id, rack.id, box.id)}
-                        tabIndex={nodeIndex === focusedIndex ? 0 : -1}
-                        buttonRef={node?.ref}
-                        onFocus={() => setFocusedIndex(nodeIndex)}
-                        ariaLevel={node?.ariaLevel}
-                        ariaPosinset={node?.ariaPosinset}
-                        ariaSetsize={node?.ariaSetsize}
-                      />
-                    );
-                  })}
-                </StorageNavigatorItem>
-              );
-            })}
-          </StorageNavigatorItem>
-        );
-      })}
+                      return (
+                        <StorageNavigatorItem
+                          key={box.id}
+                          id={box.id}
+                          name={box.name}
+                          level="box"
+                          isSelected={boxSelected}
+                          isExpanded={false}
+                          onToggle={() => {}}
+                          onSelect={() => selectBox(tank.id, rack.id, box.id)}
+                          tabIndex={nodeIndex === focusedIndex ? 0 : -1}
+                          buttonRef={node?.ref}
+                          onFocus={() => setFocusedIndex(nodeIndex)}
+                          ariaLevel={node?.ariaLevel}
+                          ariaPosinset={node?.ariaPosinset}
+                          ariaSetsize={node?.ariaSetsize}
+                        />
+                      );
+                    })}
+                  </StorageNavigatorItem>
+                );
+              })}
+            </StorageNavigatorItem>
+          );
+        })}
       </div>
     </nav>
   );

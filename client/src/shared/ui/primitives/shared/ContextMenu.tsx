@@ -279,10 +279,10 @@ export function ContextMenu({
         </>
       )}
 
-      {/* Section 4: Delete (at bottom) */}
+      {/* Section 4: Remove (at bottom) */}
       {hasFilledSelection && (
         <div className="px-1">
-          <MenuItem icon={Trash2} label="Delete" shortcut="Del" onClick={onDelete} danger />
+          <MenuItem icon={Trash2} label="Remove" shortcut="Del" onClick={onDelete} danger />
         </div>
       )}
     </div>

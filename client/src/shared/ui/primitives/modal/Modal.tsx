@@ -1,6 +1,6 @@
 /**
  * Modal Component
- * 
+ *
  * Accessible modal primitive with focus trapping, escape handling, and backdrop
  * Supports multiple sizes, variants, animations, and full WCAG AA compliance
  */
@@ -16,18 +16,18 @@ import {
   defaultModalProps,
   defaultModalHeaderProps,
   defaultModalBodyProps,
-  defaultModalFooterProps
+  defaultModalFooterProps,
 } from './types';
 import { useModal } from './useModal';
 
-
-import type { 
-  ModalProps, 
-  ModalHeaderProps, 
-  ModalBodyProps, 
+import type {
+  ModalProps,
+  ModalHeaderProps,
+  ModalBodyProps,
   ModalFooterProps,
   ModalRef,
-  ModalContextValue} from './types';
+  ModalContextValue,
+} from './types';
 
 // Modal context for sharing state between components
 const ModalContext = createContext<ModalContextValue | null>(null);
@@ -55,6 +55,7 @@ const overlayVariants = cva(
         default: 'bg-black bg-opacity-50',
         light: 'bg-white bg-opacity-75',
         blur: 'bg-black bg-opacity-25 backdrop-blur-sm',
+        frost: 'bg-white/30 backdrop-blur-xl',
         none: 'bg-transparent',
       },
       isOpen: {
@@ -63,7 +64,7 @@ const overlayVariants = cva(
       },
     },
     defaultVariants: {
-      backdrop: 'default',
+      backdrop: 'frost',
       isOpen: false,
     },
   }
@@ -89,12 +90,12 @@ const contentVariants = cva(
         fullscreen: 'w-screen h-screen rounded-none',
       },
       size: {
-        xs: 'w-full max-w-xs',      // 384px
-        sm: 'w-full max-w-sm',      // 512px  
-        md: 'w-full max-w-md',      // 768px
-        lg: 'w-full max-w-lg',      // 1024px
-        xl: 'w-full max-w-xl',      // 1280px
-        full: 'w-full max-w-full',  // Full width
+        xs: 'w-full max-w-xs', // 384px
+        sm: 'w-full max-w-sm', // 512px
+        md: 'w-full max-w-md', // 768px
+        lg: 'w-full max-w-lg', // 1024px
+        xl: 'w-full max-w-xl', // 1280px
+        full: 'w-full max-w-full', // Full width
       },
       animation: {
         fade: '',
@@ -121,11 +122,11 @@ const contentVariants = cva(
         className: 'scale-100',
       },
       {
-        animation: 'scale', 
+        animation: 'scale',
         isOpen: false,
         className: 'scale-95',
       },
-      
+
       // Slide animation states for drawer
       {
         variant: 'drawer',
@@ -175,14 +176,14 @@ const contentVariants = cva(
         isOpen: false,
         className: 'translate-y-full',
       },
-      
+
       // Fullscreen variant
       {
         variant: 'fullscreen',
         size: 'full',
         className: 'max-w-none max-h-none',
       },
-      
+
       // Drawer specific sizing
       {
         variant: 'drawer',
@@ -248,12 +249,7 @@ const CloseButton: React.FC<CloseButtonProps> = ({ onClose, label = 'Close', cla
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M6 18L18 6M6 6l12 12"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
     </svg>
   </button>
 );
@@ -266,7 +262,7 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
       isOpen,
       onClose,
       children,
-      
+
       // Styling props
       variant = defaultModalProps.variant,
       size = defaultModalProps.size,
@@ -276,7 +272,7 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
       className,
       backdropClassName,
       contentClassName,
-      
+
       // Behavior props
       closeOnEscape = defaultModalProps.closeOnEscape,
       closeOnBackdropClick = defaultModalProps.closeOnBackdropClick,
@@ -285,16 +281,16 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
       restoreFocus = defaultModalProps.restoreFocus,
       trapFocus = defaultModalProps.trapFocus,
       lockBodyScroll = defaultModalProps.lockBodyScroll,
-      
+
       // Accessibility props
       'aria-label': ariaLabel,
       'aria-labelledby': ariaLabelledBy,
       'aria-describedby': ariaDescribedBy,
       role = defaultModalProps.role,
-      
+
       // Portal props
       portalTarget,
-      
+
       // Event handlers
       onOpen,
       onOpened,
@@ -302,7 +298,7 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
       onClosed,
       onBackdropClick,
       onEscapeKey,
-      
+
       ...props
     },
     ref
@@ -316,17 +312,17 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
       closeOnBackdropClick: closeOnBackdropClick && !preventClose,
       lockBodyScroll,
     });
-    
+
     // Enhanced focus trap with keyboard navigation
     const focusTrap = useModalFocusTrap({
       autoFocus,
       returnFocus: restoreFocus,
     });
-    
+
     // Generate unique IDs for accessibility
     const headerId = `modal-header-${useId()}`;
     const bodyId = `modal-body-${useId()}`;
-    
+
     // Handle lifecycle events
     useEffect(() => {
       if (isOpen) {
@@ -341,7 +337,7 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
         return () => clearTimeout(timer);
       }
     }, [isOpen, onOpen, onOpened, onClosing, onClosed]);
-    
+
     // Handle escape key
     useEffect(() => {
       const handleEscape = (event: KeyboardEvent) => {
@@ -350,11 +346,11 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
           onClose();
         }
       };
-      
+
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }, [isOpen, closeOnEscape, preventClose, onClose, onEscapeKey]);
-    
+
     // Handle backdrop click
     const handleBackdropClickInternal = (event: React.MouseEvent) => {
       if (event.target === event.currentTarget && closeOnBackdropClick && !preventClose) {
@@ -363,14 +359,14 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
       }
       handleBackdropClick(event);
     };
-    
+
     // Generate classes
-    const overlayClasses = overlayVariants({ 
+    const overlayClasses = overlayVariants({
       backdrop,
       isOpen,
-      className: `${backdropClassName ?? ''} ${className ?? ''}`
+      className: `${backdropClassName ?? ''} ${className ?? ''}`,
     });
-    
+
     const contentClasses = contentVariants({
       variant,
       size,
@@ -379,7 +375,7 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
       isOpen,
       className: contentClassName,
     });
-    
+
     // Modal context value
     const contextValue: ModalContextValue = {
       isOpen,
@@ -389,23 +385,19 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
       headerId,
       bodyId,
     };
-    
+
     // Don't render anything if not open (unless animating)
     if (!isOpen) return null;
-    
+
     // Portal target
     const target = portalTarget ?? (typeof window !== 'undefined' ? document.body : null);
     if (!target) return null;
-    
+
     // Modal content
     const modalContent = (
-      <div
-        className={overlayClasses}
-        onClick={handleBackdropClickInternal}
-        role="presentation"
-      >
+      <div className={overlayClasses} onClick={handleBackdropClickInternal} role="presentation">
         <div
-          ref={(element) => {
+          ref={element => {
             // Use type assertion to safely assign to mutable refs
             (modalRef as React.MutableRefObject<HTMLDivElement | null>).current = element;
             (focusTrap as React.MutableRefObject<HTMLElement | null>).current = element;
@@ -424,13 +416,11 @@ export const Modal = forwardRef<ModalRef, ModalProps>(
           tabIndex={-1}
           {...props}
         >
-          <ModalContext.Provider value={contextValue}>
-            {children}
-          </ModalContext.Provider>
+          <ModalContext.Provider value={contextValue}>{children}</ModalContext.Provider>
         </div>
       </div>
     );
-    
+
     return createPortal(modalContent, target);
   }
 );
@@ -447,7 +437,7 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
   const { onClose: contextOnClose, headerId } = useModalContext();
   const finalOnClose = onClose ?? contextOnClose;
   const finalId = id ?? headerId;
-  
+
   return (
     <div
       id={finalId}
@@ -457,17 +447,12 @@ export const ModalHeader: React.FC<ModalHeaderProps> = ({
       `}
     >
       {children}
-      {showCloseButton && (
-        <CloseButton 
-          onClose={finalOnClose} 
-          label={closeButtonLabel}
-        />
-      )}
+      {showCloseButton && <CloseButton onClose={finalOnClose} label={closeButtonLabel} />}
     </div>
   );
 };
 
-// Modal Body component  
+// Modal Body component
 export const ModalBody: React.FC<ModalBodyProps> = ({
   children,
   scrollable = defaultModalBodyProps.scrollable,
@@ -478,7 +463,7 @@ export const ModalBody: React.FC<ModalBodyProps> = ({
 }) => {
   const { bodyId } = useModalContext();
   const finalId = id ?? bodyId;
-  
+
   const paddingClasses = {
     none: '',
     sm: 'p-4',
@@ -486,13 +471,11 @@ export const ModalBody: React.FC<ModalBodyProps> = ({
     lg: 'p-8',
     xl: 'p-10',
   };
-  
-  const scrollableClasses = scrollable 
-    ? 'overflow-y-auto' 
-    : 'overflow-hidden';
-  
+
+  const scrollableClasses = scrollable ? 'overflow-y-auto' : 'overflow-hidden';
+
   const style = maxHeight ? { maxHeight } : undefined;
-  
+
   return (
     <div
       id={finalId}
@@ -522,14 +505,14 @@ export const ModalFooter: React.FC<ModalFooterProps> = ({
     between: 'justify-between',
     around: 'justify-around',
   };
-  
+
   const spacingClasses = {
     none: 'gap-0',
     sm: 'gap-2',
     md: 'gap-3',
     lg: 'gap-4',
   };
-  
+
   return (
     <div
       className={`

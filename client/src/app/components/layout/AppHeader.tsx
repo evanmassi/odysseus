@@ -22,7 +22,7 @@ import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
 import odysseusLogo from '@shared/assets/odysseus-logo.svg';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
-import { SuspenseBoundary } from '@shared/ui';
+import { SuspenseBoundary, Tooltip } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
@@ -210,8 +210,8 @@ export function AppHeader({
                 <>
                   {/* Selection count - only show when more than 1 selected */}
                   {selectedPositions.size > 1 && (
-                    <span className="text-slate-400 text-xs mr-2">
-                      [{selectedPositions.size} selected]
+                    <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full mr-2">
+                      {selectedPositions.size} selected
                     </span>
                   )}
 
@@ -219,77 +219,73 @@ export function AppHeader({
                   {!isViewOnlySpace && (
                     <>
                       {/* Section 1: Add/Edit */}
-                      <button
-                        onClick={gridController.openModal}
-                        className="btn-header-ghost"
-                        title={
+                      <Tooltip
+                        content={
                           gridController.selection.isMixed
                             ? 'Add tubes to mixed selection (overwrite prompt will appear)'
                             : gridController.selection.hasFilledSelection
                               ? 'Edit selected tube(s)'
                               : 'Add new tube(s) to selected position(s)'
                         }
+                        side="bottom"
                       >
-                        {gridController.selection.hasFilledSelection &&
-                        !gridController.selection.isMixed ? (
-                          <Edit className="w-3 h-3 mr-1" />
-                        ) : (
-                          <Plus className="w-3 h-3 mr-1" />
-                        )}
-                        {gridController.selection.hasFilledSelection &&
-                        !gridController.selection.isMixed
-                          ? 'Edit'
-                          : 'Add'}
-                      </button>
+                        <button onClick={gridController.openModal} className="btn-header-ghost">
+                          {gridController.selection.hasFilledSelection &&
+                          !gridController.selection.isMixed ? (
+                            <Edit className="w-3 h-3 mr-1" />
+                          ) : (
+                            <Plus className="w-3 h-3 mr-1" />
+                          )}
+                          {gridController.selection.hasFilledSelection &&
+                          !gridController.selection.isMixed
+                            ? 'Edit'
+                            : 'Add'}
+                        </button>
+                      </Tooltip>
 
                       {/* Section 2: Copy, Cut, Paste */}
                       {(selectionAnalysis.hasFilled || gridController?.canPaste) && (
                         <>
                           {selectionAnalysis.hasFilled && (
                             <>
-                              <button
-                                onClick={gridController.copy}
-                                className="btn-header-ghost"
-                                title="Copy selected tube(s)"
-                              >
-                                <Copy className="w-3 h-3 mr-1" />
-                                Copy
-                              </button>
-                              <button
-                                onClick={gridController.cut}
-                                className="btn-header-ghost"
-                                title="Cut selected tube(s)"
-                              >
-                                <Scissors className="w-3 h-3 mr-1" />
-                                Cut
-                              </button>
+                              <Tooltip content="Copy selected tube(s)" side="bottom">
+                                <button onClick={gridController.copy} className="btn-header-ghost">
+                                  <Copy className="w-3 h-3 mr-1" />
+                                  Copy
+                                </button>
+                              </Tooltip>
+                              <Tooltip content="Cut selected tube(s)" side="bottom">
+                                <button onClick={gridController.cut} className="btn-header-ghost">
+                                  <Scissors className="w-3 h-3 mr-1" />
+                                  Cut
+                                </button>
+                              </Tooltip>
                             </>
                           )}
                           {gridController?.canPaste && selectionAnalysis.hasSelection && (
-                            <button
-                              onClick={gridController.paste}
-                              className="btn-header-ghost"
-                              title="Paste tube(s)"
-                            >
-                              <ClipboardPaste className="w-3 h-3 mr-1" />
-                              Paste
-                            </button>
+                            <Tooltip content="Paste tube(s)" side="bottom">
+                              <button onClick={gridController.paste} className="btn-header-ghost">
+                                <ClipboardPaste className="w-3 h-3 mr-1" />
+                                Paste
+                              </button>
+                            </Tooltip>
                           )}
                         </>
                       )}
 
-                      {/* Section 3: Delete */}
+                      {/* Section 3: Remove */}
                       {selectionAnalysis.hasFilled && (
                         <>
                           <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
-                          <button
-                            onClick={gridController.delete}
-                            className="btn-header-ghost-danger"
-                            title="Delete selected tube(s)"
-                          >
-                            <Trash2 className="w-3 h-3 mr-1" />
-                            Delete
-                          </button>
+                          <Tooltip content="Remove selected tube(s)" side="bottom">
+                            <button
+                              onClick={gridController.delete}
+                              className="btn-header-ghost-danger"
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Remove
+                            </button>
+                          </Tooltip>
                         </>
                       )}
 
@@ -302,37 +298,42 @@ export function AppHeader({
                             <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
                             {(gridController.selection.lockableCount ?? 0) > 0 &&
                               gridController.lock && (
-                                <button
-                                  onClick={gridController.lock}
-                                  className="btn-header-ghost"
-                                  title="Lock selected tube(s)"
-                                >
-                                  <Lock className="w-3 h-3 mr-1" />
-                                  Lock
-                                </button>
+                                <Tooltip content="Lock selected tube(s)" side="bottom">
+                                  <button
+                                    onClick={gridController.lock}
+                                    className="btn-header-ghost"
+                                  >
+                                    <Lock className="w-3 h-3 mr-1" />
+                                    Lock
+                                  </button>
+                                </Tooltip>
                               )}
                             {(gridController.selection.unlockableCount ?? 0) > 0 &&
                               gridController.unlock && (
-                                <button
-                                  onClick={gridController.unlock}
-                                  disabled={gridController.selection.isUnlocking}
-                                  className="btn-header-ghost disabled:opacity-50"
-                                  title="Unlock selected tube(s)"
-                                >
-                                  <Unlock className="w-3 h-3 mr-1" />
-                                  {gridController.selection.isUnlocking ? 'Unlocking...' : 'Unlock'}
-                                </button>
+                                <Tooltip content="Unlock selected tube(s)" side="bottom">
+                                  <button
+                                    onClick={gridController.unlock}
+                                    disabled={gridController.selection.isUnlocking}
+                                    className="btn-header-ghost disabled:opacity-50"
+                                  >
+                                    <Unlock className="w-3 h-3 mr-1" />
+                                    {gridController.selection.isUnlocking
+                                      ? 'Unlocking...'
+                                      : 'Unlock'}
+                                  </button>
+                                </Tooltip>
                               )}
                             {(gridController.selection.sharableCount ?? 0) > 0 &&
                               gridController.shareAccess && (
-                                <button
-                                  onClick={gridController.shareAccess}
-                                  className="btn-header-ghost"
-                                  title="Share access to locked tube(s)"
-                                >
-                                  <Share2 className="w-3 h-3 mr-1" />
-                                  Share
-                                </button>
+                                <Tooltip content="Share access to locked tube(s)" side="bottom">
+                                  <button
+                                    onClick={gridController.shareAccess}
+                                    className="btn-header-ghost"
+                                  >
+                                    <Share2 className="w-3 h-3 mr-1" />
+                                    Share
+                                  </button>
+                                </Tooltip>
                               )}
                           </>
                         )}
@@ -341,14 +342,12 @@ export function AppHeader({
 
                   {/* Section 5: Clear (always last, visible even in view-only mode) */}
                   {!isViewOnlySpace && <div className="w-px h-4 bg-slate-300 mx-0.5"></div>}
-                  <button
-                    onClick={onClearSelection}
-                    className="btn-header-ghost"
-                    title="Clear selection"
-                  >
-                    <X className="w-3 h-3 mr-1" />
-                    Clear
-                  </button>
+                  <Tooltip content="Clear selection" side="bottom">
+                    <button onClick={onClearSelection} className="btn-header-ghost">
+                      <X className="w-3 h-3 mr-1" />
+                      Clear
+                    </button>
+                  </Tooltip>
                 </>
               )}
             </div>

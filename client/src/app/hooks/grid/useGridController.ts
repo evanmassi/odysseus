@@ -292,8 +292,9 @@ export const useGridController = ({
     if (tubeIds.length === 0) return;
 
     modalService.showDeleteConfirm({
-      title: `Delete ${tubeIds.length} Tube${tubeIds.length > 1 ? 's' : ''}`,
-      message: `Are you sure you want to delete ${tubeIds.length} tube${tubeIds.length > 1 ? 's' : ''}? This action cannot be undone.`,
+      title: `Remove ${tubeIds.length} Tube${tubeIds.length > 1 ? 's' : ''}`,
+      message: `Are you sure you want to remove ${tubeIds.length} tube${tubeIds.length > 1 ? 's' : ''}? This action cannot be undone.`,
+      confirmText: 'Remove',
       onConfirm: async () => {
         if (onDeleteTubes) {
           await onDeleteTubes(tubeIds);

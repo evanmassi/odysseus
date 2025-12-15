@@ -12,6 +12,8 @@
 
 import { Lock, ShieldCheck } from 'lucide-react';
 
+import { Tooltip } from '@shared/ui';
+
 interface LockIndicatorProps {
   /** Name/username of the lock owner */
   lockedByName: string;
@@ -76,8 +78,10 @@ export function LockIndicator({
   const IconComponent = variant === 'shared' ? ShieldCheck : Lock;
 
   return (
-    <div className={`absolute bottom-0.5 left-0.5 ${className}`} title={tooltipText}>
-      <IconComponent size={size} className={`${iconColor} drop-shadow-sm`} strokeWidth={2.5} />
-    </div>
+    <Tooltip content={tooltipText} side="top">
+      <div className={`absolute bottom-0.5 left-0.5 ${className}`}>
+        <IconComponent size={size} className={`${iconColor} drop-shadow-sm`} strokeWidth={2.5} />
+      </div>
+    </Tooltip>
   );
 }

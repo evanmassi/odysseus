@@ -1,5 +1,5 @@
 /**
- * Professional Layout System
+ * Layout System
  * Fixed proportions for consistent, predictable behavior
  */
 
@@ -19,9 +19,10 @@
   --fs-body: 0.75rem;
   --fs-small: 0.6875rem;
 
-  /* Component Heights */
-  --title-height: 32px;
-  --button-height: 40px;
+  /* Frosted Glass Effect - Icy theme */
+  --frost-bg: rgba(255, 255, 255, 0.85);
+  --frost-bg-fallback: #ffffff;
+  --frost-blur: 12px;
 }
 
 /* Main Application Layout */
@@ -47,32 +48,13 @@
   background-color: #f1f5f9;
 }
 
-/* Selector Panels - Minimal Width */
-.selector-panel {
-  display: flex;
-  flex-direction: column;
-  min-width: 80px;
-  max-width: 120px;
-  flex-shrink: 0;
-}
-
-/* Storage Navigator Panel - Wider for Tank/Rack/Box navigation */
+/* Storage Navigator Panel */
 .storage-navigator-panel {
   display: flex;
   flex-direction: column;
   min-width: 220px;
   max-width: 220px;
   flex-shrink: 0;
-}
-
-.storage-navigator-panel .component-card {
-  overflow: visible;
-}
-
-.storage-navigator-panel .component-body {
-  padding: 10px;
-  overflow-x: visible;
-  overflow-y: visible;
 }
 
 /* Grid Section - Square Constraint */
@@ -92,91 +74,25 @@
   max-width: 400px;
 }
 
-/* Unified Component Styling */
-.component-card {
-  background: var(--color-odysseus-surface);
-  border-radius: 12px;
-  border: 1px solid rgba(59, 130, 246, 0.3);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.2s ease;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.component-card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-.component-title {
-  height: var(--title-height);
-  padding: 0 var(--space-md);
-  border-bottom: 1px solid var(--color-odysseus-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-  border-radius: 12px 12px 0 0;
-  position: relative;
-}
-
-.component-title h4 {
-  font-size: var(--fs-title);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  color: var(--color-odysseus-dark);
-  margin: 0;
-  text-align: center;
-}
-
-/* Increased font sizes for panel titles */
-.storage-navigator-panel .component-title h4,
-.info-panel .component-title h4 {
-  font-size: 1rem;
-}
-
-/* Slightly larger font size for main grid title */
-.grid-section .component-title h4 {
-  font-size: 1.25rem;
-}
-
-.component-title-actions {
-  position: absolute;
-  right: 8px;
-  display: flex;
-  gap: 4px;
-}
-
-.component-body {
-  flex: 1;
-  padding: 8px;
-  overflow-y: auto;
-}
-
-/* Grid-specific styling - Professional dynamic system */
+/* Grid Container */
 .grid-container {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  padding: 12px 12px 16px 12px;
 }
 
-/* Professional TubeGrid (configuration-driven) */
+/* TubeGrid */
 .tube-grid {
   width: 100%;
   max-width: 100%;
   max-height: 100%;
-  /* aspect-ratio is set dynamically via inline styles */
-  /* grid-template-columns/rows are set dynamically via inline styles */
   gap: 4px;
 }
 
-/* GridPosition styling */
+/* GridPosition */
 .grid-position {
-  /* Inherits from tube-position styles but adds professional features */
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -186,22 +102,7 @@
   position: relative;
 }
 
-/* Selector styling */
-.selector-button {
-  width: 100%;
-  height: var(--button-height);
-  font-size: var(--fs-body);
-  font-weight: 600;
-  border-radius: 8px;
-  transition: all 0.15s ease;
-  margin-bottom: var(--space-xs);
-}
-
-.selector-button:last-child {
-  margin-bottom: 0;
-}
-
-/* Responsive adjustments for smaller screens */
+/* Responsive adjustments */
 @media (max-width: 1400px) {
   .storage-navigator-panel {
     min-width: 200px;
@@ -211,9 +112,6 @@
   .grid-section {
     width: min(calc(100vh - var(--layout-header-height) - 100px), 50vw);
   }
-
-  --fs-title: 0.8125rem;
-  --fs-body: 0.6875rem;
 }
 
 @media (max-width: 1200px) {
@@ -227,18 +125,7 @@
     padding: var(--space-sm);
   }
 
-  .component-title {
-    height: 28px;
-  }
-
-  .component-body {
-    padding: 6px;
-  }
-
   .grid-section {
     width: min(calc(100vh - var(--layout-header-height) - 120px), 40vw);
   }
-
-  --fs-title: 0.75rem;
-  --fs-body: 0.65rem;
 }

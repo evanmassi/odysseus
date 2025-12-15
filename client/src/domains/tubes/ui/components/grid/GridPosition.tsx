@@ -3,7 +3,7 @@ import React, { memo } from 'react';
 import { useUserSettings } from '@domains/authentication/hooks/useUserSettings';
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
-import { InlineEditInput } from '@shared/ui';
+import { InlineEditInput, Tooltip } from '@shared/ui';
 
 import {
   getTubeColor,
@@ -158,26 +158,26 @@ export const GridPosition = memo<GridPositionProps>(
 
         {/* Lot number indicator - top-left (square) */}
         {tube && lotStyle && (
-          <IndicatorSVG
-            shape="square"
-            color={lotStyle.color}
-            pattern={lotStyle.pattern}
-            size={fontSize.positionFont + 2}
-            title={`Lot #: ${tube.sample.lotNumber}`}
-            className="absolute top-0.5 left-0.5 z-[1]"
-          />
+          <div className="absolute top-0.5 left-0.5 z-[1]">
+            <IndicatorSVG
+              shape="square"
+              color={lotStyle.color}
+              pattern={lotStyle.pattern}
+              size={fontSize.positionFont + 2}
+            />
+          </div>
         )}
 
         {/* Condition indicator - bottom-right (triangle) */}
         {tube && conditionStyle && (
-          <IndicatorSVG
-            shape="triangle"
-            color={conditionStyle.color}
-            pattern="solid"
-            size={fontSize.positionFont + 2}
-            title={`Condition: ${tube.sample.cultureCondition}`}
-            className="absolute bottom-0.5 right-0.5 z-[1]"
-          />
+          <div className="absolute bottom-0.5 right-0.5 z-[1]">
+            <IndicatorSVG
+              shape="triangle"
+              color={conditionStyle.color}
+              pattern="solid"
+              size={fontSize.positionFont + 2}
+            />
+          </div>
         )}
 
         {/* Lock indicator - bottom-left */}
@@ -209,36 +209,64 @@ export const GridPosition = memo<GridPositionProps>(
 
         {/* Tube content with breathing room */}
         {tube ? (
-          <div className="tube-content p-2 flex flex-col items-center justify-center text-center">
-            <div
-              className="cell-line font-medium leading-tight"
-              style={{ fontSize: `${fontSize.cellFont}px` }}
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show fallback
-              title={tube.sample.cellType || 'Unknown'}
-            >
-              {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-              {tube.sample.cellType || 'Unknown'}
+          <Tooltip
+            content={
+              <div className="flex flex-col gap-1">
+                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType should show fallback */}
+                <div className="font-semibold">{tube.sample.cellType || 'Unknown'}</div>
+                {donorInfo.internal && (
+                  <div className="text-slate-600">
+                    <span className="text-slate-400">Internal:</span> {donorInfo.internal}
+                  </div>
+                )}
+                {donorInfo.source && (
+                  <div className="text-slate-600">
+                    {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty donorSourceId should fall back to computed source */}
+                    <span className="text-slate-400">Source:</span>{' '}
+                    {tube.sample.donorSourceId || donorInfo.source}
+                  </div>
+                )}
+                {tube.sample.lotNumber && (
+                  <div className="text-slate-600">
+                    <span className="text-slate-400">Lot:</span> {tube.sample.lotNumber}
+                  </div>
+                )}
+                {tube.sample.cultureCondition && (
+                  <div className="text-slate-600">
+                    <span className="text-slate-400">Condition:</span>{' '}
+                    {tube.sample.cultureCondition}
+                  </div>
+                )}
+              </div>
+            }
+            delayDuration={400}
+          >
+            <div className="tube-content p-2 flex flex-col items-center justify-center text-center">
+              <div
+                className="cell-line font-medium leading-tight"
+                style={{ fontSize: `${fontSize.cellFont}px` }}
+              >
+                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+                {tube.sample.cellType || 'Unknown'}
+              </div>
+              {donorInfo.internal && (
+                <div
+                  className="donor-internal leading-tight"
+                  style={{ fontSize: `${fontSize.donorFont}px` }}
+                >
+                  {donorInfo.internal}
+                </div>
+              )}
+              {donorInfo.source && (
+                <div
+                  className="donor-source leading-tight"
+                  style={{ fontSize: `${fontSize.donorFont}px` }}
+                >
+                  {donorInfo.source}
+                </div>
+              )}
             </div>
-            {donorInfo.internal && (
-              <div
-                className="donor-internal leading-tight"
-                style={{ fontSize: `${fontSize.donorFont}px` }}
-                title={`Internal ID: ${donorInfo.internal}`}
-              >
-                {donorInfo.internal}
-              </div>
-            )}
-            {donorInfo.source && (
-              <div
-                className="donor-source leading-tight"
-                style={{ fontSize: `${fontSize.donorFont}px` }}
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback, empty string should trigger next option
-                title={`Source ID: ${tube.sample.donorSourceId || donorInfo.source}`}
-              >
-                {donorInfo.source}
-              </div>
-            )}
-          </div>
+          </Tooltip>
         ) : (
           <div className="tube-content p-2 flex flex-col items-center justify-center text-center">
             <div

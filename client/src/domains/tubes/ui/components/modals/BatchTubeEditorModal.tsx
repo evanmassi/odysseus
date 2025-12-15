@@ -387,16 +387,16 @@ export default function BatchTubeEditorModal({
       });
 
       if (deleteResult.success) {
-        notifications.delete(`Deleted ${deleteResult.successCount} tubes successfully`);
+        notifications.delete(`Removed ${deleteResult.successCount} tubes successfully`);
         onClose();
       } else {
         notifications.error(
-          `Deleted ${deleteResult.successCount} of ${deleteResult.totalProcessed} tubes`
+          `Removed ${deleteResult.successCount} of ${deleteResult.totalProcessed} tubes`
         );
       }
     } catch (error) {
       logger.error('Batch delete error', { error });
-      notifications.error('Failed to delete tubes');
+      notifications.error('Failed to remove tubes');
     } finally {
       setShowDeleteConfirm(false);
     }
@@ -554,7 +554,7 @@ export default function BatchTubeEditorModal({
               onClick={() => setShowDeleteConfirm(true)}
             >
               <Trash2 className="w-4 h-4 mr-2" />
-              Delete {tubes.length} Tubes
+              Remove {tubes.length} Tubes
             </button>
             <button
               type="submit"
@@ -638,9 +638,9 @@ export default function BatchTubeEditorModal({
 
       <DeleteConfirmDialog
         isOpen={showDeleteConfirm}
-        title="Delete All Tubes"
-        message={`Are you sure you want to delete all ${tubes.length} tubes? This action cannot be undone and will permanently remove all selected tubes from your inventory.`}
-        confirmText={`Delete All ${tubes.length}`}
+        title="Remove All Tubes"
+        message={`Are you sure you want to remove all ${tubes.length} tubes? This action cannot be undone and will permanently remove all selected tubes from your inventory.`}
+        confirmText={`Remove All ${tubes.length}`}
         onConfirm={handleBatchDelete}
         onCancel={() => setShowDeleteConfirm(false)}
         isLoading={isSubmitting}

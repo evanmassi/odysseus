@@ -1,6 +1,6 @@
 /**
  * UI Primitives Index
- * 
+ *
  * Centralized export of all UI primitive components
  * These components form the foundation of the Odysseus component library
  */
@@ -13,20 +13,21 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from './modal/Modal';
 import { useModal, useModalState } from './modal/useModal';
 import { Select } from './select/Select';
 import { Table, TableHeader, TableBody } from './table/Table';
+import { Tooltip } from './tooltip/Tooltip';
 
 // Button primitives
 export { Button };
-export type { 
-  ButtonProps, 
-  ButtonVariant, 
-  ButtonSize, 
+export type {
+  ButtonProps,
+  ButtonVariant,
+  ButtonSize,
   ButtonShape,
-  ButtonRef
+  ButtonRef,
 } from './button/types';
 
 // Input primitives
 export { Input };
-export type { 
+export type {
   InputProps,
   TextInputProps,
   NumberInputProps,
@@ -39,7 +40,7 @@ export type {
   InputType,
   ValidationResult,
   ValidationFunction,
-  InputRef
+  InputRef,
 } from './input/types';
 
 // Modal primitives
@@ -58,43 +59,36 @@ export type {
   ConfirmationModalProps,
   AlertModalProps,
   DrawerModalProps,
-  ModalRef
+  ModalRef,
 } from './modal/types';
 
 // Select primitives
 export { Select };
-export type {
-  SelectProps,
-  SelectOption
-} from './select/Select';
+export type { SelectProps, SelectOption } from './select/Select';
 
 // Table primitives
 export { Table, TableHeader, TableBody };
-export type {
-  TableProps,
-  TableColumn,
-  TableRow,
-  SortConfig
-} from './table/Table';
+export type { TableProps, TableColumn, TableRow, SortConfig } from './table/Table';
+
+// Tooltip primitives
+export { Tooltip };
+export type { TooltipProps } from './tooltip/Tooltip';
 
 // Grid primitives
 export { Grid, GridItem };
-export type {
-  GridProps,
-  GridItemProps
-} from './grid/Grid';
+export type { GridProps, GridItemProps } from './grid/Grid';
 
 // Re-export design system tokens for convenience
-export { 
-  colors, 
-  typography, 
-  spacingSystem as spacing, 
-  borders, 
+export {
+  colors,
+  typography,
+  spacingSystem as spacing,
+  borders,
   shadows,
   odysseusTheme as theme,
   breakpoints,
   zIndex,
-  animations
+  animations,
 } from '../designSystem/tokens';
 
 // Common types used across primitives
@@ -135,7 +129,13 @@ export interface DisabledProps {
 export type ComponentSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl';
 
 // Component variant union type (common variants)
-export type ComponentVariant = 'primary' | 'secondary' | 'tertiary' | 'danger' | 'success' | 'warning';
+export type ComponentVariant =
+  | 'primary'
+  | 'secondary'
+  | 'tertiary'
+  | 'danger'
+  | 'success'
+  | 'warning';
 
 // Alignment types
 export type Alignment = 'start' | 'center' | 'end' | 'stretch';
@@ -163,7 +163,10 @@ export interface PolymorphicProps<T extends keyof JSX.IntrinsicElements = 'div'>
 export type ElementRef<T extends keyof JSX.IntrinsicElements> = React.ComponentRef<T>;
 
 // Forwarded ref types
-export type ForwardedRef<T> = ((instance: T | null) => void) | React.MutableRefObject<T | null> | null;
+export type ForwardedRef<T> =
+  | ((instance: T | null) => void)
+  | React.MutableRefObject<T | null>
+  | null;
 
 // Primitive component collection for easy importing
 export const Primitives = {
@@ -179,6 +182,7 @@ export const Primitives = {
   TableBody,
   Grid,
   GridItem,
+  Tooltip,
 } as const;
 
 // Hook collection
