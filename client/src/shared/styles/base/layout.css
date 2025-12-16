@@ -6,6 +6,7 @@
 :root {
   /* Layout Heights */
   --layout-header-height: 56px;
+  --panel-title-height: 40px;
 
   /* Design Tokens - Unified spacing and typography */
   --space-xs: 4px;
@@ -57,12 +58,16 @@
   max-width: 280px;
 }
 
-/* Grid Section - Square Constraint */
+/* Grid Section - Fills available space, capped to square */
 .grid-section {
   display: flex;
   flex-direction: column;
-  width: min(calc(100vh - var(--layout-header-height) - 80px), 60vw);
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  align-self: stretch; /* Take full height */
+  /* Cap width to available height so side space is even */
+  max-width: calc(100vh - var(--layout-header-height) - var(--panel-title-height) - 32px);
 }
 
 /* Info Panel - Flexible Width */
@@ -74,20 +79,32 @@
   max-width: 400px;
 }
 
-/* Grid Container */
+/* Grid Container - Square based on container's smaller dimension */
 .grid-container {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 12px 16px 12px;
+  padding: 8px 0; /* Vertical only - grid is centered horizontally */
+  min-width: 0;
+  min-height: 0;
+  container-type: size; /* Enable container queries */
 }
 
-/* TubeGrid */
+/* Panel Title - Consistent height across all panels */
+.panel-title {
+  height: var(--panel-title-height);
+  min-height: var(--panel-title-height);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* TubeGrid - Square based on container's smaller dimension */
 .tube-grid {
-  width: 100%;
-  max-width: 100%;
-  max-height: 100%;
+  /* Use the smaller of container width or height */
+  width: min(100cqw, 100cqh);
+  aspect-ratio: 1;
   gap: 4px;
 }
 
@@ -108,10 +125,6 @@
     min-width: 200px;
     max-width: 260px;
   }
-
-  .grid-section {
-    width: min(calc(100vh - var(--layout-header-height) - 100px), 50vw);
-  }
 }
 
 @media (max-width: 1200px) {
@@ -123,9 +136,5 @@
   .main-layout {
     gap: var(--space-sm);
     padding: var(--space-sm);
-  }
-
-  .grid-section {
-    width: min(calc(100vh - var(--layout-header-height) - 120px), 40vw);
   }
 }
