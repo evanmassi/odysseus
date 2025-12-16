@@ -149,9 +149,10 @@ export function TubeGrid({
   const handlePositionRightClick = (position: number, event: React.MouseEvent) => {
     event.preventDefault();
 
-    // Add position to selection if not already selected
+    // Replace selection with clicked position if not already selected
+    // (Industry standard: right-click on unselected item selects only that item)
     if (!controller.isPositionSelected(position)) {
-      controller.actions.select(position);
+      controller.actions.setSelection(position);
     }
 
     // Position menu relative to clicked tube

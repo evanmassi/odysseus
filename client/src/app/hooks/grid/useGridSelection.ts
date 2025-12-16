@@ -46,10 +46,11 @@ export interface UseGridSelectionReturn {
   selectionAnalysis: SelectionAnalysis;
   clickTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
   actions: {
-    select: (position: number) => void;
-    deselect: (position: number) => void;
-    toggle: (position: number) => void;
-    clear: () => void;
+    setSelection: (position: number) => void;
+    addToSelection: (position: number) => void;
+    removeFromSelection: (position: number) => void;
+    toggleInSelection: (position: number) => void;
+    clearSelection: () => void;
   };
 }
 
@@ -222,22 +223,30 @@ export const useGridSelection = ({
     };
   }, [selectedPositions, resolveTubeIdAtPosition, tubes, lockContext]);
 
-  // Selection action methods
+  // Selection action methods - Clear, self-documenting names
   const actions = useMemo(
     () => ({
-      select: (position: number) => {
+      /** Replace entire selection with single position */
+      setSelection: (position: number) => {
+        const positionKey = toPositionKey(ctx, position);
+        onSelectionChange(new Set([positionKey]));
+      },
+      /** Add position to existing selection */
+      addToSelection: (position: number) => {
         const positionKey = toPositionKey(ctx, position);
         const newSelection = new Set(selectedPositions);
         newSelection.add(positionKey);
         onSelectionChange(newSelection);
       },
-      deselect: (position: number) => {
+      /** Remove position from existing selection */
+      removeFromSelection: (position: number) => {
         const positionKey = toPositionKey(ctx, position);
         const newSelection = new Set(selectedPositions);
         newSelection.delete(positionKey);
         onSelectionChange(newSelection);
       },
-      toggle: (position: number) => {
+      /** Toggle position in/out of selection */
+      toggleInSelection: (position: number) => {
         const positionKey = toPositionKey(ctx, position);
         const newSelection = new Set(selectedPositions);
         if (newSelection.has(positionKey)) {
@@ -247,7 +256,8 @@ export const useGridSelection = ({
         }
         onSelectionChange(newSelection);
       },
-      clear: () => {
+      /** Clear all selection */
+      clearSelection: () => {
         onSelectionChange(new Set());
       },
     }),

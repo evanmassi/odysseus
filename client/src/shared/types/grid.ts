@@ -132,10 +132,11 @@ export interface GridControllerReturn {
 
   // Action methods
   actions: {
-    select: (position: number) => void;
-    deselect: (position: number) => void;
-    toggle: (position: number) => void;
-    clear: () => void;
+    setSelection: (position: number) => void;
+    addToSelection: (position: number) => void;
+    removeFromSelection: (position: number) => void;
+    toggleInSelection: (position: number) => void;
+    clearSelection: () => void;
     add: () => void;
     edit: () => void;
     copy: () => Promise<void>;

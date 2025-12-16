@@ -68,17 +68,14 @@
   }
 }
 
-@keyframes pulseSelectionRing {
+/* Simple opacity-based glow pulse - no flickering */
+@keyframes glowPulse {
   0%,
   100% {
-    box-shadow:
-      0 0 0 2px #d1f9ff,
-      0 0 0 0 rgba(74, 125, 181, 0);
+    opacity: 0.4;
   }
   50% {
-    box-shadow:
-      0 0 0 2px #d1f9ff,
-      0 0 8px 4px rgba(74, 125, 181, 0.5);
+    opacity: 0.8;
   }
 }
 
@@ -113,31 +110,49 @@
 /* SELECTION STATES - CSS Only, Zero Technical Debt */
 /* ===================================== */
 
-/* Base selection - solid border with pulsing multi-layered glow */
+/* Base selection - static rings + animated glow via pseudo-element */
 .tube-position.selected {
-  border: 3px solid var(--focus-ring-color, #4a7db5) !important;
-  animation:
-    tube-select-once 0.3s ease-out,
-    pulseSelectionRing 2s ease-in-out 0.3s infinite;
-  position: relative; /* For ::before pseudo-element positioning */
+  border: 1px solid transparent !important;
+  /* Static light-to-dark rings: inner white (1px), outer dark blue (2px) */
+  box-shadow:
+    0 0 0 1px #ffffff,
+    0 0 0 3px var(--focus-ring-color, #4a7db5);
+  position: relative;
+  animation: tube-select-once 0.3s ease-out;
   /* GPU acceleration hints */
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
 }
 
-/* Empty positions: dashed border + gray overlay */
-.tube-position.selected.empty {
-  border: 2px dashed var(--focus-ring-color, #4a7db5) !important; /* Thinner, more subtle border for empty positions */
+/* Animated glow layer - opacity only, no flickering */
+.tube-position.selected::after {
+  content: '';
+  position: absolute;
+  inset: -3px; /* Match the outer ring (3px) so glow starts at ring edge */
+  border-radius: inherit;
+  box-shadow: 0 0 6px 2px var(--focus-ring-color, #4a7db5);
+  animation: glowPulse 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
 }
 
+/* Empty positions: dashed focus rings instead of solid */
+.tube-position.selected.empty {
+  border: 1px solid transparent !important;
+  /* Remove solid rings for empty - we'll use dashed via pseudo-element */
+  box-shadow: none;
+}
+
+/* Dashed ring for empty positions - single darker border */
 .tube-position.selected.empty::before {
   content: '';
   position: absolute;
-  inset: 0;
-  background: rgba(156, 163, 175, 0.2); /* Solid overlay - GPU optimized */
-  pointer-events: none;
+  inset: -3px;
   border-radius: inherit;
-  z-index: 1; /* Above background, below content */
+  border: 2px dashed var(--focus-ring-color, #4a7db5);
+  pointer-events: none;
+  z-index: 1;
+  background: rgba(156, 163, 175, 0.15);
 }
 
 /* Occupied positions: solid border + light teal overlay (preserves tube colors) */
@@ -199,37 +214,43 @@
   z-index: 2;
 }
 
-/* Drag preview - lighter/translucent version of selection (NO animation) */
+/* Drag preview - faded version of selection rings (NO animation) */
 .tube-position.drag-preview {
-  border: 2px solid rgba(20, 184, 166, 0.5) !important;
-  /* NO animation during preview */
+  border: 1px solid transparent !important;
+  /* Faded version of selection rings */
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.6),
+    0 0 0 3px rgba(74, 125, 181, 0.4);
 }
 
-/* Empty positions during drag preview: dashed border + lighter gray overlay */
+/* Empty positions during drag preview: dashed rings */
 .tube-position.drag-preview.empty {
-  border-style: dashed !important;
+  box-shadow: none;
 }
 
 .tube-position.drag-preview.empty::before {
   content: '';
   position: absolute;
-  inset: 0;
+  inset: -3px;
+  border-radius: inherit;
+  border: 2px dashed rgba(74, 125, 181, 0.4);
   background: rgba(156, 163, 175, 0.1);
   pointer-events: none;
-  border-radius: inherit;
   z-index: 1;
 }
 
-/* Occupied positions during drag preview: solid border + lighter teal overlay */
+/* Occupied positions during drag preview: solid rings + light overlay */
 .tube-position.drag-preview.occupied {
-  border-style: solid !important;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.6),
+    0 0 0 3px rgba(74, 125, 181, 0.4) !important;
 }
 
 .tube-position.drag-preview.occupied::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(20, 184, 166, 0.06);
+  background: rgba(74, 125, 181, 0.08);
   pointer-events: none;
   border-radius: inherit;
   z-index: 1;

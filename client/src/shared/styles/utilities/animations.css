@@ -22,19 +22,7 @@
     }
   }
 
-  @keyframes pulseSelectionRing {
-    0%,
-    100% {
-      box-shadow:
-        0 0 0 2px var(--focus-ring-glow-inner, #d1f9ff),
-        0 0 2px 1px var(--focus-ring-blur, rgba(74, 125, 181, 0.2)) !important;
-    }
-    50% {
-      box-shadow:
-        0 0 0 2px var(--focus-ring-glow-inner, #d1f9ff),
-        0 0 6px 2px var(--focus-ring-blur, rgba(74, 125, 181, 0.4)) !important;
-    }
-  }
+  /* pulseSelectionRing is defined in colorIndicators.css for grid selection */
 
   @keyframes contextMenuAppear {
     from {

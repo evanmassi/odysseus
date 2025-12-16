@@ -134,7 +134,7 @@ export function useGridKeyboardNavigation(
       // Space bar - toggle selection on focused position
       if (key === ' ') {
         event.preventDefault();
-        controller.actions.toggle(focusedPosition);
+        controller.actions.toggleInSelection(focusedPosition);
         return;
       }
 
@@ -176,7 +176,7 @@ export function useGridKeyboardNavigation(
       // Escape - clear selection and clipboard
       if (key === 'Escape') {
         event.preventDefault();
-        controller.actions.clear();
+        controller.actions.clearSelection();
         setClipboard(null);
         return;
       }
