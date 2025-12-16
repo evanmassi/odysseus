@@ -199,7 +199,7 @@ export function AppHeader({
       <div className="flex justify-between items-center w-full">
         {/* Far Left: Logo */}
         <div className="flex items-center">
-          <img src={odysseusLogo} alt="Odysseus" className="h-8 w-auto" />
+          <img src={odysseusLogo} alt="Odysseus" className="h-11 w-auto" />
         </div>
 
         {/* Right Side: Controls + Search + Hamburger */}
