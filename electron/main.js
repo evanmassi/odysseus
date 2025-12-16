@@ -15,9 +15,9 @@ function createWindow() {
   
   // Create the browser window
   mainWindow = new BrowserWindow({
-    width: 1350,
+    width: 1415,
     height: 860,
-    minWidth: 1350,
+    minWidth: 1415,
     minHeight: 860,
     center: true,
     show: true,
@@ -27,7 +27,7 @@ function createWindow() {
       enableRemoteModule: false,
       webSecurity: true
     },
-    icon: path.join(__dirname, '../assets/icons/appIcon.png')
+    icon: path.join(__dirname, '../assets/icons/icon.png')
   });
 
   // Start the backend server

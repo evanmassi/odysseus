@@ -220,7 +220,7 @@ export function TubeGrid({
   return (
     <div className="w-full h-full flex flex-col">
       {/* Main Grid Container */}
-      <div className="flex-1 flex items-center justify-center">
+      <div className="flex-1 flex items-start justify-center">
         <div
           ref={gridRef}
           className="tube-grid select-none focus:outline-none"

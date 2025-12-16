@@ -65,7 +65,6 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  align-self: stretch; /* Take full height */
   /* Cap width to available height so side space is even */
   max-width: calc(100vh - var(--layout-header-height) - var(--panel-title-height) - 32px);
 }
@@ -81,14 +80,13 @@
 
 /* Grid Container - Square based on container's smaller dimension */
 .grid-container {
-  flex: 1;
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Top-align with other panel content */
   justify-content: center;
-  padding: 8px 0; /* Vertical only - grid is centered horizontally */
+  padding: 12px; /* Even padding all sides */
   min-width: 0;
   min-height: 0;
-  container-type: size; /* Enable container queries */
+  container-type: inline-size; /* Container query for width only */
 }
 
 /* Panel Title - Consistent height across all panels */
@@ -100,10 +98,10 @@
   flex-shrink: 0;
 }
 
-/* TubeGrid - Square based on container's smaller dimension */
+/* TubeGrid - Square based on container width or viewport height */
 .tube-grid {
-  /* Use the smaller of container width or height */
-  width: min(100cqw, 100cqh);
+  /* Use the smaller of container width or viewport-based height */
+  width: min(100cqw, calc(100vh - var(--layout-header-height) - var(--panel-title-height) - 56px));
   aspect-ratio: 1;
   gap: 4px;
 }

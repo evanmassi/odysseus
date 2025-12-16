@@ -24,9 +24,7 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
       {!hideTitle && (
         <div className="flex items-center gap-2 mb-1.5">
           <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-[10px] text-odysseus-dark/40 tracking-wide font-medium">
-            {title}
-          </span>
+          <span className="text-xs text-odysseus-dark/40 tracking-wide font-medium">{title}</span>
           <div className="h-px flex-1 bg-gray-200" />
         </div>
       )}

@@ -205,19 +205,23 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <div className="space-y-3">
           {/* Position Header - Vertical stack layout */}
           <div className="bg-slate-50 rounded-md px-3 py-2.5">
-            <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-[10px] uppercase tracking-wider mb-2">
+            <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-xs uppercase tracking-wider mb-2">
               <MapPin className="w-3 h-3" />
               <span>{tankName}</span>
             </div>
-            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-              <span className="text-slate-400">Rack</span>
-              <span className="text-odysseus-dark font-medium">{rackName}</span>
-              <span className="text-slate-400">Box</span>
-              <span className="text-odysseus-dark font-medium">{boxName}</span>
+            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+              <span className="text-slate-400 text-xs">Rack</span>
+              <span className="text-odysseus-dark font-medium text-sm">{rackName}</span>
+              <span className="text-slate-400 text-xs">Box</span>
+              <span className="text-odysseus-dark font-medium text-sm">{boxName}</span>
               {formattedPositions && (
                 <>
-                  <span className="text-slate-400">Position{positionCount > 1 ? 's' : ''}</span>
-                  <span className="text-odysseus-dark font-medium">{formattedPositions}</span>
+                  <span className="text-slate-400 text-xs">
+                    Position{positionCount > 1 ? 's' : ''}
+                  </span>
+                  <span className="text-odysseus-dark font-medium text-sm">
+                    {formattedPositions}
+                  </span>
                 </>
               )}
             </div>
@@ -240,7 +244,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 />
               </svg>
             </div>
-            <p className="text-odysseus-dark/40 text-xs">{positionText}</p>
+            <p className="text-odysseus-dark/40 text-sm">{positionText}</p>
           </div>
         </div>
       </div>
@@ -357,28 +361,28 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       <div className="space-y-3">
         {/* Position Header - Vertical stack layout */}
         <div className="bg-slate-50 rounded-md px-3 py-2.5">
-          <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-[10px] uppercase tracking-wider mb-2">
+          <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-xs uppercase tracking-wider mb-2">
             <MapPin className="w-3 h-3" />
             <span>{tankName}</span>
           </div>
-          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-            <span className="text-slate-400">Rack</span>
-            <span className="text-odysseus-dark font-medium">{rackName}</span>
-            <span className="text-slate-400">Box</span>
-            <span className="text-odysseus-dark font-medium">{boxName}</span>
-            <span className="text-slate-400">{positionSummary.positionLabel}</span>
-            <span className="text-odysseus-dark font-medium">
+          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
+            <span className="text-slate-400 text-xs">Rack</span>
+            <span className="text-odysseus-dark font-medium text-sm">{rackName}</span>
+            <span className="text-slate-400 text-xs">Box</span>
+            <span className="text-odysseus-dark font-medium text-sm">{boxName}</span>
+            <span className="text-slate-400 text-xs">{positionSummary.positionLabel}</span>
+            <span className="text-odysseus-dark font-medium text-sm">
               {positionSummary.formattedPositions}
             </span>
           </div>
           {selectedTubes.length > 1 && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-200">
-              <span className="inline-flex items-center gap-1 text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
                 <TestTube className="w-2.5 h-2.5" />
                 {selectedTubes.length} selected
               </span>
               {hasConflicts && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-[10px] font-medium">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">
                   <AlertTriangle className="w-2.5 h-2.5" />
                   Mixed values
                 </span>
@@ -391,7 +395,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {lockInfo && (
           <div className="flex flex-wrap gap-1.5">
             <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                 lockInfo.isOwnLock
                   ? 'bg-slate-100 text-slate-600'
                   : lockInfo.isLockedOut
@@ -403,13 +407,13 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
             </span>
             {firstTube.lockNote && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-gray-100 text-gray-600">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
                 <Notebook className="w-2.5 h-2.5" />
                 {firstTube.lockNote}
               </span>
             )}
             {lockInfo.hasSharedUsers && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-ice-50 text-edit-hover">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-ice-50 text-edit-hover">
                 <UsersRound className="w-2.5 h-2.5" />
                 {lockInfo.sharedNames.length > 0
                   ? lockInfo.sharedNames.join(', ')
@@ -426,7 +430,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             <div className="text-odysseus-dark font-semibold text-sm mb-1">{cellType}</div>
           ) : isFieldMixed('sample.cellType') ? (
             <div className="mb-1">
-              <div className="flex items-center gap-1 text-odysseus-dark/50 text-[10px]">
+              <div className="flex items-center gap-1 text-odysseus-dark/50 text-xs">
                 Cell Type
                 <AlertTriangle className="w-3 h-3 text-amber-500" />
               </div>
@@ -510,11 +514,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {(Boolean(notes) || isFieldMixed('sample.notes')) && (
           <InfoSection title="Notes">
             {notes ? (
-              <div className="text-odysseus-dark/70 text-xs leading-relaxed">{notes}</div>
+              <div className="text-odysseus-dark/70 text-sm leading-relaxed">{notes}</div>
             ) : (
               <div className="flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3 text-amber-500" />
-                <span className="text-odysseus-dark/30 text-xs">—</span>
+                <span className="text-odysseus-dark/30 text-sm">—</span>
               </div>
             )}
           </InfoSection>

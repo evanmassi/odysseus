@@ -240,7 +240,7 @@
 
   /* Ghost Header Buttons - Modern toolbar style */
   .btn-header-ghost {
-    @apply inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded-md;
+    @apply inline-flex items-center px-1.5 py-0.5 text-sm font-medium rounded-md;
     @apply bg-transparent text-slate-600 border border-transparent;
     @apply hover:bg-white/80 hover:text-slate-800;
     transition:
@@ -260,8 +260,8 @@
 
   /* Ghost Danger - Muted red, turns more red on hover */
   .btn-header-ghost-danger {
-    @apply inline-flex items-center px-1.5 py-0.5 text-xs font-medium rounded-md;
-    @apply bg-transparent text-red-400 border border-transparent;
+    @apply inline-flex items-center px-1.5 py-0.5 text-sm font-medium rounded-md;
+    @apply bg-transparent text-red-500 border border-transparent;
     @apply hover:bg-red-50 hover:text-red-600;
     transition:
       all 200ms,

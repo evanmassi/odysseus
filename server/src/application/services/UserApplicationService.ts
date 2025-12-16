@@ -482,32 +482,33 @@ export class UserApplicationService {
       user.markEmailVerified();
     }
 
-    // 5. Atomic transaction: save Person, Researcher (if created), and User together
-    return await this.context.transaction(async () => {
-      // Save Person first (must exist before Researcher/User can reference it)
-      await this.personRepository!.save(person);
+    // 5. Save Person, Researcher (if created), and User sequentially
+    // Note: Using sequential saves instead of transaction because better-sqlite3
+    // requires synchronous transaction callbacks, but our repository layer uses async/await
 
-      // Save Researcher if created (references Person via foreign key)
-      if (researcher) {
-        await this.researcherRepository!.save(researcher);
+    // Save Person first (must exist before Researcher/User can reference it)
+    await this.personRepository!.save(person);
+
+    // Save Researcher if created (references Person via foreign key)
+    if (researcher) {
+      await this.researcherRepository!.save(researcher);
+    }
+
+    // Save User (references Person via foreign key, optionally Researcher)
+    try {
+      await this.userRepository.save(user);
+    } catch (error) {
+      // Handle race condition: Another user registered with same email between our check and save
+      if (isEmailConstraintError(error)) {
+        throw new ValidationError(
+          'Email already in use. Try another or contact your administrator.'
+        );
       }
+      // Re-throw any other errors
+      throw error;
+    }
 
-      // Save User (references Person via foreign key, optionally Researcher)
-      try {
-        await this.userRepository.save(user);
-      } catch (error) {
-        // Handle race condition: Another user registered with same email between our check and save
-        if (isEmailConstraintError(error)) {
-          throw new ValidationError(
-            'Email already in use. Try another or contact your administrator.'
-          );
-        }
-        // Re-throw any other errors
-        throw error;
-      }
-
-      return user;
-    });
+    return user;
   }
 
   /**

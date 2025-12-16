@@ -472,28 +472,27 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   // BULK OPERATIONS
 
   async saveMany(researchers: Researcher[]): Promise<void> {
-    await this.context.transaction(async () => {
-      for (const researcher of researchers) {
-        // Fetch Person entity for this researcher
-        const person = await this.personRepository.findById(researcher.personId);
-        if (!person) {
-          throw new Error(`Person not found for researcher: ${researcher.personId}`);
-        }
-
-        // Save Person entity first
-        await this.personRepository.save(person);
-
-        // Save Researcher entity
-        const row = ResearcherMapper.toRow(researcher);
-        await this.context.execute(`
-          INSERT OR REPLACE INTO researchers (
-            id, personId, active, createdAt
-          ) VALUES (?, ?, ?, ?)
-        `, [
-          row.id, row.personId, row.active, row.createdAt
-        ]);
+    // Sequential saves (better-sqlite3 transactions require synchronous callbacks)
+    for (const researcher of researchers) {
+      // Fetch Person entity for this researcher
+      const person = await this.personRepository.findById(researcher.personId);
+      if (!person) {
+        throw new Error(`Person not found for researcher: ${researcher.personId}`);
       }
-    });
+
+      // Save Person entity first
+      await this.personRepository.save(person);
+
+      // Save Researcher entity
+      const row = ResearcherMapper.toRow(researcher);
+      await this.context.execute(`
+        INSERT OR REPLACE INTO researchers (
+          id, personId, active, createdAt
+        ) VALUES (?, ?, ?, ?)
+      `, [
+        row.id, row.personId, row.active, row.createdAt
+      ]);
+    }
   }
 
   async deleteMany(ids: string[]): Promise<number> {
@@ -511,38 +510,37 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   async createFromNames(researchers: Array<{ firstName: string; lastName: string; position?: string; department?: string; email?: string }>): Promise<Researcher[]> {
     const createdResearchers: Researcher[] = [];
 
-    await this.context.transaction(async () => {
-      for (const data of researchers) {
-        if (!data.firstName.trim() || !data.lastName.trim()) continue;
+    // Sequential saves (better-sqlite3 transactions require synchronous callbacks)
+    for (const data of researchers) {
+      if (!data.firstName.trim() || !data.lastName.trim()) continue;
 
-        // Create Person entity (single source of truth for profile data)
-        const person = Person.create(
-          data.firstName.trim(),
-          data.lastName.trim(),
-          data.email || '',  // Email required
-          data.position,
-          data.department
-        );
+      // Create Person entity (single source of truth for profile data)
+      const person = Person.create(
+        data.firstName.trim(),
+        data.lastName.trim(),
+        data.email || '',  // Email required
+        data.position,
+        data.department
+      );
 
-        // Create Researcher entity (links to Person)
-        const researcher = Researcher.create(person.id);
+      // Create Researcher entity (links to Person)
+      const researcher = Researcher.create(person.id);
 
-        // Save Person first
-        await this.personRepository.save(person);
+      // Save Person first
+      await this.personRepository.save(person);
 
-        // Save Researcher
-        const row = ResearcherMapper.toRow(researcher);
-        await this.context.execute(`
-          INSERT OR IGNORE INTO researchers (
-            id, personId, active, createdAt
-          ) VALUES (?, ?, ?, ?)
-        `, [
-          row.id, row.personId, row.active, row.createdAt
-        ]);
+      // Save Researcher
+      const row = ResearcherMapper.toRow(researcher);
+      await this.context.execute(`
+        INSERT OR IGNORE INTO researchers (
+          id, personId, active, createdAt
+        ) VALUES (?, ?, ?, ?)
+      `, [
+        row.id, row.personId, row.active, row.createdAt
+      ]);
 
-        createdResearchers.push(researcher);
-      }
-    });
+      createdResearchers.push(researcher);
+    }
 
     return createdResearchers;
   }
@@ -552,67 +550,66 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
 
     let totalUpdated = 0;
 
-    await this.context.transaction(async () => {
-      for (const update of updates) {
-        // Fetch Researcher
-        const researcher = await this.findById(update.id);
-        if (!researcher) continue;
+    // Sequential updates (better-sqlite3 transactions require synchronous callbacks)
+    for (const update of updates) {
+      // Fetch Researcher
+      const researcher = await this.findById(update.id);
+      if (!researcher) continue;
 
-        // Fetch Person
-        const person = await this.personRepository.findById(researcher.personId);
-        if (!person) continue;
+      // Fetch Person
+      const person = await this.personRepository.findById(researcher.personId);
+      if (!person) continue;
 
-        let personUpdated = false;
-        let researcherUpdated = false;
+      let personUpdated = false;
+      let researcherUpdated = false;
 
-        // Update Person for profile fields
-        if (update.firstName !== undefined || update.lastName !== undefined ||
-            update.position !== undefined || update.department !== undefined) {
-          person.updateProfile(
-            update.firstName ?? person.firstName,
-            update.lastName ?? person.lastName,
-            update.position ?? person.position,
-            update.department ?? person.department
-          );
-          personUpdated = true;
-        }
+      // Update Person for profile fields
+      if (update.firstName !== undefined || update.lastName !== undefined ||
+          update.position !== undefined || update.department !== undefined) {
+        person.updateProfile(
+          update.firstName ?? person.firstName,
+          update.lastName ?? person.lastName,
+          update.position ?? person.position,
+          update.department ?? person.department
+        );
+        personUpdated = true;
+      }
 
-        // Update email separately if provided
-        if (update.email !== undefined) {
-          person.updateEmail(update.email);
-          personUpdated = true;
-        }
+      // Update email separately if provided
+      if (update.email !== undefined) {
+        person.updateEmail(update.email);
+        personUpdated = true;
+      }
 
-        // Save Person if modified
-        if (personUpdated) {
-          await this.personRepository.save(person);
-        }
+      // Save Person if modified
+      if (personUpdated) {
+        await this.personRepository.save(person);
+      }
 
-        // Update Researcher for active status
-        if (update.active !== undefined) {
-          if (update.active && !researcher.active) {
-            researcher.activate();
-            researcherUpdated = true;
-          } else if (!update.active && researcher.active) {
-            researcher.deactivate();
-            researcherUpdated = true;
-          }
-        }
-
-        // Save Researcher if modified
-        if (researcherUpdated) {
-          const row = ResearcherMapper.toRow(researcher);
-          await this.context.execute(
-            `UPDATE researchers SET active = ? WHERE id = ?`,
-            [row.active, row.id]
-          );
-        }
-
-        if (personUpdated || researcherUpdated) {
-          totalUpdated++;
+      // Update Researcher for active status
+      if (update.active !== undefined) {
+        if (update.active && !researcher.active) {
+          researcher.activate();
+          researcherUpdated = true;
+        } else if (!update.active && researcher.active) {
+          researcher.deactivate();
+          researcherUpdated = true;
         }
       }
-    });
+
+      // Save Researcher if modified
+      if (researcherUpdated) {
+        const row = ResearcherMapper.toRow(researcher);
+        await this.context.execute(
+          `UPDATE researchers SET active = ? WHERE id = ?`,
+          [row.active, row.id]
+        );
+      }
+
+      if (personUpdated || researcherUpdated) {
+        totalUpdated++;
+      }
+    }
 
     return totalUpdated;
   }

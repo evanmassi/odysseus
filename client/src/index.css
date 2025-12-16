@@ -1,5 +1,8 @@
 /* Odysseus App - Main Stylesheet Entry Point */
 
+/* Fonts - Self-hosted for offline availability */
+@import './shared/styles/fonts/fonts.css';
+
 /* Base Layer - Foundation */
 @import './shared/styles/base/tailwind.css';
 @import './shared/styles/base/variables.css';

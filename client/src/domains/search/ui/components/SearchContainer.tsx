@@ -115,7 +115,7 @@ export function SearchContainer(_props: SearchContainerProps) {
             <div className="absolute right-1 top-1 flex items-center space-x-1">
               {/* Keyboard shortcut hint - only show when empty */}
               {!query && (
-                <span className="text-[10px] text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded">
+                <span className="text-xs text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded">
                   Ctrl+F
                 </span>
               )}

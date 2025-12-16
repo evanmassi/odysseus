@@ -59,7 +59,7 @@
 
   /* Modern search input - background tint, no border until focus */
   .input-search {
-    @apply flex h-8 w-full rounded-lg px-2 py-1 text-xs;
+    @apply flex h-8 w-full rounded-lg px-2 py-1 text-sm;
     @apply bg-slate-100 border border-transparent;
     @apply placeholder:text-slate-400;
     @apply disabled:cursor-not-allowed disabled:opacity-50;

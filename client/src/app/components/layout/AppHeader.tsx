@@ -211,8 +211,8 @@ export function AppHeader({
                 <>
                   {/* Selection count - only show when more than 1 selected */}
                   {selectedPositions.size > 1 && (
-                    <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full mr-2">
-                      <TestTube className="w-3 h-3" />
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full mr-2">
+                      <TestTube className="w-3.5 h-3.5" />
                       {selectedPositions.size} selected
                     </span>
                   )}
@@ -275,23 +275,7 @@ export function AppHeader({
                         </>
                       )}
 
-                      {/* Section 3: Remove */}
-                      {selectionAnalysis.hasFilled && (
-                        <>
-                          <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
-                          <Tooltip content="Remove selected tube(s)" side="bottom">
-                            <button
-                              onClick={gridController.delete}
-                              className="btn-header-ghost-danger"
-                            >
-                              <Trash2 className="w-3 h-3 mr-1" />
-                              Remove
-                            </button>
-                          </Tooltip>
-                        </>
-                      )}
-
-                      {/* Section 4: Lock, Unlock, Share */}
+                      {/* Section 3: Lock, Unlock, Share */}
                       {selectionAnalysis.hasFilled &&
                         ((gridController.selection.lockableCount ?? 0) > 0 ||
                           (gridController.selection.unlockableCount ?? 0) > 0 ||
@@ -339,6 +323,22 @@ export function AppHeader({
                               )}
                           </>
                         )}
+
+                      {/* Section 4: Remove */}
+                      {selectionAnalysis.hasFilled && (
+                        <>
+                          <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
+                          <Tooltip content="Remove selected tube(s)" side="bottom">
+                            <button
+                              onClick={gridController.delete}
+                              className="btn-header-ghost-danger"
+                            >
+                              <Trash2 className="w-3 h-3 mr-1" />
+                              Remove
+                            </button>
+                          </Tooltip>
+                        </>
+                      )}
                     </>
                   )}
 

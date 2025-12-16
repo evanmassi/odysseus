@@ -193,8 +193,8 @@ export class NetworkMonitor {
    */
   private async pingServer(): Promise<boolean> {
     try {
-      // Use a lightweight endpoint or health check
-      const response = await fetch('/api/public/health', {
+      // Use absolute URL for Electron compatibility (file:// protocol breaks relative paths)
+      const response = await fetch('http://localhost:3001/api/public/health', {
         method: 'GET',
         cache: 'no-cache',
         signal: AbortSignal.timeout(5000), // 5 second timeout
