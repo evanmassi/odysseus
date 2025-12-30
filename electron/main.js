@@ -3,6 +3,9 @@ const path = require('path');
 const SecretManager = require('./SecretManager');
 const isDev = process.env.NODE_ENV === 'development';
 
+// Set AppUserModelId for proper Windows taskbar icon
+app.setAppUserModelId('com.xcellbio.odysseus');
+
 let mainWindow;
 let serverCleanup = null;
 let secretManager = null;
@@ -27,7 +30,7 @@ function createWindow() {
       enableRemoteModule: false,
       webSecurity: true
     },
-    icon: path.join(__dirname, '../assets/icons/icon.png')
+    icon: path.join(__dirname, '../assets/icons/icon.ico')
   });
 
   // Start the backend server

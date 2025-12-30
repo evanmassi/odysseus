@@ -11,8 +11,8 @@ import React, { useState } from 'react';
 
 import { Copy, Check, Info } from 'lucide-react';
 
-import odysseusLogo from '@shared/assets/odysseus-logo-altered.svg';
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
+import odysseusLogo from '@shared/assets/odysseus-logo-thick-altered.svg';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 
 export interface RegistrationSuccessModalProps {

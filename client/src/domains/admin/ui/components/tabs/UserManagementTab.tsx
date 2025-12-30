@@ -376,10 +376,10 @@ export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTa
 
       {/* Pending Approvals Section */}
       {pendingUsers.length > 0 && (
-        <div className="alert-warning p-2">
-          <div className="flex items-center space-x-1.5 mb-2">
-            <Clock size={14} className="alert-warning-icon" />
-            <h4 className="text-xs font-semibold alert-warning-heading">
+        <div className="bg-amber-50 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-3">
+            <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
+            <h4 className="text-sm font-semibold text-amber-700">
               Pending Approvals ({pendingUsers.length})
             </h4>
           </div>
@@ -388,11 +388,11 @@ export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTa
             {pendingUsers.map(user => (
               <div
                 key={user.id}
-                className="bg-white border border-warning-border rounded-lg p-2 flex items-center justify-between"
+                className="bg-white/70 rounded-md p-2.5 flex items-center justify-between"
               >
-                <div className="flex items-center space-x-2">
-                  <div className="w-6 h-6 rounded-full bg-warning-light flex items-center justify-center">
-                    <UserRound size={14} className="alert-warning-icon" />
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
+                    <UserRound size={14} className="text-amber-600" />
                   </div>
                   <div>
                     <div className="text-sm font-medium text-gray-900">{user.username}</div>
@@ -402,7 +402,7 @@ export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTa
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-1.5">
+                <div className="flex items-center gap-1.5">
                   <button
                     onClick={() => approveUser(user.id, user.username)}
                     disabled={processingApproval === user.id}
