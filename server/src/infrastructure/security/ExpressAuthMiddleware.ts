@@ -1,14 +1,13 @@
 /**
  * Express Auth Middleware
- * 
+ *
  * Express-specific implementation of authentication middleware.
- * Uses CQRS pattern for user validation and session management.
+ * Uses SessionService for session validation with timeout enforcement.
  */
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { SessionService } from '@application/commands/UserCommands';
-import { User } from '@domain/entities/User';
 import { logger } from '@utils/logger';
 
 export class ExpressAuthMiddleware implements AuthMiddleware {
@@ -38,23 +37,24 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
 
         const token = authHeader.substring(7); // Remove 'Bearer '
 
-        let validationResult = null;
+        // Use validateSessionWithActivity with updateActivity: true (default)
+        // This updates lastUsedAt for real user activity
+        const result = await this.sessionService.validateSessionWithActivity(token);
 
-        try {
-          validationResult = await this.sessionService.validateSession(token);
-        } catch (validateError) {
-          logger.error('Session validation error', {
-            error: validateError instanceof Error ? validateError.message : 'Unknown error',
-            path: req.path
-          });
-        }
+        if (!result.success) {
+          // Map error codes to appropriate HTTP responses
+          const errorMessages: Record<string, string> = {
+            INVALID_TOKEN: 'Invalid or expired token',
+            SESSION_REVOKED: 'Session has been revoked',
+            SESSION_IDLE_TIMEOUT: 'Session timed out due to inactivity',
+            SESSION_ABSOLUTE_TIMEOUT: 'Session expired - please log in again'
+          };
 
-        if (!validationResult) {
           res.status(401).json({
             success: false,
             error: {
-              code: 'INVALID_SESSION',
-              message: 'Invalid or expired session'
+              code: result.code,
+              message: errorMessages[result.code] || 'Authentication failed'
             },
             meta: {
               timestamp: new Date().toISOString(),
@@ -65,14 +65,14 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
         }
 
         // Add user and sessionId to request context
-        req.user = validationResult.user;
-        req.sessionId = validationResult.sessionId;
+        req.user = result.user;
+        req.sessionId = result.sessionId;
 
         logger.debug('User authenticated successfully', {
-          userId: validationResult.user.id,
-          username: validationResult.user.username,
-          role: validationResult.user.role.value,
-          sessionId: validationResult.sessionId,
+          userId: result.user.id,
+          username: result.user.username,
+          role: result.user.role.value,
+          sessionId: result.sessionId,
           path: req.path
         });
 

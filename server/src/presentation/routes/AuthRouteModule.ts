@@ -45,8 +45,13 @@ export class AuthRouteModule implements RouteModule {
       this.authController.getCurrentUser.bind(this.authController)
     );
 
-    router.post('/logout', 
+    router.post('/logout',
       this.authController.logout.bind(this.authController)
+    );
+
+    // Session heartbeat - extends session by recording activity
+    router.post('/heartbeat',
+      this.authController.heartbeat.bind(this.authController)
     );
 
     // Password management

@@ -12,6 +12,7 @@ import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
 import { useUserSettingsQuery } from '@domains/authentication/hooks/useUserSettings';
 import { ResetPasswordPage } from '@domains/authentication/ui/components/ResetPasswordPage';
+import { SessionTimeoutWarningModal } from '@domains/authentication/ui/components/SessionTimeoutWarningModal';
 import { VerifyEmailPage } from '@domains/authentication/ui/components/VerifyEmailPage';
 import { useTubeStore } from '@domains/tubes';
 // Import app-layer components (moved from @shared)
@@ -92,6 +93,9 @@ function AppContent() {
         {/* UI overlays and notifications */}
         <ErrorBanner errors={errors} onClear={clearErrors} />
         <ConnectionIndicator connected={isConnected} />
+
+        {/* Session timeout warning - only relevant when authenticated */}
+        {isAuthenticated && <SessionTimeoutWarningModal />}
       </AppErrorBoundary>
     </BootstrapProvider>
   );

@@ -485,10 +485,30 @@ export interface SessionValidationResult {
   sessionId: string;
 }
 
+/**
+ * Session validation outcome with explicit error codes
+ * Discriminated union for type-safe error handling in middleware
+ */
+export type SessionValidationOutcome =
+  | { success: true; user: User; sessionId: string }
+  | { success: false; code: 'INVALID_TOKEN' | 'SESSION_REVOKED' | 'SESSION_IDLE_TIMEOUT' | 'SESSION_ABSOLUTE_TIMEOUT' };
+
 export interface SessionService {
   // OAuth 2.0 dual token support (pure implementation)
   validateSession(token: string): Promise<SessionValidationResult | null>;
   revokeSession(token: string): Promise<void>;
   createTokenPair(user: User, userAgent?: string, ipAddress?: string, deviceInfo?: string): Promise<any>; // EnhancedLoginResponse
   refreshAccessToken(refreshToken: string): Promise<any>; // RefreshTokenResponse
+
+  /**
+   * Validate session with full timeout checks and optional activity update
+   * Used by auth middleware for enforcing idle and absolute timeouts
+   *
+   * @param token - JWT access token
+   * @param options.updateActivity - Whether to update lastUsedAt (default: true)
+   */
+  validateSessionWithActivity(
+    token: string,
+    options?: { updateActivity?: boolean }
+  ): Promise<SessionValidationOutcome>;
 }

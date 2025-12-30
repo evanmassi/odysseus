@@ -28,6 +28,7 @@ export interface TokenPair {
   refreshTokenExpiry: Date; // When refresh token expires
   tokenType: 'Bearer'; // OAuth 2.0 Bearer token type
   sessionTimeoutMinutes?: number; // Idle timeout duration (from SecurityConfig)
+  idleWarningMinutes?: number; // Warning before idle timeout (from SecurityConfig)
 }
 
 /**

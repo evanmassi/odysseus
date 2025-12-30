@@ -576,6 +576,7 @@ export class ServiceContainer {
         this.repositoryFactory.getConfigurationRepository(),
         this.repositoryFactory.getResearcherRepository(),
         this.repositoryFactory.getPersonRepository(),
+        this.repositoryFactory.getUserSessionRepository(),
 
         // Event Bus
         this.getEventBus()

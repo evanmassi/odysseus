@@ -7,6 +7,7 @@ import {
   paginatedEnvelopeSchema,
   batchEnvelopeSchema,
   ApiError,
+  API_ERROR_CODES,
   type PaginatedResult,
   type BatchResult,
 } from '@odysseus/shared-schemas';
@@ -15,6 +16,16 @@ import { z } from 'zod';
 import { transformApiResponse, ResponseTransformers } from './responseTransformers';
 
 import type { TokenProvider } from '@shared/session/types';
+
+/**
+ * Session-related error codes that should not trigger token refresh retry.
+ * These indicate the session is invalidated server-side and requires re-login.
+ */
+const SESSION_TERMINAL_ERRORS: Set<string> = new Set([
+  API_ERROR_CODES.SESSION_IDLE_TIMEOUT,
+  API_ERROR_CODES.SESSION_ABSOLUTE_TIMEOUT,
+  API_ERROR_CODES.SESSION_REVOKED,
+]);
 
 export interface HttpClientConfig {
   baseURL?: string;
@@ -348,6 +359,13 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
     } catch (error) {
       // Handle 401 Unauthorized - token may have expired between validation checks
       if (error instanceof ApiError && error.status === 401) {
+        // Check for terminal session errors - do NOT retry, session is invalidated
+        if (error.code && SESSION_TERMINAL_ERRORS.has(error.code)) {
+          // Session is terminated server-side - let error propagate
+          // SessionManager will handle clearing state via polling
+          throw error;
+        }
+
         // Attempt to refresh token and retry the request once
         const newToken = await sessionManager.getValidAccessToken();
 
@@ -395,6 +413,13 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
     } catch (error) {
       // Handle 401 Unauthorized - token may have expired between validation checks
       if (error instanceof ApiError && error.status === 401) {
+        // Check for terminal session errors - do NOT retry, session is invalidated
+        if (error.code && SESSION_TERMINAL_ERRORS.has(error.code)) {
+          // Session is terminated server-side - let error propagate
+          // SessionManager will handle clearing state via polling
+          throw error;
+        }
+
         // Attempt to refresh token and retry the request once
         const newToken = await sessionManager.getValidAccessToken();
 

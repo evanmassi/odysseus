@@ -1,12 +1,13 @@
 /**
  * Session Manager
  *
- * Session management with automatic token refresh and proactive token renewal.
+ * Session management with automatic token refresh and server-side session monitoring.
  *
  * Responsibilities:
  * - Automatic access token refresh before expiry
  * - Session state management and validation
  * - Token storage and retrieval
+ * - Server-side session info polling (idle timeout warning)
  * - Graceful error handling and retry logic
  * - Session cleanup and logout
  */
@@ -28,16 +29,60 @@ import type {
 } from '@shared/session/types';
 
 /**
+ * Session info response data from server
+ */
+interface SessionInfoData {
+  isAuthenticated: boolean;
+  reason?: string;
+  timeUntilIdleTimeoutMs?: number;
+  showWarning?: boolean;
+  idleWarningMinutes?: number;
+}
+
+/**
+ * API response envelope for session info
+ */
+interface SessionInfoApiResponse {
+  success: boolean;
+  data: SessionInfoData;
+}
+
+/**
+ * API response envelope for heartbeat
+ */
+interface HeartbeatApiResponse {
+  success: boolean;
+  data: {
+    success: boolean;
+    message: string;
+  };
+}
+
+/**
+ * Callback interface for session warning UI
+ */
+interface SessionWarningCallbacks {
+  showWarning: (config: {
+    timeRemainingMs: number;
+    onStayLoggedIn: () => void;
+    onLogout: (reason: 'manual' | 'timeout') => void;
+  }) => void;
+  updateWarning: (timeRemainingMs: number) => void;
+  hideWarning: () => void;
+}
+
+/**
  * Session Manager - OAuth 2.0 Session Lifecycle Management
  *
  * ARCHITECTURE:
  * - Persistent State: Tokens stored via SessionStorage (localStorage)
- * - Ephemeral State: Activity tracking, refresh timers (in-memory only)
+ * - Ephemeral State: Refresh timers, polling intervals (in-memory only)
  *
- * Activity Tracking:
- * - lastActivityTime: Resets to current time on app load
- * - Idle timeout only applies during active session
- * - Does NOT persist across app restarts (prevents false "Session Timed Out")
+ * Session Monitoring:
+ * - Server-side idle timeout enforcement (server tracks lastUsedAt)
+ * - Client polls /session-info to detect warning threshold
+ * - Warning modal shown when timeUntilIdleTimeoutMs <= idleWarningMinutes
+ * - Heartbeat endpoint extends session when user clicks "Stay Logged In"
  *
  * Token Management:
  * - Access token: Short-lived, auto-refreshes
@@ -53,25 +98,21 @@ export class SessionManager implements TokenProvider {
 
   private refreshTimer: NodeJS.Timeout | null = null;
   private refreshPromise: Promise<boolean> | null = null;
-  private inactivityCheckInterval: NodeJS.Timeout | null = null;
+  private sessionInfoPollingInterval: NodeJS.Timeout | null = null;
   private config: SessionConfig;
   private onSessionExpired?: (reason: 'idle_timeout' | 'token_expired' | 'manual_logout') => void;
-
-  /**
-   * Ephemeral session state (resets on app restart)
-   *
-   * Activity tracking is session-scoped, not persisted to localStorage.
-   * This prevents false "Session Timed Out" notifications on app load.
-   */
-  private lastActivityTime: Date = new Date();
+  private warningCallbacks?: SessionWarningCallbacks;
+  private isWarningShown: boolean = false;
 
   constructor(
     private authHttpClient: AuthHttpClient,
     private storage: SessionStorage,
     onSessionExpired?: (reason: 'idle_timeout' | 'token_expired' | 'manual_logout') => void,
-    config?: Partial<SessionConfig>
+    config?: Partial<SessionConfig>,
+    warningCallbacks?: SessionWarningCallbacks
   ) {
     this.onSessionExpired = onSessionExpired;
+    this.warningCallbacks = warningCallbacks;
     this.config = {
       refreshBufferMinutes: 5,
       maxRetries: 3,
@@ -79,16 +120,23 @@ export class SessionManager implements TokenProvider {
       ...config,
     };
 
-    // Start background inactivity checker (60 second intervals)
-    this.startInactivityChecker();
-
     // Restore token refresh schedule on page reload
     // When the app reloads, tokens are loaded from localStorage but the
     // refresh timer is not set. This ensures tokens refresh automatically.
     const existingTokens = this.storage.getTokens();
     if (existingTokens) {
       this.scheduleTokenRefresh(existingTokens.accessTokenExpiry);
+      // Start server-side session monitoring
+      this.startSessionInfoPolling();
     }
+  }
+
+  /**
+   * Set warning callbacks for session timeout UI
+   * Called after modalStore is initialized
+   */
+  setWarningCallbacks(callbacks: SessionWarningCallbacks): void {
+    this.warningCallbacks = callbacks;
   }
 
   /**
@@ -96,29 +144,15 @@ export class SessionManager implements TokenProvider {
    *
    * Single point of token management.
    * Automatically refreshes expired tokens, eliminating the need for HTTP 401 handlers.
-   * Enforces idle timeout based on SecurityConfig.
+   *
+   * NOTE: Idle timeout is now enforced server-side. The server checks lastUsedAt
+   * on each request and returns appropriate error codes.
    */
   async getValidAccessToken(): Promise<string | null> {
     const tokens = this.storage.getTokens();
     if (!tokens) {
       return null;
     }
-
-    // Check idle timeout if configured (using in-memory activity tracking)
-    if (tokens.sessionTimeoutMinutes) {
-      const idleTimeoutMs = tokens.sessionTimeoutMinutes * 60 * 1000;
-      const timeSinceLastActivity = Date.now() - this.lastActivityTime.getTime();
-
-      if (timeSinceLastActivity > idleTimeoutMs) {
-        // Session timed out due to inactivity
-        logger.info('Session timed out due to inactivity');
-        this.clearSession('idle_timeout');
-        return null;
-      }
-    }
-
-    // Update last activity time (this request counts as activity)
-    this.lastActivityTime = new Date();
 
     const validation = this.validateTokens(tokens);
 
@@ -288,8 +322,8 @@ export class SessionManager implements TokenProvider {
   setTokens(tokens: TokenPair): void {
     this.storage.setTokens(tokens);
     this.scheduleTokenRefresh(tokens.accessTokenExpiry);
-    // Reset activity time when new tokens are set (fresh session)
-    this.lastActivityTime = new Date();
+    // Start server-side session monitoring
+    this.startSessionInfoPolling();
   }
 
   /**
@@ -335,6 +369,18 @@ export class SessionManager implements TokenProvider {
       this.refreshTimer = null;
     }
 
+    // Stop session info polling
+    if (this.sessionInfoPollingInterval) {
+      clearInterval(this.sessionInfoPollingInterval);
+      this.sessionInfoPollingInterval = null;
+    }
+
+    // Hide warning modal if shown
+    if (this.isWarningShown) {
+      this.warningCallbacks?.hideWarning();
+      this.isWarningShown = false;
+    }
+
     // Clear token storage (user cleared by Zustand auth store)
     this.storage.clearTokens();
 
@@ -347,9 +393,6 @@ export class SessionManager implements TokenProvider {
     };
 
     this.refreshPromise = null;
-
-    // Reset activity time
-    this.lastActivityTime = new Date();
 
     // Notify consumer of session expiration
     this.onSessionExpired?.(reason);
@@ -370,28 +413,115 @@ export class SessionManager implements TokenProvider {
   }
 
   /**
-   * Start background inactivity checker
+   * Start background session info polling
    *
-   * Checks every 60 seconds if session has exceeded idle timeout.
+   * Polls server every 30 seconds to check session status.
+   * Shows warning modal when approaching idle timeout.
    */
-  private startInactivityChecker(): void {
-    // Check every 60 seconds
-    this.inactivityCheckInterval = setInterval(() => {
-      const tokens = this.storage.getTokens();
+  private startSessionInfoPolling(): void {
+    // Stop any existing polling
+    if (this.sessionInfoPollingInterval) {
+      clearInterval(this.sessionInfoPollingInterval);
+    }
 
-      if (!tokens?.sessionTimeoutMinutes) {
-        return; // No timeout configured
+    // Poll every 30 seconds
+    this.sessionInfoPollingInterval = setInterval(() => {
+      void this.pollSessionInfo();
+    }, 30000);
+
+    // Also poll immediately on start
+    void this.pollSessionInfo();
+  }
+
+  /**
+   * Poll server for session status
+   */
+  private async pollSessionInfo(): Promise<void> {
+    const tokens = this.storage.getTokens();
+    if (!tokens) {
+      return;
+    }
+
+    try {
+      const response = await this.authHttpClient.get<SessionInfoApiResponse>(
+        '/public/auth/session-info',
+        { Authorization: `Bearer ${tokens.accessToken}` }
+      );
+
+      if (!response.success) {
+        return;
       }
 
-      const idleTimeoutMs = tokens.sessionTimeoutMinutes * 60 * 1000;
-      const timeSinceLastActivity = Date.now() - this.lastActivityTime.getTime();
+      const data = response.data;
 
-      if (timeSinceLastActivity > idleTimeoutMs) {
-        // Session timed out - clear interval and logout
-        logger.info('Session timed out due to inactivity');
+      // Session no longer authenticated - server may have logged us out
+      if (!data.isAuthenticated) {
+        logger.info('Session no longer authenticated', { reason: data.reason });
         this.clearSession('idle_timeout');
+        return;
       }
-    }, 60000); // 60 seconds
+
+      // Check if warning should be shown
+      if (data.showWarning && data.timeUntilIdleTimeoutMs !== undefined) {
+        if (!this.isWarningShown && this.warningCallbacks) {
+          // Show warning modal
+          this.isWarningShown = true;
+          this.warningCallbacks.showWarning({
+            timeRemainingMs: data.timeUntilIdleTimeoutMs,
+            onStayLoggedIn: () => {
+              void this.sendHeartbeat();
+            },
+            onLogout: (reason: 'manual' | 'timeout') => {
+              // Map modal reason to session reason
+              const sessionReason = reason === 'timeout' ? 'idle_timeout' : 'manual_logout';
+              this.clearSession(sessionReason);
+            },
+          });
+        } else if (this.isWarningShown && this.warningCallbacks) {
+          // Update countdown
+          this.warningCallbacks.updateWarning(data.timeUntilIdleTimeoutMs);
+        }
+      } else if (this.isWarningShown) {
+        // Warning condition no longer met (session extended by other activity)
+        this.isWarningShown = false;
+        this.warningCallbacks?.hideWarning();
+      }
+    } catch (error) {
+      // Silently ignore polling errors - we'll retry on next interval
+      logger.debug('Session info polling error', { error });
+    }
+  }
+
+  /**
+   * Send heartbeat to extend session
+   * Called when user clicks "Stay Logged In"
+   */
+  async sendHeartbeat(): Promise<boolean> {
+    const tokens = this.storage.getTokens();
+    if (!tokens) {
+      return false;
+    }
+
+    try {
+      const response = await this.authHttpClient.post<HeartbeatApiResponse>(
+        '/auth/heartbeat',
+        {},
+        { Authorization: `Bearer ${tokens.accessToken}` }
+      );
+
+      if (response.success) {
+        // Hide warning modal
+        this.isWarningShown = false;
+        this.warningCallbacks?.hideWarning();
+        logger.info('Session extended via heartbeat');
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      logger.error('Failed to send heartbeat', { error });
+      return false;
+    }
   }
 
   /**
@@ -404,10 +534,16 @@ export class SessionManager implements TokenProvider {
       this.refreshTimer = null;
     }
 
-    // Clear inactivity checker
-    if (this.inactivityCheckInterval) {
-      clearInterval(this.inactivityCheckInterval);
-      this.inactivityCheckInterval = null;
+    // Clear session info polling
+    if (this.sessionInfoPollingInterval) {
+      clearInterval(this.sessionInfoPollingInterval);
+      this.sessionInfoPollingInterval = null;
+    }
+
+    // Hide warning modal if shown
+    if (this.isWarningShown) {
+      this.warningCallbacks?.hideWarning();
+      this.isWarningShown = false;
     }
 
     this.refreshPromise = null;

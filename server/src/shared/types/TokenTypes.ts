@@ -15,6 +15,7 @@ export interface TokenPair {
   tokenType: 'Bearer';      // OAuth 2.0 Bearer token type
   lastActivityTime: Date;   // Last user activity for idle timeout tracking
   sessionTimeoutMinutes?: number;  // Idle timeout duration (from SecurityConfig)
+  idleWarningMinutes?: number;     // Warning before idle timeout (from SecurityConfig)
 }
 
 /**

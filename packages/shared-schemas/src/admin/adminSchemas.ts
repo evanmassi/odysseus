@@ -22,6 +22,8 @@ export const securityConfigSchema = z.object({
 
   // Session Management
   sessionTimeoutMinutes: z.number().int().min(5).max(10080), // 5 min to 1 week
+  idleWarningMinutes: z.number().int().min(1).max(60).default(5), // Warning before idle timeout
+  absoluteSessionTimeoutHours: z.number().int().min(1).max(720).default(168), // Force re-login (max 30 days)
   maxConcurrentSessions: z.number().int().min(1).max(100),
 
   // Rate Limiting
@@ -49,6 +51,8 @@ export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
   passwordMinLength: 8,
   passwordRequireSpecialChars: false,
   sessionTimeoutMinutes: 480, // 8 hours
+  idleWarningMinutes: 5, // Show warning 5 minutes before idle timeout
+  absoluteSessionTimeoutHours: 168, // Force re-login after 7 days
   maxConcurrentSessions: 3,
   enableRateLimiting: false,
   loginAttemptsPerMinute: 10,

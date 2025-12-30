@@ -61,23 +61,29 @@ export class AuthHttpClient {
    *
    * @param path - API path (e.g., '/public/auth/login')
    * @param data - Request payload
+   * @param headers - Optional additional headers
    * @returns Promise with parsed JSON response
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client, accepts any request body
-  async post<T = any>(path: string, data: any): Promise<T> {
+  async post<T = any>(path: string, data: any, headers?: Record<string, string>): Promise<T> {
     return this.request<T>(path, {
       method: 'POST',
       body: JSON.stringify(data),
+      headers,
     });
   }
 
   /**
    * GET request for authentication endpoints (if needed)
+   *
+   * @param path - API path
+   * @param headers - Optional additional headers (e.g., Authorization for session-info)
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client response type
-  async get<T = any>(path: string): Promise<T> {
+  async get<T = any>(path: string, headers?: Record<string, string>): Promise<T> {
     return this.request<T>(path, {
       method: 'GET',
+      headers,
     });
   }
 

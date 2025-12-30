@@ -105,6 +105,13 @@ export class PublicRouteModule implements RouteModule {
       this.authController.resetPasswordWithToken.bind(this.authController)
     );
 
+    // Session info for idle timeout warning
+    // PUBLIC ENDPOINT - handles own auth with updateActivity: false
+    // This prevents polling from extending the session (which would defeat idle timeout)
+    router.get('/auth/session-info',
+      this.authController.getSessionInfo.bind(this.authController)
+    );
+
     // Health check (moved from main routes)
     router.get('/health', async (req, res) => {
       res.json({

@@ -13,6 +13,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { SessionManager, LocalStorageSessionStorage } from '@app/services/SessionManager';
+import { modalStore } from '@app/stores/modalStore';
 import { authHttpClient } from '@infra/api/AuthHttpClient';
 import { configureHttpClientWithSessionManager } from '@infra/api/httpClient';
 import { env } from '@shared/config';
@@ -86,10 +87,27 @@ const sessionStorage = new LocalStorageSessionStorage();
 
 // Create session manager with callback for session expiration
 // Callback pattern: SessionManager notifies auth store when session expires
-const sessionManager = new SessionManager(authHttpClient, sessionStorage, reason => {
-  // When session expires, clear auth store and trigger UI update
-  useAuthStore.getState().clearAuth(reason);
-});
+const sessionManager = new SessionManager(
+  authHttpClient,
+  sessionStorage,
+  reason => {
+    // When session expires, clear auth store and trigger UI update
+    useAuthStore.getState().clearAuth(reason);
+  },
+  undefined, // Use default config
+  // Warning callbacks - wire up to modal store
+  {
+    showWarning: config => {
+      modalStore.getState().showSessionTimeoutWarning(config);
+    },
+    updateWarning: timeRemainingMs => {
+      modalStore.getState().updateSessionTimeoutWarning(timeRemainingMs);
+    },
+    hideWarning: () => {
+      modalStore.getState().hideSessionTimeoutWarning();
+    },
+  }
+);
 
 // Configure httpClient to use SessionManager for automatic token handling
 configureHttpClientWithSessionManager(sessionManager);

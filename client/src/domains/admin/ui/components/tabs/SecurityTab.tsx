@@ -140,22 +140,65 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
       <div>
         <h4 className="text-base font-semibold text-gray-900 mb-2">Session Management</h4>
         <div className="space-y-1.5">
-          {/* Session Timeout Input */}
+          {/* Idle Timeout & Warning - Combined Row */}
+          <div className="grid grid-cols-2 gap-1.5">
+            {/* Idle Timeout Input */}
+            <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+              <div>
+                <h5 className="text-sm font-medium text-gray-900">Idle Timeout</h5>
+                <p className="text-xs text-gray-600">Auto-logout after inactivity</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <input
+                  type="number"
+                  min="5"
+                  max="10080"
+                  value={config.sessionTimeoutMinutes}
+                  onChange={e => onChange('sessionTimeoutMinutes', parseInt(e.target.value))}
+                  className="input w-16 text-xs h-6 py-0 px-2"
+                />
+                <p className="text-[10px] text-gray-500 mt-0.5">(5-10080 min)</p>
+              </div>
+            </div>
+
+            {/* Idle Warning Input */}
+            <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+              <div>
+                <h5 className="text-sm font-medium text-gray-900">Idle Warning</h5>
+                <p className="text-xs text-gray-600">Show warning before timeout</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <input
+                  type="number"
+                  min="1"
+                  max="60"
+                  value={config.idleWarningMinutes}
+                  onChange={e => onChange('idleWarningMinutes', parseInt(e.target.value))}
+                  className="input w-16 text-xs h-6 py-0 px-2"
+                />
+                <p className="text-[10px] text-gray-500 mt-0.5">(1-60 min)</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Absolute Session Timeout Input */}
           <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Session Timeout</h5>
-              <p className="text-xs text-gray-600">Auto-logout after inactivity</p>
+              <h5 className="text-sm font-medium text-gray-900">Absolute Session Timeout</h5>
+              <p className="text-xs text-gray-600">
+                Force re-login regardless of activity (max session lifetime)
+              </p>
             </div>
             <div className="flex flex-col items-center">
               <input
                 type="number"
-                min="5"
-                max="1440"
-                value={config.sessionTimeoutMinutes}
-                onChange={e => onChange('sessionTimeoutMinutes', parseInt(e.target.value))}
+                min="1"
+                max="720"
+                value={config.absoluteSessionTimeoutHours}
+                onChange={e => onChange('absoluteSessionTimeoutHours', parseInt(e.target.value))}
                 className="input w-16 text-xs h-6 py-0 px-2"
               />
-              <p className="text-[10px] text-gray-500 mt-0.5">(5-1440 minutes)</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">(1-720 hours)</p>
             </div>
           </div>
         </div>

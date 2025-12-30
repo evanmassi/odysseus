@@ -10,7 +10,7 @@ import { randomUUID, randomBytes } from 'crypto';
 import { User } from '@domain/entities/User';
 import { RefreshToken } from '@domain/entities/RefreshToken';
 import { UserSession } from '@domain/entities/UserSession';
-import { SessionService, SessionValidationResult } from '@application/commands/UserCommands';
+import { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/commands/UserCommands';
 import { ConfigurationService } from '@infrastructure/configuration/ConfigurationService';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
@@ -24,6 +24,7 @@ import {
   RefreshTokenResponse,
   TokenConfiguration
 } from '@shared/types/TokenTypes';
+import type { SecurityConfig } from '@odysseus/shared-schemas';
 
 export interface JwtSessionConfig {
   secret: string;
@@ -48,6 +49,11 @@ export class JwtSessionService implements SessionService {
   private readonly config: JwtSessionConfig;
   private readonly instanceId: string;
 
+  // SecurityConfig caching (60s TTL to reduce DB hits)
+  private securityConfigCache: SecurityConfig | null = null;
+  private securityConfigCacheTime: number = 0;
+  private readonly CACHE_TTL_MS = 60000; // 60 seconds
+
   constructor(
     configurationService: ConfigurationService,
     private readonly userRepository: UserRepository,
@@ -65,6 +71,21 @@ export class JwtSessionService implements SessionService {
       audience: jwtConfig.audience,
       algorithm: jwtConfig.algorithm as jwt.Algorithm
     };
+  }
+
+  /**
+   * Get cached security configuration (60s TTL)
+   * Reduces database hits for frequently accessed security settings
+   */
+  private async getCachedSecurityConfig(): Promise<SecurityConfig> {
+    const now = Date.now();
+    if (this.securityConfigCache && (now - this.securityConfigCacheTime) < this.CACHE_TTL_MS) {
+      return this.securityConfigCache;
+    }
+
+    this.securityConfigCache = await this.configurationRepository.getSecurityConfig();
+    this.securityConfigCacheTime = now;
+    return this.securityConfigCache;
   }
 
   /**
@@ -189,20 +210,88 @@ export class JwtSessionService implements SessionService {
     }
   }
 
+  /**
+   * Validate session with full timeout checks and optional activity update
+   *
+   * @param token - JWT access token
+   * @param options.updateActivity - Whether to update lastUsedAt (default: true)
+   *   - true: Normal requests (user doing real work)
+   *   - false: Status checks like /session-info (polling shouldn't extend session)
+   */
+  async validateSessionWithActivity(
+    token: string,
+    options: { updateActivity?: boolean } = {}
+  ): Promise<SessionValidationOutcome> {
+    const { updateActivity = true } = options;
+
+    // 1. Validate JWT (existing logic)
+    const jwtResult = await this.validateSession(token);
+    if (!jwtResult) {
+      return { success: false, code: 'INVALID_TOKEN' };
+    }
+
+    // 2. Fetch session from database
+    const session = await this.userSessionRepository.findById(jwtResult.sessionId);
+    if (!session || !session.isActive) {
+      return { success: false, code: 'SESSION_REVOKED' };
+    }
+
+    // 3. Get cached security config
+    const config = await this.getCachedSecurityConfig();
+
+    // 4. Check absolute timeout (session age from creation)
+    const absoluteTimeoutMs = config.absoluteSessionTimeoutHours * 60 * 60 * 1000;
+    if (Date.now() - session.createdAt.getTime() > absoluteTimeoutMs) {
+      await this.userSessionRepository.revokeSession(session.id);
+      return { success: false, code: 'SESSION_ABSOLUTE_TIMEOUT' };
+    }
+
+    // 5. Check idle timeout (time since last activity)
+    const idleTimeoutMs = config.sessionTimeoutMinutes * 60 * 1000;
+    if (Date.now() - session.lastUsedAt.getTime() > idleTimeoutMs) {
+      await this.userSessionRepository.revokeSession(session.id);
+      return { success: false, code: 'SESSION_IDLE_TIMEOUT' };
+    }
+
+    // 6. Update lastUsedAt ONLY if this is real activity (not a status check)
+    if (updateActivity) {
+      await this.userSessionRepository.updateLastUsed(session.id, new Date());
+    }
+
+    return {
+      success: true,
+      user: jwtResult.user,
+      sessionId: jwtResult.sessionId
+    };
+  }
+
+  /**
+   * Revoke session and associated refresh token
+   */
   async revokeSession(token: string): Promise<void> {
-    // For JWT tokens, revocation typically involves:
-    // 1. Adding the token to a blacklist/revocation store
-    // 2. Or, tracking session IDs in database for validation
-    // 
-    // For simplicity in this implementation, we'll leave this as a placeholder
-    // In production, you'd implement proper token revocation:
-    
     try {
       const decoded = jwt.verify(token, this.config.secret) as SessionPayload;
-      // TODO: Add token/session to revocation store
-      console.log(`Session ${decoded.sessionId} revoked`);
+
+      // Fetch session FIRST to get refreshToken before revoking
+      const session = await this.userSessionRepository.findById(decoded.sessionId);
+      const refreshTokenValue = session?.refreshToken;
+
+      // Revoke session in database
+      await this.userSessionRepository.revokeSession(decoded.sessionId);
+
+      // Revoke associated refresh token (using value we fetched before revoke)
+      if (refreshTokenValue) {
+        const refreshToken = await this.refreshTokenRepository.findByToken(refreshTokenValue);
+        if (refreshToken) {
+          refreshToken.revoke();
+          await this.refreshTokenRepository.save(refreshToken);
+        }
+      }
+
+      console.log(`[${this.instanceId}] Session ${decoded.sessionId} revoked`);
     } catch (error) {
-      // Token already invalid, nothing to revoke
+      // Token already invalid or session not found
+      console.warn(`[${this.instanceId}] Could not revoke session:`, error);
     }
   }
 
@@ -290,8 +379,8 @@ export class JwtSessionService implements SessionService {
     // Token expiry times (configurable from admin settings)
     const accessTokenExpiry = new Date(Date.now() + accessTokenExpiryMs);
 
-    // Get security config for session timeout
-    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    // Get cached security config for session timeout settings
+    const securityConfig = await this.getCachedSecurityConfig();
 
     const tokenPair: TokenPair = {
       accessToken,
@@ -300,7 +389,8 @@ export class JwtSessionService implements SessionService {
       refreshTokenExpiry,
       tokenType: 'Bearer',
       lastActivityTime: new Date(),
-      sessionTimeoutMinutes: securityConfig.sessionTimeoutMinutes
+      sessionTimeoutMinutes: securityConfig.sessionTimeoutMinutes,
+      idleWarningMinutes: securityConfig.idleWarningMinutes
     };
 
     return {

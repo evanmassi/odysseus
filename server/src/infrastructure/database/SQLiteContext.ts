@@ -463,6 +463,8 @@ export class SQLiteContext {
         passwordMinLength INTEGER NOT NULL DEFAULT 8,
         passwordRequireSpecialChars INTEGER NOT NULL DEFAULT 0 CHECK (passwordRequireSpecialChars IN (0, 1)),
         sessionTimeoutMinutes INTEGER NOT NULL DEFAULT 480,
+        idleWarningMinutes INTEGER NOT NULL DEFAULT 5,
+        absoluteSessionTimeoutHours INTEGER NOT NULL DEFAULT 168,
         maxConcurrentSessions INTEGER NOT NULL DEFAULT 3,
         enableRateLimiting INTEGER NOT NULL DEFAULT 1 CHECK (enableRateLimiting IN (0, 1)),
         loginAttemptsPerMinute INTEGER NOT NULL DEFAULT 10,

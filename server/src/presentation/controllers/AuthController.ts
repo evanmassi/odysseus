@@ -13,7 +13,7 @@ import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
 
 // CQRS Commands
-import { CreateUserCommand, CreateUserCommandHandler } from '@application/commands/UserCommands';
+import { SessionService, CreateUserCommand, CreateUserCommandHandler } from '@application/commands/UserCommands';
 import { LoginCommand, LoginCommandHandler } from '@application/commands/UserCommands';
 import { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
 import { ChangeUserRoleCommand, ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
@@ -28,10 +28,10 @@ import { GetAllUsersQuery, GetAllUsersQueryHandler } from '@application/queries/
 import { GetUserStatisticsQuery, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
 
 import { UserRole } from '@domain/valueObjects/UserRole';
-import { SessionService } from '@application/commands/UserCommands';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
+import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -68,6 +68,7 @@ export class AuthController {
     private configRepository: ConfigurationRepository,
     private researcherRepository: ResearcherRepository,
     private personRepository: PersonRepository,
+    private userSessionRepository: UserSessionRepository,
 
     // Event bus
     private eventBus: EventBus
@@ -354,6 +355,119 @@ export class AuthController {
       const response = ResponseBuilder.success({ message: 'Logged out successfully' });
       res.status(200).json(response);
     } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Heartbeat - extend session by recording activity
+   * POST /api/auth/heartbeat
+   *
+   * Called by client when user clicks "Stay Logged In" on warning modal.
+   * Goes through auth middleware which updates lastUsedAt via validateSessionWithActivity.
+   */
+  async heartbeat(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user;
+      if (!user) {
+        return next(new Error('User not found in request context'));
+      }
+
+      logger.debug('Session heartbeat received', {
+        userId: user.id,
+        username: user.username,
+        sessionId: req.sessionId
+      });
+
+      const response = ResponseBuilder.success({
+        success: true,
+        message: 'Session extended'
+      });
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get session info for idle timeout warning
+   * GET /api/public/auth/session-info
+   *
+   * PUBLIC ENDPOINT - handles its own validation with updateActivity: false
+   * This prevents polling from extending the session (which would defeat idle timeout).
+   *
+   * Returns:
+   * - isAuthenticated: Whether session is valid
+   * - timeUntilIdleTimeoutMs: Milliseconds until idle timeout
+   * - timeUntilAbsoluteTimeoutMs: Milliseconds until absolute timeout
+   * - showWarning: Whether to show the warning modal
+   */
+  async getSessionInfo(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const authHeader = req.headers.authorization;
+
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        res.status(200).json({
+          success: true,
+          data: {
+            isAuthenticated: false
+          }
+        });
+        return;
+      }
+
+      const token = authHeader.substring(7);
+
+      // Validate WITHOUT updating activity (this is just a status check)
+      const result = await this.sessionService.validateSessionWithActivity(token, { updateActivity: false });
+
+      if (!result.success) {
+        res.status(200).json({
+          success: true,
+          data: {
+            isAuthenticated: false,
+            reason: result.code
+          }
+        });
+        return;
+      }
+
+      // Get session and security config for timing info
+      const session = await this.userSessionRepository.findById(result.sessionId);
+      const config = await this.configRepository.getSecurityConfig();
+
+      if (!session) {
+        res.status(200).json({
+          success: true,
+          data: {
+            isAuthenticated: false,
+            reason: 'SESSION_NOT_FOUND'
+          }
+        });
+        return;
+      }
+
+      const now = Date.now();
+      const idleTimeoutMs = config.sessionTimeoutMinutes * 60 * 1000;
+      const absoluteTimeoutMs = config.absoluteSessionTimeoutHours * 60 * 60 * 1000;
+      const warningMs = config.idleWarningMinutes * 60 * 1000;
+
+      const timeUntilIdleTimeoutMs = Math.max(0, (session.lastUsedAt.getTime() + idleTimeoutMs) - now);
+      const timeUntilAbsoluteTimeoutMs = Math.max(0, (session.createdAt.getTime() + absoluteTimeoutMs) - now);
+      const showWarning = timeUntilIdleTimeoutMs <= warningMs && timeUntilIdleTimeoutMs > 0;
+
+      res.status(200).json({
+        success: true,
+        data: {
+          isAuthenticated: true,
+          timeUntilIdleTimeoutMs,
+          timeUntilAbsoluteTimeoutMs,
+          showWarning,
+          idleWarningMinutes: config.idleWarningMinutes
+        }
+      });
+    } catch (error) {
+      logger.error('Session info error', { error });
       next(error);
     }
   }

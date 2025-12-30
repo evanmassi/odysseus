@@ -934,13 +934,15 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
    */
   async getSecurityConfig(): Promise<SecurityConfig> {
     try {
-      const row = await this.sqlite.queryOne<SecurityConfig>(`
+      const row = await this.sqlite.queryOne<SecurityConfig & { idleWarningMinutes?: number; absoluteSessionTimeoutHours?: number }>(`
         SELECT
           useEnhancedAuth,
           requireStrongPasswords,
           passwordMinLength,
           passwordRequireSpecialChars,
           sessionTimeoutMinutes,
+          idleWarningMinutes,
+          absoluteSessionTimeoutHours,
           maxConcurrentSessions,
           enableRateLimiting,
           loginAttemptsPerMinute,
@@ -964,6 +966,8 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
         passwordMinLength: row.passwordMinLength,
         passwordRequireSpecialChars: !!row.passwordRequireSpecialChars,
         sessionTimeoutMinutes: row.sessionTimeoutMinutes,
+        idleWarningMinutes: row.idleWarningMinutes ?? DEFAULT_SECURITY_CONFIG.idleWarningMinutes,
+        absoluteSessionTimeoutHours: row.absoluteSessionTimeoutHours ?? DEFAULT_SECURITY_CONFIG.absoluteSessionTimeoutHours,
         maxConcurrentSessions: row.maxConcurrentSessions,
         enableRateLimiting: !!row.enableRateLimiting,
         loginAttemptsPerMinute: row.loginAttemptsPerMinute,
@@ -1003,6 +1007,8 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
           passwordMinLength,
           passwordRequireSpecialChars,
           sessionTimeoutMinutes,
+          idleWarningMinutes,
+          absoluteSessionTimeoutHours,
           maxConcurrentSessions,
           enableRateLimiting,
           loginAttemptsPerMinute,
@@ -1011,13 +1017,15 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
           enableDetailedLogging,
           logFailedAttempts,
           updated_at
-        ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         ON CONFLICT(id) DO UPDATE SET
           useEnhancedAuth = excluded.useEnhancedAuth,
           requireStrongPasswords = excluded.requireStrongPasswords,
           passwordMinLength = excluded.passwordMinLength,
           passwordRequireSpecialChars = excluded.passwordRequireSpecialChars,
           sessionTimeoutMinutes = excluded.sessionTimeoutMinutes,
+          idleWarningMinutes = excluded.idleWarningMinutes,
+          absoluteSessionTimeoutHours = excluded.absoluteSessionTimeoutHours,
           maxConcurrentSessions = excluded.maxConcurrentSessions,
           enableRateLimiting = excluded.enableRateLimiting,
           loginAttemptsPerMinute = excluded.loginAttemptsPerMinute,
@@ -1032,6 +1040,8 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
         updatedConfig.passwordMinLength,
         updatedConfig.passwordRequireSpecialChars ? 1 : 0,
         updatedConfig.sessionTimeoutMinutes,
+        updatedConfig.idleWarningMinutes,
+        updatedConfig.absoluteSessionTimeoutHours,
         updatedConfig.maxConcurrentSessions,
         updatedConfig.enableRateLimiting ? 1 : 0,
         updatedConfig.loginAttemptsPerMinute,

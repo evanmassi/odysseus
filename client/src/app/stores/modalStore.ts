@@ -64,6 +64,13 @@ interface ShareAccessModalState {
   previousFocusElement?: HTMLElement | null;
 }
 
+interface SessionTimeoutWarningState {
+  isOpen: boolean;
+  timeRemainingMs: number;
+  onStayLoggedIn: () => void;
+  onLogout: (reason: 'manual' | 'timeout') => void;
+}
+
 interface LocalModalState {
   deleteConfirm: DeleteConfirmState;
   overwriteConfirm: OverwriteConfirmState;
@@ -71,6 +78,7 @@ interface LocalModalState {
   tubeEditorModal: TubeEditorModalState;
   lockTubesModal: LockTubesModalState;
   shareAccessModal: ShareAccessModalState;
+  sessionTimeoutWarning: SessionTimeoutWarningState;
 }
 
 interface ModalActions {
@@ -117,6 +125,14 @@ interface ModalActions {
   showShareAccessModal: (tubeIds: string[]) => void;
   hideShareAccessModal: () => void;
 
+  showSessionTimeoutWarning: (config: {
+    timeRemainingMs: number;
+    onStayLoggedIn: () => void;
+    onLogout: (reason: 'manual' | 'timeout') => void;
+  }) => void;
+  updateSessionTimeoutWarning: (timeRemainingMs: number) => void;
+  hideSessionTimeoutWarning: () => void;
+
   hideAllModals: () => void;
 }
 
@@ -159,10 +175,19 @@ const initialShareAccessModal: ShareAccessModalState = {
   tubeIds: [],
 };
 
+const initialSessionTimeoutWarning: SessionTimeoutWarningState = {
+  isOpen: false,
+  timeRemainingMs: 0,
+  onStayLoggedIn: () => {},
+  onLogout: (_reason: 'manual' | 'timeout') => {},
+};
+
 /**
  * Global modal store
+ *
+ * Export the raw store for direct access (e.g., getState() from non-React code)
  */
-const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
+export const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
   // Initial state
   deleteConfirm: initialDeleteConfirm,
   overwriteConfirm: initialOverwriteConfirm,
@@ -170,6 +195,7 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
   tubeEditorModal: initialTubeEditorModal,
   lockTubesModal: initialLockTubesModal,
   shareAccessModal: initialShareAccessModal,
+  sessionTimeoutWarning: initialSessionTimeoutWarning,
 
   // Delete confirmation actions
   showDeleteConfirm: config => {
@@ -294,6 +320,34 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
     set({ shareAccessModal: initialShareAccessModal });
   },
 
+  // Session timeout warning actions
+  showSessionTimeoutWarning: config => {
+    set({
+      sessionTimeoutWarning: {
+        isOpen: true,
+        timeRemainingMs: config.timeRemainingMs,
+        onStayLoggedIn: config.onStayLoggedIn,
+        onLogout: config.onLogout,
+      },
+    });
+  },
+
+  updateSessionTimeoutWarning: timeRemainingMs => {
+    const current = get().sessionTimeoutWarning;
+    if (current.isOpen) {
+      set({
+        sessionTimeoutWarning: {
+          ...current,
+          timeRemainingMs,
+        },
+      });
+    }
+  },
+
+  hideSessionTimeoutWarning: () => {
+    set({ sessionTimeoutWarning: initialSessionTimeoutWarning });
+  },
+
   // Utility to hide all modals
   hideAllModals: () => {
     set({
@@ -303,6 +357,7 @@ const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
       tubeEditorModal: initialTubeEditorModal,
       lockTubesModal: initialLockTubesModal,
       shareAccessModal: initialShareAccessModal,
+      sessionTimeoutWarning: initialSessionTimeoutWarning,
     });
   },
 }));
@@ -321,6 +376,7 @@ export const useModalStore = () => {
     tubeEditorModal: state.tubeEditorModal,
     lockTubesModal: state.lockTubesModal,
     shareAccessModal: state.shareAccessModal,
+    sessionTimeoutWarning: state.sessionTimeoutWarning,
 
     // Actions
     showDeleteConfirm: state.showDeleteConfirm,
@@ -335,6 +391,9 @@ export const useModalStore = () => {
     hideLockTubesModal: state.hideLockTubesModal,
     showShareAccessModal: state.showShareAccessModal,
     hideShareAccessModal: state.hideShareAccessModal,
+    showSessionTimeoutWarning: state.showSessionTimeoutWarning,
+    updateSessionTimeoutWarning: state.updateSessionTimeoutWarning,
+    hideSessionTimeoutWarning: state.hideSessionTimeoutWarning,
     hideAllModals: state.hideAllModals,
   };
 };
