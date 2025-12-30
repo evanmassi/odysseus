@@ -1,11 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import {
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { AlertTriangle, Lock, MapPin, Notebook, TestTube, UsersRound } from 'lucide-react';
+import { AlertTriangle, Lock, MapPin, Notebook, Pencil, TestTube, UsersRound } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks';
 import { useUserSettings } from '@domains/authentication';
@@ -21,6 +21,7 @@ import { formatDateForDisplay } from '@shared/utils/dateFormatter';
 import { useTubeStore } from '../../../stores/tubeStore';
 import { FieldValue } from '../displays/FieldValue';
 import { InfoSection } from '../displays/InfoSection';
+import { EditLockNoteModal } from '../modals/EditLockNoteModal';
 
 import type { Researcher } from '@odysseus/shared-schemas';
 import type { LockContext } from '@shared/types/grid';
@@ -86,6 +87,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   // Get current location and configuration
   const { currentTank, currentRack, currentBox, selectedPositions } = useTubeStore();
   const { currentLab } = useStorageData();
+
+  // Modal state for editing lock notes
+  const [showEditLockNoteModal, setShowEditLockNoteModal] = useState(false);
 
   // Single source of truth for location display names (includes customLabels)
   const {
@@ -162,6 +166,27 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
     return { mixedFields, values };
   }, [selectedTubes, getTubeValue, analyzeFieldConflicts]);
+
+  // For multi-tube editing: find all tubes where user owns the lock
+  // Must be before early return to comply with Rules of Hooks
+  const ownedLockedTubes = useMemo(() => {
+    if (!lockContext || selectedTubes.length === 0) return [];
+    return selectedTubes.filter(tube => tube.isLocked && lockContext.isLockedByCurrentUser(tube));
+  }, [selectedTubes, lockContext]);
+
+  // Check if all selected tubes have the same lock note (for display)
+  const lockNoteDisplay = useMemo(() => {
+    if (ownedLockedTubes.length === 0) return null;
+    if (ownedLockedTubes.length === 1) {
+      return { note: ownedLockedTubes[0].lockNote, isMixed: false };
+    }
+    const firstNote = ownedLockedTubes[0].lockNote ?? '';
+    const allSame = ownedLockedTubes.every(t => (t.lockNote ?? '') === firstNote);
+    return {
+      note: allSame ? firstNote : undefined,
+      isMixed: !allSame,
+    };
+  }, [ownedLockedTubes]);
 
   if (selectedTubes.length === 0) {
     // Show position info even when no tubes selected
@@ -406,11 +431,47 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <Lock className="w-2.5 h-2.5" />
               {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
             </span>
-            {firstTube.lockNote && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                <Notebook className="w-2.5 h-2.5" />
-                {firstTube.lockNote}
-              </span>
+            {ownedLockedTubes.length > 0 ? (
+              // Clickable pill for lock owner(s) - can edit note
+              <button
+                type="button"
+                onClick={() => setShowEditLockNoteModal(true)}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer"
+                title={
+                  lockNoteDisplay?.isMixed
+                    ? 'Edit lock notes'
+                    : lockNoteDisplay?.note
+                      ? 'Edit lock note'
+                      : 'Add lock note'
+                }
+              >
+                {lockNoteDisplay?.isMixed ? (
+                  <>
+                    <Notebook className="w-2.5 h-2.5" />
+                    <span className="italic">Mixed notes</span>
+                    <Pencil className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                  </>
+                ) : lockNoteDisplay?.note ? (
+                  <>
+                    <Notebook className="w-2.5 h-2.5" />
+                    {lockNoteDisplay.note}
+                    <Pencil className="w-2.5 h-2.5 ml-0.5 opacity-60" />
+                  </>
+                ) : (
+                  <>
+                    <Pencil className="w-2.5 h-2.5" />
+                    Add note
+                  </>
+                )}
+              </button>
+            ) : (
+              // Non-clickable pill for non-owners - read-only
+              firstTube.lockNote && (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                  <Notebook className="w-2.5 h-2.5" />
+                  {firstTube.lockNote}
+                </span>
+              )
             )}
             {lockInfo.hasSharedUsers && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-ice-50 text-edit-hover">
@@ -524,6 +585,14 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </InfoSection>
         )}
       </div>
+
+      {/* Edit Lock Note Modal */}
+      {showEditLockNoteModal && ownedLockedTubes.length > 0 && (
+        <EditLockNoteModal
+          tubes={ownedLockedTubes}
+          onClose={() => setShowEditLockNoteModal(false)}
+        />
+      )}
     </div>
   );
 }

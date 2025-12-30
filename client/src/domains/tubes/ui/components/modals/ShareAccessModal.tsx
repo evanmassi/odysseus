@@ -147,8 +147,8 @@ export function ShareAccessModal({
 
   return (
     <BaseModal
-      title={`Share Access - ${tubeCount} Tube${tubeCount !== 1 ? 's' : ''}`}
-      icon={<Share2 size={24} className="text-white" />}
+      title={tubeCount === 1 ? 'Share Access' : `Share Access (${tubeCount} tubes)`}
+      icon={<Share2 size={24} />}
       onClose={onClose}
       className="max-w-lg"
     >
@@ -171,7 +171,7 @@ export function ShareAccessModal({
                     type="button"
                     onClick={() => handleRevoke(userId)}
                     disabled={isProcessing}
-                    className="p-1 text-action hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-action-focus"
+                    className="p-1 text-action hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 focus-enhanced"
                     title="Revoke access"
                   >
                     <X size={16} />
@@ -236,11 +236,7 @@ export function ShareAccessModal({
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-action-focus"
-          >
+          <button type="button" onClick={onClose} className="btn btn-secondary">
             {currentlySharedUserIds.length > 0 ? 'Done' : 'Cancel'}
           </button>
           {selectedUserIds.length > 0 && (
@@ -248,7 +244,7 @@ export function ShareAccessModal({
               type="button"
               onClick={handleShare}
               disabled={isProcessing}
-              className="px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-action-focus"
+              className="px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50 focus-enhanced"
             >
               {isProcessing
                 ? 'Sharing...'

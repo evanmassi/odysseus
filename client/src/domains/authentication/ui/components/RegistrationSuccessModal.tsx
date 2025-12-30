@@ -14,6 +14,7 @@ import { Copy, Check, Info } from 'lucide-react';
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import odysseusLogo from '@shared/assets/odysseus-logo-thick-altered.svg';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
 export interface RegistrationSuccessModalProps {
   username: string;
@@ -55,88 +56,90 @@ export function RegistrationSuccessModal({
   const isPending = status === 'pending';
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-[60] animate-in fade-in duration-150">
-      <div
-        ref={trapRef}
-        className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10 animate-zoom-in-95"
-      >
-        {/* Logo Section */}
-        <div className="text-center mb-4">
-          <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
-            <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
-          </div>
-          <div className="mx-auto mb-4 flex items-center justify-center">
-            <img src={odysseusLogo} alt="Odysseus" className="h-10 w-auto" />
-          </div>
-          <p className="text-sm text-slate-400">
-            {isPending
-              ? 'Account created · awaiting admin approval'
-              : 'Account created · ready to sign in'}
-          </p>
-        </div>
-
-        {/* Username Display with Copy */}
-        <div className="mb-6">
-          <div className="auth-input-container border-slate-200 relative">
-            <span className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium text-slate-400">
-              Your username
-            </span>
-            <div className="flex items-center gap-2 px-3 py-2">
-              <span
-                className="flex-1 font-mono text-sm font-semibold text-odysseus-dark"
-                role="status"
-                aria-label={`Your username is ${username}`}
-              >
-                {username}
-              </span>
-              <button
-                onClick={handleCopyUsername}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-action hover:text-action-hover rounded focus-enhanced transition-colors"
-                type="button"
-                aria-label={`Copy username ${username}`}
-              >
-                {copied ? (
-                  <>
-                    <Check size={14} />
-                    <span>Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy size={14} />
-                    <span>Copy</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-          <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
-            Please save this username for future login
-          </p>
-        </div>
-
-        {/* Status Information */}
-        <div className="mb-6">
-          <div className="p-2 bg-slate-50 rounded-lg">
-            <div className="flex items-start space-x-1.5">
-              <Info size={16} className="text-slate-400 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-slate-500 leading-snug">
-                {isPending
-                  ? "An administrator will review your account. You'll be notified when approved."
-                  : "You're all set! You can now log in with your username and password."}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="w-full btn btn-primary h-12 text-base font-bold shadow-lg"
-          type="button"
+    <ModalPortal>
+      <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-[60] animate-in fade-in duration-150">
+        <div
+          ref={trapRef}
+          className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10 animate-zoom-in-95"
         >
-          {isPending ? 'Return to Login' : 'Continue to Login'}
-        </button>
+          {/* Logo Section */}
+          <div className="text-center mb-4">
+            <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
+              <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
+            </div>
+            <div className="mx-auto mb-4 flex items-center justify-center">
+              <img src={odysseusLogo} alt="Odysseus" className="h-10 w-auto" />
+            </div>
+            <p className="text-sm text-slate-400">
+              {isPending
+                ? 'Account created · awaiting admin approval'
+                : 'Account created · ready to sign in'}
+            </p>
+          </div>
+
+          {/* Username Display with Copy */}
+          <div className="mb-6">
+            <div className="auth-input-container border-slate-200 relative">
+              <span className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium text-slate-400">
+                Your username
+              </span>
+              <div className="flex items-center gap-2 px-3 py-2">
+                <span
+                  className="flex-1 font-mono text-sm font-semibold text-odysseus-dark"
+                  role="status"
+                  aria-label={`Your username is ${username}`}
+                >
+                  {username}
+                </span>
+                <button
+                  onClick={handleCopyUsername}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-action hover:text-action-hover rounded focus-enhanced transition-colors"
+                  type="button"
+                  aria-label={`Copy username ${username}`}
+                >
+                  {copied ? (
+                    <>
+                      <Check size={14} />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={14} />
+                      <span>Copy</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+            <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+              Please save this username for future login
+            </p>
+          </div>
+
+          {/* Status Information */}
+          <div className="mb-6">
+            <div className="p-2 bg-slate-50 rounded-lg">
+              <div className="flex items-start space-x-1.5">
+                <Info size={16} className="text-slate-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-slate-500 leading-snug">
+                  {isPending
+                    ? "An administrator will review your account. You'll be notified when approved."
+                    : "You're all set! You can now log in with your username and password."}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Close Button */}
+          <button
+            onClick={onClose}
+            className="w-full btn btn-primary h-12 text-base font-bold shadow-lg"
+            type="button"
+          >
+            {isPending ? 'Return to Login' : 'Continue to Login'}
+          </button>
+        </div>
       </div>
-    </div>
+    </ModalPortal>
   );
 }

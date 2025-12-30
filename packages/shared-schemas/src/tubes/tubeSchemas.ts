@@ -195,7 +195,9 @@ export const tubeUpdateSampleSchema = concentrationUnitRefinement(
 export const updateTubeRequestSchema = z.object({
   location: tubeLocationSchema.partial().optional(),
   sample: tubeUpdateSampleSchema.optional(),
-  researcherId: nullableOptionalFromEmpty(z.string())
+  researcherId: nullableOptionalFromEmpty(z.string()),
+  /** Lock note update - only lock owner can modify */
+  lockNote: z.string().max(100).optional()
 });
 
 /**

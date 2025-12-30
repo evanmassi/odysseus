@@ -32,7 +32,7 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
     // Too short = focus before render, too long = noticeable delay
     initialFocusDelay = 150,
     initialFocusRef,
-    autoFocusFirstInput = false
+    autoFocusFirstInput = false,
   } = options ?? {};
 
   // Save focus on mount and restore on close/unmount
@@ -86,7 +86,9 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
     return () => clearTimeout(timer);
   }, [isOpen, initialFocusDelay, initialFocusRef, autoFocusFirstInput]);
 
-  // Tab/Shift+Tab focus cycling
+  // Tab/Shift+Tab focus cycling within modal
+  // Note: Focus escape prevention is handled by the inert attribute on #root
+  // via ModalPortal. This hook only handles cycling at modal boundaries.
   useEffect(() => {
     if (!isOpen) return;
 
@@ -133,7 +135,7 @@ const FOCUSABLE_SELECTOR = [
   'object',
   'embed',
   '[tabindex]:not([tabindex="-1"])',
-  '[contenteditable]'
+  '[contenteditable]',
 ].join(', ');
 
 // Form input selector - focuses first typeable field (skips buttons, checkboxes, radios)
@@ -142,5 +144,5 @@ const FORM_INPUT_SELECTOR = [
   'input:not([disabled]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"])',
   'textarea:not([disabled])',
   'select:not([disabled])',
-  '[contenteditable]'
+  '[contenteditable]',
 ].join(', ');

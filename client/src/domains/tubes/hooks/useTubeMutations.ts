@@ -139,6 +139,23 @@ export const useUpdateTubeMutation = (
         }
       );
 
+      // Update tube in location query cache for immediate feedback
+      if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
+        queryClient.setQueriesData(
+          {
+            queryKey: queryKeys.tubes.location(
+              tube.location.tankId,
+              tube.location.rackId,
+              tube.location.boxId
+            ),
+          },
+          (oldData: TubeData[] | undefined) => {
+            if (!oldData) return oldData;
+            return oldData.map(t => (t.id === tube.id ? tube : t));
+          }
+        );
+      }
+
       // Invalidate location queries if location changed
       const oldTube = context?.previousTube;
       if (oldTube) {
@@ -343,12 +360,13 @@ export const useBulkUpdateTubesMutation = (
       } as BulkUpdateResult;
     },
 
-    onSuccess: (_data, _variables) => {
-      // Invalidate all tube queries to refetch fresh data
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+    onSuccess: async (_data, _variables) => {
+      // Refetch all tube queries to get fresh data immediately
+      // Using refetchQueries instead of invalidateQueries for immediate update
+      await queryClient.refetchQueries({ queryKey: queryKeys.tubes.all });
 
       // Invalidate statistics
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
 
     onError: (error, _variables) => {

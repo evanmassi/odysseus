@@ -25,6 +25,7 @@ import React from 'react';
 import { X } from 'lucide-react';
 
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
 export interface BaseModalProps {
   /** Modal title text */
@@ -87,7 +88,7 @@ export function BaseModal({
   }
 
   return (
-    <>
+    <ModalPortal>
       {/* Backdrop - Static, no animation, GPU accelerated */}
       <div
         className="fixed inset-0 bg-black/45 backdrop-blur-[2px] z-50"
@@ -120,6 +121,6 @@ export function BaseModal({
           <div className="px-6 py-3">{children}</div>
         </div>
       </div>
-    </>
+    </ModalPortal>
   );
 }

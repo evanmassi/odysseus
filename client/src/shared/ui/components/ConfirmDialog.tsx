@@ -29,6 +29,7 @@ import { X, AlertTriangle } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
 export interface ConfirmDialogProps {
   /** Whether dialog is visible */
@@ -144,71 +145,73 @@ export function ConfirmDialog({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
-      <div
-        ref={trapRef}
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="confirm-dialog-title"
-        aria-describedby="confirm-dialog-message"
-        className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} animate-in slide-in-from-bottom-4 duration-500`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className={`p-2 ${styles.iconBg} rounded-full`}>
-              <AlertTriangle className={`w-6 h-6 ${styles.iconColor}`} />
-            </div>
-            <h2 id="confirm-dialog-title" className="text-xl font-bold text-odysseus-dark">
-              {title}
-            </h2>
-          </div>
-          <button
-            onClick={onCancel}
-            disabled={isLoading}
-            className="p-2 rounded-lg hover:bg-odysseus-surface-hover text-odysseus-muted hover:text-odysseus-dark transition-all duration-200 disabled:opacity-50 focus-ring-default"
-            aria-label="Close dialog"
-            type="button"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Message */}
-        <div className="mb-8">
-          <p id="confirm-dialog-message" className="text-odysseus-muted leading-relaxed">
-            {message}
-          </p>
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={onCancel}
-            disabled={isLoading}
-            className="btn btn-secondary px-6"
-            type="button"
-          >
-            Cancel
-          </button>
-          <button
-            ref={confirmButtonRef}
-            onClick={onConfirm}
-            disabled={isLoading}
-            className={`${styles.buttonClass} px-6`}
-            type="button"
-          >
-            {isLoading ? (
-              <div className="flex items-center space-x-2">
-                <div className="spinner w-4 h-4"></div>
-                <span>Processing...</span>
+    <ModalPortal>
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
+        <div
+          ref={trapRef}
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="confirm-dialog-title"
+          aria-describedby="confirm-dialog-message"
+          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} animate-in slide-in-from-bottom-4 duration-500`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 ${styles.iconBg} rounded-full`}>
+                <AlertTriangle className={`w-6 h-6 ${styles.iconColor}`} />
               </div>
-            ) : (
-              confirmText
-            )}
-          </button>
+              <h2 id="confirm-dialog-title" className="text-xl font-bold text-odysseus-dark">
+                {title}
+              </h2>
+            </div>
+            <button
+              onClick={onCancel}
+              disabled={isLoading}
+              className="p-2 rounded-lg hover:bg-odysseus-surface-hover text-odysseus-muted hover:text-odysseus-dark transition-all duration-200 disabled:opacity-50 focus-ring-default"
+              aria-label="Close dialog"
+              type="button"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* Message */}
+          <div className="mb-8">
+            <p id="confirm-dialog-message" className="text-odysseus-muted leading-relaxed">
+              {message}
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-end space-x-3">
+            <button
+              onClick={onCancel}
+              disabled={isLoading}
+              className="btn btn-secondary px-6"
+              type="button"
+            >
+              Cancel
+            </button>
+            <button
+              ref={confirmButtonRef}
+              onClick={onConfirm}
+              disabled={isLoading}
+              className={`${styles.buttonClass} px-6`}
+              type="button"
+            >
+              {isLoading ? (
+                <div className="flex items-center space-x-2">
+                  <div className="spinner w-4 h-4"></div>
+                  <span>Processing...</span>
+                </div>
+              ) : (
+                confirmText
+              )}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </ModalPortal>
   );
 }

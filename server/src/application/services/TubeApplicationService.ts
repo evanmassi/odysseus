@@ -366,6 +366,16 @@ export class TubeApplicationService {
       }
     }
 
+    // Check lock note update permission - only lock owner can modify
+    if (request.lockNote !== undefined) {
+      if (!existingTube.isLocked) {
+        throw new PermissionError('Cannot update lock note on unlocked tube', { tubeId: id });
+      }
+      if (existingTube.lockedBy !== authenticatedUser.id) {
+        throw new PermissionError('Only the lock owner can update the lock note', { tubeId: id });
+      }
+    }
+
     // Capture old state for event publishing
     const oldLocation = existingTube.location;
     const oldSampleData = existingTube.sampleData;
@@ -374,7 +384,12 @@ export class TubeApplicationService {
     const updateData = TubeDto.fromUpdateRequest(request);
 
     // Update entity (domain handles validation)
-    const updatedTube = existingTube.update(updateData);
+    let updatedTube = existingTube.update(updateData);
+
+    // Apply lock note update if provided (separate from regular update)
+    if (request.lockNote !== undefined) {
+      updatedTube = updatedTube.updateLockNote(request.lockNote || undefined);
+    }
 
     // Save
     await this.tubeRepository.save(updatedTube);

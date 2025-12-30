@@ -35,6 +35,7 @@ import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
 import { TankIcon } from '@shared/ui/components/icons';
+import { ModalPortal } from '@shared/ui/components/ModalPortal';
 import { notifications } from '@shared/utils/notifications';
 
 import { AssignmentsByUserView } from './AssignmentsByUserView';
@@ -603,196 +604,202 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-in fade-in duration-[180ms]">
-      <div
-        ref={trapRef}
-        className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-[60%] h-[85%] max-w-2xl max-h-[800px] flex flex-col overflow-hidden animate-slide-up-fade"
-      >
-        {/* Header */}
-        <div className="bg-white px-6 py-3 border-b border-gray-200 flex-shrink-0">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <TankIcon size={24} className="text-slate-600" />
-              <div>
-                <h2 className="text-lg font-bold text-slate-800">Manage Storage</h2>
-                <p className="text-slate-500 text-xs">Storage Layout & Assignments</p>
+    <ModalPortal>
+      <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-in fade-in duration-[180ms]">
+        <div
+          ref={trapRef}
+          className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-[60%] h-[85%] max-w-2xl max-h-[800px] flex flex-col overflow-hidden animate-slide-up-fade"
+        >
+          {/* Header */}
+          <div className="bg-white px-6 py-3 border-b border-gray-200 flex-shrink-0">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <TankIcon size={24} className="text-slate-600" />
+                <div>
+                  <h2 className="text-lg font-bold text-slate-800">Manage Storage</h2>
+                  <p className="text-slate-500 text-xs">Storage Layout & Assignments</p>
+                </div>
               </div>
+              <button
+                onClick={handleClose}
+                disabled={isSaving}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50 focus-ring-default"
+                aria-label="Close modal"
+              >
+                <X size={20} />
+              </button>
             </div>
+          </div>
+
+          {/* View Mode Tabs */}
+          <div className="flex items-center gap-6 px-4 border-b border-gray-200 bg-white">
             <button
-              onClick={handleClose}
-              disabled={isSaving}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors disabled:opacity-50 focus-ring-default"
-              aria-label="Close modal"
+              type="button"
+              onClick={() => setViewMode('tree')}
+              className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
+                viewMode === 'tree'
+                  ? 'border-slate-600 text-slate-800'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
             >
-              <X size={20} />
+              <ListTree size={14} />
+              By Location
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('byUser')}
+              className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
+                viewMode === 'byUser'
+                  ? 'border-slate-600 text-slate-800'
+                  : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+              }`}
+            >
+              <UsersRound size={14} />
+              By User
             </button>
           </div>
-        </div>
 
-        {/* View Mode Tabs */}
-        <div className="flex items-center gap-6 px-4 border-b border-gray-200 bg-white">
-          <button
-            type="button"
-            onClick={() => setViewMode('tree')}
-            className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
-              viewMode === 'tree'
-                ? 'border-slate-600 text-slate-800'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            <ListTree size={14} />
-            By Location
-          </button>
-          <button
-            type="button"
-            onClick={() => setViewMode('byUser')}
-            className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
-              viewMode === 'byUser'
-                ? 'border-slate-600 text-slate-800'
-                : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
-            }`}
-          >
-            <UsersRound size={14} />
-            By User
-          </button>
-        </div>
+          <div className="flex-1 p-3 overflow-y-auto">
+            {viewMode === 'tree' ? (
+              <div className="space-y-2">
+                {/* Add New Tank Button (Admin Only) */}
+                {canManageStorage && (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleAddNewTank}
+                      className="flex items-center gap-2 bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-medium text-sm focus-ring-default"
+                    >
+                      <Plus size={16} />
+                      Add New Tank
+                    </button>
+                  </div>
+                )}
 
-        <div className="flex-1 p-3 overflow-y-auto">
-          {viewMode === 'tree' ? (
-            <div className="space-y-2">
-              {/* Add New Tank Button (Admin Only) */}
-              {canManageStorage && (
-                <div className="flex justify-end">
-                  <button
-                    onClick={handleAddNewTank}
-                    className="flex items-center gap-2 bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-medium text-sm focus-ring-default"
-                  >
-                    <Plus size={16} />
-                    Add New Tank
-                  </button>
+                {/* Tanks List */}
+                <StorageManagementContext.Provider value={contextValue}>
+                  <div className="space-y-1.5">
+                    {localLab.equipment.tanks.map(tank => (
+                      <TankRow
+                        key={tank.id}
+                        tank={tank}
+                        collapsed={collapsedTanks.has(tank.id)}
+                        rackCountToAdd={rackCountToAdd[tank.id] || 1}
+                        boxCountToAdd={boxCountToAdd}
+                        onToggleCollapse={() => toggleTankCollapse(tank.id)}
+                        onToggleRackCollapse={toggleRackCollapse}
+                        onRackCountChange={count =>
+                          setRackCountToAdd(prev => ({ ...prev, [tank.id]: count }))
+                        }
+                        onBoxCountChange={(rackKey, count) =>
+                          setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
+                        }
+                        collapsedRacks={collapsedRacks}
+                        canDeleteTank={localLab.equipment.tanks.length > 1}
+                      />
+                    ))}
+                  </div>
+                </StorageManagementContext.Provider>
+              </div>
+            ) : (
+              <AssignmentsByUserView
+                lab={localLab}
+                getUserInfo={getUserInfo}
+                currentUserId={currentUser?.id}
+                canManageStorage={canManageStorage}
+                users={dropdownUsers}
+                onBulkUnassign={handleBulkUnassign}
+                onBulkReassign={handleBulkReassign}
+              />
+            )}
+          </div>
+
+          {/* Footer with Legend and Save/Cancel */}
+          <div className="border-t border-gray-200 px-4 py-2.5 bg-white flex-shrink-0">
+            <div className="flex items-center justify-between gap-4">
+              {/* Ownership Legend - matches left border accent style */}
+              <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-shrink min-w-0">
+                <div className="flex items-center gap-1">
+                  <div className="w-1 h-3 rounded-sm bg-ownership-user-badge flex-shrink-0" />
+                  <span>You</span>
                 </div>
-              )}
-
-              {/* Tanks List */}
-              <StorageManagementContext.Provider value={contextValue}>
-                <div className="space-y-1.5">
-                  {localLab.equipment.tanks.map(tank => (
-                    <TankRow
-                      key={tank.id}
-                      tank={tank}
-                      collapsed={collapsedTanks.has(tank.id)}
-                      rackCountToAdd={rackCountToAdd[tank.id] || 1}
-                      boxCountToAdd={boxCountToAdd}
-                      onToggleCollapse={() => toggleTankCollapse(tank.id)}
-                      onToggleRackCollapse={toggleRackCollapse}
-                      onRackCountChange={count =>
-                        setRackCountToAdd(prev => ({ ...prev, [tank.id]: count }))
-                      }
-                      onBoxCountChange={(rackKey, count) =>
-                        setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
-                      }
-                      collapsedRacks={collapsedRacks}
-                      canDeleteTank={localLab.equipment.tanks.length > 1}
-                    />
-                  ))}
+                <div className="flex items-center gap-1">
+                  <div className="w-1 h-3 rounded-sm bg-ownership-other-badge flex-shrink-0" />
+                  <span>Other</span>
                 </div>
-              </StorageManagementContext.Provider>
+                <div className="flex items-center gap-1">
+                  <div className="w-1 h-3 rounded-sm bg-ownership-unassigned-badge flex-shrink-0" />
+                  <span>Unassigned/Common</span>
+                </div>
+              </div>
+
+              {/* Save/Cancel Buttons */}
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                <button
+                  onClick={handleClose}
+                  className="btn btn-secondary px-6"
+                  disabled={isSaving}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving || !hasChanges}
+                  className="btn btn-primary flex items-center space-x-2 text-sm px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+                  <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+                  {hasChanges && !isSaving && (
+                    <span className="w-2 h-2 rounded-full bg-amber-500" title="Unsaved changes" />
+                  )}
+                </button>
+              </div>
             </div>
-          ) : (
-            <AssignmentsByUserView
-              lab={localLab}
-              getUserInfo={getUserInfo}
-              currentUserId={currentUser?.id}
-              canManageStorage={canManageStorage}
-              users={dropdownUsers}
-              onBulkUnassign={handleBulkUnassign}
-              onBulkReassign={handleBulkReassign}
+          </div>
+
+          {editingBox && (
+            <BoxEditModal
+              initialBox={editingBox.box}
+              tankId={editingBox.tankId}
+              rackId={editingBox.rackId}
+              gridTemplates={gridTemplates}
+              onSave={handleUpdateBoxGrid}
+              onClose={() => setEditingBox(null)}
+            />
+          )}
+
+          {editingRack && (
+            <RackEditModal
+              initialRack={editingRack.rack}
+              tankId={editingRack.tankId}
+              onSave={handleUpdateRack}
+              onClose={() => setEditingRack(null)}
+            />
+          )}
+
+          {editingTank && (
+            <TankEditModal
+              initialTank={editingTank}
+              onSave={handleUpdateTank}
+              onClose={() => setEditingTank(null)}
+            />
+          )}
+
+          {editingLabel && (
+            <CustomLabelEditModal
+              resourceInfo={{
+                type: editingLabel.type,
+                tankId: editingLabel.tankId,
+                rackId: editingLabel.rackId,
+                boxId: editingLabel.boxId,
+                initialLabel: editingLabel.currentLabel,
+              }}
+              currentLab={localLab}
+              onSave={handleUpdateCustomLabel}
+              onClose={() => setEditingLabel(null)}
             />
           )}
         </div>
-
-        {/* Footer with Legend and Save/Cancel */}
-        <div className="border-t border-gray-200 px-4 py-2.5 bg-white flex-shrink-0">
-          <div className="flex items-center justify-between gap-4">
-            {/* Ownership Legend - matches left border accent style */}
-            <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-shrink min-w-0">
-              <div className="flex items-center gap-1">
-                <div className="w-1 h-3 rounded-sm bg-ownership-user-badge flex-shrink-0" />
-                <span>You</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-1 h-3 rounded-sm bg-ownership-other-badge flex-shrink-0" />
-                <span>Other</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-1 h-3 rounded-sm bg-ownership-unassigned-badge flex-shrink-0" />
-                <span>Unassigned/Common</span>
-              </div>
-            </div>
-
-            {/* Save/Cancel Buttons */}
-            <div className="flex items-center space-x-2 flex-shrink-0">
-              <button onClick={handleClose} className="btn btn-secondary px-6" disabled={isSaving}>
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={isSaving || !hasChanges}
-                className="btn btn-primary flex items-center space-x-2 text-sm px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-                <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-                {hasChanges && !isSaving && (
-                  <span className="w-2 h-2 rounded-full bg-amber-500" title="Unsaved changes" />
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {editingBox && (
-          <BoxEditModal
-            initialBox={editingBox.box}
-            tankId={editingBox.tankId}
-            rackId={editingBox.rackId}
-            gridTemplates={gridTemplates}
-            onSave={handleUpdateBoxGrid}
-            onClose={() => setEditingBox(null)}
-          />
-        )}
-
-        {editingRack && (
-          <RackEditModal
-            initialRack={editingRack.rack}
-            tankId={editingRack.tankId}
-            onSave={handleUpdateRack}
-            onClose={() => setEditingRack(null)}
-          />
-        )}
-
-        {editingTank && (
-          <TankEditModal
-            initialTank={editingTank}
-            onSave={handleUpdateTank}
-            onClose={() => setEditingTank(null)}
-          />
-        )}
-
-        {editingLabel && (
-          <CustomLabelEditModal
-            resourceInfo={{
-              type: editingLabel.type,
-              tankId: editingLabel.tankId,
-              rackId: editingLabel.rackId,
-              boxId: editingLabel.boxId,
-              initialLabel: editingLabel.currentLabel,
-            }}
-            currentLab={localLab}
-            onSave={handleUpdateCustomLabel}
-            onClose={() => setEditingLabel(null)}
-          />
-        )}
       </div>
-    </div>
+    </ModalPortal>
   );
 }

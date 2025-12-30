@@ -249,6 +249,32 @@ export class Tube {
   }
 
   /**
+   * Business method: Update the lock note
+   * Returns a new Tube instance with updated note
+   * Only valid for locked tubes
+   */
+  updateLockNote(note?: string): Tube {
+    if (!this._isLocked) {
+      throw new ValidationError('Cannot update lock note on unlocked tube');
+    }
+
+    return new Tube(
+      this._id,
+      this._location,
+      this._sample,
+      this._researcherId,
+      this._createdAt,
+      new Date(),
+      this._createdByName,
+      this._isLocked,
+      this._lockedBy,
+      note, // Updated lock note
+      this._lockedAt,
+      this._sharedWithUserIds
+    );
+  }
+
+  /**
    * Business method: Share access with additional users
    * Returns a new Tube instance with updated shared users
    */

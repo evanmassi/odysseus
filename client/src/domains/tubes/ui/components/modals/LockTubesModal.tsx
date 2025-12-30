@@ -10,7 +10,7 @@
 
 import { useState } from 'react';
 
-import { Info, Lock } from 'lucide-react';
+import { Info, Lock, Notebook } from 'lucide-react';
 
 import { useLockTubesMutation } from '@domains/tubes/hooks';
 import { notifications } from '@shared/utils/notifications';
@@ -84,14 +84,18 @@ export function LockTubesModal({ tubeIds, onClose, onSuccess }: LockTubesModalPr
   return (
     <BaseModal
       title={`Lock ${tubeCount} Tube${tubeCount !== 1 ? 's' : ''}`}
-      icon={<Lock size={24} className="text-white" />}
+      icon={<Lock size={24} />}
       onClose={onClose}
       className="max-w-md"
     >
       <div className="space-y-4">
         {/* Lock Note Input */}
         <div>
-          <label htmlFor="lockNote" className="block text-sm font-medium text-gray-700 mb-1">
+          <label
+            htmlFor="lockNote"
+            className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1"
+          >
+            <Notebook className="w-4 h-4" />
             Lock Note (optional)
           </label>
           <input
@@ -120,18 +124,14 @@ export function LockTubesModal({ tubeIds, onClose, onSuccess }: LockTubesModalPr
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-          >
+          <button type="button" onClick={onClose} className="btn btn-secondary">
             Cancel
           </button>
           <button
             type="button"
             onClick={handleLock}
             disabled={lockMutation.isPending}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50 focus-enhanced"
           >
             <Lock size={16} />
             {buttonLabel}
