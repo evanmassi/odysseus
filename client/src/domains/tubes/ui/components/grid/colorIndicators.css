@@ -1,6 +1,6 @@
-/* Grid Position Styles - Indicators now rendered via SVG (IndicatorSVG.tsx) */
+/* Grid Position Styles - Indicators moved to SVG for crisp rendering at any size */
 
-/* Professional tube content container - Perfect centering */
+/* Tube content container - absolute centering for variable content */
 .tube-content {
   position: absolute;
   top: 50%;
@@ -50,11 +50,7 @@
   opacity: 0.8;
 }
 
-/* Sophisticated teal selection animations - futuristic glow from border */
-/* ===================================== */
-/* SELECTION ANIMATIONS - Industry Standard */
-/* One-time selection animation for immediate visual feedback */
-/* ===================================== */
+/* One-time animation on selection provides immediate visual feedback */
 
 @keyframes tube-select-once {
   0% {
@@ -68,7 +64,29 @@
   }
 }
 
-/* Simple opacity-based glow pulse - no flickering */
+/* Registered custom property for synchronized glow animation */
+@property --glow-intensity {
+  syntax: '<number>';
+  initial-value: 0.5;
+  inherits: true;
+}
+
+/* Global glow pulse on grid container - all children inherit the same phase */
+@keyframes syncedGlowPulse {
+  0%,
+  100% {
+    --glow-intensity: 0.4;
+  }
+  50% {
+    --glow-intensity: 1;
+  }
+}
+
+.tube-grid {
+  animation: syncedGlowPulse 2.5s ease-in-out infinite;
+}
+
+/* Legacy fallback for browsers without @property support */
 @keyframes glowPulse {
   0%,
   100% {
@@ -86,13 +104,9 @@
   }
 }
 
-/* ===================================== */
-/* BASE BORDER STYLES - Unselected State */
-/* ===================================== */
-
 .tube-position {
-  border: 1px solid #e5e7eb; /* Lighter, more subtle border */
-  /* Performance optimizations - paint removed to allow marching ants overflow */
+  border: 1px solid #e5e7eb;
+  /* contain: paint would clip marching ants animation, so only layout+style */
   contain: layout style;
   backface-visibility: hidden;
 }
@@ -106,17 +120,12 @@
   transform: scale3d(1.05, 1.05, 1); /* GPU-accelerated scale */
 }
 
-/* ===================================== */
-/* SELECTION STATES - CSS Only, Zero Technical Debt */
-/* ===================================== */
-
-/* Base selection - static rings + animated glow via pseudo-element */
+/* Thinner 2px rings minimize visible overlap when adjacent cells selected */
 .tube-position.selected {
   border: 1px solid transparent !important;
-  /* Static light-to-dark rings: inner white (1px), outer dark blue (2px) */
   box-shadow:
     0 0 0 1px #ffffff,
-    0 0 0 3px var(--focus-ring-color, #4a7db5);
+    0 0 0 2px var(--color-odysseus-primary, #2563eb);
   position: relative;
   animation: tube-select-once 0.3s ease-out;
   /* GPU acceleration hints */
@@ -124,57 +133,54 @@
   backface-visibility: hidden;
 }
 
-/* Animated glow layer - opacity only, no flickering */
+/* Animated glow layer - inherits synced intensity from grid container */
 .tube-position.selected::after {
   content: '';
   position: absolute;
-  inset: -3px; /* Match the outer ring (3px) so glow starts at ring edge */
+  inset: -2px;
   border-radius: inherit;
-  box-shadow: 0 0 6px 2px var(--focus-ring-color, #4a7db5);
-  animation: glowPulse 2.5s ease-in-out infinite;
+  box-shadow: 0 0 8px 3px var(--color-odysseus-primary, #2563eb);
+  opacity: var(--glow-intensity, 0.6);
   pointer-events: none;
   z-index: -1;
 }
 
-/* Empty positions: dashed focus rings instead of solid */
+/* Empty vs occupied distinction: dashed = available, solid = has content */
 .tube-position.selected.empty {
-  border: 1px solid transparent !important;
-  /* Remove solid rings for empty - we'll use dashed via pseudo-element */
   box-shadow: none;
 }
 
-/* Dashed ring for empty positions - single darker border */
 .tube-position.selected.empty::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: -2px;
   border-radius: inherit;
-  border: 2px dashed var(--focus-ring-color, #4a7db5);
+  border: 2px dashed var(--color-odysseus-primary, #2563eb);
   pointer-events: none;
   z-index: 1;
-  background: rgba(156, 163, 175, 0.15);
-}
-
-/* Occupied positions: solid border + light teal overlay (preserves tube colors) */
-.tube-position.selected.occupied {
-  border-style: solid !important; /* Ensure solid for occupied positions */
+  background: rgba(37, 99, 235, 0.08);
 }
 
 .tube-position.selected.occupied::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(74, 125, 181, 0.12); /* Solid overlay - GPU optimized */
+  background: rgba(37, 99, 235, 0.18);
   pointer-events: none;
   border-radius: inherit;
   z-index: 1;
 }
 
-/* ===================================== */
-/* FOCUS SUPPRESSION - Clean Aesthetic */
-/* ===================================== */
+.tube-position.selected .cell-line {
+  font-weight: 700;
+}
 
-/* Aggressive focus removal for grid cells (but preserve selection glow) */
+.tube-position.selected .donor-internal,
+.tube-position.selected .donor-source {
+  font-weight: 500;
+}
+
+/* Browser focus rings conflict with selection glow - suppress for unselected */
 .tube-position:not(.selected),
 .tube-position:not(.selected):focus,
 .tube-position:not(.selected):focus-visible,
@@ -214,16 +220,11 @@
   z-index: 2;
 }
 
-/* Drag preview - faded version of selection rings (NO animation) */
+/* Drag preview uses faded selection styling to differentiate from actual selection */
 .tube-position.drag-preview {
   border: 1px solid transparent !important;
-  /* Faded version of selection rings */
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.6),
-    0 0 0 3px rgba(74, 125, 181, 0.4);
 }
 
-/* Empty positions during drag preview: dashed rings */
 .tube-position.drag-preview.empty {
   box-shadow: none;
 }
@@ -231,32 +232,31 @@
 .tube-position.drag-preview.empty::before {
   content: '';
   position: absolute;
-  inset: -3px;
+  inset: -2px;
   border-radius: inherit;
-  border: 2px dashed rgba(74, 125, 181, 0.4);
-  background: rgba(156, 163, 175, 0.1);
+  border: 2px dashed rgba(37, 99, 235, 0.4);
+  background: rgba(37, 99, 235, 0.06);
   pointer-events: none;
   z-index: 1;
 }
 
-/* Occupied positions during drag preview: solid rings + light overlay */
 .tube-position.drag-preview.occupied {
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.6),
-    0 0 0 3px rgba(74, 125, 181, 0.4) !important;
+    0 0 0 2px rgba(37, 99, 235, 0.5) !important;
 }
 
 .tube-position.drag-preview.occupied::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: rgba(74, 125, 181, 0.08);
+  background: rgba(37, 99, 235, 0.12);
   pointer-events: none;
   border-radius: inherit;
   z-index: 1;
 }
 
-/* Cut tube visual feedback */
+/* Cut tubes appear faded to indicate pending removal */
 .tube-position.cut-tube {
   opacity: 0.65;
   filter: grayscale(0.4);
@@ -265,7 +265,7 @@
     filter 0.3s ease;
 }
 
-/* Copied tube visual feedback - Marching ants border */
+/* Marching ants pattern matches OS clipboard conventions (Photoshop, Excel, etc.) */
 @keyframes marching-ants {
   0% {
     background-position:
