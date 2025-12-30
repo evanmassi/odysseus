@@ -328,6 +328,9 @@ export class SessionManager implements TokenProvider {
 
   /**
    * Schedule automatic token refresh
+   *
+   * Uses dynamic buffer calculation to prevent refresh loops when
+   * sessionTimeoutMinutes is short (e.g., 5 minutes for testing).
    */
   scheduleTokenRefresh(accessTokenExpiry: Date): void {
     // Clear any existing timer
@@ -337,22 +340,36 @@ export class SessionManager implements TokenProvider {
     }
 
     const now = Date.now();
-    const bufferMs = this.config.refreshBufferMinutes * 60 * 1000;
+    const tokenLifetimeMs = accessTokenExpiry.getTime() - now;
+
+    // Dynamic buffer: use configured buffer OR 20% of token lifetime, whichever is smaller
+    // This prevents refresh loops when sessionTimeoutMinutes <= refreshBufferMinutes
+    const configuredBufferMs = this.config.refreshBufferMinutes * 60 * 1000;
+    const dynamicBufferMs = Math.floor(tokenLifetimeMs * 0.2); // 20% of token lifetime
+    const bufferMs = Math.min(configuredBufferMs, dynamicBufferMs);
+
     const refreshTime = accessTokenExpiry.getTime() - bufferMs;
     const delay = Math.max(0, refreshTime - now);
 
-    if (delay > 0) {
-      this.state.nextRefreshTime = new Date(now + delay);
+    // Minimum delay of 10 seconds to prevent rapid refresh loops
+    const MIN_REFRESH_DELAY_MS = 10000;
+    const safeDelay = Math.max(delay, MIN_REFRESH_DELAY_MS);
 
-      this.refreshTimer = setTimeout(() => {
-        this.refreshTokens().catch(error => {
-          logger.error('Automatic token refresh failed', { error });
-        });
-      }, delay);
-    } else {
-      // Trigger immediate refresh
-      setTimeout(() => this.refreshTokens(), 0);
-    }
+    this.state.nextRefreshTime = new Date(now + safeDelay);
+
+    logger.debug('Token refresh scheduled', {
+      tokenLifetimeMs,
+      bufferMs,
+      delay,
+      safeDelay,
+      nextRefresh: new Date(now + safeDelay).toISOString(),
+    });
+
+    this.refreshTimer = setTimeout(() => {
+      this.refreshTokens().catch(error => {
+        logger.error('Automatic token refresh failed', { error });
+      });
+    }, safeDelay);
   }
 
   /**
@@ -449,10 +466,18 @@ export class SessionManager implements TokenProvider {
       );
 
       if (!response.success) {
+        logger.debug('Session info poll: response not successful');
         return;
       }
 
       const data = response.data;
+
+      logger.debug('Session info poll result', {
+        isAuthenticated: data.isAuthenticated,
+        showWarning: data.showWarning,
+        timeUntilIdleTimeoutMs: data.timeUntilIdleTimeoutMs,
+        reason: data.reason,
+      });
 
       // Session no longer authenticated - server may have logged us out
       if (!data.isAuthenticated) {

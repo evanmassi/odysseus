@@ -244,7 +244,7 @@ export function ShareAccessModal({
               type="button"
               onClick={handleShare}
               disabled={isProcessing}
-              className="px-4 py-2 text-sm font-medium text-white bg-action hover:bg-action-hover rounded-lg transition-colors disabled:opacity-50 focus-enhanced"
+              className="btn btn-primary"
             >
               {isProcessing
                 ? 'Sharing...'

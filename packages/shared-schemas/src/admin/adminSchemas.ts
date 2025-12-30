@@ -21,7 +21,8 @@ export const securityConfigSchema = z.object({
   passwordRequireSpecialChars: z.boolean(),
 
   // Session Management
-  sessionTimeoutMinutes: z.number().int().min(5).max(10080), // 5 min to 1 week
+  accessTokenExpiryMinutes: z.number().int().min(5).max(60).default(15), // JWT access token lifetime (5-60 min)
+  sessionTimeoutMinutes: z.number().int().min(5).max(10080), // Idle timeout - logout after inactivity (5 min to 1 week)
   idleWarningMinutes: z.number().int().min(1).max(60).default(5), // Warning before idle timeout
   absoluteSessionTimeoutHours: z.number().int().min(1).max(720).default(168), // Force re-login (max 30 days)
   maxConcurrentSessions: z.number().int().min(1).max(100),
@@ -50,7 +51,8 @@ export const DEFAULT_SECURITY_CONFIG: SecurityConfig = {
   requireStrongPasswords: false,
   passwordMinLength: 8,
   passwordRequireSpecialChars: false,
-  sessionTimeoutMinutes: 480, // 8 hours
+  accessTokenExpiryMinutes: 15, // JWT access token lifetime (auto-refreshes transparently)
+  sessionTimeoutMinutes: 480, // 8 hours idle timeout
   idleWarningMinutes: 5, // Show warning 5 minutes before idle timeout
   absoluteSessionTimeoutHours: 168, // Force re-login after 7 days
   maxConcurrentSessions: 3,

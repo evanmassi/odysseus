@@ -562,7 +562,7 @@ export default function BatchTubeEditorModal({
             </button>
             <button
               type="submit"
-              className={`btn px-8 ${canSubmit ? 'btn-primary' : 'btn-secondary'}`}
+              className="btn btn-primary px-8"
               disabled={isSubmitting || !canSubmit}
             >
               {isSubmitting ? (

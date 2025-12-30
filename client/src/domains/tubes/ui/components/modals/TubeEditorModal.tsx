@@ -334,7 +334,7 @@ function EditModeForm({
               </button>
               <button
                 type="submit"
-                className={`btn px-8 ${canSubmit ? 'btn-primary' : 'btn-secondary'}`}
+                className="btn btn-primary px-8"
                 disabled={isSubmitting || !canSubmit}
               >
                 {isSubmitting ? (
@@ -739,7 +739,7 @@ function CreateModeContent({
           </button>
           <button
             type="submit"
-            className={`btn px-8 ${isFormValid ? 'btn-primary' : 'btn-secondary'}`}
+            className="btn btn-primary px-8"
             disabled={isSubmitting || !isFormValid}
           >
             {isSubmitting ? (

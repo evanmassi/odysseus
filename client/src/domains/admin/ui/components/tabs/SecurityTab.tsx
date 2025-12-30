@@ -140,8 +140,27 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
       <div>
         <h4 className="text-base font-semibold text-gray-900 mb-2">Session Management</h4>
         <div className="space-y-1.5">
-          {/* Idle Timeout & Warning - Combined Row */}
+          {/* Token Expiry & Idle Timeout - Combined Row */}
           <div className="grid grid-cols-2 gap-1.5">
+            {/* Access Token Expiry Input */}
+            <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+              <div>
+                <h5 className="text-sm font-medium text-gray-900">Token Lifetime</h5>
+                <p className="text-xs text-gray-600">JWT auto-refresh interval</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <input
+                  type="number"
+                  min="5"
+                  max="60"
+                  value={config.accessTokenExpiryMinutes}
+                  onChange={e => onChange('accessTokenExpiryMinutes', parseInt(e.target.value))}
+                  className="input w-16 text-xs h-6 py-0 px-2"
+                />
+                <p className="text-[10px] text-gray-500 mt-0.5">(5-60 min)</p>
+              </div>
+            </div>
+
             {/* Idle Timeout Input */}
             <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
               <div>
@@ -160,24 +179,24 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 <p className="text-[10px] text-gray-500 mt-0.5">(5-10080 min)</p>
               </div>
             </div>
+          </div>
 
-            {/* Idle Warning Input */}
-            <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
-              <div>
-                <h5 className="text-sm font-medium text-gray-900">Idle Warning</h5>
-                <p className="text-xs text-gray-600">Show warning before timeout</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <input
-                  type="number"
-                  min="1"
-                  max="60"
-                  value={config.idleWarningMinutes}
-                  onChange={e => onChange('idleWarningMinutes', parseInt(e.target.value))}
-                  className="input w-16 text-xs h-6 py-0 px-2"
-                />
-                <p className="text-[10px] text-gray-500 mt-0.5">(1-60 min)</p>
-              </div>
+          {/* Idle Warning - Single Row */}
+          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+            <div>
+              <h5 className="text-sm font-medium text-gray-900">Idle Warning</h5>
+              <p className="text-xs text-gray-600">Show warning before idle timeout</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <input
+                type="number"
+                min="1"
+                max="60"
+                value={config.idleWarningMinutes}
+                onChange={e => onChange('idleWarningMinutes', parseInt(e.target.value))}
+                className="input w-16 text-xs h-6 py-0 px-2"
+              />
+              <p className="text-[10px] text-gray-500 mt-0.5">(1-60 min)</p>
             </div>
           </div>
 

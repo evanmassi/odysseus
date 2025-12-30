@@ -462,6 +462,7 @@ export class SQLiteContext {
         requireStrongPasswords INTEGER NOT NULL DEFAULT 0 CHECK (requireStrongPasswords IN (0, 1)),
         passwordMinLength INTEGER NOT NULL DEFAULT 8,
         passwordRequireSpecialChars INTEGER NOT NULL DEFAULT 0 CHECK (passwordRequireSpecialChars IN (0, 1)),
+        accessTokenExpiryMinutes INTEGER NOT NULL DEFAULT 15,
         sessionTimeoutMinutes INTEGER NOT NULL DEFAULT 480,
         idleWarningMinutes INTEGER NOT NULL DEFAULT 5,
         absoluteSessionTimeoutHours INTEGER NOT NULL DEFAULT 168,

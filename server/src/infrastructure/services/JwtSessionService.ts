@@ -90,11 +90,15 @@ export class JwtSessionService implements SessionService {
 
   /**
    * Get access token expiry in seconds from security configuration
-   * Reads sessionTimeoutMinutes from admin security settings
+   * Reads accessTokenExpiryMinutes from admin security settings
+   *
+   * NOTE: This is separate from sessionTimeoutMinutes (idle timeout).
+   * - accessTokenExpiryMinutes: How long the JWT is valid (typically 15 min)
+   * - sessionTimeoutMinutes: How long until idle user is logged out
    */
   private async getAccessTokenExpirySeconds(): Promise<number> {
     const securityConfig = await this.configurationRepository.getSecurityConfig();
-    return securityConfig.sessionTimeoutMinutes * 60; // Convert minutes to seconds
+    return securityConfig.accessTokenExpiryMinutes * 60; // Convert minutes to seconds
   }
 
   /**
@@ -103,7 +107,7 @@ export class JwtSessionService implements SessionService {
    */
   private async getAccessTokenExpiryMilliseconds(): Promise<number> {
     const securityConfig = await this.configurationRepository.getSecurityConfig();
-    return securityConfig.sessionTimeoutMinutes * 60 * 1000; // Convert minutes to milliseconds
+    return securityConfig.accessTokenExpiryMinutes * 60 * 1000; // Convert minutes to milliseconds
   }
 
   /**
@@ -500,10 +504,11 @@ export class JwtSessionService implements SessionService {
         throw new Error('USER_SESSION_NOT_FOUND');
       }
 
-      // 7. Update session last used time
-      await this.userSessionRepository.updateLastUsed(userSession.id, new Date());
+      // NOTE: We intentionally do NOT update lastUsedAt here.
+      // Token refresh is automatic maintenance, not user activity.
+      // Only real API calls (through auth middleware) should reset idle timeout.
 
-      // 8. Create new access token with session ID (maintains JWT-to-session mapping)
+      // 7. Create new access token with session ID (maintains JWT-to-session mapping)
       const newAccessToken = await this.createAccessToken(user, userSession.id);
       const accessTokenExpiryMs = await this.getAccessTokenExpiryMilliseconds();
       const accessTokenExpiry = new Date(Date.now() + accessTokenExpiryMs);

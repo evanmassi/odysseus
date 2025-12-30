@@ -3,15 +3,17 @@
  *
  * Displays a countdown warning when the user's session is about to expire.
  * Allows user to extend session ("Stay Logged In") or log out immediately.
+ *
+ * Styled to match ConfirmDialog pattern for visual consistency.
  */
 
-import type { FC } from 'react';
 import { useEffect, useState, useCallback, useRef } from 'react';
 
 import { Clock, LogOut } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from '@shared/ui/primitives/modal/Modal';
+import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
 /**
  * Format milliseconds as MM:SS
@@ -29,7 +31,7 @@ function formatTime(ms: number): string {
  * Shows a countdown timer warning the user their session will expire.
  * Provides options to extend the session or log out.
  */
-export const SessionTimeoutWarningModal: FC = () => {
+export function SessionTimeoutWarningModal() {
   const { sessionTimeoutWarning } = useModalStore();
   const { isOpen, timeRemainingMs, onStayLoggedIn, onLogout } = sessionTimeoutWarning;
 
@@ -39,17 +41,19 @@ export const SessionTimeoutWarningModal: FC = () => {
   // Local countdown state for smooth animation
   const [displayTime, setDisplayTime] = useState(timeRemainingMs);
 
+  // Focus trap for keyboard accessibility
+  const trapRef = useFocusTrap({
+    isOpen,
+    restoreFocus: true,
+    initialFocusDelay: 150,
+    initialFocusRef: stayLoggedInRef,
+    autoFocusFirstInput: false,
+  });
+
   // Sync with server-provided time
   useEffect(() => {
     setDisplayTime(timeRemainingMs);
   }, [timeRemainingMs]);
-
-  // Focus the "Stay Logged In" button when modal opens (accessible focus management)
-  useEffect(() => {
-    if (isOpen && stayLoggedInRef.current) {
-      stayLoggedInRef.current.focus();
-    }
-  }, [isOpen]);
 
   // Local countdown timer (updates every second for smooth display)
   useEffect(() => {
@@ -80,72 +84,107 @@ export const SessionTimeoutWarningModal: FC = () => {
     onLogout('manual');
   }, [onLogout]);
 
+  // Keyboard navigation: Enter confirms (stay logged in), Escape logs out
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleStayLoggedIn();
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        e.stopPropagation();
+        handleLogout();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown, true);
+    };
+  }, [isOpen, handleStayLoggedIn, handleLogout]);
+
   if (!isOpen) return null;
 
   const formattedTime = formatTime(displayTime);
   const isUrgent = displayTime <= 60000; // Less than 1 minute
 
+  // Warning variant styling (matching ConfirmDialog pattern)
+  const styles = {
+    iconBg: isUrgent ? 'bg-danger-light' : 'bg-warning-light',
+    iconColor: isUrgent ? 'text-danger-bg' : 'text-warning-bg',
+    border: isUrgent ? 'border-danger-border' : 'border-warning-border',
+    shadow: isUrgent ? 'shadow-red-500/30' : 'shadow-yellow-500/30',
+    timerColor: isUrgent ? 'text-danger-bg' : 'text-warning-bg',
+  };
+
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleStayLoggedIn} // Closing modal = staying logged in
-      size="sm"
-      backdrop="frost"
-      animation="scale"
-      closeOnBackdropClick={false}
-      closeOnEscape={false}
-      preventClose={false}
-      aria-label="Session timeout warning"
-    >
-      <ModalHeader showCloseButton={false}>
-        <div className="flex items-center gap-3">
-          <div className={`p-2 rounded-full ${isUrgent ? 'bg-red-100' : 'bg-amber-100'}`}>
-            <Clock size={24} className={isUrgent ? 'text-red-600' : 'text-amber-600'} />
-          </div>
-          <h2 className="text-lg font-semibold text-gray-900">Session Expiring Soon</h2>
-        </div>
-      </ModalHeader>
-
-      <ModalBody padding="md">
-        <div className="text-center">
-          <p className="text-gray-600 mb-4">Your session will expire due to inactivity.</p>
-
-          {/* Countdown display */}
-          <div
-            className={`text-5xl font-mono font-bold mb-4 ${
-              isUrgent ? 'text-red-600' : 'text-amber-600'
-            }`}
-            role="timer"
-            aria-live="polite"
-            aria-label={`Time remaining: ${formattedTime}`}
-          >
-            {formattedTime}
+    <ModalPortal>
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
+        <div
+          ref={trapRef}
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="session-timeout-title"
+          aria-describedby="session-timeout-message"
+          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} animate-in slide-in-from-bottom-4 duration-500`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="flex items-center space-x-3">
+              <div className={`p-2 ${styles.iconBg} rounded-full`}>
+                <Clock className={`w-6 h-6 ${styles.iconColor}`} />
+              </div>
+              <h2 id="session-timeout-title" className="text-xl font-bold text-odysseus-dark">
+                Session Expiring Soon
+              </h2>
+            </div>
           </div>
 
-          <p className="text-sm text-gray-500">
-            Click &quot;Stay Logged In&quot; to continue your session.
-          </p>
-        </div>
-      </ModalBody>
+          {/* Message and Timer */}
+          <div className="text-center mb-8">
+            <p id="session-timeout-message" className="text-odysseus-muted mb-4">
+              Your session will expire due to inactivity.
+            </p>
 
-      <ModalFooter justify="center" spacing="md">
-        <button
-          type="button"
-          onClick={handleLogout}
-          className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
-        >
-          <LogOut size={18} />
-          Log Out
-        </button>
-        <button
-          ref={stayLoggedInRef}
-          type="button"
-          onClick={handleStayLoggedIn}
-          className="px-6 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors font-medium"
-        >
-          Stay Logged In
-        </button>
-      </ModalFooter>
-    </Modal>
+            {/* Countdown display */}
+            <div
+              className={`text-5xl font-mono font-bold mb-4 ${styles.timerColor}`}
+              role="timer"
+              aria-live="polite"
+              aria-label={`Time remaining: ${formattedTime}`}
+            >
+              {formattedTime}
+            </div>
+
+            <p className="text-sm text-odysseus-muted">
+              Click &quot;Stay Logged In&quot; to continue your session.
+            </p>
+          </div>
+
+          {/* Actions */}
+          <div className="flex justify-center space-x-3">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="btn btn-secondary px-6 inline-flex items-center gap-2"
+            >
+              <LogOut size={18} />
+              Log Out
+            </button>
+            <button
+              ref={stayLoggedInRef}
+              type="button"
+              onClick={handleStayLoggedIn}
+              className="btn btn-primary px-6 font-medium"
+            >
+              Stay Logged In
+            </button>
+          </div>
+        </div>
+      </div>
+    </ModalPortal>
   );
-};
+}
