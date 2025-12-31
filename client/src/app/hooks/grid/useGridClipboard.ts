@@ -120,7 +120,7 @@ export const useGridClipboard = ({
     setClipboard(clipboardData);
     await writeClipboardOS(clipboardData);
 
-    notifications.copy(`Copied ${items.length} tube${items.length > 1 ? 's' : ''}`);
+    notifications.success(`Copied ${items.length} tube${items.length > 1 ? 's' : ''}`);
   }, [
     selectedPositionsInThisBox,
     resolveTubeIdAtPosition,
@@ -170,7 +170,7 @@ export const useGridClipboard = ({
     setClipboard(clipboardData);
     await writeClipboardOS(clipboardData);
 
-    notifications.cut(`Cut ${items.length} tube${items.length > 1 ? 's' : ''}`);
+    notifications.success(`Cut ${items.length} tube${items.length > 1 ? 's' : ''}`);
 
     // Clear selection after cut
     onSelectionChange(new Set());
@@ -341,11 +341,11 @@ export const useGridClipboard = ({
         if (onDeleteTubes && tubeIds.length > 0) {
           await onDeleteTubes(tubeIds, true);
         }
-        notifications.move(
+        notifications.success(
           `Moved ${tubesToPaste.length} tube${tubesToPaste.length > 1 ? 's' : ''}`
         );
       } else {
-        notifications.paste(
+        notifications.success(
           `Pasted ${tubesToPaste.length} tube${tubesToPaste.length > 1 ? 's' : ''}`
         );
       }

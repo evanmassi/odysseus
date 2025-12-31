@@ -301,7 +301,7 @@ export default function BatchTubeEditorModal({
 
       // Show final result
       if (bulkResult.success) {
-        notifications.update(`Updated ${tubeIds.length} tubes successfully`); // Minty Frost
+        notifications.success(`Updated ${tubeIds.length} tubes successfully`);
         setShowProgress(false);
         onClose();
       } else {
@@ -359,7 +359,7 @@ export default function BatchTubeEditorModal({
       setResult(retryResult);
 
       if (retryResult.success) {
-        notifications.update(`Retry successful: Updated ${retryResult.successCount} tubes`); // Minty Frost
+        notifications.success(`Retry successful: Updated ${retryResult.successCount} tubes`);
         setShowProgress(false);
         onClose();
       } else {
@@ -391,7 +391,7 @@ export default function BatchTubeEditorModal({
       });
 
       if (deleteResult.success) {
-        notifications.delete(`Removed ${deleteResult.successCount} tubes successfully`);
+        notifications.success(`Removed ${deleteResult.successCount} tubes successfully`);
         onClose();
       } else {
         notifications.error(

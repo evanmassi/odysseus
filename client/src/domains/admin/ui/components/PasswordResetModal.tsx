@@ -16,11 +16,11 @@
 import { useState } from 'react';
 
 import { X, Eye, EyeOff, Copy, Check } from 'lucide-react';
-import { toast } from 'react-hot-toast';
 
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
+import { notifications } from '@shared/utils/notifications';
 
 import { adminService } from '../../services/AdminService';
 
@@ -55,19 +55,19 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
   const handleDirectReset = async () => {
     if (!newPassword || newPassword.length < 4) {
-      toast.error('Password must be at least 4 characters');
+      notifications.error('Password must be at least 4 characters');
       return;
     }
 
     setIsLoading(true);
     try {
       await adminService.resetUserPassword(userId, newPassword, requirePasswordChange);
-      toast.success('Password reset successfully');
+      notifications.success('Password reset successfully');
       onSuccess();
       onClose();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to reset password';
-      toast.error(message);
+      notifications.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -79,10 +79,10 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
       const response = await adminService.generatePasswordResetToken(userId);
       setResetUrl(response.resetUrl);
       setExpiresAt(response.expiresAt);
-      toast.success('Reset link generated successfully');
+      notifications.success('Reset link generated successfully');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Failed to generate reset link';
-      toast.error(message);
+      notifications.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -94,11 +94,11 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         try {
           await navigator.clipboard.writeText(resetUrl);
           setCopied(true);
-          toast.success('Reset link copied to clipboard');
+          notifications.success('Reset link copied to clipboard');
           setTimeout(() => setCopied(false), 2000);
         } catch (error) {
           logger.error('Failed to copy to clipboard', { error });
-          toast.error('Failed to copy link. Please copy manually.');
+          notifications.error('Failed to copy link. Please copy manually.');
         }
       })();
     }

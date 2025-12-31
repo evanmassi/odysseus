@@ -53,9 +53,9 @@ export function LockTubesModal({ tubeIds, onClose, onSuccess }: LockTubesModalPr
       const skippedCount = result.skipped.length;
 
       if (lockedCount > 0 && skippedCount === 0) {
-        notifications.lock(`Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}`);
+        notifications.success(`Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}`);
       } else if (lockedCount > 0 && skippedCount > 0) {
-        notifications.lock(
+        notifications.success(
           `Locked ${lockedCount} tube${lockedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
         );
       } else {

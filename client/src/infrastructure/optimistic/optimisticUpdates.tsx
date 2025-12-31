@@ -10,6 +10,8 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 
 import { logger } from '@shared/infrastructure/logger';
+import { Toast } from '@shared/ui/components/Toast';
+import { notifications } from '@shared/utils/notifications';
 
 import type { QueryClient, UseMutationOptions } from '@tanstack/react-query';
 
@@ -109,9 +111,14 @@ export class OptimisticUpdatesService {
         if (optimisticUpdate) {
           const context = await this.applyOptimisticUpdate(variables, optimisticUpdate);
 
-          // Show loading feedback
+          // Show loading feedback using custom styled toast
           if (feedback?.loading) {
-            toast.loading(feedback.loading, { id: context.tempId });
+            const loadingMessage = feedback.loading;
+            // Use toast.custom directly with ID for replacement support
+            toast.custom(
+              t => <Toast type="loading" message={loadingMessage} visible={t.visible} />,
+              { id: context.tempId, duration: Infinity, position: 'bottom-right' }
+            );
           }
 
           return { ...customContext, optimistic: context } as TContext;
@@ -134,16 +141,12 @@ export class OptimisticUpdatesService {
             this.pendingMutations.delete(optimisticContext.tempId);
           }
 
-          // Show success feedback
+          // Show success feedback - dismiss loading toast first, then show success
+          if (optimisticContext.tempId) {
+            toast.dismiss(optimisticContext.tempId);
+          }
           if (feedback?.success) {
-            toast.success(feedback.success, {
-              id: optimisticContext.tempId,
-            });
-          } else {
-            // Dismiss loading toast
-            if (optimisticContext.tempId) {
-              toast.dismiss(optimisticContext.tempId);
-            }
+            notifications.success(feedback.success);
           }
         }
 
@@ -171,13 +174,13 @@ export class OptimisticUpdatesService {
             this.pendingMutations.delete(optimisticContext.tempId);
           }
 
-          // Show error feedback
+          // Show error feedback - dismiss loading toast first, then show error
+          if (optimisticContext.tempId) {
+            toast.dismiss(optimisticContext.tempId);
+          }
           // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error message should fall through to default for UX
           const errorMessage = feedback?.error || 'Action failed. Changes have been reverted.';
-          toast.error(errorMessage, {
-            id: optimisticContext.tempId,
-            duration: 5000,
-          });
+          notifications.error(errorMessage);
         }
 
         // Run user's custom onError
@@ -375,10 +378,7 @@ export class OptimisticUpdatesService {
 
     this.pendingMutations.clear();
 
-    toast.error('Connection issues detected. All pending changes have been reverted.', {
-      duration: 5000,
-      position: 'bottom-right',
-    });
+    notifications.error('Connection issues detected. All pending changes have been reverted.');
   }
 }
 

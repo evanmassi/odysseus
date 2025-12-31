@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
 
 import { queryKeys } from '@app/queryKeys';
 import { logger } from '@shared/infrastructure/logger';
+import { notifications } from '@shared/utils/notifications';
 
 import { StorageService } from '../services/StorageService';
 
@@ -76,7 +76,7 @@ export const useUpdateBoxPositionDisplayMutation = () => {
       const formatName =
         variables.positionDisplay?.format === 'numeric' ? 'Numeric (1-81)' : 'Alphanumeric (A1-I9)';
 
-      toast.success(
+      notifications.success(
         variables.positionDisplay
           ? `Position display updated to ${formatName}`
           : 'Position display reset to default'
@@ -87,7 +87,7 @@ export const useUpdateBoxPositionDisplayMutation = () => {
       // Show error feedback
       logger.error('useUpdateBoxPositionDisplayMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to update position display: ${message}`);
+      notifications.error(`Failed to update position display: ${message}`);
     },
   });
 };
@@ -124,7 +124,7 @@ export const useUpdateLabDefaultPositionDisplayMutation = () => {
       const formatName =
         variables.positionDisplay?.format === 'numeric' ? 'Numeric (1-81)' : 'Alphanumeric (A1-I9)';
 
-      toast.success(
+      notifications.success(
         variables.positionDisplay
           ? `Lab default updated to ${formatName}`
           : 'Lab default reset to system default'
@@ -135,7 +135,7 @@ export const useUpdateLabDefaultPositionDisplayMutation = () => {
       // Show error feedback
       logger.error('useUpdateLabDefaultPositionDisplayMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to update lab default: ${message}`);
+      notifications.error(`Failed to update lab default: ${message}`);
     },
   });
 };

@@ -234,7 +234,7 @@ function EditModeForm({
       const result = await submitTube(validatedData, { location: tube.location });
 
       if (result.success) {
-        notifications.update('Tube updated successfully'); // Minty Frost
+        notifications.success('Tube updated successfully');
         onClose();
       } else {
         notifications.error(result.error ?? 'Failed to update tube');
@@ -248,7 +248,7 @@ function EditModeForm({
   const handleDelete = async () => {
     try {
       await deleteMutation.mutateAsync(tubeId);
-      notifications.delete('Tube removed successfully');
+      notifications.success('Tube removed successfully');
       onClose();
     } catch (error) {
       notifications.error('Failed to remove tube');
@@ -524,7 +524,7 @@ function CreateModeContent({
     initialData: defaultValues,
     onSuccess: isSingleTube
       ? data => {
-          notifications.create(`Successfully created tube at position ${data.location.position}`); // Minty Frost
+          notifications.success(`Successfully created tube at position ${data.location.position}`);
           onClose();
         }
       : undefined, // Batch mode: notification handled after all tubes are created
@@ -615,21 +615,21 @@ function CreateModeContent({
         const positionRange = batchLocationDisplay?.positionRanges ?? '';
 
         if (createCount > 0 && updateCount > 0) {
-          notifications.create(
+          notifications.success(
             `Successfully filled ${successCount} positions (${createCount} new, ${updateCount} updated) at ${positionRange}`
-          ); // Minty Frost
+          );
         } else if (createCount > 0) {
           const message =
             successCount > 1
               ? `Successfully created ${successCount} tubes at positions ${positionRange}`
               : `Successfully created tube at position ${positionRange}`;
-          notifications.create(message); // Minty Frost
+          notifications.success(message);
         } else {
           const message =
             successCount > 1
               ? `Successfully updated ${successCount} tubes at positions ${positionRange}`
               : `Successfully updated tube at position ${positionRange}`;
-          notifications.update(message); // Minty Frost
+          notifications.success(message);
         }
         onClose();
       } else if (successCount > 0) {

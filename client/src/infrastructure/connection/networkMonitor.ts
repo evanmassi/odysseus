@@ -8,9 +8,8 @@
 
 import { useEffect, useState } from 'react';
 
-import { toast } from 'react-hot-toast';
-
 import { logger } from '@shared/infrastructure/logger';
+import { notifications } from '@shared/utils/notifications';
 
 import type { NavigatorWithConnection } from '@shared/types';
 import type { QueryClient } from '@tanstack/react-query';
@@ -109,10 +108,7 @@ export class NetworkMonitor {
       await this.queryClient.refetchQueries({ stale: true });
 
       // Show user feedback
-      toast.success('Connection restored - syncing data', {
-        duration: 3000,
-        position: 'bottom-right',
-      });
+      notifications.success('Connection restored - syncing data');
 
       this.notifyListeners('online');
       this.notifyListeners('reconnect-success');
@@ -131,10 +127,7 @@ export class NetworkMonitor {
     this.status.isHighQuality = false;
 
     // Show user feedback
-    toast.error('Connection lost - working offline', {
-      duration: 5000,
-      position: 'bottom-right',
-    });
+    notifications.error('Connection lost - working offline');
 
     // Start reconnection attempts
     this.startReconnectionAttempts();
@@ -171,10 +164,7 @@ export class NetworkMonitor {
         logger.error('Maximum reconnection attempts reached');
         this.notifyListeners('reconnect-failed');
 
-        toast.error('Unable to reconnect. Please check your connection.', {
-          duration: 0, // Persistent until dismissed
-          position: 'bottom-right',
-        });
+        notifications.persistentError('Unable to reconnect. Please check your connection.');
 
         // Stop attempting after 10 tries, but user can manually retry
         if (this.reconnectTimeout) {

@@ -42,17 +42,11 @@ export function Providers({ children }: ProvidersProps) {
       <RealtimeSyncIndicator />
       <ConnectionStatusIndicator />
 
-      {/* Toast notifications */}
+      {/* Toast notifications - custom Toast component handles styling */}
       <Toaster
-        position="top-right"
+        position="bottom-right"
         toastOptions={{
-          duration: 4000,
-          style: {
-            background: '#1f2937',
-            color: '#f9fafb',
-            borderRadius: '0.75rem',
-            padding: '0.75rem 1rem',
-          },
+          duration: 3000,
         }}
       />
 

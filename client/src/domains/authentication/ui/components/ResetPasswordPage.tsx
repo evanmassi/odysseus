@@ -15,11 +15,11 @@
 import { useState, useRef, useEffect } from 'react';
 
 import { Eye, EyeOff } from 'lucide-react';
-import { toast } from 'react-hot-toast';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-import { authenticationService } from '../../services/AuthenticationService';
+import { notifications } from '@shared/utils/notifications';
 
+import { authenticationService } from '../../services/AuthenticationService';
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -50,13 +50,8 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Invalid Reset Link</h2>
-          <p className="text-gray-700 mb-4">
-            This password reset link is invalid or has expired.
-          </p>
-          <button
-            onClick={() => navigate('/login')}
-            className="btn-primary w-full"
-          >
+          <p className="text-gray-700 mb-4">This password reset link is invalid or has expired.</p>
+          <button onClick={() => navigate('/login')} className="btn-primary w-full">
             Back to Login
           </button>
         </div>
@@ -98,7 +93,7 @@ export const ResetPasswordPage: React.FC = () => {
     setIsLoading(true);
     try {
       await authenticationService.resetPasswordWithToken(token, newPassword);
-      toast.success('Password reset successfully! Redirecting to login...');
+      notifications.success('Password reset successfully! Redirecting to login...');
 
       // Store timer ID for proper cleanup
       redirectTimerRef.current = window.setTimeout(() => {
@@ -116,9 +111,7 @@ export const ResetPasswordPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
         <h2 className="text-2xl font-bold text-gray-800 mb-2">Reset Your Password</h2>
-        <p className="text-gray-600 mb-6 text-sm">
-          Enter your new password below.
-        </p>
+        <p className="text-gray-600 mb-6 text-sm">Enter your new password below.</p>
 
         <form onSubmit={handleSubmit}>
           {/* New Password */}
@@ -131,7 +124,7 @@ export const ResetPasswordPage: React.FC = () => {
                 id="new-password"
                 type={showPassword ? 'text' : 'password'}
                 value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
+                onChange={e => setNewPassword(e.target.value)}
                 className="input w-full"
                 placeholder="Enter new password"
                 required
@@ -148,7 +141,10 @@ export const ResetPasswordPage: React.FC = () => {
               </button>
             </div>
             {newPassword && (
-              <p id="password-strength" className={`text-xs mt-1 ${getPasswordStrengthColor(newPassword)}`}>
+              <p
+                id="password-strength"
+                className={`text-xs mt-1 ${getPasswordStrengthColor(newPassword)}`}
+              >
                 Strength: {getPasswordStrength(newPassword)}
               </p>
             )}
@@ -156,7 +152,10 @@ export const ResetPasswordPage: React.FC = () => {
 
           {/* Confirm Password */}
           <div className="mb-4">
-            <label htmlFor="confirm-password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="confirm-password"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Confirm Password
             </label>
             <div className="relative">
@@ -164,7 +163,7 @@ export const ResetPasswordPage: React.FC = () => {
                 id="confirm-password"
                 type={showConfirmPassword ? 'text' : 'password'}
                 value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
+                onChange={e => setConfirmPassword(e.target.value)}
                 className="input w-full"
                 placeholder="Confirm new password"
                 required
@@ -189,11 +188,7 @@ export const ResetPasswordPage: React.FC = () => {
           )}
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="btn-primary w-full mb-3"
-          >
+          <button type="submit" disabled={isLoading} className="btn-primary w-full mb-3">
             {isLoading ? 'Resetting Password...' : 'Reset Password'}
           </button>
 

@@ -3,10 +3,10 @@
  * Phase 3 Step 2: Tuned for performance with centralized socket integration
  */
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
 
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
+import { notifications } from '@shared/utils/notifications';
 
 import type { DefaultOptions } from '@tanstack/react-query';
 
@@ -183,12 +183,12 @@ const handleQueryError = (error: unknown, query: unknown): void => {
   }
 
   if (hasStatus(error) && error.status >= 500) {
-    toast.error('Server error occurred. Please try again.');
+    notifications.error('Server error occurred. Please try again.');
   } else if (
     (hasStatus(error) && error.status === 0) ||
     (hasCode(error) && error.code === 'NETWORK_ERROR')
   ) {
-    toast.error('Network error. Check your connection.');
+    notifications.error('Network error. Check your connection.');
   }
 };
 
@@ -229,12 +229,12 @@ const handleMutationError = (
   }
 
   if (hasStatus(error) && error.status >= 500) {
-    toast.error('Server error. Your changes could not be saved.');
+    notifications.error('Server error. Your changes could not be saved.');
   } else if (hasStatus(error) && error.status >= 400 && error.status < 500) {
     const message = hasMessage(error) ? error.message : 'Invalid request. Please check your input.';
-    toast.error(message);
+    notifications.error(message);
   } else {
-    toast.error('Network error. Please try again.');
+    notifications.error('Network error. Please try again.');
   }
 };
 

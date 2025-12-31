@@ -360,11 +360,17 @@ export function Dashboard() {
   const handleUnlockTubes = useCallback(
     async (tubeIds: string[]) => {
       const count = tubeIds.length;
-      await notifications.promise(unlockTubesMutation.mutateAsync({ tubeIds }), {
-        loading: `Unlocking ${count} tube${count !== 1 ? 's' : ''}...`,
-        success: `Unlocked ${count} tube${count !== 1 ? 's' : ''}`,
-        error: 'Failed to unlock tubes',
-      });
+      const loadingId = notifications.loading(
+        `Unlocking ${count} tube${count !== 1 ? 's' : ''}...`
+      );
+      try {
+        await unlockTubesMutation.mutateAsync({ tubeIds });
+        notifications.dismiss(loadingId);
+        notifications.success(`Unlocked ${count} tube${count !== 1 ? 's' : ''}`);
+      } catch {
+        notifications.dismiss(loadingId);
+        notifications.error('Failed to unlock tubes');
+      }
     },
     [unlockTubesMutation]
   );

@@ -13,10 +13,10 @@ import {
   sortByName,
 } from '@odysseus/shared-schemas';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'react-hot-toast';
 
 import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
 import { queryKeys } from '@app/queryKeys';
+import { notifications } from '@shared/utils/notifications';
 
 import { ResearcherService } from '../services/ResearcherService';
 
@@ -94,13 +94,13 @@ export function useCreateResearcherMutation() {
       ResearcherService.create(researcherData),
     onSuccess: newResearcher => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-      toast.success(
+      notifications.success(
         `Researcher "${formatResearcherDropdownDisplay(newResearcher)}" created successfully`
       );
     },
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to create researcher: ${message}`);
+      notifications.error(`Failed to create researcher: ${message}`);
     },
   });
 }
@@ -125,18 +125,18 @@ export function useUpdateResearcherMutation() {
       // Show appropriate success message based on what was updated
       if (variables.data.active !== undefined) {
         const action = variables.data.active ? 'reactivated' : 'deactivated';
-        toast.success(
+        notifications.success(
           `Researcher "${formatResearcherListDisplay(updatedResearcher)}" ${action} successfully`
         );
       } else {
-        toast.success(
+        notifications.success(
           `Researcher "${formatResearcherListDisplay(updatedResearcher)}" updated successfully`
         );
       }
     },
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to update researcher: ${message}`);
+      notifications.error(`Failed to update researcher: ${message}`);
     },
   });
 }
@@ -152,11 +152,11 @@ export function useDeleteResearcherMutation() {
     onSuccess: (_, researcherId) => {
       queryClient.removeQueries({ queryKey: queryKeys.researchers.detail(researcherId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-      toast.success('Researcher deleted successfully');
+      notifications.success('Researcher deleted successfully');
     },
     onError: (error: unknown) => {
       const message = error instanceof Error ? error.message : 'Unknown error';
-      toast.error(`Failed to delete researcher: ${message}`);
+      notifications.error(`Failed to delete researcher: ${message}`);
     },
   });
 }

@@ -99,11 +99,13 @@ export function ShareAccessModal({
       const skippedCount = result.skipped.length;
 
       if (sharedCount > 0 && skippedCount === 0) {
-        notifications.lock(`Shared access to ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}`);
+        notifications.success(
+          `Shared access to ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}`
+        );
         setSelectedUserIds([]);
         onSuccess?.();
       } else if (sharedCount > 0 && skippedCount > 0) {
-        notifications.lock(
+        notifications.success(
           `Shared ${sharedCount} tube${sharedCount !== 1 ? 's' : ''}. ${skippedCount} skipped.`
         );
         setSelectedUserIds([]);
@@ -125,7 +127,7 @@ export function ShareAccessModal({
 
       const revokedCount = result.revoked.length;
       if (revokedCount > 0) {
-        notifications.lock(`Revoked access from ${getUserName(userId)}`);
+        notifications.success(`Revoked access from ${getUserName(userId)}`);
         onSuccess?.();
       } else {
         notifications.warning('No access was revoked');
