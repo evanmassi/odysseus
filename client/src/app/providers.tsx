@@ -18,8 +18,14 @@ import {
   RealtimeSyncIndicator,
   OfflineBanner,
 } from '@shared/ui/components/ConnectionStatusIndicator';
+import { notifications } from '@shared/utils/notifications';
 
 import { queryClient } from './queryClient';
+
+// Dev-only: Expose notifications to console for testing
+if (env.isDev()) {
+  (window as unknown as { __notifications: typeof notifications }).__notifications = notifications;
+}
 
 interface ProvidersProps {
   children: React.ReactNode;
