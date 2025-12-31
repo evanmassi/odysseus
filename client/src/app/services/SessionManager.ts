@@ -88,6 +88,24 @@ interface SessionWarningCallbacks {
  * - Access token: Short-lived, auto-refreshes
  * - Refresh token: Long-lived, persists across restarts
  */
+// Polling intervals for adaptive session monitoring
+const POLLING_INTERVAL_NORMAL_MS = 30000; // 30 seconds when far from warning
+const POLLING_INTERVAL_APPROACHING_MS = 10000; // 10 seconds when approaching warning
+const POLLING_INTERVAL_WARNING_MS = 5000; // 5 seconds when warning is shown
+
+// Activity tracking: debounce heartbeat to max 1 per 30 seconds
+// Balances server load vs. UX responsiveness for idle timeout reset
+const HEARTBEAT_DEBOUNCE_MS = 30 * 1000;
+
+// Events that indicate user activity
+const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
+  'click',
+  'keydown',
+  'mousemove',
+  'scroll',
+  'touchstart',
+];
+
 export class SessionManager implements TokenProvider {
   private state: SessionManagerState = {
     isRefreshing: false,
@@ -98,11 +116,17 @@ export class SessionManager implements TokenProvider {
 
   private refreshTimer: NodeJS.Timeout | null = null;
   private refreshPromise: Promise<boolean> | null = null;
-  private sessionInfoPollingInterval: NodeJS.Timeout | null = null;
+  private sessionInfoPollingTimer: NodeJS.Timeout | null = null;
   private config: SessionConfig;
   private onSessionExpired?: (reason: 'idle_timeout' | 'token_expired' | 'manual_logout') => void;
   private warningCallbacks?: SessionWarningCallbacks;
   private isWarningShown: boolean = false;
+
+  // Activity tracking state
+  private isTrackingActivity: boolean = false;
+  private lastHeartbeatTime: number = 0;
+  private lastKnownTimeUntilTimeout: number | null = null;
+  private boundActivityHandler: (() => void) | null = null;
 
   constructor(
     private authHttpClient: AuthHttpClient,
@@ -126,8 +150,9 @@ export class SessionManager implements TokenProvider {
     const existingTokens = this.storage.getTokens();
     if (existingTokens) {
       this.scheduleTokenRefresh(existingTokens.accessTokenExpiry);
-      // Start server-side session monitoring
+      // Start server-side session monitoring and activity tracking
       this.startSessionInfoPolling();
+      this.startActivityTracking();
     }
   }
 
@@ -322,8 +347,9 @@ export class SessionManager implements TokenProvider {
   setTokens(tokens: TokenPair): void {
     this.storage.setTokens(tokens);
     this.scheduleTokenRefresh(tokens.accessTokenExpiry);
-    // Start server-side session monitoring
+    // Start server-side session monitoring and activity tracking
     this.startSessionInfoPolling();
+    this.startActivityTracking();
   }
 
   /**
@@ -357,14 +383,6 @@ export class SessionManager implements TokenProvider {
 
     this.state.nextRefreshTime = new Date(now + safeDelay);
 
-    logger.debug('Token refresh scheduled', {
-      tokenLifetimeMs,
-      bufferMs,
-      delay,
-      safeDelay,
-      nextRefresh: new Date(now + safeDelay).toISOString(),
-    });
-
     this.refreshTimer = setTimeout(() => {
       this.refreshTokens().catch(error => {
         logger.error('Automatic token refresh failed', { error });
@@ -387,10 +405,13 @@ export class SessionManager implements TokenProvider {
     }
 
     // Stop session info polling
-    if (this.sessionInfoPollingInterval) {
-      clearInterval(this.sessionInfoPollingInterval);
-      this.sessionInfoPollingInterval = null;
+    if (this.sessionInfoPollingTimer) {
+      clearTimeout(this.sessionInfoPollingTimer);
+      this.sessionInfoPollingTimer = null;
     }
+
+    // Stop activity tracking
+    this.stopActivityTracking();
 
     // Hide warning modal if shown
     if (this.isWarningShown) {
@@ -410,6 +431,7 @@ export class SessionManager implements TokenProvider {
     };
 
     this.refreshPromise = null;
+    this.lastKnownTimeUntilTimeout = null;
 
     // Notify consumer of session expiration
     this.onSessionExpired?.(reason);
@@ -430,24 +452,61 @@ export class SessionManager implements TokenProvider {
   }
 
   /**
-   * Start background session info polling
+   * Start background session info polling with adaptive intervals
    *
-   * Polls server every 30 seconds to check session status.
-   * Shows warning modal when approaching idle timeout.
+   * Polling frequency adjusts based on proximity to idle timeout:
+   * - Normal: 30 seconds (when far from warning threshold)
+   * - Approaching: 10 seconds (within 2x warning time)
+   * - Warning shown: 5 seconds (for accurate countdown)
    */
   private startSessionInfoPolling(): void {
     // Stop any existing polling
-    if (this.sessionInfoPollingInterval) {
-      clearInterval(this.sessionInfoPollingInterval);
+    if (this.sessionInfoPollingTimer) {
+      clearTimeout(this.sessionInfoPollingTimer);
+      this.sessionInfoPollingTimer = null;
     }
 
-    // Poll every 30 seconds
-    this.sessionInfoPollingInterval = setInterval(() => {
-      void this.pollSessionInfo();
-    }, 30000);
-
-    // Also poll immediately on start
+    // Poll immediately on start, then schedule next poll
     void this.pollSessionInfo();
+  }
+
+  /**
+   * Calculate next polling interval based on time until timeout
+   */
+  private calculatePollingInterval(): number {
+    // If warning is shown, poll frequently for accurate countdown
+    if (this.isWarningShown) {
+      return POLLING_INTERVAL_WARNING_MS;
+    }
+
+    // Use last known time from server to determine interval
+    if (this.lastKnownTimeUntilTimeout !== null) {
+      // If within 2x the warning threshold, poll more frequently
+      // Assume 5-minute warning threshold if not specified
+      const warningThresholdMs = 5 * 60 * 1000;
+      const approachingThreshold = warningThresholdMs * 2;
+
+      if (this.lastKnownTimeUntilTimeout <= approachingThreshold) {
+        return POLLING_INTERVAL_APPROACHING_MS;
+      }
+    }
+
+    return POLLING_INTERVAL_NORMAL_MS;
+  }
+
+  /**
+   * Schedule the next session info poll
+   */
+  private scheduleNextPoll(): void {
+    if (this.sessionInfoPollingTimer) {
+      clearTimeout(this.sessionInfoPollingTimer);
+    }
+
+    const interval = this.calculatePollingInterval();
+
+    this.sessionInfoPollingTimer = setTimeout(() => {
+      void this.pollSessionInfo();
+    }, interval);
   }
 
   /**
@@ -467,17 +526,16 @@ export class SessionManager implements TokenProvider {
 
       if (!response.success) {
         logger.debug('Session info poll: response not successful');
+        this.scheduleNextPoll();
         return;
       }
 
       const data = response.data;
 
-      logger.debug('Session info poll result', {
-        isAuthenticated: data.isAuthenticated,
-        showWarning: data.showWarning,
-        timeUntilIdleTimeoutMs: data.timeUntilIdleTimeoutMs,
-        reason: data.reason,
-      });
+      // Track time until timeout for adaptive polling
+      if (data.timeUntilIdleTimeoutMs !== undefined) {
+        this.lastKnownTimeUntilTimeout = data.timeUntilIdleTimeoutMs;
+      }
 
       // Session no longer authenticated - server may have logged us out
       if (!data.isAuthenticated) {
@@ -511,15 +569,19 @@ export class SessionManager implements TokenProvider {
         this.isWarningShown = false;
         this.warningCallbacks?.hideWarning();
       }
+
+      // Schedule next poll with adaptive interval
+      this.scheduleNextPoll();
     } catch (error) {
       // Silently ignore polling errors - we'll retry on next interval
       logger.debug('Session info polling error', { error });
+      this.scheduleNextPoll();
     }
   }
 
   /**
    * Send heartbeat to extend session
-   * Called when user clicks "Stay Logged In"
+   * Called when user clicks "Stay Logged In" or via debounced activity tracking
    */
   async sendHeartbeat(): Promise<boolean> {
     const tokens = this.storage.getTokens();
@@ -535,10 +597,16 @@ export class SessionManager implements TokenProvider {
       );
 
       if (response.success) {
-        // Hide warning modal
+        // Track when we sent this heartbeat for debouncing
+        this.lastHeartbeatTime = Date.now();
+
+        // Hide warning modal if shown
         this.isWarningShown = false;
         this.warningCallbacks?.hideWarning();
-        logger.info('Session extended via heartbeat');
+
+        // Reset timeout tracking since session was just extended
+        this.lastKnownTimeUntilTimeout = null;
+
         return true;
       }
 
@@ -547,6 +615,76 @@ export class SessionManager implements TokenProvider {
       logger.error('Failed to send heartbeat', { error });
       return false;
     }
+  }
+
+  /**
+   * Start tracking user activity to extend session
+   *
+   * Listens for clicks, keystrokes, mouse movement, scrolling, and touch.
+   * Sends debounced heartbeat to extend session on the server.
+   */
+  private startActivityTracking(): void {
+    if (this.isTrackingActivity) {
+      return;
+    }
+
+    // Create bound handler for cleanup
+    this.boundActivityHandler = this.handleUserActivity.bind(this);
+
+    // Add listeners for all activity events
+    // Use capture phase so stopPropagation() in component handlers doesn't block us
+    ACTIVITY_EVENTS.forEach(event => {
+      window.addEventListener(event, this.boundActivityHandler!, { capture: true, passive: true });
+    });
+
+    this.isTrackingActivity = true;
+  }
+
+  /**
+   * Stop tracking user activity
+   */
+  private stopActivityTracking(): void {
+    if (!this.isTrackingActivity || !this.boundActivityHandler) {
+      return;
+    }
+
+    // Remove all listeners (must match capture phase from addEventListener)
+    ACTIVITY_EVENTS.forEach(event => {
+      window.removeEventListener(event, this.boundActivityHandler!, { capture: true });
+    });
+
+    this.boundActivityHandler = null;
+    this.isTrackingActivity = false;
+    this.lastHeartbeatTime = 0;
+  }
+
+  /**
+   * Handle user activity event
+   *
+   * Sends debounced heartbeat to extend session server-side.
+   * Heartbeats are throttled to max 1 per HEARTBEAT_DEBOUNCE_MS.
+   */
+  private handleUserActivity(): void {
+    const now = Date.now();
+    const timeSinceLastHeartbeat = now - this.lastHeartbeatTime;
+
+    // Debounce: only send heartbeat if enough time has passed
+    if (timeSinceLastHeartbeat < HEARTBEAT_DEBOUNCE_MS) {
+      return;
+    }
+
+    // Don't send heartbeat if warning is shown (let user explicitly click Stay Logged In)
+    if (this.isWarningShown) {
+      return;
+    }
+
+    // Send heartbeat in background (don't block UI)
+    this.lastHeartbeatTime = now; // Set immediately to prevent duplicate calls
+    this.sendHeartbeat().catch(error => {
+      logger.debug('Activity heartbeat failed', { error });
+      // Reset time so we can retry on next activity
+      this.lastHeartbeatTime = 0;
+    });
   }
 
   /**
@@ -560,10 +698,13 @@ export class SessionManager implements TokenProvider {
     }
 
     // Clear session info polling
-    if (this.sessionInfoPollingInterval) {
-      clearInterval(this.sessionInfoPollingInterval);
-      this.sessionInfoPollingInterval = null;
+    if (this.sessionInfoPollingTimer) {
+      clearTimeout(this.sessionInfoPollingTimer);
+      this.sessionInfoPollingTimer = null;
     }
+
+    // Stop activity tracking
+    this.stopActivityTracking();
 
     // Hide warning modal if shown
     if (this.isWarningShown) {
@@ -572,6 +713,7 @@ export class SessionManager implements TokenProvider {
     }
 
     this.refreshPromise = null;
+    this.lastKnownTimeUntilTimeout = null;
   }
 
   /**
@@ -620,10 +762,21 @@ export class LocalStorageSessionStorage implements SessionStorage {
 
       const parsed = JSON.parse(stored);
 
+      // Parse and validate dates
+      const accessTokenExpiry = new Date(parsed.accessTokenExpiry);
+      const refreshTokenExpiry = new Date(parsed.refreshTokenExpiry);
+
+      // Validate dates are valid (prevents "Invalid Date" from crashing the app)
+      if (isNaN(accessTokenExpiry.getTime()) || isNaN(refreshTokenExpiry.getTime())) {
+        logger.warn('Invalid token expiry dates in storage, clearing tokens');
+        this.clearTokens();
+        return null;
+      }
+
       return {
         ...parsed,
-        accessTokenExpiry: new Date(parsed.accessTokenExpiry),
-        refreshTokenExpiry: new Date(parsed.refreshTokenExpiry),
+        accessTokenExpiry,
+        refreshTokenExpiry,
       };
     } catch (error) {
       logger.error('Failed to parse stored tokens', { error });
