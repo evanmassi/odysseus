@@ -360,13 +360,12 @@ export const useBulkUpdateTubesMutation = (
       } as BulkUpdateResult;
     },
 
-    onSuccess: async (_data, _variables) => {
-      // Refetch all tube queries to get fresh data immediately
-      // Using refetchQueries instead of invalidateQueries for immediate update
-      await queryClient.refetchQueries({ queryKey: queryKeys.tubes.all });
+    onSuccess: (_data, _variables) => {
+      // Invalidate all tube queries - active queries will refetch immediately in background
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
 
       // Invalidate statistics
-      await queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
 
     onError: (error, _variables) => {
