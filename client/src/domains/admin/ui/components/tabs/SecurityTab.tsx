@@ -139,53 +139,31 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
       {/* Session Management Section */}
       <div>
         <h4 className="text-base font-semibold text-gray-900 mb-2">Session Management</h4>
-        <div className="space-y-1.5">
-          {/* Token Expiry & Idle Timeout - Combined Row */}
-          <div className="grid grid-cols-2 gap-1.5">
-            {/* Access Token Expiry Input */}
-            <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
-              <div>
-                <h5 className="text-sm font-medium text-gray-900">Token Lifetime</h5>
-                <p className="text-xs text-gray-600">JWT auto-refresh interval</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <input
-                  type="number"
-                  min="5"
-                  max="60"
-                  value={config.accessTokenExpiryMinutes}
-                  onChange={e => onChange('accessTokenExpiryMinutes', parseInt(e.target.value))}
-                  className="input w-16 text-xs h-6 py-0 px-2"
-                />
-                <p className="text-[10px] text-gray-500 mt-0.5">(5-60 min)</p>
-              </div>
+        <div className="grid grid-cols-2 gap-1.5">
+          {/* Auto-Logout */}
+          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+            <div>
+              <h5 className="text-sm font-medium text-gray-900">Auto-Logout</h5>
+              <p className="text-xs text-gray-600">Logout after inactivity</p>
             </div>
-
-            {/* Idle Timeout Input */}
-            <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
-              <div>
-                <h5 className="text-sm font-medium text-gray-900">Idle Timeout</h5>
-                <p className="text-xs text-gray-600">Auto-logout after inactivity</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <input
-                  type="number"
-                  min="5"
-                  max="10080"
-                  value={config.sessionTimeoutMinutes}
-                  onChange={e => onChange('sessionTimeoutMinutes', parseInt(e.target.value))}
-                  className="input w-16 text-xs h-6 py-0 px-2"
-                />
-                <p className="text-[10px] text-gray-500 mt-0.5">(5-10080 min)</p>
-              </div>
+            <div className="flex flex-col items-center">
+              <input
+                type="number"
+                min="5"
+                max="10080"
+                value={config.sessionTimeoutMinutes}
+                onChange={e => onChange('sessionTimeoutMinutes', parseInt(e.target.value))}
+                className="input w-16 text-xs h-6 py-0 px-2"
+              />
+              <p className="text-[10px] text-gray-500 mt-0.5">(5-10080 min)</p>
             </div>
           </div>
 
-          {/* Idle Warning - Single Row */}
+          {/* Logout Warning */}
           <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Idle Warning</h5>
-              <p className="text-xs text-gray-600">Show warning before idle timeout</p>
+              <h5 className="text-sm font-medium text-gray-900">Logout Warning</h5>
+              <p className="text-xs text-gray-600">Warning before logout</p>
             </div>
             <div className="flex flex-col items-center">
               <input
@@ -200,13 +178,11 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
             </div>
           </div>
 
-          {/* Absolute Session Timeout Input */}
+          {/* Max Login Time */}
           <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Absolute Session Timeout</h5>
-              <p className="text-xs text-gray-600">
-                Force re-login regardless of activity (max session lifetime)
-              </p>
+              <h5 className="text-sm font-medium text-gray-900">Max Login Time</h5>
+              <p className="text-xs text-gray-600">Force re-login after</p>
             </div>
             <div className="flex flex-col items-center">
               <input
@@ -217,7 +193,26 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 onChange={e => onChange('absoluteSessionTimeoutHours', parseInt(e.target.value))}
                 className="input w-16 text-xs h-6 py-0 px-2"
               />
-              <p className="text-[10px] text-gray-500 mt-0.5">(1-720 hours)</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">(1-720 hrs)</p>
+            </div>
+          </div>
+
+          {/* Token Lifetime */}
+          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+            <div>
+              <h5 className="text-sm font-medium text-gray-900">Token Lifetime</h5>
+              <p className="text-xs text-gray-600">Security refresh interval</p>
+            </div>
+            <div className="flex flex-col items-center">
+              <input
+                type="number"
+                min="5"
+                max="60"
+                value={config.accessTokenExpiryMinutes}
+                onChange={e => onChange('accessTokenExpiryMinutes', parseInt(e.target.value))}
+                className="input w-16 text-xs h-6 py-0 px-2"
+              />
+              <p className="text-[10px] text-gray-500 mt-0.5">(5-60 min)</p>
             </div>
           </div>
         </div>
