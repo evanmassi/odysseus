@@ -2,7 +2,7 @@ import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { SQLiteTubeRepository } from '@infrastructure/repositories/SQLiteTubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
-import { SQLiteResearcherRepository } from '@infrastructure/repositories/SQLiteResearcherRepository';
+import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
 import { SQLiteConfigurationRepository } from '@infrastructure/repositories/SQLiteConfigurationRepository';
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
@@ -80,7 +80,7 @@ export class RepositoryFactory {
   getResearcherRepository(): ResearcherRepository {
     if (!this.researcherRepository) {
       const personRepo = this.getPersonRepository();
-      this.researcherRepository = new SQLiteResearcherRepository(this.sqliteContext, personRepo);
+      this.researcherRepository = new ResearcherRepositoryImpl(this.postgresContext, personRepo);
     }
     return this.researcherRepository;
   }

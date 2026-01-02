@@ -1,45 +1,45 @@
 import { Researcher } from '@domain/entities/Researcher';
-import { SqliteDateMapper } from '@infrastructure/database/SqliteDateMapper';
 
 /**
  * Database row structure for researchers table
  */
 export interface ResearcherRow {
   id: string;
-  personId: string;
-  active: number; // SQLite stores boolean as 0/1
-  createdAt: string;
+  person_id: string;
+  active: boolean;
+  created_at: Date | string;
 }
 
 /**
- * ResearcherMapper - Clean conversion between Domain Entity and Database Row
- *
- * Handles all mapping logic without business rules.
- * Pure transformation functions.
+ * ResearcherMapper - Conversion between domain entity and database row
  */
 export class ResearcherMapper {
 
   /**
-   * Convert Domain Entity to Database Row
+   * Convert domain entity to database row
    */
   static toRow(researcher: Researcher): ResearcherRow {
     return {
       id: researcher.id,
-      personId: researcher.personId,
-      active: researcher.active ? 1 : 0,
-      createdAt: SqliteDateMapper.toDbDateTime(researcher.createdAt)
+      person_id: researcher.personId,
+      active: researcher.active,
+      created_at: researcher.createdAt
     };
   }
 
   /**
-   * Convert Database Row to Domain Entity
+   * Convert database row to domain entity
    */
   static fromRow(row: ResearcherRow): Researcher {
+    const createdAt = row.created_at instanceof Date
+      ? row.created_at.toISOString()
+      : row.created_at;
+
     return Researcher.fromData({
       id: row.id,
-      personId: row.personId,
-      active: Boolean(row.active),
-      createdAt: SqliteDateMapper.fromDbDateTime(row.createdAt)!.toISOString()
+      personId: row.person_id,
+      active: row.active,
+      createdAt
     });
   }
 

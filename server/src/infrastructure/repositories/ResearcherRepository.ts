@@ -1,5 +1,5 @@
 import {
-  ResearcherRepository,
+  ResearcherRepository as IResearcherRepository,
   ResearcherValidationResult,
   DuplicateCheckResult
 } from '@domain/repositories/ResearcherRepository';
@@ -11,28 +11,19 @@ import type {
 import { Researcher } from '@domain/entities/Researcher';
 import { Person } from '@domain/entities/Person';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
+import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { ResearcherMapper, ResearcherRow } from '@infrastructure/database/mappers/ResearcherMapper';
-import { SqliteDateMapper } from '@infrastructure/database/SqliteDateMapper';
 
 /**
- * SQLiteResearcherRepository - Researcher data access
+ * ResearcherRepository - Researcher data access
  *
- * Implements ResearcherRepository interface using SQLite.
- * Handles all researcher persistence operations.
- *
- * IMPORTANT: After Person entity implementation, Researcher no longer contains
- * profile fields (firstName, lastName, email, position, department).
- * These are now in Person entity. Many methods below need refactoring to JOIN
- * with persons table or work at Person level instead.
- *
- * TODO: Refactor bulk operations (saveMany, createFromNames, updateMany, etc.)
- * to work with Person entity properly. Currently marked for cleanup.
+ * Researcher entity links to Person entity for profile data (firstName, lastName, email, etc.)
+ * Many methods JOIN with persons table for name-based operations.
  */
-export class SQLiteResearcherRepository implements ResearcherRepository {
+export class ResearcherRepository implements IResearcherRepository {
 
   constructor(
-    private context: SQLiteContext,
+    private context: PostgresContext,
     private personRepository: PersonRepository
   ) {}
 
@@ -40,28 +31,26 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
 
   async findById(id: string): Promise<Researcher | null> {
     const row = await this.context.queryOne<ResearcherRow>(
-      'SELECT * FROM researchers WHERE id = ?',
+      'SELECT * FROM researchers WHERE id = $1',
       [id]
     );
     return row ? ResearcherMapper.fromRow(row) : null;
   }
 
   async findByName(firstName: string, lastName: string): Promise<Researcher | null> {
-    // Note: Names are now in Person entity, need to JOIN
     const row = await this.context.queryOne<ResearcherRow>(`
       SELECT r.* FROM researchers r
-      INNER JOIN persons p ON r.personId = p.id
-      WHERE p.firstName = ? AND p.lastName = ?
+      INNER JOIN persons p ON r.person_id = p.id
+      WHERE p.first_name = $1 AND p.last_name = $2
     `, [firstName, lastName]);
     return row ? ResearcherMapper.fromRow(row) : null;
   }
 
   async findAll(): Promise<Researcher[]> {
-    // Note: Ordering by Person name requires JOIN
     const rows = await this.context.queryMany<ResearcherRow>(`
       SELECT r.* FROM researchers r
-      INNER JOIN persons p ON r.personId = p.id
-      ORDER BY p.lastName, p.firstName
+      INNER JOIN persons p ON r.person_id = p.id
+      ORDER BY p.last_name, p.first_name
     `);
     return ResearcherMapper.fromRows(rows);
   }
@@ -69,7 +58,7 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   async findByIds(ids: string[]): Promise<Researcher[]> {
     if (ids.length === 0) return [];
 
-    const placeholders = ids.map(() => '?').join(',');
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const rows = await this.context.queryMany<ResearcherRow>(
       `SELECT * FROM researchers WHERE id IN (${placeholders})`,
       ids
@@ -81,17 +70,18 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
     const row = ResearcherMapper.toRow(researcher);
 
     await this.context.execute(`
-      INSERT OR REPLACE INTO researchers (
-        id, personId, active, createdAt
-      ) VALUES (?, ?, ?, ?)
-    `, [
-      row.id, row.personId, row.active, row.createdAt
-    ]);
+      INSERT INTO researchers (id, person_id, active, created_at)
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (id) DO UPDATE SET
+        person_id = EXCLUDED.person_id,
+        active = EXCLUDED.active,
+        created_at = EXCLUDED.created_at
+    `, [row.id, row.person_id, row.active, row.created_at]);
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute('DELETE FROM researchers WHERE id = ?', [id]);
-    return result.changes > 0;
+    const result = await this.context.execute('DELETE FROM researchers WHERE id = $1', [id]);
+    return (result.rowCount ?? 0) > 0;
   }
 
   // STATUS-BASED OPERATIONS
@@ -105,71 +95,71 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   }
 
   async isActive(id: string): Promise<boolean> {
-    const result = await this.context.queryOne<{ active: number }>(
-      'SELECT active FROM researchers WHERE id = ?',
+    const result = await this.context.queryOne<{ active: boolean }>(
+      'SELECT active FROM researchers WHERE id = $1',
       [id]
     );
-    return Boolean(result?.active);
+    return result?.active ?? false;
   }
 
   async findByStatus(isActive: boolean): Promise<Researcher[]> {
-    // Note: Ordering by Person name requires JOIN
     const rows = await this.context.queryMany<ResearcherRow>(`
       SELECT r.* FROM researchers r
-      INNER JOIN persons p ON r.personId = p.id
-      WHERE r.active = ?
-      ORDER BY p.lastName, p.firstName
-    `, [isActive ? 1 : 0]);
+      INNER JOIN persons p ON r.person_id = p.id
+      WHERE r.active = $1
+      ORDER BY p.last_name, p.first_name
+    `, [isActive]);
     return ResearcherMapper.fromRows(rows);
   }
 
   async updateStatus(id: string, isActive: boolean): Promise<boolean> {
     const result = await this.context.execute(
-      'UPDATE researchers SET active = ? WHERE id = ?',
-      [isActive ? 1 : 0, id]
+      'UPDATE researchers SET active = $1 WHERE id = $2',
+      [isActive, id]
     );
-    return result.changes > 0;
+    return (result.rowCount ?? 0) > 0;
   }
 
   async updateStatusForMany(ids: string[], isActive: boolean): Promise<number> {
     if (ids.length === 0) return 0;
-    
+
+    const placeholders = ids.map((_, i) => `$${i + 2}`).join(',');
     const result = await this.context.execute(
-      `UPDATE researchers SET active = ? WHERE id IN (${ids.map(() => '?').join(',')})`,
-      [isActive ? 1 : 0, ...ids]
+      `UPDATE researchers SET active = $1 WHERE id IN (${placeholders})`,
+      [isActive, ...ids]
     );
-    return result.changes;
+    return result.rowCount ?? 0;
   }
 
   // QUERY OPERATIONS
 
   async nameExists(firstName: string, lastName: string): Promise<boolean> {
-    const result = await this.context.queryOne<{ count: number }>(
-      'SELECT COUNT(*) as count FROM researchers r INNER JOIN persons p ON r.personId = p.id WHERE p.firstName = ? AND p.lastName = ?',
+    const result = await this.context.queryOne<{ count: string }>(
+      `SELECT COUNT(*) as count FROM researchers r
+       INNER JOIN persons p ON r.person_id = p.id
+       WHERE p.first_name = $1 AND p.last_name = $2`,
       [firstName, lastName]
     );
-    return (result?.count || 0) > 0;
+    return parseInt(result?.count || '0', 10) > 0;
   }
 
   async searchByName(namePattern: string): Promise<Researcher[]> {
-    // Note: Names are in Person entity, need to JOIN
     const rows = await this.context.queryMany<ResearcherRow>(`
       SELECT r.* FROM researchers r
-      INNER JOIN persons p ON r.personId = p.id
-      WHERE p.firstName LIKE ? OR p.lastName LIKE ?
-      ORDER BY p.lastName, p.firstName
-    `, [`%${namePattern}%`, `%${namePattern}%`]);
+      INNER JOIN persons p ON r.person_id = p.id
+      WHERE p.first_name ILIKE $1 OR p.last_name ILIKE $1
+      ORDER BY p.last_name, p.first_name
+    `, [`%${namePattern}%`]);
     return ResearcherMapper.fromRows(rows);
   }
 
   async findSimilarNames(firstName: string, lastName: string): Promise<Researcher[]> {
-    // Names are now in Person entity, need to JOIN
     const rows = await this.context.queryMany<ResearcherRow>(
       `SELECT r.* FROM researchers r
-       INNER JOIN persons p ON r.personId = p.id
-       WHERE (p.firstName LIKE ? OR p.lastName LIKE ?)
-       AND NOT (p.firstName = ? AND p.lastName = ?)
-       ORDER BY p.lastName, p.firstName`,
+       INNER JOIN persons p ON r.person_id = p.id
+       WHERE (p.first_name ILIKE $1 OR p.last_name ILIKE $2)
+       AND NOT (p.first_name = $3 AND p.last_name = $4)
+       ORDER BY p.last_name, p.first_name`,
       [`%${firstName}%`, `%${lastName}%`, firstName, lastName]
     );
     return ResearcherMapper.fromRows(rows);
@@ -177,63 +167,68 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
 
   async search(criteria: ResearcherSearchCriteria): Promise<Researcher[]> {
     const conditions: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
+    let paramIndex = 1;
 
-    // Name criteria
+    // Name criteria - names are in persons table, need JOIN
     if (criteria.name) {
-      // Legacy support: search in both firstName and lastName
-      conditions.push('(firstName LIKE ? OR lastName LIKE ?)');
-      params.push(`%${criteria.name}%`, `%${criteria.name}%`);
+      conditions.push(`(p.first_name ILIKE $${paramIndex} OR p.last_name ILIKE $${paramIndex})`);
+      params.push(`%${criteria.name}%`);
+      paramIndex++;
     }
     if (criteria.namePattern) {
-      conditions.push('(firstName LIKE ? OR lastName LIKE ?)');
-      params.push(`%${criteria.namePattern}%`, `%${criteria.namePattern}%`);
+      conditions.push(`(p.first_name ILIKE $${paramIndex} OR p.last_name ILIKE $${paramIndex})`);
+      params.push(`%${criteria.namePattern}%`);
+      paramIndex++;
     }
 
     // Status criteria
     if (criteria.isActive !== undefined) {
-      conditions.push('active = ?');
-      params.push(criteria.isActive ? 1 : 0);
+      conditions.push(`r.active = $${paramIndex++}`);
+      params.push(criteria.isActive);
     }
 
     // Date criteria
     if (criteria.createdAfter) {
-      conditions.push('createdAt >= ?');
-      params.push(SqliteDateMapper.toDbDateTime(criteria.createdAfter));
+      conditions.push(`r.created_at >= $${paramIndex++}`);
+      params.push(criteria.createdAfter);
     }
     if (criteria.createdBefore) {
-      conditions.push('createdAt <= ?');
-      params.push(SqliteDateMapper.toDbDateTime(criteria.createdBefore));
+      conditions.push(`r.created_at <= $${paramIndex++}`);
+      params.push(criteria.createdBefore);
     }
 
     // Integration criteria
     if (criteria.hasTubes !== undefined) {
       if (criteria.hasTubes) {
-        conditions.push('EXISTS (SELECT 1 FROM tubes WHERE researcherId = r.id)');
+        conditions.push('EXISTS (SELECT 1 FROM tubes WHERE researcher_id = r.id)');
       } else {
-        conditions.push('NOT EXISTS (SELECT 1 FROM tubes WHERE researcherId = r.id)');
+        conditions.push('NOT EXISTS (SELECT 1 FROM tubes WHERE researcher_id = r.id)');
       }
     }
 
-    // Build query
-    let query = 'SELECT * FROM researchers r';
+    // Build query with JOIN for name sorting
+    let query = `SELECT r.* FROM researchers r
+                 INNER JOIN persons p ON r.person_id = p.id`;
     if (conditions.length > 0) {
       query += ` WHERE ${conditions.join(' AND ')}`;
     }
 
-    // Add sorting
-    const sortBy = criteria.sortBy || 'lastName';
-    const sortOrder = criteria.sortOrder || 'asc';
-    query += ` ORDER BY ${sortBy} ${sortOrder.toUpperCase()}`;
-    if (sortBy !== 'firstName') {
-      query += `, firstName ${sortOrder.toUpperCase()}`; // Secondary sort by firstName
+    // Add sorting - map to actual column names
+    const sortColumn = this.mapSortColumn(criteria.sortBy || 'lastName');
+    const sortOrder = (criteria.sortOrder || 'asc').toUpperCase();
+    query += ` ORDER BY ${sortColumn} ${sortOrder}`;
+    if (criteria.sortBy !== 'firstName') {
+      query += `, p.first_name ${sortOrder}`;
     }
 
     // Add pagination
     if (criteria.limit) {
-      query += ` LIMIT ${criteria.limit}`;
+      query += ` LIMIT $${paramIndex++}`;
+      params.push(criteria.limit);
       if (criteria.offset) {
-        query += ` OFFSET ${criteria.offset}`;
+        query += ` OFFSET $${paramIndex++}`;
+        params.push(criteria.offset);
       }
     }
 
@@ -241,17 +236,26 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
     return ResearcherMapper.fromRows(rows);
   }
 
+  private mapSortColumn(sortBy: string): string {
+    const columnMap: Record<string, string> = {
+      'firstName': 'p.first_name',
+      'lastName': 'p.last_name',
+      'createdAt': 'r.created_at'
+    };
+    return columnMap[sortBy] || 'p.last_name';
+  }
+
   async count(): Promise<number> {
-    const result = await this.context.queryOne<{ count: number }>(
+    const result = await this.context.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM researchers'
     );
-    return result?.count || 0;
+    return parseInt(result?.count || '0', 10);
   }
 
   async findByCreationDateRange(startDate: Date, endDate: Date): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
-      'SELECT * FROM researchers WHERE createdAt >= ? AND createdAt <= ? ORDER BY createdAt',
-      [SqliteDateMapper.toDbDateTime(startDate), SqliteDateMapper.toDbDateTime(endDate)]
+      'SELECT * FROM researchers WHERE created_at >= $1 AND created_at <= $2 ORDER BY created_at',
+      [startDate, endDate]
     );
     return ResearcherMapper.fromRows(rows);
   }
@@ -259,31 +263,38 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   async findAllSortedByName(ascending: boolean = true): Promise<Researcher[]> {
     const order = ascending ? 'ASC' : 'DESC';
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT r.* FROM researchers r INNER JOIN persons p ON r.personId = p.id ORDER BY p.lastName ${order}, p.firstName ${order}`
+      `SELECT r.* FROM researchers r
+       INNER JOIN persons p ON r.person_id = p.id
+       ORDER BY p.last_name ${order}, p.first_name ${order}`
     );
     return ResearcherMapper.fromRows(rows);
   }
 
   async countByStatus(isActive: boolean): Promise<number> {
-    const result = await this.context.queryOne<{ count: number }>(
-      'SELECT COUNT(*) as count FROM researchers WHERE active = ?',
-      [isActive ? 1 : 0]
+    const result = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM researchers WHERE active = $1',
+      [isActive]
     );
-    return result?.count || 0;
+    return parseInt(result?.count || '0', 10);
   }
 
   async getAllNames(): Promise<string[]> {
-    const rows = await this.context.queryMany<{ firstName: string; lastName: string }>(
-      'SELECT p.firstName, p.lastName FROM researchers r INNER JOIN persons p ON r.personId = p.id ORDER BY p.lastName, p.firstName'
+    const rows = await this.context.queryMany<{ first_name: string; last_name: string }>(
+      `SELECT p.first_name, p.last_name FROM researchers r
+       INNER JOIN persons p ON r.person_id = p.id
+       ORDER BY p.last_name, p.first_name`
     );
-    return rows.map(row => `${row.firstName} ${row.lastName}`);
+    return rows.map(row => `${row.first_name} ${row.last_name}`);
   }
 
   async getActiveNames(): Promise<string[]> {
-    const rows = await this.context.queryMany<{ firstName: string; lastName: string }>(
-      'SELECT p.firstName, p.lastName FROM researchers r INNER JOIN persons p ON r.personId = p.id WHERE r.active = 1 ORDER BY p.lastName, p.firstName'
+    const rows = await this.context.queryMany<{ first_name: string; last_name: string }>(
+      `SELECT p.first_name, p.last_name FROM researchers r
+       INNER JOIN persons p ON r.person_id = p.id
+       WHERE r.active = TRUE
+       ORDER BY p.last_name, p.first_name`
     );
-    return rows.map(row => `${row.firstName} ${row.lastName}`);
+    return rows.map(row => `${row.first_name} ${row.last_name}`);
   }
 
   // INTEGRATION QUERIES
@@ -291,10 +302,10 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   async findWithAssignedTubes(): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
       `SELECT DISTINCT r.* FROM researchers r
-       INNER JOIN persons p ON r.personId = p.id
-       INNER JOIN tubes t ON r.id = t.researcherId
-       WHERE r.active = 1
-       ORDER BY p.lastName, p.firstName`
+       INNER JOIN persons p ON r.person_id = p.id
+       INNER JOIN tubes t ON r.id = t.researcher_id
+       WHERE r.active = TRUE
+       ORDER BY p.last_name, p.first_name`
     );
     return ResearcherMapper.fromRows(rows);
   }
@@ -302,10 +313,10 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   async findWithoutTubes(): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
       `SELECT r.* FROM researchers r
-       INNER JOIN persons p ON r.personId = p.id
-       LEFT JOIN tubes t ON r.id = t.researcherId
-       WHERE t.researcherId IS NULL AND r.active = 1
-       ORDER BY p.lastName, p.firstName`
+       INNER JOIN persons p ON r.person_id = p.id
+       LEFT JOIN tubes t ON r.id = t.researcher_id
+       WHERE t.researcher_id IS NULL AND r.active = TRUE
+       ORDER BY p.last_name, p.first_name`
     );
     return ResearcherMapper.fromRows(rows);
   }
@@ -313,38 +324,40 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   async getUsageStats(): Promise<ResearcherUsageStats[]> {
     const rows = await this.context.queryMany<{
       id: string;
-      firstName: string;
-      lastName: string;
-      active: number;
-      tubeCount: number;
-      lastTubeCreated: string | null;
-      activeTubes: number;
-      expiredTubes: number;
+      first_name: string;
+      last_name: string;
+      active: boolean;
+      tube_count: string;
+      last_tube_created: Date | string | null;
+      active_tubes: string;
+      expired_tubes: string;
     }>(`
       SELECT
         r.id,
-        p.firstName,
-        p.lastName,
+        p.first_name,
+        p.last_name,
         r.active,
-        COUNT(t.id) as tubeCount,
-        MAX(t.createdAt) as lastTubeCreated,
-        COUNT(CASE WHEN t.date IS NULL OR DATE(t.date) >= DATE('now') THEN 1 END) as activeTubes,
-        COUNT(CASE WHEN t.date IS NOT NULL AND DATE(t.date) < DATE('now') THEN 1 END) as expiredTubes
+        COUNT(t.id)::text as tube_count,
+        MAX(t.created_at) as last_tube_created,
+        COUNT(CASE WHEN t.date IS NULL OR t.date::date >= CURRENT_DATE THEN 1 END)::text as active_tubes,
+        COUNT(CASE WHEN t.date IS NOT NULL AND t.date::date < CURRENT_DATE THEN 1 END)::text as expired_tubes
       FROM researchers r
-      INNER JOIN persons p ON r.personId = p.id
-      LEFT JOIN tubes t ON r.id = t.researcherId
-      GROUP BY r.id, p.firstName, p.lastName, r.active
-      ORDER BY tubeCount DESC, p.lastName, p.firstName
+      INNER JOIN persons p ON r.person_id = p.id
+      LEFT JOIN tubes t ON r.id = t.researcher_id
+      GROUP BY r.id, p.first_name, p.last_name, r.active
+      ORDER BY COUNT(t.id) DESC, p.last_name, p.first_name
     `);
 
     return rows.map(row => ({
       researcherId: row.id,
-      researcherName: `${row.firstName} ${row.lastName}`,
-      isActive: Boolean(row.active),
-      tubeCount: row.tubeCount,
-      lastTubeCreated: row.lastTubeCreated ? SqliteDateMapper.fromDbDateTime(row.lastTubeCreated) || undefined : undefined,
-      activeTubes: row.activeTubes,
-      expiredTubes: row.expiredTubes
+      researcherName: `${row.first_name} ${row.last_name}`,
+      isActive: row.active,
+      tubeCount: parseInt(row.tube_count, 10),
+      lastTubeCreated: row.last_tube_created
+        ? (row.last_tube_created instanceof Date ? row.last_tube_created : new Date(row.last_tube_created))
+        : undefined,
+      activeTubes: parseInt(row.active_tubes, 10),
+      expiredTubes: parseInt(row.expired_tubes, 10)
     }));
   }
 
@@ -354,17 +367,14 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // Check if firstName is empty or whitespace
     if (!firstName || !firstName.trim()) {
       errors.push('First name cannot be empty');
     }
 
-    // Check if lastName is empty or whitespace
     if (!lastName || !lastName.trim()) {
       errors.push('Last name cannot be empty');
     }
 
-    // Check length constraints for firstName
     if (firstName && firstName.length < 1) {
       errors.push('First name must be at least 1 character long');
     }
@@ -372,7 +382,6 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
       errors.push('First name cannot exceed 50 characters');
     }
 
-    // Check length constraints for lastName
     if (lastName && lastName.length < 1) {
       errors.push('Last name must be at least 1 character long');
     }
@@ -380,15 +389,13 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
       errors.push('Last name cannot exceed 50 characters');
     }
 
-    // Check for special characters that might cause issues
-    if (firstName && /[<>\"'&]/.test(firstName)) {
+    if (firstName && /[<>"'&]/.test(firstName)) {
       warnings.push('First name contains special characters that might cause display issues');
     }
-    if (lastName && /[<>\"'&]/.test(lastName)) {
+    if (lastName && /[<>"'&]/.test(lastName)) {
       warnings.push('Last name contains special characters that might cause display issues');
     }
 
-    // Check if name already exists
     if (firstName && firstName.trim() && lastName && lastName.trim()) {
       const exists = await this.nameExists(firstName.trim(), lastName.trim());
       if (exists) {
@@ -396,7 +403,6 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
       }
     }
 
-    // Check for similar names
     if (firstName && firstName.trim() && lastName && lastName.trim() && errors.length === 0) {
       const similar = await this.findSimilarNames(firstName.trim(), lastName.trim());
       if (similar.length > 0) {
@@ -434,17 +440,14 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
         continue;
       }
 
-      // Check exact match
       const existing = await this.findByName(trimmedFirst, trimmedLast);
       const similarResearchers = await this.findSimilarNames(trimmedFirst, trimmedLast);
 
-      // Get Person data for existing researcher
       let existingPerson: Person | null = null;
       if (existing) {
         existingPerson = await this.personRepository.findById(existing.personId);
       }
 
-      // Get Person data for similar researchers
       const similarNames = await Promise.all(
         similarResearchers.map(async (r) => {
           const person = await this.personRepository.findById(r.personId);
@@ -467,77 +470,64 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
     return results;
   }
 
-
-
   // BULK OPERATIONS
 
   async saveMany(researchers: Researcher[]): Promise<void> {
-    // Sequential saves (better-sqlite3 transactions require synchronous callbacks)
     for (const researcher of researchers) {
-      // Fetch Person entity for this researcher
       const person = await this.personRepository.findById(researcher.personId);
       if (!person) {
         throw new Error(`Person not found for researcher: ${researcher.personId}`);
       }
 
-      // Save Person entity first
       await this.personRepository.save(person);
 
-      // Save Researcher entity
       const row = ResearcherMapper.toRow(researcher);
       await this.context.execute(`
-        INSERT OR REPLACE INTO researchers (
-          id, personId, active, createdAt
-        ) VALUES (?, ?, ?, ?)
-      `, [
-        row.id, row.personId, row.active, row.createdAt
-      ]);
+        INSERT INTO researchers (id, person_id, active, created_at)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (id) DO UPDATE SET
+          person_id = EXCLUDED.person_id,
+          active = EXCLUDED.active,
+          created_at = EXCLUDED.created_at
+      `, [row.id, row.person_id, row.active, row.created_at]);
     }
   }
 
   async deleteMany(ids: string[]): Promise<number> {
     if (ids.length === 0) return 0;
-    
+
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const result = await this.context.execute(
-      `DELETE FROM researchers WHERE id IN (${ids.map(() => '?').join(',')})`,
+      `DELETE FROM researchers WHERE id IN (${placeholders})`,
       ids
     );
-    return result.changes;
+    return result.rowCount ?? 0;
   }
-
-
 
   async createFromNames(researchers: Array<{ firstName: string; lastName: string; position?: string; department?: string; email?: string }>): Promise<Researcher[]> {
     const createdResearchers: Researcher[] = [];
 
-    // Sequential saves (better-sqlite3 transactions require synchronous callbacks)
     for (const data of researchers) {
       if (!data.firstName.trim() || !data.lastName.trim()) continue;
 
-      // Create Person entity (single source of truth for profile data)
       const person = Person.create(
         data.firstName.trim(),
         data.lastName.trim(),
-        data.email || '',  // Email required
+        data.email || '',
         data.position,
         data.department
       );
 
-      // Create Researcher entity (links to Person)
       const researcher = Researcher.create(person.id);
 
-      // Save Person first
       await this.personRepository.save(person);
 
-      // Save Researcher
       const row = ResearcherMapper.toRow(researcher);
       await this.context.execute(`
-        INSERT OR IGNORE INTO researchers (
-          id, personId, active, createdAt
-        ) VALUES (?, ?, ?, ?)
-      `, [
-        row.id, row.personId, row.active, row.createdAt
-      ]);
+        INSERT INTO researchers (id, person_id, active, created_at)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT DO NOTHING
+      `, [row.id, row.person_id, row.active, row.created_at]);
 
       createdResearchers.push(researcher);
     }
@@ -550,20 +540,16 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
 
     let totalUpdated = 0;
 
-    // Sequential updates (better-sqlite3 transactions require synchronous callbacks)
     for (const update of updates) {
-      // Fetch Researcher
       const researcher = await this.findById(update.id);
       if (!researcher) continue;
 
-      // Fetch Person
       const person = await this.personRepository.findById(researcher.personId);
       if (!person) continue;
 
       let personUpdated = false;
       let researcherUpdated = false;
 
-      // Update Person for profile fields
       if (update.firstName !== undefined || update.lastName !== undefined ||
           update.position !== undefined || update.department !== undefined) {
         person.updateProfile(
@@ -575,18 +561,15 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
         personUpdated = true;
       }
 
-      // Update email separately if provided
       if (update.email !== undefined) {
         person.updateEmail(update.email);
         personUpdated = true;
       }
 
-      // Save Person if modified
       if (personUpdated) {
         await this.personRepository.save(person);
       }
 
-      // Update Researcher for active status
       if (update.active !== undefined) {
         if (update.active && !researcher.active) {
           researcher.activate();
@@ -597,11 +580,10 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
         }
       }
 
-      // Save Researcher if modified
       if (researcherUpdated) {
         const row = ResearcherMapper.toRow(researcher);
         await this.context.execute(
-          `UPDATE researchers SET active = ? WHERE id = ?`,
+          'UPDATE researchers SET active = $1 WHERE id = $2',
           [row.active, row.id]
         );
       }
@@ -623,49 +605,43 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   async cleanupInactive(daysSinceCreation: number): Promise<number> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysSinceCreation);
-    
+
     const result = await this.context.execute(
-      'DELETE FROM researchers WHERE active = 0 AND createdAt < ?',
-      [SqliteDateMapper.toDbDateTime(cutoffDate)]
+      'DELETE FROM researchers WHERE active = FALSE AND created_at < $1',
+      [cutoffDate]
     );
-    return result.changes;
+    return result.rowCount ?? 0;
   }
 
   async getStats(): Promise<ResearcherRepositoryStats> {
-    // Get basic counts
     const totalResearchers = await this.count();
     const activeResearchers = await this.countActive();
     const inactiveResearchers = await this.countInactive();
 
-    // Get researchers with and without tubes
     const researchersWithTubes = await this.findWithAssignedTubes();
     const researchersWithoutTubes = await this.findWithoutTubes();
 
-    // Get most active researchers
     const mostActiveResearchers = await this.getMostActiveResearchers(5);
-    
-    // Calculate average tubes per researcher
-    const totalTubesResult = await this.context.queryOne<{ count: number }>(
-      'SELECT COUNT(*) as count FROM tubes WHERE researcherId IS NOT NULL'
+
+    const totalTubesResult = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM tubes WHERE researcher_id IS NOT NULL'
     );
-    const totalTubes = totalTubesResult?.count || 0;
+    const totalTubes = parseInt(totalTubesResult?.count || '0', 10);
     const averageTubesPerResearcher = researchersWithTubes.length > 0 ? totalTubes / researchersWithTubes.length : 0;
 
-    // Get oldest and newest researchers (JOIN with persons for names)
-    const oldestResearcherRow = await this.context.queryOne<{ id: string; firstName: string; lastName: string; createdAt: string }>(
-      `SELECT r.id, p.firstName, p.lastName, r.createdAt
+    const oldestResearcherRow = await this.context.queryOne<{ id: string; first_name: string; last_name: string; created_at: Date | string }>(
+      `SELECT r.id, p.first_name, p.last_name, r.created_at
        FROM researchers r
-       INNER JOIN persons p ON r.personId = p.id
-       ORDER BY r.createdAt ASC LIMIT 1`
+       INNER JOIN persons p ON r.person_id = p.id
+       ORDER BY r.created_at ASC LIMIT 1`
     );
-    const newestResearcherRow = await this.context.queryOne<{ id: string; firstName: string; lastName: string; createdAt: string }>(
-      `SELECT r.id, p.firstName, p.lastName, r.createdAt
+    const newestResearcherRow = await this.context.queryOne<{ id: string; first_name: string; last_name: string; created_at: Date | string }>(
+      `SELECT r.id, p.first_name, p.last_name, r.created_at
        FROM researchers r
-       INNER JOIN persons p ON r.personId = p.id
-       ORDER BY r.createdAt DESC LIMIT 1`
+       INNER JOIN persons p ON r.person_id = p.id
+       ORDER BY r.created_at DESC LIMIT 1`
     );
 
-    // Get most productive researcher Person data
     let mostProductiveName: string | undefined;
     if (mostActiveResearchers[0]?.researcher) {
       const person = await this.personRepository.findById(mostActiveResearchers[0].researcher.personId);
@@ -686,13 +662,17 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
       } : undefined,
       oldestResearcher: oldestResearcherRow ? {
         id: oldestResearcherRow.id,
-        name: `${oldestResearcherRow.firstName} ${oldestResearcherRow.lastName}`,
-        createdAt: SqliteDateMapper.fromDbDateTime(oldestResearcherRow.createdAt)!
+        name: `${oldestResearcherRow.first_name} ${oldestResearcherRow.last_name}`,
+        createdAt: oldestResearcherRow.created_at instanceof Date
+          ? oldestResearcherRow.created_at
+          : new Date(oldestResearcherRow.created_at)
       } : undefined,
       newestResearcher: newestResearcherRow ? {
         id: newestResearcherRow.id,
-        name: `${newestResearcherRow.firstName} ${newestResearcherRow.lastName}`,
-        createdAt: SqliteDateMapper.fromDbDateTime(newestResearcherRow.createdAt)!
+        name: `${newestResearcherRow.first_name} ${newestResearcherRow.last_name}`,
+        createdAt: newestResearcherRow.created_at instanceof Date
+          ? newestResearcherRow.created_at
+          : new Date(newestResearcherRow.created_at)
       } : undefined
     };
   }
@@ -728,32 +708,32 @@ export class SQLiteResearcherRepository implements ResearcherRepository {
   }
 
   async getMostActiveResearchers(limit: number = 10): Promise<Array<{ researcher: Researcher, tubeCount: number }>> {
-    const rows = await this.context.queryMany<{ researcherId: string; tubeCount: number }>(
-      `SELECT t.researcherId, COUNT(*) as tubeCount
+    const rows = await this.context.queryMany<{ researcher_id: string; tube_count: string }>(
+      `SELECT t.researcher_id, COUNT(*)::text as tube_count
        FROM tubes t
-       INNER JOIN researchers r ON t.researcherId = r.id
-       WHERE r.active = 1
-       GROUP BY t.researcherId
-       ORDER BY tubeCount DESC
-       LIMIT ?`,
+       INNER JOIN researchers r ON t.researcher_id = r.id
+       WHERE r.active = TRUE
+       GROUP BY t.researcher_id
+       ORDER BY COUNT(*) DESC
+       LIMIT $1`,
       [limit]
     );
 
     const results = [];
     for (const row of rows) {
-      const researcher = await this.findById(row.researcherId);
+      const researcher = await this.findById(row.researcher_id);
       if (researcher) {
-        results.push({ researcher, tubeCount: row.tubeCount });
+        results.push({ researcher, tubeCount: parseInt(row.tube_count, 10) });
       }
     }
     return results;
   }
 
   async getTubeCountByResearcher(researcherId: string): Promise<number> {
-    const result = await this.context.queryOne<{ count: number }>(
-      'SELECT COUNT(*) as count FROM tubes WHERE researcherId = ?',
+    const result = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM tubes WHERE researcher_id = $1',
       [researcherId]
     );
-    return result?.count || 0;
+    return parseInt(result?.count || '0', 10);
   }
 }

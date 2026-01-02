@@ -14,7 +14,7 @@
 |-------|-------------|--------|
 | 1 | Project Setup (branch, Docker, env file) | ✅ Complete |
 | 2 | Database Context (PostgresContext.ts) | ✅ Complete |
-| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (6/9) |
+| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (7/9) |
 | 4 | Full-Text Search | ⬜ Not started |
 | 5 | Server Configuration | ⬜ Not started |
 | 6 | Client Configuration | ⬜ Not started |
@@ -33,7 +33,7 @@
 | 4 | RefreshTokenRepository | 20 | ✅ Complete | Mapper updated, julianday→EXTRACT for lifespan |
 | 5 | AuditRepository | 14 | ✅ Complete | Inline mapper, transaction for bulk insert |
 | 6 | UserRepository | 38 | ✅ Complete | Mapper updated, ILIKE for search, activity via sessions |
-| 7 | ResearcherRepository | ~40 | ⬜ Pending | |
+| 7 | ResearcherRepository | 43 | ✅ Complete | Mapper updated, JOINs with persons, native boolean |
 | 8 | ConfigurationRepository | ~50 | ⬜ Pending | |
 | 9 | TubeRepository | ~60 | ⬜ Pending | Full-text search |
 
@@ -52,6 +52,8 @@
 - `server/src/infrastructure/repositories/AuditRepository.ts` - Converted (was SQLiteAuditRepository)
 - `server/src/infrastructure/repositories/UserRepository.ts` - Converted (was SQLiteUserRepository)
 - `server/src/infrastructure/database/mappers/UserMapper.ts` - Updated for snake_case, native boolean
+- `server/src/infrastructure/repositories/ResearcherRepository.ts` - Converted (was SQLiteResearcherRepository)
+- `server/src/infrastructure/database/mappers/ResearcherMapper.ts` - Updated for snake_case, native boolean
 
 ### Lessons Learned (From Conversions)
 
