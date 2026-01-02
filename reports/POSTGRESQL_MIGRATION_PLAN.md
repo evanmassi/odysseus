@@ -3171,12 +3171,17 @@ Only move to the next repository after the current one is fully tested.
 - [x] Update `UserApplicationService` to use PostgresContext
 - [x] Update `ConfigurationService` database schema
 
-### Phase 9: Client Configuration
-- [ ] Create `client/.env.development`
-- [ ] Create `client/.env.production`
-- [ ] Update `client.ts` to use env vars
-- [ ] Update `SocketService.ts` to use env vars
-- [ ] Test client with remote server
+### Phase 9: Client Configuration ✅
+- [x] Create `client/.env.development`
+- [x] Create `client/.env.production`
+- [x] Update `client.ts` to use `VITE_API_URL` env var
+- [x] Update `SocketService.ts` to use `VITE_SOCKET_URL` env var
+- [x] Update `AuthHttpClient.ts` to use `VITE_API_URL` env var
+- [x] Update `networkMonitor.ts` to use `VITE_API_URL` env var
+- [x] Update `useTubeSocket.ts` to use `VITE_SOCKET_URL` env var
+- [x] Remove sync UI from `SystemConfigTab.tsx`
+- [x] Remove sync status state from `AdminSettingsModal.tsx`
+- [ ] Test client with remote server (runtime testing)
 
 ### Phase 10: Firebase & Sync Cleanup ✅
 - [x] Delete `FirebaseSyncService.ts`
@@ -3184,8 +3189,8 @@ Only move to the next repository after the current one is fully tested.
 - [x] Delete `WorkspaceService.ts`
 - [x] Remove Firebase references from `index.ts`
 - [x] Remove sync endpoints: `/api/sync/status`, `/api/sync/invite`, `/api/sync/all`
-- [ ] Update or remove `/api/admin/sync-status` route (verify if exists)
-- [ ] Update `getSyncStatus()` in ConfigurationRepository (verify if exists)
+- [x] `/api/admin/sync-status` endpoint kept (returns safe defaults, backwards compatible)
+- [x] `getSyncStatus()` in ConfigurationRepository kept (returns `enabled: false`)
 - [ ] Remove Firebase dependencies from `package.json`
 
 ### Phase 11: Dependencies & Build Scripts

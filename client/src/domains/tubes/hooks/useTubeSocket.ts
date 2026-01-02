@@ -41,7 +41,8 @@ export const useTubeSocket = () => {
     logger.info('🔌 [Socket] Initializing socket connection');
 
     // Create socket connection
-    const socket = io('http://localhost:3001');
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
+    const socket = io(import.meta.env['VITE_SOCKET_URL'] || 'http://localhost:3001');
 
     // CONNECTION EVENTS
 

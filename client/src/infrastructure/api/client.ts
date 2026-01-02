@@ -225,7 +225,8 @@ export class ApiClient {
  * Default API client instance
  */
 export const apiClient = new ApiClient({
-  baseURL: 'http://localhost:3001/api',
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
+  baseURL: import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api',
   timeout: 30000,
 });
 

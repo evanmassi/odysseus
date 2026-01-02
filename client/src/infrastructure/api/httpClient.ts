@@ -319,6 +319,7 @@ export class HttpClient {
 }
 
 // Configure API base URL based on environment
+// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
 const API_BASE_URL = import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api';
 
 export const httpClient = new HttpClient({

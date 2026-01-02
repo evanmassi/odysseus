@@ -49,7 +49,10 @@ export class AuthHttpClient {
   private readonly timeout: number;
 
   constructor(
-    config: { baseURL: string; timeout?: number } = { baseURL: 'http://localhost:3001/api' }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
+    config: { baseURL: string; timeout?: number } = {
+      baseURL: import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api',
+    }
   ) {
     this.baseURL = config.baseURL;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Config default, 0/empty values are invalid

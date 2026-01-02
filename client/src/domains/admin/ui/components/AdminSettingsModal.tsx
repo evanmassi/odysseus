@@ -24,12 +24,7 @@ import { adminService } from '../../services/AdminService';
 
 import { TabSkeleton } from './TabSkeleton';
 
-import type {
-  SecurityConfig,
-  AdminUser,
-  SystemMetrics,
-  SyncStatus,
-} from '@odysseus/shared-schemas';
+import type { SecurityConfig, AdminUser, SystemMetrics } from '@odysseus/shared-schemas';
 
 // Lazy-load tab components for code splitting
 const SecurityTab = lazy(() =>
@@ -62,7 +57,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const [isSaving, setSaving] = useState(false);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [systemStats, setSystemStats] = useState<SystemMetrics | null>(null);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const modalService = useModalStore();
 
   // Focus trap (only active when modal is open)
@@ -79,7 +73,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       void loadConfiguration();
       void loadUsers();
       void loadSystemStats();
-      void loadSyncStatus();
     }
   }, [isOpen]);
 
@@ -174,22 +167,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       notifications.error('Failed to update security configuration');
     } finally {
       setSaving(false);
-    }
-  };
-
-  const loadSyncStatus = async () => {
-    try {
-      const { httpClient } = await import('@infra/api/httpClient');
-      const response = await httpClient.get<{ success: boolean; sync: SyncStatus }>(
-        '/admin/sync-status'
-      );
-
-      if (response.data.success) {
-        setSyncStatus(response.data.sync);
-      }
-    } catch (error) {
-      logger.error('Failed to load sync status', { error });
-      setSyncStatus(null);
     }
   };
 
@@ -307,9 +284,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
                     <SystemConfigTab
                       config={config}
                       stats={systemStats}
-                      syncStatus={syncStatus}
                       onChange={handleConfigChange}
-                      onRefreshSync={loadSyncStatus}
                     />
                   </Suspense>
                 )}

@@ -184,7 +184,9 @@ export class NetworkMonitor {
   private async pingServer(): Promise<boolean> {
     try {
       // Use absolute URL for Electron compatibility (file:// protocol breaks relative paths)
-      const response = await fetch('http://localhost:3001/api/public/health', {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
+      const healthUrl = `${import.meta.env['VITE_API_URL'] || 'http://localhost:3001/api'}/public/health`;
+      const response = await fetch(healthUrl, {
         method: 'GET',
         cache: 'no-cache',
         signal: AbortSignal.timeout(5000), // 5 second timeout

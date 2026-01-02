@@ -19,7 +19,8 @@ import type { Socket } from 'socket.io-client';
  * Socket connection configuration
  */
 const SOCKET_CONFIG = {
-  url: 'http://localhost:3001',
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string URL is invalid, must fallback
+  url: import.meta.env['VITE_SOCKET_URL'] || 'http://localhost:3001',
   options: {
     reconnection: true,
     reconnectionAttempts: 5,
