@@ -473,15 +473,35 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async restoreSnapshot(snapshotId: string): Promise<Configuration> {
+  async restoreFromSnapshot(snapshotId: string): Promise<Configuration> {
     if (!snapshotId) {
       throw new ValidationError('Snapshot ID is required');
     }
 
-    const config = Configuration.createDefault();
-    await this.saveWithVersioning(config, `Restored from snapshot ${snapshotId}`);
+    try {
+      // Get the snapshot data
+      const row = await this.context.queryOne<{ config_json: string }>(`
+        SELECT config_json FROM configuration_snapshots WHERE id = $1
+      `, [snapshotId]);
 
-    return config;
+      if (!row) {
+        throw new ValidationError(`Snapshot not found: ${snapshotId}`);
+      }
+
+      // Parse and restore the configuration
+      const configData = JSON.parse(row.config_json);
+      const config = Configuration.fromData(configData);
+
+      await this.saveWithVersioning(config, `Restored from snapshot ${snapshotId}`);
+
+      console.log(`🔧 [CONFIG] Restored from snapshot: ${snapshotId}`);
+      return config;
+
+    } catch (error) {
+      if (error instanceof ValidationError) throw error;
+      console.error('Failed to restore from snapshot:', error);
+      throw new ValidationError(`Database error restoring snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   async deleteSnapshot(snapshotId: string): Promise<boolean> {

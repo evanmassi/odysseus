@@ -35,7 +35,7 @@
 | 6 | UserRepository | 38 | ✅ Complete | Mapper updated, ILIKE for search, activity via sessions |
 | 7 | ResearcherRepository | 43 | ✅ Complete | Mapper updated, JOINs with persons, native boolean |
 | 8 | ConfigurationRepository | 67 | ✅ Complete | JSON config storage, transaction for versioning, snake_case security_config |
-| 9 | TubeRepository | ~60 | ⬜ Pending | Full-text search |
+| 9 | TubeRepository | 33 | ✅ Complete | Mapper updated, tsvector FTS with ts_rank, hybrid search with researcher name JOINs |
 
 ### Files Created/Modified
 - `server/.env.development` - Local PostgreSQL connection
@@ -55,6 +55,8 @@
 - `server/src/infrastructure/repositories/ResearcherRepository.ts` - Converted (was SQLiteResearcherRepository)
 - `server/src/infrastructure/database/mappers/ResearcherMapper.ts` - Updated for snake_case, native boolean
 - `server/src/infrastructure/repositories/ConfigurationRepository.ts` - Converted (was SQLiteConfigurationRepository)
+- `server/src/infrastructure/repositories/TubeRepository.ts` - Converted (was SQLiteTubeRepository)
+- `server/src/infrastructure/database/mappers/TubeMapper.ts` - Updated for snake_case, native boolean/Date, removed SqliteDateMapper
 
 ### Lessons Learned (From Conversions)
 

@@ -1,6 +1,6 @@
 import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { SQLiteTubeRepository } from '@infrastructure/repositories/SQLiteTubeRepository';
+import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
 import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
@@ -23,8 +23,7 @@ import { AuditRepository } from '@domain/repositories/AuditRepository';
  * Repository Factory - Dependency injection
  *
  * Creates and manages all repository instances.
- * During migration: Uses both SQLite and PostgreSQL contexts.
- * After migration: Will use only PostgreSQL.
+ * All repositories now use PostgreSQL.
  */
 export class RepositoryFactory {
   private sqliteContext: SQLiteContext;
@@ -57,9 +56,8 @@ export class RepositoryFactory {
    */
   getTubeRepository(): TubeRepository {
     if (!this.tubeRepository) {
-      // Inject ConfigurationRepository for position label parsing
       const configRepo = this.getConfigurationRepository();
-      this.tubeRepository = new SQLiteTubeRepository(this.sqliteContext, configRepo);
+      this.tubeRepository = new TubeRepositoryImpl(this.postgresContext, configRepo);
     }
     return this.tubeRepository;
   }

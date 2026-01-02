@@ -2,7 +2,6 @@ import { Tube } from '@domain/entities/Tube';
 import { Location } from '@domain/valueObjects/Location';
 import { SampleData } from '@domain/valueObjects/SampleData';
 import { Media } from '@domain/valueObjects/Media';
-import { SqliteDateMapper } from '@infrastructure/database/SqliteDateMapper';
 
 /**
  * Database-to-Domain transformation utility
@@ -17,40 +16,39 @@ function nullToUndefined<T>(value: T | null): T | undefined {
  */
 export interface TubeRow {
   id: string;
-  tankId: string;
-  rackId: string;
-  boxId: string;
+  tank_id: string;
+  rack_id: string;
+  box_id: string;
   position: number;
-  cellType?: string;
-  donorInternalId?: string;
-  donorSourceId?: string;
+  cell_type?: string;
+  donor_internal_id?: string;
+  donor_source_id?: string;
   concentration?: string;
-  concentrationUnit?: 'c/v' | 'c/mL';
+  concentration_unit?: 'c/v' | 'c/mL';
   date?: string;
-  researcherId?: string;
-  createdByName?: string;
+  researcher_id?: string;
+  created_by_name?: string;
   media?: string;
-  cultureCondition?: string;
-  lotNumber?: string;
+  culture_condition?: string;
+  lot_number?: string;
   notes?: string;
-  createdAt: string;
-  updatedAt: string;
-  // Lock fields
-  isLocked?: number; // SQLite uses 0/1 for boolean
-  lockedBy?: string;
-  lockNote?: string;
-  lockedAt?: string;
-  sharedWithUserIds?: string; // JSON array string
+  created_at: Date | string;
+  updated_at: Date | string;
+  is_locked?: boolean;
+  locked_by?: string;
+  lock_note?: string;
+  locked_at?: Date | string;
+  shared_with_user_ids?: string; // JSON array string
 }
 
 /**
  * TubeMapper - Clean conversion between Domain Entity and Database Row
- * 
+ *
  * Handles all mapping logic without business rules.
  * Pure transformation functions.
  */
 export class TubeMapper {
-  
+
   /**
    * Convert Domain Entity to Database Row
    */
@@ -68,30 +66,29 @@ export class TubeMapper {
 
     return {
       id: tube.id,
-      tankId: location.tankId,
-      rackId: location.rackId,
-      boxId: location.boxId,
+      tank_id: location.tankId,
+      rack_id: location.rackId,
+      box_id: location.boxId,
       position: location.position,
-      cellType: sampleData.cellType || undefined,
-      donorInternalId: sampleData.donorInternalId || undefined,
-      donorSourceId: sampleData.donorSourceId || undefined,
+      cell_type: sampleData.cellType || undefined,
+      donor_internal_id: sampleData.donorInternalId || undefined,
+      donor_source_id: sampleData.donorSourceId || undefined,
       concentration: sampleData.concentration?.toString() || undefined,
-      concentrationUnit: sampleData.concentrationUnit || undefined,
+      concentration_unit: sampleData.concentrationUnit || undefined,
       date: sampleData.date || undefined,
-      researcherId: tube.researcherId || undefined,
-      createdByName: tube.createdByName || undefined,
+      researcher_id: tube.researcherId || undefined,
+      created_by_name: tube.createdByName || undefined,
       media: mediaJson,
-      cultureCondition: sampleData.cultureCondition || undefined,
-      lotNumber: sampleData.lotNumber || undefined,
+      culture_condition: sampleData.cultureCondition || undefined,
+      lot_number: sampleData.lotNumber || undefined,
       notes: sampleData.notes || undefined,
-      createdAt: SqliteDateMapper.toDbDateTime(tube.createdAt),
-      updatedAt: SqliteDateMapper.toDbDateTime(tube.updatedAt),
-      // Lock fields
-      isLocked: tube.isLocked ? 1 : 0,
-      lockedBy: tube.lockedBy,
-      lockNote: tube.lockNote,
-      lockedAt: tube.lockedAt ? SqliteDateMapper.toDbDateTime(tube.lockedAt) : undefined,
-      sharedWithUserIds: sharedJson
+      created_at: tube.createdAt,
+      updated_at: tube.updatedAt,
+      is_locked: tube.isLocked,
+      locked_by: tube.lockedBy,
+      lock_note: tube.lockNote,
+      locked_at: tube.lockedAt,
+      shared_with_user_ids: sharedJson
     };
   }
 
@@ -101,75 +98,85 @@ export class TubeMapper {
   static fromRow(row: TubeRow): Tube {
     // Create Location value object
     const location = Location.create(
-      row.tankId,
-      row.rackId,
-      row.boxId,
+      row.tank_id,
+      row.rack_id,
+      row.box_id,
       row.position
     );
 
     // Database-to-Domain Data Transformation Layer
     // Converts database nulls to TypeScript undefined for proper domain validation
     const concentration = row.concentration ? parseFloat(row.concentration) : undefined;
-    const concentrationUnit = nullToUndefined(row.concentrationUnit);
-    
+    const concentrationUnit = nullToUndefined(row.concentration_unit);
+
     // Ensure data consistency: if unit exists but no concentration, clear unit
     const validConcentrationUnit = (concentration !== undefined && concentrationUnit) ? concentrationUnit : undefined;
-    
+
     // Deserialize media from JSON string at database boundary
     const mediaString = nullToUndefined(row.media);
     const media = mediaString ? Media.fromJsonString(mediaString) : undefined;
-    
+
     const sampleData = SampleData.create({
-      cellType: nullToUndefined(row.cellType),
-      donorInternalId: nullToUndefined(row.donorInternalId),
-      donorSourceId: nullToUndefined(row.donorSourceId),
+      cellType: nullToUndefined(row.cell_type),
+      donorInternalId: nullToUndefined(row.donor_internal_id),
+      donorSourceId: nullToUndefined(row.donor_source_id),
       concentration,
       concentrationUnit: validConcentrationUnit,
       date: nullToUndefined(row.date),
       media: media?.toData(),
-      cultureCondition: nullToUndefined(row.cultureCondition),
-      lotNumber: nullToUndefined(row.lotNumber),
+      cultureCondition: nullToUndefined(row.culture_condition),
+      lotNumber: nullToUndefined(row.lot_number),
       notes: nullToUndefined(row.notes)
     });
 
     // Parse sharedWithUserIds JSON array
-    const sharedWithUserIdsJson = nullToUndefined(row.sharedWithUserIds);
+    const sharedWithUserIdsJson = nullToUndefined(row.shared_with_user_ids);
     const sharedWithUserIds: string[] = sharedWithUserIdsJson
       ? JSON.parse(sharedWithUserIdsJson)
       : [];
+
+    // Handle date conversion from database
+    const createdAt = row.created_at instanceof Date
+      ? row.created_at.toISOString()
+      : row.created_at;
+    const updatedAt = row.updated_at instanceof Date
+      ? row.updated_at.toISOString()
+      : row.updated_at;
+    const lockedAt = row.locked_at
+      ? (row.locked_at instanceof Date ? row.locked_at.toISOString() : row.locked_at)
+      : undefined;
 
     // Reconstruct Tube entity with nested structure
     return Tube.fromData({
       id: row.id,
       location: {
-        tankId: row.tankId,
-        rackId: row.rackId,
-        boxId: row.boxId,
+        tankId: row.tank_id,
+        rackId: row.rack_id,
+        boxId: row.box_id,
         position: row.position
       },
       sample: {
-        cellType: nullToUndefined(row.cellType),
-        donorInternalId: nullToUndefined(row.donorInternalId),
-        donorSourceId: nullToUndefined(row.donorSourceId),
+        cellType: nullToUndefined(row.cell_type),
+        donorInternalId: nullToUndefined(row.donor_internal_id),
+        donorSourceId: nullToUndefined(row.donor_source_id),
         concentration: concentration,
         concentrationUnit: validConcentrationUnit,
         date: nullToUndefined(row.date),
         media: media?.toData(),
-        cultureCondition: nullToUndefined(row.cultureCondition),
-        lotNumber: nullToUndefined(row.lotNumber),
+        cultureCondition: nullToUndefined(row.culture_condition),
+        lotNumber: nullToUndefined(row.lot_number),
         notes: nullToUndefined(row.notes)
       },
-      researcherId: nullToUndefined(row.researcherId),
-      createdByName: nullToUndefined(row.createdByName),
+      researcherId: nullToUndefined(row.researcher_id),
+      createdByName: nullToUndefined(row.created_by_name),
       timestamps: {
-        createdAt: SqliteDateMapper.fromDbDateTime(row.createdAt)!.toISOString(),
-        updatedAt: SqliteDateMapper.fromDbDateTime(row.updatedAt)!.toISOString()
+        createdAt,
+        updatedAt
       },
-      // Lock fields
-      isLocked: row.isLocked === 1,
-      lockedBy: nullToUndefined(row.lockedBy),
-      lockNote: nullToUndefined(row.lockNote),
-      lockedAt: row.lockedAt ? SqliteDateMapper.fromDbDateTime(row.lockedAt)?.toISOString() : undefined,
+      isLocked: row.is_locked === true,
+      lockedBy: nullToUndefined(row.locked_by),
+      lockNote: nullToUndefined(row.lock_note),
+      lockedAt,
       sharedWithUserIds
     });
   }
