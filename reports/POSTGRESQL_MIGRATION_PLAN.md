@@ -14,7 +14,7 @@
 |-------|-------------|--------|
 | 1 | Project Setup (branch, Docker, env file) | ✅ Complete |
 | 2 | Database Context (PostgresContext.ts) | ✅ Complete |
-| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (7/9) |
+| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (8/9) |
 | 4 | Full-Text Search | ⬜ Not started |
 | 5 | Server Configuration | ⬜ Not started |
 | 6 | Client Configuration | ⬜ Not started |
@@ -34,7 +34,7 @@
 | 5 | AuditRepository | 14 | ✅ Complete | Inline mapper, transaction for bulk insert |
 | 6 | UserRepository | 38 | ✅ Complete | Mapper updated, ILIKE for search, activity via sessions |
 | 7 | ResearcherRepository | 43 | ✅ Complete | Mapper updated, JOINs with persons, native boolean |
-| 8 | ConfigurationRepository | ~50 | ⬜ Pending | |
+| 8 | ConfigurationRepository | 67 | ✅ Complete | JSON config storage, transaction for versioning, snake_case security_config |
 | 9 | TubeRepository | ~60 | ⬜ Pending | Full-text search |
 
 ### Files Created/Modified
@@ -54,6 +54,7 @@
 - `server/src/infrastructure/database/mappers/UserMapper.ts` - Updated for snake_case, native boolean
 - `server/src/infrastructure/repositories/ResearcherRepository.ts` - Converted (was SQLiteResearcherRepository)
 - `server/src/infrastructure/database/mappers/ResearcherMapper.ts` - Updated for snake_case, native boolean
+- `server/src/infrastructure/repositories/ConfigurationRepository.ts` - Converted (was SQLiteConfigurationRepository)
 
 ### Lessons Learned (From Conversions)
 

@@ -4,7 +4,7 @@ import { SQLiteTubeRepository } from '@infrastructure/repositories/SQLiteTubeRep
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
 import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructure/repositories/ResearcherRepository';
 import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
-import { SQLiteConfigurationRepository } from '@infrastructure/repositories/SQLiteConfigurationRepository';
+import { ConfigurationRepository as ConfigurationRepositoryImpl } from '@infrastructure/repositories/ConfigurationRepository';
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
 import { SessionRepository as SessionRepositoryImpl } from '@infrastructure/repositories/SessionRepository';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
@@ -100,7 +100,7 @@ export class RepositoryFactory {
    */
   getConfigurationRepository(): ConfigurationRepository {
     if (!this.configurationRepository) {
-      this.configurationRepository = new SQLiteConfigurationRepository(this.sqliteContext);
+      this.configurationRepository = new ConfigurationRepositoryImpl(this.postgresContext);
     }
     return this.configurationRepository;
   }

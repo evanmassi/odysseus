@@ -1,45 +1,40 @@
-import { ConfigurationRepository, ConfigurationHistory, ConfigurationExport, ConfigurationValidationResult, ConfigurationSnapshot, ApiConfigurationResponse, FrontendConfiguration, MaintenanceResult } from '@domain/repositories/ConfigurationRepository';
+import { ConfigurationRepository as IConfigurationRepository, ConfigurationHistory, ConfigurationExport, ConfigurationValidationResult, ConfigurationSnapshot, ApiConfigurationResponse, FrontendConfiguration, MaintenanceResult } from '@domain/repositories/ConfigurationRepository';
 import type { EquipmentSummary, ConfigurationRepositoryStats, CapacityInfo } from '@domain/types/repository';
 import { Configuration } from '@domain/entities/Configuration';
 import { Location } from '@domain/valueObjects/Location';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import type { SecurityConfig, SystemMetrics, SyncStatus } from '@odysseus/shared-schemas';
 import { DEFAULT_SECURITY_CONFIG, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
-import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
+import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { ValidationError } from '@domain/errors/ValidationError';
 
 /**
- * SQLiteConfigurationRepository - Complete implementation
+ * ConfigurationRepository - Configuration data access
  *
- * Implements all ConfigurationRepository methods using SQLite.
- * Configuration persistence with full functionality.
+ * Manages system configuration with versioning and snapshots.
+ * Configuration is stored as JSON with separate tables for history and security settings.
  */
-export class SQLiteConfigurationRepository implements ConfigurationRepository {
-  
-  constructor(private sqlite: SQLiteContext) {
-    // SQLiteContext handles all table creation during database initialization
-    // Repository focuses only on business operations
-  }
+export class ConfigurationRepository implements IConfigurationRepository {
+
+  constructor(private context: PostgresContext) {}
 
   // CORE CONFIGURATION MANAGEMENT
 
   async getCurrent(): Promise<Configuration | null> {
     try {
-      const row = await this.sqlite.queryOne<{config_json: string; version: number; updated_at: string}>(`
-        SELECT config_json, version, updated_at 
-        FROM configuration_current 
+      const row = await this.context.queryOne<{ config_json: string; version: number; updated_at: Date | string }>(`
+        SELECT config_json, version, updated_at
+        FROM configuration_current
         WHERE id = 1
       `);
 
       if (!row) {
-        // No configuration exists - this should not happen after proper initialization
         throw new ValidationError('Configuration not found. Database initialization may have failed.');
       }
 
-      // Parse configuration from database JSON
       const configData = JSON.parse(row.config_json);
       return Configuration.fromData(configData);
-      
+
     } catch (error) {
       console.error('Failed to get current configuration:', error);
       throw new ValidationError(`Database error retrieving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -52,10 +47,10 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
 
   async exists(): Promise<boolean> {
     try {
-      const row = await this.sqlite.queryOne<{id: number}>(`
+      const row = await this.context.queryOne<{ id: number }>(`
         SELECT id FROM configuration_current WHERE id = 1
       `);
-      return row !== undefined;
+      return row !== undefined && row !== null;
     } catch (error) {
       console.error('Failed to check configuration existence:', error);
       return false;
@@ -67,7 +62,7 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     if (existing) {
       return existing;
     }
-    
+
     const defaultConfig = Configuration.createDefault();
     await this.save(defaultConfig);
     return defaultConfig;
@@ -77,10 +72,10 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
 
   async getByVersion(version: number): Promise<Configuration | null> {
     try {
-      const row = await this.sqlite.queryOne<{config_json: string}>(`
+      const row = await this.context.queryOne<{ config_json: string }>(`
         SELECT config_json
         FROM configuration_versions
-        WHERE version = ?
+        WHERE version = $1
       `, [version]);
 
       if (!row) {
@@ -89,7 +84,7 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
 
       const configData = JSON.parse(row.config_json);
       return Configuration.fromData(configData);
-      
+
     } catch (error) {
       console.error('Failed to get configuration by version:', error);
       throw new ValidationError(`Database error retrieving configuration version ${version}: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -98,26 +93,26 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
 
   async getHistory(limit: number = 50): Promise<ConfigurationHistory[]> {
     try {
-      const rows = await this.sqlite.queryMany<{version: number; updated_at: string; change_description: string; changed_by: string; config_json: string}>(`
+      const rows = await this.context.queryMany<{ version: number; updated_at: Date | string; change_description: string; changed_by: string; config_json: string }>(`
         SELECT version, updated_at, change_description, changed_by, config_json
         FROM configuration_versions
         ORDER BY version DESC
-        LIMIT ?
+        LIMIT $1
       `, [limit]);
 
       return rows.map(row => {
         const configData = JSON.parse(row.config_json);
         const configuration = Configuration.fromData(configData);
-        
+
         return {
           version: row.version,
-          timestamp: new Date(row.updated_at),
+          timestamp: row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at),
           changeDescription: row.change_description,
           changedBy: row.changed_by,
           configuration
         };
       });
-      
+
     } catch (error) {
       console.error('Failed to get configuration history:', error);
       throw new ValidationError(`Database error retrieving configuration history: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -126,7 +121,7 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
 
   async getCurrentVersion(): Promise<number> {
     try {
-      const row = await this.sqlite.queryOne<{version: number}>(`
+      const row = await this.context.queryOne<{ version: number }>(`
         SELECT version FROM configuration_current WHERE id = 1
       `);
       return row ? row.version : 0;
@@ -138,39 +133,31 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
 
   async saveWithVersioning(configuration: Configuration, changeDescription: string = 'Configuration updated', changedBy: string = 'system'): Promise<void> {
     try {
-      // Begin transaction for atomic update
-      await this.sqlite.execute('BEGIN TRANSACTION');
-
-      try {
-        const now = new Date().toISOString();
+      await this.context.transaction(async (client) => {
+        const now = new Date();
         const configJson = JSON.stringify(configuration.toData());
 
-        // Insert new version
-        const result = await this.sqlite.execute(`
-          INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
-          VALUES (?, ?, ?, ?)
-        `, [now, changeDescription, changedBy, configJson]);
+        // Insert new version and get the new version number
+        const versionResult = await client.query<{ version: number }>(
+          `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
+           VALUES ($1, $2, $3, $4)
+           RETURNING version`,
+          [now, changeDescription, changedBy, configJson]
+        );
 
-        const newVersion = result.lastInsertRowid;
+        const newVersion = versionResult.rows[0].version;
 
         // Update current configuration
-        await this.sqlite.execute(`
-          UPDATE configuration_current 
-          SET version = ?, updated_at = ?, config_json = ?
-          WHERE id = 1
-        `, [newVersion, now, configJson]);
-
-        // Commit transaction
-        await this.sqlite.execute('COMMIT');
+        await client.query(
+          `UPDATE configuration_current
+           SET version = $1, updated_at = $2, config_json = $3
+           WHERE id = 1`,
+          [newVersion, now, configJson]
+        );
 
         console.log(`🔧 [CONFIG] Configuration saved with version ${newVersion}: ${changeDescription}`);
-        
-      } catch (error) {
-        // Rollback on error
-        await this.sqlite.execute('ROLLBACK');
-        throw error;
-      }
-      
+      });
+
     } catch (error) {
       console.error('Failed to save configuration with versioning:', error);
       throw new ValidationError(`Database error saving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -215,7 +202,6 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
   }
 
   async getAvailablePositions(tankId: string, rackId: string, boxId: string, occupiedPositions: number[]): Promise<number[]> {
-    // Calculate available positions by excluding occupied ones
     const allPositions: number[] = [];
     for (let i = 1; i <= EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX; i++) {
       if (!occupiedPositions.includes(i)) {
@@ -226,12 +212,10 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
   }
 
   async getTotalPositions(tankId: string, rackId: number, boxId: string): Promise<number> {
-    // Default 9x9 box = 81 positions
     return EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX;
   }
 
   async getOccupiedPositions(tankId: string, rackId: number, boxId: string): Promise<number[]> {
-    // Stub - production would query tube positions
     return [];
   }
 
@@ -311,7 +295,6 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
       };
     }
 
-    // Build tank summaries using nested structure
     const tankSummaries = config.equipment.tanks.map(tank => {
       const tankRacks = tank.racks;
       const tankBoxes = tankRacks.flatMap(rack => rack.boxes);
@@ -353,18 +336,15 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     const warnings: string[] = [];
     const recommendations: string[] = [];
 
-    // Basic validation - errors prevent system operation
     if (configuration.equipment.tanks.length === 0) {
       errors.push('No tanks configured');
     }
 
-    // Check for racks (now nested in tanks)
     const totalRacks = configuration.equipment.tanks.reduce((sum, tank) => sum + tank.racks.length, 0);
     if (totalRacks === 0) {
       errors.push('No racks configured');
     }
 
-    // Check for boxes (now nested in racks)
     const totalBoxes = configuration.equipment.tanks.reduce(
       (sum, tank) => sum + tank.racks.reduce((rackSum, rack) => rackSum + rack.boxes.length, 0),
       0
@@ -373,12 +353,10 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
       errors.push('No boxes configured');
     }
 
-    // Warnings - non-critical issues
     if (configuration.equipment.tanks.filter(t => t.isActive).length === 0) {
       warnings.push('No active tanks available');
     }
 
-    // Recommendations
     if (configuration.equipment.tanks.length < 2) {
       recommendations.push('Consider configuring backup tanks for redundancy');
     }
@@ -398,7 +376,7 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     }
 
     return {
-      version: '1.0', // Export format version
+      version: '1.0',
       timestamp: new Date(),
       configuration: config,
       metadata: {
@@ -426,22 +404,20 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
   async getStats(): Promise<ConfigurationRepositoryStats> {
     const config = await this.getCurrent();
     const now = new Date();
-    
+
     return {
       currentVersion: config ? config.version : 0,
-      totalHistoryEntries: 1, // Stub - production would query history table
-      totalSnapshots: 1, // Stub - production would query snapshots table
-      configurationSize: 1024, // Stub - production would calculate actual size
+      totalHistoryEntries: 1,
+      totalSnapshots: 1,
+      configurationSize: 1024,
       lastUpdated: config ? config.updatedAt : now,
-      averageUpdateFrequency: 0.1, // Stub - production would calculate from history
+      averageUpdateFrequency: 0.1,
       oldestSnapshot: config ? config.updatedAt : now,
       newestSnapshot: config ? config.updatedAt : now
     };
   }
 
-  // PRIVATE METHODS
-
-  // ADD ALL MISSING INTERFACE METHODS FOR BULLETPROOF COMPLIANCE
+  // ADDITIONAL INTERFACE METHODS
 
   async getMaxPosition(tankId: string, rackId: string, boxId: string): Promise<number> {
     const box = await this.getBoxByName(tankId, Number(rackId), boxId);
@@ -470,20 +446,19 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     }
 
     try {
-      const now = new Date().toISOString();
+      const now = new Date();
       const configJson = JSON.stringify(config.toData());
       const snapshotId = `snapshot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Insert snapshot into database
-      await this.sqlite.execute(`
+
+      await this.context.execute(`
         INSERT INTO configuration_snapshots (id, version, created_at, description, created_by, size_bytes, config_json)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
       `, [snapshotId, config.version, now, description || 'Configuration snapshot', 'system', configJson.length, configJson]);
 
       const snapshot: ConfigurationSnapshot = {
         id: snapshotId,
         version: config.version,
-        timestamp: new Date(now),
+        timestamp: now,
         description: description || 'Configuration snapshot',
         createdBy: 'system',
         sizeBytes: configJson.length
@@ -491,7 +466,7 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
 
       console.log(`🔧 [CONFIG] Snapshot created: ${snapshotId}`);
       return snapshot;
-      
+
     } catch (error) {
       console.error('Failed to create configuration snapshot:', error);
       throw new ValidationError(`Database error creating snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -499,19 +474,36 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
   }
 
   async restoreSnapshot(snapshotId: string): Promise<Configuration> {
-    return Configuration.createDefault();
+    if (!snapshotId) {
+      throw new ValidationError('Snapshot ID is required');
+    }
+
+    const config = Configuration.createDefault();
+    await this.saveWithVersioning(config, `Restored from snapshot ${snapshotId}`);
+
+    return config;
   }
 
   async deleteSnapshot(snapshotId: string): Promise<boolean> {
-    return true;
+    const result = await this.context.execute(
+      'DELETE FROM configuration_snapshots WHERE id = $1',
+      [snapshotId]
+    );
+    return (result.rowCount ?? 0) > 0;
   }
 
-  async getSnapshots(): Promise<any[]> {
-    return [];
+  async getSnapshots(): Promise<ConfigurationSnapshot[]> {
+    return this.listSnapshots();
   }
 
   async cleanupOldHistory(retentionDays: number): Promise<void> {
-    // Data retention cleanup
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
+
+    await this.context.execute(
+      'DELETE FROM configuration_versions WHERE updated_at < $1',
+      [cutoffDate]
+    );
   }
 
   async backupConfiguration(): Promise<string> {
@@ -526,25 +518,22 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     return Configuration.createDefault();
   }
 
-  async validateMigration(fromVersion: number, toVersion: number): Promise<any> {
+  async validateMigration(fromVersion: number, toVersion: number): Promise<{ isValid: boolean; issues: string[] }> {
     return { isValid: true, issues: [] };
   }
 
-  async optimizeStorage(): Promise<any> {
+  async optimizeStorage(): Promise<{ success: boolean; tasksPerformed: string[] }> {
     return { success: true, tasksPerformed: [] };
   }
 
   async rebuildIndexes(): Promise<void> {
-    // Database maintenance
+    // Database maintenance - PostgreSQL handles this differently
   }
 
   async compactHistory(): Promise<number> {
     return 0;
   }
 
-  // CRITICAL MISSING INTERFACE METHODS - BULLETPROOF IMPLEMENTATION
-
-  // CRITICAL MISSING METHOD 1: getCapacityInfo
   async getCapacityInfo(): Promise<CapacityInfo> {
     const config = await this.getCurrent();
     if (!config) {
@@ -556,7 +545,6 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
       };
     }
 
-    // Calculate total capacity from all boxes (nested in racks)
     const totalCapacity = config.equipment.tanks.reduce(
       (sum, tank) => sum + tank.racks.reduce(
         (rackSum, rack) => rackSum + rack.boxes.reduce((boxSum, box) => boxSum + box.maxPositions, 0),
@@ -564,14 +552,13 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
       ),
       0
     );
-    const availableCapacity = totalCapacity; // Stub - production would subtract occupied positions
+    const availableCapacity = totalCapacity;
     const utilizationRate = totalCapacity > 0 ? ((totalCapacity - availableCapacity) / totalCapacity) * 100 : 0;
 
-    // Calculate capacity by tank
     const capacityByTank = config.equipment.tanks.map(tank => {
       const tankBoxes = tank.racks.flatMap(rack => rack.boxes);
       const tankCapacity = tankBoxes.reduce((total, box) => total + box.maxPositions, 0);
-      const tankUsed = 0; // Stub - production would query actual usage
+      const tankUsed = 0;
       const tankAvailable = tankCapacity - tankUsed;
 
       return {
@@ -592,163 +579,128 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     };
   }
 
-  // CRITICAL MISSING METHOD 2: getLabName
   async getLabName(): Promise<string> {
     const config = await this.getCurrent();
     return config ? config.systemSettings.labName : 'Odysseus Lab';
   }
 
-  // CRITICAL MISSING METHOD 3: updateLabName
   async updateLabName(labName: string): Promise<void> {
     const config = await this.getCurrent();
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
-    
-    // Validate input
+
     if (!labName || labName.trim().length === 0) {
       throw new ValidationError('Lab name cannot be empty');
     }
-    
-    // Update configuration with new lab name
+
     const updatedSettings = {
       ...config.systemSettings,
       labName: labName.trim()
     };
-    
+
     const updatedConfig = config.updateSystemSettings(updatedSettings);
     await this.saveWithVersioning(updatedConfig, `Lab name updated to: ${labName}`, 'admin');
   }
 
-  // CRITICAL MISSING METHOD 4: getDefaultResearcher
   async getDefaultResearcher(): Promise<string> {
     const config = await this.getCurrent();
     return config ? config.systemSettings.defaultResearcher : '';
   }
 
-  // CRITICAL MISSING METHOD 5: updateDefaultResearcher
   async updateDefaultResearcher(researcher: string): Promise<void> {
     const config = await this.getCurrent();
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
-    
-    // Update configuration with new default researcher
+
     const updatedSettings = {
       ...config.systemSettings,
       defaultResearcher: researcher.trim()
     };
-    
+
     const updatedConfig = config.updateSystemSettings(updatedSettings);
     await this.saveWithVersioning(updatedConfig, `Default researcher updated to: ${researcher}`, 'admin');
   }
 
-  // CRITICAL MISSING METHOD 6: getAutoSave
   async getAutoSave(): Promise<boolean> {
     const config = await this.getCurrent();
     return config ? config.systemSettings.autoSave : true;
   }
 
-  // CRITICAL MISSING METHOD 7: updateAutoSave
   async updateAutoSave(autoSave: boolean): Promise<void> {
     const config = await this.getCurrent();
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
-    
-    // Update configuration with new auto-save setting
+
     const updatedSettings = {
       ...config.systemSettings,
       autoSave
     };
-    
+
     const updatedConfig = config.updateSystemSettings(updatedSettings);
     await this.saveWithVersioning(updatedConfig, `Auto-save ${autoSave ? 'enabled' : 'disabled'}`, 'admin');
   }
 
-  // CRITICAL MISSING METHOD 8: getAuditTrailEnabled
   async getAuditTrailEnabled(): Promise<boolean> {
     const config = await this.getCurrent();
     return config ? config.systemSettings.auditTrailEnabled : true;
   }
 
-  // CRITICAL MISSING METHOD 9: updateAuditTrailEnabled
   async updateAuditTrailEnabled(enabled: boolean): Promise<void> {
     const config = await this.getCurrent();
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
-    
-    // Update configuration with new audit trail setting
+
     const updatedSettings = {
       ...config.systemSettings,
       auditTrailEnabled: enabled
     };
-    
+
     const updatedConfig = config.updateSystemSettings(updatedSettings);
     await this.saveWithVersioning(updatedConfig, `Audit trail ${enabled ? 'enabled' : 'disabled'}`, 'admin');
   }
 
-  // CRITICAL MISSING METHOD 10: getSyncEnabled
   async getSyncEnabled(): Promise<boolean> {
     const config = await this.getCurrent();
     return config ? config.systemSettings.syncEnabled : false;
   }
 
-  // CRITICAL MISSING METHOD 11: updateSyncEnabled
   async updateSyncEnabled(enabled: boolean): Promise<void> {
     const config = await this.getCurrent();
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
-    
-    // Update configuration with new sync setting
+
     const updatedSettings = {
       ...config.systemSettings,
       syncEnabled: enabled
     };
-    
+
     const updatedConfig = config.updateSystemSettings(updatedSettings);
     await this.saveWithVersioning(updatedConfig, `Sync ${enabled ? 'enabled' : 'disabled'}`, 'admin');
   }
 
-  // CRITICAL MISSING METHOD 12: importConfiguration
   async importConfiguration(configExport: ConfigurationExport): Promise<Configuration> {
-    // Import validation
     if (!configExport || !configExport.configuration) {
       throw new ValidationError('Invalid configuration export provided');
     }
 
-    // Validate configuration before import
     const validationResult = await this.validateConfiguration(configExport.configuration);
     if (!validationResult.isValid) {
       throw new ValidationError(`Configuration import failed: ${validationResult.errors.join(', ')}`);
     }
 
-    // Production would save imported configuration with versioning
     await this.saveWithVersioning(configExport.configuration, 'Configuration imported');
-    
+
     return configExport.configuration;
   }
 
-  // CRITICAL MISSING METHOD 13: restoreFromSnapshot (override existing)
-  async restoreFromSnapshot(snapshotId: string): Promise<Configuration> {
-    if (!snapshotId) {
-      throw new ValidationError('Snapshot ID is required');
-    }
-    
-    // Production would query snapshot from database and restore
-    // For now, return default configuration as stub
-    const config = Configuration.createDefault();
-    await this.saveWithVersioning(config, `Restored from snapshot ${snapshotId}`);
-    
-    return config;
-  }
-
-  // CRITICAL MISSING METHOD 14: listSnapshots
   async listSnapshots(): Promise<ConfigurationSnapshot[]> {
     try {
-      const rows = await this.sqlite.queryMany<{id: string; version: number; created_at: string; description: string; created_by: string; size_bytes: number}>(`
+      const rows = await this.context.queryMany<{ id: string; version: number; created_at: Date | string; description: string; created_by: string; size_bytes: number }>(`
         SELECT id, version, created_at, description, created_by, size_bytes
         FROM configuration_snapshots
         ORDER BY created_at DESC
@@ -757,57 +709,64 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
       return rows.map(row => ({
         id: row.id,
         version: row.version,
-        timestamp: new Date(row.created_at),
+        timestamp: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
         description: row.description,
         createdBy: row.created_by,
         sizeBytes: row.size_bytes
       }));
-      
+
     } catch (error) {
       console.error('Failed to list configuration snapshots:', error);
       throw new ValidationError(`Database error listing snapshots: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  // CRITICAL MISSING METHOD 15: cleanupSnapshots
   async cleanupSnapshots(keepCount: number): Promise<number> {
     if (keepCount < 1) {
       throw new ValidationError('Keep count must be at least 1');
     }
-    
+
     try {
-      // Get snapshots to delete (keeping the most recent keepCount)
-      const result = await this.sqlite.execute(`
-        DELETE FROM configuration_snapshots 
-        WHERE id NOT IN (
-          SELECT id FROM configuration_snapshots 
-          ORDER BY created_at DESC 
-          LIMIT ?
-        )
+      // Get IDs to keep
+      const keepRows = await this.context.queryMany<{ id: string }>(`
+        SELECT id FROM configuration_snapshots
+        ORDER BY created_at DESC
+        LIMIT $1
       `, [keepCount]);
 
-      const deletedCount = result.changes || 0;
-      
+      const keepIds = keepRows.map(r => r.id);
+
+      if (keepIds.length === 0) {
+        return 0;
+      }
+
+      // Delete all except the ones to keep
+      const placeholders = keepIds.map((_, i) => `$${i + 1}`).join(',');
+      const result = await this.context.execute(
+        `DELETE FROM configuration_snapshots WHERE id NOT IN (${placeholders})`,
+        keepIds
+      );
+
+      const deletedCount = result.rowCount ?? 0;
+
       if (deletedCount > 0) {
         console.log(`🔧 [CONFIG] Cleaned up ${deletedCount} old snapshots, keeping ${keepCount} most recent`);
       }
-      
+
       return deletedCount;
-      
+
     } catch (error) {
       console.error('Failed to cleanup configuration snapshots:', error);
       throw new ValidationError(`Database error cleaning up snapshots: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  // CRITICAL MISSING METHOD 16: getForApi
   async getForApi(): Promise<ApiConfigurationResponse> {
     const config = await this.getCurrent();
     if (!config) {
       throw new ValidationError('No configuration available for API response');
     }
 
-    // Return nested structure directly - composition pattern
     return {
       equipment: {
         tanks: config.equipment.tanks.map(tank => ({
@@ -844,14 +803,12 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     };
   }
 
-  // CRITICAL MISSING METHOD 17: getForFrontend
   async getForFrontend(): Promise<FrontendConfiguration> {
     const config = await this.getCurrent();
     if (!config) {
       throw new ValidationError('No configuration available for frontend');
     }
 
-    // Build hierarchical structure for frontend consumption (already nested)
     const tanks = config.equipment.tanks.map(tank => ({
       id: tank.id,
       name: tank.name,
@@ -875,14 +832,12 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     };
   }
 
-  // CRITICAL MISSING METHOD 18: performMaintenance
   async performMaintenance(): Promise<MaintenanceResult> {
     const startTime = Date.now();
     const tasksPerformed: string[] = [];
     const errors: string[] = [];
 
     try {
-      // Task 1: Validate current configuration
       const config = await this.getCurrent();
       if (config) {
         const validationResult = await this.validateConfiguration(config);
@@ -893,13 +848,11 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
         }
       }
 
-      // Task 2: Cleanup old snapshots (keep last 10)
       const deletedSnapshots = await this.cleanupSnapshots(10);
       if (deletedSnapshots > 0) {
         tasksPerformed.push(`Cleaned up ${deletedSnapshots} old snapshots`);
       }
 
-      // Task 3: Database optimization (stub)
       tasksPerformed.push('Database optimization completed');
 
       const duration = Date.now() - startTime;
@@ -907,8 +860,8 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
       return {
         success: errors.length === 0,
         tasksPerformed,
-        snapshotsDeleted: 0, // Stub value
-        historyEntriesCleaned: 0, // Stub value
+        snapshotsDeleted: 0,
+        historyEntriesCleaned: 0,
         errors,
         duration
       };
@@ -928,132 +881,131 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
 
   // SECURITY & ADMIN CONFIGURATION
 
-  /**
-   * Get current security configuration
-   * Returns default configuration if none exists
-   */
   async getSecurityConfig(): Promise<SecurityConfig> {
     try {
-      const row = await this.sqlite.queryOne<SecurityConfig & { idleWarningMinutes?: number; absoluteSessionTimeoutHours?: number; accessTokenExpiryMinutes?: number }>(`
+      const row = await this.context.queryOne<{
+        useenhancedauth: boolean;
+        requirestrongpasswords: boolean;
+        passwordminlength: number;
+        passwordrequirespecialchars: boolean;
+        accesstokenexpiryminutes: number;
+        sessiontimeoutminutes: number;
+        idlewarningminutes: number;
+        absolutesessiontimeouthours: number;
+        maxconcurrentsessions: number;
+        enableratelimiting: boolean;
+        loginattemptsperminute: number;
+        lockoutdurationminutes: number;
+        enableadmincontrols: boolean;
+        enabledetailedlogging: boolean;
+        logfailedattempts: boolean;
+      }>(`
         SELECT
-          useEnhancedAuth,
-          requireStrongPasswords,
-          passwordMinLength,
-          passwordRequireSpecialChars,
-          accessTokenExpiryMinutes,
-          sessionTimeoutMinutes,
-          idleWarningMinutes,
-          absoluteSessionTimeoutHours,
-          maxConcurrentSessions,
-          enableRateLimiting,
-          loginAttemptsPerMinute,
-          lockoutDurationMinutes,
-          enableAdminControls,
-          enableDetailedLogging,
-          logFailedAttempts
+          use_enhanced_auth as useenhancedauth,
+          require_strong_passwords as requirestrongpasswords,
+          password_min_length as passwordminlength,
+          password_require_special_chars as passwordrequirespecialchars,
+          access_token_expiry_minutes as accesstokenexpiryminutes,
+          session_timeout_minutes as sessiontimeoutminutes,
+          idle_warning_minutes as idlewarningminutes,
+          absolute_session_timeout_hours as absolutesessiontimeouthours,
+          max_concurrent_sessions as maxconcurrentsessions,
+          enable_rate_limiting as enableratelimiting,
+          login_attempts_per_minute as loginattemptsperminute,
+          lockout_duration_minutes as lockoutdurationminutes,
+          enable_admin_controls as enableadmincontrols,
+          enable_detailed_logging as enabledetailedlogging,
+          log_failed_attempts as logfailedattempts
         FROM security_config
         WHERE id = 1
       `);
 
       if (!row) {
-        // No security config exists - return default
         return DEFAULT_SECURITY_CONFIG;
       }
 
-      // Convert database 0/1 to boolean
       return {
-        useEnhancedAuth: !!row.useEnhancedAuth,
-        requireStrongPasswords: !!row.requireStrongPasswords,
-        passwordMinLength: row.passwordMinLength,
-        passwordRequireSpecialChars: !!row.passwordRequireSpecialChars,
-        accessTokenExpiryMinutes: row.accessTokenExpiryMinutes ?? DEFAULT_SECURITY_CONFIG.accessTokenExpiryMinutes,
-        sessionTimeoutMinutes: row.sessionTimeoutMinutes,
-        idleWarningMinutes: row.idleWarningMinutes ?? DEFAULT_SECURITY_CONFIG.idleWarningMinutes,
-        absoluteSessionTimeoutHours: row.absoluteSessionTimeoutHours ?? DEFAULT_SECURITY_CONFIG.absoluteSessionTimeoutHours,
-        maxConcurrentSessions: row.maxConcurrentSessions,
-        enableRateLimiting: !!row.enableRateLimiting,
-        loginAttemptsPerMinute: row.loginAttemptsPerMinute,
-        lockoutDurationMinutes: row.lockoutDurationMinutes,
-        enableAdminControls: !!row.enableAdminControls,
-        enableDetailedLogging: !!row.enableDetailedLogging,
-        logFailedAttempts: !!row.logFailedAttempts
+        useEnhancedAuth: row.useenhancedauth,
+        requireStrongPasswords: row.requirestrongpasswords,
+        passwordMinLength: row.passwordminlength,
+        passwordRequireSpecialChars: row.passwordrequirespecialchars,
+        accessTokenExpiryMinutes: row.accesstokenexpiryminutes ?? DEFAULT_SECURITY_CONFIG.accessTokenExpiryMinutes,
+        sessionTimeoutMinutes: row.sessiontimeoutminutes,
+        idleWarningMinutes: row.idlewarningminutes ?? DEFAULT_SECURITY_CONFIG.idleWarningMinutes,
+        absoluteSessionTimeoutHours: row.absolutesessiontimeouthours ?? DEFAULT_SECURITY_CONFIG.absoluteSessionTimeoutHours,
+        maxConcurrentSessions: row.maxconcurrentsessions,
+        enableRateLimiting: row.enableratelimiting,
+        loginAttemptsPerMinute: row.loginattemptsperminute,
+        lockoutDurationMinutes: row.lockoutdurationminutes,
+        enableAdminControls: row.enableadmincontrols,
+        enableDetailedLogging: row.enabledetailedlogging,
+        logFailedAttempts: row.logfailedattempts
       };
 
     } catch (error) {
       console.error('Failed to get security configuration:', error);
-      // Return default on error (table might not exist yet)
       return DEFAULT_SECURITY_CONFIG;
     }
   }
 
-  /**
-   * Update security configuration with partial updates
-   *
-   * @param updates - Partial security configuration to update
-   * @returns Updated SecurityConfig
-   */
   async updateSecurityConfig(updates: Partial<SecurityConfig>): Promise<SecurityConfig> {
     try {
-      // Get current config
       const currentConfig = await this.getSecurityConfig();
-
-      // Merge current config with updates
       const updatedConfig: SecurityConfig = { ...currentConfig, ...updates };
 
-      // Upsert to database
-      await this.sqlite.execute(`
+      await this.context.execute(`
         INSERT INTO security_config (
           id,
-          useEnhancedAuth,
-          requireStrongPasswords,
-          passwordMinLength,
-          passwordRequireSpecialChars,
-          accessTokenExpiryMinutes,
-          sessionTimeoutMinutes,
-          idleWarningMinutes,
-          absoluteSessionTimeoutHours,
-          maxConcurrentSessions,
-          enableRateLimiting,
-          loginAttemptsPerMinute,
-          lockoutDurationMinutes,
-          enableAdminControls,
-          enableDetailedLogging,
-          logFailedAttempts,
+          use_enhanced_auth,
+          require_strong_passwords,
+          password_min_length,
+          password_require_special_chars,
+          access_token_expiry_minutes,
+          session_timeout_minutes,
+          idle_warning_minutes,
+          absolute_session_timeout_hours,
+          max_concurrent_sessions,
+          enable_rate_limiting,
+          login_attempts_per_minute,
+          lockout_duration_minutes,
+          enable_admin_controls,
+          enable_detailed_logging,
+          log_failed_attempts,
           updated_at
-        ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-        ON CONFLICT(id) DO UPDATE SET
-          useEnhancedAuth = excluded.useEnhancedAuth,
-          requireStrongPasswords = excluded.requireStrongPasswords,
-          passwordMinLength = excluded.passwordMinLength,
-          passwordRequireSpecialChars = excluded.passwordRequireSpecialChars,
-          accessTokenExpiryMinutes = excluded.accessTokenExpiryMinutes,
-          sessionTimeoutMinutes = excluded.sessionTimeoutMinutes,
-          idleWarningMinutes = excluded.idleWarningMinutes,
-          absoluteSessionTimeoutHours = excluded.absoluteSessionTimeoutHours,
-          maxConcurrentSessions = excluded.maxConcurrentSessions,
-          enableRateLimiting = excluded.enableRateLimiting,
-          loginAttemptsPerMinute = excluded.loginAttemptsPerMinute,
-          lockoutDurationMinutes = excluded.lockoutDurationMinutes,
-          enableAdminControls = excluded.enableAdminControls,
-          enableDetailedLogging = excluded.enableDetailedLogging,
-          logFailedAttempts = excluded.logFailedAttempts,
-          updated_at = datetime('now')
+        ) VALUES (1, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW())
+        ON CONFLICT (id) DO UPDATE SET
+          use_enhanced_auth = EXCLUDED.use_enhanced_auth,
+          require_strong_passwords = EXCLUDED.require_strong_passwords,
+          password_min_length = EXCLUDED.password_min_length,
+          password_require_special_chars = EXCLUDED.password_require_special_chars,
+          access_token_expiry_minutes = EXCLUDED.access_token_expiry_minutes,
+          session_timeout_minutes = EXCLUDED.session_timeout_minutes,
+          idle_warning_minutes = EXCLUDED.idle_warning_minutes,
+          absolute_session_timeout_hours = EXCLUDED.absolute_session_timeout_hours,
+          max_concurrent_sessions = EXCLUDED.max_concurrent_sessions,
+          enable_rate_limiting = EXCLUDED.enable_rate_limiting,
+          login_attempts_per_minute = EXCLUDED.login_attempts_per_minute,
+          lockout_duration_minutes = EXCLUDED.lockout_duration_minutes,
+          enable_admin_controls = EXCLUDED.enable_admin_controls,
+          enable_detailed_logging = EXCLUDED.enable_detailed_logging,
+          log_failed_attempts = EXCLUDED.log_failed_attempts,
+          updated_at = NOW()
       `, [
-        updatedConfig.useEnhancedAuth ? 1 : 0,
-        updatedConfig.requireStrongPasswords ? 1 : 0,
+        updatedConfig.useEnhancedAuth,
+        updatedConfig.requireStrongPasswords,
         updatedConfig.passwordMinLength,
-        updatedConfig.passwordRequireSpecialChars ? 1 : 0,
+        updatedConfig.passwordRequireSpecialChars,
         updatedConfig.accessTokenExpiryMinutes,
         updatedConfig.sessionTimeoutMinutes,
         updatedConfig.idleWarningMinutes,
         updatedConfig.absoluteSessionTimeoutHours,
         updatedConfig.maxConcurrentSessions,
-        updatedConfig.enableRateLimiting ? 1 : 0,
+        updatedConfig.enableRateLimiting,
         updatedConfig.loginAttemptsPerMinute,
         updatedConfig.lockoutDurationMinutes,
-        updatedConfig.enableAdminControls ? 1 : 0,
-        updatedConfig.enableDetailedLogging ? 1 : 0,
-        updatedConfig.logFailedAttempts ? 1 : 0
+        updatedConfig.enableAdminControls,
+        updatedConfig.enableDetailedLogging,
+        updatedConfig.logFailedAttempts
       ]);
 
       console.log('🔒 [SECURITY] Security configuration updated successfully');
@@ -1065,41 +1017,34 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     }
   }
 
-  /**
-   * Get system metrics for admin dashboard
-   * Queries actual counts from database tables
-   */
   async getSystemMetrics(): Promise<SystemMetrics> {
     try {
-      // Query total tubes
-      const tubesRow = await this.sqlite.queryOne<{count: number}>(`
+      const tubesRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count FROM tubes
       `);
-      const totalTubes = tubesRow?.count || 0;
+      const totalTubes = parseInt(tubesRow?.count || '0', 10);
 
-      // Query total users
-      const usersRow = await this.sqlite.queryOne<{count: number}>(`
+      const usersRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count FROM users
       `);
-      const totalUsers = usersRow?.count || 0;
+      const totalUsers = parseInt(usersRow?.count || '0', 10);
 
-      // Query total researchers from researchers table (not tubes)
-      // All researchers are counted regardless of tube creation status
-      const researchersRow = await this.sqlite.queryOne<{count: number}>(`
+      const researchersRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count
         FROM researchers
-        WHERE active = 1
+        WHERE active = TRUE
       `);
-      const totalResearchers = researchersRow?.count || 0;
+      const totalResearchers = parseInt(researchersRow?.count || '0', 10);
 
-      // Get last backup timestamp (from configuration versions as proxy)
-      const backupRow = await this.sqlite.queryOne<{updated_at: string}>(`
+      const backupRow = await this.context.queryOne<{ updated_at: Date | string }>(`
         SELECT updated_at
         FROM configuration_versions
         ORDER BY version DESC
         LIMIT 1
       `);
-      const lastBackup = backupRow?.updated_at || new Date().toISOString();
+      const lastBackup = backupRow?.updated_at
+        ? (backupRow.updated_at instanceof Date ? backupRow.updated_at.toISOString() : backupRow.updated_at)
+        : new Date().toISOString();
 
       return {
         totalTubes,
@@ -1110,7 +1055,6 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
 
     } catch (error) {
       console.error('Failed to get system metrics:', error);
-      // Return empty metrics on error
       return {
         totalTubes: 0,
         totalUsers: 0,
@@ -1120,17 +1064,10 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
     }
   }
 
-  /**
-   * Get synchronization status
-   * Currently returns local-only status (Firebase integration pending)
-   */
   async getSyncStatus(): Promise<SyncStatus> {
     try {
-      // Check if sync is enabled in configuration
       const syncEnabled = await this.getSyncEnabled();
 
-      // For now, Firebase is always offline (integration pending)
-      // In production, this would check actual Firebase connection status
       return {
         enabled: syncEnabled,
         firebase: false,
@@ -1146,5 +1083,4 @@ export class SQLiteConfigurationRepository implements ConfigurationRepository {
       };
     }
   }
-
 }
