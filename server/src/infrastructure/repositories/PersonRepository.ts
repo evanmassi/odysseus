@@ -6,7 +6,6 @@ import { PersonMapper, PersonRow } from '@infrastructure/database/mappers/Person
 /**
  * PersonRepository - Person data access
  *
- * Implements PersonRepository interface using PostgreSQL.
  * Person is the single source of truth for human identity.
  */
 export class PersonRepository implements IPersonRepository {

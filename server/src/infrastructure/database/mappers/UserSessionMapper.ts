@@ -1,20 +1,19 @@
 import { UserSession } from '@domain/entities/UserSession';
-import { SqliteDateMapper } from '@infrastructure/database/SqliteDateMapper';
 
 /**
- * Database row structure for user_sessions table
+ * Database row structure for user_sessions table (PostgreSQL snake_case)
  */
 export interface UserSessionRow {
   id: string;
-  userId: string;
-  refreshToken: string;
-  deviceInfo: string | null;
-  ipAddress: string | null;
-  userAgent: string | null;
-  createdAt: string;
-  lastUsedAt: string;
-  expiresAt: string;
-  isActive: number; // SQLite uses 0/1 for boolean
+  user_id: string;
+  refresh_token: string;
+  device_info: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: Date | string;
+  last_used_at: Date | string;
+  expires_at: Date | string;
+  is_active: boolean;
 }
 
 /**
@@ -22,6 +21,7 @@ export interface UserSessionRow {
  *
  * Handles all mapping logic without business rules.
  * Pure transformation functions with proper date handling.
+ * PostgreSQL version with snake_case columns and native boolean/date types.
  */
 export class UserSessionMapper {
 
@@ -31,15 +31,15 @@ export class UserSessionMapper {
   static toRow(session: UserSession): UserSessionRow {
     return {
       id: session.id,
-      userId: session.userId,
-      refreshToken: session.refreshToken,
-      deviceInfo: session.deviceInfo || null,
-      ipAddress: session.ipAddress || null,
-      userAgent: session.userAgent || null,
-      createdAt: SqliteDateMapper.toDbDateTime(session.createdAt),
-      lastUsedAt: SqliteDateMapper.toDbDateTime(session.lastUsedAt),
-      expiresAt: SqliteDateMapper.toDbDateTime(session.expiresAt),
-      isActive: session.isActive ? 1 : 0
+      user_id: session.userId,
+      refresh_token: session.refreshToken,
+      device_info: session.deviceInfo || null,
+      ip_address: session.ipAddress || null,
+      user_agent: session.userAgent || null,
+      created_at: session.createdAt,
+      last_used_at: session.lastUsedAt,
+      expires_at: session.expiresAt,
+      is_active: session.isActive
     };
   }
 
@@ -49,15 +49,15 @@ export class UserSessionMapper {
   static fromRow(row: UserSessionRow): UserSession {
     return UserSession.fromData({
       id: row.id,
-      userId: row.userId,
-      refreshToken: row.refreshToken,
-      createdAt: SqliteDateMapper.fromDbDateTime(row.createdAt)!,
-      lastUsedAt: SqliteDateMapper.fromDbDateTime(row.lastUsedAt)!,
-      expiresAt: SqliteDateMapper.fromDbDateTime(row.expiresAt)!,
-      isActive: row.isActive === 1,
-      deviceInfo: row.deviceInfo || undefined,
-      ipAddress: row.ipAddress || undefined,
-      userAgent: row.userAgent || undefined
+      userId: row.user_id,
+      refreshToken: row.refresh_token,
+      createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
+      lastUsedAt: row.last_used_at instanceof Date ? row.last_used_at : new Date(row.last_used_at),
+      expiresAt: row.expires_at instanceof Date ? row.expires_at : new Date(row.expires_at),
+      isActive: row.is_active,
+      deviceInfo: row.device_info || undefined,
+      ipAddress: row.ip_address || undefined,
+      userAgent: row.user_agent || undefined
     });
   }
 
@@ -78,20 +78,20 @@ export class UserSessionMapper {
   /**
    * Create row for activity update
    */
-  static toActivityUpdateRow(session: UserSession): { id: string; lastUsedAt: string } {
+  static toActivityUpdateRow(session: UserSession): { id: string; last_used_at: Date } {
     return {
       id: session.id,
-      lastUsedAt: SqliteDateMapper.toDbDateTime(session.lastUsedAt)
+      last_used_at: session.lastUsedAt
     };
   }
 
   /**
    * Create row for revocation update
    */
-  static toRevocationUpdateRow(session: UserSession): { id: string; isActive: number } {
+  static toRevocationUpdateRow(session: UserSession): { id: string; is_active: boolean } {
     return {
       id: session.id,
-      isActive: session.isActive ? 1 : 0
+      is_active: session.isActive
     };
   }
 }

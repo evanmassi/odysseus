@@ -4,7 +4,7 @@ import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@utils/logger';
 
 /**
- * Database row structure for audit_log_archive table (PostgreSQL snake_case)
+ * Database row structure for audit_log_archive table
  */
 interface AuditArchiveRow {
   id: string;
@@ -21,7 +21,7 @@ interface AuditArchiveRow {
 }
 
 /**
- * Audit Archive Repository (PostgreSQL)
+ * Audit Archive Repository
  *
  * Data access layer for archived audit logs (warm storage).
  * Minimal indexes for basic timestamp/user queries only.
@@ -101,12 +101,10 @@ export class AuditArchiveRepository {
       ? 'WHERE ' + whereClauses.join(' AND ')
       : '';
 
-    // Get total count
     const countQuery = `SELECT COUNT(*) as total FROM audit_log_archive ${whereClause}`;
     const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
     const total = parseInt(countRow?.total || '0', 10);
 
-    // Get paginated results
     const limit = filters.limit || 50;
     const offset = filters.offset || 0;
 
@@ -195,7 +193,7 @@ export class AuditArchiveRepository {
   }
 
   /**
-   * Convert database row (snake_case) to AuditLogEntry domain object (camelCase)
+   * Convert database row to domain object
    */
   private rowToEntry(row: AuditArchiveRow): AuditLogEntry {
     return {

@@ -6,7 +6,7 @@ import { SQLiteResearcherRepository } from '@infrastructure/repositories/SQLiteR
 import { PersonRepository } from '@infrastructure/repositories/PersonRepository';
 import { SQLiteConfigurationRepository } from '@infrastructure/repositories/SQLiteConfigurationRepository';
 import { SQLiteRefreshTokenRepository } from '@infrastructure/repositories/SQLiteRefreshTokenRepository';
-import { SQLiteSessionRepository } from '@infrastructure/repositories/SQLiteSessionRepository';
+import { SessionRepository } from '@infrastructure/repositories/SessionRepository';
 import { SQLiteAuditRepository } from '@infrastructure/repositories/SQLiteAuditRepository';
 
 // Repository interfaces
@@ -116,11 +116,11 @@ export class RepositoryFactory {
   }
 
   /**
-   * Get user session repository instance
+   * Get user session repository instance (PostgreSQL)
    */
   getUserSessionRepository(): UserSessionRepository {
     if (!this.userSessionRepository) {
-      this.userSessionRepository = new SQLiteSessionRepository(this.sqliteContext);
+      this.userSessionRepository = new SessionRepository(this.postgresContext);
     }
     return this.userSessionRepository;
   }

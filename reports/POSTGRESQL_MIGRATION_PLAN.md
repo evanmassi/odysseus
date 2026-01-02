@@ -14,7 +14,7 @@
 |-------|-------------|--------|
 | 1 | Project Setup (branch, Docker, env file) | ✅ Complete |
 | 2 | Database Context (PostgresContext.ts) | ✅ Complete |
-| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (2/9) |
+| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (3/9) |
 | 4 | Full-Text Search | ⬜ Not started |
 | 5 | Server Configuration | ⬜ Not started |
 | 6 | Client Configuration | ⬜ Not started |
@@ -29,7 +29,7 @@
 |---|------------|---------|--------|-------|
 | 1 | PersonRepository | 7 | ✅ Complete | Mapper updated, factory updated |
 | 2 | AuditArchiveRepository | 6 | ✅ Complete | Inline mapper, ServiceContainer updated |
-| 3 | SessionRepository | ~18 | ⬜ Pending | |
+| 3 | SessionRepository | 18 | ✅ Complete | Mapper updated, datetime→Date, julianday→EXTRACT |
 | 4 | RefreshTokenRepository | ~20 | ⬜ Pending | |
 | 5 | AuditRepository | ~25 | ⬜ Pending | |
 | 6 | UserRepository | ~35 | ⬜ Pending | |
@@ -45,6 +45,8 @@
 - `server/src/infrastructure/repositories/index.ts` - Dual-context factory
 - `server/src/infrastructure/repositories/AuditArchiveRepository.ts` - Converted
 - `server/src/infrastructure/di/ServiceContainer.ts` - Uses PostgresContext for AuditArchiveRepository
+- `server/src/infrastructure/repositories/SessionRepository.ts` - Converted (was SQLiteSessionRepository)
+- `server/src/infrastructure/database/mappers/UserSessionMapper.ts` - Updated for snake_case, native boolean
 
 ### Lessons Learned (From Conversions)
 
@@ -59,6 +61,11 @@
 | Some repos in ServiceContainer, not factory | Check both files when updating context usage |
 | Dynamic WHERE clause with $1, $2, $3 | Track `paramIndex` variable, increment with `$${paramIndex++}` |
 | Inline mappers (rowToEntry methods) | Update column names directly in the method |
+| SQLite datetime() comparisons | PostgreSQL compares Date objects natively, remove datetime() wrapper |
+| SQLite julianday() for duration | Use `EXTRACT(EPOCH FROM (col2 - col1)) / 60` for minutes |
+| SQLite isActive = 1/0 | PostgreSQL uses native BOOLEAN (TRUE/FALSE) |
+| Batch IN clause with ? placeholders | Generate `$1, $2, $3` with `sessionIds.map((_, i) => \`$\${i + 1}\`).join(',')` |
+| **Comments mentioning "PostgreSQL"** | **Don't** - per AGENTS.md, code shows the database; comments explain "why" not "what" |
 
 ---
 

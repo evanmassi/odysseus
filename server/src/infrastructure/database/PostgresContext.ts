@@ -2,12 +2,10 @@ import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { logger } from '@utils/logger';
 
 /**
- * PostgresContext - Pure Database Access Layer
+ * PostgresContext - Database Access Layer
  *
- * Handles all PostgreSQL database operations without business logic.
+ * Handles all database operations without business logic.
  * Clean separation between data access and domain concerns.
- *
- * Replaces SQLiteContext for cloud deployment.
  */
 export class PostgresContext {
   private pool: Pool;
