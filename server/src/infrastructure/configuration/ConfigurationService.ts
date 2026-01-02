@@ -23,10 +23,9 @@ const ConfigurationSchema = z.object({
     environment: z.enum(['development', 'production', 'test']),
   }),
 
-  // Database Configuration  
+  // Database Configuration
   database: z.object({
-    path: z.string(),
-    backupEnabled: z.boolean().default(true),
+    type: z.literal('postgresql'),
     maxConnections: z.number().int().min(1).default(10),
   }),
 
@@ -115,8 +114,7 @@ export class ConfigurationService implements ConfigurationService {
         environment,
       },
       database: {
-        path: process.env.DATABASE_PATH || this.getDefaultDatabasePath(environment),
-        backupEnabled: process.env.DATABASE_BACKUP_ENABLED !== 'false',
+        type: 'postgresql',
         maxConnections: parseInt(process.env.DATABASE_MAX_CONNECTIONS || '10', 10),
       },
       jwt: {
@@ -135,14 +133,6 @@ export class ConfigurationService implements ConfigurationService {
     };
 
     return ConfigurationSchema.parse(rawConfig);
-  }
-
-  private getDefaultDatabasePath(environment: string): string {
-    const baseDir = environment === 'development' 
-      ? './data' 
-      : process.env.APPDATA || process.env.HOME || './data';
-    
-    return `${baseDir}/odysseus.sqlite`;
   }
 
   private getJwtSecret(environment: string): string {

@@ -219,7 +219,7 @@ export class AdminRouteModule implements RouteModule {
     res.json({
       success: true,
       data: {
-        type: 'SQLite',
+        type: 'PostgreSQL',
         status: 'connected',
         timestamp: new Date().toISOString()
       }

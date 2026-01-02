@@ -4,16 +4,11 @@ import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
-import path from 'path';
-import fs from 'fs';
 import { initializeRepositories, RepositoryFactory } from '@infrastructure/repositories';
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
 import { logger } from '@utils/logger';
 import { featureFlags, FEATURES } from '@utils/featureFlags';
 import { validateBody, validateParams, sanitizeStrings } from '@middleware/Validation';
-import { firebaseService } from '@infrastructure/services/FirebaseSyncService';
-import { syncEngine } from '@infrastructure/services/SyncEngine';
-import { workspaceService } from '@infrastructure/services/WorkspaceService';
 import { z } from 'zod';
 
 // Load environment variables
@@ -75,33 +70,9 @@ class OdysseusServer {
   }
 
   private setupDatabase(): void {
-    // Use different paths for development vs production
-    const isElectron = process.env.ELECTRON_APP === 'true';
-    let sqliteDbPath: string;
-    
-    if (isElectron && process.env.ODYSSEUS_DATA_DIR) {
-      // In Electron production, use app data directory
-      sqliteDbPath = path.join(process.env.ODYSSEUS_DATA_DIR, 'odysseus-data.sqlite');
-      console.log('🏭 ELECTRON PRODUCTION MODE - Data saved in app data directory');
-      console.log('📂 App data directory:', process.env.ODYSSEUS_DATA_DIR);
-      console.log('💾 SQLite Database file:', sqliteDbPath);
-    } else {
-      // In development, use local data directory
-      const dataDir = path.join(__dirname, '../data');
-      // Ensure data directory exists
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-      sqliteDbPath = path.join(dataDir, 'odysseus.sqlite');
-      console.log('🔧 DEVELOPMENT MODE - Data saved in dev folder');
-      console.log('💾 SQLite Database file:', sqliteDbPath);
-    }
-    
-    // Initialize repository factory with SQLite (single source of truth)
-    console.log(`💾 [DATABASE] Using SQLite with clean repository pattern`);
-    console.log(`💾 [DATABASE] Scale: 100 tanks × 50 racks × 20 boxes`);
-    
-    this.repositoryFactory = initializeRepositories(sqliteDbPath);
+    console.log('💾 [DATABASE] Initializing PostgreSQL connection');
+    console.log('💾 [DATABASE] Using clean repository pattern with DDD');
+    this.repositoryFactory = initializeRepositories();
   }
 
   private setupServices(): void {
@@ -200,20 +171,15 @@ class OdysseusServer {
     process.on('SIGINT', this.shutdown.bind(this));
   }
 
-  // Additional Endpoints
   private async getMetrics(req: express.Request, res: express.Response): Promise<void> {
     try {
-      // TODO: Implement metrics gathering from repositories
-      const metrics = {};
-      const databaseType = 'sqlite';
-      
-      res.json({ 
-        success: true, 
+      const isHealthy = await this.repositoryFactory.isHealthy();
+      res.json({
+        success: true,
         metrics: {
-          ...metrics,
-          databaseType,
+          databaseType: 'postgresql',
+          databaseConnected: isHealthy,
           featuresEnabled: {
-            sqlite: true,
             auditTrail: FEATURES.ENABLE_AUDIT_TRAIL,
             queryCache: FEATURES.ENABLE_QUERY_CACHING,
             bulkOperations: FEATURES.ENABLE_BULK_OPERATIONS
@@ -266,7 +232,6 @@ class OdysseusServer {
 
 
 
-  // Database switching method removed - SQLite only architecture
 
   // Admin-only middleware
   private requireAdmin(req: any, res: express.Response, next: express.NextFunction): void {
@@ -353,102 +318,6 @@ class OdysseusServer {
     }
   }
 
-  // Sync management endpoints
-  private async getSyncStatus(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const syncStats = syncEngine.getSyncStats();
-      const workspaceId = syncEngine.getWorkspaceId();
-      
-      res.json({
-        success: true,
-        sync: {
-          enabled: syncEngine.isEnabled(),
-          workspaceId,
-          firebase: firebaseService.isConnected(),
-          stats: syncStats
-        }
-      });
-    } catch (error) {
-      logger.error('Error fetching sync status:', error);
-      res.status(500).json({ error: 'Failed to fetch sync status' });
-    }
-  }
-
-  private async createWorkspaceInvite(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const { role = 'user' } = req.body;
-      
-      if (!['admin', 'user'].includes(role)) {
-        res.status(400).json({ error: 'Invalid role. Must be "admin" or "user"' });
-        return;
-      }
-
-      const inviteCode = await syncEngine.createInviteCode(role);
-      
-      if (!inviteCode) {
-        res.status(500).json({ error: 'Failed to create invite code. Sync may not be enabled.' });
-        return;
-      }
-
-      logger.info(`Invite code created by admin`, {
-        admin: (req as any).user?.username,
-        inviteCode,
-        role
-      });
-
-      res.json({ 
-        success: true, 
-        inviteCode,
-        message: `Share this code with colleagues: ${inviteCode}` 
-      });
-
-    } catch (error) {
-      logger.error('Error creating invite code:', error);
-      res.status(500).json({ error: 'Failed to create invite code' });
-    }
-  }
-
-  private async syncAllData(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      if (!syncEngine.isEnabled()) {
-        res.status(400).json({ error: 'Sync is not enabled' });
-        return;
-      }
-
-      const repositories = this.repositoryFactory.getRepositories();
-      const tubes = await repositories.tubes.findAll();
-      const tubeDtos = tubes.map(tube => ({
-        ...tube.toData(),
-        sample: {
-          ...tube.toData().sample,
-          cellType: tube.toData().sample.cellType || '' // Ensure required field has default
-        }
-      }));
-      const result = await syncEngine.syncAllTubes(tubeDtos);
-
-      logger.info(`Manual sync triggered by admin`, {
-        admin: (req as any).user?.username,
-        synced: result.synced,
-        errors: result.errors.length
-      });
-
-      res.json({
-        success: result.success,
-        result: {
-          synced: result.synced,
-          total: tubes.length,
-          errors: result.errors,
-          conflicts: result.conflicts
-        }
-      });
-
-    } catch (error) {
-      logger.error('Error syncing all data:', error);
-      res.status(500).json({ error: 'Failed to sync data' });
-    }
-  }
-
-  // Configuration management endpoints removed - use security config instead
 
   private async deleteTank(req: express.Request, res: express.Response): Promise<void> {
     try {
@@ -499,100 +368,17 @@ class OdysseusServer {
     }
   }
 
-  private saveDebugLogs(req: express.Request, res: express.Response): void {
-    try {
-      const { logs } = req.body;
-      
-      // Get the directory where exe is running
-      const isPkg = (process as any).pkg !== undefined;
-      const logDir = isPkg ? path.dirname(process.execPath) : __dirname;
-      const logFile = path.join(logDir, 'odysseus-debug.log');
-      
-      // Write logs to file
-      const logContent = logs.join('\n') + '\n';
-      fs.writeFileSync(logFile, logContent);
-      
-      logger.info('Debug logs saved to:', logFile);
-      res.json({ success: true, logFile });
-    } catch (error) {
-      console.error('Failed to save debug logs:', error);
-      res.status(500).json({ error: 'Failed to save logs' });
-    }
-  }
-
-  // BACKUP/EXPORT ENDPOINTS (Disaster Recovery)
-
-  private async createBackup(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const { backupDir } = req.body;
-      
-      // SQLite backup with integrity verification
-      const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
-      const backupPath = path.join(backupDir || './backups', `odysseus-backup-${timestamp}.sqlite`);
-      
-      // TODO: Implement backup functionality with repositories
-      const success = false; // Placeholder until backup is implemented
-      
-      if (success) {
-        // TODO: Implement backup verification
-        const verification = { isValid: true, size: 0, checksum: '' };
-        
-        res.json({
-          success: true,
-          message: 'SQLite backup created and verified',
-          backupPath,
-          verification
-        });
-      } else {
-        res.status(500).json({ error: 'Failed to create backup' });
-      }
-    } catch (error) {
-      logger.error('Error creating backup:', error);
-      res.status(500).json({ error: 'Failed to create backup' });
-    }
-  }
-
-  // JSON export method removed - SQLite backup only
-
-  private async restoreFromBackup(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const { backupPath } = req.body;
-      
-      if (!backupPath) {
-        res.status(400).json({ error: 'Backup path is required' });
-        return;
-      }
-
-      // SQLite backup restore - copy backup file to main database location
-      const fs = await import('fs');
-      if (!fs.existsSync(backupPath)) {
-        res.status(404).json({ error: 'Backup file not found' });
-        return;
-      }
-
-      // This would require app restart to use the restored database
-      res.json({ 
-        success: true, 
-        message: 'SQLite backup restore requires manual file replacement and app restart'
-      });
-    } catch (error) {
-      logger.error('Error restoring from backup:', error);
-      res.status(500).json({ error: 'Failed to restore from backup' });
-    }
-  }
-
   private async getDatabaseStatus(req: express.Request, res: express.Response): Promise<void> {
     try {
-      // SQLite-only database status
+      const isHealthy = await this.repositoryFactory.isHealthy();
       res.json({
         success: true,
         status: {
-          type: 'SQLite',
+          type: 'PostgreSQL',
           initialized: true,
-          connected: true,
-          features: { 
-            backupSupported: true,
-            auditTrail: FEATURES.ENABLE_AUDIT_TRAIL 
+          connected: isHealthy,
+          features: {
+            auditTrail: FEATURES.ENABLE_AUDIT_TRAIL
           }
         }
       });
@@ -604,21 +390,14 @@ class OdysseusServer {
 
   public async start(): Promise<void> {
     try {
-      // Initialize repository factory and database
       await this.repositoryFactory.initialize();
-      
-      // Initialize Firebase (non-blocking - app works without it)
-      firebaseService.initialize().catch(error => 
-        logger.warn('Firebase initialization failed - running in local-only mode:', error)
-      );
-      
+
       const port = process.env.PORT || 3001;
       this.server.listen(port, async () => {
         const isHealthy = await this.repositoryFactory.isHealthy();
         logger.info(`🚀 Odysseus server started on port ${port}`);
-        logger.info(`📊 Database: ${isHealthy ? 'Connected' : 'Disconnected'}`);
-        logger.info(`🔥 Firebase: ${firebaseService.isConnected() ? 'Connected' : 'Local-only mode'}`);
-        logger.info(`🏛️ Architecture: Clean Repository Pattern with Domain-Driven Design`);
+        logger.info(`📊 Database: PostgreSQL ${isHealthy ? 'Connected' : 'Disconnected'}`);
+        logger.info(`🏛️ Architecture: Clean Repository Pattern with DDD`);
       });
     } catch (error) {
       logger.error('Failed to start server:', error);

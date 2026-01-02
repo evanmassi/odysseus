@@ -25,7 +25,7 @@ interface FeatureFlags {
   CLOUD_SYNC: FeatureFlag;
 }
 
-class SQLiteFeatureFlagManager {
+class FeatureFlagManager {
   private db: any; // Will be injected by the main application
   
   constructor() {
@@ -187,7 +187,7 @@ class SQLiteFeatureFlagManager {
 }
 
 // Singleton instance
-export const featureFlags = new SQLiteFeatureFlagManager();
+export const featureFlags = new FeatureFlagManager();
 
 // Export individual flags for easy access
 export const FEATURES = {

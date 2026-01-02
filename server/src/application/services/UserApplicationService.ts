@@ -14,7 +14,7 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { nanoid } from 'nanoid';
 import { isDatabaseConstraintError, isEmailConstraintError } from '@infrastructure/database/DatabaseErrors';
-import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
+import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import type { EventBus } from '@application/contracts/EventBus';
 import {
   UserLinkedToResearcherEvent,
@@ -35,7 +35,7 @@ export class UserApplicationService {
     private personRepository?: PersonRepository,
     private researcherRepository?: ResearcherRepository,
     private configurationRepository?: ConfigurationRepository,
-    private context?: SQLiteContext,
+    private context?: PostgresContext,
     private eventBus?: EventBus
   ) {}
 
@@ -442,7 +442,7 @@ export class UserApplicationService {
     const username = await this.generateUsername(request.firstName, request.lastName);
 
     if (!this.context) {
-      throw new Error('SQLiteContext is required for this operation');
+      throw new Error('Database context is required for this operation');
     }
 
     // 1. Create Person entity (single source of truth for profile data)
@@ -483,8 +483,6 @@ export class UserApplicationService {
     }
 
     // 5. Save Person, Researcher (if created), and User sequentially
-    // Note: Using sequential saves instead of transaction because better-sqlite3
-    // requires synchronous transaction callbacks, but our repository layer uses async/await
 
     // Save Person first (must exist before Researcher/User can reference it)
     await this.personRepository!.save(person);

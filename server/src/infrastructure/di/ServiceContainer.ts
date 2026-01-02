@@ -799,7 +799,7 @@ export class ServiceContainer {
         repositories.persons,
         repositories.researchers,
         repositories.configurations,
-        this.repositoryFactory.getSQLiteContext(),
+        this.repositoryFactory.getPostgresContext(),
         this.getEventBus()
       );
     }

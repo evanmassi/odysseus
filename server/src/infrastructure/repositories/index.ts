@@ -1,4 +1,3 @@
-import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { TubeRepository as TubeRepositoryImpl } from '@infrastructure/repositories/TubeRepository';
 import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
@@ -23,10 +22,9 @@ import { AuditRepository } from '@domain/repositories/AuditRepository';
  * Repository Factory - Dependency injection
  *
  * Creates and manages all repository instances.
- * All repositories now use PostgreSQL.
+ * All repositories use PostgreSQL.
  */
 export class RepositoryFactory {
-  private sqliteContext: SQLiteContext;
   private postgresContext: PostgresContext;
   private tubeRepository?: TubeRepository;
   private userRepository?: UserRepository;
@@ -37,17 +35,14 @@ export class RepositoryFactory {
   private userSessionRepository?: UserSessionRepository;
   private auditRepository?: AuditRepository;
 
-  constructor(dbPath: string) {
-    this.sqliteContext = new SQLiteContext(dbPath);
+  constructor() {
     this.postgresContext = new PostgresContext();
   }
 
   /**
-   * Initialize database and repositories
+   * Initialize database connection
    */
   async initialize(): Promise<void> {
-    // Initialize both contexts during migration
-    await this.sqliteContext.initialize();
     await this.postgresContext.initialize();
   }
 
@@ -134,13 +129,6 @@ export class RepositoryFactory {
   }
 
   /**
-   * Get SQLite context instance
-   */
-  getSQLiteContext(): SQLiteContext {
-    return this.sqliteContext;
-  }
-
-  /**
    * Get all repositories as a single object
    */
   getRepositories() {
@@ -175,15 +163,14 @@ export class RepositoryFactory {
   }
 
   /**
-   * Close all database connections
+   * Close database connection
    */
   async close(): Promise<void> {
-    await this.sqliteContext.close();
     await this.postgresContext.close();
   }
 
   /**
-   * Get PostgreSQL context (for repositories that have been migrated)
+   * Get PostgreSQL context
    */
   getPostgresContext(): PostgresContext {
     return this.postgresContext;
@@ -199,8 +186,8 @@ export let repositoryFactory: RepositoryFactory;
 /**
  * Initialize global repository factory
  */
-export function initializeRepositories(dbPath: string): RepositoryFactory {
-  repositoryFactory = new RepositoryFactory(dbPath);
+export function initializeRepositories(): RepositoryFactory {
+  repositoryFactory = new RepositoryFactory();
   return repositoryFactory;
 }
 

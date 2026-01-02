@@ -3158,14 +3158,18 @@ Only move to the next repository after the current one is fully tested.
 - [x] Added `isForeignKeyError()` for code 23503
 - [ ] Test constraint violation detection (runtime testing)
 
-### Phase 8: Server Configuration
-- [ ] Update `server/src/index.ts` database initialization
-- [ ] Remove Electron-specific path logic
-- [ ] Remove Firebase imports and initialization
-- [ ] Update CORS for production domains
-- [ ] Update `getDatabaseStatus()` response
-- [ ] Update health check endpoint
-- [ ] Add database connection health check
+### Phase 8: Server Configuration ✅
+- [x] Update `server/src/index.ts` database initialization
+- [x] Remove Electron-specific path logic (removed SQLite path construction)
+- [x] Remove Firebase imports and initialization
+- [x] Update `getDatabaseStatus()` response (returns PostgreSQL status)
+- [x] Update `getMetrics()` response (returns postgresql type)
+- [x] Add database connection health check (uses repositoryFactory.isHealthy())
+- [x] Delete `SQLiteContext.ts` and `SqliteDateMapper.ts`
+- [x] Update `RepositoryFactory` to PostgreSQL-only
+- [x] Update `ServiceContainer` to use PostgresContext
+- [x] Update `UserApplicationService` to use PostgresContext
+- [x] Update `ConfigurationService` database schema
 
 ### Phase 9: Client Configuration
 - [ ] Create `client/.env.development`
@@ -3174,14 +3178,14 @@ Only move to the next repository after the current one is fully tested.
 - [ ] Update `SocketService.ts` to use env vars
 - [ ] Test client with remote server
 
-### Phase 10: Firebase & Sync Cleanup
-- [ ] Delete `FirebaseSyncService.ts`
-- [ ] Delete `SyncEngine.ts`
-- [ ] Delete `WorkspaceService.ts`
-- [ ] Remove Firebase references from `index.ts`
-- [ ] Remove sync endpoints: `/api/sync/status`, `/api/sync/invite`, `/api/sync/all`
-- [ ] Update or remove `/api/admin/sync-status` route
-- [ ] Update `getSyncStatus()` in ConfigurationRepository
+### Phase 10: Firebase & Sync Cleanup ✅
+- [x] Delete `FirebaseSyncService.ts`
+- [x] Delete `SyncEngine.ts`
+- [x] Delete `WorkspaceService.ts`
+- [x] Remove Firebase references from `index.ts`
+- [x] Remove sync endpoints: `/api/sync/status`, `/api/sync/invite`, `/api/sync/all`
+- [ ] Update or remove `/api/admin/sync-status` route (verify if exists)
+- [ ] Update `getSyncStatus()` in ConfigurationRepository (verify if exists)
 - [ ] Remove Firebase dependencies from `package.json`
 
 ### Phase 11: Dependencies & Build Scripts
