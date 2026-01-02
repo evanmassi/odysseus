@@ -1,8 +1,9 @@
 import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
+import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { SQLiteTubeRepository } from '@infrastructure/repositories/SQLiteTubeRepository';
 import { SQLiteUserRepository } from '@infrastructure/repositories/SQLiteUserRepository';
 import { SQLiteResearcherRepository } from '@infrastructure/repositories/SQLiteResearcherRepository';
-import { SQLitePersonRepository } from '@infrastructure/repositories/SQLitePersonRepository';
+import { PersonRepository } from '@infrastructure/repositories/PersonRepository';
 import { SQLiteConfigurationRepository } from '@infrastructure/repositories/SQLiteConfigurationRepository';
 import { SQLiteRefreshTokenRepository } from '@infrastructure/repositories/SQLiteRefreshTokenRepository';
 import { SQLiteSessionRepository } from '@infrastructure/repositories/SQLiteSessionRepository';
@@ -12,7 +13,7 @@ import { SQLiteAuditRepository } from '@infrastructure/repositories/SQLiteAuditR
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { PersonRepository } from '@domain/repositories/PersonRepository';
+import { PersonRepository as IPersonRepository } from '@domain/repositories/PersonRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
@@ -21,15 +22,17 @@ import { AuditRepository } from '@domain/repositories/AuditRepository';
 /**
  * Repository Factory - Dependency injection
  *
- * Creates and manages all repository instances with shared SQLite context.
- * Clean separation of concerns and centralized configuration.
+ * Creates and manages all repository instances.
+ * During migration: Uses both SQLite and PostgreSQL contexts.
+ * After migration: Will use only PostgreSQL.
  */
 export class RepositoryFactory {
   private sqliteContext: SQLiteContext;
+  private postgresContext: PostgresContext;
   private tubeRepository?: TubeRepository;
   private userRepository?: UserRepository;
   private researcherRepository?: ResearcherRepository;
-  private personRepository?: PersonRepository;
+  private personRepository?: IPersonRepository;
   private configurationRepository?: ConfigurationRepository;
   private refreshTokenRepository?: RefreshTokenRepository;
   private userSessionRepository?: UserSessionRepository;
@@ -37,13 +40,16 @@ export class RepositoryFactory {
 
   constructor(dbPath: string) {
     this.sqliteContext = new SQLiteContext(dbPath);
+    this.postgresContext = new PostgresContext();
   }
 
   /**
    * Initialize database and repositories
    */
   async initialize(): Promise<void> {
+    // Initialize both contexts during migration
     await this.sqliteContext.initialize();
+    await this.postgresContext.initialize();
   }
 
   /**
@@ -80,11 +86,11 @@ export class RepositoryFactory {
   }
 
   /**
-   * Get person repository instance
+   * Get person repository instance (PostgreSQL)
    */
-  getPersonRepository(): PersonRepository {
+  getPersonRepository(): IPersonRepository {
     if (!this.personRepository) {
-      this.personRepository = new SQLitePersonRepository(this.sqliteContext);
+      this.personRepository = new PersonRepository(this.postgresContext);
     }
     return this.personRepository;
   }
@@ -175,6 +181,14 @@ export class RepositoryFactory {
    */
   async close(): Promise<void> {
     await this.sqliteContext.close();
+    await this.postgresContext.close();
+  }
+
+  /**
+   * Get PostgreSQL context (for repositories that have been migrated)
+   */
+  getPostgresContext(): PostgresContext {
+    return this.postgresContext;
   }
 }
 

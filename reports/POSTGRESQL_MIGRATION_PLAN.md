@@ -1,10 +1,64 @@
 # Odysseus: SQLite to PostgreSQL Migration Plan
 
-**Document Version:** 7.0
+**Document Version:** 7.1
 **Created:** 2024-01-XX
-**Last Updated:** Added offline caching, repository naming, search preservation, local dev setup
-**Status:** COMPLETE & VERIFIED - Ready for Implementation
+**Last Updated:** Implementation started - Phases 1-2 complete
+**Status:** IN PROGRESS
 **Purpose:** Complete migration from SQLite to PostgreSQL for cloud deployment
+
+---
+
+## Progress Tracker
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| 1 | Project Setup (branch, Docker, env file) | ✅ Complete |
+| 2 | Database Context (PostgresContext.ts) | ✅ Complete |
+| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (2/9) |
+| 4 | Full-Text Search | ⬜ Not started |
+| 5 | Server Configuration | ⬜ Not started |
+| 6 | Client Configuration | ⬜ Not started |
+| 7 | Electron Updates | ⬜ Not started |
+| 8 | Testing & Deployment | ⬜ Not started |
+
+**Current Position:** Phase 3 - Repository Conversion
+
+### Repository Conversion Status
+
+| # | Repository | Queries | Status | Notes |
+|---|------------|---------|--------|-------|
+| 1 | PersonRepository | 7 | ✅ Complete | Mapper updated, factory updated |
+| 2 | AuditArchiveRepository | 6 | ✅ Complete | Inline mapper, ServiceContainer updated |
+| 3 | SessionRepository | ~18 | ⬜ Pending | |
+| 4 | RefreshTokenRepository | ~20 | ⬜ Pending | |
+| 5 | AuditRepository | ~25 | ⬜ Pending | |
+| 6 | UserRepository | ~35 | ⬜ Pending | |
+| 7 | ResearcherRepository | ~40 | ⬜ Pending | |
+| 8 | ConfigurationRepository | ~50 | ⬜ Pending | |
+| 9 | TubeRepository | ~60 | ⬜ Pending | Full-text search |
+
+### Files Created/Modified
+- `server/.env.development` - Local PostgreSQL connection
+- `server/src/infrastructure/database/PostgresContext.ts` - Database context
+- `server/src/infrastructure/repositories/PersonRepository.ts` - Converted
+- `server/src/infrastructure/database/mappers/PersonMapper.ts` - Updated for snake_case
+- `server/src/infrastructure/repositories/index.ts` - Dual-context factory
+- `server/src/infrastructure/repositories/AuditArchiveRepository.ts` - Converted
+- `server/src/infrastructure/di/ServiceContainer.ts` - Uses PostgresContext for AuditArchiveRepository
+
+### Lessons Learned (From Conversions)
+
+| Issue | Solution |
+|-------|----------|
+| Factory needs both contexts during migration | Added `postgresContext` field, initialize both, close both |
+| Interface naming collision | Alias import: `PersonRepository as IPersonRepository` |
+| Mapper used SqliteDateMapper | Remove dependency - PostgreSQL returns native Date objects |
+| PostgreSQL COUNT(*) returns string | Use `parseInt(result?.count \|\| '0', 10)` |
+| SQLite `result.changes` doesn't exist | Use `result.rowCount ?? 0` for affected row count |
+| QueryResultRow type constraint | Generic methods need `<T extends QueryResultRow>` |
+| Some repos in ServiceContainer, not factory | Check both files when updating context usage |
+| Dynamic WHERE clause with $1, $2, $3 | Track `paramIndex` variable, increment with `$${paramIndex++}` |
+| Inline mappers (rowToEntry methods) | Update column names directly in the method |
 
 ---
 

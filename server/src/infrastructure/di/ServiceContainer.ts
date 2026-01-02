@@ -649,7 +649,7 @@ export class ServiceContainer {
   getAuditArchiveRepository(): AuditArchiveRepository {
     if (!this.auditArchiveRepository) {
       this.auditArchiveRepository = new AuditArchiveRepository(
-        this.repositoryFactory.getSQLiteContext()
+        this.repositoryFactory.getPostgresContext()
       );
     }
     return this.auditArchiveRepository;

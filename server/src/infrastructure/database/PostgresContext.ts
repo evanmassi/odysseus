@@ -1,4 +1,4 @@
-import { Pool, PoolClient, QueryResult } from 'pg';
+import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { logger } from '@utils/logger';
 
 /**
@@ -498,11 +498,11 @@ export class PostgresContext {
   /**
    * Query methods - type-safe and async
    */
-  async query<T = unknown>(sql: string, params: unknown[] = []): Promise<QueryResult<T>> {
+  async query<T extends QueryResultRow = QueryResultRow>(sql: string, params: unknown[] = []): Promise<QueryResult<T>> {
     return this.pool.query<T>(sql, params);
   }
 
-  async queryOne<T>(sql: string, params: unknown[] = []): Promise<T | null> {
+  async queryOne<T extends QueryResultRow>(sql: string, params: unknown[] = []): Promise<T | null> {
     try {
       const result = await this.pool.query<T>(sql, params);
       return result.rows[0] || null;
@@ -512,7 +512,7 @@ export class PostgresContext {
     }
   }
 
-  async queryMany<T>(sql: string, params: unknown[] = []): Promise<T[]> {
+  async queryMany<T extends QueryResultRow>(sql: string, params: unknown[] = []): Promise<T[]> {
     try {
       const result = await this.pool.query<T>(sql, params);
       return result.rows;

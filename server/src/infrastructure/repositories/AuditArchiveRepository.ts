@@ -1,33 +1,33 @@
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { PaginatedResult } from '@domain/types/repository';
-import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
+import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@utils/logger';
 
 /**
- * Database row structure for audit_log_archive table
+ * Database row structure for audit_log_archive table (PostgreSQL snake_case)
  */
 interface AuditArchiveRow {
   id: string;
-  userId: string;
+  user_id: string;
   username: string;
   action: string;
-  entityType: string;
-  entityId: string | null;
+  entity_type: string;
+  entity_id: string | null;
   details: string;
-  timestamp: string;
-  ipAddress: string | null;
-  userAgent: string | null;
-  archivedAt: string;
+  timestamp: Date | string;
+  ip_address: string | null;
+  user_agent: string | null;
+  archived_at: Date | string;
 }
 
 /**
- * Audit Archive Repository
+ * Audit Archive Repository (PostgreSQL)
  *
  * Data access layer for archived audit logs (warm storage).
  * Minimal indexes for basic timestamp/user queries only.
  */
 export class AuditArchiveRepository {
-  constructor(private context: SQLiteContext) {}
+  constructor(private context: PostgresContext) {}
 
   /**
    * Save archived entries (bulk insert)
@@ -35,35 +35,32 @@ export class AuditArchiveRepository {
   async saveArchived(entries: AuditLogEntry[]): Promise<void> {
     if (entries.length === 0) return;
 
-    const db = this.context.getDatabase();
-    const archivedAt = new Date().toISOString();
+    const archivedAt = new Date();
 
-    const insert = db.prepare(
-      `INSERT INTO audit_log_archive (
-        id, userId, username, action, entityType, entityId,
-        details, timestamp, ipAddress, userAgent, archivedAt
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    );
-
-    const transaction = db.transaction((entries: AuditLogEntry[]) => {
+    await this.context.transaction(async (client) => {
       for (const entry of entries) {
-        insert.run(
-          entry.id,
-          entry.userId,
-          entry.username,
-          entry.action,
-          entry.entityType,
-          entry.entityId || null,
-          entry.details,
-          entry.timestamp instanceof Date ? entry.timestamp.toISOString() : entry.timestamp,
-          entry.ipAddress || null,
-          entry.userAgent || null,
-          archivedAt
+        await client.query(
+          `INSERT INTO audit_log_archive (
+            id, user_id, username, action, entity_type, entity_id,
+            details, timestamp, ip_address, user_agent, archived_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+          [
+            entry.id,
+            entry.userId,
+            entry.username,
+            entry.action,
+            entry.entityType,
+            entry.entityId || null,
+            entry.details,
+            entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
+            entry.ipAddress || null,
+            entry.userAgent || null,
+            archivedAt
+          ]
         );
       }
     });
 
-    transaction(entries);
     logger.info('Archived audit entries', { count: entries.length });
   }
 
@@ -72,30 +69,31 @@ export class AuditArchiveRepository {
    */
   async findArchived(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>> {
     const whereClauses: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
+    let paramIndex = 1;
 
     if (filters.username) {
-      whereClauses.push('username = ?');
+      whereClauses.push(`username = $${paramIndex++}`);
       params.push(filters.username);
     }
 
     if (filters.action) {
-      whereClauses.push('action = ?');
+      whereClauses.push(`action = $${paramIndex++}`);
       params.push(filters.action);
     }
 
     if (filters.entityType) {
-      whereClauses.push('entityType = ?');
+      whereClauses.push(`entity_type = $${paramIndex++}`);
       params.push(filters.entityType);
     }
 
     if (filters.dateFrom) {
-      whereClauses.push('timestamp >= ?');
+      whereClauses.push(`timestamp >= $${paramIndex++}`);
       params.push(filters.dateFrom);
     }
 
     if (filters.dateTo) {
-      whereClauses.push('timestamp <= ?');
+      whereClauses.push(`timestamp <= $${paramIndex++}`);
       params.push(filters.dateTo);
     }
 
@@ -105,8 +103,8 @@ export class AuditArchiveRepository {
 
     // Get total count
     const countQuery = `SELECT COUNT(*) as total FROM audit_log_archive ${whereClause}`;
-    const countRow = await this.context.queryOne<{ total: number }>(countQuery, params);
-    const total = countRow?.total || 0;
+    const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
+    const total = parseInt(countRow?.total || '0', 10);
 
     // Get paginated results
     const limit = filters.limit || 50;
@@ -116,7 +114,7 @@ export class AuditArchiveRepository {
       SELECT * FROM audit_log_archive
       ${whereClause}
       ORDER BY timestamp DESC
-      LIMIT ? OFFSET ?
+      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
 
     const rows = await this.context.queryMany<AuditArchiveRow>(
@@ -139,20 +137,21 @@ export class AuditArchiveRepository {
    * Count archived entries
    */
   async countArchived(): Promise<number> {
-    const row = await this.context.queryOne<{ total: number }>(
+    const row = await this.context.queryOne<{ total: string }>(
       'SELECT COUNT(*) as total FROM audit_log_archive'
     );
-    return row?.total || 0;
+    return parseInt(row?.total || '0', 10);
   }
 
   /**
    * Get oldest archived entry timestamp
    */
   async getOldestArchivedTimestamp(): Promise<Date | null> {
-    const row = await this.context.queryOne<{ oldest: string }>(
+    const row = await this.context.queryOne<{ oldest: Date | string | null }>(
       'SELECT MIN(timestamp) as oldest FROM audit_log_archive'
     );
-    return row?.oldest ? new Date(row.oldest) : null;
+    if (!row?.oldest) return null;
+    return row.oldest instanceof Date ? row.oldest : new Date(row.oldest);
   }
 
   /**
@@ -160,10 +159,10 @@ export class AuditArchiveRepository {
    */
   async deleteOlderThan(date: Date): Promise<number> {
     const result = await this.context.execute(
-      'DELETE FROM audit_log_archive WHERE timestamp < ?',
-      [date.toISOString()]
+      'DELETE FROM audit_log_archive WHERE timestamp < $1',
+      [date]
     );
-    return result.changes;
+    return result.rowCount ?? 0;
   }
 
   /**
@@ -171,16 +170,17 @@ export class AuditArchiveRepository {
    */
   async exportToJSON(dateFrom?: Date, dateTo?: Date): Promise<string> {
     const whereClauses: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
+    let paramIndex = 1;
 
     if (dateFrom) {
-      whereClauses.push('timestamp >= ?');
-      params.push(dateFrom.toISOString());
+      whereClauses.push(`timestamp >= $${paramIndex++}`);
+      params.push(dateFrom);
     }
 
     if (dateTo) {
-      whereClauses.push('timestamp <= ?');
-      params.push(dateTo.toISOString());
+      whereClauses.push(`timestamp <= $${paramIndex++}`);
+      params.push(dateTo);
     }
 
     const whereClause = whereClauses.length > 0
@@ -195,20 +195,20 @@ export class AuditArchiveRepository {
   }
 
   /**
-   * Convert database row to AuditLogEntry domain object
+   * Convert database row (snake_case) to AuditLogEntry domain object (camelCase)
    */
   private rowToEntry(row: AuditArchiveRow): AuditLogEntry {
     return {
       id: row.id,
-      userId: row.userId,
+      userId: row.user_id,
       username: row.username,
       action: row.action,
-      entityType: row.entityType,
-      entityId: row.entityId || undefined,
+      entityType: row.entity_type,
+      entityId: row.entity_id || undefined,
       details: row.details,
-      timestamp: new Date(row.timestamp),
-      ipAddress: row.ipAddress || undefined,
-      userAgent: row.userAgent || undefined,
+      timestamp: row.timestamp instanceof Date ? row.timestamp : new Date(row.timestamp),
+      ipAddress: row.ip_address || undefined,
+      userAgent: row.user_agent || undefined,
     };
   }
 }
