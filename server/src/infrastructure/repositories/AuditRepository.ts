@@ -1,43 +1,41 @@
-import type { Database } from 'better-sqlite3';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
-import type { AuditRepository } from '@domain/repositories/AuditRepository';
+import type { AuditRepository as IAuditRepository } from '@domain/repositories/AuditRepository';
 import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
-import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
-import { logger } from '@utils/logger';
+import { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 /**
  * Database row structure for audit_log table
  */
 interface AuditLogRow {
   id: string;
-  userId: string;
+  user_id: string;
   username: string;
   action: string;
-  entityType: string;
-  entityId: string | null;
+  entity_type: string;
+  entity_id: string | null;
   details: string;
-  timestamp: string;
-  ipAddress: string | null;
-  userAgent: string | null;
+  timestamp: Date | string;
+  ip_address: string | null;
+  user_agent: string | null;
 }
 
 /**
- * SQLite implementation of AuditRepository
+ * AuditRepository - Audit log persistence
  *
  * Provides efficient, indexed access to audit log data.
  * Immutable logs - no update operations supported.
  */
-export class SQLiteAuditRepository implements AuditRepository {
-  constructor(private context: SQLiteContext) {}
+export class AuditRepository implements IAuditRepository {
+  constructor(private context: PostgresContext) {}
 
   // WRITE OPERATIONS
 
   async save(entry: AuditLogEntry): Promise<void> {
     await this.context.execute(
       `INSERT INTO audit_log (
-        id, userId, username, action, entityType, entityId,
-        details, timestamp, ipAddress, userAgent
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        id, user_id, username, action, entity_type, entity_id,
+        details, timestamp, ip_address, user_agent
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [
         entry.id,
         entry.userId,
@@ -46,7 +44,7 @@ export class SQLiteAuditRepository implements AuditRepository {
         entry.entityType,
         entry.entityId || null,
         entry.details,
-        entry.timestamp instanceof Date ? entry.timestamp.toISOString() : entry.timestamp,
+        entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
         entry.ipAddress || null,
         entry.userAgent || null,
       ]
@@ -56,61 +54,54 @@ export class SQLiteAuditRepository implements AuditRepository {
   async saveMany(entries: AuditLogEntry[]): Promise<void> {
     if (entries.length === 0) return;
 
-    // Use transaction for bulk insert
-    const db = this.context.getDatabase();
-    const insert = db.prepare(
-      `INSERT INTO audit_log (
-        id, userId, username, action, entityType, entityId,
-        details, timestamp, ipAddress, userAgent
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    );
-
-    const transaction = db.transaction((entries: AuditLogEntry[]) => {
+    await this.context.transaction(async (client) => {
       for (const entry of entries) {
-        insert.run(
-          entry.id,
-          entry.userId,
-          entry.username,
-          entry.action,
-          entry.entityType,
-          entry.entityId || null,
-          entry.details,
-          entry.timestamp instanceof Date ? entry.timestamp.toISOString() : entry.timestamp,
-          entry.ipAddress || null,
-          entry.userAgent || null
+        await client.query(
+          `INSERT INTO audit_log (
+            id, user_id, username, action, entity_type, entity_id,
+            details, timestamp, ip_address, user_agent
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+          [
+            entry.id,
+            entry.userId,
+            entry.username,
+            entry.action,
+            entry.entityType,
+            entry.entityId || null,
+            entry.details,
+            entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
+            entry.ipAddress || null,
+            entry.userAgent || null,
+          ]
         );
       }
     });
-
-    transaction(entries);
   }
 
   // READ OPERATIONS
 
   async findByUserId(userId: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
-    let query = 'SELECT * FROM audit_log WHERE userId = ?';
-    const params: any[] = [userId];
+    const whereClauses: string[] = ['user_id = $1'];
+    const params: unknown[] = [userId];
+    let paramIndex = 2;
 
-    // Add date range filtering
     if (options?.dateFrom) {
-      query += ' AND timestamp >= ?';
-      params.push(options.dateFrom.toISOString());
+      whereClauses.push(`timestamp >= $${paramIndex++}`);
+      params.push(options.dateFrom);
     }
     if (options?.dateTo) {
-      query += ' AND timestamp <= ?';
-      params.push(options.dateTo.toISOString());
+      whereClauses.push(`timestamp <= $${paramIndex++}`);
+      params.push(options.dateTo);
     }
 
-    // Order by timestamp descending (most recent first)
-    query += ' ORDER BY timestamp DESC';
+    let query = `SELECT * FROM audit_log WHERE ${whereClauses.join(' AND ')} ORDER BY timestamp DESC`;
 
-    // Add pagination
     if (options?.limit) {
-      query += ' LIMIT ?';
+      query += ` LIMIT $${paramIndex++}`;
       params.push(options.limit);
     }
     if (options?.offset) {
-      query += ' OFFSET ?';
+      query += ` OFFSET $${paramIndex++}`;
       params.push(options.offset);
     }
 
@@ -121,7 +112,7 @@ export class SQLiteAuditRepository implements AuditRepository {
   async findByEntityId(entityId: string, entityType: string): Promise<AuditLogEntry[]> {
     const rows = await this.context.queryMany<AuditLogRow>(
       `SELECT * FROM audit_log
-       WHERE entityId = ? AND entityType = ?
+       WHERE entity_id = $1 AND entity_type = $2
        ORDER BY timestamp DESC`,
       [entityId, entityType]
     );
@@ -129,28 +120,27 @@ export class SQLiteAuditRepository implements AuditRepository {
   }
 
   async findByAction(action: string, options?: QueryOptions): Promise<AuditLogEntry[]> {
-    let query = 'SELECT * FROM audit_log WHERE action = ?';
-    const params: any[] = [action];
+    const whereClauses: string[] = ['action = $1'];
+    const params: unknown[] = [action];
+    let paramIndex = 2;
 
-    // Add date range filtering
     if (options?.dateFrom) {
-      query += ' AND timestamp >= ?';
-      params.push(options.dateFrom.toISOString());
+      whereClauses.push(`timestamp >= $${paramIndex++}`);
+      params.push(options.dateFrom);
     }
     if (options?.dateTo) {
-      query += ' AND timestamp <= ?';
-      params.push(options.dateTo.toISOString());
+      whereClauses.push(`timestamp <= $${paramIndex++}`);
+      params.push(options.dateTo);
     }
 
-    query += ' ORDER BY timestamp DESC';
+    let query = `SELECT * FROM audit_log WHERE ${whereClauses.join(' AND ')} ORDER BY timestamp DESC`;
 
-    // Add pagination
     if (options?.limit) {
-      query += ' LIMIT ?';
+      query += ` LIMIT $${paramIndex++}`;
       params.push(options.limit);
     }
     if (options?.offset) {
-      query += ' OFFSET ?';
+      query += ` OFFSET $${paramIndex++}`;
       params.push(options.offset);
     }
 
@@ -159,32 +149,32 @@ export class SQLiteAuditRepository implements AuditRepository {
   }
 
   async findAll(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>> {
-    // Build WHERE clause dynamically based on filters
     const whereClauses: string[] = [];
-    const params: any[] = [];
+    const params: unknown[] = [];
+    let paramIndex = 1;
 
     if (filters.username) {
-      whereClauses.push('username = ?');
+      whereClauses.push(`username = $${paramIndex++}`);
       params.push(filters.username);
     }
 
     if (filters.action) {
-      whereClauses.push('action = ?');
+      whereClauses.push(`action = $${paramIndex++}`);
       params.push(filters.action);
     }
 
     if (filters.entityType) {
-      whereClauses.push('entityType = ?');
+      whereClauses.push(`entity_type = $${paramIndex++}`);
       params.push(filters.entityType);
     }
 
     if (filters.dateFrom) {
-      whereClauses.push('timestamp >= ?');
+      whereClauses.push(`timestamp >= $${paramIndex++}`);
       params.push(filters.dateFrom);
     }
 
     if (filters.dateTo) {
-      whereClauses.push('timestamp <= ?');
+      whereClauses.push(`timestamp <= $${paramIndex++}`);
       params.push(filters.dateTo);
     }
 
@@ -192,12 +182,10 @@ export class SQLiteAuditRepository implements AuditRepository {
       ? 'WHERE ' + whereClauses.join(' AND ')
       : '';
 
-    // Get total count
     const countQuery = `SELECT COUNT(*) as total FROM audit_log ${whereClause}`;
-    const countRow = await this.context.queryOne<{ total: number }>(countQuery, params);
-    const total = countRow?.total || 0;
+    const countRow = await this.context.queryOne<{ total: string }>(countQuery, params);
+    const total = parseInt(countRow?.total || '0', 10);
 
-    // Get paginated results
     const limit = filters.limit || 50;
     const offset = filters.offset || 0;
 
@@ -205,7 +193,7 @@ export class SQLiteAuditRepository implements AuditRepository {
       SELECT * FROM audit_log
       ${whereClause}
       ORDER BY timestamp DESC
-      LIMIT ? OFFSET ?
+      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
     `;
 
     const rows = await this.context.queryMany<AuditLogRow>(
@@ -228,25 +216,25 @@ export class SQLiteAuditRepository implements AuditRepository {
 
   async deleteOlderThan(date: Date): Promise<number> {
     const result = await this.context.execute(
-      'DELETE FROM audit_log WHERE timestamp < ?',
-      [date.toISOString()]
+      'DELETE FROM audit_log WHERE timestamp < $1',
+      [date]
     );
-    return result.changes;
+    return result.rowCount ?? 0;
   }
 
   async count(): Promise<number> {
-    const row = await this.context.queryOne<{ total: number }>(
+    const row = await this.context.queryOne<{ total: string }>(
       'SELECT COUNT(*) as total FROM audit_log'
     );
-    return row?.total || 0;
+    return parseInt(row?.total || '0', 10);
   }
 
   async countInRange(dateFrom: Date, dateTo: Date): Promise<number> {
-    const row = await this.context.queryOne<{ total: number }>(
-      'SELECT COUNT(*) as total FROM audit_log WHERE timestamp >= ? AND timestamp <= ?',
-      [dateFrom.toISOString(), dateTo.toISOString()]
+    const row = await this.context.queryOne<{ total: string }>(
+      'SELECT COUNT(*) as total FROM audit_log WHERE timestamp >= $1 AND timestamp <= $2',
+      [dateFrom, dateTo]
     );
-    return row?.total || 0;
+    return parseInt(row?.total || '0', 10);
   }
 
   // ARCHIVAL OPERATIONS
@@ -255,11 +243,11 @@ export class SQLiteAuditRepository implements AuditRepository {
    * Find entries older than specified date (for archival)
    */
   async findOlderThan(date: Date, limit?: number): Promise<AuditLogEntry[]> {
-    let query = 'SELECT * FROM audit_log WHERE timestamp < ? ORDER BY timestamp ASC';
-    const params: any[] = [date.toISOString()];
+    let query = 'SELECT * FROM audit_log WHERE timestamp < $1 ORDER BY timestamp ASC';
+    const params: unknown[] = [date];
 
     if (limit) {
-      query += ' LIMIT ?';
+      query += ' LIMIT $2';
       params.push(limit);
     }
 
@@ -273,12 +261,12 @@ export class SQLiteAuditRepository implements AuditRepository {
   async deleteArchived(entryIds: string[]): Promise<number> {
     if (entryIds.length === 0) return 0;
 
-    const placeholders = entryIds.map(() => '?').join(',');
+    const placeholders = entryIds.map((_, i) => `$${i + 1}`).join(',');
     const result = await this.context.execute(
       `DELETE FROM audit_log WHERE id IN (${placeholders})`,
       entryIds
     );
-    return result.changes;
+    return result.rowCount ?? 0;
   }
 
   /**
@@ -289,42 +277,46 @@ export class SQLiteAuditRepository implements AuditRepository {
     oldestEntry: Date | null;
     newestEntry: Date | null;
   }> {
-    const countRow = await this.context.queryOne<{ total: number }>(
+    const countRow = await this.context.queryOne<{ total: string }>(
       'SELECT COUNT(*) as total FROM audit_log'
     );
 
-    const oldestRow = await this.context.queryOne<{ oldest: string }>(
+    const oldestRow = await this.context.queryOne<{ oldest: Date | string | null }>(
       'SELECT MIN(timestamp) as oldest FROM audit_log'
     );
 
-    const newestRow = await this.context.queryOne<{ newest: string }>(
+    const newestRow = await this.context.queryOne<{ newest: Date | string | null }>(
       'SELECT MAX(timestamp) as newest FROM audit_log'
     );
 
     return {
-      count: countRow?.total || 0,
-      oldestEntry: oldestRow?.oldest ? new Date(oldestRow.oldest) : null,
-      newestEntry: newestRow?.newest ? new Date(newestRow.newest) : null,
+      count: parseInt(countRow?.total || '0', 10),
+      oldestEntry: oldestRow?.oldest
+        ? (oldestRow.oldest instanceof Date ? oldestRow.oldest : new Date(oldestRow.oldest))
+        : null,
+      newestEntry: newestRow?.newest
+        ? (newestRow.newest instanceof Date ? newestRow.newest : new Date(newestRow.newest))
+        : null,
     };
   }
 
   // PRIVATE HELPERS
 
   /**
-   * Convert database row to AuditLogEntry domain object
+   * Convert database row to domain object
    */
   private rowToEntry(row: AuditLogRow): AuditLogEntry {
     return {
       id: row.id,
-      userId: row.userId,
+      userId: row.user_id,
       username: row.username,
       action: row.action,
-      entityType: row.entityType,
-      entityId: row.entityId || undefined,
+      entityType: row.entity_type,
+      entityId: row.entity_id || undefined,
       details: row.details,
-      timestamp: new Date(row.timestamp),
-      ipAddress: row.ipAddress || undefined,
-      userAgent: row.userAgent || undefined,
+      timestamp: row.timestamp instanceof Date ? row.timestamp : new Date(row.timestamp),
+      ipAddress: row.ip_address || undefined,
+      userAgent: row.user_agent || undefined,
     };
   }
 }

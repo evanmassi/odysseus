@@ -14,7 +14,7 @@
 |-------|-------------|--------|
 | 1 | Project Setup (branch, Docker, env file) | ✅ Complete |
 | 2 | Database Context (PostgresContext.ts) | ✅ Complete |
-| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (4/9) |
+| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (5/9) |
 | 4 | Full-Text Search | ⬜ Not started |
 | 5 | Server Configuration | ⬜ Not started |
 | 6 | Client Configuration | ⬜ Not started |
@@ -31,7 +31,7 @@
 | 2 | AuditArchiveRepository | 6 | ✅ Complete | Inline mapper, ServiceContainer updated |
 | 3 | SessionRepository | 18 | ✅ Complete | Mapper updated, datetime→Date, julianday→EXTRACT |
 | 4 | RefreshTokenRepository | 20 | ✅ Complete | Mapper updated, julianday→EXTRACT for lifespan |
-| 5 | AuditRepository | ~25 | ⬜ Pending | |
+| 5 | AuditRepository | 14 | ✅ Complete | Inline mapper, transaction for bulk insert |
 | 6 | UserRepository | ~35 | ⬜ Pending | |
 | 7 | ResearcherRepository | ~40 | ⬜ Pending | |
 | 8 | ConfigurationRepository | ~50 | ⬜ Pending | |
@@ -49,6 +49,7 @@
 - `server/src/infrastructure/database/mappers/UserSessionMapper.ts` - Updated for snake_case, native boolean
 - `server/src/infrastructure/repositories/RefreshTokenRepository.ts` - Converted (was SQLiteRefreshTokenRepository)
 - `server/src/infrastructure/database/mappers/RefreshTokenMapper.ts` - Updated for snake_case, native boolean
+- `server/src/infrastructure/repositories/AuditRepository.ts` - Converted (was SQLiteAuditRepository)
 
 ### Lessons Learned (From Conversions)
 

@@ -7,7 +7,7 @@ import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/reposi
 import { SQLiteConfigurationRepository } from '@infrastructure/repositories/SQLiteConfigurationRepository';
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
 import { SessionRepository as SessionRepositoryImpl } from '@infrastructure/repositories/SessionRepository';
-import { SQLiteAuditRepository } from '@infrastructure/repositories/SQLiteAuditRepository';
+import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
 
 // Repository interfaces
 import { TubeRepository } from '@domain/repositories/TubeRepository';
@@ -130,7 +130,7 @@ export class RepositoryFactory {
    */
   getAuditRepository(): AuditRepository {
     if (!this.auditRepository) {
-      this.auditRepository = new SQLiteAuditRepository(this.sqliteContext);
+      this.auditRepository = new AuditRepositoryImpl(this.postgresContext);
     }
     return this.auditRepository;
   }
