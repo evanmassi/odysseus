@@ -8,21 +8,19 @@
 /**
  * Check if an error is a database constraint violation
  *
- * SQLite constraint error codes:
- * - SQLITE_CONSTRAINT (19): General constraint violation
- * - SQLITE_CONSTRAINT_UNIQUE: UNIQUE constraint failed
- * - SQLITE_CONSTRAINT_PRIMARYKEY: PRIMARY KEY constraint failed
- *
- * better-sqlite3 throws errors with:
- * - error.code: 'SQLITE_CONSTRAINT_UNIQUE' or similar
- * - error.message: Contains "UNIQUE constraint failed"
+ * PostgreSQL integrity constraint violation codes (Class 23):
+ * - 23505: unique_violation
+ * - 23503: foreign_key_violation
+ * - 23502: not_null_violation
+ * - 23514: check_violation
+ * - 23000: integrity_constraint_violation (generic)
  */
 export function isDatabaseConstraintError(error: any): boolean {
   if (!error) return false;
 
-  // Check error code
+  // Check error code (Class 23 = Integrity Constraint Violation)
   if (error.code && typeof error.code === 'string') {
-    if (error.code.includes('SQLITE_CONSTRAINT')) {
+    if (error.code.startsWith('23')) {
       return true;
     }
   }
@@ -32,14 +30,28 @@ export function isDatabaseConstraintError(error: any): boolean {
     const message = error.message.toLowerCase();
     if (
       message.includes('unique constraint') ||
-      message.includes('constraint failed') ||
-      message.includes('duplicate')
+      message.includes('violates') ||
+      message.includes('duplicate key')
     ) {
       return true;
     }
   }
 
   return false;
+}
+
+/**
+ * Check if error is specifically a unique constraint violation
+ */
+export function isUniqueConstraintError(error: any): boolean {
+  return error?.code === '23505';
+}
+
+/**
+ * Check if error is specifically a foreign key violation
+ */
+export function isForeignKeyError(error: any): boolean {
+  return error?.code === '23503';
 }
 
 /**

@@ -57,6 +57,7 @@
 - `server/src/infrastructure/repositories/ConfigurationRepository.ts` - Converted (was SQLiteConfigurationRepository)
 - `server/src/infrastructure/repositories/TubeRepository.ts` - Converted (was SQLiteTubeRepository)
 - `server/src/infrastructure/database/mappers/TubeMapper.ts` - Updated for snake_case, native boolean/Date, removed SqliteDateMapper
+- `server/src/infrastructure/database/DatabaseErrors.ts` - Updated for PostgreSQL error codes (Class 23)
 
 ### Lessons Learned (From Conversions)
 
@@ -3151,10 +3152,11 @@ Only move to the next repository after the current one is fully tested.
 - [ ] Implement hybrid search in `TubeRepository.ts` (see Section 6.4)
 - [ ] Test all search patterns from Section 6.6 checklist
 
-### Phase 7: Error Handling
-- [ ] Update `DatabaseErrors.ts` with PostgreSQL error codes
-- [ ] Test constraint violation detection
-- [ ] Test unique constraint errors
+### Phase 7: Error Handling ✅
+- [x] Update `DatabaseErrors.ts` with PostgreSQL error codes (Class 23)
+- [x] Added `isUniqueConstraintError()` for code 23505
+- [x] Added `isForeignKeyError()` for code 23503
+- [ ] Test constraint violation detection (runtime testing)
 
 ### Phase 8: Server Configuration
 - [ ] Update `server/src/index.ts` database initialization
