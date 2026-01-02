@@ -3,17 +3,17 @@ import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { SQLiteTubeRepository } from '@infrastructure/repositories/SQLiteTubeRepository';
 import { SQLiteUserRepository } from '@infrastructure/repositories/SQLiteUserRepository';
 import { SQLiteResearcherRepository } from '@infrastructure/repositories/SQLiteResearcherRepository';
-import { PersonRepository } from '@infrastructure/repositories/PersonRepository';
+import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
 import { SQLiteConfigurationRepository } from '@infrastructure/repositories/SQLiteConfigurationRepository';
-import { SQLiteRefreshTokenRepository } from '@infrastructure/repositories/SQLiteRefreshTokenRepository';
-import { SessionRepository } from '@infrastructure/repositories/SessionRepository';
+import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
+import { SessionRepository as SessionRepositoryImpl } from '@infrastructure/repositories/SessionRepository';
 import { SQLiteAuditRepository } from '@infrastructure/repositories/SQLiteAuditRepository';
 
 // Repository interfaces
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
-import { PersonRepository as IPersonRepository } from '@domain/repositories/PersonRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
@@ -32,7 +32,7 @@ export class RepositoryFactory {
   private tubeRepository?: TubeRepository;
   private userRepository?: UserRepository;
   private researcherRepository?: ResearcherRepository;
-  private personRepository?: IPersonRepository;
+  private personRepository?: PersonRepository;
   private configurationRepository?: ConfigurationRepository;
   private refreshTokenRepository?: RefreshTokenRepository;
   private userSessionRepository?: UserSessionRepository;
@@ -86,11 +86,11 @@ export class RepositoryFactory {
   }
 
   /**
-   * Get person repository instance (PostgreSQL)
+   * Get person repository instance
    */
-  getPersonRepository(): IPersonRepository {
+  getPersonRepository(): PersonRepository {
     if (!this.personRepository) {
-      this.personRepository = new PersonRepository(this.postgresContext);
+      this.personRepository = new PersonRepositoryImpl(this.postgresContext);
     }
     return this.personRepository;
   }
@@ -110,17 +110,17 @@ export class RepositoryFactory {
    */
   getRefreshTokenRepository(): RefreshTokenRepository {
     if (!this.refreshTokenRepository) {
-      this.refreshTokenRepository = new SQLiteRefreshTokenRepository(this.sqliteContext);
+      this.refreshTokenRepository = new RefreshTokenRepositoryImpl(this.postgresContext);
     }
     return this.refreshTokenRepository;
   }
 
   /**
-   * Get user session repository instance (PostgreSQL)
+   * Get user session repository instance
    */
   getUserSessionRepository(): UserSessionRepository {
     if (!this.userSessionRepository) {
-      this.userSessionRepository = new SessionRepository(this.postgresContext);
+      this.userSessionRepository = new SessionRepositoryImpl(this.postgresContext);
     }
     return this.userSessionRepository;
   }

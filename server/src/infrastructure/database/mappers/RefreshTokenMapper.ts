@@ -1,60 +1,60 @@
 import { RefreshToken } from '@domain/entities/RefreshToken';
-import { SqliteDateMapper } from '@infrastructure/database/SqliteDateMapper';
 
 /**
  * Database row structure for refresh_tokens table
  */
 export interface RefreshTokenRow {
   id: string;
-  userId: string;
+  user_id: string;
   token: string;
-  expiresAt: string;
-  createdAt: string;
-  lastUsedAt: string | null;
-  isRevoked: number; // SQLite uses 0/1 for boolean
-  userAgent: string | null;
-  ipAddress: string | null;
+  expires_at: Date | string;
+  created_at: Date | string;
+  last_used_at: Date | string | null;
+  is_revoked: boolean;
+  user_agent: string | null;
+  ip_address: string | null;
 }
 
 /**
- * RefreshTokenMapper - Clean conversion between Domain Entity and Database Row
- * 
- * Handles all mapping logic without business rules.
+ * RefreshTokenMapper - Conversion between domain entity and database row
+ *
  * Pure transformation functions with proper date handling.
  */
 export class RefreshTokenMapper {
-  
+
   /**
-   * Convert Domain Entity to Database Row
+   * Convert domain entity to database row
    */
   static toRow(refreshToken: RefreshToken): RefreshTokenRow {
     return {
       id: refreshToken.id,
-      userId: refreshToken.userId,
+      user_id: refreshToken.userId,
       token: refreshToken.token,
-      expiresAt: SqliteDateMapper.toDbDateTime(refreshToken.expiresAt),
-      createdAt: SqliteDateMapper.toDbDateTime(refreshToken.createdAt),
-      lastUsedAt: refreshToken.lastUsedAt ? SqliteDateMapper.toDbDateTime(refreshToken.lastUsedAt) : null,
-      isRevoked: refreshToken.isRevoked ? 1 : 0,
-      userAgent: refreshToken.userAgent || null,
-      ipAddress: refreshToken.ipAddress || null
+      expires_at: refreshToken.expiresAt,
+      created_at: refreshToken.createdAt,
+      last_used_at: refreshToken.lastUsedAt || null,
+      is_revoked: refreshToken.isRevoked,
+      user_agent: refreshToken.userAgent || null,
+      ip_address: refreshToken.ipAddress || null
     };
   }
 
   /**
-   * Convert Database Row to Domain Entity
+   * Convert database row to domain entity
    */
   static fromRow(row: RefreshTokenRow): RefreshToken {
     return RefreshToken.fromData({
       id: row.id,
-      userId: row.userId,
+      userId: row.user_id,
       token: row.token,
-      expiresAt: SqliteDateMapper.fromDbDateTime(row.expiresAt)!,
-      createdAt: SqliteDateMapper.fromDbDateTime(row.createdAt)!,
-      lastUsedAt: row.lastUsedAt ? SqliteDateMapper.fromDbDateTime(row.lastUsedAt) : undefined,
-      isRevoked: row.isRevoked === 1,
-      userAgent: row.userAgent || undefined,
-      ipAddress: row.ipAddress || undefined
+      expiresAt: row.expires_at instanceof Date ? row.expires_at : new Date(row.expires_at),
+      createdAt: row.created_at instanceof Date ? row.created_at : new Date(row.created_at),
+      lastUsedAt: row.last_used_at
+        ? (row.last_used_at instanceof Date ? row.last_used_at : new Date(row.last_used_at))
+        : undefined,
+      isRevoked: row.is_revoked,
+      userAgent: row.user_agent || undefined,
+      ipAddress: row.ip_address || undefined
     });
   }
 
@@ -78,31 +78,31 @@ export class RefreshTokenMapper {
   static toPartialRow(refreshToken: RefreshToken, fields: (keyof RefreshTokenRow)[]): Partial<RefreshTokenRow> {
     const fullRow = this.toRow(refreshToken);
     const partialRow: Partial<RefreshTokenRow> = {};
-    
+
     fields.forEach(field => {
-      (partialRow as any)[field] = fullRow[field];
+      (partialRow as Record<string, unknown>)[field] = fullRow[field];
     });
-    
+
     return partialRow;
   }
 
   /**
    * Create row for token usage update
    */
-  static toUsageUpdateRow(refreshToken: RefreshToken): { id: string; lastUsedAt: string | null } {
+  static toUsageUpdateRow(refreshToken: RefreshToken): { id: string; last_used_at: Date | null } {
     return {
       id: refreshToken.id,
-      lastUsedAt: refreshToken.lastUsedAt ? SqliteDateMapper.toDbDateTime(refreshToken.lastUsedAt) : null
+      last_used_at: refreshToken.lastUsedAt || null
     };
   }
 
   /**
    * Create row for revocation update
    */
-  static toRevocationUpdateRow(refreshToken: RefreshToken): Pick<RefreshTokenRow, 'id' | 'isRevoked'> {
+  static toRevocationUpdateRow(refreshToken: RefreshToken): { id: string; is_revoked: boolean } {
     return {
       id: refreshToken.id,
-      isRevoked: refreshToken.isRevoked ? 1 : 0
+      is_revoked: refreshToken.isRevoked
     };
   }
 }
