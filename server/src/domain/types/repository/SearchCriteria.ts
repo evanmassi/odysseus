@@ -92,11 +92,8 @@ export interface UserSearchCriteria {
   // Date criteria
   createdAfter?: Date;
   createdBefore?: Date;
-  lastActivityAfter?: Date;
-  lastActivityBefore?: Date;
 
   // Status criteria
-  isActive?: boolean;
   isLocked?: boolean;
 
   // Pagination
@@ -104,6 +101,6 @@ export interface UserSearchCriteria {
   offset?: number;
 
   // Sorting
-  sortBy?: 'username' | 'createdAt' | 'lastActivity';
+  sortBy?: 'username' | 'createdAt' | 'status';
   sortOrder?: 'asc' | 'desc';
 }

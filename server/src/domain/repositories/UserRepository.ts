@@ -1,6 +1,6 @@
 import { User } from '@domain/entities/User';
 import type { UserSearchCriteria } from '@domain/types/repository/SearchCriteria';
-import type { UserActivitySummary, UserRepositoryStats } from '@domain/types/repository/Stats';
+import type { UserRepositoryStats } from '@domain/types/repository/Stats';
 
 /**
  * User Repository Interface
@@ -138,11 +138,6 @@ export interface UserRepository {
    */
   findByCreationDateRange(startDate: Date, endDate: Date): Promise<User[]>;
   
-  /**
-   * Find users by activity date range
-   */
-  findByActivityDateRange(startDate: Date, endDate: Date): Promise<User[]>;
-  
   // SECURITY OPERATIONS
 
   /**
@@ -183,27 +178,12 @@ export interface UserRepository {
   count(): Promise<number>;
   
   /**
-   * Get active user count (users with recent activity)
-   */
-  countActive(maxInactiveMinutes: number): Promise<number>;
-  
-  /**
-   * Find inactive users (haven't logged in for specified period)
-   */
-  findInactive(maxInactiveMinutes: number): Promise<User[]>;
-  
-  /**
    * Search users by criteria
    */
   search(criteria: UserSearchCriteria): Promise<User[]>;
   
-  // AUDIT AND REPORTING
+  // REPORTING
 
-  /**
-   * Get user activity summary
-   */
-  getUserActivitySummary(userId: string): Promise<UserActivitySummary>;
-  
   /**
    * Get system user statistics
    */

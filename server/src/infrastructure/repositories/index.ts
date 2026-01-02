@@ -1,7 +1,7 @@
 import { SQLiteContext } from '@infrastructure/database/SQLiteContext';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { SQLiteTubeRepository } from '@infrastructure/repositories/SQLiteTubeRepository';
-import { SQLiteUserRepository } from '@infrastructure/repositories/SQLiteUserRepository';
+import { UserRepository as UserRepositoryImpl } from '@infrastructure/repositories/UserRepository';
 import { SQLiteResearcherRepository } from '@infrastructure/repositories/SQLiteResearcherRepository';
 import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
 import { SQLiteConfigurationRepository } from '@infrastructure/repositories/SQLiteConfigurationRepository';
@@ -69,7 +69,7 @@ export class RepositoryFactory {
    */
   getUserRepository(): UserRepository {
     if (!this.userRepository) {
-      this.userRepository = new SQLiteUserRepository(this.sqliteContext);
+      this.userRepository = new UserRepositoryImpl(this.postgresContext);
     }
     return this.userRepository;
   }

@@ -14,7 +14,7 @@
 |-------|-------------|--------|
 | 1 | Project Setup (branch, Docker, env file) | ✅ Complete |
 | 2 | Database Context (PostgresContext.ts) | ✅ Complete |
-| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (5/9) |
+| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (6/9) |
 | 4 | Full-Text Search | ⬜ Not started |
 | 5 | Server Configuration | ⬜ Not started |
 | 6 | Client Configuration | ⬜ Not started |
@@ -32,7 +32,7 @@
 | 3 | SessionRepository | 18 | ✅ Complete | Mapper updated, datetime→Date, julianday→EXTRACT |
 | 4 | RefreshTokenRepository | 20 | ✅ Complete | Mapper updated, julianday→EXTRACT for lifespan |
 | 5 | AuditRepository | 14 | ✅ Complete | Inline mapper, transaction for bulk insert |
-| 6 | UserRepository | ~35 | ⬜ Pending | |
+| 6 | UserRepository | 38 | ✅ Complete | Mapper updated, ILIKE for search, activity via sessions |
 | 7 | ResearcherRepository | ~40 | ⬜ Pending | |
 | 8 | ConfigurationRepository | ~50 | ⬜ Pending | |
 | 9 | TubeRepository | ~60 | ⬜ Pending | Full-text search |
@@ -50,6 +50,8 @@
 - `server/src/infrastructure/repositories/RefreshTokenRepository.ts` - Converted (was SQLiteRefreshTokenRepository)
 - `server/src/infrastructure/database/mappers/RefreshTokenMapper.ts` - Updated for snake_case, native boolean
 - `server/src/infrastructure/repositories/AuditRepository.ts` - Converted (was SQLiteAuditRepository)
+- `server/src/infrastructure/repositories/UserRepository.ts` - Converted (was SQLiteUserRepository)
+- `server/src/infrastructure/database/mappers/UserMapper.ts` - Updated for snake_case, native boolean
 
 ### Lessons Learned (From Conversions)
 
@@ -69,6 +71,7 @@
 | SQLite isActive = 1/0 | PostgreSQL uses native BOOLEAN (TRUE/FALSE) |
 | Batch IN clause with ? placeholders | Generate `$1, $2, $3` with `sessionIds.map((_, i) => \`$\${i + 1}\`).join(',')` |
 | **Comments mentioning "PostgreSQL"** | **Don't** - per AGENTS.md, code shows the database; comments explain "why" not "what" |
+| SQLite `LIKE` for case-insensitive | PostgreSQL uses `ILIKE` for case-insensitive pattern matching |
 
 ---
 
