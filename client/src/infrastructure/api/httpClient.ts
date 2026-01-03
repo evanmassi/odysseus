@@ -142,12 +142,28 @@ export class HttpClient {
       return ResponseTransformers.AdminUser(data);
     } else if (url.includes('/admin/metrics')) {
       return ResponseTransformers.SystemMetrics(data);
+    } else if (url.includes('/admin/security-config')) {
+      // SecurityConfig has no date fields, use explicit mapping for consistency
+      return transformApiResponse(data, 'SecurityConfigResponse');
+    } else if (url.includes('/admin/audit/statistics')) {
+      // Statistics response has nested recentActivity array with timestamps
+      return transformApiResponse(data, 'AuditStatistics');
+    } else if (url.includes('/admin/audit/retention')) {
+      // Retention endpoints - metrics may have nextArchivalDate
+      return transformApiResponse(data, 'AuditRetention');
     } else if (url.includes('/admin/audit')) {
+      // General audit log entries
       if (Array.isArray(data)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
         return data.map((entry: any) => ResponseTransformers.AuditLogEntry(entry));
       }
       return ResponseTransformers.AuditLogEntry(data);
+    } else if (url.includes('/session-info')) {
+      // Session info has no date fields in data
+      return transformApiResponse(data, 'SessionInfo');
+    } else if (url.includes('/users/lookup') || url.includes('/users/list')) {
+      // User lookup/list responses have no date fields
+      return transformApiResponse(data, 'UserLookup');
     } else {
       return transformApiResponse(data);
     }

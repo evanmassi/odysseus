@@ -54,6 +54,14 @@ const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   AuditLogEntry: new Set(['timestamp']),
   SocketEventPayload: new Set(['timestamp', 'updatedAt']), // Socket.IO configuration_updated events
   ConfigurationUpdateEvent: new Set(['timestamp', 'updatedAt']), // Socket.IO configuration events
+  // Admin endpoint responses
+  SecurityConfigResponse: new Set([]), // Security config has no date fields
+  AuditStatistics: new Set(['timestamp']), // Nested recentActivity items have timestamps
+  AuditRetention: new Set(['nextArchivalDate']), // Retention metrics may have next archival date
+  // Public endpoint responses
+  SessionInfo: new Set([]), // Session info has no date fields in data
+  UserLookup: new Set([]), // User lookup/list has no date fields
+  Heartbeat: new Set([]), // Heartbeat response has no date fields
 };
 
 // Type-safe date field detection with exclusion patterns to prevent false positives

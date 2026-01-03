@@ -37,18 +37,15 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
               <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
             )}
           </div>
-          
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Odysseus
-          </h1>
-          
+
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Odysseus</h1>
+
           <p className="text-gray-600">
-            {state === 'error' 
+            {state === 'error'
               ? 'Initialization Failed'
               : state === 'retrying'
-              ? 'Retrying Connection...'
-              : 'Starting Application...'
-            }
+                ? 'Retrying Connection...'
+                : 'Starting Application...'}
           </p>
         </div>
 
@@ -57,7 +54,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
           <div className="mb-6">
             {/* Progress Bar */}
             <div className="bg-gray-200 rounded-full h-3 mb-4 overflow-hidden">
-              <div 
+              <div
                 className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${progress}%` }}
               />
@@ -81,7 +78,8 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
-                    {LOADING_MESSAGES[currentStep as keyof typeof LOADING_MESSAGES] || 'Processing...'}
+                    {LOADING_MESSAGES[currentStep as keyof typeof LOADING_MESSAGES] ||
+                      'Processing...'}
                   </p>
                 </div>
               </div>
@@ -94,12 +92,16 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
           <div className="mb-6">
             <h3 className="text-sm font-medium text-gray-700 mb-3">Completed:</h3>
             <div className="space-y-2">
-              {completedSteps.slice(-3).map((step) => ( // Show last 3 completed steps
-                <div key={step} className="flex items-center space-x-2 text-sm text-green-700">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span className="capitalize">{step} loaded successfully</span>
-                </div>
-              ))}
+              {completedSteps.slice(-3).map(
+                (
+                  step // Show last 3 completed steps
+                ) => (
+                  <div key={step} className="flex items-center space-x-2 text-sm text-green-700">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span className="capitalize">{step} loaded successfully</span>
+                  </div>
+                )
+              )}
               {completedSteps.length > 3 && (
                 <div className="text-xs text-gray-500 pl-6">
                   ... and {completedSteps.length - 3} more
@@ -160,10 +162,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
           )}
 
           {onCancel && (
-            <button
-              onClick={onCancel}
-              className="btn-cancel"
-            >
+            <button onClick={onCancel} className="btn-cancel">
               Cancel
             </button>
           )}
@@ -171,27 +170,20 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
 
         {/* Loading Timeout Warning */}
         {state === 'initializing' && progress === 0 && (
-          <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <Clock className="w-4 h-4 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="text-sm text-yellow-800">
-                <p className="font-medium">Taking longer than expected?</p>
-                <p className="text-yellow-700 mt-1">
-                  Check your internet connection. The app will automatically retry if needed.
-                </p>
-              </div>
+          <div className="mt-6 px-3 py-2 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm">
+            <div className="flex items-start gap-2">
+              <Clock className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+              <p className="text-sm text-amber-700">
+                Taking longer than expected? Check your internet connection.
+              </p>
             </div>
           </div>
         )}
 
         {/* Footer */}
         <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            Liquid Nitrogen Tube Inventory System
-          </p>
-          <p className="text-xs text-gray-400 mt-1">
-            Professional Laboratory Management
-          </p>
+          <p className="text-xs text-gray-500">Liquid Nitrogen Tube Inventory System</p>
+          <p className="text-xs text-gray-400 mt-1">Professional Laboratory Management</p>
         </div>
       </div>
     </div>

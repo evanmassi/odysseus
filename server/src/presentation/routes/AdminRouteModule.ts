@@ -12,8 +12,6 @@ import { AuthController } from '@presentation/controllers/AuthController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
-import { createRateLimitMiddleware } from '@middleware/RateLimiting';
-import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { validateBody, validateParams } from '@middleware/Validation';
 import {
   updateSecurityConfigSchema,
@@ -22,18 +20,12 @@ import {
 } from '@odysseus/shared-schemas';
 
 export class AdminRouteModule implements RouteModule {
-  private readonly rateLimitMiddleware: RequestHandler;
-
   constructor(
     private readonly authController: AuthController,
     private readonly researcherController: ResearcherController,
     private readonly auditController: AuditController,
-    private readonly authMiddleware: AuthMiddleware,
-    configurationRepository: ConfigurationRepository
-  ) {
-    // Create rate limit middleware with injected repository
-    this.rateLimitMiddleware = createRateLimitMiddleware(configurationRepository);
-  }
+    private readonly authMiddleware: AuthMiddleware
+  ) {}
 
   getBasePath(): string {
     return '/api/admin';
@@ -42,8 +34,7 @@ export class AdminRouteModule implements RouteModule {
   getMiddleware(): RequestHandler[] {
     return [
       this.authMiddleware.authenticate,
-      this.authMiddleware.requireAdmin, // Admin-only middleware
-      this.rateLimitMiddleware
+      this.authMiddleware.requireAdmin // Admin-only middleware
     ];
   }
 

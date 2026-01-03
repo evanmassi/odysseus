@@ -508,7 +508,7 @@ export default function BatchTubeEditorModal({
         dataAttribute="data-batch-edit-modal"
       >
         {conflicts.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 rounded-lg mb-3">
+          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm mb-3">
             <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
             <span className="text-sm text-amber-700">
               {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
@@ -519,15 +519,15 @@ export default function BatchTubeEditorModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Position display - matches other modals */}
-          <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg">
+          <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
             <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            <div className="flex items-center gap-2 text-sm font-medium text-odysseus-dark">
+            <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
               <span className="font-semibold">{tankName}</span>
-              <span className="text-[10px] text-slate-300">•</span>
+              <span className="text-slate-300">•</span>
               <span>{rackName}</span>
-              <span className="text-[10px] text-slate-300">•</span>
+              <span className="text-slate-300">•</span>
               <span>{boxName}</span>
-              <span className="text-[10px] text-slate-300">•</span>
+              <span className="text-slate-300">•</span>
               <span className="font-semibold">Positions {positionRanges}</span>
             </div>
           </div>

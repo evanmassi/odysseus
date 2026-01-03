@@ -673,15 +673,15 @@ function CreateModeContent({
           />
         )}
         {parsedPositions.length > 1 && batchLocationDisplay && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg">
+          <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
             <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            <div className="flex items-center gap-2 text-sm font-medium text-odysseus-dark">
+            <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
               <span className="font-semibold">{batchLocationDisplay.tankName}</span>
-              <span className="text-odysseus-muted">•</span>
+              <span className="text-slate-300">•</span>
               <span>{batchLocationDisplay.rackName}</span>
-              <span className="text-odysseus-muted">•</span>
+              <span className="text-slate-300">•</span>
               <span>{batchLocationDisplay.boxName}</span>
-              <span className="text-odysseus-muted">•</span>
+              <span className="text-slate-300">•</span>
               <span className="font-semibold">Positions {batchLocationDisplay.positionRanges}</span>
             </div>
           </div>
@@ -689,32 +689,26 @@ function CreateModeContent({
 
         {/* Mixed Selection Warning */}
         {positionAnalysis.isMixed && (
-          <div className="p-3 bg-amber-50 rounded-lg">
-            <div className="flex items-start space-x-3">
-              <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-amber-700 mb-1">
-                  Mixed Selection Detected
-                </h3>
-                <p className="text-xs text-amber-600 mb-3">
-                  You&apos;ve selected {positionAnalysis.emptyPositions.length} empty and{' '}
-                  {positionAnalysis.occupiedPositions.length} occupied position
-                  {positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}. By default, only empty
-                  positions will be filled.
-                </p>
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={allowOverwrite}
-                    onChange={e => setAllowOverwrite(e.target.checked)}
-                    className="w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-200"
-                  />
-                  <span className="text-xs font-medium text-amber-700">
-                    Overwrite occupied positions (this will replace existing tube data)
-                  </span>
-                </label>
-              </div>
+          <div className="px-3 py-2 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
+              <span className="text-sm text-amber-700">
+                {positionAnalysis.occupiedPositions.length} position
+                {positionAnalysis.occupiedPositions.length > 1 ? 's are' : ' is'} occupied.
+              </span>
             </div>
+            <label className="flex items-center gap-2 cursor-pointer ml-6">
+              <input
+                type="checkbox"
+                checked={allowOverwrite}
+                onChange={e => setAllowOverwrite(e.target.checked)}
+                className="w-4 h-4 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
+                style={{ accentColor: 'var(--color-action-default)' }}
+              />
+              <span className="text-sm text-amber-700">
+                Overwrite existing tube{positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}
+              </span>
+            </label>
           </div>
         )}
 

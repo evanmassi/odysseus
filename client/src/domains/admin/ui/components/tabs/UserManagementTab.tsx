@@ -376,10 +376,10 @@ export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTa
 
       {/* Pending Approvals Section */}
       {pendingUsers.length > 0 && (
-        <div className="bg-amber-50 rounded-lg p-3">
+        <div className="bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm p-3">
           <div className="flex items-center gap-2 mb-3">
             <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <h4 className="text-sm font-semibold text-amber-700">
+            <h4 className="text-sm font-medium text-amber-700">
               Pending Approvals ({pendingUsers.length})
             </h4>
           </div>

@@ -11,7 +11,7 @@
 
 import { useState, useMemo } from 'react';
 
-import { Share2, X, UserRoundPlus, UsersRound } from 'lucide-react';
+import { Share2, X, UserRoundPlus, UsersRound, Info } from 'lucide-react';
 
 import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
 import { useActiveUsersQuery } from '@domains/users';
@@ -231,10 +231,12 @@ export function ShareAccessModal({
         </div>
 
         {/* Info text */}
-        <p className="text-sm text-gray-600">
-          Shared users can edit these locked tubes, but only you can unlock them or revoke their
-          access.
-        </p>
+        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
+          <Info size={16} className="text-slate-400 flex-shrink-0" />
+          <p className="text-xs text-slate-600">
+            Shared users can edit tubes. Only you can unlock or revoke access.
+          </p>
+        </div>
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">

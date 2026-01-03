@@ -108,15 +108,16 @@ export function LockTubesModal({ tubeIds, onClose, onSuccess }: LockTubesModalPr
             maxLength={100}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-action-focus focus:border-action-focus"
           />
-          <p className="text-xs text-gray-500 mt-1">
-            Add an optional note so others know why these tubes are locked.
-          </p>
+          <div className="flex justify-between mt-1">
+            <p className="text-xs text-gray-500">Provides context for the lock.</p>
+            <p className="text-xs text-gray-500">{lockNote.length}/100</p>
+          </div>
         </div>
 
         {/* Info text */}
-        <div className="flex items-start gap-2 text-sm text-gray-600">
-          <Info size={16} className="flex-shrink-0 mt-0.5" />
-          <p>
+        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
+          <Info size={16} className="text-slate-400 flex-shrink-0" />
+          <p className="text-xs text-slate-600">
             Locking prevents other users from editing or moving these tubes. You can unlock or share
             access anytime.
           </p>

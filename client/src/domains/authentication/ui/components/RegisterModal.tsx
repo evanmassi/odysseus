@@ -554,13 +554,11 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             </button>
           </form>
 
-          <div className="mt-3 p-2 bg-slate-50 rounded-lg">
-            <div className="flex items-start space-x-1.5">
-              <Info size={16} className="text-slate-400 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-slate-500 leading-snug">
-                New users require admin approval before accessing the system.
-              </p>
-            </div>
+          <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
+            <Info size={16} className="text-slate-400 flex-shrink-0" />
+            <p className="text-xs text-slate-600">
+              New users require admin approval before accessing the system.
+            </p>
           </div>
 
           {onSwitchToLogin && (

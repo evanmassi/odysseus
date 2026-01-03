@@ -14,7 +14,7 @@
 import { useState, useEffect } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
-import { RefreshCw, AlertCircle, Trash2, Plus, BadgeCheck, BadgeX } from 'lucide-react';
+import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Info } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
@@ -347,14 +347,11 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
       </div>
 
       {/* Safe Deletion Notice - Footnote */}
-      <div className="p-2 bg-slate-50 rounded-lg">
-        <div className="flex items-start space-x-1.5">
-          <AlertCircle size={16} className="text-slate-400 flex-shrink-0 mt-0.5" />
-          <p className="text-xs text-slate-500 leading-snug">
-            <strong className="text-slate-600">Safe Deletion:</strong> Researchers can only be
-            deleted with zero tubes and no linked user.
-          </p>
-        </div>
+      <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
+        <Info size={16} className="text-slate-400 flex-shrink-0" />
+        <p className="text-xs text-slate-600">
+          Researchers can only be deleted with zero tubes and no linked user.
+        </p>
       </div>
 
       {/* Add Researcher Modal */}

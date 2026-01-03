@@ -9,6 +9,7 @@ import { Request, Response, NextFunction } from 'express';
 import { ResponseBuilder } from '@presentation/utilities/ResponseBuilder';
 import { ErrorMapper } from '@presentation/responses/ErrorMapper';
 import { logger } from '@utils/logger';
+import { recordSuccessfulLogin, recordFailedLogin } from '@middleware/RateLimiting';
 import type { EventBus } from '@application/contracts/EventBus';
 import { UserLoggedOutEvent } from '@domain/events/UserEvents';
 
@@ -193,6 +194,9 @@ export class AuthController {
         throw new PermissionError('Account is not approved for access');
       }
 
+      // Clear rate limit attempts on successful login
+      recordSuccessfulLogin(req);
+
       logger.info('User logged in successfully', {
         userId: result.user.id,
         username: result.user.username,
@@ -209,6 +213,8 @@ export class AuthController {
       const response = ResponseBuilder.withTiming(startTime, enhancedResult);
       res.status(200).json(response);
     } catch (error) {
+      // Record failed login attempt for rate limiting
+      await recordFailedLogin(req);
       next(error);
     }
   }

@@ -4,6 +4,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
+import path from 'path';
 import { initializeRepositories, RepositoryFactory } from '@infrastructure/repositories';
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
 import { logger } from '@utils/logger';
@@ -11,8 +12,13 @@ import { featureFlags, FEATURES } from '@utils/featureFlags';
 import { validateBody, validateParams, sanitizeStrings } from '@middleware/Validation';
 import { z } from 'zod';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from appropriate file
+// Resolve from project root (works for both tsx and compiled dist)
+const serverRoot = path.resolve(__dirname, '..');
+const envFile = process.env.NODE_ENV === 'production'
+  ? '.env.production'
+  : '.env.development';
+dotenv.config({ path: path.join(serverRoot, envFile) });
 
 class OdysseusServer {
   private app: express.Application;
@@ -139,7 +145,7 @@ class OdysseusServer {
     // Register all route modules with ConfigurationRepository for dynamic rate limiting
     registry.registerModule(new PublicRouteModule(authController, configurationRepository));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, configurationRepository));
-    registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, authMiddleware, configurationRepository));
+    registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, authMiddleware));
     const tubeLockController = this.serviceContainer.getTubeLockController();
     registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, authMiddleware, configurationRepository));
     registry.registerModule(new ConfigurationRouteModule(configurationController, authMiddleware));

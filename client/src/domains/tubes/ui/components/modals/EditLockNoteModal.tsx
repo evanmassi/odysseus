@@ -9,7 +9,7 @@
 
 import { useState, useMemo } from 'react';
 
-import { Pencil, Info, AlertTriangle, Notebook } from 'lucide-react';
+import { Pencil, AlertTriangle, Notebook } from 'lucide-react';
 
 import { useBulkUpdateTubesMutation } from '@domains/tubes/hooks';
 import { notifications } from '@shared/utils/notifications';
@@ -106,9 +106,9 @@ export function EditLockNoteModal({ tubes, onClose, onSuccess }: EditLockNoteMod
       <div className="space-y-4">
         {/* Mixed notes warning */}
         {hasMixedNotes && (
-          <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 rounded-lg px-3 py-2">
-            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
-            <p>Selected tubes have different notes. Saving will set the same note on all tubes.</p>
+          <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm px-3 py-2">
+            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5 text-amber-500" />
+            <p>Saving will overwrite existing notes.</p>
           </div>
         )}
 
@@ -133,17 +133,10 @@ export function EditLockNoteModal({ tubes, onClose, onSuccess }: EditLockNoteMod
             maxLength={100}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-action-focus focus:border-action-focus"
           />
-          <p className="text-xs text-gray-500 mt-1">{lockNote.length}/100 characters</p>
-        </div>
-
-        {/* Info text */}
-        <div className="flex items-start gap-2 text-sm text-gray-600">
-          <Info size={16} className="flex-shrink-0 mt-0.5" />
-          <p>
-            {isSingleTube
-              ? 'The lock note helps others understand why this tube is locked.'
-              : 'The lock note helps others understand why these tubes are locked.'}
-          </p>
+          <div className="flex justify-between mt-1">
+            <p className="text-xs text-gray-500">Provides context for the lock.</p>
+            <p className="text-xs text-gray-500">{lockNote.length}/100</p>
+          </div>
         </div>
 
         {/* Actions */}

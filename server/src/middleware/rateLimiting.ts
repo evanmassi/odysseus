@@ -274,10 +274,8 @@ export function createRateLimitMiddleware(
         return;
       }
 
-      // Record this attempt
-      await service.recordAttempt(identifier);
-
-      // Store identifier and service for potential success recording
+      // Store identifier and service for controller to record success/failure
+      // Middleware only checks block status - controller records attempts
       (req as any).rateLimitIdentifier = identifier;
       (req as any).rateLimitService = service;
 
@@ -291,19 +289,25 @@ export function createRateLimitMiddleware(
 }
 
 /**
- * Helper function to record successful login
+ * Record a failed login attempt
+ * Call this when authentication fails to increment the attempt counter
+ *
+ * @param req - Express request object
+ */
+export async function recordFailedLogin(req: Request): Promise<void> {
+  const identifier = (req as any).rateLimitIdentifier;
+  const service: RateLimitingService = (req as any).rateLimitService;
+
+  if (identifier && service) {
+    await service.recordAttempt(identifier);
+  }
+}
+
+/**
+ * Record a successful login
  * Call this after successful authentication to clear rate limit attempts
  *
  * @param req - Express request object
- *
- * @example
- * ```typescript
- * async login(req, res) {
- *   const user = await authenticateUser(credentials);
- *   recordSuccessfulLogin(req);
- *   res.json({ user, token });
- * }
- * ```
  */
 export function recordSuccessfulLogin(req: Request): void {
   const identifier = (req as any).rateLimitIdentifier;
