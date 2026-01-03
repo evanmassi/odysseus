@@ -3,10 +3,11 @@
  * Client-side logger with environment-aware behavior
  *
  * This file is the logging abstraction layer and is allowed to use console methods.
- * All application code must use logger.info/warn/error instead of direct console calls.
+ * All application code must use logger methods instead of direct console calls.
  *
- * Development: All log levels output to console
- * Production: Only warn/error output, with optional external service integration
+ * Log level behavior:
+ * - Development: All levels (debug, info, warn, error) output to console
+ * - Production: Only warn and error output (debug/info suppressed)
  */
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -23,8 +24,8 @@ class ClientLogger {
    * Core logging method with timestamp and level prefix
    */
   private log(level: LogLevel, message: string, context?: LogContext): void {
-    // Skip debug logs in production
-    if (!this.isDevelopment && level === 'debug') {
+    // Skip debug and info logs in production (only warn/error in prod)
+    if (!this.isDevelopment && (level === 'debug' || level === 'info')) {
       return;
     }
 

@@ -125,3 +125,31 @@ export class ResearcherReactivatedEvent extends DomainEvent {
     };
   }
 }
+
+export class ResearcherDeletedEvent extends DomainEvent {
+  constructor(
+    public readonly researcherId: string,
+    public readonly firstName: string,
+    public readonly lastName: string,
+    public readonly deletedBy: string
+  ) {
+    super(1);
+  }
+
+  eventName(): string {
+    return 'ResearcherDeleted';
+  }
+
+  getAggregateId(): string {
+    return this.researcherId;
+  }
+
+  protected getEventData(): Record<string, any> {
+    return {
+      researcherId: this.researcherId,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      deletedBy: this.deletedBy
+    };
+  }
+}

@@ -328,12 +328,6 @@ export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTa
   const handleLinkExisting = async (researcherId: string) => {
     if (!linkingUser) return;
 
-    logger.info('[DEBUG] Linking researcher to user', {
-      userId: linkingUser.id,
-      username: linkingUser.username,
-      researcherId,
-    });
-
     await adminService.linkResearcherToUser(linkingUser.id, researcherId);
     await onUserUpdate(); // Make sure to await the update
   };
@@ -343,12 +337,6 @@ export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTa
    */
   const handleCreateAndLink = async (data: CreateResearcherProfile) => {
     if (!linkingUser) return;
-
-    logger.info('[DEBUG] Creating and linking researcher to user', {
-      userId: linkingUser.id,
-      username: linkingUser.username,
-      researcherData: data,
-    });
 
     await adminService.createAndLinkResearcher(linkingUser.id, data);
     await onUserUpdate(); // Make sure to await the update

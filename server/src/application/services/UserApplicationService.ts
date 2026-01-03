@@ -19,7 +19,8 @@ import type { EventBus } from '@application/contracts/EventBus';
 import {
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
-  UserLoggedOutEvent
+  UserLoggedOutEvent,
+  UserApprovedEvent
 } from '@domain/events/UserEvents';
 
 /**
@@ -592,6 +593,15 @@ export class UserApplicationService {
     // Approve user (domain method enforces business rules)
     user.approve(admin);
     await this.userRepository.save(user);
+
+    // Publish event for real-time sync
+    if (this.eventBus) {
+      this.eventBus.publish(new UserApprovedEvent(
+        user.id,
+        user.username,
+        admin.username
+      ));
+    }
   }
 
   /**

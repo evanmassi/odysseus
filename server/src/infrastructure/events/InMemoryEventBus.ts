@@ -17,8 +17,8 @@ export class InMemoryEventBus implements EventBus {
   async publish(event: DomainEvent): Promise<void> {
     logger.debug('Publishing domain event', {
       eventName: event.eventName(),
-      eventId: event.eventId,
-      aggregateId: event.getAggregateId()
+      aggregateId: event.getAggregateId(),
+      handlerCount: this.handlers.get(event.eventName())?.length ?? 0
     });
 
     // Add to queue for sequential processing
@@ -63,13 +63,12 @@ export class InMemoryEventBus implements EventBus {
     const handlers = this.handlers.get(eventName) || [];
 
     if (handlers.length === 0) {
-      logger.debug('No handlers registered for event', { eventName });
+      logger.warn('No handlers registered for domain event', { eventName });
       return;
     }
 
     logger.debug('Processing domain event', {
       eventName,
-      eventId: event.eventId,
       handlerCount: handlers.length
     });
 

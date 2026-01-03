@@ -13,6 +13,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import type { EventBus } from '@application/contracts/EventBus';
+import { logger } from '@utils/logger';
 import type { TubeMedia } from '@odysseus/shared-schemas';
 import {
   TubeCreatedEvent,
@@ -609,11 +610,16 @@ export class TubeApplicationService {
 
     // Publish single batch event after all tubes processed
     if (locked.length > 0) {
+      logger.info('🔒 [TubeService] Publishing TubesLockedEvent', {
+        lockedCount: locked.length,
+        userId: authenticatedUser.id
+      });
       await this.eventBus.publish(new TubesLockedEvent(
         locked,
         authenticatedUser.id,
         request.lockNote
       ));
+      logger.info('🔒 [TubeService] TubesLockedEvent published');
     }
 
     return { locked, skipped };
@@ -660,10 +666,15 @@ export class TubeApplicationService {
 
     // Publish single batch event after all tubes processed
     if (unlocked.length > 0) {
+      logger.info('🔓 [TubeService] Publishing TubesUnlockedEvent', {
+        unlockedCount: unlocked.length,
+        userId: authenticatedUser.id
+      });
       await this.eventBus.publish(new TubesUnlockedEvent(
         unlocked,
         authenticatedUser.id
       ));
+      logger.info('🔓 [TubeService] TubesUnlockedEvent published');
     }
 
     return { unlocked, skipped };

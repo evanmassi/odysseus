@@ -538,6 +538,4 @@ export function initializeTubeFieldConfiguration(fieldResolver: FieldResolver): 
       });
     }
   }
-
-  logger.info('Tube field configuration initialized successfully');
 }

@@ -1,6 +1,5 @@
 /**
  * Optimistic Tube Mutations
- * Phase 3 Step 3: Advanced optimistic updates with rollback and conflict resolution
  *
  * Enhanced tube mutations that provide instant user feedback with proper
  * rollback, conflict resolution, and offline support.
@@ -18,7 +17,6 @@ import {
   initializeOptimisticUpdates,
   ConflictResolution,
 } from '@infra/optimistic/optimisticUpdates';
-import { logger } from '@shared/infrastructure/logger';
 
 import { queryKeys } from '../../../infrastructure/socket/queryBridge';
 import { TubeService } from '../services/TubeService';
@@ -32,7 +30,6 @@ export function useOptimisticCreateTubeMutation() {
 
   return optimisticService.createOptimisticMutation<TubeData, Error, CreateTubeRequest>({
     mutationFn: async (tubeData: CreateTubeRequest) => {
-      logger.info('🔄 [OptimisticTube] Creating tube', { tubeData });
       return await TubeService.createTube(tubeData);
     },
 
@@ -68,15 +65,9 @@ export function useOptimisticCreateTubeMutation() {
       rollback: 'Tube creation failed. Changes have been reverted.',
     },
 
-    onSuccess: (data, _variables, _context) => {
-      logger.info('[OptimisticTube] Tube created successfully', { tubeId: data.id });
-
+    onSuccess: () => {
       // Invalidate related queries to ensure consistency
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-    },
-
-    onError: (error, _variables, _context) => {
-      logger.error('❌ [OptimisticTube] Failed to create tube', { error });
     },
   });
 }
@@ -94,7 +85,6 @@ export function useOptimisticUpdateTubeMutation() {
     { id: string; data: UpdateTubeRequest }
   >({
     mutationFn: async ({ id, data }: { id: string; data: UpdateTubeRequest }) => {
-      logger.info('🔄 [OptimisticTube] Updating tube', { id, data });
       return await TubeService.updateTube(id, data);
     },
 
@@ -129,9 +119,7 @@ export function useOptimisticUpdateTubeMutation() {
       rollback: 'Update failed. Changes have been reverted.',
     },
 
-    onSuccess: (data, variables, _context) => {
-      logger.info('[OptimisticTube] Tube updated successfully', { tubeId: variables.id });
-
+    onSuccess: (data, variables) => {
       // Update individual tube cache
       queryClient.setQueryData(queryKeys.tubes.detail(variables.id), data);
 
@@ -150,7 +138,6 @@ export function useOptimisticDeleteTubeMutation() {
 
   return optimisticService.createOptimisticMutation<void, Error, string>({
     mutationFn: async (tubeId: string) => {
-      logger.info('🔄 [OptimisticTube] Deleting tube', { tubeId });
       await TubeService.deleteTube(tubeId);
     },
 
@@ -170,9 +157,7 @@ export function useOptimisticDeleteTubeMutation() {
       rollback: 'Delete failed. Tube has been restored.',
     },
 
-    onSuccess: (data, tubeId, _context) => {
-      logger.info('[OptimisticTube] Tube deleted successfully', { tubeId });
-
+    onSuccess: (_data, tubeId) => {
       // Remove from individual cache
       queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
 
@@ -202,11 +187,6 @@ export function useOptimisticBatchTubesMutation() {
     { operation: 'update' | 'delete'; tubeIds: string[]; data?: Partial<TubeData> }
   >({
     mutationFn: async ({ operation, tubeIds, data }) => {
-      logger.info(`🔄 [OptimisticTube] Batch ${operation}`, {
-        operation,
-        tubeCount: tubeIds.length,
-      });
-
       // Client-side batch operation using parallel execution
       if (operation === 'update' && data) {
         await Promise.all(tubeIds.map(id => TubeService.updateTube(id, data as UpdateTubeRequest)));
@@ -258,9 +238,7 @@ export function useOptimisticBatchTubesMutation() {
       rollback: 'Batch operation failed. Changes have been reverted.',
     },
 
-    onSuccess: (data, _variables, _context) => {
-      logger.info('[OptimisticTube] Batch operation completed', { tubeCount: data.count });
-
+    onSuccess: () => {
       // Invalidate all location queries and statistics
       void queryClient.invalidateQueries({
         queryKey: queryKeys.tubes.lists(),
@@ -291,8 +269,6 @@ export function useOptimisticMoveTubeMutation() {
     }
   >({
     mutationFn: async ({ tubeId, toLocation }) => {
-      logger.info('🔄 [OptimisticTube] Moving tube', { tubeId, toLocation });
-
       return await TubeService.updateTube(tubeId, {
         location: toLocation,
       });
@@ -329,9 +305,7 @@ export function useOptimisticMoveTubeMutation() {
       rollback: 'Move failed. Tube position has been restored.',
     },
 
-    onSuccess: (data, variables, _context) => {
-      logger.info('[OptimisticTube] Tube moved successfully', { tubeId: variables.tubeId });
-
+    onSuccess: (data, variables) => {
       // Update individual tube cache
       queryClient.setQueryData(queryKeys.tubes.detail(variables.tubeId), data);
     },

@@ -1,5 +1,4 @@
 import { useAuthStore } from '@domains/authentication';
-import { logger } from '@shared/infrastructure/logger';
 
 export interface LoadingRequest {
   tankId: string;
@@ -100,10 +99,6 @@ export class DataLoadingService {
 
       // Note: Data loading is now handled by React Query in components
       // This service is deprecated - React Query hooks handle the loading
-      logger.info(
-        `🔄 DATA SERVICE: Location load requested for ${request.tankId}/${request.rackId}/${request.boxId} - handled by React Query`
-      );
-
       const loadTime = performance.now() - startTime;
       // Data count no longer available from store - React Query manages the data
       const dataCount = 0;

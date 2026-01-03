@@ -37,9 +37,6 @@ export {
 // Lock access control hooks
 export { useTubeAccessControl } from './useTubeAccessControl';
 
-// Socket integration hooks
-export { useTubeSocket, useAutoSocket, useRealtimeTubes } from './useTubeSocket';
-
 // Performance-optimized hooks
 export {
   useVirtualizedTubes,

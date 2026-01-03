@@ -13,7 +13,6 @@ import { useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-
 
 import { queryKeys } from '@app/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
-import { logger } from '@shared/infrastructure/logger';
 
 import type { TubeData } from '@domains/tubes/types';
 
@@ -37,12 +36,6 @@ export const useVirtualizedTubes = (
   return useQuery({
     queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
     queryFn: async () => {
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      logger.info(
-        `🚀 [Optimized Query] Loading virtualized tubes for ${location.tankId}/${location.rackId}/${location.boxId}`
-      );
-
-      // Load tubes with standard parameters
       return await TubeService.fetchTubesByLocation(
         location.tankId,
         location.rackId,
@@ -58,8 +51,6 @@ export const useVirtualizedTubes = (
         }
       });
 
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      logger.info(`⚡ [Optimized Query] Transformed ${tubes.length} tubes into position map`);
       return positionMap;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes - longer for virtualized views
@@ -91,9 +82,6 @@ export const useEssentialTubes = (
   return useQuery<TubeData[], Error, TubeData[]>({
     queryKey: queryKeys.tubes.lists(),
     queryFn: async () => {
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      logger.info(`🚀 [Optimized Query] Loading tubes`);
-
       return await TubeService.fetchTubes();
     },
     select: (tubes: TubeData[]) => {
@@ -170,11 +158,6 @@ export const usePrefetchAdjacentLocations = () => {
           staleTime: 5 * 60 * 1000,
         });
       });
-
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      logger.info(
-        `🔮 [Prefetch] Queued prefetch for ${adjacentRacks.length} racks, ${adjacentBoxes.length} boxes`
-      );
     },
     [queryClient]
   );
@@ -220,11 +203,6 @@ export const useSmartPrefetch = () => {
           });
         });
       }
-
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      logger.info(
-        `🧠 [Smart Prefetch] Prefetched ${recentLocations.length} recent locations for ${userRole}`
-      );
     },
     [queryClient]
   );
@@ -254,11 +232,6 @@ export const useBackgroundRefresh = (
       'background',
     ],
     queryFn: async () => {
-      // eslint-disable-next-line no-console -- Info logging for operational visibility
-      logger.info(
-        `🔄 [Background Refresh] Syncing ${location.tankId}/${location.rackId}/${location.boxId}`
-      );
-
       // Invalidate existing cache to force fresh fetch
       await queryClient.invalidateQueries({
         queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
@@ -305,8 +278,6 @@ export const useQueryPerformanceMetrics = () => {
       ),
     };
 
-    // eslint-disable-next-line no-console -- Info logging for operational visibility
-    logger.info('📊 [Performance Metrics] React Query Stats', { metrics });
     return metrics;
   }, [queryClient]);
 };

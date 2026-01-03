@@ -9,6 +9,7 @@ import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';
+import { logger } from '@utils/logger';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
 import {
@@ -733,9 +734,15 @@ export class UpdateConfigurationCommandHandler {
 
     // Emit domain events AFTER save completes
     // This ensures clients refetch the correct version from database
+    logger.info('📤 [ConfigHandler] Publishing domain events', {
+      eventCount: changeEvents.length,
+      eventTypes: changeEvents.map(e => e.eventName())
+    });
     for (const event of changeEvents) {
+      logger.info('📤 [ConfigHandler] Publishing event', { eventType: event.eventName() });
       this.eventBus.publish(event);
     }
+    logger.info('📤 [ConfigHandler] All domain events published');
 
     return currentConfig;
   }

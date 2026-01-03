@@ -10,7 +10,8 @@
  * - Non-blocking: Socket failures don't break main operations
  */
 
-import type { EventBus } from '@application/contracts/EventBus';
+import type { EventBus, EventHandler } from '@application/contracts/EventBus';
+import type { DomainEvent } from '@domain/events/DomainEvent';
 import type { Server as SocketIOServer } from 'socket.io';
 import { logger } from '@utils/logger';
 import {
@@ -23,8 +24,17 @@ import {
   BoxAddedEvent,
   BoxDeletedEvent,
   BoxUpdatedEvent,
-  LabNameChangedEvent
+  LabNameChangedEvent,
+  RackLabelUpdatedEvent,
+  BoxLabelUpdatedEvent,
+  RackAssignedEvent,
+  RackUnassignedEvent,
+  RackReassignedEvent,
+  BoxAssignedEvent,
+  BoxUnassignedEvent,
+  BoxReassignedEvent
 } from '@domain/events/ConfigurationEvents';
+import { UserApprovedEvent, UserDeletedEvent } from '@domain/events/UserEvents';
 import {
   TubeCreatedEvent,
   TubeUpdatedEvent,
@@ -42,7 +52,8 @@ import {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
-  ResearcherReactivatedEvent
+  ResearcherReactivatedEvent,
+  ResearcherDeletedEvent
 } from '@domain/events/ResearcherEvents';
 
 /**
@@ -68,36 +79,54 @@ export class SocketEventHandler {
    * Subscribe to all relevant domain events for real-time updates
    */
   private subscribeToEvents(): void {
-    // Configuration events
-    this.eventBus.subscribe('TankAdded', this.handleConfigurationChange.bind(this) as any);
-    this.eventBus.subscribe('TankUpdated', this.handleConfigurationChange.bind(this) as any);
-    this.eventBus.subscribe('TankDeleted', this.handleConfigurationChange.bind(this) as any);
-    this.eventBus.subscribe('RackAdded', this.handleConfigurationChange.bind(this) as any);
-    this.eventBus.subscribe('RackUpdated', this.handleConfigurationChange.bind(this) as any);
-    this.eventBus.subscribe('RackDeleted', this.handleConfigurationChange.bind(this) as any);
-    this.eventBus.subscribe('BoxAdded', this.handleConfigurationChange.bind(this) as any);
-    this.eventBus.subscribe('BoxUpdated', this.handleConfigurationChange.bind(this) as any);
-    this.eventBus.subscribe('BoxDeleted', this.handleConfigurationChange.bind(this) as any);
-    this.eventBus.subscribe('LabNameChanged', this.handleConfigurationChange.bind(this) as any);
+    // Type-safe handler cast for polymorphic event handling
+    type Handler = EventHandler<DomainEvent>;
 
-    // Tube events
-    this.eventBus.subscribe('TubeCreated', this.handleTubeCreated.bind(this) as any);
-    this.eventBus.subscribe('TubeUpdated', this.handleTubeUpdated.bind(this) as any);
-    this.eventBus.subscribe('TubeLocationChanged', this.handleTubeUpdated.bind(this) as any);
-    this.eventBus.subscribe('TubeDeleted', this.handleTubeDeleted.bind(this) as any);
-    this.eventBus.subscribe('BulkTubesUpdated', this.handleBulkTubesUpdated.bind(this) as any);
+    // Configuration events - all routed to debounced configuration change handler
+    this.eventBus.subscribe('TankAdded', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('TankUpdated', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('TankDeleted', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('RackAdded', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('RackUpdated', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('RackDeleted', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('BoxAdded', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('BoxUpdated', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('BoxDeleted', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('LabNameChanged', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('RackLabelUpdated', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('BoxLabelUpdated', this.handleConfigurationChange.bind(this) as Handler);
 
-    // Tube lock events
-    this.eventBus.subscribe('TubesLocked', this.handleTubesLocked.bind(this) as any);
-    this.eventBus.subscribe('TubesUnlocked', this.handleTubesUnlocked.bind(this) as any);
-    this.eventBus.subscribe('TubeAccessShared', this.handleTubeAccessShared.bind(this) as any);
-    this.eventBus.subscribe('TubeAccessRevoked', this.handleTubeAccessRevoked.bind(this) as any);
+    // Assignment events - also configuration changes
+    this.eventBus.subscribe('RackAssigned', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('RackUnassigned', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('RackReassigned', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('BoxAssigned', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('BoxUnassigned', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('BoxReassigned', this.handleConfigurationChange.bind(this) as Handler);
 
-    // Researcher events
-    this.eventBus.subscribe('ResearcherCreated', this.handleResearcherCreated.bind(this) as any);
-    this.eventBus.subscribe('ResearcherUpdated', this.handleResearcherUpdated.bind(this) as any);
-    this.eventBus.subscribe('ResearcherDeactivated', this.handleResearcherUpdated.bind(this) as any);
-    this.eventBus.subscribe('ResearcherReactivated', this.handleResearcherUpdated.bind(this) as any);
+    // User events
+    this.eventBus.subscribe('UserApproved', this.handleUserApproved.bind(this) as Handler);
+    this.eventBus.subscribe('UserDeleted', this.handleUserDeleted.bind(this) as Handler);
+
+    // Tube CRUD events
+    this.eventBus.subscribe('TubeCreated', this.handleTubeCreated.bind(this) as Handler);
+    this.eventBus.subscribe('TubeUpdated', this.handleTubeUpdated.bind(this) as Handler);
+    this.eventBus.subscribe('TubeLocationChanged', this.handleTubeUpdated.bind(this) as Handler);
+    this.eventBus.subscribe('TubeDeleted', this.handleTubeDeleted.bind(this) as Handler);
+    this.eventBus.subscribe('BulkTubesUpdated', this.handleBulkTubesUpdated.bind(this) as Handler);
+
+    // Tube lock/access events
+    this.eventBus.subscribe('TubesLocked', this.handleTubesLocked.bind(this) as Handler);
+    this.eventBus.subscribe('TubesUnlocked', this.handleTubesUnlocked.bind(this) as Handler);
+    this.eventBus.subscribe('TubeAccessShared', this.handleTubeAccessShared.bind(this) as Handler);
+    this.eventBus.subscribe('TubeAccessRevoked', this.handleTubeAccessRevoked.bind(this) as Handler);
+
+    // Researcher CRUD events
+    this.eventBus.subscribe('ResearcherCreated', this.handleResearcherCreated.bind(this) as Handler);
+    this.eventBus.subscribe('ResearcherUpdated', this.handleResearcherUpdated.bind(this) as Handler);
+    this.eventBus.subscribe('ResearcherDeactivated', this.handleResearcherUpdated.bind(this) as Handler);
+    this.eventBus.subscribe('ResearcherReactivated', this.handleResearcherUpdated.bind(this) as Handler);
+    this.eventBus.subscribe('ResearcherDeleted', this.handleResearcherDeleted.bind(this) as Handler);
 
     logger.info('SocketEventHandler subscribed to domain events');
   }
@@ -120,6 +149,14 @@ export class SocketEventHandler {
       | BoxUpdatedEvent
       | BoxDeletedEvent
       | LabNameChangedEvent
+      | RackLabelUpdatedEvent
+      | BoxLabelUpdatedEvent
+      | RackAssignedEvent
+      | RackUnassignedEvent
+      | RackReassignedEvent
+      | BoxAssignedEvent
+      | BoxUnassignedEvent
+      | BoxReassignedEvent
   ): Promise<void> {
     try {
       // Collect event information
@@ -191,44 +228,149 @@ export class SocketEventHandler {
   }
 
   // TUBE EVENT HANDLERS
-  // Note: These are intentionally commented out as tube/researcher events are already
-  // handled by existing Socket.IO emissions in controllers. Only configuration events
-  // need real-time updates for cache invalidation.
-  //
-  // If you want to add Socket.IO emissions for tubes/researchers in the future,
-  // you'll need to either:
-  // 1. Pass full Tube/Researcher entities to the events (not recommended - breaks event design)
-  // 2. Fetch the entities from repositories within these handlers (adds complexity)
-  // 3. Keep the existing controller-based emissions (current approach)
+  // Emit socket events for real-time tube updates across all clients
 
   private async handleTubeCreated(event: TubeCreatedEvent): Promise<void> {
-    // Tube created events are already handled by TubeController
-    // No additional Socket emission needed here
+    try {
+      // Convert value objects to plain data for serialization
+      const locationData = event.location.toData();
+
+      const payload = {
+        tubeId: event.tubeId,
+        location: locationData,
+        createdBy: event.createdBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tube_created socket event', {
+        tubeId: event.tubeId,
+        location: locationData,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('tube_created', payload);
+    } catch (error) {
+      logger.error('Failed to emit tube_created event', {
+        error: error instanceof Error ? error.message : String(error),
+        tubeId: event.tubeId
+      });
+    }
   }
 
   private async handleTubeUpdated(
     event: TubeUpdatedEvent | TubeLocationChangedEvent
   ): Promise<void> {
-    // Tube updated events are already handled by TubeController
-    // No additional Socket emission needed here
+    try {
+      // Get the correct "by" field based on event type
+      const changedBy = event instanceof TubeLocationChangedEvent
+        ? event.movedBy
+        : event.updatedBy;
+
+      // Convert value objects to plain data for serialization
+      const oldLocationData = event.oldLocation.toData();
+      const newLocationData = event.newLocation.toData();
+
+      const payload = {
+        tubeId: event.tubeId,
+        oldLocation: oldLocationData,
+        newLocation: newLocationData,
+        updatedBy: changedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tube_updated socket event', {
+        tubeId: event.tubeId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('tube_updated', payload);
+    } catch (error) {
+      logger.error('Failed to emit tube_updated event', {
+        error: error instanceof Error ? error.message : String(error),
+        tubeId: event.tubeId
+      });
+    }
   }
 
   private async handleTubeDeleted(event: TubeDeletedEvent): Promise<void> {
-    // Tube deleted events are already handled by TubeController
-    // No additional Socket emission needed here
+    try {
+      // Convert value objects to plain data for serialization
+      const locationData = event.location.toData();
+
+      const payload = {
+        tubeId: event.tubeId,
+        location: locationData,
+        deletedBy: event.deletedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tube_deleted socket event', {
+        tubeId: event.tubeId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('tube_deleted', payload);
+    } catch (error) {
+      logger.error('Failed to emit tube_deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        tubeId: event.tubeId
+      });
+    }
   }
 
   private async handleBulkTubesUpdated(event: BulkTubesUpdatedEvent): Promise<void> {
-    // Bulk tube update events are already handled by TubeController
-    // No additional Socket emission needed here
+    try {
+      const payload = {
+        tubeIds: event.tubeIds,
+        count: event.tubeIds.length,
+        operation: 'bulk_update',
+        changesSummary: event.changesSummary,
+        updatedBy: event.updatedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting tubes_bulk_updated socket event', {
+        count: event.tubeIds.length,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('tubes_bulk_updated', payload);
+    } catch (error) {
+      logger.error('Failed to emit tubes_bulk_updated event', {
+        error: error instanceof Error ? error.message : String(error),
+        count: event.tubeIds.length
+      });
+    }
   }
 
   // RESEARCHER EVENT HANDLERS
-  // Note: Same as above - researcher events are already handled by ResearcherController
+  // Emit socket events for real-time researcher updates across all clients
 
   private async handleResearcherCreated(event: ResearcherCreatedEvent): Promise<void> {
-    // Researcher created events are already handled by ResearcherController
-    // No additional Socket emission needed here
+    try {
+      const payload = {
+        researcherId: event.researcherId,
+        eventType: 'ResearcherCreated',
+        firstName: event.firstName,
+        lastName: event.lastName,
+        email: event.email,
+        position: event.position,
+        updatedBy: event.createdBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting researcher_created socket event', {
+        researcherId: event.researcherId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('researcher_created', payload);
+    } catch (error) {
+      logger.error('Failed to emit researcher_created event', {
+        error: error instanceof Error ? error.message : String(error),
+        researcherId: event.researcherId
+      });
+    }
   }
 
   private async handleResearcherUpdated(
@@ -237,8 +379,115 @@ export class SocketEventHandler {
       | ResearcherDeactivatedEvent
       | ResearcherReactivatedEvent
   ): Promise<void> {
-    // Researcher updated events are already handled by ResearcherController
-    // No additional Socket emission needed here
+    try {
+      const eventType = event.eventName();
+      const socketEvent = eventType === 'ResearcherDeactivated' ? 'researcher_deactivated'
+        : eventType === 'ResearcherReactivated' ? 'researcher_reactivated'
+        : 'researcher_updated';
+
+      // Get the correct "by" field based on event type
+      let changedBy: string;
+      if (event instanceof ResearcherDeactivatedEvent) {
+        changedBy = event.deactivatedBy;
+      } else if (event instanceof ResearcherReactivatedEvent) {
+        changedBy = event.reactivatedBy;
+      } else {
+        changedBy = event.updatedBy;
+      }
+
+      const payload = {
+        researcherId: event.researcherId,
+        eventType,
+        updatedBy: changedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug(`Emitting ${socketEvent} socket event`, {
+        researcherId: event.researcherId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit(socketEvent, payload);
+    } catch (error) {
+      logger.error('Failed to emit researcher event', {
+        error: error instanceof Error ? error.message : String(error),
+        researcherId: event.researcherId,
+        eventType: event.eventName()
+      });
+    }
+  }
+
+  private async handleResearcherDeleted(event: ResearcherDeletedEvent): Promise<void> {
+    try {
+      const payload = {
+        researcherId: event.researcherId,
+        eventType: 'ResearcherDeleted',
+        firstName: event.firstName,
+        lastName: event.lastName,
+        deletedBy: event.deletedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting researcher_deleted socket event', {
+        researcherId: event.researcherId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('researcher_deleted', payload);
+    } catch (error) {
+      logger.error('Failed to emit researcher_deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        researcherId: event.researcherId
+      });
+    }
+  }
+
+  // USER EVENT HANDLERS
+
+  private async handleUserApproved(event: UserApprovedEvent): Promise<void> {
+    try {
+      const payload = {
+        userId: event.userId,
+        username: event.username,
+        approvedBy: event.approvedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting user_approved socket event', {
+        userId: event.userId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('user_approved', payload);
+    } catch (error) {
+      logger.error('Failed to emit user_approved event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId
+      });
+    }
+  }
+
+  private async handleUserDeleted(event: UserDeletedEvent): Promise<void> {
+    try {
+      const payload = {
+        userId: event.userId,
+        username: event.username,
+        deletedBy: event.deletedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting user_deleted socket event', {
+        userId: event.userId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('user_deleted', payload);
+    } catch (error) {
+      logger.error('Failed to emit user_deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId
+      });
+    }
   }
 
   // TUBE LOCK EVENT HANDLERS
@@ -253,7 +502,7 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      logger.debug('Emitting tubes_locked Socket event', {
+      logger.debug('Emitting tubes_locked socket event', {
         count: event.tubeIds.length,
         connectedClients: this.io.sockets.sockets.size
       });
@@ -276,7 +525,7 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      logger.debug('Emitting tubes_unlocked Socket event', {
+      logger.debug('Emitting tubes_unlocked socket event', {
         count: event.tubeIds.length,
         connectedClients: this.io.sockets.sockets.size
       });

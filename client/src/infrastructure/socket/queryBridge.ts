@@ -1,19 +1,16 @@
 /**
  * Socket → Query Cache Bridge
- * Phase 3: Socket Integration and Real-time Updates
  *
  * Centralized bridge between Socket.IO events and React Query cache.
- * Replaces domain-specific socket handlers with unified cache management.
+ * Handles real-time synchronization across multiple connected clients.
  *
  * Architecture:
  * - Event-driven cache invalidation
- * - Type-safe socket event handling
+ * - Type-safe socket event handling via Zod schemas
  * - Domain-agnostic real-time updates
- * - Optimistic update reconciliation
- * - Connection lifecycle management
+ * - Connection lifecycle management with reconnection handling
  */
 
-import { tubeDataSchema, type TubeData, type Researcher } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
 import { queryKeys } from '@app/queryKeys';
@@ -32,41 +29,53 @@ export { queryKeys } from '@app/queryKeys';
  */
 const tubeEventSchemas = {
   tube_created: z.object({
-    tube: z
-      .object({
-        id: z.string(),
-        location: z.object({
-          tankId: z.string(),
-          rackId: z.string(),
-          boxId: z.string(),
-          position: z.number(),
-        }),
-        // Add other required fields as needed
-      })
-      .passthrough(),
+    tubeId: z.string(),
+    location: z.object({
+      tankId: z.string(),
+      rackId: z.string(),
+      boxId: z.string(),
+      position: z.number(),
+    }),
+    createdBy: z.string(),
+    updatedAt: z.string(),
   }),
 
   tube_updated: z.object({
-    tube: z
-      .object({
-        id: z.string(),
-        location: z.object({
-          tankId: z.string(),
-          rackId: z.string(),
-          boxId: z.string(),
-          position: z.number(),
-        }),
-      })
-      .passthrough(),
+    tubeId: z.string(),
+    oldLocation: z.object({
+      tankId: z.string(),
+      rackId: z.string(),
+      boxId: z.string(),
+      position: z.number(),
+    }),
+    newLocation: z.object({
+      tankId: z.string(),
+      rackId: z.string(),
+      boxId: z.string(),
+      position: z.number(),
+    }),
+    updatedBy: z.string(),
+    updatedAt: z.string(),
   }),
 
   tube_deleted: z.object({
     tubeId: z.string(),
+    location: z.object({
+      tankId: z.string(),
+      rackId: z.string(),
+      boxId: z.string(),
+      position: z.number(),
+    }),
+    deletedBy: z.string(),
+    updatedAt: z.string(),
   }),
 
   tubes_bulk_updated: z.object({
-    tubes: z.array(tubeDataSchema),
+    tubeIds: z.array(z.string()),
     count: z.number(),
+    operation: z.string(),
+    updatedBy: z.string(),
+    updatedAt: z.string(),
   }),
 
   // Tube lock events
@@ -100,28 +109,34 @@ const tubeEventSchemas = {
   }),
 } as const;
 
+// Researcher event schema - shared structure for all researcher change events
+const researcherEventSchema = z.object({
+  researcherId: z.string(),
+  eventType: z.string(),
+  updatedBy: z.string(),
+  updatedAt: z.string(),
+  // Optional fields only present on researcher_created
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  email: z.string().optional(),
+  position: z.string().optional(),
+});
+
+const researcherDeletedSchema = z.object({
+  researcherId: z.string(),
+  eventType: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  deletedBy: z.string(),
+  updatedAt: z.string(),
+});
+
 const researcherEventSchemas = {
-  researcher_created: z.object({
-    researcher: z
-      .object({
-        id: z.string(),
-        name: z.string(),
-      })
-      .passthrough(),
-  }),
-
-  researcher_updated: z.object({
-    researcher: z
-      .object({
-        id: z.string(),
-        name: z.string(),
-      })
-      .passthrough(),
-  }),
-
-  researcher_deleted: z.object({
-    researcherId: z.string(),
-  }),
+  researcher_created: researcherEventSchema,
+  researcher_updated: researcherEventSchema,
+  researcher_deactivated: researcherEventSchema,
+  researcher_reactivated: researcherEventSchema,
+  researcher_deleted: researcherDeletedSchema,
 } as const;
 
 const configurationEventSchemas = {
@@ -130,6 +145,21 @@ const configurationEventSchemas = {
     eventCount: z.number(),
     updatedAt: z.string(),
     changedBy: z.string(),
+  }),
+} as const;
+
+const userEventSchemas = {
+  user_approved: z.object({
+    userId: z.string(),
+    username: z.string(),
+    approvedBy: z.string(),
+    updatedAt: z.string(),
+  }),
+  user_deleted: z.object({
+    userId: z.string(),
+    username: z.string(),
+    deletedBy: z.string(),
+    updatedAt: z.string(),
   }),
 } as const;
 
@@ -167,6 +197,7 @@ export class SocketQueryBridge {
     this.setupTubeEventHandlers();
     this.setupTubeLockEventHandlers();
     this.setupResearcherEventHandlers();
+    this.setupUserEventHandlers();
     this.setupConfigurationEventHandlers();
     this.setupReconnectionHandlers();
     this.setupOnlineOfflineHandlers();
@@ -270,42 +301,15 @@ export class SocketQueryBridge {
   private setupTubeEventHandlers(): void {
     if (!this.socket) return;
 
-    // Tube Created
+    // Tube Created - invalidate queries to fetch fresh data
     this.socket.on('tube_created', (data: unknown) => {
       try {
-        const { tube } = tubeEventSchemas.tube_created.parse(data);
+        const { location } = tubeEventSchemas.tube_created.parse(data);
 
-        // Add to individual tube cache
-        this.queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
-
-        // Add to list queries if they exist (don't create new data)
-        this.queryClient.setQueriesData(
-          { queryKey: queryKeys.tubes.lists() },
-          (oldData: TubeData[] | undefined) => {
-            if (!oldData) return undefined;
-
-            const exists = oldData.some((item: TubeData) => item.id === tube.id);
-            if (exists) return oldData;
-
-            return [...oldData, tube];
-          }
-        );
-
-        // Update location-specific queries (nested structure)
-        if (tube.location?.tankId && tube.location?.rackId && tube.location?.boxId) {
-          this.queryClient.setQueryData(
-            queryKeys.tubes.location(
-              tube.location.tankId,
-              tube.location.rackId,
-              tube.location.boxId
-            ),
-            (oldData: TubeData[] | undefined) => {
-              if (!oldData) return undefined;
-              const exists = oldData.some((item: TubeData) => item.id === tube.id);
-              return exists ? oldData : [...oldData, tube];
-            }
-          );
-        }
+        // Invalidate location-specific query where tube was created
+        void this.queryClient.invalidateQueries({
+          queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
+        });
 
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
@@ -314,36 +318,28 @@ export class SocketQueryBridge {
       }
     });
 
-    // Tube Updated
+    // Tube Updated - invalidate queries to fetch fresh data
     this.socket.on('tube_updated', (data: unknown) => {
       try {
-        const { tube } = tubeEventSchemas.tube_updated.parse(data);
+        const { tubeId, oldLocation, newLocation } = tubeEventSchemas.tube_updated.parse(data);
 
-        // Update individual tube cache
-        this.queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
+        // Invalidate the specific tube detail
+        void this.queryClient.invalidateQueries({
+          queryKey: queryKeys.tubes.detail(tubeId),
+        });
 
-        // Update in all list queries
-        this.queryClient.setQueriesData(
-          { queryKey: queryKeys.tubes.lists() },
-          (oldData: TubeData[] | undefined) => {
-            if (!oldData) return undefined;
-            return oldData.map((item: TubeData) => (item.id === tube.id ? tube : item));
-          }
-        );
+        // Invalidate old location query
+        void this.queryClient.invalidateQueries({
+          queryKey: queryKeys.tubes.location(oldLocation.tankId, oldLocation.rackId, oldLocation.boxId),
+        });
 
-        // Update location-specific queries (nested structure)
-        if (tube.location?.tankId && tube.location?.rackId && tube.location?.boxId) {
-          this.queryClient.setQueryData(
-            queryKeys.tubes.location(
-              tube.location.tankId,
-              tube.location.rackId,
-              tube.location.boxId
-            ),
-            (oldData: TubeData[] | undefined) => {
-              if (!oldData) return undefined;
-              return oldData.map((item: TubeData) => (item.id === tube.id ? tube : item));
-            }
-          );
+        // Invalidate new location query (if different)
+        if (oldLocation.tankId !== newLocation.tankId ||
+            oldLocation.rackId !== newLocation.rackId ||
+            oldLocation.boxId !== newLocation.boxId) {
+          void this.queryClient.invalidateQueries({
+            queryKey: queryKeys.tubes.location(newLocation.tankId, newLocation.rackId, newLocation.boxId),
+          });
         }
 
         // Invalidate statistics
@@ -353,30 +349,17 @@ export class SocketQueryBridge {
       }
     });
 
-    // Tube Deleted
+    // Tube Deleted - invalidate queries to reflect deletion
     this.socket.on('tube_deleted', (data: unknown) => {
       try {
-        const { tubeId } = tubeEventSchemas.tube_deleted.parse(data);
+        const { tubeId, location } = tubeEventSchemas.tube_deleted.parse(data);
 
         // Remove from individual cache
         this.queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
 
-        // Remove from all list queries
-        this.queryClient.setQueriesData(
-          { queryKey: queryKeys.tubes.lists() },
-          (oldData: TubeData[] | undefined) => {
-            if (!oldData) return undefined;
-            return oldData.filter((item: TubeData) => item.id !== tubeId);
-          }
-        );
-
-        // Invalidate location queries (we don't know which location)
+        // Invalidate location query where tube was deleted
         void this.queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.lists(),
-          predicate: query => {
-            const key = query.queryKey as string[];
-            return key.includes('location');
-          },
+          queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
         });
 
         // Invalidate statistics
@@ -386,42 +369,13 @@ export class SocketQueryBridge {
       }
     });
 
-    // Bulk Tube Updates
+    // Bulk Tube Updates - invalidate all tube queries
     this.socket.on('tubes_bulk_updated', (data: unknown) => {
       try {
-        const { tubes } = tubeEventSchemas.tubes_bulk_updated.parse(data);
+        tubeEventSchemas.tubes_bulk_updated.parse(data);
 
-        // Update individual caches
-        tubes.forEach(tube => {
-          this.queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
-        });
-
-        // Update all list queries
-        this.queryClient.setQueriesData(
-          { queryKey: queryKeys.tubes.lists() },
-          (oldData: TubeData[] | undefined) => {
-            if (!oldData) return undefined;
-
-            const updatedData = [...oldData];
-            tubes.forEach(updatedTube => {
-              const index = updatedData.findIndex((item: TubeData) => item.id === updatedTube.id);
-              if (index !== -1) {
-                updatedData[index] = updatedTube;
-              }
-            });
-            return updatedData;
-          }
-        );
-
-        // Invalidate location and stats queries
-        void this.queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.lists(),
-          predicate: query => {
-            const key = query.queryKey as string[];
-            return key.includes('location');
-          },
-        });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+        // Invalidate all tube queries since bulk operations may affect multiple locations
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
       } catch (error) {
         logger.error('Invalid tubes_bulk_updated event', { error });
       }
@@ -436,17 +390,11 @@ export class SocketQueryBridge {
     // Tubes Locked
     this.socket.on('tubes_locked', (data: unknown) => {
       try {
-        const { tubeIds, count } = tubeEventSchemas.tubes_locked.parse(data);
+        tubeEventSchemas.tubes_locked.parse(data);
 
-        logger.info('Tubes locked event received', { count, tubeIds: tubeIds.slice(0, 5) });
-
-        // Invalidate all affected tubes to refetch with lock state
-        tubeIds.forEach(tubeId => {
-          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
-        });
-
-        // Invalidate list queries to show lock state
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+        // Invalidate ALL tube queries (including location-specific queries used in grid view)
+        // This ensures lock state updates appear everywhere tubes are displayed
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
       } catch (error) {
         logger.error('Invalid tubes_locked event', { error });
       }
@@ -455,17 +403,11 @@ export class SocketQueryBridge {
     // Tubes Unlocked
     this.socket.on('tubes_unlocked', (data: unknown) => {
       try {
-        const { tubeIds, count } = tubeEventSchemas.tubes_unlocked.parse(data);
+        tubeEventSchemas.tubes_unlocked.parse(data);
 
-        logger.info('Tubes unlocked event received', { count, tubeIds: tubeIds.slice(0, 5) });
-
-        // Invalidate all affected tubes to refetch without lock state
-        tubeIds.forEach(tubeId => {
-          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
-        });
-
-        // Invalidate list queries to show unlock state
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+        // Invalidate ALL tube queries (including location-specific queries used in grid view)
+        // This ensures unlock state updates appear everywhere tubes are displayed
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
       } catch (error) {
         logger.error('Invalid tubes_unlocked event', { error });
       }
@@ -474,17 +416,10 @@ export class SocketQueryBridge {
     // Tube Access Shared
     this.socket.on('tube_access_shared', (data: unknown) => {
       try {
-        const { tubeIds } = tubeEventSchemas.tube_access_shared.parse(data);
+        tubeEventSchemas.tube_access_shared.parse(data);
 
-        logger.info('Tube access shared event received', { tubeCount: tubeIds.length });
-
-        // Invalidate affected tubes to refetch with updated sharing
-        tubeIds.forEach(tubeId => {
-          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
-        });
-
-        // Invalidate list queries
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+        // Invalidate ALL tube queries to refetch with updated sharing
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
       } catch (error) {
         logger.error('Invalid tube_access_shared event', { error });
       }
@@ -493,17 +428,10 @@ export class SocketQueryBridge {
     // Tube Access Revoked
     this.socket.on('tube_access_revoked', (data: unknown) => {
       try {
-        const { tubeIds } = tubeEventSchemas.tube_access_revoked.parse(data);
+        tubeEventSchemas.tube_access_revoked.parse(data);
 
-        logger.info('Tube access revoked event received', { tubeCount: tubeIds.length });
-
-        // Invalidate affected tubes to refetch with updated sharing
-        tubeIds.forEach(tubeId => {
-          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
-        });
-
-        // Invalidate list queries
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+        // Invalidate ALL tube queries to refetch with updated sharing
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
       } catch (error) {
         logger.error('Invalid tube_access_revoked event', { error });
       }
@@ -515,19 +443,13 @@ export class SocketQueryBridge {
   private setupResearcherEventHandlers(): void {
     if (!this.socket) return;
 
+    // Researcher Created - invalidate queries to fetch fresh data
     this.socket.on('researcher_created', (data: unknown) => {
       try {
-        const { researcher } = researcherEventSchemas.researcher_created.parse(data);
+        researcherEventSchemas.researcher_created.parse(data);
 
-        // Add to researcher caches
-        this.queryClient.setQueriesData(
-          { queryKey: queryKeys.researchers.lists() },
-          (oldData: Researcher[] | undefined) => {
-            if (!oldData) return undefined;
-            const exists = oldData.some((item: Researcher) => item.id === researcher.id);
-            return exists ? oldData : [...oldData, researcher];
-          }
-        );
+        // Invalidate researcher queries to fetch fresh list
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
 
         // Invalidate tube statistics (researcher affects stats)
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
@@ -536,20 +458,13 @@ export class SocketQueryBridge {
       }
     });
 
+    // Researcher Updated - invalidate queries to fetch fresh data
     this.socket.on('researcher_updated', (data: unknown) => {
       try {
-        const { researcher } = researcherEventSchemas.researcher_updated.parse(data);
+        researcherEventSchemas.researcher_updated.parse(data);
 
-        // Update researcher caches
-        this.queryClient.setQueriesData(
-          { queryKey: queryKeys.researchers.lists() },
-          (oldData: Researcher[] | undefined) => {
-            if (!oldData) return undefined;
-            return oldData.map((item: Researcher) =>
-              item.id === researcher.id ? researcher : item
-            );
-          }
-        );
+        // Invalidate researcher queries
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
 
         // Invalidate tube statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
@@ -558,23 +473,84 @@ export class SocketQueryBridge {
       }
     });
 
+    // Researcher Deactivated - invalidate queries to fetch fresh data
+    this.socket.on('researcher_deactivated', (data: unknown) => {
+      try {
+        researcherEventSchemas.researcher_deactivated.parse(data);
+
+        // Invalidate researcher queries
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+
+        // Invalidate tube statistics
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      } catch (error) {
+        logger.error('Invalid researcher_deactivated event', { error });
+      }
+    });
+
+    // Researcher Reactivated - invalidate queries to fetch fresh data
+    this.socket.on('researcher_reactivated', (data: unknown) => {
+      try {
+        researcherEventSchemas.researcher_reactivated.parse(data);
+
+        // Invalidate researcher queries
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+
+        // Invalidate tube statistics
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+      } catch (error) {
+        logger.error('Invalid researcher_reactivated event', { error });
+      }
+    });
+
+    // Researcher Deleted - invalidate queries so deleted researcher is removed from dropdowns
     this.socket.on('researcher_deleted', (data: unknown) => {
       try {
-        const { researcherId } = researcherEventSchemas.researcher_deleted.parse(data);
+        researcherEventSchemas.researcher_deleted.parse(data);
 
-        // Remove from researcher caches
-        this.queryClient.setQueriesData(
-          { queryKey: queryKeys.researchers.lists() },
-          (oldData: Researcher[] | undefined) => {
-            if (!oldData) return undefined;
-            return oldData.filter((item: Researcher) => item.id !== researcherId);
-          }
-        );
+        // Invalidate researcher queries
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
 
         // Invalidate tube statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
         logger.error('Invalid researcher_deleted event', { error });
+      }
+    });
+  }
+
+  // USER EVENT HANDLERS
+
+  private setupUserEventHandlers(): void {
+    if (!this.socket) return;
+
+    // User Approved - invalidate user list queries so approved user appears in dropdowns
+    this.socket.on('user_approved', (data: unknown) => {
+      try {
+        userEventSchemas.user_approved.parse(data);
+
+        // Invalidate user list queries (used by dropdowns in StorageManagementModal, etc.)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
+
+        // Also invalidate admin users query
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
+      } catch (error) {
+        logger.error('Invalid user_approved event', { error });
+      }
+    });
+
+    // User Deleted - invalidate user list queries so deleted user is removed from dropdowns
+    this.socket.on('user_deleted', (data: unknown) => {
+      try {
+        userEventSchemas.user_deleted.parse(data);
+
+        // Invalidate user list queries (used by dropdowns in StorageManagementModal, etc.)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
+
+        // Also invalidate admin users query
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
+      } catch (error) {
+        logger.error('Invalid user_deleted event', { error });
       }
     });
   }
@@ -586,15 +562,8 @@ export class SocketQueryBridge {
 
     this.socket.on('configuration_updated', async (data: unknown) => {
       try {
-        const { eventTypes, eventCount, updatedAt, changedBy } =
+        const { eventTypes, eventCount } =
           configurationEventSchemas.configuration_updated.parse(data);
-
-        logger.info('Configuration updated event received', {
-          eventTypes,
-          eventCount,
-          updatedAt,
-          changedBy,
-        });
 
         // Check if version actually changed before notifying user
         const versionChanged = await this.invalidateConfigurationIfChanged();

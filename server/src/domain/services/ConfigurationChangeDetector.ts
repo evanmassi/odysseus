@@ -1,5 +1,6 @@
 import { Configuration } from '@domain/entities/Configuration';
 import { Rack, Box } from '@domain/valueObjects/Equipment';
+import { logger } from '@utils/logger';
 import {
   ConfigurationUpdatedEvent,
   TankUpdatedEvent,
@@ -15,7 +16,13 @@ import {
   RackAccessSharedEvent,
   RackAccessRevokedEvent,
   BoxAccessSharedEvent,
-  BoxAccessRevokedEvent
+  BoxAccessRevokedEvent,
+  RackAssignedEvent,
+  RackUnassignedEvent,
+  RackReassignedEvent,
+  BoxAssignedEvent,
+  BoxUnassignedEvent,
+  BoxReassignedEvent
 } from '@domain/events/ConfigurationEvents';
 
 /**
@@ -67,7 +74,16 @@ export class ConfigurationChangeDetector {
     };
 
     // Detect lab name changes
+    logger.info('🔍 [ChangeDetector] Comparing lab names', {
+      oldLabName: oldConfig.systemSettings.labName,
+      newLabName: newConfig.systemSettings.labName,
+      areEqual: oldConfig.systemSettings.labName === newConfig.systemSettings.labName
+    });
     if (oldConfig.systemSettings.labName !== newConfig.systemSettings.labName) {
+      logger.info('🔍 [ChangeDetector] Lab name CHANGED - creating LabNameChangedEvent', {
+        from: oldConfig.systemSettings.labName,
+        to: newConfig.systemSettings.labName
+      });
       events.push(new LabNameChangedEvent(
         userId,
         oldConfig.systemSettings.labName,
@@ -113,6 +129,14 @@ export class ConfigurationChangeDetector {
           });
         }
 
+        if (oldTank.location !== newTank.location) {
+          tankChanges.push({
+            field: 'location',
+            oldValue: oldTank.location,
+            newValue: newTank.location
+          });
+        }
+
         if (oldTank.isActive !== newTank.isActive) {
           tankChanges.push({
             field: 'isActive',
@@ -136,6 +160,12 @@ export class ConfigurationChangeDetector {
     if (events.length > 0) {
       events.push(new ConfigurationUpdatedEvent(userId, summary));
     }
+
+    logger.info('🔍 [ChangeDetector] Detection complete', {
+      totalEvents: events.length,
+      eventTypes: events.map(e => e.eventName()),
+      summary
+    });
 
     return events;
   }
@@ -205,10 +235,61 @@ export class ConfigurationChangeDetector {
         );
         events.push(...sharingEvents);
 
+        // Detect assignedUserId changes
+        const assignmentEvents = this.detectRackAssignmentChanges(
+          oldRack, newRack, tankId, tankName, userId
+        );
+        events.push(...assignmentEvents);
+
         // Detect box-level changes within this rack
         const boxEvents = this.detectBoxChanges(oldRack.boxes, newRack.boxes, tankId, tankName, newRack.id, newRack.name, userId, summary);
         events.push(...boxEvents);
       }
+    }
+
+    return events;
+  }
+
+  /**
+   * Detect assignment changes for a rack
+   */
+  private detectRackAssignmentChanges(
+    oldRack: Rack,
+    newRack: Rack,
+    tankId: string,
+    tankName: string,
+    userId: string
+  ): any[] {
+    const events: any[] = [];
+    const oldAssigned = oldRack.assignedUserId;
+    const newAssigned = newRack.assignedUserId;
+
+    // No change
+    if (oldAssigned === newAssigned) {
+      return events;
+    }
+
+    // Rack was unassigned (had user, now doesn't)
+    if (oldAssigned && !newAssigned) {
+      events.push(new RackUnassignedEvent(
+        userId, tankId, tankName, newRack.id, newRack.name,
+        oldAssigned, '' // Username not available here, will be resolved by client
+      ));
+    }
+    // Rack was assigned (didn't have user, now does)
+    else if (!oldAssigned && newAssigned) {
+      events.push(new RackAssignedEvent(
+        userId, tankId, tankName, newRack.id, newRack.name,
+        newAssigned, '' // Username not available here, will be resolved by client
+      ));
+    }
+    // Rack was reassigned (different user)
+    else if (oldAssigned && newAssigned && oldAssigned !== newAssigned) {
+      events.push(new RackReassignedEvent(
+        userId, tankId, tankName, newRack.id, newRack.name,
+        oldAssigned, '', // Previous username
+        newAssigned, ''  // New username
+      ));
     }
 
     return events;
@@ -322,7 +403,60 @@ export class ConfigurationChangeDetector {
           oldBox, newBox, tankId, tankName, rackId, rackName, userId
         );
         events.push(...sharingEvents);
+
+        // Detect assignedUserId changes
+        const assignmentEvents = this.detectBoxAssignmentChanges(
+          oldBox, newBox, tankId, tankName, rackId, rackName, userId
+        );
+        events.push(...assignmentEvents);
       }
+    }
+
+    return events;
+  }
+
+  /**
+   * Detect assignment changes for a box
+   */
+  private detectBoxAssignmentChanges(
+    oldBox: Box,
+    newBox: Box,
+    tankId: string,
+    tankName: string,
+    rackId: string,
+    rackName: string,
+    userId: string
+  ): any[] {
+    const events: any[] = [];
+    const oldAssigned = oldBox.assignedUserId;
+    const newAssigned = newBox.assignedUserId;
+
+    // No change (handle null/undefined equivalence)
+    if ((oldAssigned ?? undefined) === (newAssigned ?? undefined)) {
+      return events;
+    }
+
+    // Box was unassigned (had user, now doesn't)
+    if (oldAssigned && !newAssigned) {
+      events.push(new BoxUnassignedEvent(
+        userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name,
+        oldAssigned, '' // Username not available here, will be resolved by client
+      ));
+    }
+    // Box was assigned (didn't have user, now does)
+    else if (!oldAssigned && newAssigned) {
+      events.push(new BoxAssignedEvent(
+        userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name,
+        newAssigned, '' // Username not available here, will be resolved by client
+      ));
+    }
+    // Box was reassigned (different user)
+    else if (oldAssigned && newAssigned && oldAssigned !== newAssigned) {
+      events.push(new BoxReassignedEvent(
+        userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name,
+        oldAssigned, '', // Previous username
+        newAssigned, ''  // New username
+      ));
     }
 
     return events;

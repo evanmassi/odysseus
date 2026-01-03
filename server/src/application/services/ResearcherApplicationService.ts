@@ -15,7 +15,8 @@ import {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
-  ResearcherReactivatedEvent
+  ResearcherReactivatedEvent,
+  ResearcherDeletedEvent
 } from '@domain/events/ResearcherEvents';
 
 /**
@@ -312,6 +313,16 @@ export class ResearcherApplicationService {
 
     // Safe to delete - no tubes, no user link
     await this.researcherRepository.delete(id);
+
+    // Publish event for real-time sync
+    if (this.eventBus) {
+      this.eventBus.publish(new ResearcherDeletedEvent(
+        researcher.id,
+        person.firstName,
+        person.lastName,
+        user.username
+      ));
+    }
   }
 
   /**

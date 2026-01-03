@@ -222,3 +222,29 @@ export class UserUnlinkedFromResearcherEvent extends DomainEvent {
     };
   }
 }
+
+export class UserApprovedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly username: string,
+    public readonly approvedBy: string
+  ) {
+    super(1);
+  }
+
+  eventName(): string {
+    return 'UserApproved';
+  }
+
+  getAggregateId(): string {
+    return this.userId;
+  }
+
+  protected getEventData(): Record<string, any> {
+    return {
+      userId: this.userId,
+      username: this.username,
+      approvedBy: this.approvedBy
+    };
+  }
+}
