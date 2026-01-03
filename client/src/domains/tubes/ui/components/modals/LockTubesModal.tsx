@@ -13,9 +13,8 @@ import { useState } from 'react';
 import { Info, Lock, Notebook } from 'lucide-react';
 
 import { useLockTubesMutation } from '@domains/tubes/hooks';
+import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
-
-import { BaseModal } from './BaseModal';
 
 export interface LockTubesModalProps {
   /** IDs of tubes to lock */

@@ -48,13 +48,12 @@ import { useTubesQuery, useTubeQuery } from '@domains/tubes/hooks/useTubesQuery'
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/grid';
+import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateFormatter';
 
 import { LocationDisplay } from '../displays/LocationDisplay';
 import { TubeForm } from '../forms/TubeForm';
-
-import { BaseModal } from './BaseModal';
 
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 

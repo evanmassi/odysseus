@@ -662,15 +662,15 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
           <div className="flex-1 p-3 overflow-y-auto">
             {viewMode === 'tree' ? (
               <div className="space-y-2">
-                {/* Add New Tank Button (Admin Only) */}
+                {/* Add Tank Button (Admin Only) */}
                 {canManageStorage && (
                   <div className="flex justify-end">
                     <button
                       onClick={handleAddNewTank}
-                      className="flex items-center gap-2 bg-slate-600 text-white px-3 py-1.5 rounded-lg hover:bg-slate-700 font-medium text-sm focus-ring-default"
+                      className="btn btn-primary flex items-center gap-2 text-sm"
                     >
                       <Plus size={16} />
-                      Add New Tank
+                      Add Tank
                     </button>
                   </div>
                 )}

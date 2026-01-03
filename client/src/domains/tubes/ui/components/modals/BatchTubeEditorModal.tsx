@@ -28,12 +28,12 @@ import {
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
 import { logger } from '@shared/infrastructure/logger';
+import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateFormatter';
 
 import { TubeForm } from '../forms/TubeForm';
 
-import { BaseModal } from './BaseModal';
 import { BulkProgressModal } from './BulkProgressModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 

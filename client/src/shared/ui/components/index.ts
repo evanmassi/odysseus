@@ -7,6 +7,9 @@
 export { ConfirmDialog } from './ConfirmDialog';
 export type { ConfirmDialogProps } from './ConfirmDialog';
 
+export { BaseModal } from './modals';
+export type { BaseModalProps } from './modals';
+
 export { OwnershipIndicatorBadge, type OwnershipType } from './badges';
 
 export { Toast } from './Toast';

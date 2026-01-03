@@ -236,11 +236,8 @@ export function AssignmentsByUserView({
             ? 'border-l-ownership-unassigned-badge'
             : 'border-l-ownership-other-badge';
 
-        const headerBg = isCurrentUser
-          ? 'bg-ice-50'
-          : isUnassigned
-            ? 'bg-amber-50/50'
-            : 'bg-slate-50';
+        // Hover-only background for cleaner look
+        const headerBg = 'hover:bg-slate-50/50 transition-colors';
 
         // Badge colors - centralized via CSS variables
         const badgeBg = isCurrentUser
@@ -260,7 +257,7 @@ export function AssignmentsByUserView({
           <div key={userAssignment.userId ?? 'unassigned'} className="rounded-lg overflow-hidden">
             {/* User Header */}
             <div
-              className={`flex items-center gap-3 px-3 py-2 ${headerBg} border border-gray-200 border-l-4 ${headerLeftBorder} rounded-lg`}
+              className={`flex items-center gap-3 px-3 py-2 ${headerBg} border-l-4 ${headerLeftBorder}`}
             >
               {/* Expand/Collapse Button */}
               <button
@@ -446,17 +443,12 @@ export function AssignmentsByUserView({
                       return a.rackId.localeCompare(b.rackId);
                     });
 
-                  // Rack row styling - left border accent with subtle tint
+                  // Rack row styling - left border accent only, hover-only background
                   const rackLeftBorderClass = isCurrentUser
                     ? 'border-l-ownership-user-badge'
                     : isUnassigned
                       ? 'border-l-ownership-unassigned-badge'
                       : 'border-l-ownership-other-badge';
-                  const rackBgClass = isCurrentUser
-                    ? 'bg-ice-50'
-                    : isUnassigned
-                      ? 'bg-amber-50/50'
-                      : 'bg-slate-50';
                   // Badge colors - centralized via CSS variables
                   const rackBadgeClass = isCurrentUser
                     ? 'bg-ownership-user-badge text-white'
@@ -468,91 +460,69 @@ export function AssignmentsByUserView({
                     : isUnassigned
                       ? 'border-l-ownership-unassigned-badge'
                       : 'border-l-ownership-other-badge';
-                  const boxBgClass = isCurrentUser
-                    ? 'bg-ice-50/50'
-                    : isUnassigned
-                      ? 'bg-amber-50/30'
-                      : 'bg-slate-50/50';
 
-                  return rackGroups.map((rackGroup, rackIndex) => {
-                    const isLastRack = rackIndex === rackGroups.length - 1;
-
-                    return (
-                      <div key={`rack-${rackGroup.tankId}-${rackGroup.rackId}`}>
-                        {/* Rack row - styled like tree view */}
-                        <div
-                          className={`flex items-center gap-1.5 py-1 px-1.5 ${rackBgClass} rounded border border-gray-200 border-l-4 ${rackLeftBorderClass}`}
-                        >
-                          <span className="text-slate-600 font-mono text-sm flex-shrink-0">
-                            {isLastRack ? '└' : '├'}
-                          </span>
-                          <StorageManagementContext.Consumer>
-                            {ctx =>
-                              ctx && (
-                                <OwnershipBadge
-                                  userId={userAssignment.userId ?? undefined}
-                                  size="md"
-                                  isOwnedByCurrentUser={isCurrentUser}
-                                />
-                              )
-                            }
-                          </StorageManagementContext.Consumer>
-                          <RackIcon size={18} className="text-slate-700 flex-shrink-0" />
-                          <span className="font-medium text-slate-800 text-sm">
-                            {rackGroup.tankName} /{' '}
-                            {formatResourceDisplayName(
-                              rackGroup.rackName,
-                              rackGroup.rackCustomLabel
-                            )}
-                          </span>
-                          {!rackGroup.ownsRack && (
-                            <span className="text-xs text-slate-500 italic">(boxes only)</span>
-                          )}
-                          {rackGroup.boxes.length > 0 && (
-                            <span className={`text-xs px-2 py-0.5 rounded ${rackBadgeClass}`}>
-                              {rackGroup.boxes.length}{' '}
-                              {rackGroup.boxes.length === 1 ? 'box' : 'boxes'}
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Boxes under this rack */}
+                  return rackGroups.map(rackGroup => (
+                    <div key={`rack-${rackGroup.tankId}-${rackGroup.rackId}`}>
+                      {/* Rack row - styled like tree view */}
+                      <div
+                        className={`flex items-center gap-1.5 py-1 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${rackLeftBorderClass}`}
+                      >
+                        <StorageManagementContext.Consumer>
+                          {ctx =>
+                            ctx && (
+                              <OwnershipBadge
+                                userId={userAssignment.userId ?? undefined}
+                                size="md"
+                                isOwnedByCurrentUser={isCurrentUser}
+                              />
+                            )
+                          }
+                        </StorageManagementContext.Consumer>
+                        <RackIcon size={18} className="text-slate-700 flex-shrink-0" />
+                        <span className="font-medium text-slate-800 text-sm">
+                          {rackGroup.tankName} /{' '}
+                          {formatResourceDisplayName(rackGroup.rackName, rackGroup.rackCustomLabel)}
+                        </span>
+                        {!rackGroup.ownsRack && (
+                          <span className="text-xs text-slate-500 italic">(boxes only)</span>
+                        )}
                         {rackGroup.boxes.length > 0 && (
-                          <div className="ml-5 mt-0.5 space-y-0.5">
-                            {rackGroup.boxes.map((box, boxIndex) => {
-                              const isLastBox = boxIndex === rackGroup.boxes.length - 1;
-
-                              return (
-                                <div
-                                  key={`box-${box.tankId}-${box.rackId}-${box.boxId}`}
-                                  className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border border-gray-200 border-l-4 ${boxLeftBorderClass}`}
-                                >
-                                  <span className="text-slate-400 font-mono text-xs flex-shrink-0">
-                                    {isLastBox ? '└' : '├'}
-                                  </span>
-                                  <StorageManagementContext.Consumer>
-                                    {ctx =>
-                                      ctx && (
-                                        <OwnershipBadge
-                                          userId={userAssignment.userId ?? undefined}
-                                          size="sm"
-                                          isOwnedByCurrentUser={isCurrentUser}
-                                        />
-                                      )
-                                    }
-                                  </StorageManagementContext.Consumer>
-                                  <BoxIcon size={16} className="text-slate-700 flex-shrink-0" />
-                                  <span className="font-medium text-slate-800 text-xs">
-                                    {formatResourceDisplayName(box.boxName!, box.boxCustomLabel)}
-                                  </span>
-                                </div>
-                              );
-                            })}
-                          </div>
+                          <span className={`text-xs px-2 py-0.5 rounded ${rackBadgeClass}`}>
+                            {rackGroup.boxes.length}{' '}
+                            {rackGroup.boxes.length === 1 ? 'box' : 'boxes'}
+                          </span>
                         )}
                       </div>
-                    );
-                  });
+
+                      {/* Boxes under this rack */}
+                      {rackGroup.boxes.length > 0 && (
+                        <div className="ml-5 mt-0.5 space-y-0.5">
+                          {rackGroup.boxes.map(box => (
+                            <div
+                              key={`box-${box.tankId}-${box.rackId}-${box.boxId}`}
+                              className={`flex items-center gap-1.5 py-0.5 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${boxLeftBorderClass}`}
+                            >
+                              <StorageManagementContext.Consumer>
+                                {ctx =>
+                                  ctx && (
+                                    <OwnershipBadge
+                                      userId={userAssignment.userId ?? undefined}
+                                      size="sm"
+                                      isOwnedByCurrentUser={isCurrentUser}
+                                    />
+                                  )
+                                }
+                              </StorageManagementContext.Consumer>
+                              <BoxIcon size={16} className="text-slate-700 flex-shrink-0" />
+                              <span className="font-medium text-slate-800 text-xs">
+                                {formatResourceDisplayName(box.boxName!, box.boxCustomLabel)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ));
                 })()}
               </div>
             )}

@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 
-import { Save, X } from 'lucide-react';
+import { Save } from 'lucide-react';
+
+import { RackIcon } from '@shared/ui/components/icons';
+import { BaseModal } from '@shared/ui/components/modals';
 
 import type { RackConfiguration } from '@domains/storage';
 
@@ -26,75 +29,68 @@ export function RackEditModal({ initialRack, tankId, onSave, onClose }: RackEdit
     onClose();
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editedRack.name.trim()) {
+      void handleSave();
+    }
+  };
+
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
-      role="presentation"
-      onKeyDown={e => {
-        if (e.key === 'Enter' && editedRack.name.trim()) {
-          e.preventDefault();
-          void handleSave();
-        } else if (e.key === 'Escape') {
-          e.preventDefault();
-          onClose();
-        }
-      }}
+    <BaseModal
+      title="Edit Rack"
+      icon={<RackIcon size={24} />}
+      onClose={onClose}
+      className="max-w-sm"
     >
-      <div
-        className="bg-white rounded-lg p-6 w-96 shadow-xl"
-        role="dialog"
-        aria-labelledby="rack-edit-title"
-        aria-modal="true"
-      >
-        <div className="flex items-center justify-between mb-4">
-          <h3 id="rack-edit-title" className="text-lg font-bold">
-            Edit Rack
-          </h3>
-          <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-            <X size={16} />
-          </button>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="rack-name"
+            className="block text-sm font-medium mb-1 text-odysseus-secondary"
+          >
+            Rack Name
+          </label>
+          <input
+            id="rack-name"
+            type="text"
+            className="input w-full"
+            value={editedRack.name}
+            onChange={e => setEditedRack({ ...editedRack, name: e.target.value })}
+            placeholder="Rack 1"
+            required
+            aria-required="true"
+          />
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="rack-name" className="block text-sm font-medium mb-2">
-              Rack Name
-            </label>
-            <input
-              id="rack-name"
-              type="text"
-              className="input w-full"
-              value={editedRack.name}
-              onChange={e => setEditedRack({ ...editedRack, name: e.target.value })}
-              placeholder="Rack 1"
-              required
-              aria-required="true"
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="rackActive"
-              checked={editedRack.isActive}
-              onChange={e => setEditedRack({ ...editedRack, isActive: e.target.checked })}
-            />
-            <label htmlFor="rackActive" className="text-sm font-medium">
-              Active (visible in rack selector)
-            </label>
-          </div>
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="rackActive"
+            checked={editedRack.isActive}
+            onChange={e => setEditedRack({ ...editedRack, isActive: e.target.checked })}
+            className="w-4 h-4 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
+            style={{ accentColor: 'var(--color-action-default)' }}
+          />
+          <label htmlFor="rackActive" className="text-sm font-medium">
+            Active (visible in rack selector)
+          </label>
         </div>
+      </form>
 
-        <div className="flex justify-end gap-3 mt-6">
-          <button onClick={onClose} className="btn-cancel">
-            Cancel
-          </button>
-          <button onClick={() => void handleSave()} className="btn-primary flex items-center gap-2">
-            <Save size={16} />
-            Save Changes
-          </button>
-        </div>
+      <div className="flex justify-end gap-3 mt-6">
+        <button type="button" onClick={onClose} className="btn btn-secondary">
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => void handleSave()}
+          className="btn btn-primary flex items-center gap-2"
+        >
+          <Save size={16} />
+          Save Changes
+        </button>
       </div>
-    </div>
+    </BaseModal>
   );
 }

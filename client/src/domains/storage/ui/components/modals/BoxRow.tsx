@@ -17,10 +17,9 @@ interface BoxRowProps {
   rack: RackConfiguration;
   tankId: string;
   rackId: string;
-  isLast: boolean;
 }
 
-export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
+export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
   const {
     users,
     currentUser,
@@ -47,12 +46,6 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
       ? 'border-l-ownership-unassigned-badge'
       : 'border-l-ownership-other-badge';
 
-  const boxBgClass = isBoxOwnedByUser
-    ? 'bg-ice-50/50'
-    : isUnassigned || isExplicitlyCommon
-      ? 'bg-amber-50/30'
-      : 'bg-slate-50/50';
-
   // Badge colors - centralized via CSS variables
   const badgeClass = isBoxOwnedByUser
     ? 'bg-ownership-user-badge text-white'
@@ -62,10 +55,8 @@ export function BoxRow({ box, rack, tankId, rackId, isLast }: BoxRowProps) {
 
   return (
     <div
-      className={`flex items-center gap-1.5 py-0.5 px-1.5 ${boxBgClass} rounded border border-gray-200 border-l-4 ${leftBorderClass}`}
+      className={`flex items-center gap-1.5 py-0.5 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${leftBorderClass}`}
     >
-      <span className="text-slate-400 font-mono text-xs flex-shrink-0">{isLast ? '└' : '├'}</span>
-
       <OwnershipBadge userId={effectiveOwnerId} size="sm" isOwnedByCurrentUser={isBoxOwnedByUser} />
 
       <BoxIcon className="text-slate-700 flex-shrink-0" size={16} />

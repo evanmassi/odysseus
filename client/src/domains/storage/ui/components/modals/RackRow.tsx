@@ -16,7 +16,6 @@ import type { RackConfiguration } from '@domains/storage';
 interface RackRowProps {
   rack: RackConfiguration;
   tankId: string;
-  isLast: boolean;
   collapsed: boolean;
   boxCountToAdd: number;
   onToggleCollapse: () => void;
@@ -27,7 +26,6 @@ interface RackRowProps {
 export function RackRow({
   rack,
   tankId,
-  isLast,
   collapsed,
   boxCountToAdd,
   onToggleCollapse,
@@ -58,8 +56,6 @@ export function RackRow({
       ? 'border-l-ownership-unassigned-badge'
       : 'border-l-ownership-other-badge';
 
-  const bgClass = isRackOwnedByUser ? 'bg-ice-50' : isUnassigned ? 'bg-amber-50/50' : 'bg-slate-50';
-
   // Badge colors - centralized via CSS variables
   const badgeClass = isRackOwnedByUser
     ? 'bg-ownership-user-badge text-white'
@@ -71,10 +67,8 @@ export function RackRow({
     <div className="ml-2">
       {/* Rack Row */}
       <div
-        className={`flex items-center gap-1.5 py-1 px-1.5 ${bgClass} rounded border border-gray-200 border-l-4 ${leftBorderClass}`}
+        className={`flex items-center gap-1.5 py-1 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${leftBorderClass}`}
       >
-        <span className="text-slate-600 font-mono text-sm flex-shrink-0">{isLast ? '└' : '├'}</span>
-
         <OwnershipBadge
           userId={rack.assignedUserId}
           size="md"
@@ -146,41 +140,31 @@ export function RackRow({
       {/* Boxes - collapsible */}
       {!collapsed && (
         <div id={`rack-content-${rackKey}`} className="ml-5 mt-0.5 space-y-0.5">
-          {rack.boxes.map((box, boxIndex) => (
-            <BoxRow
-              key={box.id}
-              box={box}
-              rack={rack}
-              tankId={tankId}
-              rackId={rack.id}
-              isLast={boxIndex === rack.boxes.length - 1}
-            />
+          {rack.boxes.map(box => (
+            <BoxRow key={box.id} box={box} rack={rack} tankId={tankId} rackId={rack.id} />
           ))}
 
           {/* Add Box Button with Bulk Input (Admin Only) */}
           {canManageStorage && (
-            <div className="flex items-center gap-1.5 py-0.5 px-1.5">
-              <span className="text-slate-400 font-mono text-xs">└</span>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  min="1"
-                  max="26"
-                  value={boxCountToAdd}
-                  onChange={e =>
-                    onBoxCountChange(Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))
-                  }
-                  className="input-number-sm w-14 px-2 py-0.5 focus-ring-default"
-                  title="Number of boxes to add"
-                />
-                <button
-                  onClick={() => onAddBox(tankId, rack.id)}
-                  className="flex items-center gap-1 bg-slate-200 text-slate-800 px-2 py-1 rounded hover:bg-slate-300 text-xs focus-ring-default"
-                >
-                  <Plus size={12} />
-                  Add {boxCountToAdd > 1 ? 'Boxes' : 'Box'}
-                </button>
-              </div>
+            <div className="flex items-center gap-2 py-0.5 px-1.5">
+              <input
+                type="number"
+                min="1"
+                max="26"
+                value={boxCountToAdd}
+                onChange={e =>
+                  onBoxCountChange(Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))
+                }
+                className="input-number-sm w-14 px-2 py-0.5 focus-ring-default"
+                title="Number of boxes to add"
+              />
+              <button
+                onClick={() => onAddBox(tankId, rack.id)}
+                className="btn btn-primary flex items-center gap-1 text-xs !py-0 px-2 h-6"
+              >
+                <Plus size={12} />
+                Add {boxCountToAdd > 1 ? 'Boxes' : 'Box'}
+              </button>
             </div>
           )}
         </div>

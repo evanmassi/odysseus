@@ -36,9 +36,9 @@ export function TankRow({
 }: TankRowProps) {
   const { onEditTank, onDeleteTank, onAddRack, canManageStorage } = useStorageManagementContext();
   return (
-    <div className="border border-gray-200 rounded-lg bg-white">
+    <div className="border border-gray-200 rounded-lg bg-white border-l-4 border-l-slate-600">
       {/* Tank Header */}
-      <div className="bg-slate-50 px-2 py-1.5 border-b border-gray-200 border-l-4 border-l-slate-600 rounded-t-lg">
+      <div className="bg-slate-50 px-2 py-1.5 rounded-tr-lg">
         <div className="flex items-center gap-2">
           <button
             type="button"
@@ -56,9 +56,9 @@ export function TankRow({
               <h3 className="text-base font-semibold text-slate-800 truncate min-w-[80px]">
                 {tank.name}
               </h3>
-              <span className="text-xs px-2 py-1 bg-slate-200 rounded text-slate-600 flex items-center gap-1.5">
+              <span className="text-xs text-slate-500 flex items-center gap-1.5">
                 <span>{tank.location}</span>
-                <span>•</span>
+                <span className="text-slate-300">•</span>
                 <span>
                   {tank.racks.length} {tank.racks.length === 1 ? 'rack' : 'racks'}
                 </span>
@@ -92,14 +92,13 @@ export function TankRow({
       {!collapsed && (
         <div id={`tank-content-${tank.id}`} className="p-2">
           <div className="space-y-1.5">
-            {tank.racks.map((rack, rackIndex) => {
+            {tank.racks.map(rack => {
               const rackKey = `${tank.id}-rack-${rack.id}`;
               return (
                 <RackRow
                   key={rack.id}
                   rack={rack}
                   tankId={tank.id}
-                  isLast={rackIndex === tank.racks.length - 1}
                   collapsed={collapsedRacks.has(rackKey)}
                   boxCountToAdd={boxCountToAdd[`${tank.id}-${rack.id}`] || 1}
                   onToggleCollapse={() => onToggleRackCollapse(rackKey)}
@@ -112,28 +111,25 @@ export function TankRow({
             {/* Add Rack Button with Bulk Input (Admin Only) */}
             {canManageStorage && (
               <div className="ml-2 mt-1">
-                <div className="flex items-center gap-1.5 py-1 px-1.5">
-                  <span className="text-gray-400 font-mono text-xs">└</span>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
-                      value={rackCountToAdd}
-                      onChange={e =>
-                        onRackCountChange(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))
-                      }
-                      className="input-number-sm w-14 px-2 py-1 text-sm focus-ring-default"
-                      title="Number of racks to add"
-                    />
-                    <button
-                      onClick={() => onAddRack(tank.id)}
-                      className="flex items-center gap-1 bg-slate-200 text-slate-700 px-2 py-1 rounded hover:bg-slate-300 text-sm focus-ring-default"
-                    >
-                      <Plus size={12} />
-                      Add {rackCountToAdd > 1 ? 'Racks' : 'Rack'}
-                    </button>
-                  </div>
+                <div className="flex items-center gap-2 py-1 px-1.5">
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    value={rackCountToAdd}
+                    onChange={e =>
+                      onRackCountChange(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))
+                    }
+                    className="input-number-sm w-14 px-2 py-1 text-sm focus-ring-default"
+                    title="Number of racks to add"
+                  />
+                  <button
+                    onClick={() => onAddRack(tank.id)}
+                    className="btn btn-primary flex items-center gap-1 text-sm !py-0 px-2 h-7"
+                  >
+                    <Plus size={12} />
+                    Add {rackCountToAdd > 1 ? 'Racks' : 'Rack'}
+                  </button>
                 </div>
               </div>
             )}

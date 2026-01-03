@@ -12,9 +12,8 @@ import { useState, useMemo } from 'react';
 import { Pencil, AlertTriangle, Notebook } from 'lucide-react';
 
 import { useBulkUpdateTubesMutation } from '@domains/tubes/hooks';
+import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
-
-import { BaseModal } from './BaseModal';
 
 import type { TubeData } from '@domains/tubes/types';
 

@@ -15,9 +15,8 @@ import { Share2, X, UserRoundPlus, UsersRound, Info } from 'lucide-react';
 
 import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
 import { useActiveUsersQuery } from '@domains/users';
+import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
-
-import { BaseModal } from './BaseModal';
 
 import type { TubeData } from '@domains/tubes/types';
 

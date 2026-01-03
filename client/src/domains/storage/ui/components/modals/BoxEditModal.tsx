@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 
 import { Save } from 'lucide-react';
 
+import { BoxIcon } from '@shared/ui/components/icons';
+import { BaseModal } from '@shared/ui/components/modals';
+
 import type { BoxConfiguration, GridConfiguration } from '@domains/storage';
 
 interface BoxEditModalProps {
@@ -35,71 +38,54 @@ export function BoxEditModal({
     onClose();
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    void handleSave();
+  };
+
   return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-60"
-      role="presentation"
-      onKeyDown={e => {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          void handleSave();
-        } else if (e.key === 'Escape') {
-          e.preventDefault();
-          onClose();
-        }
-      }}
-    >
-      <div
-        className="bg-white rounded-lg p-6 max-w-md w-full m-4"
-        role="dialog"
-        aria-labelledby="box-edit-title"
-        aria-modal="true"
-      >
-        <h3 id="box-edit-title" className="text-lg font-semibold mb-4">
-          Configure {initialBox.name} Grid Size
-        </h3>
-
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="box-grid-template" className="block text-sm font-medium mb-2">
-              Select Grid Template
-            </label>
-            <select
-              id="box-grid-template"
-              className="w-full border rounded-lg px-3 py-2"
-              value={`${selectedGridConfig.rows}x${selectedGridConfig.cols}`}
-              onChange={e => {
-                const [rows, cols] = e.target.value.split('x').map(Number);
-                const template = gridTemplates.find(t => t.rows === rows && t.cols === cols);
-                if (template) setSelectedGridConfig(template);
-              }}
-              aria-label="Select grid template for box"
-            >
-              {gridTemplates.map(template => (
-                <option
-                  key={`${template.rows}x${template.cols}`}
-                  value={`${template.rows}x${template.cols}`}
-                >
-                  {template.rows}×{template.cols} Grid
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="flex justify-end gap-3">
-            <button onClick={onClose} className="btn-cancel">
-              Cancel
-            </button>
-            <button
-              onClick={() => void handleSave()}
-              className="btn-primary flex items-center gap-2"
-            >
-              <Save size={16} />
-              Save Changes
-            </button>
-          </div>
+    <BaseModal title="Edit Box" icon={<BoxIcon size={24} />} onClose={onClose} className="max-w-md">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label
+            htmlFor="box-grid-template"
+            className="block text-sm font-medium mb-1 text-odysseus-secondary"
+          >
+            Grid Size ({initialBox.name})
+          </label>
+          <select
+            id="box-grid-template"
+            className="input-field input-field-normal w-full"
+            value={`${selectedGridConfig.rows}x${selectedGridConfig.cols}`}
+            onChange={e => {
+              const [rows, cols] = e.target.value.split('x').map(Number);
+              const template = gridTemplates.find(t => t.rows === rows && t.cols === cols);
+              if (template) setSelectedGridConfig(template);
+            }}
+            aria-label="Select grid template for box"
+          >
+            {gridTemplates.map(template => (
+              <option
+                key={`${template.rows}x${template.cols}`}
+                value={`${template.rows}x${template.cols}`}
+              >
+                {template.rows}×{template.cols} Grid (
+                {(template.rows * template.cols).toLocaleString()} positions)
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
-    </div>
+
+        <div className="flex justify-end gap-3">
+          <button type="button" onClick={onClose} className="btn btn-secondary">
+            Cancel
+          </button>
+          <button type="submit" className="btn btn-primary flex items-center gap-2">
+            <Save size={16} />
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </BaseModal>
   );
 }
