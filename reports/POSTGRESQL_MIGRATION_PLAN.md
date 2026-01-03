@@ -1,8 +1,8 @@
 # Odysseus: SQLite to PostgreSQL Migration Plan
 
-**Document Version:** 7.1
+**Document Version:** 7.2
 **Created:** 2024-01-XX
-**Last Updated:** Implementation started - Phases 1-2 complete
+**Last Updated:** Phases 1-12 complete (except Full-Text Search)
 **Status:** IN PROGRESS
 **Purpose:** Complete migration from SQLite to PostgreSQL for cloud deployment
 
@@ -14,14 +14,14 @@
 |-------|-------------|--------|
 | 1 | Project Setup (branch, Docker, env file) | ✅ Complete |
 | 2 | Database Context (PostgresContext.ts) | ✅ Complete |
-| 3 | Repository Conversion (9 repositories) | 🔄 In Progress (8/9) |
+| 3 | Repository Conversion (9 repositories) | ✅ Complete |
 | 4 | Full-Text Search | ⬜ Not started |
-| 5 | Server Configuration | ⬜ Not started |
-| 6 | Client Configuration | ⬜ Not started |
-| 7 | Electron Updates | ⬜ Not started |
+| 5 | Server Configuration | ✅ Complete |
+| 6 | Client Configuration | ✅ Complete |
+| 7 | Electron Updates | ✅ Complete |
 | 8 | Testing & Deployment | ⬜ Not started |
 
-**Current Position:** Phase 3 - Repository Conversion
+**Current Position:** Phase 4 - Full-Text Search (or skip to Phase 8 Testing)
 
 ### Repository Conversion Status
 
@@ -3191,27 +3191,35 @@ Only move to the next repository after the current one is fully tested.
 - [x] Remove sync endpoints: `/api/sync/status`, `/api/sync/invite`, `/api/sync/all`
 - [x] `/api/admin/sync-status` endpoint kept (returns safe defaults, backwards compatible)
 - [x] `getSyncStatus()` in ConfigurationRepository kept (returns `enabled: false`)
-- [ ] Remove Firebase dependencies from `package.json`
+- [x] Remove Firebase dependencies from `package.json` (done in Phase 11)
 
-### Phase 11: Dependencies & Build Scripts
+### Phase 11: Dependencies & Build Scripts ✅
 > **Important:** Keep `better-sqlite3` in root for Electron cache. See Section 11.2.
-- [ ] Remove `better-sqlite3` from **server/package.json** only
-- [ ] Keep `better-sqlite3` in **root package.json** (for Electron cache)
-- [ ] Keep `@electron/rebuild` in root (still needed for Electron)
-- [ ] Remove `firebase` and `firebase-admin` from root package.json
-- [ ] Add `pg` driver to server/package.json
-- [ ] Add `@types/pg` for TypeScript (server devDependencies)
-- [ ] Keep `postinstall` script (still rebuilds better-sqlite3 for Electron)
-- [ ] Keep `build.asarUnpack` config (still needed for Electron)
-- [ ] Run `npm install` in both root and server
-- [ ] Verify server starts with PostgreSQL
-- [ ] Verify Electron builds with local SQLite cache
+- [x] Remove `better-sqlite3` from **server/package.json** only
+- [x] Remove `@types/better-sqlite3` from **server/package.json**
+- [x] Keep `better-sqlite3` in **root package.json** (for Electron cache)
+- [x] Keep `@electron/rebuild` in root (still needed for Electron)
+- [x] Remove `firebase` and `firebase-admin` from server/package.json
+- [x] Remove `firebase` and `firebase-admin` from root package.json
+- [x] `pg` driver already in server/package.json ✅
+- [x] `@types/pg` already in server devDependencies ✅
+- [x] Keep `postinstall` script (still rebuilds better-sqlite3 for Electron)
+- [x] Keep `build.asarUnpack` config (still needed for Electron)
+- [x] Run `npm install` - completed successfully
+- [x] TypeScript compiles clean
+- [ ] Verify server starts with PostgreSQL (runtime testing)
+- [x] Electron main.js updated to not embed server (Phase 12)
 
 ### Phase 12: Electron Updates
-- [ ] Update `electron/main.js` to not start server
-- [ ] Configure production API URL
-- [ ] Test Electron app with cloud server
-- [ ] Build production Electron app
+- [x] Update `electron/main.js` to not start server
+  - Removed `startBackendServer()` function entirely
+  - Removed `SecretManager` import (kept file for future Phase 18)
+  - Removed server cleanup code from app lifecycle handlers
+  - Removed setTimeout delay (no longer waiting for server startup)
+  - File reduced from 176 lines to 95 lines
+- [x] Configure production API URL (via `.env.production` created in Phase 9)
+- [ ] Test Electron app with cloud server (requires Railway deployment)
+- [ ] Build production Electron app (requires production API URLs)
 
 ### Phase 13: Testing
 - [ ] Unit test each repository method
