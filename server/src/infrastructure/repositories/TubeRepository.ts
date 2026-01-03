@@ -550,12 +550,41 @@ export class TubeRepository implements ITubeRepository {
     researcherSql = this.addDateRangeFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = await this.addPositionLabelFilter(researcherSql, params, criteria, paramIndex);
 
-    // Combine both queries with UNION
+    // Build ILIKE fallback query for partial matching (handles decimals, special chars, etc.)
+    // This catches cases where tsvector tokenization fails (e.g., "15.5" in lot numbers)
+    const ilikePattern = `%${query}%`;
+    let ilikeSql = `
+      SELECT ${this.TUBE_COLUMNS}, 0.5 as rank
+      FROM tubes
+      WHERE (
+        cell_type ILIKE $${paramIndex.current}
+        OR donor_internal_id ILIKE $${paramIndex.current}
+        OR donor_source_id ILIKE $${paramIndex.current}
+        OR lot_number ILIKE $${paramIndex.current}
+        OR notes ILIKE $${paramIndex.current}
+        OR media ILIKE $${paramIndex.current}
+        OR culture_condition ILIKE $${paramIndex.current}
+        OR concentration::TEXT ILIKE $${paramIndex.current}
+        OR date ILIKE $${paramIndex.current}
+        OR created_by_name ILIKE $${paramIndex.current++}
+      )
+    `;
+    params.push(ilikePattern);
+
+    ilikeSql = this.addLocationFilters(ilikeSql, params, criteria, paramIndex);
+    ilikeSql = this.addSampleFilters(ilikeSql, params, criteria, paramIndex);
+    ilikeSql = this.addResearcherFilters(ilikeSql, params, criteria, paramIndex);
+    ilikeSql = this.addDateRangeFilters(ilikeSql, params, criteria, paramIndex);
+    ilikeSql = await this.addPositionLabelFilter(ilikeSql, params, criteria, paramIndex);
+
+    // Combine all three queries with UNION (tsvector + researcher names + ILIKE fallback)
     const combinedSql = `
       SELECT DISTINCT ON (id) * FROM (
         ${ftsSql}
         UNION ALL
         ${researcherSql}
+        UNION ALL
+        ${ilikeSql}
       ) combined_results
     `;
 

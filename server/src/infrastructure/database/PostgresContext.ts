@@ -419,7 +419,8 @@ export class PostgresContext {
           setweight(to_tsvector('english', COALESCE(NEW.media, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.culture_condition, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.notes, '')), 'C') ||
-          setweight(to_tsvector('english', COALESCE(NEW.concentration, '')), 'C');
+          setweight(to_tsvector('english', COALESCE(NEW.concentration, '')), 'C') ||
+          setweight(to_tsvector('english', COALESCE(NEW.created_by_name, '')), 'C');
         RETURN NEW;
       END
       $$ LANGUAGE plpgsql
@@ -445,7 +446,8 @@ export class PostgresContext {
         setweight(to_tsvector('english', COALESCE(media, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(culture_condition, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(notes, '')), 'C') ||
-        setweight(to_tsvector('english', COALESCE(concentration, '')), 'C')
+        setweight(to_tsvector('english', COALESCE(concentration, '')), 'C') ||
+        setweight(to_tsvector('english', COALESCE(created_by_name, '')), 'C')
       WHERE search_vector IS NULL
     `);
 
