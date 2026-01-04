@@ -4,66 +4,120 @@
     @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border;
   }
 
+  /* Audit Log Badge Base - Left border accent style */
+  .badge-audit {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium;
+    @apply bg-gray-50 border-l-2 border-y border-r border-y-gray-200 border-r-gray-200;
+  }
+
   /* Entity Type Badges - For Audit Log */
   .badge-entity-tube {
-    @apply badge bg-edit-bg text-edit-btnText border-edit-bg;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-tube);
+    color: var(--color-audit-entity-tube);
   }
 
   .badge-entity-user {
-    @apply badge bg-password-bg text-white border-password-bg;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-person);
+    color: var(--color-audit-entity-person);
   }
 
   .badge-entity-researcher {
-    @apply badge bg-password-bg text-white border-password-bg;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-person);
+    color: var(--color-audit-entity-person);
   }
 
   .badge-entity-tank {
-    @apply badge bg-gray-600 text-white border-gray-600;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-storage);
+    color: var(--color-audit-entity-storage);
   }
 
   .badge-entity-rack {
-    @apply badge bg-gray-600 text-white border-gray-600;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-storage);
+    color: var(--color-audit-entity-storage);
   }
 
   .badge-entity-box {
-    @apply badge bg-gray-600 text-white border-gray-600;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-storage);
+    color: var(--color-audit-entity-storage);
   }
 
   .badge-entity-lab {
-    @apply badge bg-gray-600 text-white border-gray-600;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-system);
+    color: var(--color-audit-entity-system);
+  }
+
+  .badge-entity-configuration {
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-system);
+    color: var(--color-audit-entity-system);
   }
 
   .badge-entity-default {
-    @apply badge bg-gray-100 text-gray-700 border-gray-200;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-system);
+    color: var(--color-audit-entity-system);
   }
 
   /* Action Type Badges - For Audit Log */
   .badge-action-created {
-    @apply badge bg-green-100 text-green-800;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-action-create);
+    color: var(--color-audit-action-create);
   }
 
   .badge-action-updated {
-    @apply badge bg-blue-100 text-blue-800;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-action-update);
+    color: var(--color-audit-action-update);
   }
 
   .badge-action-moved {
-    @apply badge bg-yellow-100 text-yellow-800;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-action-move);
+    color: var(--color-audit-action-move);
   }
 
   .badge-action-deleted {
-    @apply badge bg-red-100 text-red-800;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-action-delete);
+    color: var(--color-audit-action-delete);
   }
 
   .badge-action-login {
-    @apply badge bg-yellow-100 text-yellow-800;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-action-create);
+    color: var(--color-audit-action-create);
   }
 
   .badge-action-logout {
-    @apply badge bg-gray-100 text-gray-800;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-action-auth);
+    color: var(--color-audit-action-auth);
+  }
+
+  .badge-action-linked {
+    @apply badge-audit;
+    border-left-color: var(--color-audit-action-link);
+    color: var(--color-audit-action-link);
+  }
+
+  .badge-action-unlinked {
+    @apply badge-audit;
+    border-left-color: var(--color-audit-action-auth);
+    color: var(--color-audit-action-auth);
   }
 
   .badge-action-default {
-    @apply badge bg-gray-100 text-gray-800;
+    @apply badge-audit;
+    border-left-color: var(--color-audit-entity-system);
+    color: var(--color-audit-entity-system);
   }
 
   /* Status Badges - For general use */

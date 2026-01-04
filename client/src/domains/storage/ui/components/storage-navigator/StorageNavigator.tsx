@@ -164,8 +164,8 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
         role="tree"
         aria-label="Storage hierarchy"
         onKeyDown={handleKeyDown}
-        tabIndex={0}
-        className="relative flex flex-col gap-1"
+        tabIndex={-1}
+        className="relative flex flex-col gap-1 outline-none"
       >
         <TreeLineOverlay expandedTanks={expandedTanks} expandedRacks={expandedRacks} />
         {data.tanks.map((tank, _tankIndex) => {

@@ -91,28 +91,30 @@ function CollapsibleSection({
 }: CollapsibleSectionProps) {
   return (
     <div className="border-b border-gray-200 last:border-b-0">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between py-3 px-2 hover:bg-gray-50 transition-colors focus-ring-default"
-      >
-        <div className="flex items-center space-x-2">
-          {isOpen ? (
-            <ChevronDown className="w-4 h-4 text-gray-500" />
-          ) : (
-            <ChevronRight className="w-4 h-4 text-gray-500" />
-          )}
+      <div className="p-1">
+        <button
+          onClick={onToggle}
+          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-gray-50 transition-colors focus-ring-default"
+        >
           <div className="flex items-center space-x-2">
-            {icon}
-            <span className="text-sm font-semibold text-gray-900">{title}</span>
+            {isOpen ? (
+              <ChevronDown className="w-4 h-4 text-gray-500" />
+            ) : (
+              <ChevronRight className="w-4 h-4 text-gray-500" />
+            )}
+            <div className="flex items-center space-x-2">
+              {icon}
+              <span className="text-sm font-semibold text-gray-900">{title}</span>
+            </div>
           </div>
-        </div>
-        {count > 0 && (
-          <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs font-medium">
-            {count}
-          </span>
-        )}
-      </button>
-      {isOpen && <div className="px-4 pb-4">{children}</div>}
+          {count > 0 && (
+            <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs font-medium">
+              {count}
+            </span>
+          )}
+        </button>
+      </div>
+      {isOpen && <div className="px-4 pb-3">{children}</div>}
     </div>
   );
 }
@@ -396,7 +398,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
       </div>
 
       {/* Filter Sections - Scrollable */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto p-1" tabIndex={-1}>
         {/* LOCATION SECTION */}
         <CollapsibleSection
           title="Location"

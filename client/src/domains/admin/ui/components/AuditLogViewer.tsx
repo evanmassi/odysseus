@@ -57,7 +57,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   });
 
   const [showFilters, setShowFilters] = useState(false);
-  const [tempFilters, setTempFilters] = useState<AuditFilterState>({});
+  const [filterState, setFilterState] = useState<AuditFilterState>({});
   const [includeArchive, setIncludeArchive] = useState(false);
 
   // Load audit log entries
@@ -80,32 +80,37 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     void loadAuditLog();
   }, [loadAuditLog]);
 
-  // Apply filters - convert multi-select to single action for backend
-  const applyFilters = () => {
-    const newFilters: AuditLogFilters = {
-      limit: filters.limit,
-      offset: 0,
-      username: tempFilters.username,
-      action: tempFilters.actions?.[0], // Backend only supports single action currently
-      entityType: tempFilters.entityTypes?.[0], // Backend only supports single entity type currently
-      dateFrom: tempFilters.dateFrom,
-      dateTo: tempFilters.dateTo,
-    };
-    setFilters(newFilters);
-    setShowFilters(false);
-    onFiltersChange?.(newFilters);
-  };
+  // Handle filter changes - apply immediately
+  const handleFilterChange = useCallback(
+    (newFilterState: AuditFilterState) => {
+      setFilterState(newFilterState);
+
+      // Convert filter state to API filters and apply immediately
+      const newFilters: AuditLogFilters = {
+        limit: filters.limit,
+        offset: 0,
+        username: newFilterState.username,
+        action: newFilterState.actions?.[0], // Backend only supports single action currently
+        entityType: newFilterState.entityTypes?.[0], // Backend only supports single entity type currently
+        dateFrom: newFilterState.dateFrom,
+        dateTo: newFilterState.dateTo,
+      };
+      setFilters(newFilters);
+      onFiltersChange?.(newFilters);
+    },
+    [filters.limit, onFiltersChange]
+  );
 
   // Clear filters
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     const resetFilters = {
       limit: 50,
       offset: 0,
     };
     setFilters(resetFilters);
-    setTempFilters({});
+    setFilterState({});
     onFiltersChange?.(resetFilters);
-  };
+  }, [onFiltersChange]);
 
   // Pagination
   const goToNextPage = () => {
@@ -130,9 +135,8 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-      hour: '2-digit',
+      hour: 'numeric',
       minute: '2-digit',
-      second: '2-digit',
     });
   };
 
@@ -165,11 +169,19 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     if (action.includes('moved')) return 'badge-action-moved';
     if (action.includes('deleted')) return 'badge-action-deleted';
     if (action.includes('deactivated')) return 'badge-action-deleted';
-    if (action.includes('unlinked')) return 'badge-action-logout';
+    if (action.includes('unlinked')) return 'badge-action-unlinked';
     if (action.includes('logged_in')) return 'badge-action-login';
     if (action.includes('logged_out')) return 'badge-action-logout';
-    if (action.includes('linked')) return 'badge-action-login';
-    if (action.includes('reactivated')) return 'badge-action-login';
+    if (action.includes('linked')) return 'badge-action-linked';
+    if (action.includes('reactivated')) return 'badge-action-created';
+    if (action.includes('approved')) return 'badge-action-created';
+    if (action.includes('assigned')) return 'badge-action-linked';
+    if (action.includes('unassigned')) return 'badge-action-unlinked';
+    if (action.includes('reassigned')) return 'badge-action-moved';
+    if (action.includes('locked')) return 'badge-action-logout';
+    if (action.includes('unlocked')) return 'badge-action-login';
+    if (action.includes('shared')) return 'badge-action-linked';
+    if (action.includes('revoked')) return 'badge-action-unlinked';
     return 'badge-action-default';
   };
 
@@ -187,6 +199,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     if (entityType === 'rack') return 'badge-entity-rack';
     if (entityType === 'box') return 'badge-entity-box';
     if (entityType === 'lab') return 'badge-entity-lab';
+    if (entityType === 'configuration') return 'badge-entity-configuration';
     return 'badge-entity-default';
   };
 
@@ -210,8 +223,8 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     }
   };
 
-  const hasActiveFilters = Object.keys(tempFilters).some(
-    key => key !== 'datePreset' && tempFilters[key as keyof AuditFilterState]
+  const hasActiveFilters = Object.keys(filterState).some(
+    key => key !== 'datePreset' && filterState[key as keyof AuditFilterState]
   );
 
   const currentPage = Math.floor((filters.offset ?? 0) / (filters.limit ?? 50)) + 1;
@@ -277,9 +290,9 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
       {/* Filter Panel */}
       {showFilters && (
         <AuditLogFilterPanel
-          filters={tempFilters}
-          onChange={setTempFilters}
-          onApply={applyFilters}
+          filters={filterState}
+          onChange={handleFilterChange}
+          onApply={clearFilters}
           onClear={clearFilters}
         />
       )}
@@ -307,19 +320,24 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                     Timestamp
                   </th>
                   <th className="px-2 py-2 text-left font-semibold text-gray-700 w-24">User</th>
+                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-24">Action</th>
                   <th className="px-2 py-2 text-left font-semibold text-gray-700 w-20">Item</th>
                   <th className="px-2 py-2 text-left font-semibold text-gray-700">Details</th>
-                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-24">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {entries.map(entry => (
                   <tr key={entry.id} className="hover:bg-gray-50">
-                    <td className="px-2 py-2 whitespace-nowrap text-gray-600">
+                    <td className="px-2 py-2 whitespace-nowrap text-gray-500 text-[11px]">
                       {formatTimestamp(entry.timestamp)}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
                       <span className="font-medium text-gray-900">{entry.username}</span>
+                    </td>
+                    <td className="px-2 py-2 whitespace-nowrap">
+                      <span className={getActionBadgeClass(entry.action)}>
+                        {formatAction(entry.action)}
+                      </span>
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
                       {entry.entityType ? (
@@ -348,11 +366,6 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                     >
                       {formatAuditDetails(entry)}
                     </td>
-                    <td className="px-2 py-2 whitespace-nowrap">
-                      <span className={getActionBadgeClass(entry.action)}>
-                        {formatAction(entry.action)}
-                      </span>
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -379,7 +392,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
             <button
               onClick={goToPreviousPage}
               disabled={(filters.offset ?? 0) === 0}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed focus-ring-default"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -391,7 +404,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
             <button
               onClick={goToNextPage}
               disabled={!pagination?.hasMore}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed focus-ring-default"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

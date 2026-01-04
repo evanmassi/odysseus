@@ -1,4 +1,4 @@
-import { useState, lazy, useEffect, useRef } from 'react';
+import { useState, lazy, useEffect, useRef, useCallback } from 'react';
 
 import {
   LogOut,
@@ -112,8 +112,9 @@ export function AppHeader({
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
 
-  // Ref for hamburger menu to detect outside clicks
+  // Refs for hamburger menu
   const hamburgerMenuRef = useRef<HTMLDivElement>(null);
+  const hamburgerButtonRef = useRef<HTMLButtonElement>(null);
 
   // Close hamburger menu when clicking outside
   useEffect(() => {
@@ -128,6 +129,50 @@ export function AppHeader({
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showHamburgerMenu]);
+
+  // Keyboard navigation for hamburger menu (WAI-ARIA Menu Button pattern)
+  const handleMenuKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      setShowHamburgerMenu(false);
+      hamburgerButtonRef.current?.focus();
+      return;
+    }
+
+    // Arrow key navigation between menu items
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const items = hamburgerMenuRef.current?.querySelectorAll<HTMLElement>(
+        'button[role="menuitem"]:not([disabled])'
+      );
+      if (!items?.length) return;
+
+      const currentIndex = Array.from(items).findIndex(item => item === document.activeElement);
+      const nextIndex =
+        e.key === 'ArrowDown'
+          ? (currentIndex + 1) % items.length
+          : (currentIndex - 1 + items.length) % items.length;
+      items[nextIndex].focus();
+    }
+
+    // Home/End keys for first/last item
+    if (e.key === 'Home' || e.key === 'End') {
+      e.preventDefault();
+      const items = hamburgerMenuRef.current?.querySelectorAll<HTMLElement>(
+        'button[role="menuitem"]:not([disabled])'
+      );
+      if (!items?.length) return;
+      items[e.key === 'Home' ? 0 : items.length - 1].focus();
+    }
+  }, []);
+
+  // Close menu when focus leaves the dropdown
+  const handleMenuBlur = useCallback((e: React.FocusEvent) => {
+    // relatedTarget is the element receiving focus
+    // Only close if focus is moving outside the menu container
+    if (!hamburgerMenuRef.current?.contains(e.relatedTarget as Node)) {
+      setShowHamburgerMenu(false);
+    }
+  }, []);
 
   const handleLogout = () => {
     // Socket cleanup is now handled centrally by AppBootstrapService
@@ -363,15 +408,26 @@ export function AppHeader({
           {/* Hamburger Menu */}
           <div className="relative" ref={hamburgerMenuRef}>
             <button
+              ref={hamburgerButtonRef}
               onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
               className="btn-header-ghost p-1.5"
+              aria-haspopup="menu"
+              aria-expanded={showHamburgerMenu}
+              aria-label="Main menu"
             >
               <Menu size={20} />
             </button>
 
-            {/* Hamburger Menu Dropdown - Windows 11 style like context menu */}
+            {/* Hamburger Menu Dropdown - WAI-ARIA Menu Button pattern */}
             {showHamburgerMenu && (
-              <div className="absolute top-10 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-50 min-w-48">
+              <div
+                role="menu"
+                aria-label="Main menu"
+                tabIndex={-1}
+                onKeyDown={handleMenuKeyDown}
+                onBlur={handleMenuBlur}
+                className="absolute top-10 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-50 min-w-48 p-1"
+              >
                 {/* User Info at Top */}
                 {isAuthenticated && user && (
                   <div className="px-3 py-2 mb-1">
@@ -388,11 +444,12 @@ export function AppHeader({
                 <div className="px-1">
                   <button
                     {...userSettingsTriggerProps}
+                    role="menuitem"
                     onClick={() => {
                       setShowUserSettings(true);
                       setShowHamburgerMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors focus-ring-default"
                   >
                     <Settings size={16} className="text-gray-400" />
                     <span>{user?.role === 'admin' ? 'User Settings' : 'Settings'}</span>
@@ -401,11 +458,12 @@ export function AppHeader({
                   {/* Storage Management */}
                   <button
                     {...storageManagementTriggerProps}
+                    role="menuitem"
                     onClick={() => {
                       setShowStorageManagement(true);
                       setShowHamburgerMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors focus-ring-default"
                   >
                     <TankIcon size={16} className="text-gray-400" />
                     <span>Manage Storage</span>
@@ -415,11 +473,12 @@ export function AppHeader({
                   {user?.role === 'admin' && (
                     <button
                       {...adminSettingsTriggerProps}
+                      role="menuitem"
                       onClick={() => {
                         setShowAdminPanel(true);
                         setShowHamburgerMenu(false);
                       }}
-                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors focus-ring-default"
                     >
                       <ShieldUser size={16} className="text-gray-400" />
                       <span>Admin Settings</span>
@@ -432,11 +491,12 @@ export function AppHeader({
                 {/* Logout */}
                 <div className="px-1">
                   <button
+                    role="menuitem"
                     onClick={() => {
                       handleLogout();
                       setShowHamburgerMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors focus-ring-default"
                   >
                     <LogOut size={16} className="text-gray-400" />
                     <span>Logout</span>

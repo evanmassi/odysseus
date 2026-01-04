@@ -213,5 +213,19 @@
     /* Legacy compatibility - will be phased out */
     --action-focus: var(--color-action-focus);
     --action-focus-glow: color-mix(in srgb, var(--color-action-focus) 70%, transparent);
+
+    /* Audit Log - Entity Colors */
+    --color-audit-entity-tube: var(--color-ice-500); /* #93c5f8 - Sky blue */
+    --color-audit-entity-storage: var(--color-storage-tank-bg); /* #5987b6 - Steel blue */
+    --color-audit-entity-person: #737abd; /* Purple */
+    --color-audit-entity-system: #64748b; /* Slate */
+
+    /* Audit Log - Action Colors */
+    --color-audit-action-create: var(--color-success-bg); /* #22c55e - Green */
+    --color-audit-action-update: var(--color-info-bg); /* #3b82f6 - Blue */
+    --color-audit-action-delete: var(--color-danger-bg); /* #f76969 - Red */
+    --color-audit-action-move: var(--color-warning-bg); /* #eab308 - Amber */
+    --color-audit-action-auth: #64748b; /* Slate */
+    --color-audit-action-link: var(--color-share-bg); /* #6366f1 - Indigo */
   }
 }
