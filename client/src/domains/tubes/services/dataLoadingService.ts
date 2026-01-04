@@ -82,7 +82,7 @@ export class DataLoadingService {
   /**
    * Execute the actual data load
    */
-  private async executeLoad(request: LoadingRequest): Promise<LoadingResult> {
+  private async executeLoad(_request: LoadingRequest): Promise<LoadingResult> {
     if (this.isLoading) {
       return { success: false, error: 'Load in progress', dataCount: 0, loadTime: 0 };
     }

@@ -43,13 +43,15 @@ import {
   UserLoggedInEvent,
   UserLoggedOutEvent,
   UserLinkedToResearcherEvent,
-  UserUnlinkedFromResearcherEvent
+  UserUnlinkedFromResearcherEvent,
+  UserApprovedEvent
 } from '@domain/events/UserEvents';
 import {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
-  ResearcherReactivatedEvent
+  ResearcherReactivatedEvent,
+  ResearcherDeletedEvent
 } from '@domain/events/ResearcherEvents';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
@@ -133,12 +135,14 @@ export class AuditEventHandler {
     this.eventBus.subscribe('UserLoggedOut', this.handleUserLoggedOut.bind(this) as any);
     this.eventBus.subscribe('UserLinkedToResearcher', this.handleUserLinkedToResearcher.bind(this) as any);
     this.eventBus.subscribe('UserUnlinkedFromResearcher', this.handleUserUnlinkedFromResearcher.bind(this) as any);
+    this.eventBus.subscribe('UserApproved', this.handleUserApproved.bind(this) as any);
 
     // Researcher events
     this.eventBus.subscribe('ResearcherCreated', this.handleResearcherCreated.bind(this) as any);
     this.eventBus.subscribe('ResearcherUpdated', this.handleResearcherUpdated.bind(this) as any);
     this.eventBus.subscribe('ResearcherDeactivated', this.handleResearcherDeactivated.bind(this) as any);
     this.eventBus.subscribe('ResearcherReactivated', this.handleResearcherReactivated.bind(this) as any);
+    this.eventBus.subscribe('ResearcherDeleted', this.handleResearcherDeleted.bind(this) as any);
 
     logger.info('AuditEventHandler subscribed to domain events');
   }
@@ -1417,6 +1421,33 @@ export class AuditEventHandler {
     }
   }
 
+  private async handleResearcherDeleted(event: ResearcherDeletedEvent): Promise<void> {
+    try {
+      const user = await this.userRepository.findById(event.deletedBy);
+      const username = user?.username || event.deletedBy;
+      const fullName = `${event.firstName} ${event.lastName}`;
+
+      await this.auditService.logAction({
+        userId: event.deletedBy,
+        username: username,
+        action: 'researcher_deleted',
+        entityType: 'researcher',
+        entityId: event.researcherId,
+        details: {
+          researcherId: event.researcherId,
+          researcherName: fullName,
+          deletedBy: username,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log researcher deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        researcherId: event.researcherId,
+      });
+    }
+  }
+
   // USER EVENT HANDLERS
 
   private async handleUserCreated(event: UserCreatedEvent): Promise<void> {
@@ -1614,6 +1645,31 @@ export class AuditEventHandler {
     }
   }
 
+  private async handleUserApproved(event: UserApprovedEvent): Promise<void> {
+    try {
+      const approvedByUser = await this.userRepository.findById(event.approvedBy);
+      const approvedByUsername = approvedByUser?.username || event.approvedBy;
+
+      await this.auditService.logAction({
+        userId: event.approvedBy,
+        username: approvedByUsername,
+        action: 'user_approved',
+        entityType: 'user',
+        entityId: event.userId,
+        details: {
+          username: event.username,
+          approvedBy: approvedByUsername,
+          timestamp: event.occurredOn.toISOString(),
+        },
+      });
+    } catch (error) {
+      logger.error('Failed to log user approved event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId,
+      });
+    }
+  }
+
   /**
    * Unsubscribe from all events (cleanup)
    *
@@ -1663,11 +1719,13 @@ export class AuditEventHandler {
     this.eventBus.unsubscribe('UserLoggedOut', this.handleUserLoggedOut.bind(this) as any);
     this.eventBus.unsubscribe('UserLinkedToResearcher', this.handleUserLinkedToResearcher.bind(this) as any);
     this.eventBus.unsubscribe('UserUnlinkedFromResearcher', this.handleUserUnlinkedFromResearcher.bind(this) as any);
+    this.eventBus.unsubscribe('UserApproved', this.handleUserApproved.bind(this) as any);
 
     this.eventBus.unsubscribe('ResearcherCreated', this.handleResearcherCreated.bind(this) as any);
     this.eventBus.unsubscribe('ResearcherUpdated', this.handleResearcherUpdated.bind(this) as any);
     this.eventBus.unsubscribe('ResearcherDeactivated', this.handleResearcherDeactivated.bind(this) as any);
     this.eventBus.unsubscribe('ResearcherReactivated', this.handleResearcherReactivated.bind(this) as any);
+    this.eventBus.unsubscribe('ResearcherDeleted', this.handleResearcherDeleted.bind(this) as any);
 
     logger.info('AuditEventHandler unsubscribed from events');
   }

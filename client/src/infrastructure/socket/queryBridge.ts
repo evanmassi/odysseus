@@ -161,6 +161,36 @@ const userEventSchemas = {
     deletedBy: z.string(),
     updatedAt: z.string(),
   }),
+  user_role_changed: z.object({
+    userId: z.string(),
+    username: z.string(),
+    oldRole: z.string(),
+    newRole: z.string(),
+    changedBy: z.string(),
+    updatedAt: z.string(),
+  }),
+  user_created: z.object({
+    userId: z.string(),
+    username: z.string(),
+    role: z.string(),
+    updatedAt: z.string(),
+  }),
+  user_linked_to_researcher: z.object({
+    userId: z.string(),
+    username: z.string(),
+    researcherId: z.string(),
+    researcherName: z.string(),
+    linkedBy: z.string(),
+    updatedAt: z.string(),
+  }),
+  user_unlinked_from_researcher: z.object({
+    userId: z.string(),
+    username: z.string(),
+    researcherId: z.string(),
+    researcherName: z.string(),
+    unlinkedBy: z.string(),
+    updatedAt: z.string(),
+  }),
 } as const;
 
 /**
@@ -330,15 +360,25 @@ export class SocketQueryBridge {
 
         // Invalidate old location query
         void this.queryClient.invalidateQueries({
-          queryKey: queryKeys.tubes.location(oldLocation.tankId, oldLocation.rackId, oldLocation.boxId),
+          queryKey: queryKeys.tubes.location(
+            oldLocation.tankId,
+            oldLocation.rackId,
+            oldLocation.boxId
+          ),
         });
 
         // Invalidate new location query (if different)
-        if (oldLocation.tankId !== newLocation.tankId ||
-            oldLocation.rackId !== newLocation.rackId ||
-            oldLocation.boxId !== newLocation.boxId) {
+        if (
+          oldLocation.tankId !== newLocation.tankId ||
+          oldLocation.rackId !== newLocation.rackId ||
+          oldLocation.boxId !== newLocation.boxId
+        ) {
           void this.queryClient.invalidateQueries({
-            queryKey: queryKeys.tubes.location(newLocation.tankId, newLocation.rackId, newLocation.boxId),
+            queryKey: queryKeys.tubes.location(
+              newLocation.tankId,
+              newLocation.rackId,
+              newLocation.boxId
+            ),
           });
         }
 
@@ -551,6 +591,63 @@ export class SocketQueryBridge {
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
       } catch (error) {
         logger.error('Invalid user_deleted event', { error });
+      }
+    });
+
+    // User Role Changed - invalidate user queries so role change is reflected
+    this.socket.on('user_role_changed', (data: unknown) => {
+      try {
+        userEventSchemas.user_role_changed.parse(data);
+
+        // Invalidate user list and admin queries
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
+      } catch (error) {
+        logger.error('Invalid user_role_changed event', { error });
+      }
+    });
+
+    // User Created - invalidate admin queries so new pending user appears
+    this.socket.on('user_created', (data: unknown) => {
+      try {
+        userEventSchemas.user_created.parse(data);
+
+        // Invalidate admin users query (new user appears in pending list)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
+      } catch (error) {
+        logger.error('Invalid user_created event', { error });
+      }
+    });
+
+    // User Linked to Researcher - invalidate user and researcher queries
+    this.socket.on('user_linked_to_researcher', (data: unknown) => {
+      try {
+        userEventSchemas.user_linked_to_researcher.parse(data);
+
+        // Invalidate user queries (user now has researcher link)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
+
+        // Invalidate researcher queries (researcher now linked to user)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+      } catch (error) {
+        logger.error('Invalid user_linked_to_researcher event', { error });
+      }
+    });
+
+    // User Unlinked from Researcher - invalidate user and researcher queries
+    this.socket.on('user_unlinked_from_researcher', (data: unknown) => {
+      try {
+        userEventSchemas.user_unlinked_from_researcher.parse(data);
+
+        // Invalidate user queries (user no longer has researcher link)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
+
+        // Invalidate researcher queries (researcher no longer linked to user)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+      } catch (error) {
+        logger.error('Invalid user_unlinked_from_researcher event', { error });
       }
     });
   }

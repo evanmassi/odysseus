@@ -34,7 +34,14 @@ import {
   BoxUnassignedEvent,
   BoxReassignedEvent
 } from '@domain/events/ConfigurationEvents';
-import { UserApprovedEvent, UserDeletedEvent } from '@domain/events/UserEvents';
+import {
+  UserApprovedEvent,
+  UserDeletedEvent,
+  UserRoleChangedEvent,
+  UserCreatedEvent,
+  UserLinkedToResearcherEvent,
+  UserUnlinkedFromResearcherEvent
+} from '@domain/events/UserEvents';
 import {
   TubeCreatedEvent,
   TubeUpdatedEvent,
@@ -107,6 +114,10 @@ export class SocketEventHandler {
     // User events
     this.eventBus.subscribe('UserApproved', this.handleUserApproved.bind(this) as Handler);
     this.eventBus.subscribe('UserDeleted', this.handleUserDeleted.bind(this) as Handler);
+    this.eventBus.subscribe('UserRoleChanged', this.handleUserRoleChanged.bind(this) as Handler);
+    this.eventBus.subscribe('UserCreated', this.handleUserCreated.bind(this) as Handler);
+    this.eventBus.subscribe('UserLinkedToResearcher', this.handleUserLinkedToResearcher.bind(this) as Handler);
+    this.eventBus.subscribe('UserUnlinkedFromResearcher', this.handleUserUnlinkedFromResearcher.bind(this) as Handler);
 
     // Tube CRUD events
     this.eventBus.subscribe('TubeCreated', this.handleTubeCreated.bind(this) as Handler);
@@ -484,6 +495,106 @@ export class SocketEventHandler {
       this.io.emit('user_deleted', payload);
     } catch (error) {
       logger.error('Failed to emit user_deleted event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId
+      });
+    }
+  }
+
+  private async handleUserRoleChanged(event: UserRoleChangedEvent): Promise<void> {
+    try {
+      const payload = {
+        userId: event.userId,
+        username: event.username,
+        oldRole: event.oldRole.value,
+        newRole: event.newRole.value,
+        changedBy: event.changedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting user_role_changed socket event', {
+        userId: event.userId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('user_role_changed', payload);
+    } catch (error) {
+      logger.error('Failed to emit user_role_changed event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId
+      });
+    }
+  }
+
+  private async handleUserCreated(event: UserCreatedEvent): Promise<void> {
+    try {
+      const payload = {
+        userId: event.userId,
+        username: event.username,
+        role: event.role.value,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting user_created socket event', {
+        userId: event.userId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('user_created', payload);
+    } catch (error) {
+      logger.error('Failed to emit user_created event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId
+      });
+    }
+  }
+
+  private async handleUserLinkedToResearcher(event: UserLinkedToResearcherEvent): Promise<void> {
+    try {
+      const payload = {
+        userId: event.userId,
+        username: event.username,
+        researcherId: event.researcherId,
+        researcherName: event.researcherName,
+        linkedBy: event.linkedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting user_linked_to_researcher socket event', {
+        userId: event.userId,
+        researcherId: event.researcherId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('user_linked_to_researcher', payload);
+    } catch (error) {
+      logger.error('Failed to emit user_linked_to_researcher event', {
+        error: error instanceof Error ? error.message : String(error),
+        userId: event.userId
+      });
+    }
+  }
+
+  private async handleUserUnlinkedFromResearcher(event: UserUnlinkedFromResearcherEvent): Promise<void> {
+    try {
+      const payload = {
+        userId: event.userId,
+        username: event.username,
+        researcherId: event.researcherId,
+        researcherName: event.researcherName,
+        unlinkedBy: event.unlinkedBy,
+        updatedAt: new Date().toISOString()
+      };
+
+      logger.debug('Emitting user_unlinked_from_researcher socket event', {
+        userId: event.userId,
+        researcherId: event.researcherId,
+        connectedClients: this.io.sockets.sockets.size
+      });
+
+      this.io.emit('user_unlinked_from_researcher', payload);
+    } catch (error) {
+      logger.error('Failed to emit user_unlinked_from_researcher event', {
         error: error instanceof Error ? error.message : String(error),
         userId: event.userId
       });
