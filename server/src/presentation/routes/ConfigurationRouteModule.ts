@@ -208,12 +208,190 @@ export class ConfigurationRouteModule implements RouteModule {
       this.configurationController.importConfiguration.bind(this.configurationController)
     );
 
+    // CQRS TANK ROUTES (Admin Only)
+
+    /**
+     * POST /api/configuration/tanks
+     * Add a new tank
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.post('/tanks',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.addTank.bind(this.configurationController)
+    );
+
+    /**
+     * PUT /api/configuration/tanks/:tankId
+     * Update a tank
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.put('/tanks/:tankId',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.updateTank.bind(this.configurationController)
+    );
+
+    /**
+     * DELETE /api/configuration/tanks/:tankId
+     * Delete a tank (blocked if tubes exist)
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.delete('/tanks/:tankId',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.deleteTank.bind(this.configurationController)
+    );
+
+    // CQRS RACK ROUTES (Admin Only)
+
+    /**
+     * POST /api/configuration/tanks/:tankId/racks
+     * Add rack(s) to a tank (supports bulk via count parameter)
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.post('/tanks/:tankId/racks',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.addRacks.bind(this.configurationController)
+    );
+
+    /**
+     * PUT /api/configuration/tanks/:tankId/racks/:rackId
+     * Update a rack
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.put('/tanks/:tankId/racks/:rackId',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.updateRack.bind(this.configurationController)
+    );
+
+    /**
+     * DELETE /api/configuration/tanks/:tankId/racks/:rackId
+     * Delete a rack (blocked if tubes exist)
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.delete('/tanks/:tankId/racks/:rackId',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.deleteRack.bind(this.configurationController)
+    );
+
+    /**
+     * PUT /api/configuration/tanks/:tankId/racks/:rackId/assign
+     * Assign or unassign a rack to a user
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.put('/tanks/:tankId/racks/:rackId/assign',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.assignRack.bind(this.configurationController)
+    );
+
+    // CQRS BOX ROUTES (Admin Only)
+
+    /**
+     * POST /api/configuration/tanks/:tankId/racks/:rackId/boxes
+     * Add box(es) to a rack (supports bulk via count parameter)
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.post('/tanks/:tankId/racks/:rackId/boxes',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.addBoxes.bind(this.configurationController)
+    );
+
+    /**
+     * PUT /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId
+     * Update a box
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.put('/tanks/:tankId/racks/:rackId/boxes/:boxId',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.updateBox.bind(this.configurationController)
+    );
+
+    /**
+     * DELETE /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId
+     * Delete a box (blocked if tubes exist)
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.delete('/tanks/:tankId/racks/:rackId/boxes/:boxId',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.deleteBox.bind(this.configurationController)
+    );
+
+    /**
+     * PUT /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId/assign
+     * Assign or unassign a box to a user
+     *
+     * Access: Admin users only
+     * Used by: Storage management modal
+     */
+    router.put('/tanks/:tankId/racks/:rackId/boxes/:boxId/assign',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.assignBox.bind(this.configurationController)
+    );
+
+    // BULK ASSIGNMENT ROUTES (Admin Only)
+
+    /**
+     * POST /api/configuration/bulk-unassign
+     * Unassign all resources from a user
+     *
+     * Access: Admin users only
+     * Used by: User deactivation workflow
+     */
+    router.post('/bulk-unassign',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.bulkUnassignResources.bind(this.configurationController)
+    );
+
+    /**
+     * POST /api/configuration/bulk-reassign
+     * Reassign all resources from one user to another
+     *
+     * Access: Admin users only
+     * Used by: User management, resource transfer
+     */
+    router.post('/bulk-reassign',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.bulkReassignResources.bind(this.configurationController)
+    );
+
+    // INITIALIZE ROUTE (Admin Only)
+
+    /**
+     * POST /api/configuration/initialize
+     * Initialize configuration for fresh install
+     *
+     * Access: Admin users only
+     * Used by: First-time setup wizard
+     */
+    router.post('/initialize',
+      this.requireAdminPermission.bind(this),
+      this.configurationController.initializeConfiguration.bind(this.configurationController)
+    );
+
     // EXPORT ROUTES
 
     /**
      * GET /api/configuration/export
      * Export current configuration as JSON
-     * 
+     *
      * Access: Admin users only
      * Used by: Configuration backup, migration preparation
      */
@@ -227,7 +405,7 @@ export class ConfigurationRouteModule implements RouteModule {
    * Get route count for monitoring
    */
   getRouteCount(): number {
-    return 12; // Total number of routes configured
+    return 26; // Total number of routes configured (12 original + 14 CQRS)
   }
 
   // MIDDLEWARE FUNCTIONS

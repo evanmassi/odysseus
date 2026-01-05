@@ -15,6 +15,28 @@ import {
   UpdateLabDefaultPositionDisplayCommandHandler,
   UpdateResourceLabelCommandHandler
 } from '@application/commands/ConfigurationCommands';
+import {
+  AddTankCommandHandler,
+  UpdateTankCommandHandler,
+  DeleteTankCommandHandler
+} from '@application/commands/TankCommands';
+import {
+  AddRacksCommandHandler,
+  UpdateRackCommandHandler,
+  DeleteRackCommandHandler,
+  AssignRackCommandHandler
+} from '@application/commands/RackCommands';
+import {
+  AddBoxesCommandHandler,
+  UpdateBoxCommandHandler,
+  DeleteBoxCommandHandler,
+  AssignBoxCommandHandler
+} from '@application/commands/BoxCommands';
+import {
+  BulkUnassignResourcesCommandHandler,
+  BulkReassignResourcesCommandHandler
+} from '@application/commands/BulkAssignmentCommands';
+import { InitializeConfigurationCommandHandler } from '@application/commands/InitializeConfigurationCommand';
 import { POSITION_DISPLAY_PRESETS } from '@odysseus/shared-schemas';
 // import { ApiError } from '../../shared/errors/ApiError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -39,7 +61,7 @@ import { ConfigurationDto } from '@application/dto/ConfigurationDto';
  * - GET /api/configuration/health - Configuration health check
  */
 export class ConfigurationController {
-  
+
   constructor(
     // Query handlers
     private getCurrentConfigurationHandler: GetCurrentConfigurationQueryHandler,
@@ -47,7 +69,7 @@ export class ConfigurationController {
     private getConfigurationByVersionHandler: GetConfigurationByVersionQueryHandler,
     private checkConfigurationHealthHandler: CheckConfigurationHealthQueryHandler,
 
-    // Command handlers
+    // Command handlers (legacy)
     private updateSystemConfigurationHandler: UpdateSystemConfigurationCommandHandler,
     private updateEquipmentConfigurationHandler: UpdateEquipmentConfigurationCommandHandler,
     private resetConfigurationHandler: ResetConfigurationToDefaultCommandHandler,
@@ -55,7 +77,23 @@ export class ConfigurationController {
     private updateConfigurationHandler: UpdateConfigurationCommandHandler,
     private updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler,
     private updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler,
-    private updateResourceLabelHandler: UpdateResourceLabelCommandHandler
+    private updateResourceLabelHandler: UpdateResourceLabelCommandHandler,
+
+    // CQRS command handlers (new)
+    private addTankHandler: AddTankCommandHandler,
+    private updateTankHandler: UpdateTankCommandHandler,
+    private deleteTankHandler: DeleteTankCommandHandler,
+    private addRacksHandler: AddRacksCommandHandler,
+    private updateRackHandler: UpdateRackCommandHandler,
+    private deleteRackHandler: DeleteRackCommandHandler,
+    private assignRackHandler: AssignRackCommandHandler,
+    private addBoxesHandler: AddBoxesCommandHandler,
+    private updateBoxHandler: UpdateBoxCommandHandler,
+    private deleteBoxHandler: DeleteBoxCommandHandler,
+    private assignBoxHandler: AssignBoxCommandHandler,
+    private bulkUnassignHandler: BulkUnassignResourcesCommandHandler,
+    private bulkReassignHandler: BulkReassignResourcesCommandHandler,
+    private initializeConfigHandler: InitializeConfigurationCommandHandler
   ) {}
 
   // QUERY ENDPOINTS
@@ -497,6 +535,368 @@ export class ConfigurationController {
 
     } catch (error) {
       this.handleError(error, res, 'Failed to get position display presets');
+    }
+  }
+
+  // CQRS TANK ENDPOINTS
+
+  /**
+   * POST /api/configuration/tanks
+   * Add a new tank
+   */
+  async addTank(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { name, location } = req.body;
+
+      if (!name) {
+        res.status(400).json({
+          error: { code: 'INVALID_REQUEST', message: 'name is required' }
+        });
+        return;
+      }
+
+      const result = await this.addTankHandler.handle({ userId, name, location });
+
+      res.status(201).json({
+        success: true,
+        tankId: result.tankId,
+        message: `Tank '${name}' created`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to add tank');
+    }
+  }
+
+  /**
+   * PUT /api/configuration/tanks/:tankId
+   * Update a tank
+   */
+  async updateTank(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const tankId = req.params.tankId;
+      const { name, location, isActive } = req.body;
+
+      await this.updateTankHandler.handle({ userId, tankId, name, location, isActive });
+
+      res.json({
+        success: true,
+        message: `Tank '${tankId}' updated`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to update tank');
+    }
+  }
+
+  /**
+   * DELETE /api/configuration/tanks/:tankId
+   * Delete a tank
+   */
+  async deleteTank(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const tankId = req.params.tankId;
+
+      await this.deleteTankHandler.handle({ userId, tankId });
+
+      res.json({
+        success: true,
+        message: `Tank '${tankId}' deleted`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to delete tank');
+    }
+  }
+
+  // CQRS RACK ENDPOINTS
+
+  /**
+   * POST /api/configuration/tanks/:tankId/racks
+   * Add rack(s) to a tank
+   */
+  async addRacks(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const tankId = req.params.tankId;
+      const { count = 1 } = req.body;
+
+      const result = await this.addRacksHandler.handle({ userId, tankId, count });
+
+      res.status(201).json({
+        success: true,
+        rackIds: result.rackIds,
+        message: `${result.rackIds.length} rack(s) created`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to add rack(s)');
+    }
+  }
+
+  /**
+   * PUT /api/configuration/tanks/:tankId/racks/:rackId
+   * Update a rack
+   */
+  async updateRack(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { tankId, rackId } = req.params;
+      const { name, capacity, isActive } = req.body;
+
+      await this.updateRackHandler.handle({ userId, tankId, rackId, name, capacity, isActive });
+
+      res.json({
+        success: true,
+        message: `Rack '${rackId}' updated`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to update rack');
+    }
+  }
+
+  /**
+   * DELETE /api/configuration/tanks/:tankId/racks/:rackId
+   * Delete a rack
+   */
+  async deleteRack(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { tankId, rackId } = req.params;
+
+      await this.deleteRackHandler.handle({ userId, tankId, rackId });
+
+      res.json({
+        success: true,
+        message: `Rack '${rackId}' deleted`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to delete rack');
+    }
+  }
+
+  /**
+   * PUT /api/configuration/tanks/:tankId/racks/:rackId/assign
+   * Assign or unassign a rack
+   */
+  async assignRack(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { tankId, rackId } = req.params;
+      const { assignedUserId } = req.body;
+
+      await this.assignRackHandler.handle({
+        userId,
+        tankId,
+        rackId,
+        assignedUserId: assignedUserId ?? null
+      });
+
+      res.json({
+        success: true,
+        message: assignedUserId
+          ? `Rack '${rackId}' assigned to user`
+          : `Rack '${rackId}' unassigned`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to assign rack');
+    }
+  }
+
+  // CQRS BOX ENDPOINTS
+
+  /**
+   * POST /api/configuration/tanks/:tankId/racks/:rackId/boxes
+   * Add box(es) to a rack
+   */
+  async addBoxes(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { tankId, rackId } = req.params;
+      const { count = 1 } = req.body;
+
+      const result = await this.addBoxesHandler.handle({ userId, tankId, rackId, count });
+
+      res.status(201).json({
+        success: true,
+        boxIds: result.boxIds,
+        message: `${result.boxIds.length} box(es) created`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to add box(es)');
+    }
+  }
+
+  /**
+   * PUT /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId
+   * Update a box
+   */
+  async updateBox(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { tankId, rackId, boxId } = req.params;
+      const { name, gridConfig, positionDisplay, isActive } = req.body;
+
+      await this.updateBoxHandler.handle({
+        userId,
+        tankId,
+        rackId,
+        boxId,
+        name,
+        gridConfig,
+        positionDisplay,
+        isActive
+      });
+
+      res.json({
+        success: true,
+        message: `Box '${boxId}' updated`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to update box');
+    }
+  }
+
+  /**
+   * DELETE /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId
+   * Delete a box
+   */
+  async deleteBox(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { tankId, rackId, boxId } = req.params;
+
+      await this.deleteBoxHandler.handle({ userId, tankId, rackId, boxId });
+
+      res.json({
+        success: true,
+        message: `Box '${boxId}' deleted`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to delete box');
+    }
+  }
+
+  /**
+   * PUT /api/configuration/tanks/:tankId/racks/:rackId/boxes/:boxId/assign
+   * Assign or unassign a box
+   */
+  async assignBox(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { tankId, rackId, boxId } = req.params;
+      const { assignedUserId } = req.body;
+
+      await this.assignBoxHandler.handle({
+        userId,
+        tankId,
+        rackId,
+        boxId,
+        assignedUserId: assignedUserId ?? null
+      });
+
+      res.json({
+        success: true,
+        message: assignedUserId
+          ? `Box '${boxId}' assigned to user`
+          : `Box '${boxId}' unassigned`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to assign box');
+    }
+  }
+
+  // BULK ASSIGNMENT ENDPOINTS
+
+  /**
+   * POST /api/configuration/bulk-unassign
+   * Unassign all resources from a user
+   */
+  async bulkUnassignResources(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { fromUserId } = req.body;
+
+      if (!fromUserId) {
+        res.status(400).json({
+          error: { code: 'INVALID_REQUEST', message: 'fromUserId is required' }
+        });
+        return;
+      }
+
+      const result = await this.bulkUnassignHandler.handle({ userId, fromUserId });
+
+      res.json({
+        success: true,
+        racksAffected: result.racksAffected,
+        boxesAffected: result.boxesAffected,
+        message: `Unassigned ${result.racksAffected} rack(s) and ${result.boxesAffected} box(es)`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to bulk unassign resources');
+    }
+  }
+
+  /**
+   * POST /api/configuration/bulk-reassign
+   * Reassign all resources from one user to another
+   */
+  async bulkReassignResources(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { fromUserId, toUserId } = req.body;
+
+      if (!fromUserId || !toUserId) {
+        res.status(400).json({
+          error: { code: 'INVALID_REQUEST', message: 'fromUserId and toUserId are required' }
+        });
+        return;
+      }
+
+      const result = await this.bulkReassignHandler.handle({ userId, fromUserId, toUserId });
+
+      res.json({
+        success: true,
+        racksAffected: result.racksAffected,
+        boxesAffected: result.boxesAffected,
+        message: `Reassigned ${result.racksAffected} rack(s) and ${result.boxesAffected} box(es)`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to bulk reassign resources');
+    }
+  }
+
+  // INITIALIZE ENDPOINT
+
+  /**
+   * POST /api/configuration/initialize
+   * Initialize configuration for fresh install
+   */
+  async initializeConfiguration(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { labName, tankCount, racksPerTank, boxesPerRack } = req.body;
+
+      if (!labName) {
+        res.status(400).json({
+          error: { code: 'INVALID_REQUEST', message: 'labName is required' }
+        });
+        return;
+      }
+
+      await this.initializeConfigHandler.handle({
+        userId,
+        labName,
+        tankCount,
+        racksPerTank,
+        boxesPerRack
+      });
+
+      res.status(201).json({
+        success: true,
+        message: `Configuration initialized for lab '${labName}'`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to initialize configuration');
     }
   }
 

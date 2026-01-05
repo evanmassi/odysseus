@@ -5,6 +5,12 @@ import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordComman
 import { UpdateSystemConfigurationCommandHandler, UpdateEquipmentConfigurationCommandHandler, ResetConfigurationToDefaultCommandHandler, ImportConfigurationCommandHandler, UpdateConfigurationCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/ConfigurationCommands';
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
+// CQRS CQRS Command Handlers - Storage Management
+import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler } from '@application/commands/TankCommands';
+import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
+import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
+import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
+import { InitializeConfigurationCommandHandler } from '@application/commands/InitializeConfigurationCommand';
 
 // CQRS Query Handlers
 import { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
@@ -89,6 +95,22 @@ export class ServiceContainer {
   private updateResourceLabelHandler?: UpdateResourceLabelCommandHandler;
   private updateUserSettingsHandler?: UpdateUserSettingsCommandHandler;
   private getUserSettingsHandler?: GetUserSettingsQueryHandler;
+
+  // CQRS Command Handlers - Storage Management (new)
+  private addTankHandler?: AddTankCommandHandler;
+  private updateTankHandler?: UpdateTankCommandHandler;
+  private deleteTankHandler?: DeleteTankCommandHandler;
+  private addRacksHandler?: AddRacksCommandHandler;
+  private updateRackHandler?: UpdateRackCommandHandler;
+  private deleteRackHandler?: DeleteRackCommandHandler;
+  private assignRackHandler?: AssignRackCommandHandler;
+  private addBoxesHandler?: AddBoxesCommandHandler;
+  private updateBoxHandler?: UpdateBoxCommandHandler;
+  private deleteBoxHandler?: DeleteBoxCommandHandler;
+  private assignBoxHandler?: AssignBoxCommandHandler;
+  private bulkUnassignHandler?: BulkUnassignResourcesCommandHandler;
+  private bulkReassignHandler?: BulkReassignResourcesCommandHandler;
+  private initializeConfigHandler?: InitializeConfigurationCommandHandler;
 
   // CQRS Query Handlers - User Domain
   private checkFirstTimeHandler?: CheckFirstTimeSetupQueryHandler;
@@ -455,6 +477,179 @@ export class ServiceContainer {
     return this.getUserSettingsHandler;
   }
 
+  // STORAGE MANAGEMENT COMMAND HANDLERS (new CQRS endpoints)
+
+  getAddTankHandler(): AddTankCommandHandler {
+    if (!this.addTankHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.addTankHandler = new AddTankCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.addTankHandler;
+  }
+
+  getUpdateTankHandler(): UpdateTankCommandHandler {
+    if (!this.updateTankHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.updateTankHandler = new UpdateTankCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.updateTankHandler;
+  }
+
+  getDeleteTankHandler(): DeleteTankCommandHandler {
+    if (!this.deleteTankHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.deleteTankHandler = new DeleteTankCommandHandler(
+        repositories.configurations,
+        repositories.tubes,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.deleteTankHandler;
+  }
+
+  getAddRacksHandler(): AddRacksCommandHandler {
+    if (!this.addRacksHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.addRacksHandler = new AddRacksCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.addRacksHandler;
+  }
+
+  getUpdateRackHandler(): UpdateRackCommandHandler {
+    if (!this.updateRackHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.updateRackHandler = new UpdateRackCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.updateRackHandler;
+  }
+
+  getDeleteRackHandler(): DeleteRackCommandHandler {
+    if (!this.deleteRackHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.deleteRackHandler = new DeleteRackCommandHandler(
+        repositories.configurations,
+        repositories.tubes,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.deleteRackHandler;
+  }
+
+  getAssignRackHandler(): AssignRackCommandHandler {
+    if (!this.assignRackHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.assignRackHandler = new AssignRackCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.assignRackHandler;
+  }
+
+  getAddBoxesHandler(): AddBoxesCommandHandler {
+    if (!this.addBoxesHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.addBoxesHandler = new AddBoxesCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.addBoxesHandler;
+  }
+
+  getUpdateBoxHandler(): UpdateBoxCommandHandler {
+    if (!this.updateBoxHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.updateBoxHandler = new UpdateBoxCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.updateBoxHandler;
+  }
+
+  getDeleteBoxHandler(): DeleteBoxCommandHandler {
+    if (!this.deleteBoxHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.deleteBoxHandler = new DeleteBoxCommandHandler(
+        repositories.configurations,
+        repositories.tubes,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.deleteBoxHandler;
+  }
+
+  getAssignBoxHandler(): AssignBoxCommandHandler {
+    if (!this.assignBoxHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.assignBoxHandler = new AssignBoxCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.assignBoxHandler;
+  }
+
+  getBulkUnassignHandler(): BulkUnassignResourcesCommandHandler {
+    if (!this.bulkUnassignHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.bulkUnassignHandler = new BulkUnassignResourcesCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.bulkUnassignHandler;
+  }
+
+  getBulkReassignHandler(): BulkReassignResourcesCommandHandler {
+    if (!this.bulkReassignHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.bulkReassignHandler = new BulkReassignResourcesCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.bulkReassignHandler;
+  }
+
+  getInitializeConfigHandler(): InitializeConfigurationCommandHandler {
+    if (!this.initializeConfigHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.initializeConfigHandler = new InitializeConfigurationCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.initializeConfigHandler;
+  }
+
   // CQRS QUERY HANDLERS
 
   getCheckFirstTimeHandler(): CheckFirstTimeSetupQueryHandler {
@@ -594,7 +789,7 @@ export class ServiceContainer {
         this.getGetConfigurationByVersionHandler(),
         this.getGetCheckConfigurationHealthHandler(),
 
-        // Command handlers (second per constructor)
+        // Command handlers (legacy)
         this.getUpdateSystemConfigurationHandler(),
         this.getUpdateEquipmentConfigurationHandler(),
         this.getResetConfigurationToDefaultHandler(),
@@ -602,7 +797,23 @@ export class ServiceContainer {
         this.getUpdateConfigurationHandler(),
         this.getUpdateBoxPositionDisplayHandler(),
         this.getUpdateLabDefaultPositionDisplayHandler(),
-        this.getUpdateResourceLabelHandler()
+        this.getUpdateResourceLabelHandler(),
+
+        // CQRS command handlers (new)
+        this.getAddTankHandler(),
+        this.getUpdateTankHandler(),
+        this.getDeleteTankHandler(),
+        this.getAddRacksHandler(),
+        this.getUpdateRackHandler(),
+        this.getDeleteRackHandler(),
+        this.getAssignRackHandler(),
+        this.getAddBoxesHandler(),
+        this.getUpdateBoxHandler(),
+        this.getDeleteBoxHandler(),
+        this.getAssignBoxHandler(),
+        this.getBulkUnassignHandler(),
+        this.getBulkReassignHandler(),
+        this.getInitializeConfigHandler()
       );
     }
     return this.configurationController;

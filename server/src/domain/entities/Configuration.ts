@@ -190,8 +190,15 @@ export class Configuration {
 
   /**
    * Business method: Add rack to tank
+   * @param initialBoxes - Optional boxes to include in the new rack (defaults to empty)
    */
-  addRack(tankId: string, rackId: string | number, rackName: string, maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK): Rack {
+  addRack(
+    tankId: string,
+    rackId: string | number,
+    rackName: string,
+    maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
+    initialBoxes: Box[] = []
+  ): Rack {
     const tankIndex = this._equipment.tanks.findIndex(t => t.id === tankId);
     if (tankIndex === -1) {
       throw new ValidationError(`Tank '${tankId}' not found`);
@@ -209,7 +216,7 @@ export class Configuration {
       throw new ValidationError(`Rack ${rackId} already exists in tank '${tankId}'`);
     }
 
-    const newRack = Rack.create(rackIdStr, rackName, [], maxBoxes, maxBoxes, true);
+    const newRack = Rack.create(rackIdStr, rackName, initialBoxes, maxBoxes, maxBoxes, true);
 
     // Recreate tank with new rack
     const updatedTank = Tank.create(
