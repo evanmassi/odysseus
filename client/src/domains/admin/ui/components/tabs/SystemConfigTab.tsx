@@ -2,6 +2,7 @@
  * System Configuration Tab Component
  *
  * Provides admin interface for viewing system configuration including:
+ * - Lab name configuration
  * - System statistics (tubes, users, researchers, backups)
  * - Audit settings (logging configuration)
  *
@@ -10,7 +11,13 @@
  * @module admin/ui/components/tabs
  */
 
-import { Gauge } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+
+import { Gauge, FlaskConical, Check, X } from 'lucide-react';
+
+import { httpClient } from '@infra/api/httpClient';
+import { useCurrentLab, useStorageStore } from '@domains/storage';
+import { notifications } from '@shared/utils';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
@@ -48,12 +55,127 @@ export interface SystemConfigTabProps {
  * ```
  */
 export function SystemConfigTab({ config, stats, onChange }: SystemConfigTabProps) {
+  const currentLab = useCurrentLab();
+  const updateLab = useStorageStore(state => state.updateLab);
+
+  // Lab name editing state
+  const [isEditingLabName, setIsEditingLabName] = useState(false);
+  const [labNameInput, setLabNameInput] = useState(currentLab.name);
+  const [isSavingLabName, setIsSavingLabName] = useState(false);
+
+  // Sync input when currentLab changes
+  useEffect(() => {
+    setLabNameInput(currentLab.name);
+  }, [currentLab.name]);
+
+  const handleSaveLabName = useCallback(async () => {
+    const trimmedName = labNameInput.trim();
+    if (!trimmedName) {
+      notifications.error('Lab name cannot be empty');
+      return;
+    }
+
+    if (trimmedName === currentLab.name) {
+      setIsEditingLabName(false);
+      return;
+    }
+
+    setIsSavingLabName(true);
+    try {
+      // Use dedicated system settings endpoint - only updates labName, preserves all equipment
+      await httpClient.put('/configuration/system', { labName: trimmedName });
+
+      // Update local state after successful server save
+      updateLab(currentLab.id, { name: trimmedName });
+
+      notifications.success('Lab name updated successfully');
+      setIsEditingLabName(false);
+    } catch {
+      notifications.error('Failed to update lab name');
+      // Revert input on error
+      setLabNameInput(currentLab.name);
+    } finally {
+      setIsSavingLabName(false);
+    }
+  }, [labNameInput, currentLab.id, currentLab.name, updateLab]);
+
+  const handleCancelLabNameEdit = useCallback(() => {
+    setLabNameInput(currentLab.name);
+    setIsEditingLabName(false);
+  }, [currentLab.name]);
+
+  const handleLabNameKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        void handleSaveLabName();
+      } else if (e.key === 'Escape') {
+        handleCancelLabNameEdit();
+      }
+    },
+    [handleSaveLabName, handleCancelLabNameEdit]
+  );
+
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 mb-4">
         <Gauge size={22} className="text-gray-700" />
         <h3 className="text-xl font-semibold text-gray-900">System</h3>
+      </div>
+
+      {/* Lab Name Section */}
+      <div>
+        <h4 className="text-base font-semibold text-gray-900 mb-2">Laboratory</h4>
+        <div className="bg-gray-50 p-3 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <FlaskConical size={18} className="text-gray-400" />
+              <span className="text-sm text-gray-400">Lab:</span>
+              {isEditingLabName ? (
+                <input
+                  type="text"
+                  value={labNameInput}
+                  onChange={e => setLabNameInput(e.target.value)}
+                  onKeyDown={handleLabNameKeyDown}
+                  className="text-sm font-medium text-gray-900 border border-gray-300 rounded px-2 py-1 focus-ring-default"
+                  autoFocus
+                  disabled={isSavingLabName}
+                />
+              ) : (
+                <span className="text-sm font-medium text-gray-900">{currentLab.name}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              {isEditingLabName ? (
+                <>
+                  <button
+                    onClick={handleSaveLabName}
+                    disabled={isSavingLabName}
+                    className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors disabled:opacity-50 focus-ring-default"
+                    aria-label="Save lab name"
+                  >
+                    <Check size={16} />
+                  </button>
+                  <button
+                    onClick={handleCancelLabNameEdit}
+                    disabled={isSavingLabName}
+                    className="p-1.5 text-gray-400 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 focus-ring-default"
+                    aria-label="Cancel editing"
+                  >
+                    <X size={16} />
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => setIsEditingLabName(true)}
+                  className="text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded transition-colors focus-ring-default"
+                >
+                  Edit
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* System Statistics Section */}

@@ -22,6 +22,9 @@ export { useStorageData, getStorageDataFromCache } from './hooks/useStorageData'
 export { useLocationDisplayNames } from './hooks/useLocationDisplayNames';
 export type { LocationDisplayNames } from './hooks/useLocationDisplayNames';
 
+// Client State (Zustand Store)
+export { useCurrentLab, useStorageStore } from './stores/storageStore';
+
 // Services
 export { StorageService } from './services/StorageService';
 

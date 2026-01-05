@@ -17,10 +17,12 @@ import {
   Unlock,
   Share2,
   TestTube,
+  FlaskConical,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
+import { useCurrentLab } from '@domains/storage';
 import odysseusLogo from '@shared/assets/odysseus-logo-thick.svg';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { SuspenseBoundary, Tooltip } from '@shared/ui';
@@ -101,6 +103,7 @@ export function AppHeader({
   isViewOnlySpace = false,
 }: HeaderProps) {
   const { isAuthenticated, user, logout } = useAuthStore();
+  const currentLab = useCurrentLab();
 
   // Lazy loading hooks for modal preloading
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
@@ -428,9 +431,17 @@ export function AppHeader({
                 onBlur={handleMenuBlur}
                 className="absolute top-10 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-50 min-w-48 p-1"
               >
-                {/* User Info at Top */}
+                {/* Lab Name */}
+                <div className="px-3 py-2">
+                  <div className="flex items-center gap-3">
+                    <FlaskConical size={16} className="text-gray-400" />
+                    <span className="text-sm text-gray-700 font-medium">{currentLab.name}</span>
+                  </div>
+                </div>
+
+                {/* User Info */}
                 {isAuthenticated && user && (
-                  <div className="px-3 py-2 mb-1">
+                  <div className="px-3 py-2">
                     <div className="flex items-center gap-3">
                       <UserRound size={16} className="text-gray-400" />
                       <span className="text-sm text-gray-700 font-medium">{user.username}</span>
