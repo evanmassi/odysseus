@@ -1,11 +1,8 @@
 /**
  * Box CQRS Commands
  *
- * Atomic operations for box management. Each command performs a single
- * operation and emits appropriate domain events for real-time sync.
- *
- * URL pattern: /api/configuration/tanks/:tankId/racks/:rackId/boxes[/:boxId]
- * Full parent context (tankId + rackId) is always required since boxId is NOT globally unique.
+ * Atomic operations for box management with domain event emission.
+ * Full parent context (tankId + rackId) required since boxId is not globally unique.
  */
 
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
@@ -64,14 +61,7 @@ export interface AssignBoxCommand {
 
 // COMMAND HANDLERS
 
-/**
- * Add Boxes Command Handler
- *
- * Creates one or more boxes in a rack.
- * Bulk add: Pass count > 1 to add multiple boxes at once.
- * Uses lab's default grid configuration for new boxes.
- * Emits one BoxAddedEvent per box created.
- */
+/** Creates one or more boxes in a rack. Pass count > 1 for bulk add. */
 export class AddBoxesCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -80,48 +70,36 @@ export class AddBoxesCommandHandler {
   ) {}
 
   async handle(command: AddBoxesCommand): Promise<{ boxIds: string[] }> {
-    // Validate count
     if (command.count < 1 || command.count > 26) {
       throw new ValidationError('Count must be between 1 and 26 (A-Z)');
     }
 
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('add box', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Find rack
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
-    // Get existing box names (letters)
     const existingBoxNames = new Set(rack.boxes.map(b => b.name.toUpperCase()));
-
-    // Generate box names (A, B, C, ..., Z)
     const boxIds: string[] = [];
     const events: BoxAddedEvent[] = [];
 
-    // Find next available letter
     let letterIndex = 0;
     for (let i = 0; i < command.count; i++) {
-      // Find next available letter
       while (letterIndex < 26 && existingBoxNames.has(NAMING_PATTERNS.BOX.LETTER_NAME(letterIndex))) {
         letterIndex++;
       }
@@ -133,7 +111,6 @@ export class AddBoxesCommandHandler {
       const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(letterIndex);
       existingBoxNames.add(boxName);
 
-      // Add box using domain method (uses default grid config)
       currentConfig.addBox(
         command.tankId,
         command.rackId,
@@ -155,10 +132,8 @@ export class AddBoxesCommandHandler {
       letterIndex++;
     }
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain events (one per box)
     for (const event of events) {
       await this.eventBus.publish(event);
     }
@@ -175,12 +150,7 @@ export class AddBoxesCommandHandler {
   }
 }
 
-/**
- * Update Box Command Handler
- *
- * Updates an existing box's properties.
- * Emits BoxUpdatedEvent for real-time sync.
- */
+/** Updates an existing box's properties. */
 export class UpdateBoxCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -189,43 +159,33 @@ export class UpdateBoxCommandHandler {
   ) {}
 
   async handle(command: UpdateBoxCommand): Promise<void> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('update box', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Find rack
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
-    // Find box (case-insensitive)
     const boxIdUpper = command.boxId.toUpperCase();
     const box = rack.boxes.find(b => b.name === boxIdUpper);
     if (!box) {
       throw new NotFoundError(`Box '${command.boxId}' not found in rack '${command.rackId}'`);
     }
 
-    // Track changes for event
     const changes: { field: string; oldValue: any; newValue: any }[] = [];
-
-    // Build updated configuration
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
     const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
@@ -260,21 +220,17 @@ export class UpdateBoxCommandHandler {
       boxData.isActive = command.isActive;
     }
 
-    // Only update if there are changes
     if (changes.length === 0) {
       return;
     }
 
-    // Update configuration
     currentConfig.updateFromData({
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain event
     await this.eventBus.publish(new BoxUpdatedEvent(
       command.userId,
       command.tankId,
@@ -296,13 +252,7 @@ export class UpdateBoxCommandHandler {
   }
 }
 
-/**
- * Delete Box Command Handler
- *
- * Removes a box from a rack.
- * BLOCKS deletion if any tubes exist in the box.
- * Emits BoxDeletedEvent for real-time sync.
- */
+/** Removes a box from a rack. Blocks if tubes exist. */
 export class DeleteBoxCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -312,40 +262,32 @@ export class DeleteBoxCommandHandler {
   ) {}
 
   async handle(command: DeleteBoxCommand): Promise<void> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('delete box', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Find rack
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
-    // Find box (case-insensitive)
     const boxIdUpper = command.boxId.toUpperCase();
     const box = rack.boxes.find(b => b.name === boxIdUpper);
     if (!box) {
       throw new NotFoundError(`Box '${command.boxId}' not found in rack '${command.rackId}'`);
     }
 
-    // Check for tubes in this box (BLOCK deletion if tubes exist)
     const tubesInBox = await this.tubeRepository.findByCompleteLocation(
       command.tankId,
       command.rackId,
@@ -359,8 +301,6 @@ export class DeleteBoxCommandHandler {
     }
 
     const boxName = box.name;
-
-    // Remove box by rebuilding configuration
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
     const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
@@ -373,10 +313,8 @@ export class DeleteBoxCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain event
     await this.eventBus.publish(new BoxDeletedEvent(
       command.userId,
       command.tankId,
@@ -397,12 +335,7 @@ export class DeleteBoxCommandHandler {
   }
 }
 
-/**
- * Assign Box Command Handler
- *
- * Assigns or unassigns a box to/from a user.
- * Emits BoxAssignedEvent, BoxUnassignedEvent, or BoxReassignedEvent.
- */
+/** Assigns or unassigns a box to/from a user. */
 export class AssignBoxCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -411,40 +344,32 @@ export class AssignBoxCommandHandler {
   ) {}
 
   async handle(command: AssignBoxCommand): Promise<void> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate acting user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('assign box', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Find rack
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
-    // Find box (case-insensitive)
     const boxIdUpper = command.boxId.toUpperCase();
     const box = rack.boxes.find(b => b.name === boxIdUpper);
     if (!box) {
       throw new NotFoundError(`Box '${command.boxId}' not found in rack '${command.rackId}'`);
     }
 
-    // Validate assigned user exists (if assigning)
     let assignedUser: User | null = null;
     if (command.assignedUserId) {
       assignedUser = await this.userRepository.findById(command.assignedUserId);
@@ -458,12 +383,10 @@ export class AssignBoxCommandHandler {
       ? (await this.userRepository.findById(previousUserId))?.username ?? 'Unknown'
       : '';
 
-    // No change needed
     if (previousUserId === command.assignedUserId) {
       return;
     }
 
-    // Update configuration
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
     const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
@@ -478,12 +401,9 @@ export class AssignBoxCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit appropriate domain event
     if (command.assignedUserId && previousUserId) {
-      // Reassignment
       await this.eventBus.publish(new BoxReassignedEvent(
         command.userId,
         command.tankId,
@@ -498,7 +418,6 @@ export class AssignBoxCommandHandler {
         assignedUser!.username
       ));
     } else if (command.assignedUserId) {
-      // New assignment
       await this.eventBus.publish(new BoxAssignedEvent(
         command.userId,
         command.tankId,
@@ -511,7 +430,6 @@ export class AssignBoxCommandHandler {
         assignedUser!.username
       ));
     } else {
-      // Unassignment
       await this.eventBus.publish(new BoxUnassignedEvent(
         command.userId,
         command.tankId,

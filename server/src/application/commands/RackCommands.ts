@@ -1,11 +1,8 @@
 /**
  * Rack CQRS Commands
  *
- * Atomic operations for rack management. Each command performs a single
- * operation and emits appropriate domain events for real-time sync.
- *
- * URL pattern: /api/configuration/tanks/:tankId/racks[/:rackId]
- * Parent context (tankId) is always required since rackId is NOT globally unique.
+ * Atomic operations for rack management with domain event emission.
+ * Parent context (tankId) required since rackId is not globally unique.
  */
 
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
@@ -59,13 +56,7 @@ export interface AssignRackCommand {
 
 // COMMAND HANDLERS
 
-/**
- * Add Racks Command Handler
- *
- * Creates one or more racks in a tank.
- * Bulk add: Pass count > 1 to add multiple racks at once.
- * Emits one RackAddedEvent per rack created.
- */
+/** Creates one or more racks in a tank. Pass count > 1 for bulk add. */
 export class AddRacksCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -74,32 +65,25 @@ export class AddRacksCommandHandler {
   ) {}
 
   async handle(command: AddRacksCommand): Promise<{ rackIds: string[] }> {
-    // Validate count
     if (command.count < 1 || command.count > 100) {
       throw new ValidationError('Count must be between 1 and 100');
     }
 
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('add rack', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Generate rack IDs and add racks
     const existingRackIds = tank.racks.map(r => parseInt(r.id, 10)).filter(n => !isNaN(n));
     const maxRackId = existingRackIds.length > 0 ? Math.max(...existingRackIds) : 0;
 
@@ -111,7 +95,6 @@ export class AddRacksCommandHandler {
       const rackIdStr = String(newRackId);
       const rackName = NAMING_PATTERNS.RACK.DEFAULT_NAME(newRackId);
 
-      // Create default boxes for the new rack
       const defaultBoxes: Box[] = [];
       for (let j = 0; j < EQUIPMENT_DEFAULTS.BOXES_PER_RACK; j++) {
         const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(j);
@@ -124,7 +107,6 @@ export class AddRacksCommandHandler {
         ));
       }
 
-      // Add rack with default boxes
       currentConfig.addRack(command.tankId, newRackId, rackName, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, defaultBoxes);
 
       rackIds.push(rackIdStr);
@@ -137,10 +119,8 @@ export class AddRacksCommandHandler {
       ));
     }
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain events (one per rack)
     for (const event of events) {
       await this.eventBus.publish(event);
     }
@@ -157,12 +137,7 @@ export class AddRacksCommandHandler {
   }
 }
 
-/**
- * Update Rack Command Handler
- *
- * Updates an existing rack's properties.
- * Emits RackUpdatedEvent for real-time sync.
- */
+/** Updates an existing rack's properties. */
 export class UpdateRackCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -171,36 +146,27 @@ export class UpdateRackCommandHandler {
   ) {}
 
   async handle(command: UpdateRackCommand): Promise<void> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('update rack', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Find rack
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
-    // Track changes for event
     const changes: { field: string; oldValue: any; newValue: any }[] = [];
-
-    // Build updated configuration
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
     const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
@@ -221,21 +187,17 @@ export class UpdateRackCommandHandler {
       configData.tanks[tankIndex].racks[rackIndex].isActive = command.isActive;
     }
 
-    // Only update if there are changes
     if (changes.length === 0) {
       return;
     }
 
-    // Update configuration
     currentConfig.updateFromData({
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain event
     await this.eventBus.publish(new RackUpdatedEvent(
       command.userId,
       command.tankId,
@@ -255,13 +217,7 @@ export class UpdateRackCommandHandler {
   }
 }
 
-/**
- * Delete Rack Command Handler
- *
- * Removes a rack and all its boxes.
- * BLOCKS deletion if any tubes exist in the rack.
- * Emits RackDeletedEvent for real-time sync.
- */
+/** Removes a rack and all its boxes. Blocks if tubes exist. */
 export class DeleteRackCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -271,33 +227,26 @@ export class DeleteRackCommandHandler {
   ) {}
 
   async handle(command: DeleteRackCommand): Promise<void> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('delete rack', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Find rack
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
-    // Check for tubes in this rack (BLOCK deletion if tubes exist)
     const tubesInRack = await this.tubeRepository.findByTankAndRack(command.tankId, command.rackId);
     if (tubesInRack.length > 0) {
       throw new ValidationError(
@@ -307,8 +256,6 @@ export class DeleteRackCommandHandler {
     }
 
     const rackName = rack.name;
-
-    // Remove rack by rebuilding configuration
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
     configData.tanks[tankIndex].racks = configData.tanks[tankIndex].racks.filter(
@@ -320,10 +267,8 @@ export class DeleteRackCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain event
     await this.eventBus.publish(new RackDeletedEvent(
       command.userId,
       command.tankId,
@@ -342,12 +287,7 @@ export class DeleteRackCommandHandler {
   }
 }
 
-/**
- * Assign Rack Command Handler
- *
- * Assigns or unassigns a rack to/from a user.
- * Emits RackAssignedEvent, RackUnassignedEvent, or RackReassignedEvent.
- */
+/** Assigns or unassigns a rack to/from a user. */
 export class AssignRackCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -356,33 +296,26 @@ export class AssignRackCommandHandler {
   ) {}
 
   async handle(command: AssignRackCommand): Promise<void> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate acting user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('assign rack', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Find rack
     const rack = tank.racks.find(r => r.id === command.rackId);
     if (!rack) {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
-    // Validate assigned user exists (if assigning)
     let assignedUser: User | null = null;
     if (command.assignedUserId) {
       assignedUser = await this.userRepository.findById(command.assignedUserId);
@@ -396,19 +329,17 @@ export class AssignRackCommandHandler {
       ? (await this.userRepository.findById(previousUserId))?.username ?? 'Unknown'
       : '';
 
-    // No change needed
     if (previousUserId === command.assignedUserId) {
       return;
     }
 
-    // Update configuration
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
     const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
 
     configData.tanks[tankIndex].racks[rackIndex].assignedUserId = command.assignedUserId ?? undefined;
 
-    // If unassigning, clear inherited box labels
+    // Clear inherited box labels when unassigning
     if (!command.assignedUserId && previousUserId) {
       currentConfig.clearInheritedBoxLabelsForRack(command.tankId, command.rackId);
     }
@@ -418,12 +349,9 @@ export class AssignRackCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit appropriate domain event
     if (command.assignedUserId && previousUserId) {
-      // Reassignment
       await this.eventBus.publish(new RackReassignedEvent(
         command.userId,
         command.tankId,
@@ -436,7 +364,6 @@ export class AssignRackCommandHandler {
         assignedUser!.username
       ));
     } else if (command.assignedUserId) {
-      // New assignment
       await this.eventBus.publish(new RackAssignedEvent(
         command.userId,
         command.tankId,
@@ -447,7 +374,6 @@ export class AssignRackCommandHandler {
         assignedUser!.username
       ));
     } else {
-      // Unassignment
       await this.eventBus.publish(new RackUnassignedEvent(
         command.userId,
         command.tankId,

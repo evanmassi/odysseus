@@ -1,8 +1,7 @@
 /**
  * Bulk Assignment CQRS Commands
  *
- * Batch operations for resource assignment management.
- * Used when deactivating users or reassigning all their resources.
+ * Batch operations for clearing or transferring user resource assignments.
  */
 
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
@@ -32,13 +31,7 @@ export interface BulkReassignResourcesCommand {
 
 // COMMAND HANDLERS
 
-/**
- * Bulk Unassign Resources Command Handler
- *
- * Unassigns all resources (racks and boxes) from a user.
- * Used when deactivating a user to clear their assignments.
- * Emits BulkResourcesUnassignedEvent for real-time sync.
- */
+/** Unassigns all resources (racks and boxes) from a user. */
 export class BulkUnassignResourcesCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -47,27 +40,21 @@ export class BulkUnassignResourcesCommandHandler {
   ) {}
 
   async handle(command: BulkUnassignResourcesCommand): Promise<{ racksAffected: number; boxesAffected: number }> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate acting user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('bulk unassign resources', command.userId);
     }
 
-    // Validate from user exists
     const fromUser = await this.userRepository.findById(command.fromUserId);
     if (!fromUser) {
       throw new NotFoundError(`User '${command.fromUserId}' not found`);
     }
 
-    // Count affected resources before clearing
     const configData = currentConfig.toData();
     let racksAffected = 0;
     let boxesAffected = 0;
@@ -85,18 +72,13 @@ export class BulkUnassignResourcesCommandHandler {
       }
     }
 
-    // If no resources affected, return early
     if (racksAffected === 0 && boxesAffected === 0) {
       return { racksAffected: 0, boxesAffected: 0 };
     }
 
-    // Clear assignments using domain method
     currentConfig.clearAllAssignmentsForUser(command.fromUserId);
-
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain event
     await this.eventBus.publish(new BulkResourcesUnassignedEvent(
       command.userId,
       command.fromUserId,
@@ -117,13 +99,7 @@ export class BulkUnassignResourcesCommandHandler {
   }
 }
 
-/**
- * Bulk Reassign Resources Command Handler
- *
- * Reassigns all resources (racks and boxes) from one user to another.
- * Used when transferring a user's resources to another researcher.
- * Emits BulkResourcesReassignedEvent for real-time sync.
- */
+/** Reassigns all resources (racks and boxes) from one user to another. */
 export class BulkReassignResourcesCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -132,38 +108,30 @@ export class BulkReassignResourcesCommandHandler {
   ) {}
 
   async handle(command: BulkReassignResourcesCommand): Promise<{ racksAffected: number; boxesAffected: number }> {
-    // Validate not reassigning to same user
     if (command.fromUserId === command.toUserId) {
       throw new ValidationError('Cannot reassign resources to the same user');
     }
 
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate acting user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('bulk reassign resources', command.userId);
     }
 
-    // Validate from user exists
     const fromUser = await this.userRepository.findById(command.fromUserId);
     if (!fromUser) {
       throw new NotFoundError(`User '${command.fromUserId}' not found`);
     }
 
-    // Validate to user exists
     const toUser = await this.userRepository.findById(command.toUserId);
     if (!toUser) {
       throw new NotFoundError(`User '${command.toUserId}' not found`);
     }
 
-    // Count and reassign resources
     const configData = currentConfig.toData();
     let racksAffected = 0;
     let boxesAffected = 0;
@@ -183,21 +151,17 @@ export class BulkReassignResourcesCommandHandler {
       }
     }
 
-    // If no resources affected, return early
     if (racksAffected === 0 && boxesAffected === 0) {
       return { racksAffected: 0, boxesAffected: 0 };
     }
 
-    // Update configuration
     currentConfig.updateFromData({
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain event
     await this.eventBus.publish(new BulkResourcesReassignedEvent(
       command.userId,
       command.fromUserId,

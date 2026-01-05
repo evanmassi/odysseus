@@ -22,6 +22,28 @@ export { useStorageData, getStorageDataFromCache } from './hooks/useStorageData'
 export { useLocationDisplayNames } from './hooks/useLocationDisplayNames';
 export type { LocationDisplayNames } from './hooks/useLocationDisplayNames';
 
+// CQRS Equipment Mutation Hooks
+export {
+  // Tank mutations
+  useAddTankMutation,
+  useUpdateTankMutation,
+  useDeleteTankMutation,
+  // Rack mutations
+  useAddRacksMutation,
+  useUpdateRackMutation,
+  useDeleteRackMutation,
+  useAssignRackMutation,
+  // Box mutations
+  useAddBoxesMutation,
+  useUpdateBoxMutation,
+  useDeleteBoxMutation,
+  useAssignBoxMutation,
+  // Bulk operations
+  useBulkUnassignMutation,
+  useBulkReassignMutation,
+  useInitializeConfigurationMutation,
+} from './hooks/useStorageEquipmentMutations';
+
 // Client State (Zustand Store)
 export { useCurrentLab, useStorageStore } from './stores/storageStore';
 

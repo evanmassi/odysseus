@@ -1,8 +1,7 @@
 /**
  * Initialize Configuration CQRS Command
  *
- * Creates initial configuration for fresh installs.
- * Used during first-time setup to bootstrap the system.
+ * Creates default configuration for fresh installs.
  */
 
 import { Configuration } from '@domain/entities/Configuration';
@@ -21,19 +20,14 @@ import { ConfigurationUpdatedEvent } from '@domain/events/ConfigurationEvents';
 export interface InitializeConfigurationCommand {
   userId: string;
   labName: string;
-  tankCount?: number; // Default 1
-  racksPerTank?: number; // Default 3
-  boxesPerRack?: number; // Default 10
+  tankCount?: number;
+  racksPerTank?: number;
+  boxesPerRack?: number;
 }
 
 // COMMAND HANDLER
 
-/**
- * Initialize Configuration Command Handler
- *
- * Creates default configuration for fresh installs.
- * Only runs if no configuration exists.
- */
+/** Creates default configuration for fresh installs. Only runs if no configuration exists. */
 export class InitializeConfigurationCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -42,26 +36,20 @@ export class InitializeConfigurationCommandHandler {
   ) {}
 
   async handle(command: InitializeConfigurationCommand): Promise<void> {
-    // Check if configuration already exists
     const existingConfig = await this.configurationRepository.getCurrent();
     if (existingConfig) {
       throw new ValidationError('Configuration already exists. Cannot reinitialize.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission (first user should be admin)
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('initialize configuration', command.userId);
     }
 
-    // Set defaults
     const tankCount = command.tankCount ?? 1;
     const racksPerTank = command.racksPerTank ?? EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK;
     const boxesPerRack = command.boxesPerRack ?? EQUIPMENT_DEFAULTS.BOXES_PER_RACK;
 
-    // Validate counts
     if (tankCount < 1 || tankCount > 10) {
       throw new ValidationError('Tank count must be between 1 and 10');
     }
@@ -72,7 +60,6 @@ export class InitializeConfigurationCommandHandler {
       throw new ValidationError('Boxes per rack must be between 1 and 26');
     }
 
-    // Build tanks with racks and boxes
     const tanks: Tank[] = [];
 
     for (let t = 0; t < tankCount; t++) {
@@ -117,7 +104,6 @@ export class InitializeConfigurationCommandHandler {
       ));
     }
 
-    // Create configuration from data
     const config = Configuration.fromData({
       tanks: tanks.map(t => t.toData()),
       systemSettings: {
@@ -129,10 +115,8 @@ export class InitializeConfigurationCommandHandler {
       }
     });
 
-    // Save configuration
     await this.configurationRepository.save(config);
 
-    // Emit domain event
     await this.eventBus.publish(new ConfigurationUpdatedEvent(
       command.userId,
       {

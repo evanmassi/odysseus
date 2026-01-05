@@ -608,6 +608,31 @@ After all components migrate to CQRS endpoints:
 
 ---
 
+### Phase 7: Rename StorageManagementModal to StorageManagerModal
+
+Rename the modal from "Storage Management" (the action) to "Storage Manager" (the tool). This follows standard naming conventions (File Manager, Task Manager, Package Manager).
+
+#### Changes Required
+
+**File Renames:**
+- `StorageManagementModal.tsx` → `StorageManagerModal.tsx`
+- `StorageManagementContext.tsx` → `StorageManagerContext.tsx` (if exists)
+
+**Component Renames:**
+- `StorageManagementModal` → `StorageManagerModal`
+- `StorageManagementContext` → `StorageManagerContext`
+
+**Import Updates:**
+- Update all files importing the old component names
+
+**UI Text Updates:**
+- Modal title: "Manage Storage" → "Storage Manager"
+- Any button labels referencing "Storage Management"
+
+**Why do this last:** The Phase 3 refactor significantly changes the modal's internals. Doing the rename separately keeps changes atomic and makes debugging easier if issues arise.
+
+---
+
 ## Implementation Priority
 
 | Priority | Phase | Item | Risk Mitigation |
@@ -621,6 +646,7 @@ After all components migrate to CQRS endpoints:
 | 7 | Phase 3 | StorageManagementModal refactor | Removes dangerous save pattern |
 | 8 | Phase 4 | Remove server data from Zustand | Eliminates dual-state risk |
 | 9 | Phase 6 | Deprecate dangerous endpoint | Removes risk entirely |
+| 10 | Phase 7 | Rename to StorageManagerModal | Cleaner naming convention |
 | — | Phase 5 | Optimistic locking (optional) | Defer - lower priority |
 
 ---
@@ -720,3 +746,4 @@ If issues arise during migration:
 - **Reusable code:** `storageLocalUpdates.ts` utility functions can be reused for optimistic UI updates
 - **Correct hook exists:** `useStorageData.ts` is the correct pattern - all components migrate to this
 - **Cleanup required:** After deployment, clear `odysseus-configuration-store` from localStorage (add to release notes)
+- **Method rename (Phase 4):** After removing the legacy `deleteTank` method from `StorageService.ts`, rename `deleteTankCQRS` back to `deleteTank` for consistency. The `CQRS` suffix was added temporarily to avoid naming collision during migration.

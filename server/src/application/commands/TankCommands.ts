@@ -1,8 +1,7 @@
 /**
  * Tank CQRS Commands
  *
- * Atomic operations for tank management. Each command performs a single
- * operation and emits appropriate domain events for real-time sync.
+ * Atomic operations for tank management with domain event emission.
  */
 
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
@@ -42,12 +41,7 @@ export interface DeleteTankCommand {
 
 // COMMAND HANDLERS
 
-/**
- * Add Tank Command Handler
- *
- * Creates a new tank in the configuration.
- * Emits TankAddedEvent for real-time sync.
- */
+/** Creates a new tank in the configuration. */
 export class AddTankCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -56,31 +50,22 @@ export class AddTankCommandHandler {
   ) {}
 
   async handle(command: AddTankCommand): Promise<{ tankId: string }> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission (only admins can add tanks)
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('add tank', command.userId);
     }
 
-    // Generate tank ID based on existing tanks
     const existingTankIds = currentConfig.tanks.map(t => t.id);
     const tankId = this.generateTankId(existingTankIds);
 
-    // Add tank using domain method
     currentConfig.addTank(tankId, command.name);
-
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain event
     await this.eventBus.publish(new TankAddedEvent(
       command.userId,
       tankId,
@@ -99,7 +84,6 @@ export class AddTankCommandHandler {
   }
 
   private generateTankId(existingIds: string[]): string {
-    // Find the highest numeric suffix and increment
     let maxNum = 0;
     for (const id of existingIds) {
       const match = id.match(/tank-(\d+)/);
@@ -112,12 +96,7 @@ export class AddTankCommandHandler {
   }
 }
 
-/**
- * Update Tank Command Handler
- *
- * Updates an existing tank's properties.
- * Emits TankUpdatedEvent for real-time sync.
- */
+/** Updates an existing tank's properties. */
 export class UpdateTankCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -126,30 +105,22 @@ export class UpdateTankCommandHandler {
   ) {}
 
   async handle(command: UpdateTankCommand): Promise<void> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('update tank', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Track changes for event
     const changes: { field: string; oldValue: any; newValue: any }[] = [];
-
-    // Build updated tank data
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
 
@@ -168,21 +139,17 @@ export class UpdateTankCommandHandler {
       configData.tanks[tankIndex].isActive = command.isActive;
     }
 
-    // Only update if there are changes
     if (changes.length === 0) {
-      return; // No changes, skip update
+      return;
     }
 
-    // Update configuration using domain method
     currentConfig.updateFromData({
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
 
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain event
     await this.eventBus.publish(new TankUpdatedEvent(
       command.userId,
       command.tankId,
@@ -203,9 +170,7 @@ export class UpdateTankCommandHandler {
 /**
  * Delete Tank Command Handler
  *
- * Removes a tank and all its contents (racks, boxes).
- * BLOCKS deletion if any tubes exist in the tank.
- * Emits TankDeletedEvent for real-time sync.
+ * Removes a tank and all its contents. Blocks if tubes exist in the tank.
  */
 export class DeleteTankCommandHandler {
   constructor(
@@ -216,27 +181,21 @@ export class DeleteTankCommandHandler {
   ) {}
 
   async handle(command: DeleteTankCommand): Promise<void> {
-    // Get current configuration
     const currentConfig = await this.configurationRepository.getCurrent();
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get and validate user
     const user = await this.getUserById(command.userId);
-
-    // Check admin permission
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('delete tank', command.userId);
     }
 
-    // Find tank
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    // Check for tubes in this tank (BLOCK deletion if tubes exist)
     const tubesInTank = await this.tubeRepository.findByTank(command.tankId);
     if (tubesInTank.length > 0) {
       throw new ValidationError(
@@ -246,14 +205,9 @@ export class DeleteTankCommandHandler {
     }
 
     const tankName = tank.name;
-
-    // Remove tank using domain method
     currentConfig.removeTank(command.tankId);
-
-    // Save configuration
     await this.configurationRepository.save(currentConfig);
 
-    // Emit domain event
     await this.eventBus.publish(new TankDeletedEvent(
       command.userId,
       command.tankId,
