@@ -43,7 +43,8 @@ interface CleanTubeActions {
   setSelection: (positions: Set<PositionKey>) => void;
   setSelectionAnchor: (position: number | null) => void; // Set anchor for range selection
 
-  // Socket connection is now managed centrally by AppBootstrapService
+  // Store reset (used on logout)
+  resetStore: () => void;
 }
 
 interface CleanTubeStore extends CleanTubeState, CleanTubeActions {}
@@ -60,20 +61,38 @@ export const useTubeStore = create<CleanTubeStore>((set, get) => ({
   isConnected: true, // Always true since bootstrap handles connection
 
   // NAVIGATION ACTIONS - Used by GridNavigationService
-  setCurrentTank: (tankId) => {
-    set({ currentTank: tankId });
+  // Clear selection on location change (matches Excel/Figma behavior)
+  setCurrentTank: tankId => {
+    const { currentTank } = get();
+    if (tankId !== currentTank) {
+      set({
+        currentTank: tankId,
+        selectedPositions: new Set<PositionKey>(),
+        selectionAnchor: null,
+      });
+    }
   },
 
-  setCurrentRack: (rackId) => {
-    set({ currentRack: rackId });
+  setCurrentRack: rackId => {
+    const { currentRack } = get();
+    if (rackId !== currentRack) {
+      set({
+        currentRack: rackId,
+        selectedPositions: new Set<PositionKey>(),
+        selectionAnchor: null,
+      });
+    }
   },
 
-  setCurrentBox: (boxId) => {
-    set({ currentBox: boxId });
+  setCurrentBox: boxId => {
+    const { currentBox } = get();
+    if (boxId !== currentBox) {
+      set({ currentBox: boxId, selectedPositions: new Set<PositionKey>(), selectionAnchor: null });
+    }
   },
-  
+
   // SELECTION ACTIONS - Pure client state
-  togglePosition: (position) => {
+  togglePosition: position => {
     const { selectedPositions } = get();
     const newSelection = new Set(selectedPositions);
     if (newSelection.has(position)) {
@@ -85,9 +104,19 @@ export const useTubeStore = create<CleanTubeStore>((set, get) => ({
   },
 
   clearSelection: () => set({ selectedPositions: new Set<PositionKey>(), selectionAnchor: null }),
-  setSelection: (positions) => set({ selectedPositions: positions }),
-  setSelectionAnchor: (position) => set({ selectionAnchor: position }),
+  setSelection: positions => set({ selectedPositions: positions }),
+  setSelectionAnchor: position => set({ selectionAnchor: position }),
 
   // Socket connection is now managed centrally by AppBootstrapService → SocketQueryBridge
   // Legacy methods removed - no longer needed
+
+  // Reset store to initial state (used on logout)
+  resetStore: () =>
+    set({
+      selectedPositions: new Set<PositionKey>(),
+      selectionAnchor: null,
+      currentTank: NAMING_PATTERNS.TANK.ID_PATTERN(1),
+      currentRack: '1',
+      currentBox: 'A',
+    }),
 }));

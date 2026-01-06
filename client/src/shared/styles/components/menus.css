@@ -5,7 +5,7 @@
   }
 
   .menu-item:focus {
-    outline: 1.5px solid #3b82f6;
+    outline: 2px solid #3b82f6;
     outline-offset: -2px; /* Inset for menu items */
     box-shadow:
       0 0 4px 0 rgba(59, 130, 246, 0.7),

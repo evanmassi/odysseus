@@ -23,7 +23,7 @@
   [role='button']:not([data-focus]):focus-visible,
   [role='menuitem']:not([data-focus]):focus-visible,
   [tabindex]:not([tabindex='-1']):not([data-focus]):focus-visible {
-    outline: 1.5px solid #3b82f6;
+    outline: 2px solid #3b82f6;
     outline-offset: 1px;
     box-shadow:
       0 0 4px 0 rgba(59, 130, 246, 0.7),

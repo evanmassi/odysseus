@@ -30,6 +30,7 @@ const STYLES_SM = {
     fontSize: '11px',
     boxShadow: state.isFocused ? getFocusBoxShadow() : base.boxShadow,
     borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
+    borderWidth: state.isFocused ? '2px' : base.borderWidth,
     '&:hover': {
       borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
     },
@@ -54,6 +55,7 @@ const STYLES_MD = {
     fontSize: '12px',
     boxShadow: state.isFocused ? getFocusBoxShadow() : base.boxShadow,
     borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
+    borderWidth: state.isFocused ? '2px' : base.borderWidth,
     '&:hover': {
       borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
     },

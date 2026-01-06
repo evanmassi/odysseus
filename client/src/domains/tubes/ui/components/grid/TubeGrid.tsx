@@ -236,13 +236,6 @@ export function TubeGrid({
           tabIndex={0}
           data-focus="custom"
           onKeyDown={keyboardNav.handleGridKeyDown}
-          onFocus={() => {
-            // If no selection exists when grid receives focus, select position 1
-            if (selectedPositions.size === 0) {
-              const firstPositionKey = toPositionKey(ctx, 1);
-              onSelectionChange(new Set([firstPositionKey]));
-            }
-          }}
         >
           {positions.map(position => {
             const positionKey = toPositionKey(ctx, position);

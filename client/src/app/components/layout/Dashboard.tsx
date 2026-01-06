@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { ScanEye, UsersRound } from 'lucide-react';
@@ -129,12 +129,43 @@ export function Dashboard() {
   // PreloadHelpers.useOnIdle(preloadTubeEditor, 2000);
   // PreloadHelpers.useOnIdle(preloadBatchEditor, 2000);
 
-  // Refs for focus detection
+  // Refs for focus detection and click-outside handling
   const storageNavigatorRef = useRef<HTMLDivElement>(null);
   const gridContainerRef = useRef<HTMLDivElement>(null);
+  const infoPanelRef = useRef<HTMLDivElement>(null);
 
   // State to track when selector area is active/focused
   const [isSelectorActive, setIsSelectorActive] = useState(false);
+
+  // Clear selection when clicking outside the grid and panels (Excel/Figma behavior)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      // Don't clear if clicking inside interactive areas
+      if (gridContainerRef.current?.contains(target)) return;
+      if (storageNavigatorRef.current?.contains(target)) return;
+      if (infoPanelRef.current?.contains(target)) return;
+
+      // Don't clear if clicking inside a modal or dialog
+      const isInModal = (target as Element).closest?.(
+        '[role="dialog"], [role="alertdialog"], [data-radix-dialog-content], .modal'
+      );
+      if (isInModal) return;
+
+      // Don't clear if clicking on the header (contains action buttons)
+      const isInHeader = (target as Element).closest?.('.app-header');
+      if (isInHeader) return;
+
+      // Clear selection when clicking on dashboard background
+      if (selectedPositions.size > 0) {
+        clearSelection();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [selectedPositions.size, clearSelection]);
 
   // Check if storage navigator has keyboard focus
   const isStorageNavigatorFocused = () => {
@@ -617,7 +648,7 @@ export function Dashboard() {
         </div>
 
         {/* Info Panel - Flexible Width */}
-        <div className="info-panel">
+        <div className="info-panel" ref={infoPanelRef}>
           <div className="h-full flex flex-col bg-white rounded-lg">
             <div className="px-4 pt-4 pb-2">
               <h4 className="text-sm font-semibold text-slate-400 tracking-wide">

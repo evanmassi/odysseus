@@ -14,6 +14,7 @@ import { persist } from 'zustand/middleware';
 
 import { SessionManager, LocalStorageSessionStorage } from '@app/services/SessionManager';
 import { modalStore } from '@app/stores/modalStore';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { authHttpClient } from '@infra/api/AuthHttpClient';
 import { configureHttpClientWithSessionManager } from '@infra/api/httpClient';
 import { env } from '@shared/config';
@@ -356,6 +357,9 @@ export const useAuthStore = create<AuthStore>()(
         // Always clear local session regardless of backend response
         sessionManager.clearSession();
         get().clearAuth();
+
+        // Reset UI state stores (clear tube selections, navigation state)
+        useTubeStore.getState().resetStore();
       },
 
       // SESSION MANAGEMENT
