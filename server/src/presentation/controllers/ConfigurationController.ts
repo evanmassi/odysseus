@@ -783,8 +783,10 @@ export class ConfigurationController {
 
       res.json({
         success: true,
-        racksAffected: result.racksAffected,
-        boxesAffected: result.boxesAffected,
+        data: {
+          racksAffected: result.racksAffected,
+          boxesAffected: result.boxesAffected,
+        },
         message: `Unassigned ${result.racksAffected} rack(s) and ${result.boxesAffected} box(es)`
       });
     } catch (error) {
@@ -812,8 +814,10 @@ export class ConfigurationController {
 
       res.json({
         success: true,
-        racksAffected: result.racksAffected,
-        boxesAffected: result.boxesAffected,
+        data: {
+          racksAffected: result.racksAffected,
+          boxesAffected: result.boxesAffected,
+        },
         message: `Reassigned ${result.racksAffected} rack(s) and ${result.boxesAffected} box(es)`
       });
     } catch (error) {

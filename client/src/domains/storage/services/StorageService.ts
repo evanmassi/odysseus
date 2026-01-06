@@ -17,7 +17,6 @@ const AddTankResponseSchema = z.object({ success: z.boolean(), tankId: z.string(
 const AddRacksResponseSchema = z.object({ success: z.boolean(), rackIds: z.array(z.string()) });
 const AddBoxesResponseSchema = z.object({ success: z.boolean(), boxIds: z.array(z.string()) });
 const BulkOperationResponseSchema = z.object({
-  success: z.boolean(),
   racksAffected: z.number(),
   boxesAffected: z.number(),
 });

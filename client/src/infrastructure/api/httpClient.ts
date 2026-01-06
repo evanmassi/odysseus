@@ -118,6 +118,12 @@ export class HttpClient {
       return ResponseTransformers.LoginResponse(data);
     } else if (url.includes('/auth/refresh')) {
       return ResponseTransformers.RefreshResponse(data);
+    } else if (url.includes('/auth/verify')) {
+      // Session verification returns same structure as login
+      return ResponseTransformers.LoginResponse(data);
+    } else if (url.includes('/auth/')) {
+      // Other auth endpoints (first-time, password-requirements, etc.) have no date fields
+      return transformApiResponse(data, 'AuthGenericResponse');
     } else if (url.includes('/users/me/profile')) {
       return ResponseTransformers.Person(data);
     } else if (url.includes('/users/me/sessions')) {
@@ -165,6 +171,8 @@ export class HttpClient {
       // User lookup/list responses have no date fields
       return transformApiResponse(data, 'UserLookup');
     } else {
+      // Fallback: Apply generic transformation for unmatched URLs
+      // Uses regex pattern matching for date fields
       return transformApiResponse(data);
     }
   }

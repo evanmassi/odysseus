@@ -41,6 +41,10 @@ const STYLES_SM = {
     minWidth: '100%',
     right: 0,
   }),
+  menuPortal: (base: CSSObjectWithLabel) => ({
+    ...base,
+    zIndex: 9999,
+  }),
 };
 
 const STYLES_MD = {
@@ -60,6 +64,10 @@ const STYLES_MD = {
     width: 'auto',
     minWidth: '100%',
     right: 0,
+  }),
+  menuPortal: (base: CSSObjectWithLabel) => ({
+    ...base,
+    zIndex: 9999,
   }),
 };
 
@@ -171,6 +179,8 @@ export function AssignmentDropdown({
         placeholder="Assign..."
         className="text-xs"
         styles={styles}
+        menuPortalTarget={document.body}
+        menuPosition="fixed"
       />
     </div>
   );

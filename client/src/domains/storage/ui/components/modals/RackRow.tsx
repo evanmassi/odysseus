@@ -3,6 +3,7 @@ import React from 'react';
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
+import { Tooltip } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -116,21 +117,23 @@ export function RackRow({
           {/* Edit/Delete buttons (Admin Only) */}
           {canManageStorage && (
             <>
-              <button
-                onClick={() => onEditRack(tankId, rack)}
-                className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
-                title="Edit rack"
-              >
-                <Edit3 size={14} />
-              </button>
-              {canDeleteRack && (
+              <Tooltip content="Edit rack" side="bottom">
                 <button
-                  onClick={() => onDeleteRack(tankId, rack.id)}
-                  className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
-                  title="Delete rack"
+                  onClick={() => onEditRack(tankId, rack)}
+                  className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
                 >
-                  <Trash2 size={14} />
+                  <Edit3 size={14} />
                 </button>
+              </Tooltip>
+              {canDeleteRack && (
+                <Tooltip content="Remove rack" side="bottom">
+                  <button
+                    onClick={() => onDeleteRack(tankId, rack.id)}
+                    className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </Tooltip>
               )}
             </>
           )}

@@ -2,6 +2,8 @@ import React from 'react';
 
 import { Tag } from 'lucide-react';
 
+import { Tooltip } from '@shared/ui';
+
 interface CustomLabelButtonProps {
   onClick: () => void;
   size?: number;
@@ -14,8 +16,10 @@ export function CustomLabelButton({
   className = 'text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default',
 }: CustomLabelButtonProps) {
   return (
-    <button onClick={onClick} className={className} title="Edit custom label">
-      <Tag size={size} />
-    </button>
+    <Tooltip content="Edit custom label" side="bottom">
+      <button onClick={onClick} className={className}>
+        <Tag size={size} />
+      </button>
+    </Tooltip>
   );
 }

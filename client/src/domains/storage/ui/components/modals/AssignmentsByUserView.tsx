@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { formatResourceDisplayName, type UserDisplayInfo } from '@odysseus/shared-schemas';
 import { UsersRound, ChevronDown, ChevronRight, UserRoundX, UserRoundPen } from 'lucide-react';
 
+import { Tooltip } from '@shared/ui';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -328,44 +329,45 @@ export function AssignmentsByUserView({
                         }}
                         size="sm"
                       />
-                      <button
-                        type="button"
-                        onClick={() => setReassigningUserId(null)}
-                        className="text-slate-500 hover:text-slate-700 p-1 rounded hover:bg-black/10 transition-colors focus-ring-default"
-                        title="Cancel"
-                      >
-                        ×
-                      </button>
+                      <Tooltip content="Cancel" side="bottom">
+                        <button
+                          type="button"
+                          onClick={() => setReassigningUserId(null)}
+                          className="text-slate-500 hover:text-slate-700 p-1 rounded hover:bg-black/10 transition-colors focus-ring-default"
+                        >
+                          ×
+                        </button>
+                      </Tooltip>
                     </div>
                   ) : (
-                    // Action buttons
+                    // Action buttons - icon only with tooltip
                     <>
-                      <button
-                        type="button"
-                        onClick={e => {
-                          e.stopPropagation();
-                          setReassigningUserId(userAssignment.userId);
-                        }}
-                        className="flex items-center gap-1 text-xs text-white bg-slate-500 hover:bg-slate-600 px-2 py-1 rounded transition-colors focus-ring-default"
-                        title="Reassign all resources to another user"
-                      >
-                        <UserRoundPen size={14} />
-                        <span className="hidden sm:inline">Reassign</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={e => {
-                          e.stopPropagation();
-                          if (onBulkUnassign) {
-                            onBulkUnassign(userAssignment.userId!);
-                          }
-                        }}
-                        className="flex items-center gap-1 text-xs text-white bg-danger-bg hover:bg-red-700 px-2 py-1 rounded transition-colors focus-ring-default"
-                        title="Unassign all resources from this user"
-                      >
-                        <UserRoundX size={14} />
-                        <span className="hidden sm:inline">Unassign</span>
-                      </button>
+                      <Tooltip content="Reassign all resources to another user" side="bottom">
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation();
+                            setReassigningUserId(userAssignment.userId);
+                          }}
+                          className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
+                        >
+                          <UserRoundPen size={14} />
+                        </button>
+                      </Tooltip>
+                      <Tooltip content="Unassign all resources from this user" side="bottom">
+                        <button
+                          type="button"
+                          onClick={e => {
+                            e.stopPropagation();
+                            if (onBulkUnassign) {
+                              onBulkUnassign(userAssignment.userId!);
+                            }
+                          }}
+                          className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
+                        >
+                          <UserRoundX size={14} />
+                        </button>
+                      </Tooltip>
                     </>
                   )}
                 </div>

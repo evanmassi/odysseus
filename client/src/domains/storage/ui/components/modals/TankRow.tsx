@@ -2,6 +2,7 @@ import React from 'react';
 
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
+import { Tooltip } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 
 import { RackRow } from './RackRow';
@@ -67,21 +68,23 @@ export function TankRow({
           </button>
           {canManageStorage && (
             <div className="flex items-center gap-0.5 flex-shrink-0">
-              <button
-                onClick={() => onEditTank(tank)}
-                className="text-slate-500 hover:bg-slate-200 transition-colors p-1 rounded focus-ring-default"
-                title="Edit tank"
-              >
-                <Edit3 size={16} />
-              </button>
-              {canDeleteTank && (
+              <Tooltip content="Edit tank" side="bottom">
                 <button
-                  onClick={() => onDeleteTank(tank.id)}
-                  className="text-red-500 hover:bg-red-100 transition-colors p-1 rounded focus-ring-default"
-                  title="Delete tank"
+                  onClick={() => onEditTank(tank)}
+                  className="text-slate-500 hover:bg-slate-200 transition-colors p-1 rounded focus-ring-default"
                 >
-                  <Trash2 size={16} />
+                  <Edit3 size={16} />
                 </button>
+              </Tooltip>
+              {canDeleteTank && (
+                <Tooltip content="Remove tank" side="bottom">
+                  <button
+                    onClick={() => onDeleteTank(tank.id)}
+                    className="text-red-500 hover:bg-red-100 transition-colors p-1 rounded focus-ring-default"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </Tooltip>
               )}
             </div>
           )}

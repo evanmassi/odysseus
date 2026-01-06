@@ -3,6 +3,7 @@ import React from 'react';
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { Edit3, Trash2 } from 'lucide-react';
 
+import { Tooltip } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -94,21 +95,23 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
         {/* Edit/Delete buttons (Admin Only) */}
         {canManageStorage && (
           <>
-            <button
-              onClick={() => onEditBox(tankId, rackId, box)}
-              className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
-              title="Change grid size"
-            >
-              <Edit3 size={12} />
-            </button>
-            {rack.boxes.length > 1 && (
+            <Tooltip content="Change grid size" side="bottom">
               <button
-                onClick={() => onDeleteBox(tankId, rackId, box.id)}
-                className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
-                title="Remove this box"
+                onClick={() => onEditBox(tankId, rackId, box)}
+                className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
               >
-                <Trash2 size={12} />
+                <Edit3 size={12} />
               </button>
+            </Tooltip>
+            {rack.boxes.length > 1 && (
+              <Tooltip content="Remove box" side="bottom">
+                <button
+                  onClick={() => onDeleteBox(tankId, rackId, box.id)}
+                  className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </Tooltip>
             )}
           </>
         )}

@@ -62,6 +62,7 @@ const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   SessionInfo: new Set([]), // Session info has no date fields in data
   UserLookup: new Set([]), // User lookup/list has no date fields
   Heartbeat: new Set([]), // Heartbeat response has no date fields
+  AuthGenericResponse: new Set([]), // Generic auth endpoints (first-time, password-requirements, etc.) have no date fields
 };
 
 // Type-safe date field detection with exclusion patterns to prevent false positives
