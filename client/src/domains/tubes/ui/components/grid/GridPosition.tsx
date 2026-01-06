@@ -213,28 +213,27 @@ export const GridPosition = memo<GridPositionProps>(
             content={
               <div className="flex flex-col gap-1">
                 {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType should show fallback */}
-                <div className="font-semibold">{tube.sample.cellType || 'Unknown'}</div>
+                <div className="font-semibold text-white">{tube.sample.cellType || 'Unknown'}</div>
                 {donorInfo.internal && (
-                  <div className="text-slate-600">
-                    <span className="text-slate-400">Internal:</span> {donorInfo.internal}
+                  <div className="text-white">
+                    <span className="text-slate-400">Int. ID:</span> {donorInfo.internal}
                   </div>
                 )}
                 {donorInfo.source && (
-                  <div className="text-slate-600">
-                    <span className="text-slate-400">Source:</span>{' '}
+                  <div className="text-white">
+                    <span className="text-slate-400">Src. ID:</span>{' '}
                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty donorSourceId should fall back to computed source */}
                     {tube.sample.donorSourceId || donorInfo.source}
                   </div>
                 )}
                 {tube.sample.lotNumber && (
-                  <div className="text-slate-600">
-                    <span className="text-slate-400">Lot:</span> {tube.sample.lotNumber}
+                  <div className="text-white">
+                    <span className="text-slate-400">Lot #:</span> {tube.sample.lotNumber}
                   </div>
                 )}
                 {tube.sample.cultureCondition && (
-                  <div className="text-slate-600">
-                    <span className="text-slate-400">Condition:</span>{' '}
-                    {tube.sample.cultureCondition}
+                  <div className="text-white">
+                    <span className="text-slate-400">Cond.:</span> {tube.sample.cultureCondition}
                   </div>
                 )}
               </div>

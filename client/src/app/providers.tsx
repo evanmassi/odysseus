@@ -6,6 +6,7 @@
  */
 import React, { Component } from 'react';
 
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
@@ -37,26 +38,28 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      {/* React Query DevTools - only in development */}
-      {env.isDev() && <ReactQueryDevtools initialIsOpen={false} />}
+      <TooltipPrimitive.Provider delayDuration={300} skipDelayDuration={300}>
+        {/* React Query DevTools - only in development */}
+        {env.isDev() && <ReactQueryDevtools initialIsOpen={false} />}
 
-      {/* Cache Performance Monitoring - only in development */}
-      {/* Performance debugging removed for clean build */}
+        {/* Cache Performance Monitoring - only in development */}
+        {/* Performance debugging removed for clean build */}
 
-      {/* Connection Status & Real-time Indicators */}
-      <OfflineBanner />
-      <RealtimeSyncIndicator />
-      <ConnectionStatusIndicator />
+        {/* Connection Status & Real-time Indicators */}
+        <OfflineBanner />
+        <RealtimeSyncIndicator />
+        <ConnectionStatusIndicator />
 
-      {/* Toast notifications - custom Toast component handles styling */}
-      <Toaster
-        position="bottom-right"
-        toastOptions={{
-          duration: 3000,
-        }}
-      />
+        {/* Toast notifications - custom Toast component handles styling */}
+        <Toaster
+          position="bottom-right"
+          toastOptions={{
+            duration: 3000,
+          }}
+        />
 
-      {children}
+        {children}
+      </TooltipPrimitive.Provider>
     </QueryClientProvider>
   );
 }

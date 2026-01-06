@@ -5,7 +5,7 @@
  * Built on Radix UI Tooltip primitive
  */
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
@@ -31,53 +31,75 @@ export const Tooltip: React.FC<TooltipProps> = ({
   children,
   side = 'top',
   align = 'center',
-  delayDuration = 300,
+  delayDuration,
   disabled = false,
   className = '',
 }) => {
+  const [open, setOpen] = useState(false);
+  const isPointerInteraction = useRef(false);
+
   if (disabled || !content) {
     return <>{children}</>;
   }
 
   return (
-    <TooltipPrimitive.Provider delayDuration={delayDuration}>
-      <TooltipPrimitive.Root>
-        <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
-        <TooltipPrimitive.Portal>
-          <TooltipPrimitive.Content
-            side={side}
-            align={align}
-            sideOffset={6}
-            className={`
-              z-50 px-3 py-1.5
-              text-xs font-medium
-              text-slate-800
-              bg-white/40 backdrop-blur-xl
-              rounded-lg
-              shadow-lg shadow-black/10
-              border border-white/50
-              font-['Lato',sans-serif]
-              animate-in fade-in-0 zoom-in-95
-              data-[state=closed]:animate-out
-              data-[state=closed]:fade-out-0
-              data-[state=closed]:zoom-out-95
-              data-[side=bottom]:slide-in-from-top-2
-              data-[side=left]:slide-in-from-right-2
-              data-[side=right]:slide-in-from-left-2
-              data-[side=top]:slide-in-from-bottom-2
-              ${className}
-            `}
-          >
-            {content}
-            <TooltipPrimitive.Arrow
-              className="fill-white/40 drop-shadow-sm"
-              width={12}
-              height={6}
-            />
-          </TooltipPrimitive.Content>
-        </TooltipPrimitive.Portal>
-      </TooltipPrimitive.Root>
-    </TooltipPrimitive.Provider>
+    <TooltipPrimitive.Root
+      delayDuration={delayDuration}
+      open={open}
+      onOpenChange={newOpen => {
+        // Only allow opening from pointer/hover interactions, not keyboard focus
+        if (newOpen && !isPointerInteraction.current) {
+          return;
+        }
+        setOpen(newOpen);
+      }}
+    >
+      <TooltipPrimitive.Trigger
+        asChild
+        onPointerEnter={() => {
+          isPointerInteraction.current = true;
+          setOpen(true);
+        }}
+        onPointerLeave={() => {
+          isPointerInteraction.current = false;
+          setOpen(false);
+        }}
+        onFocus={() => {
+          isPointerInteraction.current = false;
+        }}
+      >
+        {children}
+      </TooltipPrimitive.Trigger>
+      <TooltipPrimitive.Portal>
+        <TooltipPrimitive.Content
+          side={side}
+          align={align}
+          sideOffset={6}
+          className={`
+            z-50 px-3 py-1.5
+            text-xs font-medium
+            text-white
+            bg-slate-900
+            rounded-lg
+            shadow-xl shadow-black/30
+            border border-slate-700
+            font-['Lato',sans-serif]
+            animate-in fade-in-0 zoom-in-95
+            data-[state=closed]:animate-out
+            data-[state=closed]:fade-out-0
+            data-[state=closed]:zoom-out-95
+            data-[side=bottom]:slide-in-from-top-2
+            data-[side=left]:slide-in-from-right-2
+            data-[side=right]:slide-in-from-left-2
+            data-[side=top]:slide-in-from-bottom-2
+            ${className}
+          `}
+        >
+          {content}
+          <TooltipPrimitive.Arrow className="fill-slate-900" width={12} height={6} />
+        </TooltipPrimitive.Content>
+      </TooltipPrimitive.Portal>
+    </TooltipPrimitive.Root>
   );
 };
 

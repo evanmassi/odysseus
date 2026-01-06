@@ -1,15 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
-  ],
-  safelist: [
-    'expanded',
-    'tank-level',
-    'rack-level',
-    'selector-level'
-  ],
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  safelist: ['expanded', 'tank-level', 'rack-level', 'selector-level'],
   theme: {
     extend: {
       colors: {
@@ -25,7 +17,7 @@ export default {
           muted: 'var(--color-odysseus-muted)',
           'text-primary': 'var(--color-odysseus-text-primary)',
           'text-secondary': 'var(--color-odysseus-text-secondary)',
-          input: 'var(--color-odysseus-input)'
+          input: 'var(--color-odysseus-input)',
         },
         ice: {
           50: 'var(--color-ice-50)',
@@ -196,7 +188,17 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Lato', 'system-ui', 'sans-serif']
+        sans: ['Lato', 'system-ui', 'sans-serif'],
+        mono: [
+          'ui-monospace',
+          'SFMono-Regular',
+          'Menlo',
+          'Monaco',
+          'Consolas',
+          '"Liberation Mono"',
+          '"Courier New"',
+          'monospace',
+        ],
       },
       keyframes: {
         'zoom-in-98': {
@@ -234,5 +236,5 @@ export default {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
-}
+  plugins: [require('tailwindcss-animate')],
+};
