@@ -1,5 +1,7 @@
 import { UsersRound } from 'lucide-react';
 
+import { Tooltip } from '@shared/ui';
+
 export type OwnershipType = 'unassigned' | 'currentUser' | 'otherUser';
 
 interface OwnershipIndicatorBadgeProps {
@@ -57,9 +59,11 @@ export function OwnershipIndicatorBadge({
   if (variant === 'navigator') {
     if (type === 'unassigned') {
       return (
-        <span className={`${colorClass} flex-shrink-0`} title="Unassigned/Common">
-          <UsersRound size={iconSize} />
-        </span>
+        <Tooltip content="Unassigned/Common" side="bottom">
+          <span className={`${colorClass} flex-shrink-0`}>
+            <UsersRound size={iconSize} />
+          </span>
+        </Tooltip>
       );
     }
 
@@ -71,21 +75,22 @@ export function OwnershipIndicatorBadge({
           : 'Assigned to another user';
 
     return (
-      <span className={`${colorClass} ${textSize} font-semibold flex-shrink-0`} title={title}>
-        {initials}
-      </span>
+      <Tooltip content={title} side="bottom">
+        <span className={`${colorClass} ${textSize} font-semibold flex-shrink-0`}>{initials}</span>
+      </Tooltip>
     );
   }
 
   // Default variant: circular badge with background
   if (type === 'unassigned') {
     return (
-      <div
-        className={`${badgeSize} rounded-full ${colorClass} flex items-center justify-center flex-shrink-0`}
-        title="Unassigned/Common"
-      >
-        <UsersRound size={iconSize} />
-      </div>
+      <Tooltip content="Unassigned/Common" side="bottom">
+        <div
+          className={`${badgeSize} rounded-full ${colorClass} flex items-center justify-center flex-shrink-0`}
+        >
+          <UsersRound size={iconSize} />
+        </div>
+      </Tooltip>
     );
   }
 
@@ -97,11 +102,12 @@ export function OwnershipIndicatorBadge({
         : 'Assigned to another user';
 
   return (
-    <div
-      className={`${badgeSize} ${colorClass} rounded-full flex items-center justify-center ${textSize} font-bold flex-shrink-0`}
-      title={title}
-    >
-      {initials}
-    </div>
+    <Tooltip content={title} side="bottom">
+      <div
+        className={`${badgeSize} ${colorClass} rounded-full flex items-center justify-center ${textSize} font-bold flex-shrink-0`}
+      >
+        {initials}
+      </div>
+    </Tooltip>
   );
 }

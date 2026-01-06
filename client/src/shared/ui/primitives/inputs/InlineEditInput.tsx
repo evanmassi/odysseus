@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import { Check, X } from 'lucide-react';
 
+import { Tooltip } from '@shared/ui/primitives/tooltip';
+
 interface QuickEditFieldProps {
   initialValue: string;
   fieldName: string;
@@ -10,12 +12,12 @@ interface QuickEditFieldProps {
   placeholder?: string;
 }
 
-export function InlineEditInput({ 
-  initialValue, 
-  fieldName, 
-  onSave, 
-  onCancel, 
-  placeholder 
+export function InlineEditInput({
+  initialValue,
+  fieldName,
+  onSave,
+  onCancel,
+  placeholder,
 }: QuickEditFieldProps) {
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -27,24 +29,27 @@ export function InlineEditInput({
     }
   }, []);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    switch (e.key) {
-      case 'Enter':
-        e.preventDefault();
-        e.stopPropagation();
-        onSave(value);
-        break;
-      case 'Escape':
-        e.preventDefault();
-        e.stopPropagation();
-        onCancel();
-        break;
-      case 'Tab':
-        // Allow tab to work normally but save on tab out
-        onSave(value);
-        break;
-    }
-  }, [value, onSave, onCancel]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      switch (e.key) {
+        case 'Enter':
+          e.preventDefault();
+          e.stopPropagation();
+          onSave(value);
+          break;
+        case 'Escape':
+          e.preventDefault();
+          e.stopPropagation();
+          onCancel();
+          break;
+        case 'Tab':
+          // Allow tab to work normally but save on tab out
+          onSave(value);
+          break;
+      }
+    },
+    [value, onSave, onCancel]
+  );
 
   const handleBlur = useCallback(() => {
     // Auto-save on blur
@@ -57,34 +62,36 @@ export function InlineEditInput({
         ref={inputRef}
         type="text"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={e => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={handleBlur}
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty placeholder is meaningless, generate helpful text
         placeholder={placeholder || `Edit ${fieldName}`}
-        className="flex-1 text-xs bg-transparent border-none outline-none px-1"
+        className="flex-1 text-xs bg-transparent border-none focus-ring-default px-1"
       />
       <div className="flex space-x-1 ml-1">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onSave(value);
-          }}
-          className="p-0.5 rounded bg-green-100 text-green-600 hover:bg-green-200 transition-colors"
-          title="Save (Enter)"
-        >
-          <Check size={10} />
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onCancel();
-          }}
-          className="p-0.5 rounded bg-danger-light text-danger-text hover:bg-danger-border transition-colors"
-          title="Cancel (Esc)"
-        >
-          <X size={10} />
-        </button>
+        <Tooltip content="Save (Enter)" side="bottom">
+          <button
+            onClick={e => {
+              e.stopPropagation();
+              onSave(value);
+            }}
+            className="p-0.5 rounded bg-green-100 text-green-600 hover:bg-green-200 transition-colors focus-ring-default"
+          >
+            <Check size={10} />
+          </button>
+        </Tooltip>
+        <Tooltip content="Cancel (Esc)" side="bottom">
+          <button
+            onClick={e => {
+              e.stopPropagation();
+              onCancel();
+            }}
+            className="p-0.5 rounded bg-danger-light text-danger-text hover:bg-danger-border transition-colors focus-ring-default"
+          >
+            <X size={10} />
+          </button>
+        </Tooltip>
       </div>
     </div>
   );

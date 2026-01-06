@@ -119,6 +119,7 @@ export const GridPosition = memo<GridPositionProps>(
         }
         aria-selected={selected}
         tabIndex={selected ? 0 : -1}
+        data-focus="custom"
         className={`
         tube-position relative group cursor-pointer
         ${tube ? 'occupied' : 'empty'}

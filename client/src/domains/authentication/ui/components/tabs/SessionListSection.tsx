@@ -12,6 +12,7 @@ import { Monitor, TabletSmartphone, MonitorCheck, LogOut, RefreshCw } from 'luci
 import { UAParser } from 'ua-parser-js';
 
 import { useUserSessions } from '@domains/users';
+import { Tooltip } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 export function SessionListSection() {
@@ -174,19 +175,20 @@ export function SessionListSection() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     {!session.isCurrentSession && (
-                      <button
-                        onClick={() => handleRevokeSession(session.id)}
-                        disabled={isRevoking || revokingSessionId === session.id}
-                        className="btn-danger-compact flex items-center space-x-1"
-                        title="Logout from this session"
-                      >
-                        {revokingSessionId === session.id ? (
-                          <RefreshCw size={12} className="animate-spin" />
-                        ) : (
-                          <LogOut size={12} />
-                        )}
-                        <span>Logout</span>
-                      </button>
+                      <Tooltip content="Logout from this session" side="bottom">
+                        <button
+                          onClick={() => handleRevokeSession(session.id)}
+                          disabled={isRevoking || revokingSessionId === session.id}
+                          className="btn-danger-compact flex items-center space-x-1"
+                        >
+                          {revokingSessionId === session.id ? (
+                            <RefreshCw size={12} className="animate-spin" />
+                          ) : (
+                            <LogOut size={12} />
+                          )}
+                          <span>Logout</span>
+                        </button>
+                      </Tooltip>
                     )}
                   </td>
                 </tr>
@@ -225,18 +227,19 @@ export function SessionListSection() {
                   </div>
                 </div>
                 {!session.isCurrentSession && (
-                  <button
-                    onClick={() => handleRevokeSession(session.id)}
-                    disabled={isRevoking || revokingSessionId === session.id}
-                    className="btn-danger-compact flex-shrink-0 ml-2 flex items-center space-x-1"
-                    title="Logout from this session"
-                  >
-                    {revokingSessionId === session.id ? (
-                      <RefreshCw size={12} className="animate-spin" />
-                    ) : (
-                      <LogOut size={12} />
-                    )}
-                  </button>
+                  <Tooltip content="Logout from this session" side="bottom">
+                    <button
+                      onClick={() => handleRevokeSession(session.id)}
+                      disabled={isRevoking || revokingSessionId === session.id}
+                      className="btn-danger-compact flex-shrink-0 ml-2 flex items-center space-x-1"
+                    >
+                      {revokingSessionId === session.id ? (
+                        <RefreshCw size={12} className="animate-spin" />
+                      ) : (
+                        <LogOut size={12} />
+                      )}
+                    </button>
+                  </Tooltip>
                 )}
               </div>
               <div className="space-y-1 text-xs text-gray-600">

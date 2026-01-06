@@ -9,15 +9,6 @@
       outline 200ms;
   }
 
-  .btn:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-primary {
     @apply btn bg-action text-white hover:bg-action-hover hover:shadow-md h-10 px-4 py-2;
   }
@@ -88,15 +79,6 @@
       outline 200ms;
   }
 
-  .btn-compact:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-primary-compact {
     @apply btn-compact bg-transparent text-slate-400 hover:bg-blue-50 hover:text-action;
   }
@@ -126,15 +108,6 @@
       outline 200ms;
   }
 
-  .btn-icon-sm:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-icon {
     @apply w-10 h-10 flex items-center justify-center rounded;
     transition:
@@ -143,41 +116,14 @@
       outline 200ms;
   }
 
-  .btn-icon:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   /* Header button with white focus ring (hamburger menu on blue background) */
   .btn-header-menu {
     @apply p-1.5 cursor-pointer rounded transition-colors;
   }
 
-  .btn-header-menu:focus {
-    outline: 2px solid white;
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px rgba(255, 255, 255, 0.3),
-      0 0 0 6px rgba(255, 255, 255, 0.15),
-      0 0 8px 6px rgba(255, 255, 255, 0.1);
-  }
-
   /* Navigation Tab Buttons (sidebar) */
   .nav-tab {
     @apply w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left transition-all;
-  }
-
-  .nav-tab:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   /* Header Control Buttons */
@@ -191,15 +137,6 @@
       outline 200ms;
   }
 
-  .btn-header-control:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-header-control-secondary {
     @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg;
     @apply bg-white/70 text-blue-700 border border-white/40;
@@ -210,15 +147,6 @@
       outline 200ms;
   }
 
-  .btn-header-control-secondary:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-header-control-danger {
     @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg;
     @apply bg-red-100 text-red-800 border border-red-200;
@@ -227,15 +155,6 @@
       all 200ms,
       box-shadow 200ms,
       outline 200ms;
-  }
-
-  .btn-header-control-danger:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   /* Ghost Header Buttons - Modern toolbar style */
@@ -249,15 +168,6 @@
       outline 200ms;
   }
 
-  .btn-header-ghost:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   /* Ghost Danger - Muted red, turns more red on hover */
   .btn-header-ghost-danger {
     @apply inline-flex items-center px-1.5 py-0.5 text-sm font-medium rounded-md;
@@ -267,15 +177,6 @@
       all 200ms,
       box-shadow 200ms,
       outline 200ms;
-  }
-
-  .btn-header-ghost-danger:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   /* Legacy button classes - keeping for backwards compatibility */
@@ -289,15 +190,6 @@
       outline 200ms;
   }
 
-  .btn-header-control-compact:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-header-control-compact-secondary {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
     @apply bg-clear-bg text-clear-text border border-clear-bg;
@@ -308,15 +200,6 @@
       outline 200ms;
   }
 
-  .btn-header-control-compact-secondary:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-header-control-compact-danger {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
     @apply bg-danger-bg text-danger-btnText border border-danger-bg;
@@ -325,15 +208,6 @@
       all 200ms,
       box-shadow 200ms,
       outline 200ms;
-  }
-
-  .btn-header-control-compact-danger:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   /* Semantic Action Buttons */
@@ -350,15 +224,6 @@
     @apply shadow-md bg-edit-hover;
   }
 
-  .btn-header-control-compact-edit:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-header-control-compact-copy {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
     @apply bg-copy-bg text-copy-btnText border border-copy-bg;
@@ -370,15 +235,6 @@
 
   .btn-header-control-compact-copy:hover {
     @apply shadow-md bg-copy-hover;
-  }
-
-  .btn-header-control-compact-copy:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   .btn-header-control-compact-cut {
@@ -394,15 +250,6 @@
     @apply shadow-md bg-cut-hover;
   }
 
-  .btn-header-control-compact-cut:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-header-control-compact-lock {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
     @apply bg-lock-bg text-lock-btnText border border-lock-bg;
@@ -416,15 +263,6 @@
     @apply shadow-md bg-lock-hover;
   }
 
-  .btn-header-control-compact-lock:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
-  }
-
   .btn-header-control-compact-share {
     @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
     @apply bg-share-bg text-share-btnText border border-share-bg;
@@ -436,14 +274,5 @@
 
   .btn-header-control-compact-share:hover {
     @apply shadow-md bg-share-hover;
-  }
-
-  .btn-header-control-compact-share:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: 2px;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 }

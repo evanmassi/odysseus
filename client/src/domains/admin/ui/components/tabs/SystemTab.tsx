@@ -1,5 +1,5 @@
 /**
- * System Configuration Tab Component
+ * System Tab Component
  *
  * Provides admin interface for viewing system configuration including:
  * - Lab name configuration
@@ -24,11 +24,11 @@ import { notifications } from '@shared/utils';
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
 /**
- * SystemConfigTab Props Interface
+ * SystemTab Props Interface
  *
- * @interface SystemConfigTabProps
+ * @interface SystemTabProps
  */
-export interface SystemConfigTabProps {
+export interface SystemTabProps {
   /** Current security configuration (for audit settings) */
   config: SecurityConfig;
 
@@ -40,23 +40,23 @@ export interface SystemConfigTabProps {
 }
 
 /**
- * System Configuration Tab Component
+ * System Tab Component
  *
  * Displays read-only system statistics and audit controls.
  *
- * @param {SystemConfigTabProps} props - Component props
+ * @param {SystemTabProps} props - Component props
  * @returns {JSX.Element} System configuration interface
  *
  * @example
  * ```tsx
- * <SystemConfigTab
+ * <SystemTab
  *   config={config}
  *   stats={systemStats}
  *   onChange={handleConfigChange}
  * />
  * ```
  */
-export function SystemConfigTab({ config, stats, onChange }: SystemConfigTabProps) {
+export function SystemTab({ config, stats, onChange }: SystemTabProps) {
   const { currentLab } = useStorageData();
   const queryClient = useQueryClient();
 

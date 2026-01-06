@@ -150,17 +150,18 @@ export function RackRow({
           {/* Add Box Button with Bulk Input (Admin Only) */}
           {canManageStorage && (
             <div className="flex items-center gap-2 py-0.5 px-1.5">
-              <input
-                type="number"
-                min="1"
-                max="26"
-                value={boxCountToAdd}
-                onChange={e =>
-                  onBoxCountChange(Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))
-                }
-                className="input-number-sm w-14 px-2 py-0.5 focus-ring-default"
-                title="Number of boxes to add"
-              />
+              <Tooltip content="Number of boxes to add" side="bottom">
+                <input
+                  type="number"
+                  min="1"
+                  max="26"
+                  value={boxCountToAdd}
+                  onChange={e =>
+                    onBoxCountChange(Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))
+                  }
+                  className="input-number-sm w-14 px-2 py-0.5 focus-ring-default"
+                />
+              </Tooltip>
               <button
                 onClick={() => onAddBox(tankId, rack.id)}
                 className="btn btn-primary flex items-center gap-1 text-xs !py-0 px-2 h-6"

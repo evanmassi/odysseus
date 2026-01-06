@@ -115,17 +115,18 @@ export function TankRow({
             {canManageStorage && (
               <div className="ml-2 mt-1">
                 <div className="flex items-center gap-2 py-1 px-1.5">
-                  <input
-                    type="number"
-                    min="1"
-                    max="50"
-                    value={rackCountToAdd}
-                    onChange={e =>
-                      onRackCountChange(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))
-                    }
-                    className="input-number-sm w-14 px-2 py-1 text-sm focus-ring-default"
-                    title="Number of racks to add"
-                  />
+                  <Tooltip content="Number of racks to add" side="bottom">
+                    <input
+                      type="number"
+                      min="1"
+                      max="50"
+                      value={rackCountToAdd}
+                      onChange={e =>
+                        onRackCountChange(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))
+                      }
+                      className="input-number-sm w-14 px-2 py-1 text-sm focus-ring-default"
+                    />
+                  </Tooltip>
                   <button
                     onClick={() => onAddRack(tank.id)}
                     className="btn btn-primary flex items-center gap-1 text-sm !py-0 px-2 h-7"

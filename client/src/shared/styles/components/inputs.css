@@ -30,13 +30,7 @@
   }
 
   .input:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
     border-color: transparent;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   .input-compact {
@@ -48,13 +42,7 @@
   }
 
   .input-compact:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
     border-color: transparent;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   /* Modern search input - background tint, no border until focus */
@@ -72,12 +60,6 @@
 
   .input-search:focus {
     @apply bg-white border-slate-200;
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   /* Form field inputs (ValidatedInput component) */
@@ -89,13 +71,7 @@
   }
 
   .input-form-field:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
     border-color: transparent;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   /* Small number inputs (for quantity selectors, etc) */
@@ -108,13 +84,7 @@
   }
 
   .input-number-sm:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
     border-color: transparent;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 
   /* Small select dropdowns (for inline selections like role selectors) */
@@ -127,13 +97,7 @@
   }
 
   .select-sm:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: var(--focus-ring-offset);
     border-color: transparent;
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
   }
 }
 

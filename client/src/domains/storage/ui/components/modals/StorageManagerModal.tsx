@@ -502,6 +502,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
             <button
               type="button"
               onClick={() => setViewMode('tree')}
+              data-focus="none"
               className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
                 viewMode === 'tree'
                   ? 'border-slate-600 text-slate-800'
@@ -514,6 +515,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
             <button
               type="button"
               onClick={() => setViewMode('byUser')}
+              data-focus="none"
               className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
                 viewMode === 'byUser'
                   ? 'border-slate-600 text-slate-800'

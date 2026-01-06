@@ -538,9 +538,7 @@ export function Dashboard() {
         <div className="storage-navigator-panel">
           <div className="h-full flex flex-col bg-white rounded-lg">
             <div className="px-4 pt-4 pb-2">
-              <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">
-                Navigator
-              </h4>
+              <h4 className="text-sm font-semibold text-slate-400 tracking-wide">Navigator</h4>
             </div>
             <div
               className="flex-1 pb-2 overflow-y-auto overflow-x-hidden scrollbar-hidden"
@@ -564,7 +562,7 @@ export function Dashboard() {
         <div className="grid-section">
           <div className="h-full flex flex-col bg-white rounded-lg">
             <div className="px-4 pt-4 pb-2 flex items-center">
-              <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide inline-flex items-center gap-1.5">
+              <h4 className="text-sm font-semibold text-slate-400 tracking-wide inline-flex items-center gap-1.5">
                 <span>{tankDisplayName}</span>
                 <span className="text-xs text-slate-300">•</span>
                 <span>{rackDisplayName}</span>
@@ -622,7 +620,7 @@ export function Dashboard() {
         <div className="info-panel">
           <div className="h-full flex flex-col bg-white rounded-lg">
             <div className="px-4 pt-4 pb-2">
-              <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wide">
+              <h4 className="text-sm font-semibold text-slate-400 tracking-wide">
                 Tube Information
               </h4>
             </div>

@@ -158,6 +158,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
                       <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
+                        data-focus="none"
                         className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-slate-100 ${
                           isActive
                             ? 'border-l-slate-600 bg-slate-50 text-slate-800'

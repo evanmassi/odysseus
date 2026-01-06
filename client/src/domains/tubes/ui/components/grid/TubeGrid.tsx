@@ -234,6 +234,7 @@ export function TubeGrid({
           aria-label={`Tube storage grid for ${boxId ? `Box ${boxId}` : `Rack ${rackId}`}, ${positions.length} positions`}
           aria-multiselectable="true"
           tabIndex={0}
+          data-focus="custom"
           onKeyDown={keyboardNav.handleGridKeyDown}
           onFocus={() => {
             // If no selection exists when grid receives focus, select position 1

@@ -32,11 +32,11 @@ export { TabSkeleton } from './ui/components/TabSkeleton';
 export { SecurityTab } from './ui/components/tabs/SecurityTab';
 export type { SecurityTabProps } from './ui/components/tabs/SecurityTab';
 
-export { UserManagementTab } from './ui/components/tabs/UserManagementTab';
-export type { UserManagementTabProps } from './ui/components/tabs/UserManagementTab';
+export { UsersTab } from './ui/components/tabs/UsersTab';
+export type { UsersTabProps } from './ui/components/tabs/UsersTab';
 
-export { SystemConfigTab } from './ui/components/tabs/SystemConfigTab';
-export type { SystemConfigTabProps } from './ui/components/tabs/SystemConfigTab';
+export { SystemTab } from './ui/components/tabs/SystemTab';
+export type { SystemTabProps } from './ui/components/tabs/SystemTab';
 
 export { MonitoringTab } from './ui/components/tabs/MonitoringTab';
 export type { MonitoringTabProps } from './ui/components/tabs/MonitoringTab';

@@ -2,6 +2,8 @@ import { useState } from 'react';
 
 import { Undo2, Redo2, History, Trash2 } from 'lucide-react';
 
+import { Tooltip } from '@shared/ui';
+
 import type { HistoryAction } from '@shared/types/clipboard';
 
 interface UndoRedoControlsProps {
@@ -23,7 +25,7 @@ export function HistoryControls({
   onUndo,
   onRedo,
   onClearHistory,
-  className = ''
+  className = '',
 }: UndoRedoControlsProps) {
   const [showHistory, setShowHistory] = useState(false);
 
@@ -31,21 +33,27 @@ export function HistoryControls({
   const nextRedoOperation = redoStack[0];
 
   const formatOperationDescription = (operation: HistoryAction) => {
-    const time = new Date(operation.timestamp).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    const time = new Date(operation.timestamp).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
     });
     return `${operation.description} (${time})`;
   };
 
   const getOperationIcon = (type: HistoryAction['type']) => {
     switch (type) {
-      case 'create': return '➕';
-      case 'update': return '✏️';
-      case 'delete': return '🗑️';
-      case 'bulk-update': return '🔄';
-      case 'bulk-delete': return '🗑️';
-      default: return '•';
+      case 'create':
+        return '➕';
+      case 'update':
+        return '✏️';
+      case 'delete':
+        return '🗑️';
+      case 'bulk-update':
+        return '🔄';
+      case 'bulk-delete':
+        return '🗑️';
+      default:
+        return '•';
     }
   };
 
@@ -54,58 +62,58 @@ export function HistoryControls({
       {/* Main controls */}
       <div className="flex items-center space-x-1 bg-white rounded-lg shadow-sm border border-gray-200 p-1">
         {/* Undo button */}
-        <button
-          onClick={onUndo}
-          disabled={!canUndo}
-          className="btn btn-sm btn-secondary flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
-          title={lastUndoOperation ? `Undo: ${lastUndoOperation.description}` : 'Nothing to undo'}
+        <Tooltip
+          content={lastUndoOperation ? `Undo: ${lastUndoOperation.description}` : 'Nothing to undo'}
+          side="bottom"
         >
-          <Undo2 size={14} />
-          <span className="hidden sm:inline">Undo</span>
-        </button>
+          <button
+            onClick={onUndo}
+            disabled={!canUndo}
+            className="btn btn-sm btn-secondary flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Undo2 size={14} />
+            <span className="hidden sm:inline">Undo</span>
+          </button>
+        </Tooltip>
 
         {/* Redo button */}
-        <button
-          onClick={onRedo}
-          disabled={!canRedo}
-          className="btn btn-sm btn-secondary flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
-          title={nextRedoOperation ? `Redo: ${nextRedoOperation.description}` : 'Nothing to redo'}
+        <Tooltip
+          content={nextRedoOperation ? `Redo: ${nextRedoOperation.description}` : 'Nothing to redo'}
+          side="bottom"
         >
-          <Redo2 size={14} />
-          <span className="hidden sm:inline">Redo</span>
-        </button>
+          <button
+            onClick={onRedo}
+            disabled={!canRedo}
+            className="btn btn-sm btn-secondary flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Redo2 size={14} />
+            <span className="hidden sm:inline">Redo</span>
+          </button>
+        </Tooltip>
 
         {/* History toggle */}
-        <button
-          onClick={() => setShowHistory(!showHistory)}
-          className="btn btn-sm btn-secondary"
-          title="View operation history"
-        >
-          <History size={14} />
-        </button>
+        <Tooltip content="View operation history" side="bottom">
+          <button onClick={() => setShowHistory(!showHistory)} className="btn btn-sm btn-secondary">
+            <History size={14} />
+          </button>
+        </Tooltip>
 
         {/* Clear history */}
         {(undoStack.length > 0 || redoStack.length > 0) && (
-          <button
-            onClick={onClearHistory}
-            className="btn btn-sm text-red-600 hover:bg-red-50"
-            title="Clear operation history"
-          >
-            <Trash2 size={14} />
-          </button>
+          <Tooltip content="Clear operation history" side="bottom">
+            <button onClick={onClearHistory} className="btn btn-sm text-red-600 hover:bg-red-50">
+              <Trash2 size={14} />
+            </button>
+          </Tooltip>
         )}
       </div>
 
       {/* Operation summary */}
       {(canUndo || canRedo) && (
         <div className="mt-1 text-xs text-gray-500 text-center">
-          {canUndo && (
-            <span>Next: {lastUndoOperation?.description}</span>
-          )}
+          {canUndo && <span>Next: {lastUndoOperation?.description}</span>}
           {canUndo && canRedo && <span> • </span>}
-          {canRedo && (
-            <span>Redo: {nextRedoOperation?.description}</span>
-          )}
+          {canRedo && <span>Redo: {nextRedoOperation?.description}</span>}
         </div>
       )}
 
@@ -123,9 +131,7 @@ export function HistoryControls({
           </div>
 
           {undoStack.length === 0 && redoStack.length === 0 ? (
-            <div className="text-center text-gray-500 py-4">
-              No operations in history
-            </div>
+            <div className="text-center text-gray-500 py-4">No operations in history</div>
           ) : (
             <div className="space-y-2 max-h-64 overflow-y-auto">
               {/* Future operations (redo stack) */}
@@ -156,33 +162,38 @@ export function HistoryControls({
               )}
 
               {/* Past operations (undo stack) */}
-              {undoStack.slice().reverse().map((operation, index) => (
-                <div
-                  key={`undo-${operation.id}`}
-                  className={`flex items-center space-x-3 p-2 rounded ${
-                    index === 0 
-                      ? 'bg-green-50 border border-green-200' 
-                      : 'bg-gray-50 border border-gray-200'
-                  }`}
-                >
-                  <span className={index === 0 ? 'text-green-600' : 'text-gray-500'}>
-                    {getOperationIcon(operation.type)}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <div className={`text-sm truncate ${
-                      index === 0 ? 'text-green-800' : 'text-gray-700'
-                    }`}>
-                      {formatOperationDescription(operation)}
-                    </div>
-                    <div className={`text-xs ${
-                      index === 0 ? 'text-green-600' : 'text-gray-500'
-                    }`}>
-                      {operation.data.after?.tubes?.length || 0} tube(s)
-                      {index === 0 && ' • Last operation'}
+              {undoStack
+                .slice()
+                .reverse()
+                .map((operation, index) => (
+                  <div
+                    key={`undo-${operation.id}`}
+                    className={`flex items-center space-x-3 p-2 rounded ${
+                      index === 0
+                        ? 'bg-green-50 border border-green-200'
+                        : 'bg-gray-50 border border-gray-200'
+                    }`}
+                  >
+                    <span className={index === 0 ? 'text-green-600' : 'text-gray-500'}>
+                      {getOperationIcon(operation.type)}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div
+                        className={`text-sm truncate ${
+                          index === 0 ? 'text-green-800' : 'text-gray-700'
+                        }`}
+                      >
+                        {formatOperationDescription(operation)}
+                      </div>
+                      <div
+                        className={`text-xs ${index === 0 ? 'text-green-600' : 'text-gray-500'}`}
+                      >
+                        {operation.data.after?.tubes?.length || 0} tube(s)
+                        {index === 0 && ' • Last operation'}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           )}
 

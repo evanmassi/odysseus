@@ -30,15 +30,11 @@ import type { SecurityConfig, AdminUser, SystemMetrics } from '@odysseus/shared-
 const SecurityTab = lazy(() =>
   import('./tabs/SecurityTab').then(m => ({ default: m.SecurityTab }))
 );
-const UserManagementTab = lazy(() =>
-  import('./tabs/UserManagementTab').then(m => ({ default: m.UserManagementTab }))
+const UsersTab = lazy(() => import('./tabs/UsersTab').then(m => ({ default: m.UsersTab })));
+const ResearchersTab = lazy(() =>
+  import('./tabs/ResearchersTab').then(m => ({ default: m.ResearchersTab }))
 );
-const ResearcherManagementTab = lazy(() =>
-  import('./tabs/ResearcherManagementTab').then(m => ({ default: m.ResearcherManagementTab }))
-);
-const SystemConfigTab = lazy(() =>
-  import('./tabs/SystemConfigTab').then(m => ({ default: m.SystemConfigTab }))
-);
+const SystemTab = lazy(() => import('./tabs/SystemTab').then(m => ({ default: m.SystemTab })));
 const MonitoringTab = lazy(() =>
   import('./tabs/MonitoringTab').then(m => ({ default: m.MonitoringTab }))
 );
@@ -198,8 +194,8 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const tabs = [
     { id: 'system', label: 'System', icon: Gauge },
     { id: 'security', label: 'Security', icon: Shield },
-    { id: 'users', label: 'User Management', icon: UsersRound },
-    { id: 'researchers', label: 'Researcher Management', icon: ResearcherIcon },
+    { id: 'users', label: 'Users', icon: UsersRound },
+    { id: 'researchers', label: 'Researchers', icon: ResearcherIcon },
     { id: 'monitoring', label: 'Monitoring', icon: Activity },
   ] as const;
 
@@ -241,6 +237,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
+                      data-focus="none"
                       className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-slate-100 ${
                         isActive
                           ? 'border-l-slate-600 bg-slate-50 text-slate-800'
@@ -269,23 +266,19 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
                 {activeTab === 'users' && (
                   <Suspense fallback={<TabSkeleton />}>
-                    <UserManagementTab users={users} onUserUpdate={loadUsers} />
+                    <UsersTab users={users} onUserUpdate={loadUsers} />
                   </Suspense>
                 )}
 
                 {activeTab === 'researchers' && (
                   <Suspense fallback={<TabSkeleton />}>
-                    <ResearcherManagementTab onResearcherUpdate={loadSystemStats} />
+                    <ResearchersTab onResearcherUpdate={loadSystemStats} />
                   </Suspense>
                 )}
 
                 {activeTab === 'system' && (
                   <Suspense fallback={<TabSkeleton />}>
-                    <SystemConfigTab
-                      config={config}
-                      stats={systemStats}
-                      onChange={handleConfigChange}
-                    />
+                    <SystemTab config={config} stats={systemStats} onChange={handleConfigChange} />
                   </Suspense>
                 )}
 

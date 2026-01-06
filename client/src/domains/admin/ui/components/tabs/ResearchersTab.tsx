@@ -1,5 +1,5 @@
 /**
- * Researcher Management Tab Component
+ * Researchers Tab Component
  *
  * Provides admin interface for managing researcher profiles including:
  * - Viewing all researchers with metadata (tube counts, linked users)
@@ -17,6 +17,7 @@ import { sortByName } from '@odysseus/shared-schemas';
 import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Info } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
+import { Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils';
@@ -27,32 +28,32 @@ import { ResearcherModal } from '../ResearcherModal';
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
 
 /**
- * ResearcherManagementTab Props Interface
+ * ResearchersTab Props Interface
  *
- * @interface ResearcherManagementTabProps
+ * @interface ResearchersTabProps
  */
-export interface ResearcherManagementTabProps {
+export interface ResearchersTabProps {
   /** Callback invoked when researcher list should be refreshed (after deletion, etc.) */
   onResearcherUpdate?: () => void;
 }
 
 /**
- * Researcher Management Tab Component
+ * Researchers Tab Component
  *
  * Renders researcher management interface with table of researchers and deletion controls.
  * All researcher modifications (deletions) are performed via adminService.
  *
- * @param {ResearcherManagementTabProps} props - Component props
+ * @param {ResearchersTabProps} props - Component props
  * @returns {JSX.Element} Researcher management interface
  *
  * @example
  * ```tsx
- * <ResearcherManagementTab
+ * <ResearchersTab
  *   onResearcherUpdate={loadResearchers}
  * />
  * ```
  */
-export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManagementTabProps) {
+export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
   const [researchers, setResearchers] = useState<AdminResearcher[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -183,7 +184,7 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
       <div className="flex items-center justify-between pb-3 border-b border-gray-200 mb-4">
         <div className="flex items-center space-x-2">
           <ResearcherIcon size={22} className="text-gray-700" />
-          <h3 className="text-xl font-semibold text-gray-900">Researcher Management</h3>
+          <h3 className="text-xl font-semibold text-gray-900">Researchers</h3>
         </div>
         <div className="flex items-center space-x-2">
           <button
@@ -242,16 +243,19 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
 
                   {/* Position Cell */}
                   <td className="px-3 py-2 whitespace-nowrap max-w-[150px]">
-                    <div
-                      className="text-sm text-gray-900 truncate"
-                      title={researcher.position ?? undefined}
-                    >
-                      {researcher.position ?? '—'}
-                    </div>
+                    {researcher.position ? (
+                      <Tooltip content={researcher.position} side="bottom">
+                        <div className="text-sm text-gray-900 truncate">{researcher.position}</div>
+                      </Tooltip>
+                    ) : (
+                      <div className="text-sm text-gray-900 truncate">—</div>
+                    )}
                     {researcher.department && (
-                      <div className="text-xs text-gray-500 truncate" title={researcher.department}>
-                        {researcher.department}
-                      </div>
+                      <Tooltip content={researcher.department} side="bottom">
+                        <div className="text-xs text-gray-500 truncate">
+                          {researcher.department}
+                        </div>
+                      </Tooltip>
                     )}
                   </td>
 
@@ -285,37 +289,45 @@ export function ResearcherManagementTab({ onResearcherUpdate }: ResearcherManage
                   {/* Active Status Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     {researcher.active ? (
-                      <span title="Active">
-                        <BadgeCheck size={18} className="text-green-600" />
-                      </span>
+                      <Tooltip content="Active" side="bottom">
+                        <span>
+                          <BadgeCheck size={18} className="text-green-600" />
+                        </span>
+                      </Tooltip>
                     ) : (
-                      <span title="Inactive">
-                        <BadgeX size={18} className="text-gray-400" />
-                      </span>
+                      <Tooltip content="Inactive" side="bottom">
+                        <span>
+                          <BadgeX size={18} className="text-gray-400" />
+                        </span>
+                      </Tooltip>
                     )}
                   </td>
 
                   {/* Actions Cell */}
                   <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
-                    <button
-                      onClick={() =>
-                        deleteResearcher(
-                          researcher.id,
-                          `${researcher.lastName}, ${researcher.firstName}`
-                        )
-                      }
-                      disabled={!canDelete(researcher) || deleting === researcher.id}
-                      className="btn-danger-compact"
-                      title={
+                    <Tooltip
+                      content={
                         !canDelete(researcher) ? getDeletionStatus(researcher) : 'Delete researcher'
                       }
+                      side="bottom"
                     >
-                      {deleting === researcher.id ? (
-                        <RefreshCw size={16} className="animate-spin" />
-                      ) : (
-                        <Trash2 size={16} />
-                      )}
-                    </button>
+                      <button
+                        onClick={() =>
+                          deleteResearcher(
+                            researcher.id,
+                            `${researcher.lastName}, ${researcher.firstName}`
+                          )
+                        }
+                        disabled={!canDelete(researcher) || deleting === researcher.id}
+                        className="btn-danger-compact"
+                      >
+                        {deleting === researcher.id ? (
+                          <RefreshCw size={16} className="animate-spin" />
+                        ) : (
+                          <Trash2 size={16} />
+                        )}
+                      </button>
+                    </Tooltip>
                   </td>
                 </tr>
               ))

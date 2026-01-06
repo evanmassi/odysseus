@@ -1,7 +1,7 @@
 /**
  * Connection Status Indicator
  * Phase 3 Step 3: Real-time UX patterns and connection feedback
- * 
+ *
  * Provides visual feedback about network status, connection quality,
  * and real-time sync status to users.
  */
@@ -12,6 +12,7 @@ import { useQueryClient, type MutationCacheNotifyEvent } from '@tanstack/react-q
 
 import { useNetworkStatus, ConnectionQuality } from '@infra/connection/networkMonitor';
 import { getOptimisticUpdatesService } from '@infra/optimistic/optimisticUpdates';
+import { Tooltip } from '@shared/ui/primitives/tooltip';
 
 /**
  * Connection status indicator component
@@ -48,7 +49,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
         icon: '📴',
         color: '#ef4444', // red-500
         text: 'Offline',
-        description: 'Working offline - changes will sync when reconnected'
+        description: 'Working offline - changes will sync when reconnected',
       };
     }
 
@@ -57,7 +58,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
         icon: '🔄',
         color: '#f59e0b', // amber-500
         text: `Reconnecting... (${networkStatus.reconnectAttempts})`,
-        description: 'Attempting to restore connection'
+        description: 'Attempting to restore connection',
       };
     }
 
@@ -66,7 +67,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
         icon: '⏳',
         color: '#3b82f6', // blue-500
         text: `Syncing (${pendingOperations})`,
-        description: `${pendingOperations} operation${pendingOperations > 1 ? 's' : ''} pending`
+        description: `${pendingOperations} operation${pendingOperations > 1 ? 's' : ''} pending`,
       };
     }
 
@@ -76,35 +77,35 @@ export const ConnectionStatusIndicator: React.FC = () => {
           icon: '🟢',
           color: '#10b981', // emerald-500
           text: 'Excellent',
-          description: 'High-speed connection - all features available'
+          description: 'High-speed connection - all features available',
         };
       case ConnectionQuality.GOOD:
         return {
           icon: '🟢',
           color: '#10b981', // emerald-500
           text: 'Connected',
-          description: 'Good connection quality'
+          description: 'Good connection quality',
         };
       case ConnectionQuality.FAIR:
         return {
           icon: '🟡',
           color: '#f59e0b', // amber-500
           text: 'Slow',
-          description: 'Connection is slow - some features may be limited'
+          description: 'Connection is slow - some features may be limited',
         };
       case ConnectionQuality.POOR:
         return {
           icon: '🔴',
           color: '#ef4444', // red-500
           text: 'Very Slow',
-          description: 'Poor connection - consider checking your network'
+          description: 'Poor connection - consider checking your network',
         };
       default:
         return {
           icon: '🟢',
           color: '#10b981',
           text: 'Connected',
-          description: 'Connected to server'
+          description: 'Connected to server',
         };
     }
   };
@@ -112,28 +113,30 @@ export const ConnectionStatusIndicator: React.FC = () => {
   const status = getStatusDisplay();
 
   // Don't show if everything is good and no pending operations
-  const shouldShow = !networkStatus.isOnline || 
-                    networkStatus.reconnectAttempts > 0 || 
-                    pendingOperations > 0 ||
-                    connectionQuality === ConnectionQuality.POOR ||
-                    connectionQuality === ConnectionQuality.FAIR;
+  const shouldShow =
+    !networkStatus.isOnline ||
+    networkStatus.reconnectAttempts > 0 ||
+    pendingOperations > 0 ||
+    connectionQuality === ConnectionQuality.POOR ||
+    connectionQuality === ConnectionQuality.FAIR;
 
   // Only show in certain conditions or when user wants to see details
   if (!shouldShow && !showDetails) {
     // Show minimal indicator that can be clicked for details
     return (
-      <button
-        onClick={() => setShowDetails(true)}
-        className="fixed bottom-4 right-4 w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow-lg hover:scale-110 transition-transform z-50"
-        title="Connection status - click for details"
-        aria-label="Connection status indicator"
-      />
+      <Tooltip content="Connection status - click for details" side="left">
+        <button
+          onClick={() => setShowDetails(true)}
+          className="fixed bottom-4 right-4 w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow-lg hover:scale-110 transition-transform z-50"
+          aria-label="Connection status indicator"
+        />
+      </Tooltip>
     );
   }
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
-      <div 
+      <div
         className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 max-w-xs"
         style={{ minWidth: '200px' }}
       >
@@ -146,7 +149,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
               {status.text}
             </span>
           </div>
-          
+
           {shouldShow && (
             <button
               onClick={() => setShowDetails(false)}
@@ -157,21 +160,15 @@ export const ConnectionStatusIndicator: React.FC = () => {
             </button>
           )}
         </div>
-        
-        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
-          {status.description}
-        </p>
-        
+
+        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{status.description}</p>
+
         {/* Additional details */}
         {(showDetails || shouldShow) && (
           <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
             <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-              {networkStatus.downlink && (
-                <div>Speed: {networkStatus.downlink.toFixed(1)} Mbps</div>
-              )}
-              {networkStatus.rtt && (
-                <div>Latency: {networkStatus.rtt}ms</div>
-              )}
+              {networkStatus.downlink && <div>Speed: {networkStatus.downlink.toFixed(1)} Mbps</div>}
+              {networkStatus.rtt && <div>Latency: {networkStatus.rtt}ms</div>}
               {networkStatus.effectiveType && (
                 <div>Type: {networkStatus.effectiveType.toUpperCase()}</div>
               )}
@@ -179,7 +176,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
                 Last connected: {new Date(networkStatus.lastConnected).toLocaleTimeString()}
               </div>
             </div>
-            
+
             {!networkStatus.isOnline && (
               <button
                 onClick={networkStatus.retryConnection}
@@ -203,7 +200,7 @@ interface RealtimeSyncIndicatorProps {
 }
 
 export const RealtimeSyncIndicator: React.FC<RealtimeSyncIndicatorProps> = ({
-  isVisible = true
+  isVisible = true,
 }) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const [_isPending, startTransition] = useTransition();
@@ -279,7 +276,10 @@ interface OptimisticLoadingSkeletonProps {
   isOptimistic?: boolean;
 }
 
-export const OptimisticLoadingSkeleton: React.FC<OptimisticLoadingSkeletonProps> = ({ children, isOptimistic = false }) => {
+export const OptimisticLoadingSkeleton: React.FC<OptimisticLoadingSkeletonProps> = ({
+  children,
+  isOptimistic = false,
+}) => {
   if (!isOptimistic) return <>{children}</>;
 
   return (
@@ -301,7 +301,7 @@ interface ConnectionQualityBadgeProps {
 }
 
 export const ConnectionQualityBadge: React.FC<ConnectionQualityBadgeProps> = ({
-  className = ''
+  className = '',
 }) => {
   const queryClient = useQueryClient();
   const networkStatus = useNetworkStatus(queryClient);
@@ -324,11 +324,12 @@ export const ConnectionQualityBadge: React.FC<ConnectionQualityBadgeProps> = ({
   };
 
   return (
-    <span 
-      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getBadgeStyle()} ${className}`}
-      title={`Connection: ${quality}`}
-    >
-      {quality}
-    </span>
+    <Tooltip content={`Connection: ${quality}`} side="bottom">
+      <span
+        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getBadgeStyle()} ${className}`}
+      >
+        {quality}
+      </span>
+    </Tooltip>
   );
 };

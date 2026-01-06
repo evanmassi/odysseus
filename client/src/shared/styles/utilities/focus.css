@@ -1,25 +1,27 @@
 @layer components {
-  /* Enhanced focus indicator with high contrast (proof of concept) */
-  .focus-enhanced {
-    transition:
-      box-shadow 0.15s ease-out,
-      outline 0.15s ease-out;
-  }
+  /*
+   * Focus Ring System
+   *
+   * Default focus ring is applied globally to all focusable elements.
+   * Use data-focus attribute to opt out or customize:
+   *   - data-focus="none"   - No focus ring (element has custom visual feedback like modal tabs)
+   *   - data-focus="custom" - Custom focus handling (grid elements, tubes)
+   *   - data-focus="light"  - White focus ring for dark backgrounds
+   *
+   * Special cases handled by CSS:
+   *   - .input-field-error  - Validation error state (pulsing red border)
+   *   - .auth-input-container - Container-managed focus (:focus-within)
+   */
 
-  .focus-enhanced:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color) !important;
-    outline-offset: var(--focus-ring-offset);
-    box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur) !important;
-  }
-
-  /* Reusable Focus Ring Component Classes */
-
-  /* Default focus ring - Standard blue with glow effect */
-  .focus-ring-default:focus,
-  .focus-ring-default:focus-visible {
+  /* Global Default Focus Ring - Applied to all focusable elements without data-focus */
+  button:not([data-focus]):focus-visible,
+  a:not([data-focus]):focus-visible,
+  input:not([data-focus]):not(.input-field-error):focus-visible,
+  select:not([data-focus]):not(.input-field-error):focus-visible,
+  textarea:not([data-focus]):not(.input-field-error):focus-visible,
+  [role='button']:not([data-focus]):focus-visible,
+  [role='menuitem']:not([data-focus]):focus-visible,
+  [tabindex]:not([tabindex='-1']):not([data-focus]):focus-visible {
     outline: var(--focus-ring-width) solid var(--focus-ring-color);
     outline-offset: var(--focus-ring-offset);
     box-shadow:
@@ -28,45 +30,22 @@
       0 0 8px 6px var(--focus-ring-blur);
   }
 
+  /* Container-managed focus - auth-input-container handles :focus-within styling */
+  /* Uses !important to override global rule's higher specificity from :not() selectors */
+  .auth-input-container input:focus-visible,
+  .auth-input-container select:focus-visible,
+  .auth-input-container textarea:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
   /* Light focus ring - White for dark backgrounds */
-  .focus-ring-light:focus,
-  .focus-ring-light:focus-visible {
+  [data-focus='light']:focus-visible {
     outline: var(--focus-ring-width) solid white;
     outline-offset: var(--focus-ring-offset);
     box-shadow:
       0 0 0 3px rgba(255, 255, 255, 0.3),
       0 0 0 6px rgba(255, 255, 255, 0.15),
       0 0 8px 6px rgba(255, 255, 255, 0.1);
-  }
-
-  /* Error focus ring - Red with pulsing animation */
-  .focus-ring-error:focus,
-  .focus-ring-error:focus-visible {
-    outline: none;
-    border-color: var(--focus-ring-error);
-    animation: pulseErrorRing 1.5s infinite;
-    transition: border-color 0.3s;
-  }
-
-  /* Warning focus ring - Yellow with glow */
-  .focus-ring-warning:focus,
-  .focus-ring-warning:focus-visible {
-    outline: var(--focus-ring-width) solid var(--focus-ring-warning);
-    outline-offset: var(--focus-ring-offset);
-    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
-  }
-
-  /* Success focus ring - Green with glow */
-  .focus-ring-success:focus,
-  .focus-ring-success:focus-visible {
-    outline: var(--focus-ring-width) solid var(--focus-ring-success);
-    outline-offset: var(--focus-ring-offset);
-    box-shadow: 0 0 0 3px rgba(135, 216, 195, 0.3);
-  }
-
-  /* No focus ring - Use only when custom focus management is implemented */
-  .focus-ring-none:focus,
-  .focus-ring-none:focus-visible {
-    outline: none;
   }
 }

@@ -1,5 +1,5 @@
 /**
- * User Management Tab Component
+ * Users Tab Component
  *
  * Provides admin interface for managing users including:
  * - Viewing all users with details (username, role, last activity)
@@ -30,6 +30,7 @@ import {
 import Select, { type CSSObjectWithLabel } from 'react-select';
 
 import { logger } from '@shared/infrastructure/logger';
+import { Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -85,11 +86,11 @@ const ROLE_SELECT_STYLES = {
 };
 
 /**
- * UserManagementTab Props Interface
+ * UsersTab Props Interface
  *
- * @interface UserManagementTabProps
+ * @interface UsersTabProps
  */
-export interface UserManagementTabProps {
+export interface UsersTabProps {
   /** Array of users to display in the table */
   users: AdminUser[];
 
@@ -98,24 +99,24 @@ export interface UserManagementTabProps {
 }
 
 /**
- * User Management Tab Component
+ * Users Tab Component
  *
  * Renders user management interface with table of users and invite code section.
  * All user modifications (role changes, deletions) are performed via adminService
  * and trigger onUserUpdate callback to refresh the list.
  *
- * @param {UserManagementTabProps} props - Component props
+ * @param {UsersTabProps} props - Component props
  * @returns {JSX.Element} User management interface
  *
  * @example
  * ```tsx
- * <UserManagementTab
+ * <UsersTab
  *   users={users}
  *   onUserUpdate={loadUsers}
  * />
  * ```
  */
-export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTabProps) {
+export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [pendingUsers, setPendingUsers] = useState<AdminUser[]>([]);
   const [_loadingPending, setLoadingPending] = useState(false);
@@ -348,7 +349,7 @@ export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTa
       <div className="flex items-center justify-between pb-3 border-b border-gray-200 mb-4">
         <div className="flex items-center space-x-2">
           <UsersRound size={22} className="text-gray-700" />
-          <h3 className="text-xl font-semibold text-gray-900">User Management</h3>
+          <h3 className="text-xl font-semibold text-gray-900">Users</h3>
         </div>
         <button
           onClick={() => {
@@ -462,12 +463,11 @@ export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTa
                             </span>
                           )}
                           {user.requirePasswordChange && (
-                            <span
-                              className="text-warning-text text-xs flex items-center gap-0.5"
-                              title="Password change required on next login"
-                            >
-                              ⚠️
-                            </span>
+                            <Tooltip content="Password change required on next login" side="bottom">
+                              <span className="text-warning-text text-xs flex items-center gap-0.5">
+                                ⚠️
+                              </span>
+                            </Tooltip>
                           )}
                         </div>
                         <div className="text-xs text-gray-500">{user.username}</div>
@@ -522,44 +522,48 @@ export function UserManagementTab({ users = [], onUserUpdate }: UserManagementTa
                   {/* Actions Cell */}
                   <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-1">
-                      <button
-                        onClick={() =>
-                          setPasswordResetModal({ userId: user.id, username: user.username })
-                        }
-                        className="btn-password-compact"
-                        title="Reset password"
-                      >
-                        <KeyRound size={16} />
-                      </button>
+                      <Tooltip content="Reset password" side="bottom">
+                        <button
+                          onClick={() =>
+                            setPasswordResetModal({ userId: user.id, username: user.username })
+                          }
+                          className="btn-password-compact"
+                        >
+                          <KeyRound size={16} />
+                        </button>
+                      </Tooltip>
                       {user.researcherId ? (
-                        <button
-                          onClick={() => unlinkResearcher(user.id, user.username)}
-                          className="btn-primary-compact"
-                          title="Unlink researcher"
-                        >
-                          <Unlink2 size={16} />
-                        </button>
+                        <Tooltip content="Unlink researcher" side="bottom">
+                          <button
+                            onClick={() => unlinkResearcher(user.id, user.username)}
+                            className="btn-primary-compact"
+                          >
+                            <Unlink2 size={16} />
+                          </button>
+                        </Tooltip>
                       ) : (
-                        <button
-                          onClick={() => openLinkModal({ id: user.id, username: user.username })}
-                          className="btn-primary-compact"
-                          title="Link researcher"
-                        >
-                          <Link2 size={16} />
-                        </button>
+                        <Tooltip content="Link researcher" side="bottom">
+                          <button
+                            onClick={() => openLinkModal({ id: user.id, username: user.username })}
+                            className="btn-primary-compact"
+                          >
+                            <Link2 size={16} />
+                          </button>
+                        </Tooltip>
                       )}
-                      <button
-                        onClick={() => handleDeleteUser(user.id, user.username)}
-                        disabled={deleteUserMutation.isPending}
-                        className="btn-danger-compact"
-                        title="Delete user"
-                      >
-                        {deleteUserMutation.isPending ? (
-                          <RefreshCw size={16} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={16} />
-                        )}
-                      </button>
+                      <Tooltip content="Delete user" side="bottom">
+                        <button
+                          onClick={() => handleDeleteUser(user.id, user.username)}
+                          disabled={deleteUserMutation.isPending}
+                          className="btn-danger-compact"
+                        >
+                          {deleteUserMutation.isPending ? (
+                            <RefreshCw size={16} className="animate-spin" />
+                          ) : (
+                            <Trash2 size={16} />
+                          )}
+                        </button>
+                      </Tooltip>
                     </div>
                   </td>
                 </tr>
