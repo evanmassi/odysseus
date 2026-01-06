@@ -5,7 +5,7 @@ import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 import { TankIcon } from '@shared/ui/components/icons';
 
 import { RackRow } from './RackRow';
-import { useStorageManagementContext } from './StorageManagementContext';
+import { useStorageManagerContext } from './StorageManagerContext';
 
 import type { TankConfiguration } from '@domains/storage';
 
@@ -34,7 +34,7 @@ export function TankRow({
   collapsedRacks,
   canDeleteTank,
 }: TankRowProps) {
-  const { onEditTank, onDeleteTank, onAddRack, canManageStorage } = useStorageManagementContext();
+  const { onEditTank, onDeleteTank, onAddRack, canManageStorage } = useStorageManagerContext();
   return (
     <div className="border border-gray-200 rounded-lg bg-white border-l-4 border-l-slate-600">
       {/* Tank Header */}

@@ -9,7 +9,7 @@ import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 /**
  * Hook to fetch all active, approved users
  *
- * Used by ShareAccessModal and StorageManagementModal for user selection.
+ * Used by ShareAccessModal and StorageManagerModal for user selection.
  * Any authenticated user can use this hook.
  *
  * @returns React Query result with active users list

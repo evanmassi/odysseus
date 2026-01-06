@@ -8,7 +8,7 @@ interface UserInfo {
   username: string;
 }
 
-interface StorageManagementContextValue {
+interface StorageManagerContextValue {
   // Data
   users: UserDisplayInfo[];
   currentUser: { id: string; role?: string } | null;
@@ -49,14 +49,12 @@ interface StorageManagementContextValue {
   onEditBoxLabel: (tankId: string, rackId: string, boxId: string, currentLabel: string) => void;
 }
 
-export const StorageManagementContext = createContext<StorageManagementContextValue | null>(null);
+export const StorageManagerContext = createContext<StorageManagerContextValue | null>(null);
 
-export function useStorageManagementContext() {
-  const context = useContext(StorageManagementContext);
+export function useStorageManagerContext() {
+  const context = useContext(StorageManagerContext);
   if (!context) {
-    throw new Error(
-      'useStorageManagementContext must be used within StorageManagementContext.Provider'
-    );
+    throw new Error('useStorageManagerContext must be used within StorageManagerContext.Provider');
   }
   return context;
 }

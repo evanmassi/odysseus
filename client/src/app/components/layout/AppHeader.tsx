@@ -40,9 +40,9 @@ const AdminSettingsModal = lazy(() =>
   }))
 );
 
-const StorageManagementModal = lazy(() =>
-  import('@domains/storage/ui/components/modals/StorageManagementModal').then(m => ({
-    default: m.StorageManagementModal,
+const StorageManagerModal = lazy(() =>
+  import('@domains/storage/ui/components/modals/StorageManagerModal').then(m => ({
+    default: m.StorageManagerModal,
   }))
 );
 
@@ -55,8 +55,8 @@ const UserSettingsModal = lazy(() =>
 // Create preload hooks for anticipatory loading
 const useLazyAdminSettings = PreloadHelpers.createHook(() => import('@domains/admin'));
 
-const useLazyStorageManagement = PreloadHelpers.createHook(
-  () => import('@domains/storage/ui/components/modals/StorageManagementModal')
+const useLazyStorageManager = PreloadHelpers.createHook(
+  () => import('@domains/storage/ui/components/modals/StorageManagerModal')
 );
 
 const useLazyUserSettings = PreloadHelpers.createHook(
@@ -107,11 +107,11 @@ export function AppHeader({
 
   // Lazy loading hooks for modal preloading
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
-  const { triggerProps: storageManagementTriggerProps } = useLazyStorageManagement();
+  const { triggerProps: storageManagerTriggerProps } = useLazyStorageManager();
   const { triggerProps: userSettingsTriggerProps } = useLazyUserSettings();
 
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [showStorageManagement, setShowStorageManagement] = useState(false);
+  const [showStorageManager, setShowStorageManager] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
 
@@ -468,18 +468,18 @@ export function AppHeader({
                     <span>{user?.role === 'admin' ? 'User Settings' : 'Settings'}</span>
                   </button>
 
-                  {/* Storage Management */}
+                  {/* Storage Manager */}
                   <button
-                    {...storageManagementTriggerProps}
+                    {...storageManagerTriggerProps}
                     role="menuitem"
                     onClick={() => {
-                      setShowStorageManagement(true);
+                      setShowStorageManager(true);
                       setShowHamburgerMenu(false);
                     }}
                     className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors focus-ring-default"
                   >
                     <TankIcon size={16} className="text-gray-400" />
-                    <span>Manage Storage</span>
+                    <span>Storage Manager</span>
                   </button>
 
                   {/* Admin Settings - Only show to admins */}
@@ -521,12 +521,12 @@ export function AppHeader({
         </div>
       </div>
 
-      {/* Storage Management Modal */}
-      {showStorageManagement && (
-        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="StorageManagementModal">
-          <StorageManagementModal
-            isOpen={showStorageManagement}
-            onClose={() => setShowStorageManagement(false)}
+      {/* Storage Manager Modal */}
+      {showStorageManager && (
+        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="StorageManagerModal">
+          <StorageManagerModal
+            isOpen={showStorageManager}
+            onClose={() => setShowStorageManager(false)}
           />
         </SuspenseBoundary>
       )}

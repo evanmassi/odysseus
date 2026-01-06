@@ -569,7 +569,7 @@ export class SocketQueryBridge {
       try {
         userEventSchemas.user_approved.parse(data);
 
-        // Invalidate user list queries (used by dropdowns in StorageManagementModal, etc.)
+        // Invalidate user list queries (used by dropdowns in StorageManagerModal, etc.)
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
 
         // Also invalidate admin users query
@@ -584,7 +584,7 @@ export class SocketQueryBridge {
       try {
         userEventSchemas.user_deleted.parse(data);
 
-        // Invalidate user list queries (used by dropdowns in StorageManagementModal, etc.)
+        // Invalidate user list queries (used by dropdowns in StorageManagerModal, etc.)
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
 
         // Also invalidate admin users query

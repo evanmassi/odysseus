@@ -9,7 +9,7 @@ import { AssignmentDropdown } from './AssignmentDropdown';
 import { BoxRow } from './BoxRow';
 import { CustomLabelButton } from './CustomLabelButton';
 import { OwnershipBadge } from './OwnershipBadge';
-import { useStorageManagementContext } from './StorageManagementContext';
+import { useStorageManagerContext } from './StorageManagerContext';
 
 import type { RackConfiguration } from '@domains/storage';
 
@@ -43,7 +43,7 @@ export function RackRow({
     onEditRack,
     onDeleteRack,
     onAddBox,
-  } = useStorageManagementContext();
+  } = useStorageManagerContext();
 
   const rackKey = `${tankId}-rack-${rack.id}`;
   const isRackOwnedByUser = isOwnedByCurrentUser(rack);

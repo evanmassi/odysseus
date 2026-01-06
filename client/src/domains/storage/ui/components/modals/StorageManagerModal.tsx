@@ -36,7 +36,7 @@ import { AssignmentsByUserView } from './AssignmentsByUserView';
 import { BoxEditModal } from './BoxEditModal';
 import { CustomLabelEditModal } from './CustomLabelEditModal';
 import { RackEditModal } from './RackEditModal';
-import { StorageManagementContext } from './StorageManagementContext';
+import { StorageManagerContext } from './StorageManagerContext';
 import { TankEditModal } from './TankEditModal';
 import { TankRow } from './TankRow';
 
@@ -47,12 +47,12 @@ import type {
   GridConfiguration,
 } from '@domains/storage';
 
-interface StorageManagementModalProps {
+interface StorageManagerModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function StorageManagementModal({ isOpen, onClose }: StorageManagementModalProps) {
+export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProps) {
   const { currentLab, getAvailableGridTemplates } = useStorageData();
   const modalService = useModalStore();
   const { user: currentUser } = useAuthState();
@@ -483,7 +483,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
               <div className="flex items-center space-x-3">
                 <TankIcon size={24} className="text-slate-600" />
                 <div>
-                  <h2 className="text-lg font-bold text-slate-800">Manage Storage</h2>
+                  <h2 className="text-lg font-bold text-slate-800">Storage Manager</h2>
                   <p className="text-slate-500 text-xs">Storage Layout & Assignments</p>
                 </div>
               </div>
@@ -545,7 +545,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                   </div>
                 )}
 
-                <StorageManagementContext.Provider value={contextValue}>
+                <StorageManagerContext.Provider value={contextValue}>
                   <div className="space-y-1.5">
                     {currentLab.equipment.tanks.map(tank => (
                       <TankRow
@@ -567,7 +567,7 @@ export function StorageManagementModal({ isOpen, onClose }: StorageManagementMod
                       />
                     ))}
                   </div>
-                </StorageManagementContext.Provider>
+                </StorageManagerContext.Provider>
               </div>
             ) : (
               <AssignmentsByUserView

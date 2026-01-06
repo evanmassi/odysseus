@@ -8,7 +8,7 @@ import { BoxIcon } from '@shared/ui/components/icons';
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { CustomLabelButton } from './CustomLabelButton';
 import { OwnershipBadge } from './OwnershipBadge';
-import { useStorageManagementContext } from './StorageManagementContext';
+import { useStorageManagerContext } from './StorageManagerContext';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
 
@@ -30,7 +30,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
     onEditBoxLabel,
     onEditBox,
     onDeleteBox,
-  } = useStorageManagementContext();
+  } = useStorageManagerContext();
 
   // null = explicitly unassigned/common, undefined = inherit from rack
   const effectiveOwnerId =

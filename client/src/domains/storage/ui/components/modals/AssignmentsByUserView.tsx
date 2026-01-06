@@ -7,7 +7,7 @@ import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { OwnershipBadge } from './OwnershipBadge';
-import { StorageManagementContext } from './StorageManagementContext';
+import { StorageManagerContext } from './StorageManagerContext';
 
 import type { LabConfiguration } from '@domains/storage';
 
@@ -467,7 +467,7 @@ export function AssignmentsByUserView({
                       <div
                         className={`flex items-center gap-1.5 py-1 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${rackLeftBorderClass}`}
                       >
-                        <StorageManagementContext.Consumer>
+                        <StorageManagerContext.Consumer>
                           {ctx =>
                             ctx && (
                               <OwnershipBadge
@@ -477,7 +477,7 @@ export function AssignmentsByUserView({
                               />
                             )
                           }
-                        </StorageManagementContext.Consumer>
+                        </StorageManagerContext.Consumer>
                         <RackIcon size={18} className="text-slate-700 flex-shrink-0" />
                         <span className="font-medium text-slate-800 text-sm">
                           {rackGroup.tankName} /{' '}
@@ -502,7 +502,7 @@ export function AssignmentsByUserView({
                               key={`box-${box.tankId}-${box.rackId}-${box.boxId}`}
                               className={`flex items-center gap-1.5 py-0.5 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${boxLeftBorderClass}`}
                             >
-                              <StorageManagementContext.Consumer>
+                              <StorageManagerContext.Consumer>
                                 {ctx =>
                                   ctx && (
                                     <OwnershipBadge
@@ -512,7 +512,7 @@ export function AssignmentsByUserView({
                                     />
                                   )
                                 }
-                              </StorageManagementContext.Consumer>
+                              </StorageManagerContext.Consumer>
                               <BoxIcon size={16} className="text-slate-700 flex-shrink-0" />
                               <span className="font-medium text-slate-800 text-xs">
                                 {formatResourceDisplayName(box.boxName!, box.boxCustomLabel)}

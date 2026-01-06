@@ -1,6 +1,6 @@
 /**
  * Pure utility functions for immutable updates to LabConfiguration
- * Used by StorageManagementModal for local state management
+ * Used by StorageManagerModal for local state management
  */
 
 import type {
