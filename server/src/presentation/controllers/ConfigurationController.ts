@@ -10,7 +10,6 @@ import {
   UpdateEquipmentConfigurationCommandHandler,
   ResetConfigurationToDefaultCommandHandler,
   ImportConfigurationCommandHandler,
-  UpdateConfigurationCommandHandler,
   UpdateBoxPositionDisplayCommandHandler,
   UpdateLabDefaultPositionDisplayCommandHandler,
   UpdateResourceLabelCommandHandler
@@ -74,7 +73,6 @@ export class ConfigurationController {
     private updateEquipmentConfigurationHandler: UpdateEquipmentConfigurationCommandHandler,
     private resetConfigurationHandler: ResetConfigurationToDefaultCommandHandler,
     private importConfigurationHandler: ImportConfigurationCommandHandler,
-    private updateConfigurationHandler: UpdateConfigurationCommandHandler,
     private updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler,
     private updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler,
     private updateResourceLabelHandler: UpdateResourceLabelCommandHandler,
@@ -336,48 +334,6 @@ export class ConfigurationController {
       
     } catch (error) {
       this.handleError(error, res, 'Failed to import configuration');
-    }
-  }
-
-  /**
-   * PUT /api/configuration
-   * Update complete system and lab configuration
-   */
-  async updateConfiguration(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = this.extractUserId(req);
-
-      // Extract configuration from request body (matches SaveConfigurationRequestSchema)
-      const { configuration } = req.body;
-
-      if (!configuration || !configuration.systemConfig || !configuration.currentLab) {
-        res.status(400).json({
-          error: {
-            code: 'INVALID_REQUEST',
-            message: 'Request must include configuration.systemConfig and configuration.currentLab'
-          }
-        });
-        return;
-      }
-
-      // Transform client format to domain format using DTO
-      const transformedLab = ConfigurationDto.fromRequest(configuration.currentLab);
-
-      const updatedConfiguration = await this.updateConfigurationHandler.handle({
-        userId,
-        systemConfig: configuration.systemConfig,
-        currentLab: transformedLab
-      });
-
-      res.json({
-        message: 'Configuration updated successfully',
-        version: updatedConfiguration.version,
-        lastUpdated: updatedConfiguration.updatedAt,
-        systemConfig: updatedConfiguration.systemSettings
-      });
-
-    } catch (error) {
-      this.handleError(error, res, 'Failed to update configuration');
     }
   }
 

@@ -22,7 +22,7 @@ import {
 
 import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
-import { useCurrentLab } from '@domains/storage';
+import { useStorageData } from '@domains/storage';
 import odysseusLogo from '@shared/assets/odysseus-logo-thick.svg';
 import { parsePositionKey, type PositionKey } from '@shared/types/grid';
 import { SuspenseBoundary, Tooltip } from '@shared/ui';
@@ -103,7 +103,7 @@ export function AppHeader({
   isViewOnlySpace = false,
 }: HeaderProps) {
   const { isAuthenticated, user, logout } = useAuthStore();
-  const currentLab = useCurrentLab();
+  const { currentLab } = useStorageData();
 
   // Lazy loading hooks for modal preloading
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
@@ -435,7 +435,9 @@ export function AppHeader({
                 <div className="px-3 py-2">
                   <div className="flex items-center gap-3">
                     <FlaskConical size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-700 font-medium">{currentLab.name}</span>
+                    <span className="text-sm text-gray-700 font-medium">
+                      {currentLab?.name ?? 'Loading...'}
+                    </span>
                   </div>
                 </div>
 

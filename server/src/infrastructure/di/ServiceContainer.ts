@@ -2,7 +2,7 @@ import { RepositoryFactory } from '@infrastructure/repositories';
 
 // CQRS Command Handlers
 import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler, GetUserSettingsQueryHandler } from '@application/commands/UserCommands';
-import { UpdateSystemConfigurationCommandHandler, UpdateEquipmentConfigurationCommandHandler, ResetConfigurationToDefaultCommandHandler, ImportConfigurationCommandHandler, UpdateConfigurationCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/ConfigurationCommands';
+import { UpdateSystemConfigurationCommandHandler, UpdateEquipmentConfigurationCommandHandler, ResetConfigurationToDefaultCommandHandler, ImportConfigurationCommandHandler, UpdateBoxPositionDisplayCommandHandler, UpdateLabDefaultPositionDisplayCommandHandler, UpdateResourceLabelCommandHandler } from '@application/commands/ConfigurationCommands';
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 // CQRS CQRS Command Handlers - Storage Management
@@ -89,7 +89,6 @@ export class ServiceContainer {
   private updateEquipmentConfigurationHandler?: UpdateEquipmentConfigurationCommandHandler;
   private resetConfigurationToDefaultHandler?: ResetConfigurationToDefaultCommandHandler;
   private importConfigurationHandler?: ImportConfigurationCommandHandler;
-  private updateConfigurationHandler?: UpdateConfigurationCommandHandler;
   private updateBoxPositionDisplayHandler?: UpdateBoxPositionDisplayCommandHandler;
   private updateLabDefaultPositionDisplayHandler?: UpdateLabDefaultPositionDisplayCommandHandler;
   private updateResourceLabelHandler?: UpdateResourceLabelCommandHandler;
@@ -400,20 +399,6 @@ export class ServiceContainer {
       );
     }
     return this.importConfigurationHandler;
-  }
-
-  getUpdateConfigurationHandler(): UpdateConfigurationCommandHandler {
-    if (!this.updateConfigurationHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.updateConfigurationHandler = new UpdateConfigurationCommandHandler(
-        repositories.configurations,
-        this.getValidationService(),
-        repositories.users,
-        this.getEventBus(),
-        this.getConfigurationChangeDetector()
-      );
-    }
-    return this.updateConfigurationHandler;
   }
 
   getConfigurationChangeDetector(): ConfigurationChangeDetector {
@@ -794,7 +779,6 @@ export class ServiceContainer {
         this.getUpdateEquipmentConfigurationHandler(),
         this.getResetConfigurationToDefaultHandler(),
         this.getImportConfigurationHandler(),
-        this.getUpdateConfigurationHandler(),
         this.getUpdateBoxPositionDisplayHandler(),
         this.getUpdateLabDefaultPositionDisplayHandler(),
         this.getUpdateResourceLabelHandler(),

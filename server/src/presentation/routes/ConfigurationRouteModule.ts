@@ -68,17 +68,6 @@ export class ConfigurationRouteModule implements RouteModule {
     );
 
     /**
-     * PUT /api/configuration
-     * Update complete system and lab configuration
-     *
-     * Access: Any authenticated user
-     * Used by: Frontend when saving configuration changes (racks, tanks, etc.)
-     */
-    router.put('/',
-      this.configurationController.updateConfiguration.bind(this.configurationController)
-    );
-
-    /**
      * GET /api/configuration/health
      * Check configuration system health
      *

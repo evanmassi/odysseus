@@ -72,7 +72,7 @@ export const useDeleteTankMutation = () => {
 
   return useMutation({
     mutationKey: ['storage', 'deleteTank'],
-    mutationFn: ({ tankId }: { tankId: string }) => StorageService.deleteTankCQRS(tankId),
+    mutationFn: ({ tankId }: { tankId: string }) => StorageService.deleteTank(tankId),
 
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
@@ -100,7 +100,10 @@ export const useAddRacksMutation = () => {
 
     onSuccess: (data, variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
-      const message = variables.count === 1 ? 'Rack added successfully' : `${variables.count} racks added successfully`;
+      const message =
+        variables.count === 1
+          ? 'Rack added successfully'
+          : `${variables.count} racks added successfully`;
       notifications.success(message);
     },
 
@@ -207,7 +210,10 @@ export const useAddBoxesMutation = () => {
 
     onSuccess: (data, variables) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
-      const message = variables.count === 1 ? 'Box added successfully' : `${variables.count} boxes added successfully`;
+      const message =
+        variables.count === 1
+          ? 'Box added successfully'
+          : `${variables.count} boxes added successfully`;
       notifications.success(message);
     },
 

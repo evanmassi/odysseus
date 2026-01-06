@@ -4,8 +4,6 @@ import { queryKeys } from '@app/queryKeys';
 
 import { StorageService } from '../services/StorageService';
 
-import type { SystemConfiguration, LabConfiguration } from '@odysseus/shared-schemas';
-
 /**
  * Load Storage Configuration Hook
  *
@@ -37,36 +35,6 @@ export const useStorageExistsQuery = (config?: { enabled?: boolean; staleTime?: 
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,
     refetchOnWindowFocus: false,
-  });
-};
-
-/**
- * Save Storage Configuration Mutation Hook
- *
- * Saves configuration to server and invalidates cache
- */
-export const useSaveStorageMutation = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationKey: ['storage', 'save'],
-    mutationFn: ({
-      systemConfig,
-      currentLab,
-    }: {
-      systemConfig: SystemConfiguration;
-      currentLab: LabConfiguration;
-    }) => StorageService.saveConfiguration(systemConfig, currentLab),
-
-    onSuccess: () => {
-      // Invalidate storage cache to reflect server state
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.storage(),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.exists(),
-      });
-    },
   });
 };
 
@@ -103,33 +71,4 @@ export const useUpdateResourceLabelMutation = () => {
       });
     },
   });
-};
-
-/**
- * Custom hook for storage configuration sync with auto-save
- */
-export const useStorageSync = (
-  systemConfig: SystemConfiguration,
-  currentLab: LabConfiguration,
-  _options?: {
-    autoSave?: boolean;
-    debounceMs?: number;
-  }
-) => {
-  const saveStorageMutation = useSaveStorageMutation();
-
-  // Manual save function
-  const saveStorage = () => {
-    return saveStorageMutation.mutateAsync({
-      systemConfig,
-      currentLab,
-    });
-  };
-
-  return {
-    saveStorage,
-    isSaving: saveStorageMutation.isPending,
-    saveError: saveStorageMutation.error,
-    lastSaveSuccess: saveStorageMutation.isSuccess,
-  };
 };

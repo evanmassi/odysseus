@@ -2,7 +2,7 @@
  * Configuration Sync Hook
  *
  * Handles two responsibilities:
- * 1. Fresh install detection - saves default config to server if none exists
+ * 1. Fresh install detection - initializes default config on server if none exists
  * 2. Multi-tab sync - invalidates React Query cache when config changes in another tab
  *
  * Note: React Query is now the single source of truth for server state.
@@ -10,42 +10,58 @@
  */
 import { useEffect, useRef } from 'react';
 
+import { SYSTEM_DEFAULTS } from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
 import { logger } from '@shared/infrastructure/logger';
 
-import { createDefaultConfiguration } from '../utils/defaultConfiguration';
+import { useInitializeConfigurationMutation } from './useStorageEquipmentMutations';
+import { useLoadStorageQuery } from './useStorageQuery';
 
-import { useLoadStorageQuery, useSaveStorageMutation } from './useStorageQuery';
+// One-time cleanup of legacy Zustand localStorage (runs once per session)
+const legacyStorageCleanedUp = { done: false };
 
 export function useConfigurationSync() {
   const { data, isSuccess, isError } = useLoadStorageQuery();
-  const saveMutation = useSaveStorageMutation();
+  const initializeMutation = useInitializeConfigurationMutation();
   const queryClient = useQueryClient();
 
   // Track if initial save has been attempted (for fresh installs only)
   const hasInitialized = useRef(false);
 
+  // Clean up legacy Zustand localStorage key (one-time migration cleanup)
+  useEffect(() => {
+    if (!legacyStorageCleanedUp.done) {
+      legacyStorageCleanedUp.done = true;
+      localStorage.removeItem('odysseus-configuration-store');
+    }
+  }, []);
+
   // Initialize server with defaults if no config exists (fresh install)
   useEffect(() => {
-    if (isError && !hasInitialized.current && !saveMutation.isPending) {
+    if (isError && !hasInitialized.current && !initializeMutation.isPending) {
       hasInitialized.current = true;
 
-      // Create and save default configuration
-      const defaults = createDefaultConfiguration();
-
-      saveMutation.mutate(defaults, {
-        onSuccess: () => {
-          logger.info('Fresh install: saved default configuration to server');
+      // Use dedicated initialize endpoint for fresh installs
+      initializeMutation.mutate(
+        {
+          labName: SYSTEM_DEFAULTS.LAB.NAME,
+          tankCount: 1,
+          racksPerTank: 1,
         },
-        onError: saveError => {
-          logger.error('Failed to save initial configuration', { saveError });
-          hasInitialized.current = false; // Allow retry on error
-        },
-      });
+        {
+          onSuccess: () => {
+            logger.info('Fresh install: initialized default configuration on server');
+          },
+          onError: initError => {
+            logger.error('Failed to initialize configuration', { initError });
+            hasInitialized.current = false; // Allow retry on error
+          },
+        }
+      );
     }
-  }, [isError, saveMutation]);
+  }, [isError, initializeMutation]);
 
   // Multi-tab synchronization via storage events
   useEffect(() => {

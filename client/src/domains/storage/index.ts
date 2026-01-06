@@ -7,22 +7,25 @@
  * - Physical storage space management
  *
  * All types from shared-schemas.
+ *
+ * Architecture:
+ * - React Query is the SINGLE SOURCE OF TRUTH for server data
+ * - Use useStorageData() to read server data
+ * - Use CQRS mutation hooks (useAddTankMutation, etc.) to modify data
  */
 
-// Hooks (Server State)
+// Hooks (Server State - Primary Data Access)
+export { useStorageData, getStorageDataFromCache } from './hooks/useStorageData';
 export {
   useLoadStorageQuery,
   useStorageExistsQuery,
-  useSaveStorageMutation,
   useUpdateResourceLabelMutation,
-  useStorageSync,
 } from './hooks/useStorageQuery';
 export { useConfigurationSync } from './hooks/useConfigurationSync';
-export { useStorageData, getStorageDataFromCache } from './hooks/useStorageData';
 export { useLocationDisplayNames } from './hooks/useLocationDisplayNames';
 export type { LocationDisplayNames } from './hooks/useLocationDisplayNames';
 
-// CQRS Equipment Mutation Hooks
+// CQRS Equipment Mutation Hooks (Preferred for all modifications)
 export {
   // Tank mutations
   useAddTankMutation,
@@ -43,9 +46,6 @@ export {
   useBulkReassignMutation,
   useInitializeConfigurationMutation,
 } from './hooks/useStorageEquipmentMutations';
-
-// Client State (Zustand Store)
-export { useCurrentLab, useStorageStore } from './stores/storageStore';
 
 // Services
 export { StorageService } from './services/StorageService';
@@ -71,7 +71,6 @@ export type {
   SystemConfiguration,
   ConfigurationResponse,
   SaveConfigurationRequest,
-  DeleteTankResponse,
 } from '@odysseus/shared-schemas';
 
 export {
@@ -86,7 +85,6 @@ export {
   SystemConfigurationSchema,
   ConfigurationResponseSchema,
   SaveConfigurationRequestSchema,
-  DeleteTankResponseSchema,
 } from '@odysseus/shared-schemas';
 
 // UI Helpers (computed properties)

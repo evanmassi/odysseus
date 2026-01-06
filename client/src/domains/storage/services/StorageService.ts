@@ -1,8 +1,4 @@
-import {
-  ConfigurationResponseSchema,
-  SaveConfigurationRequestSchema,
-  DeleteTankResponseSchema,
-} from '@odysseus/shared-schemas';
+import { ConfigurationResponseSchema } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
 import { httpClient } from '@infra/api/httpClient';
@@ -11,9 +7,6 @@ import { logger } from '@shared/infrastructure/logger';
 
 import type {
   ConfigurationResponse,
-  DeleteTankResponse,
-  SystemConfiguration,
-  LabConfiguration,
   PositionDisplayConfig,
   POSITION_DISPLAY_PRESETS,
   GridConfiguration,
@@ -45,43 +38,6 @@ export class StorageService {
       logger.error('StorageService load configuration failed', { error });
       throw new InfrastructureError('API_ERROR', 'Failed to load configuration from server', {
         originalError: error,
-      });
-    }
-  }
-
-  /**
-   * Save configuration to server
-   */
-  static async saveConfiguration(
-    systemConfig: SystemConfiguration,
-    currentLab: LabConfiguration
-  ): Promise<void> {
-    try {
-      const requestData = SaveConfigurationRequestSchema.parse({
-        configuration: { systemConfig, currentLab },
-      });
-
-      await httpClient.put('/configuration', requestData);
-    } catch (error) {
-      logger.error('StorageService save configuration failed', { error });
-      throw new InfrastructureError('API_ERROR', 'Failed to save configuration to server', {
-        originalError: error,
-        systemConfig,
-        currentLab,
-      });
-    }
-  }
-
-  /**
-   * Delete tank (with tubes cleanup)
-   */
-  static async deleteTank(tankId: string): Promise<DeleteTankResponse> {
-    try {
-      return await httpClient.deleteWithData(`/tanks/${tankId}`, DeleteTankResponseSchema);
-    } catch (error) {
-      throw new InfrastructureError('API_ERROR', `Failed to delete tank ${tankId}`, {
-        originalError: error,
-        tankId,
       });
     }
   }
@@ -242,7 +198,11 @@ export class StorageService {
   /** Add a new tank to the configuration. */
   static async addTank(name: string, location?: string): Promise<{ tankId: string }> {
     try {
-      const response = await httpClient.postData('/configuration/tanks', { name, location }, AddTankResponseSchema);
+      const response = await httpClient.postData(
+        '/configuration/tanks',
+        { name, location },
+        AddTankResponseSchema
+      );
       return { tankId: response.tankId };
     } catch (error) {
       logger.error('StorageService add tank failed', { error });
@@ -272,7 +232,7 @@ export class StorageService {
   }
 
   /** Delete a tank (blocks if tubes exist). */
-  static async deleteTankCQRS(tankId: string): Promise<void> {
+  static async deleteTank(tankId: string): Promise<void> {
     try {
       await httpClient.delete(`/configuration/tanks/${tankId}`);
     } catch (error) {
@@ -339,9 +299,15 @@ export class StorageService {
   }
 
   /** Assign or unassign a rack to/from a user. */
-  static async assignRack(tankId: string, rackId: string, assignedUserId: string | null): Promise<void> {
+  static async assignRack(
+    tankId: string,
+    rackId: string,
+    assignedUserId: string | null
+  ): Promise<void> {
     try {
-      await httpClient.put(`/configuration/tanks/${tankId}/racks/${rackId}/assign`, { assignedUserId });
+      await httpClient.put(`/configuration/tanks/${tankId}/racks/${rackId}/assign`, {
+        assignedUserId,
+      });
     } catch (error) {
       logger.error('StorageService assign rack failed', { error });
       throw new InfrastructureError('API_ERROR', `Failed to assign rack ${rackId}`, {
@@ -356,7 +322,11 @@ export class StorageService {
   // CQRS Box Operations
 
   /** Add one or more boxes to a rack. */
-  static async addBoxes(tankId: string, rackId: string, count: number): Promise<{ boxIds: string[] }> {
+  static async addBoxes(
+    tankId: string,
+    rackId: string,
+    count: number
+  ): Promise<{ boxIds: string[] }> {
     try {
       const response = await httpClient.postData(
         `/configuration/tanks/${tankId}/racks/${rackId}/boxes`,
@@ -388,7 +358,10 @@ export class StorageService {
     }
   ): Promise<void> {
     try {
-      await httpClient.put(`/configuration/tanks/${tankId}/racks/${rackId}/boxes/${boxId}`, updates);
+      await httpClient.put(
+        `/configuration/tanks/${tankId}/racks/${rackId}/boxes/${boxId}`,
+        updates
+      );
     } catch (error) {
       logger.error('StorageService update box failed', { error });
       throw new InfrastructureError('API_ERROR', `Failed to update box ${boxId}`, {
@@ -424,7 +397,9 @@ export class StorageService {
     assignedUserId: string | null
   ): Promise<void> {
     try {
-      await httpClient.put(`/configuration/tanks/${tankId}/racks/${rackId}/boxes/${boxId}/assign`, { assignedUserId });
+      await httpClient.put(`/configuration/tanks/${tankId}/racks/${rackId}/boxes/${boxId}/assign`, {
+        assignedUserId,
+      });
     } catch (error) {
       logger.error('StorageService assign box failed', { error });
       throw new InfrastructureError('API_ERROR', `Failed to assign box ${boxId}`, {
@@ -440,7 +415,9 @@ export class StorageService {
   // CQRS Bulk Operations
 
   /** Unassign all resources from a user. Used when deactivating users. */
-  static async bulkUnassignResources(fromUserId: string): Promise<{ racksAffected: number; boxesAffected: number }> {
+  static async bulkUnassignResources(
+    fromUserId: string
+  ): Promise<{ racksAffected: number; boxesAffected: number }> {
     try {
       const response = await httpClient.postData(
         '/configuration/bulk-unassign',
@@ -486,7 +463,11 @@ export class StorageService {
     racksPerTank: number
   ): Promise<void> {
     try {
-      await httpClient.postData('/configuration/initialize', { labName, tankCount, racksPerTank }, SuccessResponseSchema);
+      await httpClient.postData(
+        '/configuration/initialize',
+        { labName, tankCount, racksPerTank },
+        SuccessResponseSchema
+      );
     } catch (error) {
       logger.error('StorageService initialize configuration failed', { error });
       throw new InfrastructureError('API_ERROR', 'Failed to initialize configuration', {

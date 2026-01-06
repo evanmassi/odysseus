@@ -347,7 +347,7 @@ class OdysseusServer {
 
       // Legacy Socket.IO emissions for tube and tank deletion
       // NOTE: These are manual emissions because this endpoint bypasses the domain layer.
-      // When tank deletion is properly moved to use UpdateConfigurationCommandHandler,
+      // When tank deletion is properly moved to use DeleteTankCommandHandler (CQRS),
       // these manual emissions can be removed as SocketEventHandler will handle them
       // via domain events automatically.
       if (this.io) {

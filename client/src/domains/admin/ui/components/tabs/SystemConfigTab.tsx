@@ -13,10 +13,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { Gauge, FlaskConical, Check, X } from 'lucide-react';
 
+import { queryKeys } from '@app/queryKeys';
+import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api/httpClient';
-import { useCurrentLab, useStorageStore } from '@domains/storage';
 import { notifications } from '@shared/utils';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
@@ -55,18 +57,18 @@ export interface SystemConfigTabProps {
  * ```
  */
 export function SystemConfigTab({ config, stats, onChange }: SystemConfigTabProps) {
-  const currentLab = useCurrentLab();
-  const updateLab = useStorageStore(state => state.updateLab);
+  const { currentLab } = useStorageData();
+  const queryClient = useQueryClient();
 
   // Lab name editing state
   const [isEditingLabName, setIsEditingLabName] = useState(false);
-  const [labNameInput, setLabNameInput] = useState(currentLab.name);
+  const [labNameInput, setLabNameInput] = useState(currentLab?.name ?? '');
   const [isSavingLabName, setIsSavingLabName] = useState(false);
 
   // Sync input when currentLab changes
   useEffect(() => {
-    setLabNameInput(currentLab.name);
-  }, [currentLab.name]);
+    setLabNameInput(currentLab?.name ?? '');
+  }, [currentLab?.name]);
 
   const handleSaveLabName = useCallback(async () => {
     const trimmedName = labNameInput.trim();
@@ -75,7 +77,7 @@ export function SystemConfigTab({ config, stats, onChange }: SystemConfigTabProp
       return;
     }
 
-    if (trimmedName === currentLab.name) {
+    if (trimmedName === currentLab?.name) {
       setIsEditingLabName(false);
       return;
     }
@@ -85,24 +87,24 @@ export function SystemConfigTab({ config, stats, onChange }: SystemConfigTabProp
       // Use dedicated system settings endpoint - only updates labName, preserves all equipment
       await httpClient.put('/configuration/system', { labName: trimmedName });
 
-      // Update local state after successful server save
-      updateLab(currentLab.id, { name: trimmedName });
+      // Invalidate React Query cache to refetch updated data
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
 
       notifications.success('Lab name updated successfully');
       setIsEditingLabName(false);
     } catch {
       notifications.error('Failed to update lab name');
       // Revert input on error
-      setLabNameInput(currentLab.name);
+      setLabNameInput(currentLab?.name ?? '');
     } finally {
       setIsSavingLabName(false);
     }
-  }, [labNameInput, currentLab.id, currentLab.name, updateLab]);
+  }, [labNameInput, currentLab?.name, queryClient]);
 
   const handleCancelLabNameEdit = useCallback(() => {
-    setLabNameInput(currentLab.name);
+    setLabNameInput(currentLab?.name ?? '');
     setIsEditingLabName(false);
-  }, [currentLab.name]);
+  }, [currentLab?.name]);
 
   const handleLabNameKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -138,11 +140,12 @@ export function SystemConfigTab({ config, stats, onChange }: SystemConfigTabProp
                   onChange={e => setLabNameInput(e.target.value)}
                   onKeyDown={handleLabNameKeyDown}
                   className="text-sm font-medium text-gray-900 border border-gray-300 rounded px-2 py-1 focus-ring-default"
+                  // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
                   autoFocus
                   disabled={isSavingLabName}
                 />
               ) : (
-                <span className="text-sm font-medium text-gray-900">{currentLab.name}</span>
+                <span className="text-sm font-medium text-gray-900">{currentLab?.name ?? ''}</span>
               )}
             </div>
             <div className="flex items-center gap-1">
