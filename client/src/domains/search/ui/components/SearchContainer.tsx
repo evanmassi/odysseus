@@ -114,7 +114,7 @@ export function SearchContainer(_props: SearchContainerProps) {
             {/* Keyboard hint + Action Buttons */}
             <div className="absolute right-1 top-1 flex items-center space-x-1">
               {/* Keyboard shortcut hint - only show when empty */}
-              {!query && <span className="text-xs text-slate-400 font-mono">Ctrl+F</span>}
+              {!query && <span className="text-xs text-slate-300 font-mono">Ctrl+F</span>}
 
               <Tooltip content="Filters" side="bottom">
                 <button

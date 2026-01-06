@@ -18,10 +18,10 @@ interface AssignmentDropdownProps {
   parentUserId?: string;
 }
 
-// Focus ring styles using CSS variables from variables.css
-// This ensures consistency with focus-ring-default class
+// Focus ring styles matching global focus system - blue neon glow
 const getFocusBoxShadow = () =>
-  `0 0 0 var(--focus-ring-width) var(--focus-ring-color), 0 0 0 5px var(--focus-ring-glow-inner), 0 0 0 8px var(--focus-ring-glow-outer)`;
+  `0 0 4px 0 rgba(59, 130, 246, 0.7), 0 0 10px 2px rgba(59, 130, 246, 0.35)`;
+const getFocusBorderColor = () => `#3b82f6`;
 
 const STYLES_SM = {
   control: (base: CSSObjectWithLabel, state: { isFocused: boolean }) => ({
@@ -29,9 +29,9 @@ const STYLES_SM = {
     minHeight: '24px',
     fontSize: '11px',
     boxShadow: state.isFocused ? getFocusBoxShadow() : base.boxShadow,
-    borderColor: state.isFocused ? 'var(--focus-ring-color)' : base.borderColor,
+    borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
     '&:hover': {
-      borderColor: state.isFocused ? 'var(--focus-ring-color)' : base.borderColor,
+      borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
     },
   }),
   menu: (base: CSSObjectWithLabel) => ({
@@ -53,9 +53,9 @@ const STYLES_MD = {
     minHeight: '28px',
     fontSize: '12px',
     boxShadow: state.isFocused ? getFocusBoxShadow() : base.boxShadow,
-    borderColor: state.isFocused ? 'var(--focus-ring-color)' : base.borderColor,
+    borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
     '&:hover': {
-      borderColor: state.isFocused ? 'var(--focus-ring-color)' : base.borderColor,
+      borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
     },
   }),
   menu: (base: CSSObjectWithLabel) => ({

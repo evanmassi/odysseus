@@ -5,11 +5,10 @@
   }
 
   .menu-item:focus {
-    outline: var(--focus-ring-width) solid var(--focus-ring-color);
-    outline-offset: calc(var(--focus-ring-offset) - 2px); /* Inset for menu items */
+    outline: 1.5px solid #3b82f6;
+    outline-offset: -2px; /* Inset for menu items */
     box-shadow:
-      0 0 0 3px var(--focus-ring-glow-inner),
-      0 0 0 6px var(--focus-ring-glow-outer),
-      0 0 8px 6px var(--focus-ring-blur);
+      0 0 4px 0 rgba(59, 130, 246, 0.7),
+      0 0 10px 2px rgba(59, 130, 246, 0.35);
   }
 }
