@@ -476,11 +476,11 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
             )}
 
             {/* Options */}
-            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty label is meaningless for accessibility, use default 'Select' */}
             <div
               ref={optionsRef}
               role="listbox"
               id="select-listbox"
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty label should fallback to 'Select'
               aria-label={`${label || 'Select'} options`}
             >
               {filteredOptions.length === 0 ? (

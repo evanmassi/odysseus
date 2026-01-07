@@ -138,6 +138,9 @@ function transformObject(obj: unknown, typeName?: string): unknown {
   // Handle primitive types - PRESERVE EXACTLY AS-IS
   if (typeof obj !== 'object') return obj;
 
+  // Handle Date objects - PRESERVE AS-IS (already transformed)
+  if (obj instanceof Date) return obj;
+
   // Transform object properties
   const transformed: Record<string, unknown> = {};
 
@@ -186,7 +189,10 @@ export const ResponseTransformers = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Type assertion needed for nested property access before transformation
     const transformed = transformApiResponse(data, 'LoginResponse') as any;
     // Ensure nested TokenPair is also transformed
-    if (transformed.tokens) {
+    // Tokens may be at transformed.tokens (direct) or transformed.data.tokens (API wrapper)
+    if (transformed.data?.tokens) {
+      transformed.data.tokens = transformApiResponse(transformed.data.tokens, 'TokenPair');
+    } else if (transformed.tokens) {
       transformed.tokens = transformApiResponse(transformed.tokens, 'TokenPair');
     }
     return transformed;

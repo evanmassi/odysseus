@@ -22,6 +22,7 @@ export interface HighlightedSegment {
 export interface DisplayResults {
   tubes: TubeData[];
   grouped: GroupedResult[];
+  matchedTerms?: string[]; // Terms for client-side highlighting (includes synonyms)
   total: number;
   query: string;
   hasResults: boolean;
@@ -189,6 +190,7 @@ export class SearchEngine {
     return {
       tubes,
       grouped,
+      matchedTerms: serverResult.matchedTerms, // Pass through for highlighting
       total: tubes.length,
       query,
       hasResults: tubes.length > 0,

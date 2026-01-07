@@ -1,9 +1,18 @@
 import { Tube } from '@domain/entities/Tube';
 import { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepository';
-import type { TubeSearchCriteria, TubeRepositoryStats } from '@domain/types/repository';
+import type { TubeSearchCriteria, TubeSearchResult, TubeRepositoryStats } from '@domain/types/repository';
 import { Location } from '@domain/valueObjects/Location';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { TubeMapper, TubeRow } from '@infrastructure/database/mappers/TubeMapper';
+import {
+  normalizeSearchQuery,
+  expandWithSynonyms,
+  parseQueryIntoConcepts,
+  buildTsQueryFromConcepts,
+  calculateQueryFuzzyThreshold,
+  shouldSkipFuzzyMatching,
+  SearchRankTier,
+} from '@infrastructure/database/searchUtils';
 import { logger } from '@utils/logger';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 
@@ -489,35 +498,94 @@ export class TubeRepository implements ITubeRepository {
     return this.structuredSearch(criteria);
   }
 
+  async searchWithHighlighting(criteria: TubeSearchCriteria): Promise<TubeSearchResult> {
+    const tubes = await this.search(criteria);
+
+    // Gather all matched terms for highlighting
+    const matchedTerms: string[] = [];
+
+    if (criteria.query && criteria.query.trim()) {
+      const rawQuery = criteria.query.trim();
+      const normalizedQuery = normalizeSearchQuery(rawQuery);
+      const expandedTerms = expandWithSynonyms(normalizedQuery);
+
+      // Include original query
+      matchedTerms.push(rawQuery.toLowerCase());
+
+      // Include normalized form if different
+      if (normalizedQuery !== rawQuery.toLowerCase()) {
+        matchedTerms.push(normalizedQuery);
+      }
+
+      // Include all expanded synonyms
+      for (const term of expandedTerms) {
+        if (!matchedTerms.includes(term)) {
+          matchedTerms.push(term);
+        }
+      }
+
+      // Include individual words from normalized query
+      const words = normalizedQuery.split(/\s+/).filter(w => w.length >= 2);
+      for (const word of words) {
+        if (!matchedTerms.includes(word)) {
+          matchedTerms.push(word);
+        }
+      }
+    }
+
+    return { tubes, matchedTerms };
+  }
+
   /**
    * Comprehensive full-text search across ALL tube fields
    *
-   * Uses tsvector for optimized performance:
-   * - Searches: cellType, donorInternalId, donorSourceId, lotNumber, notes,
-   *             media, cultureCondition, concentration, date, researcher name
-   * - ts_rank() relevance ranking
-   * - Trigram indexes for partial matching
-   * - Scales to millions of records
+   * Enhanced search with professional-grade features:
+   * - Query normalization (hyphen splitting, punctuation handling)
+   * - Lab-specific synonym expansion (t-cells = t cells = t lymphocytes)
+   * - Fuzzy matching with pg_trgm (catches typos)
+   * - Multi-tier ranking (exact > tsvector > synonym > fuzzy > partial)
+   *
+   * Search layers (in order of relevance):
+   * 1. tsvector full-text with synonym expansion
+   * 2. Fuzzy matching with pg_trgm similarity
+   * 3. Researcher name ILIKE
+   * 4. ILIKE fallback for edge cases
    */
   private async comprehensiveSearch(criteria: TubeSearchCriteria): Promise<Tube[]> {
-    const query = criteria.query!.trim();
+    const rawQuery = criteria.query!.trim();
 
-    // Build tsquery from search terms
-    const terms = query.split(/\s+/).filter(t => t.length > 0);
-    const tsqueryTerms = terms.map(term => {
-      // Escape special characters and add prefix matching
-      const escaped = term.replace(/['"\\:&|!()]/g, '');
-      return `${escaped}:*`;
-    }).join(' & ');
+    // Step 1: Normalize query (split hyphens, clean punctuation)
+    const normalizedQuery = normalizeSearchQuery(rawQuery);
+
+    // Step 2: Parse into concept groups with synonyms and alphanumeric variants
+    // "Human T-cells" → [["human", "homo sapiens"], ["t cell", "t-cell", "t lymphocyte"]]
+    const concepts = parseQueryIntoConcepts(rawQuery);
+
+    // Step 3: Build tsquery with AND between concepts, OR within synonyms
+    // Result: (human:* | homo:* & sapiens:*) & (t:* & cell:* | t:* & lymphocyte:*)
+    const tsqueryTerms = buildTsQueryFromConcepts(concepts);
+
+    // Flat list for highlighting (used by searchWithHighlighting)
+    const expandedTerms = expandWithSynonyms(normalizedQuery);
+
+    // Step 4: Calculate fuzzy threshold based on query length
+    const fuzzyThreshold = calculateQueryFuzzyThreshold(normalizedQuery);
+
+    // Individual terms for ILIKE and fuzzy matching
+    const searchTerms = normalizedQuery.split(/\s+/).filter(t => t.length > 0);
 
     const params: unknown[] = [];
-    let paramIndex = { current: 1 };
+    const paramIndex = { current: 1 };
 
-    // Build full-text search query using search_vector column
+    // ==========================================
+    // Layer 1: tsvector full-text search (highest rank)
+    // Uses synonym-expanded tsquery for broad matching
+    // ==========================================
     let ftsSql = `
-      SELECT ${this.TUBE_COLUMNS}, ts_rank(tubes.search_vector, to_tsquery('english', $${paramIndex.current++})) as rank
+      SELECT ${this.TUBE_COLUMNS},
+             ts_rank(tubes.search_vector, to_tsquery('english', $${paramIndex.current})) * ${SearchRankTier.TSVECTOR_HIGH} as rank
       FROM tubes
-      WHERE tubes.search_vector @@ to_tsquery('english', $${paramIndex.current - 1})
+      WHERE tubes.search_vector @@ to_tsquery('english', $${paramIndex.current++})
     `;
     params.push(tsqueryTerms);
 
@@ -527,9 +595,47 @@ export class TubeRepository implements ITubeRepository {
     ftsSql = this.addDateRangeFilters(ftsSql, params, criteria, paramIndex);
     ftsSql = await this.addPositionLabelFilter(ftsSql, params, criteria, paramIndex);
 
-    // Build researcher name search query (with NULL safety)
+    // ==========================================
+    // Layer 2: Fuzzy matching with pg_trgm (catches typos)
+    // Only applies to terms that should have fuzzy matching
+    // ==========================================
+    const fuzzyColumns = ['cell_type', 'donor_internal_id', 'donor_source_id', 'lot_number', 'notes', 'media', 'culture_condition'];
+    const fuzzySearchTerm = normalizedQuery;
+
+    // Skip fuzzy for very short or numeric queries
+    const shouldDoFuzzy = !shouldSkipFuzzyMatching(fuzzySearchTerm) && fuzzySearchTerm.length >= 3;
+
+    let fuzzySql = '';
+    if (shouldDoFuzzy) {
+      const fuzzyConditions = fuzzyColumns.map(col =>
+        `similarity(COALESCE(${col}, ''), $${paramIndex.current}) > ${fuzzyThreshold}`
+      ).join(' OR ');
+
+      const fuzzyRankParts = fuzzyColumns.map(col =>
+        `similarity(COALESCE(${col}, ''), $${paramIndex.current})`
+      );
+      const fuzzyRankExpr = `GREATEST(${fuzzyRankParts.join(', ')}) * ${SearchRankTier.FUZZY_MATCH}`;
+
+      fuzzySql = `
+        SELECT ${this.TUBE_COLUMNS}, ${fuzzyRankExpr} as rank
+        FROM tubes
+        WHERE (${fuzzyConditions})
+      `;
+      params.push(fuzzySearchTerm);
+      paramIndex.current++;
+
+      fuzzySql = this.addLocationFilters(fuzzySql, params, criteria, paramIndex);
+      fuzzySql = this.addSampleFilters(fuzzySql, params, criteria, paramIndex);
+      fuzzySql = this.addResearcherFilters(fuzzySql, params, criteria, paramIndex);
+      fuzzySql = this.addDateRangeFilters(fuzzySql, params, criteria, paramIndex);
+      fuzzySql = await this.addPositionLabelFilter(fuzzySql, params, criteria, paramIndex);
+    }
+
+    // ==========================================
+    // Layer 3: Researcher name search
+    // ==========================================
     let researcherSql = `
-      SELECT ${this.TUBE_COLUMNS}, 1.0 as rank
+      SELECT ${this.TUBE_COLUMNS}, ${SearchRankTier.RESEARCHER_NAME} as rank
       FROM tubes
       LEFT JOIN researchers ON tubes.researcher_id = researchers.id
       INNER JOIN persons p ON researchers.person_id = p.id
@@ -538,7 +644,7 @@ export class TubeRepository implements ITubeRepository {
     `;
 
     const researcherConditions: string[] = [];
-    for (const term of terms) {
+    for (const term of searchTerms) {
       researcherConditions.push(`(p.first_name ILIKE $${paramIndex.current++} OR p.last_name ILIKE $${paramIndex.current++})`);
       params.push(`%${term}%`, `%${term}%`);
     }
@@ -550,26 +656,50 @@ export class TubeRepository implements ITubeRepository {
     researcherSql = this.addDateRangeFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = await this.addPositionLabelFilter(researcherSql, params, criteria, paramIndex);
 
-    // Build ILIKE fallback query for partial matching (handles decimals, special chars, etc.)
-    // This catches cases where tsvector tokenization fails (e.g., "15.5" in lot numbers)
-    const ilikePattern = `%${query}%`;
+    // ==========================================
+    // Layer 4: ILIKE fallback (catches edge cases)
+    // Uses both original and normalized patterns
+    // ==========================================
+    const ilikePatterns = [
+      `%${rawQuery}%`,      // Original query
+      `%${normalizedQuery}%` // Normalized (hyphen-split)
+    ];
+
+    // Also add individual word patterns for partial matching
+    for (const term of searchTerms) {
+      if (term.length >= 2) {
+        ilikePatterns.push(`%${term}%`);
+      }
+    }
+
+    // Deduplicate patterns
+    const uniquePatterns = [...new Set(ilikePatterns)];
+
     let ilikeSql = `
-      SELECT ${this.TUBE_COLUMNS}, 0.5 as rank
+      SELECT ${this.TUBE_COLUMNS}, ${SearchRankTier.ILIKE_FALLBACK} as rank
       FROM tubes
       WHERE (
-        cell_type ILIKE $${paramIndex.current}
-        OR donor_internal_id ILIKE $${paramIndex.current}
-        OR donor_source_id ILIKE $${paramIndex.current}
-        OR lot_number ILIKE $${paramIndex.current}
-        OR notes ILIKE $${paramIndex.current}
-        OR media ILIKE $${paramIndex.current}
-        OR culture_condition ILIKE $${paramIndex.current}
-        OR concentration::TEXT ILIKE $${paramIndex.current}
-        OR date ILIKE $${paramIndex.current}
-        OR created_by_name ILIKE $${paramIndex.current++}
-      )
     `;
-    params.push(ilikePattern);
+
+    const ilikeConditions: string[] = [];
+    for (const pattern of uniquePatterns) {
+      const patternParam = `$${paramIndex.current++}`;
+      params.push(pattern);
+      ilikeConditions.push(`
+        cell_type ILIKE ${patternParam}
+        OR donor_internal_id ILIKE ${patternParam}
+        OR donor_source_id ILIKE ${patternParam}
+        OR lot_number ILIKE ${patternParam}
+        OR notes ILIKE ${patternParam}
+        OR media ILIKE ${patternParam}
+        OR culture_condition ILIKE ${patternParam}
+        OR concentration::TEXT ILIKE ${patternParam}
+        OR date ILIKE ${patternParam}
+        OR created_by_name ILIKE ${patternParam}
+      `);
+    }
+
+    ilikeSql += ilikeConditions.join(' OR ') + ')';
 
     ilikeSql = this.addLocationFilters(ilikeSql, params, criteria, paramIndex);
     ilikeSql = this.addSampleFilters(ilikeSql, params, criteria, paramIndex);
@@ -577,14 +707,17 @@ export class TubeRepository implements ITubeRepository {
     ilikeSql = this.addDateRangeFilters(ilikeSql, params, criteria, paramIndex);
     ilikeSql = await this.addPositionLabelFilter(ilikeSql, params, criteria, paramIndex);
 
-    // Combine all three queries with UNION (tsvector + researcher names + ILIKE fallback)
+    // ==========================================
+    // Combine all layers with UNION
+    // ==========================================
+    const unionParts = [ftsSql, researcherSql, ilikeSql];
+    if (fuzzySql) {
+      unionParts.splice(1, 0, fuzzySql); // Insert fuzzy after tsvector
+    }
+
     const combinedSql = `
       SELECT DISTINCT ON (id) * FROM (
-        ${ftsSql}
-        UNION ALL
-        ${researcherSql}
-        UNION ALL
-        ${ilikeSql}
+        ${unionParts.join('\n        UNION ALL\n        ')}
       ) combined_results
     `;
 
@@ -620,11 +753,51 @@ export class TubeRepository implements ITubeRepository {
 
     try {
       const rows = await this.context.queryMany<TubeRow>(finalSql, params);
-      return TubeMapper.fromRows(rows);
+      const tubes = TubeMapper.fromRows(rows);
+
+      // Post-filter: ensure ALL concepts are present
+      // Even single concepts need filtering because ILIKE fallback matches individual words
+      if (concepts.length > 0) {
+        return this.filterByAllConcepts(tubes, concepts);
+      }
+
+      return tubes;
     } catch (error) {
-      logger.error('Full-text search error:', { query: tsqueryTerms, error });
+      logger.error('Full-text search error:', { query: tsqueryTerms, normalizedQuery, error });
       return [];
     }
+  }
+
+  /**
+   * Filter tubes to ensure ALL search concepts are present.
+   * Must check same fields as ILIKE fallback to avoid false negatives.
+   */
+  private filterByAllConcepts(tubes: Tube[], concepts: string[][]): Tube[] {
+    return tubes.filter(tube => {
+      // Build searchable text from all fields that ILIKE searches
+      const searchableText = [
+        tube.sample.cellType,
+        tube.sample.donorInternalId,
+        tube.sample.donorSourceId,
+        tube.sample.lotNumber,
+        tube.sample.notes,
+        tube.sample.cultureCondition,
+        tube.sample.media?.type,
+        tube.sample.media?.supplements,
+        tube.sample.media?.selection,
+        tube.sample.concentration?.toString(),
+        tube.sample.date,
+        tube.createdByName,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+
+      // Every concept must have at least one variant present
+      return concepts.every(conceptVariants =>
+        conceptVariants.some(variant => searchableText.includes(variant.toLowerCase()))
+      );
+    });
   }
 
   /**

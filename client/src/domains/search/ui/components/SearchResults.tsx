@@ -40,6 +40,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
   const tubes = results?.tubes ?? [];
   const totalCount = results?.total ?? 0;
   const query = results?.query ?? '';
+  const matchedTerms = results?.matchedTerms ?? [];
 
   // Client-side sorting of grouped results - MUST be called before early returns
   const sortedGroups = useMemo(() => {
@@ -118,20 +119,30 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
   }
 
   // Helper: Highlight matching terms with modern underline accent
+  // Uses matchedTerms from server (includes synonyms and normalized forms)
   const highlightText = (text: string, searchQuery: string): React.ReactNode => {
     if (!searchQuery || !text) return text;
 
-    // Extract search terms (split by spaces, remove empty strings)
-    const terms = searchQuery
-      .toLowerCase()
-      .split(/\s+/)
-      .filter(t => t.length > 0);
+    // Use server-provided matchedTerms if available (includes synonyms, normalized forms)
+    // Otherwise fall back to splitting the query
+    let terms: string[];
+    if (matchedTerms.length > 0) {
+      terms = matchedTerms.filter(t => t.length > 0);
+    } else {
+      // Fallback: extract search terms (split by spaces, remove empty strings)
+      terms = searchQuery
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(t => t.length > 0);
+    }
 
     if (terms.length === 0) return text;
 
     // Build regex to match any term (case-insensitive)
+    // Sort by length descending so longer terms match first
+    const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
     const regex = new RegExp(
-      `(${terms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+      `(${sortedTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
       'gi'
     );
 
@@ -176,11 +187,11 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
     return `${tankName} → ${rackName} → Box ${boxId}`;
   };
 
-  // Get researcher name from ID
+  // Get researcher name from ID (returns empty string if no researcher assigned)
   const getResearcherName = (researcherId: string | undefined): string => {
-    if (!researcherId) return 'Unknown';
+    if (!researcherId) return '';
     const researcher = researchers.find(r => r.id === researcherId);
-    return researcher ? formatResearcherDropdownDisplay(researcher) : researcherId;
+    return researcher ? formatResearcherDropdownDisplay(researcher) : '';
   };
 
   // Format date as MM/DD/YYYY
@@ -479,7 +490,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                     <div className="flex-1 space-y-0.5 text-xs text-slate-700">
                       {/* Line 2: Donor Internal ID · Donor Source ID */}
                       {(donorInternal || donorSource) && (
-                        <div className="inline-flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {donorInternal && <span>{highlightText(donorInternal, query)}</span>}
                           {donorInternal && donorSource && (
                             <span className="text-slate-300">·</span>
@@ -490,7 +501,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
 
                       {/* Line 3: Culture Condition · Lot Number · Concentration */}
                       {(cultureCondition || lotNumber || concentration) && (
-                        <div className="inline-flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {cultureCondition && (
                             <span>{highlightText(cultureCondition, query)}</span>
                           )}
@@ -507,7 +518,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
 
                       {/* Line 4: Date · Researcher */}
                       {(date || researcherName) && (
-                        <div className="inline-flex items-center gap-1.5 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
                           {date && <span>{date}</span>}
                           {date && researcherName && <span className="text-slate-300">·</span>}
                           {researcherName && <span>{highlightText(researcherName, query)}</span>}

@@ -1,23 +1,21 @@
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 
 import type { TubeData, TubeMedia } from '@domains/tubes/types';
-import type { GroupedResult} from '@odysseus/shared-schemas';
+import type { GroupedResult } from '@odysseus/shared-schemas';
 
 /**
  * Convert media object to string for searching
  */
 const getMediaString = (media: TubeMedia | undefined): string => {
   if (!media) return '';
-  
+
   // Combine all fields for searching
-  return [media.type, media.supplements, media.selection]
-    .filter(Boolean)
-    .join(' ');
+  return [media.type, media.supplements, media.selection].filter(Boolean).join(' ');
 };
 
 /**
  * Group tubes by relevance for search results
- * 
+ *
  * This function maintains the existing grouping logic from the original SearchStore
  * but is now extracted as a pure utility function.
  */
@@ -37,15 +35,18 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
       groupType: 'cellType' as const,
       tubes: groupTubes,
       primaryLocation: getPrimaryLocation(groupTubes),
-      totalCount: groupTubes.length
+      totalCount: groupTubes.length,
     }));
   }
 
-  const groups = new Map<string, {
-    tubes: TubeData[],
-    type: GroupedResult['groupType'],
-    matchedField: string
-  }>();
+  const groups = new Map<
+    string,
+    {
+      tubes: TubeData[];
+      type: GroupedResult['groupType'];
+      matchedField: string;
+    }
+  >();
 
   tubes.forEach(tube => {
     let groupType: GroupedResult['groupType'] = 'cellType';
@@ -63,7 +64,10 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
       groupType = 'researcher';
     } else if (tube.sample.lotNumber?.toLowerCase().includes(query.toLowerCase())) {
       groupType = 'lotNumber';
-    } else if (tube.sample.media && getMediaString(tube.sample.media).toLowerCase().includes(query.toLowerCase())) {
+    } else if (
+      tube.sample.media &&
+      getMediaString(tube.sample.media).toLowerCase().includes(query.toLowerCase())
+    ) {
       groupType = 'media';
     } else {
       groupType = 'cellType';
@@ -71,8 +75,14 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
 
     // Group by tube's CURRENT identifier, not what was matched
     const tankId = tube.location.tankId || NAMING_PATTERNS.TANK.ID_PATTERN(1);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain: try each identifier, empty values fall through
-    const currentGroupKey = tube.sample.donorInternalId || tube.sample.donorSourceId || tube.sample.lotNumber || tube.sample.cellType || 'Unknown';
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: empty strings should fall through */
+    const currentGroupKey =
+      tube.sample.donorInternalId ||
+      tube.sample.donorSourceId ||
+      tube.sample.lotNumber ||
+      tube.sample.cellType ||
+      'Unknown';
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
     const locationKey = `${currentGroupKey}:${tankId}:${tube.location.rackId}:${tube.location.boxId}`;
 
     if (!groups.has(locationKey)) {
@@ -87,7 +97,7 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
       groupType: type,
       tubes: groupTubes,
       primaryLocation: getPrimaryLocation(groupTubes),
-      totalCount: groupTubes.length
+      totalCount: groupTubes.length,
     }))
     .sort((a, b) => b.totalCount - a.totalCount);
 };
@@ -107,43 +117,45 @@ export const getPrimaryLocation = (tubes: TubeData[]): string => {
 
 /**
  * Transform search result to SearchResults format
- * 
- * This maintains compatibility with the existing SearchResults interface
+ *
+ * Includes matchedTerms (synonyms, normalized forms) for highlighting.
  */
 export const transformSearchResult = (
-  searchResult: { data: unknown[] }, // Accept API response with unknown data
+  searchResult: { data: unknown[]; matchedTerms?: string[] }, // Accept API response with matchedTerms
   query: string
 ) => {
   // Convert API response tubes to proper TubeData format with type validation
   const tubes: TubeData[] = (searchResult.data || [])
-    .filter((item): item is Record<string, unknown> =>
-      typeof item === 'object' && item !== null
-    )
-    .map((tube) => {
-      const sample = typeof tube['sample'] === 'object' && tube['sample'] !== null
-        ? tube['sample'] as Record<string, unknown>
-        : {};
+    .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
+    .map(tube => {
+      const sample =
+        typeof tube['sample'] === 'object' && tube['sample'] !== null
+          ? (tube['sample'] as Record<string, unknown>)
+          : {};
 
       return {
         ...tube,
         sample: {
           ...sample,
           // Convert concentration from string|number to number for storage consistency
-          concentration: typeof sample['concentration'] === 'string'
-            ? (sample['concentration'] ? Number(sample['concentration']) : undefined)
-            : sample['concentration']
-        }
+          concentration:
+            typeof sample['concentration'] === 'string'
+              ? sample['concentration']
+                ? Number(sample['concentration'])
+                : undefined
+              : sample['concentration'],
+        },
       } as TubeData;
     });
-  
+
   const grouped = groupTubesByRelevance(tubes, query);
-  
+
   return {
     tubes,
     grouped,
+    matchedTerms: searchResult.matchedTerms, // Pass through for highlighting
     total: tubes.length,
     query,
-    hasResults: tubes.length > 0
+    hasResults: tubes.length > 0,
   };
 };
-

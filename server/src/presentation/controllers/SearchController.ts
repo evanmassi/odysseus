@@ -16,6 +16,9 @@ export class SearchController {
   /**
    * Advanced tube search with filters
    * POST /api/search/tubes/advanced
+   *
+   * Returns tubes AND matchedTerms for client-side highlighting.
+   * matchedTerms includes synonyms and normalized query forms.
    */
   async advancedSearch(req: Request, res: Response): Promise<void> {
     try {
@@ -42,12 +45,15 @@ export class SearchController {
         sortOrder: searchCriteria.sortOrder
       });
 
-      const tubes = await this.tubeApplicationService.searchTubes(
+      // Use enhanced search that returns matchedTerms for highlighting
+      const searchResult = await this.tubeApplicationService.searchTubesWithHighlighting(
         searchCriteria,
         authenticatedUser
       );
 
-      logger.info(`[SearchController] Found ${tubes.length} tubes`);
+      const { tubes, matchedTerms } = searchResult;
+
+      logger.info(`[SearchController] Found ${tubes.length} tubes, ${matchedTerms.length} matched terms`);
 
       // Determine if we should group results (progressive enhancement)
       const shouldGroup = groupBy !== 'none';
@@ -55,10 +61,11 @@ export class SearchController {
 
       logger.info(`📊 [SearchController] Grouping: ${shouldGroup ? `enabled (${grouped?.length} groups)` : 'disabled'}`);
 
-      // Transform to SearchResultSchema format (with optional grouped field)
+      // Transform to SearchResultSchema format (with optional grouped field and matchedTerms)
       const result = {
         data: tubes,
         grouped: grouped, // Optional - progressive enhancement for server-side grouping
+        matchedTerms: matchedTerms, // Terms for client-side highlighting
         pagination: {
           total: tubes.length,
           limit: limit || 50,
@@ -75,7 +82,8 @@ export class SearchController {
       logger.info('📤 [SearchController] Sending response:', {
         tubeCount: tubes.length,
         groupCount: grouped?.length || 0,
-        hasGrouping: !!grouped
+        hasGrouping: !!grouped,
+        matchedTermsCount: matchedTerms.length
       });
 
       // Wrap in standard success envelope (all API responses use this format)

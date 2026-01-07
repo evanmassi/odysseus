@@ -83,6 +83,7 @@ export const GroupedResultSchema = z.object({
 export const SearchResultSchema = z.object({
   data: z.array(tubeDataSchema),
   grouped: z.array(GroupedResultSchema).optional(), // Server-side grouping (progressive enhancement)
+  matchedTerms: z.array(z.string()).optional(), // Terms for client-side highlighting (includes synonyms)
   pagination: SearchPaginationSchema.optional(),
   metadata: SearchMetadataSchema.optional(),
 }).strict();
@@ -93,6 +94,7 @@ export const SearchResultSchema = z.object({
 export const SearchResultsSchema = z.object({
   tubes: z.array(tubeDataSchema),
   grouped: z.array(GroupedResultSchema),
+  matchedTerms: z.array(z.string()).optional(), // Terms for client-side highlighting (includes synonyms)
   total: z.number(),
   query: z.string(),
   hasResults: z.boolean(),

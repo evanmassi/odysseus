@@ -42,7 +42,7 @@ function FilterChip({ label, isSelected, onClick, showRemove = false }: FilterCh
         ${
           isSelected
             ? 'bg-action text-white shadow-sm hover:bg-action-hover'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+            : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200'
         }
         ${showRemove ? 'flex items-center space-x-1.5' : ''}
       `}
@@ -90,21 +90,21 @@ function CollapsibleSection({
   children,
 }: CollapsibleSectionProps) {
   return (
-    <div className="border-b border-gray-200 last:border-b-0">
+    <div className="border-b border-slate-200 last:border-b-0">
       <div className="p-1">
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-gray-50 transition-colors focus-ring-default"
+          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-slate-50 transition-colors focus-ring-default"
         >
           <div className="flex items-center space-x-2">
             {isOpen ? (
-              <ChevronDown className="w-4 h-4 text-gray-500" />
+              <ChevronDown className="w-4 h-4 text-slate-400" />
             ) : (
-              <ChevronRight className="w-4 h-4 text-gray-500" />
+              <ChevronRight className="w-4 h-4 text-slate-400" />
             )}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 text-slate-500">
               {icon}
-              <span className="text-sm font-semibold text-gray-900">{title}</span>
+              <span className="text-sm font-medium text-slate-700">{title}</span>
             </div>
           </div>
           {count > 0 && (
@@ -124,7 +124,7 @@ interface FilterPanelProps {
 }
 
 export function FilterPanel({ onClose }: FilterPanelProps = {}) {
-  const { filters, toggleFilterValue, setSearchFilters, clearSearch } = useSearchStore();
+  const { filters, toggleFilterValue, setSearchFilters, clearFilters } = useSearchStore();
 
   // Collapsible section state - start with Location open
   const [openSections, setOpenSections] = useState({
@@ -373,12 +373,12 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
   return (
     <div className="flex flex-col h-full">
       {/* Header with Clear All and Close buttons - Fixed */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50 flex-shrink-0">
-        <h3 className="text-sm font-bold text-gray-900">Filters</h3>
+      <div className="flex items-center justify-between px-4 py-2 border-b border-slate-200 bg-slate-50 flex-shrink-0">
+        <span className="text-xs font-medium text-slate-600">Filters</span>
         <div className="flex items-center space-x-2">
           <Tooltip content="Clear all filters" side="bottom">
             <button
-              onClick={clearSearch}
+              onClick={clearFilters}
               className="px-2 py-1 text-xs text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors focus-ring-default"
             >
               Clear All
@@ -388,7 +388,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             <Tooltip content="Close filters" side="bottom">
               <button
                 onClick={onClose}
-                className="p-1 text-gray-500 hover:text-gray-700 hover:bg-gray-200 rounded transition-colors focus-ring-default"
+                className="p-1 text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded transition-colors focus-ring-default"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -411,9 +411,9 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {/* Tanks */}
             {filterOptions.tankIds.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 text-slate-400">
                   <TankIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-gray-600">Tanks</div>
+                  <div className="text-xs font-medium text-slate-600">Tanks</div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Tank filters">
                   {filterOptions.tankIds.map(tankId => (
@@ -431,9 +431,9 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {/* Racks */}
             {filterOptions.rackIds.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 text-slate-400">
                   <RackIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-gray-600">Racks</div>
+                  <div className="text-xs font-medium text-slate-600">Racks</div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Rack filters">
                   {filterOptions.rackIds.map(rackId => (
@@ -451,9 +451,9 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {/* Boxes */}
             {filterOptions.boxIds.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 text-slate-400">
                   <BoxIcon className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-gray-600">Boxes</div>
+                  <div className="text-xs font-medium text-slate-600">Boxes</div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Box filters">
                   {filterOptions.boxIds.map(boxId => (
@@ -482,9 +482,9 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {/* Cell Types */}
             {filterOptions.cellTypes.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 text-slate-400">
                   <Microscope className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-gray-600">Cell Types</div>
+                  <div className="text-xs font-medium text-slate-600">Cell Types</div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Cell type filters">
                   {filterOptions.cellTypes.map(cellType => (
@@ -502,9 +502,9 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {/* Lot Numbers */}
             {filterOptions.lotNumbers.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 text-slate-400">
                   <Barcode className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-gray-600">Lot Numbers</div>
+                  <div className="text-xs font-medium text-slate-600">Lot Numbers</div>
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Lot number filters">
                   {filterOptions.lotNumbers.map(lotNumber => (
@@ -522,9 +522,9 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {/* Donor Internal IDs */}
             {filterOptions.donorInternalIds.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 text-slate-400">
                   <CircleUserRound className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-gray-600">Donor Int. IDs</div>
+                  <div className="text-xs font-medium text-slate-600">Donor Int. IDs</div>
                 </div>
                 <div
                   className="flex flex-wrap gap-2"
@@ -546,9 +546,9 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {/* Donor Source IDs */}
             {filterOptions.donorSourceIds.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 text-slate-400">
                   <Fingerprint className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-gray-600">Donor Src. IDs</div>
+                  <div className="text-xs font-medium text-slate-600">Donor Src. IDs</div>
                 </div>
                 <div
                   className="flex flex-wrap gap-2"
@@ -570,9 +570,9 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {/* Culture Conditions */}
             {filterOptions.cultureConditions.length > 0 && (
               <div>
-                <div className="flex items-center space-x-2 mb-2">
+                <div className="flex items-center space-x-2 mb-2 text-slate-400">
                   <CircuitBoard className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-gray-600">Culture Conditions</div>
+                  <div className="text-xs font-medium text-slate-600">Culture Conditions</div>
                 </div>
                 <div
                   className="flex flex-wrap gap-2"
@@ -627,7 +627,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             <div>
               <label
                 htmlFor="filter-date-from"
-                className="text-xs font-medium text-gray-600 mb-1 block"
+                className="text-xs font-medium text-slate-600 mb-1 block"
               >
                 From:
               </label>
@@ -636,14 +636,14 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 type="date"
                 value={filters.dateFrom ?? ''}
                 onChange={e => updateDateFilter('dateFrom', e.target.value)}
-                className="w-full text-sm border border-gray-300 rounded-md p-2 input-form-field"
+                className="w-full text-sm border border-slate-300 rounded-md p-2 input-form-field"
                 aria-label="Filter start date"
               />
             </div>
             <div>
               <label
                 htmlFor="filter-date-to"
-                className="text-xs font-medium text-gray-600 mb-1 block"
+                className="text-xs font-medium text-slate-600 mb-1 block"
               >
                 To:
               </label>
@@ -652,7 +652,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 type="date"
                 value={filters.dateTo ?? ''}
                 onChange={e => updateDateFilter('dateTo', e.target.value)}
-                className="w-full text-sm border border-gray-300 rounded-md p-2 input-form-field"
+                className="w-full text-sm border border-slate-300 rounded-md p-2 input-form-field"
                 aria-label="Filter end date"
               />
             </div>

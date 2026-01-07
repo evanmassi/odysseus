@@ -5,7 +5,7 @@ import { useTubeStore } from '@domains/tubes';
 import { toPositionKey } from '@shared/types/grid';
 
 import type { TubeData } from '@domains/tubes/types';
-import type { SearchFilters} from '@odysseus/shared-schemas';
+import type { SearchFilters } from '@odysseus/shared-schemas';
 
 /**
  * UI-Only Search Store
@@ -40,6 +40,7 @@ interface SearchUIActions {
   setSearchQuery: (query: string) => void;
   setSearchFilters: (filters: SearchFilters) => void;
   clearSearch: () => void;
+  clearFilters: () => void;
 
   // Sort Actions
   setSortField: (field: SortField) => void;
@@ -47,10 +48,7 @@ interface SearchUIActions {
   toggleSortDirection: () => void;
 
   // Filter Helper Actions (for array-based filters)
-  toggleFilterValue: <K extends keyof SearchFilters>(
-    filterKey: K,
-    value: string
-  ) => void;
+  toggleFilterValue: <K extends keyof SearchFilters>(filterKey: K, value: string) => void;
   hasActiveFilters: () => boolean;
   getActiveFilterCount: () => number;
 
@@ -79,9 +77,9 @@ export const useSearchStore = create<SearchUIStore>((set, get) => ({
   history: [],
 
   // Form State Actions
-  setSearchQuery: (query) => set({ query }),
+  setSearchQuery: query => set({ query }),
 
-  setSearchFilters: (filters) => set({ filters }),
+  setSearchFilters: filters => set({ filters }),
 
   clearSearch: () => {
     set({
@@ -90,10 +88,14 @@ export const useSearchStore = create<SearchUIStore>((set, get) => ({
     });
   },
 
-  // Sort Actions
-  setSortField: (field) => set({ sortField: field }),
+  clearFilters: () => {
+    set({ filters: {} });
+  },
 
-  setSortDirection: (direction) => set({ sortDirection: direction }),
+  // Sort Actions
+  setSortField: field => set({ sortField: field }),
+
+  setSortDirection: direction => set({ sortDirection: direction }),
 
   toggleSortDirection: () => {
     const { sortDirection } = get();
@@ -107,13 +109,13 @@ export const useSearchStore = create<SearchUIStore>((set, get) => ({
 
     const newArray = currentArray.includes(value)
       ? currentArray.filter(v => v !== value) // Remove if exists
-      : [...currentArray, value];              // Add if doesn't exist
+      : [...currentArray, value]; // Add if doesn't exist
 
     set({
       filters: {
         ...filters,
         [filterKey]: newArray.length > 0 ? newArray : undefined, // Remove key if empty
-      }
+      },
     });
   },
 
@@ -135,14 +137,14 @@ export const useSearchStore = create<SearchUIStore>((set, get) => ({
   },
 
   // History Actions
-  addToSearchHistory: (query) => {
+  addToSearchHistory: query => {
     const { history } = get();
     const newHistory = [query, ...history.filter(h => h !== query)].slice(0, 10);
     set({ history: newHistory });
   },
 
   // Navigation Actions (UI Behavior)
-  navigateToGroup: async (tubes) => {
+  navigateToGroup: async tubes => {
     if (tubes.length === 0) return;
 
     // Get the first tube to determine navigation target
@@ -160,7 +162,11 @@ export const useSearchStore = create<SearchUIStore>((set, get) => ({
     // Select the tubes for immediate visibility
     const positionKeys = tubes.map(tube =>
       toPositionKey(
-        { tankId: tube.location.tankId || tankId, rackId: tube.location.rackId, boxId: tube.location.boxId },
+        {
+          tankId: tube.location.tankId || tankId,
+          rackId: tube.location.rackId,
+          boxId: tube.location.boxId,
+        },
         tube.location.position
       )
     );

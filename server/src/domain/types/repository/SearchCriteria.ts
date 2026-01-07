@@ -1,8 +1,22 @@
+import type { Tube } from '@domain/entities/Tube';
+
 /**
  * Repository Search Criteria Types
  *
  * Centralized search criteria interfaces for all repositories.
  */
+
+/**
+ * Enhanced search result with matched terms for highlighting
+ *
+ * The matchedTerms array contains all terms that were used to find results,
+ * including normalized forms and synonym expansions. Clients use this for
+ * accurate result highlighting.
+ */
+export interface TubeSearchResult {
+  tubes: Tube[];
+  matchedTerms: string[];
+}
 
 export interface TubeSearchCriteria {
   // Generic query - searches across ALL fields

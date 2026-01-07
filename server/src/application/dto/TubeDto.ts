@@ -48,6 +48,22 @@ export interface TubeSearchRequest {
 }
 
 /**
+ * Enhanced search response with matched terms for highlighting
+ *
+ * matchedTerms contains all query variants used in the search:
+ * - Original query
+ * - Normalized form (hyphens split)
+ * - Synonym expansions
+ * - Individual words
+ *
+ * Client uses these for accurate result highlighting.
+ */
+export interface TubeSearchResponse {
+  tubes: TubeResponse[];
+  matchedTerms: string[];
+}
+
+/**
  * DTO Conversion Utilities - Phase 3 Clean Architecture
  * 
  *Thin mappers only

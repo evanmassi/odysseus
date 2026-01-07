@@ -8,7 +8,7 @@ import { Tube } from '@domain/entities/Tube';
 import { User } from '@domain/entities/User';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
-import { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchRequest, TubeDto } from '@application/dto/TubeDto';
+import { CreateTubeRequest, UpdateTubeRequest, TubeResponse, BulkUpdateRequest, TubeSearchRequest, TubeSearchResponse, TubeDto } from '@application/dto/TubeDto';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -273,6 +273,20 @@ export class TubeApplicationService {
     const tubes = await this.tubeRepository.search(searchRequest as TubeSearchCriteria);
 
     return TubeDto.toResponseList(tubes);
+  }
+
+  async searchTubesWithHighlighting(
+    searchRequest: TubeSearchRequest,
+    authenticatedUser: User
+  ): Promise<TubeSearchResponse> {
+    this.accessControlService.requireCanViewTubes(authenticatedUser);
+
+    const result = await this.tubeRepository.searchWithHighlighting(searchRequest as TubeSearchCriteria);
+
+    return {
+      tubes: TubeDto.toResponseList(result.tubes),
+      matchedTerms: result.matchedTerms
+    };
   }
 
   /**

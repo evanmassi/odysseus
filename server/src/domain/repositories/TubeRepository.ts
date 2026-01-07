@@ -1,6 +1,6 @@
 import { Tube } from '@domain/entities/Tube';
 import { Location } from '@domain/valueObjects/Location';
-import type { TubeSearchCriteria } from '@domain/types/repository/SearchCriteria';
+import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/SearchCriteria';
 import type { TubeRepositoryStats } from '@domain/types/repository/Stats';
 
 /**
@@ -119,6 +119,14 @@ export interface TubeRepository {
    * Search tubes by various criteria
    */
   search(criteria: TubeSearchCriteria): Promise<Tube[]>;
+
+  /**
+   * Search tubes with matched terms for highlighting
+   *
+   * Returns both tubes and the terms that matched (including synonyms,
+   * normalized forms, and fuzzy matches) for client-side highlighting.
+   */
+  searchWithHighlighting(criteria: TubeSearchCriteria): Promise<TubeSearchResult>;
   
   /**
    * Find tubes by cell type

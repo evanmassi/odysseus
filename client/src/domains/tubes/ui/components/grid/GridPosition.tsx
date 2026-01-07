@@ -182,13 +182,14 @@ export const GridPosition = memo<GridPositionProps>(
         )}
 
         {/* Lock indicator - bottom-left */}
-        {/* Black lock for own locks, amber for shared access, red for locked out */}
+        {/* Icon color adapts to tube background for visibility */}
         {tube && isLockedByCurrentUser && (
           <LockIndicator
             lockedByName="You"
             lockNote={lockNote}
             size={fontSize.positionFont}
             variant="own"
+            backgroundColor={colors?.backgroundColor}
           />
         )}
         {tube && hasSharedAccess && lockOwnerName && (
@@ -197,6 +198,7 @@ export const GridPosition = memo<GridPositionProps>(
             lockNote={lockNote}
             size={fontSize.positionFont}
             variant="shared"
+            backgroundColor={colors?.backgroundColor}
           />
         )}
         {tube && isLockedOut && lockOwnerName && (
@@ -205,6 +207,7 @@ export const GridPosition = memo<GridPositionProps>(
             lockNote={lockNote}
             size={fontSize.positionFont}
             variant="other"
+            backgroundColor={colors?.backgroundColor}
           />
         )}
 
