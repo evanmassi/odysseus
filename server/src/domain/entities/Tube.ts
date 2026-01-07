@@ -140,7 +140,7 @@ export class Tube {
    * Generate unique tube ID
    */
   private static generateId(): string {
-    return 'tube_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'tube_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**

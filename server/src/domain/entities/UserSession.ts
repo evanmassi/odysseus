@@ -85,7 +85,7 @@ export class UserSession {
    * Generate unique session ID
    */
   private static generateId(): string {
-    return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**

@@ -8,6 +8,7 @@
 import * as jwt from 'jsonwebtoken';
 import { randomUUID, randomBytes } from 'crypto';
 import { User } from '@domain/entities/User';
+import { logger } from '@utils/logger';
 import { RefreshToken } from '@domain/entities/RefreshToken';
 import { UserSession } from '@domain/entities/UserSession';
 import { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/commands/UserCommands';
@@ -150,14 +151,14 @@ export class JwtSessionService implements SessionService {
 
       if (sessionsToRevokeIds.length > 0) {
         const revokedCount = await this.userSessionRepository.batchRevoke(sessionsToRevokeIds);
-        console.log(`🔒 [${this.instanceId}] Revoked ${revokedCount} old sessions for user ${userId} (limit: ${maxSessions})`);
+        logger.info(`Revoked ${revokedCount} old sessions for user ${userId} (limit: ${maxSessions})`);
         return revokedCount;
       }
 
       return 0;
     } catch (error) {
       // Log error but don't block login if session enforcement fails
-      console.error(`❌ [${this.instanceId}] Failed to enforce session limit:`, error);
+      logger.error('Failed to enforce session limit:', { error });
       return 0;
     }
   }
@@ -176,13 +177,13 @@ export class JwtSessionService implements SessionService {
 
       // Validate user ID exists
       if (!userId) {
-        console.error(`❌ [${this.instanceId}] No user ID found in token 'sub' field`);
+        logger.error('No user ID found in token sub field');
         return null;
       }
 
       // Validate session ID exists
       if (!sessionId) {
-        console.error(`❌ [${this.instanceId}] No session ID found in token payload`);
+        logger.error('No session ID found in token payload');
         return null;
       }
 
@@ -201,14 +202,9 @@ export class JwtSessionService implements SessionService {
 
     } catch (error) {
       // Token is invalid, expired, or malformed
-      console.error(`🚨 JWT validation failed [${this.instanceId}]:`, {
+      logger.error('JWT validation failed:', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        tokenLength: token?.length || 0,
-        config: {
-          issuer: this.config.issuer,
-          audience: this.config.audience,
-          algorithm: this.config.algorithm
-        }
+        tokenLength: token?.length || 0
       });
       return null;
     }
@@ -292,10 +288,10 @@ export class JwtSessionService implements SessionService {
         }
       }
 
-      console.log(`[${this.instanceId}] Session ${decoded.sessionId} revoked`);
+      logger.info(`Session ${decoded.sessionId} revoked`);
     } catch (error) {
       // Token already invalid or session not found
-      console.warn(`[${this.instanceId}] Could not revoke session:`, error);
+      logger.warn('Could not revoke session:', { error });
     }
   }
 
@@ -370,9 +366,9 @@ export class JwtSessionService implements SessionService {
 
     try {
       await this.userSessionRepository.save(userSession);
-      console.log(`[${this.instanceId}] Created session ${userSession.id} for user ${user.username}`);
+      logger.info(`Created session ${userSession.id} for user ${user.username}`);
     } catch (error) {
-      console.error(`[${this.instanceId}] Failed to create user session:`, error);
+      logger.error('Failed to create user session:', { error });
       throw new Error('Failed to create user session - login aborted');
     }
 
@@ -520,7 +516,7 @@ export class JwtSessionService implements SessionService {
       };
 
     } catch (error) {
-      console.error(`❌ [${this.instanceId}] Token refresh failed:`, error);
+      logger.error('Token refresh failed:', { error });
 
       // Re-throw known errors
       if (error instanceof Error && [

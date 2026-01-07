@@ -55,7 +55,7 @@ export class UserApplicationService {
     }
 
     // Update last activity
-    user.updateActivity();
+    user.recordActivity();
     await this.userRepository.save(user);
 
     return UserDto.toAuthResponse(user);
@@ -195,7 +195,7 @@ export class UserApplicationService {
     }
 
     // Update activity
-    user.updateActivity();
+    user.recordActivity();
     await this.userRepository.save(user);
 
     return UserDto.toAuthResponse(user);

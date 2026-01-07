@@ -7,6 +7,7 @@ import type { SecurityConfig, SystemMetrics, SyncStatus } from '@odysseus/shared
 import { DEFAULT_SECURITY_CONFIG, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { ValidationError } from '@domain/errors/ValidationError';
+import { logger } from '@utils/logger';
 
 /**
  * ConfigurationRepository - Configuration data access
@@ -36,7 +37,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       return Configuration.fromData(configData);
 
     } catch (error) {
-      console.error('Failed to get current configuration:', error);
+      logger.error('Failed to get current configuration:', { error });
       throw new ValidationError(`Database error retrieving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -52,7 +53,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       `);
       return row !== undefined && row !== null;
     } catch (error) {
-      console.error('Failed to check configuration existence:', error);
+      logger.error('Failed to check configuration existence:', { error });
       return false;
     }
   }
@@ -86,7 +87,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       return Configuration.fromData(configData);
 
     } catch (error) {
-      console.error('Failed to get configuration by version:', error);
+      logger.error('Failed to get configuration by version:', { error, version });
       throw new ValidationError(`Database error retrieving configuration version ${version}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -114,7 +115,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       });
 
     } catch (error) {
-      console.error('Failed to get configuration history:', error);
+      logger.error('Failed to get configuration history:', { error });
       throw new ValidationError(`Database error retrieving configuration history: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -126,7 +127,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       `);
       return row ? row.version : 0;
     } catch (error) {
-      console.error('Failed to get current version:', error);
+      logger.error('Failed to get current version:', { error });
       return 0;
     }
   }
@@ -155,11 +156,11 @@ export class ConfigurationRepository implements IConfigurationRepository {
           [newVersion, now, configJson]
         );
 
-        console.log(`🔧 [CONFIG] Configuration saved with version ${newVersion}: ${changeDescription}`);
+        logger.info(`Configuration saved with version ${newVersion}: ${changeDescription}`);
       });
 
     } catch (error) {
-      console.error('Failed to save configuration with versioning:', error);
+      logger.error('Failed to save configuration with versioning:', { error });
       throw new ValidationError(`Database error saving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -445,10 +446,11 @@ export class ConfigurationRepository implements IConfigurationRepository {
       throw new ValidationError('No configuration to snapshot');
     }
 
+    const snapshotId = `snapshot-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+
     try {
       const now = new Date();
       const configJson = JSON.stringify(config.toData());
-      const snapshotId = `snapshot-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
       await this.context.execute(`
         INSERT INTO configuration_snapshots (id, version, created_at, description, created_by, size_bytes, config_json)
@@ -464,11 +466,11 @@ export class ConfigurationRepository implements IConfigurationRepository {
         sizeBytes: configJson.length
       };
 
-      console.log(`🔧 [CONFIG] Snapshot created: ${snapshotId}`);
+      logger.info(`Snapshot created: ${snapshotId}`);
       return snapshot;
 
     } catch (error) {
-      console.error('Failed to create configuration snapshot:', error);
+      logger.error('Failed to create configuration snapshot:', { error, snapshotId });
       throw new ValidationError(`Database error creating snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -494,12 +496,12 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
       await this.saveWithVersioning(config, `Restored from snapshot ${snapshotId}`);
 
-      console.log(`🔧 [CONFIG] Restored from snapshot: ${snapshotId}`);
+      logger.info(`Restored from snapshot: ${snapshotId}`);
       return config;
 
     } catch (error) {
       if (error instanceof ValidationError) throw error;
-      console.error('Failed to restore from snapshot:', error);
+      logger.error('Failed to restore from snapshot:', { error, snapshotId });
       throw new ValidationError(`Database error restoring snapshot: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -736,7 +738,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       }));
 
     } catch (error) {
-      console.error('Failed to list configuration snapshots:', error);
+      logger.error('Failed to list configuration snapshots:', { error });
       throw new ValidationError(`Database error listing snapshots: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -770,13 +772,13 @@ export class ConfigurationRepository implements IConfigurationRepository {
       const deletedCount = result.rowCount ?? 0;
 
       if (deletedCount > 0) {
-        console.log(`🔧 [CONFIG] Cleaned up ${deletedCount} old snapshots, keeping ${keepCount} most recent`);
+        logger.info(`Cleaned up ${deletedCount} old snapshots, keeping ${keepCount} most recent`);
       }
 
       return deletedCount;
 
     } catch (error) {
-      console.error('Failed to cleanup configuration snapshots:', error);
+      logger.error('Failed to cleanup configuration snapshots:', { error });
       throw new ValidationError(`Database error cleaning up snapshots: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -963,7 +965,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       };
 
     } catch (error) {
-      console.error('Failed to get security configuration:', error);
+      logger.error('Failed to get security configuration:', { error });
       return DEFAULT_SECURITY_CONFIG;
     }
   }
@@ -1028,11 +1030,11 @@ export class ConfigurationRepository implements IConfigurationRepository {
         updatedConfig.logFailedAttempts
       ]);
 
-      console.log('🔒 [SECURITY] Security configuration updated successfully');
+      logger.info('Security configuration updated successfully');
       return updatedConfig;
 
     } catch (error) {
-      console.error('Failed to update security configuration:', error);
+      logger.error('Failed to update security configuration:', { error });
       throw new ValidationError(`Database error updating security configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
@@ -1074,7 +1076,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       };
 
     } catch (error) {
-      console.error('Failed to get system metrics:', error);
+      logger.error('Failed to get system metrics:', { error });
       return {
         totalTubes: 0,
         totalUsers: 0,
@@ -1095,7 +1097,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       };
 
     } catch (error) {
-      console.error('Failed to get sync status:', error);
+      logger.error('Failed to get sync status:', { error });
       return {
         enabled: false,
         firebase: false,

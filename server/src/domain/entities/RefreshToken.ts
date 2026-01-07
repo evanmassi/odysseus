@@ -81,7 +81,7 @@ export class RefreshToken {
    * Generate unique refresh token ID
    */
   private static generateId(): string {
-    return 'refresh_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'refresh_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**

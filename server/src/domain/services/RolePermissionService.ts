@@ -61,9 +61,8 @@ export class RolePermissionService {
       this.validateRole(role);
       const rolePermissions = this.getPermissionsForRole(role);
       return rolePermissions.some(p => p.equals(permission));
-    } catch (error) {
+    } catch {
       // Invalid role or permission - deny access
-      console.error(`Permission check failed for role ${role}:`, error);
       return false;
     }
   }
@@ -78,10 +77,10 @@ export class RolePermissionService {
   static hasPermissionByKey(role: UserRole, permissionKey: string): boolean {
     const permission = Permission.fromKey(permissionKey);
     if (!permission) {
-      console.error(`Unknown permission key: ${permissionKey}`);
+      // Unknown permission key - deny access
       return false;
     }
-    
+
     return this.hasPermission(role, permission);
   }
 

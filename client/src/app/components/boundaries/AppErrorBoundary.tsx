@@ -45,7 +45,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     return {
       hasError: true,
       error,
-      errorId: Date.now().toString(36) + Math.random().toString(36).substr(2),
+      errorId: Date.now().toString(36) + Math.random().toString(36).substring(2),
     };
   }
 
@@ -75,7 +75,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
   }
 
   private generateErrorId(): string {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }
 
   private reportError(error: Error, errorInfo: ErrorInfo): void {

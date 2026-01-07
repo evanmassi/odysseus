@@ -74,8 +74,7 @@ class FeatureFlagManager {
       const success = this.db.setFeatureFlag(flagName, true, description, rolloutPercentage, updatedBy);
       
       if (success) {
-        console.log(`🎚️ Feature flag ENABLED: ${flagName} (rollout: ${rolloutPercentage}%)`);
-        logger.info(`Feature flag enabled: ${flagName}`);
+        logger.info(`Feature flag enabled: ${flagName} (rollout: ${rolloutPercentage}%)`);
       }
     } catch (error) {
       logger.error(`Error enabling feature flag ${flagName}:`, error);
@@ -93,7 +92,6 @@ class FeatureFlagManager {
       const success = this.db.setFeatureFlag(flagName, false, description, 0, updatedBy);
       
       if (success) {
-        console.log(`🎚️ Feature flag DISABLED: ${flagName}`);
         logger.info(`Feature flag disabled: ${flagName}`);
       }
     } catch (error) {
@@ -136,8 +134,8 @@ class FeatureFlagManager {
 
   // Emergency rollback - disable all experimental features
   public emergencyRollback(updatedBy?: string): void {
-    console.log('🚨 EMERGENCY ROLLBACK - Disabling all experimental features');
-    
+    logger.warn('EMERGENCY ROLLBACK - Disabling all experimental features');
+
     this.disable('ENABLE_AUDIT_TRAIL', updatedBy);
     this.disable('ENABLE_QUERY_CACHING', updatedBy);
     this.disable('ENABLE_ADVANCED_SEARCH', updatedBy);

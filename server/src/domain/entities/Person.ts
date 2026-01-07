@@ -59,7 +59,7 @@ export class Person {
   }
 
   private static generateId(): string {
-    return 'person_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'person_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   private validate(): void {

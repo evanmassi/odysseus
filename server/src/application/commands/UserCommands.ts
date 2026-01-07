@@ -170,7 +170,7 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
 
       if (otherSessionIds.length > 0) {
         const revokedCount = await this.userSessionRepository.batchRevoke(otherSessionIds);
-        console.log(`🔒 Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`);
+        logger.info(`Password changed - revoked ${revokedCount} other session(s) for user ${user.username}`);
       }
     }
 

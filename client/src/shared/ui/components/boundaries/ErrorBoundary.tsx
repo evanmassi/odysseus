@@ -163,7 +163,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
 
 // Generate unique error ID
 const generateErrorId = (): string => {
-  return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  return `err_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 };
 
 // Main Error Boundary class component

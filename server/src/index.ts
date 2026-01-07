@@ -76,8 +76,8 @@ class OdysseusServer {
   }
 
   private setupDatabase(): void {
-    console.log('💾 [DATABASE] Initializing PostgreSQL connection');
-    console.log('💾 [DATABASE] Using clean repository pattern with DDD');
+    logger.info('Initializing PostgreSQL connection');
+    logger.info('Using clean repository pattern with DDD');
     this.repositoryFactory = initializeRepositories();
   }
 
@@ -267,7 +267,7 @@ class OdysseusServer {
       const repositories = this.repositoryFactory.getRepositories();
       const users = await repositories.users.findAll();
       const userDtos = users.map(user => user.toPublicData());
-      console.log('🔍 SERVER: getAllUsers returned:', userDtos);
+      logger.debug('getAllUsers returned:', { count: userDtos.length });
       res.json({ success: true, users: userDtos });
     } catch (error) {
       logger.error('Error fetching users:', error);
@@ -433,4 +433,4 @@ class OdysseusServer {
 
 // Start main server
 const server = new OdysseusServer();
-server.start().catch(console.error);
+server.start().catch((error) => logger.error('Server startup failed:', { error }));

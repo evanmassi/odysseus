@@ -1,4 +1,5 @@
 import { RepositoryFactory } from '@infrastructure/repositories';
+import { logger } from '@utils/logger';
 
 // CQRS Command Handlers
 import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler, GetUserSettingsQueryHandler } from '@application/commands/UserCommands';
@@ -902,7 +903,7 @@ export class ServiceContainer {
 
   getSocketEventHandler(): SocketEventHandler | null {
     if (!this.socketIO) {
-      console.warn('⚠️ Socket.IO not initialized. Call setSocketIO() first.');
+      logger.warn('Socket.IO not initialized. Call setSocketIO() first.');
       return null;
     }
 

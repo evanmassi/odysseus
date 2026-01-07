@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { logger } from '@utils/logger';
 import {
   UpdateUserSettingsCommandHandler,
   GetUserSettingsQueryHandler
@@ -162,7 +163,7 @@ export class UserController {
    * Handle errors and send appropriate HTTP response
    */
   private handleError(error: any, res: Response, message: string): void {
-    console.error(`❌ [UserController] ${message}:`, error);
+    logger.error(`UserController ${message}:`, { error });
 
     // Zod validation errors
     if (error.name === 'ZodError') {

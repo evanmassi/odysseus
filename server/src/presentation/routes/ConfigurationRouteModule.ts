@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
+import { logger } from '@utils/logger';
 
 /**
  * Configuration Route Module
@@ -430,7 +431,7 @@ export class ConfigurationRouteModule implements RouteModule {
       next();
       
     } catch (error) {
-      console.error('Admin permission check failed:', error);
+      logger.error('Admin permission check failed:', { error });
       res.status(500).json({
         error: {
           code: 'PERMISSION_CHECK_FAILED',
@@ -471,7 +472,7 @@ export class ConfigurationRouteModule implements RouteModule {
       });
       
     } catch (error) {
-      console.error('Configuration export failed:', error);
+      logger.error('Configuration export failed:', { error });
       res.status(500).json({
         error: {
           code: 'EXPORT_FAILED',

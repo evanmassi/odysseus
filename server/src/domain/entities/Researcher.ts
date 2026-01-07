@@ -46,7 +46,7 @@ export class Researcher {
    * Generate unique researcher ID
    */
   private static generateId(): string {
-    return 'researcher_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'researcher_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**

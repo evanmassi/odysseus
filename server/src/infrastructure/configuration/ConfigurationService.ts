@@ -8,6 +8,7 @@
 
 import { z } from 'zod';
 import { randomUUID } from 'crypto';
+import { logger } from '@utils/logger';
 
 /**
  * Configuration Schema Definition
@@ -145,12 +146,9 @@ export class ConfigurationService implements ConfigurationService {
 
     // Fixed development secret - eliminates random secret issues
     const devSecret = 'odysseus-development-jwt-secret-key-for-local-testing-only-not-secure-for-production';
-    
-    console.warn(
-      '🔧 Using fixed development JWT secret. ' +
-      'Set JWT_SECRET environment variable for production.'
-    );
-    
+
+    logger.warn('Using fixed development JWT secret. Set JWT_SECRET environment variable for production.');
+
     return devSecret;
   }
 }

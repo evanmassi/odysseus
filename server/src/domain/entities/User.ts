@@ -182,8 +182,8 @@ export class User {
       if (typeof data.settings === 'string') {
         try {
           parsedSettings = JSON.parse(data.settings);
-        } catch (e) {
-          console.warn('Failed to parse user settings JSON, using defaults:', e);
+        } catch {
+          // Malformed settings JSON - fall back to defaults
           parsedSettings = DEFAULT_USER_SETTINGS;
         }
       } else {
@@ -227,7 +227,7 @@ export class User {
    * Generate unique user ID
    */
   private static generateId(): string {
-    return 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    return 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**
@@ -626,13 +626,6 @@ export class User {
 
   // Convenience getters
   get roleString(): 'admin' | 'user' { return this._role.role; }
-
-  /**
-   * Update user activity timestamp
-   */
-  updateActivity(): void {
-    this._lastActivity = new Date();
-  }
 
   /**
    * Check if user session is still valid

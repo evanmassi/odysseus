@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { logger } from '@utils/logger';
 import {
   GetCurrentConfigurationQueryHandler,
   GetConfigurationHistoryQueryHandler,
@@ -880,7 +881,7 @@ export class ConfigurationController {
    * Centralized error handling
    */
   private handleError(error: unknown, res: Response, fallbackMessage: string): void {
-    console.error('Configuration API error:', error);
+    logger.error('Configuration API error:', { error });
 
     if (error instanceof PermissionError) {
       res.status(403).json({
