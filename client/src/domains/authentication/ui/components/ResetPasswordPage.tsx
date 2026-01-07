@@ -1,40 +1,33 @@
 /**
- * Reset Password Page Component
- *
- * Public page for users to reset their password using a token.
- * Accessed via link shared by admin (no authentication required - token is the authentication).
- *
- * Features:
- * - Token validation from URL query parameter
- * - Password strength indicator
- * - Password confirmation
- * - Show/hide password toggle
- * - Auto-redirect to login on success
+ * Public page for token-based password reset.
+ * Token is provided via admin-generated link (no auth required).
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
-import { Eye, EyeOff } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-import { notifications } from '@shared/utils/notifications';
+import { authenticationService } from '@domains/authentication/services/AuthenticationService';
+import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
+import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
+import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 
-import { authenticationService } from '../../services/AuthenticationService';
+import { CreatePasswordForm } from './CreatePasswordForm';
 
 export const ResetPasswordPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
-
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Timer ref for cleanup on unmount
   const redirectTimerRef = useRef<number | null>(null);
+
+  // Focus trap for the modal-like card
+  const trapRef = useFocusTrap({
+    isOpen: true,
+    restoreFocus: true,
+  });
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -45,13 +38,48 @@ export const ResetPasswordPage: React.FC = () => {
     };
   }, []);
 
+  const handleSubmit = async (newPassword: string) => {
+    if (!token) {
+      throw new Error('Invalid reset token');
+    }
+
+    await authenticationService.resetPasswordWithToken(token, newPassword);
+    setIsSuccess(true);
+
+    // Redirect to login after showing success confirmation
+    redirectTimerRef.current = window.setTimeout(() => {
+      void navigate('/login');
+    }, 2500);
+  };
+
+  const handleBackToLogin = () => {
+    void navigate('/login');
+  };
+
+  // Invalid or missing token
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Invalid Reset Link</h2>
-          <p className="text-gray-700 mb-4">This password reset link is invalid or has expired.</p>
-          <button onClick={() => navigate('/login')} className="btn-primary w-full">
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <div
+          ref={trapRef}
+          className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+        >
+          <div className="text-center mb-4">
+            <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
+              <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
+            </div>
+            <h2 className="text-xl font-bold text-red-600">Invalid Reset Link</h2>
+          </div>
+
+          <p className="text-gray-700 mb-6 text-center text-sm">
+            This password reset link is invalid or has expired. Please contact your administrator
+            for a new reset link.
+          </p>
+
+          <button
+            onClick={handleBackToLogin}
+            className="w-full btn btn-primary h-12 text-base font-bold shadow-lg"
+          >
             Back to Login
           </button>
         </div>
@@ -59,152 +87,55 @@ export const ResetPasswordPage: React.FC = () => {
     );
   }
 
-  const getPasswordStrength = (password: string): string => {
-    if (password.length === 0) return '';
-    if (password.length < 4) return 'Too short';
-    if (password.length < 8) return 'Weak';
-    if (password.length < 12) return 'Medium';
-    return 'Strong';
-  };
+  // Success view after password reset
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <div
+          ref={trapRef}
+          className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+        >
+          <div className="text-center">
+            <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center">
+              <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
+            </div>
 
-  const getPasswordStrengthColor = (password: string): string => {
-    const strength = getPasswordStrength(password);
-    if (strength === 'Too short' || strength === 'Weak') return 'text-red-600';
-    if (strength === 'Medium') return 'text-yellow-600';
-    if (strength === 'Strong') return 'text-green-600';
-    return '';
-  };
+            <div className="flex justify-center mb-4">
+              <AnimatedCheckmark size={64} />
+            </div>
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    // Validation
-    if (!newPassword || newPassword.length < 4) {
-      setError('Password must be at least 4 characters');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await authenticationService.resetPasswordWithToken(token, newPassword);
-      notifications.success('Password reset successfully! Redirecting to login...');
-
-      // Store timer ID for proper cleanup
-      redirectTimerRef.current = window.setTimeout(() => {
-        void navigate('/login');
-      }, 2000);
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to reset password';
-      setError(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+            <h2 className="text-xl font-bold text-green-600 mb-2">Password Changed</h2>
+            <p className="text-sm text-odysseus-muted">Redirecting to login...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Reset Your Password</h2>
-        <p className="text-gray-600 mb-6 text-sm">Enter your new password below.</p>
-
-        <form onSubmit={handleSubmit}>
-          {/* New Password */}
-          <div className="mb-4">
-            <label htmlFor="new-password" className="block text-sm font-medium text-gray-700 mb-1">
-              New Password
-            </label>
-            <div className="relative">
-              <input
-                id="new-password"
-                type={showPassword ? 'text' : 'password'}
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                className="input w-full"
-                placeholder="Enter new password"
-                required
-                aria-describedby="password-strength"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                aria-controls="new-password"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-            {newPassword && (
-              <p
-                id="password-strength"
-                className={`text-xs mt-1 ${getPasswordStrengthColor(newPassword)}`}
-              >
-                Strength: {getPasswordStrength(newPassword)}
-              </p>
-            )}
+    <div className="min-h-screen flex items-center justify-center bg-slate-100">
+      <div
+        ref={trapRef}
+        className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+      >
+        <div className="text-center mb-4">
+          <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
+            <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
           </div>
+          <h2 className="text-xl font-bold text-slate-800">Create New Password</h2>
+        </div>
 
-          {/* Confirm Password */}
-          <div className="mb-4">
-            <label
-              htmlFor="confirm-password"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Confirm Password
-            </label>
-            <div className="relative">
-              <input
-                id="confirm-password"
-                type={showConfirmPassword ? 'text' : 'password'}
-                value={confirmPassword}
-                onChange={e => setConfirmPassword(e.target.value)}
-                className="input w-full"
-                placeholder="Confirm new password"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                aria-controls="confirm-password"
-              >
-                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-          </div>
-
-          {/* Error Message */}
-          {error && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md text-sm">
-              {error}
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <button type="submit" disabled={isLoading} className="btn-primary w-full mb-3">
-            {isLoading ? 'Resetting Password...' : 'Reset Password'}
-          </button>
-
-          {/* Back to Login */}
-          <button
-            type="button"
-            onClick={() => navigate('/login')}
-            className="w-full text-blue-600 hover:text-blue-800 text-sm"
-          >
-            Back to Login
-          </button>
-        </form>
+        <CreatePasswordForm
+          onSubmit={handleSubmit}
+          onCancel={handleBackToLogin}
+          cancelText="Login"
+          submitText="Reset Password"
+          loadingText="Resetting Password..."
+        />
 
         {/* Help Text */}
-        <div className="mt-6 pt-6 border-t border-gray-200">
-          <p className="text-xs text-gray-600">
+        <div className="mt-6 pt-4 border-t border-gray-200">
+          <p className="text-xs text-odysseus-muted text-center">
             This reset link expires in 15 minutes and can only be used once.
           </p>
         </div>

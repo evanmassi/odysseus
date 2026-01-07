@@ -33,7 +33,8 @@ export type AdminResetPasswordRequest = z.infer<typeof adminResetPasswordRequest
  * Admin shares this link via Slack/in-person (no email dependency).
  */
 export const generatePasswordResetTokenResponseSchema = z.object({
-  resetUrl: z.string().url()
+  resetUrl: z.string().url(),
+  expiresAt: z.string().datetime()
 });
 
 export type GeneratePasswordResetTokenResponse = z.infer<typeof generatePasswordResetTokenResponseSchema>;

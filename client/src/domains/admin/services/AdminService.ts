@@ -18,6 +18,7 @@ import type {
   SyncStatus,
   AuditLogEntry,
   AuditLogFilters,
+  GeneratePasswordResetTokenResponse,
 } from '@odysseus/shared-schemas';
 
 export class AdminService {
@@ -186,22 +187,23 @@ export class AdminService {
    * Admin generates password reset token
    * Returns URL with embedded token for user to set own password (15-minute expiry)
    */
-  async generatePasswordResetToken(userId: string): Promise<{
-    success: boolean;
-    resetUrl: string;
-    expiresAt: string;
-    message: string;
-  }> {
+  async generatePasswordResetToken(
+    userId: string
+  ): Promise<{ success: boolean; message: string } & GeneratePasswordResetTokenResponse> {
     try {
       const response = await httpClient.post<{
         success: boolean;
-        resetUrl: string;
-        expiresAt: string;
-        message: string;
+        data: GeneratePasswordResetTokenResponse & { message: string };
+        meta?: { timing: number };
       }>(`/admin/users/${userId}/generate-reset-token`);
-      return response.data;
+
+      return {
+        success: response.data.success,
+        resetUrl: response.data.data.resetUrl,
+        expiresAt: response.data.data.expiresAt,
+        message: response.data.data.message,
+      };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to generate password reset token for user', { userId, error });
       throw error;
     }

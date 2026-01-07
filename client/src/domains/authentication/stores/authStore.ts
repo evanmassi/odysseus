@@ -52,6 +52,9 @@ interface AuthState {
   // Password change required state (admin reset flow)
   passwordChangeRequired: PasswordChangeRequiredResponse | null;
 
+  // Password change success state (for showing confirmation before login completes)
+  passwordChangeSuccess: boolean;
+
   // Computed properties
   isAuthenticated: boolean;
 }
@@ -134,6 +137,7 @@ export const useAuthStore = create<AuthStore>()(
       error: null,
       logoutReason: null,
       passwordChangeRequired: null,
+      passwordChangeSuccess: false,
 
       // Authentication state (reactive to token changes)
       isAuthenticated: false,
@@ -231,16 +235,25 @@ export const useAuthStore = create<AuthStore>()(
           // Set tokens in session manager (handles HTTP client + storage)
           sessionManager.setTokens(result.tokens);
 
-          // Update store state (Zustand persist automatically saves user)
+          // Show success confirmation before completing authentication
+          set({
+            isLoading: false,
+            passwordChangeRequired: null,
+            passwordChangeSuccess: true,
+          });
+
+          // Brief delay to show success animation
+          await new Promise(resolve => setTimeout(resolve, 2000));
+
+          // Now complete authentication
           set({
             user: userWithActivity,
             tokens: result.tokens,
             sessionStatus: 'authenticated',
             isAuthenticated: true,
-            isLoading: false,
             error: null,
             logoutReason: null,
-            passwordChangeRequired: null,
+            passwordChangeSuccess: false,
           });
 
           logger.info('Password changed and login completed', { userId: result.user.id });

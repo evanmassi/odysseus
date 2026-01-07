@@ -93,7 +93,7 @@ export class GeneratePasswordResetTokenCommandHandler {
     private eventBus: EventBus
   ) {}
 
-  async execute(command: GeneratePasswordResetTokenCommand): Promise<string> {
+  async execute(command: GeneratePasswordResetTokenCommand): Promise<{ resetUrl: string; expiresAt: Date }> {
     // Verify admin permissions
     const admin = await this.userRepository.findById(command.adminUserId);
     if (!admin) {
@@ -113,11 +113,13 @@ export class GeneratePasswordResetTokenCommandHandler {
     const token = targetUser.generatePasswordResetToken();
     await this.userRepository.save(targetUser);
 
+    const expiresAt = targetUser.passwordResetExpiry!;
+
     // Publish event
     this.eventBus.publish(new PasswordResetTokenGeneratedEvent(
       targetUser.id,
       admin.id,
-      targetUser.passwordResetExpiry!
+      expiresAt
     ));
 
     // Audit logging
@@ -126,13 +128,16 @@ export class GeneratePasswordResetTokenCommandHandler {
       adminUsername: admin.username,
       targetUserId: targetUser.id,
       targetUsername: targetUser.username,
-      expiresAt: targetUser.passwordResetExpiry?.toISOString(),
+      expiresAt: expiresAt.toISOString(),
       timestamp: new Date().toISOString()
     });
 
     // Environment-configurable base URL for deployment flexibility
     const baseUrl = process.env.RESET_PASSWORD_BASE_URL || 'http://localhost:3000/reset-password';
-    return `${baseUrl}?token=${token}`;
+    return {
+      resetUrl: `${baseUrl}?token=${token}`,
+      expiresAt
+    };
   }
 }
 

@@ -1302,7 +1302,7 @@ export class AuthController {
         throw new PermissionError('Authentication required');
       }
 
-      const resetUrl = await this.generatePasswordResetTokenHandler.execute({
+      const result = await this.generatePasswordResetTokenHandler.execute({
         adminUserId: adminUser.id,
         targetUserId: userId
       });
@@ -1314,8 +1314,8 @@ export class AuthController {
       });
 
       const response = ResponseBuilder.withTiming(startTime, {
-        success: true,
-        resetUrl,
+        resetUrl: result.resetUrl,
+        expiresAt: result.expiresAt.toISOString(),
         message: 'Password reset token generated. Share this link with the user.'
       });
 
