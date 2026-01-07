@@ -33,11 +33,18 @@ import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepos
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { UserRepository } from '@domain/repositories/UserRepository';
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { PermissionError } from '@domain/errors/PermissionError';
 import type { SecurityConfig } from '@odysseus/shared-schemas';
-import { registerWithResearcherSchema, type RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
+import {
+  registerWithResearcherSchema,
+  type RegisterWithResearcherRequest,
+  forceChangePasswordRequestSchema,
+  type PasswordChangeRequiredResponse,
+  PasswordValidator
+} from '@odysseus/shared-schemas';
 
 export class AuthController {
   constructor(
@@ -70,6 +77,7 @@ export class AuthController {
     private researcherRepository: ResearcherRepository,
     private personRepository: PersonRepository,
     private userSessionRepository: UserSessionRepository,
+    private userRepository: UserRepository,
 
     // Event bus
     private eventBus: EventBus
@@ -172,6 +180,9 @@ export class AuthController {
    *
    * Validates credentials and checks approval status.
    * Only approved users can login.
+   *
+   * If requirePasswordChange is set (admin reset password flow),
+   * returns a temporary token for the force-change-password endpoint.
    */
   async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -196,6 +207,31 @@ export class AuthController {
 
       // Clear rate limit attempts on successful login
       recordSuccessfulLogin(req);
+
+      // Handle force password change flow
+      // User credentials are valid but they must change password before full login
+      if (result.requirePasswordChange) {
+        logger.info('User requires password change', {
+          userId: result.user.id,
+          username: result.user.username
+        });
+
+        // Generate short-lived temp token (5 min) for password change only
+        const tempToken = this.sessionService.createPasswordChangeTempToken(result.user);
+
+        const passwordChangeResponse: PasswordChangeRequiredResponse = {
+          requirePasswordChange: true,
+          tempToken,
+          user: {
+            id: result.user.id,
+            username: result.user.username
+          }
+        };
+
+        const response = ResponseBuilder.withTiming(startTime, passwordChangeResponse);
+        res.status(200).json(response);
+        return;
+      }
 
       logger.info('User logged in successfully', {
         userId: result.user.id,
@@ -1316,6 +1352,76 @@ export class AuthController {
       const response = ResponseBuilder.withTiming(startTime, {
         success: true,
         message: 'Password reset successfully. You can now login with your new password.'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Force change password (public endpoint)
+   * POST /api/public/auth/force-change-password
+   *
+   * Called when user logs in with requirePasswordChange=true.
+   * Uses temporary token from login response to authenticate.
+   * After successful password change, returns full login tokens.
+   */
+  async forceChangePassword(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+
+      // Validate request body
+      const parseResult = forceChangePasswordRequestSchema.safeParse(req.body);
+      if (!parseResult.success) {
+        res.status(400).json(ResponseBuilder.error('VALIDATION_ERROR', parseResult.error.issues[0].message));
+        return;
+      }
+
+      const { tempToken, newPassword } = parseResult.data;
+
+      // Verify temp token
+      const tokenData = await this.sessionService.verifyPasswordChangeTempToken(tempToken);
+      if (!tokenData) {
+        res.status(401).json(ResponseBuilder.error('INVALID_TOKEN', 'Password change link has expired or is invalid'));
+        return;
+      }
+
+      // Get user from repository
+      const user = await this.userRepository.findById(tokenData.userId);
+      if (!user) {
+        res.status(404).json(ResponseBuilder.error('USER_NOT_FOUND', 'User not found'));
+        return;
+      }
+
+      // Validate password against security policy
+      const securityConfig = await this.configRepository.getSecurityConfig();
+      try {
+        PasswordValidator.enforce(newPassword, securityConfig);
+      } catch (error) {
+        res.status(400).json(ResponseBuilder.error('VALIDATION_ERROR', (error as Error).message));
+        return;
+      }
+
+      // Update password and clear requirePasswordChange flag
+      user.setPassword(newPassword);
+      user.markPasswordChanged();
+      await this.userRepository.save(user);
+
+      logger.info('Password changed via force-change flow', {
+        userId: user.id,
+        username: user.username
+      });
+
+      // Now complete full login - create token pair
+      const userAgent = req.headers['user-agent'];
+      const ipAddress = req.ip || req.socket.remoteAddress;
+      const authResult = await this.sessionService.createTokenPair(user, userAgent, ipAddress);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        ...authResult,
+        message: 'Password changed successfully'
       });
 
       res.status(200).json(response);

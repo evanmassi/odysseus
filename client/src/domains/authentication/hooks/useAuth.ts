@@ -10,12 +10,14 @@ import { queryKeys } from '@app/queryKeys';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 
 import { authService } from '../services/AuthenticationService';
+import { isPasswordChangeRequired } from '../types/api';
 
 import type {
   AuthResponse,
   RegisterRequest,
   LoginRequest,
 } from '../services/AuthenticationService';
+import type { LoginResponse } from '../types/api';
 
 /**
  * Query hook for session verification
@@ -69,15 +71,20 @@ export function useRegisterMutation() {
 
 /**
  * Mutation hook for user login
+ *
+ * Returns either AuthResponse (normal login) or PasswordChangeRequiredResponse
+ * (when user needs to change password after admin reset).
  */
 export function useLoginMutation() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<LoginResponse, Error, LoginRequest>({
     mutationFn: (request: LoginRequest) => authService.login(request),
-    onSuccess: (data: AuthResponse) => {
-      // Update auth verification cache with logged-in user data
-      queryClient.setQueryData(queryKeys.auth.verify(), data);
+    onSuccess: (data: LoginResponse) => {
+      // Only update cache if this is a normal login (not password change required)
+      if (!isPasswordChangeRequired(data)) {
+        queryClient.setQueryData(queryKeys.auth.verify(), data);
+      }
     },
     meta: {
       errorMessage: 'Login failed',

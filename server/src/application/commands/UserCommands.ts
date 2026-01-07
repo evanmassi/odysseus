@@ -24,7 +24,7 @@ import {
 import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
-import { type UserSettings } from '@odysseus/shared-schemas';
+import { type UserSettings, PasswordValidator } from '@odysseus/shared-schemas';
 
 // Create User Command
 
@@ -72,45 +72,13 @@ export class CreateUserCommandHandler implements CommandHandler<CreateUserComman
 
   /**
    * Validate password against configured security policy
-   * Throws ValidationError if password doesn't meet requirements
    */
   private async validatePasswordPolicy(password: string): Promise<void> {
     const securityConfig = await this.configurationRepository.getSecurityConfig();
-
-    // Check minimum length (configurable)
-    if (password.length < securityConfig.passwordMinLength) {
-      throw new ValidationError(
-        `Password must be at least ${securityConfig.passwordMinLength} characters long`
-      );
-    }
-
-    // Check maximum length for security
-    if (password.length > 128) {
-      throw new ValidationError('Password cannot exceed 128 characters');
-    }
-
-    // Check strong password requirement (uppercase, lowercase, numbers)
-    if (securityConfig.requireStrongPasswords) {
-      const hasUppercase = /[A-Z]/.test(password);
-      const hasLowercase = /[a-z]/.test(password);
-      const hasNumber = /[0-9]/.test(password);
-
-      if (!hasUppercase || !hasLowercase || !hasNumber) {
-        throw new ValidationError(
-          'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-        );
-      }
-    }
-
-    // Check special character requirement
-    if (securityConfig.passwordRequireSpecialChars) {
-      const hasSpecial = /[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/'`~;]/.test(password);
-
-      if (!hasSpecial) {
-        throw new ValidationError(
-          'Password must contain at least one special character (!@#$%^&* etc.)'
-        );
-      }
+    try {
+      PasswordValidator.enforce(password, securityConfig);
+    } catch (error) {
+      throw new ValidationError((error as Error).message);
     }
   }
 }
@@ -181,45 +149,13 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
 
   /**
    * Validate password against configured security policy
-   * Throws ValidationError if password doesn't meet requirements
    */
   private async validatePasswordPolicy(password: string): Promise<void> {
     const securityConfig = await this.configurationRepository.getSecurityConfig();
-
-    // Check minimum length (configurable)
-    if (password.length < securityConfig.passwordMinLength) {
-      throw new ValidationError(
-        `Password must be at least ${securityConfig.passwordMinLength} characters long`
-      );
-    }
-
-    // Check maximum length for security
-    if (password.length > 128) {
-      throw new ValidationError('Password cannot exceed 128 characters');
-    }
-
-    // Check strong password requirement (uppercase, lowercase, numbers)
-    if (securityConfig.requireStrongPasswords) {
-      const hasUppercase = /[A-Z]/.test(password);
-      const hasLowercase = /[a-z]/.test(password);
-      const hasNumber = /[0-9]/.test(password);
-
-      if (!hasUppercase || !hasLowercase || !hasNumber) {
-        throw new ValidationError(
-          'Password must contain at least one uppercase letter, one lowercase letter, and one number'
-        );
-      }
-    }
-
-    // Check special character requirement
-    if (securityConfig.passwordRequireSpecialChars) {
-      const hasSpecial = /[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/'`~;]/.test(password);
-
-      if (!hasSpecial) {
-        throw new ValidationError(
-          'Password must contain at least one special character (!@#$%^&* etc.)'
-        );
-      }
+    try {
+      PasswordValidator.enforce(password, securityConfig);
+    } catch (error) {
+      throw new ValidationError((error as Error).message);
     }
   }
 }
@@ -341,6 +277,7 @@ export class LoginCommand extends BaseCommand {
 export interface LoginResult {
   user: User;
   sessionToken: string;
+  requirePasswordChange: boolean;
 }
 
 export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginResult> {
@@ -386,21 +323,23 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
       throw new InvalidCredentialsError('Email not verified. Check your inbox for verification link.');
     }
 
-    // Check if user must change password before login
-    if (user.isPasswordChangeRequired()) {
-      throw new PermissionError('Password change required. Please contact an administrator for a password reset link.');
+    // Check if user must change password - return flag instead of blocking
+    const requirePasswordChange = user.isPasswordChangeRequired();
+
+    // Only publish login event if not requiring password change
+    // Full login event published after password is changed
+    if (!requirePasswordChange) {
+      this.eventBus.publish(new UserLoggedInEvent(
+        user.id,
+        user.username
+      ));
     }
 
-    // Publish login event
-    this.eventBus.publish(new UserLoggedInEvent(
-      user.id,
-      user.username
-    ));
-
-    // Return user for OAuth 2.0 token creation by AuthController
+    // Return user with password change flag for AuthController to handle
     return {
       user,
-      sessionToken: '' // Legacy field - OAuth 2.0 tokens created by AuthController
+      sessionToken: '', // Legacy field - OAuth 2.0 tokens created by AuthController
+      requirePasswordChange
     };
   }
 }
@@ -511,4 +450,16 @@ export interface SessionService {
     token: string,
     options?: { updateActivity?: boolean }
   ): Promise<SessionValidationOutcome>;
+
+  /**
+   * Create temporary token for password change flow
+   * Short-lived (5 min), only allows force-change-password endpoint
+   */
+  createPasswordChangeTempToken(user: User): string;
+
+  /**
+   * Verify temporary password change token
+   * Returns user ID if valid, null if expired/invalid
+   */
+  verifyPasswordChangeTempToken(token: string): Promise<{ userId: string; username: string } | null>;
 }

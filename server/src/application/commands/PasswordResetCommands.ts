@@ -24,7 +24,7 @@ export interface AdminResetPasswordCommand {
   adminUserId: string;           // Who performed reset (audit)
   targetUserId: string;          // User getting password reset
   newPassword: string;
-  requirePasswordChange: boolean; // Forces user to set own password on next login (security best practice)
+  requirePasswordChange: boolean; // Forces user to set own password on next login
 }
 
 export class AdminResetPasswordCommandHandler {

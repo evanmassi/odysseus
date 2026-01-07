@@ -14,7 +14,8 @@ import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepos
 import { validateBody } from '@middleware/Validation';
 import {
   registerWithResearcherSchema,
-  resetPasswordWithTokenRequestSchema
+  resetPasswordWithTokenRequestSchema,
+  forceChangePasswordRequestSchema
 } from '@odysseus/shared-schemas';
 
 export class PublicRouteModule implements RouteModule {
@@ -103,6 +104,13 @@ export class PublicRouteModule implements RouteModule {
     router.post('/auth/reset-password',
       validateBody(resetPasswordWithTokenRequestSchema),
       this.authController.resetPasswordWithToken.bind(this.authController)
+    );
+
+    // Force change password (public - user has temp token from login response)
+    // Used when user logs in with requirePasswordChange=true (admin reset flow)
+    router.post('/auth/force-change-password',
+      validateBody(forceChangePasswordRequestSchema),
+      this.authController.forceChangePassword.bind(this.authController)
     );
 
     // Session info for idle timeout warning

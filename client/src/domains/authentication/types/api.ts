@@ -16,6 +16,33 @@ export interface AuthResponse {
 }
 
 /**
+ * Response when user must change password before login completes
+ * Returned when requirePasswordChange=true after admin password reset
+ */
+export interface PasswordChangeRequiredResponse {
+  requirePasswordChange: true;
+  tempToken: string;
+  user: {
+    id: string;
+    username: string;
+  };
+}
+
+/**
+ * Login response - can be either normal auth or password change required
+ */
+export type LoginResponse = AuthResponse | PasswordChangeRequiredResponse;
+
+/**
+ * Type guard to check if login response requires password change
+ */
+export function isPasswordChangeRequired(
+  response: LoginResponse
+): response is PasswordChangeRequiredResponse {
+  return 'requirePasswordChange' in response && response.requirePasswordChange === true;
+}
+
+/**
  * Registration with researcher profile response
  * Supports both approved (with tokens) and pending (awaiting approval) states
  */

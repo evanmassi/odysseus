@@ -12,7 +12,7 @@ import { z } from 'zod';
  * Admin directly resets user password
  *
  * Used when admin needs immediate access restoration (locked account, forgotten password).
- * requirePasswordChange forces user to set own password on next login (security best practice).
+ * requirePasswordChange forces user to set own password on next login.
  */
 export const adminResetPasswordRequestSchema = z.object({
   newPassword: z.string()
@@ -55,3 +55,38 @@ export const resetPasswordWithTokenRequestSchema = z.object({
 });
 
 export type ResetPasswordWithTokenRequest = z.infer<typeof resetPasswordWithTokenRequestSchema>;
+
+/**
+ * Force Change Password Request
+ *
+ * Used when user logs in with temp password and requirePasswordChange is true.
+ * Temp token is short-lived (5 min) and only allows password change endpoint.
+ */
+export const forceChangePasswordRequestSchema = z.object({
+  tempToken: z.string()
+    .min(20, 'Invalid temp token')
+    .max(512, 'Token too long'),
+
+  newPassword: z.string()
+    .min(4, 'Password must be at least 4 characters')
+    .max(128, 'Password cannot exceed 128 characters')
+});
+
+export type ForceChangePasswordRequest = z.infer<typeof forceChangePasswordRequestSchema>;
+
+/**
+ * Password Change Required Response
+ *
+ * Returned from login when user has requirePasswordChange flag set.
+ * Contains temp token for force-change-password endpoint.
+ */
+export const passwordChangeRequiredResponseSchema = z.object({
+  requirePasswordChange: z.literal(true),
+  tempToken: z.string(),
+  user: z.object({
+    id: z.string(),
+    username: z.string()
+  })
+});
+
+export type PasswordChangeRequiredResponse = z.infer<typeof passwordChangeRequiredResponseSchema>;

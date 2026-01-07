@@ -362,11 +362,15 @@ export {
   adminResetPasswordRequestSchema,
   generatePasswordResetTokenResponseSchema,
   resetPasswordWithTokenRequestSchema,
+  forceChangePasswordRequestSchema,
+  passwordChangeRequiredResponseSchema,
 
   // Types
   type AdminResetPasswordRequest,
   type GeneratePasswordResetTokenResponse,
-  type ResetPasswordWithTokenRequest
+  type ResetPasswordWithTokenRequest,
+  type ForceChangePasswordRequest,
+  type PasswordChangeRequiredResponse
 } from './auth/passwordResetSchemas';
 
 // User Settings Schemas (Per-user preferences and configuration)

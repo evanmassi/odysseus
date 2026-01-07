@@ -114,7 +114,11 @@ export class HttpClient {
   applyResponseTransformation(data: unknown, url: string): unknown {
     if (!data) return data;
 
-    if (url.includes('/auth/login') || url.includes('/auth/register')) {
+    if (
+      url.includes('/auth/login') ||
+      url.includes('/auth/register') ||
+      url.includes('/auth/force-change-password')
+    ) {
       return ResponseTransformers.LoginResponse(data);
     } else if (url.includes('/auth/refresh')) {
       return ResponseTransformers.RefreshResponse(data);

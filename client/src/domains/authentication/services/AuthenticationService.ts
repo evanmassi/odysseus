@@ -13,7 +13,13 @@ import { queryClient } from '@app/queryClient';
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 
-import type { AuthResponse, RegisterWithResearcherResponse } from '../types/api';
+import type {
+  AuthResponse,
+  RegisterWithResearcherResponse,
+  LoginResponse,
+  PasswordChangeRequiredResponse,
+} from '../types/api';
+export { isPasswordChangeRequired } from '../types/api';
 
 // Domain types (keep existing types intact)
 export interface User {
@@ -116,11 +122,15 @@ export class AuthService {
 
   /**
    * Login with username and password
+   *
+   * Returns either:
+   * - AuthResponse: Normal login with tokens
+   * - PasswordChangeRequiredResponse: User must change password first
    */
-  async login(request: LoginRequest): Promise<AuthResponse> {
+  async login(request: LoginRequest): Promise<LoginResponse> {
     try {
       // HttpClient automatically transforms dates using existing responseTransformers
-      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>(
+      const response = await httpClient.post<{ success: boolean; data: LoginResponse }>(
         '/public/auth/login',
         request
       );
@@ -128,10 +138,15 @@ export class AuthService {
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
 
+        // Check if password change is required
+        if ('requirePasswordChange' in responseData && responseData.requirePasswordChange) {
+          return responseData as PasswordChangeRequiredResponse;
+        }
+
         // Return transformed response (dates automatically converted by HttpClient)
         return {
-          user: responseData.user,
-          tokens: responseData.tokens,
+          user: (responseData as AuthResponse).user,
+          tokens: (responseData as AuthResponse).tokens,
         };
       }
 
@@ -141,6 +156,32 @@ export class AuthService {
         throw new Error((error as Error).message);
       }
       throw new Error('Login failed');
+    }
+  }
+
+  /**
+   * Force change password using temp token from login
+   *
+   * Called when login returns requirePasswordChange=true.
+   * After successful password change, returns normal auth response.
+   */
+  async forceChangePassword(tempToken: string, newPassword: string): Promise<AuthResponse> {
+    try {
+      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>(
+        '/public/auth/force-change-password',
+        { tempToken, newPassword }
+      );
+
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+
+      throw new Error('Password change failed');
+    } catch (error) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        throw new Error((error as Error).message);
+      }
+      throw new Error('Password change failed');
     }
   }
 

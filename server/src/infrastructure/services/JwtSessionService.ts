@@ -533,4 +533,73 @@ export class JwtSessionService implements SessionService {
       throw new Error('TOKEN_REFRESH_FAILED');
     }
   }
+
+  /**
+   * Create temporary token for password change flow.
+   * Short-lived (5 min) with 'password_change' purpose claim.
+   */
+  createPasswordChangeTempToken(user: User): string {
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const TEMP_TOKEN_EXPIRY_SECONDS = 5 * 60; // 5 minutes
+
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      purpose: 'password_change', // Special purpose claim
+      iss: this.config.issuer,
+      aud: this.config.audience,
+      exp: nowSeconds + TEMP_TOKEN_EXPIRY_SECONDS,
+      iat: nowSeconds,
+      jti: randomUUID()
+    };
+
+    return jwt.sign(payload, this.config.secret, {
+      algorithm: this.config.algorithm
+    } as jwt.SignOptions);
+  }
+
+  /**
+   * Verify temporary password change token.
+   * Only accepts tokens with purpose='password_change'.
+   */
+  async verifyPasswordChangeTempToken(token: string): Promise<{ userId: string; username: string } | null> {
+    try {
+      const decoded = jwt.verify(token, this.config.secret, {
+        issuer: this.config.issuer,
+        audience: this.config.audience,
+        algorithms: [this.config.algorithm]
+      }) as {
+        sub: string;
+        username: string;
+        purpose: string;
+        exp: number;
+        iat: number;
+      };
+
+      // Validate this is a password change token (not a regular access token)
+      if (decoded.purpose !== 'password_change') {
+        logger.warn('Token is not a password change token');
+        return null;
+      }
+
+      // Validate user still exists
+      const user = await this.userRepository.findById(decoded.sub);
+      if (!user) {
+        logger.warn('User not found for temp token', { userId: decoded.sub });
+        return null;
+      }
+
+      return {
+        userId: decoded.sub,
+        username: decoded.username
+      };
+
+    } catch (error) {
+      // Token is invalid, expired, or malformed
+      logger.warn('Temp token validation failed:', {
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      return null;
+    }
+  }
 }

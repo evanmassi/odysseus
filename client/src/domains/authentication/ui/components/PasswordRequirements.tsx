@@ -24,7 +24,12 @@ export interface PasswordRequirementsProps {
  * Displays real-time password validation as a simple bullet list.
  * Shows green when met, gray when unmet, red when error state active.
  */
-export function PasswordRequirements({ password, config, showError = false, className = '' }: PasswordRequirementsProps) {
+export function PasswordRequirements({
+  password,
+  config,
+  showError = false,
+  className = '',
+}: PasswordRequirementsProps) {
   const requirements = useMemo(
     () => PasswordValidator.getRequirements(password, config),
     [password, config]
@@ -43,7 +48,7 @@ export function PasswordRequirements({ password, config, showError = false, clas
           key={requirement.id}
           className={`text-[10px] flex items-start ${getRequirementColor(requirement.isMet)}`}
         >
-          <span className="mr-1">{requirement.isMet ? '✓' : '•'}</span>
+          <span className="mr-1">{requirement.isMet ? '✓' : showError ? '✗' : '•'}</span>
           <span>{requirement.label}</span>
         </li>
       ))}

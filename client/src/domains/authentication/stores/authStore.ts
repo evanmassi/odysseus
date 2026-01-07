@@ -20,8 +20,9 @@ import { configureHttpClientWithSessionManager } from '@infra/api/httpClient';
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
 
-import { authService } from '../services/AuthenticationService';
+import { authService, isPasswordChangeRequired } from '../services/AuthenticationService';
 
+import type { PasswordChangeRequiredResponse } from '../types/api';
 import type { AuthDebugInfo } from '../types/debug';
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
 import type { TokenPair, SessionStatus } from '@shared/session/types';
@@ -48,6 +49,9 @@ interface AuthState {
   error: string | null;
   logoutReason: 'idle_timeout' | 'token_expired' | 'manual_logout' | null;
 
+  // Password change required state (admin reset flow)
+  passwordChangeRequired: PasswordChangeRequiredResponse | null;
+
   // Computed properties
   isAuthenticated: boolean;
 }
@@ -57,7 +61,9 @@ interface AuthState {
  */
 interface AuthActions {
   // Primary authentication methods
-  login: (username: string, password: string) => Promise<boolean>;
+  login: (username: string, password: string) => Promise<boolean | 'password_change_required'>;
+  forceChangePassword: (newPassword: string) => Promise<boolean>;
+  clearPasswordChangeRequired: () => void;
   register: (username: string, password: string) => Promise<boolean>;
   registerWithResearcher: (
     request: RegisterWithResearcherRequest
@@ -127,6 +133,7 @@ export const useAuthStore = create<AuthStore>()(
       isLoading: false,
       error: null,
       logoutReason: null,
+      passwordChangeRequired: null,
 
       // Authentication state (reactive to token changes)
       isAuthenticated: false,
@@ -135,12 +142,30 @@ export const useAuthStore = create<AuthStore>()(
 
       /**
        * Login with username and password (primary method)
+       *
+       * Returns:
+       * - true: Login successful
+       * - false: Login failed
+       * - 'password_change_required': User must change password first
        */
       login: async (username: string, password: string) => {
-        set({ isLoading: true, error: null, logoutReason: null });
+        set({ isLoading: true, error: null, logoutReason: null, passwordChangeRequired: null });
 
         try {
           const result = await authService.login({ username, password });
+
+          // Check if password change is required
+          if (isPasswordChangeRequired(result)) {
+            logger.info('Password change required for user', { username: result.user.username });
+
+            set({
+              passwordChangeRequired: result,
+              isLoading: false,
+              error: null,
+            });
+
+            return 'password_change_required';
+          }
 
           const userWithActivity = {
             ...result.user,
@@ -159,6 +184,7 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             error: null,
             logoutReason: null,
+            passwordChangeRequired: null,
           });
 
           return true;
@@ -172,6 +198,72 @@ export const useAuthStore = create<AuthStore>()(
           });
           return false;
         }
+      },
+
+      /**
+       * Force change password using temp token from login
+       *
+       * Called when login returns 'password_change_required'.
+       * Completes login after successful password change.
+       */
+      forceChangePassword: async (newPassword: string) => {
+        const { passwordChangeRequired } = get();
+
+        if (!passwordChangeRequired) {
+          logger.error('No password change required state found');
+          set({ error: 'Invalid state - no password change in progress' });
+          return false;
+        }
+
+        set({ isLoading: true, error: null });
+
+        try {
+          const result = await authService.forceChangePassword(
+            passwordChangeRequired.tempToken,
+            newPassword
+          );
+
+          const userWithActivity = {
+            ...result.user,
+            lastActivity: new Date().toISOString(),
+          };
+
+          // Set tokens in session manager (handles HTTP client + storage)
+          sessionManager.setTokens(result.tokens);
+
+          // Update store state (Zustand persist automatically saves user)
+          set({
+            user: userWithActivity,
+            tokens: result.tokens,
+            sessionStatus: 'authenticated',
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+            logoutReason: null,
+            passwordChangeRequired: null,
+          });
+
+          logger.info('Password changed and login completed', { userId: result.user.id });
+          return true;
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Password change failed';
+          logger.error('Force change password exception', { error });
+
+          set({
+            error: errorMessage,
+            isLoading: false,
+          });
+          return false;
+        }
+      },
+
+      /**
+       * Clear password change required state
+       *
+       * Called when user cancels password change or navigates away.
+       */
+      clearPasswordChangeRequired: () => {
+        set({ passwordChangeRequired: null, error: null });
       },
 
       /**
