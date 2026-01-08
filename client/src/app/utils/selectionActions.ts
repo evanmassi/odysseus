@@ -1,13 +1,33 @@
 // Pure selection action functions - easy to test and reason about
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 
-import { type PositionKey } from '@shared/types/grid';
+import { type PositionKey } from '@shared/types/Grid';
 
 export interface SelectionActions {
-  singleSelect: (positionKey: PositionKey, onSelectionChange: (positions: Set<PositionKey>) => void, setAnimationKey: (fn: (prev: number) => number) => void) => void;
-  multiToggle: (positionKey: PositionKey, selectedPositions: Set<PositionKey>, onSelectionChange: (positions: Set<PositionKey>) => void, setAnimationKey: (fn: (prev: number) => number) => void) => void;
-  rangeSelect: (start: number, end: number, selectedPositions: Set<PositionKey>, onSelectionChange: (positions: Set<PositionKey>) => void, getPositionKey: (position: number) => PositionKey, setAnimationKey: (fn: (prev: number) => number) => void, gridCols?: number) => void;
-  clearSelection: (onSelectionChange: (positions: Set<PositionKey>) => void, setAnimationKey: (fn: (prev: number) => number) => void) => void;
+  singleSelect: (
+    positionKey: PositionKey,
+    onSelectionChange: (positions: Set<PositionKey>) => void,
+    setAnimationKey: (fn: (prev: number) => number) => void
+  ) => void;
+  multiToggle: (
+    positionKey: PositionKey,
+    selectedPositions: Set<PositionKey>,
+    onSelectionChange: (positions: Set<PositionKey>) => void,
+    setAnimationKey: (fn: (prev: number) => number) => void
+  ) => void;
+  rangeSelect: (
+    start: number,
+    end: number,
+    selectedPositions: Set<PositionKey>,
+    onSelectionChange: (positions: Set<PositionKey>) => void,
+    getPositionKey: (position: number) => PositionKey,
+    setAnimationKey: (fn: (prev: number) => number) => void,
+    gridCols?: number
+  ) => void;
+  clearSelection: (
+    onSelectionChange: (positions: Set<PositionKey>) => void,
+    setAnimationKey: (fn: (prev: number) => number) => void
+  ) => void;
 }
 
 export const createSelectionActions = (): SelectionActions => ({
@@ -29,7 +49,15 @@ export const createSelectionActions = (): SelectionActions => ({
     setAnimationKey(prev => prev + 1);
   },
 
-  rangeSelect: (start, end, selectedPositions, onSelectionChange, getPositionKey, setAnimationKey, gridCols = EQUIPMENT_DEFAULTS.GRID_COLS) => {
+  rangeSelect: (
+    start,
+    end,
+    selectedPositions,
+    onSelectionChange,
+    getPositionKey,
+    setAnimationKey,
+    gridCols = EQUIPMENT_DEFAULTS.GRID_COLS
+  ) => {
     const newSelection = new Set(selectedPositions);
 
     // Calculate range of positions
@@ -66,5 +94,5 @@ export const createSelectionActions = (): SelectionActions => ({
   clearSelection: (onSelectionChange, setAnimationKey) => {
     onSelectionChange(new Set());
     setAnimationKey(prev => prev + 1);
-  }
+  },
 });

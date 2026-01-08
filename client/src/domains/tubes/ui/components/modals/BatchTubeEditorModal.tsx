@@ -39,7 +39,7 @@ import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 
 import type { FieldConflictAnalysis } from '@app/hooks/useSimpleFieldResolver';
 import type { BulkUpdateProgress, BulkUpdateResult } from '@shared/types/BulkOperations';
-import type { TubeData } from '@shared/types/TubeTypes';
+import type { TubeData } from '@shared/types/Tube';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
 export interface BatchTubeEditorModalProps {

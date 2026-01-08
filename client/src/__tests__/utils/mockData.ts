@@ -1,4 +1,4 @@
-import type { TubeData } from '../../shared/types/TubeTypes';
+import type { TubeData } from '../../shared/types/Tube';
 
 /**
  * Create a mock tube with realistic test data

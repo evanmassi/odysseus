@@ -9,7 +9,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { getGridTotalPositions } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
-import { toPositionKey, type PositionContext, type PositionKey } from '@shared/types/grid';
+import { toPositionKey, type PositionContext, type PositionKey } from '@shared/types/Grid';
 import { getPositionsInRectangle, positionToCoordinates } from '@shared/utils/coordinates';
 
 import type { GridConfiguration } from '@odysseus/shared-schemas';
@@ -40,9 +40,7 @@ export interface UseGridDragSelectionReturn {
  * @param props - Grid configuration and selection handlers
  * @returns Drag selection state and handlers
  */
-export function useGridDragSelection(
-  props: UseGridDragSelectionProps
-): UseGridDragSelectionReturn {
+export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridDragSelectionReturn {
   const { gridConfig, selectedPositions, onSelectionChange, ctx } = props;
 
   // Performance optimization: RAF throttling for drag selection
@@ -69,57 +67,67 @@ export function useGridDragSelection(
   /**
    * Process selection preview (called by RAF throttle) - NO React state updates, just preview
    */
-  const processSelectionUpdate = useCallback((position: number) => {
-    // Read from ref (always latest) instead of captured state (stale in closures)
-    const dragStart = dragStartPositionRef.current;
-    const withCtrl = isDragWithCtrlRef.current;
+  const processSelectionUpdate = useCallback(
+    (position: number) => {
+      // Read from ref (always latest) instead of captured state (stale in closures)
+      const dragStart = dragStartPositionRef.current;
+      const withCtrl = isDragWithCtrlRef.current;
 
-    if (dragStart !== null && dragStart !== position) {
-      if (!isDragging) {
-        setIsDragging(true);
-      }
-
-      // Calculate rectangular selection using coordinate utilities
-      const newSelection = new Set<PositionKey>();
-      const startCoords = positionToCoordinates(dragStart, gridConfig.cols);
-      const endCoords = positionToCoordinates(position, gridConfig.cols);
-      const positionsInRectangle = getPositionsInRectangle(startCoords, endCoords, gridConfig.cols);
-
-      positionsInRectangle.forEach((pos: number) => {
-        if (pos >= 1 && pos <= getGridTotalPositions(gridConfig)) {
-          newSelection.add(toPositionKey(ctx, pos));
+      if (dragStart !== null && dragStart !== position) {
+        if (!isDragging) {
+          setIsDragging(true);
         }
-      });
 
-      // Ctrl extends selection, otherwise replace
-      if (withCtrl) {
-        // Extend: Add drag selection to existing selection
-        selectedPositions.forEach(key => newSelection.add(key));
+        // Calculate rectangular selection using coordinate utilities
+        const newSelection = new Set<PositionKey>();
+        const startCoords = positionToCoordinates(dragStart, gridConfig.cols);
+        const endCoords = positionToCoordinates(position, gridConfig.cols);
+        const positionsInRectangle = getPositionsInRectangle(
+          startCoords,
+          endCoords,
+          gridConfig.cols
+        );
+
+        positionsInRectangle.forEach((pos: number) => {
+          if (pos >= 1 && pos <= getGridTotalPositions(gridConfig)) {
+            newSelection.add(toPositionKey(ctx, pos));
+          }
+        });
+
+        // Ctrl extends selection, otherwise replace
+        if (withCtrl) {
+          // Extend: Add drag selection to existing selection
+          selectedPositions.forEach(key => newSelection.add(key));
+        }
+        // No Ctrl: newSelection already contains only drag rectangle (replaces existing)
+
+        // PERFORMANCE: Only update preview state, NOT actual selection
+        setDragPreview(newSelection);
+        // Actual selection updated on mouseup
       }
-      // No Ctrl: newSelection already contains only drag rectangle (replaces existing)
-
-      // PERFORMANCE: Only update preview state, NOT actual selection
-      setDragPreview(newSelection);
-      // Actual selection updated on mouseup
-    }
-    rafIdRef.current = null;
-  }, [isDragging, gridConfig, selectedPositions, ctx]);
+      rafIdRef.current = null;
+    },
+    [isDragging, gridConfig, selectedPositions, ctx]
+  );
 
   /**
    * RAF-throttled mouse move handler
    */
-  const handleMouseMove = useCallback((position: number) => {
-    pendingPositionRef.current = position;
+  const handleMouseMove = useCallback(
+    (position: number) => {
+      pendingPositionRef.current = position;
 
-    if (rafIdRef.current === null) {
-      const rafId = requestAnimationFrame(() => {
-        if (pendingPositionRef.current !== null) {
-          processSelectionUpdate(pendingPositionRef.current);
-        }
-      });
-      rafIdRef.current = rafId;
-    }
-  }, [processSelectionUpdate]);
+      if (rafIdRef.current === null) {
+        const rafId = requestAnimationFrame(() => {
+          if (pendingPositionRef.current !== null) {
+            processSelectionUpdate(pendingPositionRef.current);
+          }
+        });
+        rafIdRef.current = rafId;
+      }
+    },
+    [processSelectionUpdate]
+  );
 
   /**
    * Cleanup RAF on unmount
@@ -169,6 +177,6 @@ export function useGridDragSelection(
     isDragging,
     dragPreview,
     handleMouseDown,
-    handleMouseMove
+    handleMouseMove,
   };
 }

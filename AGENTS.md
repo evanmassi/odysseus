@@ -735,7 +735,7 @@ const name = tube.researcher; // Doesn't exist!
 
 ### Naming Conventions (MANDATORY - 100% Compliance Required)
 
-**Last Updated:** 2025-01-21 (Post naming consistency audit - 96% → 100% compliance achieved)
+**Last Updated:** 2026-01-08 (Post naming consistency audit - 100% compliance achieved)
 
 These conventions are strictly enforced across the entire codebase. All new files and edits MUST follow these patterns.
 
@@ -782,6 +782,18 @@ These conventions are strictly enforced across the entire codebase. All new file
 - ✅ `dateFormatter.ts`
 - ✅ `colorSystem.ts`
 - ✅ `gridHelpers.ts`
+
+**Type Definition Files** (in `types/` folders): PascalCase, no "Types" suffix
+- ✅ `Tube.ts`
+- ✅ `Api.ts`
+- ✅ `Grid.ts`
+- ❌ ~~`TubeTypes.ts`~~ (redundant suffix - folder context is enough)
+- ❌ ~~`tubeTypes.ts`~~ (wrong case)
+
+**Exception - Zod Schema Files** (`shared-schemas/`): camelCase
+- ✅ `tubeSchemas.ts` (Zod runtime schemas)
+- ✅ `searchSchemas.ts`
+- Rationale: Zod schemas are runtime utilities, not pure type definitions
 
 ---
 

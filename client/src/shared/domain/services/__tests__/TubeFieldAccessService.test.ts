@@ -15,7 +15,7 @@ import {
 import { DomainError, FieldResolutionError, FieldPathError } from '../../errors/DomainError';
 
 import type { FieldPathMapping } from '@domains/tubes/types/FieldResolver';
-import type { TubeData } from '@shared/types/TubeTypes';
+import type { TubeData } from '@shared/types/Tube';
 
 // Test data fixtures
 const mockTubeData: TubeData = {

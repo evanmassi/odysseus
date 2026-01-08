@@ -3,7 +3,7 @@
  */
 
 // API types
-export type * from './ApiTypes';
+export type * from './Api';
 
 // Bulk operations types
 export type * from './BulkOperations';
@@ -15,13 +15,13 @@ export type * from './Clipboard';
 export type * from './ExperimentalBrowserApis';
 
 // Grid types
-export type * from './grid';
+export type * from './Grid';
 
 // Tube types
-export type * from './TubeTypes';
+export type * from './Tube';
 
 // Validation types
-export type * from './ValidationTypes';
+export type * from './Validation';
 
 // Form types
 export type { FormFieldConfig, TubeFormConfig } from './Forms';

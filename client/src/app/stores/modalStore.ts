@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 
 import { create } from 'zustand';
 
-import { type PositionKey } from '@shared/types/grid';
+import { type PositionKey } from '@shared/types/Grid';
 
 interface DeleteConfirmState {
   isOpen: boolean;

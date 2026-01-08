@@ -28,7 +28,7 @@ import { ShareAccessModal } from '@domains/tubes/ui/components/modals/ShareAcces
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
 import { useUserLookupQuery } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
-import { parsePositionKey } from '@shared/types/grid';
+import { parsePositionKey } from '@shared/types/Grid';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { UnsavedConfirmDialog } from '@shared/ui/components/UnsavedConfirmDialog';
@@ -44,7 +44,7 @@ import type {
   SelectedLocation,
 } from '@domains/storage/ui/components/storage-navigator';
 import type { TubeData } from '@domains/tubes/types';
-import type { PositionKey } from '@shared/types/grid';
+import type { PositionKey } from '@shared/types/Grid';
 
 import '@shared/styles/base/layout.css';
 

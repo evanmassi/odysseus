@@ -6,11 +6,11 @@
 import { useCallback, useRef, useEffect, useMemo } from 'react';
 
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
-import { toPositionKey, parsePositionKey } from '@shared/types/grid';
+import { toPositionKey, parsePositionKey } from '@shared/types/Grid';
 import { getSelectionRange } from '@shared/utils/coordinates';
 
 import type { TubeData } from '@odysseus/shared-schemas';
-import type { PositionKey, PositionContext, LockContext } from '@shared/types/grid';
+import type { PositionKey, PositionContext, LockContext } from '@shared/types/Grid';
 
 export interface UseGridSelectionProps {
   ctx: PositionContext;

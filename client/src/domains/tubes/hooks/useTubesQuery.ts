@@ -27,7 +27,7 @@ import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
 import { TubeService } from '../services/TubeService';
 
-import type { TubeData } from '@shared/types/TubeTypes';
+import type { TubeData } from '@shared/types/Tube';
 
 /**
  * Convert schema-based TubeData to shared TubeData format

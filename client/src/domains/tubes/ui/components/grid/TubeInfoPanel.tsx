@@ -15,7 +15,7 @@ import {
   useLocationDisplayNames,
   formatPositionRangesForBox,
 } from '@domains/storage';
-import { parsePositionKey } from '@shared/types/grid';
+import { parsePositionKey } from '@shared/types/Grid';
 import { Tooltip } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateUtils';
 
@@ -25,8 +25,8 @@ import { InfoSection } from '../displays/InfoSection';
 import { EditLockNoteModal } from '../modals/EditLockNoteModal';
 
 import type { Researcher } from '@odysseus/shared-schemas';
-import type { LockContext } from '@shared/types/grid';
-import type { TubeData } from '@shared/types/TubeTypes';
+import type { LockContext } from '@shared/types/Grid';
+import type { TubeData } from '@shared/types/Tube';
 
 // All field paths for conflict analysis
 const FIELD_PATHS = [

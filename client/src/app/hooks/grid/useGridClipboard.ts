@@ -15,7 +15,7 @@ import { tubeDataToCreateRequest } from '@odysseus/shared-schemas';
 import { useModalStore } from '@app/stores/modalStore';
 import { useStorageData } from '@domains/storage';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey, parsePositionKey } from '@shared/types/grid';
+import { toPositionKey, parsePositionKey } from '@shared/types/Grid';
 import { writeClipboardOS, readClipboardOS } from '@shared/utils/gridClipboard';
 import { notifications } from '@shared/utils/notifications';
 import { validatePasteOperation } from '@shared/utils/pasteValidation';
@@ -23,7 +23,7 @@ import { canModifyAllTubes, getBlockedModificationMessage } from '@shared/utils/
 
 import type { TubeData } from '@odysseus/shared-schemas';
 import type { ClipboardData } from '@shared/types/Clipboard';
-import type { PositionKey, PositionContext, TubeClipboardItem } from '@shared/types/grid';
+import type { PositionKey, PositionContext, TubeClipboardItem } from '@shared/types/Grid';
 
 export interface UseGridClipboardProps {
   ctx: PositionContext;

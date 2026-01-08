@@ -8,7 +8,7 @@ import { getFieldResolverApplicationService } from '@app/services/FieldResolverS
 
 import { TUBE_FIELD_CONFIG } from '../config/fieldConfig';
 
-import type { CreateTubeRequest, TubeData } from '@shared/types/TubeTypes';
+import type { CreateTubeRequest, TubeData } from '@shared/types/Tube';
 
 export interface TubeInfo {
   id: string;

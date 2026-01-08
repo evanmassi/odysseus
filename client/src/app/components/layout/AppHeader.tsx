@@ -24,7 +24,7 @@ import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
 import { useStorageData } from '@domains/storage';
 import odysseusLogo from '@shared/assets/odysseus-logo-thick.svg';
-import { parsePositionKey, type PositionKey } from '@shared/types/grid';
+import { parsePositionKey, type PositionKey } from '@shared/types/Grid';
 import { SuspenseBoundary, Tooltip } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';

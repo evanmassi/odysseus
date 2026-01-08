@@ -1,7 +1,7 @@
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { create } from 'zustand';
 
-import { type PositionKey } from '@shared/types/grid';
+import { type PositionKey } from '@shared/types/Grid';
 
 /**
  * Tube Store - Client State Management
