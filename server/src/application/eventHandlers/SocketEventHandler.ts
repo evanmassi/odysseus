@@ -10,8 +10,7 @@
  * - Non-blocking: Socket failures don't break main operations
  */
 
-import type { EventBus, EventHandler } from '@application/contracts/EventBus';
-import type { DomainEvent } from '@domain/events/DomainEvent';
+import type { EventBus } from '@application/contracts/EventBus';
 import type { Server as SocketIOServer } from 'socket.io';
 import { logger } from '@utils/logger';
 import {
@@ -83,61 +82,59 @@ export class SocketEventHandler {
   }
 
   /**
-   * Subscribe to all relevant domain events for real-time updates
+   * Subscribe to domain events for real-time Socket.IO updates.
+   * Arrow functions preserve type safety with DomainEventMap.
    */
   private subscribeToEvents(): void {
-    // Type-safe handler cast for polymorphic event handling
-    type Handler = EventHandler<DomainEvent>;
-
-    // Configuration events - all routed to debounced configuration change handler
-    this.eventBus.subscribe('TankAdded', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('TankUpdated', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('TankDeleted', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('RackAdded', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('RackUpdated', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('RackDeleted', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('BoxAdded', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('BoxUpdated', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('BoxDeleted', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('LabNameChanged', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('RackLabelUpdated', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('BoxLabelUpdated', this.handleConfigurationChange.bind(this) as Handler);
+    // Configuration events - debounced to batch rapid changes
+    this.eventBus.subscribe('TankAdded', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('TankUpdated', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('TankDeleted', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('RackAdded', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('RackUpdated', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('RackDeleted', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('BoxAdded', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('BoxUpdated', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('BoxDeleted', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('LabNameChanged', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('RackLabelUpdated', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('BoxLabelUpdated', (e) => this.handleConfigurationChange(e));
 
     // Assignment events - also configuration changes
-    this.eventBus.subscribe('RackAssigned', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('RackUnassigned', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('RackReassigned', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('BoxAssigned', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('BoxUnassigned', this.handleConfigurationChange.bind(this) as Handler);
-    this.eventBus.subscribe('BoxReassigned', this.handleConfigurationChange.bind(this) as Handler);
+    this.eventBus.subscribe('RackAssigned', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('RackUnassigned', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('RackReassigned', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('BoxAssigned', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('BoxUnassigned', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('BoxReassigned', (e) => this.handleConfigurationChange(e));
 
     // User events
-    this.eventBus.subscribe('UserApproved', this.handleUserApproved.bind(this) as Handler);
-    this.eventBus.subscribe('UserDeleted', this.handleUserDeleted.bind(this) as Handler);
-    this.eventBus.subscribe('UserRoleChanged', this.handleUserRoleChanged.bind(this) as Handler);
-    this.eventBus.subscribe('UserCreated', this.handleUserCreated.bind(this) as Handler);
-    this.eventBus.subscribe('UserLinkedToResearcher', this.handleUserLinkedToResearcher.bind(this) as Handler);
-    this.eventBus.subscribe('UserUnlinkedFromResearcher', this.handleUserUnlinkedFromResearcher.bind(this) as Handler);
+    this.eventBus.subscribe('UserApproved', (e) => this.handleUserApproved(e));
+    this.eventBus.subscribe('UserDeleted', (e) => this.handleUserDeleted(e));
+    this.eventBus.subscribe('UserRoleChanged', (e) => this.handleUserRoleChanged(e));
+    this.eventBus.subscribe('UserCreated', (e) => this.handleUserCreated(e));
+    this.eventBus.subscribe('UserLinkedToResearcher', (e) => this.handleUserLinkedToResearcher(e));
+    this.eventBus.subscribe('UserUnlinkedFromResearcher', (e) => this.handleUserUnlinkedFromResearcher(e));
 
     // Tube CRUD events
-    this.eventBus.subscribe('TubeCreated', this.handleTubeCreated.bind(this) as Handler);
-    this.eventBus.subscribe('TubeUpdated', this.handleTubeUpdated.bind(this) as Handler);
-    this.eventBus.subscribe('TubeLocationChanged', this.handleTubeUpdated.bind(this) as Handler);
-    this.eventBus.subscribe('TubeDeleted', this.handleTubeDeleted.bind(this) as Handler);
-    this.eventBus.subscribe('BulkTubesUpdated', this.handleBulkTubesUpdated.bind(this) as Handler);
+    this.eventBus.subscribe('TubeCreated', (e) => this.handleTubeCreated(e));
+    this.eventBus.subscribe('TubeUpdated', (e) => this.handleTubeUpdated(e));
+    this.eventBus.subscribe('TubeLocationChanged', (e) => this.handleTubeUpdated(e));
+    this.eventBus.subscribe('TubeDeleted', (e) => this.handleTubeDeleted(e));
+    this.eventBus.subscribe('BulkTubesUpdated', (e) => this.handleBulkTubesUpdated(e));
 
     // Tube lock/access events
-    this.eventBus.subscribe('TubesLocked', this.handleTubesLocked.bind(this) as Handler);
-    this.eventBus.subscribe('TubesUnlocked', this.handleTubesUnlocked.bind(this) as Handler);
-    this.eventBus.subscribe('TubeAccessShared', this.handleTubeAccessShared.bind(this) as Handler);
-    this.eventBus.subscribe('TubeAccessRevoked', this.handleTubeAccessRevoked.bind(this) as Handler);
+    this.eventBus.subscribe('TubesLocked', (e) => this.handleTubesLocked(e));
+    this.eventBus.subscribe('TubesUnlocked', (e) => this.handleTubesUnlocked(e));
+    this.eventBus.subscribe('TubeAccessShared', (e) => this.handleTubeAccessShared(e));
+    this.eventBus.subscribe('TubeAccessRevoked', (e) => this.handleTubeAccessRevoked(e));
 
     // Researcher CRUD events
-    this.eventBus.subscribe('ResearcherCreated', this.handleResearcherCreated.bind(this) as Handler);
-    this.eventBus.subscribe('ResearcherUpdated', this.handleResearcherUpdated.bind(this) as Handler);
-    this.eventBus.subscribe('ResearcherDeactivated', this.handleResearcherUpdated.bind(this) as Handler);
-    this.eventBus.subscribe('ResearcherReactivated', this.handleResearcherUpdated.bind(this) as Handler);
-    this.eventBus.subscribe('ResearcherDeleted', this.handleResearcherDeleted.bind(this) as Handler);
+    this.eventBus.subscribe('ResearcherCreated', (e) => this.handleResearcherCreated(e));
+    this.eventBus.subscribe('ResearcherUpdated', (e) => this.handleResearcherUpdated(e));
+    this.eventBus.subscribe('ResearcherDeactivated', (e) => this.handleResearcherUpdated(e));
+    this.eventBus.subscribe('ResearcherReactivated', (e) => this.handleResearcherUpdated(e));
+    this.eventBus.subscribe('ResearcherDeleted', (e) => this.handleResearcherDeleted(e));
 
     logger.info('SocketEventHandler subscribed to domain events');
   }

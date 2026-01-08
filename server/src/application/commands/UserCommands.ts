@@ -25,6 +25,7 @@ import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } fr
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { type UserSettings, PasswordValidator } from '@odysseus/shared-schemas';
+import type { EnhancedLoginResponse, RefreshTokenResponse } from '@shared/types/TokenTypes';
 
 // Create User Command
 
@@ -436,8 +437,8 @@ export interface SessionService {
   // OAuth 2.0 dual token support (pure implementation)
   validateSession(token: string): Promise<SessionValidationResult | null>;
   revokeSession(token: string): Promise<void>;
-  createTokenPair(user: User, userAgent?: string, ipAddress?: string, deviceInfo?: string): Promise<any>; // EnhancedLoginResponse
-  refreshAccessToken(refreshToken: string): Promise<any>; // RefreshTokenResponse
+  createTokenPair(user: User, userAgent?: string, ipAddress?: string, deviceInfo?: string): Promise<EnhancedLoginResponse>;
+  refreshAccessToken(refreshToken: string): Promise<RefreshTokenResponse>;
 
   /**
    * Validate session with full timeout checks and optional activity update

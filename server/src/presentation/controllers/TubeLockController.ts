@@ -7,7 +7,9 @@ import type {
   RevokeTubeAccessRequest
 } from '@application/dto/TubeLockDto';
 import { ErrorDto } from '@application/dto/ErrorDto';
+import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { logger } from '@utils/logger';
+import type { User } from '@domain/entities/User';
 
 /**
  * TubeLockController - HTTP request/response handling for tube locking
@@ -37,7 +39,7 @@ export class TubeLockController {
 
       res.json(ErrorDto.success(result));
     } catch (error) {
-      this.handleError(error, res, 'Failed to lock tubes');
+      handleControllerError(error, res, 'Failed to lock tubes');
     }
   }
 
@@ -60,7 +62,7 @@ export class TubeLockController {
 
       res.json(ErrorDto.success(result));
     } catch (error) {
-      this.handleError(error, res, 'Failed to unlock tubes');
+      handleControllerError(error, res, 'Failed to unlock tubes');
     }
   }
 
@@ -84,7 +86,7 @@ export class TubeLockController {
 
       res.json(ErrorDto.success(result));
     } catch (error) {
-      this.handleError(error, res, 'Failed to share tube access');
+      handleControllerError(error, res, 'Failed to share tube access');
     }
   }
 
@@ -108,14 +110,14 @@ export class TubeLockController {
 
       res.json(ErrorDto.success(result));
     } catch (error) {
-      this.handleError(error, res, 'Failed to revoke tube access');
+      handleControllerError(error, res, 'Failed to revoke tube access');
     }
   }
 
   /**
    * Helper: Extract authenticated user from OAuth 2.0 middleware
    */
-  private getAuthenticatedUser(req: Request): any {
+  private getAuthenticatedUser(req: Request): User {
     const user = req.user;
     if (!user) {
       throw new Error('Authentication required - user not found in request context');
@@ -123,13 +125,4 @@ export class TubeLockController {
     return user;
   }
 
-  /**
-   * Helper: Handle errors and send appropriate HTTP response
-   */
-  private handleError(error: any, res: Response, defaultMessage: string): void {
-    logger.error(defaultMessage, error);
-
-    const errorResponse = ErrorDto.fromDomainError(error);
-    res.status(errorResponse.status).json(errorResponse.response);
-  }
 }

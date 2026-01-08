@@ -174,6 +174,6 @@ export class UserRole {
    * Check if a string is a valid role
    */
   static isValidRole(role: string): role is 'admin' | 'user' {
-    return UserRole.VALID_ROLES.includes(role as any);
+    return (UserRole.VALID_ROLES as readonly string[]).includes(role);
   }
 }

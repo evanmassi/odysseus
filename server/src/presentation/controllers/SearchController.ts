@@ -1,8 +1,20 @@
 import { Request, Response } from 'express';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { ErrorDto } from '@application/dto/ErrorDto';
+import type { TubeResponse } from '@application/dto/TubeDto';
+import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { logger } from '@utils/logger';
 import { SearchCriteriaMapper } from '@presentation/mappers/SearchCriteriaMapper';
+import type { User } from '@domain/entities/User';
+
+/** Grouped search result structure for batch display */
+interface GroupedResult {
+  groupKey: string;
+  groupType: string;
+  tubes: TubeResponse[];
+  primaryLocation: string;
+  totalCount: number;
+}
 
 /**
  * SearchController - HTTP request/response handling for search operations
@@ -93,7 +105,7 @@ export class SearchController {
       });
     } catch (error) {
       logger.error('❌ [SearchController] Search failed:', error);
-      this.handleError(error, res, 'Failed to perform advanced search');
+      handleControllerError(error, res, 'Failed to perform advanced search');
     }
   }
 
@@ -138,7 +150,7 @@ export class SearchController {
       
       res.json(result);
     } catch (error) {
-      this.handleError(error, res, 'Failed to perform quick search');
+      handleControllerError(error, res, 'Failed to perform quick search');
     }
   }
 
@@ -180,7 +192,7 @@ export class SearchController {
       
       res.json(result);
     } catch (error) {
-      this.handleError(error, res, 'Failed to perform field search');
+      handleControllerError(error, res, 'Failed to perform field search');
     }
   }
 
@@ -210,7 +222,7 @@ export class SearchController {
       
       res.json({ success: true, suggestions });
     } catch (error) {
-      this.handleError(error, res, 'Failed to get search suggestions');
+      handleControllerError(error, res, 'Failed to get search suggestions');
     }
   }
 
@@ -226,7 +238,7 @@ export class SearchController {
         searches: [] 
       });
     } catch (error) {
-      this.handleError(error, res, 'Failed to get saved searches');
+      handleControllerError(error, res, 'Failed to get saved searches');
     }
   }
 
@@ -244,7 +256,7 @@ export class SearchController {
         searchId: `search_${Date.now()}` 
       });
     } catch (error) {
-      this.handleError(error, res, 'Failed to save search');
+      handleControllerError(error, res, 'Failed to save search');
     }
   }
 
@@ -259,7 +271,7 @@ export class SearchController {
       // Placeholder - return success until saved search feature is implemented
       res.json({ success: true });
     } catch (error) {
-      this.handleError(error, res, 'Failed to delete saved search');
+      handleControllerError(error, res, 'Failed to delete saved search');
     }
   }
 
@@ -294,7 +306,7 @@ export class SearchController {
         }
       });
     } catch (error) {
-      this.handleError(error, res, 'Failed to get filter options');
+      handleControllerError(error, res, 'Failed to get filter options');
     }
   }
 
@@ -302,14 +314,14 @@ export class SearchController {
    * Batch grouping: Group tubes that are identical in all properties
    * Tubes are grouped by box - each box gets its own group
    */
-  private autoGroupTubes(tubes: any[], explicitGroupBy?: string): any[] {
+  private autoGroupTubes(tubes: TubeResponse[], explicitGroupBy?: string): GroupedResult[] {
     if (tubes.length === 0) {
       return [];
     }
 
     // Create batch key from all tube properties INCLUDING box location
     // This ensures tubes in different boxes are in separate groups
-    const createBatchKey = (tube: any): string => {
+    const createBatchKey = (tube: TubeResponse): string => {
       return JSON.stringify({
         cellType: tube.sample?.cellType || '',
         donorInternalId: tube.sample?.donorInternalId || '',
@@ -329,7 +341,7 @@ export class SearchController {
     };
 
     // Group tubes by batch key
-    const groups = new Map<string, any[]>();
+    const groups = new Map<string, TubeResponse[]>();
 
     for (const tube of tubes) {
       const batchKey = createBatchKey(tube);
@@ -364,7 +376,7 @@ export class SearchController {
 
       return {
         groupKey,
-        groupType: 'batch' as any, // New grouping type
+        groupType: 'batch',
         tubes: groupTubes,
         primaryLocation,
         totalCount: groupTubes.length
@@ -379,7 +391,7 @@ export class SearchController {
   /**
    * Helper: Extract authenticated user from middleware
    */
-  private getAuthenticatedUser(req: Request): any {
+  private getAuthenticatedUser(req: Request): User {
     const user = req.user;
     if (!user) {
       throw new Error('Authentication required - user not found in request context');
@@ -387,13 +399,4 @@ export class SearchController {
     return user;
   }
 
-  /**
-   * Helper: Standard error handling
-   */
-  private handleError(error: any, res: Response, defaultMessage: string): void {
-    logger.error(defaultMessage, error);
-    
-    const errorResponse = ErrorDto.fromDomainError(error);
-    res.status(errorResponse.status).json(errorResponse.response);
-  }
 }

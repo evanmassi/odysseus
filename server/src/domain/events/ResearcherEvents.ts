@@ -5,6 +5,7 @@
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
+import type { FieldChange } from '@domain/types/FieldChange';
 
 export class ResearcherCreatedEvent extends DomainEvent {
   constructor(
@@ -43,7 +44,7 @@ export class ResearcherUpdatedEvent extends DomainEvent {
     public readonly researcherId: string,
     public readonly firstName: string,
     public readonly lastName: string,
-    public readonly changes: Array<{ field: string; oldValue: any; newValue: any }>,
+    public readonly changes: FieldChange[],
     public readonly updatedBy: string
   ) {
     super(1);

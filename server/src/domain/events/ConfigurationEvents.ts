@@ -1,4 +1,5 @@
 import { DomainEvent } from './DomainEvent';
+import type { FieldChange } from '@domain/types/FieldChange';
 
 /**
  * Configuration Updated Event
@@ -44,11 +45,7 @@ export class TankUpdatedEvent extends DomainEvent {
     public readonly userId: string,
     public readonly tankId: string,
     public readonly tankName: string,
-    public readonly changes: {
-      field: string;
-      oldValue: any;
-      newValue: any;
-    }[]
+    public readonly changes: FieldChange[]
   ) {
     super();
   }
@@ -170,11 +167,7 @@ export class RackUpdatedEvent extends DomainEvent {
     public readonly tankName: string,
     public readonly rackId: string,
     public readonly rackName: string,
-    public readonly changes: {
-      field: string;
-      oldValue: any;
-      newValue: any;
-    }[]
+    public readonly changes: FieldChange[]
   ) {
     super();
   }
@@ -256,11 +249,7 @@ export class BoxUpdatedEvent extends DomainEvent {
     public readonly rackName: string,
     public readonly boxId: string,
     public readonly boxName: string,
-    public readonly changes: {
-      field: string;
-      oldValue: any;
-      newValue: any;
-    }[]
+    public readonly changes: FieldChange[]
   ) {
     super();
   }

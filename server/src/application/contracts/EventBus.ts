@@ -1,59 +1,49 @@
 /**
  * Event Bus Interface
- * 
- * Defines the contract for publishing and subscribing to domain events.
- * This interface allows for different event bus implementations
- * (in-memory, message queue, etc.) without changing the application logic.
+ *
+ * Contract for publishing and subscribing to domain events.
+ * Uses DomainEventMap for compile-time type safety on subscriptions.
  */
 
-import { DomainEvent } from '@domain/events/DomainEvent';
+import type { DomainEvent } from '@domain/events/DomainEvent';
+import type { DomainEventMap, DomainEventName } from '@domain/events/DomainEventMap';
 
 export interface EventBus {
   /**
-   * Publishes a domain event to all registered handlers.
-   * 
-   * @param event The domain event to publish
-   * @returns Promise that resolves when all handlers have processed the event
+   * Publish a domain event to all registered handlers.
    */
   publish(event: DomainEvent): Promise<void>;
 
   /**
-   * Publishes multiple domain events in sequence.
-   * 
-   * @param events Array of domain events to publish
-   * @returns Promise that resolves when all events have been processed
+   * Publish multiple domain events in sequence.
    */
   publishAll(events: DomainEvent[]): Promise<void>;
 
   /**
-   * Subscribes an event handler to a specific event type.
-   * 
-   * @param eventName Name of the event to subscribe to
-   * @param handler Function to handle the event
+   * Subscribe a handler to a specific event type.
+   * TypeScript infers the correct event type from the event name.
    */
-  subscribe<T extends DomainEvent>(eventName: string, handler: EventHandler<T>): void;
+  subscribe<K extends DomainEventName>(
+    eventName: K,
+    handler: EventHandler<DomainEventMap[K]>
+  ): void;
 
   /**
-   * Unsubscribes an event handler from a specific event type.
-   * 
-   * @param eventName Name of the event to unsubscribe from
-   * @param handler Function to remove from handlers
+   * Unsubscribe a handler from a specific event type.
    */
-  unsubscribe<T extends DomainEvent>(eventName: string, handler: EventHandler<T>): void;
+  unsubscribe<K extends DomainEventName>(
+    eventName: K,
+    handler: EventHandler<DomainEventMap[K]>
+  ): void;
 
   /**
-   * Gets all active subscriptions (for debugging/monitoring).
-   * 
-   * @returns Map of event names to handler counts
+   * Get active subscription counts for monitoring.
    */
   getSubscriptions(): Map<string, number>;
 }
 
 /**
- * Event Handler Type
- *
- * Accepts both function handlers and object handlers with a handle() method.
- * This provides flexibility for different handler patterns.
+ * Event handler type supporting both function and object-based handlers.
  */
 export type EventHandler<T extends DomainEvent> =
   | ((event: T) => Promise<void>)

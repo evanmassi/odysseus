@@ -158,7 +158,18 @@ export class TubeDto {
   } {
     const result: {
       location?: Partial<{ tankId: string; rackId: string; boxId: string; position: number }>;
-      sample?: any;
+      sample?: {
+        cellType?: string;
+        donorInternalId?: string | null;
+        donorSourceId?: string | null;
+        concentration?: number | null;
+        concentrationUnit?: 'c/v' | 'c/mL' | null;
+        date?: string | null;
+        media?: MediaData | null;
+        cultureCondition?: string | null;
+        lotNumber?: string | null;
+        notes?: string | null;
+      };
       researcherId?: string | null;
     } = {};
 

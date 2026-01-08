@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
-import { logger } from '@utils/logger';
 import {
   UpdateUserSettingsCommandHandler,
   GetUserSettingsQueryHandler
 } from '@application/commands/UserCommands';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
+import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { userSettingsSchema, userLookupRequestSchema } from '@odysseus/shared-schemas';
 
 /**
@@ -36,7 +36,7 @@ export class UserController {
         settings,
       });
     } catch (error) {
-      this.handleError(error, res, 'Failed to get user settings');
+      handleControllerError(error, res, 'Failed to get user settings');
     }
   }
 
@@ -62,7 +62,7 @@ export class UserController {
         message: 'User settings updated successfully',
       });
     } catch (error) {
-      this.handleError(error, res, 'Failed to update user settings');
+      handleControllerError(error, res, 'Failed to update user settings');
     }
   }
 
@@ -104,7 +104,7 @@ export class UserController {
 
       res.json({ success: true, users: displayUsers });
     } catch (error) {
-      this.handleError(error, res, 'Failed to lookup users');
+      handleControllerError(error, res, 'Failed to lookup users');
     }
   }
 
@@ -144,7 +144,7 @@ export class UserController {
 
       res.json({ success: true, users: displayUsers });
     } catch (error) {
-      this.handleError(error, res, 'Failed to list active users');
+      handleControllerError(error, res, 'Failed to list active users');
     }
   }
 
@@ -159,41 +159,4 @@ export class UserController {
     return user.id;
   }
 
-  /**
-   * Handle errors and send appropriate HTTP response
-   */
-  private handleError(error: any, res: Response, message: string): void {
-    logger.error(`UserController ${message}:`, { error });
-
-    // Zod validation errors
-    if (error.name === 'ZodError') {
-      res.status(400).json({
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid settings data',
-          details: error.errors,
-        },
-      });
-      return;
-    }
-
-    // Domain errors
-    if (error.statusCode) {
-      res.status(error.statusCode).json({
-        error: {
-          code: error.code || 'DOMAIN_ERROR',
-          message: error.message || message,
-        },
-      });
-      return;
-    }
-
-    // Generic errors
-    res.status(500).json({
-      error: {
-        code: 'INTERNAL_ERROR',
-        message: error.message || message,
-      },
-    });
-  }
 }

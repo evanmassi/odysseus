@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ResearcherApplicationService } from '@application/services/ResearcherApplicationService';
 import { CreateResearcherRequest } from '@application/dto/ResearcherDto';
 import { ErrorDto } from '@application/dto/ErrorDto';
+import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { logger } from '@utils/logger';
 
 /**
@@ -36,7 +37,7 @@ export class ResearcherController {
         res.json(ErrorDto.success(researchers));
       }
     } catch (error) {
-      this.handleError(error, res, 'Failed to get researchers');
+      handleControllerError(error, res, 'Failed to get researchers');
     }
   }
 
@@ -58,7 +59,7 @@ export class ResearcherController {
 
       res.json(ErrorDto.success({ researchers }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get researchers with metadata');
+      handleControllerError(error, res, 'Failed to get researchers with metadata');
     }
   }
 
@@ -80,7 +81,7 @@ export class ResearcherController {
 
       res.json(ErrorDto.success({ researchers }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get unlinked researchers');
+      handleControllerError(error, res, 'Failed to get unlinked researchers');
     }
   }
 
@@ -97,7 +98,7 @@ export class ResearcherController {
 
       res.json(ErrorDto.success(researcher));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get researcher');
+      handleControllerError(error, res, 'Failed to get researcher');
     }
   }
 
@@ -120,7 +121,7 @@ export class ResearcherController {
       
       res.status(201).json(ErrorDto.success(researcher));
     } catch (error) {
-      this.handleError(error, res, 'Failed to create researcher');
+      handleControllerError(error, res, 'Failed to create researcher');
     }
   }
 
@@ -145,7 +146,7 @@ export class ResearcherController {
       
       res.json(ErrorDto.success(researcher));
     } catch (error) {
-      this.handleError(error, res, 'Failed to update researcher');
+      handleControllerError(error, res, 'Failed to update researcher');
     }
   }
 
@@ -167,7 +168,7 @@ export class ResearcherController {
       
       res.json(ErrorDto.success({ deleted: true }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to delete researcher');
+      handleControllerError(error, res, 'Failed to delete researcher');
     }
   }
 
@@ -190,7 +191,7 @@ export class ResearcherController {
       
       res.json(ErrorDto.success(researcher));
     } catch (error) {
-      this.handleError(error, res, 'Failed to deactivate researcher');
+      handleControllerError(error, res, 'Failed to deactivate researcher');
     }
   }
 
@@ -213,7 +214,7 @@ export class ResearcherController {
       
       res.json(ErrorDto.success(researcher));
     } catch (error) {
-      this.handleError(error, res, 'Failed to activate researcher');
+      handleControllerError(error, res, 'Failed to activate researcher');
     }
   }
 
@@ -229,7 +230,7 @@ export class ResearcherController {
       
       res.json(ErrorDto.success(stats));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get researcher stats');
+      handleControllerError(error, res, 'Failed to get researcher stats');
     }
   }
 
@@ -252,7 +253,7 @@ export class ResearcherController {
 
       res.json(ErrorDto.success(researchers));
     } catch (error) {
-      this.handleError(error, res, 'Failed to search researchers');
+      handleControllerError(error, res, 'Failed to search researchers');
     }
   }
 
@@ -269,7 +270,7 @@ export class ResearcherController {
 
       res.json(ErrorDto.success(result));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get researcher tube count');
+      handleControllerError(error, res, 'Failed to get researcher tube count');
     }
   }
 
@@ -292,13 +293,4 @@ export class ResearcherController {
     return user?.apiKey;
   }
 
-  /**
-   * Helper: Handle errors and send appropriate HTTP response
-   */
-  private handleError(error: any, res: Response, defaultMessage: string): void {
-    logger.error(defaultMessage, error);
-    
-    const errorResponse = ErrorDto.fromDomainError(error);
-    res.status(errorResponse.status).json(errorResponse.response);
-  }
 }

@@ -398,10 +398,11 @@ export class TubePositionService {
       let numericPosition: number;
       try {
         numericPosition = box.parsePositionLabel(positionLabel);
-      } catch (error: any) {
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
         return {
           isValid: false,
-          reason: `Invalid position label '${positionLabel}': ${error.message}`
+          reason: `Invalid position label '${positionLabel}': ${message}`
         };
       }
 
@@ -420,10 +421,11 @@ export class TubePositionService {
         ...validationResult,
         position: numericPosition,
       };
-    } catch (error: any) {
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
       return {
         isValid: false,
-        reason: `Error validating position label: ${error.message}`,
+        reason: `Error validating position label: ${message}`,
       };
     }
   }

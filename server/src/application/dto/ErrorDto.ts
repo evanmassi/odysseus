@@ -12,7 +12,7 @@ export interface ErrorResponse {
   success: false;
   error: string;
   code?: string;
-  details?: any;
+  details?: unknown;
   timestamp: string;
 }
 
@@ -20,7 +20,7 @@ export interface ValidationErrorResponse extends ErrorResponse {
   code: 'VALIDATION_ERROR';
   details: {
     field?: string;
-    value?: any;
+    value?: unknown;
     constraint?: string;
   };
 }
@@ -127,7 +127,7 @@ export class ErrorDto {
   /**
    * Create custom error response
    */
-  static customError(message: string, status: number = 400, code?: string, details?: any): { status: number; response: ErrorResponse } {
+  static customError(message: string, status: number = 400, code?: string, details?: unknown): { status: number; response: ErrorResponse } {
     return {
       status,
       response: {

@@ -1,5 +1,7 @@
 import { Configuration } from '@domain/entities/Configuration';
 import { Rack, Box } from '@domain/valueObjects/Equipment';
+import type { DomainEvent } from '@domain/events/DomainEvent';
+import type { FieldChange } from '@domain/types/FieldChange';
 import { logger } from '@utils/logger';
 import {
   ConfigurationUpdatedEvent,
@@ -58,8 +60,8 @@ export class ConfigurationChangeDetector {
    * @param userId - User who made the changes
    * @returns Array of domain events representing all changes
    */
-  detectChanges(oldConfig: Configuration, newConfig: Configuration, userId: string): any[] {
-    const events: any[] = [];
+  detectChanges(oldConfig: Configuration, newConfig: Configuration, userId: string): DomainEvent[] {
+    const events: DomainEvent[] = [];
     const summary: ConfigurationChangeSummary = {
       tanksAdded: 0,
       tanksUpdated: 0,
@@ -119,7 +121,7 @@ export class ConfigurationChangeDetector {
     for (const newTank of newTanks) {
       const oldTank = oldTankMap.get(newTank.id);
       if (oldTank) {
-        const tankChanges: Array<{ field: string; oldValue: any; newValue: any }> = [];
+        const tankChanges: FieldChange[] = [];
 
         if (oldTank.name !== newTank.name) {
           tankChanges.push({
@@ -180,8 +182,8 @@ export class ConfigurationChangeDetector {
     tankName: string,
     userId: string,
     summary: ConfigurationChangeSummary
-  ): any[] {
-    const events: any[] = [];
+  ): DomainEvent[] {
+    const events: DomainEvent[] = [];
 
     const oldRackMap = new Map(oldRacks.map(r => [r.id, r]));
     const newRackMap = new Map(newRacks.map(r => [r.id, r]));
@@ -206,7 +208,7 @@ export class ConfigurationChangeDetector {
     for (const newRack of newRacks) {
       const oldRack = oldRackMap.get(newRack.id);
       if (oldRack) {
-        const rackChanges: Array<{ field: string; oldValue: any; newValue: any }> = [];
+        const rackChanges: FieldChange[] = [];
 
         if (oldRack.name !== newRack.name) {
           rackChanges.push({
@@ -259,8 +261,8 @@ export class ConfigurationChangeDetector {
     tankId: string,
     tankName: string,
     userId: string
-  ): any[] {
-    const events: any[] = [];
+  ): DomainEvent[] {
+    const events: DomainEvent[] = [];
     const oldAssigned = oldRack.assignedUserId;
     const newAssigned = newRack.assignedUserId;
 
@@ -304,8 +306,8 @@ export class ConfigurationChangeDetector {
     tankId: string,
     tankName: string,
     userId: string
-  ): any[] {
-    const events: any[] = [];
+  ): DomainEvent[] {
+    const events: DomainEvent[] = [];
     const oldShared = new Set(oldRack.sharedWithUserIds);
     const newShared = new Set(newRack.sharedWithUserIds);
 
@@ -340,8 +342,8 @@ export class ConfigurationChangeDetector {
     rackName: string,
     userId: string,
     summary: ConfigurationChangeSummary
-  ): any[] {
-    const events: any[] = [];
+  ): DomainEvent[] {
+    const events: DomainEvent[] = [];
 
     const oldBoxMap = new Map(oldBoxes.map(b => [b.name, b]));
     const newBoxMap = new Map(newBoxes.map(b => [b.name, b]));
@@ -366,7 +368,7 @@ export class ConfigurationChangeDetector {
     for (const newBox of newBoxes) {
       const oldBox = oldBoxMap.get(newBox.name);
       if (oldBox) {
-        const boxChanges: Array<{ field: string; oldValue: any; newValue: any }> = [];
+        const boxChanges: FieldChange[] = [];
 
         // Check grid configuration changes
         if (oldBox.gridConfig.rows !== newBox.gridConfig.rows) {
@@ -426,8 +428,8 @@ export class ConfigurationChangeDetector {
     rackId: string,
     rackName: string,
     userId: string
-  ): any[] {
-    const events: any[] = [];
+  ): DomainEvent[] {
+    const events: DomainEvent[] = [];
     const oldAssigned = oldBox.assignedUserId;
     const newAssigned = newBox.assignedUserId;
 
@@ -473,8 +475,8 @@ export class ConfigurationChangeDetector {
     rackId: string,
     rackName: string,
     userId: string
-  ): any[] {
-    const events: any[] = [];
+  ): DomainEvent[] {
+    const events: DomainEvent[] = [];
     const oldShared = new Set(oldBox.sharedWithUserIds);
     const newShared = new Set(newBox.sharedWithUserIds);
 

@@ -643,7 +643,7 @@ export class AccessControlService {
 
   // HELPER METHODS
 
-  private createAllowedResult(reason?: string, metadata?: any): AccessResult {
+  private createAllowedResult(reason?: string, metadata?: Record<string, unknown>): AccessResult {
     return {
       allowed: true,
       reason: reason || 'Access granted',
@@ -651,7 +651,7 @@ export class AccessControlService {
     };
   }
 
-  private createDeniedResult(reason: string, metadata?: any): AccessResult {
+  private createDeniedResult(reason: string, metadata?: Record<string, unknown>): AccessResult {
     return {
       allowed: false,
       reason,

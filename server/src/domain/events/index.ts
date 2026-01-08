@@ -1,17 +1,13 @@
 /**
  * Domain Events Barrel Export
- * 
- * Centralizes exports of all domain events for easy importing.
  */
 
-// Base domain event
 export * from './DomainEvent';
-
-// User events
+export * from './DomainEventMap';
 export * from './UserEvents';
-
-// Tube events
 export * from './TubeEvents';
-
-// Tube lock events
 export * from './TubeLockEvents';
+export * from './ConfigurationEvents';
+export * from './ResearcherEvents';
+export * from './EmailVerificationEvents';
+export * from './PasswordResetEvents';

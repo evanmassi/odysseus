@@ -2,7 +2,9 @@ import { Request, Response } from 'express';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest, TubeSearchRequest } from '@application/dto/TubeDto';
 import { ErrorDto } from '@application/dto/ErrorDto';
+import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { logger } from '@utils/logger';
+import type { User } from '@domain/entities/User';
 
 /**
  * TubeController - HTTP request/response handling for tubes
@@ -53,7 +55,7 @@ export class TubeController {
         res.status(201).json(ErrorDto.success(tube));
       }
     } catch (error) {
-      this.handleError(error, res, 'Failed to create tube(s)');
+      handleControllerError(error, res, 'Failed to create tube(s)');
     }
   }
 
@@ -70,7 +72,7 @@ export class TubeController {
       
       res.json(ErrorDto.success(tube));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get tube');
+      handleControllerError(error, res, 'Failed to get tube');
     }
   }
 
@@ -87,7 +89,7 @@ export class TubeController {
       
       res.json(ErrorDto.success(tubes));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get tubes');
+      handleControllerError(error, res, 'Failed to get tubes');
     }
   }
 
@@ -110,7 +112,7 @@ export class TubeController {
       
       res.json(ErrorDto.success(tube));
     } catch (error) {
-      this.handleError(error, res, 'Failed to update tube');
+      handleControllerError(error, res, 'Failed to update tube');
     }
   }
 
@@ -132,7 +134,7 @@ export class TubeController {
       
       res.json(ErrorDto.success({ deleted: true }));
     } catch (error) {
-      this.handleError(error, res, 'Failed to delete tube');
+      handleControllerError(error, res, 'Failed to delete tube');
     }
   }
 
@@ -155,7 +157,7 @@ export class TubeController {
       
       res.json(ErrorDto.success(result));
     } catch (error) {
-      this.handleError(error, res, 'Failed to bulk update tubes');
+      handleControllerError(error, res, 'Failed to bulk update tubes');
     }
   }
 
@@ -177,7 +179,7 @@ export class TubeController {
       
       res.json(ErrorDto.success(tubes));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get tubes by location');
+      handleControllerError(error, res, 'Failed to get tubes by location');
     }
   }
 
@@ -198,7 +200,7 @@ export class TubeController {
       
       res.json(ErrorDto.success(tubes));
     } catch (error) {
-      this.handleError(error, res, 'Failed to get tubes by location');
+      handleControllerError(error, res, 'Failed to get tubes by location');
     }
   }
 
@@ -228,14 +230,14 @@ export class TubeController {
       
       res.json(ErrorDto.success(tubes));
     } catch (error) {
-      this.handleError(error, res, 'Failed to search tubes');
+      handleControllerError(error, res, 'Failed to search tubes');
     }
   }
 
   /**
    * Helper: Extract authenticated user from OAuth 2.0 middleware
    */
-  private getAuthenticatedUser(req: Request): any {
+  private getAuthenticatedUser(req: Request): User {
     const user = req.user;
     if (!user) {
       throw new Error('Authentication required - user not found in request context');
@@ -271,13 +273,4 @@ export class TubeController {
     };
   }
 
-  /**
-   * Helper: Handle errors and send appropriate HTTP response
-   */
-  private handleError(error: any, res: Response, defaultMessage: string): void {
-    logger.error(defaultMessage, error);
-    
-    const errorResponse = ErrorDto.fromDomainError(error);
-    res.status(errorResponse.status).json(errorResponse.response);
-  }
 }

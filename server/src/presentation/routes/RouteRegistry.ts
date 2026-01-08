@@ -78,10 +78,11 @@ export class RouteRegistry {
    * Apply global error handling middleware
    */
   private applyGlobalErrorHandler(): void {
-    this.app.use((error: any, req: Request, res: Response, next: NextFunction) => {
+    this.app.use((error: unknown, req: Request, res: Response, next: NextFunction) => {
+      const err = error instanceof Error ? error : new Error(String(error));
       logger.error('Global error handler triggered', {
-        error: error.message,
-        stack: error.stack,
+        error: err.message,
+        stack: err.stack,
         path: req.path,
         method: req.method,
         userAgent: req.get('User-Agent')
@@ -92,19 +93,22 @@ export class RouteRegistry {
         return next(error);
       }
 
-      // Determine error details
+      // Determine error details with type-safe property access
       const isDevelopment = process.env.NODE_ENV === 'development';
-      const statusCode = error.statusCode || error.status || 500;
-      const errorCode = error.code || 'INTERNAL_SERVER_ERROR';
-      
+      const errorObj = error as Record<string, unknown>;
+      const statusCode = typeof errorObj.statusCode === 'number' ? errorObj.statusCode
+        : typeof errorObj.status === 'number' ? errorObj.status : 500;
+      const errorCode = typeof errorObj.code === 'string' ? errorObj.code : 'INTERNAL_SERVER_ERROR';
+      const context = errorObj.context as Record<string, unknown> | undefined;
+
       // Send standardized error response (flat structure matching errorEnvelopeSchema)
       res.status(statusCode).json({
         success: false,
-        error: error.message || 'Internal server error',
+        error: err.message || 'Internal server error',
         code: errorCode,
-        details: error.context || undefined,
+        details: context,
         timestamp: new Date().toISOString(),
-        ...(isDevelopment && { stack: error.stack })
+        ...(isDevelopment && { stack: err.stack })
       });
     });
   }

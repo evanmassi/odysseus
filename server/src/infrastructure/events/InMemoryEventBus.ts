@@ -1,16 +1,20 @@
 /**
  * In-Memory Event Bus Implementation
  *
- * Simple, in-process event bus implementation for single-instance deployments.
- * For distributed systems, this should be replaced with a message queue implementation.
+ * In-process event bus for single-instance deployments.
+ * For distributed systems, replace with a message queue implementation.
  */
 
-import { DomainEvent } from '@domain/events/DomainEvent';
-import { EventBus, EventHandler } from '@application/contracts/EventBus';
+import type { DomainEvent } from '@domain/events/DomainEvent';
+import type { DomainEventMap, DomainEventName } from '@domain/events/DomainEventMap';
+import type { EventBus, EventHandler } from '@application/contracts/EventBus';
 import { logger } from '@utils/logger';
 
+// Internal handler type for storage (runtime can't verify generic types)
+type AnyEventHandler = EventHandler<DomainEvent>;
+
 export class InMemoryEventBus implements EventBus {
-  private handlers = new Map<string, EventHandler<any>[]>();
+  private handlers = new Map<string, AnyEventHandler[]>();
   private isProcessing = false;
   private eventQueue: DomainEvent[] = [];
 
@@ -116,9 +120,12 @@ export class InMemoryEventBus implements EventBus {
     });
   }
 
-  subscribe<T extends DomainEvent>(eventName: string, handler: EventHandler<T>): void {
+  subscribe<K extends DomainEventName>(
+    eventName: K,
+    handler: EventHandler<DomainEventMap[K]>
+  ): void {
     const existingHandlers = this.handlers.get(eventName) || [];
-    existingHandlers.push(handler);
+    existingHandlers.push(handler as AnyEventHandler);
     this.handlers.set(eventName, existingHandlers);
 
     const handlerName = typeof handler === 'function' ? handler.name : handler.constructor.name;
@@ -129,7 +136,10 @@ export class InMemoryEventBus implements EventBus {
     });
   }
 
-  unsubscribe<T extends DomainEvent>(eventName: string, handler: EventHandler<T>): void {
+  unsubscribe<K extends DomainEventName>(
+    eventName: K,
+    handler: EventHandler<DomainEventMap[K]>
+  ): void {
     const existingHandlers = this.handlers.get(eventName) || [];
     const updatedHandlers = existingHandlers.filter(h => h !== handler);
 

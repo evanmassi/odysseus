@@ -10,7 +10,7 @@ export class ValidationError extends DomainError {
 
   constructor(
     message: string,
-    context?: Record<string, any>
+    context?: Record<string, unknown>
   ) {
     super(message, context);
   }
@@ -18,14 +18,14 @@ export class ValidationError extends DomainError {
   /**
    * Create validation error for a specific field
    */
-  static forField(fieldName: string, message: string, value?: any): ValidationError {
+  static forField(fieldName: string, message: string, value?: unknown): ValidationError {
     return new ValidationError(message, { field: fieldName, value });
   }
 
   /**
    * Create validation error for multiple fields
    */
-  static forFields(errors: Array<{ field: string; message: string; value?: any }>): ValidationError {
+  static forFields(errors: Array<{ field: string; message: string; value?: unknown }>): ValidationError {
     const messages = errors.map(e => `${e.field}: ${e.message}`).join('; ');
     return new ValidationError(`Multiple validation errors: ${messages}`, { errors });
   }
@@ -40,10 +40,10 @@ export class ValidationError extends DomainError {
   /**
    * Create validation error for invalid format
    */
-  static invalidFormat(fieldName: string, expectedFormat: string, actualValue?: any): ValidationError {
+  static invalidFormat(fieldName: string, expectedFormat: string, actualValue?: unknown): ValidationError {
     return ValidationError.forField(
-      fieldName, 
-      `${fieldName} must be in format: ${expectedFormat}`, 
+      fieldName,
+      `${fieldName} must be in format: ${expectedFormat}`,
       actualValue
     );
   }
@@ -51,10 +51,10 @@ export class ValidationError extends DomainError {
   /**
    * Create validation error for out of range values
    */
-  static outOfRange(fieldName: string, min: number, max: number, actualValue?: any): ValidationError {
+  static outOfRange(fieldName: string, min: number, max: number, actualValue?: unknown): ValidationError {
     return ValidationError.forField(
-      fieldName, 
-      `${fieldName} must be between ${min} and ${max}`, 
+      fieldName,
+      `${fieldName} must be between ${min} and ${max}`,
       actualValue
     );
   }

@@ -23,6 +23,7 @@ import {
   RackUnassignedEvent,
   RackReassignedEvent
 } from '@domain/events/ConfigurationEvents';
+import type { FieldChange } from '@domain/types/FieldChange';
 
 // COMMAND INTERFACES
 
@@ -166,7 +167,7 @@ export class UpdateRackCommandHandler {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
-    const changes: { field: string; oldValue: any; newValue: any }[] = [];
+    const changes: FieldChange[] = [];
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
     const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);

@@ -1,4 +1,4 @@
-import { Router, RequestHandler } from 'express';
+import { Router, RequestHandler, Request, Response, NextFunction } from 'express';
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
@@ -404,10 +404,10 @@ export class ConfigurationRouteModule implements RouteModule {
    * Require admin permission middleware
    * Ensures only admin users can access admin configuration endpoints
    */
-  private async requireAdminPermission(req: any, res: any, next: any): Promise<void> {
+  private async requireAdminPermission(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = req.user;
-      
+
       if (!user) {
         res.status(401).json({
           error: {
@@ -429,7 +429,7 @@ export class ConfigurationRouteModule implements RouteModule {
       }
 
       next();
-      
+
     } catch (error) {
       logger.error('Admin permission check failed:', { error });
       res.status(500).json({
@@ -446,31 +446,31 @@ export class ConfigurationRouteModule implements RouteModule {
   /**
    * Export current configuration as downloadable JSON
    */
-  private async exportConfiguration(req: any, res: any): Promise<void> {
+  private async exportConfiguration(req: Request, res: Response): Promise<void> {
     try {
       // Get current configuration through controller
       // This is a simplified approach - in a full implementation,
       // you'd inject the query handler directly
-      const mockRequest = { user: req.user } as any;
+      const mockRequest = { user: req.user } as Request;
       const mockResponse = {
-        json: (data: any) => data,
+        json: (data: unknown) => data,
         status: () => mockResponse
-      } as any;
+      } as unknown as Response;
 
       await this.configurationController.getCurrentConfiguration(mockRequest, mockResponse);
-      
+
       // Set headers for file download
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', 
+      res.setHeader('Content-Disposition',
         `attachment; filename="odysseus-config-${new Date().toISOString().split('T')[0]}.json"`);
-      
+
       // Return configuration data
       res.json({
         exported: new Date().toISOString(),
         version: 'current',
         configuration: mockResponse.json
       });
-      
+
     } catch (error) {
       logger.error('Configuration export failed:', { error });
       res.status(500).json({

@@ -5,7 +5,7 @@
  * These routes are for user management, system configuration, and admin tools.
  */
 
-import { Router, RequestHandler } from 'express';
+import { Router, RequestHandler, Request, Response } from 'express';
 import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
@@ -206,7 +206,7 @@ export class AdminRouteModule implements RouteModule {
     );
   }
 
-  private async getDatabaseStatus(req: any, res: any): Promise<void> {
+  private async getDatabaseStatus(_req: Request, res: Response): Promise<void> {
     res.json({
       success: true,
       data: {

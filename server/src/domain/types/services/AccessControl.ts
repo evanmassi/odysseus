@@ -10,7 +10,7 @@
 export interface AccessResult {
   allowed: boolean;
   reason: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 /**

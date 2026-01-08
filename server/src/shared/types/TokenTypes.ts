@@ -52,10 +52,24 @@ export interface AccessTokenPayload {
 }
 
 /**
+ * User public data (from User.toPublicData())
+ */
+export interface UserPublicData {
+  id: string;
+  username: string;
+  role: 'admin' | 'user';
+  createdAt: string;
+  lastActivity: string;
+  status: 'pending' | 'approved' | 'rejected';
+  researcherId?: string;
+  personId?: string;
+}
+
+/**
  * Enhanced login response (backward compatible)
  */
 export interface EnhancedLoginResponse {
-  user: any;                // User public data
+  user: UserPublicData;
   sessionToken: string;     // Legacy field (populated from accessToken)
   tokens: TokenPair;        // New token pair
 }

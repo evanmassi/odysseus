@@ -131,9 +131,9 @@ export class SearchUsersQueryHandler implements QueryHandler<SearchUsersQuery, P
     const pagination = query.searchParams.pagination;
     if (pagination?.sortBy) {
       filteredUsers.sort((a, b) => {
-        let aValue: any;
-        let bValue: any;
-        
+        let aValue: string | Date;
+        let bValue: string | Date;
+
         switch (pagination.sortBy) {
           case 'username':
             aValue = a.username;

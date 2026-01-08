@@ -278,8 +278,8 @@ export interface DomainEvent {
   eventType: string;
   timestamp: Date;
   version: number;
-  data: any;
-  metadata?: Record<string, any>;
+  data: unknown;
+  metadata?: Record<string, unknown>;
 }
 
 /**

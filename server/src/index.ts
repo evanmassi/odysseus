@@ -1,5 +1,5 @@
 import express from 'express';
-import { createServer } from 'http';
+import { createServer, Server } from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -11,6 +11,8 @@ import { logger } from '@utils/logger';
 import { featureFlags, FEATURES } from '@utils/featureFlags';
 import { validateBody, validateParams, sanitizeStrings } from '@middleware/Validation';
 import { z } from 'zod';
+import type { AuditEntry } from '@interfaces/DatabaseProvider';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 // Load environment variables from appropriate file
 // Resolve from project root (works for both tsx and compiled dist)
@@ -22,7 +24,7 @@ dotenv.config({ path: path.join(serverRoot, envFile) });
 
 class OdysseusServer {
   private app: express.Application;
-  private server: any;
+  private server: Server;
   private io!: SocketIOServer;
   private repositoryFactory!: RepositoryFactory;
   private serviceContainer!: ServiceContainer;
@@ -165,11 +167,12 @@ class OdysseusServer {
     }
 
   private setupErrorHandling(): void {
-    this.app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    this.app.use((error: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
       logger.error('Server error:', error);
-      res.status(500).json({ 
+      const message = error instanceof Error ? error.message : undefined;
+      res.status(500).json({
         error: 'Internal server error',
-        message: process.env.NODE_ENV === 'development' ? error.message : undefined
+        message: process.env.NODE_ENV === 'development' ? message : undefined
       });
     });
 
@@ -208,7 +211,7 @@ class OdysseusServer {
       }
 
       // TODO: Implement audit trail with repositories
-      const auditEntries: any[] = [];
+      const auditEntries: AuditEntry[] = [];
       res.json({ success: true, auditEntries });
     } catch (error) {
       logger.error('Error fetching audit trail:', error);
@@ -227,7 +230,7 @@ class OdysseusServer {
       }
 
       // TODO: Implement advanced search with repositories
-      const results: any[] = [];
+      const results: TubeData[] = [];
       
       res.json({ success: true, results, total: results.length });
     } catch (error) {

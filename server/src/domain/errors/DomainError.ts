@@ -8,11 +8,11 @@ export abstract class DomainError extends Error {
 
   constructor(
     message: string,
-    public readonly context?: Record<string, any>
+    public readonly context?: Record<string, unknown>
   ) {
     super(message);
     this.name = this.constructor.name;
-    
+
     // Maintains proper stack trace for where error was thrown (V8 only)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
@@ -26,7 +26,7 @@ export abstract class DomainError extends Error {
     error: string;
     code: string;
     message: string;
-    context?: Record<string, any>;
+    context?: Record<string, unknown>;
   } {
     return {
       error: this.name,

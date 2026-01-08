@@ -9,7 +9,7 @@ import { logger } from '@utils/logger';
 export interface ValidationError {
   field: string;
   message: string;
-  received?: any;
+  received?: unknown;
 }
 
 /**
@@ -148,7 +148,7 @@ export const validateQuery = (schema: z.ZodSchema) => {
  */
 export const sanitizeStrings = (req: Request, res: Response, next: NextFunction): void => {
   try {
-    const sanitizeValue = (value: any): any => {
+    const sanitizeValue = (value: unknown): unknown => {
       if (typeof value === 'string') {
         // Remove potentially dangerous HTML/JS
         return value
@@ -158,9 +158,9 @@ export const sanitizeStrings = (req: Request, res: Response, next: NextFunction)
       }
 
       if (typeof value === 'object' && value !== null) {
-        const sanitized: any = Array.isArray(value) ? [] : {};
+        const sanitized: Record<string, unknown> | unknown[] = Array.isArray(value) ? [] : {};
         for (const key in value) {
-          sanitized[key] = sanitizeValue(value[key]);
+          (sanitized as Record<string, unknown>)[key] = sanitizeValue((value as Record<string, unknown>)[key]);
         }
         return sanitized;
       }

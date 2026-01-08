@@ -337,8 +337,9 @@ export class Box {
 
     try {
       return labelToPosition(label, this._gridConfig.rows, this._gridConfig.cols, config);
-    } catch (error: any) {
-      throw new ValidationError(`Invalid position label: ${error.message}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new ValidationError(`Invalid position label: ${message}`);
     }
   }
 

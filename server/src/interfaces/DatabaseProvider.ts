@@ -24,7 +24,7 @@ export type UserData = {
   role: 'admin' | 'user';
   createdAt: string;
   lastActivity: string;
-  __metadata?: any;
+  __metadata?: Record<string, unknown>;
 };
 
 export type ResearcherData = {
@@ -32,7 +32,7 @@ export type ResearcherData = {
   name: string;
   active: boolean;
   createdAt: string;
-  __metadata?: any;
+  __metadata?: Record<string, unknown>;
 };
 
 export interface SyncMetadata {
@@ -50,7 +50,7 @@ export interface QueryOptions {
   offset?: number;
   orderBy?: string;
   orderDirection?: 'ASC' | 'DESC';
-  filters?: any; // Search filters from frontend
+  filters?: Record<string, unknown>;
 }
 
 export interface DatabaseMetrics {
@@ -70,11 +70,11 @@ export interface AuditEntry {
   entityType: 'tube' | 'researcher' | 'user';
   entityId: string;
   operation: 'create' | 'update' | 'delete';
-  oldValues?: any;
-  newValues?: any;
+  oldValues?: Record<string, unknown>;
+  newValues?: Record<string, unknown>;
   userId?: string;
   timestamp: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface BulkUpdateResult {
@@ -152,5 +152,5 @@ export interface VerificationResult {
   tubesMatch: boolean;
   researchersMatch: boolean;
   usersMatch: boolean;
-  details: Record<string, any>;
+  details: Record<string, unknown>;
 }

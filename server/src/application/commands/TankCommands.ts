@@ -17,6 +17,7 @@ import {
   TankUpdatedEvent,
   TankDeletedEvent
 } from '@domain/events/ConfigurationEvents';
+import type { FieldChange } from '@domain/types/FieldChange';
 
 // COMMAND INTERFACES
 
@@ -120,7 +121,7 @@ export class UpdateTankCommandHandler {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    const changes: { field: string; oldValue: any; newValue: any }[] = [];
+    const changes: FieldChange[] = [];
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
 
