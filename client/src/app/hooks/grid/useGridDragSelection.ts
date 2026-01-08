@@ -9,7 +9,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { getGridTotalPositions } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
-import { toPositionKey, type PositionContext, type PositionKey } from '@shared/types/Grid';
+import { toPositionKey, type PositionContext, type PositionKey } from '@shared/types/GridSelection';
 import { getPositionsInRectangle, positionToCoordinates } from '@shared/utils/coordinates';
 
 import type { GridConfiguration } from '@odysseus/shared-schemas';

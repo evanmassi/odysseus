@@ -15,6 +15,20 @@ export class UserAlreadyExistsError extends DomainError {
   }
 }
 
+export class EmailAlreadyExistsError extends DomainError {
+  readonly code = 'EMAIL_ALREADY_EXISTS';
+  readonly statusCode = 409;
+
+  constructor(email?: string) {
+    super(
+      email
+        ? `Email '${email}' is already in use`
+        : 'Email is already in use',
+      email ? { email } : {}
+    );
+  }
+}
+
 export class UserNotFoundError extends DomainError {
   readonly code = 'USER_NOT_FOUND';
   readonly statusCode = 404;

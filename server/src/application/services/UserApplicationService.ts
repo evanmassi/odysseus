@@ -12,9 +12,8 @@ import { RegisterWithResearcherRequest, PasswordValidator } from '@odysseus/shar
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
+import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
 import { nanoid } from 'nanoid';
-import { isDatabaseConstraintError, isEmailConstraintError } from '@infrastructure/database/DatabaseErrors';
-import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import type { EventBus } from '@application/contracts/EventBus';
 import {
   UserLinkedToResearcherEvent,
@@ -36,7 +35,6 @@ export class UserApplicationService {
     private personRepository?: PersonRepository,
     private researcherRepository?: ResearcherRepository,
     private configurationRepository?: ConfigurationRepository,
-    private context?: PostgresContext,
     private eventBus?: EventBus
   ) {}
 
@@ -448,10 +446,6 @@ export class UserApplicationService {
     // Generate unique username from provided name
     const username = await this.generateUsername(request.firstName, request.lastName);
 
-    if (!this.context) {
-      throw new Error('Database context is required for this operation');
-    }
-
     // 1. Create Person entity (single source of truth for profile data)
     const person = Person.create(
       request.firstName,
@@ -504,7 +498,7 @@ export class UserApplicationService {
       await this.userRepository.save(user);
     } catch (error) {
       // Handle race condition: Another user registered with same email between our check and save
-      if (isEmailConstraintError(error)) {
+      if (error instanceof EmailAlreadyExistsError) {
         throw new ValidationError(
           'Email already in use. Try another or contact your administrator.'
         );

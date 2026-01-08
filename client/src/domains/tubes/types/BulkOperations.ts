@@ -1,7 +1,7 @@
 /**
  * Bulk Operations Types
  */
-import type { TubeData } from './Tube';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 export interface BulkUpdateItem {
   id: string;

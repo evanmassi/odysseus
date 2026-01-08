@@ -15,8 +15,12 @@ import { queryKeys } from '@app/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
 import { logger } from '@shared/infrastructure/logger';
 
-import type { TubeData, CreateTubeRequest, UpdateTubeRequest } from '@domains/tubes/types';
-import type { BulkUpdateResult } from '@shared/types/BulkOperations';
+import type {
+  TubeData,
+  CreateTubeRequest,
+  UpdateTubeRequest,
+  BulkUpdateResult,
+} from '@domains/tubes/types';
 
 // MUTATION HOOKS (WRITE OPERATIONS)
 

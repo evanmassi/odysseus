@@ -996,7 +996,6 @@ export class ServiceContainer {
         repositories.persons,
         repositories.researchers,
         repositories.configurations,
-        this.repositoryFactory.getPostgresContext(),
         this.getEventBus()
       );
     }

@@ -2,7 +2,7 @@ import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { create } from 'zustand';
 
 import { useTubeStore } from '@domains/tubes';
-import { toPositionKey } from '@shared/types/Grid';
+import { toPositionKey } from '@shared/types/GridSelection';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { SearchFilters } from '@odysseus/shared-schemas';

@@ -3,4 +3,4 @@
  */
 
 export * from './services';
-export * from '@shared/types/GridTypes';
+export * from '@shared/types/GridLayout';

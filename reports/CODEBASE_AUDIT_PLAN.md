@@ -98,9 +98,9 @@
 
 | Priority | File | Line | Issue | Fix | Status |
 |----------|------|------|-------|-----|--------|
-| **High** | UserApplicationService.ts | 16-17 | Imports @infrastructure/database/DatabaseErrors | Create domain contract | ⏸️ DEFERRED |
-| **High** | UserApplicationService.ts | 39 | Uses PostgresContext directly | Inject via interface | ⏸️ DEFERRED |
-| **High** | AuditRetentionService.ts | 4, 47 | Imports AuditArchiveRepository from @infrastructure | Create domain interface | ⏸️ DEFERRED |
+| **High** | UserApplicationService.ts | 16-17 | Imports @infrastructure/database/DatabaseErrors | Moved error handling to repository | ✅ FIXED |
+| **High** | UserApplicationService.ts | 39 | Uses PostgresContext directly | Removed (was dead code) | ✅ FIXED |
+| **High** | AuditRetentionService.ts | 4, 47 | Imports AuditArchiveRepository from @infrastructure | Created domain interface | ✅ FIXED |
 | Medium | UserCommands.ts | 173 | Uses console.log | Use logger | ✅ FIXED |
 
 ---
@@ -364,7 +364,7 @@ These are imported by multiple domains, so they belong in shared.
 | Area | Status | Notes |
 |------|--------|-------|
 | Structure | [x] | Complete: hooks, services, types, ui, stores |
-| Architecture | [!] | **VIOLATION**: Imports from tubes domain |
+| Architecture | [x] | ✅ Fixed - no longer imports from tubes domain |
 
 ---
 
@@ -638,21 +638,21 @@ These are imported by multiple domains, so they belong in shared.
 
 ---
 
-#### Unused Hooks Found
+#### ~~Unused Hooks Found~~ ✅ CLEANED UP
 
-| Hook | File | Status |
-|------|------|--------|
-| `useTabOrder` | `client/src/shared/hooks/keyboard/useTabOrder.ts` | UNUSED - never imported |
-| `useFormTabOrder` | `client/src/shared/hooks/keyboard/useTabOrder.ts` | UNUSED - never imported |
-| `useSkipLinks` | `client/src/shared/hooks/keyboard/useFocusTrap.ts` | TODO placeholder - not implemented |
-| `useDropdownFocusTrap` | `client/src/shared/hooks/keyboard/useFocusTrap.ts` | UNUSED - never imported |
-| `useFocusRestore` | `client/src/shared/hooks/keyboard/useFocusTrap.ts` | UNUSED - only self-referenced |
+All unused hooks have been removed:
 
-#### Duplicate Hook Implementation
+| Hook | Status |
+|------|--------|
+| `useTabOrder` | ✅ Removed |
+| `useFormTabOrder` | ✅ Removed |
+| `useSkipLinks` | ✅ Removed |
+| `useDropdownFocusTrap` | ✅ Removed |
+| `useFocusRestore` | ✅ Removed |
 
-| Hook | Location 1 | Location 2 | Notes |
-|------|-----------|-----------|-------|
-| `useFocusTrap` | `shared/hooks/useFocusTrap.ts` (148 lines) | `shared/hooks/keyboard/useFocusTrap.ts` (181 lines) | Simpler version is used, complex version unused |
+**Remaining hooks are all actively used:**
+- `useFocusTrap.ts` - used by 7 modal components
+- `keyboard/` directory - exports only used hooks (useKeyboardNavigation, useModalKeyboardNav, etc.)
 
 ---
 
@@ -709,20 +709,12 @@ These are imported by multiple domains, so they belong in shared.
 
 ---
 
-#### ID Generation Duplication (HIGH PRIORITY)
+#### ~~ID Generation Duplication~~ ✅ FIXED
 
-All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(36).substring(2, 11)`
+**Previously:** All files used same pattern: `prefix + Date.now() + '_' + Math.random().toString(36).substring(2, 11)`
 
-| Entity File | Line | Prefix |
-|-------------|------|--------|
-| `server/src/domain/entities/User.ts` | 230 | `user_` |
-| `server/src/domain/entities/Person.ts` | 62 | `person_` |
-| `server/src/domain/entities/Researcher.ts` | 49 | `researcher_` |
-| `server/src/domain/entities/UserSession.ts` | 88 | `session_` |
-| `server/src/domain/entities/RefreshToken.ts` | 84 | `refresh_` |
-| `server/src/infrastructure/repositories/ConfigurationRepository.ts` | 452 | `snapshot-` |
-
-**Recommendation:** Create `server/src/domain/services/IdGenerator.ts` to centralize
+**Fix applied:** Created `server/src/domain/utils/generateId.ts` using `nanoid` for cryptographically strong randomness. All 6 entities now import from this centralized utility:
+- User.ts, Person.ts, Researcher.ts, UserSession.ts, RefreshToken.ts, Tube.ts
 
 ---
 
@@ -775,18 +767,18 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 
 | Category | Count | Priority | Status |
 |----------|-------|----------|--------|
-| Unused hooks | 5 | Medium | ⏸️ Can safely remove |
+| Unused hooks | 5 | Medium | ✅ REMOVED |
 | Unused dependencies | 4-7 | Medium | ⏸️ Can safely remove |
 | Commented-out code | ~17 blocks | Low | ⏸️ Clean up |
-| Duplicate hook | 1 | Low | ⏸️ Remove complex version |
+| Duplicate hook | 1 | Low | ✅ REMOVED (complex version) |
 
 ### Duplicate Logic Found
 
-| Pattern | Priority | Recommendation |
-|---------|----------|----------------|
-| ID generation (6 files) | HIGH | Create IdGenerator service |
-| Date formatting (2 modules) | Medium | Complete migration to dateUtils |
-| String validation (5+ entities) | Medium | Create utility service |
+| Pattern | Priority | Recommendation | Status |
+|---------|----------|----------------|--------|
+| ID generation (6 files) | HIGH | Create IdGenerator service | ✅ FIXED |
+| Date formatting (2 modules) | Medium | Complete migration to dateUtils | ⏸️ DEFERRED |
+| String validation (5+ entities) | Medium | Create utility service | ⏸️ DEFERRED |
 
 ### Safe Cleanup Actions
 
@@ -800,10 +792,10 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 **Can Remove (Deferred):**
 1. Redundant `@types/bcrypt`, `@types/jsonwebtoken` from server (needs verification)
 2. Commented-out code blocks (after review)
-3. Unused hooks from `keyboard/` directory
+3. ~~Unused hooks from `keyboard/` directory~~ ✅ REMOVED
 
 **Requires Refactoring:**
-1. ID generation centralization
+1. ~~ID generation centralization~~ ✅ FIXED (using nanoid)
 2. Date formatting module consolidation
 3. String utility extraction
 
@@ -1026,7 +1018,7 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 
 | Item | Reason | Status |
 |------|--------|--------|
-| Authentication→Tubes coupling | Needs refactoring to remove tubes store dependency | ⏸️ DEFERRED |
+| Authentication→Tubes coupling | Moved logout orchestration to AppBootstrapService via subscription | ✅ FIXED |
 | SearchResults over-coupling | Needs facade pattern or data restructuring | ⏸️ DEFERRED |
 | Utility placement | Move shared utilities from storage/utils to shared/utils | ⏸️ DEFERRED |
 | TypeScript `any` usage | Case-by-case review completed | ✅ COMPLETE (see Phase 5.3) |
@@ -1057,13 +1049,13 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 
 ### Deferred Items
 
-| Item | Reason |
-|------|--------|
-| Unused hooks (5) | Need to update barrel exports |
-| @types/bcrypt, @types/jsonwebtoken | Need to verify if main packages include types |
-| Commented-out code (~17 blocks) | Need individual review |
-| ID generation centralization | Requires new service creation |
-| Date formatting consolidation | Need to update 34+ files |
+| Item | Reason | Status |
+|------|--------|--------|
+| Unused hooks (5) | Removed all unused hooks | ✅ FIXED |
+| @types/bcrypt, @types/jsonwebtoken | Verified: main packages don't include types, @types ARE needed | ✅ VERIFIED (keep) |
+| Commented-out code (~17 blocks) | Need individual review | ⏸️ DEFERRED |
+| ID generation centralization | Created generateId.ts with nanoid | ✅ FIXED |
+| Date formatting consolidation | Need to update 34+ files | ⏸️ DEFERRED |
 
 ---
 

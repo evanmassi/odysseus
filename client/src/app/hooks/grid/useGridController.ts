@@ -20,7 +20,7 @@ import { useMemo, useState, useCallback } from 'react';
 import { useModalStore } from '@app/stores/modalStore';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey, parsePositionKey } from '@shared/types/Grid';
+import { toPositionKey, parsePositionKey } from '@shared/types/GridSelection';
 import { notifications } from '@shared/utils/notifications';
 import {
   canModifyTube,
@@ -31,7 +31,7 @@ import {
 import { useGridClipboard } from './useGridClipboard';
 import { useGridSelection } from './useGridSelection';
 
-import type { GridControllerProps, GridControllerReturn } from '@shared/types/Grid';
+import type { GridControllerProps, GridControllerReturn } from '@shared/types/GridSelection';
 
 export const useGridController = ({
   tankId,

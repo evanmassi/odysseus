@@ -47,7 +47,7 @@ import {
 import { useTubesQuery, useTubeQuery } from '@domains/tubes/hooks/useTubesQuery';
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
 import { logger } from '@shared/infrastructure/logger';
-import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/Grid';
+import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';

@@ -3,6 +3,7 @@
  * All types from shared schemas
  */
 
+export * from './BulkOperations';
 export * from './FieldResolver';
 export * from './colorSystemTypes';
 

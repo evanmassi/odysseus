@@ -1,7 +1,7 @@
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 
 import { useTubeStore } from '@domains/tubes';
-import { toPositionKey } from '@shared/types/Grid';
+import { toPositionKey } from '@shared/types/GridSelection';
 
 import { groupTubesByRelevance } from '../lib/searchUtils';
 

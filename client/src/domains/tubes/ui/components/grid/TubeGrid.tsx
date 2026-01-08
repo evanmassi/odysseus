@@ -10,14 +10,14 @@ import {
 import { useStorageData, getGridTotalPositions } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey } from '@shared/types/Grid';
+import { toPositionKey } from '@shared/types/GridSelection';
 
 import { ContextMenu } from '../../../../../shared/ui/primitives/shared/ContextMenu';
 
 import { GridPosition } from './GridPosition';
 
 import type { TubeData } from '@domains/tubes/types';
-import type { PositionKey, GridControllerReturn, LockContext } from '@shared/types/Grid';
+import type { PositionKey, GridControllerReturn, LockContext } from '@shared/types/GridSelection';
 
 /**
  * TubeGrid Props Interface

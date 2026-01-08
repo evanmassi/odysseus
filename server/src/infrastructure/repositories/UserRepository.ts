@@ -1,7 +1,9 @@
 import { UserRepository as IUserRepository } from '@domain/repositories/UserRepository';
 import type { UserRepositoryStats, UserSearchCriteria } from '@domain/types/repository';
 import { User } from '@domain/entities/User';
+import { EmailAlreadyExistsError } from '@domain/errors/UserErrors';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
+import { isEmailConstraintError } from '@infrastructure/database/DatabaseErrors';
 import { UserMapper, UserRow } from '@infrastructure/database/mappers/UserMapper';
 import * as crypto from 'crypto';
 
@@ -134,37 +136,45 @@ export class UserRepository implements IUserRepository {
   async save(user: User): Promise<void> {
     const row = UserMapper.toRow(user);
 
-    await this.context.execute(`
-      INSERT INTO users (
-        id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
-        email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
-        password_reset_token, password_reset_expiry, require_password_change, last_password_change, settings
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
-      ON CONFLICT (id) DO UPDATE SET
-        username = EXCLUDED.username,
-        api_key = EXCLUDED.api_key,
-        role = EXCLUDED.role,
-        password_hash = EXCLUDED.password_hash,
-        salt = EXCLUDED.salt,
-        created_at = EXCLUDED.created_at,
-        researcher_id = EXCLUDED.researcher_id,
-        person_id = EXCLUDED.person_id,
-        status = EXCLUDED.status,
-        email_verified = EXCLUDED.email_verified,
-        email_verification_token = EXCLUDED.email_verification_token,
-        email_verification_expiry = EXCLUDED.email_verification_expiry,
-        last_verification_email_sent = EXCLUDED.last_verification_email_sent,
-        password_reset_token = EXCLUDED.password_reset_token,
-        password_reset_expiry = EXCLUDED.password_reset_expiry,
-        require_password_change = EXCLUDED.require_password_change,
-        last_password_change = EXCLUDED.last_password_change,
-        settings = EXCLUDED.settings
-    `, [
-      row.id, row.username, row.api_key, row.role, row.password_hash, row.salt, row.created_at,
-      row.researcher_id, row.person_id, row.status, row.email_verified, row.email_verification_token,
-      row.email_verification_expiry, row.last_verification_email_sent, row.password_reset_token,
-      row.password_reset_expiry, row.require_password_change, row.last_password_change, row.settings
-    ]);
+    try {
+      await this.context.execute(`
+        INSERT INTO users (
+          id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
+          email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
+          password_reset_token, password_reset_expiry, require_password_change, last_password_change, settings
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+        ON CONFLICT (id) DO UPDATE SET
+          username = EXCLUDED.username,
+          api_key = EXCLUDED.api_key,
+          role = EXCLUDED.role,
+          password_hash = EXCLUDED.password_hash,
+          salt = EXCLUDED.salt,
+          created_at = EXCLUDED.created_at,
+          researcher_id = EXCLUDED.researcher_id,
+          person_id = EXCLUDED.person_id,
+          status = EXCLUDED.status,
+          email_verified = EXCLUDED.email_verified,
+          email_verification_token = EXCLUDED.email_verification_token,
+          email_verification_expiry = EXCLUDED.email_verification_expiry,
+          last_verification_email_sent = EXCLUDED.last_verification_email_sent,
+          password_reset_token = EXCLUDED.password_reset_token,
+          password_reset_expiry = EXCLUDED.password_reset_expiry,
+          require_password_change = EXCLUDED.require_password_change,
+          last_password_change = EXCLUDED.last_password_change,
+          settings = EXCLUDED.settings
+      `, [
+        row.id, row.username, row.api_key, row.role, row.password_hash, row.salt, row.created_at,
+        row.researcher_id, row.person_id, row.status, row.email_verified, row.email_verification_token,
+        row.email_verification_expiry, row.last_verification_email_sent, row.password_reset_token,
+        row.password_reset_expiry, row.require_password_change, row.last_password_change, row.settings
+      ]);
+    } catch (error) {
+      // Translate database-specific errors to domain errors
+      if (isEmailConstraintError(error)) {
+        throw new EmailAlreadyExistsError();
+      }
+      throw error;
+    }
   }
 
   async delete(id: string): Promise<boolean> {

@@ -1,5 +1,6 @@
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { PaginatedResult } from '@domain/types/repository';
+import type { AuditArchiveRepository as IAuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@utils/logger';
 
@@ -26,7 +27,7 @@ interface AuditArchiveRow {
  * Data access layer for archived audit logs (warm storage).
  * Minimal indexes for basic timestamp/user queries only.
  */
-export class AuditArchiveRepository {
+export class AuditArchiveRepository implements IAuditArchiveRepository {
   constructor(private context: PostgresContext) {}
 
   /**

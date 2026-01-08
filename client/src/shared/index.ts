@@ -16,10 +16,6 @@ export type {
   APIResponse as ApiResponse,
   TubeAPIResponse,
   QueryOptions,
-  // Bulk operations
-  BulkUpdateProgress,
-  BulkUpdateResult,
-  BulkUpdateError,
   // Tube types - specific exports to avoid conflicts
   TubeLocation,
   TubeSample,
@@ -51,4 +47,4 @@ export * from './ui';
 // Client-side validation schemas - REMOVED (migrated to @odysseus/shared-schemas)
 
 // Grid utilities
-export * from './types/GridTypes';
+export * from './types/GridLayout';

@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { type PositionKey } from '@shared/types/Grid';
+import { type PositionKey } from '@shared/types/GridSelection';
 
 // Grid position interface
 export interface GridPosition {

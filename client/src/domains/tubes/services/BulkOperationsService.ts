@@ -13,7 +13,7 @@ import type {
   BulkUpdateError,
   BulkProgressCallback,
   BulkUpdateResult,
-} from '@shared/types/BulkOperations';
+} from '@domains/tubes/types';
 
 /**
  * Bulk operations service using httpClient

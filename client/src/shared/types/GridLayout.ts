@@ -58,18 +58,15 @@ export interface GridRenderingOptions {
 
 // Grid calculation utilities
 export const calculateGridPosition = (
-  index: number, 
+  index: number,
   columns: number
 ): { row: number; column: number } => ({
   row: Math.floor(index / columns) + 1,
-  column: (index % columns) + 1
+  column: (index % columns) + 1,
 });
 
-export const calculateGridIndex = (
-  row: number, 
-  column: number, 
-  columns: number
-): number => (row - 1) * columns + (column - 1);
+export const calculateGridIndex = (row: number, column: number, columns: number): number =>
+  (row - 1) * columns + (column - 1);
 
 export const createGridLayout = (
   id: string,
@@ -87,7 +84,7 @@ export const createGridLayout = (
       isValid: true,
       isOccupied: false,
       isSelected: false,
-      isHighlighted: false
+      isHighlighted: false,
     };
   });
 
@@ -102,7 +99,7 @@ export const createGridLayout = (
     selectionColor: '#1d4ed8',
     occupiedColor: '#10b981',
     emptyColor: '#f8fafc',
-    ...displaySettings
+    ...displaySettings,
   };
 
   return {
@@ -115,17 +112,17 @@ export const createGridLayout = (
       width: 0, // Will be calculated during rendering
       height: 0,
       cellSize: 0,
-      gap: 2
+      gap: 2,
     },
-    displaySettings: defaultDisplaySettings
+    displaySettings: defaultDisplaySettings,
   };
 };
 
 // Grid validation utilities
 export const isValidGridPosition = (
-  row: number, 
-  column: number, 
-  maxRows: number, 
+  row: number,
+  column: number,
+  maxRows: number,
   maxColumns: number
 ): boolean => {
   return row >= 1 && row <= maxRows && column >= 1 && column <= maxColumns;
@@ -144,12 +141,12 @@ export class GridLayoutEngine {
     columns: number,
     gap: number = 2
   ): number {
-    const availableWidth = containerWidth - (gap * (columns - 1));
-    const availableHeight = containerHeight - (gap * (rows - 1));
-    
+    const availableWidth = containerWidth - gap * (columns - 1);
+    const availableHeight = containerHeight - gap * (rows - 1);
+
     const cellWidthFromContainer = availableWidth / columns;
     const cellHeightFromContainer = availableHeight / rows;
-    
+
     // Use the smaller dimension to maintain square cells
     return Math.min(cellWidthFromContainer, cellHeightFromContainer);
   }
@@ -162,12 +159,12 @@ export class GridLayoutEngine {
   ): GridDimensions {
     const width = columns * cellSize + (columns - 1) * gap;
     const height = rows * cellSize + (rows - 1) * gap;
-    
+
     return {
       width,
       height,
       cellSize,
-      gap
+      gap,
     };
   }
 
@@ -177,7 +174,7 @@ export class GridLayoutEngine {
     labelStyle: 'numeric' | 'alpha' | 'mixed' = 'mixed'
   ): string[] {
     const labels: string[] = [];
-    
+
     for (let row = 1; row <= rows; row++) {
       for (let col = 1; col <= columns; col++) {
         switch (labelStyle) {
@@ -194,7 +191,7 @@ export class GridLayoutEngine {
         }
       }
     }
-    
+
     return labels;
   }
 }
