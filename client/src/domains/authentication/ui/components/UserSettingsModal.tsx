@@ -6,22 +6,12 @@
  */
 import { useState, useEffect, lazy, Suspense } from 'react';
 
-import {
-  X,
-  Save,
-  RefreshCw,
-  Settings,
-  Table2,
-  UserRound,
-  Shield,
-  AlertTriangle,
-} from 'lucide-react';
+import { Save, RefreshCw, Settings, Table2, UserRound, Shield, AlertTriangle } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
-import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { logger } from '@shared/infrastructure/logger';
-import { ModalPortal } from '@shared/ui/components/ModalPortal';
+import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
 import { useUserSettings, useUserSettingsActions } from '../../hooks/useUserSettings';
@@ -53,13 +43,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   const { settings, isLoading } = useUserSettings();
   const { updateSettings, isSaving } = useUserSettingsActions();
   const modalService = useModalStore();
-
-  // Focus trap (only active when modal is open)
-  const trapRef = useFocusTrap({
-    isOpen,
-    restoreFocus: true,
-    autoFocusFirstInput: false,
-  });
 
   // Load settings when modal opens
   useEffect(() => {
@@ -113,126 +96,98 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     }
   };
 
-  const tabs = [
+  const tabItems = [
     { id: 'account', label: 'Account', icon: UserRound },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'display', label: 'Display Preferences', icon: Table2 },
   ] as const;
 
-  return (
-    <ModalPortal>
-      <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-in fade-in duration-[180ms]">
-        <div
-          ref={trapRef}
-          className="bg-white rounded-2xl shadow-2xl border border-gray-200 w-full max-w-4xl h-[75vh] mx-4 overflow-hidden animate-slide-up-fade flex flex-col"
-        >
-          {/* Header */}
-          <div className="bg-white px-6 py-3 border-b border-gray-200 flex-shrink-0">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <Settings className="w-6 h-6 text-slate-600" />
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800">User Settings</h2>
-                  <p className="text-slate-500 text-xs">Account & Personal Preferences</p>
-                </div>
-              </div>
-              <button
-                onClick={handleClose}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-ring-default"
-                aria-label="Close settings"
-              >
-                <X size={20} />
-              </button>
-            </div>
-          </div>
+  // Vertical sidebar tabs (only rendered if multiple tabs)
+  const tabs =
+    tabItems.length > 1 ? (
+      <nav className="space-y-1">
+        {tabItems.map(tab => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              data-focus="none"
+              className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-slate-100 ${
+                isActive
+                  ? 'border-l-slate-600 bg-slate-50 text-slate-800'
+                  : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+              }`}
+            >
+              <Icon size={18} className={isActive ? 'text-slate-600' : 'text-slate-400'} />
+              <span className="font-medium text-sm">{tab.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    ) : undefined;
 
-          <div className="flex flex-1 min-h-0">
-            {/* Sidebar (only show if multiple tabs in future) */}
-            {tabs.length > 1 && (
-              <div className="w-48 bg-white border-r border-gray-200 py-4">
-                <nav className="space-y-1">
-                  {tabs.map(tab => {
-                    const Icon = tab.icon;
-                    const isActive = activeTab === tab.id;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        data-focus="none"
-                        className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-slate-100 ${
-                          isActive
-                            ? 'border-l-slate-600 bg-slate-50 text-slate-800'
-                            : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-800'
-                        }`}
-                      >
-                        <Icon
-                          size={18}
-                          className={isActive ? 'text-slate-600' : 'text-slate-400'}
-                        />
-                        <span className="font-medium text-sm">{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </nav>
-              </div>
-            )}
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto min-w-0 focus:outline-none">
-              <div className="p-6 min-w-0">
-                {isLoading ? (
-                  <TabSkeleton />
-                ) : (
-                  <>
-                    {activeTab === 'account' && (
-                      <Suspense fallback={<TabSkeleton />}>
-                        <AccountTab onSaveComplete={onClose} />
-                      </Suspense>
-                    )}
-                    {activeTab === 'security' && (
-                      <Suspense fallback={<TabSkeleton />}>
-                        <SecurityTab />
-                      </Suspense>
-                    )}
-                    {activeTab === 'display' && (
-                      <Suspense fallback={<TabSkeleton />}>
-                        <PositionDisplayPreferenceTab
-                          defaultPositionDisplay={localSettings.defaultPositionDisplay}
-                          savedPositionDisplay={originalSettings.defaultPositionDisplay}
-                          onChange={handlePositionDisplayChange}
-                        />
-                      </Suspense>
-                    )}
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="border-t border-gray-200 px-6 py-2.5 bg-white flex-shrink-0">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-center space-x-1.5 text-[11px] text-slate-400 flex-shrink min-w-0">
-                <AlertTriangle size={12} className="flex-shrink-0" />
-                <span className="truncate">These settings apply only to your account.</span>
-              </div>
-              <div className="flex space-x-2 flex-shrink-0">
-                <button onClick={handleClose} className="btn btn-secondary px-6">
-                  Cancel
-                </button>
-                <button
-                  onClick={handleSave}
-                  disabled={isSaving || !hasChanges}
-                  className="btn btn-primary flex items-center space-x-2 text-sm px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-                  <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+  const footer = (
+    <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center space-x-1.5 text-[11px] text-slate-400 flex-shrink min-w-0">
+        <AlertTriangle size={12} className="flex-shrink-0" />
+        <span className="truncate">These settings apply only to your account.</span>
       </div>
-    </ModalPortal>
+      <div className="flex space-x-2 flex-shrink-0">
+        <button onClick={handleClose} className="btn btn-secondary px-6">
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          disabled={isSaving || !hasChanges}
+          className="btn btn-primary flex items-center space-x-2 text-sm px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
+          <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <BaseModal
+      icon={<Settings size={20} />}
+      title="User Settings"
+      subtitle="Account & Personal Preferences"
+      size="lg"
+      animation="slide"
+      tabs={tabs}
+      tabOrientation="vertical"
+      footer={footer}
+      className="h-[75vh]"
+      onClose={handleClose}
+    >
+      {isLoading ? (
+        <TabSkeleton />
+      ) : (
+        <>
+          {activeTab === 'account' && (
+            <Suspense fallback={<TabSkeleton />}>
+              <AccountTab onSaveComplete={onClose} />
+            </Suspense>
+          )}
+          {activeTab === 'security' && (
+            <Suspense fallback={<TabSkeleton />}>
+              <SecurityTab />
+            </Suspense>
+          )}
+          {activeTab === 'display' && (
+            <Suspense fallback={<TabSkeleton />}>
+              <PositionDisplayPreferenceTab
+                defaultPositionDisplay={localSettings.defaultPositionDisplay}
+                savedPositionDisplay={originalSettings.defaultPositionDisplay}
+                onChange={handlePositionDisplayChange}
+              />
+            </Suspense>
+          )}
+        </>
+      )}
+    </BaseModal>
   );
 }

@@ -5,12 +5,14 @@
  * Provides a domain-specific interface for overwrite confirmations.
  */
 
+import type { ReactNode } from 'react';
+
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 
 interface OverwriteConfirmDialogProps {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: ReactNode;
   confirmText?: string;
   onConfirm: () => void;
   onCancel: () => void;

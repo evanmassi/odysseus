@@ -24,7 +24,7 @@ interface DeleteConfirmState {
 interface OverwriteConfirmState {
   isOpen: boolean;
   title: string;
-  message: string;
+  message: ReactNode;
   confirmText?: string;
   onConfirm: () => void;
   onCancel: () => void;
@@ -93,7 +93,7 @@ interface ModalActions {
 
   showOverwriteConfirm: (config: {
     title: string;
-    message: string;
+    message: ReactNode;
     confirmText?: string;
     onConfirm: () => void;
     onCancel?: () => void;
