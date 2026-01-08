@@ -1,7 +1,7 @@
 import { Configuration } from '@domain/entities/Configuration';
 import { Rack, Box } from '@domain/valueObjects/Equipment';
 import type { DomainEvent } from '@domain/events/DomainEvent';
-import type { FieldChange } from '@domain/types/FieldChange';
+import type { FieldChange } from '@domain/types/fieldChange';
 import { logger } from '@utils/logger';
 import {
   ConfigurationUpdatedEvent,

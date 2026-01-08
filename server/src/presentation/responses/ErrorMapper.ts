@@ -14,6 +14,15 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PasswordResetError } from '@domain/errors/PasswordResetError';
 import { PasswordValidationError } from '@domain/errors/PasswordValidationError';
 
+/** Zod error shape for type-safe error handling */
+interface ZodErrorShape {
+  issues: Array<{
+    path: (string | number)[];
+    message: string;
+    received?: unknown;
+  }>;
+}
+
 export class ErrorMapper {
   /**
    * Map any error to a standardized API response
@@ -55,7 +64,7 @@ export class ErrorMapper {
 
     // Handle Zod validation errors
     if (error.name === 'ZodError') {
-      return this.mapZodError(error as any);
+      return this.mapZodError(error as unknown as ZodErrorShape);
     }
 
     // Handle known error types by name
@@ -91,7 +100,7 @@ export class ErrorMapper {
   /**
    * Map Zod validation errors to API response
    */
-  private static mapZodError(zodError: any): ApiResponse {
+  private static mapZodError(zodError: ZodErrorShape): ApiResponse {
     const issues = zodError.issues || [];
     const firstIssue = issues[0];
     

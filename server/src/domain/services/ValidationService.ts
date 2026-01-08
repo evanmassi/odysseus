@@ -14,7 +14,7 @@ import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import type { ConfigurationUpdateData } from '@domain/types/configuration';
 import type { DomainValidationResult, BulkValidationResult } from '@domain/types/validation';
-import type { TubeCreationData, TubeUpdateData } from '@domain/types/services';
+import type { TubeCreationData, TubeUpdateData, TubeBusinessRuleInput } from '@domain/types/services';
 
 /**
  * ValidationService
@@ -56,7 +56,7 @@ export class ValidationService {
 
     // 1. Permission validation
     try {
-      await this.accessControlService.requireTubeAccess(user, null as any, 'create');
+      this.accessControlService.requireCanCreateTube(user);
     } catch (error) {
       result.isValid = false;
       result.errors.push(error instanceof Error ? error.message : 'Permission denied');
@@ -443,7 +443,7 @@ export class ValidationService {
   }
 
   private async validateTubeBusinessRules(
-    tubeData: TubeCreationData | any,
+    tubeData: TubeBusinessRuleInput,
     operation: 'create' | 'update'
   ): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {

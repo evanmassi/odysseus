@@ -22,12 +22,12 @@ export const validateBody = (schema: z.ZodSchema) => {
       const result = schema.safeParse(req.body);
       
       if (!result.success) {
-        const errors: ValidationError[] = result.error.issues.map((error) => ({
-          field: error.path.join('.'),
-          message: error.message,
-          received: (error as any).received
+        const errors: ValidationError[] = result.error.issues.map((issue) => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+          received: 'received' in issue ? issue.received : undefined
         }));
-        
+
         logger.warn('Validation failed:', {
           endpoint: req.path,
           method: req.method,
@@ -65,12 +65,12 @@ export const validateParams = (schema: z.ZodSchema) => {
       const result = schema.safeParse(req.params);
       
       if (!result.success) {
-        const errors: ValidationError[] = result.error.issues.map((error) => ({
-          field: error.path.join('.'),
-          message: error.message,
-          received: (error as any).received
+        const errors: ValidationError[] = result.error.issues.map((issue) => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+          received: 'received' in issue ? issue.received : undefined
         }));
-        
+
         logger.warn('Parameter validation failed:', {
           endpoint: req.path,
           method: req.method,
@@ -86,6 +86,7 @@ export const validateParams = (schema: z.ZodSchema) => {
         return;
       }
       
+      // Assign validated data (Express types don't support middleware type narrowing)
       req.params = result.data as any;
       next();
     } catch (error) {
@@ -107,12 +108,12 @@ export const validateQuery = (schema: z.ZodSchema) => {
       const result = schema.safeParse(req.query);
       
       if (!result.success) {
-        const errors: ValidationError[] = result.error.issues.map((error) => ({
-          field: error.path.join('.'),
-          message: error.message,
-          received: (error as any).received
+        const errors: ValidationError[] = result.error.issues.map((issue) => ({
+          field: issue.path.join('.'),
+          message: issue.message,
+          received: 'received' in issue ? issue.received : undefined
         }));
-        
+
         logger.warn('Query validation failed:', {
           endpoint: req.path,
           method: req.method,
@@ -128,6 +129,7 @@ export const validateQuery = (schema: z.ZodSchema) => {
         return;
       }
       
+      // Assign validated data (Express types don't support middleware type narrowing)
       req.query = result.data as any;
       next();
     } catch (error) {

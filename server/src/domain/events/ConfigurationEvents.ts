@@ -1,5 +1,5 @@
 import { DomainEvent } from './DomainEvent';
-import type { FieldChange } from '@domain/types/FieldChange';
+import type { FieldChange } from '@domain/types/fieldChange';
 
 /**
  * Configuration Updated Event

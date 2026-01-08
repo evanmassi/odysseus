@@ -56,7 +56,7 @@ import {
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { Location } from '@domain/valueObjects/Location';
-import type { FieldChange } from '@domain/types/FieldChange';
+import type { FieldChange } from '@domain/types/fieldChange';
 import { logger } from '@utils/logger';
 
 /**
@@ -263,9 +263,10 @@ export class AuditEventHandler {
       const oldData = event.oldSampleData.toData();
       const newData = event.newSampleData.toData();
 
-      Object.keys(newData).forEach(key => {
-        const oldValue = (oldData as any)[key];
-        const newValue = (newData as any)[key];
+      const sampleDataKeys = Object.keys(newData) as Array<keyof typeof newData>;
+      sampleDataKeys.forEach(key => {
+        const oldValue = oldData[key];
+        const newValue = newData[key];
         if (oldValue !== newValue) {
           changes.push({
             field: key,

@@ -32,6 +32,24 @@ export interface TubeCreationData {
 }
 
 /**
+ * Sample data fields used for business rule validation
+ */
+interface SampleValidationFields {
+  concentration?: number;
+  concentrationUnit?: 'c/v' | 'c/mL';
+  date?: string;
+  donorInternalId?: string;
+}
+
+/**
+ * Input for tube business rule validation
+ * Supports both nested (.sample) and flat sample data access
+ */
+export interface TubeBusinessRuleInput extends SampleValidationFields {
+  sample?: SampleValidationFields;
+}
+
+/**
  * Tube update data for PATCH operations
  */
 export interface TubeUpdateData {

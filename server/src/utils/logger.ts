@@ -12,6 +12,7 @@ const logFormat = winston.format.combine(
 );
 
 // Check if we're running in a packaged environment (pkg, electron asar, etc.)
+// Note: .pkg and .defaultApp are runtime-only properties not in Node.js type definitions
 const isPkgBundle = (process as any).pkg !== undefined;
 const isElectronApp = process.env.ELECTRON_APP === 'true';
 const isElectronPackaged = (process as any).defaultApp === false || /[\\/]electron\.exe$/i.test(process.execPath);

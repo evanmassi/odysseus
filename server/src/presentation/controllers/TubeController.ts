@@ -245,10 +245,19 @@ export class TubeController {
     return user;
   }
 
+  /** Valid sort fields for tube search */
+  private static readonly VALID_SORT_FIELDS = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;
+
+  /** Type guard for valid sort field values */
+  private isValidSortField(value: unknown): value is TubeSearchRequest['sortBy'] {
+    return typeof value === 'string' &&
+      (TubeController.VALID_SORT_FIELDS as readonly string[]).includes(value);
+  }
+
   /**
    * Helper: Parse search query parameters
    */
-  private parseSearchQuery(query: any): TubeSearchRequest | undefined {
+  private parseSearchQuery(query: Request['query']): TubeSearchRequest | undefined {
     if (!query || Object.keys(query).length === 0) {
       return undefined;
     }
@@ -268,7 +277,7 @@ export class TubeController {
       isComplete: query.isComplete === 'true',
       limit: query.limit ? parseInt(query.limit as string) : undefined,
       offset: query.offset ? parseInt(query.offset as string) : undefined,
-      sortBy: query.sortBy as any,
+      sortBy: this.isValidSortField(query.sortBy) ? query.sortBy : undefined,
       sortOrder: query.sortOrder as 'asc' | 'desc'
     };
   }

@@ -30,7 +30,7 @@ export class SearchCriteriaMapper {
   ): TubeSearchCriteria {
     // Validate sortBy against allowed values
     const validSortFields = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;
-    const sortBy = baseOptions?.sortBy && validSortFields.includes(baseOptions.sortBy as any)
+    const sortBy = baseOptions?.sortBy && (validSortFields as readonly string[]).includes(baseOptions.sortBy)
       ? (baseOptions.sortBy as TubeSearchCriteria['sortBy'])
       : undefined;
 

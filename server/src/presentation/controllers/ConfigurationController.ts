@@ -43,6 +43,17 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ConfigurationDto } from '@application/dto/ConfigurationDto';
 
+/** Response shape for configuration import endpoint */
+interface ImportConfigurationResponse {
+  success: boolean;
+  warnings: string[];
+  message: string;
+  configuration?: {
+    version: number;
+    lastUpdated: Date;
+  };
+}
+
 /**
  * Configuration Controller - CQRS-based configuration management
  *
@@ -312,24 +323,21 @@ export class ConfigurationController {
         return;
       }
       
-      const response: any = {
+      const response: ImportConfigurationResponse = {
         success: true,
-        warnings: result.warnings
+        warnings: result.warnings,
+        message: validateOnly
+          ? 'Configuration validation successful'
+          : 'Configuration imported successfully'
       };
-      
+
       if (result.configuration) {
         response.configuration = {
           version: result.configuration.version,
           lastUpdated: result.configuration.updatedAt
         };
       }
-      
-      if (validateOnly) {
-        response.message = 'Configuration validation successful';
-      } else {
-        response.message = 'Configuration imported successfully';
-      }
-      
+
       res.json(response);
       
     } catch (error) {

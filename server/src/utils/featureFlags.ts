@@ -26,13 +26,14 @@ interface FeatureFlags {
 }
 
 class FeatureFlagManager {
-  private db: any; // Will be injected by the main application
-  
+  // Loose coupling: accepts any database that implements getFeatureFlag/setFeatureFlag
+  private db: any;
+
   constructor() {
     // Database reference will be set by the application
   }
 
-  // Dependency injection for database
+  // Dependency injection - intentionally untyped for loose coupling with database layer
   public setDatabase(database: any): void {
     this.db = database;
   }
@@ -118,6 +119,7 @@ class FeatureFlagManager {
     }
   }
 
+  // Returns raw flag data from database - shape depends on database implementation
   public getAllFlags(): any[] {
     if (!this.db) {
       logger.warn('Database not initialized for feature flags');

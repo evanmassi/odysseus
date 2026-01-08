@@ -12,6 +12,7 @@ import { EventBus } from '@application/contracts/EventBus';
 import { logger } from '@utils/logger';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
+import type { ConfigurationImportData } from '@domain/types/configuration';
 import {
   RackAssignedEvent,
   RackUnassignedEvent,
@@ -83,8 +84,8 @@ export interface ResetConfigurationToDefaultCommand {
  */
 export interface ImportConfigurationCommand {
   userId: string;
-  configurationData: any; // JSON configuration data
-  validateOnly?: boolean; // If true, validate but don't save
+  configurationData: ConfigurationImportData;
+  validateOnly?: boolean;
 }
 
 // CONFIGURATION COMMAND HANDLERS

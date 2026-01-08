@@ -4,6 +4,8 @@
  * Type definitions for tube position validation and box statistics.
  */
 
+import type { Tube } from '@domain/entities/Tube';
+
 /**
  * Basic position validation result
  */
@@ -23,7 +25,7 @@ export interface PositionValidationWithWarnings extends PositionValidation {
  * Complete position validation result including conflict information
  */
 export interface PositionValidationResult extends PositionValidationWithWarnings {
-  conflictingTube?: any; // Tube type to avoid circular dependency
+  conflictingTube?: Tube;
 }
 
 /**

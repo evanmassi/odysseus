@@ -311,7 +311,7 @@ export class UserApplicationService {
     if (this.configurationRepository) {
       const config = await this.configurationRepository.getCurrent();
       if (config) {
-        const configData = config.toData() as any;
+        const configData = config.toData();
         let assignedResourceCount = 0;
         const assignedResources: string[] = [];
 

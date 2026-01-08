@@ -7,6 +7,36 @@ import type {
   LabConfiguration
 } from '@odysseus/shared-schemas';
 
+/** Return type for fromRequest transformation (LabConfiguration with transformed equipment) */
+interface TransformedLabConfiguration extends Omit<LabConfiguration, 'equipment'> {
+  equipment: {
+    tanks: Array<{
+      id: string;
+      name: string;
+      location?: string;
+      isActive: boolean;
+      maxRacks: number;
+      racks: Array<{
+        id: number;
+        name: string;
+        capacity: number;
+        maxBoxes: number;
+        isActive: boolean;
+        assignedUserId?: string;
+        customLabel?: string;
+        boxes: Array<{
+          name: string;
+          gridConfig: { rows: number; cols: number };
+          maxPositions: number;
+          isActive: boolean;
+          assignedUserId?: string;
+          customLabel?: string;
+        }>;
+      }>;
+    }>;
+  };
+}
+
 /**
  * ConfigurationDto - Application Layer DTO
  *
@@ -148,10 +178,8 @@ export class ConfigurationDto {
    * KEY TRANSFORMATION (SAVE direction):
    * Client sends API schema (with extra fields like location, createdAt, etc.)
    * Server needs only domain fields that Configuration.fromData() expects
-   *
-   * Note: Return type is 'any' because we're transforming from API schema to domain format
    */
-  static fromRequest(currentLab: LabConfiguration): any {
+  static fromRequest(currentLab: LabConfiguration): TransformedLabConfiguration {
     return {
       ...currentLab,
       equipment: {

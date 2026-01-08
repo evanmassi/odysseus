@@ -14,7 +14,6 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import type { EventBus } from '@application/contracts/EventBus';
 import { logger } from '@utils/logger';
-import type { TubeMedia } from '@odysseus/shared-schemas';
 import {
   TubeCreatedEvent,
   TubeUpdatedEvent,
@@ -797,27 +796,4 @@ export class TubeApplicationService {
 
     return { revoked, skipped };
   }
-}
-
-// Type definitions for internal use
-interface TubeCreationData {
-  location: {
-    tankId: string;
-    rackId: string;
-    boxId: string;
-    position: number;
-  };
-  sample: {
-    cellType?: string;
-    donorInternalId?: string;
-    donorSourceId?: string;
-    concentration?: number;
-    concentrationUnit?: 'c/v' | 'c/mL';
-    date?: string;
-    media?: TubeMedia;
-    cultureCondition?: string;
-    lotNumber?: string;
-    notes?: string;
-  };
-  researcher?: string;
 }
