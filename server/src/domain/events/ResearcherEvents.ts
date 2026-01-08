@@ -5,7 +5,7 @@
  */
 
 import { DomainEvent } from '@domain/events/DomainEvent';
-import type { FieldChange } from '@domain/types/fieldChange';
+import type { FieldChange } from '@domain/types/FieldChange';
 
 export class ResearcherCreatedEvent extends DomainEvent {
   constructor(

@@ -2,8 +2,8 @@
  * API-related types for consistent request/response handling
  */
 
-import type { TubeData, UpdateTubeRequest } from './tubeTypes';
-import type { ValidationError } from './validationTypes';
+import type { TubeData, UpdateTubeRequest } from './TubeTypes';
+import type { ValidationError } from './ValidationTypes';
 
 // Generic API response wrapper
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic default for flexible API response data types

@@ -9,7 +9,7 @@ import { CreateResearcherRequest, ResearcherResponse, ResearcherDto } from '@app
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
-import type { AuditChange } from '@application/types/audit';
+import type { AuditChange } from '@application/types/Audit';
 import type { EventBus } from '@application/contracts/EventBus';
 import {
   ResearcherCreatedEvent,

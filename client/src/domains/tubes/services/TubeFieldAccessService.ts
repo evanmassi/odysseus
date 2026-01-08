@@ -25,7 +25,7 @@ import type {
   FieldResolutionOptions,
   FieldResolutionResult,
 } from '../types/FieldResolver';
-import type { TubeData } from '@shared/types/tubeTypes';
+import type { TubeData } from '@shared/types/TubeTypes';
 
 /**
  * Performance monitoring for field resolution operations

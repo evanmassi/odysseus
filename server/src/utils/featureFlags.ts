@@ -26,14 +26,14 @@ interface FeatureFlags {
 }
 
 class FeatureFlagManager {
-  // Loose coupling: accepts any database that implements getFeatureFlag/setFeatureFlag
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Loose coupling: accepts any database that implements getFeatureFlag/setFeatureFlag
   private db: any;
 
   constructor() {
     // Database reference will be set by the application
   }
 
-  // Dependency injection - intentionally untyped for loose coupling with database layer
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Dependency injection: intentionally untyped for loose coupling with database layer
   public setDatabase(database: any): void {
     this.db = database;
   }
@@ -119,7 +119,7 @@ class FeatureFlagManager {
     }
   }
 
-  // Returns raw flag data from database - shape depends on database implementation
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Returns raw flag data from database: shape depends on database implementation
   public getAllFlags(): any[] {
     if (!this.db) {
       logger.warn('Database not initialized for feature flags');

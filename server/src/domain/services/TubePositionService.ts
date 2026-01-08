@@ -5,7 +5,7 @@ import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
-import type { PositionConflict } from '@domain/types/position';
+import type { PositionConflict } from '@domain/types/Position';
 import type { PositionValidation, PositionValidationWithWarnings, PositionValidationResult, BoxStatistics } from '@domain/types/services';
 
 /**

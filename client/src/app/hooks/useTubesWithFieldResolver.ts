@@ -12,7 +12,7 @@ import { useTubesQuery } from '@domains/tubes/hooks/useTubesQuery';
 import { useSimpleFieldResolver } from './useSimpleFieldResolver';
 
 import type { NormalizedFieldValue } from '@app/types/fieldTypeMapping';
-import type { TubeData } from '@shared/types/tubeTypes';
+import type { TubeData } from '@shared/types/TubeTypes';
 
 /**
  * Hook combining tubes data with simple field resolver

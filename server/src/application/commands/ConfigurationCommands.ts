@@ -12,7 +12,7 @@ import { EventBus } from '@application/contracts/EventBus';
 import { logger } from '@utils/logger';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
-import type { ConfigurationImportData } from '@domain/types/configuration';
+import type { ConfigurationImportData } from '@domain/types/Configuration';
 import {
   RackAssignedEvent,
   RackUnassignedEvent,

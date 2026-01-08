@@ -1,6 +1,6 @@
 /**
  * TubeFieldAccessService Unit Tests
- * 
+ *
  * Comprehensive test suite for the field resolution domain service.
  * Tests all business logic, error handling, and performance characteristics.
  */
@@ -9,14 +9,13 @@ import {
   TubeFieldAccessService,
   createTubeFieldAccessService,
   getDefaultTubeFieldAccessService,
-  resetDefaultTubeFieldAccessService
+  resetDefaultTubeFieldAccessService,
 } from '@domains/tubes/services/TubeFieldAccessService';
 
 import { DomainError, FieldResolutionError, FieldPathError } from '../../errors/DomainError';
 
 import type { FieldPathMapping } from '@domains/tubes/types/FieldResolver';
-import type { TubeData } from '@shared/types/tubeTypes';
-
+import type { TubeData } from '@shared/types/TubeTypes';
 
 // Test data fixtures
 const mockTubeData: TubeData = {
@@ -25,7 +24,7 @@ const mockTubeData: TubeData = {
     tankId: 'tank-1',
     rackId: '1',
     boxId: 'A',
-    position: 1
+    position: 1,
   },
   sample: {
     cellType: 'HeLa',
@@ -37,26 +36,28 @@ const mockTubeData: TubeData = {
     media: {
       type: 'DMEM',
       supplements: '',
-      selection: ''
+      selection: '',
     },
     cultureCondition: '37C',
     lotNumber: 'LOT001',
-    notes: 'Test sample'
+    notes: 'Test sample',
   },
-  researcherId: 'researcher_test_001',  timestamps: {
+  researcherId: 'researcher_test_001',
+  timestamps: {
     createdAt: new Date('2025-01-01T10:00:00Z'),
-    updatedAt: new Date('2025-01-02T15:30:00Z')
-  }
+    updatedAt: new Date('2025-01-02T15:30:00Z'),
+  },
 };
 
 const testFieldMapping: FieldPathMapping = {
-  'cellType': 'sample.cellType',
-  'donorInternalId': 'sample.donorInternalId',
-  'concentration': 'sample.concentration',
-  'tankId': 'location.tankId',
-  'position': 'location.position',
-  'researcherId': 'researcherId',  'id': 'id',
-  'createdAt': 'timestamps.createdAt'
+  cellType: 'sample.cellType',
+  donorInternalId: 'sample.donorInternalId',
+  concentration: 'sample.concentration',
+  tankId: 'location.tankId',
+  position: 'location.position',
+  researcherId: 'researcherId',
+  id: 'id',
+  createdAt: 'timestamps.createdAt',
 };
 
 describe('TubeFieldAccessService', () => {
@@ -81,7 +82,7 @@ describe('TubeFieldAccessService', () => {
     });
 
     test('should throw error for invalid path format', () => {
-      const invalidMapping = { 'test': 'invalid..path' };
+      const invalidMapping = { test: 'invalid..path' };
       expect(() => new TubeFieldAccessService(invalidMapping)).toThrow(DomainError);
     });
 
@@ -91,7 +92,7 @@ describe('TubeFieldAccessService', () => {
     });
 
     test('should throw error for empty path', () => {
-      const invalidMapping = { 'validKey': '' };
+      const invalidMapping = { validKey: '' };
       expect(() => new TubeFieldAccessService(invalidMapping)).toThrow(DomainError);
     });
   });
@@ -109,7 +110,8 @@ describe('TubeFieldAccessService', () => {
     });
 
     test('should resolve direct fields correctly', () => {
-      expect(service.getValue(mockTubeData, 'researcherId')).toBe('researcher_test_001');      expect(service.getValue(mockTubeData, 'id')).toBe('test-tube-1');
+      expect(service.getValue(mockTubeData, 'researcherId')).toBe('researcher_test_001');
+      expect(service.getValue(mockTubeData, 'id')).toBe('test-tube-1');
     });
 
     test('should resolve timestamp fields correctly', () => {
@@ -123,10 +125,10 @@ describe('TubeFieldAccessService', () => {
         ...mockTubeData,
         sample: {
           ...mockTubeData.sample,
-          cellType: undefined
-        }
+          cellType: undefined,
+        },
       };
-      
+
       expect(service.getValue(dataWithMissingField as any, 'cellType')).toBeUndefined();
     });
 
@@ -135,28 +137,27 @@ describe('TubeFieldAccessService', () => {
         ...mockTubeData,
         sample: {
           ...mockTubeData.sample,
-          cellType: undefined
-        }
+          cellType: undefined,
+        },
       };
-      
+
       const result = service.getValue(dataWithMissingField as any, 'cellType', {
-        defaultValue: 'Unknown'
+        defaultValue: 'Unknown',
       });
-      
+
       expect(result).toBe('Unknown');
     });
 
     test('should apply transformation function when provided', () => {
       const result = service.getValue(mockTubeData, 'cellType', {
-        transform: (value: string) => value.toUpperCase()
+        transform: (value: string) => value.toUpperCase(),
       });
-      
+
       expect(result).toBe('HELA');
     });
 
     test('should throw FieldResolutionError for invalid field key', () => {
-      expect(() => service.getValue(mockTubeData, 'invalidField'))
-        .toThrow(FieldResolutionError);
+      expect(() => service.getValue(mockTubeData, 'invalidField')).toThrow(FieldResolutionError);
     });
 
     test('should throw error when throwOnMissing is true and field is missing', () => {
@@ -164,13 +165,15 @@ describe('TubeFieldAccessService', () => {
         ...mockTubeData,
         sample: {
           ...mockTubeData.sample,
-          cellType: undefined
-        }
+          cellType: undefined,
+        },
       };
-      
-      expect(() => service.getValue(dataWithMissingField as any, 'cellType', {
-        throwOnMissing: true
-      })).toThrow(FieldPathError);
+
+      expect(() =>
+        service.getValue(dataWithMissingField as any, 'cellType', {
+          throwOnMissing: true,
+        })
+      ).toThrow(FieldPathError);
     });
 
     test('should handle null data gracefully', () => {
@@ -191,17 +194,17 @@ describe('TubeFieldAccessService', () => {
         id: 'test-tube-2',
         sample: {
           ...mockTubeData.sample,
-          cellType: 'MCF7'
-        }
+          cellType: 'MCF7',
+        },
       },
       {
         ...mockTubeData,
         id: 'test-tube-3',
         sample: {
           ...mockTubeData.sample,
-          cellType: 'A549'
-        }
-      }
+          cellType: 'A549',
+        },
+      },
     ];
 
     test('should resolve field values from multiple tubes', () => {
@@ -212,42 +215,40 @@ describe('TubeFieldAccessService', () => {
     test('should handle mixed missing values in array', () => {
       const mixedArray = [
         mockTubeData,
-        { ...mockTubeData, sample: { ...mockTubeData.sample, cellType: undefined } } as any
+        { ...mockTubeData, sample: { ...mockTubeData.sample, cellType: undefined } } as any,
       ];
-      
+
       const cellTypes = service.getValues(mixedArray, 'cellType');
       expect(cellTypes).toEqual(['HeLa', undefined]);
     });
 
     test('should apply transformation to all values', () => {
       const cellTypes = service.getValues(mockTubeArray, 'cellType', {
-        transform: (value: string) => value?.toLowerCase()
+        transform: (value: string) => value?.toLowerCase(),
       });
-      
+
       expect(cellTypes).toEqual(['hela', 'mcf7', 'a549']);
     });
 
     test('should return default values for missing fields', () => {
       const mixedArray = [
         mockTubeData,
-        { ...mockTubeData, sample: { ...mockTubeData.sample, cellType: undefined } } as any
+        { ...mockTubeData, sample: { ...mockTubeData.sample, cellType: undefined } } as any,
       ];
-      
+
       const cellTypes = service.getValues(mixedArray, 'cellType', {
-        defaultValue: 'Unknown'
+        defaultValue: 'Unknown',
       });
-      
+
       expect(cellTypes).toEqual(['HeLa', 'Unknown']);
     });
 
     test('should throw error for invalid field key', () => {
-      expect(() => service.getValues(mockTubeArray, 'invalidField'))
-        .toThrow(FieldResolutionError);
+      expect(() => service.getValues(mockTubeArray, 'invalidField')).toThrow(FieldResolutionError);
     });
 
     test('should throw error for non-array input', () => {
-      expect(() => service.getValues(mockTubeData as any, 'cellType'))
-        .toThrow(DomainError);
+      expect(() => service.getValues(mockTubeData as any, 'cellType')).toThrow(DomainError);
     });
   });
 
@@ -255,17 +256,18 @@ describe('TubeFieldAccessService', () => {
     test('should return true for fields with meaningful values', () => {
       expect(service.hasValue(mockTubeData, 'cellType')).toBe(true);
       expect(service.hasValue(mockTubeData, 'concentration')).toBe(true);
-      expect(service.hasValue(mockTubeData, 'researcherId')).toBe(true);    });
+      expect(service.hasValue(mockTubeData, 'researcherId')).toBe(true);
+    });
 
     test('should return false for undefined values', () => {
       const dataWithUndefined = {
         ...mockTubeData,
         sample: {
           ...mockTubeData.sample,
-          cellType: undefined
-        }
+          cellType: undefined,
+        },
       };
-      
+
       expect(service.hasValue(dataWithUndefined as any, 'cellType')).toBe(false);
     });
 
@@ -274,10 +276,10 @@ describe('TubeFieldAccessService', () => {
         ...mockTubeData,
         sample: {
           ...mockTubeData.sample,
-          cellType: null
-        }
+          cellType: null,
+        },
       };
-      
+
       expect(service.hasValue(dataWithNull as any, 'cellType')).toBe(false);
     });
 
@@ -286,10 +288,10 @@ describe('TubeFieldAccessService', () => {
         ...mockTubeData,
         sample: {
           ...mockTubeData.sample,
-          cellType: ''
-        }
+          cellType: '',
+        },
       };
-      
+
       expect(service.hasValue(dataWithEmpty as any, 'cellType')).toBe(false);
     });
 
@@ -302,7 +304,8 @@ describe('TubeFieldAccessService', () => {
     test('should return correct path for valid field keys', () => {
       expect(service.getFieldPath('cellType')).toBe('sample.cellType');
       expect(service.getFieldPath('tankId')).toBe('location.tankId');
-      expect(service.getFieldPath('researcherId')).toBe('researcherId');    });
+      expect(service.getFieldPath('researcherId')).toBe('researcherId');
+    });
 
     test('should throw FieldResolutionError for invalid field keys', () => {
       expect(() => service.getFieldPath('invalidField')).toThrow(FieldResolutionError);
@@ -312,7 +315,8 @@ describe('TubeFieldAccessService', () => {
   describe('isValidField - Field Validation', () => {
     test('should return true for valid field keys', () => {
       expect(service.isValidField('cellType')).toBe(true);
-      expect(service.isValidField('researcherId')).toBe(true);    });
+      expect(service.isValidField('researcherId')).toBe(true);
+    });
 
     test('should return false for invalid field keys', () => {
       expect(service.isValidField('invalidField')).toBe(false);
@@ -323,12 +327,12 @@ describe('TubeFieldAccessService', () => {
   describe('resolveField - Detailed Resolution', () => {
     test('should return complete resolution metadata for existing fields', () => {
       const result = service.resolveField(mockTubeData, 'cellType');
-      
+
       expect(result).toEqual({
         value: 'HeLa',
         resolved: true,
         resolvedPath: 'sample.cellType',
-        exists: true
+        exists: true,
       });
     });
 
@@ -337,12 +341,12 @@ describe('TubeFieldAccessService', () => {
         ...mockTubeData,
         sample: {
           ...mockTubeData.sample,
-          cellType: undefined
-        }
+          cellType: undefined,
+        },
       };
-      
+
       const result = service.resolveField(dataWithMissingField as any, 'cellType');
-      
+
       expect(result.resolved).toBe(true); // Path exists but value is undefined
       expect(result.exists).toBe(true);
       expect(result.value).toBeUndefined();
@@ -353,7 +357,7 @@ describe('TubeFieldAccessService', () => {
     test('should return all configured field keys sorted', () => {
       const fields = service.getAvailableFields();
       const expectedFields = Object.keys(testFieldMapping).sort();
-      
+
       expect(fields).toEqual(expectedFields);
     });
   });
@@ -373,19 +377,19 @@ describe('TubeFieldAccessService', () => {
     test('should reset metrics correctly', () => {
       service.getValue(mockTubeData, 'cellType');
       expect(service.getPerformanceMetrics().totalResolutions).toBe(1);
-      
+
       service.resetMetrics();
       expect(service.getPerformanceMetrics().totalResolutions).toBe(0);
     });
 
     test('should cache compiled paths for performance', () => {
       service.getValue(mockTubeData, 'cellType'); // Cache miss
-      
+
       const metrics2 = service.getPerformanceMetrics();
       service.getValue(mockTubeData, 'cellType'); // Cache hit
-      
+
       const metrics3 = service.getPerformanceMetrics();
-      
+
       expect(metrics3.cacheHits).toBeGreaterThan(metrics2.cacheHits);
       expect(metrics3.cacheMisses).toBe(metrics2.cacheMisses);
     });
@@ -395,7 +399,7 @@ describe('TubeFieldAccessService', () => {
       service.clearCache();
 
       service.getValue(mockTubeData, 'cellType'); // Should be cache miss after clear
-      
+
       const finalMetrics = service.getPerformanceMetrics();
       expect(finalMetrics.cacheMisses).toBeGreaterThan(0);
     });
@@ -407,7 +411,8 @@ describe('TubeFieldAccessService', () => {
         id: 'test',
         location: null,
         sample: mockTubeData.sample,
-        researcherId: 'researcher_test_001',        timestamps: mockTubeData.timestamps
+        researcherId: 'researcher_test_001',
+        timestamps: mockTubeData.timestamps,
       };
 
       expect(service.getValue(dataWithMissingNested as any, 'tankId')).toBeUndefined();
@@ -418,20 +423,22 @@ describe('TubeFieldAccessService', () => {
         id: 'test',
         location: mockTubeData.location,
         sample: mockTubeData.sample,
-        researcherId: 'researcher_test_001',        timestamps: mockTubeData.timestamps
+        researcherId: 'researcher_test_001',
+        timestamps: mockTubeData.timestamps,
       };
       circularData.self = circularData;
 
       // Should not cause infinite recursion
-      expect(service.getValue(circularData, 'researcherId')).toBe('researcher_test_001');    });
+      expect(service.getValue(circularData, 'researcherId')).toBe('researcher_test_001');
+    });
 
     test('should maintain defensive copying of configuration', () => {
       const originalMapping = { ...testFieldMapping };
       const service = new TubeFieldAccessService(originalMapping);
-      
+
       // Modify original mapping
       originalMapping['newField'] = 'new.path';
-      
+
       // Service should not be affected
       expect(service.isValidField('newField')).toBe(false);
     });
@@ -440,7 +447,7 @@ describe('TubeFieldAccessService', () => {
   describe('Factory Functions and Singleton', () => {
     test('should create service using factory function', () => {
       const factoryService = createTubeFieldAccessService(testFieldMapping);
-      
+
       expect(factoryService).toBeInstanceOf(TubeFieldAccessService);
       expect(factoryService.getValue(mockTubeData, 'cellType')).toBe('HeLa');
     });
@@ -448,7 +455,7 @@ describe('TubeFieldAccessService', () => {
     test('should provide singleton default service', () => {
       const service1 = getDefaultTubeFieldAccessService(testFieldMapping);
       const service2 = getDefaultTubeFieldAccessService();
-      
+
       expect(service1).toBe(service2); // Same instance
     });
 
@@ -456,7 +463,7 @@ describe('TubeFieldAccessService', () => {
       const service1 = getDefaultTubeFieldAccessService(testFieldMapping);
       resetDefaultTubeFieldAccessService();
       const service2 = getDefaultTubeFieldAccessService(testFieldMapping);
-      
+
       expect(service1).not.toBe(service2); // Different instances after reset
     });
   });

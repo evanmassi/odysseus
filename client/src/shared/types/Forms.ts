@@ -1,6 +1,6 @@
 /**
  * Form configuration definitions for shared use across domains
- * Note: TubeFormData is now in @shared/types/tubeTypes.ts to avoid conflicts
+ * Note: TubeFormData is now in @shared/types/TubeTypes.ts to avoid conflicts
  */
 
 export interface FormFieldConfig {

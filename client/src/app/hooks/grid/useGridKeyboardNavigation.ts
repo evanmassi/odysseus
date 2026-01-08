@@ -14,7 +14,7 @@ import { toPositionKey } from '@shared/types/grid';
 import { getSelectionRange } from '@shared/utils/coordinates';
 
 import type { GridConfiguration } from '@odysseus/shared-schemas';
-import type { ClipboardData } from '@shared/types/clipboard';
+import type { ClipboardData } from '@shared/types/Clipboard';
 import type { GridControllerReturn, PositionContext, PositionKey } from '@shared/types/grid';
 
 /**

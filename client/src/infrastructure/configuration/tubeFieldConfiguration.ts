@@ -18,6 +18,7 @@ import { formatToScientificNotation } from '@shared/utils/scientificNotation';
 
 import type { ValidTubeFieldKey } from './fieldPathMapping';
 import type { FieldResolver } from '@domains/tubes/types/FieldResolver';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 export type FieldDisplayType =
   | 'text'
@@ -45,8 +46,8 @@ export interface TubeFieldConfig {
   /** Grid column span for layout */
   gridSpan?: number;
   /** Custom renderer function */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic field value and tube data for flexible rendering
-  customRenderer?: (value: any, tube: any) => React.ReactNode;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic field value for flexible rendering
+  customRenderer?: (value: any, tube: TubeData) => React.ReactNode;
   /** Field validation function */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic field value for flexible validation
   validator?: (value: any) => boolean;
@@ -266,8 +267,8 @@ export class TubeFieldConfigurationService {
   /**
    * Get field value using resolver with display transformation
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic tube data and field values
-  getDisplayValue(tube: any, fieldKey: ValidTubeFieldKey): any {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic field value return type
+  getDisplayValue(tube: TubeData, fieldKey: ValidTubeFieldKey): any {
     const config = this.getFieldConfig(fieldKey);
     const rawValue = this.fieldResolver.getValue(tube, fieldKey);
 

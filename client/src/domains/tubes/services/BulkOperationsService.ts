@@ -13,7 +13,7 @@ import type {
   BulkUpdateError,
   BulkProgressCallback,
   BulkUpdateResult,
-} from '@shared/types/bulkOperations';
+} from '@shared/types/BulkOperations';
 
 /**
  * Bulk operations service using httpClient

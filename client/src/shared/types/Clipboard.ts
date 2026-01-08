@@ -1,7 +1,7 @@
 /**
  * Clipboard and Undo/Redo Types
  */
-import type { TubeData } from './tubeTypes';
+import type { TubeData } from './TubeTypes';
 
 export interface ClipboardData {
   tubes: TubeData[];

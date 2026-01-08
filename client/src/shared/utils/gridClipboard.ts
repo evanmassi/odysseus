@@ -3,7 +3,7 @@
  * OS clipboard integration with safe fallback patterns for laboratory tube management
  */
 
-import type { ClipboardData } from '@shared/types/clipboard';
+import type { ClipboardData } from '@shared/types/Clipboard';
 
 const CLIPBOARD_MARKER = 'OdysseusGrid/Tubes@v1';
 
@@ -11,9 +11,9 @@ const CLIPBOARD_MARKER = 'OdysseusGrid/Tubes@v1';
  * Serialize clipboard data for OS clipboard storage
  */
 export const serializeClipboard = (clipboard: ClipboardData): string => {
-  return JSON.stringify({ 
-    __type: CLIPBOARD_MARKER, 
-    data: clipboard 
+  return JSON.stringify({
+    __type: CLIPBOARD_MARKER,
+    data: clipboard,
   });
 };
 
@@ -37,7 +37,7 @@ export const tryParseClipboard = (text: string): ClipboardData | null => {
  */
 export const writeClipboardOS = async (clipboard: ClipboardData): Promise<void> => {
   const text = serializeClipboard(clipboard);
-  
+
   if (navigator?.clipboard?.writeText) {
     try {
       await navigator.clipboard.writeText(text);

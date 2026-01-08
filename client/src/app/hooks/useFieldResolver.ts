@@ -29,7 +29,7 @@ import type {
   FieldResolutionResult,
 } from '@domains/tubes/types/FieldResolver';
 import type { ValidTubeFieldKey } from '@infra/configuration/fieldPathMapping';
-import type { TubeData } from '@shared/types/tubeTypes';
+import type { TubeData } from '@shared/types/TubeTypes';
 
 /**
  * Hook configuration options

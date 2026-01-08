@@ -9,6 +9,7 @@ import {
 } from '@shared/utils/labColorSpace';
 
 import type { ColorSystemTubeData } from '@domains/tubes/types/colorSystemTypes';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 interface ColorResult {
   backgroundColor: string;
@@ -690,8 +691,7 @@ function adjustColorBrightness(color: string, percent: number): string {
 }
 
 // Enhanced main function to get tube colors
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accepts flexible tube data formats (legacy and current schema)
-export function getTubeColor(tubeData: any): ColorResult {
+export function getTubeColor(tubeData: TubeData): ColorResult {
   // Adapt incoming data to color system format
   const adaptedData = adaptTubeDataForColorSystem(tubeData);
   const signature = createTubeSignature(adaptedData);
@@ -747,8 +747,7 @@ export function getTubeColor(tubeData: any): ColorResult {
 }
 
 // Cache invalidation helper for tube updates
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accepts flexible tube data formats (legacy and current schema)
-export function invalidateTubeCache(oldTubeData: any, newTubeData?: Partial<any>): void {
+export function invalidateTubeCache(oldTubeData: TubeData, newTubeData?: Partial<TubeData>): void {
   // Adapt data for color system
   const adaptedOldData = adaptTubeDataForColorSystem(oldTubeData);
 
@@ -810,8 +809,7 @@ export function formatIdForGrid(id: string): string {
 }
 
 // Helper function to extract both internal and source IDs from donor data
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Accepts flexible tube data formats (legacy and current schema)
-export function parseDonorInfo(tubeData: any): { internal: string; source: string } {
+export function parseDonorInfo(tubeData: TubeData): { internal: string; source: string } {
   const adaptedData = adaptTubeDataForColorSystem(tubeData);
 
   // Check if we have the new separate fields first

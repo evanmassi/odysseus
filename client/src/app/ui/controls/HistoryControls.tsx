@@ -4,7 +4,7 @@ import { Undo2, Redo2, History, Trash2 } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
 
-import type { HistoryAction } from '@shared/types/clipboard';
+import type { HistoryAction } from '@shared/types/Clipboard';
 
 interface UndoRedoControlsProps {
   canUndo: boolean;

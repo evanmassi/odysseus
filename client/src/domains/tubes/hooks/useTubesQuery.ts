@@ -11,9 +11,15 @@ import {
   EQUIPMENT_DEFAULTS,
   UNKNOWN_RESEARCHER,
   type TubeData as SchemaTubeData,
-  type BatchResult
+  type BatchResult,
 } from '@odysseus/shared-schemas';
-import { useQuery, useMutation, useQueryClient, type UseQueryOptions, type UseMutationOptions } from '@tanstack/react-query';
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  type UseQueryOptions,
+  type UseMutationOptions,
+} from '@tanstack/react-query';
 
 import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
 import { queryKeys } from '@app/queryKeys';
@@ -21,10 +27,7 @@ import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
 import { TubeService } from '../services/TubeService';
 
-
-import type { TubeData } from '@shared/types/tubeTypes';
-
-
+import type { TubeData } from '@shared/types/TubeTypes';
 
 /**
  * Convert schema-based TubeData to shared TubeData format
@@ -35,12 +38,12 @@ function convertSchemaToSharedTubeData(schemaTube: SchemaTubeData): TubeData {
     ...schemaTube,
     sample: {
       ...schemaTube.sample,
-      concentration: normalizeConcentration(schemaTube.sample.concentration)
+      concentration: normalizeConcentration(schemaTube.sample.concentration),
     },
     timestamps: {
       createdAt: new Date(schemaTube.timestamps.createdAt),
-      updatedAt: new Date(schemaTube.timestamps.updatedAt)
-    }
+      updatedAt: new Date(schemaTube.timestamps.updatedAt),
+    },
   };
 }
 
@@ -51,29 +54,33 @@ function convertSchemaToSharedTubeData(schemaTube: SchemaTubeData): TubeData {
  */
 export function useTubesQuery(options?: {
   filters?: TubeQueryFilters;
-  queryOptions?: Omit<UseQueryOptions<TubeData[], Error, TubeData[]>, 'queryKey' | 'queryFn' | 'select'>;
+  queryOptions?: Omit<
+    UseQueryOptions<TubeData[], Error, TubeData[]>,
+    'queryKey' | 'queryFn' | 'select'
+  >;
 }) {
   const { filters, queryOptions } = options ?? {};
-  
+
   return useQuery<TubeData[], Error, TubeData[]>({
     queryKey: queryKeys.tubes.lists(),
     queryFn: async () => {
       const schemaTubes = await TubeService.fetchTubes();
       return schemaTubes.map(convertSchemaToSharedTubeData);
     },
-    select: (tubes) => {
+    select: tubes => {
       if (!filters) return tubes;
-      
+
       let filtered = tubes;
       if (filters.tankId) filtered = filtered.filter(t => t.location.tankId === filters.tankId);
       if (filters.rackId) filtered = filtered.filter(t => t.location.rackId === filters.rackId);
       if (filters.boxId) filtered = filtered.filter(t => t.location.boxId === filters.boxId);
-      if (filters.researcherId) filtered = filtered.filter(t => t.researcherId === filters.researcherId);
+      if (filters.researcherId)
+        filtered = filtered.filter(t => t.researcherId === filters.researcherId);
 
       return filtered;
     },
     ...DOMAIN_QUERY_OPTIONS.tubes,
-    ...queryOptions
+    ...queryOptions,
   });
 }
 
@@ -81,16 +88,19 @@ export function useTubesQuery(options?: {
  * Hook to fetch a single tube by ID
  * Uses initialData from any tube cache (lists, location queries, etc.) for instant loading
  */
-export function useTubeQuery(tubeId: string, options?: {
-  queryOptions?: Omit<UseQueryOptions<TubeData, Error>, 'queryKey' | 'queryFn' | 'enabled'>;
-}) {
+export function useTubeQuery(
+  tubeId: string,
+  options?: {
+    queryOptions?: Omit<UseQueryOptions<TubeData, Error>, 'queryKey' | 'queryFn' | 'enabled'>;
+  }
+) {
   const queryClient = useQueryClient();
 
   // Search across all tube caches to find this tube for instant initial data
   const initialData = (): TubeData | undefined => {
     // Get all cached tube queries (location-based, lists, etc.)
     const allTubeQueries = queryClient.getQueriesData<TubeData[]>({
-      queryKey: queryKeys.tubes.all
+      queryKey: queryKeys.tubes.all,
     });
 
     // Search through all cached tube arrays to find this tube
@@ -113,9 +123,9 @@ export function useTubeQuery(tubeId: string, options?: {
     initialData,
     staleTime: 5 * 60 * 1000,
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
     enabled: !!tubeId,
-    ...options?.queryOptions
+    ...options?.queryOptions,
   });
 }
 
@@ -126,7 +136,7 @@ export function useCreateTubeMutation(options?: {
   mutationOptions?: Omit<UseMutationOptions<TubeData, Error, CreateTubeRequest>, 'mutationFn'>;
 }) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async (tubeData: CreateTubeRequest) => {
       const schemaTube = await TubeService.createTube(tubeData);
@@ -141,18 +151,21 @@ export function useCreateTubeMutation(options?: {
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
     retry: 1,
-    ...options?.mutationOptions
+    ...options?.mutationOptions,
   });
 }
 
 /**
- * Hook for tube update mutation  
+ * Hook for tube update mutation
  */
 export function useUpdateTubeMutation(options?: {
-  mutationOptions?: Omit<UseMutationOptions<TubeData, Error, { id: string; data: UpdateTubeRequest }>, 'mutationFn'>;
+  mutationOptions?: Omit<
+    UseMutationOptions<TubeData, Error, { id: string; data: UpdateTubeRequest }>,
+    'mutationFn'
+  >;
 }) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateTubeRequest }) => {
       const schemaTube = await TubeService.updateTube(id, data);
@@ -167,7 +180,7 @@ export function useUpdateTubeMutation(options?: {
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
     retry: 1,
-    ...options?.mutationOptions
+    ...options?.mutationOptions,
   });
 }
 
@@ -178,7 +191,7 @@ export function useDeleteTubeMutation(options?: {
   mutationOptions?: Omit<UseMutationOptions<void, Error, string>, 'mutationFn'>;
 }) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (tubeId: string) => TubeService.deleteTube(tubeId),
     onSuccess: (_, tubeId) => {
@@ -190,7 +203,7 @@ export function useDeleteTubeMutation(options?: {
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
     retry: 1,
-    ...options?.mutationOptions
+    ...options?.mutationOptions,
   });
 }
 
@@ -198,13 +211,20 @@ export function useDeleteTubeMutation(options?: {
  * Hook for batch tube operations
  */
 export function useBatchTubeMutation(options?: {
-  mutationOptions?: Omit<UseMutationOptions<BatchResult<SchemaTubeData>, Error, {
-    action: 'create' | 'update' | 'delete';
-    data: CreateTubeRequest[] | Array<{ id: string; data: UpdateTubeRequest }> | string[];
-  }>, 'mutationFn'>;
+  mutationOptions?: Omit<
+    UseMutationOptions<
+      BatchResult<SchemaTubeData>,
+      Error,
+      {
+        action: 'create' | 'update' | 'delete';
+        data: CreateTubeRequest[] | Array<{ id: string; data: UpdateTubeRequest }> | string[];
+      }
+    >,
+    'mutationFn'
+  >;
 }) {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: async ({ action, data }): Promise<BatchResult<TubeData>> => {
       // Client-side batch operations using parallel execution
@@ -216,7 +236,7 @@ export function useBatchTubeMutation(options?: {
           return {
             successful: createResults as TubeData[],
             failed: [],
-            summary: { total: createResults.length, successful: createResults.length, failed: 0 }
+            summary: { total: createResults.length, successful: createResults.length, failed: 0 },
           };
         }
         case 'update': {
@@ -228,18 +248,16 @@ export function useBatchTubeMutation(options?: {
           return {
             successful: updateResults as TubeData[],
             failed: [],
-            summary: { total: updateResults.length, successful: updateResults.length, failed: 0 }
+            summary: { total: updateResults.length, successful: updateResults.length, failed: 0 },
           };
         }
         case 'delete': {
           const deleteCount = (data as string[]).length;
-          await Promise.all(
-            (data as string[]).map(id => TubeService.deleteTube(id))
-          );
+          await Promise.all((data as string[]).map(id => TubeService.deleteTube(id)));
           return {
             successful: [] as TubeData[],
             failed: [],
-            summary: { total: deleteCount, successful: deleteCount, failed: 0 }
+            summary: { total: deleteCount, successful: deleteCount, failed: 0 },
           };
         }
         default:
@@ -252,7 +270,7 @@ export function useBatchTubeMutation(options?: {
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
     },
     retry: 1,
-    ...options?.mutationOptions
+    ...options?.mutationOptions,
   });
 }
 
@@ -260,13 +278,19 @@ export function useBatchTubeMutation(options?: {
  * Hook to get tube statistics
  */
 export function useTubeStatsQuery(options?: {
-  queryOptions?: Omit<UseQueryOptions<{
-    totalTubes: number;
-    tubesByTank: Record<string, number>;
-    tubesByResearcher: Record<string, number>;
-    tubesByCellType: Record<string, number>;
-    recentActivity: Array<{ date: string; count: number }>;
-  }, Error>, 'queryKey' | 'queryFn'>;
+  queryOptions?: Omit<
+    UseQueryOptions<
+      {
+        totalTubes: number;
+        tubesByTank: Record<string, number>;
+        tubesByResearcher: Record<string, number>;
+        tubesByCellType: Record<string, number>;
+        recentActivity: Array<{ date: string; count: number }>;
+      },
+      Error
+    >,
+    'queryKey' | 'queryFn'
+  >;
 }) {
   return useQuery({
     queryKey: queryKeys.tubes.stats(),
@@ -275,22 +299,31 @@ export function useTubeStatsQuery(options?: {
       const tubes = await TubeService.fetchTubes();
       return {
         totalTubes: tubes.length,
-        tubesByTank: tubes.reduce((acc, t) => ({ ...acc, [t.location.tankId]: (acc[t.location.tankId] || 0) + 1 }), {} as Record<string, number>),
-        tubesByResearcher: tubes.reduce((acc, t) => {
-          const researcherId = t.researcherId ?? UNKNOWN_RESEARCHER;
-          return { ...acc, [researcherId]: (acc[researcherId] || 0) + 1 };
-        }, {} as Record<string, number>),
-        tubesByCellType: tubes.reduce((acc, t) => {
-          const cellType = t.sample.cellType ?? 'Unknown';
-          return { ...acc, [cellType]: (acc[cellType] || 0) + 1 };
-        }, {} as Record<string, number>),
-        recentActivity: []
+        tubesByTank: tubes.reduce(
+          (acc, t) => ({ ...acc, [t.location.tankId]: (acc[t.location.tankId] || 0) + 1 }),
+          {} as Record<string, number>
+        ),
+        tubesByResearcher: tubes.reduce(
+          (acc, t) => {
+            const researcherId = t.researcherId ?? UNKNOWN_RESEARCHER;
+            return { ...acc, [researcherId]: (acc[researcherId] || 0) + 1 };
+          },
+          {} as Record<string, number>
+        ),
+        tubesByCellType: tubes.reduce(
+          (acc, t) => {
+            const cellType = t.sample.cellType ?? 'Unknown';
+            return { ...acc, [cellType]: (acc[cellType] || 0) + 1 };
+          },
+          {} as Record<string, number>
+        ),
+        recentActivity: [],
       };
     },
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    ...options?.queryOptions
+    retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
+    ...options?.queryOptions,
   });
 }
 
@@ -303,24 +336,33 @@ export function usePositionAvailabilityQuery(
   boxId: string,
   position: number,
   _options?: {
-    queryOptions?: Omit<UseQueryOptions<{ available: boolean; occupiedBy?: TubeData }, Error>, 'queryKey' | 'queryFn'>;
+    queryOptions?: Omit<
+      UseQueryOptions<{ available: boolean; occupiedBy?: TubeData }, Error>,
+      'queryKey' | 'queryFn'
+    >;
   }
 ) {
-  const isValidPosition = Boolean(tankId && rackId && boxId && position >= 1 && position <= EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX);
-  
+  const isValidPosition = Boolean(
+    tankId && rackId && boxId && position >= 1 && position <= EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX
+  );
+
   return useQuery({
-    queryKey: [...queryKeys.tubes.all, 'position-check', { tankId, rackId, boxId, position }] as const,
+    queryKey: [
+      ...queryKeys.tubes.all,
+      'position-check',
+      { tankId, rackId, boxId, position },
+    ] as const,
     queryFn: async () => {
       // Modern service doesn't have checkPositionAvailability - check client-side
       const tubes = await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
       const occupiedBy = tubes.find(t => t.location.position === position);
       return {
         available: !occupiedBy,
-        occupiedBy
+        occupiedBy,
       };
     },
     staleTime: 30 * 1000, // 30 seconds
     retry: 2,
-    enabled: isValidPosition
+    enabled: isValidPosition,
   });
 }

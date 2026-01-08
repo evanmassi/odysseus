@@ -17,7 +17,7 @@ import type {
   ValidFieldPath,
   ValidFieldValue,
 } from '@app/types/fieldTypeMapping';
-import type { TubeData } from '@shared/types/tubeTypes';
+import type { TubeData } from '@shared/types/TubeTypes';
 
 /**
  * Two-state conflict analysis result

@@ -17,7 +17,7 @@ export type {
   CreateTubeRequest,
   UpdateTubeRequest,
   ConcentrationUnit,
-} from '@shared/types/tubeTypes';
+} from '@shared/types/TubeTypes';
 
 // Re-export domain constants
-export { UNKNOWN_RESEARCHER } from '@shared/types/tubeTypes';
+export { UNKNOWN_RESEARCHER } from '@shared/types/TubeTypes';

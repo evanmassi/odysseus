@@ -1,7 +1,7 @@
 /**
  * Bulk Operations Types
  */
-import type { TubeData } from './tubeTypes';
+import type { TubeData } from './TubeTypes';
 
 export interface BulkUpdateItem {
   id: string;

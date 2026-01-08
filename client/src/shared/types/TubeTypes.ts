@@ -18,16 +18,11 @@ export type {
   TubeQueryFilters,
   BatchTubeOperation,
   TubeValidationResult,
-  ConcentrationUnit
+  ConcentrationUnit,
 } from '@odysseus/shared-schemas';
 
 // Deprecated input types (kept for backward compatibility during Phase 2)
-export type {
-  TubeFormSampleInput,
-  TubeFormDataInput
-} from '@odysseus/shared-schemas';
+export type { TubeFormSampleInput, TubeFormDataInput } from '@odysseus/shared-schemas';
 
 // Constants
-export { 
-  UNKNOWN_RESEARCHER
-} from '@odysseus/shared-schemas';
+export { UNKNOWN_RESEARCHER } from '@odysseus/shared-schemas';

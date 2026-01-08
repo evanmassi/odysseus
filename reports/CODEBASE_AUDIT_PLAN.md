@@ -255,7 +255,7 @@
 |------|--------|-------|
 | Console usage | [x] | ✅ Clean - only in ClientLogger.ts (correct) |
 | Deprecated `substr()` | [x] | ✅ Fixed in 3 files |
-| TypeScript `any` usage | [!] | 27 files - needs case-by-case review |
+| TypeScript `any` usage | [x] | ✅ Audited - 5 fixed, ~35 justified/documented |
 | TODO comments | [~] | 4 found - documented |
 
 **Issues Found:**
@@ -264,7 +264,7 @@
 |----------|------|-------|--------|
 | Low | `AppErrorBoundary.tsx` | Deprecated `substr()` | ✅ FIXED |
 | Low | `ErrorBoundary.tsx` | Deprecated `substr()` | ✅ FIXED |
-| Medium | 27 files | TypeScript `any` usage | ⏸️ Review in Phase 5 |
+| Medium | 27 files | TypeScript `any` usage | ✅ COMPLETE (see Phase 5.3) |
 | Low | 4 files | TODO comments | 📝 Documented |
 
 ---
@@ -411,11 +411,11 @@ These are imported by multiple domains, so they belong in shared.
 | 3 | Utility placement | Shared utilities in domain folders | LOW - organization issue |
 
 ### Technical Debt (Deferred)
-| # | Category | Count | Description |
-|---|----------|-------|-------------|
-| 1 | TypeScript `any` | 27 files | Needs case-by-case review |
-| 2 | TODO comments | 4 | Monitoring, accessibility, error reporting |
-| 3 | Grid domain | 1 | Underutilized - only 3 files |
+| # | Category | Count | Description | Status |
+|---|----------|-------|-------------|--------|
+| 1 | TypeScript `any` | 27 files | Case-by-case review | ✅ COMPLETE (see Phase 5.3) |
+| 2 | TODO comments | 4 | Monitoring, accessibility, error reporting | ⏸️ DEFERRED |
+| 3 | Grid domain | 1 | Underutilized - only 3 files | ⏸️ DEFERRED |
 
 ---
 
@@ -740,30 +740,30 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 
 ### 5.3 TypeScript `any` Usage
 
-| Codebase | Files with `any` | Status |
-|----------|------------------|--------|
-| Client | 18 files | ⚠️ Review needed |
-| Server | 37 files | ⚠️ Review needed |
-| **Total** | **55 files** | |
+| Codebase | Initial | Fixed | Remaining | Status |
+|----------|---------|-------|-----------|--------|
+| Server | ~30 | ~23 | 7 | ✅ Audit complete |
+| Client | ~40 | 5 | ~35 | ✅ Audit complete |
+| **Total** | **~70** | **~28** | **~42** | ✅ All documented |
 
-**Client Files (18):**
-- `infrastructure/api/httpClient.ts` - HTTP response handling
-- `infrastructure/api/AuthHttpClient.ts` - Auth responses
-- `domains/search/engine/SearchEngine.ts` - Search processing
-- `infrastructure/optimistic/optimisticUpdates.tsx` - Optimistic update logic
-- `shared/types/` - 4 type definition files (intentional)
-- `domains/tubes/services/BulkOperationsService.ts` - Bulk ops
-- Test files - 3 files (acceptable)
-- Others - Various service/hook files
+**Server Remaining (7) - All documented with ESLint comments:**
+- `featureFlags.ts` (3) - Intentional loose coupling for database dependency injection
+- `ConfigurationRepository.ts` (2) - JSON parsing flexibility
+- `PostgresContext.ts` (1) - Transaction callback flexibility
+- `SQLiteDatabase.ts` (1) - Query result handling
 
-**Server Files (37):**
-- Presentation layer controllers and routes - error handling
-- Domain services - type flexibility
-- Application DTOs - JSON parsing
-- Infrastructure - database handling
-- Middleware - validation and error handling
+**Client Remaining (~35) - All justified:**
+- Generic defaults (`<T = any>`) - Standard TypeScript pattern
+- Test files - Acceptable for mocking
+- API response handling - HTTP response flexibility
+- Clipboard/bulk operations - Cross-browser compatibility
+- Field configuration callbacks - Function parameter contravariance design constraint
 
-**Assessment:** Many `any` usages are in error handling and JSON parsing contexts where strong typing is difficult. Some can be improved with proper generics.
+**Assessment:** ✅ **Audit complete.** All remaining `any` types are either:
+1. Documented with ESLint disable comments explaining justification
+2. Generic type defaults (standard pattern)
+3. Test files (acceptable)
+4. Design constraints that would require major refactoring to address
 
 ---
 
@@ -804,7 +804,9 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 1. ID generation centralization
 2. Date formatting module consolidation
 3. String utility extraction
-4. TypeScript `any` reduction (55 files)
+
+**Completed:**
+4. ✅ TypeScript `any` reduction (~28 types fixed, ~42 remaining all documented/justified)
 
 ---
 
@@ -951,6 +953,7 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 | Console logging | 15+ files | Replaced all `console.*` with `logger` (except intentional ConsoleEmailService) |
 | Duplicate methods | User.ts, UserApplicationService.ts | Removed `updateActivity()`, kept `recordActivity()` |
 | Domain layer cleanup | User.ts, RolePermissionService.ts | Removed console calls with silent fallbacks |
+| TypeScript `any` reduction | ~15 files | ~28 `any` types fixed (see Phase 5.3 for details) |
 
 ### Files Modified
 
@@ -962,10 +965,17 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 - `server/src/domain/entities/RefreshToken.ts`
 - `server/src/domain/entities/UserSession.ts`
 - `server/src/domain/services/RolePermissionService.ts`
+- `server/src/domain/services/ValidationService.ts` - any reduction: `null as any` → proper method
+- `server/src/domain/types/configuration.ts` - any reduction: new ConfigurationImportData interface
+- `server/src/domain/types/services/TubeOperation.ts` - any reduction: new TubeBusinessRuleInput interface
+- `server/src/domain/types/services/TubePosition.ts` - any reduction: `any` → `Tube` type
 
 **Application Layer:**
 - `server/src/application/commands/UserCommands.ts`
 - `server/src/application/services/UserApplicationService.ts`
+- `server/src/application/commands/ConfigurationCommands.ts` - any reduction: type import
+- `server/src/application/dto/ConfigurationDto.ts` - any reduction: TransformedLabConfiguration interface
+- `server/src/application/eventHandlers/AuditEventHandler.ts` - any reduction: Object.keys() typing
 
 **Infrastructure Layer:**
 - `server/src/infrastructure/repositories/ConfigurationRepository.ts`
@@ -974,13 +984,17 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 - `server/src/infrastructure/di/ServiceContainer.ts`
 
 **Presentation Layer:**
-- `server/src/presentation/controllers/ConfigurationController.ts`
+- `server/src/presentation/controllers/ConfigurationController.ts` - any reduction: ImportConfigurationResponse interface
 - `server/src/presentation/controllers/UserController.ts`
 - `server/src/presentation/routes/ConfigurationRouteModule.ts`
 
 **Utils/Entry:**
-- `server/src/utils/featureFlags.ts`
+- `server/src/utils/featureFlags.ts` - any reduction: ESLint documentation for 3 justified `any` types
 - `server/src/index.ts`
+
+**Client-Side (any reduction):**
+- `client/src/domains/tubes/utils/colorSystem.ts` - 3 × `any` → `TubeData`
+- `client/src/infrastructure/configuration/tubeFieldConfiguration.ts` - 2 × `any` → `TubeData`
 
 ### Deferred Items (Require More Investigation)
 
@@ -1008,12 +1022,12 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 
 ### Deferred Items (Require Design Discussion)
 
-| Item | Reason |
-|------|--------|
-| Authentication→Tubes coupling | Needs refactoring to remove tubes store dependency |
-| SearchResults over-coupling | Needs facade pattern or data restructuring |
-| Utility placement | Move shared utilities from storage/utils to shared/utils |
-| TypeScript `any` usage | 55 files need case-by-case review |
+| Item | Reason | Status |
+|------|--------|--------|
+| Authentication→Tubes coupling | Needs refactoring to remove tubes store dependency | ⏸️ DEFERRED |
+| SearchResults over-coupling | Needs facade pattern or data restructuring | ⏸️ DEFERRED |
+| Utility placement | Move shared utilities from storage/utils to shared/utils | ⏸️ DEFERRED |
+| TypeScript `any` usage | Case-by-case review completed | ✅ COMPLETE (see Phase 5.3) |
 
 ---
 
@@ -1048,6 +1062,73 @@ All files use same pattern: `prefix + Date.now() + '_' + Math.random().toString(
 | Commented-out code (~17 blocks) | Need individual review |
 | ID generation centralization | Requires new service creation |
 | Date formatting consolidation | Need to update 34+ files |
+
+---
+
+## Phase 5.3 TypeScript `any` Reduction Fixes (Jan 2026)
+
+### Summary
+
+| Metric | Count |
+|--------|-------|
+| Server `any` types fixed | ~23 |
+| Client `any` types fixed | 5 |
+| Server remaining (all documented) | 7 |
+| Client remaining (all justified) | ~35 |
+
+### Server-Side Fixes
+
+| File | Change | Description |
+|------|--------|-------------|
+| `domain/services/ValidationService.ts` | `null as any` → proper method call | Changed `requireTubeAccess(user, null as any, 'create')` to `requireCanCreateTube(user)` |
+| `application/eventHandlers/AuditEventHandler.ts` | `Object.keys()` typing | Added `as Array<keyof typeof obj>` for type-safe iteration |
+| `presentation/controllers/ConfigurationController.ts` | Added interface | Created `ImportConfigurationResponse` interface |
+| `application/commands/ConfigurationCommands.ts` | Added import | Imported `ConfigurationImportData` type |
+| `application/dto/ConfigurationDto.ts` | Added interface | Created `TransformedLabConfiguration` interface (40 lines) |
+| `domain/types/configuration.ts` | New type | Added `ConfigurationImportData` interface |
+| `domain/types/services/TubeOperation.ts` | New types | Added `TubeBusinessRuleInput` and `SampleValidationFields` interfaces |
+| `domain/types/services/TubePosition.ts` | `any` → `Tube` | Changed `conflictingTube` from `any` to proper `Tube` type |
+| `utils/featureFlags.ts` | Documentation | Added ESLint disable comments to 3 intentional `any` types |
+
+### Client-Side Fixes
+
+| File | Change | Description |
+|------|--------|-------------|
+| `domains/tubes/utils/colorSystem.ts` | 3 × `any` → `TubeData` | Fixed `getTubeColor`, `invalidateTubeCache`, `parseDonorInfo` signatures |
+| `infrastructure/configuration/tubeFieldConfiguration.ts` | 2 × `any` → `TubeData` | Fixed `customRenderer` callback and `getDisplayValue` method |
+
+### Documented Remaining `any` Types (Server)
+
+All remaining server `any` types now have ESLint disable comments with explanations:
+
+| File | Count | Justification |
+|------|-------|---------------|
+| `featureFlags.ts` | 3 | Loose coupling for database dependency injection |
+| `ConfigurationRepository.ts` | 2 | JSON parsing flexibility for config snapshots |
+| `PostgresContext.ts` | 1 | Transaction callback flexibility |
+| `SQLiteDatabase.ts` | 1 | Query result handling |
+
+### Justified Remaining `any` Types (Client)
+
+| Category | Count | Justification |
+|----------|-------|---------------|
+| Generic type defaults (`<T = any>`) | ~10 | Standard TypeScript pattern for flexible generics |
+| Test files | ~5 | Acceptable for mocking and test utilities |
+| API response handling | ~8 | HTTP response flexibility, JSON parsing |
+| Clipboard/bulk operations | ~5 | Cross-browser compatibility requirements |
+| Field configuration callbacks | 2 | Function parameter contravariance - design constraint |
+| Type definition files | ~5 | Intentional for flexibility |
+
+### Investigation Notes
+
+**tubeFieldConfiguration.ts callbacks (not fixed):**
+The remaining `any` in callback parameter types is a design constraint. Due to function parameter contravariance in TypeScript, callbacks that accept `any` cannot be simply changed to accept specific types without breaking the type system. Would require a major refactoring of the field configuration system.
+
+**Design pattern for justified `any`:**
+All justified `any` types follow the pattern:
+```typescript
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- [Reason explaining why any is necessary]
+```
 
 ---
 

@@ -26,7 +26,7 @@ import { EditLockNoteModal } from '../modals/EditLockNoteModal';
 
 import type { Researcher } from '@odysseus/shared-schemas';
 import type { LockContext } from '@shared/types/grid';
-import type { TubeData } from '@shared/types/tubeTypes';
+import type { TubeData } from '@shared/types/TubeTypes';
 
 // All field paths for conflict analysis
 const FIELD_PATHS = [

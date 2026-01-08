@@ -22,7 +22,7 @@ import { validatePasteOperation } from '@shared/utils/pasteValidation';
 import { canModifyAllTubes, getBlockedModificationMessage } from '@shared/utils/tubeAccessControl';
 
 import type { TubeData } from '@odysseus/shared-schemas';
-import type { ClipboardData } from '@shared/types/clipboard';
+import type { ClipboardData } from '@shared/types/Clipboard';
 import type { PositionKey, PositionContext, TubeClipboardItem } from '@shared/types/grid';
 
 export interface UseGridClipboardProps {

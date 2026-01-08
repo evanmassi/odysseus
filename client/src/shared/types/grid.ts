@@ -4,7 +4,7 @@
  */
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { TubeData, CreateTubeRequest } from './tubeTypes';
+import type { TubeData, CreateTubeRequest } from './TubeTypes';
 
 // Position and location types
 export type TankId = string;

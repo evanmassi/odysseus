@@ -1,4 +1,4 @@
-import type { TubeData } from '../../shared/types/tubeTypes';
+import type { TubeData } from '../../shared/types/TubeTypes';
 
 /**
  * Create a mock tube with realistic test data
@@ -7,7 +7,7 @@ export const createMockTube = (overrides: Partial<TubeData> = {}): TubeData => (
   id: 'tube-1',
   location: {
     tankId: 'tank-1',
-    rackId: 'rack-1', 
+    rackId: 'rack-1',
     boxId: 'A',
     position: 1,
   },
@@ -21,7 +21,7 @@ export const createMockTube = (overrides: Partial<TubeData> = {}): TubeData => (
     media: {
       type: 'RPMI-1640',
       supplements: '',
-      selection: ''
+      selection: '',
     },
     cultureCondition: 'Standard',
     lotNumber: 'LOT-001',
@@ -70,7 +70,5 @@ export const createMockResearcher = (name: string = 'Dr. Test') => ({
  * Create mock researchers list
  */
 export const createMockResearchers = (count: number = 3) => {
-  return Array.from({ length: count }, (_, index) =>
-    createMockResearcher(`Dr. Test ${index + 1}`)
-  );
+  return Array.from({ length: count }, (_, index) => createMockResearcher(`Dr. Test ${index + 1}`));
 };

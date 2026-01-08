@@ -56,7 +56,15 @@ export interface NetworkInformation extends EventTarget {
    * Underlying connection technology (when available)
    * Note: Most browsers don't expose this for privacy reasons
    */
-  readonly type?: 'bluetooth' | 'cellular' | 'ethernet' | 'none' | 'wifi' | 'wimax' | 'other' | 'unknown';
+  readonly type?:
+    | 'bluetooth'
+    | 'cellular'
+    | 'ethernet'
+    | 'none'
+    | 'wifi'
+    | 'wimax'
+    | 'other'
+    | 'unknown';
 }
 
 /**

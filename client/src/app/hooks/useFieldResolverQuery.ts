@@ -19,7 +19,7 @@ import { useSimpleFieldResolver, type SimpleFieldResolver } from './useSimpleFie
 
 import type { NormalizedFieldValue } from '@app/types/fieldTypeMapping';
 import type { Researcher } from '@odysseus/shared-schemas';
-import type { TubeData } from '@shared/types/tubeTypes';
+import type { TubeData } from '@shared/types/TubeTypes';
 
 /**
  * Enhanced data access interface combining React Query with field resolution

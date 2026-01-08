@@ -3,25 +3,25 @@
  */
 
 // API types
-export type * from './apiTypes';
+export type * from './ApiTypes';
 
 // Bulk operations types
-export type * from './bulkOperations';
+export type * from './BulkOperations';
 
 // Clipboard types
-export type * from './clipboard';
+export type * from './Clipboard';
 
 // Experimental browser API types
-export type * from './experimentalBrowserApis';
+export type * from './ExperimentalBrowserApis';
 
 // Grid types
 export type * from './grid';
 
 // Tube types
-export type * from './tubeTypes';
+export type * from './TubeTypes';
 
 // Validation types
-export type * from './validationTypes';
+export type * from './ValidationTypes';
 
 // Form types
-export type { FormFieldConfig, TubeFormConfig } from './forms';
+export type { FormFieldConfig, TubeFormConfig } from './Forms';

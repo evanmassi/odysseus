@@ -1,7 +1,7 @@
 # File Naming Convention Audit
 
 **Created:** 2026-01-08
-**Status:** In Progress
+**Status:** Server and Client Casing Fixed
 **Last Updated:** 2026-01-08
 
 ---
@@ -47,14 +47,14 @@ This document tracks file naming inconsistencies across the codebase and provide
 
 ### Domain Layer (`server/src/domain/`)
 
-#### `domain/types/` - NEEDS ATTENTION
+#### `domain/types/` - COMPLETE
 
-| Current Name | Recommended Name | Status | Reason | Imports to Update |
-|--------------|------------------|--------|--------|-------------------|
-| `configuration.ts` | `Configuration.ts` | Pending | Contains `ConfigurationUpdateData`, `ConfigurationImportData` interfaces | 2 |
-| `validation.ts` | `Validation.ts` | Pending | Contains `DomainValidationResult`, `BulkValidationResult` interfaces | 2 |
-| `position.ts` | `Position.ts` | Pending | Contains `PositionConflict` interface | 1 |
-| `fieldChange.ts` | `FieldChange.ts` | Pending | Contains `FieldChange` interface (recently changed TO lowercase - needs reversal) | 7 |
+| Current Name | Recommended Name | Status | Reason | Imports Updated |
+|--------------|------------------|--------|--------|-----------------|
+| `Configuration.ts` | `Configuration.ts` | **DONE** | Contains `ConfigurationUpdateData`, `ConfigurationImportData` interfaces | 2 |
+| `Validation.ts` | `Validation.ts` | **DONE** | Contains `DomainValidationResult`, `BulkValidationResult` interfaces | 2 |
+| `Position.ts` | `Position.ts` | **DONE** | Contains `PositionConflict` interface | 1 |
+| `FieldChange.ts` | `FieldChange.ts` | **DONE** | Contains `FieldChange` interface | 7 |
 
 #### `domain/types/services/` - OK
 
@@ -109,11 +109,11 @@ All files follow PascalCase: `AuditRepository.ts`, `ConfigurationRepository.ts`,
 
 ### Application Layer (`server/src/application/`)
 
-#### `application/types/` - NEEDS ATTENTION
+#### `application/types/` - COMPLETE
 
-| Current Name | Recommended Name | Status | Reason | Imports to Update |
-|--------------|------------------|--------|--------|-------------------|
-| `audit.ts` | `Audit.ts` | Pending | Contains `AuditChange` interface | 1 |
+| Current Name | Recommended Name | Status | Reason | Imports Updated |
+|--------------|------------------|--------|--------|-----------------|
+| `Audit.ts` | `Audit.ts` | **DONE** | Contains `AuditChange` interface | 1 |
 
 #### `application/services/` - OK
 
@@ -187,18 +187,18 @@ All folders and files follow PascalCase. No issues found.
 
 ## Client Audit
 
-### `client/src/shared/types/` - NEEDS ATTENTION
+### `client/src/shared/types/` - COMPLETE
 
-| Current Name | Recommended Name | Status | Reason |
-|--------------|------------------|--------|--------|
-| `forms.ts` | `Forms.ts` | Pending | Contains type definitions |
-| `tubeTypes.ts` | `TubeTypes.ts` | Pending | Contains type definitions |
-| `apiTypes.ts` | `ApiTypes.ts` | Pending | Contains type definitions |
-| `bulkOperations.ts` | `BulkOperations.ts` | Pending | Contains type definitions |
-| `clipboard.ts` | `Clipboard.ts` | Pending | Contains type definitions |
-| `experimentalBrowserApis.ts` | `ExperimentalBrowserApis.ts` | Pending | Contains type definitions |
-| `validationTypes.ts` | `ValidationTypes.ts` | Pending | Contains type definitions |
-| `GridTypes.ts` | OK | Already PascalCase |
+| Current Name | Recommended Name | Status | Imports Updated |
+|--------------|------------------|--------|-----------------|
+| `forms.ts` | `Forms.ts` | **DONE** | 1 (barrel) |
+| `tubeTypes.ts` | `TubeTypes.ts` | **DONE** | 18 |
+| `apiTypes.ts` | `ApiTypes.ts` | **DONE** | 1 (barrel) |
+| `bulkOperations.ts` | `BulkOperations.ts` | **DONE** | 5 |
+| `clipboard.ts` | `Clipboard.ts` | **DONE** | 6 |
+| `experimentalBrowserApis.ts` | `ExperimentalBrowserApis.ts` | **DONE** | 1 (barrel) |
+| `validationTypes.ts` | `ValidationTypes.ts` | **DONE** | 2 |
+| `GridTypes.ts` | OK | Already PascalCase | - |
 
 ### `client/src/shared/utils/` - OK (utility exception)
 
@@ -259,59 +259,133 @@ The shared-schemas package consistently uses camelCase. Two options:
 
 ## Functional Naming Issues
 
-Beyond casing, some files may be misnamed based on their actual function:
+Beyond casing, some files may be misnamed based on their actual function.
 
-| File | Current Name | Issue | Recommended Name |
-|------|--------------|-------|------------------|
-| ~~`domain/types/services/Validation.ts`~~ | ~~`Validation.ts`~~ | ~~Contains `TubeCreationData`, `TubeUpdateData` - not validation types~~ | ~~`TubeOperation.ts`~~ **FIXED** |
-| TBD | TBD | Need to audit remaining files for function-name mismatch | TBD |
+### Server-Side Functional Audit: COMPLETE
+
+**Audit Date:** 2026-01-08
+
+All server-side files were reviewed to verify that file names match their contents/function.
+
+| Layer | Files Audited | Issues Found |
+|-------|---------------|--------------|
+| `domain/types/` | 4 files | None (casing only) |
+| `domain/types/services/` | 3 files | 1 - FIXED (Validation.ts → TubeOperation.ts) |
+| `domain/types/repository/` | 3 files | None |
+| `domain/services/` | 6 files | None |
+| `domain/entities/` | 7 files | None |
+| `domain/valueObjects/` | 6 files | None |
+| `domain/events/` | 8 files | None |
+| `domain/errors/` | 7 files | None |
+| `domain/repositories/` | 7 files | None |
+| `application/types/` | 1 file | None (casing only) |
+| `application/services/` | 4 files | None |
+| `application/commands/` | 10 files | None |
+| `application/dto/` | 6 files | None |
+| `application/queries/` | 2 files | None |
+| `application/contracts/` | 2 files | None |
+| `application/eventHandlers/` | 2 files | None |
+| `infrastructure/` | All files | None |
+| `presentation/` | All files | None |
+| `middleware/` | 2 files | None |
+| `utils/` | 2 files | None |
+
+**Result:** Only one functional naming issue was found and fixed:
+
+| File | Current Name | Issue | Recommended Name | Status |
+|------|--------------|-------|------------------|--------|
+| `domain/types/services/Validation.ts` | `Validation.ts` | Contains `TubeCreationData`, `TubeUpdateData` - not validation types | `TubeOperation.ts` | **FIXED** |
+
+### Client-Side Functional Audit: COMPLETE
+
+**Audit Date:** 2026-01-08
+
+All client-side files were reviewed to verify that file names match their contents/function.
+
+| Layer | Files Audited | Issues Found |
+|-------|---------------|--------------|
+| `shared/types/` | 8 files | 2 minor (noted below) |
+| `shared/utils/` | 15+ files | None |
+| `shared/hooks/` | 10+ files | None |
+| `shared/stores/` | 1 file | None |
+| `domains/authentication/` | All files | None |
+| `domains/tubes/` | All files | None |
+| `domains/storage/` | All files | None |
+| `domains/search/` | All files | None |
+| `domains/researchers/` | All files | None |
+| `domains/users/` | All files | None |
+| `domains/admin/` | All files | None |
+| `domains/grid/` | All files | None |
+| `app/` | All files | None |
+| `infrastructure/` | All files | None |
+
+**Minor Functional Naming Observations (Low Priority):**
+
+| File | Current Name | Observation | Recommendation |
+|------|--------------|-------------|----------------|
+| `shared/types/clipboard.ts` | `clipboard.ts` | Also contains Undo/Redo history types | Could be `ClipboardAndHistory.ts` but current name is acceptable |
+| `domains/admin/types/metrics.ts` | `metrics.ts` | Also contains RetentionPolicy types | Could be `MetricsAndRetention.ts` but current name is acceptable |
+
+**Result:** No critical functional naming issues found. All file names adequately describe their contents.
 
 ---
 
 ## Priority Action Items
 
-### Priority 1: Server Type Files (5 files)
+### Priority 1: Server Type Files (5 files) - COMPLETE
 
-These are direct inconsistencies in the domain layer:
+~~These are direct inconsistencies in the domain layer:~~
 
-1. `domain/types/configuration.ts` → `Configuration.ts`
-2. `domain/types/validation.ts` → `Validation.ts`
-3. `domain/types/position.ts` → `Position.ts`
-4. `domain/types/fieldChange.ts` → `FieldChange.ts`
-5. `application/types/audit.ts` → `Audit.ts`
+1. ~~`domain/types/configuration.ts` → `Configuration.ts`~~ ✅
+2. ~~`domain/types/validation.ts` → `Validation.ts`~~ ✅
+3. ~~`domain/types/position.ts` → `Position.ts`~~ ✅
+4. ~~`domain/types/fieldChange.ts` → `FieldChange.ts`~~ ✅
+5. ~~`application/types/audit.ts` → `Audit.ts`~~ ✅
 
-**Total imports to update:** ~13 files
+**Status:** All 5 files renamed, 13 imports updated, build verified.
 
-### Priority 2: Client Type Files (7 files)
+### Priority 2: Client Type Files (7 files) - PENDING
 
-Files in `client/src/shared/types/` that need PascalCase.
+Files in `client/src/shared/types/` that need PascalCase:
 
-### Priority 3: Shared Schemas Decision
+| Current Name | Recommended Name | Imports to Update |
+|--------------|------------------|-------------------|
+| `forms.ts` | `Forms.ts` | TBD |
+| `tubeTypes.ts` | `TubeTypes.ts` | TBD |
+| `apiTypes.ts` | `ApiTypes.ts` | TBD |
+| `bulkOperations.ts` | `BulkOperations.ts` | TBD |
+| `clipboard.ts` | `Clipboard.ts` | TBD |
+| `experimentalBrowserApis.ts` | `ExperimentalBrowserApis.ts` | TBD |
+| `validationTypes.ts` | `ValidationTypes.ts` | TBD |
+
+### Priority 3: Shared Schemas Decision - PENDING
 
 Decide whether to standardize shared-schemas to PascalCase or document camelCase as the accepted pattern for schema files.
 
-### Priority 4: Full Client Audit
+**Recommendation:** Keep camelCase for shared-schemas. These are Zod schema definition files that export functions/constants, not type/class files. The camelCase convention is appropriate and consistently applied throughout the package.
 
-Complete audit of client-side domain folders.
+### Priority 4: Full Client Audit - COMPLETE
+
+All client-side domain folders have been audited. No critical functional naming issues found.
 
 ---
 
 ## Batch Execution Plan
 
 ### Batch 1: Server `domain/types/` (4 files)
-- [ ] Rename files
-- [ ] Update imports
-- [ ] Verify build
+- [x] Rename files
+- [x] Update imports
+- [x] Verify build
 
 ### Batch 2: Server `application/types/` (1 file)
-- [ ] Rename files
-- [ ] Update imports
-- [ ] Verify build
+- [x] Rename files
+- [x] Update imports
+- [x] Verify build
 
 ### Batch 3: Client `shared/types/` (7 files)
-- [ ] Rename files
-- [ ] Update imports
-- [ ] Verify build
+- [x] Rename files
+- [x] Update imports (23 files updated)
+- [x] Verify build
 
 ### Batch 4: Shared Schemas (if decided)
 - [ ] TBD based on decision
@@ -324,6 +398,11 @@ Complete audit of client-side domain folders.
 |------|--------|-----|
 | 2026-01-08 | Initial audit document created | Claude |
 | 2026-01-08 | Fixed `domain/types/services/Validation.ts` → `TubeOperation.ts` | Claude |
-| 2026-01-08 | Fixed `domain/types/FieldChange.ts` → `fieldChange.ts` (pending reversal) | Claude |
+| 2026-01-08 | Fixed `domain/types/FieldChange.ts` → `fieldChange.ts` (pending reversal to PascalCase) | Claude |
 | 2026-01-08 | Removed dead code `TubeCreationData` from `TubeApplicationService.ts` | Claude |
+| 2026-01-08 | Completed server-side functional naming audit - no additional issues found | Claude |
+| 2026-01-08 | Renamed `domain/types/` files to PascalCase (4 files, 12 imports updated) | Claude |
+| 2026-01-08 | Renamed `application/types/audit.ts` to `Audit.ts` (1 import updated) | Claude |
+| 2026-01-08 | Completed client-side functional naming audit - no critical issues found | Claude |
+| 2026-01-08 | Renamed `client/src/shared/types/` files to PascalCase (7 files, 23 imports updated) | Claude |
 

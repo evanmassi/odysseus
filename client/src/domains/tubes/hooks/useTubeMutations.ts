@@ -16,7 +16,7 @@ import { TubeService } from '@domains/tubes/services/TubeService';
 import { logger } from '@shared/infrastructure/logger';
 
 import type { TubeData, CreateTubeRequest, UpdateTubeRequest } from '@domains/tubes/types';
-import type { BulkUpdateResult } from '@shared/types/bulkOperations';
+import type { BulkUpdateResult } from '@shared/types/BulkOperations';
 
 // MUTATION HOOKS (WRITE OPERATIONS)
 
