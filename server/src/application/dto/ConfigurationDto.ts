@@ -29,7 +29,8 @@ interface TransformedLabConfiguration extends Omit<LabConfiguration, 'equipment'
           gridConfig: { rows: number; cols: number };
           maxPositions: number;
           isActive: boolean;
-          assignedUserId?: string;
+          // Tri-state: string = assigned, null = explicitly common, undefined = inherit from rack
+          assignedUserId?: string | null;
           customLabel?: string;
         }>;
       }>;
