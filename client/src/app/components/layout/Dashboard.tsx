@@ -48,24 +48,6 @@ import type { PositionKey } from '@shared/types/grid';
 
 import '@shared/styles/base/layout.css';
 
-// Lazy loading (commented out - uncomment to re-enable code splitting)
-// const TubeEditorModal = lazy(() =>
-//   import('@domains/tubes/ui/components/modals/TubeEditorModal').then(m => ({
-//     default: m.TubeEditorModal
-//   }))
-// );
-// const BatchTubeEditorModal = lazy(() =>
-//   import('@domains/tubes/ui/components/modals/BatchTubeEditorModal').then(m => ({
-//     default: m.BatchTubeEditorModal
-//   }))
-// );
-// const useLazyTubeEditor = PreloadHelpers.createHook(
-//   () => import('@domains/tubes/ui/components/modals/TubeEditorModal')
-// );
-// const useLazyBatchEditor = PreloadHelpers.createHook(
-//   () => import('@domains/tubes/ui/components/modals/BatchTubeEditorModal')
-// );
-
 export function Dashboard() {
   // Sync server configuration to client store on mount
   useConfigurationSync();
@@ -122,12 +104,6 @@ export function Dashboard() {
     });
     return map;
   }, [lockUsers]);
-
-  // Preloading disabled (uncomment for lazy loading)
-  // const { preload: preloadTubeEditor } = useLazyTubeEditor();
-  // const { preload: preloadBatchEditor } = useLazyBatchEditor();
-  // PreloadHelpers.useOnIdle(preloadTubeEditor, 2000);
-  // PreloadHelpers.useOnIdle(preloadBatchEditor, 2000);
 
   // Refs for focus detection and click-outside handling
   const storageNavigatorRef = useRef<HTMLDivElement>(null);

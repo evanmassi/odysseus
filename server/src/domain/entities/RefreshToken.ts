@@ -1,4 +1,5 @@
 import { ValidationError } from '@domain/errors/ValidationError';
+import { generateId } from '@domain/utils/generateId';
 import * as crypto from 'crypto';
 
 /**
@@ -33,7 +34,7 @@ export class RefreshToken {
   ): RefreshToken {
     // Generate unique secure token (256-bit)
     const token = crypto.randomBytes(32).toString('hex');
-    const id = RefreshToken.generateId();
+    const id = generateId('refresh');
     const now = new Date();
     const expiresAt = new Date(now.getTime() + (expirationDays * 24 * 60 * 60 * 1000));
     
@@ -75,13 +76,6 @@ export class RefreshToken {
       data.userAgent,
       data.ipAddress
     );
-  }
-
-  /**
-   * Generate unique refresh token ID
-   */
-  private static generateId(): string {
-    return 'refresh_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**

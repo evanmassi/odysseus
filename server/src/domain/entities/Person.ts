@@ -1,4 +1,5 @@
 import { ValidationError } from '@domain/errors/ValidationError';
+import { generateId } from '@domain/utils/generateId';
 
 export class Person {
   private constructor(
@@ -21,7 +22,7 @@ export class Person {
     position?: string,
     department?: string
   ): Person {
-    const id = Person.generateId();
+    const id = generateId('person');
     const now = new Date();
 
     return new Person(
@@ -56,10 +57,6 @@ export class Person {
       data.position,
       data.department
     );
-  }
-
-  private static generateId(): string {
-    return 'person_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   private validate(): void {

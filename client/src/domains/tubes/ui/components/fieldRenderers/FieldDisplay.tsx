@@ -10,10 +10,10 @@ import React from 'react';
 import {
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
-  type Researcher
+  type Researcher,
 } from '@odysseus/shared-schemas';
 
-import { formatDateForDisplay } from '@shared/utils/dateFormatter';
+import { formatDateForDisplay } from '@shared/utils/dateUtils';
 
 import type { FieldConfig } from '../../../config/fieldConfig';
 
@@ -27,7 +27,12 @@ interface FieldDisplayProps {
 /**
  * Individual field display renderer
  */
-export const FieldDisplay: React.FC<FieldDisplayProps> = ({ config, value, unitValue, researcherMap }) => {
+export const FieldDisplay: React.FC<FieldDisplayProps> = ({
+  config,
+  value,
+  unitValue,
+  researcherMap,
+}) => {
   // Don't render if value is empty
   if (!value && value !== 0) return null;
 
@@ -65,7 +70,9 @@ export const FieldDisplay: React.FC<FieldDisplayProps> = ({ config, value, unitV
           {config.label}
         </span>
       )}
-      <div className={`font-bold ${config.type === 'textarea' ? 'text-odysseus-secondary leading-snug' : 'text-odysseus-dark'} text-xs`}>
+      <div
+        className={`font-bold ${config.type === 'textarea' ? 'text-odysseus-secondary leading-snug' : 'text-odysseus-dark'} text-xs`}
+      >
         {displayValue()}
       </div>
     </div>
@@ -94,22 +101,25 @@ export const SectionDisplay: React.FC<SectionDisplayProps> = ({
   headerColor,
   fields,
   researcherMap,
-  columns = 1
+  columns = 1,
 }) => {
   // Filter out empty fields
-  const fieldsWithValues = fields.filter(({ value }) => value !== undefined && value !== null && value !== '');
+  const fieldsWithValues = fields.filter(
+    ({ value }) => value !== undefined && value !== null && value !== ''
+  );
 
   // Don't render section if no fields have values
   if (fieldsWithValues.length === 0) return null;
 
   // Map columns to grid class (explicit for Tailwind JIT)
-  const gridColsClass = {
-    1: 'grid-cols-1',
-    2: 'grid-cols-2',
-    3: 'grid-cols-3',
-    4: 'grid-cols-4',
-    6: 'grid-cols-6'
-  }[columns] ?? 'grid-cols-1';
+  const gridColsClass =
+    {
+      1: 'grid-cols-1',
+      2: 'grid-cols-2',
+      3: 'grid-cols-3',
+      4: 'grid-cols-4',
+      6: 'grid-cols-6',
+    }[columns] ?? 'grid-cols-1';
 
   const useGridLayout = columns > 1;
 
@@ -118,23 +128,34 @@ export const SectionDisplay: React.FC<SectionDisplayProps> = ({
       <div className={`font-bold ${headerColor} uppercase tracking-wider mb-0.5 text-xs`}>
         {title}
       </div>
-      <div className={`${useGridLayout ? `grid ${gridColsClass} gap-x-3 gap-y-0.5` : 'flex flex-col'} pl-2`}>
+      <div
+        className={`${useGridLayout ? `grid ${gridColsClass} gap-x-3 gap-y-0.5` : 'flex flex-col'} pl-2`}
+      >
         {fieldsWithValues.map(({ config, value, unitValue }, index) => {
           // Map gridSpan to col-span class (explicit for Tailwind JIT)
-          const colSpanClass = config.gridSpan === 2 ? 'col-span-2' :
-                               config.gridSpan === 3 ? 'col-span-3' :
-                               config.gridSpan === 4 ? 'col-span-4' :
-                               config.gridSpan === 5 ? 'col-span-5' :
-                               config.gridSpan === 6 ? 'col-span-6' : '';
+          const colSpanClass =
+            config.gridSpan === 2
+              ? 'col-span-2'
+              : config.gridSpan === 3
+                ? 'col-span-3'
+                : config.gridSpan === 4
+                  ? 'col-span-4'
+                  : config.gridSpan === 5
+                    ? 'col-span-5'
+                    : config.gridSpan === 6
+                      ? 'col-span-6'
+                      : '';
 
           // For single-column layouts: control spacing individually
           // Compact fields get minimal spacing (1px), normal fields get standard spacing (2px)
-          const spacingClass = !useGridLayout && index > 0
-            ? (config.compact ? 'mt-[1px]' : 'mt-0.5')
-            : '';
+          const spacingClass =
+            !useGridLayout && index > 0 ? (config.compact ? 'mt-[1px]' : 'mt-0.5') : '';
 
           return (
-            <div key={config.key} className={`${colSpanClass} ${config.indent ? 'pl-3' : ''} ${spacingClass}`}>
+            <div
+              key={config.key}
+              className={`${colSpanClass} ${config.indent ? 'pl-3' : ''} ${spacingClass}`}
+            >
               <FieldDisplay
                 config={config}
                 value={value}

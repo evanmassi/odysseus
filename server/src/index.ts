@@ -240,7 +240,7 @@ class OdysseusServer {
 
 
   // Admin-only middleware
-  private requireAdmin(req: any, res: express.Response, next: express.NextFunction): void {
+  private requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction): void {
     try {
       if (!req.user) {
         res.status(401).json({ error: 'Authentication required' });
@@ -289,7 +289,7 @@ class OdysseusServer {
       const success = await repositories.users.updateRole(userId, role);
       if (success) {
         logger.info(`User role updated by admin`, {
-          admin: (req as any).user?.username,
+          admin: req.user?.username,
           userId,
           newRole: role
         });
@@ -311,7 +311,7 @@ class OdysseusServer {
       const success = await repositories.users.delete(userId);
       if (success) {
         logger.info(`User deleted by admin`, {
-          admin: (req as any).user?.username,
+          admin: req.user?.username,
           userId
         });
         res.json({ success: true });

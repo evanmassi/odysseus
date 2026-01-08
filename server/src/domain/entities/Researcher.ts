@@ -1,4 +1,5 @@
 import { ValidationError } from '@domain/errors/ValidationError';
+import { generateId } from '@domain/utils/generateId';
 
 /**
  * Researcher Entity
@@ -20,7 +21,7 @@ export class Researcher {
    * Factory method to create a new researcher
    */
   static create(personId: string): Researcher {
-    const id = Researcher.generateId();
+    const id = generateId('researcher');
     const now = new Date();
     return new Researcher(id, personId, true, now);
   }
@@ -40,13 +41,6 @@ export class Researcher {
       data.active,
       typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt
     );
-  }
-
-  /**
-   * Generate unique researcher ID
-   */
-  private static generateId(): string {
-    return 'researcher_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**

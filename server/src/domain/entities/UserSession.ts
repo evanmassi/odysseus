@@ -1,4 +1,5 @@
 import { ValidationError } from '@domain/errors/ValidationError';
+import { generateId } from '@domain/utils/generateId';
 
 /**
  * UserSession Entity
@@ -35,7 +36,7 @@ export class UserSession {
     ipAddress?: string,
     userAgent?: string
   ): UserSession {
-    const id = UserSession.generateId();
+    const id = generateId('session');
     const now = new Date();
 
     return new UserSession(
@@ -79,13 +80,6 @@ export class UserSession {
       data.ipAddress,
       data.userAgent
     );
-  }
-
-  /**
-   * Generate unique session ID
-   */
-  private static generateId(): string {
-    return 'session_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**

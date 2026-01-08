@@ -3,6 +3,7 @@ import type { EquipmentSummary, ConfigurationRepositoryStats, CapacityInfo } fro
 import { Configuration } from '@domain/entities/Configuration';
 import { Location } from '@domain/valueObjects/Location';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
+import { generateId } from '@domain/utils/generateId';
 import type { SecurityConfig, SystemMetrics, SyncStatus } from '@odysseus/shared-schemas';
 import { DEFAULT_SECURITY_CONFIG, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
@@ -446,7 +447,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       throw new ValidationError('No configuration to snapshot');
     }
 
-    const snapshotId = `snapshot-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
+    const snapshotId = generateId('snapshot');
 
     try {
       const now = new Date();

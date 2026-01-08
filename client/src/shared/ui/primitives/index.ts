@@ -9,8 +9,6 @@
 import { Button } from './button/Button';
 import { Grid, GridItem } from './grid/Grid';
 import { Input } from './input/Input';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from './modal/Modal';
-import { useModal, useModalState } from './modal/useModal';
 import { Select } from './select/Select';
 import { Table, TableHeader, TableBody } from './table/Table';
 import { Tooltip } from './tooltip/Tooltip';
@@ -42,25 +40,6 @@ export type {
   ValidationFunction,
   InputRef,
 } from './input/types';
-
-// Modal primitives
-export { Modal, ModalHeader, ModalBody, ModalFooter };
-export { useModal, useModalState };
-export type {
-  ModalProps,
-  ModalHeaderProps,
-  ModalBodyProps,
-  ModalFooterProps,
-  ModalSize,
-  ModalVariant,
-  ModalPlacement,
-  ModalAnimation,
-  ModalBackdrop,
-  ConfirmationModalProps,
-  AlertModalProps,
-  DrawerModalProps,
-  ModalRef,
-} from './modal/types';
 
 // Select primitives
 export { Select };
@@ -172,10 +151,6 @@ export type ForwardedRef<T> =
 export const Primitives = {
   Button,
   Input,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
   Select,
   Table,
   TableHeader,
@@ -185,12 +160,5 @@ export const Primitives = {
   Tooltip,
 } as const;
 
-// Hook collection
-export const Hooks = {
-  useModal,
-  useModalState,
-} as const;
-
 // Type collection for external use
 export type PrimitiveComponents = typeof Primitives;
-export type PrimitiveHooks = typeof Hooks;

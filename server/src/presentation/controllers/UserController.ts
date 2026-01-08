@@ -152,7 +152,7 @@ export class UserController {
    * Extract user ID from authenticated request
    */
   private extractUserId(req: Request): string {
-    const user = (req as any).user;
+    const user = req.user;
     if (!user?.id) {
       throw new Error('User not authenticated');
     }

@@ -276,8 +276,8 @@ export function createRateLimitMiddleware(
 
       // Store identifier and service for controller to record success/failure
       // Middleware only checks block status - controller records attempts
-      (req as any).rateLimitIdentifier = identifier;
-      (req as any).rateLimitService = service;
+      req.rateLimitIdentifier = identifier;
+      req.rateLimitService = service;
 
       next();
     } catch (error) {
@@ -295,8 +295,8 @@ export function createRateLimitMiddleware(
  * @param req - Express request object
  */
 export async function recordFailedLogin(req: Request): Promise<void> {
-  const identifier = (req as any).rateLimitIdentifier;
-  const service: RateLimitingService = (req as any).rateLimitService;
+  const identifier = req.rateLimitIdentifier;
+  const service: RateLimitingService = req.rateLimitService;
 
   if (identifier && service) {
     await service.recordAttempt(identifier);
@@ -310,8 +310,8 @@ export async function recordFailedLogin(req: Request): Promise<void> {
  * @param req - Express request object
  */
 export function recordSuccessfulLogin(req: Request): void {
-  const identifier = (req as any).rateLimitIdentifier;
-  const service: RateLimitingService = (req as any).rateLimitService;
+  const identifier = req.rateLimitIdentifier;
+  const service: RateLimitingService = req.rateLimitService;
 
   if (identifier && service) {
     service.recordSuccess(identifier);

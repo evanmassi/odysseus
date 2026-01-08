@@ -11,22 +11,26 @@
 export * from './utils';
 
 // Type definitions - type-only exports
-export type { 
+export type {
   // API types
-  APIResponse as ApiResponse, TubeAPIResponse, QueryOptions,
+  APIResponse as ApiResponse,
+  TubeAPIResponse,
+  QueryOptions,
   // Bulk operations
-  BulkUpdateProgress, BulkUpdateResult, BulkUpdateError,
+  BulkUpdateProgress,
+  BulkUpdateResult,
+  BulkUpdateError,
   // Tube types - specific exports to avoid conflicts
-  TubeLocation, TubeSample, TubeTimestamps,
+  TubeLocation,
+  TubeSample,
+  TubeTimestamps,
   // Form types
-  FormFieldConfig, TubeFormConfig
+  FormFieldConfig,
+  TubeFormConfig,
 } from './types';
 
 // WebSocket and query types from domain schemas
-export type { 
-  WebSocketMessage,
-  QueryParameters
-} from '@odysseus/shared-schemas';
+export type { WebSocketMessage, QueryParameters } from '@odysseus/shared-schemas';
 
 // Constants - application-wide constants (moved to legacy-backup)
 
@@ -48,8 +52,3 @@ export * from './ui';
 
 // Grid utilities
 export * from './types/GridTypes';
-
-// Feature flags (currently unused but kept for future use)
-
-// Pure lib functions
-export { resetConfiguration } from './utils/resetConfiguration';

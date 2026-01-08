@@ -32,7 +32,7 @@ export class TubeLockController {
       logger.info('Tubes locked', {
         locked: result.locked.length,
         skipped: result.skipped.length,
-        user: (req as any).user?.username
+        user: req.user?.username
       });
 
       res.json(ErrorDto.success(result));
@@ -55,7 +55,7 @@ export class TubeLockController {
       logger.info('Tubes unlocked', {
         unlocked: result.unlocked.length,
         skipped: result.skipped.length,
-        user: (req as any).user?.username
+        user: req.user?.username
       });
 
       res.json(ErrorDto.success(result));
@@ -79,7 +79,7 @@ export class TubeLockController {
         shared: result.shared.length,
         skipped: result.skipped.length,
         userIds: shareRequest.userIds.length,
-        user: (req as any).user?.username
+        user: req.user?.username
       });
 
       res.json(ErrorDto.success(result));
@@ -103,7 +103,7 @@ export class TubeLockController {
         revoked: result.revoked.length,
         skipped: result.skipped.length,
         userIds: revokeRequest.userIds.length,
-        user: (req as any).user?.username
+        user: req.user?.username
       });
 
       res.json(ErrorDto.success(result));
@@ -116,7 +116,7 @@ export class TubeLockController {
    * Helper: Extract authenticated user from OAuth 2.0 middleware
    */
   private getAuthenticatedUser(req: Request): any {
-    const user = (req as any).user;
+    const user = req.user;
     if (!user) {
       throw new Error('Authentication required - user not found in request context');
     }

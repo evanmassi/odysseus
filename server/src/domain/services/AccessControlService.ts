@@ -603,14 +603,8 @@ export class AccessControlService {
   /**
    * Check if user can be assigned resources
    * User must be active to receive resource assignments
-   *
-   * Note: Currently returns true for all users since User entity
-   * doesn't have isActive field yet. When user deactivation is implemented,
-   * this will check user.isActive
    */
   canBeAssignedResources(user: User): boolean {
-    // TODO: Add isActive field to User entity and check it here
-    // return user.isActive;
     return true;
   }
 

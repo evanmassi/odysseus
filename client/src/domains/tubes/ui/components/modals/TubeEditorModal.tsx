@@ -50,7 +50,7 @@ import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/grid';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
-import { formatDateForInput } from '@shared/utils/dateFormatter';
+import { formatDateForInput } from '@shared/utils/dateUtils';
 
 import { LocationDisplay } from '../displays/LocationDisplay';
 import { TubeForm } from '../forms/TubeForm';

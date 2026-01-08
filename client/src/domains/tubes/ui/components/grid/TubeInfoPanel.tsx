@@ -17,7 +17,7 @@ import {
 } from '@domains/storage';
 import { parsePositionKey } from '@shared/types/grid';
 import { Tooltip } from '@shared/ui';
-import { formatDateForDisplay } from '@shared/utils/dateFormatter';
+import { formatDateForDisplay } from '@shared/utils/dateUtils';
 
 import { useTubeStore } from '../../../stores/tubeStore';
 import { FieldValue } from '../displays/FieldValue';

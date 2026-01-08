@@ -30,7 +30,7 @@ import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav'
 import { logger } from '@shared/infrastructure/logger';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
-import { formatDateForInput } from '@shared/utils/dateFormatter';
+import { formatDateForInput } from '@shared/utils/dateUtils';
 
 import { TubeForm } from '../forms/TubeForm';
 

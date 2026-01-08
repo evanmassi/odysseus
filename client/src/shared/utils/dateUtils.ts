@@ -88,11 +88,11 @@ export function areDatesEqual(a: string | null | undefined, b: string | null | u
  * @returns Formatted date string for display
  */
 export function formatDateForDisplay(
-  dateString: string | null | undefined,
+  dateString: string | Date | null | undefined,
   locale: string = 'en-US',
   options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'numeric', day: 'numeric' }
 ): string {
-  const normalized = normalizeDateString(dateString ?? '');
+  const normalized = normalizeDateString(dateString);
   if (!normalized) return '';
 
   try {
@@ -157,9 +157,9 @@ export function parseDateInputValue(value: string): string {
 /**
  * Format YYYY-MM-DD for input[type="date"] value attribute
  *
- * @param dateString - YYYY-MM-DD format string
+ * @param dateString - YYYY-MM-DD format string or Date object
  * @returns Value suitable for input[type="date"]
  */
-export function formatDateForInput(dateString: string | null | undefined): string {
-  return normalizeDateString(dateString ?? '');
+export function formatDateForInput(dateString: string | Date | null | undefined): string {
+  return normalizeDateString(dateString);
 }

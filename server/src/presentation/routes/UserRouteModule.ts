@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { UserController } from '@presentation/controllers/UserController';
 import { PersonController } from '@presentation/controllers/PersonController';
 import { SessionController } from '@presentation/controllers/SessionController';
@@ -31,7 +31,7 @@ export class UserRouteModule implements RouteModule {
   /**
    * Get middleware stack applied to all user routes
    */
-  getMiddleware(): any[] {
+  getMiddleware(): RequestHandler[] {
     return [
       this.authMiddleware.authenticate.bind(this.authMiddleware)
     ];

@@ -35,7 +35,7 @@ export class TubeController {
 
         logger.info('Bulk tubes created', {
           count: tubes.length,
-          user: (req as any).user?.username
+          user: req.user?.username
         });
 
         res.status(201).json(ErrorDto.success(tubes));
@@ -47,7 +47,7 @@ export class TubeController {
         logger.info('Tube created', {
           tubeId: tube.id,
           location: `${tube.location.tankId}-${tube.location.rackId}-${tube.location.boxId}-${tube.location.position}`,
-          user: (req as any).user?.username
+          user: req.user?.username
         });
 
         res.status(201).json(ErrorDto.success(tube));
@@ -105,7 +105,7 @@ export class TubeController {
       
       logger.info('Tube updated', { 
         tubeId: tube.id, 
-        user: (req as any).user?.username 
+        user: req.user?.username 
       });
       
       res.json(ErrorDto.success(tube));
@@ -127,7 +127,7 @@ export class TubeController {
       
       logger.info('Tube deleted', { 
         tubeId: id, 
-        user: (req as any).user?.username 
+        user: req.user?.username 
       });
       
       res.json(ErrorDto.success({ deleted: true }));
@@ -150,7 +150,7 @@ export class TubeController {
       logger.info('Bulk tube update completed', { 
         updated: result.updated, 
         failed: result.failed.length,
-        user: (req as any).user?.username 
+        user: req.user?.username 
       });
       
       res.json(ErrorDto.success(result));
@@ -236,7 +236,7 @@ export class TubeController {
    * Helper: Extract authenticated user from OAuth 2.0 middleware
    */
   private getAuthenticatedUser(req: Request): any {
-    const user = (req as any).user;
+    const user = req.user;
     if (!user) {
       throw new Error('Authentication required - user not found in request context');
     }

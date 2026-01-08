@@ -2,6 +2,7 @@ import { Location } from '@domain/valueObjects/Location';
 import { SampleData } from '@domain/valueObjects/SampleData';
 import { MediaData } from '@domain/valueObjects/Media';
 import { ValidationError } from '@domain/errors/ValidationError';
+import { generateId } from '@domain/utils/generateId';
 
 /**
  * Tube Entity (Aggregate Root)
@@ -51,7 +52,7 @@ export class Tube {
     createdByName?: string;
   }): Tube {
     // Generate unique ID if not provided
-    const id = data.id || Tube.generateId();
+    const id = data.id || generateId('tube');
 
     // Create location value object (validates position rules)
     const location = data.location instanceof Location
@@ -134,13 +135,6 @@ export class Tube {
       data.lockedAt ? new Date(data.lockedAt) : undefined,
       data.sharedWithUserIds ?? []
     );
-  }
-
-  /**
-   * Generate unique tube ID
-   */
-  private static generateId(): string {
-    return 'tube_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**

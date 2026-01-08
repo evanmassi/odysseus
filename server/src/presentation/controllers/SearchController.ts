@@ -380,7 +380,7 @@ export class SearchController {
    * Helper: Extract authenticated user from middleware
    */
   private getAuthenticatedUser(req: Request): any {
-    const user = (req as any).user;
+    const user = req.user;
     if (!user) {
       throw new Error('Authentication required - user not found in request context');
     }

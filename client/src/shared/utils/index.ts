@@ -4,7 +4,7 @@
 
 export * from './concentrationConverter';
 export * from './coordinates';
-export * from './dateFormatter';
+export * from './dateUtils';
 export * from './gridClipboard';
 export * from './notifications';
 export * from './positionRangeFormatter';

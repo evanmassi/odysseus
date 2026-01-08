@@ -38,7 +38,6 @@ import {
 } from '@application/commands/BulkAssignmentCommands';
 import { InitializeConfigurationCommandHandler } from '@application/commands/InitializeConfigurationCommand';
 import { POSITION_DISPLAY_PRESETS } from '@odysseus/shared-schemas';
-// import { ApiError } from '../../shared/errors/ApiError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -868,7 +867,7 @@ export class ConfigurationController {
    */
   private extractUserId(req: Request): string {
     // Assuming user ID is added to request by authentication middleware
-    const userId = (req as any).user?.id;
+    const userId = req.user?.id;
     
     if (!userId) {
       throw new ValidationError('User authentication required');

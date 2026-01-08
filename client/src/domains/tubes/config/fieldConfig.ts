@@ -274,9 +274,3 @@ export const validateFieldCoverage = (): boolean => {
 
   return missingKeys.length === 0 && extraKeys.length === 0;
 };
-
-// Runtime validation - ensures configuration completeness
-// NOTE: Temporarily disabled during Phase 2 refactor - media fields changed
-// if (!validateFieldCoverage()) {
-//   throw new Error('Field configuration does not cover all CreateTubeRequest keys');
-// }

@@ -14,6 +14,3 @@ export { useUserSettings, useUserSettingsActions } from './hooks/useUserSettings
 
 // Types
 export * from './types';
-
-// Will be added in Phase 1:
-// export { useAuthQuery } from './api/auth.queries';

@@ -5,7 +5,7 @@
  * Each module handles a specific domain of routes with appropriate middleware.
  */
 
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 
 export interface RouteModule {
   /**
@@ -21,10 +21,10 @@ export interface RouteModule {
   /**
    * Get middleware that should be applied to all routes in this module
    */
-  getMiddleware(): any[];
+  getMiddleware(): RequestHandler[];
 }
 
 export interface RouteModuleConfig {
   basePath: string;
-  middleware: any[];
+  middleware: RequestHandler[];
 }

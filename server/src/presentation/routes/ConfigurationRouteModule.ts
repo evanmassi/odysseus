@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
@@ -36,7 +36,7 @@ export class ConfigurationRouteModule implements RouteModule {
   /**
    * Get middleware stack applied to all configuration routes
    */
-  getMiddleware(): any[] {
+  getMiddleware(): RequestHandler[] {
     return [
       this.authMiddleware.authenticate.bind(this.authMiddleware)
     ];

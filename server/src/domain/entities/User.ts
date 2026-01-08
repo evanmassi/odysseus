@@ -3,6 +3,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EmailVerificationError } from '@domain/errors/EmailVerificationError';
 import { type UserSettings, DEFAULT_USER_SETTINGS } from '@odysseus/shared-schemas';
+import { generateId } from '@domain/utils/generateId';
 import * as crypto from 'crypto';
 
 /**
@@ -74,7 +75,7 @@ export class User {
     personId?: string
   ): User {
     // Generate unique ID
-    const id = User.generateId();
+    const id = generateId('user');
 
     // First user becomes admin automatically
     const role = UserRole.defaultRole(isFirstUser);
@@ -97,7 +98,7 @@ export class User {
    * Factory method to create admin user explicitly
    */
   static createAdmin(username: string, apiKey: string, researcherId?: string, personId?: string): User {
-    const id = User.generateId();
+    const id = generateId('user');
     const now = new Date();
 
     return new User(
@@ -123,7 +124,7 @@ export class User {
     personId?: string,
     status: 'pending' | 'approved' | 'rejected' = 'pending'
   ): User {
-    const id = User.generateId();
+    const id = generateId('user');
     const apiKey = User.generateApiKey();
     const now = new Date();
 
@@ -221,13 +222,6 @@ export class User {
     }
 
     return user;
-  }
-
-  /**
-   * Generate unique user ID
-   */
-  private static generateId(): string {
-    return 'user_' + Date.now() + '_' + Math.random().toString(36).substring(2, 11);
   }
 
   /**

@@ -53,7 +53,7 @@ export class ResearcherController {
 
       logger.info('Retrieved researchers with metadata', {
         count: researchers.length,
-        requestedBy: (req as any).user?.username
+        requestedBy: req.user?.username
       });
 
       res.json(ErrorDto.success({ researchers }));
@@ -75,7 +75,7 @@ export class ResearcherController {
 
       logger.info('Retrieved unlinked researchers', {
         count: researchers.length,
-        requestedBy: (req as any).user?.username
+        requestedBy: req.user?.username
       });
 
       res.json(ErrorDto.success({ researchers }));
@@ -115,7 +115,7 @@ export class ResearcherController {
       logger.info('Researcher created', {
         researcherId: researcher.id,
         name: `${researcher.firstName} ${researcher.lastName}`,
-        user: (req as any).user?.username
+        user: req.user?.username
       });
       
       res.status(201).json(ErrorDto.success(researcher));
@@ -140,7 +140,7 @@ export class ResearcherController {
         researcherId: researcher.id,
         name: `${researcher.firstName} ${researcher.lastName}`,
         active: researcher.active,
-        user: (req as any).user?.username
+        user: req.user?.username
       });
       
       res.json(ErrorDto.success(researcher));
@@ -162,7 +162,7 @@ export class ResearcherController {
 
       logger.info('Researcher deleted', {
         researcherId: researcherId,
-        user: (req as any).user?.username
+        user: req.user?.username
       });
       
       res.json(ErrorDto.success({ deleted: true }));
@@ -185,7 +185,7 @@ export class ResearcherController {
       logger.info('Researcher deactivated', {
         researcherId: researcher.id,
         name: `${researcher.firstName} ${researcher.lastName}`,
-        user: (req as any).user?.username
+        user: req.user?.username
       });
       
       res.json(ErrorDto.success(researcher));
@@ -208,7 +208,7 @@ export class ResearcherController {
       logger.info('Researcher activated', {
         researcherId: researcher.id,
         name: `${researcher.firstName} ${researcher.lastName}`,
-        user: (req as any).user?.username
+        user: req.user?.username
       });
       
       res.json(ErrorDto.success(researcher));
@@ -277,7 +277,7 @@ export class ResearcherController {
    * Helper: Extract API key from request (required)
    */
   private extractApiKey(req: Request): string {
-    const user = (req as any).user;
+    const user = req.user;
     if (!user?.apiKey) {
       throw new Error('Authentication required');
     }
@@ -288,7 +288,7 @@ export class ResearcherController {
    * Helper: Extract API key from request (optional)
    */
   private extractOptionalApiKey(req: Request): string | undefined {
-    const user = (req as any).user;
+    const user = req.user;
     return user?.apiKey;
   }
 
