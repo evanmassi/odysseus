@@ -287,16 +287,18 @@
 
 ### 2.2 Architecture Violations Found
 
-#### HIGH PRIORITY: Authentication Domain Coupling
+#### ~~HIGH PRIORITY: Authentication Domain Coupling~~ ✅ FIXED
 
 Authentication should be **independent** - it's a foundational domain that others depend on.
 
-| File | Violation | Impact |
-|------|-----------|--------|
-| `authentication/hooks/useAuth.ts` | Imports `useTubeStore` from tubes | ❌ Circular risk |
-| `authentication/stores/authStore.ts` | Imports `useTubeStore` from tubes | ❌ Circular risk |
+| File | Violation | Impact | Status |
+|------|-----------|--------|--------|
+| `authentication/hooks/useAuth.ts` | Imports `useTubeStore` from tubes | ❌ Circular risk | ✅ FIXED |
+| `authentication/stores/authStore.ts` | Imports `useTubeStore` from tubes | ❌ Circular risk | ✅ FIXED |
 
-**Why this matters:** If tubes domain changes, authentication breaks. Authentication should never depend on feature domains.
+**Fix applied (Jan 2026):** Moved logout cleanup orchestration to `AppBootstrapService.ts` via Zustand subscription. The app layer (which coordinates domains) now handles resetting domain stores on logout. Authentication domain no longer imports from tubes.
+
+**Also removed dead code:** `useLogoutMutation` and `useAuthActions` from `useAuth.ts` (never exported or used).
 
 #### MEDIUM PRIORITY: Search Domain Over-Coupling
 

@@ -2,4 +2,4 @@
  * Grid Domain Services
  */
 
-export * from './gridNavigationService';
+export * from './GridNavigationService';

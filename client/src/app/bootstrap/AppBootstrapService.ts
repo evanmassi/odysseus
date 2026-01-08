@@ -4,6 +4,8 @@
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { useSearchStore } from '@domains/search/stores/searchStore';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { initializeNetworkMonitor, cleanupNetworkMonitor } from '@infra/connection/networkMonitor';
 import { initializeOptimisticUpdates } from '@infra/optimistic/optimisticUpdates';
 import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
@@ -172,3 +174,20 @@ export class AppBootstrapService {
 }
 
 export const appBootstrapService = new AppBootstrapService();
+
+/**
+ * Session cleanup subscription
+ *
+ * Listens to auth state changes and resets domain UI stores on logout.
+ * This keeps authentication domain decoupled from feature domains.
+ */
+let wasAuthenticated = useAuthStore.getState().isAuthenticated;
+useAuthStore.subscribe(state => {
+  const isAuthenticated = state.isAuthenticated;
+  if (wasAuthenticated && !isAuthenticated) {
+    // User logged out - reset all domain UI state
+    useTubeStore.getState().resetStore();
+    useSearchStore.getState().clearSearch();
+  }
+  wasAuthenticated = isAuthenticated;
+});

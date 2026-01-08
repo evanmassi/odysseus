@@ -25,7 +25,7 @@ import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } fr
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { type UserSettings, PasswordValidator } from '@odysseus/shared-schemas';
-import type { EnhancedLoginResponse, RefreshTokenResponse } from '@shared/types/TokenTypes';
+import type { EnhancedLoginResponse, RefreshTokenResponse } from '@shared/types/Token';
 
 // Create User Command
 

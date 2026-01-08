@@ -7,7 +7,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
-import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 
 import { authService } from '../services/AuthenticationService';
 import { isPasswordChangeRequired } from '../types/api';
@@ -93,29 +92,6 @@ export function useLoginMutation() {
 }
 
 /**
- * Mutation hook for logout
- */
-export function useLogoutMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => authService.logout(),
-    onSuccess: () => {
-      // Clear all auth-related cache
-      queryClient.removeQueries({ queryKey: ['auth'] });
-      queryClient.removeQueries({ queryKey: ['tubes'] });
-      queryClient.removeQueries({ queryKey: ['researchers'] });
-
-      // Reset UI state stores (clear selections, navigation state)
-      useTubeStore.getState().resetStore();
-    },
-    meta: {
-      errorMessage: 'Logout failed',
-    },
-  });
-}
-
-/**
  * Derived state hooks for UI components
  */
 export function useAuthState() {
@@ -138,41 +114,5 @@ export function useAuthState() {
 
     // Error state
     error: authError,
-  };
-}
-
-/**
- * Hook for auth actions (mutations)
- */
-export function useAuthActions() {
-  const registerMutation = useRegisterMutation();
-  const loginMutation = useLoginMutation();
-  const logoutMutation = useLogoutMutation();
-
-  return {
-    // Mutation functions
-    register: registerMutation.mutate,
-    login: loginMutation.mutate,
-    logout: logoutMutation.mutate,
-
-    // Async versions
-    registerAsync: registerMutation.mutateAsync,
-    loginAsync: loginMutation.mutateAsync,
-    logoutAsync: logoutMutation.mutateAsync,
-
-    // Loading states
-    isRegistering: registerMutation.isPending,
-    isLoggingIn: loginMutation.isPending,
-    isLoggingOut: logoutMutation.isPending,
-
-    // Error states
-    registerError: registerMutation.error,
-    loginError: loginMutation.error,
-    logoutError: logoutMutation.error,
-
-    // Reset functions
-    resetRegisterError: registerMutation.reset,
-    resetLoginError: loginMutation.reset,
-    resetLogoutError: logoutMutation.reset,
   };
 }
