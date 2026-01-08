@@ -145,7 +145,11 @@ export class ResearcherApplicationService {
 
   /**
    * Create new researcher
-   * Creates Person entity first, then Researcher that references it
+   *
+   * Smart creation logic:
+   * 1. If User exists with this email → link Researcher to User's Person
+   * 2. If orphaned Person exists → reuse it (safety net, shouldn't happen with cleanup)
+   * 3. Otherwise → create fresh Person + Researcher
    */
   async createResearcher(request: CreateResearcherRequest, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
@@ -156,30 +160,91 @@ export class ResearcherApplicationService {
       throw new ValidationError('Email is required for creating researcher profile', {});
     }
 
-    // Check email uniqueness at Person level
-    if (await this.personRepository.emailExists(request.email)) {
-      throw new ValidationError('Email already in use', { email: request.email });
+    const normalizedEmail = request.email.trim().toLowerCase();
+
+    // Check if User exists with this email - link to their Person
+    const existingUser = await this.userRepository.findByEmail(normalizedEmail);
+    if (existingUser?.personId) {
+      const existingPerson = await this.personRepository.findById(existingUser.personId);
+      if (existingPerson) {
+        // Check if this Person already has a Researcher
+        const existingResearcher = await this.researcherRepository.findByPersonId(existingPerson.id);
+        if (existingResearcher) {
+          throw new ValidationError('A researcher already exists for this user', {
+            email: normalizedEmail,
+            researcherId: existingResearcher.id
+          });
+        }
+
+        // Create Researcher linked to existing User's Person
+        const researcher = Researcher.create(existingPerson.id);
+        await this.researcherRepository.save(researcher);
+
+        this.eventBus.publish(new ResearcherCreatedEvent(
+          researcher.id,
+          existingPerson.firstName,
+          existingPerson.lastName,
+          existingPerson.email,
+          existingPerson.position,
+          user.id
+        ));
+
+        return ResearcherDto.toResponse(researcher, existingPerson);
+      }
     }
 
-    // 1. Create Person entity (source of truth for profile data)
+    // Check for orphaned Person (safety net - shouldn't happen with cleanup)
+    const orphanedPerson = await this.personRepository.findByEmail(normalizedEmail);
+    if (orphanedPerson) {
+      // Check if this Person already has a Researcher
+      const existingResearcher = await this.researcherRepository.findByPersonId(orphanedPerson.id);
+      if (existingResearcher) {
+        throw new ValidationError('A researcher already exists with this email', {
+          email: normalizedEmail,
+          researcherId: existingResearcher.id
+        });
+      }
+
+      // Update orphaned Person with new profile data and reuse
+      orphanedPerson.updateProfile(
+        request.firstName.trim(),
+        request.lastName.trim(),
+        request.position?.trim(),
+        request.department?.trim()
+      );
+      await this.personRepository.save(orphanedPerson);
+
+      const researcher = Researcher.create(orphanedPerson.id);
+      await this.researcherRepository.save(researcher);
+
+      this.eventBus.publish(new ResearcherCreatedEvent(
+        researcher.id,
+        orphanedPerson.firstName,
+        orphanedPerson.lastName,
+        orphanedPerson.email,
+        orphanedPerson.position,
+        user.id
+      ));
+
+      return ResearcherDto.toResponse(researcher, orphanedPerson);
+    }
+
+    // Fresh creation - no existing Person with this email
     const person = Person.create(
       request.firstName.trim(),
       request.lastName.trim(),
-      request.email.trim(),
+      normalizedEmail,
       request.position?.trim(),
       request.department?.trim()
     );
 
-    // 2. Create Researcher entity (links Person to research activities)
     const researcher = Researcher.create(person.id);
 
-    // 3. Save both entities atomically
     await this.personRepository.save(person);
     await this.researcherRepository.save(researcher);
 
-    // 4. Publish event
     this.eventBus.publish(new ResearcherCreatedEvent(
-      user.id,
+      researcher.id,
       person.firstName,
       person.lastName,
       person.email,
@@ -270,8 +335,10 @@ export class ResearcherApplicationService {
 
   /**
    * Delete researcher (safe deletion only)
+   *
    * Requires: zero tubes AND no linked user
-   * Prevents accidental deletion of researchers with historical data or active accounts
+   * Prevents accidental deletion of researchers with historical data or active accounts.
+   * Cleans up orphaned Person if no other entity references it.
    */
   async deleteResearcher(id: string, userApiKey: string): Promise<void> {
     const user = await this.getUserByApiKey(userApiKey);
@@ -282,8 +349,9 @@ export class ResearcherApplicationService {
       throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
     }
 
-    // Get Person data for error messages
+    // Get Person data for error messages and cleanup
     const person = await this.getPersonForResearcher(researcher);
+    const personId = researcher.personId;
 
     // Safety check: researcher must have zero tubes
     const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
@@ -311,18 +379,22 @@ export class ResearcherApplicationService {
       );
     }
 
-    // Safe to delete - no tubes, no user link
+    // Delete researcher
     await this.researcherRepository.delete(id);
 
-    // Publish event for real-time sync
-    if (this.eventBus) {
-      this.eventBus.publish(new ResearcherDeletedEvent(
-        researcher.id,
-        person.firstName,
-        person.lastName,
-        user.username
-      ));
+    // Clean up orphaned Person if no User references it
+    const userWithPerson = await this.userRepository.findByPersonId(personId);
+    if (!userWithPerson) {
+      await this.personRepository.delete(personId);
     }
+
+    // Publish event for real-time sync
+    this.eventBus.publish(new ResearcherDeletedEvent(
+      researcher.id,
+      person.firstName,
+      person.lastName,
+      user.username
+    ));
   }
 
   /**

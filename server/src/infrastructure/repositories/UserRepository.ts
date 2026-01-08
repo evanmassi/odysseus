@@ -57,6 +57,14 @@ export class UserRepository implements IUserRepository {
     return row ? UserMapper.fromRow(row) : null;
   }
 
+  async findByPersonId(personId: string): Promise<User | null> {
+    const row = await this.context.queryOne<UserRow>(
+      'SELECT * FROM users WHERE person_id = $1',
+      [personId]
+    );
+    return row ? UserMapper.fromRow(row) : null;
+  }
+
   async findByVerificationToken(token: string): Promise<User | null> {
     const now = new Date();
     const rows = await this.context.queryMany<UserRow>(

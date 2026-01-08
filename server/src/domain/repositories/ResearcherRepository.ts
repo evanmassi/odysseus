@@ -20,6 +20,11 @@ export interface ResearcherRepository {
    * Find researcher by name (case-insensitive)
    */
   findByName(firstName: string, lastName: string): Promise<Researcher | null>;
+
+  /**
+   * Find researcher by linked person ID
+   */
+  findByPersonId(personId: string): Promise<Researcher | null>;
   
   /**
    * Find all researchers in the system

@@ -46,6 +46,14 @@ export class ResearcherRepository implements IResearcherRepository {
     return row ? ResearcherMapper.fromRow(row) : null;
   }
 
+  async findByPersonId(personId: string): Promise<Researcher | null> {
+    const row = await this.context.queryOne<ResearcherRow>(
+      'SELECT * FROM researchers WHERE person_id = $1',
+      [personId]
+    );
+    return row ? ResearcherMapper.fromRow(row) : null;
+  }
+
   async findAll(): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(`
       SELECT r.* FROM researchers r

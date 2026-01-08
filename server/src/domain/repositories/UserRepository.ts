@@ -47,6 +47,11 @@ export interface UserRepository {
   findByResearcherId(researcherId: string): Promise<User | null>;
 
   /**
+   * Find user by linked person ID
+   */
+  findByPersonId(personId: string): Promise<User | null>;
+
+  /**
    * Find all users in the system
    */
   findAll(): Promise<User[]>;
