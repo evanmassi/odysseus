@@ -733,426 +733,128 @@ const displayName = researcher
 const name = tube.researcher; // Doesn't exist!
 ```
 
-### Naming Conventions (MANDATORY - 100% Compliance Required)
+### Naming Conventions (MANDATORY)
 
-**Last Updated:** 2026-01-08 (Post naming consistency audit - 100% compliance achieved)
-
-These conventions are strictly enforced across the entire codebase. All new files and edits MUST follow these patterns.
-
----
+All files and edits MUST follow these patterns. 100% compliance achieved.
 
 #### **1. File Naming**
 
-**Components & Classes:** PascalCase
-- ✅ `TubeEditorModal.tsx`
-- ✅ `SearchService.ts`
-- ✅ `GridNavigationService.ts`
-- ✅ `AppBootstrapService.ts`
-- ❌ ~~`tubeEditorModal.tsx`~~ (wrong case)
-- ❌ ~~`searchService.ts`~~ (wrong case for services)
-
-**Configuration & Infrastructure:** camelCase
-- ✅ `queryClient.ts`
-- ✅ `queryKeys.ts`
-- ✅ `vite.config.ts`
-- ❌ ~~`QueryClient.ts`~~ (wrong - these are config files)
-
-**Zustand Stores:** camelCase with `Store` suffix
-- ✅ `modalStore.ts`
-- ✅ `authStore.ts`
-- ✅ `tubeStore.ts`
-- ❌ ~~`ModalStore.ts`~~ (wrong case - stores use camelCase)
-- ❌ ~~`modalService.ts`~~ (wrong suffix - use Store not Service)
-
-**Hooks:** camelCase with `use` prefix
-- ✅ `useTubesQuery.ts`
-- ✅ `useAuth.ts`
-- ✅ `useGridController.ts`
-- ❌ ~~`UseTubesQuery.ts`~~ (wrong case)
-- ❌ ~~`tubesQuery.ts`~~ (missing "use" prefix)
-
-**Test Files:** Match source name + `.test.ts` or `.test.tsx`
-- ✅ `TubeService.test.ts`
-- ✅ `authStore.test.ts`
-- ✅ `example.test.tsx`
-- ❌ ~~`TubeService.spec.ts`~~ (use .test not .spec)
-- ❌ ~~`authStore.test.ts.disabled`~~ (use test.skip() not file extension)
-
-**Utilities:** camelCase
-- ✅ `dateFormatter.ts`
-- ✅ `colorSystem.ts`
-- ✅ `gridHelpers.ts`
-
-**Type Definition Files** (in `types/` folders): PascalCase, no "Types" suffix
-- ✅ `Tube.ts`
-- ✅ `Api.ts`
-- ✅ `Grid.ts`
-- ❌ ~~`TubeTypes.ts`~~ (redundant suffix - folder context is enough)
-- ❌ ~~`tubeTypes.ts`~~ (wrong case)
-
-**Exception - Zod Schema Files** (`shared-schemas/`): camelCase
-- ✅ `tubeSchemas.ts` (Zod runtime schemas)
-- ✅ `searchSchemas.ts`
-- Rationale: Zod schemas are runtime utilities, not pure type definitions
-
----
+| Category | Case | Example ✅ | Wrong ❌ |
+|----------|------|-----------|----------|
+| Components & Classes | PascalCase | `TubeEditorModal.tsx`, `SearchService.ts` | `tubeEditorModal.tsx` |
+| Configuration | camelCase | `queryClient.ts`, `vite.config.ts` | `QueryClient.ts` |
+| Zustand Stores | camelCase + `Store` | `modalStore.ts`, `authStore.ts` | `ModalStore.ts` |
+| Hooks | camelCase + `use` | `useTubesQuery.ts`, `useAuth.ts` | `tubesQuery.ts` |
+| Test Files | source + `.test.ts` | `TubeService.test.ts` | `TubeService.spec.ts` |
+| Utilities | camelCase | `dateFormatter.ts`, `colorSystem.ts` | - |
+| Type Definitions | PascalCase (no suffix) | `Tube.ts`, `Grid.ts` | `TubeTypes.ts` |
+| Zod Schemas | camelCase | `tubeSchemas.ts` | - |
 
 #### **2. Directory Naming**
 
-**ALL directories:** kebab-case (lowercase with hyphens)
-- ✅ `ui/components/`
-- ✅ `shared-schemas/`
-- ✅ `domains/tubes/`
-- ❌ ~~`UI/Components/`~~ (wrong - never PascalCase)
-- ❌ ~~`sharedSchemas/`~~ (wrong - use kebab-case)
+| Rule | Example ✅ | Wrong ❌ |
+|------|-----------|----------|
+| ALL directories: kebab-case | `ui/components/`, `shared-schemas/` | `UI/Components/`, `sharedSchemas/` |
+| Domain directories: plural | `domains/tubes/`, `domains/researchers/` | `domains/tube/` |
+| Standard names | `components/`, `hooks/`, `services/`, `utils/`, `types/` | `lib/` (use `utils/`) |
 
-**Domain directories:** Plural nouns
-- ✅ `domains/tubes/`
-- ✅ `domains/researchers/`
-- ✅ `domains/authentication/`
-- ❌ ~~`domains/tube/`~~ (use plural)
-
-**Generic directories:** Standard names
-- ✅ `components/`, `hooks/`, `services/`, `utils/`, `types/`
-- ❌ ~~`lib/`~~ (deprecated - use `utils/` for utilities)
-
----
-
-#### **3. Zustand Store Pattern (Strictly Enforced)**
+#### **3. Zustand Store Pattern**
 
 **Pattern:** `{name}Store.ts` → exports `use{Name}Store`
 
 ```typescript
 // File: modalStore.ts
-
-// Internal store (not exported directly)
-const modalStore = create<State & Actions>((set) => ({
-  // ... implementation
-}));
-
-// Exported hook with matching name
-export const useModalStore = () => {
-  const state = modalStore();
-  return {
-    // ... reshaped state
-  };
-};
+const modalStore = create<State & Actions>((set) => ({ /* ... */ }));
+export const useModalStore = () => modalStore();  // Hook name matches file
 ```
 
-**Examples:**
-- ✅ `errorStore.ts` → exports `useErrorStore`
-- ✅ `authStore.ts` → exports `useAuthStore`
-- ✅ `modalStore.ts` → exports `useModalStore`
-- ❌ ~~`modalStore.ts` → exports `useModalService`~~ (WRONG suffix)
-- ❌ ~~`errorStore.ts` → exports `useErrors`~~ (WRONG - must match file)
+✅ `errorStore.ts` → `useErrorStore` | ❌ `modalStore.ts` → `useModalService` (wrong suffix)
 
----
+#### **4. Service Organization**
 
-#### **4. Service Organization & Naming**
+| Layer | Pattern | Example |
+|-------|---------|---------|
+| Client | `domains/{domain}/services/{Name}Service.ts` | `domains/tubes/services/TubeService.ts` |
+| Server App | `{Name}ApplicationService.ts` | `TubeApplicationService.ts` |
+| Server Domain | `{Name}Service.ts` | `AccessControlService.ts` |
+| Server Infra | `{Tech}{Name}Service.ts` | `BcryptPasswordService.ts` |
 
-**Client-Side Services:**
-- **Location:** ALWAYS in `domains/{domain}/services/` directory
-- **Naming:** PascalCase with `Service` suffix
-- **Pattern:** `{Entity}Service.ts`
-
-```typescript
-// ✅ CORRECT
-domains/tubes/services/TubeService.ts
-domains/tubes/services/DataConsistencyService.ts
-
-// ❌ WRONG - Never put services in application/
-domains/tubes/application/BulkOperationsService.ts
-```
-
-**Server-Side Services:**
-- **Application Layer:** `{Name}ApplicationService.ts`
-- **Domain Layer:** `{Name}Service.ts`
-- **Infrastructure:** `{Technology}{Name}Service.ts`
-
-```typescript
-// ✅ CORRECT
-server/src/application/services/TubeApplicationService.ts      // Orchestration
-server/src/domain/services/AccessControlService.ts             // Business logic
-server/src/infrastructure/services/BcryptPasswordService.ts    // External tech
-```
-
----
+❌ Never: `domains/tubes/application/` - services go in `services/`
 
 #### **5. React Component Patterns**
 
-**Hooks:** Always `use` prefix (100% enforced)
-- ✅ `useGridController`, `useAuth`, `useTubeForm`
-- ❌ ~~`gridController`~~, ~~`authHook`~~ (must start with "use")
-
-**Components:** Always in `ui/components/` directories
-- ✅ `domains/tubes/ui/components/TubeEditorModal.tsx`
-- ✅ `shared/ui/components/Button.tsx`
-- ❌ ~~`domains/tubes/TubeEditor.tsx`~~ (not in ui/components/)
-
-**Event Handlers:** Two accepted patterns
-- ✅ `handle{Action}` → `handleSubmit`, `handleDelete`, `handleRowSelect`
-- ✅ `toggle{State}` → `toggleFilter`, `toggleRackCollapse` (for boolean state)
-- ❌ ~~`on{Event}`~~ (React props use "on", handlers use "handle")
-
----
+| Category | Pattern | Example ✅ | Wrong ❌ |
+|----------|---------|-----------|----------|
+| Hooks | `use` prefix | `useGridController`, `useAuth` | `gridController` |
+| Components | `ui/components/` dir | `domains/tubes/ui/components/TubeEditorModal.tsx` | `domains/tubes/TubeEditor.tsx` |
+| Event handlers | `handle{Action}` | `handleSubmit`, `handleDelete` | `onSubmit` (use "on" for props only) |
+| Boolean toggles | `toggle{State}` | `toggleFilter` | - |
 
 #### **6. TypeScript Interface Naming**
 
-**Modern TypeScript:** NO "I" prefix (C# convention rejected)
-- ✅ `interface UserRepository { ... }`
-- ✅ `interface TubeData { ... }`
-- ✅ `interface AuthState { ... }`
-- ❌ ~~`interface IUserRepository`~~ (outdated C# pattern)
-- ❌ ~~`interface ITubeData`~~ (not TypeScript idiomatic)
+| Category | Pattern | Example ✅ | Wrong ❌ |
+|----------|---------|-----------|----------|
+| Interfaces | PascalCase, NO "I" prefix | `UserRepository`, `TubeData` | `IUserRepository` |
+| Props | `Props` suffix | `TubeEditorModalProps` | `TubeEditorModalProperties` |
+| State/Actions | Descriptive suffix | `AuthState`, `AuthActions` | - |
 
-**Props Interfaces:** Use `Props` suffix
-- ✅ `interface TubeEditorModalProps { ... }`
-- ✅ `interface ButtonProps { ... }`
-- ❌ ~~`interface TubeEditorModalProperties`~~ (too verbose)
+#### **7. Constants**
 
-**State/Actions:** Descriptive suffixes
-- ✅ `interface AuthState { ... }`
-- ✅ `interface AuthActions { ... }`
-- ✅ `interface ModalStore extends AuthState, AuthActions { }`
+- **Global:** `UPPER_CASE` + `as const` → `export const BOOTSTRAP_TIMEOUT = 30000 as const;`
+- **Local:** camelCase acceptable → `const defaultConfig = { ... };`
 
----
+#### **8. Query Keys (Centralized)**
 
-#### **7. Constants Naming**
-
-**Global Constants:** UPPER_CASE_WITH_UNDERSCORES + `as const`
-```typescript
-// ✅ CORRECT
-export const BOOTSTRAP_TIMEOUT = 30000 as const;
-export const API_BASE_URL = 'http://localhost:3001' as const;
-export const CACHE_TIMES = {
-  REAL_TIME: { staleTime: 3 * 60 * 1000 },
-  MEDIUM: { staleTime: 10 * 60 * 1000 }
-} as const;
-```
-
-**Semantic Naming Accepted:** Different patterns for different meanings
-```typescript
-// ✅ BOTH VALID - Different semantic purposes
-export const DEFAULT_GRID_CONFIG = { rows: 9, cols: 9 } as const;
-export const GRID_DEFAULTS = { /* collection of defaults */ } as const;
-export const EQUIPMENT_DEFAULTS = { /* equipment collection */ } as const;
-```
-
-**Local Constants:** camelCase acceptable
-```typescript
-const defaultConfig = { ... };
-const initialState = { ... };
-```
-
----
-
-#### **8. Query Keys (Centralized - Single Source of Truth)**
-
-**CRITICAL:** ALL query keys MUST be in `app/queryKeys.ts`
+**ALL query keys in `app/queryKeys.ts`** - never define distributed keys.
 
 ```typescript
-// ✅ CORRECT - Centralized query keys
-// File: app/queryKeys.ts
-export const queryKeys = {
-  tubes: {
-    all: ['tubes'] as const,
-    list: (filters?: any) => [...queryKeys.tubes.all, 'list', filters] as const,
-    detail: (id: string) => [...queryKeys.tubes.all, 'detail', id] as const,
-  },
-  researchers: {
-    all: ['researchers'] as const,
-    // ...
-  }
-} as const;
-
-// ✅ USAGE - Import from centralized location
 import { queryKeys } from '@app/queryKeys';
-useQuery({ queryKey: queryKeys.tubes.all });
-
-// ❌ WRONG - Never define distributed query keys
-// File: domains/tubes/hooks/useTubeQuery.ts
-const tubeQueryKeys = { all: ['tubes'] }; // NO! Use centralized keys
+useQuery({ queryKey: queryKeys.tubes.all });  // ✅ Centralized
+// ❌ WRONG: const tubeQueryKeys = { all: ['tubes'] };  // Distributed keys
 ```
 
----
+#### **9. Directory Structure (DDD)**
 
-#### **9. Directory Structure (DDD Domain Pattern)**
-
-**Standard Domain Structure:**
 ```
 domain/
-├── services/        ← ALL services (client-side) go here
-├── hooks/           ← Shared/reusable hooks only
-├── stores/          ← Zustand stores (UI state only)
-├── ui/components/   ← React components
-│   └── component-name/
-│       ├── ComponentName.tsx
-│       ├── useComponentSpecificHook.ts  ← Component-specific hooks co-located
-│       ├── componentHelpers.ts
-│       └── index.ts
-├── utils/           ← Domain utilities (NOT lib/)
+├── services/        ← ALL client services
+├── hooks/           ← Shared hooks only
+├── stores/          ← Zustand stores
+├── ui/components/   ← React components (with co-located hooks)
+├── utils/           ← Utilities (NOT lib/)
 ├── types/           ← Type definitions
-├── config/          ← Domain configuration
-└── index.ts         ← Public API exports
+└── index.ts         ← Public API
 ```
 
-**Hook Co-location Pattern (Modern Practice):**
+**Hook Co-location:**
+- **Component-specific** → Co-locate: `ui/components/storage-navigator/useStorageNavigation.ts`
+- **Shared/reusable** → Separate: `hooks/useTubesQuery.ts`
 
-**Component-specific hooks** → Co-locate with component
-- ✅ `ui/components/storage-navigator/useStorageNavigation.ts`
-- ✅ `ui/components/storage-navigator/useStorageKeyboard.ts`
-- **When:** Hook is only used by one component or tightly coupled feature
-- **Why:** Keeps related code together, easier to move/delete as a unit
-
-**Shared/reusable hooks** → Separate `hooks/` directory
-- ✅ `hooks/useTubesQuery.ts` (used across multiple components)
-- ✅ `hooks/useTubeMutations.ts` (shared mutations)
-- **When:** Hook is used by multiple components or domains
-- **Why:** Single source of truth, prevents duplication
-
-**Examples:**
-```typescript
-// ✅ CORRECT - Component-specific hook co-located
-domains/storage/ui/components/storage-navigator/
-├── StorageNavigator.tsx
-├── useStorageNavigation.ts       // Only used by StorageNavigator
-└── index.ts
-
-// ✅ CORRECT - Shared hook in hooks directory
-domains/tubes/hooks/
-└── useTubesQuery.ts              // Used by TubeGrid, TubeInfoPanel, Search, etc.
-
-// ❌ WRONG - Component-specific hook in shared hooks directory
-domains/storage/hooks/
-└── useStorageNavigation.ts       // Only used by StorageNavigator - should be co-located
-```
-
-**Deprecated/Wrong Locations:**
-- ❌ `domain/application/` - Services should be in `services/`
-- ❌ `domain/lib/` - Use `utils/` instead
-- ❌ Components outside `ui/components/` - Always in UI directory
-- ❌ Component-specific hooks in `hooks/` - Co-locate with component instead
-
----
+❌ Never: `application/`, `lib/`, components outside `ui/components/`
 
 #### **10. Export Standards**
 
-**Named Exports ONLY** - Never use default exports
-```typescript
-// ✅ CORRECT
-export const TubeInfoPanel: React.FC = () => { ... };
-export const useTubesQuery = () => { ... };
-export interface TubeData { ... }
-export const TubeService = { ... };
-
-// ❌ WRONG - Never use default exports
-export default TubeInfoPanel;
-export default function useTubesQuery() { }
-```
-
-**Barrel Exports** (index.ts files)
-```typescript
-// ✅ CORRECT - Re-export with named exports
-export { TubeService } from './services/TubeService';
-export { useTubesQuery, useTubeMutations } from './hooks';
-export type { TubeData } from '@odysseus/shared-schemas';
-
-// ❌ WRONG - Don't use export *
-export * from './services'; // Too broad, loses tree-shaking
-```
-
----
+- **Named exports ONLY** - never `export default`
+- **Barrel exports:** Use explicit `export { X } from './X'` not `export * from`
 
 #### **11. Variable & Function Naming**
 
-**Variables:** camelCase
-```typescript
-const tubeData = { ... };
-const isLoading = true;
-const selectedTubeIds = [];
-```
-
-**Functions:** camelCase
-```typescript
-function fetchTubes() { ... }
-const handleSubmit = () => { ... };
-const formatResearcherName = (researcher) => { ... };
-```
-
-**Boolean Variables:** Use `is`, `has`, `should` prefixes
-```typescript
-const isLoading = false;
-const hasError = true;
-const shouldValidate = true;
-```
-
----
+| Category | Case | Example |
+|----------|------|---------|
+| Variables | camelCase | `tubeData`, `selectedTubeIds` |
+| Functions | camelCase | `fetchTubes`, `handleSubmit` |
+| Booleans | `is`/`has`/`should` prefix | `isLoading`, `hasError`, `shouldValidate` |
 
 #### **12. Type Naming**
 
-**Interfaces & Types:** PascalCase
-```typescript
-interface TubeData { ... }
-type ApiResponse = { ... };
-interface UserRepository { ... }
-type CreateTubeRequest = { ... };
-```
-
-**Generic Type Parameters:** Single capital letter or descriptive PascalCase
-```typescript
-function map<T>(items: T[]): T[] { ... }
-function create<TEntity extends BaseEntity>(entity: TEntity): TEntity { ... }
-```
+- **Types/Interfaces:** PascalCase → `TubeData`, `ApiResponse`
+- **Generics:** Single letter or descriptive → `<T>`, `<TEntity extends Base>`
 
 ---
 
 ### Pre-Implementation Checklist
 
-Before creating ANY new file or making edits:
-
-1. ✅ **Verify naming convention** - Check this guide for file type
-2. ✅ **Check existing patterns** - Find similar files and match their style
-3. ✅ **Use correct directory** - Services in `services/`, components in `ui/components/`, utils in `utils/`
-4. ✅ **Import from `@odysseus/shared-schemas`** - Never create duplicate schemas
-5. ✅ **Use centralized query keys** - Import from `@app/queryKeys`
-6. ✅ **Named exports only** - Never use default exports
-7. ✅ **Follow Zustand pattern** - `{name}Store.ts` → `use{Name}Store`
-
----
-
-### Common Naming Mistakes to Avoid
-
-```typescript
-// ❌ WRONG - Common mistakes
-modalStore.ts → exports useModalService  // Wrong suffix (Service vs Store)
-domains/tubes/application/BulkService.ts  // Wrong directory (use services/)
-shared/lib/validation.ts                  // Wrong directory (use utils/)
-interface IUserRepository                 // Wrong prefix (no "I" prefix)
-useTubes.ts                              // Wrong name (should be useTubesQuery.ts)
-TubeService.spec.ts                      // Wrong suffix (use .test.ts)
-
-// ✅ CORRECT - Proper naming
-modalStore.ts → exports useModalStore
-domains/tubes/services/BulkOperationsService.ts
-shared/utils/validation.ts
-interface UserRepository
-useTubesQuery.ts
-TubeService.test.ts
-```
-
----
-
-### Naming Convention Philosophy
-
-**Why These Standards:**
-1. **Consistency:** Makes codebase predictable and searchable
-2. **Modern TypeScript:** Follows 2024 industry best practices
-3. **Semantic Clarity:** Names reveal intent and location
-4. **Single Source of Truth:** Centralized patterns prevent duplication
-5. **Maintainability:** Clear patterns make refactoring safe and simple
-
-**Achieved:** 100% naming compliance as of 2025-01-21
-**Maintained by:** Strict adherence to these conventions on all new code
+Before creating files: ✅ Verify naming convention | ✅ Match existing patterns | ✅ Correct directory | ✅ Import from `@odysseus/shared-schemas` | ✅ Use `@app/queryKeys` | ✅ Named exports only | ✅ Follow Zustand pattern
 
 ### Security
 
@@ -1251,220 +953,70 @@ _No known architectural issues. CacheWarmingService was removed (2025-01-14) in 
 
 ### Comment Standards
 
-**Philosophy**: Comments should explain **why** (business rationale, non-obvious decisions) not **what** (code already shows this). Use technical language with idiomatic clarity - be precise but clearly communicate what the code represents.
+**Philosophy**: Comments explain **why** (business rationale, non-obvious decisions) not **what** (code shows this). The best comment is a well-named function.
 
-**Note for AI-Assisted Development**: These standards benefit both human developers and AI agents. AI code analysis relies on function names, TypeScript types, file structure, and code logic - not redundant comments. Clean, well-named code is easier for AI tools to search, understand, and modify. Redundant comments add noise that must be filtered. The only comments that help AI agents are those explaining non-obvious business logic or edge cases.
+#### ✅ DO Write Comments For:
 
-#### ✅ DO Write These Comments
+| Category | Example |
+|----------|---------|
+| Business logic rationale | `// OAuth 2.0 dual-token: access expires in 15min for security` |
+| Non-obvious edge cases | `// Skip validation if position unchanged - prevents false positives` |
+| Complex algorithms | `// Find optimal position by proximity to researcher's existing tubes` |
+| Workarounds | `// Temporary: string union until shared-schemas v2.0 - see ticket #456` |
+| API contracts | `@throws ValidationError if equipment configuration invalid` |
+| TODO with context | `// TODO(2025-01-15): Migrate to domain events - ticket #234` |
 
-**1. Business Logic Rationale**
+#### ❌ NEVER Write:
+
+| Category | Examples to Avoid |
+|----------|-------------------|
+| Self-promotional | "INDUSTRY STANDARD", "BEST PRACTICE", "A++++ QUALITY", "Enterprise-grade" |
+| Redundant markers | ✅ checkmarks, "NEW:", "FIXED:", "ARCHITECTURAL FIX:" |
+| Obvious explanations | `// Increment counter` above `counter++` |
+| Process references | "Phase 2", "Refactored from", "Part of migration", "Added in January 2025" |
+| Excessive dividers | `//=====`, `// ***`, decorative headers |
+| Redundant JSDoc | `@param data - The data` (just restates types) |
+
+#### JSDoc Usage
+
+**USE for:** Public API functions, complex return types, non-obvious parameters, `@throws`
+**SKIP for:** Private helpers, simple getters, obvious handlers, functions where types tell the full story
+
 ```typescript
-// OAuth 2.0 dual-token architecture: separate access + refresh tokens
-// Access tokens expire in 15 minutes for security
-const accessToken = jwt.sign(payload, secret, { expiresIn: '15m' });
+// ❌ BAD: Restates signature
+/** @param data - The tube data @returns The tube */
+function createTube(data: CreateTubeRequest): Promise<TubeData>
 
-// Tri-state PATCH semantics for optional fields:
-// - undefined = no change (preserve existing)
-// - null = clear field (set to undefined)
-// - value = update field
-if (update.researcherId !== undefined) {
-  tube.researcherId = update.researcherId;
-}
+// ✅ GOOD: Adds behavioral context
+/** Creates tube with position conflict validation. Emits 'tube_created' socket event. */
+function createTube(data: CreateTubeRequest): Promise<TubeData>
 ```
 
-**2. Non-Obvious Behavior or Edge Cases**
+#### Self-Documenting Code
+
+Before adding a comment, ask: "Can I rename this to eliminate the need for explanation?"
+
 ```typescript
-// Date-only fields use strings (YYYY-MM-DD) to prevent timezone bugs
-// JavaScript Date objects shift dates across timezones
-const date: string = '2024-01-15';
+// ❌ BAD: Comment compensates for poor naming
+function process(t: Tube): boolean { // Check if tube can be moved by user
 
-// Skip position validation if location hasn't actually changed
-// Prevents false positives when updating other fields
-if (newPosition === existingTube.position) {
-  return true;
-}
+// ✅ GOOD: Name eliminates need for comment
+function canUserMoveTube(tube: Tube, user: User): boolean
+
+// ❌ BAD: Magic number needs comment
+const timeout = 30000; // 30 seconds
+
+// ✅ GOOD: Named constant is self-documenting
+const BOOTSTRAP_TIMEOUT_MS = 30000;
 ```
-
-**3. Complex Algorithm Explanations**
-```typescript
-// Find optimal position by proximity to researcher's existing tubes
-// Minimizes search time when locating samples
-const avgPosition = positions.reduce((a, b) => a + b, 0) / positions.length;
-const closest = available.reduce((prev, curr) =>
-  Math.abs(curr - avgPosition) < Math.abs(prev - avgPosition) ? curr : prev
-);
-```
-
-**4. Workarounds with Context**
-```typescript
-// Temporary: Use string union until shared-schemas v2.0
-// Preserves backward compatibility with legacy Firebase data
-type LegacyMedia = MediaData | string;
-```
-
-**5. API Contracts (Inputs/Outputs/Errors)**
-```typescript
-/**
- * Validate tube position for placement
- *
- * @param location - Physical location (tank/rack/box/position)
- * @param excludeTubeId - Optional tube to exclude from conflict check (for updates)
- * @returns Validation result with conflicts and warnings
- * @throws ValidationError if equipment configuration invalid
- */
-async validatePosition(location: Location, excludeTubeId?: string): Promise<ValidationResult>
-```
-
-**6. TODO/FIXME with Context and Dates**
-```typescript
-// TODO(2025-01-15): Migrate to domain events for cross-aggregate consistency
-// Currently using direct service calls which couples aggregates
-// Ticket: #234
-```
-
-#### ❌ DO NOT Write These Comments
-
-**1. Self-Promotional Language**
-```typescript
-// ❌ NEVER: "INDUSTRY STANDARD implementation"
-// ❌ NEVER: "A++++ QUALITY code"
-// ❌ NEVER: "BEST PRACTICE pattern"
-// ❌ NEVER: "Enterprise-grade solution"
-// ❌ NEVER: "Professional implementation"
-// ❌ NEVER: "CLEAN ARCHITECTURE" (redundant - we always use it)
-
-// ✅ CORRECT: Just describe what it does
-// Dual-token OAuth 2.0 authentication
-// Handles HTTP concerns only, delegates to command handlers
-```
-
-**2. Redundant Markers and Checkmarks**
-```typescript
-// ❌ NEVER: ✅ This is a good implementation
-// ❌ NEVER: ✅ ARCHITECTURAL FIX: researcher → researcherId
-// ❌ NEVER: ✅ NEW: Added this endpoint
-// ❌ NEVER: ✅ RENAMED from oldName to newName
-
-// ✅ CORRECT: If architectural changes are significant, document in commit message
-// Comments should describe current state, not change history
-```
-
-**3. Obvious Explanations**
-```typescript
-// ❌ BAD: Increment counter
-counter++;
-
-// ❌ BAD: Return the user
-return user;
-
-// ❌ BAD: Loop through tubes
-for (const tube of tubes) {
-
-// ✅ GOOD: No comment needed - code is self-explanatory
-```
-
-**4. Redundant JSDoc**
-```typescript
-// ❌ BAD: Repeats function signature
-/**
- * Gets all tubes
- * @returns All tubes
- */
-getAllTubes(): Tube[]
-
-// ✅ GOOD: Adds context
-/**
- * Get all tubes with optional filtering
- * Uses cached results if available (2-minute TTL)
- */
-getAllTubes(filters?: TubeFilters): Tube[]
-```
-
-**5. Verbose Section Headers**
-```typescript
-// ❌ BAD: Excessive dividers
-// ============================================================
-// ✅✅✅ INDUSTRY STANDARD USER MANAGEMENT OPERATIONS ✅✅✅
-// ============================================================
-
-// ✅ GOOD: Simple, clean section markers
-// User Management
-```
-
-**6. Implementation Praise or Certifications**
-```typescript
-// ❌ NEVER: "This follows industry standards"
-// ❌ NEVER: "Implements best practices"
-// ❌ NEVER: "ARCHITECTURAL PRINCIPLE: Single Source of Truth"
-
-// ✅ CORRECT: Just state the principle
-// Single Source of Truth: All schemas in @odysseus/shared-schemas
-```
-
-**7. Implementation Process References**
-```typescript
-// ❌ NEVER: Phase references
-// Phase 2 - Co-located with component
-// Phase 3 implementation
-// Step 1: Initialize state
-
-// ❌ NEVER: Migration/refactor process comments
-// This was moved from old location
-// Refactored from legacy code
-// Part of StorageNavigator refactor
-
-// ❌ NEVER: Implementation timeline references
-// Added in January 2025
-// Built during sprint 3
-// TODO Phase 4: Add animations
-
-// ✅ CORRECT: Comments explain current state, not how we got here
-// Component-specific hook, not shared across domains
-```
-
-**Rationale:** Implementation phases, migration steps, and refactor processes are artifacts of development that have no value to future developers. Code should explain its current purpose and behavior, not its construction history. Git commit messages and project management tools track implementation process.
 
 #### Special Cases
 
-**Commented-Out Code**: DO NOT commit commented-out code. Either delete it (Git preserves history) or add a tracking comment explaining why it's temporarily disabled:
-```typescript
-// Temporarily disabled - see ticket #456
-// Re-enable after Firebase v2 migration
-// export const legacySync = () => { ... };
-```
+- **Commented-out code**: Delete it (Git preserves history) or add ticket reference
+- **Type assertions**: Explain why → `// Type-safe: Zod already validated this`
+- **Magic numbers**: Use named constants or explain inline → `const ttl = 120000; // 2 min`
 
-**Type Assertions and Casts**: Explain why the type system needs help
-```typescript
-// Type-safe cast: Zod already validated this structure
-const validated = data as CreateTubeRequest;
-```
-
-**Magic Numbers**: Replace with named constants or explain inline
-```typescript
-// ✅ GOOD: Named constant
-const MAX_RETRY_ATTEMPTS = 3;
-
-// ✅ GOOD: Inline explanation when constant isn't reused
-const ttl = 120000; // 2 minutes in milliseconds
-```
-
-#### Key Principles Summary
-
-**Write comments that:**
-- Explain business logic rationale and "why" decisions were made
-- Document non-obvious behavior, edge cases, and workarounds
-- Clarify complex algorithms and API contracts
-- Use technical language with idiomatic clarity
-
-**Never write comments that:**
-- Use self-promotional language ("INDUSTRY STANDARD", "A++++ QUALITY", "BEST PRACTICE", "Enterprise-grade", "Professional")
-- Add redundant markers (✅ checkmarks, "NEW", "ARCHITECTURAL FIX", "RENAMED")
-- State the obvious (code already shows what it does)
-- Repeat function signatures without adding context
-- Include excessive dividers or verbose headers
-- Praise implementations or certify patterns
-
-**Result**: Concise, professional comments that explain business decisions and non-obvious behavior without marketing language.
+---
 
 ### Before Implementing Features
 1. Read relevant schemas from `@odysseus/shared-schemas`
@@ -1568,287 +1120,53 @@ const ttl = 120000; // 2 minutes in milliseconds
 
 ## Code Quality & Type Safety Best Practices
 
-### Learned from Lint Error Resolution & Type Organization
+Following these practices prevents 90% of lint errors and technical debt.
 
-This section captures critical patterns learned from fixing hundreds of lint errors and organizing the type system. Following these practices from the start prevents 90% of common errors and technical debt.
+### Core Rules
 
----
+| Rule | Do ✅ | Don't ❌ |
+|------|-------|---------|
+| **Type Safety** | Define types in centralized locations, use `import type` | Use `any`, define types inline |
+| **Promises** | Always `await` or `.catch()`, use `void` for intentional fire-and-forget | Floating promises that hide errors |
+| **Accessibility** | `onClick` + `onKeyDown`, alt text on images, aria-labels | Click handlers without keyboard support |
+| **Imports** | Delete unused imports immediately, use `import type` | Leave unused imports "for later" |
+| **Architecture** | Domain uses interfaces only, entities are immutable | Domain importing from infrastructure |
+| **Null handling** | Use `undefined` and optional params (`param?: Type`) | Use `null` for optional values |
+| **Dead code** | Delete immediately, search usage before committing | Leave methods "just in case" |
 
-### 1. Type Safety: Define Types at Creation
+### Type Organization
 
-**Do it right immediately - never defer type definition.**
+| Location | Purpose |
+|----------|---------|
+| `domain/types/repository/` | SearchCriteria, Stats, QueryOptions |
+| `domain/types/services/` | AccessControl, TubePosition, Validation |
+| `domain/types/` | DomainValidationResult, ConfigurationUpdateData |
 
-#### Rules:
-- **Never use `any`** - Define proper types immediately
-- **No implicit returns** - Always explicitly type function returns
-- **Create types in centralized locations first** - Don't define inline, then refactor later
-- **Use `type` imports** - `import type { ... }` for type-only imports
-
-#### Type Organization:
-```typescript
-// ✅ CORRECT - Types defined in centralized location
-// File: server/src/domain/types/services/AccessControl.ts
-export interface AccessResult {
-  allowed: boolean;
-  reason: string;
-  metadata?: any;
-}
-
-// File: MyService.ts
-import type { AccessResult } from '@domain/types/services';
-
-// ❌ WRONG - Types defined inline
-// File: MyService.ts
-interface AccessResult {  // This creates duplication!
-  allowed: boolean;
-  reason: string;
-}
-```
-
-#### Know Where Types Belong:
-- **Repository types** → `domain/types/repository/`
-  - SearchCriteria.ts - Query/filter types
-  - Stats.ts - Statistics and summary types
-  - QueryOptions.ts - Pagination and query options
-
-- **Service types** → `domain/types/services/`
-  - AccessControl.ts - Permission/access types
-  - TubePosition.ts - Position validation types
-  - Validation.ts - Validation-specific types
-
-- **Domain types** → `domain/types/`
-  - validation.ts - DomainValidationResult, BulkValidationResult
-  - configuration.ts - ConfigurationUpdateData, etc.
-
----
-
-### 2. Promise/Async Discipline: No Floating Promises
-
-**Every Promise must be awaited or explicitly handled.**
-
-#### Rules:
-- **Never ignore Promises** - They hide errors
-- **Always await or `.catch()`** - No silent failures
-- **Use proper error boundaries** - Async functions need try/catch
+### Key Examples
 
 ```typescript
-// ❌ WRONG - Floating promise (lint error)
-someAsyncFunction(); // Fire-and-forget hides errors
+// Promises: Always handle
+await someAsyncFunction();                           // ✅ Awaited
+someAsyncFunction().catch(logger.error);            // ✅ Caught
+void someAsyncFunction();                           // ✅ Intentional fire-and-forget
+someAsyncFunction();                                // ❌ Floating promise
 
-// ✅ CORRECT - Explicitly awaited
-await someAsyncFunction();
+// Accessibility: Full keyboard support
+<div role="button" tabIndex={0} onClick={handleClick}
+     onKeyDown={(e) => { if (e.key === 'Enter') handleClick(); }}
+     aria-label="Delete tube">Delete</div>
 
-// ✅ CORRECT - Explicitly handled
-someAsyncFunction().catch(error => {
-  logger.error('Failed to execute:', error);
-});
+// Architecture: Domain stays pure
+import type { TubeRepository } from '@domain/repositories';  // ✅ Interface
+import { SQLiteDatabase } from '@infrastructure/database';   // ❌ Implementation
 
-// ✅ CORRECT - Intentionally fire-and-forget with void
-void someAsyncFunction(); // Makes intent explicit
+// Entities: Use readonly
+get tanks(): readonly Tank[] { return this._tanks; }  // ✅ Immutable
+tanks: Tank[];                                         // ❌ Mutable
 ```
-
-#### Error Boundaries:
-```typescript
-// ✅ CORRECT - Proper async error handling
-async function handleSubmit() {
-  try {
-    await createTube(tubeData);
-    await refreshCache();
-  } catch (error) {
-    toast.error('Failed to create tube');
-    logger.error(error);
-  }
-}
-```
-
----
-
-### 3. Accessibility: Build It In From Day One
-
-**Every interactive element needs proper ARIA labels and keyboard support.**
-
-#### Rules:
-- **Every clickable element** → onClick + onKeyDown
-- **Every image** → alt text (no exceptions)
-- **Every form field** → aria-label or associated label
-- **Focus management** → Handle keyboard navigation
-
-```typescript
-// ❌ WRONG - Missing keyboard support
-<div onClick={handleClick}>Delete</div>
-
-// ✅ CORRECT - Full accessibility
-<div
-  role="button"
-  tabIndex={0}
-  onClick={handleClick}
-  onKeyDown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      handleClick();
-    }
-  }}
-  aria-label="Delete tube"
->
-  Delete
-</div>
-
-// ❌ WRONG - Missing alt text
-<img src={icon} />
-
-// ✅ CORRECT - Descriptive alt text
-<img src={icon} alt="Warning icon indicating validation error" />
-```
-
----
-
-### 4. Import Hygiene: Clean As You Code
-
-**Remove unused imports immediately - don't leave them "for later".**
-
-#### Rules:
-- **Delete unused imports** - As soon as you remove code
-- **No dead code** - "I'll use it later" = technical debt
-- **Type-only imports** - Use `import type` when possible
-
-```typescript
-// ❌ WRONG - Unused imports left in file
-import { useState, useEffect, useMemo } from 'react';  // Only using useState
-import type { TubeData } from '@odysseus/shared-schemas';  // Not used
-
-// ✅ CORRECT - Only import what's used
-import { useState } from 'react';
-```
-
----
-
-### 5. Clean Architecture: Respect Layer Boundaries
-
-**Domain layer never imports from application or presentation.**
-
-#### Rules:
-- **Domain entities** → Pure business logic, zero dependencies
-- **Domain services** → Use repository interfaces, not implementations
-- **Entities stay immutable** → Use `readonly` for arrays/objects
-- **No infrastructure in domain** → Keep it pure
-
-```typescript
-// ❌ WRONG - Domain importing from infrastructure
-// File: domain/services/TubeService.ts
-import { SQLiteDatabase } from '@infrastructure/database';  // NO!
-
-// ✅ CORRECT - Domain using interfaces only
-// File: domain/services/TubeService.ts
-import type { TubeRepository } from '@domain/repositories';
-
-// ❌ WRONG - Mutable entity arrays
-export class Configuration {
-  tanks: Tank[];  // Can be mutated externally
-}
-
-// ✅ CORRECT - Immutable entity arrays
-export class Configuration {
-  get tanks(): readonly Tank[] {
-    return this._tanks;
-  }
-}
-```
-
----
-
-### 6. Null vs Undefined: TypeScript Best Practices
-
-**Use `undefined` for optional values, avoid `null`.**
-
-#### Rules:
-- **Optional parameters** → Use `param?: Type` (undefined)
-- **Avoid `null`** → Use `undefined` instead
-- **Explicit undefined okay** → When intent must be clear
-
-```typescript
-// ❌ WRONG - Using null
-function canMoveTube(user: User, tube: Tube, location: Location | null) {
-  // null creates type ambiguity
-}
-
-// ✅ CORRECT - Using optional parameter
-function canMoveTube(user: User, tube: Tube, location?: Location) {
-  // undefined is TypeScript idiomatic
-}
-
-// ❌ WRONG - Passing null
-canMoveTube(user, tube, null);
-
-// ✅ CORRECT - Passing undefined or omitting
-canMoveTube(user, tube, undefined);
-canMoveTube(user, tube);  // Best - omit optional param
-```
-
----
-
-### 7. Configuration vs Data: Use Proper Types
-
-**When comparing or validating domain entities, use the entity type, not partial DTOs.**
-
-#### Rules:
-- **Validation methods** → Accept full entities when comparing states
-- **Don't force type conversions** → If you need Configuration, accept Configuration
-- **DTOs for transport** → Use DTOs for API boundaries, not internal validation
-
-```typescript
-// ❌ WRONG - Forcing entity → DTO conversion
-interface ValidationService {
-  validateConfigurationUpdate(
-    current: Configuration,
-    updates: ConfigurationUpdateData  // Partial DTO - loses type info
-  ): Promise<ValidationResult>;
-}
-
-// ✅ CORRECT - Accept full entities for comparison
-interface ValidationService {
-  validateConfigurationUpdate(
-    currentConfig: Configuration,
-    updatedConfig: Configuration  // Full entity with all type info
-  ): Promise<ValidationResult>;
-}
-```
-
----
-
-### 8. Remove Dead Code Immediately
-
-**Code that isn't called is technical debt.**
-
-#### Rules:
-- **Delete unused helper methods** - Don't leave them "just in case"
-- **Remove refactored code** - Old implementations after creating new ones
-- **Check usage before committing** - Search codebase for references
-
-```typescript
-// ❌ WRONG - Leaving old unused methods
-private isEquipmentBeingRemoved(updates: ConfigurationUpdateData): boolean {
-  // This method is no longer called after refactor
-  return updates.tanks?.some(tank => !tank.isActive);
-}
-
-// New method created, but old one left in file
-
-// ✅ CORRECT - Remove the old method entirely
-// Old method deleted, only new implementation remains
-```
-
----
 
 ### Prevention Philosophy
 
 **"Do it right immediately" > "I'll fix it later"**
 
-Your codebase demands:
-- ✅ **Proper types from line one** - Not `any` placeholders
-- ✅ **Proper error handling** - Not floating promises
-- ✅ **Proper accessibility** - Not "we'll add ARIA later"
-- ✅ **Clean imports** - Not unused cruft
-- ✅ **Respect architecture** - Not shortcuts
-- ✅ **Delete dead code** - Not zombie functions
-
-**Result:** Following these practices from the start prevents 90% of lint errors, type mismatches, and technical debt. The discipline saves hours of refactoring later.
+Proper types from line one | Proper error handling | Proper accessibility | Clean imports | Respect architecture | Delete dead code
