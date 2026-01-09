@@ -7,6 +7,5 @@ export * from './coordinates';
 export * from './dateUtils';
 export * from './gridClipboard';
 export * from './notifications';
-export * from './positionRangeFormatter';
 export * from './scientificNotation';
 export * from './tubeAccessControl';

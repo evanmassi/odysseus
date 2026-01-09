@@ -6,7 +6,10 @@
       "Bash(npm run build:*)",
       "Bash(npm run typecheck:*)",
       "Bash(npm ls:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\app\\\\utils\\\\selectionActions.ts''\")",
+      "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\app\\\\utils\\\\recentOperations.ts''\")",
+      "Bash(powershell:*)"
     ]
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Application Layer Public API
- * 
+ *
  * Application-specific components, hooks, services, and utilities.
  * This layer coordinates between domains and manages application state.
  */
@@ -11,11 +11,8 @@ export * from './components';
 // Application hooks
 export * from './hooks';
 
-// Application services  
+// Application services
 export * from './services';
 
 // Application stores (UI state management)
 export * from './stores';
-
-// Application utilities
-export * from './utils';
