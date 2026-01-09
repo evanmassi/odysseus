@@ -5,6 +5,14 @@ import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { logger } from '@utils/logger';
 
 /**
+ * Explicit column list for audit_log_archive table queries
+ */
+const AUDIT_ARCHIVE_COLUMNS = `
+  id, user_id, username, action, entity_type, entity_id,
+  details, timestamp, ip_address, user_agent, archived_at
+`.trim();
+
+/**
  * Database row structure for audit_log_archive table
  */
 interface AuditArchiveRow {
@@ -110,7 +118,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
     const offset = filters.offset || 0;
 
     const dataQuery = `
-      SELECT * FROM audit_log_archive
+      SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive
       ${whereClause}
       ORDER BY timestamp DESC
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
@@ -186,7 +194,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
       ? 'WHERE ' + whereClauses.join(' AND ')
       : '';
 
-    const query = `SELECT * FROM audit_log_archive ${whereClause} ORDER BY timestamp DESC`;
+    const query = `SELECT ${AUDIT_ARCHIVE_COLUMNS} FROM audit_log_archive ${whereClause} ORDER BY timestamp DESC`;
     const rows = await this.context.queryMany<AuditArchiveRow>(query, params);
 
     const entries = rows.map(this.rowToEntry);

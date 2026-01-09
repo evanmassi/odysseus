@@ -8,6 +8,15 @@ import { UserMapper, UserRow } from '@infrastructure/database/mappers/UserMapper
 import * as crypto from 'crypto';
 
 /**
+ * Explicit column list for users table queries
+ */
+const USER_COLUMNS = `
+  id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
+  email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
+  password_reset_token, password_reset_expiry, require_password_change, last_password_change, settings
+`.trim();
+
+/**
  * UserRepository - User authentication data access
  *
  * Handles all user persistence operations.
@@ -20,7 +29,7 @@ export class UserRepository implements IUserRepository {
 
   async findById(id: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      'SELECT * FROM users WHERE id = $1',
+      `SELECT ${USER_COLUMNS} FROM users WHERE id = $1`,
       [id]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -28,7 +37,7 @@ export class UserRepository implements IUserRepository {
 
   async findByApiKey(apiKey: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      'SELECT * FROM users WHERE api_key = $1',
+      `SELECT ${USER_COLUMNS} FROM users WHERE api_key = $1`,
       [apiKey]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -36,7 +45,7 @@ export class UserRepository implements IUserRepository {
 
   async findByUsername(username: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      'SELECT * FROM users WHERE username = $1',
+      `SELECT ${USER_COLUMNS} FROM users WHERE username = $1`,
       [username]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -45,7 +54,10 @@ export class UserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const normalizedEmail = email.toLowerCase().trim();
     const row = await this.context.queryOne<UserRow>(
-      'SELECT u.* FROM users u INNER JOIN persons p ON u.person_id = p.id WHERE LOWER(p.email) = $1',
+      `SELECT u.id, u.username, u.api_key, u.role, u.password_hash, u.salt, u.created_at, u.researcher_id, u.person_id, u.status,
+              u.email_verified, u.email_verification_token, u.email_verification_expiry, u.last_verification_email_sent,
+              u.password_reset_token, u.password_reset_expiry, u.require_password_change, u.last_password_change, u.settings
+       FROM users u INNER JOIN persons p ON u.person_id = p.id WHERE LOWER(p.email) = $1`,
       [normalizedEmail]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -53,7 +65,7 @@ export class UserRepository implements IUserRepository {
 
   async findByResearcherId(researcherId: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      'SELECT * FROM users WHERE researcher_id = $1',
+      `SELECT ${USER_COLUMNS} FROM users WHERE researcher_id = $1`,
       [researcherId]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -61,7 +73,7 @@ export class UserRepository implements IUserRepository {
 
   async findByPersonId(personId: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      'SELECT * FROM users WHERE person_id = $1',
+      `SELECT ${USER_COLUMNS} FROM users WHERE person_id = $1`,
       [personId]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -70,7 +82,7 @@ export class UserRepository implements IUserRepository {
   async findByVerificationToken(token: string): Promise<User | null> {
     const now = new Date();
     const rows = await this.context.queryMany<UserRow>(
-      'SELECT * FROM users WHERE email_verification_token IS NOT NULL AND email_verification_expiry > $1',
+      `SELECT ${USER_COLUMNS} FROM users WHERE email_verification_token IS NOT NULL AND email_verification_expiry > $1`,
       [now]
     );
 
@@ -94,7 +106,7 @@ export class UserRepository implements IUserRepository {
   async findByPasswordResetToken(token: string): Promise<User | null> {
     const now = new Date();
     const rows = await this.context.queryMany<UserRow>(
-      'SELECT * FROM users WHERE password_reset_token IS NOT NULL AND password_reset_expiry > $1',
+      `SELECT ${USER_COLUMNS} FROM users WHERE password_reset_token IS NOT NULL AND password_reset_expiry > $1`,
       [now]
     );
 
@@ -117,7 +129,7 @@ export class UserRepository implements IUserRepository {
 
   async findAll(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      'SELECT * FROM users ORDER BY created_at'
+      `SELECT ${USER_COLUMNS} FROM users ORDER BY created_at`
     );
     return UserMapper.fromRows(rows);
   }
@@ -127,7 +139,7 @@ export class UserRepository implements IUserRepository {
 
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT * FROM users WHERE id IN (${placeholders})`,
+      `SELECT ${USER_COLUMNS} FROM users WHERE id IN (${placeholders})`,
       ids
     );
     return UserMapper.fromRows(rows);
@@ -213,21 +225,21 @@ export class UserRepository implements IUserRepository {
 
   async findAdmins(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      "SELECT * FROM users WHERE role = 'admin' ORDER BY created_at"
+      "`SELECT ${USER_COLUMNS} FROM users WHERE role = 'admin' ORDER BY created_at`"
     );
     return UserMapper.fromRows(rows);
   }
 
   async findRegularUsers(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      "SELECT * FROM users WHERE role = 'user' ORDER BY created_at"
+      "`SELECT ${USER_COLUMNS} FROM users WHERE role = 'user' ORDER BY created_at`"
     );
     return UserMapper.fromRows(rows);
   }
 
   async findByRole(role: 'admin' | 'user'): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      'SELECT * FROM users WHERE role = $1 ORDER BY created_at',
+      `SELECT ${USER_COLUMNS} FROM users WHERE role = $1 ORDER BY created_at`,
       [role]
     );
     return UserMapper.fromRows(rows);
@@ -258,7 +270,7 @@ export class UserRepository implements IUserRepository {
 
   async findByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      'SELECT * FROM users WHERE status = $1 ORDER BY created_at DESC',
+      `SELECT ${USER_COLUMNS} FROM users WHERE status = $1 ORDER BY created_at DESC`,
       [status]
     );
     return UserMapper.fromRows(rows);
@@ -276,7 +288,7 @@ export class UserRepository implements IUserRepository {
 
   async findByCreationDateRange(startDate: Date, endDate: Date): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      'SELECT * FROM users WHERE created_at >= $1 AND created_at <= $2 ORDER BY created_at',
+      `SELECT ${USER_COLUMNS} FROM users WHERE created_at >= $1 AND created_at <= $2 ORDER BY created_at`,
       [startDate, endDate]
     );
     return UserMapper.fromRows(rows);
@@ -342,7 +354,7 @@ export class UserRepository implements IUserRepository {
       params.push(criteria.createdBefore);
     }
 
-    let query = `SELECT * FROM users WHERE ${whereClauses.join(' AND ')}`;
+    let query = `SELECT ${USER_COLUMNS} FROM users WHERE ${whereClauses.join(' AND ')}`;
 
     if (criteria.sortBy) {
       const sortColumn = this.mapSortColumn(criteria.sortBy);

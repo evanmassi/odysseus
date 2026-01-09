@@ -4,6 +4,13 @@ import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { RefreshTokenMapper, RefreshTokenRow } from '@infrastructure/database/mappers/RefreshTokenMapper';
 
 /**
+ * Explicit column list for refresh_tokens table queries
+ */
+const REFRESH_TOKEN_COLUMNS = `
+  id, user_id, token, expires_at, created_at, last_used_at, is_revoked, user_agent, ip_address
+`.trim();
+
+/**
  * RefreshTokenRepository - OAuth 2.0 token persistence
  *
  * Handles all refresh token persistence operations.
@@ -16,7 +23,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
 
   async findById(id: string): Promise<RefreshToken | null> {
     const row = await this.context.queryOne<RefreshTokenRow>(
-      'SELECT * FROM refresh_tokens WHERE id = $1',
+      `SELECT ${REFRESH_TOKEN_COLUMNS} FROM refresh_tokens WHERE id = $1`,
       [id]
     );
     return row ? RefreshTokenMapper.fromRow(row) : null;
@@ -24,7 +31,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
 
   async findByToken(token: string): Promise<RefreshToken | null> {
     const row = await this.context.queryOne<RefreshTokenRow>(
-      'SELECT * FROM refresh_tokens WHERE token = $1',
+      `SELECT ${REFRESH_TOKEN_COLUMNS} FROM refresh_tokens WHERE token = $1`,
       [token]
     );
     return row ? RefreshTokenMapper.fromRow(row) : null;
@@ -33,7 +40,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
   async findValidTokensByUserId(userId: string): Promise<RefreshToken[]> {
     const now = new Date();
     const rows = await this.context.queryMany<RefreshTokenRow>(
-      `SELECT * FROM refresh_tokens
+      `SELECT ${REFRESH_TOKEN_COLUMNS} FROM refresh_tokens
        WHERE user_id = $1
          AND is_revoked = FALSE
          AND expires_at > $2
@@ -45,7 +52,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
 
   async findAllTokensByUserId(userId: string): Promise<RefreshToken[]> {
     const rows = await this.context.queryMany<RefreshTokenRow>(
-      'SELECT * FROM refresh_tokens WHERE user_id = $1 ORDER BY created_at DESC',
+      `SELECT ${REFRESH_TOKEN_COLUMNS} FROM refresh_tokens WHERE user_id = $1 ORDER BY created_at DESC`,
       [userId]
     );
     return RefreshTokenMapper.fromRows(rows);
@@ -143,7 +150,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
     const cutoffTime = new Date(Date.now() - (minutesAgo * 60 * 1000));
 
     const rows = await this.context.queryMany<RefreshTokenRow>(
-      `SELECT * FROM refresh_tokens
+      `SELECT ${REFRESH_TOKEN_COLUMNS} FROM refresh_tokens
        WHERE user_id = $1
          AND last_used_at IS NOT NULL
          AND last_used_at >= $2
@@ -155,7 +162,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
 
   async findTokensByIpAddress(ipAddress: string): Promise<RefreshToken[]> {
     const rows = await this.context.queryMany<RefreshTokenRow>(
-      'SELECT * FROM refresh_tokens WHERE ip_address = $1 ORDER BY created_at DESC',
+      `SELECT ${REFRESH_TOKEN_COLUMNS} FROM refresh_tokens WHERE ip_address = $1 ORDER BY created_at DESC`,
       [ipAddress]
     );
     return RefreshTokenMapper.fromRows(rows);
@@ -163,7 +170,7 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
 
   async findTokensCreatedBetween(startDate: Date, endDate: Date): Promise<RefreshToken[]> {
     const rows = await this.context.queryMany<RefreshTokenRow>(
-      'SELECT * FROM refresh_tokens WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at DESC',
+      `SELECT ${REFRESH_TOKEN_COLUMNS} FROM refresh_tokens WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at DESC`,
       [startDate, endDate]
     );
     return RefreshTokenMapper.fromRows(rows);

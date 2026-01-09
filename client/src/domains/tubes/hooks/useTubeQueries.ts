@@ -9,6 +9,7 @@
  * - Consistent error handling and loading states
  */
 
+import { type TubeData as SchemaTubeData } from '@odysseus/shared-schemas';
 import {
   useQuery,
   useInfiniteQuery,
@@ -19,8 +20,27 @@ import {
 
 import { queryKeys } from '@app/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
+import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
 import type { TubeData } from '@domains/tubes/types';
+
+/**
+ * Convert schema-based TubeData to shared TubeData format
+ * Handles concentration type normalization from API responses
+ */
+function convertSchemaToSharedTubeData(schemaTube: SchemaTubeData): TubeData {
+  return {
+    ...schemaTube,
+    sample: {
+      ...schemaTube.sample,
+      concentration: normalizeConcentration(schemaTube.sample.concentration),
+    },
+    timestamps: {
+      createdAt: new Date(schemaTube.timestamps.createdAt),
+      updatedAt: new Date(schemaTube.timestamps.updatedAt),
+    },
+  };
+}
 
 // QUERY HOOKS (READ OPERATIONS)
 
@@ -45,7 +65,8 @@ export const useTubes = (
   return useQuery<TubeData[], Error, TubeData[]>({
     queryKey: queryKeys.tubes.lists(),
     queryFn: async (): Promise<TubeData[]> => {
-      return (await TubeService.fetchTubes()) as TubeData[];
+      const schemaTubes = await TubeService.fetchTubes();
+      return schemaTubes.map(convertSchemaToSharedTubeData);
     },
     select: (tubes: TubeData[]): TubeData[] => {
       let filtered = tubes;
@@ -98,7 +119,8 @@ export const useTubesByLocation = (
   return useQuery({
     queryKey: queryKeys.tubes.location(tankId, rackId, boxId),
     queryFn: async (): Promise<TubeData[]> => {
-      return await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
+      const schemaTubes = await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
+      return schemaTubes.map(convertSchemaToSharedTubeData);
     },
     enabled: !!(tankId && rackId && boxId), // Only run if all params provided
     staleTime: 5 * 60 * 1000, // 5 minutes - WebSocket keeps data fresh
@@ -110,20 +132,40 @@ export const useTubesByLocation = (
 /**
  * Get single tube by ID
  *
- * New functionality - enables individual tube queries
+ * Uses initialData from any tube cache (lists, location queries, etc.) for instant loading
  */
 export const useTube = (
   id: string,
   options: Omit<UseQueryOptions<TubeData>, 'queryKey' | 'queryFn'> = {}
 ) => {
+  const queryClient = useQueryClient();
+
+  // Search across all cached tube queries to find this tube for instant initial data
+  const initialData = (): TubeData | undefined => {
+    const allTubeQueries = queryClient.getQueriesData<TubeData[]>({
+      queryKey: queryKeys.tubes.all,
+    });
+
+    for (const [, tubes] of allTubeQueries) {
+      if (Array.isArray(tubes)) {
+        const found = tubes.find(tube => tube.id === id);
+        if (found) return found;
+      }
+    }
+
+    return undefined;
+  };
+
   return useQuery({
     queryKey: queryKeys.tubes.detail(id),
     queryFn: async (): Promise<TubeData> => {
-      return await TubeService.fetchTubeById(id);
+      const schemaTube = await TubeService.fetchTubeById(id);
+      return convertSchemaToSharedTubeData(schemaTube);
     },
-    enabled: !!id, // Only run if ID provided
+    initialData,
+    enabled: !!id,
     staleTime: 5 * 60 * 1000,
-    gcTime: 15 * 60 * 1000, // Individual tubes cached longer
+    gcTime: 15 * 60 * 1000,
     ...options,
   });
 };
@@ -149,7 +191,8 @@ export const useInfiniteTubes = (
   return useInfiniteQuery({
     queryKey: queryKeys.tubes.paginated(filters),
     queryFn: async ({ pageParam }: { pageParam: number }) => {
-      let tubes = await TubeService.fetchTubes();
+      const schemaTubes = await TubeService.fetchTubes();
+      let tubes = schemaTubes.map(convertSchemaToSharedTubeData);
 
       // Apply client-side filtering
       if (filters.tankId) {
@@ -208,7 +251,8 @@ export const useSearchTubes = (
   return useQuery({
     queryKey: queryKeys.search.results(query, filters),
     queryFn: async (): Promise<TubeData[]> => {
-      return await TubeService.searchTubes(query, { limit: 100, offset: 0 });
+      const schemaTubes = await TubeService.searchTubes(query, { limit: 100, offset: 0 });
+      return schemaTubes.map(convertSchemaToSharedTubeData);
     },
     enabled: !!query && query.length >= 2, // Only search with 2+ characters
     staleTime: 2 * 60 * 1000, // Search results stale faster
@@ -234,8 +278,8 @@ export const useBulkTubes = (
       }
 
       // Fetch all tubes in parallel
-      const tubes = await Promise.all(tubeIds.map(id => TubeService.fetchTubeById(id)));
-      return tubes;
+      const schemaTubes = await Promise.all(tubeIds.map(id => TubeService.fetchTubeById(id)));
+      return schemaTubes.map(convertSchemaToSharedTubeData);
     },
     enabled: tubeIds.length > 0,
     staleTime: 5 * 60 * 1000,
@@ -258,7 +302,8 @@ export const usePrefetchTubeLocation = () => {
     await queryClient.prefetchQuery({
       queryKey: queryKeys.tubes.location(tankId, rackId, boxId),
       queryFn: async () => {
-        return await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
+        const schemaTubes = await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
+        return schemaTubes.map(convertSchemaToSharedTubeData);
       },
       staleTime: 2 * 60 * 1000,
     });
@@ -283,7 +328,8 @@ export const useTubeStats = (
     queryKey: [...queryKeys.tubes.locationStats(tankId || 'all', rackId || 'all'), boxId || 'all'],
     queryFn: async () => {
       // Get all tubes for statistics
-      let tubes = await TubeService.fetchTubes();
+      const schemaTubes = await TubeService.fetchTubes();
+      let tubes = schemaTubes.map(convertSchemaToSharedTubeData);
 
       // Filter by location if specified
       if (tankId && tankId !== 'all') {

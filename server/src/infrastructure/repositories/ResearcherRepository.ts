@@ -15,6 +15,11 @@ import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { ResearcherMapper, ResearcherRow } from '@infrastructure/database/mappers/ResearcherMapper';
 
 /**
+ * Explicit column list for researchers table queries
+ */
+const RESEARCHER_COLUMNS = 'id, person_id, active, created_at';
+
+/**
  * ResearcherRepository - Researcher data access
  *
  * Researcher entity links to Person entity for profile data (firstName, lastName, email, etc.)
@@ -31,7 +36,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findById(id: string): Promise<Researcher | null> {
     const row = await this.context.queryOne<ResearcherRow>(
-      'SELECT * FROM researchers WHERE id = $1',
+      `SELECT ${RESEARCHER_COLUMNS} FROM researchers WHERE id = $1`,
       [id]
     );
     return row ? ResearcherMapper.fromRow(row) : null;
@@ -39,7 +44,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findByName(firstName: string, lastName: string): Promise<Researcher | null> {
     const row = await this.context.queryOne<ResearcherRow>(`
-      SELECT r.* FROM researchers r
+      SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       WHERE p.first_name = $1 AND p.last_name = $2
     `, [firstName, lastName]);
@@ -48,7 +53,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findByPersonId(personId: string): Promise<Researcher | null> {
     const row = await this.context.queryOne<ResearcherRow>(
-      'SELECT * FROM researchers WHERE person_id = $1',
+      `SELECT ${RESEARCHER_COLUMNS} FROM researchers WHERE person_id = $1`,
       [personId]
     );
     return row ? ResearcherMapper.fromRow(row) : null;
@@ -56,7 +61,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findAll(): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(`
-      SELECT r.* FROM researchers r
+      SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       ORDER BY p.last_name, p.first_name
     `);
@@ -68,7 +73,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT * FROM researchers WHERE id IN (${placeholders})`,
+      `SELECT ${RESEARCHER_COLUMNS} FROM researchers WHERE id IN (${placeholders})`,
       ids
     );
     return ResearcherMapper.fromRows(rows);
@@ -112,7 +117,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findByStatus(isActive: boolean): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(`
-      SELECT r.* FROM researchers r
+      SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       WHERE r.active = $1
       ORDER BY p.last_name, p.first_name
@@ -153,7 +158,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async searchByName(namePattern: string): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(`
-      SELECT r.* FROM researchers r
+      SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       WHERE p.first_name ILIKE $1 OR p.last_name ILIKE $1
       ORDER BY p.last_name, p.first_name
@@ -163,7 +168,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findSimilarNames(firstName: string, lastName: string): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT r.* FROM researchers r
+      `SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
        INNER JOIN persons p ON r.person_id = p.id
        WHERE (p.first_name ILIKE $1 OR p.last_name ILIKE $2)
        AND NOT (p.first_name = $3 AND p.last_name = $4)
@@ -216,7 +221,7 @@ export class ResearcherRepository implements IResearcherRepository {
     }
 
     // Build query with JOIN for name sorting
-    let query = `SELECT r.* FROM researchers r
+    let query = `SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
                  INNER JOIN persons p ON r.person_id = p.id`;
     if (conditions.length > 0) {
       query += ` WHERE ${conditions.join(' AND ')}`;
@@ -262,7 +267,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findByCreationDateRange(startDate: Date, endDate: Date): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
-      'SELECT * FROM researchers WHERE created_at >= $1 AND created_at <= $2 ORDER BY created_at',
+      `SELECT ${RESEARCHER_COLUMNS} FROM researchers WHERE created_at >= $1 AND created_at <= $2 ORDER BY created_at`,
       [startDate, endDate]
     );
     return ResearcherMapper.fromRows(rows);
@@ -271,7 +276,7 @@ export class ResearcherRepository implements IResearcherRepository {
   async findAllSortedByName(ascending: boolean = true): Promise<Researcher[]> {
     const order = ascending ? 'ASC' : 'DESC';
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT r.* FROM researchers r
+      `SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
        INNER JOIN persons p ON r.person_id = p.id
        ORDER BY p.last_name ${order}, p.first_name ${order}`
     );
@@ -309,7 +314,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findWithAssignedTubes(): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT DISTINCT r.* FROM researchers r
+      `SELECT DISTINCT r.id, r.person_id, r.active, r.created_at FROM researchers r
        INNER JOIN persons p ON r.person_id = p.id
        INNER JOIN tubes t ON r.id = t.researcher_id
        WHERE r.active = TRUE
@@ -320,7 +325,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findWithoutTubes(): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT r.* FROM researchers r
+      `SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
        INNER JOIN persons p ON r.person_id = p.id
        LEFT JOIN tubes t ON r.id = t.researcher_id
        WHERE t.researcher_id IS NULL AND r.active = TRUE

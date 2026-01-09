@@ -118,13 +118,16 @@
 | `UserMapper.ts` | [~] | To review |
 | `ResearcherMapper.ts` | [~] | To review |
 | All other mappers | [~] | To review |
-| **Repositories** | [x] | ✅ Console usage fixed |
-| `TubeRepository.ts` | [x] | Good - uses explicit TUBE_COLUMNS |
-| `UserRepository.ts` | [~] | To review |
-| `ResearcherRepository.ts` | [~] | To review |
-| `SessionRepository.ts` | [~] | To review |
+| **Repositories** | [x] | ✅ Console usage fixed, SELECT * fixed |
+| `TubeRepository.ts` | [x] | ✅ Uses explicit TUBE_COLUMNS |
+| `UserRepository.ts` | [x] | ✅ Uses explicit USER_COLUMNS |
+| `ResearcherRepository.ts` | [x] | ✅ Uses explicit RESEARCHER_COLUMNS |
+| `SessionRepository.ts` | [x] | ✅ Uses explicit SESSION_COLUMNS |
+| `RefreshTokenRepository.ts` | [x] | ✅ Uses explicit REFRESH_TOKEN_COLUMNS |
+| `PersonRepository.ts` | [x] | ✅ Uses explicit PERSON_COLUMNS |
+| `AuditRepository.ts` | [x] | ✅ Uses explicit AUDIT_LOG_COLUMNS |
+| `AuditArchiveRepository.ts` | [x] | ✅ Uses explicit AUDIT_ARCHIVE_COLUMNS |
 | `ConfigurationRepository.ts` | [x] | ✅ Fixed all console calls → logger, fixed substr |
-| `AuditRepository.ts` | [!] | Uses SELECT * - to fix |
 | **Services** | [x] | ✅ Console usage fixed |
 | JwtSessionService.ts | [x] | ✅ Fixed console calls → logger |
 | Email service | [~] | ConsoleEmailService intentionally uses console (dev mode) |
@@ -152,9 +155,13 @@
 | Medium | ConfigurationRepository.ts | multiple | 15+ console.log/error calls | Use logger | ✅ FIXED |
 | Medium | ConfigurationRepository.ts | 451 | Deprecated `substr` | Use `substring` | ✅ FIXED |
 | Medium | JwtSessionService.ts | multiple | console calls | Use logger | ✅ FIXED |
-| Medium | AuditRepository.ts | multiple | Uses SELECT * | Use explicit columns | ⏸️ DEFERRED |
-| Medium | AuditArchiveRepository.ts | 112, 188 | Uses SELECT * | Use explicit columns | ⏸️ DEFERRED |
-| Medium | PersonRepository.ts | 17, 26, 71 | Uses SELECT * | Use explicit columns | ⏸️ DEFERRED |
+| Medium | AuditRepository.ts | multiple | Uses SELECT * | Use explicit columns | ✅ FIXED |
+| Medium | AuditArchiveRepository.ts | 112, 188 | Uses SELECT * | Use explicit columns | ✅ FIXED |
+| Medium | PersonRepository.ts | 17, 26, 71 | Uses SELECT * | Use explicit columns | ✅ FIXED |
+| Medium | ResearcherRepository.ts | multiple | Uses SELECT * | Use explicit columns | ✅ FIXED |
+| Medium | RefreshTokenRepository.ts | multiple | Uses SELECT * | Use explicit columns | ✅ FIXED |
+| Medium | SessionRepository.ts | multiple | Uses SELECT * | Use explicit columns | ✅ FIXED |
+| Medium | UserRepository.ts | multiple | Uses SELECT * | Use explicit columns | ✅ FIXED |
 | Low | ServiceContainer.ts | 905 | console.warn | Use logger | ✅ FIXED |
 | Low | ConfigurationService.ts | 149 | console.warn | Use logger | ✅ FIXED |
 
@@ -237,7 +244,7 @@
 |---|----------|-------|-------|--------|
 | 1 | Deprecated API | 7 files | `substr()` → use `substring()` | ✅ FIXED |
 | 2 | Logging | 55+ | console.log/warn/error → use logger | ✅ FIXED |
-| 3 | SQL Pattern | 4 files | SELECT * → explicit columns | ⏸️ DEFERRED |
+| 3 | SQL Pattern | 8 files | SELECT * → explicit columns | ✅ FIXED |
 
 ### Technical Debt (Nice to Fix)
 | # | Category | Issue | Status |
@@ -312,14 +319,14 @@ Authentication should be **independent** - it's a foundational domain that other
 
 **Why this matters:** Search becomes a "god component" - any change to any domain can break search.
 
-#### LOW PRIORITY: Utility Function Placement
+#### ~~LOW PRIORITY: Utility Function Placement~~ ✅ WON'T FIX
 
-| Utility | Current Location | Should Be |
-|---------|-----------------|-----------|
-| `positionDisplayUtils.ts` | storage/utils | shared/utils |
-| `gridHelpers.ts` | storage/utils | shared/utils |
+| Utility | Current Location | Used By | Decision |
+|---------|-----------------|---------|----------|
+| `positionDisplayUtils.ts` | storage/utils | storage, tubes, search | Keep - storage owns position display logic |
+| `gridHelpers.ts` | storage/utils | storage only | Keep - no cross-domain usage |
 
-These are imported by multiple domains, so they belong in shared.
+**Decision:** Not worth moving. Cross-domain imports from storage are acceptable (correct dependency direction). Moving would be organizational churn with no functional benefit.
 
 ---
 
@@ -633,8 +640,8 @@ These are imported by multiple domains, so they belong in shared.
 | **Unused hooks** | [!] | ❌ 5 unused hooks identified |
 | **Unused services** | [x] | ✅ All services used |
 | **Unused types** | [x] | ✅ All types used |
-| **Commented-out code** | [!] | ❌ ~15 instances in client, ~2 in server |
-| **Unused dependencies** | [!] | ❌ 4-7 unused packages |
+| **Commented-out code** | [x] | ✅ All cleaned up - only explanatory comments remain |
+| **Unused dependencies** | [x] | ✅ Cleaned up - react-window removed |
 
 ---
 
@@ -660,27 +667,20 @@ All unused hooks have been removed:
 
 | Package | Location | Status | Notes |
 |---------|----------|--------|-------|
-| `firebase` | client/package.json | UNUSED | Planned feature, not implemented |
-| `msw` | client/package.json (dev) | UNUSED | API mocking not configured |
-| `csv-parser` | server/package.json | UNUSED | No imports found |
-| `csv-writer` | server/package.json | UNUSED | No imports found |
-| `@types/bcrypt` | server/package.json (dev) | REDUNDANT | Runtime dep has own types |
-| `@types/jsonwebtoken` | server/package.json (dev) | REDUNDANT | Runtime dep has own types |
-| `@types/react-window` | client/package.json | UNUSED | Types for unused package |
+| `firebase` | client/package.json | ✅ REMOVED | Planned feature, not implemented |
+| `msw` | client/package.json (dev) | ✅ REMOVED | API mocking not configured |
+| `csv-parser` | root/package.json | ✅ REMOVED | No imports found |
+| `csv-writer` | root/package.json | ✅ REMOVED | No imports found |
+| `@types/bcrypt` | server/package.json (dev) | ✅ KEEP | Verified: bcrypt doesn't include types |
+| `@types/jsonwebtoken` | server/package.json (dev) | ✅ KEEP | Verified: jsonwebtoken doesn't include types |
+| `@types/react-window` | client/package.json | ✅ REMOVED | Types for unused package |
+| `react-window` | client/package.json | ✅ REMOVED | Never used virtualization library |
 
 ---
 
-#### Commented-Out Code Blocks
+#### ~~Commented-Out Code Blocks~~ ✅ CLEANED UP
 
-| Location | Lines | Description |
-|----------|-------|-------------|
-| `client/src/app/components/layout/Dashboard.tsx` | 52-65, 127-128 | Lazy-loaded modal code |
-| `client/src/domains/authentication/index.ts` | 19 | Commented export |
-| `client/src/domains/tubes/config/fieldConfig.ts` | 280 | Validation check |
-| `client/src/shared/session/index.ts` | 8 | Moved export comment |
-| `client/src/shared/stores/index.ts` | 8 | Moved export comment |
-| `server/src/presentation/controllers/ConfigurationController.ts` | 41 | Old import |
-| `server/src/domain/services/AccessControlService.ts` | 613 | Commented return |
+All commented-out code has been removed. Only legitimate explanatory comments and JSDoc documentation remain.
 
 ---
 
@@ -697,15 +697,14 @@ All unused hooks have been removed:
 
 ---
 
-#### Date Formatting Duplication
+#### ~~Date Formatting Duplication~~ ✅ FIXED
 
 | File | Status | Notes |
 |------|--------|-------|
-| `client/src/shared/utils/dateFormatter.ts` | DEPRECATED | Line 4 marked deprecated |
-| `client/src/shared/utils/dateUtils.ts` | ACTIVE | Modern UTC-safe implementation |
-| 34+ client files | - | Reference various date functions |
+| `client/src/shared/utils/dateFormatter.ts` | ✅ REMOVED | Deprecated module deleted |
+| `client/src/shared/utils/dateUtils.ts` | ACTIVE | Modern UTC-safe implementation, sole module |
 
-**Recommendation:** Complete migration to dateUtils.ts, remove dateFormatter.ts
+**Status:** Migration complete - deprecated `dateFormatter.ts` removed, all imports use `dateUtils.ts`
 
 ---
 
@@ -768,8 +767,8 @@ All unused hooks have been removed:
 | Category | Count | Priority | Status |
 |----------|-------|----------|--------|
 | Unused hooks | 5 | Medium | ✅ REMOVED |
-| Unused dependencies | 4-7 | Medium | ⏸️ Can safely remove |
-| Commented-out code | ~17 blocks | Low | ⏸️ Clean up |
+| Unused dependencies | 6 | Medium | ✅ REMOVED (firebase, msw, csv-parser, csv-writer, react-window, @types/react-window) |
+| Commented-out code | ~17 blocks | Low | ✅ CLEANED UP |
 | Duplicate hook | 1 | Low | ✅ REMOVED (complex version) |
 
 ### Duplicate Logic Found
@@ -777,8 +776,8 @@ All unused hooks have been removed:
 | Pattern | Priority | Recommendation | Status |
 |---------|----------|----------------|--------|
 | ID generation (6 files) | HIGH | Create IdGenerator service | ✅ FIXED |
-| Date formatting (2 modules) | Medium | Complete migration to dateUtils | ⏸️ DEFERRED |
-| String validation (5+ entities) | Medium | Create utility service | ⏸️ DEFERRED |
+| Date formatting (2 modules) | Medium | Complete migration to dateUtils | ✅ FIXED (dateFormatter.ts removed) |
+| String validation (5+ entities) | Low | Standard patterns, no abstraction needed | ✅ WON'T FIX (acceptable) |
 
 ### Safe Cleanup Actions
 
@@ -927,8 +926,8 @@ All unused hooks have been removed:
 
 | Phase | Progress | Start Date | End Date |
 |-------|----------|------------|----------|
-| Phase 1: Server-Side | 90% | Jan 2026 | Jan 2026 |
-| Phase 2: Client-Side | 85% | Jan 2026 | Jan 2026 |
+| Phase 1: Server-Side | 98% | Jan 2026 | Jan 2026 |
+| Phase 2: Client-Side | 90% | Jan 2026 | Jan 2026 |
 | Phase 3: Shared Packages | 100% | Jan 2026 | Jan 2026 |
 | Phase 4: Config & Docs | 100% | Jan 2026 | Jan 2026 |
 | Phase 5: Dead Code Hunt | 100% | Jan 2026 | Jan 2026 |
@@ -1053,9 +1052,9 @@ All unused hooks have been removed:
 |------|--------|--------|
 | Unused hooks (5) | Removed all unused hooks | ✅ FIXED |
 | @types/bcrypt, @types/jsonwebtoken | Verified: main packages don't include types, @types ARE needed | ✅ VERIFIED (keep) |
-| Commented-out code (~17 blocks) | Need individual review | ⏸️ DEFERRED |
+| Commented-out code (~17 blocks) | All cleaned up | ✅ FIXED |
 | ID generation centralization | Created generateId.ts with nanoid | ✅ FIXED |
-| Date formatting consolidation | Need to update 34+ files | ⏸️ DEFERRED |
+| Date formatting consolidation | dateFormatter.ts removed, all use dateUtils.ts | ✅ FIXED |
 
 ---
 

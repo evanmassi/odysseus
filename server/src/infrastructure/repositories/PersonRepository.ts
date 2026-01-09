@@ -4,6 +4,13 @@ import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { PersonMapper, PersonRow } from '@infrastructure/database/mappers/PersonMapper';
 
 /**
+ * Explicit column list for persons table queries
+ */
+const PERSON_COLUMNS = `
+  id, first_name, last_name, email, position, department, created_at, updated_at
+`.trim();
+
+/**
  * PersonRepository - Person data access
  *
  * Person is the single source of truth for human identity.
@@ -14,7 +21,7 @@ export class PersonRepository implements IPersonRepository {
 
   async findById(id: string): Promise<Person | null> {
     const row = await this.context.queryOne<PersonRow>(
-      'SELECT * FROM persons WHERE id = $1',
+      `SELECT ${PERSON_COLUMNS} FROM persons WHERE id = $1`,
       [id]
     );
     return row ? PersonMapper.fromRow(row) : null;
@@ -23,7 +30,7 @@ export class PersonRepository implements IPersonRepository {
   async findByEmail(email: string): Promise<Person | null> {
     const normalizedEmail = email.toLowerCase().trim();
     const row = await this.context.queryOne<PersonRow>(
-      'SELECT * FROM persons WHERE LOWER(email) = $1',
+      `SELECT ${PERSON_COLUMNS} FROM persons WHERE LOWER(email) = $1`,
       [normalizedEmail]
     );
     return row ? PersonMapper.fromRow(row) : null;
@@ -68,7 +75,7 @@ export class PersonRepository implements IPersonRepository {
 
   async findAll(): Promise<Person[]> {
     const rows = await this.context.queryMany<PersonRow>(
-      'SELECT * FROM persons ORDER BY last_name, first_name'
+      `SELECT ${PERSON_COLUMNS} FROM persons ORDER BY last_name, first_name`
     );
     return PersonMapper.fromRows(rows);
   }
@@ -78,7 +85,7 @@ export class PersonRepository implements IPersonRepository {
 
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const rows = await this.context.queryMany<PersonRow>(
-      `SELECT * FROM persons WHERE id IN (${placeholders})`,
+      `SELECT ${PERSON_COLUMNS} FROM persons WHERE id IN (${placeholders})`,
       ids
     );
     return PersonMapper.fromRows(rows);

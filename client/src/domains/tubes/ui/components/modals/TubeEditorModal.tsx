@@ -39,12 +39,12 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox } from '@domains/storage';
+import { useTubes, useTube } from '@domains/tubes';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import {
   useUpdateTubeMutation,
   useDeleteTubeMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
-import { useTubesQuery, useTubeQuery } from '@domains/tubes/hooks/useTubesQuery';
 import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
@@ -110,7 +110,7 @@ function EditModeContent({ tubeId, onClose, lockContext }: EditModeContentProps)
   const modalService = useModalStore();
 
   // Fetch tube data from React Query cache (always fresh)
-  const { data: tube, isLoading: isFetchingTube } = useTubeQuery(tubeId);
+  const { data: tube, isLoading: isFetchingTube } = useTube(tubeId);
 
   // Focus return management - restore focus when modal unmounts
   useEffect(() => {
@@ -367,7 +367,7 @@ function CreateModeContent({
   selectedPositions,
 }: TubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
-  const { data: allTubes = [] } = useTubesQuery();
+  const { data: allTubes = [] } = useTubes();
   const updateTubeMutation = useUpdateTubeMutation();
   const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();

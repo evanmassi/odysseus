@@ -4,6 +4,14 @@ import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { UserSessionMapper, UserSessionRow } from '@infrastructure/database/mappers/UserSessionMapper';
 
 /**
+ * Explicit column list for user_sessions table queries
+ */
+const SESSION_COLUMNS = `
+  id, user_id, refresh_token, device_info, ip_address, user_agent,
+  created_at, last_used_at, expires_at, is_active
+`.trim();
+
+/**
  * SessionRepository - User session persistence
  *
  * Handles session tracking for concurrent session limit enforcement.
@@ -16,7 +24,7 @@ export class SessionRepository implements UserSessionRepository {
 
   async findById(id: string): Promise<UserSession | null> {
     const row = await this.context.queryOne<UserSessionRow>(
-      'SELECT * FROM user_sessions WHERE id = $1',
+      `SELECT ${SESSION_COLUMNS} FROM user_sessions WHERE id = $1`,
       [id]
     );
     return row ? UserSessionMapper.fromRow(row) : null;
@@ -24,7 +32,7 @@ export class SessionRepository implements UserSessionRepository {
 
   async findByRefreshToken(refreshToken: string): Promise<UserSession | null> {
     const row = await this.context.queryOne<UserSessionRow>(
-      'SELECT * FROM user_sessions WHERE refresh_token = $1',
+      `SELECT ${SESSION_COLUMNS} FROM user_sessions WHERE refresh_token = $1`,
       [refreshToken]
     );
     return row ? UserSessionMapper.fromRow(row) : null;
@@ -32,7 +40,7 @@ export class SessionRepository implements UserSessionRepository {
 
   async findAllByUserId(userId: string): Promise<UserSession[]> {
     const rows = await this.context.queryMany<UserSessionRow>(
-      'SELECT * FROM user_sessions WHERE user_id = $1 ORDER BY created_at DESC',
+      `SELECT ${SESSION_COLUMNS} FROM user_sessions WHERE user_id = $1 ORDER BY created_at DESC`,
       [userId]
     );
     return UserSessionMapper.fromRows(rows);
@@ -41,7 +49,7 @@ export class SessionRepository implements UserSessionRepository {
   async findActiveSessionsByUserId(userId: string): Promise<UserSession[]> {
     const now = new Date();
     const rows = await this.context.queryMany<UserSessionRow>(
-      `SELECT * FROM user_sessions
+      `SELECT ${SESSION_COLUMNS} FROM user_sessions
        WHERE user_id = $1
          AND is_active = TRUE
          AND expires_at > $2
@@ -129,7 +137,7 @@ export class SessionRepository implements UserSessionRepository {
 
   async findByIpAddress(ipAddress: string): Promise<UserSession[]> {
     const rows = await this.context.queryMany<UserSessionRow>(
-      'SELECT * FROM user_sessions WHERE ip_address = $1 ORDER BY created_at DESC',
+      `SELECT ${SESSION_COLUMNS} FROM user_sessions WHERE ip_address = $1 ORDER BY created_at DESC`,
       [ipAddress]
     );
     return UserSessionMapper.fromRows(rows);
@@ -139,7 +147,7 @@ export class SessionRepository implements UserSessionRepository {
     const cutoffTime = new Date(Date.now() - (minutesAgo * 60 * 1000));
 
     const rows = await this.context.queryMany<UserSessionRow>(
-      `SELECT * FROM user_sessions
+      `SELECT ${SESSION_COLUMNS} FROM user_sessions
        WHERE user_id = $1
          AND last_used_at >= $2
        ORDER BY last_used_at DESC`,
@@ -150,7 +158,7 @@ export class SessionRepository implements UserSessionRepository {
 
   async findSessionsCreatedBetween(startDate: Date, endDate: Date): Promise<UserSession[]> {
     const rows = await this.context.queryMany<UserSessionRow>(
-      'SELECT * FROM user_sessions WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at DESC',
+      `SELECT ${SESSION_COLUMNS} FROM user_sessions WHERE created_at BETWEEN $1 AND $2 ORDER BY created_at DESC`,
       [startDate, endDate]
     );
     return UserSessionMapper.fromRows(rows);
@@ -159,7 +167,7 @@ export class SessionRepository implements UserSessionRepository {
   async getOldestActiveSession(userId: string): Promise<UserSession | null> {
     const now = new Date();
     const row = await this.context.queryOne<UserSessionRow>(
-      `SELECT * FROM user_sessions
+      `SELECT ${SESSION_COLUMNS} FROM user_sessions
        WHERE user_id = $1
          AND is_active = TRUE
          AND expires_at > $2

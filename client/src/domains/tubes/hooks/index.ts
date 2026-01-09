@@ -37,16 +37,6 @@ export {
 // Lock access control hooks
 export { useTubeAccessControl } from './useTubeAccessControl';
 
-// Performance-optimized hooks
-export {
-  useVirtualizedTubes,
-  useEssentialTubes,
-  usePrefetchAdjacentLocations,
-  useSmartPrefetch,
-  useBackgroundRefresh,
-  useQueryPerformanceMetrics,
-} from './useOptimizedTubeQueries';
-
 // Form hooks (public API - generic implementation is private)
 export {
   useCreateTubeForm,

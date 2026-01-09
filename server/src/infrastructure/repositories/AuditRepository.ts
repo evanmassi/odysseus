@@ -4,6 +4,14 @@ import type { PaginatedResult, QueryOptions } from '@domain/types/repository';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 
 /**
+ * Explicit column list for audit_log table queries
+ */
+const AUDIT_LOG_COLUMNS = `
+  id, user_id, username, action, entity_type, entity_id,
+  details, timestamp, ip_address, user_agent
+`.trim();
+
+/**
  * Database row structure for audit_log table
  */
 interface AuditLogRow {
@@ -94,7 +102,7 @@ export class AuditRepository implements IAuditRepository {
       params.push(options.dateTo);
     }
 
-    let query = `SELECT * FROM audit_log WHERE ${whereClauses.join(' AND ')} ORDER BY timestamp DESC`;
+    let query = `SELECT ${AUDIT_LOG_COLUMNS} FROM audit_log WHERE ${whereClauses.join(' AND ')} ORDER BY timestamp DESC`;
 
     if (options?.limit) {
       query += ` LIMIT $${paramIndex++}`;
@@ -111,7 +119,7 @@ export class AuditRepository implements IAuditRepository {
 
   async findByEntityId(entityId: string, entityType: string): Promise<AuditLogEntry[]> {
     const rows = await this.context.queryMany<AuditLogRow>(
-      `SELECT * FROM audit_log
+      `SELECT ${AUDIT_LOG_COLUMNS} FROM audit_log
        WHERE entity_id = $1 AND entity_type = $2
        ORDER BY timestamp DESC`,
       [entityId, entityType]
@@ -133,7 +141,7 @@ export class AuditRepository implements IAuditRepository {
       params.push(options.dateTo);
     }
 
-    let query = `SELECT * FROM audit_log WHERE ${whereClauses.join(' AND ')} ORDER BY timestamp DESC`;
+    let query = `SELECT ${AUDIT_LOG_COLUMNS} FROM audit_log WHERE ${whereClauses.join(' AND ')} ORDER BY timestamp DESC`;
 
     if (options?.limit) {
       query += ` LIMIT $${paramIndex++}`;
@@ -190,7 +198,7 @@ export class AuditRepository implements IAuditRepository {
     const offset = filters.offset || 0;
 
     const dataQuery = `
-      SELECT * FROM audit_log
+      SELECT ${AUDIT_LOG_COLUMNS} FROM audit_log
       ${whereClause}
       ORDER BY timestamp DESC
       LIMIT $${paramIndex++} OFFSET $${paramIndex++}
@@ -243,7 +251,7 @@ export class AuditRepository implements IAuditRepository {
    * Find entries older than specified date (for archival)
    */
   async findOlderThan(date: Date, limit?: number): Promise<AuditLogEntry[]> {
-    let query = 'SELECT * FROM audit_log WHERE timestamp < $1 ORDER BY timestamp ASC';
+    let query = `SELECT ${AUDIT_LOG_COLUMNS} FROM audit_log WHERE timestamp < $1 ORDER BY timestamp ASC`;
     const params: unknown[] = [date];
 
     if (limit) {

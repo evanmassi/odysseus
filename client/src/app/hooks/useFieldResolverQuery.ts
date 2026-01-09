@@ -13,7 +13,7 @@ import { useMemo } from 'react';
 import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
 
 import { useActiveResearchersQuery } from '@domains/researchers';
-import { useTubesQuery } from '@domains/tubes/hooks/useTubesQuery';
+import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 
 import { useSimpleFieldResolver, type SimpleFieldResolver } from './useSimpleFieldResolver';
 
@@ -105,7 +105,7 @@ export interface UseFieldResolverQueryResult extends SimpleFieldResolver {
  */
 export function useFieldResolverQuery(): UseFieldResolverQueryResult {
   // Get React Query data
-  const tubesQuery = useTubesQuery();
+  const tubesQuery = useTubes();
   const researchersQuery = useActiveResearchersQuery();
 
   // Get simple field resolver capabilities
@@ -212,7 +212,7 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
  * Lightweight version focused only on tubes with field resolution
  */
 export function useFieldResolverTubes() {
-  const tubesQuery = useTubesQuery();
+  const tubesQuery = useTubes();
   const fieldResolver = useSimpleFieldResolver();
 
   return useMemo(() => {

@@ -7,7 +7,7 @@
 
 import { useMemo } from 'react';
 
-import { useTubesQuery } from '@domains/tubes/hooks/useTubesQuery';
+import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 
 import { useSimpleFieldResolver } from './useSimpleFieldResolver';
 
@@ -19,7 +19,7 @@ import type { TubeData } from '@shared/types/Tube';
  * Updated for Phase 1 with clean Zod schema integration
  */
 export function useTubesWithFieldResolver() {
-  const tubesQuery = useTubesQuery();
+  const tubesQuery = useTubes();
   const fieldResolver = useSimpleFieldResolver();
 
   return useMemo(

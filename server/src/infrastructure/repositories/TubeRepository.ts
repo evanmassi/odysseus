@@ -28,14 +28,14 @@ export class TubeRepository implements ITubeRepository {
 
   async findById(id: string): Promise<Tube | null> {
     const row = await this.context.queryOne<TubeRow>(
-      'SELECT * FROM tubes WHERE id = $1',
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE id = $1`,
       [id]
     );
     return row ? TubeMapper.fromRow(row) : null;
   }
 
   async findAll(): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>('SELECT * FROM tubes ORDER BY created_at DESC');
+    const rows = await this.context.queryMany<TubeRow>(`SELECT ${this.TUBE_COLUMNS} FROM tubes ORDER BY created_at DESC`);
     return TubeMapper.fromRows(rows);
   }
 
@@ -90,7 +90,7 @@ export class TubeRepository implements ITubeRepository {
 
   async findByLocation(location: Location): Promise<Tube | null> {
     const row = await this.context.queryOne<TubeRow>(
-      'SELECT * FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND position = $4',
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND position = $4`,
       [location.tankId, location.rackId, location.boxId, location.position]
     );
     return row ? TubeMapper.fromRow(row) : null;
@@ -98,7 +98,7 @@ export class TubeRepository implements ITubeRepository {
 
   async findByCompleteLocation(tankId: string, rackId: string, boxId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      'SELECT * FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 ORDER BY position',
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 ORDER BY position`,
       [tankId, rackId, boxId]
     );
     return TubeMapper.fromRows(rows);
@@ -106,7 +106,7 @@ export class TubeRepository implements ITubeRepository {
 
   async findByRackAndBox(rackId: string, boxId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      'SELECT * FROM tubes WHERE rack_id = $1 AND box_id = $2 ORDER BY tank_id, position',
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE rack_id = $1 AND box_id = $2 ORDER BY tank_id, position`,
       [rackId, boxId]
     );
     return TubeMapper.fromRows(rows);
@@ -114,7 +114,7 @@ export class TubeRepository implements ITubeRepository {
 
   async findByTank(tankId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      'SELECT * FROM tubes WHERE tank_id = $1 ORDER BY rack_id, box_id, position',
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 ORDER BY rack_id, box_id, position`,
       [tankId]
     );
     return TubeMapper.fromRows(rows);
@@ -122,7 +122,7 @@ export class TubeRepository implements ITubeRepository {
 
   async findByTankAndRack(tankId: string, rackId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      'SELECT * FROM tubes WHERE tank_id = $1 AND rack_id = $2 ORDER BY box_id, position',
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 ORDER BY box_id, position`,
       [tankId, rackId]
     );
     return TubeMapper.fromRows(rows);
@@ -145,7 +145,7 @@ export class TubeRepository implements ITubeRepository {
 
   async findByResearcher(researcher: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      'SELECT * FROM tubes WHERE researcher_id ILIKE $1 ORDER BY created_at DESC',
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE researcher_id ILIKE $1 ORDER BY created_at DESC`,
       [`%${researcher}%`]
     );
     return TubeMapper.fromRows(rows);
@@ -162,14 +162,14 @@ export class TubeRepository implements ITubeRepository {
 
   async findExpired(): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      "SELECT * FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text ORDER BY date"
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text ORDER BY date`
     );
     return TubeMapper.fromRows(rows);
   }
 
   async findIncomplete(): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      'SELECT * FROM tubes WHERE cell_type IS NULL OR donor_internal_id IS NULL OR researcher_id IS NULL'
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE cell_type IS NULL OR donor_internal_id IS NULL OR researcher_id IS NULL`
     );
     return TubeMapper.fromRows(rows);
   }
@@ -805,7 +805,7 @@ export class TubeRepository implements ITubeRepository {
    * Used when no generic query is provided
    */
   private async structuredSearch(criteria: TubeSearchCriteria): Promise<Tube[]> {
-    let sql = 'SELECT * FROM tubes WHERE 1=1';
+    let sql = `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE 1=1`;
     const params: unknown[] = [];
     const paramIndex = { current: 1 };
 
@@ -866,7 +866,7 @@ export class TubeRepository implements ITubeRepository {
 
   async findByCellType(cellType: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      'SELECT * FROM tubes WHERE cell_type ILIKE $1 ORDER BY created_at DESC',
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE cell_type ILIKE $1 ORDER BY created_at DESC`,
       [`%${cellType}%`]
     );
     return TubeMapper.fromRows(rows);
@@ -874,7 +874,7 @@ export class TubeRepository implements ITubeRepository {
 
   async findByDateRange(startDate: string, endDate: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      'SELECT * FROM tubes WHERE date BETWEEN $1 AND $2 ORDER BY date',
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE date BETWEEN $1 AND $2 ORDER BY date`,
       [startDate, endDate]
     );
     return TubeMapper.fromRows(rows);
@@ -882,7 +882,7 @@ export class TubeRepository implements ITubeRepository {
 
   async findWithConcentration(): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      'SELECT * FROM tubes WHERE concentration IS NOT NULL ORDER BY concentration DESC'
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE concentration IS NOT NULL ORDER BY concentration DESC`
     );
     return TubeMapper.fromRows(rows);
   }
