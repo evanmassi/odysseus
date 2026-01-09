@@ -1,3 +1,9 @@
+/**
+ * Password Reset Domain Events
+ *
+ * Events emitted during admin-initiated password reset operations.
+ */
+
 import { DomainEvent } from './DomainEvent';
 
 export class PasswordResetByAdminEvent extends DomainEvent {

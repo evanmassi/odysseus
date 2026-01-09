@@ -47,7 +47,7 @@ export class NodemailerEmailService implements EmailService {
   }
 
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
-    // TODO: Implement for Gap #9 - Password Reset Flow
+    // TODO: Implement password reset email
     throw new Error('Password reset email not yet implemented');
   }
 

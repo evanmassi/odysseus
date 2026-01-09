@@ -43,7 +43,7 @@ export {
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
 
-  // ⚠️ Deprecated (backward compatibility - Phase 2 will remove)
+  // Deprecated - use CreateTubeRequest instead
   type TubeFormSampleInput,
   type TubeFormDataInput,
 
@@ -53,7 +53,7 @@ export {
   transformLegacyTubeData
 } from './tubes/tubeSchemas';
 
-// Tube Validation Utilities (Phase 1 - New)
+// Tube Validation Utilities
 export {
   parseConcentration,
   parseConcentrationInput,
@@ -113,7 +113,7 @@ export {
   type RevokeAccessResult,
 } from './tubes/tubeLockSchemas';
 
-// Search Schemas (Phase 2 - Migrated)
+// Search Schemas
 export {
   // Schemas
   SearchFiltersSchema,
@@ -175,7 +175,7 @@ export {
   findSimilarResearchers
 } from './researchers/researcherSchemas';
 
-// Transport Schemas (Phase 3 - Migrated) - Infrastructure Layer
+// Transport Schemas
 export {
   // Envelope Schemas (generic functions)
   successEnvelopeSchema,
@@ -191,7 +191,7 @@ export {
   type BatchResult
 } from './infrastructure/transportSchemas';
 
-// Laboratory Configuration Schemas (Phase 3 - Migrated)
+// Laboratory Configuration Schemas
 export {
   // Schemas
   GridConfigurationSchema,
@@ -260,7 +260,7 @@ export {
   generatePositionLabels,
 } from './storage/positionFormatters';
 
-// API Schemas (Phase 4 - Migrated) - Shared API Layer
+// API Schemas
 export {
   // Schemas
   websocketMessageSchema,
@@ -275,7 +275,7 @@ export {
   type QueryParameters
 } from './api/apiSchemas';
 
-// System Constants (Single source of truth)
+// System Constants
 export {
   // Equipment Defaults
   EQUIPMENT_DEFAULTS,

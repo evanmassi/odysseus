@@ -184,8 +184,9 @@ export class TubeController {
   }
 
   /**
-   * ⚠️ LEGACY: Get tubes by rack and box (deprecated - use /location endpoint)
+   * Get tubes by rack and box
    * GET /api/tubes/rack/:rackId/box/:boxId
+   * @deprecated Use /location endpoint instead
    */
   async getTubesByRackAndBox(req: Request, res: Response): Promise<void> {
     try {

@@ -9,7 +9,9 @@
       "Bash(git rm:*)",
       "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\app\\\\utils\\\\selectionActions.ts''\")",
       "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\app\\\\utils\\\\recentOperations.ts''\")",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "Bash(dir \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\")",
+      "Bash(dir:*)"
     ]
   }
 }

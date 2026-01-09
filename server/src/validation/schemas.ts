@@ -1,11 +1,8 @@
 /**
  * HTTP Input Validation Schemas for API requests
- * Uses shared schemas from @odysseus/shared-schemas for consistency
  *
- * Single Source of Truth principle:
- * - HTTP validation schemas should mirror DTOs exactly
- * - Import from shared-schemas when possible to avoid duplication
- * - Keep this file as thin as possible - just wiring
+ * Uses shared schemas from @odysseus/shared-schemas to avoid duplication.
+ * Keep this file thin - just wiring to shared schemas.
  */
 import { z } from 'zod';
 import {
@@ -46,7 +43,6 @@ const _typeCheck: AssertHttpSchemaMatchesProfile = true;
 // Location query validation - reuses shared location schema (omits position)
 export const LocationQuerySchema = tubeLocationSchema.omit({ position: true });
 
-// ❌ SIMPLIFIED: HTTP validation for bulk updates
 export const BulkUpdateHttpSchema = z.object({
   updates: z.array(z.object({
     id: z.string().min(1),
@@ -54,11 +50,7 @@ export const BulkUpdateHttpSchema = z.object({
   })).min(1, "At least one update is required")
 });
 
-// Business validation functions moved to domain layer
-// Business rules constants moved to domain value objects
-// Complex data type definitions handled by domain entities
-
-// Tube Lock HTTP Schemas - direct re-export from shared-schemas
+// Tube Lock HTTP Schemas
 export const LockTubesHttpSchema = lockTubesRequestSchema;
 export const UnlockTubesHttpSchema = unlockTubesRequestSchema;
 export const ShareTubeAccessHttpSchema = shareTubeAccessRequestSchema;

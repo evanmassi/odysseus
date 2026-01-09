@@ -2,13 +2,12 @@ import { SearchFilters } from '@odysseus/shared-schemas';
 import type { TubeSearchCriteria } from '@domain/types/repository';
 
 /**
- * SearchCriteriaMapper - Maps presentation layer filters to domain criteria
+ * SearchCriteriaMapper
  *
- * Follows Clean Architecture: Presentation layer concerns (SearchFilters from HTTP request)
- * are mapped to domain layer concerns (TubeSearchCriteria for repository).
+ * Maps presentation layer filters (SearchFilters from HTTP request)
+ * to domain layer criteria (TubeSearchCriteria for repository).
  *
- * This centralized mapping prevents duplication across controllers and ensures
- * consistent filter handling.
+ * Centralized here to prevent duplication across controllers.
  */
 export class SearchCriteriaMapper {
   /**
@@ -28,39 +27,27 @@ export class SearchCriteriaMapper {
       sortOrder?: 'asc' | 'desc';
     }
   ): TubeSearchCriteria {
-    // Validate sortBy against allowed values
     const validSortFields = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;
     const sortBy = baseOptions?.sortBy && (validSortFields as readonly string[]).includes(baseOptions.sortBy)
       ? (baseOptions.sortBy as TubeSearchCriteria['sortBy'])
       : undefined;
 
     return {
-      // Base search options
       query: baseOptions?.query,
       limit: baseOptions?.limit,
       offset: baseOptions?.offset,
       sortBy,
       sortOrder: baseOptions?.sortOrder,
-
-      // Location filters (array-based for multiple selection)
       tankIds: filters?.tankIds,
       rackIds: filters?.rackIds,
       boxIds: filters?.boxIds,
-
-      // Position filter (alphanumeric or numeric label)
       positionLabel: filters?.positionLabel,
-
-      // Sample filters (array-based for multiple selection)
       cellTypes: filters?.cellTypes,
       lotNumbers: filters?.lotNumbers,
       donorInternalIds: filters?.donorInternalIds,
       donorSourceIds: filters?.donorSourceIds,
       cultureConditions: filters?.cultureConditions,
-
-      // Researcher filters (array-based for multiple selection)
       researcherIds: filters?.researcherIds,
-
-      // Date range filters (single values)
       dateFrom: filters?.dateFrom,
       dateTo: filters?.dateTo
     };

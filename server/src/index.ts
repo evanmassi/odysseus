@@ -8,11 +8,7 @@ import path from 'path';
 import { initializeRepositories, RepositoryFactory } from '@infrastructure/repositories';
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
 import { logger } from '@utils/logger';
-import { featureFlags, FEATURES } from '@utils/featureFlags';
-import { validateBody, validateParams, sanitizeStrings } from '@middleware/Validation';
-import { z } from 'zod';
-import type { AuditEntry } from '@interfaces/DatabaseProvider';
-import type { TubeData } from '@odysseus/shared-schemas';
+import { sanitizeStrings } from '@middleware/Validation';
 
 // Load environment variables from appropriate file
 // Resolve from project root (works for both tsx and compiled dist)
@@ -157,8 +153,8 @@ class OdysseusServer {
     // Apply all routes
     registry.applyRoutes();
 
-    // Legacy DELETE tank endpoint (bypasses domain layer)
-    // TODO: Migrate to ConfigurationCommandHandler for proper DDD implementation
+    // Legacy tank delete - force-deletes all tubes in tank first
+    // DDD route at /api/configuration/tanks/:tankId blocks if tubes exist
     this.app.delete('/api/tanks/:tankId', this.deleteTank.bind(this));
 
     logger.info('🚀 Route system initialized', {
@@ -180,154 +176,6 @@ class OdysseusServer {
     process.on('SIGINT', this.shutdown.bind(this));
   }
 
-  private async getMetrics(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const isHealthy = await this.repositoryFactory.isHealthy();
-      res.json({
-        success: true,
-        metrics: {
-          databaseType: 'postgresql',
-          databaseConnected: isHealthy,
-          featuresEnabled: {
-            auditTrail: FEATURES.ENABLE_AUDIT_TRAIL,
-            queryCache: FEATURES.ENABLE_QUERY_CACHING,
-            bulkOperations: FEATURES.ENABLE_BULK_OPERATIONS
-          }
-        }
-      });
-    } catch (error) {
-      logger.error('Error fetching metrics:', error);
-      res.status(500).json({ error: 'Failed to fetch metrics' });
-    }
-  }
-
-  private async getAuditTrail(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const { entityType, entityId } = req.params;
-      
-      if (!FEATURES.ENABLE_AUDIT_TRAIL) {
-        res.status(404).json({ error: 'Audit trail feature not enabled' });
-        return;
-      }
-
-      // TODO: Implement audit trail with repositories
-      const auditEntries: AuditEntry[] = [];
-      res.json({ success: true, auditEntries });
-    } catch (error) {
-      logger.error('Error fetching audit trail:', error);
-      res.status(500).json({ error: 'Failed to fetch audit trail' });
-    }
-  }
-
-  private async searchTubes(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const { query, filters, limit, offset, orderBy, orderDirection } = req.body;
-      
-      // Allow search with just filters or just query
-      if (!query?.trim() && (!filters || Object.keys(filters).length === 0)) {
-        res.json({ success: true, results: [], total: 0 });
-        return;
-      }
-
-      // TODO: Implement advanced search with repositories
-      const results: TubeData[] = [];
-      
-      res.json({ success: true, results, total: results.length });
-    } catch (error) {
-      logger.error('Error searching tubes:', error);
-      res.status(500).json({ error: 'Failed to search tubes' });
-    }
-  }
-
-
-
-
-  // Admin-only middleware
-  private requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction): void {
-    try {
-      if (!req.user) {
-        res.status(401).json({ error: 'Authentication required' });
-        return;
-      }
-
-      // User already authenticated by middleware, check if admin
-      if (!req.user.isAdmin?.()) {
-        logger.warn(`Non-admin user attempted admin access: ${req.user.username}`);
-        res.status(403).json({ error: 'Admin access required' });
-        return;
-      }
-
-      next();
-    } catch (error) {
-      logger.error('Admin check error:', error);
-      res.status(500).json({ error: 'Authorization check failed' });
-    }
-  }
-
-  // Admin endpoints (now handled by AdminRouteModule)
-  private async getUsers(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const repositories = this.repositoryFactory.getRepositories();
-      const users = await repositories.users.findAll();
-      const userDtos = users.map(user => user.toPublicData());
-      logger.debug('getAllUsers returned:', { count: userDtos.length });
-      res.json({ success: true, users: userDtos });
-    } catch (error) {
-      logger.error('Error fetching users:', error);
-      res.status(500).json({ error: 'Failed to fetch users' });
-    }
-  }
-
-  private async updateUserRole(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const { userId } = req.params;
-      const { role } = req.body;
-      
-      if (!['admin', 'user'].includes(role)) {
-        res.status(400).json({ error: 'Invalid role. Must be "admin" or "user"' });
-        return;
-      }
-      
-      const repositories = this.repositoryFactory.getRepositories();
-      const success = await repositories.users.updateRole(userId, role);
-      if (success) {
-        logger.info(`User role updated by admin`, {
-          admin: req.user?.username,
-          userId,
-          newRole: role
-        });
-        res.json({ success: true });
-      } else {
-        res.status(404).json({ error: 'User not found' });
-      }
-    } catch (error) {
-      logger.error('Error updating user role:', error);
-      res.status(500).json({ error: 'Failed to update user role' });
-    }
-  }
-
-  private async deleteUser(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const { userId } = req.params;
-      
-      const repositories = this.repositoryFactory.getRepositories();
-      const success = await repositories.users.delete(userId);
-      if (success) {
-        logger.info(`User deleted by admin`, {
-          admin: req.user?.username,
-          userId
-        });
-        res.json({ success: true });
-      } else {
-        res.status(404).json({ error: 'User not found' });
-      }
-    } catch (error) {
-      logger.error('Error deleting user:', error);
-      res.status(500).json({ error: 'Failed to delete user' });
-    }
-  }
-
-
   private async deleteTank(req: express.Request, res: express.Response): Promise<void> {
     try {
       const { tankId } = req.params;
@@ -348,19 +196,12 @@ class OdysseusServer {
         await repositories.tubes.delete(tube.id);
       }
 
-      // Legacy Socket.IO emissions for tube and tank deletion
-      // NOTE: These are manual emissions because this endpoint bypasses the domain layer.
-      // When tank deletion is properly moved to use DeleteTankCommandHandler (CQRS),
-      // these manual emissions can be removed as SocketEventHandler will handle them
-      // via domain events automatically.
+      // Manual Socket.IO emissions - this endpoint bypasses domain layer
       if (this.io) {
         this.io.emit('tubeUpdate', {
           type: 'bulk-delete',
           data: { deletedTubes: tankTubes, tankId }
         });
-
-        // Configuration changes are now handled by SocketEventHandler via domain events,
-        // but this legacy endpoint still needs manual emission
         this.io.emit('tankDeleted', { tankId });
       }
       
@@ -374,26 +215,6 @@ class OdysseusServer {
     } catch (error) {
       logger.error('Error deleting tank:', error);
       res.status(500).json({ error: 'Failed to delete tank' });
-    }
-  }
-
-  private async getDatabaseStatus(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const isHealthy = await this.repositoryFactory.isHealthy();
-      res.json({
-        success: true,
-        status: {
-          type: 'PostgreSQL',
-          initialized: true,
-          connected: isHealthy,
-          features: {
-            auditTrail: FEATURES.ENABLE_AUDIT_TRAIL
-          }
-        }
-      });
-    } catch (error) {
-      logger.error('Error getting database status:', error);
-      res.status(500).json({ error: 'Failed to get database status' });
     }
   }
 

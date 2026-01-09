@@ -75,8 +75,9 @@ const LAB_SYNONYMS: Record<string, string[]> = {
 };
 
 /**
- * Build reverse lookup for fast synonym matching
- * Maps each synonym back to its canonical term
+ * Reverse lookup map for fast synonym matching
+ *
+ * Maps each synonym back to its canonical term.
  */
 const SYNONYM_REVERSE_LOOKUP: Map<string, string> = new Map();
 for (const [canonical, synonyms] of Object.entries(LAB_SYNONYMS)) {
@@ -389,7 +390,7 @@ export enum SearchRankTier {
 /**
  * Fuzzy matching thresholds based on term length
  *
- * Industry best practice: scale tolerance with word length
+ * Scales tolerance with word length:
  * - Short words: stricter matching (fewer false positives)
  * - Long words: more tolerance (typos more likely)
  *

@@ -300,15 +300,11 @@ export type CreateTubeFormInput = z.input<typeof createTubeRequestSchema>;
 export type UpdateTubeFormInput = z.input<typeof updateTubeRequestSchema>;
 
 /**
- * ⚠️ DEPRECATED TYPES (Kept for backward compatibility during Phase 2 migration)
- * 
- * These form-specific types will be removed in Phase 2.
- * Use CreateTubeRequest from API schemas instead.
- * 
- * Migration Guide:
+ * @deprecated Use CreateTubeRequest from API schemas instead.
+ *
+ * Migration:
  * - TubeFormData → CreateTubeRequest (from createTubeRequestSchema)
  * - TubeFormSample → Infer from createTubeRequestSampleSchema
- * - TubeFormValidationData → DELETED (use createTubeRequestSchema)
  */
 export interface TubeFormSampleInput {
   cellType: string;

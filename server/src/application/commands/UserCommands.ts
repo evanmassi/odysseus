@@ -345,9 +345,7 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
   }
 }
 
-// ============================================================================
-// USER SETTINGS COMMANDS
-// ============================================================================
+// User Settings Commands
 
 /**
  * Update User Settings Command

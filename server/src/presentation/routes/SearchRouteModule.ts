@@ -2,7 +2,6 @@
  * Search Route Module
  *
  * Handles search-related routes with proper authentication.
- * Follows established modular route pattern.
  */
 
 import { Router, RequestHandler } from 'express';

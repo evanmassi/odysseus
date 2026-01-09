@@ -2,9 +2,7 @@
 -- Generated for PostgreSQL migration
 -- All columns use snake_case naming convention
 
--- ============================================
 -- PERSONS TABLE
--- ============================================
 CREATE TABLE IF NOT EXISTS persons (
   id TEXT PRIMARY KEY,
   first_name TEXT NOT NULL,
@@ -20,9 +18,7 @@ CREATE INDEX IF NOT EXISTS idx_persons_email ON persons(LOWER(email));
 CREATE INDEX IF NOT EXISTS idx_persons_last_name ON persons(last_name);
 CREATE INDEX IF NOT EXISTS idx_persons_first_name ON persons(first_name);
 
--- ============================================
 -- RESEARCHERS TABLE
--- ============================================
 CREATE TABLE IF NOT EXISTS researchers (
   id TEXT PRIMARY KEY,
   person_id TEXT NOT NULL REFERENCES persons(id) ON DELETE CASCADE,
@@ -33,9 +29,7 @@ CREATE TABLE IF NOT EXISTS researchers (
 CREATE INDEX IF NOT EXISTS idx_researchers_active ON researchers(active);
 CREATE INDEX IF NOT EXISTS idx_researchers_person_id ON researchers(person_id);
 
--- ============================================
 -- USERS TABLE
--- ============================================
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   username TEXT NOT NULL UNIQUE,
@@ -67,9 +61,7 @@ CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
 CREATE INDEX IF NOT EXISTS idx_users_email_verification_token ON users(email_verification_token);
 CREATE INDEX IF NOT EXISTS idx_users_password_reset_token ON users(password_reset_token);
 
--- ============================================
 -- REFRESH TOKENS TABLE
--- ============================================
 CREATE TABLE IF NOT EXISTS refresh_tokens (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -90,9 +82,7 @@ CREATE INDEX IF NOT EXISTS idx_refresh_tokens_created_at ON refresh_tokens(creat
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_last_used ON refresh_tokens(last_used_at DESC);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_ip_address ON refresh_tokens(ip_address);
 
--- ============================================
 -- USER SESSIONS TABLE
--- ============================================
 CREATE TABLE IF NOT EXISTS user_sessions (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -112,9 +102,7 @@ CREATE INDEX IF NOT EXISTS idx_user_sessions_expires_at ON user_sessions(expires
 CREATE INDEX IF NOT EXISTS idx_user_sessions_is_active ON user_sessions(is_active);
 CREATE INDEX IF NOT EXISTS idx_user_sessions_last_used ON user_sessions(last_used_at DESC);
 
--- ============================================
 -- TUBES TABLE
--- ============================================
 CREATE TABLE IF NOT EXISTS tubes (
   id TEXT PRIMARY KEY,
   tank_id TEXT NOT NULL,
@@ -180,9 +168,7 @@ CREATE TRIGGER tubes_search_vector_trigger
   BEFORE INSERT OR UPDATE ON tubes
   FOR EACH ROW EXECUTE FUNCTION tubes_search_vector_update();
 
--- ============================================
 -- AUDIT LOG TABLE
--- ============================================
 CREATE TABLE IF NOT EXISTS audit_log (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
@@ -203,9 +189,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_entity_id ON audit_log(entity_id);
 CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp ON audit_log(timestamp DESC);
 CREATE INDEX IF NOT EXISTS idx_audit_log_composite ON audit_log(entity_type, entity_id, timestamp DESC);
 
--- ============================================
 -- AUDIT LOG ARCHIVE TABLE
--- ============================================
 CREATE TABLE IF NOT EXISTS audit_log_archive (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
@@ -224,9 +208,7 @@ CREATE INDEX IF NOT EXISTS idx_audit_archive_timestamp ON audit_log_archive(time
 CREATE INDEX IF NOT EXISTS idx_audit_archive_user_id ON audit_log_archive(user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_archive_archived_at ON audit_log_archive(archived_at DESC);
 
--- ============================================
 -- CONFIGURATION TABLES
--- ============================================
 
 -- Current configuration (single row table)
 CREATE TABLE IF NOT EXISTS configuration_current (
@@ -283,9 +265,7 @@ CREATE TABLE IF NOT EXISTS security_config (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- ============================================
 -- INITIAL DATA
--- ============================================
 
 -- Insert default security config if not exists
 INSERT INTO security_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;

@@ -537,13 +537,7 @@ export class TubeRepository implements ITubeRepository {
   }
 
   /**
-   * Comprehensive full-text search across ALL tube fields
-   *
-   * Enhanced search with professional-grade features:
-   * - Query normalization (hyphen splitting, punctuation handling)
-   * - Lab-specific synonym expansion (t-cells = t cells = t lymphocytes)
-   * - Fuzzy matching with pg_trgm (catches typos)
-   * - Multi-tier ranking (exact > tsvector > synonym > fuzzy > partial)
+   * Full-text search across all tube fields
    *
    * Search layers (in order of relevance):
    * 1. tsvector full-text with synonym expansion
@@ -577,10 +571,7 @@ export class TubeRepository implements ITubeRepository {
     const params: unknown[] = [];
     const paramIndex = { current: 1 };
 
-    // ==========================================
     // Layer 1: tsvector full-text search (highest rank)
-    // Uses synonym-expanded tsquery for broad matching
-    // ==========================================
     let ftsSql = `
       SELECT ${this.TUBE_COLUMNS},
              ts_rank(tubes.search_vector, to_tsquery('english', $${paramIndex.current})) * ${SearchRankTier.TSVECTOR_HIGH} as rank
@@ -595,10 +586,7 @@ export class TubeRepository implements ITubeRepository {
     ftsSql = this.addDateRangeFilters(ftsSql, params, criteria, paramIndex);
     ftsSql = await this.addPositionLabelFilter(ftsSql, params, criteria, paramIndex);
 
-    // ==========================================
     // Layer 2: Fuzzy matching with pg_trgm (catches typos)
-    // Only applies to terms that should have fuzzy matching
-    // ==========================================
     const fuzzyColumns = ['cell_type', 'donor_internal_id', 'donor_source_id', 'lot_number', 'notes', 'media', 'culture_condition'];
     const fuzzySearchTerm = normalizedQuery;
 
@@ -631,9 +619,7 @@ export class TubeRepository implements ITubeRepository {
       fuzzySql = await this.addPositionLabelFilter(fuzzySql, params, criteria, paramIndex);
     }
 
-    // ==========================================
     // Layer 3: Researcher name search
-    // ==========================================
     let researcherSql = `
       SELECT ${this.TUBE_COLUMNS}, ${SearchRankTier.RESEARCHER_NAME} as rank
       FROM tubes
@@ -656,10 +642,7 @@ export class TubeRepository implements ITubeRepository {
     researcherSql = this.addDateRangeFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = await this.addPositionLabelFilter(researcherSql, params, criteria, paramIndex);
 
-    // ==========================================
     // Layer 4: ILIKE fallback (catches edge cases)
-    // Uses both original and normalized patterns
-    // ==========================================
     const ilikePatterns = [
       `%${rawQuery}%`,      // Original query
       `%${normalizedQuery}%` // Normalized (hyphen-split)
@@ -707,9 +690,7 @@ export class TubeRepository implements ITubeRepository {
     ilikeSql = this.addDateRangeFilters(ilikeSql, params, criteria, paramIndex);
     ilikeSql = await this.addPositionLabelFilter(ilikeSql, params, criteria, paramIndex);
 
-    // ==========================================
     // Combine all layers with UNION
-    // ==========================================
     const unionParts = [ftsSql, researcherSql, ilikeSql];
     if (fuzzySql) {
       unionParts.splice(1, 0, fuzzySql); // Insert fuzzy after tsvector

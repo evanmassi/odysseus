@@ -225,9 +225,6 @@ export class RateLimitingService {
 /**
  * Factory function to create rate limiting middleware
  *
- * This is the recommended way to use rate limiting in your application.
- * Follows dependency injection pattern for testability and flexibility.
- *
  * @param configurationRepository - Repository for reading security configuration
  * @returns Express middleware function for rate limiting
  *

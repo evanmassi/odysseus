@@ -28,7 +28,7 @@ export class ConsoleEmailService implements EmailService {
   }
 
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
-    // TODO: Implement for Gap #9 - Password Reset Flow
+    // TODO: Implement password reset email
     console.log('\n=== PASSWORD RESET EMAIL (DEV MODE) ===');
     console.log(`To: ${email}`);
     console.log(`Token: ${token}`);
