@@ -1,7 +1,5 @@
 /**
  * Equipment Configuration Defaults
- * Single source of truth for equipment-related default values
- * Used across frontend and backend to prevent drift
  */
 
 export const EQUIPMENT_DEFAULTS = {

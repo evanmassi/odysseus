@@ -1,11 +1,8 @@
 /**
  * LocationDisplay Component
  *
- * Read-only display of tube location using user-friendly display names
+ * Read-only display of tube location using user-friendly display names.
  * Format: "TankName • RackName • BoxName • Position X"
- *
- * Uses useLocationDisplayNames hook as single source of truth for display names
- * with customLabel support.
  */
 
 import { useMemo } from 'react';
@@ -35,7 +32,6 @@ export const LocationDisplay = ({
   const { currentLab } = useStorageData();
   const { settings } = useUserSettings();
 
-  // Single source of truth for location display names (includes customLabels)
   const { tankName, rackName, boxName, box } = useLocationDisplayNames(tankId, rackId, boxId);
 
   // Format position label using box's configuration

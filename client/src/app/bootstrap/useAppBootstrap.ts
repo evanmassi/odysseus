@@ -11,15 +11,13 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { appBootstrapService } from './AppBootstrapService';
 
-import type { 
+import type {
   AppBootstrapState,
   BootstrapStep,
   UseAppBootstrapResult,
   BootstrapInitializationResult,
-  BootstrapError
+  BootstrapError,
 } from './types';
-
-// UseAppBootstrapResult is now defined in types.ts for centralized type management
 
 /**
  * Main bootstrap hook for application initialization
@@ -31,10 +29,8 @@ export function useAppBootstrap(): UseAppBootstrapResult {
   );
 
   useEffect(() => {
-    // Subscribe to bootstrap state changes
     const unsubscribe = appBootstrapService.subscribe(setBootstrapState);
-    
-    // Start bootstrap process if not already started
+
     if (bootstrapState.currentStep === 'initialization' && bootstrapState.isLoading) {
       void appBootstrapService.bootstrap(queryClient);
     }
@@ -42,7 +38,6 @@ export function useAppBootstrap(): UseAppBootstrapResult {
     return unsubscribe;
   }, [queryClient, bootstrapState.currentStep, bootstrapState.isLoading]);
 
-  // Generate context message for loading screen
   const getContextMessage = (step: BootstrapStep): string => {
     switch (step) {
       case 'initialization':
@@ -62,17 +57,19 @@ export function useAppBootstrap(): UseAppBootstrapResult {
     }
   };
 
-  // Calculate progress based on completed steps
-  const stepOrder: BootstrapStep[] = ['initialization', 'auth-check', 'socket-connection', 'data-loading', 'complete'];
+  const stepOrder: BootstrapStep[] = [
+    'initialization',
+    'auth-check',
+    'socket-connection',
+    'data-loading',
+    'complete',
+  ];
   const currentStepIndex = stepOrder.indexOf(bootstrapState.currentStep);
-  const progress = currentStepIndex >= 0 ? Math.round((currentStepIndex / (stepOrder.length - 1)) * 100) : 0;
-  
-  // Get completed steps
-  const completedSteps = bootstrapState.steps
-    .filter(step => step.completed)
-    .map(step => step.step);
+  const progress =
+    currentStepIndex >= 0 ? Math.round((currentStepIndex / (stepOrder.length - 1)) * 100) : 0;
 
-  // Determine overall state
+  const completedSteps = bootstrapState.steps.filter(step => step.completed).map(step => step.step);
+
   const getOverallState = (): 'initializing' | 'loading' | 'error' | 'retrying' | 'complete' => {
     if (bootstrapState.currentStep === 'error') return 'error';
     if (bootstrapState.currentStep === 'complete') return 'complete';
@@ -80,7 +77,6 @@ export function useAppBootstrap(): UseAppBootstrapResult {
     return 'initializing';
   };
 
-  // Create initialization result for detailed error handling
   const initializationResult: BootstrapInitializationResult | null = {
     completedSteps,
     errors: bootstrapState.steps
@@ -89,10 +85,10 @@ export function useAppBootstrap(): UseAppBootstrapResult {
         message: step.error!,
         step: step.step,
         code: 'BOOTSTRAP_ERROR',
-        retryable: true
+        retryable: true,
       })) as BootstrapError[],
     isComplete: bootstrapState.currentStep === 'complete',
-    timestamp: new Date()
+    timestamp: new Date(),
   };
 
   return {
@@ -108,13 +104,12 @@ export function useAppBootstrap(): UseAppBootstrapResult {
     completedSteps,
     initializationResult,
     retry: () => appBootstrapService.retry(queryClient),
-    flags: bootstrapState.flags
+    flags: bootstrapState.flags,
   };
 }
 
 /**
  * Simplified hook for components that just need to know if app is ready
- * ARCHITECTURAL IMPROVEMENT: Lightweight alternative for simple use cases
  */
 export function useAppReady(): boolean {
   const { isReady } = useAppBootstrap();

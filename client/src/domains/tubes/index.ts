@@ -13,7 +13,6 @@ export { TubeInfoPanel } from './ui/components/grid/TubeInfoPanel';
 export { useTubeStore } from './stores/tubeStore';
 
 // Types - Re-export all domain types
-export type { FieldResolver } from './types/FieldResolver';
 export type {
   TubeData,
   TubeLocation,

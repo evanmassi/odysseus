@@ -5,7 +5,7 @@ import { TreeLineOverlay } from './TreeLineOverlay';
 import { useStorageNavigation } from './useStorageNavigation';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
 
-import type { StorageNavigatorProps, VisibleTreeNode } from './storageNavigatorTypes';
+import type { StorageNavigatorProps, VisibleTreeNode } from './types';
 import type { OwnershipType } from '@shared/ui/components';
 
 // Helper to compute effective owner (handles inheritance cascade)

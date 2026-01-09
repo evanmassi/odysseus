@@ -2,14 +2,13 @@
  * PersonService - Profile data operations
  *
  * Handles current user's person profile retrieval and updates.
- * Person is the single source of truth for profile data.
  */
 
 import {
   type Person,
   type UpdatePersonProfile,
   personSchema,
-  updatePersonProfileSchema
+  updatePersonProfileSchema,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api/httpClient';

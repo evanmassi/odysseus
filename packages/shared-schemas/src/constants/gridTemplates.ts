@@ -1,9 +1,7 @@
 /**
  * Grid Templates and Configuration
- * Single source of truth for box grid configurations
  *
- * Design Decision: Square boxes only (5x5 to 10x10)
- * Storage boxes are typically square and range from 5x5 to 10x10 positions
+ * Storage boxes are square and range from 5x5 to 10x10 positions.
  */
 
 import type { GridConfiguration } from '../storage/configurationSchemas';

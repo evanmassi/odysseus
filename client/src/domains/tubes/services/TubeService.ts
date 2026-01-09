@@ -1,8 +1,7 @@
 /**
- * TubeService - Type-safe tube data operations with React Query + Zod
+ * TubeService
  *
- * This service provides a clean, type-safe interface for all tube-related
- * API operations using our new React Query + Zod architecture.
+ * Type-safe tube data operations with Zod validation.
  */
 
 import {
@@ -159,9 +158,7 @@ export class TubeService {
    *
    * Uses server-side bulk update endpoint for proper audit logging.
    */
-  static async bulkUpdateTubes(
-    updates: Array<{ id: string; data: UpdateTubeRequest }>
-  ): Promise<{
+  static async bulkUpdateTubes(updates: Array<{ id: string; data: UpdateTubeRequest }>): Promise<{
     success: boolean;
     updated: string[];
     failed: Array<{ id: string; error: string }>;

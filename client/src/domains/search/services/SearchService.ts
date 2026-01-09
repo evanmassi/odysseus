@@ -1,18 +1,13 @@
-import {
-  SearchResultSchema,
-  AdvancedSearchOptionsSchema
-} from '@odysseus/shared-schemas';
+import { SearchResultSchema, AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api/httpClient';
 import { InfrastructureError } from '@shared/errors/AppError';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
-import type {
-  AdvancedSearchOptions,
-  SearchResult} from '@odysseus/shared-schemas';
+import type { AdvancedSearchOptions, SearchResult } from '@odysseus/shared-schemas';
 
 /**
- * Modern Search Service with Zod validation and proper error handling
+ * Search Service
  */
 export class SearchService {
   /**
@@ -23,15 +18,17 @@ export class SearchService {
       const validatedOptions = AdvancedSearchOptionsSchema.parse(options);
 
       // Normalize date filters to YYYY-MM-DD format to prevent timezone bugs
-      const normalizedFilters = validatedOptions.filters ? {
-        ...validatedOptions.filters,
-        ...(validatedOptions.filters.dateFrom && {
-          dateFrom: normalizeDateString(validatedOptions.filters.dateFrom)
-        }),
-        ...(validatedOptions.filters.dateTo && {
-          dateTo: normalizeDateString(validatedOptions.filters.dateTo)
-        })
-      } : undefined;
+      const normalizedFilters = validatedOptions.filters
+        ? {
+            ...validatedOptions.filters,
+            ...(validatedOptions.filters.dateFrom && {
+              dateFrom: normalizeDateString(validatedOptions.filters.dateFrom),
+            }),
+            ...(validatedOptions.filters.dateTo && {
+              dateTo: normalizeDateString(validatedOptions.filters.dateTo),
+            }),
+          }
+        : undefined;
 
       const requestPayload = {
         query: validatedOptions.query,
@@ -41,7 +38,7 @@ export class SearchService {
         offset: validatedOptions.offset ?? 0,
         sortBy: validatedOptions.sortBy,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty sortOrder is invalid, default to 'desc'
-        sortOrder: validatedOptions.sortOrder || 'desc'
+        sortOrder: validatedOptions.sortOrder || 'desc',
       };
 
       const result = await httpClient.postData(
@@ -52,11 +49,10 @@ export class SearchService {
 
       return result;
     } catch (error) {
-      throw new InfrastructureError(
-        'API_ERROR',
-        'Failed to search tubes',
-        { originalError: error, options }
-      );
+      throw new InfrastructureError('API_ERROR', 'Failed to search tubes', {
+        originalError: error,
+        options,
+      });
     }
   }
 }

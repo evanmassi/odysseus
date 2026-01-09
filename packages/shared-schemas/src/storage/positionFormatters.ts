@@ -30,19 +30,16 @@ export function positionToLabel(
   gridCols: number,
   config: PositionDisplayConfig
 ): string {
-  // Numeric format - simple string conversion
   if (config.format === 'numeric') {
     return position.toString();
   }
 
-  // Alphanumeric format - convert to row/col labels
   if (!config.alphanumericConfig) {
     throw new Error('Alphanumeric config required for alphanumeric format');
   }
 
   const { rowLabels, colLabels, format } = config.alphanumericConfig;
 
-  // Validate labels match grid dimensions
   if (rowLabels.length !== gridRows) {
     throw new Error(`Row labels (${rowLabels.length}) must match grid rows (${gridRows})`);
   }
@@ -55,7 +52,6 @@ export function positionToLabel(
   const row = Math.floor(index / gridCols);
   const col = index % gridCols;
 
-  // Validate position is within grid
   if (row >= gridRows || col >= gridCols || row < 0 || col < 0) {
     throw new Error(`Position ${position} out of bounds for ${gridRows}x${gridCols} grid`);
   }
@@ -63,7 +59,6 @@ export function positionToLabel(
   const rowLabel = rowLabels[row];
   const colLabel = colLabels[col];
 
-  // Format based on configuration
   return format === 'row-col' ? `${rowLabel}${colLabel}` : `${colLabel}${rowLabel}`;
 }
 
@@ -90,7 +85,6 @@ export function labelToPosition(
   gridCols: number,
   config: PositionDisplayConfig
 ): number {
-  // Numeric format - direct conversion
   if (config.format === 'numeric') {
     const position = parseInt(label, 10);
     if (isNaN(position) || position < 1 || position > gridRows * gridCols) {
@@ -99,19 +93,17 @@ export function labelToPosition(
     return position;
   }
 
-  // Alphanumeric format - parse label
   if (!config.alphanumericConfig) {
     throw new Error('Alphanumeric config required for alphanumeric format');
   }
 
   const { rowLabels, colLabels, format } = config.alphanumericConfig;
 
-  // Parse label based on format
   let rowLabel: string;
   let colLabel: string;
 
   if (format === 'row-col') {
-    // Format: A5 (letter first, then number)
+    // A5 format: letter first, then number
     const match = label.match(/^([A-Za-z]+)(\d+)$/);
     if (!match) {
       throw new Error(`Invalid alphanumeric label (expected format like A5): ${label}`);
@@ -119,7 +111,7 @@ export function labelToPosition(
     rowLabel = match[1].toUpperCase();
     colLabel = match[2];
   } else {
-    // Format: 5A (number first, then letter)
+    // 5A format: number first, then letter
     const match = label.match(/^(\d+)([A-Za-z]+)$/);
     if (!match) {
       throw new Error(`Invalid alphanumeric label (expected format like 5A): ${label}`);
@@ -128,7 +120,6 @@ export function labelToPosition(
     rowLabel = match[2].toUpperCase();
   }
 
-  // Find indices (case-insensitive for row labels)
   const rowIndex = rowLabels.findIndex(l => l.toUpperCase() === rowLabel);
   const colIndex = colLabels.findIndex(l => l === colLabel);
 

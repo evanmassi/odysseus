@@ -4,10 +4,9 @@
  */
 
 export * from './BulkOperations';
-export * from './FieldResolver';
 export * from './colorSystemTypes';
 
-// Re-export ALL tube types from shared schemas (single source of truth)
+// Re-export tube types from shared schemas
 export type {
   TubeData,
   TubeLocation,

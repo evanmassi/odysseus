@@ -23,8 +23,7 @@ import '@shared/styles/utilities/accessibility.css';
 
 // Inner app component that uses React Query hooks - must be inside QueryClientProvider
 function AppContent() {
-  // ARCHITECTURAL IMPROVEMENT: Single bootstrap initialization
-  // Only App.tsx calls useAppBootstrap() - all other components use BootstrapContext
+  // Only App.tsx calls useAppBootstrap() - other components use BootstrapContext
   const bootstrapState = useAppBootstrap();
   const { isReady, isLoading, isError, retry } = bootstrapState;
 

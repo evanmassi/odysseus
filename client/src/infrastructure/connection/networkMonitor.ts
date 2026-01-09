@@ -1,6 +1,5 @@
 /**
  * Network Connection Monitor
- * Phase 3 Step 3: Advanced connection robustness and offline/online handling
  *
  * Monitors network connectivity, quality, and provides intelligent reconnection strategies.
  * Integrates with React Query to handle offline scenarios gracefully.

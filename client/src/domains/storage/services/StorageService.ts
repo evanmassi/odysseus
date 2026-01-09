@@ -23,7 +23,7 @@ const BulkOperationResponseSchema = z.object({
 const SuccessResponseSchema = z.object({ success: z.boolean() });
 
 /**
- * Modern Storage Service with Zod validation and proper error handling
+ * Storage Service
  */
 export class StorageService {
   /**

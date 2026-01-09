@@ -1,10 +1,8 @@
 /**
- * RegistrationSuccessModal - Post-registration confirmation
+ * RegistrationSuccessModal
  *
- * Professional confirmation modal shown after successful registration.
- * Clearly displays username, account status, and next steps.
- *
- * Inspired by enterprise biotech apps (Benchling, LabArchives).
+ * Confirmation modal shown after successful registration.
+ * Displays username, account status, and next steps.
  */
 
 import React, { useState } from 'react';

@@ -92,7 +92,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   // Modal state for editing lock notes
   const [showEditLockNoteModal, setShowEditLockNoteModal] = useState(false);
 
-  // Single source of truth for location display names (includes customLabels)
   const {
     tankName,
     rackName,

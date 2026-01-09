@@ -1,7 +1,6 @@
 /**
  * Password Validation Utilities
  *
- * Single source of truth for password validation logic.
  * Used by both client (real-time UI feedback) and server (enforcement).
  */
 
@@ -26,7 +25,6 @@ export interface PasswordValidationResult {
  * Password validation shared between client and server
  */
 export class PasswordValidator {
-  // Regex patterns - single source of truth
   private static readonly UPPERCASE_REGEX = /[A-Z]/;
   private static readonly LOWERCASE_REGEX = /[a-z]/;
   private static readonly NUMBER_REGEX = /[0-9]/;

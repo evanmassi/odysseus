@@ -1,9 +1,8 @@
 /**
  * Optimistic Updates Service
- * Phase 3 Step 3: Advanced optimistic updates with rollback and conflict resolution
  *
- * Provides intelligent optimistic updates that feel instant while handling
- * network failures, conflicts, and edge cases gracefully.
+ * Provides optimistic updates with rollback and conflict resolution
+ * for instant UI feedback while handling network failures gracefully.
  */
 
 import { useMutation } from '@tanstack/react-query';

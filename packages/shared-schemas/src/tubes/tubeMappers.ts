@@ -1,12 +1,9 @@
 /**
  * Tube Data Mappers
  *
- * Single source of truth for transforming between tube data formats.
- * Used by both client and server to avoid duplication.
- *
- * Architecture Note:
- * - Server TubeDto handles: CreateRequest → Domain, Domain → Response
- * - This mapper handles: Response → CreateRequest (client paste operation)
+ * Transforms between tube data formats. Used by client paste operations.
+ * Server TubeDto handles: CreateRequest → Domain, Domain → Response
+ * This mapper handles: Response → CreateRequest (client paste operation)
  */
 
 import type { TubeData, CreateTubeRequest, TubeLocation } from './tubeSchemas';

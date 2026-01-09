@@ -1,8 +1,7 @@
 /**
  * @odysseus/shared-schemas
  *
- * Single source of truth for all Odysseus validation schemas
- * Used by both client and server
+ * Validation schemas used by both client and server.
  */
 
 export {
@@ -43,10 +42,6 @@ export {
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
 
-  // Deprecated - use CreateTubeRequest instead
-  type TubeFormSampleInput,
-  type TubeFormDataInput,
-
   // Utilities
   validateTubePosition,
   validateConcentrationUnit,
@@ -55,7 +50,6 @@ export {
 
 // Tube Validation Utilities
 export {
-  parseConcentration,
   parseConcentrationInput,
   concentrationPreprocessor,
   concentrationPreprocessorNullable,
@@ -78,7 +72,7 @@ export {
   type TubeLocationFormatOptions
 } from './tubes/tubeFormatters';
 
-// Tube Data Mappers (Single source of truth for transformations)
+// Tube Data Mappers
 export {
   tubeDataToCreateRequest,
   tubeDataArrayToCreateRequests
@@ -345,7 +339,7 @@ export {
   type VerificationStatusResponse
 } from './auth/authSchemas';
 
-// Password Validation (Single source of truth for client + server)
+// Password Validation
 export {
   // Validator
   PasswordValidator,

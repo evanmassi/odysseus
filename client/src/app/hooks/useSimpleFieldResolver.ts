@@ -1,8 +1,8 @@
 /**
- * Simple Field Resolver Hook - Phase 1 Implementation
+ * Simple Field Resolver Hook
  *
- * A lightweight field resolver that works with our new Zod-based data structures.
- * Provides dynamic field access without the complexity of the legacy system.
+ * Lightweight field resolver for Zod-based data structures.
+ * Provides dynamic field access using dot notation paths.
  */
 
 import { useCallback, useMemo } from 'react';

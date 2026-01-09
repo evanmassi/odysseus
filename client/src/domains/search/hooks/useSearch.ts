@@ -8,64 +8,36 @@ import { useSearchStore } from '../stores/searchStore';
 
 import { useSearchTubesQuery } from './useSearchQuery';
 
-
-
 import type { DisplayResults } from '../engine/SearchEngine';
 
-
 /**
- * Unified Search Hook
+ * Search Hook
  *
- * Single hook that combines all search functionality:
- * - UI state management (Zustand)
- * - Server state management (React Query)
- * - Result formatting (SearchEngine)
- * - Navigation actions
- *
- * This simplifies component code by providing a single API
- * for all search operations.
- *
- * @example
- * ```tsx
- * function SearchContainer() {
- *   const { query, results, isSearching, search, navigateToResult } = useSearch();
- *
- *   return (
- *     <input value={query} onChange={(e) => search(e.target.value)} />
- *     {isSearching && <Spinner />}
- *     {results?.grouped.map(group => <Result group={group} onClick={navigateToResult} />)}
- *   );
- * }
- * ```
+ * Combines UI state (Zustand), server state (React Query),
+ * and result formatting for search operations.
  */
 export function useSearch() {
   // UI State (Zustand)
-  const {
-    query,
-    filters,
-    setSearchQuery,
-    setSearchFilters,
-    clearSearch,
-    hasActiveFilters
-  } = useSearchStore();
+  const { query, filters, setSearchQuery, setSearchFilters, clearSearch, hasActiveFilters } =
+    useSearchStore();
 
   // Debounce query to prevent API call on every keystroke
   const debouncedQuery = useDebounce(query, 300);
 
   // Memoize search options to prevent unnecessary React Query cache misses
   // React Query uses referential equality for query keys - must memoize objects
-  const searchOptions = useMemo(() => ({
-    query: debouncedQuery,
-    filters
-  }), [debouncedQuery, filters]);
+  const searchOptions = useMemo(
+    () => ({
+      query: debouncedQuery,
+      filters,
+    }),
+    [debouncedQuery, filters]
+  );
 
   // Server State (React Query)
-  const searchResult = useSearchTubesQuery(
-    searchOptions,
-    {
-      enabled: !!debouncedQuery.trim() || hasActiveFilters()
-    }
-  );
+  const searchResult = useSearchTubesQuery(searchOptions, {
+    enabled: !!debouncedQuery.trim() || hasActiveFilters(),
+  });
 
   // Researcher data for name resolution
   const { data: researchers = [] } = useActiveResearchersQuery();

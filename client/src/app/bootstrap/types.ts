@@ -36,7 +36,6 @@ export interface UseAppBootstrapReturn {
   retry: () => void;
 }
 
-// Enhanced bootstrap error interface
 export interface BootstrapError {
   message: string;
   step: BootstrapStep;
@@ -46,7 +45,6 @@ export interface BootstrapError {
   details?: Record<string, any>;
 }
 
-// Bootstrap initialization result for detailed error handling
 export interface BootstrapInitializationResult {
   completedSteps: BootstrapStep[];
   errors: BootstrapError[];
@@ -54,7 +52,6 @@ export interface BootstrapInitializationResult {
   timestamp: Date;
 }
 
-// Modern interface used by the new hook
 export interface UseAppBootstrapResult {
   isReady: boolean;
   isLoading: boolean;

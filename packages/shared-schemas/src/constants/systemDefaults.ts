@@ -1,7 +1,7 @@
 /**
  * System-Wide Defaults
- * Single source of truth for system configuration defaults
- * Used for initial setup and fallback values
+ *
+ * Used for initial setup and fallback values.
  */
 
 export const SYSTEM_DEFAULTS = {

@@ -1,8 +1,7 @@
 /**
- * Tube Hooks Barrel Export
+ * Tube Hooks
  *
- * Clean barrel exports for all tube-related React Query hooks.
- * Provides a single import point for all tube domain functionality.
+ * React Query hooks for tube data operations.
  */
 
 // Query hooks (read operations)

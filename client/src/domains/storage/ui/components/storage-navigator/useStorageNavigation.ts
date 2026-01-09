@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 
 import { logger } from '@shared/infrastructure/logger';
 
-import type { StorageHierarchy, SelectedLocation } from './storageNavigatorTypes';
+import type { StorageHierarchy, SelectedLocation } from './types';
 
 export const useStorageNavigation = (
   data: StorageHierarchy,

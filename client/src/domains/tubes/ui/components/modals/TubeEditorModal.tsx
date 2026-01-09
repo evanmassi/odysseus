@@ -1,22 +1,10 @@
 /**
- * TubeEditorModal - Unified Tube Creation & Editing Modal
+ * TubeEditorModal - Tube Creation & Editing Modal
  *
- * Consolidated modal handling CREATE, EDIT, and MIXED modes.
- * - Handles CREATE (single/multiple empty positions)
- * - Handles EDIT (single tube by ID)
- * - Handles MIXED (create new + update existing positions)
- * - Form data = API data (no transformation)
- * - Smart component pattern (fetches own data when editing)
- *
- * @example
- * // Create mode (single position)
- * <TubeEditorModal selectedPositions={set} onClose={...} />
- *
- * // Edit mode (single tube)
- * <TubeEditorModal tubeId="123" onClose={...} />
- *
- * // Mixed mode (create + update)
- * <TubeEditorModal selectedPositions={set} onClose={...} />
+ * Handles CREATE, EDIT, and MIXED modes:
+ * - CREATE: single/multiple empty positions
+ * - EDIT: single tube by ID
+ * - MIXED: create new + update existing positions
  */
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -79,8 +67,7 @@ export interface TubeEditorModalProps {
 }
 
 /**
- * Unified Tube Editor Modal Component
- * Automatically detects mode based on props
+ * Tube Editor Modal Component - detects mode based on props
  */
 export function TubeEditorModal(props: TubeEditorModalProps) {
   const { tubeId, onClose, lockContext } = props;

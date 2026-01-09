@@ -1,7 +1,7 @@
 /**
  * Validation Limits
- * Single source of truth for validation constraints across the system
- * These limits are enforced in both domain entities and API validation
+ *
+ * Enforced in both domain entities and API validation.
  */
 
 export const VALIDATION_LIMITS = {

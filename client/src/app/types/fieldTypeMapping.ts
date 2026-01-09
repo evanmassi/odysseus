@@ -1,5 +1,5 @@
 /**
- * Field Type Mapping - Single Source of Truth
+ * Field Type Mapping
  *
  * Maps tube field paths to their TypeScript types for type-safe field resolution.
  * Used by field resolver hooks and services to provide compile-time type checking

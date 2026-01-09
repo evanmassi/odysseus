@@ -299,35 +299,6 @@ export type BatchTubeOperation = z.infer<typeof batchTubeOperationSchema>;
 export type CreateTubeFormInput = z.input<typeof createTubeRequestSchema>;
 export type UpdateTubeFormInput = z.input<typeof updateTubeRequestSchema>;
 
-/**
- * @deprecated Use CreateTubeRequest from API schemas instead.
- *
- * Migration:
- * - TubeFormData → CreateTubeRequest (from createTubeRequestSchema)
- * - TubeFormSample → Infer from createTubeRequestSampleSchema
- */
-export interface TubeFormSampleInput {
-  cellType: string;
-  donorInternalId?: string;
-  donorSourceId?: string;
-  concentration?: string | number;
-  concentrationUnit?: 'c/v' | 'c/mL';
-  date?: string;
-  media?: TubeMedia;
-  cultureCondition?: string;
-  lotNumber?: string;
-  notes?: string;
-}
-
-export interface TubeFormDataInput {
-  sample: TubeFormSampleInput;
-  researcherId?: string;
-}
-
-// Note: Output types removed - use API schema types instead
-// - Use: type CreateTubeData = z.infer<typeof createTubeRequestSchema>
-// - Use: type UpdateTubeData = z.infer<typeof updateTubeRequestSchema>
-
 // UTILITY FUNCTIONS
 
 /**

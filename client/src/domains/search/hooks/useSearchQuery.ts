@@ -7,9 +7,9 @@ import { SearchService } from '../services/SearchService';
 import type { AdvancedSearchOptions } from '@odysseus/shared-schemas';
 
 /**
- * Advanced Search Hook
+ * Search Query Hook
  *
- * Performs comprehensive search with filters, pagination, and sorting
+ * Performs search with filters, pagination, and sorting.
  */
 export const useSearchTubesQuery = (
   options: AdvancedSearchOptions,
@@ -28,6 +28,6 @@ export const useSearchTubesQuery = (
     gcTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,
     refetchOnWindowFocus: false,
-    placeholderData: (previousData) => previousData, // Keep previous results while loading new ones
+    placeholderData: previousData => previousData, // Keep previous results while loading new ones
   });
 };

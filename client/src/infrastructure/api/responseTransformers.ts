@@ -33,7 +33,6 @@ const DATE_FIELD_EXCLUSIONS = [
 
 /**
  * Explicit date field mappings for critical types
- * Ensures bulletproof transformation for known types
  */
 const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   TokenPair: new Set(['accessTokenExpiry', 'refreshTokenExpiry']),
@@ -65,7 +64,7 @@ const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   AuthGenericResponse: new Set([]), // Generic auth endpoints (first-time, password-requirements, etc.) have no date fields
 };
 
-// Type-safe date field detection with exclusion patterns to prevent false positives
+// Date field detection with exclusion patterns to prevent false positives
 function isDateField(key: string, typeName?: string): boolean {
   // Check exclusions first - prevents false positives
   if (DATE_FIELD_EXCLUSIONS.some(pattern => pattern.test(key))) {

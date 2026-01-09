@@ -2,10 +2,7 @@
  * Storage Data Hook
  *
  * Primary hook for accessing storage configuration data.
- * Consumes directly from React Query - single source of truth.
- *
- * This replaces the pattern of reading server state from Zustand.
- * Components should use this hook instead of useStorageStore for data access.
+ * Reads from React Query cache.
  */
 import { useCallback } from 'react';
 

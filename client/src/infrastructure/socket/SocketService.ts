@@ -1,8 +1,7 @@
 /**
- * Socket Service - Centralized Socket Management
- * Phase 3: Socket Integration and Real-time Updates
+ * Socket Service
  *
- * Industry-standard socket connection management with proper lifecycle handling.
+ * Socket connection management with proper lifecycle handling.
  * Integrates with the Socket → Query Cache Bridge for real-time updates.
  */
 

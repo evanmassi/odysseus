@@ -1,7 +1,6 @@
 /**
  * Person Domain Schemas
  *
- * Person is the single source of truth for profile data.
  * Users and Researchers reference Person via personId.
  */
 

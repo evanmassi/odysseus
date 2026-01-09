@@ -11,7 +11,6 @@ import { positionDisplayPreferenceSchema } from '../storage/positionSchemas';
  * Full configs with grid-specific alphanumericConfig are generated when applied to boxes.
  */
 export const userSettingsSchema = z.object({
-  // Display Preferences
   defaultPositionDisplay: positionDisplayPreferenceSchema.optional(),
 
   // Future settings can be added here:

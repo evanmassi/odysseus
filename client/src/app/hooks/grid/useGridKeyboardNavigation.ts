@@ -45,7 +45,7 @@ export interface UseGridKeyboardNavigationReturn {
 /**
  * Custom hook for grid keyboard navigation and shortcuts
  *
- * Implements industry-standard keyboard patterns:
+ * Keyboard shortcuts:
  * - Arrow keys: Navigation (with wrapping)
  * - Shift+Arrow: Range selection
  * - Space: Toggle selection
@@ -56,9 +56,6 @@ export interface UseGridKeyboardNavigationReturn {
  * - Ctrl+C/X/V: Copy/Cut/Paste
  * - Shift+L: Toggle lock/unlock
  * - Shift+S: Share access
- *
- * @param props - Grid configuration, focus state, and action handlers
- * @returns Keyboard event handler
  */
 export function useGridKeyboardNavigation(
   props: UseGridKeyboardNavigationProps

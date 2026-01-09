@@ -7,7 +7,7 @@ import { ChevronDown, Icon, Rows3, Box as BoxIcon } from 'lucide-react';
 import { OwnershipIndicatorBadge } from '@shared/ui/components';
 import { Tooltip } from '@shared/ui/primitives';
 
-import type { StorageNavigatorItemProps } from './storageNavigatorTypes';
+import type { StorageNavigatorItemProps } from './types';
 import './StorageNavigator.css';
 
 export const StorageNavigatorItem: React.FC<StorageNavigatorItemProps> = ({

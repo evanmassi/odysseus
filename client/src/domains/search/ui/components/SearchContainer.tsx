@@ -12,7 +12,6 @@ import { SearchResults } from './SearchResults';
 interface SearchContainerProps {}
 
 export function SearchContainer(_props: SearchContainerProps) {
-  // Unified search hook - combines all search functionality
   const { query, filters, results, isSearching, search, clear, refetch } = useSearch();
 
   const [showFilters, setShowFilters] = useState(false);

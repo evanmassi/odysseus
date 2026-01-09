@@ -470,7 +470,6 @@ export default function BatchTubeEditorModal({
 
   const filteredErrors = filterNode(errors, dirtyFields) ?? {};
 
-  // Single source of truth for location display names (includes customLabels)
   const {
     tankName,
     rackName,

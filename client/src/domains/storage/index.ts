@@ -1,17 +1,8 @@
 /**
- * Storage Domain - Storage Equipment & Configuration
+ * Storage Domain
  *
- * Manages physical storage infrastructure including:
- * - Storage equipment (tanks, racks, boxes)
- * - Equipment layout and configuration
- * - Physical storage space management
- *
- * All types from shared-schemas.
- *
- * Architecture:
- * - React Query is the SINGLE SOURCE OF TRUTH for server data
- * - Use useStorageData() to read server data
- * - Use CQRS mutation hooks (useAddTankMutation, etc.) to modify data
+ * Manages storage equipment (tanks, racks, boxes) and configuration.
+ * Types from shared-schemas, data from React Query.
  */
 
 // Hooks (Server State - Primary Data Access)
@@ -58,7 +49,7 @@ export {
   getNextTankNumber,
 } from './creators/TankCreator';
 
-// Types and Schemas (re-exported from shared package - SINGLE SOURCE OF TRUTH)
+// Types and Schemas (re-exported from shared package)
 export type {
   GridConfiguration,
   BoxConfiguration,

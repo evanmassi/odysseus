@@ -1,8 +1,7 @@
 /**
- * ResearcherService - Centralized researcher data operations
- * 
- * Industry-standard domain service pattern using typed httpClient helpers.
- * All envelope handling done at transport layer, this service works with clean types.
+ * ResearcherService
+ *
+ * Researcher data operations using typed httpClient helpers.
  */
 
 import {
@@ -14,7 +13,7 @@ import {
   researcherSchema,
   adminResearcherSchema,
   createResearcherProfileSchema,
-  updateResearcherProfileSchema
+  updateResearcherProfileSchema,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -29,9 +28,18 @@ export class ResearcherService {
    * - admin: true → returns AdminResearcher[] (with tubeCount, linkedUserId, linkedUsername)
    * - admin: false/undefined → returns Researcher[] (basic fields only)
    */
-  static async list(options: { admin: true; filters?: ResearcherQueryFilters }): Promise<AdminResearcher[]>;
-  static async list(options?: { admin?: false; filters?: ResearcherQueryFilters }): Promise<Researcher[]>;
-  static async list(options?: { admin?: boolean; filters?: ResearcherQueryFilters }): Promise<Researcher[] | AdminResearcher[]> {
+  static async list(options: {
+    admin: true;
+    filters?: ResearcherQueryFilters;
+  }): Promise<AdminResearcher[]>;
+  static async list(options?: {
+    admin?: false;
+    filters?: ResearcherQueryFilters;
+  }): Promise<Researcher[]>;
+  static async list(options?: {
+    admin?: boolean;
+    filters?: ResearcherQueryFilters;
+  }): Promise<Researcher[] | AdminResearcher[]> {
     const { admin = false, filters } = options ?? {};
 
     const queryParams = new URLSearchParams();

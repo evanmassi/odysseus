@@ -1,12 +1,8 @@
 /**
- * Enhanced Authentication Store
+ * Authentication Store
  *
  * OAuth 2.0 dual-token architecture with automatic refresh.
- *
- * Key improvements:
- * - Single token → Dual token (access + refresh)
- * - Manual token passing → Automatic token injection
- * - Reactive failure handling → Proactive token renewal
+ * Access tokens are short-lived, refresh tokens handle renewal.
  */
 
 import { create } from 'zustand';

@@ -11,7 +11,10 @@
       "Bash(powershell -Command \"Remove-Item ''C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\app\\\\utils\\\\recentOperations.ts''\")",
       "Bash(powershell:*)",
       "Bash(dir \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\")",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(Remove-Item \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\domains\\\\tubes\\\\services\\\\TubeFieldAccessService.ts\")",
+      "Bash(Remove-Item \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\domain\\\\services\\\\__tests__\\\\TubeFieldAccessService.test.ts\")",
+      "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\infrastructure\\\\configuration\\\\index.ts\")"
     ]
   }
 }

@@ -1,11 +1,8 @@
 /**
- * React Query + Field Resolver Integration Hook - Phase 1
+ * React Query + Field Resolver Integration Hook
  *
  * Combines React Query server state management with simple field resolver
  * for unified, type-safe data access patterns.
- *
- * This replaces the legacy field resolver system with a lightweight,
- * Zod-compatible implementation focused on Phase 1 needs.
  */
 
 import { useMemo } from 'react';
@@ -104,14 +101,10 @@ export interface UseFieldResolverQueryResult extends SimpleFieldResolver {
  * ```
  */
 export function useFieldResolverQuery(): UseFieldResolverQueryResult {
-  // Get React Query data
   const tubesQuery = useTubes();
   const researchersQuery = useActiveResearchersQuery();
-
-  // Get simple field resolver capabilities
   const fieldResolver = useSimpleFieldResolver();
 
-  // Enhanced tube utilities
   const tubeUtils = useMemo(() => {
     const tubes = tubesQuery.data ?? [];
 
@@ -147,7 +140,6 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
         return fieldResolver.analyzeFieldConflicts<T>(selectedTubes, fieldPath);
       },
 
-      /** Check if any of the specified fields have conflicts across selected tubes */
       hasAnyConflicts: (selectedTubes: TubeData[], fieldPaths: string[]): boolean => {
         if (selectedTubes.length <= 1) return false;
         return fieldPaths.some(
@@ -157,7 +149,6 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
     };
   }, [tubesQuery, fieldResolver]);
 
-  // Enhanced researcher utilities
   const researcherUtils = useMemo(() => {
     const researchers = researchersQuery.data ?? [];
 
@@ -182,7 +173,6 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
     };
   }, [researchersQuery]);
 
-  // Combined loading and error states
   const isLoading = tubesQuery.isLoading || researchersQuery.isLoading;
   const errors = useMemo(
     () => [tubesQuery.error, researchersQuery.error],
@@ -192,14 +182,9 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
 
   return useMemo(
     () => ({
-      // Simple field resolver capabilities
       ...fieldResolver,
-
-      // Enhanced data access
       tubes: tubeUtils,
       researchers: researcherUtils,
-
-      // Combined states
       isLoading,
       hasErrors,
       errors,
@@ -219,18 +204,14 @@ export function useFieldResolverTubes() {
     const tubes = tubesQuery.data ?? [];
 
     return {
-      // React Query state
       tubes: tubesQuery.data,
       isLoading: tubesQuery.isLoading,
       error: tubesQuery.error,
       refetch: tubesQuery.refetch,
-
-      // Field resolver functions
       getValue: fieldResolver.getTubeValue,
       getValues: fieldResolver.getTubeValues,
       hasValue: fieldResolver.tubeHasValue,
 
-      // Field-based utilities
       getFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
         fieldPath: string
       ): T[] => {
@@ -250,7 +231,6 @@ export function useFieldResolverTubes() {
         return fieldResolver.getUniqueTubeValues<T>(tubes, fieldPath);
       },
 
-      // Conflict analysis for TubeInfoPanel
       analyzeFieldConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
         selectedTubes: TubeData[],
         fieldPath: string

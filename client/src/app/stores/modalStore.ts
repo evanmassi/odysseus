@@ -1,8 +1,7 @@
 /**
- * MODAL STORE
+ * Modal Store
  *
  * Declarative modal API with complete lifecycle management.
- * Replaces old Zustand-based system with type-safe, scalable architecture.
  */
 
 import type { ReactNode } from 'react';

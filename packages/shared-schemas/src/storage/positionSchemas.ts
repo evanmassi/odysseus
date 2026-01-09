@@ -9,12 +9,10 @@ import { z } from 'zod';
  * Flexible for ANY grid size - generates labels dynamically.
  */
 
-// Position display format enum
 export const positionDisplayFormatSchema = z.enum(['numeric', 'alphanumeric']);
 
 export type PositionDisplayFormat = z.infer<typeof positionDisplayFormatSchema>;
 
-// Alphanumeric labeling configuration
 export const alphanumericConfigSchema = z.object({
   rowLabels: z.array(z.string()).min(1), // ['A', 'B', 'C', ...] or ['1', '2', '3', ...]
   colLabels: z.array(z.string()).min(1), // ['1', '2', '3', ...] or ['A', 'B', 'C', ...]
@@ -23,7 +21,6 @@ export const alphanumericConfigSchema = z.object({
 
 export type AlphanumericConfig = z.infer<typeof alphanumericConfigSchema>;
 
-// Complete position display configuration with validation
 export const positionDisplayConfigSchema = z.object({
   format: positionDisplayFormatSchema,
   alphanumericConfig: alphanumericConfigSchema.optional(),

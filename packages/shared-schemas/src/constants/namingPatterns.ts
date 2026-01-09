@@ -1,6 +1,5 @@
 /**
  * Naming Patterns and Conventions
- * Single source of truth for generating names and IDs across the system
  *
  * ID Pattern Design:
  * - Tanks: Globally unique with prefix pattern (tank-1, tank-2, etc.)

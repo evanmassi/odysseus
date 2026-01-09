@@ -359,7 +359,6 @@ export class SessionManager implements TokenProvider {
    * sessionTimeoutMinutes is short (e.g., 5 minutes for testing).
    */
   scheduleTokenRefresh(accessTokenExpiry: Date): void {
-    // Clear any existing timer
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
@@ -398,31 +397,26 @@ export class SessionManager implements TokenProvider {
    * @param reason - Why the session is being cleared (for UX messaging)
    */
   clearSession(reason: 'idle_timeout' | 'token_expired' | 'manual_logout' = 'manual_logout'): void {
-    // Clear timers
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
     }
 
-    // Stop session info polling
     if (this.sessionInfoPollingTimer) {
       clearTimeout(this.sessionInfoPollingTimer);
       this.sessionInfoPollingTimer = null;
     }
 
-    // Stop activity tracking
     this.stopActivityTracking();
 
-    // Hide warning modal if shown
     if (this.isWarningShown) {
       this.warningCallbacks?.hideWarning();
       this.isWarningShown = false;
     }
 
-    // Clear token storage (user cleared by Zustand auth store)
+    // Token storage only - user data cleared by Zustand auth store
     this.storage.clearTokens();
 
-    // Reset state
     this.state = {
       isRefreshing: false,
       lastRefreshTime: null,
@@ -433,7 +427,6 @@ export class SessionManager implements TokenProvider {
     this.refreshPromise = null;
     this.lastKnownTimeUntilTimeout = null;
 
-    // Notify consumer of session expiration
     this.onSessionExpired?.(reason);
   }
 
@@ -460,13 +453,11 @@ export class SessionManager implements TokenProvider {
    * - Warning shown: 5 seconds (for accurate countdown)
    */
   private startSessionInfoPolling(): void {
-    // Stop any existing polling
     if (this.sessionInfoPollingTimer) {
       clearTimeout(this.sessionInfoPollingTimer);
       this.sessionInfoPollingTimer = null;
     }
 
-    // Poll immediately on start, then schedule next poll
     void this.pollSessionInfo();
   }
 
@@ -544,10 +535,8 @@ export class SessionManager implements TokenProvider {
         return;
       }
 
-      // Check if warning should be shown
       if (data.showWarning && data.timeUntilIdleTimeoutMs !== undefined) {
         if (!this.isWarningShown && this.warningCallbacks) {
-          // Show warning modal
           this.isWarningShown = true;
           this.warningCallbacks.showWarning({
             timeRemainingMs: data.timeUntilIdleTimeoutMs,
@@ -555,22 +544,19 @@ export class SessionManager implements TokenProvider {
               void this.sendHeartbeat();
             },
             onLogout: (reason: 'manual' | 'timeout') => {
-              // Map modal reason to session reason
               const sessionReason = reason === 'timeout' ? 'idle_timeout' : 'manual_logout';
               this.clearSession(sessionReason);
             },
           });
         } else if (this.isWarningShown && this.warningCallbacks) {
-          // Update countdown
           this.warningCallbacks.updateWarning(data.timeUntilIdleTimeoutMs);
         }
       } else if (this.isWarningShown) {
-        // Warning condition no longer met (session extended by other activity)
+        // Session extended by other activity - hide warning
         this.isWarningShown = false;
         this.warningCallbacks?.hideWarning();
       }
 
-      // Schedule next poll with adaptive interval
       this.scheduleNextPoll();
     } catch (error) {
       // Silently ignore polling errors - we'll retry on next interval
@@ -691,22 +677,18 @@ export class SessionManager implements TokenProvider {
    * Cleanup resources
    */
   destroy(): void {
-    // Clear refresh timer
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
     }
 
-    // Clear session info polling
     if (this.sessionInfoPollingTimer) {
       clearTimeout(this.sessionInfoPollingTimer);
       this.sessionInfoPollingTimer = null;
     }
 
-    // Stop activity tracking
     this.stopActivityTracking();
 
-    // Hide warning modal if shown
     if (this.isWarningShown) {
       this.warningCallbacks?.hideWarning();
       this.isWarningShown = false;

@@ -26,8 +26,6 @@ import type {
 
 /**
  * Create new tube mutation
- *
- * Replaces: tubeStore.createTube()
  */
 export const useCreateTubeMutation = (
   options: UseMutationOptions<
@@ -94,8 +92,6 @@ export const useCreateTubeMutation = (
 
 /**
  * Update existing tube mutation
- *
- * Replaces: tubeStore.updateTube()
  */
 export const useUpdateTubeMutation = (
   options: UseMutationOptions<
@@ -215,8 +211,6 @@ export const useUpdateTubeMutation = (
 
 /**
  * Delete tube mutation
- *
- * Replaces: tubeStore.deleteTube()
  */
 export const useDeleteTubeMutation = (
   options: UseMutationOptions<
@@ -313,8 +307,6 @@ export const useDeleteTubeMutation = (
 
 /**
  * Bulk update tubes mutation
- *
- * Replaces: BulkOperationsService.bulkUpdateTubes()
  */
 export const useBulkUpdateTubesMutation = (
   options: UseMutationOptions<
@@ -462,8 +454,7 @@ export const useBulkDeleteTubesMutation = (
         }
       );
 
-      // Invalidate location and stats queries
-      // Industry standard: Invalidate all queries that could be affected by the deletion
+      // Invalidate all queries that could be affected by the deletion
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
@@ -485,8 +476,8 @@ export const useBulkDeleteTubesMutation = (
 /**
  * Paste tubes mutation (bulk create at target positions)
  *
- * Industry standard: Handles both copy (duplicate data) and cut (recreate at new location)
- * Preserves relative positioning from source to target
+ * Handles both copy (duplicate data) and cut (recreate at new location).
+ * Preserves relative positioning from source to target.
  */
 export const usePasteTubesMutation = (
   options: UseMutationOptions<TubeData[], Error, { tubes: CreateTubeRequest[] }> = {}

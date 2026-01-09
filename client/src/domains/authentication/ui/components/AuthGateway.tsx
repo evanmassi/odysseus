@@ -1,9 +1,8 @@
 /**
- * AuthGateway - Pure UI Authentication Router
+ * AuthGateway - Authentication Router
  *
- * Pure UI routing component with zero business logic.
- * AppBootstrapService handles authentication initialization,
- * eliminating duplicate auth flows and race conditions.
+ * Routes to login/register based on authentication state.
+ * AppBootstrapService handles initialization to avoid race conditions.
  */
 import React, { useState } from 'react';
 
@@ -24,17 +23,17 @@ interface AuthGatewayProps {
 export function AuthGateway({ children }: AuthGatewayProps) {
   const { sessionStatus } = useAuthStore();
   const { isReady } = useBootstrapContext();
-  
+
   // Wait for bootstrap to complete - no duplicate initialization
   if (!isReady) {
     return null; // AppBootstrapService/AppLoader handles loading UI
   }
-  
+
   // Route based on auth state determined by AppBootstrapService
   if (sessionStatus === 'authenticated') {
     return <>{children}</>;
   }
-  
+
   // For unauthenticated users, determine UI based on bootstrap result
   return <AuthUnauthenticatedRouter />;
 }
@@ -47,7 +46,6 @@ function AuthUnauthenticatedRouter() {
   const { flags } = useBootstrapContext();
   const [showRegister, setShowRegister] = useState(flags.firstTimeSetupRequired);
 
-  // Bootstrap single source of truth: explicit flag for first-time setup
   if (showRegister) {
     return <RegisterModal onSwitchToLogin={() => setShowRegister(false)} />;
   }
@@ -60,7 +58,7 @@ function AuthUnauthenticatedRouter() {
  */
 export function useAuthGateway() {
   const { isAuthenticated, user } = useAuthStore();
-  
+
   return {
     isAuthenticated,
     user,

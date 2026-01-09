@@ -1,7 +1,7 @@
 /**
  * DeleteConfirmDialog - Wrapper for ConfirmDialog (Danger variant)
  *
- * Thin wrapper around the unified ConfirmDialog component.
+ * Thin wrapper around the ConfirmDialog component.
  * Provides a domain-specific interface for delete confirmations.
  */
 

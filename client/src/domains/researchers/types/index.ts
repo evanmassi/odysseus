@@ -1,14 +1,7 @@
 /**
- * Researcher Types - Schema-First Approach
+ * Researcher Types
  *
- * Re-export types from schema definitions
- *
- * ARCHITECTURE NOTE:
- * - Researcher: Simple domain entity (profile data only)
- * - Profile types (CreateResearcherProfile, UpdateResearcherProfile) imported directly where needed
+ * Re-exported from shared-schemas.
  */
 
-export type {
-  Researcher,
-  ResearcherQueryFilters
-} from '@odysseus/shared-schemas';
+export type { Researcher, ResearcherQueryFilters } from '@odysseus/shared-schemas';

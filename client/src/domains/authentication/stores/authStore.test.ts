@@ -1,8 +1,7 @@
 /**
- * Enhanced Auth Store Tests
- * 
- * Comprehensive test suite for the new token-based authentication store.
- * Tests all authentication flows, session management, and error scenarios.
+ * Auth Store Tests
+ *
+ * Tests authentication flows, session management, and error scenarios.
  */
 
 import { renderHook, act } from '@testing-library/react';
@@ -10,7 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { useAuthStore } from './authStore';
 
-import type { TokenPair} from '../../../shared/session/types';
+import type { TokenPair } from '../../../shared/session/types';
 
 // Mock SessionManager
 const mockSessionManager = {
@@ -19,7 +18,7 @@ const mockSessionManager = {
   getSessionStatus: vi.fn(),
   setTokens: vi.fn(),
   clearSession: vi.fn(),
-  getDebugInfo: vi.fn()
+  getDebugInfo: vi.fn(),
 };
 
 // Mock auth service
@@ -28,7 +27,7 @@ const mockAuthService = {
   register: vi.fn(),
   verify: vi.fn(),
   logout: vi.fn(),
-  checkFirstTime: vi.fn()
+  checkFirstTime: vi.fn(),
 };
 
 // Test data
@@ -36,7 +35,7 @@ const mockUser = {
   id: 'user-1',
   username: 'testuser',
   role: 'user' as const,
-  lastActivity: new Date().toISOString()
+  lastActivity: new Date().toISOString(),
 };
 
 const mockTokens: TokenPair = {
@@ -44,24 +43,24 @@ const mockTokens: TokenPair = {
   refreshToken: 'test-refresh-token',
   accessTokenExpiry: new Date(Date.now() + 30 * 60 * 1000),
   refreshTokenExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-  tokenType: 'Bearer'
+  tokenType: 'Bearer',
 };
 
 const mockLoginResponse = {
   user: mockUser,
-  tokens: mockTokens
+  tokens: mockTokens,
 };
 
 // Mock external dependencies
 vi.mock('../../../application/auth/AuthenticationService', () => ({
-  authService: mockAuthService
+  authService: mockAuthService,
 }));
 
 vi.mock('../../../infrastructure/api/httpClient', () => ({
   httpClient: {
     setAuthToken: vi.fn(),
-    clearAuthToken: vi.fn()
-  }
+    clearAuthToken: vi.fn(),
+  },
 }));
 
 describe('Enhanced AuthStore', () => {
@@ -74,7 +73,7 @@ describe('Enhanced AuthStore', () => {
   describe('Initial State', () => {
     it('should have correct initial state', () => {
       const { result } = renderHook(() => useAuthStore());
-      
+
       expect(result.current.user).toBeNull();
       expect(result.current.tokens).toBeNull();
       expect(result.current.sessionStatus).toBe('unauthenticated');
@@ -86,7 +85,7 @@ describe('Enhanced AuthStore', () => {
       const store = useAuthStore.getState();
       mockSessionManager.isAuthenticated.mockReturnValue(true);
       mockSessionManager.getSessionStatus.mockReturnValue('authenticated');
-      
+
       act(() => {
         store.initializeFromStorage();
       });
@@ -99,7 +98,7 @@ describe('Enhanced AuthStore', () => {
     it('should login successfully with valid credentials', async () => {
       mockAuthService.login.mockResolvedValue({
         success: true,
-        ...mockLoginResponse
+        ...mockLoginResponse,
       });
 
       const { result } = renderHook(() => useAuthStore());
@@ -120,7 +119,7 @@ describe('Enhanced AuthStore', () => {
     it('should handle login failure', async () => {
       mockAuthService.login.mockResolvedValue({
         success: false,
-        error: 'Invalid credentials'
+        error: 'Invalid credentials',
       });
 
       const { result } = renderHook(() => useAuthStore());
@@ -177,7 +176,7 @@ describe('Enhanced AuthStore', () => {
     it('should register successfully with valid data', async () => {
       mockAuthService.register.mockResolvedValue({
         success: true,
-        ...mockLoginResponse
+        ...mockLoginResponse,
       });
 
       const { result } = renderHook(() => useAuthStore());
@@ -195,7 +194,7 @@ describe('Enhanced AuthStore', () => {
     it('should handle registration failure', async () => {
       mockAuthService.register.mockResolvedValue({
         success: false,
-        error: 'Username already exists'
+        error: 'Username already exists',
       });
 
       const { result } = renderHook(() => useAuthStore());
@@ -213,7 +212,7 @@ describe('Enhanced AuthStore', () => {
     it('should verify valid session', async () => {
       mockAuthService.verify.mockResolvedValue({
         success: true,
-        user: mockUser
+        user: mockUser,
       });
       mockSessionManager.isAuthenticated.mockReturnValue(true);
 
@@ -230,7 +229,7 @@ describe('Enhanced AuthStore', () => {
 
     it('should handle invalid session', async () => {
       mockAuthService.verify.mockResolvedValue({
-        success: false
+        success: false,
       });
       mockSessionManager.isAuthenticated.mockReturnValue(false);
 
@@ -300,7 +299,7 @@ describe('Enhanced AuthStore', () => {
 
     it('should provide isAuthenticated computed property', () => {
       const store = useAuthStore.getState();
-      
+
       act(() => {
         store.setAuthData(mockUser, mockTokens);
       });
@@ -318,7 +317,7 @@ describe('Enhanced AuthStore', () => {
   describe('Error Handling', () => {
     it('should clear errors when starting new operations', async () => {
       const store = useAuthStore.getState();
-      
+
       // Set error state
       act(() => {
         store.setError('Previous error');
@@ -329,7 +328,7 @@ describe('Enhanced AuthStore', () => {
       // Start new login
       mockAuthService.login.mockResolvedValue({
         success: true,
-        ...mockLoginResponse
+        ...mockLoginResponse,
       });
 
       await act(async () => {
@@ -345,17 +344,17 @@ describe('Enhanced AuthStore', () => {
       mockSessionManager.getDebugInfo.mockReturnValue({
         sessionStatus: 'authenticated',
         accessTokenExpiresIn: '25 minutes',
-        nextRefreshIn: '20 minutes'
+        nextRefreshIn: '20 minutes',
       });
 
       const { result } = renderHook(() => useAuthStore());
 
       const debugInfo = result.current.getDebugInfo();
-      
+
       expect(debugInfo).toEqual({
         sessionStatus: 'authenticated',
         accessTokenExpiresIn: '25 minutes',
-        nextRefreshIn: '20 minutes'
+        nextRefreshIn: '20 minutes',
       });
     });
 
@@ -378,7 +377,7 @@ describe('Enhanced AuthStore', () => {
     it('should check first time setup correctly', async () => {
       mockAuthService.checkFirstTime.mockResolvedValue({
         success: true,
-        isFirstTime: true
+        isFirstTime: true,
       });
 
       const { result } = renderHook(() => useAuthStore());
@@ -400,7 +399,7 @@ describe('Enhanced AuthStore', () => {
 
       // Simulate page reload - create new store instance
       const newStore = useAuthStore.getState();
-      
+
       act(() => {
         newStore.initializeFromStorage();
       });

@@ -190,9 +190,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
   );
 }
 
-/**
- * Simplified loading spinner for quick transitions
- */
+/** Simplified loading spinner for quick transitions */
 export function AppLoadingSpinner({ message = 'Loading...' }: { message?: string }) {
   return (
     <div className="flex items-center justify-center p-8">
@@ -203,5 +201,3 @@ export function AppLoadingSpinner({ message = 'Loading...' }: { message?: string
     </div>
   );
 }
-
-// Named exports only - no default export needed

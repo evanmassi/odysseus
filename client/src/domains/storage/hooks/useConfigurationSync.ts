@@ -4,9 +4,6 @@
  * Handles two responsibilities:
  * 1. Fresh install detection - initializes default config on server if none exists
  * 2. Multi-tab sync - invalidates React Query cache when config changes in another tab
- *
- * Note: React Query is now the single source of truth for server state.
- * Components consume data via useStorageData() hook, not Zustand.
  */
 import { useEffect, useRef } from 'react';
 

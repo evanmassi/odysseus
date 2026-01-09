@@ -1,6 +1,5 @@
 /**
  * Performance Monitoring for React Query Cache
- * Phase 3 Step 2: Monitor cache efficiency and performance metrics
  *
  * Provides insights into cache hit rates, query performance, and optimization opportunities.
  */

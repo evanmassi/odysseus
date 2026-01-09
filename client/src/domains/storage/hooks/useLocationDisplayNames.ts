@@ -1,11 +1,8 @@
 /**
  * Location Display Names Hook
  *
- * Single source of truth for resolving location IDs to display names.
+ * Resolves location IDs to display names.
  * Applies formatResourceDisplayName to combine admin names with user custom labels.
- *
- * Usage:
- *   const { tankName, rackName, boxName } = useLocationDisplayNames(tankId, rackId, boxId);
  */
 import { useMemo } from 'react';
 
@@ -38,19 +35,6 @@ export interface LocationDisplayNames {
  * Resolves location IDs to formatted display names.
  *
  * Combines admin-set generic names with user custom labels using formatResourceDisplayName.
- * This is the single source of truth for location display across the app.
- *
- * @param tankId - Tank identifier
- * @param rackId - Rack identifier (optional)
- * @param boxId - Box identifier (optional)
- * @returns Formatted display names and raw objects
- *
- * @example
- * // Basic usage
- * const { tankName, rackName, boxName } = useLocationDisplayNames('1', '2', 'A');
- * // tankName: "Tank 1"
- * // rackName: "Rack 2 (My Samples)" if user has custom label
- * // boxName: "Box A"
  */
 export function useLocationDisplayNames(
   tankId: string | null | undefined,

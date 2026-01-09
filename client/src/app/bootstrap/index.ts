@@ -1,17 +1,12 @@
 /**
  * App Bootstrap Module
- * 
- * Modern, industry-standard bootstrap system for application initialization
  */
 
 // Core service
 export { AppBootstrapService, appBootstrapService } from './AppBootstrapService';
 
 // React hooks
-export { 
-  useAppBootstrap, 
-  useAppReady,
-} from './useAppBootstrap';
+export { useAppBootstrap, useAppReady } from './useAppBootstrap';
 
 // Types
 export type {

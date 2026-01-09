@@ -49,29 +49,19 @@ import type { PositionKey } from '@shared/types/GridSelection';
 import '@shared/styles/base/layout.css';
 
 export function Dashboard() {
-  // Sync server configuration to client store on mount
   useConfigurationSync();
 
-  // Get current user for lock operations
   const { user } = useAuthStore();
 
-  // ARCHITECTURAL IMPROVEMENT: Only UI state from TubeStore, React Query handles data
   const { currentTank, currentRack, currentBox, selectedPositions, setSelection, clearSelection } =
-    useTubeStore(); // Only UI state, server data handled by React Query in components
+    useTubeStore();
 
-  // Server state from React Query for selection analysis
   const { data: tubes = [] } = useTubesByLocation(currentTank, currentRack, currentBox);
 
-  // Socket connection is now managed centrally by AppBootstrapService
-  // Real-time updates are handled automatically via Socket → Query Cache Bridge
-  // No manual socket management needed in components
-
-  // React Query mutations for server operations
   const bulkDeleteTubesMutation = useBulkDeleteTubesMutation();
   const pasteTubesMutation = usePasteTubesMutation();
   const unlockTubesMutation = useUnlockTubesMutation();
 
-  // Lock access control hook
   const accessControl = useTubeAccessControl(user);
 
   // Collect unique user IDs from locked tubes for display name lookup
@@ -88,14 +78,11 @@ export function Dashboard() {
     return Array.from(userIds);
   }, [tubes, user?.id]);
 
-  // Fetch display info for lock-related users
   const { data: lockUsers = [] } = useUserLookupQuery(lockRelatedUserIds);
 
-  // Fetch current user's display info for navigator ownership badges
   const currentUserIds = useMemo(() => (user?.id ? [user.id] : []), [user?.id]);
   const { data: currentUserDisplayInfo = [] } = useUserLookupQuery(currentUserIds);
 
-  // Create lookup map for user display names
   const userDisplayMap = useMemo(() => {
     const map = new Map<string, string>();
     lockUsers.forEach(u => {
@@ -149,11 +136,8 @@ export function Dashboard() {
     return activeElement && storageNavigatorRef.current?.contains(activeElement);
   };
 
-  // Auth store subscribed for reactive updates
-
   const { getCurrentTanks } = useStorageData();
 
-  // Single source of truth for location display names (includes customLabels)
   const {
     tankName: tankDisplayName,
     rackName: rackDisplayName,
@@ -214,6 +198,7 @@ export function Dashboard() {
       : ownerUser.username;
   }, [spaceOwnerId, spaceOwnerUsers]);
 
+  // Build storage hierarchy for navigator
   const storageHierarchy: StorageHierarchy = useMemo(
     () => ({
       tanks: tanks.map(tank => ({
@@ -237,13 +222,11 @@ export function Dashboard() {
     [tanks]
   );
 
-  // Use shared hook for ownership/initials computation (single source of truth)
   const { getUserInfo: getOwnershipUserInfo } = useResourceOwnership(
     currentUserDisplayInfo,
     user?.id
   );
 
-  // Current user info for navigator ownership badges
   const currentUserInfo = useMemo(() => {
     if (!user) return undefined;
     const ownershipInfo = getOwnershipUserInfo(user.id);
@@ -389,8 +372,6 @@ export function Dashboard() {
     [modalService]
   );
 
-  // Unified lock context - shared across all components
-  // Each component uses the functions it needs from this interface
   const lockContext = useMemo(() => {
     if (!user) return undefined;
 
@@ -420,7 +401,6 @@ export function Dashboard() {
     };
   }, [user, accessControl, userDisplayMap]);
 
-  // Selection analysis for header
   const selectionAnalysis = (() => {
     if (selectedPositions.size === 0) {
       return {
@@ -484,7 +464,6 @@ export function Dashboard() {
     };
   })();
 
-  // SINGLE GRID CONTROLLER INSTANCE - All other components receive actions as props
   const gridController = useGridController({
     tankId: currentTank,
     rackId: currentRack,
@@ -503,13 +482,11 @@ export function Dashboard() {
     onPasteTubes: async tubes => {
       await pasteTubesMutation.mutateAsync({ tubes });
     },
-    // Lock operations
     onLockTubes: handleLockTubes,
     onUnlockTubes: handleUnlockTubes,
     onShareAccess: handleShareAccess,
     lockContext,
     isUnlocking: unlockTubesMutation.isPending,
-    // Access control for view-only spaces with shared access
     currentUserId: user?.id,
     isViewOnlySpace,
   });
@@ -530,7 +507,6 @@ export function Dashboard() {
             delete: gridController.actions.delete,
             canPaste: gridController.clipboard.hasData,
             selection: gridController.selection,
-            // Lock actions
             lock: gridController.actions.lock,
             unlock: gridController.actions.unlock,
             shareAccess: gridController.actions.shareAccess,

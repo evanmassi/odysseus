@@ -1,10 +1,8 @@
 /**
- * Bootstrap Context - Single Source of Truth for Bootstrap State
+ * Bootstrap Context
  *
- * ARCHITECTURAL SOLUTION: Prevents duplicate bootstrap processes
- * Only App.tsx calls useAppBootstrap hook, all other components consume via context
- *
- * Singleton service pattern via React Context
+ * Only App.tsx calls useAppBootstrap hook, all other components consume via context.
+ * Prevents duplicate bootstrap processes.
  */
 import type { ReactNode } from 'react';
 import React, { createContext, useContext } from 'react';
@@ -24,27 +22,22 @@ interface BootstrapProviderProps {
  * Provider component - used only in App.tsx
  */
 export function BootstrapProvider({ value, children }: BootstrapProviderProps) {
-  return (
-    <BootstrapContext.Provider value={value}>
-      {children}
-    </BootstrapContext.Provider>
-  );
+  return <BootstrapContext.Provider value={value}>{children}</BootstrapContext.Provider>;
 }
 
 /**
  * Consumer hook - replaces direct useAppBootstrap() calls
- * ARCHITECTURAL IMPROVEMENT: Prevents duplicate bootstrap processes
  */
 export function useBootstrapContext(): UseAppBootstrapResult {
   const context = useContext(BootstrapContext);
-  
+
   if (!context) {
     throw new Error(
       'useBootstrapContext must be used within a BootstrapProvider. ' +
-      'This hook should replace direct useAppBootstrap() calls to prevent duplicate bootstrap processes.'
+        'This hook should replace direct useAppBootstrap() calls to prevent duplicate bootstrap processes.'
     );
   }
-  
+
   return context;
 }
 

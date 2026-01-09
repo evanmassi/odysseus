@@ -1,8 +1,7 @@
 /**
  * Optimistic Tube Mutations
  *
- * Enhanced tube mutations that provide instant user feedback with proper
- * rollback, conflict resolution, and offline support.
+ * Tube mutations with instant UI feedback, rollback on error, and conflict resolution.
  */
 
 import {

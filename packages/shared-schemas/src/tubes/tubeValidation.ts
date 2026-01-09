@@ -1,10 +1,9 @@
 /**
  * Tube Validation Utilities
  *
- * Single source of truth for parsing and preprocessing:
+ * Parsing and preprocessing for tube data:
  * - Concentration parser handles all scientific notation formats
  * - Zod preprocessors normalize data at API boundaries
- * - Pure data transformation, no business logic
  */
 
 import { z } from 'zod';
@@ -165,21 +164,6 @@ export function parseConcentrationInput(value: unknown): ConcentrationParseResul
   return { success: false, error: 'Invalid concentration value' };
 }
 
-/**
- * Legacy Scientific Notation Parser (backward compatible)
- *
- * @deprecated Use parseConcentrationInput() for proper error handling
- *
- * Returns: number | undefined
- * - undefined for invalid/empty input (loses error information)
- */
-export function parseConcentration(value: unknown): number | undefined {
-  const result = parseConcentrationInput(value);
-  if (result.success) {
-    return result.value;
-  }
-  return undefined;
-}
 
 // ZOD SCHEMAS (with validation and transformation)
 

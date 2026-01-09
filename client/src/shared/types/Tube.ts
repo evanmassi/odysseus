@@ -21,8 +21,5 @@ export type {
   ConcentrationUnit,
 } from '@odysseus/shared-schemas';
 
-// Deprecated input types (kept for backward compatibility during Phase 2)
-export type { TubeFormSampleInput, TubeFormDataInput } from '@odysseus/shared-schemas';
-
 // Constants
 export { UNKNOWN_RESEARCHER } from '@odysseus/shared-schemas';

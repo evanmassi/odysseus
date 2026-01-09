@@ -9,9 +9,9 @@ export type {
   StorageNavigatorProps,
   StorageNavigatorItemProps,
   VisibleTreeNode,
-} from './storageNavigatorTypes';
+} from './types';
 
-export { STORAGE_LEVEL_CONFIG, KEYBOARD_SHORTCUTS } from './storageNavigatorConstants';
+export { STORAGE_LEVEL_CONFIG, KEYBOARD_SHORTCUTS } from './constants';
 
 export { useStorageNavigation } from './useStorageNavigation';
 export { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
