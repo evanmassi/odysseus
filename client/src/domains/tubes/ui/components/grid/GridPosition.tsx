@@ -18,7 +18,7 @@ import { IndicatorSVG } from './IndicatorSVG';
 import type { GridConfiguration } from '@domains/storage';
 import type { TubeData } from '@domains/tubes/types';
 
-import './colorIndicators.css';
+import './color-indicators.css';
 
 interface GridPositionProps {
   position: number;

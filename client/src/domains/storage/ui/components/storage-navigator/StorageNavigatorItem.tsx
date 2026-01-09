@@ -8,7 +8,7 @@ import { OwnershipIndicatorBadge } from '@shared/ui/components';
 import { Tooltip } from '@shared/ui/primitives';
 
 import type { StorageNavigatorItemProps } from './types';
-import './StorageNavigator.css';
+import './storage-navigator.css';
 
 export const StorageNavigatorItem: React.FC<StorageNavigatorItemProps> = ({
   id,

@@ -289,9 +289,9 @@
   position: absolute;
   inset: -3px;
   background:
-    linear-gradient(90deg, #000000 50%, #ffffff 50%),
-    linear-gradient(90deg, #000000 50%, #ffffff 50%),
-    linear-gradient(0deg, #000000 50%, #ffffff 50%), linear-gradient(0deg, #000000 50%, #ffffff 50%);
+    linear-gradient(90deg, #475569 50%, #ffffff 50%),
+    linear-gradient(90deg, #475569 50%, #ffffff 50%),
+    linear-gradient(0deg, #475569 50%, #ffffff 50%), linear-gradient(0deg, #475569 50%, #ffffff 50%);
   background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
   background-size:
     20px 2px,
