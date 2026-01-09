@@ -26,7 +26,7 @@ import {
   useBulkDeleteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
-import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
+import { useModalKeyboardNavigation } from '@shared/hooks/keyboard/useModalKeyboardNavigation';
 import { logger } from '@shared/infrastructure/logger';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
@@ -136,7 +136,7 @@ export default function BatchTubeEditorModal({
 
   // Unified keyboard navigation: Escape = close
   // (Enter naturally submits form)
-  useModalKeyboardNav({
+  useModalKeyboardNavigation({
     onEscape: onClose,
     enabled: true,
   });

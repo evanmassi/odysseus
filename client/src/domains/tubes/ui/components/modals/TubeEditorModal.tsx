@@ -33,7 +33,7 @@ import {
   useUpdateTubeMutation,
   useDeleteTubeMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
-import { useModalKeyboardNav } from '@shared/hooks/keyboard/useModalKeyboardNav';
+import { useModalKeyboardNavigation } from '@shared/hooks/keyboard/useModalKeyboardNavigation';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
 import { BaseModal } from '@shared/ui/components/modals';
@@ -113,7 +113,7 @@ function EditModeContent({ tubeId, onClose, lockContext }: EditModeContentProps)
 
   // Unified keyboard navigation: Escape = close
   // (Enter naturally submits form)
-  useModalKeyboardNav({
+  useModalKeyboardNavigation({
     onEscape: onClose,
     enabled: true,
   });
@@ -386,7 +386,7 @@ function CreateModeContent({
 
   // Unified keyboard navigation: Escape = close
   // (Enter naturally submits form)
-  useModalKeyboardNav({
+  useModalKeyboardNavigation({
     onEscape: onClose,
     enabled: true,
   });

@@ -16,10 +16,10 @@
 import { useEffect, useCallback } from 'react';
 
 export interface ModalKeyboardNavConfig {
-  onEnter?: () => void;  // Deprecated - forms should handle Enter naturally
+  onEnter?: () => void; // Deprecated - forms should handle Enter naturally
   onEscape?: () => void;
   enabled?: boolean;
-  preventDefaultEnter?: boolean;  // Deprecated
+  preventDefaultEnter?: boolean; // Deprecated
   preventDefaultEscape?: boolean;
 }
 
@@ -27,7 +27,7 @@ export interface ModalKeyboardNavConfig {
  * Hook for handling keyboard navigation in modals
  * @param config - Configuration for keyboard handlers
  */
-export function useModalKeyboardNav(config: ModalKeyboardNavConfig) {
+export function useModalKeyboardNavigation(config: ModalKeyboardNavConfig) {
   const {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onEnter,
@@ -38,19 +38,22 @@ export function useModalKeyboardNav(config: ModalKeyboardNavConfig) {
     preventDefaultEscape = true,
   } = config;
 
-  const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    if (!enabled) return;
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (!enabled) return;
 
-    switch (event.key) {
-      case 'Escape':
-        // Allow Escape to work even when focused on inputs
-        if (preventDefaultEscape) {
-          event.preventDefault();
-        }
-        onEscape?.();
-        break;
-    }
-  }, [enabled, onEscape, preventDefaultEscape]);
+      switch (event.key) {
+        case 'Escape':
+          // Allow Escape to work even when focused on inputs
+          if (preventDefaultEscape) {
+            event.preventDefault();
+          }
+          onEscape?.();
+          break;
+      }
+    },
+    [enabled, onEscape, preventDefaultEscape]
+  );
 
   useEffect(() => {
     if (!enabled) return;
