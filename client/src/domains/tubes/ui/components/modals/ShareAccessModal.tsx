@@ -21,6 +21,8 @@ import { notifications } from '@shared/utils/notifications';
 import type { TubeData } from '@domains/tubes/types';
 
 export interface ShareAccessModalProps {
+  /** Whether modal is open - controls visibility with exit animation */
+  isOpen?: boolean;
   /** Tubes to share access for (must be locked by current user) */
   tubes: TubeData[];
   /** Current user's ID */
@@ -45,6 +47,7 @@ export interface ShareAccessModalProps {
  * ```
  */
 export function ShareAccessModal({
+  isOpen = true,
   tubes,
   currentUserId,
   onClose,
@@ -148,6 +151,7 @@ export function ShareAccessModal({
 
   return (
     <BaseModal
+      isOpen={isOpen}
       title={tubeCount === 1 ? 'Share Access' : `Share Access (${tubeCount} tubes)`}
       icon={<Share2 size={24} />}
       onClose={onClose}

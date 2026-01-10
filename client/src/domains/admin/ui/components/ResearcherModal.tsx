@@ -90,10 +90,9 @@ export function ResearcherModal({
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
     <BaseModal
+      isOpen={isOpen}
       title={mode === 'create-only' ? 'Add Researcher' : `Link Researcher to ${username}`}
       icon={<ResearcherIcon size={24} />}
       onClose={handleClose}

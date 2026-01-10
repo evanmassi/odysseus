@@ -12,8 +12,11 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { Clock, LogOut } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
+import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
+
+const EXIT_DURATION = 200;
 
 /**
  * Format milliseconds as MM:SS
@@ -40,10 +43,31 @@ export function SessionTimeoutWarningModal() {
 
   // Local countdown state for smooth animation
   const [displayTime, setDisplayTime] = useState(timeRemainingMs);
+  const [pendingAction, setPendingAction] = useState<'stayLoggedIn' | 'logout' | 'timeout' | null>(
+    null
+  );
+
+  // Handle the actual close action after animation completes
+  const handleCloseComplete = useCallback(() => {
+    if (pendingAction === 'stayLoggedIn') {
+      onStayLoggedIn();
+    } else if (pendingAction === 'logout') {
+      onLogout('manual');
+    } else if (pendingAction === 'timeout') {
+      onLogout('timeout');
+    }
+    setPendingAction(null);
+  }, [pendingAction, onStayLoggedIn, onLogout]);
+
+  const { isVisible, isClosing, triggerClose } = useAnimatedClose({
+    isOpen,
+    onClose: handleCloseComplete,
+    exitDuration: EXIT_DURATION,
+  });
 
   // Focus trap for keyboard accessibility
   const trapRef = useFocusTrap({
-    isOpen,
+    isOpen: isVisible,
     restoreFocus: true,
     initialFocusDelay: 150,
     initialFocusRef: stayLoggedInRef,
@@ -57,14 +81,15 @@ export function SessionTimeoutWarningModal() {
 
   // Local countdown timer (updates every second for smooth display)
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isVisible || isClosing) return;
 
     const interval = setInterval(() => {
       setDisplayTime(prev => {
         const newTime = Math.max(0, prev - 1000);
         // If time runs out, trigger timeout logout (not manual)
         if (newTime <= 0) {
-          onLogout('timeout');
+          setPendingAction('timeout');
+          triggerClose();
           return 0;
         }
         return newTime;
@@ -72,21 +97,23 @@ export function SessionTimeoutWarningModal() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isOpen, onLogout]);
+  }, [isVisible, isClosing, triggerClose]);
 
   // Handle stay logged in
   const handleStayLoggedIn = useCallback(() => {
-    onStayLoggedIn();
-  }, [onStayLoggedIn]);
+    setPendingAction('stayLoggedIn');
+    triggerClose();
+  }, [triggerClose]);
 
   // Handle manual logout (user clicked "Log Out" button)
   const handleLogout = useCallback(() => {
-    onLogout('manual');
-  }, [onLogout]);
+    setPendingAction('logout');
+    triggerClose();
+  }, [triggerClose]);
 
   // Keyboard navigation: Enter confirms (stay logged in), Escape logs out
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isVisible || isClosing) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
@@ -104,9 +131,14 @@ export function SessionTimeoutWarningModal() {
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true);
     };
-  }, [isOpen, handleStayLoggedIn, handleLogout]);
+  }, [isVisible, isClosing, handleStayLoggedIn, handleLogout]);
 
-  if (!isOpen) return null;
+  if (!isVisible) return null;
+
+  const backdropAnimationClass = isClosing
+    ? 'animate-modal-backdrop-out'
+    : 'animate-modal-backdrop-in';
+  const modalAnimationClass = isClosing ? 'animate-modal-blowup-out' : 'animate-modal-blowup-in';
 
   const formattedTime = formatTime(displayTime);
   const isUrgent = displayTime <= 60000; // Less than 1 minute
@@ -122,14 +154,16 @@ export function SessionTimeoutWarningModal() {
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-modal-backdrop">
+      <div
+        className={`fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 ${backdropAnimationClass}`}
+      >
         <div
           ref={trapRef}
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="session-timeout-title"
           aria-describedby="session-timeout-message"
-          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} animate-modal-confirm`}
+          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} ${modalAnimationClass}`}
         >
           {/* Header */}
           <div className="flex items-center justify-center mb-6">

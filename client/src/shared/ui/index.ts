@@ -1,6 +1,6 @@
 /**
  * Shared UI Components Public API
- * 
+ *
  * Clean architecture - only contains generic UI primitives and components
  * that are truly shared and domain-agnostic.
  */
@@ -20,6 +20,9 @@ export * from './primitives';
 // Error boundaries
 export { ErrorBoundary } from './components/boundaries/ErrorBoundary';
 export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
+
+// Animation
+export { AnimatedPresence, useAnimatedPresence } from './components/AnimatedPresence';
 
 // Loading components
 export { LoadingSkeletons } from './components/loading/LoadingSkeletons';

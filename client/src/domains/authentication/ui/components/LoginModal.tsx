@@ -125,7 +125,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   // Show success confirmation after password change (before full login completes)
   if (passwordChangeSuccess) {
     return (
-      <AuthBaseModal showBranding="icon">
+      <AuthBaseModal key="password-success" showBranding="icon">
         <div className="flex justify-center mb-4">
           <AnimatedCheckmark size={64} />
         </div>
@@ -141,7 +141,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   // Show password change form when required
   if (passwordChangeRequired) {
     return (
-      <AuthBaseModal showBranding="icon">
+      <AuthBaseModal key="password-change" showBranding="icon">
         <h2 className="text-xl font-bold text-slate-800 text-center mb-4">Create New Password</h2>
 
         <CreatePasswordForm
@@ -156,7 +156,11 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   }
 
   return (
-    <AuthBaseModal subtitle="Welcome back · sign in to continue" initialFocusRef={usernameInputRef}>
+    <AuthBaseModal
+      key="login"
+      subtitle="Welcome back · sign in to continue"
+      initialFocusRef={usernameInputRef}
+    >
       {/* Session Expiration Banners */}
       {logoutReason === 'idle_timeout' && (
         <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm mb-4 animate-in slide-in-from-top-2 duration-300">

@@ -1,0 +1,176 @@
+/* @keyframes must be at top level - CSS spec doesn't allow them inside @layer */
+
+@keyframes modal-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-reveal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8) translateY(1000px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes modal-reveal-out {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8) translateY(1000px);
+  }
+}
+
+@keyframes modal-blowup-in {
+  from {
+    opacity: 0;
+    transform: scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modal-blowup-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes sketch-border-draw {
+  from {
+    stroke-dashoffset: var(--border-length, 1000);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes sketch-border-undraw {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: var(--border-length, 1000);
+  }
+}
+
+@keyframes sketch-fill-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes sketch-fill-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes sketch-content-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sketch-content-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@layer components {
+  .animate-modal-backdrop-in {
+    animation: modal-backdrop-in 250ms ease-out forwards;
+  }
+
+  .animate-modal-backdrop-out {
+    animation: modal-backdrop-out 200ms ease-in forwards;
+  }
+
+  .animate-modal-reveal-in {
+    animation: modal-reveal-in 400ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
+  }
+
+  .animate-modal-reveal-out {
+    animation: modal-reveal-out 300ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+  }
+
+  .animate-modal-blowup-in {
+    animation: modal-blowup-in 280ms cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  }
+
+  .animate-modal-blowup-out {
+    animation: modal-blowup-out 200ms cubic-bezier(0.32, 0, 0.67, 0) forwards;
+  }
+
+  .animate-sketch-border-in {
+    stroke-dasharray: var(--border-length, 1000);
+    stroke-dashoffset: var(--border-length, 1000);
+    animation: sketch-border-draw 500ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .animate-sketch-border-out {
+    stroke-dasharray: var(--border-length, 1000);
+    animation: sketch-border-undraw 250ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  }
+
+  .animate-sketch-fill-in {
+    opacity: 0;
+    animation: sketch-fill-in 350ms ease-out 400ms forwards;
+  }
+
+  .animate-sketch-fill-out {
+    animation: sketch-fill-out 150ms ease-in forwards;
+  }
+
+  .animate-sketch-content-in {
+    opacity: 0;
+    animation: sketch-content-in 350ms ease-out 650ms forwards;
+  }
+
+  .animate-sketch-content-out {
+    animation: sketch-content-out 150ms ease-in forwards;
+  }
+}

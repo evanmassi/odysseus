@@ -14,6 +14,7 @@
 @import './shared/styles/components/cards.css';
 @import './shared/styles/components/menus.css';
 @import './shared/styles/components/badges.css';
+@import './shared/styles/components/modal-animations.css';
 
 /* Utilities Layer - Helpers & Effects */
 @import './shared/styles/utilities/focus.css';

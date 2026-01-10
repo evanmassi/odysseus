@@ -121,12 +121,19 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
   const [pendingUsers, setPendingUsers] = useState<AdminUser[]>([]);
   const [_loadingPending, setLoadingPending] = useState(false);
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
-  const [linkingUser, setLinkingUser] = useState<{ id: string; username: string } | null>(null);
+  // Modal state: separate data from visibility for exit animations
+  const [researcherModalData, setResearcherModalData] = useState<{
+    id: string;
+    username: string;
+  } | null>(null);
+  const [isResearcherModalOpen, setIsResearcherModalOpen] = useState(false);
   const [unlinkedResearchers, setUnlinkedResearchers] = useState<AdminResearcher[]>([]);
-  const [passwordResetModal, setPasswordResetModal] = useState<{
+
+  const [passwordResetModalData, setPasswordResetModalData] = useState<{
     userId: string;
     username: string;
   } | null>(null);
+  const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
     type: 'delete' | 'reject' | 'unlink';
     userId: string;
@@ -309,7 +316,8 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
    * Open link researcher modal
    */
   const openLinkModal = async (user: { id: string; username: string }) => {
-    setLinkingUser(user);
+    setResearcherModalData(user);
+    setIsResearcherModalOpen(true);
     // Load unlinked researchers
     try {
       const response = await adminService.getUnlinkedResearchers();
@@ -327,9 +335,9 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
    * Link existing researcher to user
    */
   const handleLinkExisting = async (researcherId: string) => {
-    if (!linkingUser) return;
+    if (!researcherModalData) return;
 
-    await adminService.linkResearcherToUser(linkingUser.id, researcherId);
+    await adminService.linkResearcherToUser(researcherModalData.id, researcherId);
     await onUserUpdate(); // Make sure to await the update
   };
 
@@ -337,9 +345,9 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
    * Create new researcher and link to user
    */
   const handleCreateAndLink = async (data: CreateResearcherProfile) => {
-    if (!linkingUser) return;
+    if (!researcherModalData) return;
 
-    await adminService.createAndLinkResearcher(linkingUser.id, data);
+    await adminService.createAndLinkResearcher(researcherModalData.id, data);
     await onUserUpdate(); // Make sure to await the update
   };
 
@@ -524,9 +532,10 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                     <div className="flex items-center gap-1">
                       <Tooltip content="Reset password" side="bottom">
                         <button
-                          onClick={() =>
-                            setPasswordResetModal({ userId: user.id, username: user.username })
-                          }
+                          onClick={() => {
+                            setPasswordResetModalData({ userId: user.id, username: user.username });
+                            setIsPasswordResetModalOpen(true);
+                          }}
                           className="btn-password-compact"
                         >
                           <KeyRound size={16} />
@@ -580,15 +589,15 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
       </div>
 
       {/* Link Researcher Modal */}
-      {linkingUser && (
+      {researcherModalData && (
         <ResearcherModal
-          isOpen={true}
+          isOpen={isResearcherModalOpen}
           onClose={() => {
-            setLinkingUser(null);
+            setIsResearcherModalOpen(false);
             setUnlinkedResearchers([]);
           }}
           mode="select-or-create"
-          username={linkingUser.username}
+          username={researcherModalData.username}
           unlinkedResearchers={unlinkedResearchers}
           onSuccess={() => {}}
           onCreateResearcher={handleCreateAndLink}
@@ -597,13 +606,14 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
       )}
 
       {/* Password Reset Modal */}
-      {passwordResetModal && (
+      {passwordResetModalData && (
         <PasswordResetModal
-          userId={passwordResetModal.userId}
-          username={passwordResetModal.username}
-          onClose={() => setPasswordResetModal(null)}
+          isOpen={isPasswordResetModalOpen}
+          userId={passwordResetModalData.userId}
+          username={passwordResetModalData.username}
+          onClose={() => setIsPasswordResetModalOpen(false)}
           onSuccess={() => {
-            setPasswordResetModal(null);
+            setIsPasswordResetModalOpen(false);
             onUserUpdate();
           }}
         />

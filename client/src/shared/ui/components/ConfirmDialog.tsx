@@ -23,11 +23,12 @@
  * />
  */
 
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 
 import { X, AlertTriangle } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
+import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
@@ -81,6 +82,9 @@ function getVariantStyles(variant: 'danger' | 'warning') {
   };
 }
 
+/** Exit animation duration for blowup effect */
+const EXIT_DURATION = 200;
+
 export function ConfirmDialog({
   isOpen,
   variant,
@@ -96,9 +100,32 @@ export function ConfirmDialog({
 
   const styles = getVariantStyles(variant);
 
+  // Dialog manages its own visibility and exit animation
+  const { isVisible, isClosing, triggerClose } = useAnimatedClose({
+    isOpen,
+    onClose: onCancel,
+    exitDuration: EXIT_DURATION,
+  });
+
+  const handleCancel = useCallback(() => {
+    if (!isLoading) {
+      triggerClose();
+    }
+  }, [isLoading, triggerClose]);
+
+  const handleConfirm = useCallback(() => {
+    if (!isLoading) {
+      // Call the confirm handler, then trigger close animation
+      // Note: If onConfirm is async, the dialog closes immediately after calling it
+      // For proper async handling, the caller should manage loading state
+      onConfirm();
+      triggerClose();
+    }
+  }, [isLoading, onConfirm, triggerClose]);
+
   // Focus trap for keyboard accessibility
   const trapRef = useFocusTrap({
-    isOpen,
+    isOpen: isVisible,
     restoreFocus: true,
     initialFocusDelay: 150,
     initialFocusRef: confirmButtonRef,
@@ -107,7 +134,7 @@ export function ConfirmDialog({
 
   // Focus return management - restore focus when modal unmounts
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isVisible) return;
 
     return () => {
       const modalType = variant === 'danger' ? 'deleteConfirm' : 'overwriteConfirm';
@@ -116,23 +143,22 @@ export function ConfirmDialog({
         setTimeout(() => previousFocus.focus(), 0);
       }
     };
-  }, [isOpen, modalService, variant]);
+  }, [isVisible, modalService, variant]);
 
   // Keyboard navigation: Enter confirms, Escape cancels
+  // Disabled during exit animation to prevent double-triggers
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isVisible || isClosing) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      const isProcessing = isLoading;
-
-      if (e.key === 'Enter' && !isProcessing) {
+      if (e.key === 'Enter' && !isLoading) {
         e.preventDefault();
         e.stopPropagation();
-        onConfirm();
-      } else if (e.key === 'Escape' && !isProcessing) {
+        handleConfirm();
+      } else if (e.key === 'Escape' && !isLoading) {
         e.preventDefault();
         e.stopPropagation();
-        onCancel();
+        handleCancel();
       }
     };
 
@@ -140,20 +166,31 @@ export function ConfirmDialog({
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true);
     };
-  }, [isOpen, onConfirm, onCancel, isLoading]);
+  }, [isVisible, isClosing, handleConfirm, handleCancel, isLoading]);
 
-  if (!isOpen) return null;
+  // Don't render if not visible
+  if (!isVisible) return null;
+
+  const backdropAnimationClass = isClosing
+    ? 'animate-modal-backdrop-out'
+    : 'animate-modal-backdrop-in';
+  const modalAnimationClass = isClosing ? 'animate-modal-blowup-out' : 'animate-modal-blowup-in';
+
+  // During exit animation, disable interactions so clicks reach dashboard
+  const closingPointerEvents = isClosing ? 'pointer-events-none' : '';
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-modal-backdrop">
+      <div
+        className={`fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 ${backdropAnimationClass} ${closingPointerEvents}`}
+      >
         <div
           ref={trapRef}
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
           aria-describedby="confirm-dialog-message"
-          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} animate-modal-confirm`}
+          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} ${modalAnimationClass} ${closingPointerEvents}`}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
@@ -166,7 +203,7 @@ export function ConfirmDialog({
               </h2>
             </div>
             <button
-              onClick={onCancel}
+              onClick={handleCancel}
               disabled={isLoading}
               className="p-2 rounded-lg hover:bg-odysseus-surface-hover text-odysseus-muted hover:text-odysseus-dark transition-all duration-200 disabled:opacity-50 focus-ring-default"
               aria-label="Close dialog"
@@ -186,7 +223,7 @@ export function ConfirmDialog({
           {/* Actions */}
           <div className="flex justify-end space-x-3">
             <button
-              onClick={onCancel}
+              onClick={handleCancel}
               disabled={isLoading}
               className="btn btn-secondary px-6"
               type="button"
@@ -195,7 +232,7 @@ export function ConfirmDialog({
             </button>
             <button
               ref={confirmButtonRef}
-              onClick={onConfirm}
+              onClick={handleConfirm}
               disabled={isLoading}
               className={`${styles.buttonClass} px-6`}
               type="button"

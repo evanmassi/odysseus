@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 
 import {
   formatConcentrationDisplay,
@@ -187,6 +187,15 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       isMixed: !allSame,
     };
   }, [ownedLockedTubes]);
+
+  // Reset modal state when underlying data becomes invalid
+  // This prevents "auto-opening" when selecting new locked tubes after the modal
+  // was closed due to selection change (ownedLockedTubes became empty)
+  useEffect(() => {
+    if (showEditLockNoteModal && ownedLockedTubes.length === 0) {
+      setShowEditLockNoteModal(false);
+    }
+  }, [showEditLockNoteModal, ownedLockedTubes.length]);
 
   if (selectedTubes.length === 0) {
     // Show position info even when no tubes selected
@@ -579,12 +588,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       </div>
 
       {/* Edit Lock Note Modal */}
-      {showEditLockNoteModal && ownedLockedTubes.length > 0 && (
-        <EditLockNoteModal
-          tubes={ownedLockedTubes}
-          onClose={() => setShowEditLockNoteModal(false)}
-        />
-      )}
+      <EditLockNoteModal
+        isOpen={showEditLockNoteModal && ownedLockedTubes.length > 0}
+        tubes={ownedLockedTubes}
+        onClose={() => setShowEditLockNoteModal(false)}
+      />
     </div>
   );
 }

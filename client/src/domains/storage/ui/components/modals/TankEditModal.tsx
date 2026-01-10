@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Save } from 'lucide-react';
 
@@ -9,13 +9,21 @@ import { BaseModal } from '@shared/ui/components/modals';
 import type { TankConfiguration } from '@domains/storage';
 
 interface TankEditModalProps {
+  isOpen: boolean;
   initialTank: TankConfiguration;
   onSave: (tankId: string, updates: Partial<TankConfiguration>) => void | Promise<void>;
   onClose: () => void;
 }
 
-export function TankEditModal({ initialTank, onSave, onClose }: TankEditModalProps) {
+export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEditModalProps) {
   const [editedTank, setEditedTank] = useState(initialTank);
+
+  // Reset form state when modal opens with new data
+  useEffect(() => {
+    if (isOpen) {
+      setEditedTank(initialTank);
+    }
+  }, [isOpen, initialTank]);
 
   const handleSave = async () => {
     if (editedTank.name.trim()) {
@@ -37,6 +45,7 @@ export function TankEditModal({ initialTank, onSave, onClose }: TankEditModalPro
 
   return (
     <BaseModal
+      isOpen={isOpen}
       title="Edit Tank"
       icon={<TankIcon size={24} />}
       onClose={onClose}

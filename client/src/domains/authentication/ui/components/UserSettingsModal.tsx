@@ -78,8 +78,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     }
   };
 
-  if (!isOpen) return null;
-
   // Check if there are any unsaved changes
   const hasChanges = JSON.stringify(localSettings) !== JSON.stringify(originalSettings);
 
@@ -152,6 +150,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
 
   return (
     <BaseModal
+      isOpen={isOpen}
       icon={<Settings size={20} />}
       title="User Settings"
       subtitle="Account & Personal Preferences"

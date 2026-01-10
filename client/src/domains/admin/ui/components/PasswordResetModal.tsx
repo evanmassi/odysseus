@@ -4,7 +4,7 @@
  * 2. Token generation - Generate 15-minute one-time link for user
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import { KeyRound, Eye, EyeOff, Copy, Check, RotateCcwKey, ExternalLink } from 'lucide-react';
 
@@ -15,6 +15,7 @@ import { notifications } from '@shared/utils/notifications';
 import { adminService } from '../../services/AdminService';
 
 interface PasswordResetModalProps {
+  isOpen: boolean;
   userId: string;
   username: string;
   onClose: () => void;
@@ -22,6 +23,7 @@ interface PasswordResetModalProps {
 }
 
 export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
+  isOpen,
   userId,
   username,
   onClose,
@@ -35,6 +37,19 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
   const [resetUrl, setResetUrl] = useState<string | null>(null);
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  // Reset form state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveTab('direct');
+      setNewPassword('');
+      setShowPassword(false);
+      setRequirePasswordChange(true);
+      setResetUrl(null);
+      setExpiresAt(null);
+      setCopied(false);
+    }
+  }, [isOpen]);
 
   const handleDirectReset = async () => {
     if (!newPassword || newPassword.length < 4) {
@@ -136,6 +151,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
   return (
     <BaseModal
+      isOpen={isOpen}
       icon={<KeyRound size={20} />}
       title="Reset Password"
       size="sm"

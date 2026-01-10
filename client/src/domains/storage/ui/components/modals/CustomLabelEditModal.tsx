@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { Save, Tag } from 'lucide-react';
@@ -8,6 +8,7 @@ import { BaseModal } from '@shared/ui/components/modals';
 import type { LabConfiguration } from '@domains/storage';
 
 interface CustomLabelEditModalProps {
+  isOpen: boolean;
   resourceInfo: {
     type: 'rack' | 'box';
     tankId: string;
@@ -27,12 +28,20 @@ interface CustomLabelEditModalProps {
 }
 
 export function CustomLabelEditModal({
+  isOpen,
   resourceInfo,
   currentLab,
   onSave,
   onClose,
 }: CustomLabelEditModalProps) {
   const [label, setLabel] = useState(resourceInfo.initialLabel ?? '');
+
+  // Reset form state when modal opens with new data
+  useEffect(() => {
+    if (isOpen) {
+      setLabel(resourceInfo.initialLabel ?? '');
+    }
+  }, [isOpen, resourceInfo.initialLabel]);
 
   const tank = currentLab.equipment.tanks.find(t => t.id === resourceInfo.tankId);
   const rack = tank?.racks.find(r => r.id === resourceInfo.rackId);
@@ -60,6 +69,7 @@ export function CustomLabelEditModal({
 
   return (
     <BaseModal
+      isOpen={isOpen}
       title="Edit Custom Label"
       icon={<Tag size={24} />}
       onClose={onClose}

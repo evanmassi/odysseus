@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Save } from 'lucide-react';
 
@@ -8,6 +8,7 @@ import { BaseModal } from '@shared/ui/components/modals';
 import type { RackConfiguration } from '@domains/storage';
 
 interface RackEditModalProps {
+  isOpen: boolean;
   initialRack: RackConfiguration;
   tankId: string;
   onSave: (
@@ -18,8 +19,21 @@ interface RackEditModalProps {
   onClose: () => void;
 }
 
-export function RackEditModal({ initialRack, tankId, onSave, onClose }: RackEditModalProps) {
+export function RackEditModal({
+  isOpen,
+  initialRack,
+  tankId,
+  onSave,
+  onClose,
+}: RackEditModalProps) {
   const [editedRack, setEditedRack] = useState(initialRack);
+
+  // Reset form state when modal opens with new data
+  useEffect(() => {
+    if (isOpen) {
+      setEditedRack(initialRack);
+    }
+  }, [isOpen, initialRack]);
 
   const handleSave = async () => {
     await onSave(tankId, editedRack.id, {
@@ -38,6 +52,7 @@ export function RackEditModal({ initialRack, tankId, onSave, onClose }: RackEdit
 
   return (
     <BaseModal
+      isOpen={isOpen}
       title="Edit Rack"
       icon={<RackIcon size={24} />}
       onClose={onClose}

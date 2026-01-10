@@ -618,48 +618,52 @@ export function Dashboard() {
       </div>
 
       {/* Unified Tube Modal - Rendered based on modalStore state */}
-      {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'add' && (
-        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal">
-          <TubeEditorModal
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
-            rackId={modalService.tubeEditorModal.rackId || currentRack}
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
-            boxId={modalService.tubeEditorModal.boxId || currentBox}
-            onClose={handleCloseModal}
-            selectedPositions={new Set(modalService.tubeEditorModal.positions ?? [])}
-          />
-        </SuspenseBoundary>
-      )}
+      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal-Add">
+        <TubeEditorModal
+          isOpen={
+            modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'add'
+          }
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
+          rackId={modalService.tubeEditorModal.rackId || currentRack}
+          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
+          boxId={modalService.tubeEditorModal.boxId || currentBox}
+          onClose={handleCloseModal}
+          selectedPositions={new Set(modalService.tubeEditorModal.positions ?? [])}
+        />
+      </SuspenseBoundary>
 
-      {modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'edit' && (
-        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal">
-          <TubeEditorModal
-            tubeId={modalService.tubeEditorModal.tubeId}
-            onClose={handleCloseModal}
-            lockContext={lockContext}
-          />
-        </SuspenseBoundary>
-      )}
+      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal-Edit">
+        <TubeEditorModal
+          isOpen={
+            modalService.tubeEditorModal.isOpen && modalService.tubeEditorModal.mode === 'edit'
+          }
+          tubeId={modalService.tubeEditorModal.tubeId}
+          onClose={handleCloseModal}
+          lockContext={lockContext}
+        />
+      </SuspenseBoundary>
 
-      {modalService.tubeEditorModal.isOpen &&
-        modalService.tubeEditorModal.mode === 'batch' &&
-        modalService.tubeEditorModal.tubeIds &&
-        (() => {
-          // Resolve tube IDs to tube objects for BatchEditModal
-          const resolvedTubes = modalService.tubeEditorModal
-            .tubeIds!.map(id => tubes.find(t => t.id === id))
-            .filter((tube): tube is TubeData => tube !== undefined);
+      {(() => {
+        const tubeIds = modalService.tubeEditorModal.tubeIds ?? [];
+        const resolvedTubes = tubeIds
+          .map(id => tubes.find(t => t.id === id))
+          .filter((tube): tube is TubeData => tube !== undefined);
 
-          return (
-            <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="BatchTubeEditorModal">
-              <BatchTubeEditorModal
-                tubeIds={modalService.tubeEditorModal.tubeIds}
-                tubes={resolvedTubes}
-                onClose={handleCloseModal}
-              />
-            </SuspenseBoundary>
-          );
-        })()}
+        return (
+          <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="BatchTubeEditorModal">
+            <BatchTubeEditorModal
+              isOpen={
+                modalService.tubeEditorModal.isOpen &&
+                modalService.tubeEditorModal.mode === 'batch' &&
+                tubeIds.length > 0
+              }
+              tubeIds={tubeIds}
+              tubes={resolvedTubes}
+              onClose={handleCloseModal}
+            />
+          </SuspenseBoundary>
+        );
+      })()}
 
       {/* Unified System Delete Confirmation Dialog */}
       <DeleteConfirmDialog
@@ -691,24 +695,22 @@ export function Dashboard() {
       />
 
       {/* Lock Tubes Modal */}
-      {modalService.lockTubesModal.isOpen && (
-        <LockTubesModal
-          tubeIds={modalService.lockTubesModal.tubeIds}
-          onClose={modalService.hideLockTubesModal}
-          onSuccess={handleClearSelection}
-        />
-      )}
+      <LockTubesModal
+        isOpen={modalService.lockTubesModal.isOpen}
+        tubeIds={modalService.lockTubesModal.tubeIds}
+        onClose={modalService.hideLockTubesModal}
+        onSuccess={handleClearSelection}
+      />
 
       {/* Share Access Modal */}
-      {modalService.shareAccessModal.isOpen && user && (
-        <ShareAccessModal
-          tubes={modalService.shareAccessModal.tubeIds
-            .map(id => tubes.find(t => t.id === id))
-            .filter((t): t is TubeData => t !== undefined)}
-          currentUserId={user.id}
-          onClose={modalService.hideShareAccessModal}
-        />
-      )}
+      <ShareAccessModal
+        isOpen={modalService.shareAccessModal.isOpen && !!user}
+        tubes={modalService.shareAccessModal.tubeIds
+          .map(id => tubes.find(t => t.id === id))
+          .filter((t): t is TubeData => t !== undefined)}
+        currentUserId={user?.id ?? ''}
+        onClose={modalService.hideShareAccessModal}
+      />
     </div>
   );
 }

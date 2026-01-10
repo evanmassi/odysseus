@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { Save } from 'lucide-react';
 
@@ -8,6 +8,7 @@ import { BaseModal } from '@shared/ui/components/modals';
 import type { BoxConfiguration, GridConfiguration } from '@domains/storage';
 
 interface BoxEditModalProps {
+  isOpen: boolean;
   initialBox: BoxConfiguration;
   tankId: string;
   rackId: string;
@@ -22,6 +23,7 @@ interface BoxEditModalProps {
 }
 
 export function BoxEditModal({
+  isOpen,
   initialBox,
   tankId,
   rackId,
@@ -32,6 +34,13 @@ export function BoxEditModal({
   const [selectedGridConfig, setSelectedGridConfig] = useState<GridConfiguration>(
     initialBox.gridConfig
   );
+
+  // Reset form state when modal opens with new data
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedGridConfig(initialBox.gridConfig);
+    }
+  }, [isOpen, initialBox.gridConfig]);
 
   const handleSave = async () => {
     await onSave(tankId, rackId, initialBox.id, selectedGridConfig);
@@ -44,7 +53,13 @@ export function BoxEditModal({
   };
 
   return (
-    <BaseModal title="Edit Box" icon={<BoxIcon size={24} />} onClose={onClose} className="max-w-md">
+    <BaseModal
+      isOpen={isOpen}
+      title="Edit Box"
+      icon={<BoxIcon size={24} />}
+      onClose={onClose}
+      className="max-w-md"
+    >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label

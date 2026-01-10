@@ -522,28 +522,22 @@ export function AppHeader({
       </div>
 
       {/* Storage Manager Modal */}
-      {showStorageManager && (
-        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="StorageManagerModal">
-          <StorageManagerModal
-            isOpen={showStorageManager}
-            onClose={() => setShowStorageManager(false)}
-          />
-        </SuspenseBoundary>
-      )}
+      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="StorageManagerModal">
+        <StorageManagerModal
+          isOpen={showStorageManager}
+          onClose={() => setShowStorageManager(false)}
+        />
+      </SuspenseBoundary>
 
       {/* Admin Settings Modal */}
-      {showAdminPanel && (
-        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="AdminSettingsModal">
-          <AdminSettingsModal isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
-        </SuspenseBoundary>
-      )}
+      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="AdminSettingsModal">
+        <AdminSettingsModal isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
+      </SuspenseBoundary>
 
       {/* User Settings Modal */}
-      {showUserSettings && (
-        <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="UserSettingsModal">
-          <UserSettingsModal isOpen={showUserSettings} onClose={() => setShowUserSettings(false)} />
-        </SuspenseBoundary>
-      )}
+      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="UserSettingsModal">
+        <UserSettingsModal isOpen={showUserSettings} onClose={() => setShowUserSettings(false)} />
+      </SuspenseBoundary>
     </header>
   );
 }

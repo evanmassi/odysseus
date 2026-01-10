@@ -7,7 +7,7 @@
  * @module tubes/ui/components/modals
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 
 import { Pencil, AlertTriangle, Notebook } from 'lucide-react';
 
@@ -18,6 +18,8 @@ import { notifications } from '@shared/utils/notifications';
 import type { TubeData } from '@domains/tubes/types';
 
 export interface EditLockNoteModalProps {
+  /** Whether modal is open - controls visibility with exit animation */
+  isOpen?: boolean;
   /** Tubes to edit (must all be locked by current user) */
   tubes: TubeData[];
   /** Close handler */
@@ -38,7 +40,12 @@ export interface EditLockNoteModalProps {
  * />
  * ```
  */
-export function EditLockNoteModal({ tubes, onClose, onSuccess }: EditLockNoteModalProps) {
+export function EditLockNoteModal({
+  isOpen = true,
+  tubes,
+  onClose,
+  onSuccess,
+}: EditLockNoteModalProps) {
   // Determine initial note value based on selected tubes
   const { initialNote, hasMixedNotes } = useMemo(() => {
     if (tubes.length === 0) {
@@ -56,6 +63,17 @@ export function EditLockNoteModal({ tubes, onClose, onSuccess }: EditLockNoteMod
 
   const [lockNote, setLockNote] = useState(initialNote);
   const bulkUpdateMutation = useBulkUpdateTubesMutation();
+  const prevIsOpenRef = useRef(isOpen);
+
+  // Reset form state when modal opens
+  // This ensures fresh state each time, preventing stale data from previous interactions
+  useEffect(() => {
+    if (isOpen && !prevIsOpenRef.current) {
+      // Modal just opened - reset form to current initial value
+      setLockNote(initialNote);
+    }
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen, initialNote]);
 
   const tubeIds = useMemo(() => tubes.map(t => t.id), [tubes]);
   const tubeCount = tubes.length;
@@ -81,16 +99,17 @@ export function EditLockNoteModal({ tubes, onClose, onSuccess }: EditLockNoteMod
     }
   };
 
+  // Check if note changed from initial value
+  // For mixed notes, initialNote is empty so user must type something
+  const hasChanges = lockNote.trim() !== initialNote;
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !bulkUpdateMutation.isPending) {
+    // Only allow Enter to save if there are changes and not already saving
+    if (e.key === 'Enter' && hasChanges && !bulkUpdateMutation.isPending) {
       e.preventDefault();
       void handleSave();
     }
   };
-
-  // Check if note changed from initial value
-  // For mixed notes, initialNote is empty so user must type something
-  const hasChanges = lockNote.trim() !== initialNote;
 
   const buttonLabel = bulkUpdateMutation.isPending
     ? 'Saving...'
@@ -101,7 +120,13 @@ export function EditLockNoteModal({ tubes, onClose, onSuccess }: EditLockNoteMod
   const title = isSingleTube ? 'Edit Lock Note' : `Edit Lock Note (${tubeCount} tubes)`;
 
   return (
-    <BaseModal title={title} icon={<Pencil size={24} />} onClose={onClose} className="max-w-md">
+    <BaseModal
+      isOpen={isOpen}
+      title={title}
+      icon={<Pencil size={24} />}
+      onClose={onClose}
+      className="max-w-md"
+    >
       <div className="space-y-4">
         {/* Mixed notes warning */}
         {hasMixedNotes && (

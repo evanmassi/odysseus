@@ -161,8 +161,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     setConfig(prev => ({ ...prev, [field]: value }));
   };
 
-  if (!isOpen) return null;
-
   // Check if there are any unsaved changes
   const hasChanges = Object.keys(config).some(key => {
     const configKey = key as keyof SecurityConfig;
@@ -242,6 +240,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   return (
     <BaseModal
+      isOpen={isOpen}
       icon={<ShieldUser size={20} />}
       title="Admin Settings"
       subtitle="Security & System Configuration"

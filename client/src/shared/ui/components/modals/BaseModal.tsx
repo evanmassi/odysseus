@@ -1,74 +1,41 @@
 /**
- * BaseModal - Single source of truth for modal structure.
- *
- * Supports: size variants, tabs (horizontal/vertical), footers, animations.
- * All modals should use this for consistency and reduced technical debt.
+ * Shared modal wrapper with built-in animation, focus trap, and keyboard handling.
+ * Self-contained: manages its own exit animation timing and nested modal Escape support.
  */
 
 import React from 'react';
 
 import { X } from 'lucide-react';
 
+import { useModalKeyboardNavigation } from '@shared/hooks/keyboard/useModalKeyboardNavigation';
+import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
-/** Size variants map to max-width classes */
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
-
-/** Animation variants */
 export type ModalAnimation = 'zoom' | 'slide';
-
-/** Tab orientation for different layouts */
 export type TabOrientation = 'horizontal' | 'vertical';
 
 export interface BaseModalProps {
-  /** Modal title text */
+  isOpen: boolean;
   title: string;
-
-  /** Icon component to display before title */
   icon: React.ReactNode;
-
-  /** Close handler */
   onClose: () => void;
-
-  /** Modal content */
   children: React.ReactNode;
-
-  /** Optional subtitle below title */
   subtitle?: string;
-
-  /** Size variant (default: 'lg') */
   size?: ModalSize;
-
-  /** Fixed height mode - enables scrollable content area */
+  /** Locks height at 85vh with scrollable content area */
   fixedHeight?: boolean;
-
-  /** Animation style (default: 'zoom') */
   animation?: ModalAnimation;
-
-  /** Tabs slot - renders based on tabOrientation */
   tabs?: React.ReactNode;
-
-  /** Tab orientation (default: 'horizontal') */
   tabOrientation?: TabOrientation;
-
-  /** Footer slot - renders at bottom with border */
   footer?: React.ReactNode;
-
-  /** Optional classes for content area (default: 'p-6') */
   contentClassName?: string;
-
-  /** Optional data attribute for testing/tracking */
   dataAttribute?: string;
-
-  /** Optional additional classes for container */
   className?: string;
-
-  /** Optional mode identifier (e.g., "edit", "create") */
   mode?: string;
 }
 
-/** Size to Tailwind class mapping */
 const SIZE_CLASSES: Record<ModalSize, string> = {
   sm: 'max-w-md',
   md: 'max-w-lg',
@@ -77,12 +44,15 @@ const SIZE_CLASSES: Record<ModalSize, string> = {
   full: 'max-w-[90vw]',
 };
 
-const ANIMATION_CLASSES: Record<ModalAnimation, string> = {
-  zoom: 'animate-modal-scale',
-  slide: 'animate-modal-slide',
+const ANIMATION_CLASSES: Record<ModalAnimation, { enter: string; exit: string }> = {
+  zoom: { enter: 'animate-modal-reveal-in', exit: 'animate-modal-reveal-out' },
+  slide: { enter: 'animate-modal-reveal-in', exit: 'animate-modal-reveal-out' },
 };
 
+const EXIT_DURATION_MS = 300;
+
 export function BaseModal({
+  isOpen,
   title,
   icon,
   onClose,
@@ -99,13 +69,28 @@ export function BaseModal({
   className = '',
   mode,
 }: BaseModalProps) {
+  const { isVisible, isClosing, triggerClose } = useAnimatedClose({
+    isOpen,
+    onClose,
+    exitDuration: EXIT_DURATION_MS,
+  });
+
+  // Focus trap must exist before keyboard hook so we can pass containerRef
   const trapRef = useFocusTrap({
-    isOpen: true,
+    isOpen: isVisible,
     restoreFocus: true,
     autoFocusFirstInput: true,
   });
 
-  // Build data attributes object
+  // containerRef scopes Escape to this modal only (nested modal support)
+  useModalKeyboardNavigation({
+    onEscape: triggerClose,
+    enabled: isVisible && !isClosing,
+    containerRef: trapRef,
+  });
+
+  if (!isVisible) return null;
+
   const dataAttrs: Record<string, string> = {};
   if (dataAttribute) {
     dataAttrs[dataAttribute] = '';
@@ -115,36 +100,44 @@ export function BaseModal({
   }
 
   const sizeClass = SIZE_CLASSES[size];
-  const animationClass = ANIMATION_CLASSES[animation];
+  const animationClasses = ANIMATION_CLASSES[animation];
+  const modalAnimationClass = isClosing ? animationClasses.exit : animationClasses.enter;
+  const backdropAnimationClass = isClosing
+    ? 'animate-modal-backdrop-out'
+    : 'animate-modal-backdrop-in';
   const heightClass = fixedHeight ? 'h-[85vh]' : 'max-h-[90vh]';
   const hasVerticalTabs = tabs && tabOrientation === 'vertical';
+  const pointerEventsClass = isClosing ? 'pointer-events-none' : 'pointer-events-auto';
 
   return (
     <ModalPortal>
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50 animate-modal-backdrop"
+        className={`fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50 ${backdropAnimationClass} ${isClosing ? 'pointer-events-none' : ''}`}
         style={{ willChange: 'backdrop-filter' }}
       />
 
-      {/* Modal Container */}
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">
         <div
           ref={trapRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
           {...dataAttrs}
-          className={`bg-white rounded-2xl w-full ${sizeClass} mx-4 ${heightClass} shadow-2xl shadow-black/10 border border-gray-200 ${animationClass} pointer-events-auto flex flex-col overflow-hidden ${className}`}
+          className={`bg-white rounded-2xl w-full ${sizeClass} mx-4 ${heightClass} shadow-2xl shadow-black/10 border border-gray-200 ${modalAnimationClass} ${pointerEventsClass} flex flex-col overflow-hidden ${className}`}
         >
-          {/* Header */}
           <div className="bg-white px-6 py-3 border-b border-gray-200 flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="p-1.5 text-slate-500">{icon}</div>
                 <div>
-                  <h2 className="text-lg font-bold text-slate-800">{title}</h2>
+                  <h2 id="modal-title" className="text-lg font-bold text-slate-800">
+                    {title}
+                  </h2>
                   {subtitle && <p className="text-slate-500 text-xs">{subtitle}</p>}
                 </div>
               </div>
               <button
-                onClick={onClose}
+                onClick={triggerClose}
                 className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-ring-default"
                 aria-label="Close modal"
               >
@@ -153,27 +146,22 @@ export function BaseModal({
             </div>
           </div>
 
-          {/* Horizontal Tabs (if provided) */}
           {tabs && tabOrientation === 'horizontal' && (
             <div className="flex-shrink-0 border-b border-gray-200 bg-white">{tabs}</div>
           )}
 
-          {/* Body - handles vertical tabs layout */}
           <div className={`flex-1 min-h-0 flex ${hasVerticalTabs ? 'flex-row' : 'flex-col'}`}>
-            {/* Vertical Tabs Sidebar (if provided) */}
             {hasVerticalTabs && (
               <div className="w-48 bg-white border-r border-gray-200 py-4 flex-shrink-0">
                 {tabs}
               </div>
             )}
 
-            {/* Content Area */}
             <div className={`flex-1 overflow-y-auto min-w-0 ${hasVerticalTabs ? '' : ''}`}>
               <div className={contentClassName}>{children}</div>
             </div>
           </div>
 
-          {/* Footer (if provided) */}
           {footer && (
             <div className="border-t border-gray-200 px-6 py-3 bg-white flex-shrink-0">
               {footer}

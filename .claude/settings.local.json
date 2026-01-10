@@ -17,7 +17,8 @@
       "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\infrastructure\\\\configuration\\\\index.ts\")",
       "Bash(npm test:*)",
       "WebFetch(domain:codepen.io)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(npm run lint:client:*)"
     ]
   }
 }

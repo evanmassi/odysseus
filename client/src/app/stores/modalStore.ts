@@ -215,7 +215,10 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideDeleteConfirm: () => {
-    set({ deleteConfirm: initialDeleteConfirm });
+    // Only set isOpen to false - keep other data stable for exit animation
+    set(state => ({
+      deleteConfirm: { ...state.deleteConfirm, isOpen: false },
+    }));
   },
 
   // Overwrite confirmation actions
@@ -237,7 +240,10 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideOverwriteConfirm: () => {
-    set({ overwriteConfirm: initialOverwriteConfirm });
+    // Only set isOpen to false - keep other data stable for exit animation
+    set(state => ({
+      overwriteConfirm: { ...state.overwriteConfirm, isOpen: false },
+    }));
   },
 
   // Unsaved changes confirmation actions
@@ -257,7 +263,10 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideUnsavedConfirm: () => {
-    set({ unsavedConfirm: initialUnsavedConfirm });
+    // Only set isOpen to false - keep other data stable for exit animation
+    set(state => ({
+      unsavedConfirm: { ...state.unsavedConfirm, isOpen: false },
+    }));
   },
 
   // Tube modal actions
@@ -284,7 +293,11 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideTubeEditorModal: () => {
-    set({ tubeEditorModal: initialTubeEditorModal });
+    // Only set isOpen to false - keep other data stable for exit animation
+    // State will be overwritten when modal next opens
+    set(state => ({
+      tubeEditorModal: { ...state.tubeEditorModal, isOpen: false },
+    }));
   },
 
   // Lock tubes modal actions
@@ -300,7 +313,10 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideLockTubesModal: () => {
-    set({ lockTubesModal: initialLockTubesModal });
+    // Only set isOpen to false - keep other data stable for exit animation
+    set(state => ({
+      lockTubesModal: { ...state.lockTubesModal, isOpen: false },
+    }));
   },
 
   // Share access modal actions
@@ -316,7 +332,10 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideShareAccessModal: () => {
-    set({ shareAccessModal: initialShareAccessModal });
+    // Only set isOpen to false - keep other data stable for exit animation
+    set(state => ({
+      shareAccessModal: { ...state.shareAccessModal, isOpen: false },
+    }));
   },
 
   // Session timeout warning actions

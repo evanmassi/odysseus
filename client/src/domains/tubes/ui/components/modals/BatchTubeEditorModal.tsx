@@ -26,7 +26,6 @@ import {
   useBulkDeleteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
-import { useModalKeyboardNavigation } from '@shared/hooks/keyboard/useModalKeyboardNavigation';
 import { logger } from '@shared/infrastructure/logger';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
@@ -42,6 +41,8 @@ import type { BulkUpdateProgress, BulkUpdateResult, TubeData } from '@domains/tu
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
 export interface BatchTubeEditorModalProps {
+  /** Whether modal is open - controls visibility with exit animation */
+  isOpen?: boolean;
   tubeIds: string[]; // Accept IDs, fetch own data
   tubes?: TubeData[]; // Legacy support - will be removed
   onClose: () => void;
@@ -102,6 +103,7 @@ function convertTubeDataToFormData(tubeData: TubeData): Partial<UpdateTubeFormIn
  */
 
 export default function BatchTubeEditorModal({
+  isOpen = true,
   tubeIds,
   tubes: legacyTubes,
   onClose,
@@ -133,13 +135,6 @@ export default function BatchTubeEditorModal({
       }
     };
   }, [shouldPreserveSelection, modalService.tubeEditorModal.previousFocusElement]);
-
-  // Unified keyboard navigation: Escape = close
-  // (Enter naturally submits form)
-  useModalKeyboardNavigation({
-    onEscape: onClose,
-    enabled: true,
-  });
 
   // Analyze all editable fields for conflicts across selected tubes
   const conflictAnalysis = useMemo(() => {
@@ -500,6 +495,7 @@ export default function BatchTubeEditorModal({
   return (
     <>
       <BaseModal
+        isOpen={isOpen}
         title={`Edit ${tubes.length} Tubes`}
         icon={<Edit className="w-5 h-5" />}
         onClose={onClose}

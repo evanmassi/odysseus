@@ -33,7 +33,6 @@ import {
   useUpdateTubeMutation,
   useDeleteTubeMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
-import { useModalKeyboardNavigation } from '@shared/hooks/keyboard/useModalKeyboardNavigation';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
 import { BaseModal } from '@shared/ui/components/modals';
@@ -52,6 +51,8 @@ import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'reac
  * - Cannot provide both
  */
 export interface TubeEditorModalProps {
+  /** Whether modal is open - controls visibility with exit animation */
+  isOpen?: boolean;
   onClose: () => void;
 
   // Edit mode: Single tube ID
@@ -70,15 +71,22 @@ export interface TubeEditorModalProps {
  * Tube Editor Modal Component - detects mode based on props
  */
 export function TubeEditorModal(props: TubeEditorModalProps) {
-  const { tubeId, onClose, lockContext } = props;
+  const { isOpen = true, tubeId, onClose, lockContext } = props;
 
   // Mode detection
   const isEditMode = Boolean(tubeId);
 
   if (isEditMode) {
-    return <EditModeContent tubeId={tubeId!} onClose={onClose} lockContext={lockContext} />;
+    return (
+      <EditModeContent
+        isOpen={isOpen}
+        tubeId={tubeId!}
+        onClose={onClose}
+        lockContext={lockContext}
+      />
+    );
   } else {
-    return <CreateModeContent {...props} onClose={onClose} />;
+    return <CreateModeContent {...props} isOpen={isOpen} onClose={onClose} />;
   }
 }
 
@@ -87,12 +95,13 @@ export function TubeEditorModal(props: TubeEditorModalProps) {
  * Fetches tube data and shows edit form with delete button
  */
 interface EditModeContentProps {
+  isOpen: boolean;
   tubeId: string;
   onClose: () => void;
   lockContext?: LockContext;
 }
 
-function EditModeContent({ tubeId, onClose, lockContext }: EditModeContentProps) {
+function EditModeContent({ isOpen, tubeId, onClose, lockContext }: EditModeContentProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const modalService = useModalStore();
 
@@ -111,29 +120,24 @@ function EditModeContent({ tubeId, onClose, lockContext }: EditModeContentProps)
     };
   }, [modalService.tubeEditorModal.previousFocusElement]);
 
-  // Unified keyboard navigation: Escape = close
-  // (Enter naturally submits form)
-  useModalKeyboardNavigation({
-    onEscape: onClose,
-    enabled: true,
-  });
-
   // Loading state while fetching tube
   if (isFetchingTube || !tube) {
     return (
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-4xl mx-4">
-          <div className="flex items-center justify-center py-12">
-            <div className="spinner w-8 h-8"></div>
-            <span className="ml-3 text-odysseus-muted">Loading tube data...</span>
-          </div>
+      <BaseModal
+        isOpen={isOpen}
+        title="Loading..."
+        icon={<Edit className="w-5 h-5" />}
+        onClose={onClose}
+        dataAttribute="data-tube-modal"
+        mode="edit"
+      >
+        <div className="flex items-center justify-center py-12">
+          <div className="spinner w-8 h-8"></div>
+          <span className="ml-3 text-odysseus-muted">Loading tube data...</span>
         </div>
-      </div>
+      </BaseModal>
     );
   }
-
-  // Use updatedAt timestamp as unique key to force form remount when data changes
-  const formKey = `edit-tube-${tube.id}-${tube.timestamps.updatedAt}`;
 
   // Check if user is locked out of this tube
   const isLockedOut = lockContext?.isLockedOutFrom(tube) ?? false;
@@ -141,7 +145,7 @@ function EditModeContent({ tubeId, onClose, lockContext }: EditModeContentProps)
 
   return (
     <EditModeForm
-      key={formKey}
+      isOpen={isOpen}
       tube={tube}
       tubeId={tubeId}
       researchers={researchers}
@@ -155,9 +159,10 @@ function EditModeContent({ tubeId, onClose, lockContext }: EditModeContentProps)
 
 /**
  * Edit Mode Form
- * Inner component that remounts when tube data changes
+ * Inner component that resets form state when tube data changes
  */
 interface EditModeFormProps {
+  isOpen: boolean;
   tube: TubeData;
   tubeId: string;
   researchers: Researcher[];
@@ -168,6 +173,7 @@ interface EditModeFormProps {
 }
 
 function EditModeForm({
+  isOpen,
   tube,
   tubeId,
   researchers,
@@ -178,26 +184,30 @@ function EditModeForm({
 }: EditModeFormProps) {
   // Build initialData from tube - uses FORM INPUT type (pre-transformation)
   // concentration as string, date as string
-  const initialData: Partial<UpdateTubeFormInput> = {
-    sample: {
-      cellType: tube.sample.cellType ?? '',
-      donorInternalId: tube.sample.donorInternalId ?? '',
-      donorSourceId: tube.sample.donorSourceId ?? '',
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Convert empty string to undefined for form
-      concentration: formatConcentrationDisplay(tube.sample.concentration) || undefined,
-      concentrationUnit: tube.sample.concentrationUnit ?? undefined,
-      date: tube.sample.date ? formatDateForInput(tube.sample.date) : '',
-      media: {
-        type: tube.sample.media?.type ?? '',
-        supplements: tube.sample.media?.supplements ?? '',
-        selection: tube.sample.media?.selection ?? '',
+  // Memoized to prevent unnecessary re-renders and useEffect triggers
+  const initialData: Partial<UpdateTubeFormInput> = useMemo(
+    () => ({
+      sample: {
+        cellType: tube.sample.cellType ?? '',
+        donorInternalId: tube.sample.donorInternalId ?? '',
+        donorSourceId: tube.sample.donorSourceId ?? '',
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Convert empty string to undefined for form
+        concentration: formatConcentrationDisplay(tube.sample.concentration) || undefined,
+        concentrationUnit: tube.sample.concentrationUnit ?? undefined,
+        date: tube.sample.date ? formatDateForInput(tube.sample.date) : '',
+        media: {
+          type: tube.sample.media?.type ?? '',
+          supplements: tube.sample.media?.supplements ?? '',
+          selection: tube.sample.media?.selection ?? '',
+        },
+        cultureCondition: tube.sample.cultureCondition ?? '',
+        lotNumber: tube.sample.lotNumber ?? '',
+        notes: tube.sample.notes ?? '',
       },
-      cultureCondition: tube.sample.cultureCondition ?? '',
-      lotNumber: tube.sample.lotNumber ?? '',
-      notes: tube.sample.notes ?? '',
-    },
-    researcherId: tube.researcherId ?? '',
-  };
+      researcherId: tube.researcherId ?? '',
+    }),
+    [tube]
+  );
 
   // Use edit mode hook - fully type-safe wrapper
   const {
@@ -207,6 +217,13 @@ function EditModeForm({
   } = useEditTubeForm(tubeId, {
     initialData,
   });
+
+  // Reset form when tube data changes (e.g., external update while modal is open)
+  // This replaces the key-based remount pattern to allow exit animations to work
+  useEffect(() => {
+    form.reset(initialData);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset when initialData changes, form is stable
+  }, [initialData]);
 
   const deleteMutation = useDeleteTubeMutation();
   const isSubmitting = formSubmitting || deleteMutation.isPending;
@@ -249,6 +266,7 @@ function EditModeForm({
 
   return (
     <BaseModal
+      isOpen={isOpen}
       title={isLockedOut ? 'View Tube (Read Only)' : 'Edit Tube'}
       icon={isLockedOut ? <Lock className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
       onClose={onClose}
@@ -348,6 +366,7 @@ function EditModeForm({
  * Handles single/multiple position creation and mixed create+update
  */
 function CreateModeContent({
+  isOpen = true,
   onClose,
   rackId: _rackId,
   boxId: _boxId,
@@ -383,13 +402,6 @@ function CreateModeContent({
       }
     };
   }, [shouldPreserveSelection, modalService.tubeEditorModal.previousFocusElement]);
-
-  // Unified keyboard navigation: Escape = close
-  // (Enter naturally submits form)
-  useModalKeyboardNavigation({
-    onEscape: onClose,
-    enabled: true,
-  });
 
   // Parse selected positions from string format
   const parsedPositions = useMemo(() => {
@@ -521,6 +533,14 @@ function CreateModeContent({
       : undefined, // Batch mode: errors handled in handleFormSubmit
   });
 
+  // Reset form when modal opens to clear any stale data
+  useEffect(() => {
+    if (isOpen) {
+      form.reset(defaultValues);
+      setAllowOverwrite(false);
+    }
+  }, [isOpen, form, defaultValues]);
+
   /**
    * Handle form submission for multiple positions
    * Supports create, update, and mixed operations
@@ -642,6 +662,7 @@ function CreateModeContent({
 
   return (
     <BaseModal
+      isOpen={isOpen}
       title={`Add ${parsedPositions.length > 1 ? parsedPositions.length : ''} Tube${parsedPositions.length > 1 ? 's' : ''}`}
       icon={<Plus className="w-5 h-5" />}
       onClose={onClose}

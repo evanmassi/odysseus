@@ -17,6 +17,8 @@ import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
 export interface LockTubesModalProps {
+  /** Whether modal is open - controls visibility with exit animation */
+  isOpen?: boolean;
   /** IDs of tubes to lock */
   tubeIds: string[];
   /** Close handler */
@@ -37,7 +39,12 @@ export interface LockTubesModalProps {
  * />
  * ```
  */
-export function LockTubesModal({ tubeIds, onClose, onSuccess }: LockTubesModalProps) {
+export function LockTubesModal({
+  isOpen = true,
+  tubeIds,
+  onClose,
+  onSuccess,
+}: LockTubesModalProps) {
   const [lockNote, setLockNote] = useState('');
   const lockMutation = useLockTubesMutation();
 
@@ -82,6 +89,7 @@ export function LockTubesModal({ tubeIds, onClose, onSuccess }: LockTubesModalPr
 
   return (
     <BaseModal
+      isOpen={isOpen}
       title={`Lock ${tubeCount} Tube${tubeCount !== 1 ? 's' : ''}`}
       icon={<Lock size={24} />}
       onClose={onClose}
