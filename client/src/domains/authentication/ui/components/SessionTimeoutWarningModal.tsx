@@ -122,14 +122,14 @@ export function SessionTimeoutWarningModal() {
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-in fade-in duration-300">
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 animate-modal-backdrop">
         <div
           ref={trapRef}
           role="alertdialog"
           aria-modal="true"
           aria-labelledby="session-timeout-title"
           aria-describedby="session-timeout-message"
-          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} animate-in slide-in-from-bottom-4 duration-500`}
+          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} animate-modal-confirm`}
         >
           {/* Header */}
           <div className="flex items-center justify-center mb-6">

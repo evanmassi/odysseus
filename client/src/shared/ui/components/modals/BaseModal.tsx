@@ -77,10 +77,9 @@ const SIZE_CLASSES: Record<ModalSize, string> = {
   full: 'max-w-[90vw]',
 };
 
-/** Animation to Tailwind class mapping */
 const ANIMATION_CLASSES: Record<ModalAnimation, string> = {
-  zoom: 'animate-zoom-in-98',
-  slide: 'animate-slide-up-fade',
+  zoom: 'animate-modal-scale',
+  slide: 'animate-modal-slide',
 };
 
 export function BaseModal({
@@ -122,9 +121,8 @@ export function BaseModal({
 
   return (
     <ModalPortal>
-      {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50"
+        className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50 animate-modal-backdrop"
         style={{ willChange: 'backdrop-filter' }}
       />
 

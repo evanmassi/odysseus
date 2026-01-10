@@ -36,7 +36,7 @@ export function PasswordRequirements({
   );
 
   const getRequirementColor = (isMet: boolean) => {
-    if (isMet) return 'text-green-700 font-medium';
+    if (isMet) return 'text-emerald-700 font-medium';
     if (showError) return 'text-red-600';
     return 'text-gray-600';
   };

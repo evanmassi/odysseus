@@ -76,7 +76,7 @@ export function InlineEditInput({
               e.stopPropagation();
               onSave(value);
             }}
-            className="p-0.5 rounded bg-green-100 text-green-600 hover:bg-green-200 transition-colors focus-ring-default"
+            className="p-0.5 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors focus-ring-default"
           >
             <Check size={10} />
           </button>

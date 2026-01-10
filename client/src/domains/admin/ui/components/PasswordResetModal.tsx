@@ -99,7 +99,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
     const strength = getPasswordStrength(password);
     if (strength === 'Too short' || strength === 'Weak') return 'text-red-600';
     if (strength === 'Medium') return 'text-yellow-600';
-    if (strength === 'Strong') return 'text-green-600';
+    if (strength === 'Strong') return 'text-emerald-600';
     return '';
   };
 
@@ -157,13 +157,13 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
             <div className="mb-4">
               <div
                 className={`auth-input-container ${
-                  newPassword.length >= 4 ? 'border-green-500' : 'border-gray-300'
+                  newPassword.length >= 4 ? 'border-emerald-500' : 'border-gray-300'
                 }`}
               >
                 <label
                   htmlFor="newPassword"
                   className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
-                    newPassword.length >= 4 ? 'text-green-700' : 'text-gray-700'
+                    newPassword.length >= 4 ? 'text-emerald-700' : 'text-gray-700'
                   }`}
                 >
                   Temporary Password

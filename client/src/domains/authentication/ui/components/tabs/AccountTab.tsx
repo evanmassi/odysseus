@@ -58,13 +58,13 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
   // Field border styling
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'border-gray-300';
-    return isValid ? 'border-green-500' : 'input-field-error';
+    return isValid ? 'border-emerald-500' : 'input-field-error';
   };
 
   // Label color styling
   const getLabelColorClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'text-gray-700';
-    return isValid ? 'text-green-700' : 'text-validation-error-label';
+    return isValid ? 'text-emerald-700' : 'text-validation-error-label';
   };
 
   // Email validation

@@ -96,7 +96,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
                 (
                   step // Show last 3 completed steps
                 ) => (
-                  <div key={step} className="flex items-center space-x-2 text-sm text-green-700">
+                  <div key={step} className="flex items-center space-x-2 text-sm text-emerald-700">
                     <CheckCircle2 className="w-4 h-4" />
                     <span className="capitalize">{step} loaded successfully</span>
                   </div>

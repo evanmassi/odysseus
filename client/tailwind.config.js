@@ -201,6 +201,27 @@ export default {
         ],
       },
       keyframes: {
+        'modal-backdrop-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'modal-scale-in': {
+          '0%': { opacity: '0', transform: 'scale(0.85)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'modal-slide-in': {
+          '0%': { opacity: '0', transform: 'translateY(40px) scale(0.95)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        'modal-confirm-in': {
+          '0%': { opacity: '0', transform: 'scale(0.9) translateY(10px)' },
+          '100%': { opacity: '1', transform: 'scale(1) translateY(0)' },
+        },
+        'modal-auth-in': {
+          '0%': { opacity: '0', transform: 'scale(0.88)' },
+          '60%': { opacity: '1', transform: 'scale(1.01)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
         'zoom-in-98': {
           '0%': { opacity: '0', transform: 'scale(0.98)' },
           '100%': { opacity: '1', transform: 'scale(1)' },
@@ -227,6 +248,11 @@ export default {
         },
       },
       animation: {
+        'modal-backdrop': 'modal-backdrop-in 250ms ease-out',
+        'modal-scale': 'modal-scale-in 350ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'modal-slide': 'modal-slide-in 400ms cubic-bezier(0.32, 0.72, 0, 1)',
+        'modal-confirm': 'modal-confirm-in 280ms cubic-bezier(0.34, 1.2, 0.64, 1)',
+        'modal-auth': 'modal-auth-in 400ms cubic-bezier(0.22, 1, 0.36, 1)',
         'zoom-in-98': 'zoom-in-98 160ms cubic-bezier(0.16, 1, 0.3, 1)',
         'zoom-in-95': 'zoom-in-95 250ms cubic-bezier(0.22, 1, 0.36, 1)',
         'slide-up-fade': 'slide-up-fade 200ms cubic-bezier(0.16, 1, 0.3, 1)',

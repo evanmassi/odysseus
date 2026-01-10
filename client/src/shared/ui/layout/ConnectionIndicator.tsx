@@ -27,16 +27,16 @@ export function ConnectionIndicator({ connected }: ConnectionStatusProps) {
     } else if (connected && shouldShow && !isReconnecting) {
       // Reconnected after being disconnected - show success briefly
       setIsReconnecting(true);
-      
+
       // Auto-dismiss after showing success
       const timer = setTimeout(() => {
         setShouldShow(false);
         setIsReconnecting(false);
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
-    
+
     // Fallback return for any other cases
     return undefined;
   }, [connected, hasBeenConnected, shouldShow, isReconnecting]);
@@ -49,16 +49,16 @@ export function ConnectionIndicator({ connected }: ConnectionStatusProps) {
       return {
         icon: <WifiOff size={16} />,
         text: 'Connection Lost',
-        className: 'bg-red-100 text-red-800 border border-red-200'
+        className: 'bg-red-100 text-red-800 border border-red-200',
       };
     } else if (isReconnecting) {
       return {
         icon: <RotateCw size={16} className="animate-spin" />,
         text: 'Reconnected',
-        className: 'bg-green-100 text-green-800 border border-green-200'
+        className: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
       };
     }
-    
+
     return null;
   };
 
@@ -67,7 +67,9 @@ export function ConnectionIndicator({ connected }: ConnectionStatusProps) {
 
   return (
     <div className="fixed bottom-4 right-4 z-40 transition-all duration-300 ease-in-out animate-bounce-in">
-      <div className={`connection-status flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium shadow-lg ${config.className}`}>
+      <div
+        className={`connection-status flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium shadow-lg ${config.className}`}
+      >
         {config.icon}
         <span>{config.text}</span>
       </div>

@@ -154,7 +154,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                   <button
                     onClick={handleSaveLabName}
                     disabled={isSavingLabName}
-                    className="p-1.5 text-green-600 hover:bg-green-50 rounded transition-colors disabled:opacity-50 focus-ring-default"
+                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors disabled:opacity-50 focus-ring-default"
                     aria-label="Save lab name"
                   >
                     <Check size={16} />

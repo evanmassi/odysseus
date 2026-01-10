@@ -148,7 +148,9 @@ export function SessionListSection() {
                 <tr
                   key={session.id}
                   className={
-                    session.isCurrentSession ? 'bg-green-50/50 border-l-4 border-l-green-500' : ''
+                    session.isCurrentSession
+                      ? 'bg-emerald-50/50 border-l-4 border-l-emerald-500'
+                      : ''
                   }
                 >
                   <td className="px-4 py-3">
@@ -157,7 +159,7 @@ export function SessionListSection() {
                       <div>
                         <p className="text-sm font-medium text-gray-900">{device}</p>
                         {session.isCurrentSession && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mt-1">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 mt-1">
                             Current Session
                           </span>
                         )}
@@ -212,7 +214,7 @@ export function SessionListSection() {
           return (
             <div
               key={session.id}
-              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-green-50/50 border border-gray-200 border-l-4 border-l-green-500' : 'border border-gray-200 bg-white'}`}
+              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-emerald-50/50 border border-gray-200 border-l-4 border-l-emerald-500' : 'border border-gray-200 bg-white'}`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -220,7 +222,7 @@ export function SessionListSection() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">{device}</p>
                     {session.isCurrentSession && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 mt-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 mt-1">
                         Current Session
                       </span>
                     )}
@@ -259,8 +261,8 @@ export function SessionListSection() {
 
       {/* Confirmation Dialog */}
       {showRevokeAllConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-in fade-in duration-200">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-modal-backdrop">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 animate-modal-confirm">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-semibold text-gray-900">Logout All Other Devices?</h3>
             </div>

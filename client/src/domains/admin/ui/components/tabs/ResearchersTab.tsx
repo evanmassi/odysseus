@@ -291,7 +291,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                     {researcher.active ? (
                       <Tooltip content="Active" side="bottom">
                         <span>
-                          <BadgeCheck size={18} className="text-green-600" />
+                          <BadgeCheck size={18} className="text-emerald-600" />
                         </span>
                       </Tooltip>
                     ) : (

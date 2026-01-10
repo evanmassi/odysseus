@@ -505,7 +505,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                     {user.researcherId ? (
                       <div className="flex items-center gap-1.5 text-sm text-slate-500">
                         <span>Linked</span>
-                        <UserRoundCheck size={14} className="text-green-500 flex-shrink-0" />
+                        <UserRoundCheck size={14} className="text-emerald-500 flex-shrink-0" />
                       </div>
                     ) : (
                       <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">

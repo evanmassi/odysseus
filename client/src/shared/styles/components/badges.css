@@ -122,7 +122,7 @@
 
   /* Status Badges - For general use */
   .badge-success {
-    @apply badge bg-green-100 text-green-700 border-green-200;
+    @apply badge bg-emerald-100 text-emerald-700 border-emerald-200;
   }
 
   .badge-warning {

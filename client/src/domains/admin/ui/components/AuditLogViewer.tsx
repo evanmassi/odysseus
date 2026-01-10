@@ -26,6 +26,7 @@ import { adminService } from '@domains/admin/services/AdminService';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
 import { logger } from '@shared/infrastructure/logger';
 import { ResearcherIcon } from '@shared/ui/components/icons';
+import { Tooltip } from '@shared/ui/primitives/tooltip';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 
@@ -242,20 +243,24 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
         </div>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setIncludeArchive(!includeArchive)}
-            className={`btn-refresh-compact flex items-center space-x-1 ${
-              includeArchive ? 'bg-action text-white border-action hover:bg-action-hover' : ''
-            }`}
-            title={
+          <Tooltip
+            content={
               includeArchive
                 ? 'Currently showing active + archived logs'
                 : 'Currently showing active logs only'
             }
+            side="bottom"
           >
-            <Archive size={12} />
-            <span>{includeArchive ? 'With Archive' : 'Active Only'}</span>
-          </button>
+            <button
+              onClick={() => setIncludeArchive(!includeArchive)}
+              className={`btn-refresh-compact flex items-center space-x-1 ${
+                includeArchive ? 'bg-action text-white border-action hover:bg-action-hover' : ''
+              }`}
+            >
+              <Archive size={12} />
+              <span>{includeArchive ? 'With Archive' : 'Active Only'}</span>
+            </button>
+          </Tooltip>
 
           {hasActiveFilters && (
             <button

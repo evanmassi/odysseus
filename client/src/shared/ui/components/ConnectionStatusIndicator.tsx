@@ -127,7 +127,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
       <Tooltip content="Connection status - click for details" side="left">
         <button
           onClick={() => setShowDetails(true)}
-          className="fixed bottom-4 right-4 w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow-lg hover:scale-110 transition-transform z-50"
+          className="fixed bottom-4 right-4 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white shadow-lg hover:scale-110 transition-transform z-50"
           aria-label="Connection status indicator"
         />
       </Tooltip>

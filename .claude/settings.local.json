@@ -14,7 +14,10 @@
       "Bash(dir:*)",
       "Bash(Remove-Item \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\domains\\\\tubes\\\\services\\\\TubeFieldAccessService.ts\")",
       "Bash(Remove-Item \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\domain\\\\services\\\\__tests__\\\\TubeFieldAccessService.test.ts\")",
-      "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\infrastructure\\\\configuration\\\\index.ts\")"
+      "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\infrastructure\\\\configuration\\\\index.ts\")",
+      "Bash(npm test:*)",
+      "WebFetch(domain:codepen.io)",
+      "WebSearch"
     ]
   }
 }

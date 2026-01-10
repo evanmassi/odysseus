@@ -59,12 +59,12 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
 
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'border-gray-300';
-    return isValid ? 'border-green-500' : 'input-field-error';
+    return isValid ? 'border-emerald-500' : 'input-field-error';
   };
 
   const getLabelColorClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'text-gray-700';
-    return isValid ? 'text-green-700' : 'text-validation-error-label';
+    return isValid ? 'text-emerald-700' : 'text-validation-error-label';
   };
 
   // Current password field styling - neutral (no green) with error state only
@@ -332,9 +332,9 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
 
             {/* Success Banner - Appears next to button */}
             {showSuccess && (
-              <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-1.5 flex items-center space-x-2 animate-in fade-in slide-in-from-right-2 duration-300">
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5 flex items-center space-x-2 animate-in fade-in slide-in-from-right-2 duration-300">
                 <AnimatedCheckmark size={24} />
-                <span className="text-xs font-medium text-green-900">
+                <span className="text-xs font-medium text-emerald-900">
                   Password changed successfully
                 </span>
               </div>

@@ -170,23 +170,23 @@ export function HistoryControls({
                     key={`undo-${operation.id}`}
                     className={`flex items-center space-x-3 p-2 rounded ${
                       index === 0
-                        ? 'bg-green-50 border border-green-200'
+                        ? 'bg-emerald-50 border border-emerald-200'
                         : 'bg-gray-50 border border-gray-200'
                     }`}
                   >
-                    <span className={index === 0 ? 'text-green-600' : 'text-gray-500'}>
+                    <span className={index === 0 ? 'text-emerald-600' : 'text-gray-500'}>
                       {getOperationIcon(operation.type)}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div
                         className={`text-sm truncate ${
-                          index === 0 ? 'text-green-800' : 'text-gray-700'
+                          index === 0 ? 'text-emerald-800' : 'text-gray-700'
                         }`}
                       >
                         {formatOperationDescription(operation)}
                       </div>
                       <div
-                        className={`text-xs ${index === 0 ? 'text-green-600' : 'text-gray-500'}`}
+                        className={`text-xs ${index === 0 ? 'text-emerald-600' : 'text-gray-500'}`}
                       >
                         {operation.data.after?.tubes?.length || 0} tube(s)
                         {index === 0 && ' • Last operation'}

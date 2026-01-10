@@ -54,7 +54,7 @@
   }
 
   .btn-approve {
-    @apply btn bg-green-600 text-white hover:bg-green-700 hover:shadow-md h-10 px-4 py-2;
+    @apply btn bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-cancel {
@@ -92,7 +92,7 @@
   }
 
   .btn-approve-compact {
-    @apply btn-compact bg-transparent text-slate-400 hover:bg-green-50 hover:text-green-600;
+    @apply btn-compact bg-transparent text-slate-400 hover:bg-emerald-50 hover:text-emerald-600;
   }
 
   .btn-password-compact {

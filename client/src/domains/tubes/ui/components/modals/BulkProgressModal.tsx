@@ -37,7 +37,7 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
       case 'updating':
         return <Loader2 className="w-5 h-5 animate-spin text-odysseus-primary" />;
       case 'completing':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-emerald-500" />;
       default:
         return <Loader2 className="w-5 h-5 animate-spin text-gray-500" />;
     }

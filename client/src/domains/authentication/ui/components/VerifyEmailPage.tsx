@@ -61,12 +61,8 @@ export function VerifyEmailPage() {
         <div className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border border-odysseus-border">
           <div className="flex flex-col items-center text-center">
             <Loader2 className="w-16 h-16 text-odysseus-primary animate-spin mb-4" />
-            <h2 className="text-2xl font-bold text-odysseus-dark mb-2">
-              Verifying Your Email
-            </h2>
-            <p className="text-gray-600">
-              Please wait while we verify your email address...
-            </p>
+            <h2 className="text-2xl font-bold text-odysseus-dark mb-2">Verifying Your Email</h2>
+            <p className="text-gray-600">Please wait while we verify your email address...</p>
           </div>
         </div>
       </div>
@@ -78,22 +74,18 @@ export function VerifyEmailPage() {
       <div className="min-h-screen bg-gradient-to-br from-odysseus-primary via-blue-600 to-blue-700 flex items-center justify-center p-4">
         <div className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border border-odysseus-border">
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
           </div>
 
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-odysseus-dark mb-2">
-              Email Verified!
-            </h2>
-            <p className="text-gray-600">
-              Your email has been successfully verified.
-            </p>
+            <h2 className="text-2xl font-bold text-odysseus-dark mb-2">Email Verified!</h2>
+            <p className="text-gray-600">Your email has been successfully verified.</p>
           </div>
 
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-green-800 font-medium">
+          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-6">
+            <p className="text-sm text-emerald-800 font-medium">
               Redirecting to login in 3 seconds...
             </p>
           </div>
@@ -120,18 +112,12 @@ export function VerifyEmailPage() {
         </div>
 
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-odysseus-dark mb-2">
-            Verification Failed
-          </h2>
-          <p className="text-gray-600">
-            {error}
-          </p>
+          <h2 className="text-2xl font-bold text-odysseus-dark mb-2">Verification Failed</h2>
+          <p className="text-gray-600">{error}</p>
         </div>
 
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-red-800 font-medium mb-2">
-            Common reasons for failure:
-          </p>
+          <p className="text-sm text-red-800 font-medium mb-2">Common reasons for failure:</p>
           <ul className="text-sm text-red-700 space-y-1 list-disc list-inside">
             <li>Verification link expired (48 hours)</li>
             <li>Link already used</li>

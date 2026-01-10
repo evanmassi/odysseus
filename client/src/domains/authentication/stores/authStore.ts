@@ -22,6 +22,12 @@ import type { AuthDebugInfo } from '../types/debug';
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
 import type { TokenPair, SessionStatus } from '@shared/session/types';
 
+/** Structured result from login for explicit error handling */
+export type LoginResult =
+  | { success: true }
+  | { success: false; error: string }
+  | { success: 'password_change_required' };
+
 // User interface (unchanged for compatibility)
 export interface User {
   id: string;
@@ -59,7 +65,7 @@ interface AuthState {
  */
 interface AuthActions {
   // Primary authentication methods
-  login: (username: string, password: string) => Promise<boolean | 'password_change_required'>;
+  login: (username: string, password: string) => Promise<LoginResult>;
   forceChangePassword: (newPassword: string) => Promise<boolean>;
   clearPasswordChangeRequired: () => void;
   register: (username: string, password: string) => Promise<boolean>;
@@ -142,12 +148,9 @@ export const useAuthStore = create<AuthStore>()(
       /**
        * Login with username and password (primary method)
        *
-       * Returns:
-       * - true: Login successful
-       * - false: Login failed
-       * - 'password_change_required': User must change password first
+       * Returns structured result with error message for explicit handling.
        */
-      login: async (username: string, password: string) => {
+      login: async (username: string, password: string): Promise<LoginResult> => {
         set({ isLoading: true, error: null, logoutReason: null, passwordChangeRequired: null });
 
         try {
@@ -163,12 +166,12 @@ export const useAuthStore = create<AuthStore>()(
               error: null,
             });
 
-            return 'password_change_required';
+            return { success: 'password_change_required' };
           }
 
           const userWithActivity = {
             ...result.user,
-            lastActivity: new Date().toISOString(), // Ensure lastActivity is set
+            lastActivity: new Date().toISOString(),
           };
 
           // Set tokens in session manager (handles HTTP client + storage)
@@ -186,7 +189,7 @@ export const useAuthStore = create<AuthStore>()(
             passwordChangeRequired: null,
           });
 
-          return true;
+          return { success: true };
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Login error';
           logger.error('Auth store login exception', { error });
@@ -195,7 +198,7 @@ export const useAuthStore = create<AuthStore>()(
             error: errorMessage,
             isLoading: false,
           });
-          return false;
+          return { success: false, error: errorMessage };
         }
       },
 
@@ -508,6 +511,7 @@ export const useAuthStore = create<AuthStore>()(
           user,
           tokens,
           sessionStatus: 'authenticated',
+          isAuthenticated: true,
           isLoading: false,
           error: null,
         });
