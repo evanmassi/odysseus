@@ -73,6 +73,12 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
         const searchContext = formElement ?? modal;
         const firstInput = searchContext.querySelector<HTMLElement>(FORM_INPUT_SELECTOR);
         elementToFocus = firstInput;
+
+        // Fall back to first focusable if no form input found (e.g., lazy-loaded content)
+        if (!elementToFocus) {
+          const focusableElements = modal.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
+          elementToFocus = focusableElements[0] || null;
+        }
       }
       // Priority 3: Default to first focusable element
       else {
