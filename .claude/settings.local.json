@@ -25,7 +25,9 @@
       "Bash(npx cross-env CSC_IDENTITY_AUTO_DISCOVERY=false ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES=true electron-builder:*)",
       "Bash(cmd /c \"dir /s /b C:\\\\Users\\\\evan\\\\AppData\\\\Local\\\\electron-builder\\\\Cache\\\\winCodeSign\\\\*rcedit*\")",
       "Bash(npm run build:client:*)",
-      "Bash(npm run package:*)"
+      "Bash(npm run package:*)",
+      "Bash(npm run lint)",
+      "Bash(ipconfig:*)"
     ]
   }
 }

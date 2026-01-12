@@ -524,7 +524,7 @@ export class ConfigurationController {
 
       res.status(201).json({
         success: true,
-        tankId: result.tankId,
+        data: { success: true, tankId: result.tankId },
         message: `Tank '${name}' created`
       });
     } catch (error) {
@@ -546,6 +546,7 @@ export class ConfigurationController {
 
       res.json({
         success: true,
+        data: { success: true },
         message: `Tank '${tankId}' updated`
       });
     } catch (error) {
@@ -566,6 +567,7 @@ export class ConfigurationController {
 
       res.json({
         success: true,
+        data: { success: true },
         message: `Tank '${tankId}' deleted`
       });
     } catch (error) {
@@ -589,7 +591,7 @@ export class ConfigurationController {
 
       res.status(201).json({
         success: true,
-        rackIds: result.rackIds,
+        data: { success: true, rackIds: result.rackIds },
         message: `${result.rackIds.length} rack(s) created`
       });
     } catch (error) {
@@ -611,6 +613,7 @@ export class ConfigurationController {
 
       res.json({
         success: true,
+        data: { success: true },
         message: `Rack '${rackId}' updated`
       });
     } catch (error) {
@@ -631,6 +634,7 @@ export class ConfigurationController {
 
       res.json({
         success: true,
+        data: { success: true },
         message: `Rack '${rackId}' deleted`
       });
     } catch (error) {
@@ -657,6 +661,7 @@ export class ConfigurationController {
 
       res.json({
         success: true,
+        data: { success: true },
         message: assignedUserId
           ? `Rack '${rackId}' assigned to user`
           : `Rack '${rackId}' unassigned`
@@ -682,7 +687,7 @@ export class ConfigurationController {
 
       res.status(201).json({
         success: true,
-        boxIds: result.boxIds,
+        data: { success: true, boxIds: result.boxIds },
         message: `${result.boxIds.length} box(es) created`
       });
     } catch (error) {
@@ -713,6 +718,7 @@ export class ConfigurationController {
 
       res.json({
         success: true,
+        data: { success: true },
         message: `Box '${boxId}' updated`
       });
     } catch (error) {
@@ -733,6 +739,7 @@ export class ConfigurationController {
 
       res.json({
         success: true,
+        data: { success: true },
         message: `Box '${boxId}' deleted`
       });
     } catch (error) {
@@ -760,6 +767,7 @@ export class ConfigurationController {
 
       res.json({
         success: true,
+        data: { success: true },
         message: assignedUserId
           ? `Box '${boxId}' assigned to user`
           : `Box '${boxId}' unassigned`
@@ -861,6 +869,7 @@ export class ConfigurationController {
 
       res.status(201).json({
         success: true,
+        data: { success: true },
         message: `Configuration initialized for lab '${labName}'`
       });
     } catch (error) {

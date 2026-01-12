@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import path from 'path'
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 
 export default defineConfig({
   plugins: [react()],
@@ -12,11 +12,15 @@ export default defineConfig({
       '@shared': path.resolve(__dirname, './src/shared'),
       '@infra': path.resolve(__dirname, './src/infrastructure'),
       '@': path.resolve(__dirname, './src'),
-      '@odysseus/shared-schemas': path.resolve(__dirname, '../packages/shared-schemas/src/index.ts'),
-    }
+      '@odysseus/shared-schemas': path.resolve(
+        __dirname,
+        '../packages/shared-schemas/src/index.ts'
+      ),
+    },
   },
   server: {
     port: 3000,
+    host: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
@@ -31,6 +35,6 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    assetsDir: 'assets'
-  }
-})
+    assetsDir: 'assets',
+  },
+});

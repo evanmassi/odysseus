@@ -110,7 +110,11 @@ export function Dashboard() {
       if (storageNavigatorRef.current?.contains(target)) return;
       if (infoPanelRef.current?.contains(target)) return;
 
-      // Don't clear if clicking inside a modal or dialog
+      // Don't clear if clicking inside modal portal (includes backdrop and dialog)
+      const modalRoot = document.getElementById('modal-root');
+      if (modalRoot?.contains(target)) return;
+
+      // Don't clear if clicking inside a modal or dialog (fallback for non-portal modals)
       const isInModal = (target as Element).closest?.(
         '[role="dialog"], [role="alertdialog"], [data-radix-dialog-content], .modal'
       );
@@ -148,6 +152,13 @@ export function Dashboard() {
 
   const tanks = getCurrentTanks();
   const modalService = useModalStore();
+
+  // Memoize modal positions Set to prevent unnecessary re-renders
+  // Without this, every Dashboard render creates a new Set object even if positions unchanged
+  const modalPositionsSet = useMemo(
+    () => new Set(modalService.tubeEditorModal.positions ?? []),
+    [modalService.tubeEditorModal.positions]
+  );
 
   // Compute if current container is view-only (assigned to another user) or common space
   // This determines if tube operations should be disabled and what indicator to show
@@ -628,7 +639,7 @@ export function Dashboard() {
           // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: use modal's ID or current location
           boxId={modalService.tubeEditorModal.boxId || currentBox}
           onClose={handleCloseModal}
-          selectedPositions={new Set(modalService.tubeEditorModal.positions ?? [])}
+          selectedPositions={modalPositionsSet}
         />
       </SuspenseBoundary>
 
