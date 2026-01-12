@@ -7,7 +7,7 @@ import { Researcher } from '@domain/entities/Researcher';
 import { Person } from '@domain/entities/Person';
 import { UserRole } from '@domain/valueObjects/UserRole';
 import { AccessControlService } from '@domain/services/AccessControlService';
-import { LoginRequest, CreateUserRequest, UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest, UserDto } from '@application/dto/UserDto';
+import { CreateUserRequest, UserResponse, AuthResponse, UpdateUserRoleRequest, RegisterRequest, PasswordLoginRequest, UserDto } from '@application/dto/UserDto';
 import { RegisterWithResearcherRequest, PasswordValidator } from '@odysseus/shared-schemas';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
@@ -37,27 +37,6 @@ export class UserApplicationService {
     private configurationRepository?: ConfigurationRepository,
     private eventBus?: EventBus
   ) {}
-
-  /**
-   * Authenticate user login with API key (legacy method for backward compatibility)
-   */
-  async loginWithApiKey(request: LoginRequest): Promise<AuthResponse> {
-    const user = await this.userRepository.findByApiKey(request.apiKey);
-
-    if (!user) {
-      throw new PermissionError('Invalid credentials');
-    }
-
-    if (user.username !== request.username) {
-      throw new PermissionError('Invalid credentials');
-    }
-
-    // Update last activity
-    user.recordActivity();
-    await this.userRepository.save(user);
-
-    return UserDto.toAuthResponse(user);
-  }
 
   /**
    * Verify existing session
