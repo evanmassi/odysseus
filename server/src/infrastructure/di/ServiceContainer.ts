@@ -776,7 +776,7 @@ export class ServiceContainer {
         this.getGetConfigurationByVersionHandler(),
         this.getGetCheckConfigurationHealthHandler(),
 
-        // Command handlers (legacy)
+        // System-wide configuration handlers
         this.getUpdateSystemConfigurationHandler(),
         this.getUpdateEquipmentConfigurationHandler(),
         this.getResetConfigurationToDefaultHandler(),
@@ -785,7 +785,7 @@ export class ServiceContainer {
         this.getUpdateLabDefaultPositionDisplayHandler(),
         this.getUpdateResourceLabelHandler(),
 
-        // CQRS command handlers (new)
+        // Atomic resource handlers
         this.getAddTankHandler(),
         this.getUpdateTankHandler(),
         this.getDeleteTankHandler(),

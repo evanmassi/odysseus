@@ -43,8 +43,9 @@ import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'reac
 export interface BatchTubeEditorModalProps {
   /** Whether modal is open - controls visibility with exit animation */
   isOpen?: boolean;
-  tubeIds: string[]; // Accept IDs, fetch own data
-  tubes?: TubeData[]; // Legacy support - will be removed
+  tubeIds: string[];
+  /** Optional pre-fetched tubes. If not provided, fetches from cache using tubeIds */
+  tubes?: TubeData[];
   onClose: () => void;
 }
 

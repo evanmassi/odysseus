@@ -311,42 +311,10 @@ export const validateTubePosition = (position: number): boolean => {
  * Validate concentration/unit invariant
  */
 export const validateConcentrationUnit = (
-  concentration: number | undefined, 
+  concentration: number | undefined,
   unit: ConcentrationUnit | undefined
 ): boolean => {
   if (concentration && !unit) return false;
   if (!concentration && unit) return false;
   return true;
-};
-
-/**
- * Transform legacy tube data to new schema
- */
-export const transformLegacyTubeData = (legacyData: any): TubeData => {
-  return tubeDataSchema.parse({
-    id: legacyData.id,
-    location: {
-      tankId: legacyData.tankId,
-      rackId: legacyData.rackId.toString(),
-      boxId: legacyData.boxName,
-      position: legacyData.position
-    },
-    sample: {
-      cellType: legacyData.cellType,
-      donorInternalId: legacyData.donorInternalId,
-      donorSourceId: legacyData.donorSourceId,
-      concentration: legacyData.concentration,
-      concentrationUnit: legacyData.concentrationUnit,
-      date: legacyData.date,
-      media: legacyData.media,
-      cultureCondition: legacyData.cultureCondition,
-      lotNumber: legacyData.lotNumber,
-      notes: legacyData.notes
-    },
-    researcherId: legacyData.researcherId,
-    timestamps: {
-      createdAt: legacyData.createdAt,
-      updatedAt: legacyData.updatedAt
-    }
-  });
 };

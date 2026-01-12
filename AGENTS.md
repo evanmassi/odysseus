@@ -197,7 +197,7 @@ odysseus-app/
 - Domain: `tubeDataSchema`, `tubeSampleSchema`, `tubeLocationSchema`
 - API: `createTubeRequestSchema`, `updateTubeRequestSchema`, `tubeQueryFiltersSchema`
 - Types: `TubeData`, `TubeSample`, `CreateTubeRequest`, `UpdateTubeRequest`
-- Utilities: `validateTubePosition`, `transformLegacyTubeData`
+- Utilities: `validateTubePosition`, `validateConcentrationUnit`
 - Formatters: `formatConcentrationDisplay`, `formatTubeLocation`, `formatTubeDate`
 - Mappers: `tubeDataToCreateRequest`
 

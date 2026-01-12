@@ -28,8 +28,6 @@ export type {
 // WebSocket and query types from domain schemas
 export type { WebSocketMessage, QueryParameters } from '@odysseus/shared-schemas';
 
-// Constants - application-wide constants (moved to legacy-backup)
-
 // Configuration - environment and app config
 export * from './config';
 

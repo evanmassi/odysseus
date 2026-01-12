@@ -44,8 +44,7 @@ export {
 
   // Utilities
   validateTubePosition,
-  validateConcentrationUnit,
-  transformLegacyTubeData
+  validateConcentrationUnit
 } from './tubes/tubeSchemas';
 
 // Tube Validation Utilities

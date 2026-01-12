@@ -107,9 +107,6 @@ export const useTubeStore = create<CleanTubeStore>((set, get) => ({
   setSelection: positions => set({ selectedPositions: positions }),
   setSelectionAnchor: position => set({ selectionAnchor: position }),
 
-  // Socket connection is now managed centrally by AppBootstrapService → SocketQueryBridge
-  // Legacy methods removed - no longer needed
-
   // Reset store to initial state (used on logout)
   resetStore: () =>
     set({

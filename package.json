@@ -87,7 +87,7 @@
       "target": "dir",
       "icon": "assets/icons/icon.ico",
       "forceCodeSigning": false,
-      "signAndEditExecutable": true,
+      "signAndEditExecutable": false,
       "verifyUpdateCodeSignature": false
     }
   },
