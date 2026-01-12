@@ -1,8 +1,8 @@
 /**
  * Toast - Custom notification component for react-hot-toast
  *
- * Modern, minimal toast design with left border accent.
- * Uses existing design system colors for visual consistency.
+ * Toast design with left border accent.
+ * Uses design system colors for visual consistency.
  *
  * Features:
  * - 5 types: success, error, warning, info, loading

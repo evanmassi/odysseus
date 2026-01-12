@@ -141,31 +141,33 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
       // Default error UI
       return (
-        <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-100 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg">
+        <div className="min-h-screen bg-gradient-to-br from-danger-light to-warning-light flex items-center justify-center p-4">
+          <div className="bg-odysseus-surface rounded-xl shadow-2xl p-8 w-full max-w-lg">
             {/* Error Icon and Title */}
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-8 h-8 text-red-500" />
+              <div className="w-16 h-16 bg-danger-light rounded-full flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="w-8 h-8 text-danger-bg" />
               </div>
 
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Something went wrong</h1>
+              <h1 className="text-2xl font-bold text-odysseus-dark mb-2">Something went wrong</h1>
 
-              <p className="text-gray-600">
+              <p className="text-odysseus-muted">
                 The application encountered an unexpected error and needs to recover.
               </p>
             </div>
 
             {/* Error Details */}
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <div className="bg-danger-light border border-danger-border rounded-lg p-4 mb-6">
               <div className="flex items-start space-x-3">
-                <Bug className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                <Bug className="w-5 h-5 text-danger-bg flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-red-800 mb-1">Error Details</h4>
-                  <p className="text-sm text-red-700 break-words">
+                  <h4 className="text-sm font-medium text-validation-error-text mb-1">
+                    Error Details
+                  </h4>
+                  <p className="text-sm text-validation-error-text break-words">
                     {this.state.error?.message ?? 'Unknown error occurred'}
                   </p>
-                  <p className="text-xs text-red-600 mt-2">Error ID: {this.state.errorId}</p>
+                  <p className="text-xs text-danger-text mt-2">Error ID: {this.state.errorId}</p>
                 </div>
               </div>
             </div>
@@ -173,18 +175,18 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             {/* Debug Information (Development Only) */}
             {env.isDev() && this.state.error?.stack && (
               <details className="mb-6">
-                <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800 mb-2">
+                <summary className="text-sm text-odysseus-muted cursor-pointer hover:text-odysseus-dark mb-2">
                   🔧 Stack Trace (Development)
                 </summary>
-                <pre className="text-xs text-gray-700 p-3 bg-gray-100 rounded-lg overflow-auto max-h-40">
+                <pre className="text-xs text-odysseus-muted p-3 bg-odysseus-gray rounded-lg overflow-auto max-h-40">
                   {this.state.error.stack}
                 </pre>
                 {this.state.errorInfo?.componentStack && (
                   <>
-                    <summary className="text-sm text-gray-600 cursor-pointer hover:text-gray-800 mt-3 mb-2">
+                    <summary className="text-sm text-odysseus-muted cursor-pointer hover:text-odysseus-dark mt-3 mb-2">
                       🧩 Component Stack
                     </summary>
-                    <pre className="text-xs text-gray-700 p-3 bg-gray-100 rounded-lg overflow-auto max-h-40">
+                    <pre className="text-xs text-odysseus-muted p-3 bg-odysseus-gray rounded-lg overflow-auto max-h-40">
                       {this.state.errorInfo.componentStack}
                     </pre>
                   </>
@@ -226,19 +228,19 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             </div>
 
             {/* Support Actions */}
-            <div className="border-t border-gray-200 pt-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-3">Need Help?</h3>
+            <div className="border-t border-odysseus-border pt-6">
+              <h3 className="text-sm font-medium text-odysseus-dark mb-3">Need Help?</h3>
 
               <div className="space-y-2">
                 <button
                   onClick={this.copyErrorDetails}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-colors flex items-center space-x-2"
+                  className="w-full text-left px-3 py-2 text-sm text-odysseus-muted hover:bg-odysseus-surface-hover rounded-lg transition-colors flex items-center space-x-2"
                 >
                   <ExternalLink className="w-4 h-4" />
                   <span>Copy error details for support</span>
                 </button>
 
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-odysseus-muted">
                   If this error persists, please contact your system administrator with the error ID
                   above.
                 </p>
@@ -246,8 +248,8 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             </div>
 
             {/* Footer */}
-            <div className="mt-6 text-center border-t border-gray-200 pt-4">
-              <p className="text-xs text-gray-500">Odysseus Laboratory Management System</p>
+            <div className="mt-6 text-center border-t border-odysseus-border pt-4">
+              <p className="text-xs text-odysseus-muted">Odysseus Laboratory Management System</p>
             </div>
           </div>
         </div>
@@ -269,13 +271,15 @@ interface BootstrapErrorProps {
 
 export function BootstrapError({ error, onRetry, canRetry }: BootstrapErrorProps) {
   return (
-    <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+    <div className="bg-danger-light border border-danger-border rounded-lg p-6">
       <div className="flex items-start space-x-4">
-        <AlertTriangle className="w-6 h-6 text-red-500 flex-shrink-0" />
+        <AlertTriangle className="w-6 h-6 text-danger-bg flex-shrink-0" />
         <div className="flex-1">
-          <h3 className="text-lg font-medium text-red-800 mb-2">Initialization Failed</h3>
-          <p className="text-red-700 mb-3">{error.message}</p>
-          <div className="text-sm text-red-600 mb-4">
+          <h3 className="text-lg font-medium text-validation-error-text mb-2">
+            Initialization Failed
+          </h3>
+          <p className="text-validation-error-text mb-3">{error.message}</p>
+          <div className="text-sm text-danger-text mb-4">
             <p>
               Phase: <span className="font-mono">{error.phase}</span>
             </p>

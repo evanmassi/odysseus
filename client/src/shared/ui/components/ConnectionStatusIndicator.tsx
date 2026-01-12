@@ -1,14 +1,14 @@
 /**
  * Connection Status Indicator
- * Phase 3 Step 3: Real-time UX patterns and connection feedback
  *
  * Provides visual feedback about network status, connection quality,
  * and real-time sync status to users.
  */
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useTransition, useRef, useCallback } from 'react';
 
 import { useQueryClient, type MutationCacheNotifyEvent } from '@tanstack/react-query';
+import { RefreshCw, WifiOff } from 'lucide-react';
 
 import { useNetworkStatus, ConnectionQuality } from '@infra/connection/networkMonitor';
 import { getOptimisticUpdatesService } from '@infra/optimistic/optimisticUpdates';
@@ -22,6 +22,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
   const networkStatus = useNetworkStatus(queryClient);
   const [pendingOperations, setPendingOperations] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // Monitor pending optimistic updates
   useEffect(() => {
@@ -39,24 +40,39 @@ export const ConnectionStatusIndicator: React.FC = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Handle click outside to close details card
+  const handleClickOutside = useCallback((event: MouseEvent) => {
+    if (cardRef.current && !cardRef.current.contains(event.target as Node)) {
+      setShowDetails(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!showDetails) return;
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDetails, handleClickOutside]);
+
   // Get connection quality for display
   const connectionQuality = networkStatus.getConnectionQuality();
 
   // Get appropriate icon and color for connection status
+  // Colors use CSS variables from design system (variables.css)
   const getStatusDisplay = () => {
     if (!networkStatus.isOnline) {
       return {
-        icon: '📴',
-        color: '#ef4444', // red-500
-        text: 'Offline',
-        description: 'Working offline - changes will sync when reconnected',
+        icon: 'wifi-off',
+        color: 'var(--color-danger-bg)',
+        text: 'Offline - Read-only',
+        description: 'Viewing cached data, changes blocked until reconnected.',
       };
     }
 
     if (networkStatus.reconnectAttempts > 0) {
       return {
-        icon: '🔄',
-        color: '#f59e0b', // amber-500
+        icon: '◐',
+        color: 'var(--color-warning-bg)',
         text: `Reconnecting... (${networkStatus.reconnectAttempts})`,
         description: 'Attempting to restore connection',
       };
@@ -64,8 +80,8 @@ export const ConnectionStatusIndicator: React.FC = () => {
 
     if (pendingOperations > 0) {
       return {
-        icon: '⏳',
-        color: '#3b82f6', // blue-500
+        icon: '◐',
+        color: 'var(--color-info-bg)',
         text: `Syncing (${pendingOperations})`,
         description: `${pendingOperations} operation${pendingOperations > 1 ? 's' : ''} pending`,
       };
@@ -74,36 +90,36 @@ export const ConnectionStatusIndicator: React.FC = () => {
     switch (connectionQuality) {
       case ConnectionQuality.EXCELLENT:
         return {
-          icon: '🟢',
-          color: '#10b981', // emerald-500
+          icon: '●',
+          color: 'var(--color-success-bg)',
           text: 'Excellent',
           description: 'High-speed connection - all features available',
         };
       case ConnectionQuality.GOOD:
         return {
-          icon: '🟢',
-          color: '#10b981', // emerald-500
+          icon: '●',
+          color: 'var(--color-success-bg)',
           text: 'Connected',
           description: 'Good connection quality',
         };
       case ConnectionQuality.FAIR:
         return {
-          icon: '🟡',
-          color: '#f59e0b', // amber-500
+          icon: '●',
+          color: 'var(--color-warning-bg)',
           text: 'Slow',
           description: 'Connection is slow - some features may be limited',
         };
       case ConnectionQuality.POOR:
         return {
-          icon: '🔴',
-          color: '#ef4444', // red-500
+          icon: '●',
+          color: 'var(--color-danger-bg)',
           text: 'Very Slow',
           description: 'Poor connection - consider checking your network',
         };
       default:
         return {
-          icon: '🟢',
-          color: '#10b981',
+          icon: '●',
+          color: 'var(--color-success-bg)',
           text: 'Connected',
           description: 'Connected to server',
         };
@@ -112,48 +128,89 @@ export const ConnectionStatusIndicator: React.FC = () => {
 
   const status = getStatusDisplay();
 
-  // Don't show if everything is good and no pending operations
+  // Auto-show card for critical states only (offline, reconnecting, syncing)
+  // Slow connection quality is indicated by dot color, not auto-expanding
   const shouldShow =
-    !networkStatus.isOnline ||
-    networkStatus.reconnectAttempts > 0 ||
-    pendingOperations > 0 ||
-    connectionQuality === ConnectionQuality.POOR ||
-    connectionQuality === ConnectionQuality.FAIR;
+    !networkStatus.isOnline || networkStatus.reconnectAttempts > 0 || pendingOperations > 0;
+
+  // Determine dot color based on connection quality
+  // Uses CSS variables via inline styles for consistency
+  const getDotColor = () => {
+    switch (connectionQuality) {
+      case ConnectionQuality.POOR:
+        return 'var(--color-danger-bg)';
+      case ConnectionQuality.FAIR:
+        return 'var(--color-warning-bg)';
+      default:
+        return 'var(--color-success-bg)';
+    }
+  };
+
+  // Determine card border color based on connection quality
+  // Uses CSS variables from design system
+  const getCardBorderColor = () => {
+    switch (connectionQuality) {
+      case ConnectionQuality.POOR:
+        return 'var(--color-danger-bg)';
+      case ConnectionQuality.FAIR:
+        return 'var(--color-warning-bg)';
+      default:
+        return 'var(--color-success-bg)';
+    }
+  };
 
   // Only show in certain conditions or when user wants to see details
   if (!shouldShow && !showDetails) {
     // Show minimal indicator that can be clicked for details
+    // Dot color reflects connection quality using CSS variables
     return (
       <Tooltip content="Connection status - click for details" side="left">
         <button
           onClick={() => setShowDetails(true)}
-          className="fixed bottom-4 right-4 w-3 h-3 rounded-full bg-emerald-500 border-2 border-white shadow-lg hover:scale-110 transition-transform z-50"
+          className="fixed bottom-4 right-4 w-3 h-3 rounded-full border-2 border-white shadow-lg hover:scale-110 transition-transform z-50"
+          style={{ backgroundColor: getDotColor() }}
           aria-label="Connection status indicator"
         />
       </Tooltip>
     );
   }
 
+  // Determine if we're in offline state for special styling
+  const isOffline = !networkStatus.isOnline;
+
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed bottom-4 right-4 z-50" ref={cardRef}>
       <div
-        className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-3 max-w-xs"
-        style={{ minWidth: '200px' }}
+        className={`rounded-lg shadow-lg p-3 border-l-4 ${
+          isOffline
+            ? 'bg-gray-800 border-t border-r border-b border-gray-700'
+            : 'bg-white dark:bg-gray-800 border-t border-r border-b border-gray-200 dark:border-gray-700 max-w-xs'
+        }`}
+        style={{
+          minWidth: isOffline ? '320px' : '200px',
+          borderLeftColor: isOffline ? 'var(--color-danger-bg)' : getCardBorderColor(),
+        }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span style={{ color: status.color }} className="text-sm">
-              {status.icon}
-            </span>
-            <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+            {status.icon === 'wifi-off' ? (
+              <WifiOff className="w-4 h-4 text-[var(--color-danger-bg)]" />
+            ) : (
+              <span style={{ color: status.color }} className="text-sm">
+                {status.icon}
+              </span>
+            )}
+            <span
+              className={`text-sm font-medium ${isOffline ? 'text-[var(--color-danger-bg)]' : 'text-gray-900 dark:text-gray-100'}`}
+            >
               {status.text}
             </span>
           </div>
 
-          {shouldShow && (
+          {!isOffline && (
             <button
               onClick={() => setShowDetails(false)}
-              className="text-gray-400 hover:text-gray-600 text-xs"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xs"
               aria-label="Hide connection details"
             >
               ✕
@@ -161,29 +218,47 @@ export const ConnectionStatusIndicator: React.FC = () => {
           )}
         </div>
 
-        <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{status.description}</p>
+        <p
+          className={`text-xs mt-1 ${isOffline ? 'text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}
+        >
+          {status.description}
+        </p>
 
         {/* Additional details */}
         {(showDetails || shouldShow) && (
-          <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-600">
-            <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
-              {networkStatus.downlink && <div>Speed: {networkStatus.downlink.toFixed(1)} Mbps</div>}
-              {networkStatus.rtt && <div>Latency: {networkStatus.rtt}ms</div>}
-              {networkStatus.effectiveType && (
-                <div>Type: {networkStatus.effectiveType.toUpperCase()}</div>
-              )}
-              <div>
-                Last connected: {new Date(networkStatus.lastConnected).toLocaleTimeString()}
+          <div
+            className={`mt-2 pt-2 border-t ${isOffline ? 'border-gray-600' : 'border-gray-200 dark:border-gray-600'}`}
+          >
+            {/* Online mode: show connection stats */}
+            {!isOffline && (
+              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+                {networkStatus.downlink && (
+                  <div>Speed: {networkStatus.downlink.toFixed(1)} Mbps</div>
+                )}
+                {networkStatus.rtt && <div>Latency: {networkStatus.rtt}ms</div>}
+                {networkStatus.effectiveType && (
+                  <div>Type: {networkStatus.effectiveType.toUpperCase()}</div>
+                )}
+                <div>
+                  Last connected: {new Date(networkStatus.lastConnected).toLocaleTimeString()}
+                </div>
               </div>
-            </div>
+            )}
 
-            {!networkStatus.isOnline && (
-              <button
-                onClick={networkStatus.retryConnection}
-                className="mt-2 w-full bg-action hover:bg-action-hover text-white text-xs py-1 px-2 rounded transition-colors"
-              >
-                Retry Connection
-              </button>
+            {/* Offline mode: compact timestamp + retry button on same row */}
+            {isOffline && (
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-gray-500">
+                  Last connected: {new Date(networkStatus.lastConnected).toLocaleTimeString()}
+                </span>
+                <button
+                  onClick={networkStatus.retryConnection}
+                  className="p-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors"
+                  aria-label="Retry connection"
+                >
+                  <RefreshCw className="w-3 h-3" />
+                </button>
+              </div>
             )}
           </div>
         )}
@@ -236,34 +311,9 @@ export const RealtimeSyncIndicator: React.FC<RealtimeSyncIndicatorProps> = ({
   if (!isVisible || !isAnimating) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-40 flex items-center space-x-2 bg-blue-500 text-white px-3 py-1 rounded-full shadow-lg text-sm">
+    <div className="fixed top-4 right-4 z-40 flex items-center space-x-2 bg-info-bg text-white px-3 py-1 rounded-full shadow-lg text-sm">
       <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
       <span>Syncing...</span>
-    </div>
-  );
-};
-
-/**
- * Offline indicator banner
- */
-export const OfflineBanner: React.FC = () => {
-  const queryClient = useQueryClient();
-  const networkStatus = useNetworkStatus(queryClient);
-
-  if (networkStatus.isOnline) return null;
-
-  return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-warning-bg text-white py-2 px-4 text-center text-sm font-medium">
-      <div className="flex items-center justify-center space-x-2">
-        <span>📴</span>
-        <span>You&apos;re offline. Changes will be saved locally and synced when reconnected.</span>
-        <button
-          onClick={networkStatus.retryConnection}
-          className="ml-4 underline hover:no-underline"
-        >
-          Try to reconnect
-        </button>
-      </div>
     </div>
   );
 };

@@ -333,7 +333,7 @@ const enhancedCache = new EnhancedColorCache();
 // Global cache instance for direct use
 const globalCache = enhancedCache;
 
-// FNV-1a hash function for superior distribution and collision resistance
+// FNV-1a hash function for good distribution and collision resistance
 function hashStringToIndex(str: string, maxIndex: number): number {
   const FNV_OFFSET_BASIS = 0x811c9dc5;
   const FNV_PRIME = 0x01000193;

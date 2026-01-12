@@ -1,11 +1,9 @@
 /**
  * Modal Keyboard Navigation Hook
  *
- * Industry-standard keyboard shortcuts for modals:
+ * Keyboard shortcuts for modals:
  * - Escape: Close/Cancel (only if focus is inside this modal)
  * - Enter: Handled naturally by HTML <form> elements (not intercepted)
- *
- * Zero technical debt, follows existing keyboard navigation patterns
  *
  * Design Principle: Don't interfere with native browser behavior.
  * HTML forms handle Enter → submit naturally since 1993.

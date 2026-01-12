@@ -4,7 +4,7 @@
 // - UserData -> User entity
 // - ResearcherData -> Researcher entity
 
-// Import from shared schemas (single source of truth)
+// Import from shared schemas
 import { type TubeData as SharedTubeData } from '@odysseus/shared-schemas';
 
 // Re-export for backward compatibility

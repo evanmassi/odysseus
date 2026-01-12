@@ -17,7 +17,7 @@
   }
 
   :root {
-    /* Color System - Single source of truth for all UI theme colors */
+    /* Color System */
 
     /* Odysseus Brand Colors */
     --color-odysseus-primary: #2563eb;
@@ -108,13 +108,13 @@
     --color-share-text: #6366f1;
     --color-share-btnText: #ffffff;
 
-    /* Success Theme */
-    --color-success-bg: #22c55e;
-    --color-success-hover: #16a34a;
-    --color-success-text: #22c55e;
+    /* Success Theme (Emerald) */
+    --color-success-bg: #10b981;
+    --color-success-hover: #059669;
+    --color-success-text: #10b981;
     --color-success-btnText: #ffffff;
-    --color-success-light: #dcfce7;
-    --color-success-border: #bbf7d0;
+    --color-success-light: #d1fae5;
+    --color-success-border: #a7f3d0;
 
     /* Info Theme */
     --color-info-bg: #3b82f6;
@@ -210,7 +210,7 @@
     --focus-ring-warning: var(--color-validation-warning-ring);
     --focus-ring-success: var(--color-validation-success-ring);
 
-    /* Legacy compatibility - will be phased out */
+    /* Legacy compatibility */
     --action-focus: var(--color-action-focus);
     --action-focus-glow: color-mix(in srgb, var(--color-action-focus) 70%, transparent);
 

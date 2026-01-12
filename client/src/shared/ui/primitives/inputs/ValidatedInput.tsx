@@ -58,14 +58,14 @@ export function ValidatedInput({
   // Determine if controlled or uncontrolled
   const isUncontrolled = Boolean(registration);
 
-  // Industry-standard programmatic focus using ref + useEffect
+  // Programmatic focus using ref + useEffect
   // More reliable than HTML autoFocus attribute which depends on browser timing
   const inputRef = useRef<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (autoFocus && inputRef.current) {
-      // Industry standard: Wait for modal animation (500ms) before focusing
-      // 150ms provides enough time without feeling sluggish to users
+      // Wait for modal animation before focusing
+      // 150ms provides enough time without feeling sluggish
       setTimeout(() => {
         inputRef.current?.focus();
       }, 150);

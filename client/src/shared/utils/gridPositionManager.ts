@@ -1,8 +1,7 @@
 /**
  * Grid Position Manager
  *
- * Centralized position management service that provides a single source of truth
- * for the current focused position in the grid. Handles validation, bounds checking,
+ * Centralized service for grid position state. Handles validation, bounds checking,
  * and event emission for position changes from any source (mouse, keyboard, programmatic).
  */
 

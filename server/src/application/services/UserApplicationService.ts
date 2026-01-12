@@ -446,7 +446,7 @@ export class UserApplicationService {
     // Generate unique username from provided name
     const username = await this.generateUsername(request.firstName, request.lastName);
 
-    // 1. Create Person entity (single source of truth for profile data)
+    // 1. Create Person entity
     const person = Person.create(
       request.firstName,
       request.lastName,

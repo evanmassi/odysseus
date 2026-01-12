@@ -95,7 +95,7 @@ export function SearchContainer(_props: SearchContainerProps) {
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Modern Search Bar */}
+      {/* Search Bar */}
       <div className="relative">
         <div className="flex items-center">
           <div className="relative flex-1">

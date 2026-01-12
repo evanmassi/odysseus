@@ -26,7 +26,6 @@ export class RolePermissionService {
   
   /**
    * Complete role-permission mapping
-   * Single source of truth for all role permissions
    */
   private static readonly ROLE_PERMISSION_MATRIX: Record<UserRole, readonly Permission[]> = {
     /**

@@ -762,7 +762,7 @@ export class User {
     // Store hashed token with salt embedded (format: salt:hash)
     this._passwordResetToken = `${salt}:${hashedToken}`;
 
-    // Set 15-minute expiry (industry standard for password reset)
+    // Set 15-minute expiry
     this._passwordResetExpiry = new Date(Date.now() + 15 * 60 * 1000);
 
     // Return unhashed token for URL (only time it's visible)

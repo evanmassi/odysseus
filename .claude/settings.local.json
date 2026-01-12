@@ -18,7 +18,10 @@
       "Bash(npm test:*)",
       "WebFetch(domain:codepen.io)",
       "WebSearch",
-      "Bash(npm run lint:client:*)"
+      "Bash(npm run lint:client:*)",
+      "Bash(npm install:*)",
+      "Bash(grep:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

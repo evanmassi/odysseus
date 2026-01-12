@@ -1,8 +1,8 @@
 /**
  * Error Boundary Component
  *
- * Professional error boundary with retry functionality and proper error reporting
- * Handles runtime errors in React component tree
+ * Error boundary with retry functionality and error reporting.
+ * Handles runtime errors in React component tree.
  */
 
 import type { ReactNode, ErrorInfo } from 'react';

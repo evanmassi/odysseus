@@ -33,11 +33,11 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
     switch (phase) {
       case 'preparing':
       case 'validating':
-        return <Loader2 className="w-5 h-5 animate-spin text-blue-500" />;
+        return <Loader2 className="w-5 h-5 animate-spin text-info-text" />;
       case 'updating':
         return <Loader2 className="w-5 h-5 animate-spin text-odysseus-primary" />;
       case 'completing':
-        return <CheckCircle className="w-5 h-5 text-emerald-500" />;
+        return <CheckCircle className="w-5 h-5 text-success-text" />;
       default:
         return <Loader2 className="w-5 h-5 animate-spin text-gray-500" />;
     }
@@ -69,7 +69,7 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
 
           {/* Progress Bar */}
           <div className="mb-6">
-            <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+            <div className="w-full bg-odysseus-border rounded-full h-3 mb-2">
               <div
                 className="bg-odysseus-primary h-3 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${progressPercentage}%` }}
@@ -82,14 +82,14 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
 
           {/* Error Summary */}
           {hasErrors && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center space-x-2 text-red-800 mb-2">
+            <div className="mb-4 p-3 bg-danger-light border border-danger-border rounded-lg">
+              <div className="flex items-center space-x-2 text-validation-error-text mb-2">
                 <AlertCircle size={16} />
                 <span className="font-medium text-sm">
                   {progress.errors.length} issue{progress.errors.length > 1 ? 's' : ''} encountered
                 </span>
               </div>
-              <div className="max-h-20 overflow-y-auto text-xs text-red-700 space-y-1">
+              <div className="max-h-20 overflow-y-auto text-xs text-validation-error-text space-y-1">
                 {progress.errors.slice(0, 3).map((error, index) => (
                   <div key={index} className="flex items-start space-x-1">
                     <XCircle size={12} className="mt-0.5 flex-shrink-0" />
@@ -99,7 +99,7 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
                   </div>
                 ))}
                 {progress.errors.length > 3 && (
-                  <div className="text-red-600 italic">
+                  <div className="text-danger-text italic">
                     +{progress.errors.length - 3} more errors...
                   </div>
                 )}

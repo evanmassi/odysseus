@@ -5,7 +5,7 @@
  * Architecture:
  * - Domain schemas (tubeSampleSchema, tubeMediaSchema): Strict types, no preprocessing
  * - Request schemas (createTubeRequestSchema, updateTubeRequestSchema): Preprocessing for HTML forms
- * - Validation utilities in tubeValidation.ts provide single source of truth for parsing
+ * - Validation utilities in tubeValidation.ts provide centralized parsing
  */
 
 import { z } from 'zod';
@@ -244,7 +244,6 @@ export const batchTubeOperationSchema = z.object({
  * - Client should use createTubeRequestSchema directly (API contract)
  * - No transformation needed (form data = API data)
  * - Reduces duplication and drift
- * - Single source of truth (API schema)
  *
  * Migration path:
  * - Client forms: Use createTubeRequestSchema instead

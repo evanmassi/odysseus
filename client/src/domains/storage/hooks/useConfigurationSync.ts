@@ -36,6 +36,8 @@ export function useConfigurationSync() {
   }, []);
 
   // Initialize server with defaults if no config exists (fresh install)
+  // Note: Only runs when server is reachable but returns 404/error for config
+  // Does NOT run when offline (query uses cached data or pauses)
   useEffect(() => {
     if (isError && !hasInitialized.current && !initializeMutation.isPending) {
       hasInitialized.current = true;
@@ -52,8 +54,26 @@ export function useConfigurationSync() {
             logger.info('Fresh install: initialized default configuration on server');
           },
           onError: initError => {
-            logger.error('Failed to initialize configuration', { initError });
-            hasInitialized.current = false; // Allow retry on error
+            // Only allow retry for transient errors (network, server issues)
+            // Do NOT retry for "config already exists" - that means config IS there
+            const errorMessage = initError instanceof Error ? initError.message : String(initError);
+            const isAlreadyExists = errorMessage.toLowerCase().includes('already exists');
+            const isOffline =
+              typeof initError === 'object' &&
+              initError !== null &&
+              'code' in initError &&
+              (initError as { code: unknown }).code === 'OFFLINE_WRITE_BLOCKED';
+
+            if (isAlreadyExists || isOffline) {
+              // Config exists or we're offline - don't retry, just wait for query to succeed
+              logger.debug('Configuration init skipped', {
+                reason: isAlreadyExists ? 'already exists' : 'offline',
+              });
+            } else {
+              // Transient error - allow retry
+              logger.error('Failed to initialize configuration', { initError });
+              hasInitialized.current = false;
+            }
           },
         }
       );

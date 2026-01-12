@@ -4,11 +4,10 @@
  * Clean composition root that eliminates provider hell from App.tsx.
  * Centralizes all app-wide providers in proper order.
  */
-import React, { Component } from 'react';
+import React, { Component, useEffect, useRef } from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { Toaster } from 'react-hot-toast';
 
 // Performance debugging removed for clean build
@@ -17,11 +16,10 @@ import { logger } from '@shared/infrastructure/logger';
 import {
   ConnectionStatusIndicator,
   RealtimeSyncIndicator,
-  OfflineBanner,
 } from '@shared/ui/components/ConnectionStatusIndicator';
 import { notifications } from '@shared/utils/notifications';
 
-import { queryClient } from './queryClient';
+import { queryClient, setupQueryPersistence } from './queryClient';
 
 // Dev-only: Expose notifications to console for testing
 if (env.isDev()) {
@@ -36,17 +34,23 @@ interface ProvidersProps {
  * Root providers wrapper for the entire application
  */
 export function Providers({ children }: ProvidersProps) {
+  const persistenceInitialized = useRef(false);
+
+  // Initialize query cache persistence once on mount
+  useEffect(() => {
+    if (!persistenceInitialized.current) {
+      setupQueryPersistence();
+      persistenceInitialized.current = true;
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipPrimitive.Provider delayDuration={300} skipDelayDuration={300}>
-        {/* React Query DevTools - only in development */}
-        {env.isDev() && <ReactQueryDevtools initialIsOpen={false} />}
-
         {/* Cache Performance Monitoring - only in development */}
         {/* Performance debugging removed for clean build */}
 
         {/* Connection Status & Real-time Indicators */}
-        <OfflineBanner />
         <RealtimeSyncIndicator />
         <ConnectionStatusIndicator />
 

@@ -79,7 +79,7 @@ export class ConfigurationController {
     private getConfigurationByVersionHandler: GetConfigurationByVersionQueryHandler,
     private checkConfigurationHealthHandler: CheckConfigurationHealthQueryHandler,
 
-    // Command handlers (legacy)
+    // System-wide configuration handlers
     private updateSystemConfigurationHandler: UpdateSystemConfigurationCommandHandler,
     private updateEquipmentConfigurationHandler: UpdateEquipmentConfigurationCommandHandler,
     private resetConfigurationHandler: ResetConfigurationToDefaultCommandHandler,
@@ -88,7 +88,7 @@ export class ConfigurationController {
     private updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler,
     private updateResourceLabelHandler: UpdateResourceLabelCommandHandler,
 
-    // CQRS command handlers (new)
+    // Atomic resource handlers
     private addTankHandler: AddTankCommandHandler,
     private updateTankHandler: UpdateTankCommandHandler,
     private deleteTankHandler: DeleteTankCommandHandler,

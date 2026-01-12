@@ -33,6 +33,7 @@ import {
   useUpdateTubeMutation,
   useDeleteTubeMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
+import { isOfflineError } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
 import { BaseModal } from '@shared/ui/components/modals';
@@ -243,7 +244,10 @@ function EditModeForm({
         notifications.error(result.error ?? 'Failed to update tube');
       }
     } catch (error) {
-      notifications.error('Failed to update tube');
+      // Skip notification for offline errors - global handler already shows it
+      if (!isOfflineError(error)) {
+        notifications.error('Failed to update tube');
+      }
     }
   };
 
@@ -254,7 +258,10 @@ function EditModeForm({
       notifications.success('Tube removed successfully');
       onClose();
     } catch (error) {
-      notifications.error('Failed to remove tube');
+      // Skip notification for offline errors - global handler already shows it
+      if (!isOfflineError(error)) {
+        notifications.error('Failed to remove tube');
+      }
     }
   };
 
@@ -528,7 +535,10 @@ function CreateModeContent({
       : undefined, // Batch mode: notification handled after all tubes are created
     onError: isSingleTube
       ? error => {
-          notifications.error(`Failed to create tube: ${error.message}`);
+          // Skip notification for offline errors - global handler already shows it
+          if (!isOfflineError(error)) {
+            notifications.error(`Failed to create tube: ${error.message}`);
+          }
         }
       : undefined, // Batch mode: errors handled in handleFormSubmit
   });
@@ -581,6 +591,10 @@ function CreateModeContent({
             errors.push(`Position ${location.position}: ${result.error ?? 'Unknown error'}`);
           }
         } catch (error) {
+          // If offline, stop processing - global handler shows notification
+          if (isOfflineError(error)) {
+            return;
+          }
           errorCount++;
           errors.push(
             `Position ${location.position}: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -604,6 +618,10 @@ function CreateModeContent({
             });
             successCount++;
           } catch (error) {
+            // If offline, stop processing - global handler shows notification
+            if (isOfflineError(error)) {
+              return;
+            }
             errorCount++;
             errors.push(
               `Position ${location.position}: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -646,14 +664,20 @@ function CreateModeContent({
           logger.warn('Tube operation errors', { errors });
         }
       } else {
-        notifications.error('Failed to process any positions');
-        if (errors.length > 0) {
-          notifications.error(errors[0]);
+        // Skip error notification if it was an offline error - global handler shows it
+        if (!errors.some(e => e.includes('offline'))) {
+          notifications.error('Failed to process any positions');
+          if (errors.length > 0) {
+            notifications.error(errors[0]);
+          }
         }
       }
     } catch (error) {
-      logger.error('Tube creation error', { error });
-      notifications.error('An unexpected error occurred during tube creation');
+      // Skip notification for offline errors - global handler already shows it
+      if (!isOfflineError(error)) {
+        logger.error('Tube creation error', { error });
+        notifications.error('An unexpected error occurred during tube creation');
+      }
     }
   };
 

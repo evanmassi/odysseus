@@ -13,6 +13,8 @@ import {
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
+import { isOffline } from '@infra/connection/networkState';
+
 import { transformApiResponse, ResponseTransformers } from './responseTransformers';
 
 import type { TokenProvider } from '@shared/session/types';
@@ -26,6 +28,41 @@ const SESSION_TERMINAL_ERRORS: Set<string> = new Set([
   API_ERROR_CODES.SESSION_ABSOLUTE_TIMEOUT,
   API_ERROR_CODES.SESSION_REVOKED,
 ]);
+
+/**
+ * Error thrown when attempting write operations while offline.
+ * Extends ApiError for consistent error handling throughout the app.
+ */
+export class OfflineWriteError extends ApiError {
+  constructor() {
+    super(
+      "You're offline. Changes cannot be saved until connection is restored.",
+      0, // status 0 indicates network error
+      'OFFLINE_WRITE_BLOCKED'
+    );
+    this.name = 'OfflineWriteError';
+  }
+}
+
+/**
+ * HTTP methods that modify data and require network connectivity.
+ * GET requests are allowed offline (served from cache).
+ */
+const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+/**
+ * Check if an error is an offline write error.
+ * Use this to avoid showing duplicate error notifications.
+ */
+export function isOfflineError(error: unknown): boolean {
+  return (
+    error instanceof OfflineWriteError ||
+    (typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code: unknown }).code === 'OFFLINE_WRITE_BLOCKED')
+  );
+}
 
 export interface HttpClientConfig {
   baseURL?: string;
@@ -62,6 +99,12 @@ export class HttpClient {
     data?: unknown,
     headers?: Record<string, string>
   ): Promise<ApiResponse<T>> {
+    // Block write operations when offline to prevent data loss
+    // Uses shared network state (server-verified) instead of unreliable navigator.onLine
+    if (WRITE_METHODS.has(method) && isOffline()) {
+      throw new OfflineWriteError();
+    }
+
     const fullUrl = url.startsWith('http') ? url : `${this.baseURL}${url}`;
     const requestHeaders = { ...this.defaultHeaders, ...headers };
 

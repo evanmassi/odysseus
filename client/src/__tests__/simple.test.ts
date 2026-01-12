@@ -1,6 +1,6 @@
 // Simple test to verify infrastructure
 
-describe('Phase 0 Infrastructure Test', () => {
+describe('Infrastructure Test', () => {
   it('should run basic test', () => {
     expect(1 + 1).toBe(2);
   });

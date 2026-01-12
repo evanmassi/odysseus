@@ -50,7 +50,7 @@ export function RackRow({
   const isRackOwnedByUser = isOwnedByCurrentUser(rack);
   const isUnassigned = !rack.assignedUserId;
 
-  // Left border accent with subtle tint (modern, less visual weight)
+  // Left border accent with subtle tint
   const leftBorderClass = isRackOwnedByUser
     ? 'border-l-ownership-user-badge'
     : isUnassigned

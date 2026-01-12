@@ -7,6 +7,7 @@ import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useSearchStore } from '@domains/search/stores/searchStore';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { initializeNetworkMonitor, cleanupNetworkMonitor } from '@infra/connection/networkMonitor';
+import { isOffline, resetNetworkState } from '@infra/connection/networkState';
 import { initializeOptimisticUpdates } from '@infra/optimistic/optimisticUpdates';
 import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
 import { logger } from '@shared/infrastructure/logger';
@@ -116,18 +117,63 @@ export class AppBootstrapService {
 
       // Initialize advanced real-time systems
       this.updateStep('socket-connection', false);
+
+      // Early offline detection - check before attempting network operations
+      if (!navigator.onLine) {
+        logger.warn('Browser reports offline state during bootstrap');
+        this.state.currentStep = 'error';
+        this.state.error = 'OFFLINE_DURING_INIT';
+        this.state.isLoading = false;
+        this.isInitialized = false;
+        this.notify();
+        return; // Exit bootstrap early, don't throw error
+      }
+
       try {
-        // Initialize network monitoring first
-        initializeNetworkMonitor(queryClient);
+        // Initialize network monitoring first and wait for connectivity verification
+        // This ensures NetworkMonitor is ready before socket starts connecting
+        const networkMonitor = initializeNetworkMonitor(queryClient);
+        await networkMonitor.waitForInitialization();
+
+        // Check if network monitor detected offline state (uses shared networkState)
+        if (isOffline()) {
+          logger.warn('Network monitor detected offline state during bootstrap');
+          this.state.currentStep = 'error';
+          this.state.error = 'OFFLINE_DURING_INIT';
+          this.state.isLoading = false;
+          this.isInitialized = false;
+          this.notify();
+          return; // Exit bootstrap early, don't throw error
+        }
 
         // Initialize optimistic updates service
         initializeOptimisticUpdates(queryClient);
 
         // Initialize socket with React Query integration
+        // Socket will notify NetworkMonitor of connection state changes
         await initializeSocket(queryClient);
 
         this.updateStep('socket-connection', true);
       } catch (socketError) {
+        // Check if this is an offline-related error
+        const errorMessage =
+          socketError instanceof Error ? socketError.message : String(socketError);
+        const isOfflineError =
+          errorMessage.includes('xhr poll error') ||
+          errorMessage.includes('timeout') ||
+          errorMessage.includes('network') ||
+          !navigator.onLine;
+
+        if (isOfflineError) {
+          logger.warn('Offline-related error during bootstrap', { socketError });
+          this.state.currentStep = 'error';
+          this.state.error = 'OFFLINE_DURING_INIT';
+          this.state.isLoading = false;
+          this.isInitialized = false;
+          this.notify();
+          return; // Exit bootstrap early with offline state
+        }
+
         logger.error('Bootstrap real-time systems initialization failed', { socketError });
         this.updateStep('socket-connection', false, 'Failed to initialize real-time systems');
         throw socketError;
@@ -167,6 +213,10 @@ export class AppBootstrapService {
       completed: false,
       error: undefined,
     }));
+
+    // Reset network state so we get fresh connectivity check on retry
+    resetNetworkState();
+    cleanupNetworkMonitor();
 
     this.isInitialized = false; // Reset flag to allow retry
     void this.bootstrap(queryClient);

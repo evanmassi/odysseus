@@ -120,6 +120,14 @@
   }
 }
 
+@keyframes progress-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
 @layer components {
   .animate-modal-backdrop-in {
     animation: modal-backdrop-in 250ms ease-out forwards;
@@ -173,4 +181,17 @@
   .animate-sketch-content-out {
     animation: sketch-content-out 150ms ease-in forwards;
   }
+}
+
+.progress-bar-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: progress-shimmer 1.5s ease-in-out infinite;
 }

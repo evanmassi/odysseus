@@ -93,7 +93,7 @@ export class PasswordValidator {
    * Validates password and throws descriptive errors
    */
   static enforce(password: string, config: PasswordRequirementsConfig): void {
-    // Check max length first (security best practice)
+    // Check max length first to prevent DoS via hashing
     if (password.length > 128) {
       throw new Error('Password cannot exceed 128 characters');
     }

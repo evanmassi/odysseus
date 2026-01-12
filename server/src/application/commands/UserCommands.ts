@@ -130,7 +130,7 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
     await this.userRepository.save(user);
 
     // Revoke all other sessions for security (except current session)
-    // Industry standard: changing password logs out all other devices
+    // Changing password logs out all other devices
     if (command.currentSessionId) {
       const activeSessions = await this.userSessionRepository.findActiveSessionsByUserId(user.id);
       const otherSessionIds = activeSessions

@@ -13,7 +13,7 @@ const PERSON_COLUMNS = `
 /**
  * PersonRepository - Person data access
  *
- * Person is the single source of truth for human identity.
+ * Person stores human identity (name, email, department).
  */
 export class PersonRepository implements IPersonRepository {
 

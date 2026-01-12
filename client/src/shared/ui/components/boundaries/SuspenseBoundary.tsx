@@ -1,8 +1,8 @@
 /**
  * Suspense Boundary Component
  *
- * Professional Suspense boundary with proper error handling and loading states
- * Provides consistent lazy loading experience across the application
+ * Suspense boundary with error handling and loading states.
+ * Provides consistent lazy loading experience across the application.
  */
 
 import type { ReactNode } from 'react';
@@ -55,8 +55,10 @@ const DefaultLoadingFallback: React.FC<DefaultLoadingFallbackProps> = ({
     aria-label={ariaLabel ?? `Loading ${name ?? 'component'}...`}
   >
     <div className="flex items-center space-x-3">
-      <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary-600 border-t-transparent" />
-      <span className="text-neutral-600 text-sm">{name ? `Loading ${name}...` : 'Loading...'}</span>
+      <div className="animate-spin rounded-full h-6 w-6 border-2 border-odysseus-primary border-t-transparent" />
+      <span className="text-odysseus-muted text-sm">
+        {name ? `Loading ${name}...` : 'Loading...'}
+      </span>
     </div>
   </div>
 );
@@ -88,18 +90,15 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
           </svg>
         </div>
 
-        <h3 className="text-lg font-semibold text-neutral-900 mb-2">
+        <h3 className="text-lg font-semibold text-odysseus-dark mb-2">
           Failed to load {name ?? 'component'}
         </h3>
 
-        <p className="text-neutral-600 mb-4 max-w-sm">
+        <p className="text-odysseus-muted mb-4 max-w-sm">
           {error.message || 'Something went wrong while loading this component.'}
         </p>
 
-        <button
-          onClick={retry}
-          className="btn px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors"
-        >
+        <button onClick={retry} className="btn-primary px-4 py-2">
           Try Again
         </button>
       </div>

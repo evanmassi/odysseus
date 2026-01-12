@@ -14,6 +14,7 @@
 import { z } from 'zod';
 
 import { queryKeys } from '@app/queryKeys';
+import { getNetworkMonitor } from '@infra/connection/networkMonitor';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
@@ -230,7 +231,6 @@ export class SocketQueryBridge {
     this.setupUserEventHandlers();
     this.setupConfigurationEventHandlers();
     this.setupReconnectionHandlers();
-    this.setupOnlineOfflineHandlers();
 
     this.isInitialized = true;
   }
@@ -250,23 +250,7 @@ export class SocketQueryBridge {
       this.isInitialized = false;
       // Note: lastKnownConfigVersion intentionally preserved (session state)
     }
-
-    // Cleanup online/offline listeners
-    window.removeEventListener('online', this.handleOnline);
-    window.removeEventListener('offline', this.handleOffline);
   }
-
-  // Bound handlers for cleanup
-  private handleOnline = () => {
-    void this.queryClient.invalidateQueries({
-      queryKey: queryKeys.storage.storage(),
-    });
-    notifications.info('Connection restored - syncing latest data');
-  };
-
-  private handleOffline = () => {
-    notifications.warning('No internet connection - working in offline mode');
-  };
 
   /**
    * Get current connection status
@@ -296,19 +280,18 @@ export class SocketQueryBridge {
         }
       }
 
-      notifications.success('Connected to server');
+      // Notify NetworkMonitor of socket connection
+      getNetworkMonitor()?.notifySocketConnected();
     });
 
     this.socket.on('disconnect', (reason: string) => {
       this.isConnected = false;
-      logger.warn('Disconnected from server', {
-        reason,
-        timestamp: new Date().toISOString(),
-      });
+      logger.warn('Socket disconnected', { reason, timestamp: new Date().toISOString() });
 
-      // Only show notification for unexpected disconnections
+      // Notify NetworkMonitor of socket disconnection
+      // NetworkMonitor handles all user-facing notifications
       if (reason !== 'io client disconnect') {
-        notifications.error('Disconnected from server');
+        getNetworkMonitor()?.notifySocketDisconnected();
       }
     });
 
@@ -318,11 +301,7 @@ export class SocketQueryBridge {
         stack: error.stack,
         timestamp: new Date().toISOString(),
       });
-
-      // Don't spam notifications on repeated connection errors
-      if (!this.isConnected) {
-        notifications.error('Failed to connect to server');
-      }
+      // NetworkMonitor handles connection status - no notification here
     });
   }
 
@@ -823,14 +802,13 @@ export class SocketQueryBridge {
   private setupReconnectionHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.on('reconnect', (_attemptNumber: number) => {
+    this.socket.on('reconnect', () => {
       // Invalidate all queries to refetch fresh data after reconnection
       void this.queryClient.invalidateQueries();
-
-      notifications.success('Reconnected to server - data refreshed');
+      // Note: NetworkMonitor handles the "Connection restored" notification
     });
 
-    this.socket.on('reconnect_attempt', (_attemptNumber: number) => {
+    this.socket.on('reconnect_attempt', () => {
       // Silent reconnection attempts
     });
 
@@ -842,22 +820,6 @@ export class SocketQueryBridge {
     this.socket.on('reconnect_error', (error: Error) => {
       logger.error('Reconnection error', { error });
     });
-  }
-
-  /**
-   * Handle online/offline transitions
-   * Note: React Query automatically handles offline mode by default.
-   * When offline: queries don't refetch, mutations queue up
-   * When back online: queries automatically retry, mutations execute
-   */
-  private setupOnlineOfflineHandlers(): void {
-    // Remove existing listeners first (idempotent - prevents duplicates)
-    window.removeEventListener('online', this.handleOnline);
-    window.removeEventListener('offline', this.handleOffline);
-
-    // Then add fresh ones
-    window.addEventListener('online', this.handleOnline);
-    window.addEventListener('offline', this.handleOffline);
   }
 }
 

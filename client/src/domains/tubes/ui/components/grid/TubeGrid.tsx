@@ -150,7 +150,7 @@ export function TubeGrid({
     event.preventDefault();
 
     // Replace selection with clicked position if not already selected
-    // (Industry standard: right-click on unselected item selects only that item)
+    // (right-click on unselected item selects only that item)
     if (!controller.isPositionSelected(position)) {
       controller.actions.setSelection(position);
     }

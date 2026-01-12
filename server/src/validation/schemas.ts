@@ -26,8 +26,8 @@ export const CreateTubeHttpSchema = z.union([
 
 export const UpdateTubeHttpSchema = updateTubeRequestSchema;
 
-// Use shared profile schema directly - single source of truth
-// This eliminates duplication and ensures compile-time alignment with DTOs
+// Use shared profile schema directly
+// Eliminates duplication and ensures compile-time alignment with DTOs
 export const CreateResearcherHttpSchema = createResearcherProfileSchema;
 
 // TypeScript compile-time assertion to ensure types stay aligned

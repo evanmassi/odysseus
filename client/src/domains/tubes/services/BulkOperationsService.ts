@@ -229,7 +229,7 @@ export class BulkOperationsService {
    */
   async fallbackIndividualUpdates(
     updates: BulkUpdateItem[],
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Legacy Zustand store pattern, will be typed in Phase 2
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Store interface varies by caller
     tubeStore: any,
     onProgress?: BulkProgressCallback
   ): Promise<BulkUpdateResult> {

@@ -1,7 +1,6 @@
 /**
  * Grid UI Store
  * Manages ephemeral grid UI state (mouse position, clipboard)
- * Following industry-standard patterns with minimal state
  */
 
 import { create } from 'zustand';

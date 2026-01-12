@@ -11,7 +11,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
  * const hasPermission = user.hasPermission(permission);
  */
 export class Permission {
-  // Permission Registry - Single Source of Truth
+  // Permission Registry
   
   /**
    * Tube Management Permissions

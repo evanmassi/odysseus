@@ -2,7 +2,7 @@
  * AnimatedCheckmark Component
  *
  * SVG-based animated checkmark with circle stroke animation.
- * Professional success indicator for form submissions.
+ * Used as success indicator for form submissions.
  */
 import { useEffect, useState } from 'react';
 
@@ -22,12 +22,7 @@ export function AnimatedCheckmark({ size = 48, className = '' }: AnimatedCheckma
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
-      <svg
-        width={size}
-        height={size}
-        viewBox="0 0 52 52"
-        className="animate-checkmark"
-      >
+      <svg width={size} height={size} viewBox="0 0 52 52" className="animate-checkmark">
         {/* Circle */}
         <circle
           cx="26"

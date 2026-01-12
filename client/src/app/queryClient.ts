@@ -1,8 +1,13 @@
 /**
- * React Query Client Configuration - Optimized for Socket-Driven Real-time Updates
- * Phase 3 Step 2: Tuned for performance with centralized socket integration
+ * React Query Client Configuration
+ *
+ * Optimized for socket-driven real-time updates with offline persistence.
+ * Core data (tubes, storage, researchers) persists to localStorage for
+ * offline read access. Sensitive data (sessions, admin metrics) is excluded.
  */
+import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
+import { persistQueryClient } from '@tanstack/react-query-persist-client';
 
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
@@ -148,6 +153,11 @@ const mutationRetryLogic = (failureCount: number, error: unknown): boolean => {
     return false;
   }
 
+  // Never retry offline write errors - user is offline, retrying won't help
+  if (hasCode(error) && error.code === 'OFFLINE_WRITE_BLOCKED') {
+    return false;
+  }
+
   // Retry server errors (5xx) and network failures up to 2 times
   if (hasStatus(error) && (error.status >= 500 || error.status === 0)) {
     return failureCount < 2;
@@ -228,6 +238,12 @@ const handleMutationError = (
     }
   }
 
+  // Offline write error - use deduplicated notification to prevent multiple toasts
+  if (hasCode(error) && error.code === 'OFFLINE_WRITE_BLOCKED') {
+    notifications.offlineError();
+    return;
+  }
+
   if (hasStatus(error) && error.status >= 500) {
     notifications.error('Server error. Your changes could not be saved.');
   } else if (hasStatus(error) && error.status >= 400 && error.status < 500) {
@@ -275,8 +291,8 @@ const defaultOptions: DefaultOptions = {
     retry: mutationRetryLogic,
     retryDelay: retryDelay,
 
-    // Network mode for mutations
-    networkMode: 'online',
+    // Always attempt mutations - our HTTP interceptor handles offline blocking
+    networkMode: 'always',
   },
 };
 
@@ -382,3 +398,54 @@ export const DOMAIN_QUERY_OPTIONS = {
     refetchOnMount: false, // Invalidated by socket events
   },
 } as const;
+
+/**
+ * Query keys that should NOT be persisted to localStorage.
+ * Excludes sensitive/stale data that shouldn't survive restarts.
+ */
+const EXCLUDED_QUERY_PREFIXES = [
+  'users', // User sessions, settings - sensitive
+  'admin', // Admin metrics, audit logs - sensitive and stale quickly
+  'auth', // Auth state - handled by SessionManager
+] as const;
+
+/**
+ * Determines if a query should be persisted for offline access.
+ * Persists core inventory data, excludes sensitive/ephemeral data.
+ */
+function shouldPersistQuery(queryKey: readonly unknown[]): boolean {
+  const firstKey = queryKey[0];
+  if (typeof firstKey !== 'string') return false;
+
+  return !EXCLUDED_QUERY_PREFIXES.some(prefix => firstKey.startsWith(prefix));
+}
+
+/**
+ * Configure offline persistence for React Query cache.
+ * Called once during app initialization.
+ */
+export function setupQueryPersistence(): void {
+  const persister = createSyncStoragePersister({
+    storage: window.localStorage,
+    key: 'odysseus-query-cache',
+  });
+
+  void persistQueryClient({
+    queryClient,
+    persister,
+    maxAge: 1000 * 60 * 60 * 24, // 24 hours
+    dehydrateOptions: {
+      shouldDehydrateQuery: query => {
+        // Only persist successful queries that pass our filter
+        const defaultShouldDehydrate = query.state.status === 'success';
+        return defaultShouldDehydrate && shouldPersistQuery(query.queryKey);
+      },
+    },
+  });
+
+  if (env.isDev()) {
+    logger.debug('Query persistence configured', {
+      excludedPrefixes: EXCLUDED_QUERY_PREFIXES,
+    });
+  }
+}

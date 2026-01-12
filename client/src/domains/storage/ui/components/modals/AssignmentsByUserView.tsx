@@ -230,7 +230,7 @@ export function AssignmentsByUserView({
         const isCurrentUser = userAssignment.userId === currentUserId;
         const isUnassigned = userAssignment.userId === null;
 
-        // Left border accent with subtle tint (modern, less visual weight)
+        // Left border accent with subtle tint
         const headerLeftBorder = isCurrentUser
           ? 'border-l-ownership-user-badge'
           : isUnassigned

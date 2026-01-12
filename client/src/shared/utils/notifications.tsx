@@ -36,8 +36,9 @@ export const notifications = {
    * Success notification - completed actions
    * Green border, auto-dismisses after 3s
    */
-  success: (message: string): string => {
+  success: (message: string, options?: { id?: string }): string => {
     return toast.custom(t => <Toast type="success" message={message} visible={t.visible} />, {
+      id: options?.id,
       duration: DURATION.SUCCESS,
       position: 'bottom-right',
     });
@@ -47,11 +48,33 @@ export const notifications = {
    * Error notification - failed operations
    * Red border, auto-dismisses after 5s
    */
-  error: (message: string): string => {
+  error: (message: string, options?: { id?: string }): string => {
     return toast.custom(t => <Toast type="error" message={message} visible={t.visible} />, {
+      id: options?.id,
       duration: DURATION.ERROR,
       position: 'bottom-right',
     });
+  },
+
+  /**
+   * Offline error notification - deduplicated
+   * Uses fixed ID to prevent multiple toasts when offline
+   */
+  offlineError: (): string => {
+    return toast.custom(
+      t => (
+        <Toast
+          type="error"
+          message="You're offline. Changes cannot be saved until connection is restored."
+          visible={t.visible}
+        />
+      ),
+      {
+        id: 'offline-write-error', // Fixed ID prevents duplicates
+        duration: DURATION.ERROR,
+        position: 'bottom-right',
+      }
+    );
   },
 
   /**

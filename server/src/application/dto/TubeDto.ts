@@ -64,9 +64,9 @@ export interface TubeSearchResponse {
 }
 
 /**
- * DTO Conversion Utilities - Phase 3 Clean Architecture
- * 
- *Thin mappers only
+ * DTO Conversion Utilities
+ *
+ * Thin mappers only
  * - No validation (trust Zod)
  * - No parsing (already done)
  * - No defaults (domain handles)

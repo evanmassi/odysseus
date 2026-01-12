@@ -118,7 +118,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
     return null;
   }
 
-  // Helper: Highlight matching terms with modern underline accent
+  // Helper: Highlight matching terms with underline accent
   // Uses matchedTerms from server (includes synonyms and normalized forms)
   const highlightText = (text: string, searchQuery: string): React.ReactNode => {
     if (!searchQuery || !text) return text;

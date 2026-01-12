@@ -44,7 +44,7 @@
     border-color: transparent;
   }
 
-  /* Modern search input - background tint, no border until focus */
+  /* Search input - background tint, no border until focus */
   .input-search {
     @apply flex h-8 w-full rounded-lg px-2 py-1 text-sm;
     @apply bg-slate-100 border border-transparent;

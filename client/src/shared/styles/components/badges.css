@@ -120,21 +120,21 @@
     color: var(--color-audit-entity-system);
   }
 
-  /* Status Badges - For general use */
+  /* Status Badges - For general use (using CSS variables from design system) */
   .badge-success {
-    @apply badge bg-emerald-100 text-emerald-700 border-emerald-200;
+    @apply badge bg-success-light text-success-text border-success-border;
   }
 
   .badge-warning {
-    @apply badge bg-yellow-100 text-yellow-700 border-yellow-200;
+    @apply badge bg-warning-light text-warning-text border-warning-border;
   }
 
   .badge-error {
-    @apply badge bg-red-100 text-red-700 border-red-200;
+    @apply badge bg-danger-light text-danger-text border-danger-border;
   }
 
   .badge-info {
-    @apply badge bg-blue-100 text-blue-700 border-blue-200;
+    @apply badge bg-info-light text-info-text border-info-border;
   }
 
   .badge-neutral {

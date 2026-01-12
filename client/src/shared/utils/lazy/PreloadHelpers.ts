@@ -8,8 +8,7 @@
  * ARCHITECTURAL PURPOSE:
  * =====================
  * Provides reusable utilities for smart preloading of lazy-loaded components.
- * Implements industry-standard patterns for anticipatory loading to reduce
- * perceived latency and improve user experience.
+ * Anticipatory loading reduces perceived latency.
  *
  * DESIGN PHILOSOPHY:
  * - DRY (Don't Repeat Yourself): Extract common preload patterns

@@ -2,12 +2,13 @@
  * Storage Equipment CQRS Mutation Hooks
  *
  * React Query mutation hooks for atomic tank, rack, and box operations.
- * Server is the single source of truth - these hooks replace modifying local state.
+ * These hooks invalidate cache after server mutations instead of modifying local state.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
+import { isOfflineError } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
@@ -32,6 +33,7 @@ export const useAddTankMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useAddTankMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to add tank: ${message}`);
@@ -59,6 +61,7 @@ export const useUpdateTankMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useUpdateTankMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to update tank: ${message}`);
@@ -80,6 +83,7 @@ export const useDeleteTankMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useDeleteTankMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to delete tank: ${message}`);
@@ -108,6 +112,7 @@ export const useAddRacksMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useAddRacksMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to add rack(s): ${message}`);
@@ -137,6 +142,7 @@ export const useUpdateRackMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useUpdateRackMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to update rack: ${message}`);
@@ -159,6 +165,7 @@ export const useDeleteRackMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useDeleteRackMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to delete rack: ${message}`);
@@ -190,6 +197,7 @@ export const useAssignRackMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useAssignRackMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to assign rack: ${message}`);
@@ -218,6 +226,7 @@ export const useAddBoxesMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useAddBoxesMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to add box(es): ${message}`);
@@ -254,6 +263,7 @@ export const useUpdateBoxMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useUpdateBoxMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to update box: ${message}`);
@@ -276,6 +286,7 @@ export const useDeleteBoxMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useDeleteBoxMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to delete box: ${message}`);
@@ -309,6 +320,7 @@ export const useAssignBoxMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useAssignBoxMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to assign box: ${message}`);
@@ -340,6 +352,7 @@ export const useBulkUnassignMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useBulkUnassignMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to unassign resources: ${message}`);
@@ -369,6 +382,7 @@ export const useBulkReassignMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useBulkReassignMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to reassign resources: ${message}`);
@@ -399,6 +413,7 @@ export const useInitializeConfigurationMutation = () => {
     },
 
     onError: (error: unknown) => {
+      if (isOfflineError(error)) return; // Global handler shows offline notification
       logger.error('useInitializeConfigurationMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to initialize configuration: ${message}`);

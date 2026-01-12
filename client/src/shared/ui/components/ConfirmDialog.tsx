@@ -60,6 +60,7 @@ export interface ConfirmDialogProps {
 
 /**
  * Get variant-specific styling
+ * Shadow colors use CSS variables from the design system
  */
 function getVariantStyles(variant: 'danger' | 'warning') {
   if (variant === 'danger') {
@@ -67,7 +68,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
       iconBg: 'bg-danger-light',
       iconColor: 'text-danger-bg',
       border: 'border-danger-border',
-      shadow: 'shadow-red-500/30',
+      shadowColor: 'var(--color-danger-bg)',
       buttonClass: 'btn-danger',
     };
   }
@@ -77,7 +78,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
     iconBg: 'bg-warning-light',
     iconColor: 'text-warning-bg',
     border: 'border-warning-border',
-    shadow: 'shadow-yellow-500/30',
+    shadowColor: 'var(--color-warning-bg)',
     buttonClass: 'btn-warning',
   };
 }
@@ -190,7 +191,8 @@ export function ConfirmDialog({
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
           aria-describedby="confirm-dialog-message"
-          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} ${modalAnimationClass} ${closingPointerEvents}`}
+          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border ${styles.border} ${modalAnimationClass} ${closingPointerEvents}`}
+          style={{ '--tw-shadow-color': styles.shadowColor } as React.CSSProperties}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">

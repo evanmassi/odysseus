@@ -1,8 +1,8 @@
 /**
  * Date utility functions for date-only fields (no time/timezone handling)
  *
- * ARCHITECTURAL PRINCIPLE: Treat date-only fields as strings, never Date objects
- * This eliminates timezone bugs used by Airbnb, Stripe, and modern SaaS applications.
+ * ARCHITECTURAL PRINCIPLE: Treat date-only fields as strings, never Date objects.
+ * This eliminates timezone bugs when storing dates without times.
  *
  * Storage:    YYYY-MM-DD strings in database
  * Transport:  YYYY-MM-DD strings in API

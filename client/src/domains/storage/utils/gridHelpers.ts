@@ -8,8 +8,7 @@ import {
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
 
-import type {
-  GridConfiguration} from '@odysseus/shared-schemas';
+import type { GridConfiguration } from '@odysseus/shared-schemas';
 
 /**
  * Get total positions in a grid (rows × cols)
@@ -52,7 +51,7 @@ export function createGridConfig(rows: number, cols: number, template: string): 
   return {
     rows,
     cols,
-    template
+    template,
   };
 }
 
@@ -64,10 +63,10 @@ export const GRID_TEMPLATES = SHARED_GRID_TEMPLATES;
 
 /**
  * Default grid configuration
- * Derived from shared constants - single source of truth
+ * Derived from shared constants
  */
 export const DEFAULT_GRID_CONFIG: GridConfiguration = {
   rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
   cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-  template: 'standard'
+  template: 'standard',
 };

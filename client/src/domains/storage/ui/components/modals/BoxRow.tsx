@@ -40,7 +40,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
   const isExplicitlyCommon = box.assignedUserId === null;
   const isUnassigned = !effectiveOwnerId;
 
-  // Left border accent with subtle tint (modern, less visual weight)
+  // Left border accent with subtle tint
   const leftBorderClass = isBoxOwnedByUser
     ? 'border-l-ownership-user-badge'
     : isUnassigned || isExplicitlyCommon

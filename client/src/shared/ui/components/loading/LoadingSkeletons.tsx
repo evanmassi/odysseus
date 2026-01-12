@@ -1,6 +1,6 @@
 /**
  * Loading Skeleton Components
- * 
+ *
  * Reusable loading skeleton components for lazy loading fallbacks
  * Provides visual feedback while components are being loaded
  */
@@ -8,7 +8,8 @@
 import React from 'react';
 
 // Base skeleton animation
-const skeletonAnimation = 'animate-pulse bg-gradient-to-r from-neutral-200 via-neutral-300 to-neutral-200 bg-[length:200%_100%]';
+const skeletonAnimation =
+  'animate-pulse bg-gradient-to-r from-odysseus-gray via-odysseus-border to-odysseus-gray bg-[length:200%_100%]';
 
 // Generic skeleton component
 interface SkeletonProps {
@@ -46,7 +47,7 @@ export const TubeGridSkeleton: React.FC<TubeGridSkeletonProps> = ({
   cellSize = 80,
   className = '',
 }) => (
-  <div 
+  <div
     className={`grid gap-2 ${className}`}
     style={{
       gridTemplateColumns: `repeat(${columns}, ${cellSize}px)`,
@@ -58,7 +59,7 @@ export const TubeGridSkeleton: React.FC<TubeGridSkeletonProps> = ({
     {Array.from({ length: rows * columns }).map((_, index) => (
       <div
         key={index}
-        className={`${skeletonAnimation} rounded-lg border border-neutral-200`}
+        className={`${skeletonAnimation} rounded-lg border border-odysseus-border`}
         style={{ width: cellSize, height: cellSize }}
       />
     ))}
@@ -71,10 +72,13 @@ interface SearchResultsSkeletonProps {
   className?: string;
 }
 
-export const SearchResultsSkeleton: React.FC<SearchResultsSkeletonProps> = ({ itemCount = 5, className = '' }) => (
+export const SearchResultsSkeleton: React.FC<SearchResultsSkeletonProps> = ({
+  itemCount = 5,
+  className = '',
+}) => (
   <div className={`space-y-3 ${className}`} role="status" aria-label="Loading search results...">
     {Array.from({ length: itemCount }).map((_, index) => (
-      <div key={index} className="p-4 border border-neutral-200 rounded-lg">
+      <div key={index} className="p-4 border border-odysseus-border rounded-lg">
         <div className="flex items-center space-x-3">
           <Skeleton width={20} height={20} />
           <div className="flex-1 space-y-2">
@@ -107,13 +111,15 @@ export const ModalSkeleton: React.FC<ModalSkeletonProps> = ({ size = 'md', class
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className={`${sizeClasses[size]} w-full mx-4 bg-white rounded-lg shadow-xl ${className}`}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
+      <div
+        className={`${sizeClasses[size]} w-full mx-4 bg-odysseus-surface rounded-lg shadow-xl ${className}`}
+      >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-neutral-200">
+        <div className="px-6 py-4 border-b border-odysseus-border">
           <Skeleton width="40%" height="1.25rem" />
         </div>
-        
+
         {/* Body */}
         <div className="px-6 py-4 space-y-4">
           <div className="space-y-3">
@@ -129,9 +135,9 @@ export const ModalSkeleton: React.FC<ModalSkeletonProps> = ({ size = 'md', class
             <Skeleton width="100%" height="4rem" />
           </div>
         </div>
-        
+
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-neutral-200 flex justify-end space-x-3">
+        <div className="px-6 py-4 border-t border-odysseus-border flex justify-end space-x-3">
           <Skeleton width={80} height={36} />
           <Skeleton width={100} height={36} />
         </div>
@@ -147,28 +153,32 @@ interface TableSkeletonProps {
   className?: string;
 }
 
-export const TableSkeleton: React.FC<TableSkeletonProps> = ({ rows = 5, columns = 4, className = '' }) => (
-  <div className={`border border-neutral-200 rounded-lg overflow-hidden ${className}`} role="status" aria-label="Loading table...">
+export const TableSkeleton: React.FC<TableSkeletonProps> = ({
+  rows = 5,
+  columns = 4,
+  className = '',
+}) => (
+  <div
+    className={`border border-odysseus-border rounded-lg overflow-hidden ${className}`}
+    role="status"
+    aria-label="Loading table..."
+  >
     {/* Header */}
-    <div className="bg-neutral-50 px-4 py-3 border-b border-neutral-200">
+    <div className="bg-odysseus-gray px-4 py-3 border-b border-odysseus-border">
       <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
         {Array.from({ length: columns }).map((_, index) => (
           <Skeleton key={index} width="60%" height="1rem" />
         ))}
       </div>
     </div>
-    
+
     {/* Rows */}
-    <div className="divide-y divide-neutral-200">
+    <div className="divide-y divide-odysseus-border">
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div key={rowIndex} className="px-4 py-3">
           <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
             {Array.from({ length: columns }).map((_, colIndex) => (
-              <Skeleton 
-                key={colIndex} 
-                width={colIndex === 0 ? '80%' : '60%'} 
-                height="1rem" 
-              />
+              <Skeleton key={colIndex} width={colIndex === 0 ? '80%' : '60%'} height="1rem" />
             ))}
           </div>
         </div>
@@ -192,7 +202,7 @@ export const FormSkeleton: React.FC<FormSkeletonProps> = ({ fields = 6, classNam
         {index % 3 === 0 && <Skeleton width="70%" height="0.75rem" />}
       </div>
     ))}
-    
+
     {/* Form actions */}
     <div className="flex justify-end space-x-3 pt-4">
       <Skeleton width={80} height={36} />
@@ -206,8 +216,14 @@ interface DashboardWidgetSkeletonProps {
   className?: string;
 }
 
-export const DashboardWidgetSkeleton: React.FC<DashboardWidgetSkeletonProps> = ({ className = '' }) => (
-  <div className={`p-6 border border-neutral-200 rounded-lg bg-white ${className}`} role="status" aria-label="Loading widget...">
+export const DashboardWidgetSkeleton: React.FC<DashboardWidgetSkeletonProps> = ({
+  className = '',
+}) => (
+  <div
+    className={`p-6 border border-odysseus-border rounded-lg bg-odysseus-surface ${className}`}
+    role="status"
+    aria-label="Loading widget..."
+  >
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <Skeleton width="40%" height="1.25rem" />
@@ -229,7 +245,10 @@ interface NavigationSkeletonProps {
   className?: string;
 }
 
-export const NavigationSkeleton: React.FC<NavigationSkeletonProps> = ({ items = 5, className = '' }) => (
+export const NavigationSkeleton: React.FC<NavigationSkeletonProps> = ({
+  items = 5,
+  className = '',
+}) => (
   <nav className={`space-y-1 ${className}`} role="status" aria-label="Loading navigation...">
     {Array.from({ length: items }).map((_, index) => (
       <div key={index} className="flex items-center space-x-3 px-3 py-2">
@@ -252,7 +271,7 @@ export const ContentSkeleton: React.FC<ContentSkeletonProps> = ({ className = ''
       <Skeleton width="40%" height="2rem" />
       <Skeleton width="70%" height="1rem" />
     </div>
-    
+
     {/* Main content blocks */}
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="space-y-4">
@@ -267,7 +286,7 @@ export const ContentSkeleton: React.FC<ContentSkeletonProps> = ({ className = ''
         <Skeleton width="60%" height="1rem" />
       </div>
     </div>
-    
+
     {/* Action section */}
     <div className="flex justify-between items-center pt-4">
       <Skeleton width="30%" height="1rem" />

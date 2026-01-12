@@ -25,7 +25,7 @@ export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 export { AnimatedPresence, useAnimatedPresence } from './components/AnimatedPresence';
 
 // Loading components
-export { LoadingSkeletons } from './components/loading/LoadingSkeletons';
+export { LoadingOverlay, LoadingSkeletons, Spinner } from './components/loading';
 
 // Connection status
 export { ConnectionStatusIndicator } from './components/ConnectionStatusIndicator';
