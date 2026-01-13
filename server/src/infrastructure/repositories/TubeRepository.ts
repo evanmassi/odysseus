@@ -3,8 +3,10 @@ import { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepo
 import type { TubeSearchCriteria, TubeSearchResult, TubeRepositoryStats } from '@domain/types/repository';
 import { Location } from '@domain/valueObjects/Location';
 import { ConflictError } from '@domain/errors/ConflictError';
+import { ValidationError } from '@domain/errors/ValidationError';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { TubeMapper, TubeRow } from '@infrastructure/database/mappers/TubeMapper';
+import { isPositionConstraintError } from '@infrastructure/database/DatabaseErrors';
 import {
   normalizeSearchQuery,
   expandWithSynonyms,
@@ -42,89 +44,117 @@ export class TubeRepository implements ITubeRepository {
 
   async save(tube: Tube): Promise<void> {
     const row = TubeMapper.toRow(tube);
-    await this.context.execute(`
-      INSERT INTO tubes (
-        id, tank_id, rack_id, box_id, position, cell_type, donor_internal_id,
-        donor_source_id, concentration, concentration_unit, date, researcher_id, created_by_name,
-        media, culture_condition, lot_number, notes, created_at, updated_at, version,
-        is_locked, locked_by, lock_note, locked_at, shared_with_user_ids
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
-      ON CONFLICT (id) DO UPDATE SET
-        tank_id = EXCLUDED.tank_id,
-        rack_id = EXCLUDED.rack_id,
-        box_id = EXCLUDED.box_id,
-        position = EXCLUDED.position,
-        cell_type = EXCLUDED.cell_type,
-        donor_internal_id = EXCLUDED.donor_internal_id,
-        donor_source_id = EXCLUDED.donor_source_id,
-        concentration = EXCLUDED.concentration,
-        concentration_unit = EXCLUDED.concentration_unit,
-        date = EXCLUDED.date,
-        researcher_id = EXCLUDED.researcher_id,
-        created_by_name = EXCLUDED.created_by_name,
-        media = EXCLUDED.media,
-        culture_condition = EXCLUDED.culture_condition,
-        lot_number = EXCLUDED.lot_number,
-        notes = EXCLUDED.notes,
-        updated_at = EXCLUDED.updated_at,
-        version = EXCLUDED.version,
-        is_locked = EXCLUDED.is_locked,
-        locked_by = EXCLUDED.locked_by,
-        lock_note = EXCLUDED.lock_note,
-        locked_at = EXCLUDED.locked_at,
-        shared_with_user_ids = EXCLUDED.shared_with_user_ids
-    `, [
-      row.id, row.tank_id, row.rack_id, row.box_id, row.position,
-      row.cell_type, row.donor_internal_id, row.donor_source_id,
-      row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
-      row.media, row.culture_condition, row.lot_number, row.notes,
-      row.created_at, row.updated_at, row.version,
-      row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids
-    ]);
+    try {
+      await this.context.execute(`
+        INSERT INTO tubes (
+          id, tank_id, rack_id, box_id, position, cell_type, donor_internal_id,
+          donor_source_id, concentration, concentration_unit, date, researcher_id, created_by_name,
+          media, culture_condition, lot_number, notes, created_at, updated_at, version,
+          is_locked, locked_by, lock_note, locked_at, shared_with_user_ids
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+        ON CONFLICT (id) DO UPDATE SET
+          tank_id = EXCLUDED.tank_id,
+          rack_id = EXCLUDED.rack_id,
+          box_id = EXCLUDED.box_id,
+          position = EXCLUDED.position,
+          cell_type = EXCLUDED.cell_type,
+          donor_internal_id = EXCLUDED.donor_internal_id,
+          donor_source_id = EXCLUDED.donor_source_id,
+          concentration = EXCLUDED.concentration,
+          concentration_unit = EXCLUDED.concentration_unit,
+          date = EXCLUDED.date,
+          researcher_id = EXCLUDED.researcher_id,
+          created_by_name = EXCLUDED.created_by_name,
+          media = EXCLUDED.media,
+          culture_condition = EXCLUDED.culture_condition,
+          lot_number = EXCLUDED.lot_number,
+          notes = EXCLUDED.notes,
+          updated_at = EXCLUDED.updated_at,
+          version = EXCLUDED.version,
+          is_locked = EXCLUDED.is_locked,
+          locked_by = EXCLUDED.locked_by,
+          lock_note = EXCLUDED.lock_note,
+          locked_at = EXCLUDED.locked_at,
+          shared_with_user_ids = EXCLUDED.shared_with_user_ids
+      `, [
+        row.id, row.tank_id, row.rack_id, row.box_id, row.position,
+        row.cell_type, row.donor_internal_id, row.donor_source_id,
+        row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
+        row.media, row.culture_condition, row.lot_number, row.notes,
+        row.created_at, row.updated_at, row.version,
+        row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids
+      ]);
+    } catch (error) {
+      if (isPositionConstraintError(error)) {
+        throw new ValidationError('Position already occupied', {
+          code: 'POSITION_OCCUPIED',
+          tankId: tube.tankId,
+          rackId: tube.rackId,
+          boxId: tube.boxId,
+          position: tube.position
+        });
+      }
+      throw error;
+    }
   }
 
   /**
    * Save tube with optimistic locking.
    * Uses UPDATE...WHERE version=$expected to detect concurrent modifications.
    * @throws ConflictError if version mismatch (another user modified the tube)
+   * @throws ValidationError if position already occupied (race condition)
    */
   async saveWithOptimisticLock(tube: Tube, expectedVersion: number): Promise<void> {
     const row = TubeMapper.toRow(tube);
-    const result = await this.context.execute(`
-      UPDATE tubes SET
-        tank_id = $2,
-        rack_id = $3,
-        box_id = $4,
-        position = $5,
-        cell_type = $6,
-        donor_internal_id = $7,
-        donor_source_id = $8,
-        concentration = $9,
-        concentration_unit = $10,
-        date = $11,
-        researcher_id = $12,
-        created_by_name = $13,
-        media = $14,
-        culture_condition = $15,
-        lot_number = $16,
-        notes = $17,
-        updated_at = $18,
-        version = $19,
-        is_locked = $20,
-        locked_by = $21,
-        lock_note = $22,
-        locked_at = $23,
-        shared_with_user_ids = $24
-      WHERE id = $1 AND version = $25
-    `, [
-      row.id, row.tank_id, row.rack_id, row.box_id, row.position,
-      row.cell_type, row.donor_internal_id, row.donor_source_id,
-      row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
-      row.media, row.culture_condition, row.lot_number, row.notes,
-      row.updated_at, row.version,
-      row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
-      expectedVersion
-    ]);
+    let result;
+    try {
+      result = await this.context.execute(`
+        UPDATE tubes SET
+          tank_id = $2,
+          rack_id = $3,
+          box_id = $4,
+          position = $5,
+          cell_type = $6,
+          donor_internal_id = $7,
+          donor_source_id = $8,
+          concentration = $9,
+          concentration_unit = $10,
+          date = $11,
+          researcher_id = $12,
+          created_by_name = $13,
+          media = $14,
+          culture_condition = $15,
+          lot_number = $16,
+          notes = $17,
+          updated_at = $18,
+          version = $19,
+          is_locked = $20,
+          locked_by = $21,
+          lock_note = $22,
+          locked_at = $23,
+          shared_with_user_ids = $24
+        WHERE id = $1 AND version = $25
+      `, [
+        row.id, row.tank_id, row.rack_id, row.box_id, row.position,
+        row.cell_type, row.donor_internal_id, row.donor_source_id,
+        row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
+        row.media, row.culture_condition, row.lot_number, row.notes,
+        row.updated_at, row.version,
+        row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
+        expectedVersion
+      ]);
+    } catch (error) {
+      if (isPositionConstraintError(error)) {
+        throw new ValidationError('Position already occupied', {
+          code: 'POSITION_OCCUPIED',
+          tankId: tube.tankId,
+          rackId: tube.rackId,
+          boxId: tube.boxId,
+          position: tube.position
+        });
+      }
+      throw error;
+    }
 
     if (result.rowCount === 0) {
       // Version mismatch - fetch current version for error message

@@ -23,14 +23,16 @@ export interface TubeRepository {
   findAll(): Promise<Tube[]>;
   
   /**
-   * Save a tube (create or update)
-   * Repository determines if it's create vs update based on existence
+   * Save a tube (create or update).
+   * Repository determines if it's create vs update based on existence.
+   * @throws ValidationError if position already occupied (UNIQUE constraint)
    */
   save(tube: Tube): Promise<void>;
 
   /**
-   * Save with optimistic locking. @throws ConflictError if version mismatch.
-   * Used to prevent concurrent modification overwrites.
+   * Save with optimistic locking.
+   * @throws ConflictError if version mismatch (another user modified the tube)
+   * @throws ValidationError if position already occupied (race condition on move)
    */
   saveWithOptimisticLock(tube: Tube, expectedVersion: number): Promise<void>;
 

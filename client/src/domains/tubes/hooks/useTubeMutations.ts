@@ -9,9 +9,12 @@
  * - Consistent error handling and notifications
  */
 
+import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
+import { getStorageDataFromCache } from '@domains/storage/hooks/useStorageData';
+import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { TubeService } from '@domains/tubes/services/TubeService';
 import { isConflictError } from '@shared/errors';
 import { logger } from '@shared/infrastructure/logger';
@@ -23,6 +26,108 @@ import type {
   UpdateTubeRequest,
   BulkUpdateResult,
 } from '@domains/tubes/types';
+
+/** Check if error is a position-already-occupied error from server. */
+function isPositionOccupiedError(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false;
+
+  // Check for details.code === 'POSITION_OCCUPIED' in API error response
+  const err = error as { details?: { body?: { details?: { code?: string } } } };
+  return err.details?.body?.details?.code === 'POSITION_OCCUPIED';
+}
+
+/** Extract position info from position occupied error. */
+function getPositionFromError(error: unknown): {
+  tankId: string;
+  rackId: string;
+  boxId: string;
+  position: number;
+} | null {
+  if (typeof error !== 'object' || error === null) return null;
+
+  const err = error as {
+    details?: {
+      body?: {
+        details?: { tankId?: string; rackId?: string; boxId?: string; position?: number };
+      };
+    };
+  };
+  const details = err.details?.body?.details;
+
+  if (details?.tankId && details?.rackId && details?.boxId && details?.position !== undefined) {
+    return {
+      tankId: details.tankId,
+      rackId: details.rackId,
+      boxId: details.boxId,
+      position: details.position,
+    };
+  }
+  return null;
+}
+
+/** Format position with display names for user-friendly error message. */
+function formatPositionDisplayString(
+  queryClient: ReturnType<typeof useQueryClient>,
+  tankId: string,
+  rackId: string,
+  boxId: string,
+  position: number
+): string {
+  const { currentLab } = getStorageDataFromCache(queryClient);
+
+  // Find equipment in cached configuration
+  const tank = currentLab?.equipment.tanks.find(t => t.id === tankId);
+  const rack = tank?.racks?.find(r => r.id === rackId);
+  const box = rack?.boxes?.find(b => b.id === boxId);
+
+  // Format display names
+  const tankName = tank?.name ?? tankId;
+  const rackName = formatResourceDisplayName(rack?.name ?? rackId, rack?.customLabel);
+  const boxName = formatResourceDisplayName(box?.name ?? boxId, box?.customLabel);
+
+  // Format position label (try alphanumeric, fall back to numeric)
+  let positionLabel = String(position);
+  if (box?.gridConfig && currentLab) {
+    try {
+      positionLabel = formatPositionForBox(
+        position,
+        tankId,
+        rackId,
+        boxId,
+        box.gridConfig,
+        currentLab,
+        null
+      );
+    } catch {
+      // Fall back to numeric if formatting fails
+    }
+  }
+
+  return `${tankName} → ${rackName} → ${boxName} → ${positionLabel}`;
+}
+
+/** Show position occupied error message and refresh cache. */
+function handlePositionOccupiedError(
+  queryClient: ReturnType<typeof useQueryClient>,
+  error: unknown
+): void {
+  const positionInfo = getPositionFromError(error);
+
+  let message = 'Position already occupied';
+  if (positionInfo) {
+    const locationString = formatPositionDisplayString(
+      queryClient,
+      positionInfo.tankId,
+      positionInfo.rackId,
+      positionInfo.boxId,
+      positionInfo.position
+    );
+    message = `Position already occupied\n${locationString}`;
+  }
+
+  notifications.error(message);
+  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+}
 
 /** Show conflict error message and refresh cache. */
 function handleTubeConflictError(
@@ -89,8 +194,13 @@ export const useCreateTubeMutation = (
     },
 
     onError: (error, _variables, context) => {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('❌ [React Query] Create tube failed', { error });
+
+      // Handle position already occupied (race condition)
+      if (isPositionOccupiedError(error)) {
+        handlePositionOccupiedError(queryClient, error);
+        return;
+      }
 
       // Rollback optimistic updates if any were made
       if (context?.previousTubes) {
@@ -210,6 +320,12 @@ export const useUpdateTubeMutation = (
       // Handle version conflict (409) - another user modified the tube
       if (isConflictError(error)) {
         handleTubeConflictError(queryClient, variables.id);
+        return;
+      }
+
+      // Handle position already occupied (race condition on move)
+      if (isPositionOccupiedError(error)) {
+        handlePositionOccupiedError(queryClient, error);
         return;
       }
 

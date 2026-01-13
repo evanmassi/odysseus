@@ -89,3 +89,19 @@ export function isUsernameConstraintError(error: unknown): boolean {
 
   return hasMessage(error) && error.message.toLowerCase().includes('username');
 }
+
+/**
+ * Check if constraint error is for tube position uniqueness.
+ * PostgreSQL UNIQUE(tank_id, rack_id, box_id, position) constraint.
+ */
+export function isPositionConstraintError(error: unknown): boolean {
+  if (!isUniqueConstraintError(error)) return false;
+
+  // Check if error message mentions position-related columns
+  if (hasMessage(error)) {
+    const message = error.message.toLowerCase();
+    return message.includes('position') || message.includes('tank_id');
+  }
+
+  return false;
+}

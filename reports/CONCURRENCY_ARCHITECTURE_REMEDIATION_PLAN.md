@@ -330,7 +330,32 @@ onError: (error) => {
 
 ## Issue 2: Position Collision Race Conditions (Tubes)
 
-### Current State
+### Implementation Status: COMPLETE (2026-01-12)
+
+**Solution Implemented:** Graceful error handling for position conflicts (Option A)
+
+Rather than implementing pessimistic locking (Option B), we chose the simpler approach:
+- Database UNIQUE constraint already prevents data corruption
+- Added graceful handling when constraint violation occurs
+- User-friendly error message with position display names
+
+**Files Modified:**
+- `server/src/infrastructure/database/DatabaseErrors.ts` - Added `isPositionConstraintError()` helper
+- `server/src/infrastructure/repositories/TubeRepository.ts` - Catch constraint violations in `save()` and `saveWithOptimisticLock()`, throw ValidationError with position details
+- `client/src/domains/tubes/hooks/useTubeMutations.ts` - Added position error handling with display name resolution
+
+**User Experience:**
+- Toast notification: "Position already occupied" with full location path (Tank → Rack → Box → Position)
+- Grid automatically refreshes to show current state
+- Form stays open so user can choose a different position
+
+**Why This Approach:**
+- Database already prevents data corruption via UNIQUE constraint
+- Race conditions are rare (two users saving to exact same position at exact millisecond)
+- Simpler implementation with lower risk
+- Pessimistic locking would require transaction propagation through multiple layers
+
+### Original Problem State
 
 **Location:** `server/src/application/services/TubePositionService.ts`
 
@@ -529,6 +554,9 @@ async bulkUpdateTubes(
 - `client/src/domains/tubes/hooks/useTubeMutations.ts` - Conflict error handling
 - `client/src/domains/tubes/hooks/useOptimisticTubeMutations.ts` - Added version to optimistic create
 - `client/src/__tests__/utils/mockData.ts` - Added version to mock data
+
+**Future Enhancement (Not Implemented):**
+Real-time stale form detection - when a user has an edit modal open and another user modifies that same tube, show a warning *before* they try to save (e.g., "This tube was just modified by another user. Refresh to see changes?"). Currently, users only discover conflicts when they attempt to save. This would require subscribing to Socket.IO tube_updated events within the edit modal and comparing the incoming tubeId against the one being edited.
 
 ### Original Problem State
 
@@ -1487,7 +1515,7 @@ export class IntegrityChecker {
 | 6. Socket Event Missing Awaits | CRITICAL | Low | P1 | **COMPLETE** |
 | 5. Bulk Operation Transactions | HIGH | Medium | P2 | **COMPLETE** |
 | 3. Tube Version Field | HIGH | Medium | P2 | **COMPLETE** |
-| 2. Position Collision Races | HIGH | Medium | P2 | Pending |
+| 2. Position Collision Races | HIGH | Medium | P2 | **COMPLETE** |
 | 7. Cache Invalidation | MEDIUM | Low | P3 | Pending |
 | 8. Cascade Integrity | MEDIUM | Low | P3 | Pending |
 
@@ -1497,7 +1525,7 @@ export class IntegrityChecker {
 3. ~~Issue 4 (prevents data corruption in equipment deletion)~~ **COMPLETE** (2026-01-12)
 4. ~~Issue 5 (fix `createTubes()` bug - partial success pattern)~~ **COMPLETE** (2026-01-12)
 5. ~~Issue 3 (tube versioning)~~ **COMPLETE** (2026-01-12)
-6. Issue 2 (position locking, builds on Issue 3)
+6. ~~Issue 2 (position collision handling)~~ **COMPLETE** (2026-01-12)
 7. Issues 7-8 (optimization and safeguards)
 
 ---
