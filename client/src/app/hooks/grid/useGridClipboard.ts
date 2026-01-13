@@ -268,20 +268,71 @@ export const useGridClipboard = ({
           }
         }
 
-        const sourcePositions = clipData.tubes.map(tube => tube.location.position);
-        const minSourcePosition = Math.min(...sourcePositions);
+        // Convert positions to row/col coordinates for proper cross-grid mapping
+        const sourceCols = sourceGridConfig?.cols ?? 9;
+        const targetCols = targetGridConfig?.cols ?? 5;
+        const targetRows = targetGridConfig?.rows ?? 5;
 
-        tubesToPaste = clipData.tubes.map(sourceTube => {
-          const relativePosition = sourceTube.location.position - minSourcePosition;
-          const newPosition = anchorPosition + relativePosition;
-
-          return tubeDataToCreateRequest(sourceTube, {
-            tankId: ctx.tankId,
-            rackId: ctx.rackId,
-            boxId: ctx.boxId,
-            position: newPosition,
-          });
+        // Helper to convert position to (row, col) - 0-indexed
+        const posToRowCol = (pos: number, cols: number) => ({
+          row: Math.floor((pos - 1) / cols),
+          col: (pos - 1) % cols,
         });
+
+        // Helper to convert (row, col) to position - 1-indexed
+        const rowColToPos = (row: number, col: number, cols: number) => row * cols + col + 1;
+
+        // Get source coordinates for all tubes
+        const sourceCoords = clipData.tubes.map(tube => ({
+          tube,
+          ...posToRowCol(tube.location.position, sourceCols),
+        }));
+
+        // Find the top-left corner of the source selection
+        const minSourceRow = Math.min(...sourceCoords.map(c => c.row));
+        const minSourceCol = Math.min(...sourceCoords.map(c => c.col));
+
+        // Get anchor coordinates in target grid
+        const anchorCoords = posToRowCol(anchorPosition, targetCols);
+
+        // Track which source tube IDs were successfully mapped (for cut operation)
+        const pastedSourceTubeIds: string[] = [];
+
+        tubesToPaste = sourceCoords
+          .map(({ tube, row, col }) => {
+            // Calculate relative position from source selection's top-left
+            const relativeRow = row - minSourceRow;
+            const relativeCol = col - minSourceCol;
+
+            // Apply to anchor position in target grid
+            const targetRow = anchorCoords.row + relativeRow;
+            const targetCol = anchorCoords.col + relativeCol;
+
+            // Check if target position is within grid bounds
+            if (
+              targetRow < 0 ||
+              targetRow >= targetRows ||
+              targetCol < 0 ||
+              targetCol >= targetCols
+            ) {
+              return null;
+            }
+
+            const newPosition = rowColToPos(targetRow, targetCol, targetCols);
+            pastedSourceTubeIds.push(tube.id);
+
+            return tubeDataToCreateRequest(tube, {
+              tankId: ctx.tankId,
+              rackId: ctx.rackId,
+              boxId: ctx.boxId,
+              position: newPosition,
+            });
+          })
+          .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
+
+        // Store for cut operation
+        (clipData as { _pastedSourceTubeIds?: string[] })._pastedSourceTubeIds =
+          pastedSourceTubeIds;
       }
 
       // Detect position conflicts
@@ -336,17 +387,32 @@ export const useGridClipboard = ({
       }
 
       // Delete source tubes after successful paste (cut operation only)
-      if (clipData.operation === 'cut') {
-        const tubeIds = clipData.tubes.map(tube => tube.id).filter(Boolean);
-        if (onDeleteTubes && tubeIds.length > 0) {
-          await onDeleteTubes(tubeIds, true);
+      // Only delete tubes that were actually pasted (not skipped due to bounds)
+      if (clipData.operation === 'cut' && tubesToPaste.length > 0) {
+        // For spatial mode, use tracked IDs (some tubes may be skipped)
+        // For fill mode, delete all source tubes (they're all used/duplicated)
+        const pastedIds = (clipData as { _pastedSourceTubeIds?: string[] })._pastedSourceTubeIds;
+        const tubeIdsToDelete = pastedIds?.length
+          ? pastedIds.filter(Boolean)
+          : clipData.tubes.map(t => t.id).filter(Boolean);
+
+        if (onDeleteTubes && tubeIdsToDelete.length > 0) {
+          await onDeleteTubes(tubeIdsToDelete, true);
         }
-        notifications.success(
-          `Moved ${tubesToPaste.length} tube${tubesToPaste.length > 1 ? 's' : ''}`
+      }
+
+      // Show notification with skipped count if any
+      const skippedCount = clipData.tubes.length - tubesToPaste.length;
+      const action = clipData.operation === 'cut' ? 'Moved' : 'Pasted';
+
+      if (skippedCount > 0) {
+        notifications.warning(
+          `${action} ${tubesToPaste.length} tube${tubesToPaste.length !== 1 ? 's' : ''}. ` +
+            `${skippedCount} skipped (outside grid bounds).`
         );
       } else {
         notifications.success(
-          `Pasted ${tubesToPaste.length} tube${tubesToPaste.length > 1 ? 's' : ''}`
+          `${action} ${tubesToPaste.length} tube${tubesToPaste.length !== 1 ? 's' : ''}`
         );
       }
 
