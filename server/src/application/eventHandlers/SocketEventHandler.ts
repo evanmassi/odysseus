@@ -31,7 +31,9 @@ import {
   RackReassignedEvent,
   BoxAssignedEvent,
   BoxUnassignedEvent,
-  BoxReassignedEvent
+  BoxReassignedEvent,
+  BulkResourcesUnassignedEvent,
+  BulkResourcesReassignedEvent
 } from '@domain/events/ConfigurationEvents';
 import {
   UserApprovedEvent,
@@ -108,6 +110,10 @@ export class SocketEventHandler {
     this.eventBus.subscribe('BoxUnassigned', (e) => this.handleConfigurationChange(e));
     this.eventBus.subscribe('BoxReassigned', (e) => this.handleConfigurationChange(e));
 
+    // Bulk resource events - triggered during user deletion cascade
+    this.eventBus.subscribe('BulkResourcesUnassigned', (e) => this.handleConfigurationChange(e));
+    this.eventBus.subscribe('BulkResourcesReassigned', (e) => this.handleConfigurationChange(e));
+
     // User events
     this.eventBus.subscribe('UserApproved', (e) => this.handleUserApproved(e));
     this.eventBus.subscribe('UserDeleted', (e) => this.handleUserDeleted(e));
@@ -165,6 +171,8 @@ export class SocketEventHandler {
       | BoxAssignedEvent
       | BoxUnassignedEvent
       | BoxReassignedEvent
+      | BulkResourcesUnassignedEvent
+      | BulkResourcesReassignedEvent
   ): Promise<void> {
     try {
       // Collect event information

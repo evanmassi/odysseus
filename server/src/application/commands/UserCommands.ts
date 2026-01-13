@@ -21,8 +21,10 @@ import {
   UserLoggedInEvent,
   UserLoggedOutEvent
 } from '@domain/events/UserEvents';
+import { BulkResourcesUnassignedEvent } from '@domain/events/ConfigurationEvents';
 import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
+import { ConflictError } from '@domain/errors/ConflictError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { type UserSettings, PasswordValidator } from '@odysseus/shared-schemas';
 import type { EnhancedLoginResponse, RefreshTokenResponse } from '@shared/types/Token';
@@ -241,31 +243,87 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
     // Store user data for event before deletion
     const username = user.username;
 
-    // Clear all resource assignments for this user before deletion
-    // This prevents orphaned assignedUserId references in storage configuration
-    const configuration = await this.configurationRepository.getCurrent();
-    if (configuration) {
+    // Clear all resource assignments with retry logic for optimistic lock conflicts
+    // Retry ensures cascade completes even during concurrent configuration changes
+    const MAX_CASCADE_RETRIES = 3;
+    let cascadeSucceeded = false;
+    let racksAffected = 0;
+    let boxesAffected = 0;
+
+    for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
+      const configuration = await this.configurationRepository.getCurrent();
+      if (!configuration) {
+        break; // No configuration to update
+      }
+
+      // Count affected resources before clearing
+      const counts = configuration.countAssignmentsForUser(command.userId);
       const expectedVersion = configuration.version;
       const hadAssignments = configuration.clearAllAssignmentsForUser(command.userId);
-      if (hadAssignments) {
+
+      if (!hadAssignments) {
+        cascadeSucceeded = true;
+        break; // No assignments to clear
+      }
+
+      try {
         await this.configurationRepository.saveWithOptimisticLock(
           configuration,
           expectedVersion,
           `Cleared assignments for deleted user '${username}'`,
           command.initiatedBy
         );
+
+        racksAffected = counts.racks;
+        boxesAffected = counts.boxes;
+        cascadeSucceeded = true;
+
         logger.info(`Cleared resource assignments for deleted user ${username}`, {
           userId: command.userId,
+          racksAffected,
+          boxesAffected,
+          attempt,
         });
+        break;
+      } catch (error) {
+        if (error instanceof ConflictError && attempt < MAX_CASCADE_RETRIES) {
+          logger.warn(`Cascade retry ${attempt}/${MAX_CASCADE_RETRIES} for user deletion`, {
+            userId: command.userId,
+            expectedVersion,
+            currentVersion: error.currentVersion,
+          });
+          continue;
+        }
+        throw error;
       }
     }
 
-    // Delete user
+    if (!cascadeSucceeded) {
+      throw new ValidationError(
+        'Failed to clear resource assignments after multiple attempts. Please try again.',
+        { userId: command.userId }
+      );
+    }
+
+    // Delete user only after cascade succeeds (atomic guarantee)
     await this.userRepository.delete(command.userId);
 
-    // Publish domain event
-    const event = new UserDeletedEvent(command.userId, username, command.initiatedBy);
-    await this.eventBus.publish(event);
+    // Publish domain events
+    const deleteEvent = new UserDeletedEvent(command.userId, username, command.initiatedBy);
+    await this.eventBus.publish(deleteEvent);
+
+    // Emit configuration change event if assignments were cleared
+    // This triggers socket notification for real-time client cache invalidation
+    if (racksAffected > 0 || boxesAffected > 0) {
+      const cascadeEvent = new BulkResourcesUnassignedEvent(
+        command.initiatedBy,
+        command.userId,
+        username,
+        racksAffected,
+        boxesAffected
+      );
+      await this.eventBus.publish(cascadeEvent);
+    }
   }
 }
 

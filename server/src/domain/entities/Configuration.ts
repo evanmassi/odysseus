@@ -599,6 +599,30 @@ export class Configuration {
   }
 
   /**
+   * Count resource assignments for a specific user.
+   * Used before clearing to report affected resources.
+   */
+  countAssignmentsForUser(userId: string): { racks: number; boxes: number } {
+    let racks = 0;
+    let boxes = 0;
+
+    for (const tank of this._equipment.tanks) {
+      for (const rack of tank.racks) {
+        if (rack.assignedUserId === userId) {
+          racks++;
+        }
+        for (const box of rack.boxes) {
+          if (box.assignedUserId === userId) {
+            boxes++;
+          }
+        }
+      }
+    }
+
+    return { racks, boxes };
+  }
+
+  /**
    * Clear all resource assignments for a specific user
    *
    * Called when a user is deleted to prevent orphaned assignment references.
