@@ -137,8 +137,14 @@ export class UpdateSystemConfigurationCommandHandler {
       );
     }
 
-    // Save the updated configuration
-    await this.configurationRepository.save(updatedConfig);
+    // Save the updated configuration with optimistic locking
+    const expectedVersion = currentConfig.version;
+    await this.configurationRepository.saveWithOptimisticLock(
+      updatedConfig,
+      expectedVersion,
+      'Updated system configuration',
+      command.userId
+    );
 
     return updatedConfig;
   }
@@ -217,8 +223,14 @@ export class UpdateEquipmentConfigurationCommandHandler {
       );
     }
 
-    // Save the updated configuration
-    await this.configurationRepository.save(updatedConfig);
+    // Save the updated configuration with optimistic locking
+    const expectedVersion = currentConfig.version;
+    await this.configurationRepository.saveWithOptimisticLock(
+      updatedConfig,
+      expectedVersion,
+      'Updated equipment configuration',
+      command.userId
+    );
 
     return updatedConfig;
   }
@@ -263,11 +275,20 @@ export class ResetConfigurationToDefaultCommandHandler {
       throw PermissionError.configurationManagement('reset configuration', command.userId);
     }
 
+    // Get current configuration for version check
+    const currentConfig = await this.configurationRepository.getCurrent();
+    const expectedVersion = currentConfig?.version ?? 0;
+
     // Create default configuration
     const defaultConfig = Configuration.createDefault();
-    
-    // Save the default configuration (this replaces current config)
-    await this.configurationRepository.save(defaultConfig);
+
+    // Save the default configuration with optimistic locking
+    await this.configurationRepository.saveWithOptimisticLock(
+      defaultConfig,
+      expectedVersion,
+      'Reset configuration to defaults',
+      command.userId
+    );
 
     return defaultConfig;
   }
@@ -336,8 +357,14 @@ export class ImportConfigurationCommandHandler {
         }
       }
 
-      // Save imported configuration
-      await this.configurationRepository.save(importedConfig);
+      // Save imported configuration with optimistic locking
+      const expectedVersion = currentConfig?.version ?? 0;
+      await this.configurationRepository.saveWithOptimisticLock(
+        importedConfig,
+        expectedVersion,
+        'Imported configuration',
+        command.userId
+      );
 
       return {
         isValid: true,
@@ -441,10 +468,13 @@ export class UpdateBoxPositionDisplayCommandHandler {
       );
     }
 
-    // Save the updated configuration
-    await this.configurationRepository.saveWithVersioning(
+    // Save the updated configuration with optimistic locking
+    const expectedVersion = currentConfig.version;
+    await this.configurationRepository.saveWithOptimisticLock(
       updatedConfig,
-      `Updated position display for box ${command.boxId} in tank ${command.tankId}, rack ${command.rackId}`
+      expectedVersion,
+      `Updated position display for box ${command.boxId} in tank ${command.tankId}, rack ${command.rackId}`,
+      command.userId
     );
 
     return updatedConfig;
@@ -512,12 +542,15 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
       );
     }
 
-    // Save the updated configuration
-    await this.configurationRepository.saveWithVersioning(
+    // Save the updated configuration with optimistic locking
+    const expectedVersion = currentConfig.version;
+    await this.configurationRepository.saveWithOptimisticLock(
       updatedConfig,
+      expectedVersion,
       command.positionDisplay
         ? `Updated lab default position display to ${command.positionDisplay.format}`
-        : 'Cleared lab default position display'
+        : 'Cleared lab default position display',
+      command.userId
     );
 
     return updatedConfig;
@@ -670,6 +703,7 @@ export class UpdateResourceLabelCommandHandler {
     const oldLabel = resource.customLabel;
 
     // Update the label
+    const expectedVersion = currentConfig.version;
     currentConfig.updateResourceCustomLabel(
       command.resourceType,
       command.tankId,
@@ -678,14 +712,19 @@ export class UpdateResourceLabelCommandHandler {
       command.customLabel
     );
 
-    // Save the updated configuration
-    await this.configurationRepository.save(currentConfig);
+    // Save the updated configuration with optimistic locking
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Updated ${command.resourceType} label`,
+      command.userId
+    );
 
     // Emit label change event if label actually changed
     const newLabel = command.customLabel?.trim() || undefined;
     if (oldLabel !== newLabel) {
       if (command.resourceType === 'rack') {
-        this.eventBus.publish(new RackLabelUpdatedEvent(
+        await this.eventBus.publish(new RackLabelUpdatedEvent(
           command.userId,
           command.tankId,
           tankName,
@@ -695,7 +734,7 @@ export class UpdateResourceLabelCommandHandler {
           newLabel
         ));
       } else {
-        this.eventBus.publish(new BoxLabelUpdatedEvent(
+        await this.eventBus.publish(new BoxLabelUpdatedEvent(
           command.userId,
           command.tankId,
           tankName,

@@ -575,7 +575,7 @@ export class UserApplicationService {
 
     // Publish event for real-time sync
     if (this.eventBus) {
-      this.eventBus.publish(new UserApprovedEvent(
+      await this.eventBus.publish(new UserApprovedEvent(
         user.id,
         user.username,
         admin.username
@@ -680,7 +680,7 @@ export class UserApplicationService {
       const person = await this.personRepository.findById(researcher.personId);
       const researcherName = person ? `${person.firstName} ${person.lastName}` : researcherId;
 
-      this.eventBus.publish(new UserLinkedToResearcherEvent(
+      await this.eventBus.publish(new UserLinkedToResearcherEvent(
         userId,
         user.username,
         researcherId,
@@ -732,7 +732,7 @@ export class UserApplicationService {
 
     // Publish event
     if (this.eventBus && oldResearcherId) {
-      this.eventBus.publish(new UserUnlinkedFromResearcherEvent(
+      await this.eventBus.publish(new UserUnlinkedFromResearcherEvent(
         userId,
         user.username,
         oldResearcherId,

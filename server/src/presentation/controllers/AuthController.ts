@@ -384,7 +384,7 @@ export class AuthController {
       }
 
       // Publish logout event
-      this.eventBus.publish(new UserLoggedOutEvent(
+      await this.eventBus.publish(new UserLoggedOutEvent(
         user.id,
         user.username
       ));

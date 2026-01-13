@@ -1,6 +1,6 @@
 /**
  * Shared Error System - Index
- * 
+ *
  * Exports the complete error handling system for use throughout the application.
  */
 
@@ -25,6 +25,7 @@ export {
   isValidationError,
   isDomainError,
   isInfrastructureError,
+  isConflictError,
 } from './AppError';
 
 // Error mapping utilities

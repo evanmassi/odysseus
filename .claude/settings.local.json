@@ -27,7 +27,10 @@
       "Bash(npm run build:client:*)",
       "Bash(npm run package:*)",
       "Bash(npm run lint)",
-      "Bash(ipconfig:*)"
+      "Bash(ipconfig:*)",
+      "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\domains\\\\storage\\\\hooks\\\\useConfigurationVersion.ts\")",
+      "Bash(cmd /c del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\domains\\\\storage\\\\hooks\\\\useConfigurationVersion.ts\")",
+      "Bash(Remove-Item \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\domains\\\\storage\\\\hooks\\\\useConfigurationVersion.ts\" -Force)"
     ]
   }
 }

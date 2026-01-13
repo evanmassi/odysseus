@@ -8,6 +8,7 @@ import type { SecurityConfig, SystemMetrics, SyncStatus } from '@odysseus/shared
 import { DEFAULT_SECURITY_CONFIG, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { ValidationError } from '@domain/errors/ValidationError';
+import { ConflictError } from '@domain/errors/ConflictError';
 import { logger } from '@utils/logger';
 
 /**
@@ -162,6 +163,59 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
     } catch (error) {
       logger.error('Failed to save configuration with versioning:', { error });
+      throw new ValidationError(`Database error saving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async saveWithOptimisticLock(
+    configuration: Configuration,
+    expectedVersion: number,
+    changeDescription: string = 'Configuration updated',
+    changedBy: string = 'system'
+  ): Promise<void> {
+    try {
+      await this.context.transaction(async (client) => {
+        const now = new Date();
+        const configJson = JSON.stringify(configuration.toData());
+
+        // Insert new version record first
+        const versionResult = await client.query<{ version: number }>(
+          `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
+           VALUES ($1, $2, $3, $4)
+           RETURNING version`,
+          [now, changeDescription, changedBy, configJson]
+        );
+
+        const newVersion = versionResult.rows[0].version;
+
+        // Optimistic lock: only update if version matches expected
+        const updateResult = await client.query(
+          `UPDATE configuration_current
+           SET version = $1, updated_at = $2, config_json = $3
+           WHERE id = 1 AND version = $4`,
+          [newVersion, now, configJson, expectedVersion]
+        );
+
+        if (updateResult.rowCount === 0) {
+          // Version mismatch - fetch current version for error message
+          const currentRow = await client.query<{ version: number }>(
+            'SELECT version FROM configuration_current WHERE id = 1'
+          );
+          const currentVersion = currentRow.rows[0]?.version ?? 0;
+
+          // Rollback the version insert by throwing
+          throw ConflictError.configuration(expectedVersion, currentVersion);
+        }
+
+        logger.info(`Configuration saved with optimistic lock (v${expectedVersion} → v${newVersion}): ${changeDescription}`);
+      });
+
+    } catch (error) {
+      // Re-throw ConflictError without wrapping
+      if (error instanceof ConflictError) {
+        throw error;
+      }
+      logger.error('Failed to save configuration with optimistic lock:', { error });
       throw new ValidationError(`Database error saving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }

@@ -150,7 +150,7 @@ export class TubeApplicationService {
     await this.tubeRepository.save(tube);
 
     // 7. Publish domain event
-    this.eventBus.publish(new TubeCreatedEvent(
+    await this.eventBus.publish(new TubeCreatedEvent(
       tube.id,
       tube.location,
       tube.sampleData,
@@ -472,7 +472,7 @@ export class TubeApplicationService {
     await this.tubeRepository.delete(id);
 
     // Publish domain event
-    this.eventBus.publish(new TubeDeletedEvent(
+    await this.eventBus.publish(new TubeDeletedEvent(
       tube.id,
       tube.location,
       authenticatedUser.id

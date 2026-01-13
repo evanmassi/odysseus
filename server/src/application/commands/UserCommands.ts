@@ -245,9 +245,15 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
     // This prevents orphaned assignedUserId references in storage configuration
     const configuration = await this.configurationRepository.getCurrent();
     if (configuration) {
+      const expectedVersion = configuration.version;
       const hadAssignments = configuration.clearAllAssignmentsForUser(command.userId);
       if (hadAssignments) {
-        await this.configurationRepository.save(configuration);
+        await this.configurationRepository.saveWithOptimisticLock(
+          configuration,
+          expectedVersion,
+          `Cleared assignments for deleted user '${username}'`,
+          command.initiatedBy
+        );
         logger.info(`Cleared resource assignments for deleted user ${username}`, {
           userId: command.userId,
         });
@@ -330,7 +336,7 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
     // Only publish login event if not requiring password change
     // Full login event published after password is changed
     if (!requirePasswordChange) {
-      this.eventBus.publish(new UserLoggedInEvent(
+      await this.eventBus.publish(new UserLoggedInEvent(
         user.id,
         user.username
       ));

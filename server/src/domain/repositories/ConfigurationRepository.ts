@@ -54,7 +54,17 @@ export interface ConfigurationRepository {
    * Save configuration with version increment
    */
   saveWithVersioning(configuration: Configuration, changeDescription?: string): Promise<void>;
-  
+
+  /**
+   * Save with optimistic locking. @throws ConflictError if version mismatch.
+   */
+  saveWithOptimisticLock(
+    configuration: Configuration,
+    expectedVersion: number,
+    changeDescription?: string,
+    changedBy?: string
+  ): Promise<void>;
+
   // EQUIPMENT VALIDATION
 
   /**

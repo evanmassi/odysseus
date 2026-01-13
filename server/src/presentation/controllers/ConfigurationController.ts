@@ -41,6 +41,7 @@ import { POSITION_DISPLAY_PRESETS } from '@odysseus/shared-schemas';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
+import { ConflictError } from '@domain/errors/ConflictError';
 import { ConfigurationDto } from '@application/dto/ConfigurationDto';
 
 /** Response shape for configuration import endpoint */
@@ -924,6 +925,18 @@ export class ConfigurationController {
         error: {
           code: 'NOT_FOUND',
           message: error.message
+        }
+      });
+      return;
+    }
+
+    if (error instanceof ConflictError) {
+      res.status(409).json({
+        error: {
+          code: 'CONFLICT_ERROR',
+          message: error.message,
+          currentVersion: error.currentVersion,
+          expectedVersion: error.expectedVersion
         }
       });
       return;

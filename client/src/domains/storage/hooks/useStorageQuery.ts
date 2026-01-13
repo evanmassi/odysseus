@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
+import { isConflictError } from '@shared/errors';
+import { notifications } from '@shared/utils/notifications';
 
 import { StorageService } from '../services/StorageService';
 
@@ -69,6 +71,18 @@ export const useUpdateResourceLabelMutation = () => {
       void queryClient.invalidateQueries({
         queryKey: queryKeys.storage.storage(),
       });
+    },
+
+    onError: (error: unknown) => {
+      if (isConflictError(error)) {
+        notifications.error(
+          'Update label failed: Configuration was modified by another user. Please review the latest changes and try again.'
+        );
+        void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+        return;
+      }
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      notifications.error(`Failed to update label: ${message}`);
     },
   });
 };

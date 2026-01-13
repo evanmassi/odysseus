@@ -22,7 +22,7 @@ export abstract class AppError extends Error {
     super(message);
     this.name = this.constructor.name;
     this.timestamp = new Date();
-    
+
     // Maintains proper stack trace for where our error was thrown (only available on V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor);
@@ -60,7 +60,11 @@ export class AuthenticationError extends AppError {
   readonly retryable = false;
 
   constructor(
-    public readonly code: 'INVALID_CREDENTIALS' | 'SESSION_EXPIRED' | 'ACCESS_DENIED' | 'FIRST_TIME_SETUP',
+    public readonly code:
+      | 'INVALID_CREDENTIALS'
+      | 'SESSION_EXPIRED'
+      | 'ACCESS_DENIED'
+      | 'FIRST_TIME_SETUP',
     message: string,
     details?: Record<string, unknown>
   ) {
@@ -91,7 +95,11 @@ export class ValidationError extends AppError {
   readonly retryable = false;
 
   constructor(
-    public readonly code: 'SCHEMA_VALIDATION' | 'FORM_VALIDATION' | 'BUSINESS_RULE' | 'REQUIRED_FIELD',
+    public readonly code:
+      | 'SCHEMA_VALIDATION'
+      | 'FORM_VALIDATION'
+      | 'BUSINESS_RULE'
+      | 'REQUIRED_FIELD',
     message: string,
     details?: Record<string, unknown>
   ) {
@@ -138,7 +146,12 @@ export class InfrastructureError extends AppError {
   readonly retryable: boolean;
 
   constructor(
-    public readonly code: 'NETWORK_ERROR' | 'API_ERROR' | 'SERVER_ERROR' | 'TIMEOUT' | 'CONNECTION_LOST',
+    public readonly code:
+      | 'NETWORK_ERROR'
+      | 'API_ERROR'
+      | 'SERVER_ERROR'
+      | 'TIMEOUT'
+      | 'CONNECTION_LOST',
     message: string,
     details?: Record<string, unknown>,
     retryable = true
@@ -215,15 +228,9 @@ export class UnknownError extends AppError {
   readonly retryable = false;
 
   constructor(originalError: unknown) {
-    const message = originalError instanceof Error 
-      ? originalError.message 
-      : String(originalError);
+    const message = originalError instanceof Error ? originalError.message : String(originalError);
 
-    super(
-      'An unexpected error occurred',
-      { originalMessage: message },
-      originalError
-    );
+    super('An unexpected error occurred', { originalMessage: message }, originalError);
   }
 
   override getUserMessage(): string {
@@ -276,11 +283,11 @@ export class FieldPathError extends DomainError {
     public readonly fieldKey: string,
     details?: Record<string, unknown>
   ) {
-    super(
-      'FIELD_PATH_ERROR',
-      `Failed to resolve field path '${path}' for key '${fieldKey}'`,
-      { path, fieldKey, ...details }
-    );
+    super('FIELD_PATH_ERROR', `Failed to resolve field path '${path}' for key '${fieldKey}'`, {
+      path,
+      fieldKey,
+      ...details,
+    });
   }
 }
 
@@ -309,4 +316,14 @@ export const isDomainError = (error: unknown): error is DomainError => {
 
 export const isInfrastructureError = (error: unknown): error is InfrastructureError => {
   return error instanceof InfrastructureError;
+};
+
+/** Checks if error is a 409 Conflict from optimistic locking. */
+export const isConflictError = (error: unknown): boolean => {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'status' in error &&
+    (error as { status: unknown }).status === 409
+  );
 };

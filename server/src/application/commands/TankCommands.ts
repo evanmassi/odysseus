@@ -64,8 +64,14 @@ export class AddTankCommandHandler {
     const existingTankIds = currentConfig.tanks.map(t => t.id);
     const tankId = this.generateTankId(existingTankIds);
 
+    const expectedVersion = currentConfig.version;
     currentConfig.addTank(tankId, command.name);
-    await this.configurationRepository.save(currentConfig);
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Added tank '${command.name}'`,
+      command.userId
+    );
 
     await this.eventBus.publish(new TankAddedEvent(
       command.userId,
@@ -144,12 +150,18 @@ export class UpdateTankCommandHandler {
       return;
     }
 
+    const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.save(currentConfig);
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Updated tank '${configData.tanks[tankIndex].name}'`,
+      command.userId
+    );
 
     await this.eventBus.publish(new TankUpdatedEvent(
       command.userId,
@@ -206,8 +218,14 @@ export class DeleteTankCommandHandler {
     }
 
     const tankName = tank.name;
+    const expectedVersion = currentConfig.version;
     currentConfig.removeTank(command.tankId);
-    await this.configurationRepository.save(currentConfig);
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Deleted tank '${tankName}'`,
+      command.userId
+    );
 
     await this.eventBus.publish(new TankDeletedEvent(
       command.userId,

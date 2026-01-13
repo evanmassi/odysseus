@@ -120,7 +120,13 @@ export class AddRacksCommandHandler {
       ));
     }
 
-    await this.configurationRepository.save(currentConfig);
+    const expectedVersion = currentConfig.version;
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Added ${command.count} rack(s) to tank '${tank.name}'`,
+      command.userId
+    );
 
     for (const event of events) {
       await this.eventBus.publish(event);
@@ -192,12 +198,18 @@ export class UpdateRackCommandHandler {
       return;
     }
 
+    const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.save(currentConfig);
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Updated rack '${configData.tanks[tankIndex].racks[rackIndex].name}' in tank '${tank.name}'`,
+      command.userId
+    );
 
     await this.eventBus.publish(new RackUpdatedEvent(
       command.userId,
@@ -257,6 +269,7 @@ export class DeleteRackCommandHandler {
     }
 
     const rackName = rack.name;
+    const expectedVersion = currentConfig.version;
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
     configData.tanks[tankIndex].racks = configData.tanks[tankIndex].racks.filter(
@@ -268,7 +281,12 @@ export class DeleteRackCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.save(currentConfig);
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Deleted rack '${rackName}' from tank '${tank.name}'`,
+      command.userId
+    );
 
     await this.eventBus.publish(new RackDeletedEvent(
       command.userId,
@@ -345,12 +363,21 @@ export class AssignRackCommandHandler {
       currentConfig.clearInheritedBoxLabelsForRack(command.tankId, command.rackId);
     }
 
+    const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.save(currentConfig);
+    const action = command.assignedUserId
+      ? (previousUserId ? 'Reassigned' : 'Assigned')
+      : 'Unassigned';
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `${action} rack '${rack.name}' in tank '${tank.name}'`,
+      command.userId
+    );
 
     if (command.assignedUserId && previousUserId) {
       await this.eventBus.publish(new RackReassignedEvent(

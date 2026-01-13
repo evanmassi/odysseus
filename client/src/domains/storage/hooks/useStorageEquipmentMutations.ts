@@ -9,12 +9,24 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
 import { isOfflineError } from '@infra/api/httpClient';
+import { isConflictError } from '@shared/errors';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
 import { StorageService } from '../services/StorageService';
 
 import type { GridConfiguration, PositionDisplayConfig } from '@odysseus/shared-schemas';
+
+/** Show conflict error message and refresh cache. */
+function handleConflictError(
+  queryClient: ReturnType<typeof useQueryClient>,
+  operation: string
+): void {
+  notifications.error(
+    `${operation} failed: Configuration was modified by another user. Please review the latest changes and try again.`
+  );
+  void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+}
 
 // Tank Mutations
 
@@ -33,7 +45,11 @@ export const useAddTankMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Add tank');
+        return;
+      }
       logger.error('useAddTankMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to add tank: ${message}`);
@@ -61,7 +77,11 @@ export const useUpdateTankMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Update tank');
+        return;
+      }
       logger.error('useUpdateTankMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to update tank: ${message}`);
@@ -83,7 +103,11 @@ export const useDeleteTankMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Delete tank');
+        return;
+      }
       logger.error('useDeleteTankMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to delete tank: ${message}`);
@@ -112,7 +136,11 @@ export const useAddRacksMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Add rack(s)');
+        return;
+      }
       logger.error('useAddRacksMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to add rack(s): ${message}`);
@@ -142,7 +170,11 @@ export const useUpdateRackMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Update rack');
+        return;
+      }
       logger.error('useUpdateRackMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to update rack: ${message}`);
@@ -165,7 +197,11 @@ export const useDeleteRackMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Delete rack');
+        return;
+      }
       logger.error('useDeleteRackMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to delete rack: ${message}`);
@@ -197,7 +233,11 @@ export const useAssignRackMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Assign rack');
+        return;
+      }
       logger.error('useAssignRackMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to assign rack: ${message}`);
@@ -226,7 +266,11 @@ export const useAddBoxesMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Add box(es)');
+        return;
+      }
       logger.error('useAddBoxesMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to add box(es): ${message}`);
@@ -263,7 +307,11 @@ export const useUpdateBoxMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Update box');
+        return;
+      }
       logger.error('useUpdateBoxMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to update box: ${message}`);
@@ -286,7 +334,11 @@ export const useDeleteBoxMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Delete box');
+        return;
+      }
       logger.error('useDeleteBoxMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to delete box: ${message}`);
@@ -320,7 +372,11 @@ export const useAssignBoxMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Assign box');
+        return;
+      }
       logger.error('useAssignBoxMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to assign box: ${message}`);
@@ -352,7 +408,11 @@ export const useBulkUnassignMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Bulk unassign');
+        return;
+      }
       logger.error('useBulkUnassignMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to unassign resources: ${message}`);
@@ -382,7 +442,11 @@ export const useBulkReassignMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Bulk reassign');
+        return;
+      }
       logger.error('useBulkReassignMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to reassign resources: ${message}`);
@@ -413,7 +477,11 @@ export const useInitializeConfigurationMutation = () => {
     },
 
     onError: (error: unknown) => {
-      if (isOfflineError(error)) return; // Global handler shows offline notification
+      if (isOfflineError(error)) return;
+      if (isConflictError(error)) {
+        handleConflictError(queryClient, 'Initialize configuration');
+        return;
+      }
       logger.error('useInitializeConfigurationMutation failed', { error });
       const message = error instanceof Error ? error.message : 'Unknown error';
       notifications.error(`Failed to initialize configuration: ${message}`);

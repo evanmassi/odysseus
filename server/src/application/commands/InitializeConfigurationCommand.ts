@@ -115,7 +115,13 @@ export class InitializeConfigurationCommandHandler {
       }
     });
 
-    await this.configurationRepository.save(config);
+    // Use version 0 since no config exists yet (protects against concurrent initialization)
+    await this.configurationRepository.saveWithOptimisticLock(
+      config,
+      0,
+      `Initialized configuration with ${tankCount} tank(s)`,
+      command.userId
+    );
 
     await this.eventBus.publish(new ConfigurationUpdatedEvent(
       command.userId,

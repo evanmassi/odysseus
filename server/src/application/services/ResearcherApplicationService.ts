@@ -180,7 +180,7 @@ export class ResearcherApplicationService {
         const researcher = Researcher.create(existingPerson.id);
         await this.researcherRepository.save(researcher);
 
-        this.eventBus.publish(new ResearcherCreatedEvent(
+        await this.eventBus.publish(new ResearcherCreatedEvent(
           researcher.id,
           existingPerson.firstName,
           existingPerson.lastName,
@@ -217,7 +217,7 @@ export class ResearcherApplicationService {
       const researcher = Researcher.create(orphanedPerson.id);
       await this.researcherRepository.save(researcher);
 
-      this.eventBus.publish(new ResearcherCreatedEvent(
+      await this.eventBus.publish(new ResearcherCreatedEvent(
         researcher.id,
         orphanedPerson.firstName,
         orphanedPerson.lastName,
@@ -243,7 +243,7 @@ export class ResearcherApplicationService {
     await this.personRepository.save(person);
     await this.researcherRepository.save(researcher);
 
-    this.eventBus.publish(new ResearcherCreatedEvent(
+    await this.eventBus.publish(new ResearcherCreatedEvent(
       researcher.id,
       person.firstName,
       person.lastName,
@@ -321,7 +321,7 @@ export class ResearcherApplicationService {
 
     // Publish event if there were changes
     if (changes.length > 0) {
-      this.eventBus.publish(new ResearcherUpdatedEvent(
+      await this.eventBus.publish(new ResearcherUpdatedEvent(
         researcher.id,
         person.firstName,
         person.lastName,
@@ -389,7 +389,7 @@ export class ResearcherApplicationService {
     }
 
     // Publish event for real-time sync
-    this.eventBus.publish(new ResearcherDeletedEvent(
+    await this.eventBus.publish(new ResearcherDeletedEvent(
       researcher.id,
       person.firstName,
       person.lastName,
@@ -422,7 +422,7 @@ export class ResearcherApplicationService {
     await this.researcherRepository.save(researcher);
 
     // Publish event
-    this.eventBus.publish(new ResearcherDeactivatedEvent(
+    await this.eventBus.publish(new ResearcherDeactivatedEvent(
       researcher.id,
       person.firstName,
       person.lastName,
@@ -455,7 +455,7 @@ export class ResearcherApplicationService {
     await this.researcherRepository.save(researcher);
 
     // Publish event
-    this.eventBus.publish(new ResearcherReactivatedEvent(
+    await this.eventBus.publish(new ResearcherReactivatedEvent(
       researcher.id,
       person.firstName,
       person.lastName,

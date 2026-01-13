@@ -133,7 +133,13 @@ export class AddBoxesCommandHandler {
       letterIndex++;
     }
 
-    await this.configurationRepository.save(currentConfig);
+    const expectedVersion = currentConfig.version;
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Added ${command.count} box(es) to rack '${rack.name}' in tank '${tank.name}'`,
+      command.userId
+    );
 
     for (const event of events) {
       await this.eventBus.publish(event);
@@ -225,12 +231,18 @@ export class UpdateBoxCommandHandler {
       return;
     }
 
+    const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.save(currentConfig);
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Updated box '${boxData.name}' in rack '${rack.name}'`,
+      command.userId
+    );
 
     await this.eventBus.publish(new BoxUpdatedEvent(
       command.userId,
@@ -302,6 +314,7 @@ export class DeleteBoxCommandHandler {
     }
 
     const boxName = box.name;
+    const expectedVersion = currentConfig.version;
     const configData = currentConfig.toData();
     const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
     const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
@@ -314,7 +327,12 @@ export class DeleteBoxCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.save(currentConfig);
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Deleted box '${boxName}' from rack '${rack.name}'`,
+      command.userId
+    );
 
     await this.eventBus.publish(new BoxDeletedEvent(
       command.userId,
@@ -397,12 +415,21 @@ export class AssignBoxCommandHandler {
 
     configData.tanks[tankIndex].racks[rackIndex].boxes[boxIndex].assignedUserId = command.assignedUserId ?? undefined;
 
+    const expectedVersion = currentConfig.version;
     currentConfig.updateFromData({
       tanks: configData.tanks,
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.save(currentConfig);
+    const action = command.assignedUserId
+      ? (previousUserId ? 'Reassigned' : 'Assigned')
+      : 'Unassigned';
+    await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `${action} box '${box.name}' in rack '${rack.name}'`,
+      command.userId
+    );
 
     if (command.assignedUserId && previousUserId) {
       await this.eventBus.publish(new BoxReassignedEvent(

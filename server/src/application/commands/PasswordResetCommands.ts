@@ -59,7 +59,7 @@ export class AdminResetPasswordCommandHandler {
     const revokedSessions = await this.userSessionRepository.revokeAllSessions(targetUser.id);
 
     // Publish event
-    this.eventBus.publish(new PasswordResetByAdminEvent(
+    await this.eventBus.publish(new PasswordResetByAdminEvent(
       targetUser.id,
       admin.id,
       command.requirePasswordChange
@@ -116,7 +116,7 @@ export class GeneratePasswordResetTokenCommandHandler {
     const expiresAt = targetUser.passwordResetExpiry!;
 
     // Publish event
-    this.eventBus.publish(new PasswordResetTokenGeneratedEvent(
+    await this.eventBus.publish(new PasswordResetTokenGeneratedEvent(
       targetUser.id,
       admin.id,
       expiresAt
@@ -170,7 +170,7 @@ export class ResetPasswordWithTokenCommandHandler {
     const revokedSessions = await this.userSessionRepository.revokeAllSessions(user.id);
 
     // Publish event
-    this.eventBus.publish(new PasswordResetCompletedEvent(user.id));
+    await this.eventBus.publish(new PasswordResetCompletedEvent(user.id));
 
     logger.info('Password reset completed with token', {
       userId: user.id,
