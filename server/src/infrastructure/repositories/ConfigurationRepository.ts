@@ -9,6 +9,7 @@ import { DEFAULT_SECURITY_CONFIG, EQUIPMENT_DEFAULTS } from '@odysseus/shared-sc
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { ConflictError } from '@domain/errors/ConflictError';
+import { NotFoundError } from '@domain/errors/NotFoundError';
 import { logger } from '@utils/logger';
 
 /**
@@ -1159,5 +1160,298 @@ export class ConfigurationRepository implements IConfigurationRepository {
         workspaceId: undefined
       };
     }
+  }
+
+  // ATOMIC EQUIPMENT DELETION
+  // Uses SERIALIZABLE isolation to prevent TOCTOU race conditions
+
+  async deleteEmptyTank(
+    tankId: string,
+    changedBy: string
+  ): Promise<{ tankName: string }> {
+    const MAX_RETRIES = 3;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        return await this.context.transactionSerializable(async (client) => {
+          // Count tubes in tank (SERIALIZABLE prevents concurrent inserts from being invisible)
+          const countResult = await client.query<{ count: string }>(
+            'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1',
+            [tankId]
+          );
+          const tubeCount = parseInt(countResult.rows[0].count, 10);
+
+          if (tubeCount > 0) {
+            throw new ValidationError(
+              `Cannot delete tank: ${tubeCount} tube(s) are stored in this location. ` +
+              `Move or delete the tubes first.`
+            );
+          }
+
+          // Load and validate configuration
+          const configRow = await client.query<{ config_json: string; version: number }>(
+            'SELECT config_json, version FROM configuration_current WHERE id = 1'
+          );
+          if (configRow.rows.length === 0) {
+            throw new ValidationError('No configuration found');
+          }
+
+          const configData = JSON.parse(configRow.rows[0].config_json);
+          const currentVersion = configRow.rows[0].version;
+          const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
+
+          if (tankIndex === -1) {
+            throw new NotFoundError(`Tank '${tankId}' not found`);
+          }
+
+          const tankName = configData.tanks[tankIndex].name;
+          configData.tanks.splice(tankIndex, 1);
+
+          // Save updated configuration
+          const now = new Date();
+          const configJson = JSON.stringify(configData);
+
+          const versionResult = await client.query<{ version: number }>(
+            `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
+             VALUES ($1, $2, $3, $4)
+             RETURNING version`,
+            [now, `Deleted tank '${tankName}'`, changedBy, configJson]
+          );
+
+          const newVersion = versionResult.rows[0].version;
+
+          const updateResult = await client.query(
+            `UPDATE configuration_current
+             SET version = $1, updated_at = $2, config_json = $3
+             WHERE id = 1 AND version = $4`,
+            [newVersion, now, configJson, currentVersion]
+          );
+
+          if (updateResult.rowCount === 0) {
+            throw ConflictError.configuration(currentVersion, newVersion);
+          }
+
+          logger.info(`Tank '${tankName}' deleted atomically`);
+          return { tankName };
+        });
+
+      } catch (error) {
+        // Retry on serialization failure (PostgreSQL error code 40001)
+        const isSerializationFailure =
+          error instanceof Error &&
+          'code' in error &&
+          (error as { code: string }).code === '40001';
+
+        if (isSerializationFailure && attempt < MAX_RETRIES) {
+          logger.warn(`Serialization failure on deleteEmptyTank, retrying (attempt ${attempt})`);
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    throw new ValidationError('Failed to delete tank after maximum retries');
+  }
+
+  async deleteEmptyRack(
+    tankId: string,
+    rackId: string,
+    changedBy: string
+  ): Promise<{ tankName: string; rackName: string }> {
+    const MAX_RETRIES = 3;
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        return await this.context.transactionSerializable(async (client) => {
+          // Count tubes in rack
+          const countResult = await client.query<{ count: string }>(
+            'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2',
+            [tankId, rackId]
+          );
+          const tubeCount = parseInt(countResult.rows[0].count, 10);
+
+          if (tubeCount > 0) {
+            throw new ValidationError(
+              `Cannot delete rack: ${tubeCount} tube(s) are stored in this location. ` +
+              `Move or delete the tubes first.`
+            );
+          }
+
+          // Load and validate configuration
+          const configRow = await client.query<{ config_json: string; version: number }>(
+            'SELECT config_json, version FROM configuration_current WHERE id = 1'
+          );
+          if (configRow.rows.length === 0) {
+            throw new ValidationError('No configuration found');
+          }
+
+          const configData = JSON.parse(configRow.rows[0].config_json);
+          const currentVersion = configRow.rows[0].version;
+          const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
+
+          if (tankIndex === -1) {
+            throw new NotFoundError(`Tank '${tankId}' not found`);
+          }
+
+          const tank = configData.tanks[tankIndex];
+          const rackIndex = tank.racks.findIndex((r: { id: string }) => r.id === rackId);
+
+          if (rackIndex === -1) {
+            throw new NotFoundError(`Rack '${rackId}' not found in tank '${tankId}'`);
+          }
+
+          const tankName = tank.name;
+          const rackName = tank.racks[rackIndex].name;
+          tank.racks.splice(rackIndex, 1);
+
+          // Save updated configuration
+          const now = new Date();
+          const configJson = JSON.stringify(configData);
+
+          const versionResult = await client.query<{ version: number }>(
+            `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
+             VALUES ($1, $2, $3, $4)
+             RETURNING version`,
+            [now, `Deleted rack '${rackName}' from tank '${tankName}'`, changedBy, configJson]
+          );
+
+          const newVersion = versionResult.rows[0].version;
+
+          const updateResult = await client.query(
+            `UPDATE configuration_current
+             SET version = $1, updated_at = $2, config_json = $3
+             WHERE id = 1 AND version = $4`,
+            [newVersion, now, configJson, currentVersion]
+          );
+
+          if (updateResult.rowCount === 0) {
+            throw ConflictError.configuration(currentVersion, newVersion);
+          }
+
+          logger.info(`Rack '${rackName}' deleted from tank '${tankName}' atomically`);
+          return { tankName, rackName };
+        });
+
+      } catch (error) {
+        const isSerializationFailure =
+          error instanceof Error &&
+          'code' in error &&
+          (error as { code: string }).code === '40001';
+
+        if (isSerializationFailure && attempt < MAX_RETRIES) {
+          logger.warn(`Serialization failure on deleteEmptyRack, retrying (attempt ${attempt})`);
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    throw new ValidationError('Failed to delete rack after maximum retries');
+  }
+
+  async deleteEmptyBox(
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    changedBy: string
+  ): Promise<{ tankName: string; rackName: string; boxName: string }> {
+    const MAX_RETRIES = 3;
+    const boxIdUpper = boxId.toUpperCase();
+
+    for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+      try {
+        return await this.context.transactionSerializable(async (client) => {
+          // Count tubes in box
+          const countResult = await client.query<{ count: string }>(
+            'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3',
+            [tankId, rackId, boxIdUpper]
+          );
+          const tubeCount = parseInt(countResult.rows[0].count, 10);
+
+          if (tubeCount > 0) {
+            throw new ValidationError(
+              `Cannot delete box: ${tubeCount} tube(s) are stored in this location. ` +
+              `Move or delete the tubes first.`
+            );
+          }
+
+          // Load and validate configuration
+          const configRow = await client.query<{ config_json: string; version: number }>(
+            'SELECT config_json, version FROM configuration_current WHERE id = 1'
+          );
+          if (configRow.rows.length === 0) {
+            throw new ValidationError('No configuration found');
+          }
+
+          const configData = JSON.parse(configRow.rows[0].config_json);
+          const currentVersion = configRow.rows[0].version;
+          const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
+
+          if (tankIndex === -1) {
+            throw new NotFoundError(`Tank '${tankId}' not found`);
+          }
+
+          const tank = configData.tanks[tankIndex];
+          const rackIndex = tank.racks.findIndex((r: { id: string }) => r.id === rackId);
+
+          if (rackIndex === -1) {
+            throw new NotFoundError(`Rack '${rackId}' not found in tank '${tankId}'`);
+          }
+
+          const rack = tank.racks[rackIndex];
+          const boxIndex = rack.boxes.findIndex((b: { name: string }) => b.name === boxIdUpper);
+
+          if (boxIndex === -1) {
+            throw new NotFoundError(`Box '${boxId}' not found in rack '${rackId}'`);
+          }
+
+          const tankName = tank.name;
+          const rackName = rack.name;
+          const boxName = rack.boxes[boxIndex].name;
+          rack.boxes.splice(boxIndex, 1);
+
+          // Save updated configuration
+          const now = new Date();
+          const configJson = JSON.stringify(configData);
+
+          const versionResult = await client.query<{ version: number }>(
+            `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
+             VALUES ($1, $2, $3, $4)
+             RETURNING version`,
+            [now, `Deleted box '${boxName}' from rack '${rackName}'`, changedBy, configJson]
+          );
+
+          const newVersion = versionResult.rows[0].version;
+
+          const updateResult = await client.query(
+            `UPDATE configuration_current
+             SET version = $1, updated_at = $2, config_json = $3
+             WHERE id = 1 AND version = $4`,
+            [newVersion, now, configJson, currentVersion]
+          );
+
+          if (updateResult.rowCount === 0) {
+            throw ConflictError.configuration(currentVersion, newVersion);
+          }
+
+          logger.info(`Box '${boxName}' deleted from rack '${rackName}' atomically`);
+          return { tankName, rackName, boxName };
+        });
+
+      } catch (error) {
+        const isSerializationFailure =
+          error instanceof Error &&
+          'code' in error &&
+          (error as { code: string }).code === '40001';
+
+        if (isSerializationFailure && attempt < MAX_RETRIES) {
+          logger.warn(`Serialization failure on deleteEmptyBox, retrying (attempt ${attempt})`);
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    throw new ValidationError('Failed to delete box after maximum retries');
   }
 }

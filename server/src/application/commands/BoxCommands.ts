@@ -265,7 +265,10 @@ export class UpdateBoxCommandHandler {
   }
 }
 
-/** Removes a box from a rack. Blocks if tubes exist. */
+/**
+ * Removes a box from a rack. Uses atomic check-and-delete to prevent TOCTOU race
+ * conditions where tubes could be added between the emptiness check and the actual deletion.
+ */
 export class DeleteBoxCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -275,72 +278,26 @@ export class DeleteBoxCommandHandler {
   ) {}
 
   async handle(command: DeleteBoxCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getCurrent();
-    if (!currentConfig) {
-      throw new ValidationError('No configuration found. Initialize system first.');
-    }
-
     const user = await this.getUserById(command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('delete box', command.userId);
     }
 
-    const tank = currentConfig.tanks.find(t => t.id === command.tankId);
-    if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
-    }
-
-    const rack = tank.racks.find(r => r.id === command.rackId);
-    if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
-    }
-
-    const boxIdUpper = command.boxId.toUpperCase();
-    const box = rack.boxes.find(b => b.name === boxIdUpper);
-    if (!box) {
-      throw new NotFoundError(`Box '${command.boxId}' not found in rack '${command.rackId}'`);
-    }
-
-    const tubesInBox = await this.tubeRepository.findByCompleteLocation(
+    // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
+    const { tankName, rackName, boxName } = await this.configurationRepository.deleteEmptyBox(
       command.tankId,
       command.rackId,
-      boxIdUpper
-    );
-    if (tubesInBox.length > 0) {
-      throw new ValidationError(
-        `Cannot delete box: ${tubesInBox.length} tube(s) are stored in this location. ` +
-        `Move or delete the tubes first.`
-      );
-    }
-
-    const boxName = box.name;
-    const expectedVersion = currentConfig.version;
-    const configData = currentConfig.toData();
-    const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
-    const rackIndex = configData.tanks[tankIndex].racks.findIndex(r => r.id === command.rackId);
-    configData.tanks[tankIndex].racks[rackIndex].boxes = configData.tanks[tankIndex].racks[rackIndex].boxes.filter(
-      b => b.name !== boxIdUpper
-    );
-
-    currentConfig.updateFromData({
-      tanks: configData.tanks,
-      systemSettings: configData.systemSettings
-    });
-
-    await this.configurationRepository.saveWithOptimisticLock(
-      currentConfig,
-      expectedVersion,
-      `Deleted box '${boxName}' from rack '${rack.name}'`,
+      command.boxId,
       command.userId
     );
 
     await this.eventBus.publish(new BoxDeletedEvent(
       command.userId,
       command.tankId,
-      tank.name,
+      tankName,
       command.rackId,
-      rack.name,
-      boxIdUpper,
+      rackName,
+      command.boxId.toUpperCase(),
       boxName
     ));
   }

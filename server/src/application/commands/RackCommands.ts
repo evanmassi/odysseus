@@ -230,7 +230,10 @@ export class UpdateRackCommandHandler {
   }
 }
 
-/** Removes a rack and all its boxes. Blocks if tubes exist. */
+/**
+ * Removes a rack and all its boxes. Uses atomic check-and-delete to prevent TOCTOU race
+ * conditions where tubes could be added between the emptiness check and the actual deletion.
+ */
 export class DeleteRackCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
@@ -240,58 +243,22 @@ export class DeleteRackCommandHandler {
   ) {}
 
   async handle(command: DeleteRackCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getCurrent();
-    if (!currentConfig) {
-      throw new ValidationError('No configuration found. Initialize system first.');
-    }
-
     const user = await this.getUserById(command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('delete rack', command.userId);
     }
 
-    const tank = currentConfig.tanks.find(t => t.id === command.tankId);
-    if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
-    }
-
-    const rack = tank.racks.find(r => r.id === command.rackId);
-    if (!rack) {
-      throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
-    }
-
-    const tubesInRack = await this.tubeRepository.findByTankAndRack(command.tankId, command.rackId);
-    if (tubesInRack.length > 0) {
-      throw new ValidationError(
-        `Cannot delete rack: ${tubesInRack.length} tube(s) are stored in this location. ` +
-        `Move or delete the tubes first.`
-      );
-    }
-
-    const rackName = rack.name;
-    const expectedVersion = currentConfig.version;
-    const configData = currentConfig.toData();
-    const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
-    configData.tanks[tankIndex].racks = configData.tanks[tankIndex].racks.filter(
-      r => r.id !== command.rackId
-    );
-
-    currentConfig.updateFromData({
-      tanks: configData.tanks,
-      systemSettings: configData.systemSettings
-    });
-
-    await this.configurationRepository.saveWithOptimisticLock(
-      currentConfig,
-      expectedVersion,
-      `Deleted rack '${rackName}' from tank '${tank.name}'`,
+    // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
+    const { tankName, rackName } = await this.configurationRepository.deleteEmptyRack(
+      command.tankId,
+      command.rackId,
       command.userId
     );
 
     await this.eventBus.publish(new RackDeletedEvent(
       command.userId,
       command.tankId,
-      tank.name,
+      tankName,
       command.rackId,
       rackName
     ));

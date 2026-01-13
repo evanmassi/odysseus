@@ -65,6 +65,43 @@ export interface ConfigurationRepository {
     changedBy?: string
   ): Promise<void>;
 
+  // ATOMIC EQUIPMENT DELETION
+  // These methods atomically verify no tubes exist before deleting equipment,
+  // preventing TOCTOU race conditions where tubes could be orphaned.
+
+  /**
+   * Atomically delete tank if empty. Uses SERIALIZABLE isolation to prevent race conditions.
+   * @throws ValidationError if tubes exist in the tank
+   * @throws NotFoundError if tank doesn't exist
+   */
+  deleteEmptyTank(
+    tankId: string,
+    changedBy: string
+  ): Promise<{ tankName: string }>;
+
+  /**
+   * Atomically delete rack if empty. Uses SERIALIZABLE isolation to prevent race conditions.
+   * @throws ValidationError if tubes exist in the rack
+   * @throws NotFoundError if rack doesn't exist
+   */
+  deleteEmptyRack(
+    tankId: string,
+    rackId: string,
+    changedBy: string
+  ): Promise<{ tankName: string; rackName: string }>;
+
+  /**
+   * Atomically delete box if empty. Uses SERIALIZABLE isolation to prevent race conditions.
+   * @throws ValidationError if tubes exist in the box
+   * @throws NotFoundError if box doesn't exist
+   */
+  deleteEmptyBox(
+    tankId: string,
+    rackId: string,
+    boxId: string,
+    changedBy: string
+  ): Promise<{ tankName: string; rackName: string; boxName: string }>;
+
   // EQUIPMENT VALIDATION
 
   /**

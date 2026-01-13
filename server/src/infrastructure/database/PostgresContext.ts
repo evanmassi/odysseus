@@ -550,6 +550,26 @@ export class PostgresContext {
   }
 
   /**
+   * Transaction with SERIALIZABLE isolation level.
+   * Prevents read/write anomalies but may fail with serialization errors on conflict.
+   * Caller should handle retry logic for '40001' (serialization_failure) errors.
+   */
+  async transactionSerializable<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN ISOLATION LEVEL SERIALIZABLE');
+      const result = await fn(client);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
    * Get a client for manual transaction control
    */
   async getClient(): Promise<PoolClient> {

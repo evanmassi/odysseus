@@ -183,7 +183,8 @@ export class UpdateTankCommandHandler {
 /**
  * Delete Tank Command Handler
  *
- * Removes a tank and all its contents. Blocks if tubes exist in the tank.
+ * Removes a tank. Uses atomic check-and-delete to prevent TOCTOU race conditions
+ * where tubes could be added between the emptiness check and the actual deletion.
  */
 export class DeleteTankCommandHandler {
   constructor(
@@ -194,36 +195,14 @@ export class DeleteTankCommandHandler {
   ) {}
 
   async handle(command: DeleteTankCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getCurrent();
-    if (!currentConfig) {
-      throw new ValidationError('No configuration found. Initialize system first.');
-    }
-
     const user = await this.getUserById(command.userId);
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('delete tank', command.userId);
     }
 
-    const tank = currentConfig.tanks.find(t => t.id === command.tankId);
-    if (!tank) {
-      throw new NotFoundError(`Tank '${command.tankId}' not found`);
-    }
-
-    const tubesInTank = await this.tubeRepository.findByTank(command.tankId);
-    if (tubesInTank.length > 0) {
-      throw new ValidationError(
-        `Cannot delete tank: ${tubesInTank.length} tube(s) are stored in this location. ` +
-        `Move or delete the tubes first.`
-      );
-    }
-
-    const tankName = tank.name;
-    const expectedVersion = currentConfig.version;
-    currentConfig.removeTank(command.tankId);
-    await this.configurationRepository.saveWithOptimisticLock(
-      currentConfig,
-      expectedVersion,
-      `Deleted tank '${tankName}'`,
+    // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
+    const { tankName } = await this.configurationRepository.deleteEmptyTank(
+      command.tankId,
       command.userId
     );
 

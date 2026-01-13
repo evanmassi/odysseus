@@ -473,14 +473,21 @@ export const useBulkDeleteTubesMutation = (
   });
 };
 
+/** Result type for paste tubes operation */
+export type PasteTubesResult = {
+  success: boolean;
+  created: TubeData[];
+  failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
+};
+
 /**
  * Paste tubes mutation (bulk create at target positions)
  *
  * Handles both copy (duplicate data) and cut (recreate at new location).
- * Preserves relative positioning from source to target.
+ * Returns partial success info so caller can handle failures gracefully.
  */
 export const usePasteTubesMutation = (
-  options: UseMutationOptions<TubeData[], Error, { tubes: CreateTubeRequest[] }> = {}
+  options: UseMutationOptions<PasteTubesResult, Error, { tubes: CreateTubeRequest[] }> = {}
 ) => {
   const queryClient = useQueryClient();
 
@@ -489,7 +496,9 @@ export const usePasteTubesMutation = (
       return await TubeService.pasteTubes(tubes);
     },
 
-    onSuccess: (createdTubes, _variables) => {
+    onSuccess: (result, _variables) => {
+      const { created: createdTubes, failed } = result;
+
       // Add all created tubes to individual caches
       createdTubes.forEach(tube => {
         queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
@@ -514,12 +523,18 @@ export const usePasteTubesMutation = (
       // Invalidate statistics
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
 
-      // Note: Paste success notifications now handled in useGridController where operation type is known
+      // Log partial failures for debugging
+      if (failed.length > 0) {
+        logger.warn('Paste tubes partial failure', {
+          created: createdTubes.length,
+          failed: failed.length,
+          errors: failed.map(f => f.error),
+        });
+      }
     },
 
     onError: (error, _variables) => {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      logger.error('❌ [React Query] Paste tubes failed', { error });
+      logger.error('Paste tubes failed', { error });
     },
 
     onSettled: () => {

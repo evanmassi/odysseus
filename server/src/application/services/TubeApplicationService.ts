@@ -161,20 +161,38 @@ export class TubeApplicationService {
   }
 
   /**
-   * Create multiple tubes
-   * Reuses existing createTube logic, zero duplication
-   * Bulk operations are loops over single operations
+   * Create multiple tubes with partial failure handling.
+   * Returns created tubes and any failures, matching bulkUpdateTubes pattern.
    */
-  async createTubes(requests: CreateTubeRequest[], authenticatedUser: User): Promise<TubeResponse[]> {
-    const tubes: TubeResponse[] = [];
+  async createTubes(
+    requests: CreateTubeRequest[],
+    authenticatedUser: User
+  ): Promise<{
+    success: boolean;
+    created: TubeResponse[];
+    failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
+  }> {
+    const created: TubeResponse[] = [];
+    const failed: Array<{ index: number; request: CreateTubeRequest; error: string }> = [];
 
-    // Process sequentially to maintain transaction safety
-    for (const request of requests) {
-      const tube = await this.createTube(request, authenticatedUser);
-      tubes.push(tube);
+    for (let i = 0; i < requests.length; i++) {
+      try {
+        const tube = await this.createTube(requests[i], authenticatedUser);
+        created.push(tube);
+      } catch (error) {
+        failed.push({
+          index: i,
+          request: requests[i],
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
     }
 
-    return tubes;
+    return {
+      success: failed.length === 0,
+      created,
+      failed
+    };
   }
 
   /**

@@ -141,16 +141,28 @@ export class TubeService {
   }
 
   /**
-   * Bulk paste tubes - create tubes at target positions
-   *
-   * Handles both copy (duplicate) and cut (recreate) operations.
-   * Uses standard POST /tubes endpoint which accepts both single object and arrays.
+   * Bulk paste tubes - create tubes at target positions.
+   * Returns partial success info so caller can handle failures gracefully.
    */
-  static async pasteTubes(tubes: CreateTubeRequest[]): Promise<TubeData[]> {
+  static async pasteTubes(tubes: CreateTubeRequest[]): Promise<{
+    success: boolean;
+    created: TubeData[];
+    failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
+  }> {
     // Normalize dates to YYYY-MM-DD format to prevent timezone bugs
     const normalizedTubes = tubes.map(tube => this.normalizeTubeDates(tube));
     const validatedRequests = normalizedTubes.map(tube => createTubeRequestSchema.parse(tube));
-    return await httpClient.postData(this.BASE_PATH, validatedRequests, tubeDataSchema.array());
+
+    const response = await httpClient.post<{
+      success: boolean;
+      data: {
+        success: boolean;
+        created: TubeData[];
+        failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
+      };
+    }>(this.BASE_PATH, validatedRequests);
+
+    return response.data.data;
   }
 
   /**

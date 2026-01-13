@@ -704,14 +704,34 @@ updateTubeMutation.mutate({
 
 ## Issue 4: Equipment Deletion TOCTOU Vulnerabilities
 
-### Current State
+### Implementation Status: COMPLETE (2026-01-12)
+
+**Solution Implemented:**
+- Added `transactionSerializable()` method to PostgresContext for SERIALIZABLE isolation level
+- Added atomic delete methods to ConfigurationRepository interface:
+  - `deleteEmptyTank(tankId, changedBy)`
+  - `deleteEmptyRack(tankId, rackId, changedBy)`
+  - `deleteEmptyBox(tankId, rackId, boxId, changedBy)`
+- Each method performs tube count check and equipment deletion in same SERIALIZABLE transaction
+- Includes automatic retry logic (up to 3 attempts) for serialization failures
+- Updated DeleteTankCommandHandler, DeleteRackCommandHandler, DeleteBoxCommandHandler to use atomic methods
+
+**Files Modified:**
+- `server/src/domain/repositories/ConfigurationRepository.ts` - Added interface methods
+- `server/src/infrastructure/database/PostgresContext.ts` - Added `transactionSerializable()`
+- `server/src/infrastructure/repositories/ConfigurationRepository.ts` - Implemented atomic deletes
+- `server/src/application/commands/TankCommands.ts` - Simplified DeleteTankCommandHandler
+- `server/src/application/commands/RackCommands.ts` - Simplified DeleteRackCommandHandler
+- `server/src/application/commands/BoxCommands.ts` - Simplified DeleteBoxCommandHandler
+
+### Original Problem State
 
 **Location:** `server/src/application/commands/TankCommands.ts`, `RackCommands.ts`, `BoxCommands.ts`
 
-Equipment deletion has a Time-Of-Check to Time-Of-Use race condition:
+Equipment deletion had a Time-Of-Check to Time-Of-Use race condition:
 
 ```typescript
-// DeleteRackCommandHandler (lines 251-271)
+// DeleteRackCommandHandler - BEFORE FIX
 const tubesInRack = await this.tubeRepository.findByTankAndRack(tankId, rackId);
 // RACE WINDOW: Tube can be added here
 if (tubesInRack.length > 0) {
@@ -722,7 +742,7 @@ currentConfig.removeRack(tankId, rackId);
 await this.configurationRepository.save(currentConfig);  // Rack deleted, tube orphaned
 ```
 
-### Current Architecture Constraints
+### Architecture Constraints
 - Configuration stored as JSON document (separate from tubes table)
 - No foreign key constraints between tubes and equipment
 - Tubes reference equipment by string IDs
@@ -901,9 +921,72 @@ Replicate the pattern from Phase 1.2 to:
 
 ## Issue 5: Bulk Operations Partial Failures
 
+### Investigation Status: COMPLETE (2026-01-12)
+
+### Implementation Status: COMPLETE (2026-01-12)
+
+**Solution Implemented:**
+- Fixed `createTubes()` to use partial success pattern matching `bulkUpdateTubes()`
+- Returns `{ success: boolean; created: TubeResponse[]; failed: Array<{ index, request, error }> }`
+- Updated TubeController to return HTTP 207 Multi-Status for partial success
+- Updated client-side TubeService.pasteTubes() to handle new response format
+- Updated usePasteTubesMutation hook with new PasteTubesResult type
+
+**Files Modified:**
+- `server/src/application/services/TubeApplicationService.ts` - Fixed createTubes() to handle partial failures
+- `server/src/presentation/controllers/TubeController.ts` - Returns 201 for full success, 207 for partial
+- `client/src/domains/tubes/services/TubeService.ts` - Updated pasteTubes() response handling
+- `client/src/domains/tubes/hooks/useTubeMutations.ts` - Updated PasteTubesResult type and hook
+
 ### Current State
 
-**Location:** `server/src/application/services/TubeApplicationService.ts` (lines 486-526)
+**Location:** `server/src/application/services/TubeApplicationService.ts`
+
+#### Investigation Findings
+
+**Critical Bug Found: `createTubes()` (lines 168-178)**
+
+```typescript
+async createTubes(requests: CreateTubeRequest[], authenticatedUser: User): Promise<TubeResponse[]> {
+  const tubes: TubeResponse[] = [];
+  for (const request of requests) {
+    const tube = await this.createTube(request, authenticatedUser);  // NO try/catch!
+    tubes.push(tube);
+  }
+  return tubes;
+}
+```
+
+**Problem:** Unlike `bulkUpdateTubes()`, this method does NOT use try/catch. If tube 5 of 10 fails:
+- Tubes 1-4 are already saved to database
+- Method throws exception
+- Caller receives error with no information about partial success
+- **System left in inconsistent state**
+
+**Bulk Operations Audit (TubeApplicationService.ts):**
+
+| Method | Line | Pattern | Issue |
+|--------|------|---------|-------|
+| `createTubes()` | 168-178 | Loop without try/catch | **BUG: Partial state on failure** |
+| `bulkUpdateTubes()` | 486-526 | Loop with try/catch | Intentional partial success |
+| `bulkDeleteTubes()` | 531-562 | Loop with try/catch | Intentional partial success |
+| `lockTubes()` | 568-639 | Loop with skip pattern | Intentional partial success |
+| `unlockTubes()` | 645-694 | Loop with skip pattern | Intentional partial success |
+| `shareTubeAccess()` | 700-746 | Loop with skip pattern | Intentional partial success |
+| `revokeTubeAccess()` | 752-798 | Loop with skip pattern | Intentional partial success |
+
+**Repository Transaction Audit (TubeRepository.ts):**
+
+| Method | Line | Transaction? | Notes |
+|--------|------|--------------|-------|
+| `save()` | 42-82 | No | Single UPSERT - atomic at SQL level ✓ |
+| `delete()` | 84-87 | No | Single DELETE - atomic at SQL level ✓ |
+| `saveMany()` | 873-917 | Yes ✓ | Transaction wraps loop of inserts |
+| `deleteMany()` | 919-928 | No | Single DELETE IN - atomic at SQL level ✓ |
+
+**Conclusion:** The repository layer is correctly using transactions where needed. The issue is in the application service layer where `createTubes()` doesn't handle partial failures.
+
+### Original Issue Description
 
 Bulk operations iterate without transaction wrapping:
 
@@ -921,9 +1004,94 @@ async bulkUpdateTubes(request): Promise<BulkResult> {
 }
 ```
 
-**Consequence:** Partial success leaves system in inconsistent state (some tubes moved, others not).
+**Note:** The partial success pattern in `bulkUpdateTubes()` is actually intentional design - it returns `{ succeeded, failed }`. The real bug is `createTubes()` which doesn't follow this pattern.
 
 ### Implementation Plan
+
+#### Phase 0: Fix `createTubes()` Partial Failure Bug (Quick Fix)
+
+**0.1 Update `createTubes()` to Return Partial Results**
+
+```typescript
+// TubeApplicationService.ts - lines 168-178
+// Option A: Match bulkUpdateTubes() pattern (partial success)
+async createTubes(
+  requests: CreateTubeRequest[],
+  authenticatedUser: User
+): Promise<{
+  success: boolean;
+  created: TubeResponse[];
+  failed: Array<{ index: number; error: string }>;
+}> {
+  const created: TubeResponse[] = [];
+  const failed: Array<{ index: number; error: string }> = [];
+
+  for (let i = 0; i < requests.length; i++) {
+    try {
+      const tube = await this.createTube(requests[i], authenticatedUser);
+      created.push(tube);
+    } catch (error) {
+      failed.push({
+        index: i,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  }
+
+  return {
+    success: failed.length === 0,
+    created,
+    failed
+  };
+}
+```
+
+**Breaking Change Note:** This changes the return type. Callers need to be updated to use `result.created` instead of directly using the array.
+
+**Alternative: Option B (All-or-Nothing with Transaction)**
+
+```typescript
+// If all-or-nothing semantics are preferred:
+async createTubes(
+  requests: CreateTubeRequest[],
+  authenticatedUser: User
+): Promise<TubeResponse[]> {
+  // Validate all tubes first (before any saves)
+  for (const request of requests) {
+    const tubeData = TubeDto.fromCreateRequest(request);
+    const positionResult = await this.tubePositionService.validatePosition(
+      tubeData.location.tankId,
+      tubeData.location.rackId,
+      tubeData.location.boxId,
+      tubeData.location.position,
+      this.tubeRepository
+    );
+    if (!positionResult.isValid) {
+      throw new ValidationError(`Position conflict: ${positionResult.reason}`);
+    }
+  }
+
+  // Then create all atomically using saveMany()
+  const tubes = requests.map(request => {
+    const tubeData = TubeDto.fromCreateRequest(request);
+    return Tube.create(tubeData);
+  });
+
+  await this.tubeRepository.saveMany(tubes);
+
+  // Publish events
+  for (const tube of tubes) {
+    await this.eventBus.publish(new TubeCreatedEvent(
+      tube.id,
+      tube.location,
+      tube.sampleData,
+      authenticatedUser.id
+    ));
+  }
+
+  return TubeDto.toResponseList(tubes);
+}
+```
 
 #### Phase 1: Add All-or-Nothing Transaction Mode
 
@@ -990,9 +1158,12 @@ interface BulkResult {
 ```
 
 ### Testing Checklist
-- [ ] Unit test: All-or-nothing mode rolls back on any failure
+- [x] Implementation: createTubes() uses partial success pattern
+- [x] Implementation: TubeController returns HTTP 207 for partial success
+- [x] Implementation: Client handles new response format
+- [x] Build verification: Server and client build without errors
 - [ ] Unit test: Best-effort mode continues after failure
-- [ ] Integration test: Atomic swap of two tube positions
+- [ ] Integration test: Bulk create with some failures returns partial success
 - [ ] E2E test: UI correctly shows partial vs complete failure
 
 ---
@@ -1285,22 +1456,22 @@ export class IntegrityChecker {
 
 | Issue | Severity | Effort | Priority | Status |
 |-------|----------|--------|----------|--------|
-| 1. Configuration Optimistic Locking | CRITICAL | Medium | P1 | Pending |
-| 4. Equipment Deletion TOCTOU | CRITICAL | Medium | P1 | Pending |
+| 1. Configuration Optimistic Locking | CRITICAL | Medium | P1 | **COMPLETE** |
+| 4. Equipment Deletion TOCTOU | CRITICAL | Medium | P1 | **COMPLETE** |
 | 6. Socket Event Missing Awaits | CRITICAL | Low | P1 | **COMPLETE** |
+| 5. Bulk Operation Transactions | HIGH | Medium | P2 | **COMPLETE** |
 | 2. Position Collision Races | HIGH | Medium | P2 | Pending |
 | 3. Tube Version Field | HIGH | Medium | P2 | Pending |
-| 5. Bulk Operation Transactions | HIGH | Medium | P2 | Pending |
 | 7. Cache Invalidation | MEDIUM | Low | P3 | Pending |
 | 8. Cascade Integrity | MEDIUM | Low | P3 | Pending |
 
 **Recommended Implementation Order:**
 1. ~~Issue 6 (quick win, low effort)~~ **COMPLETE** (2026-01-12)
-2. Issue 1 (foundational for all configuration operations)
-3. Issue 4 (prevents data corruption)
-4. Issue 3 (tube versioning)
-5. Issue 2 (position locking, builds on Issue 3)
-6. Issue 5 (bulk operations)
+2. ~~Issue 1 (foundational for all configuration operations)~~ **COMPLETE** (2026-01-12)
+3. ~~Issue 4 (prevents data corruption in equipment deletion)~~ **COMPLETE** (2026-01-12)
+4. ~~Issue 5 (fix `createTubes()` bug - partial success pattern)~~ **COMPLETE** (2026-01-12)
+5. Issue 3 (tube versioning)
+6. Issue 2 (position locking, builds on Issue 3)
 7. Issues 7-8 (optimization and safeguards)
 
 ---

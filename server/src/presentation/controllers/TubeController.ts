@@ -33,14 +33,21 @@ export class TubeController {
       if (isArray) {
         // Bulk creation - array of CreateTubeRequest
         const createRequests: CreateTubeRequest[] = req.body;
-        const tubes = await this.tubeApplicationService.createTubes(createRequests, authenticatedUser);
+        const result = await this.tubeApplicationService.createTubes(createRequests, authenticatedUser);
 
         logger.info('Bulk tubes created', {
-          count: tubes.length,
+          created: result.created.length,
+          failed: result.failed.length,
           user: req.user?.username
         });
 
-        res.status(201).json(ErrorDto.success(tubes));
+        // Use 207 Multi-Status for partial success, 201 for full success
+        const statusCode = result.success ? 201 : 207;
+        res.status(statusCode).json(ErrorDto.success({
+          success: result.success,
+          created: result.created,
+          failed: result.failed
+        }));
       } else {
         // Single creation - CreateTubeRequest object
         const createRequest: CreateTubeRequest = req.body;
