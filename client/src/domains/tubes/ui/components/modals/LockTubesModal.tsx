@@ -8,7 +8,7 @@
  * @module tubes/ui/components/modals
  */
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { Info, Lock, Notebook } from 'lucide-react';
 
@@ -47,6 +47,13 @@ export function LockTubesModal({
 }: LockTubesModalProps) {
   const [lockNote, setLockNote] = useState('');
   const lockMutation = useLockTubesMutation();
+
+  // Reset note when modal opens (component stays mounted, only isOpen changes)
+  useEffect(() => {
+    if (isOpen) {
+      setLockNote('');
+    }
+  }, [isOpen]);
 
   const handleLock = async () => {
     try {
