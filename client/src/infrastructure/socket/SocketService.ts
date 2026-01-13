@@ -7,6 +7,7 @@
 
 import { io } from 'socket.io-client';
 
+import { sessionManager } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
 
 import { getSocketBridge, cleanupSocketBridge } from './queryBridge';
@@ -55,8 +56,17 @@ export class SocketService {
     }
 
     try {
-      // Create socket connection
-      this.socket = io(SOCKET_CONFIG.url, SOCKET_CONFIG.options);
+      // Get valid auth token for socket authentication (enables presence tracking)
+      // Uses getValidAccessToken() which auto-refreshes if token is expired
+      const authToken = await sessionManager.getValidAccessToken();
+
+      logger.debug('Socket initializing', { hasToken: !!authToken });
+
+      // Create socket connection with auth token
+      this.socket = io(SOCKET_CONFIG.url, {
+        ...SOCKET_CONFIG.options,
+        auth: authToken ? { token: authToken } : undefined,
+      });
 
       // Initialize the socket bridge for cache management
       const bridge = getSocketBridge(this.queryClient);
@@ -110,6 +120,7 @@ export class SocketService {
 
   /**
    * Reconnect socket if disconnected
+   * Refreshes auth token to ensure presence tracking works after token refresh
    */
   public async reconnect(): Promise<void> {
     if (!this.socket) {
@@ -118,6 +129,12 @@ export class SocketService {
     }
 
     if (!this.socket.connected) {
+      // Get valid auth token before reconnecting (auto-refreshes if expired)
+      const authToken = await sessionManager.getValidAccessToken();
+      if (authToken) {
+        this.socket.auth = { token: authToken };
+      }
+
       this.socket.connect();
       await this.waitForConnection();
     }

@@ -12,5 +12,7 @@ export type { BaseModalProps } from './modals';
 
 export { OwnershipIndicatorBadge, type OwnershipType } from './badges';
 
+export { OnlineUsersBadges, UserPresenceBadge } from './presence';
+
 export { Toast } from './Toast';
 export type { ToastProps, ToastType } from './Toast';

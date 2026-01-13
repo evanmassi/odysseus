@@ -35,47 +35,47 @@ Real-time user presence awareness feature that displays which users are currentl
 
 Implementation follows a dependency-ordered sequence. Each phase is independently testable before proceeding.
 
-### Phase 1: Server Infrastructure
-| Step | File | Action |
-|------|------|--------|
-| 1.1 | `server/src/application/services/PresenceService.ts` | Create |
-| 1.2 | `server/src/presentation/middleware/socketAuth.ts` | Create |
-| 1.3 | `server/src/infrastructure/di/ServiceContainer.ts` | Add `getPresenceService()` getter |
-| 1.4 | `server/src/application/eventHandlers/SocketEventHandler.ts` | Add presenceService param + handlers |
-| 1.5 | `server/src/infrastructure/di/ServiceContainer.ts` | Update `getSocketEventHandler()` |
-| 1.6 | `server/src/index.ts` | Register socket auth middleware in `setupSocket()` |
+### Phase 1: Server Infrastructure ✅ COMPLETE
+| Step | File | Action | Status |
+|------|------|--------|--------|
+| 1.1 | `server/src/application/services/PresenceService.ts` | Create | ✅ |
+| 1.2 | `server/src/presentation/middleware/socketAuth.ts` | Create | ✅ |
+| 1.3 | `server/src/infrastructure/di/ServiceContainer.ts` | Add `getPresenceService()` getter | ✅ |
+| 1.4 | `server/src/application/eventHandlers/SocketEventHandler.ts` | Add presenceService param + handlers | ✅ |
+| 1.5 | `server/src/infrastructure/di/ServiceContainer.ts` | Update `getSocketEventHandler()` | ✅ |
+| 1.6 | `server/src/index.ts` | Register socket auth middleware in `setupServices()` | ✅ |
 
 **Test**: Connect browser, check server logs for authenticated socket + presence events
 
-### Phase 2: Server API
-| Step | File | Action |
-|------|------|--------|
-| 2.1 | `server/src/presentation/routes/PresenceRouteModule.ts` | Create |
-| 2.2 | `server/src/presentation/routes/index.ts` | Export PresenceRouteModule |
-| 2.3 | `server/src/index.ts` | Register PresenceRouteModule in `setupRoutes()` |
+### Phase 2: Server API ✅ COMPLETE
+| Step | File | Action | Status |
+|------|------|--------|--------|
+| 2.1 | `server/src/presentation/routes/PresenceRouteModule.ts` | Create | ✅ |
+| 2.2 | `server/src/presentation/routes/index.ts` | Export PresenceRouteModule | ✅ |
+| 2.3 | `server/src/index.ts` | Register PresenceRouteModule in `setupRoutes()` | ✅ |
 
 **Test**: `curl -H "Authorization: Bearer <token>" http://localhost:3001/api/presence/online`
 
-### Phase 3: Client Infrastructure
-| Step | File | Action |
-|------|------|--------|
-| 3.1 | `client/src/app/queryKeys.ts` | Add presence query keys |
-| 3.2 | `client/src/domains/users/services/PresenceService.ts` | Create |
-| 3.3 | `client/src/domains/users/hooks/usePresenceQuery.ts` | Create |
-| 3.4 | `client/src/domains/users/index.ts` | Export presence hooks |
-| 3.5 | `client/src/infrastructure/socket/SocketService.ts` | Add auth token + reconnect handler |
-| 3.6 | `client/src/infrastructure/socket/queryBridge.ts` | Add presence event handlers |
+### Phase 3: Client Infrastructure ✅ COMPLETE
+| Step | File | Action | Status |
+|------|------|--------|--------|
+| 3.1 | `client/src/app/queryKeys.ts` | Add presence query keys | ✅ |
+| 3.2 | `client/src/domains/users/services/PresenceService.ts` | Create | ✅ |
+| 3.3 | `client/src/domains/users/hooks/usePresenceQuery.ts` | Create | ✅ |
+| 3.4 | `client/src/domains/users/index.ts` | Export presence hooks | ✅ |
+| 3.5 | `client/src/infrastructure/socket/SocketService.ts` | Add auth token + reconnect handler | ✅ |
+| 3.6 | `client/src/infrastructure/socket/queryBridge.ts` | Add presence event handlers | ✅ |
 
 **Test**: Check Network tab for `/presence/online`, browser console for socket events
 
-### Phase 4: Client UI
-| Step | File | Action |
-|------|------|--------|
-| 4.1 | `client/src/shared/ui/components/presence/OnlineUsersBadges.tsx` | Create |
-| 4.2 | `client/src/shared/ui/components/presence/UserPresenceBadge.tsx` | Create |
-| 4.3 | `client/src/shared/ui/components/presence/index.ts` | Create barrel export |
-| 4.4 | `client/src/shared/ui/components/index.ts` | Export presence components |
-| 4.5 | `client/src/app/components/layout/AppHeader.tsx` | Add OnlineUsersBadges |
+### Phase 4: Client UI ✅ COMPLETE
+| Step | File | Action | Status |
+|------|------|--------|--------|
+| 4.1 | `client/src/shared/ui/components/presence/OnlineUsersBadges.tsx` | Create | ✅ |
+| 4.2 | `client/src/shared/ui/components/presence/UserPresenceBadge.tsx` | Create | ✅ |
+| 4.3 | `client/src/shared/ui/components/presence/index.ts` | Create barrel export | ✅ |
+| 4.4 | `client/src/shared/ui/components/index.ts` | Export presence components | ✅ |
+| 4.5 | `client/src/app/components/layout/AppHeader.tsx` | Add OnlineUsersBadges | ✅ |
 
 **Test**: Open two browsers with different users, verify badges appear/disappear in real-time
 
@@ -769,35 +769,35 @@ export function UserPresenceBadge({
 
 ## Files Summary
 
-### New Files to Create
+### New Files Created
 
-| File | Layer | Purpose |
-|------|-------|---------|
-| `server/src/application/services/PresenceService.ts` | Server | Tracks connected users in memory |
-| `server/src/presentation/middleware/socketAuth.ts` | Server | JWT authentication for sockets |
-| `server/src/presentation/routes/PresenceRouteModule.ts` | Server | REST endpoint for initial state |
-| `client/src/domains/users/hooks/usePresenceQuery.ts` | Client | React Query hook for presence |
-| `client/src/domains/users/services/PresenceService.ts` | Client | API client for presence endpoints |
-| `client/src/shared/ui/components/presence/OnlineUsersBadges.tsx` | Client | Online users badges display |
-| `client/src/shared/ui/components/presence/UserPresenceBadge.tsx` | Client | Single user presence badge |
-| `client/src/shared/ui/components/presence/index.ts` | Client | Barrel export |
+| File | Layer | Purpose | Status |
+|------|-------|---------|--------|
+| `server/src/application/services/PresenceService.ts` | Server | Tracks connected users in memory | ✅ |
+| `server/src/presentation/middleware/socketAuth.ts` | Server | JWT authentication for sockets | ✅ |
+| `server/src/presentation/routes/PresenceRouteModule.ts` | Server | REST endpoint for initial state | ✅ |
+| `client/src/domains/users/hooks/usePresenceQuery.ts` | Client | React Query hook for presence | ✅ |
+| `client/src/domains/users/services/PresenceService.ts` | Client | API client for presence endpoints | ✅ |
+| `client/src/shared/ui/components/presence/OnlineUsersBadges.tsx` | Client | Online users badges display | ✅ |
+| `client/src/shared/ui/components/presence/UserPresenceBadge.tsx` | Client | Single user presence badge | ✅ |
+| `client/src/shared/ui/components/presence/index.ts` | Client | Barrel export | ✅ |
 
-### Files to Modify
+### Files Modified
 
-| File | Changes |
-|------|---------|
-| **Server** | |
-| `server/src/index.ts` | Add socket auth middleware in `setupSocket()`, register PresenceRouteModule |
-| `server/src/application/eventHandlers/SocketEventHandler.ts` | Add presence handling on connect/disconnect (breaking change: new constructor param) |
-| `server/src/infrastructure/di/ServiceContainer.ts` | Add `getPresenceService()` getter, update `getSocketEventHandler()` |
-| `server/src/presentation/routes/index.ts` | Export PresenceRouteModule |
-| **Client** | |
-| `client/src/app/queryKeys.ts` | Add presence query keys |
-| `client/src/infrastructure/socket/SocketService.ts` | Add JWT token to socket handshake + reconnect token refresh |
-| `client/src/infrastructure/socket/queryBridge.ts` | Add presence event handlers + call `setupPresenceEventHandlers()` in `initializeSocket()` |
-| `client/src/domains/users/index.ts` | Export `usePresenceQuery`, `useIsUserOnline` hooks |
-| `client/src/shared/ui/components/index.ts` | Export presence components from `./presence` |
-| `client/src/app/components/layout/AppHeader.tsx` | Import and add OnlineUsersBadges component |
+| File | Changes | Status |
+|------|---------|--------|
+| **Server** | | |
+| `server/src/index.ts` | Add socket auth middleware in `setupServices()`, register PresenceRouteModule | ✅ |
+| `server/src/application/eventHandlers/SocketEventHandler.ts` | Add presence handling on connect/disconnect (new constructor param) | ✅ |
+| `server/src/infrastructure/di/ServiceContainer.ts` | Add `getPresenceService()` getter, update `getSocketEventHandler()` | ✅ |
+| `server/src/presentation/routes/index.ts` | Export PresenceRouteModule | ✅ |
+| **Client** | | |
+| `client/src/app/queryKeys.ts` | Add presence query keys | ✅ |
+| `client/src/infrastructure/socket/SocketService.ts` | Add JWT token to socket handshake + reconnect token refresh | ✅ |
+| `client/src/infrastructure/socket/queryBridge.ts` | Add presence event handlers + call `setupPresenceEventHandlers()` in `initializeSocket()` | ✅ |
+| `client/src/domains/users/index.ts` | Export `usePresenceQuery`, `useIsUserOnline`, `useOtherOnlineUsers` hooks | ✅ |
+| `client/src/shared/ui/components/index.ts` | Export presence components from `./presence` | ✅ |
+| `client/src/app/components/layout/AppHeader.tsx` | Import and add OnlineUsersBadges component | ✅ |
 
 ### Route Registration Detail
 

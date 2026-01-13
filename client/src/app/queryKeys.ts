@@ -27,6 +27,7 @@ export const queryKeys = {
     sessions: () => [...queryKeys.users.all, 'sessions'] as const,
     lookup: (userIds: string[]) => [...queryKeys.users.all, 'lookup', [...userIds].sort()] as const,
     list: () => [...queryKeys.users.all, 'list'] as const,
+    presence: () => [...queryKeys.users.all, 'presence'] as const,
   },
 
   // Admin (admin-only operations)

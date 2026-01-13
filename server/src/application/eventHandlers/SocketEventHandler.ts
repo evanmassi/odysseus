@@ -13,6 +13,7 @@
 import type { EventBus } from '@application/contracts/EventBus';
 import type { Server as SocketIOServer } from 'socket.io';
 import { logger } from '@utils/logger';
+import { PresenceService } from '@application/services/PresenceService';
 import {
   TankUpdatedEvent,
   TankAddedEvent,
@@ -78,9 +79,100 @@ export class SocketEventHandler {
 
   constructor(
     private io: SocketIOServer,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private presenceService: PresenceService
   ) {
     this.subscribeToEvents();
+    this.setupPresenceHandlers();
+  }
+
+  /**
+   * Setup socket connection/disconnection handlers for presence tracking
+   * Registers authenticated users and broadcasts online status changes
+   */
+  private setupPresenceHandlers(): void {
+    this.io.on('connection', (socket) => {
+      // Only register authenticated users for presence
+      if (socket.userId && socket.username) {
+        try {
+          this.presenceService.registerConnection(socket.userId, socket.id, socket.username);
+
+          // Broadcast to all clients that user came online
+          this.io.emit('user_online', {
+            userId: socket.userId,
+            onlineUserIds: this.presenceService.getOnlineUserIds(),
+            timestamp: new Date().toISOString()
+          });
+
+          logger.debug('Emitting user_online socket event', {
+            userId: socket.userId,
+            onlineCount: this.presenceService.getOnlineCount(),
+            connectedClients: this.io.sockets.sockets.size
+          });
+        } catch (error) {
+          logger.error('Failed to register presence on connection', {
+            error: error instanceof Error ? error.message : String(error),
+            userId: socket.userId,
+            socketId: socket.id
+          });
+        }
+      }
+
+      // Handle explicit presence state requests from clients
+      // Used after socket connects to get authoritative state (avoids race conditions)
+      socket.on('request_presence', () => {
+        try {
+          const onlineUserIds = this.presenceService.getOnlineUserIds();
+          socket.emit('presence_state', {
+            onlineUserIds,
+            timestamp: new Date().toISOString()
+          });
+
+          logger.debug('Sent presence_state to client', {
+            socketId: socket.id,
+            userId: socket.userId,
+            onlineCount: onlineUserIds.length
+          });
+        } catch (error) {
+          logger.error('Failed to handle request_presence', {
+            error: error instanceof Error ? error.message : String(error),
+            socketId: socket.id
+          });
+        }
+      });
+
+      socket.on('disconnect', () => {
+        if (!socket.userId) return;
+
+        try {
+          const userId = this.presenceService.removeConnection(socket.id);
+
+          // Only emit user_offline if user is actually offline now
+          // (user may still be connected on another tab)
+          if (userId && !this.presenceService.isUserOnline(userId)) {
+            this.io.emit('user_offline', {
+              userId,
+              onlineUserIds: this.presenceService.getOnlineUserIds(),
+              timestamp: new Date().toISOString()
+            });
+
+            logger.debug('Emitting user_offline socket event', {
+              userId,
+              onlineCount: this.presenceService.getOnlineCount(),
+              connectedClients: this.io.sockets.sockets.size
+            });
+          }
+        } catch (error) {
+          logger.error('Failed to handle presence on disconnect', {
+            error: error instanceof Error ? error.message : String(error),
+            userId: socket.userId,
+            socketId: socket.id
+          });
+        }
+      });
+    });
+
+    logger.info('SocketEventHandler presence handlers initialized');
   }
 
   /**

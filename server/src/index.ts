@@ -9,6 +9,7 @@ import { initializeRepositories, RepositoryFactory } from '@infrastructure/repos
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
 import { logger } from '@utils/logger';
 import { sanitizeStrings } from '@middleware/Validation';
+import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth';
 
 // Load environment variables from appropriate file
 // Resolve from project root (works for both tsx and compiled dist)
@@ -86,11 +87,16 @@ class OdysseusServer {
     // Pass Socket.IO instance to service container
     this.serviceContainer.setSocketIO(this.io);
 
+    // Register socket authentication middleware (must be before connection handlers)
+    const sessionService = this.serviceContainer.getSessionService();
+    this.io.use(createSocketAuthMiddleware(sessionService));
+    logger.info('Socket authentication middleware registered');
+
     // Initialize audit event handler to start listening for domain events
     this.serviceContainer.getAuditEventHandler();
     logger.info('Audit event handler initialized');
 
-    // Initialize Socket.IO event handler for real-time updates
+    // Initialize Socket.IO event handler for real-time updates (includes presence)
     this.serviceContainer.getSocketEventHandler();
     logger.info('Socket event handler initialized');
 

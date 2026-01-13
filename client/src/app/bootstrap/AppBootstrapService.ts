@@ -12,6 +12,9 @@ import { initializeOptimisticUpdates } from '@infra/optimistic/optimisticUpdates
 import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
 import { logger } from '@shared/infrastructure/logger';
 
+import { queryClient } from '../queryClient';
+import { queryKeys } from '../queryKeys';
+
 import { BOOTSTRAP_STEPS } from './constants';
 
 import type { AppBootstrapState, BootstrapStep } from './types';
@@ -234,10 +237,27 @@ export const appBootstrapService = new AppBootstrapService();
 let wasAuthenticated = useAuthStore.getState().isAuthenticated;
 useAuthStore.subscribe(state => {
   const isAuthenticated = state.isAuthenticated;
+
+  if (!wasAuthenticated && isAuthenticated) {
+    // User logged in - reconnect socket with authentication
+    // This ensures presence tracking works (socket may have connected without auth during initial bootstrap)
+    cleanupSocket();
+    void initializeSocket(queryClient);
+  }
+
   if (wasAuthenticated && !isAuthenticated) {
     // User logged out - reset all domain UI state
     useTubeStore.getState().resetStore();
     useSearchStore.getState().clearSearch();
+
+    // Clear presence cache to ensure fresh state on next login
+    // This prevents stale online user badges from appearing
+    queryClient.setQueryData(queryKeys.users.presence(), []);
+
+    // Disconnect socket to trigger user_offline event on server
+    // This notifies other clients that this user is no longer online
+    cleanupSocket();
   }
+
   wasAuthenticated = isAuthenticated;
 });

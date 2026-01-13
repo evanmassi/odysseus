@@ -207,6 +207,24 @@ const userEventSchemas = {
   }),
 } as const;
 
+const presenceEventSchemas = {
+  user_online: z.object({
+    userId: z.string(),
+    onlineUserIds: z.array(z.string()),
+    timestamp: z.string(),
+  }),
+  user_offline: z.object({
+    userId: z.string(),
+    onlineUserIds: z.array(z.string()),
+    timestamp: z.string(),
+  }),
+  // Response to explicit request_presence - used for reliable initial state
+  presence_state: z.object({
+    onlineUserIds: z.array(z.string()),
+    timestamp: z.string(),
+  }),
+} as const;
+
 /**
  * Socket → Query Cache Bridge
  *
@@ -242,6 +260,7 @@ export class SocketQueryBridge {
     this.setupTubeLockEventHandlers();
     this.setupResearcherEventHandlers();
     this.setupUserEventHandlers();
+    this.setupPresenceEventHandlers();
     this.setupConfigurationEventHandlers();
     this.setupReconnectionHandlers();
 
@@ -292,6 +311,10 @@ export class SocketQueryBridge {
           this.lastKnownConfigVersion = currentVersion;
         }
       }
+
+      // Request current presence state after connection is established
+      // This is more reliable than catching user_online broadcast during connection
+      this.socket?.emit('request_presence');
 
       // Notify NetworkMonitor of socket connection
       getNetworkMonitor()?.notifySocketConnected();
@@ -701,6 +724,75 @@ export class SocketQueryBridge {
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
       } catch (error) {
         logger.error('Invalid user_unlinked_from_researcher event', { error });
+      }
+    });
+  }
+
+  // PRESENCE EVENT HANDLERS
+
+  /**
+   * Setup handlers for user presence (online/offline) events.
+   * Directly updates React Query cache with new online user list.
+   */
+  private setupPresenceEventHandlers(): void {
+    if (!this.socket) return;
+
+    // User came online - update presence cache with full online user list
+    this.socket.on('user_online', (data: unknown) => {
+      try {
+        const { userId, onlineUserIds } = presenceEventSchemas.user_online.parse(data);
+
+        // Directly set the cache with the authoritative list from server
+        this.queryClient.setQueryData(queryKeys.users.presence(), onlineUserIds);
+
+        // Check if the new user is in our cached user list
+        // If not, invalidate the user list so we can display their badge
+        const cachedUsers = this.queryClient.getQueryData<Array<{ id: string }>>(
+          queryKeys.users.list()
+        );
+        if (cachedUsers && !cachedUsers.some(u => u.id === userId)) {
+          logger.debug('New online user not in cached user list, invalidating', { userId });
+          void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
+        }
+
+        logger.debug('Updated presence cache (user_online)', {
+          userId,
+          onlineCount: onlineUserIds.length,
+        });
+      } catch (error) {
+        logger.error('Invalid user_online event', { error });
+      }
+    });
+
+    // User went offline - update presence cache with full online user list
+    this.socket.on('user_offline', (data: unknown) => {
+      try {
+        const { onlineUserIds } = presenceEventSchemas.user_offline.parse(data);
+
+        // Directly set the cache with the authoritative list from server
+        this.queryClient.setQueryData(queryKeys.users.presence(), onlineUserIds);
+
+        logger.debug('Updated presence cache (user_offline)', {
+          onlineCount: onlineUserIds.length,
+        });
+      } catch (error) {
+        logger.error('Invalid user_offline event', { error });
+      }
+    });
+
+    // Response to explicit presence request - provides authoritative initial state
+    this.socket.on('presence_state', (data: unknown) => {
+      try {
+        const { onlineUserIds } = presenceEventSchemas.presence_state.parse(data);
+
+        // Set the cache with authoritative list from server
+        this.queryClient.setQueryData(queryKeys.users.presence(), onlineUserIds);
+
+        logger.debug('Received presence_state', {
+          onlineCount: onlineUserIds.length,
+        });
+      } catch (error) {
+        logger.error('Invalid presence_state event', { error });
       }
     });
   }

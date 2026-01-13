@@ -41,6 +41,7 @@ import { ResearcherApplicationService } from '@application/services/ResearcherAp
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import { AuditService } from '@application/services/AuditService';
 import { AuditRetentionService } from '@application/services/AuditRetentionService';
+import { PresenceService } from '@application/services/PresenceService';
 import { TubePositionService, AccessControlService, ValidationService } from '@domain/services';
 import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
 
@@ -150,6 +151,7 @@ export class ServiceContainer {
   private tubePositionService?: TubePositionService;
   private accessControlService?: AccessControlService;
   private validationService?: ValidationService;
+  private presenceService?: PresenceService;
 
   // Infrastructure repositories
   private auditArchiveRepository?: AuditArchiveRepository;
@@ -844,6 +846,13 @@ export class ServiceContainer {
     return this.auditService;
   }
 
+  getPresenceService(): PresenceService {
+    if (!this.presenceService) {
+      this.presenceService = new PresenceService();
+    }
+    return this.presenceService;
+  }
+
   getAuditArchiveRepository(): AuditArchiveRepository {
     if (!this.auditArchiveRepository) {
       this.auditArchiveRepository = new AuditArchiveRepository(
@@ -912,7 +921,8 @@ export class ServiceContainer {
     if (!this.socketEventHandler) {
       this.socketEventHandler = new SocketEventHandler(
         this.socketIO,
-        this.getEventBus()
+        this.getEventBus(),
+        this.getPresenceService()
       );
     }
     return this.socketEventHandler;

@@ -26,6 +26,7 @@ import { useStorageData } from '@domains/storage';
 import odysseusLogo from '@shared/assets/odysseus-logo-thick.svg';
 import { parsePositionKey, type PositionKey } from '@shared/types/GridSelection';
 import { SuspenseBoundary, Tooltip } from '@shared/ui';
+import { OnlineUsersBadges } from '@shared/ui/components';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
@@ -402,6 +403,9 @@ export function AppHeader({
               )}
             </div>
           )}
+
+          {/* Online Users Badges */}
+          <OnlineUsersBadges />
 
           {/* Search Container */}
           <div className="flex-shrink-0">
