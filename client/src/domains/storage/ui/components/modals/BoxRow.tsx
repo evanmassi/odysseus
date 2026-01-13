@@ -54,66 +54,95 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
       ? 'bg-ownership-unassigned-badge text-white'
       : 'bg-ownership-other-badge text-white';
 
+  // Show non-admin custom label button on Row 1
+  const showInlineCustomLabel = !canManageStorage && canEditResource(box, rack);
+
   return (
     <div
-      className={`flex items-center gap-1.5 py-0.5 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${leftBorderClass}`}
+      className={`flex gap-1.5 py-0.5 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${leftBorderClass}`}
     >
-      <OwnershipBadge userId={effectiveOwnerId} size="sm" isOwnedByCurrentUser={isBoxOwnedByUser} />
-
-      <BoxIcon className="text-slate-700 flex-shrink-0" size={16} />
-      <span className="font-medium text-slate-800 text-xs inline-block min-w-[60px]">
-        {formatResourceDisplayName(box.name, box.customLabel)}
-      </span>
-      <span className={`text-xs px-2 py-1 rounded ${badgeClass}`}>
-        {box.gridConfig.rows}×{box.gridConfig.cols}
-      </span>
-
-      <div className="flex-1"></div>
-
-      {/* Assignment Dropdown (admin only) */}
-      {currentUser?.role === 'admin' && (
-        <AssignmentDropdown
-          value={box.assignedUserId}
-          users={users}
-          onChange={userId => onAssignBox(tankId, rackId, box.id, userId)}
+      {/* Left side - vertically centered between rows */}
+      <div className="flex items-center self-center">
+        <OwnershipBadge
+          userId={effectiveOwnerId}
           size="sm"
-          showCommonOption
-          parentUserId={rack.assignedUserId}
+          isOwnedByCurrentUser={isBoxOwnedByUser}
         />
-      )}
+      </div>
 
-      <div className="flex items-center gap-1 flex-shrink-0">
-        {/* Custom Label Button (for owners) */}
-        {canEditResource(box, rack) && (
-          <CustomLabelButton
-            onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
-            size={12}
-            className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
-          />
-        )}
+      {/* Right side - stacked rows */}
+      <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+        {/* Row 1: Identity + optional custom label for non-admins */}
+        <div className="flex items-center">
+          <div className="flex items-center gap-2 flex-1 px-1 py-0.5">
+            <BoxIcon className="text-slate-700 flex-shrink-0" size={16} />
+            <span className="font-medium text-slate-800 text-xs">
+              {formatResourceDisplayName(box.name, box.customLabel)}
+            </span>
+            <span className={`text-xs px-2 py-0.5 rounded ml-auto ${badgeClass}`}>
+              {box.gridConfig.rows}×{box.gridConfig.cols}
+            </span>
+          </div>
 
-        {/* Edit/Delete buttons (Admin Only) */}
+          {/* Custom label button for non-admin owners (fixed width) */}
+          {!canManageStorage && (
+            <div className="w-7 flex-shrink-0 flex justify-center">
+              {showInlineCustomLabel && (
+                <CustomLabelButton
+                  onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
+                  size={12}
+                  className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Row 2: Admin actions only */}
         {canManageStorage && (
-          <>
-            <Tooltip content="Change grid size" side="bottom">
-              <button
-                onClick={() => onEditBox(tankId, rackId, box)}
-                className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
-              >
-                <Edit3 size={12} />
-              </button>
-            </Tooltip>
-            {rack.boxes.length > 1 && (
-              <Tooltip content="Remove box" side="bottom">
+          <div className="flex items-center gap-1 pl-1">
+            {/* Assignment Dropdown (admin only) */}
+            {currentUser?.role === 'admin' && (
+              <AssignmentDropdown
+                value={box.assignedUserId}
+                users={users}
+                onChange={userId => onAssignBox(tankId, rackId, box.id, userId)}
+                size="sm"
+                showCommonOption
+                parentUserId={rack.assignedUserId}
+              />
+            )}
+
+            {/* Custom Label + Edit/Delete buttons - right aligned */}
+            <div className="flex items-center gap-1 ml-auto">
+              {/* Custom Label Button (for admin owners) */}
+              {canEditResource(box, rack) && (
+                <CustomLabelButton
+                  onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
+                  size={12}
+                  className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
+                />
+              )}
+              <Tooltip content="Change grid size" side="bottom">
                 <button
-                  onClick={() => onDeleteBox(tankId, rackId, box.id)}
-                  className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
+                  onClick={() => onEditBox(tankId, rackId, box)}
+                  className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
                 >
-                  <Trash2 size={12} />
+                  <Edit3 size={12} />
                 </button>
               </Tooltip>
-            )}
-          </>
+              {rack.boxes.length > 1 && (
+                <Tooltip content="Remove box" side="bottom">
+                  <button
+                    onClick={() => onDeleteBox(tankId, rackId, box.id)}
+                    className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
+                  >
+                    <Trash2 size={12} />
+                  </button>
+                </Tooltip>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </div>

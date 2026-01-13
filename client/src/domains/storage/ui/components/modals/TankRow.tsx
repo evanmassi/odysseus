@@ -52,19 +52,15 @@ export function TankRow({
             <div className="text-slate-500 flex-shrink-0" aria-hidden="true">
               {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
             </div>
-            <div className="flex-1 min-w-0 flex items-center gap-1.5">
-              <TankIcon className="text-slate-600 flex-shrink-0" size={24} aria-hidden="true" />
-              <h3 className="text-base font-semibold text-slate-800 truncate min-w-[80px]">
-                {tank.name}
-              </h3>
-              <span className="text-xs text-slate-500 flex items-center gap-1.5">
-                <span>{tank.location}</span>
-                <span className="text-slate-300">•</span>
-                <span>
-                  {tank.racks.length} {tank.racks.length === 1 ? 'rack' : 'racks'}
-                </span>
+            <TankIcon className="text-slate-600 flex-shrink-0" size={24} aria-hidden="true" />
+            <h3 className="text-base font-semibold text-slate-800 truncate">{tank.name}</h3>
+            <span className="text-xs text-slate-500 flex items-center gap-1.5 ml-auto">
+              <span>{tank.location}</span>
+              <span className="text-slate-300">•</span>
+              <span>
+                {tank.racks.length} {tank.racks.length === 1 ? 'rack' : 'racks'}
               </span>
-            </div>
+            </span>
           </button>
           {canManageStorage && (
             <div className="flex items-center gap-0.5 flex-shrink-0">

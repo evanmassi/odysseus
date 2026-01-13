@@ -532,7 +532,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       <button
         onClick={onClose}
         disabled={isMutating}
-        className="btn btn-primary px-6 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        className="btn btn-secondary px-6 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isMutating && <Loader2 size={14} className="animate-spin" />}
         {isMutating ? 'Saving...' : 'Done'}
@@ -554,7 +554,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         tabOrientation="horizontal"
         footer={footer}
         contentClassName="p-3"
-        className="!max-w-3xl max-h-[800px]"
+        className="!max-w-md max-h-[80vh]"
         onClose={onClose}
       >
         {viewMode === 'tree' ? (

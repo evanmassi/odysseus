@@ -64,78 +64,108 @@ export function RackRow({
       ? 'bg-ownership-unassigned-badge text-white'
       : 'bg-ownership-other-badge text-white';
 
+  // Show non-admin custom label button on Row 1
+  const showInlineCustomLabel = !canManageStorage && canEditResource(rack);
+
   return (
     <div className="ml-2">
       {/* Rack Row */}
       <div
-        className={`flex items-center gap-1.5 py-1 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${leftBorderClass}`}
+        className={`flex gap-1.5 py-1 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${leftBorderClass}`}
       >
-        <OwnershipBadge
-          userId={rack.assignedUserId}
-          size="md"
-          isOwnedByCurrentUser={isRackOwnedByUser}
-        />
-
-        <button
-          type="button"
-          onClick={onToggleCollapse}
-          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-black/10 transition-colors -mx-1 px-1 py-0.5 rounded text-left focus-ring-default"
-          aria-expanded={!collapsed}
-          aria-controls={`rack-content-${rackKey}`}
-          aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
-        >
-          <div className="text-slate-700 flex-shrink-0" aria-hidden="true">
+        {/* Left side - vertically centered between rows */}
+        <div className="flex items-center gap-1.5 self-center">
+          <button
+            type="button"
+            onClick={onToggleCollapse}
+            className="text-slate-700 flex-shrink-0 hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
+            aria-expanded={!collapsed}
+            aria-controls={`rack-content-${rackKey}`}
+            aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
+          >
             {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-          </div>
-          <RackIcon className="text-slate-700 flex-shrink-0" size={18} aria-hidden="true" />
-          <span className="font-medium text-slate-800 text-sm inline-block min-w-[60px]">
-            {formatResourceDisplayName(rack.name, rack.customLabel)}
-          </span>
-          <span className={`text-xs px-2 py-0.5 rounded ${badgeClass}`}>
-            {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
-          </span>
-        </button>
-
-        {/* Assignment Dropdown (admin only) */}
-        {currentUser?.role === 'admin' && (
-          <AssignmentDropdown
-            value={rack.assignedUserId}
-            users={users}
-            onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
+          </button>
+          <OwnershipBadge
+            userId={rack.assignedUserId}
             size="md"
+            isOwnedByCurrentUser={isRackOwnedByUser}
           />
-        )}
+        </div>
 
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {/* Custom Label Button (for owners) */}
-          {canEditResource(rack) && (
-            <CustomLabelButton
-              onClick={() => onEditRackLabel(tankId, rack.id, rack.customLabel ?? '')}
-            />
-          )}
+        {/* Right side - stacked rows */}
+        <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+          {/* Row 1: Identity + optional custom label for non-admins */}
+          <div className="flex items-center">
+            <button
+              type="button"
+              onClick={onToggleCollapse}
+              className="flex items-center gap-2 flex-1 cursor-pointer hover:bg-black/10 transition-colors px-1 py-0.5 rounded text-left focus-ring-default"
+              aria-expanded={!collapsed}
+              aria-controls={`rack-content-${rackKey}`}
+              aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
+            >
+              <RackIcon className="text-slate-700 flex-shrink-0" size={18} aria-hidden="true" />
+              <span className="font-medium text-slate-800 text-sm">
+                {formatResourceDisplayName(rack.name, rack.customLabel)}
+              </span>
+              <span className={`text-xs px-2 py-0.5 rounded ml-auto ${badgeClass}`}>
+                {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
+              </span>
+            </button>
 
-          {/* Edit/Delete buttons (Admin Only) */}
+            {/* Custom label button for non-admin owners (fixed width) */}
+            {!canManageStorage && (
+              <div className="w-7 flex-shrink-0 flex justify-center">
+                {showInlineCustomLabel && (
+                  <CustomLabelButton
+                    onClick={() => onEditRackLabel(tankId, rack.id, rack.customLabel ?? '')}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Row 2: Admin actions only */}
           {canManageStorage && (
-            <>
-              <Tooltip content="Edit rack" side="bottom">
-                <button
-                  onClick={() => onEditRack(tankId, rack)}
-                  className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
-                >
-                  <Edit3 size={14} />
-                </button>
-              </Tooltip>
-              {canDeleteRack && (
-                <Tooltip content="Remove rack" side="bottom">
+            <div className="flex items-center gap-1 pl-1">
+              {/* Assignment Dropdown (admin only) */}
+              {currentUser?.role === 'admin' && (
+                <AssignmentDropdown
+                  value={rack.assignedUserId}
+                  users={users}
+                  onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
+                  size="md"
+                />
+              )}
+
+              {/* Custom Label + Edit/Delete buttons - right aligned */}
+              <div className="flex items-center gap-1 ml-auto">
+                {/* Custom Label Button (for admin owners) */}
+                {canEditResource(rack) && (
+                  <CustomLabelButton
+                    onClick={() => onEditRackLabel(tankId, rack.id, rack.customLabel ?? '')}
+                  />
+                )}
+                <Tooltip content="Edit rack" side="bottom">
                   <button
-                    onClick={() => onDeleteRack(tankId, rack.id)}
-                    className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
+                    onClick={() => onEditRack(tankId, rack)}
+                    className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
                   >
-                    <Trash2 size={14} />
+                    <Edit3 size={14} />
                   </button>
                 </Tooltip>
-              )}
-            </>
+                {canDeleteRack && (
+                  <Tooltip content="Remove rack" side="bottom">
+                    <button
+                      onClick={() => onDeleteRack(tankId, rack.id)}
+                      className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </Tooltip>
+                )}
+              </div>
+            </div>
           )}
         </div>
       </div>
