@@ -30,7 +30,12 @@
       "Bash(ipconfig:*)",
       "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\domains\\\\storage\\\\hooks\\\\useConfigurationVersion.ts\")",
       "Bash(cmd /c del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\domains\\\\storage\\\\hooks\\\\useConfigurationVersion.ts\")",
-      "Bash(Remove-Item \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\domains\\\\storage\\\\hooks\\\\useConfigurationVersion.ts\" -Force)"
+      "Bash(Remove-Item \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\domains\\\\storage\\\\hooks\\\\useConfigurationVersion.ts\" -Force)",
+      "Bash(copy:*)",
+      "Bash(cmd /c copy:*)",
+      "Bash(cmd /c dir \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\public\")",
+      "Bash(Copy-Item \"C:\\\\Users\\\\evan\\\\Pictures\\\\AI\\\\Gemini\\\\Odysseus\\\\favicon\\\\favicon.ico\" -Destination \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\public\\\\favicon.ico\")",
+      "Bash(git -C \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\" checkout client/public/favicon.svg)"
     ]
   }
 }
