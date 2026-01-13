@@ -34,6 +34,7 @@ export interface TubeRow {
   notes?: string;
   created_at: Date | string;
   updated_at: Date | string;
+  version: number;
   is_locked?: boolean;
   locked_by?: string;
   lock_note?: string;
@@ -84,6 +85,7 @@ export class TubeMapper {
       notes: sampleData.notes || undefined,
       created_at: tube.createdAt,
       updated_at: tube.updatedAt,
+      version: tube.version,
       is_locked: tube.isLocked,
       locked_by: tube.lockedBy,
       lock_note: tube.lockNote,
@@ -173,6 +175,7 @@ export class TubeMapper {
         createdAt,
         updatedAt
       },
+      version: row.version,
       isLocked: row.is_locked === true,
       lockedBy: nullToUndefined(row.locked_by),
       lockNote: nullToUndefined(row.lock_note),

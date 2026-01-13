@@ -13,7 +13,9 @@ import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/
 
 import { queryKeys } from '@app/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
+import { isConflictError } from '@shared/errors';
 import { logger } from '@shared/infrastructure/logger';
+import { notifications } from '@shared/utils/notifications';
 
 import type {
   TubeData,
@@ -21,6 +23,18 @@ import type {
   UpdateTubeRequest,
   BulkUpdateResult,
 } from '@domains/tubes/types';
+
+/** Show conflict error message and refresh cache. */
+function handleTubeConflictError(
+  queryClient: ReturnType<typeof useQueryClient>,
+  tubeId: string
+): void {
+  notifications.error(
+    'Update failed: This tube was modified by another user. Please review the latest changes and try again.'
+  );
+  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+}
 
 // MUTATION HOOKS (WRITE OPERATIONS)
 
@@ -191,10 +205,15 @@ export const useUpdateTubeMutation = (
     },
 
     onError: (error, variables, context) => {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error(`❌ [React Query] Update tube ${variables.id} failed`, { error });
 
-      // Rollback optimistic update
+      // Handle version conflict (409) - another user modified the tube
+      if (isConflictError(error)) {
+        handleTubeConflictError(queryClient, variables.id);
+        return;
+      }
+
+      // Rollback optimistic update for other errors
       if (context?.previousTube) {
         queryClient.setQueryData(queryKeys.tubes.detail(variables.id), context.previousTube);
       }

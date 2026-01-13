@@ -107,6 +107,7 @@ export class PostgresContext {
         notes TEXT,
         created_at TIMESTAMPTZ NOT NULL,
         updated_at TIMESTAMPTZ NOT NULL,
+        version INTEGER NOT NULL DEFAULT 1,
         is_locked BOOLEAN DEFAULT FALSE,
         locked_by TEXT,
         lock_note TEXT,
@@ -390,6 +391,19 @@ export class PostgresContext {
           WHERE table_name = 'tubes' AND column_name = 'search_vector'
         ) THEN
           ALTER TABLE tubes ADD COLUMN search_vector tsvector;
+        END IF;
+      END $$
+    `);
+
+    // Add version column for optimistic locking (existing tubes get version 1)
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'version'
+        ) THEN
+          ALTER TABLE tubes ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
         END IF;
       END $$
     `);

@@ -47,6 +47,7 @@ export function useOptimisticCreateTubeMutation() {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
           },
+          version: 1,
         };
 
         if (!oldData) return [optimisticTube];

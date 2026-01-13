@@ -423,8 +423,8 @@ export class TubeApplicationService {
       updatedTube = updatedTube.updateLockNote(request.lockNote || undefined);
     }
 
-    // Save
-    await this.tubeRepository.save(updatedTube);
+    // Save with optimistic locking to prevent concurrent modification overwrites
+    await this.tubeRepository.saveWithOptimisticLock(updatedTube, existingTube.version);
 
     // Publish domain events
     const locationChanged = !oldLocation.equals(updatedTube.location);
@@ -632,11 +632,15 @@ export class TubeApplicationService {
         continue;
       }
 
-      // Lock the tube
+      // Lock the tube with optimistic locking
       const lockedTube = tube.lock(authenticatedUser.id, request.lockNote);
-      await this.tubeRepository.save(lockedTube);
-
-      locked.push(tubeId);
+      try {
+        await this.tubeRepository.saveWithOptimisticLock(lockedTube, tube.version);
+        locked.push(tubeId);
+      } catch (error) {
+        // Version conflict means someone else modified the tube
+        skipped.push({ tubeId, reason: 'Tube was modified by another user' });
+      }
     }
 
     // Publish single batch event after all tubes processed
@@ -688,11 +692,15 @@ export class TubeApplicationService {
         continue;
       }
 
-      // Unlock the tube
+      // Unlock the tube with optimistic locking
       const unlockedTube = tube.unlock();
-      await this.tubeRepository.save(unlockedTube);
-
-      unlocked.push(tubeId);
+      try {
+        await this.tubeRepository.saveWithOptimisticLock(unlockedTube, tube.version);
+        unlocked.push(tubeId);
+      } catch (error) {
+        // Version conflict means someone else modified the tube
+        skipped.push({ tubeId, reason: 'Tube was modified by another user' });
+      }
     }
 
     // Publish single batch event after all tubes processed

@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS tubes (
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  version INTEGER NOT NULL DEFAULT 1,
   is_locked BOOLEAN DEFAULT FALSE,
   locked_by TEXT,
   lock_note TEXT,

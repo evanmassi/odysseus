@@ -97,6 +97,7 @@ export const tubeDataSchema = z.object({
   researcherId: z.string().optional(),
   createdByName: z.string().optional(),
   timestamps: tubeTimestampsSchema,
+  version: z.number().int().positive(),
   // Lock fields
   isLocked: z.boolean().optional(),
   lockedBy: z.string().optional(),

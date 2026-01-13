@@ -29,4 +29,13 @@ export class ConflictError extends DomainError {
       { resourceType: 'Configuration' }
     );
   }
+
+  static tube(tubeId: string, expectedVersion: number, currentVersion: number): ConflictError {
+    return new ConflictError(
+      `Tube was modified by another user. Expected version ${expectedVersion}, but current version is ${currentVersion}. Please refresh and try again.`,
+      currentVersion,
+      expectedVersion,
+      { resourceType: 'Tube', tubeId }
+    );
+  }
 }

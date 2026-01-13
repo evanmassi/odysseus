@@ -504,11 +504,37 @@ async bulkUpdateTubes(
 
 ## Issue 3: Tube Updates Last-Write-Wins (No Version Field)
 
-### Current State
+### Implementation Status: COMPLETE (2026-01-12)
+
+**Solution Implemented:**
+- Added `version` column to tubes database schema (DEFAULT 1 for existing tubes)
+- Added `_version` field to Tube entity with increment on all mutations
+- Added `ConflictError.tube()` factory method for 409 responses
+- Updated TubeMapper to handle version in row ↔ entity conversion
+- Added `saveWithOptimisticLock()` to TubeRepository interface and implementation
+- Updated TubeApplicationService to use optimistic locking for updateTube(), lockTubes(), unlockTubes()
+- Added version to shared schemas (tubeDataSchema)
+- Added conflict error handling in client useTubeMutations hook
+
+**Files Modified:**
+- `server/src/infrastructure/database/schema.sql` - Added version column
+- `server/src/infrastructure/database/PostgresContext.ts` - Migration for existing DBs
+- `server/src/domain/entities/Tube.ts` - Added _version field, increments on mutations
+- `server/src/domain/errors/ConflictError.ts` - Added tube() factory method
+- `server/src/domain/repositories/TubeRepository.ts` - Added saveWithOptimisticLock interface
+- `server/src/infrastructure/database/mappers/TubeMapper.ts` - Version mapping
+- `server/src/infrastructure/repositories/TubeRepository.ts` - Implemented saveWithOptimisticLock
+- `server/src/application/services/TubeApplicationService.ts` - Uses optimistic locking
+- `packages/shared-schemas/src/tubes/tubeSchemas.ts` - Added version to schema
+- `client/src/domains/tubes/hooks/useTubeMutations.ts` - Conflict error handling
+- `client/src/domains/tubes/hooks/useOptimisticTubeMutations.ts` - Added version to optimistic create
+- `client/src/__tests__/utils/mockData.ts` - Added version to mock data
+
+### Original Problem State
 
 **Location:** `server/src/domain/entities/Tube.ts`
 
-The Tube entity lacks a version field for optimistic locking:
+The Tube entity lacked a version field for optimistic locking:
 
 ```typescript
 // Current fields
@@ -1460,8 +1486,8 @@ export class IntegrityChecker {
 | 4. Equipment Deletion TOCTOU | CRITICAL | Medium | P1 | **COMPLETE** |
 | 6. Socket Event Missing Awaits | CRITICAL | Low | P1 | **COMPLETE** |
 | 5. Bulk Operation Transactions | HIGH | Medium | P2 | **COMPLETE** |
+| 3. Tube Version Field | HIGH | Medium | P2 | **COMPLETE** |
 | 2. Position Collision Races | HIGH | Medium | P2 | Pending |
-| 3. Tube Version Field | HIGH | Medium | P2 | Pending |
 | 7. Cache Invalidation | MEDIUM | Low | P3 | Pending |
 | 8. Cascade Integrity | MEDIUM | Low | P3 | Pending |
 
@@ -1470,7 +1496,7 @@ export class IntegrityChecker {
 2. ~~Issue 1 (foundational for all configuration operations)~~ **COMPLETE** (2026-01-12)
 3. ~~Issue 4 (prevents data corruption in equipment deletion)~~ **COMPLETE** (2026-01-12)
 4. ~~Issue 5 (fix `createTubes()` bug - partial success pattern)~~ **COMPLETE** (2026-01-12)
-5. Issue 3 (tube versioning)
+5. ~~Issue 3 (tube versioning)~~ **COMPLETE** (2026-01-12)
 6. Issue 2 (position locking, builds on Issue 3)
 7. Issues 7-8 (optimization and safeguards)
 

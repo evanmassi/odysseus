@@ -32,6 +32,7 @@ export const createMockTube = (overrides: Partial<TubeData> = {}): TubeData => (
     createdAt: new Date('2025-01-01T10:00:00Z'),
     updatedAt: new Date('2025-01-01T10:00:00Z'),
   },
+  version: 1,
   ...overrides,
 });
 

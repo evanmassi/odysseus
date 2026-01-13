@@ -19,6 +19,7 @@ export class Tube {
     private readonly _createdAt: Date,
     private _updatedAt: Date,
     private readonly _createdByName?: string,
+    private _version: number = 1,
     // Lock fields
     private _isLocked: boolean = false,
     private _lockedBy?: string,
@@ -74,6 +75,7 @@ export class Tube {
       now,
       now,
       data.createdByName,
+      1, // version - new tubes start at v1
       false, // isLocked
       undefined, // lockedBy
       undefined, // lockNote
@@ -107,6 +109,7 @@ export class Tube {
       createdAt: string | Date;
       updatedAt: string | Date;
     };
+    version?: number;
     // Lock fields
     isLocked?: boolean;
     lockedBy?: string;
@@ -129,6 +132,7 @@ export class Tube {
         ? new Date(data.timestamps.updatedAt)
         : data.timestamps.updatedAt,
       data.createdByName,
+      data.version ?? 1,
       data.isLocked ?? false,
       data.lockedBy,
       data.lockNote,
@@ -209,6 +213,7 @@ export class Tube {
       this._createdAt,
       new Date(),
       this._createdByName,
+      this._version + 1,
       true, // isLocked
       userId, // lockedBy
       note, // lockNote
@@ -234,6 +239,7 @@ export class Tube {
       this._createdAt,
       new Date(),
       this._createdByName,
+      this._version + 1,
       false, // isLocked
       undefined, // lockedBy - cleared
       undefined, // lockNote - cleared
@@ -260,6 +266,7 @@ export class Tube {
       this._createdAt,
       new Date(),
       this._createdByName,
+      this._version + 1,
       this._isLocked,
       this._lockedBy,
       note, // Updated lock note
@@ -283,6 +290,7 @@ export class Tube {
       this._createdAt,
       new Date(),
       this._createdByName,
+      this._version + 1,
       this._isLocked,
       this._lockedBy,
       this._lockNote,
@@ -306,6 +314,7 @@ export class Tube {
       this._createdAt,
       new Date(),
       this._createdByName,
+      this._version + 1,
       this._isLocked,
       this._lockedBy,
       this._lockNote,
@@ -371,7 +380,7 @@ export class Tube {
       ? undefined
       : (updates.researcherId !== undefined ? updates.researcherId : this._researcherId);
 
-    // Return new tube instance with updates (preserve lock state)
+    // Return new tube instance with updates (preserve lock state, increment version)
     return new Tube(
       this._id,
       newLocation,
@@ -380,6 +389,7 @@ export class Tube {
       this._createdAt,
       new Date(), // Update timestamp
       this._createdByName, // Preserve historical creator name
+      this._version + 1, // Increment version on each update
       this._isLocked,
       this._lockedBy,
       this._lockNote,
@@ -463,6 +473,7 @@ export class Tube {
       createdAt: string;
       updatedAt: string;
     };
+    version: number;
     isLocked?: boolean;
     lockedBy?: string;
     lockNote?: string;
@@ -479,6 +490,7 @@ export class Tube {
         createdAt: this._createdAt.toISOString(),
         updatedAt: this._updatedAt.toISOString()
       },
+      version: this._version,
       isLocked: this._isLocked || undefined,
       lockedBy: this._lockedBy,
       lockNote: this._lockNote,
@@ -558,6 +570,13 @@ export class Tube {
    */
   get createdByName(): string | undefined {
     return this._createdByName;
+  }
+
+  /**
+   * Get optimistic locking version (increments on each update)
+   */
+  get version(): number {
+    return this._version;
   }
 
   // LOCK GETTERS

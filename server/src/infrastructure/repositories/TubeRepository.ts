@@ -2,6 +2,7 @@ import { Tube } from '@domain/entities/Tube';
 import { TubeRepository as ITubeRepository } from '@domain/repositories/TubeRepository';
 import type { TubeSearchCriteria, TubeSearchResult, TubeRepositoryStats } from '@domain/types/repository';
 import { Location } from '@domain/valueObjects/Location';
+import { ConflictError } from '@domain/errors/ConflictError';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { TubeMapper, TubeRow } from '@infrastructure/database/mappers/TubeMapper';
 import {
@@ -45,9 +46,9 @@ export class TubeRepository implements ITubeRepository {
       INSERT INTO tubes (
         id, tank_id, rack_id, box_id, position, cell_type, donor_internal_id,
         donor_source_id, concentration, concentration_unit, date, researcher_id, created_by_name,
-        media, culture_condition, lot_number, notes, created_at, updated_at,
+        media, culture_condition, lot_number, notes, created_at, updated_at, version,
         is_locked, locked_by, lock_note, locked_at, shared_with_user_ids
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
       ON CONFLICT (id) DO UPDATE SET
         tank_id = EXCLUDED.tank_id,
         rack_id = EXCLUDED.rack_id,
@@ -66,6 +67,7 @@ export class TubeRepository implements ITubeRepository {
         lot_number = EXCLUDED.lot_number,
         notes = EXCLUDED.notes,
         updated_at = EXCLUDED.updated_at,
+        version = EXCLUDED.version,
         is_locked = EXCLUDED.is_locked,
         locked_by = EXCLUDED.locked_by,
         lock_note = EXCLUDED.lock_note,
@@ -76,9 +78,60 @@ export class TubeRepository implements ITubeRepository {
       row.cell_type, row.donor_internal_id, row.donor_source_id,
       row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
       row.media, row.culture_condition, row.lot_number, row.notes,
-      row.created_at, row.updated_at,
+      row.created_at, row.updated_at, row.version,
       row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids
     ]);
+  }
+
+  /**
+   * Save tube with optimistic locking.
+   * Uses UPDATE...WHERE version=$expected to detect concurrent modifications.
+   * @throws ConflictError if version mismatch (another user modified the tube)
+   */
+  async saveWithOptimisticLock(tube: Tube, expectedVersion: number): Promise<void> {
+    const row = TubeMapper.toRow(tube);
+    const result = await this.context.execute(`
+      UPDATE tubes SET
+        tank_id = $2,
+        rack_id = $3,
+        box_id = $4,
+        position = $5,
+        cell_type = $6,
+        donor_internal_id = $7,
+        donor_source_id = $8,
+        concentration = $9,
+        concentration_unit = $10,
+        date = $11,
+        researcher_id = $12,
+        created_by_name = $13,
+        media = $14,
+        culture_condition = $15,
+        lot_number = $16,
+        notes = $17,
+        updated_at = $18,
+        version = $19,
+        is_locked = $20,
+        locked_by = $21,
+        lock_note = $22,
+        locked_at = $23,
+        shared_with_user_ids = $24
+      WHERE id = $1 AND version = $25
+    `, [
+      row.id, row.tank_id, row.rack_id, row.box_id, row.position,
+      row.cell_type, row.donor_internal_id, row.donor_source_id,
+      row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
+      row.media, row.culture_condition, row.lot_number, row.notes,
+      row.updated_at, row.version,
+      row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
+      expectedVersion
+    ]);
+
+    if (result.rowCount === 0) {
+      // Version mismatch - fetch current version for error message
+      const currentTube = await this.findById(tube.id);
+      const currentVersion = currentTube?.version ?? 0;
+      throw ConflictError.tube(tube.id, expectedVersion, currentVersion);
+    }
   }
 
   async delete(id: string): Promise<boolean> {
@@ -250,6 +303,7 @@ export class TubeRepository implements ITubeRepository {
     tubes.notes,
     tubes.created_at,
     tubes.updated_at,
+    tubes.version,
     tubes.is_locked,
     tubes.locked_by,
     tubes.lock_note,
@@ -870,6 +924,10 @@ export class TubeRepository implements ITubeRepository {
 
   // BULK OPERATIONS
 
+  /**
+   * Save multiple tubes in a transaction.
+   * Skips optimistic locking - used for imports where conflicts are pre-validated.
+   */
   async saveMany(tubes: Tube[]): Promise<void> {
     await this.context.transaction(async (client) => {
       for (const tube of tubes) {

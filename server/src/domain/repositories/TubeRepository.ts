@@ -27,7 +27,13 @@ export interface TubeRepository {
    * Repository determines if it's create vs update based on existence
    */
   save(tube: Tube): Promise<void>;
-  
+
+  /**
+   * Save with optimistic locking. @throws ConflictError if version mismatch.
+   * Used to prevent concurrent modification overwrites.
+   */
+  saveWithOptimisticLock(tube: Tube, expectedVersion: number): Promise<void>;
+
   /**
    * Delete a tube by ID
    * Returns true if deleted, false if not found
@@ -147,7 +153,8 @@ export interface TubeRepository {
   // BULK OPERATIONS
 
   /**
-   * Save multiple tubes in a single operation
+   * Save multiple tubes in a single operation.
+   * Skips optimistic locking - used for imports and seeding where conflicts are pre-validated.
    */
   saveMany(tubes: Tube[]): Promise<void>;
   
