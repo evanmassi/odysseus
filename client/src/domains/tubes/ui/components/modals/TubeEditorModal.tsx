@@ -36,6 +36,7 @@ import {
 import { isOfflineError } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
+import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
@@ -107,7 +108,7 @@ function EditModeContent({ isOpen, tubeId, onClose, lockContext }: EditModeConte
   const modalService = useModalStore();
 
   // Fetch tube data from React Query cache (always fresh)
-  const { data: tube, isLoading: isFetchingTube } = useTube(tubeId);
+  const { data: tube, isLoading: isFetchingTube, isError } = useTube(tubeId);
 
   // Focus return management - restore focus when modal unmounts
   useEffect(() => {
@@ -120,6 +121,20 @@ function EditModeContent({ isOpen, tubeId, onClose, lockContext }: EditModeConte
       }
     };
   }, [modalService.tubeEditorModal.previousFocusElement]);
+
+  // Error state - tube was deleted or doesn't exist
+  if (isError) {
+    return (
+      <InfoDialog
+        isOpen={isOpen}
+        variant="warning"
+        title="Tube Not Found"
+        message="This tube no longer exists. It may have been deleted or moved by another user."
+        buttonText="Close"
+        onClose={onClose}
+      />
+    );
+  }
 
   // Loading state while fetching tube
   if (isFetchingTube || !tube) {
@@ -219,11 +234,43 @@ function EditModeForm({
     initialData,
   });
 
-  // Reset form when tube data changes (e.g., external update while modal is open)
-  // This replaces the key-based remount pattern to allow exit animations to work
-  useEffect(() => {
+  // Stale form detection - track version when modal opened
+  const [openedWithVersion, setOpenedWithVersion] = useState(tube.version);
+  const [staleWarningDismissed, setStaleWarningDismissed] = useState(false);
+  const [isSavingLocal, setIsSavingLocal] = useState(false);
+
+  // Detect if tube was modified externally (version increased)
+  // Suppress warning while we're saving (our own save triggers version bump)
+  const isStale = tube.version > openedWithVersion;
+  const showStaleWarning =
+    isStale && form.formState.isDirty && !staleWarningDismissed && !isSavingLocal;
+
+  // Handle refresh - accept new data and update tracked version
+  const handleRefresh = () => {
     form.reset(initialData);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset when initialData changes, form is stable
+    setOpenedWithVersion(tube.version);
+    setStaleWarningDismissed(false);
+  };
+
+  // Reset all state when modal opens (component stays mounted, only isOpen changes)
+  useEffect(() => {
+    if (isOpen) {
+      form.reset(initialData);
+      setOpenedWithVersion(tube.version);
+      setStaleWarningDismissed(false);
+      setIsSavingLocal(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset when modal opens
+  }, [isOpen]);
+
+  // Auto-update form when tube data changes externally and user hasn't made edits
+  useEffect(() => {
+    if (!form.formState.isDirty) {
+      form.reset(initialData);
+      setOpenedWithVersion(tube.version);
+      setStaleWarningDismissed(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only update when initialData changes
   }, [initialData]);
 
   const deleteMutation = useDeleteTubeMutation();
@@ -232,6 +279,9 @@ function EditModeForm({
   // Form submission handler
   // Receives form INPUT type, Zod transforms to OUTPUT type
   const handleFormSubmit = async (validatedData: UpdateTubeFormInput) => {
+    // Mark as saving to suppress stale warning (our save triggers version bump)
+    setIsSavingLocal(true);
+
     try {
       // Send all form data (simplicity > micro-optimization)
       // submitTube handles Zod transformation: INPUT → OUTPUT
@@ -241,12 +291,15 @@ function EditModeForm({
         notifications.success('Tube updated successfully');
         onClose();
       } else {
+        setIsSavingLocal(false);
         notifications.error(result.error ?? 'Failed to update tube');
       }
     } catch (error) {
-      // Skip notification for offline errors - global handler already shows it
+      setIsSavingLocal(false);
+      // Global mutation error handler in queryClient.ts shows the toast
+      // Only log here for debugging
       if (!isOfflineError(error)) {
-        notifications.error('Failed to update tube');
+        logger.error('Tube update failed', { tubeId, error });
       }
     }
   };
@@ -301,6 +354,38 @@ function EditModeForm({
               {tube.lockNote && (
                 <p className="text-xs text-red-600 mt-1 italic">&quot;{tube.lockNote}&quot;</p>
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Stale Form Warning Banner */}
+        {showStaleWarning && (
+          <div className="flex items-start gap-3 p-3 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm">
+            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="text-sm font-medium text-amber-700">
+                This tube was modified by another user
+              </h3>
+              <p className="text-xs text-amber-600 mt-0.5">
+                Refresh to load their changes (your edits will be lost), or continue editing and
+                save your version (their changes will be overwritten).
+              </p>
+              <div className="flex gap-2 mt-2">
+                <button
+                  type="button"
+                  onClick={handleRefresh}
+                  className="text-xs font-medium px-2 py-1 rounded bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                >
+                  Refresh
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStaleWarningDismissed(true)}
+                  className="text-xs font-medium px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+                >
+                  Continue Editing
+                </button>
+              </div>
             </div>
           </div>
         )}

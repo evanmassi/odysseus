@@ -27,6 +27,7 @@ import {
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { logger } from '@shared/infrastructure/logger';
+import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
@@ -492,6 +493,20 @@ export default function BatchTubeEditorModal({
     currentLab,
     userSettings
   );
+
+  // Handle case where all selected tubes were deleted/moved
+  if (tubes.length === 0) {
+    return (
+      <InfoDialog
+        isOpen={isOpen}
+        variant="warning"
+        title="Tubes Not Found"
+        message="The selected tubes no longer exist. They may have been deleted or moved by another user."
+        buttonText="Close"
+        onClose={onClose}
+      />
+    );
+  }
 
   return (
     <>
