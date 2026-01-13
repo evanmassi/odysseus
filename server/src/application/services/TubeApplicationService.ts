@@ -729,6 +729,7 @@ export class TubeApplicationService {
   ): Promise<ShareAccessResult> {
     const shared: string[] = [];
     const skipped: SkippedTube[] = [];
+    const tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }> = [];
 
     for (const tubeId of request.tubeIds) {
       const tube = await this.tubeRepository.findById(tubeId);
@@ -757,6 +758,7 @@ export class TubeApplicationService {
       await this.tubeRepository.save(updatedTube);
 
       shared.push(tubeId);
+      tubeSharedUsers.push({ tubeId, sharedWithUserIds: updatedTube.sharedWithUserIds });
     }
 
     // Publish single batch event after all tubes processed
@@ -764,6 +766,7 @@ export class TubeApplicationService {
       await this.eventBus.publish(new TubeAccessSharedEvent(
         shared,
         request.userIds,
+        tubeSharedUsers,
         authenticatedUser.id
       ));
     }
@@ -781,6 +784,7 @@ export class TubeApplicationService {
   ): Promise<RevokeAccessResult> {
     const revoked: string[] = [];
     const skipped: SkippedTube[] = [];
+    const tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }> = [];
 
     for (const tubeId of request.tubeIds) {
       const tube = await this.tubeRepository.findById(tubeId);
@@ -809,6 +813,7 @@ export class TubeApplicationService {
       await this.tubeRepository.save(updatedTube);
 
       revoked.push(tubeId);
+      tubeSharedUsers.push({ tubeId, sharedWithUserIds: updatedTube.sharedWithUserIds });
     }
 
     // Publish single batch event after all tubes processed
@@ -816,6 +821,7 @@ export class TubeApplicationService {
       await this.eventBus.publish(new TubeAccessRevokedEvent(
         revoked,
         request.userIds,
+        tubeSharedUsers,
         authenticatedUser.id
       ));
     }

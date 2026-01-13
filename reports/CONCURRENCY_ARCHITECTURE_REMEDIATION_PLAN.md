@@ -1392,11 +1392,46 @@ async publish(event: DomainEvent): Promise<void> {
 
 ## Issue 7: Cache Invalidation Thundering Herd
 
-### Current State
+### Implementation Status: COMPLETE (2026-01-12)
+
+**Solution Implemented:** Smart cache patching for all 4 lock-related events
+
+Rather than broad cache invalidation that triggers refetches for all tube queries, the client now patches affected tubes directly in the React Query cache. This eliminates unnecessary network requests and provides instant UI updates.
+
+**Server-Side Changes:**
+- Updated `TubeAccessSharedEvent` and `TubeAccessRevokedEvent` to include per-tube complete sharedWithUserIds lists
+- Added `tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }>` to events
+- Updated `TubeApplicationService.shareTubeAccess()` and `revokeTubeAccess()` to collect and pass this data
+- Updated `SocketEventHandler` to include complete data in socket payloads
+
+**Client-Side Changes:**
+- Added `patchTubesInCache()` helper method to `QueryCacheBridge`
+- Updated Zod schemas for all 4 events (`tubes_locked`, `tubes_unlocked`, `tube_access_shared`, `tube_access_revoked`)
+- Replaced `invalidateQueries()` calls with `setQueriesData()` for in-place cache updates
+- Each handler patches specific tube fields:
+  - `tubes_locked`: Sets `isLocked`, `lockedBy`, `lockNote`, `lockedAt`
+  - `tubes_unlocked`: Clears lock fields
+  - `tube_access_shared`: Sets complete `sharedWithUserIds` list for each tube
+  - `tube_access_revoked`: Sets complete `sharedWithUserIds` list for each tube
+
+**Files Modified:**
+- `server/src/domain/events/TubeLockEvents.ts` - Added tubeSharedUsers field to share/revoke events
+- `server/src/application/services/TubeApplicationService.ts` - Collects per-tube sharedWithUserIds
+- `server/src/application/eventHandlers/SocketEventHandler.ts` - Includes tubeSharedUsers in payloads
+- `server/src/application/eventHandlers/AuditEventHandler.ts` - Updated to use addedUserIds property
+- `client/src/infrastructure/socket/queryBridge.ts` - Smart cache patching for all 4 events
+
+**Benefits:**
+- Eliminates thundering herd problem for lock/unlock/share/revoke operations
+- Instant UI updates without network roundtrip
+- Reduces server load during concurrent user activity
+- Maintains data consistency via Socket.IO real-time sync
+
+### Original Problem State
 
 **Location:** `client/src/infrastructure/socket/queryBridge.ts`
 
-Some events trigger aggressive cache invalidation:
+Some events triggered aggressive cache invalidation:
 
 ```typescript
 // tubes_locked, tubes_unlocked, tube_access_shared, tube_access_revoked
@@ -1405,63 +1440,12 @@ queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
 
 **Consequence:** All tube queries refetch simultaneously, causing server load spike.
 
-### Implementation Plan
-
-#### Phase 1: Granular Cache Invalidation
-
-**1.1 Update Lock Event Handlers**
-
-```typescript
-// Current (aggressive)
-socket.on('tubes_locked', () => {
-  queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
-});
-
-// Improved (granular)
-socket.on('tubes_locked', (data: { tubeIds: string[] }) => {
-  for (const tubeId of data.tubeIds) {
-    queryClient.invalidateQueries({
-      queryKey: queryKeys.tubes.detail(tubeId)
-    });
-  }
-  // Only invalidate stats, not all lists
-  queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-});
-```
-
-**1.2 Update Server Events to Include IDs**
-
-```typescript
-// TubesLockedEvent should include affected IDs
-export class TubesLockedEvent extends DomainEvent {
-  constructor(
-    public readonly userId: string,
-    public readonly tubeIds: string[],  // Include affected IDs
-    public readonly lockNote?: string
-  ) {
-    super();
-  }
-}
-```
-
-#### Phase 2: Add Debouncing for Rapid Events
-
-**2.1 Client-Side Debounce**
-
-```typescript
-// queryBridge.ts
-const debouncedInvalidateAll = debounce(() => {
-  queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
-}, 500, { leading: true, trailing: true });
-
-socket.on('bulk_tubes_updated', () => {
-  debouncedInvalidateAll();
-});
-```
-
 ### Testing Checklist
-- [ ] Performance test: Lock 10 tubes, only 10 detail queries refetch
-- [ ] Performance test: Rapid events within 500ms coalesced
+- [x] Implementation: Server events include complete data for cache patching
+- [x] Implementation: Client patches cache in-place instead of invalidating
+- [x] Build verification: Server and client build without errors
+- [ ] Manual test: Lock tubes, verify instant UI update without network request
+- [ ] Manual test: Share access, verify sharedWithUserIds updated correctly
 
 ---
 
@@ -1516,7 +1500,7 @@ export class IntegrityChecker {
 | 5. Bulk Operation Transactions | HIGH | Medium | P2 | **COMPLETE** |
 | 3. Tube Version Field | HIGH | Medium | P2 | **COMPLETE** |
 | 2. Position Collision Races | HIGH | Medium | P2 | **COMPLETE** |
-| 7. Cache Invalidation | MEDIUM | Low | P3 | Pending |
+| 7. Cache Invalidation | MEDIUM | Low | P3 | **COMPLETE** |
 | 8. Cascade Integrity | MEDIUM | Low | P3 | Pending |
 
 **Recommended Implementation Order:**
@@ -1526,7 +1510,8 @@ export class IntegrityChecker {
 4. ~~Issue 5 (fix `createTubes()` bug - partial success pattern)~~ **COMPLETE** (2026-01-12)
 5. ~~Issue 3 (tube versioning)~~ **COMPLETE** (2026-01-12)
 6. ~~Issue 2 (position collision handling)~~ **COMPLETE** (2026-01-12)
-7. Issues 7-8 (optimization and safeguards)
+7. ~~Issue 7 (smart cache patching)~~ **COMPLETE** (2026-01-12)
+8. Issue 8 (cascade integrity safeguards)
 
 ---
 

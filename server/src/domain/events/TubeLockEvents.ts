@@ -62,7 +62,8 @@ export class TubesUnlockedEvent extends DomainEvent {
 export class TubeAccessSharedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
-    public readonly sharedWithUserIds: string[],
+    public readonly addedUserIds: string[],
+    public readonly tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }>,
     public readonly sharedBy: string
   ) {
     super(1);
@@ -79,7 +80,8 @@ export class TubeAccessSharedEvent extends DomainEvent {
   protected getEventData(): Record<string, unknown> {
     return {
       tubeIds: this.tubeIds,
-      sharedWithUserIds: this.sharedWithUserIds,
+      addedUserIds: this.addedUserIds,
+      tubeSharedUsers: this.tubeSharedUsers,
       sharedBy: this.sharedBy
     };
   }
@@ -89,6 +91,7 @@ export class TubeAccessRevokedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
     public readonly revokedUserIds: string[],
+    public readonly tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }>,
     public readonly revokedBy: string
   ) {
     super(1);
@@ -106,6 +109,7 @@ export class TubeAccessRevokedEvent extends DomainEvent {
     return {
       tubeIds: this.tubeIds,
       revokedUserIds: this.revokedUserIds,
+      tubeSharedUsers: this.tubeSharedUsers,
       revokedBy: this.revokedBy
     };
   }

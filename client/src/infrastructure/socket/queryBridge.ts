@@ -18,6 +18,7 @@ import { getNetworkMonitor } from '@infra/connection/networkMonitor';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
+import type { TubeData } from '@domains/tubes/types';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
 
@@ -97,7 +98,13 @@ const tubeEventSchemas = {
 
   tube_access_shared: z.object({
     tubeIds: z.array(z.string()),
-    sharedWithUserIds: z.array(z.string()),
+    addedUserIds: z.array(z.string()),
+    tubeSharedUsers: z.array(
+      z.object({
+        tubeId: z.string(),
+        sharedWithUserIds: z.array(z.string()),
+      })
+    ),
     sharedBy: z.string(),
     updatedAt: z.string(),
   }),
@@ -105,6 +112,12 @@ const tubeEventSchemas = {
   tube_access_revoked: z.object({
     tubeIds: z.array(z.string()),
     revokedUserIds: z.array(z.string()),
+    tubeSharedUsers: z.array(
+      z.object({
+        tubeId: z.string(),
+        sharedWithUserIds: z.array(z.string()),
+      })
+    ),
     revokedBy: z.string(),
     updatedAt: z.string(),
   }),
@@ -403,58 +416,119 @@ export class SocketQueryBridge {
 
   // TUBE LOCK EVENT HANDLERS
 
+  /**
+   * Setup handlers for tube lock/unlock/share events.
+   * Uses smart cache updates instead of broad invalidation for better performance.
+   * Patches lock/share state directly in cached queries - no network requests needed.
+   */
   private setupTubeLockEventHandlers(): void {
     if (!this.socket) return;
 
-    // Tubes Locked
+    // Tubes Locked - patch lock state directly in cache
     this.socket.on('tubes_locked', (data: unknown) => {
       try {
-        tubeEventSchemas.tubes_locked.parse(data);
+        const { tubeIds, lockedBy, lockNote, updatedAt } =
+          tubeEventSchemas.tubes_locked.parse(data);
 
-        // Invalidate ALL tube queries (including location-specific queries used in grid view)
-        // This ensures lock state updates appear everywhere tubes are displayed
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+        this.patchTubesInCache(tubeIds, tube => ({
+          ...tube,
+          isLocked: true,
+          lockedBy,
+          lockNote,
+          lockedAt: updatedAt,
+        }));
       } catch (error) {
         logger.error('Invalid tubes_locked event', { error });
       }
     });
 
-    // Tubes Unlocked
+    // Tubes Unlocked - patch lock state directly in cache
     this.socket.on('tubes_unlocked', (data: unknown) => {
       try {
-        tubeEventSchemas.tubes_unlocked.parse(data);
+        const { tubeIds } = tubeEventSchemas.tubes_unlocked.parse(data);
 
-        // Invalidate ALL tube queries (including location-specific queries used in grid view)
-        // This ensures unlock state updates appear everywhere tubes are displayed
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+        this.patchTubesInCache(tubeIds, tube => ({
+          ...tube,
+          isLocked: false,
+          lockedBy: undefined,
+          lockNote: undefined,
+          lockedAt: undefined,
+          sharedWithUserIds: undefined,
+        }));
       } catch (error) {
         logger.error('Invalid tubes_unlocked event', { error });
       }
     });
 
-    // Tube Access Shared
+    // Tube Access Shared - patch sharedWithUserIds directly in cache
     this.socket.on('tube_access_shared', (data: unknown) => {
       try {
-        tubeEventSchemas.tube_access_shared.parse(data);
+        const { tubeSharedUsers } = tubeEventSchemas.tube_access_shared.parse(data);
 
-        // Invalidate ALL tube queries to refetch with updated sharing
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+        // Create lookup map for efficient access
+        const sharedUsersMap = new Map(tubeSharedUsers.map(t => [t.tubeId, t.sharedWithUserIds]));
+
+        this.patchTubesInCache([...sharedUsersMap.keys()], tube => {
+          const newSharedUsers = sharedUsersMap.get(tube.id);
+          if (!newSharedUsers) return tube;
+          return {
+            ...tube,
+            sharedWithUserIds: newSharedUsers.length > 0 ? newSharedUsers : undefined,
+          };
+        });
       } catch (error) {
         logger.error('Invalid tube_access_shared event', { error });
       }
     });
 
-    // Tube Access Revoked
+    // Tube Access Revoked - patch sharedWithUserIds directly in cache
     this.socket.on('tube_access_revoked', (data: unknown) => {
       try {
-        tubeEventSchemas.tube_access_revoked.parse(data);
+        const { tubeSharedUsers } = tubeEventSchemas.tube_access_revoked.parse(data);
 
-        // Invalidate ALL tube queries to refetch with updated sharing
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
+        // Create lookup map for efficient access
+        const sharedUsersMap = new Map(tubeSharedUsers.map(t => [t.tubeId, t.sharedWithUserIds]));
+
+        this.patchTubesInCache([...sharedUsersMap.keys()], tube => {
+          const newSharedUsers = sharedUsersMap.get(tube.id);
+          if (newSharedUsers === undefined) return tube;
+          return {
+            ...tube,
+            sharedWithUserIds: newSharedUsers.length > 0 ? newSharedUsers : undefined,
+          };
+        });
       } catch (error) {
         logger.error('Invalid tube_access_revoked event', { error });
       }
     });
+  }
+
+  /**
+   * Patch specific tubes in all cached queries.
+   * Updates tube data in-place without network requests.
+   */
+  private patchTubesInCache(tubeIds: string[], patchFn: (tube: TubeData) => TubeData): void {
+    const tubeIdSet = new Set(tubeIds);
+
+    // Update tubes in all tube queries (lists, locations, details)
+    this.queryClient.setQueriesData<TubeData[] | TubeData | undefined>(
+      { queryKey: queryKeys.tubes.all },
+      oldData => {
+        if (!oldData) return oldData;
+
+        // Handle array of tubes (list/location queries)
+        if (Array.isArray(oldData)) {
+          return oldData.map(tube => (tubeIdSet.has(tube.id) ? patchFn(tube) : tube));
+        }
+
+        // Handle single tube (detail query)
+        if (typeof oldData === 'object' && 'id' in oldData && tubeIdSet.has(oldData.id)) {
+          return patchFn(oldData);
+        }
+
+        return oldData;
+      }
+    );
   }
 
   // RESEARCHER EVENT HANDLERS

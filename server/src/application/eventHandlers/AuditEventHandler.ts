@@ -503,7 +503,7 @@ export class AuditEventHandler {
       const username = user?.username || event.sharedBy;
 
       // Resolve usernames for shared users
-      const sharedWithUsers = await this.resolveUsernames(event.sharedWithUserIds);
+      const sharedWithUsers = await this.resolveUsernames(event.addedUserIds);
 
       await this.auditService.logAction({
         userId: event.sharedBy,
@@ -515,7 +515,7 @@ export class AuditEventHandler {
           tubeIds: event.tubeIds.slice(0, 10), // First 10 for reference
           hasMoreTubes: event.tubeIds.length > 10,
           sharedWithUsers: sharedWithUsers,
-          sharedWithCount: event.sharedWithUserIds.length,
+          sharedWithCount: event.addedUserIds.length,
           sharedBy: username,
           timestamp: event.occurredOn.toISOString(),
         },

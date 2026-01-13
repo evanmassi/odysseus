@@ -651,14 +651,15 @@ export class SocketEventHandler {
     try {
       const payload = {
         tubeIds: event.tubeIds,
-        sharedWithUserIds: event.sharedWithUserIds,
+        addedUserIds: event.addedUserIds,
+        tubeSharedUsers: event.tubeSharedUsers,
         sharedBy: event.sharedBy,
         updatedAt: new Date().toISOString()
       };
 
       logger.debug('Emitting tube_access_shared Socket event', {
         tubeCount: event.tubeIds.length,
-        userCount: event.sharedWithUserIds.length,
+        userCount: event.addedUserIds.length,
         connectedClients: this.io.sockets.sockets.size
       });
 
@@ -676,6 +677,7 @@ export class SocketEventHandler {
       const payload = {
         tubeIds: event.tubeIds,
         revokedUserIds: event.revokedUserIds,
+        tubeSharedUsers: event.tubeSharedUsers,
         revokedBy: event.revokedBy,
         updatedAt: new Date().toISOString()
       };
