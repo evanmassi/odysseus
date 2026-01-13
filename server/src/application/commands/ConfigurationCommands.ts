@@ -1,5 +1,6 @@
 import { Configuration } from '@domain/entities/Configuration';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ValidationService } from '@domain/services/ValidationService';
 import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
@@ -242,47 +243,44 @@ export class UpdateEquipmentConfigurationCommandHandler {
 
 /**
  * Reset Configuration to Default Command Handler
- * 
+ *
  * Resets entire system configuration to factory defaults.
  * This is a destructive operation requiring special confirmation.
- * 
- * @example
- * const handler = new ResetConfigurationToDefaultCommandHandler(configRepo);
- * await handler.handle({
- *   userId: 'admin-user-id',
- *   confirmationToken: 'RESET_CONFIRM_TOKEN'
- * });
+ * Validates that no tubes exist before resetting to prevent orphaned data.
  */
 export class ResetConfigurationToDefaultCommandHandler {
   private static readonly CONFIRMATION_TOKEN = 'RESET_CONFIRM_TOKEN';
 
   constructor(
     private configurationRepository: ConfigurationRepository,
-    private validationService: ValidationService
+    private tubeRepository: TubeRepository,
+    private userRepository: UserRepository
   ) {}
 
   async handle(command: ResetConfigurationToDefaultCommand): Promise<Configuration> {
-    // Validate confirmation token
     if (command.confirmationToken !== ResetConfigurationToDefaultCommandHandler.CONFIRMATION_TOKEN) {
       throw new ValidationError('Invalid confirmation token for configuration reset');
     }
 
-    // Get user for permission validation
     const user = await this.getUserById(command.userId);
-    
-    // Check user has admin permissions (configuration reset is admin-only)
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('reset configuration', command.userId);
     }
 
-    // Get current configuration for version check
+    // Prevent orphaning tubes - check if any exist before resetting
+    const tubeCount = await this.tubeRepository.count();
+    if (tubeCount > 0) {
+      throw new ValidationError(
+        `Cannot reset configuration: ${tubeCount} tube(s) exist in the system. ` +
+        `Delete all tubes before resetting the configuration to prevent orphaned data.`
+      );
+    }
+
     const currentConfig = await this.configurationRepository.getCurrent();
     const expectedVersion = currentConfig?.version ?? 0;
 
-    // Create default configuration
     const defaultConfig = Configuration.createDefault();
 
-    // Save the default configuration with optimistic locking
     await this.configurationRepository.saveWithOptimisticLock(
       defaultConfig,
       expectedVersion,
@@ -294,7 +292,11 @@ export class ResetConfigurationToDefaultCommandHandler {
   }
 
   private async getUserById(userId: string): Promise<User> {
-    throw new Error('User repository dependency needed for proper implementation');
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new ValidationError(`User not found: ${userId}`);
+    }
+    return user;
   }
 }
 

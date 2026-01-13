@@ -1451,42 +1451,55 @@ queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
 
 ## Issue 8: Equipment Hierarchy Cascade Issues
 
-### Current State
+### Implementation Status: COMPLETE (2026-01-12)
 
-The application stores equipment hierarchy in a denormalized JSON structure. When equipment is deleted or modified, there's no automatic cascade to related data.
+**Solution Implemented:** Proactive validation to prevent orphaned tubes
 
-### Already Addressed
+Rather than a reactive startup check (which only detects damage after it happened), we enhanced the validation layer to prevent orphaned tubes from being created in the first place.
 
-This issue is largely resolved by Issue 4 (TOCTOU) fixes. The atomic transaction approach prevents cascades from creating orphans.
+**Changes Made:**
 
-### Additional Safeguard: Startup Integrity Check
+1. **Enhanced `isEquipmentBeingRemovedInConfig()`** (ValidationService.ts)
+   - Now detects equipment completely removed from arrays (not just deactivated)
+   - Checks tanks, racks, AND boxes at all levels of hierarchy
 
-```typescript
-// server/src/infrastructure/startup/IntegrityChecker.ts
-export class IntegrityChecker {
-  async checkOrphanedTubes(): Promise<OrphanReport> {
-    const orphans = await this.context.query(`
-      SELECT t.id, t.tank_id, t.rack_id, t.box_id
-      FROM tubes t
-      WHERE NOT EXISTS (
-        SELECT 1 FROM configuration_current c
-        WHERE c.config_json::jsonb @> jsonb_build_object(
-          'tanks', jsonb_build_array(
-            jsonb_build_object('id', t.tank_id)
-          )
-        )
-      )
-    `);
+2. **Enhanced `validateEquipmentRemovalInConfig()`** (ValidationService.ts)
+   - Validates tube counts for tanks being removed (not just deactivated)
+   - Validates tube counts for racks being removed from tanks
+   - Validates tube counts for boxes being removed from racks
+   - Clear error messages: "Cannot remove tank 'X' - it contains N tube(s). Move or delete the tubes first."
 
-    if (orphans.rows.length > 0) {
-      logger.warn('Orphaned tubes detected', { count: orphans.rows.length });
-      return { hasOrphans: true, orphanedTubeIds: orphans.rows.map(r => r.id) };
-    }
+3. **Updated `ResetConfigurationToDefaultCommandHandler`** (ConfigurationCommands.ts)
+   - Added TubeRepository and UserRepository dependencies
+   - Checks `tubeRepository.count()` before resetting
+   - Throws ValidationError if any tubes exist: "Cannot reset configuration: N tube(s) exist in the system."
+   - Fixed broken `getUserById()` method
 
-    return { hasOrphans: false, orphanedTubeIds: [] };
-  }
-}
-```
+4. **Import Configuration** - Already protected via `validateConfigurationUpdate()` which now has enhanced equipment removal detection
+
+**Files Modified:**
+- `server/src/domain/services/ValidationService.ts` - Enhanced detection and validation
+- `server/src/application/commands/ConfigurationCommands.ts` - Added tube validation to reset handler
+- `server/src/infrastructure/di/ServiceContainer.ts` - Updated handler dependencies
+
+**Coverage:**
+
+| Operation | Protection |
+|-----------|------------|
+| Delete Tank/Rack/Box | ✅ Atomic (Issue 4) |
+| Deactivate equipment | ✅ Validated |
+| Remove equipment via import | ✅ Validated (enhanced) |
+| Reset to defaults | ✅ Validated (new) |
+| Restore from snapshot | ⚠️ Not exposed via API |
+
+**Note:** `restoreFromSnapshot` is not exposed via any API endpoint, so there's no user-accessible path that could create orphans through it.
+
+### Testing Checklist
+- [x] Implementation: Enhanced equipment removal detection
+- [x] Implementation: Reset handler validates against existing tubes
+- [x] Build verification: Server and client build without errors
+- [ ] Manual test: Try to import config that removes equipment with tubes
+- [ ] Manual test: Try to reset config when tubes exist
 
 ---
 
@@ -1501,7 +1514,7 @@ export class IntegrityChecker {
 | 3. Tube Version Field | HIGH | Medium | P2 | **COMPLETE** |
 | 2. Position Collision Races | HIGH | Medium | P2 | **COMPLETE** |
 | 7. Cache Invalidation | MEDIUM | Low | P3 | **COMPLETE** |
-| 8. Cascade Integrity | MEDIUM | Low | P3 | Pending |
+| 8. Cascade Integrity | MEDIUM | Low | P3 | **COMPLETE** |
 
 **Recommended Implementation Order:**
 1. ~~Issue 6 (quick win, low effort)~~ **COMPLETE** (2026-01-12)
@@ -1511,7 +1524,7 @@ export class IntegrityChecker {
 5. ~~Issue 3 (tube versioning)~~ **COMPLETE** (2026-01-12)
 6. ~~Issue 2 (position collision handling)~~ **COMPLETE** (2026-01-12)
 7. ~~Issue 7 (smart cache patching)~~ **COMPLETE** (2026-01-12)
-8. Issue 8 (cascade integrity safeguards)
+8. ~~Issue 8 (cascade integrity safeguards)~~ **COMPLETE** (2026-01-12)
 
 ---
 

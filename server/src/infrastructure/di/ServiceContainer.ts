@@ -385,7 +385,8 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.resetConfigurationToDefaultHandler = new ResetConfigurationToDefaultCommandHandler(
         repositories.configurations,
-        this.getValidationService()
+        repositories.tubes,
+        repositories.users
       );
     }
     return this.resetConfigurationToDefaultHandler;

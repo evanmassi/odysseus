@@ -491,15 +491,41 @@ export class ValidationService {
   }
 
   private isEquipmentBeingRemovedInConfig(currentConfig: Configuration, updatedConfig: Configuration): boolean {
-    // Compare configurations to detect if any equipment is being deactivated
     const currentTanks = currentConfig.tanks;
     const updatedTanks = updatedConfig.tanks;
+    const updatedTankIds = new Set(updatedTanks.map(t => t.id));
 
-    // Check if any tanks were deactivated
     for (const currentTank of currentTanks) {
+      // Check if tank is completely removed
+      if (!updatedTankIds.has(currentTank.id)) {
+        return true;
+      }
+
+      // Check if tank is being deactivated
       const updatedTank = updatedTanks.find(t => t.id === currentTank.id);
       if (updatedTank && currentTank.isActive && !updatedTank.isActive) {
         return true;
+      }
+
+      // Check if any racks are being removed from this tank
+      if (updatedTank) {
+        const updatedRackIds = new Set(updatedTank.racks.map(r => r.id));
+        for (const currentRack of currentTank.racks) {
+          if (!updatedRackIds.has(currentRack.id)) {
+            return true;
+          }
+
+          // Check if any boxes are being removed from this rack
+          const updatedRack = updatedTank.racks.find(r => r.id === currentRack.id);
+          if (updatedRack) {
+            const updatedBoxIds = new Set(updatedRack.boxes.map(b => b.name));
+            for (const currentBox of currentRack.boxes) {
+              if (!updatedBoxIds.has(currentBox.name)) {
+                return true;
+              }
+            }
+          }
+        }
       }
     }
 
@@ -515,15 +541,77 @@ export class ValidationService {
 
     const currentTanks = currentConfig.tanks;
     const updatedTanks = updatedConfig.tanks;
+    const updatedTankIds = new Set(updatedTanks.map(t => t.id));
 
-    // Check each tank that's being deactivated
     for (const currentTank of currentTanks) {
       const updatedTank = updatedTanks.find(t => t.id === currentTank.id);
+
+      // Check if tank is completely removed
+      if (!updatedTankIds.has(currentTank.id)) {
+        const tubeCount = await this.tubeRepository.countByTank(currentTank.id);
+        if (tubeCount > 0) {
+          result.isValid = false;
+          result.errors.push(
+            `Cannot remove tank '${currentTank.name}' - it contains ${tubeCount} tube(s). ` +
+            `Move or delete the tubes first.`
+          );
+        }
+        continue;
+      }
+
+      // Check if tank is being deactivated
       if (updatedTank && currentTank.isActive && !updatedTank.isActive) {
         const tubeCount = await this.tubeRepository.countByTank(currentTank.id);
         if (tubeCount > 0) {
           result.isValid = false;
-          result.errors.push(`Cannot deactivate tank '${currentTank.id}' - it contains ${tubeCount} tubes`);
+          result.errors.push(
+            `Cannot deactivate tank '${currentTank.name}' - it contains ${tubeCount} tube(s). ` +
+            `Move or delete the tubes first.`
+          );
+        }
+        continue;
+      }
+
+      // Check racks within this tank
+      if (updatedTank) {
+        const updatedRackIds = new Set(updatedTank.racks.map(r => r.id));
+
+        for (const currentRack of currentTank.racks) {
+          // Check if rack is completely removed
+          if (!updatedRackIds.has(currentRack.id)) {
+            const tubeCount = await this.tubeRepository.countByRack(currentTank.id, currentRack.id);
+            if (tubeCount > 0) {
+              result.isValid = false;
+              result.errors.push(
+                `Cannot remove rack '${currentRack.name}' from tank '${currentTank.name}' - ` +
+                `it contains ${tubeCount} tube(s). Move or delete the tubes first.`
+              );
+            }
+            continue;
+          }
+
+          // Check boxes within this rack
+          const updatedRack = updatedTank.racks.find(r => r.id === currentRack.id);
+          if (updatedRack) {
+            const updatedBoxIds = new Set(updatedRack.boxes.map(b => b.name));
+
+            for (const currentBox of currentRack.boxes) {
+              if (!updatedBoxIds.has(currentBox.name)) {
+                const tubeCount = await this.tubeRepository.countByBox(
+                  currentTank.id,
+                  currentRack.id,
+                  currentBox.name
+                );
+                if (tubeCount > 0) {
+                  result.isValid = false;
+                  result.errors.push(
+                    `Cannot remove box '${currentBox.name}' from rack '${currentRack.name}' - ` +
+                    `it contains ${tubeCount} tube(s). Move or delete the tubes first.`
+                  );
+                }
+              }
+            }
+          }
         }
       }
     }
