@@ -167,7 +167,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             </label>
             <div className="relative px-3 py-2">
               <UserRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                 size={16}
               />
               <input
@@ -197,7 +197,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             </label>
             <div className="relative px-3 py-2">
               <UserRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                 size={16}
               />
               <input
@@ -226,7 +226,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           </label>
           <div className="relative px-3 py-2">
             <Mail
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
               size={16}
             />
             <input
@@ -261,7 +261,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             </label>
             <div className="relative px-3 py-2">
               <Building2
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                 size={16}
               />
               <input
@@ -287,7 +287,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             </label>
             <div className="relative px-3 py-2">
               <BriefcaseBusiness
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                 size={16}
               />
               <input
@@ -323,7 +323,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               </label>
               <div className="relative px-3 py-2">
                 <KeyRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                   size={16}
                 />
                 <input

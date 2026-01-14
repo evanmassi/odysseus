@@ -10,7 +10,7 @@ import React from 'react';
 import { type CreateTubeRequest } from '@odysseus/shared-schemas';
 import { get } from 'react-hook-form';
 
-import type { UseFormReturn} from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
 
 interface BaseFieldProps {
   form: UseFormReturn<CreateTubeRequest>;
@@ -76,16 +76,13 @@ export const TextField: React.FC<TextFieldProps> = ({
   type = 'text',
   step,
   min,
-  max
+  max,
 }) => {
   const error = get(form.formState.errors, name);
-  
+
   return (
     <div className="space-y-2">
-      <label 
-        htmlFor={name} 
-        className="block text-sm font-medium text-odysseus-text-primary"
-      >
+      <label htmlFor={name} className="block text-sm font-medium text-text-primary">
         {label}
         {required && <span className="text-validation-error-required ml-1">*</span>}
       </label>
@@ -129,16 +126,13 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   options,
   required = false,
   disabled = false,
-  placeholder = 'Select an option...'
+  placeholder = 'Select an option...',
 }) => {
   const error = get(form.formState.errors, name);
-  
+
   return (
     <div className="space-y-2">
-      <label 
-        htmlFor={name} 
-        className="block text-sm font-medium text-odysseus-text-primary"
-      >
+      <label htmlFor={name} className="block text-sm font-medium text-text-primary">
         {label}
         {required && <span className="text-validation-error-required ml-1">*</span>}
       </label>
@@ -150,12 +144,8 @@ export const SelectField: React.FC<SelectFieldProps> = ({
           className={`input-field w-full ${error ? 'input-field-error' : 'input-field-normal'}`}
         >
           <option value="">{placeholder}</option>
-          {options.map((option) => (
-            <option 
-              key={option.value} 
-              value={option.value} 
-              disabled={option.disabled}
-            >
+          {options.map(option => (
+            <option key={option.value} value={option.value} disabled={option.disabled}>
               {option.label}
             </option>
           ))}
@@ -186,16 +176,13 @@ export const DateField: React.FC<DateFieldProps> = ({
   name,
   label,
   required = false,
-  disabled = false
+  disabled = false,
 }) => {
   const error = get(form.formState.errors, name);
-  
+
   return (
     <div className="space-y-2">
-      <label 
-        htmlFor={name} 
-        className="block text-sm font-medium text-odysseus-text-primary"
-      >
+      <label htmlFor={name} className="block text-sm font-medium text-text-primary">
         {label}
         {required && <span className="text-validation-error-required ml-1">*</span>}
       </label>
@@ -234,16 +221,13 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
   label,
   placeholder,
   rows = 3,
-  disabled = false
+  disabled = false,
 }) => {
   const error = get(form.formState.errors, name);
-  
+
   return (
     <div className="space-y-2">
-      <label 
-        htmlFor={name} 
-        className="block text-sm font-medium text-odysseus-text-primary"
-      >
+      <label htmlFor={name} className="block text-sm font-medium text-text-primary">
         {label}
       </label>
       <div className="relative">

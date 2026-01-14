@@ -132,7 +132,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
         <div className="text-center">
           <h2 className="text-xl font-bold text-emerald-600 mb-2">Password Changed</h2>
-          <p className="text-sm text-odysseus-muted">Logging in...</p>
+          <p className="text-sm text-text-muted">Logging in...</p>
         </div>
       </AuthBaseModal>
     );
@@ -224,13 +224,13 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         >
           <label
             htmlFor="username"
-            className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-slate-400'}`}
+            className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-slate-400'}`}
           >
             Username or email
           </label>
           <div className="relative px-3 py-2">
             <UserRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-odysseus-muted'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-text-muted'}`}
               size={16}
             />
             <input
@@ -253,13 +253,13 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         >
           <label
             htmlFor="password"
-            className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-slate-400'}`}
+            className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-slate-400'}`}
           >
             Password
           </label>
           <div className="relative px-3 py-2">
             <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-odysseus-muted'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-text-muted'}`}
               size={16}
             />
             <input
@@ -301,7 +301,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
       {onSwitchToRegister && (
         <div className="mt-4 text-center">
-          <p className="text-xs text-odysseus-muted">
+          <p className="text-xs text-text-muted">
             Don&apos;t have an account?{' '}
             <button
               type="button"

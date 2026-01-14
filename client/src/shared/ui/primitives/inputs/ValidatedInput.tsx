@@ -95,7 +95,7 @@ export function ValidatedInput({
     } else if (warning) {
       return `${baseClasses} text-validation-warning-label`;
     } else {
-      return `${baseClasses} text-odysseus-secondary`;
+      return `${baseClasses} text-text-secondary`;
     }
   };
 
@@ -107,7 +107,7 @@ export function ValidatedInput({
     } else if (warning) {
       return `${baseClasses} text-validation-warning-helper`;
     } else {
-      return `${baseClasses} text-odysseus-muted`;
+      return `${baseClasses} text-text-muted`;
     }
   };
 

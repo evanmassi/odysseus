@@ -67,7 +67,7 @@ export function ConcentrationInput({
     } else if (validation?.warning) {
       return `${baseClasses} text-validation-warning-label`;
     } else {
-      return `${baseClasses} text-odysseus-secondary`;
+      return `${baseClasses} text-text-secondary`;
     }
   };
 
@@ -159,7 +159,7 @@ export function ConcentrationInput({
               ? 'text-validation-error-helper'
               : validation.warning
                 ? 'text-validation-warning-helper'
-                : 'text-odysseus-muted'
+                : 'text-text-muted'
           }
         `}
         >

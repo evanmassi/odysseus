@@ -21,7 +21,7 @@
   }
 
   .input {
-    @apply flex h-10 w-full rounded-lg border border-odysseus-border bg-odysseus-surface px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[#9aa0a6] placeholder:opacity-45 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[#9aa0a6] placeholder:opacity-45 disabled:cursor-not-allowed disabled:opacity-50;
     transition:
       border-color 200ms,
       box-shadow 200ms,
@@ -33,7 +33,7 @@
   }
 
   .input-compact {
-    @apply flex h-8 w-full rounded-md border border-odysseus-border bg-odysseus-surface px-2 py-1 text-xs file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-[#9aa0a6] placeholder:opacity-45 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-8 w-full rounded-md border border-border bg-surface px-2 py-1 text-xs file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-[#9aa0a6] placeholder:opacity-45 disabled:cursor-not-allowed disabled:opacity-50;
     transition:
       border-color 200ms,
       box-shadow 200ms,
@@ -105,7 +105,7 @@
 
   .input-field {
     @apply h-9 px-4 py-1 rounded-lg transition-colors duration-200;
-    @apply bg-odysseus-input text-odysseus-text-primary placeholder:text-[#9aa0a6] placeholder:opacity-45;
+    @apply bg-input text-text-primary placeholder:text-[#9aa0a6] placeholder:opacity-45;
   }
 
   .input-field-normal {

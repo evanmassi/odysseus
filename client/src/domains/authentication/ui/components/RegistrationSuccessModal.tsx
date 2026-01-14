@@ -54,7 +54,7 @@ export function RegistrationSuccessModal({
       </div>
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-emerald-600 mb-1">Account Created</h2>
-        <p className="text-sm text-odysseus-muted">
+        <p className="text-sm text-text-muted">
           {isPending ? 'Awaiting admin approval' : 'Ready to sign in'}
         </p>
       </div>
@@ -62,12 +62,12 @@ export function RegistrationSuccessModal({
       {/* Username Display with Copy */}
       <div className="mb-6">
         <div className="auth-input-container border-slate-200 relative">
-          <span className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium text-slate-400">
+          <span className="absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium text-slate-400">
             Your username
           </span>
           <div className="flex items-center gap-2 px-3 py-2">
             <span
-              className="flex-1 font-mono text-sm font-semibold text-odysseus-dark"
+              className="flex-1 font-mono text-sm font-semibold text-dark"
               role="status"
               aria-label={`Your username is ${username}`}
             >

@@ -53,10 +53,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label
-            htmlFor="tank-name"
-            className="block text-sm font-medium mb-1 text-odysseus-secondary"
-          >
+          <label htmlFor="tank-name" className="block text-sm font-medium mb-1 text-text-secondary">
             Tank Name
           </label>
           <input
@@ -80,7 +77,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
         <div>
           <label
             htmlFor="tank-location"
-            className="block text-sm font-medium mb-1 text-odysseus-secondary"
+            className="block text-sm font-medium mb-1 text-text-secondary"
           >
             Physical Location
           </label>

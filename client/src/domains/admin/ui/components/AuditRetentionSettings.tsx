@@ -384,7 +384,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </button>
           <button
             onClick={exportArchive}
-            className="btn-compact border border-odysseus-border bg-odysseus-surface text-odysseus-secondary hover:bg-odysseus-surface-hover hover:border-odysseus-primary flex items-center space-x-1"
+            className="btn-compact border border-border bg-surface text-text-secondary hover:bg-surface-hover hover:border-primary flex items-center space-x-1"
           >
             <Download size={12} />
             <span>Export Archive</span>

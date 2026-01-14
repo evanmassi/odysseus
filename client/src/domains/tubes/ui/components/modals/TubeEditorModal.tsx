@@ -149,7 +149,7 @@ function EditModeContent({ isOpen, tubeId, onClose, lockContext }: EditModeConte
       >
         <div className="flex items-center justify-center py-12">
           <div className="spinner w-8 h-8"></div>
-          <span className="ml-3 text-odysseus-muted">Loading tube data...</span>
+          <span className="ml-3 text-text-muted">Loading tube data...</span>
         </div>
       </BaseModal>
     );
@@ -401,7 +401,7 @@ function EditModeForm({
           />
         </fieldset>
 
-        <div className="flex justify-end space-x-4 pt-4 border-t border-odysseus-border">
+        <div className="flex justify-end space-x-4 pt-4 border-t border-border">
           <button
             type="button"
             onClick={onClose}
@@ -838,7 +838,7 @@ function CreateModeContent({
         />
 
         {/* Form Actions */}
-        <div className="flex justify-end space-x-4 pt-4 border-t border-odysseus-border">
+        <div className="flex justify-end space-x-4 pt-4 border-t border-border">
           <button
             type="button"
             onClick={onClose}

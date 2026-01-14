@@ -40,13 +40,13 @@ export function TabSkeleton() {
       aria-live="polite"
     >
       {/* Header skeleton - represents tab title */}
-      <div className="h-8 bg-odysseus-border rounded w-1/3" aria-hidden="true"></div>
+      <div className="h-8 bg-border rounded w-1/3" aria-hidden="true"></div>
 
       {/* Content skeletons - represent form fields/sections */}
       <div className="space-y-4" aria-hidden="true">
-        <div className="h-16 bg-odysseus-gray rounded"></div>
-        <div className="h-16 bg-odysseus-gray rounded"></div>
-        <div className="h-16 bg-odysseus-gray rounded"></div>
+        <div className="h-16 bg-muted rounded"></div>
+        <div className="h-16 bg-muted rounded"></div>
+        <div className="h-16 bg-muted rounded"></div>
       </div>
 
       {/* Screen reader only text */}

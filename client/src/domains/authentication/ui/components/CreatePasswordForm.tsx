@@ -147,13 +147,13 @@ export function CreatePasswordForm({
         <div className={`auth-input-container ${newPasswordBorderClass}`}>
           <label
             htmlFor="newPassword"
-            className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium ${passwordMeetsRequirements ? 'text-emerald-700' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-label' : 'text-slate-400'}`}
+            className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium ${passwordMeetsRequirements ? 'text-emerald-700' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-label' : 'text-slate-400'}`}
           >
             New Password
           </label>
           <div className="relative px-3 py-2">
             <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordMeetsRequirements ? 'text-emerald-600' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-icon' : 'text-odysseus-muted'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordMeetsRequirements ? 'text-emerald-600' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-icon' : 'text-text-muted'}`}
               size={16}
             />
             <input
@@ -194,13 +194,13 @@ export function CreatePasswordForm({
         <div className={`auth-input-container ${confirmPasswordBorderClass}`}>
           <label
             htmlFor="confirmPassword"
-            className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-700' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-label' : 'text-slate-400'}`}
+            className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-700' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-label' : 'text-slate-400'}`}
           >
             Confirm Password
           </label>
           <div className="relative px-3 py-2">
             <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-600' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-icon' : 'text-odysseus-muted'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-600' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-icon' : 'text-text-muted'}`}
               size={16}
             />
             <input
@@ -234,7 +234,7 @@ export function CreatePasswordForm({
 
       {onCancel && (
         <div className="mt-4 text-center">
-          <p className="text-xs text-odysseus-muted">
+          <p className="text-xs text-text-muted">
             Return to{' '}
             <button
               type="button"

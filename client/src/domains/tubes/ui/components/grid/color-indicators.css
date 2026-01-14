@@ -125,7 +125,7 @@
   border: 1px solid transparent !important;
   box-shadow:
     inset 0 0 3px 0 rgba(255, 255, 255, 0.4),
-    0 0 0 2px var(--color-odysseus-primary, #2563eb);
+    0 0 0 2px var(--color-primary, #2563eb);
   position: relative;
   animation: tube-select-once 0.3s ease-out;
   /* GPU acceleration hints */
@@ -158,7 +158,7 @@
   position: absolute;
   inset: -2px;
   border-radius: inherit;
-  border: 2px dashed var(--color-odysseus-primary, #2563eb);
+  border: 2px dashed var(--color-primary, #2563eb);
   pointer-events: none;
   z-index: 1;
   background: rgba(37, 99, 235, 0.08);

@@ -239,23 +239,21 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <div className="space-y-3">
           {/* Position Header - Vertical stack layout */}
           <div className="bg-slate-50 rounded-md px-3 py-2.5">
-            <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-xs tracking-wider mb-2">
+            <div className="flex items-center gap-1.5 text-dark/60 text-xs tracking-wider mb-2">
               <MapPin className="w-3 h-3" />
               <span>{tankName}</span>
             </div>
             <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
               <span className="text-slate-400 text-xs">Rack</span>
-              <span className="text-odysseus-dark font-medium text-sm">{rackName}</span>
+              <span className="text-dark font-medium text-sm">{rackName}</span>
               <span className="text-slate-400 text-xs">Box</span>
-              <span className="text-odysseus-dark font-medium text-sm">{boxName}</span>
+              <span className="text-dark font-medium text-sm">{boxName}</span>
               {formattedPositions && (
                 <>
                   <span className="text-slate-400 text-xs">
                     Position{positionCount > 1 ? 's' : ''}
                   </span>
-                  <span className="text-odysseus-dark font-medium text-sm">
-                    {formattedPositions}
-                  </span>
+                  <span className="text-dark font-medium text-sm">{formattedPositions}</span>
                 </>
               )}
             </div>
@@ -264,9 +262,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           {/* Placeholder Message */}
           <div className="text-center py-6">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
-              <TestTube className="w-6 h-6 text-odysseus-dark/30" />
+              <TestTube className="w-6 h-6 text-dark/30" />
             </div>
-            <p className="text-odysseus-dark/40 text-sm">{positionText}</p>
+            <p className="text-dark/40 text-sm">{positionText}</p>
           </div>
         </div>
       </div>
@@ -383,17 +381,17 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       <div className="space-y-3">
         {/* Position Header - Vertical stack layout */}
         <div className="bg-slate-50 rounded-md px-3 py-2.5">
-          <div className="flex items-center gap-1.5 text-odysseus-dark/60 text-xs tracking-wider mb-2">
+          <div className="flex items-center gap-1.5 text-dark/60 text-xs tracking-wider mb-2">
             <MapPin className="w-3 h-3" />
             <span>{tankName}</span>
           </div>
           <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
             <span className="text-slate-400 text-xs">Rack</span>
-            <span className="text-odysseus-dark font-medium text-sm">{rackName}</span>
+            <span className="text-dark font-medium text-sm">{rackName}</span>
             <span className="text-slate-400 text-xs">Box</span>
-            <span className="text-odysseus-dark font-medium text-sm">{boxName}</span>
+            <span className="text-dark font-medium text-sm">{boxName}</span>
             <span className="text-slate-400 text-xs">{positionSummary.positionLabel}</span>
-            <span className="text-odysseus-dark font-medium text-sm">
+            <span className="text-dark font-medium text-sm">
               {positionSummary.formattedPositions}
             </span>
           </div>
@@ -489,14 +487,14 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <InfoSection title="Donor Information">
           {/* Cell Type - Prominent */}
           {cellType ? (
-            <div className="text-odysseus-dark font-semibold text-sm mb-1">{cellType}</div>
+            <div className="text-dark font-semibold text-sm mb-1">{cellType}</div>
           ) : isFieldMixed('sample.cellType') ? (
             <div className="mb-1">
-              <div className="flex items-center gap-1 text-odysseus-dark/50 text-xs">
+              <div className="flex items-center gap-1 text-dark/50 text-xs">
                 Cell Type
                 <AlertTriangle className="w-3 h-3 text-amber-500" />
               </div>
-              <div className="text-odysseus-dark/30 text-sm">—</div>
+              <div className="text-dark/30 text-sm">—</div>
             </div>
           ) : null}
           {/* IDs in two columns - stacked layout for consistency */}
@@ -576,11 +574,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {(Boolean(notes) || isFieldMixed('sample.notes')) && (
           <InfoSection title="Notes">
             {notes ? (
-              <div className="text-odysseus-dark/70 text-sm leading-relaxed">{notes}</div>
+              <div className="text-dark/70 text-sm leading-relaxed">{notes}</div>
             ) : (
               <div className="flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3 text-amber-500" />
-                <span className="text-odysseus-dark/30 text-sm">—</span>
+                <span className="text-dark/30 text-sm">—</span>
               </div>
             )}
           </InfoSection>

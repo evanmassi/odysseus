@@ -78,7 +78,7 @@ export function CustomLabelEditModal({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Generic Name (Read-only) */}
         <div>
-          <div className="block text-sm font-medium mb-1 text-odysseus-secondary">System Name</div>
+          <div className="block text-sm font-medium mb-1 text-text-secondary">System Name</div>
           <div className="px-3 py-2 bg-gray-100 rounded text-gray-700 font-medium">
             {genericName}
           </div>
@@ -88,7 +88,7 @@ export function CustomLabelEditModal({
         <div>
           <label
             htmlFor="custom-label-input"
-            className="block text-sm font-medium mb-1 text-odysseus-secondary"
+            className="block text-sm font-medium mb-1 text-text-secondary"
           >
             Custom Label (optional)
           </label>

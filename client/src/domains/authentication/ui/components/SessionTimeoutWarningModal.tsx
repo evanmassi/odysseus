@@ -163,7 +163,7 @@ export function SessionTimeoutWarningModal() {
           aria-modal="true"
           aria-labelledby="session-timeout-title"
           aria-describedby="session-timeout-message"
-          className={`bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} ${modalAnimationClass}`}
+          className={`bg-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} ${modalAnimationClass}`}
         >
           {/* Header */}
           <div className="flex items-center justify-center mb-6">
@@ -171,7 +171,7 @@ export function SessionTimeoutWarningModal() {
               <div className={`p-2 ${styles.iconBg} rounded-full`}>
                 <Clock className={`w-6 h-6 ${styles.iconColor}`} />
               </div>
-              <h2 id="session-timeout-title" className="text-xl font-bold text-odysseus-dark">
+              <h2 id="session-timeout-title" className="text-xl font-bold text-dark">
                 Session Expiring Soon
               </h2>
             </div>
@@ -179,7 +179,7 @@ export function SessionTimeoutWarningModal() {
 
           {/* Message and Timer */}
           <div className="text-center mb-8">
-            <p id="session-timeout-message" className="text-odysseus-muted mb-4">
+            <p id="session-timeout-message" className="text-text-muted mb-4">
               Your session will expire due to inactivity.
             </p>
 
@@ -193,7 +193,7 @@ export function SessionTimeoutWarningModal() {
               {formattedTime}
             </div>
 
-            <p className="text-sm text-odysseus-muted">
+            <p className="text-sm text-text-muted">
               Click &quot;Stay Logged In&quot; to continue your session.
             </p>
           </div>

@@ -19,19 +19,21 @@
   :root {
     /* Color System */
 
-    /* Odysseus Brand Colors */
-    --color-odysseus-primary: #2563eb;
-    --color-odysseus-secondary: #475569;
-    --color-odysseus-accent: #3b82f6;
-    --color-odysseus-gray: #f1f5f9;
-    --color-odysseus-dark: #1e293b;
-    --color-odysseus-surface: #ffffff;
-    --color-odysseus-surface-hover: #f8fafc;
-    --color-odysseus-border: #e2e8f0;
-    --color-odysseus-muted: #64748b;
-    --color-odysseus-text-primary: #1e293b;
-    --color-odysseus-text-secondary: #64748b;
-    --color-odysseus-input: #ffffff;
+    /* Core Colors */
+    --color-primary: #2563eb;
+    --color-secondary: #475569;
+    --color-accent: #3b82f6;
+    --color-muted: #f1f5f9;
+    --color-dark: #1e293b;
+    --color-surface: #ffffff;
+    --color-surface-hover: #f8fafc;
+    --color-border: #e2e8f0;
+    --color-input: #ffffff;
+
+    /* Text Colors */
+    --color-text-primary: #1e293b;
+    --color-text-secondary: #64748b;
+    --color-text-muted: #64748b;
 
     /* Ice Color Scale */
     --color-ice-50: #f0f9ff;
@@ -156,47 +158,6 @@
     --color-validation-default-bg: #ffffff;
     --color-validation-default-ring: #4a7db5;
 
-    /* Storage Navigator - Tank */
-    --color-storage-tank-bg: #5987b6;
-    --color-storage-tank-hover: #4a7099;
-    --color-storage-tank-selected: #3d5e80;
-    --color-storage-tank-border: #4a7099;
-
-    /* Storage Navigator - Rack */
-    --color-storage-rack-bg: #7a9fc5;
-    --color-storage-rack-hover: #5987b6;
-    --color-storage-rack-selected: #5987b6;
-    --color-storage-rack-border: #5987b6;
-
-    /* Storage Navigator - Box */
-    --color-storage-box-bg: #9bb7d3;
-    --color-storage-box-hover: #7a9fc5;
-    --color-storage-box-selected: #7a9fc5;
-    --color-storage-box-border: #7a9fc5;
-
-    /* Storage Navigator - Selected Border */
-    --color-storage-selected-border: #14b8a6;
-    --color-storage-selected-shadow: rgba(190, 238, 249, 0.8);
-    --storage-selected-inset-shadow: inset 0 0 5px 2px var(--color-storage-selected-shadow);
-
-    /* Ownership Theme - Storage assignment colors */
-    --color-ownership-user-bg: var(--color-ice-600);
-    --color-ownership-user-badge: var(--color-ice-400);
-    --color-ownership-user-light: var(--color-ice-50);
-    --color-ownership-user-medium: var(--color-ice-100);
-    --color-ownership-user-border: var(--color-ice-400);
-
-    --color-ownership-unassigned-bg: var(--color-warning-bg);
-    --color-ownership-unassigned-badge: #c9a95a;
-    --color-ownership-unassigned-light: var(--color-warning-light);
-    --color-ownership-unassigned-border: #fbbf24;
-
-    --color-ownership-other-bg: #94a3b8;
-    --color-ownership-other-badge: #a1afc2;
-    --color-ownership-other-light: #e2e8f0;
-    --color-ownership-other-medium: #cbd5e1;
-    --color-ownership-other-border: #94a3b8;
-
     /* Focus Ring System */
     --focus-ring-color: #4a7db5;
     --focus-ring-glow-inner: #d1f9ff;
@@ -216,7 +177,7 @@
 
     /* Audit Log - Entity Colors */
     --color-audit-entity-tube: var(--color-ice-500); /* #93c5f8 - Sky blue */
-    --color-audit-entity-storage: var(--color-storage-tank-bg); /* #5987b6 - Steel blue */
+    --color-audit-entity-storage: #5987b6; /* Steel blue */
     --color-audit-entity-person: #737abd; /* Purple */
     --color-audit-entity-system: #64748b; /* Slate */
 

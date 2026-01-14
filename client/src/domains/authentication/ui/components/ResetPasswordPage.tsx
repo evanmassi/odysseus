@@ -62,7 +62,7 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
         <div
           ref={trapRef}
-          className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+          className="bg-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
         >
           <div className="text-center mb-4">
             <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
@@ -93,7 +93,7 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-slate-100">
         <div
           ref={trapRef}
-          className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+          className="bg-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
         >
           <div className="text-center">
             <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center">
@@ -105,7 +105,7 @@ export const ResetPasswordPage: React.FC = () => {
             </div>
 
             <h2 className="text-xl font-bold text-emerald-600 mb-2">Password Changed</h2>
-            <p className="text-sm text-odysseus-muted">Redirecting to login...</p>
+            <p className="text-sm text-text-muted">Redirecting to login...</p>
           </div>
         </div>
       </div>
@@ -116,7 +116,7 @@ export const ResetPasswordPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-slate-100">
       <div
         ref={trapRef}
-        className="bg-odysseus-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+        className="bg-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
       >
         <div className="text-center mb-4">
           <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
@@ -135,7 +135,7 @@ export const ResetPasswordPage: React.FC = () => {
 
         {/* Help Text */}
         <div className="mt-6 pt-4 border-t border-gray-200">
-          <p className="text-xs text-odysseus-muted text-center">
+          <p className="text-xs text-text-muted text-center">
             This reset link expires in 15 minutes and can only be used once.
           </p>
         </div>

@@ -6,20 +6,21 @@ export default {
   theme: {
     extend: {
       colors: {
-        odysseus: {
-          primary: 'var(--color-odysseus-primary)',
-          secondary: 'var(--color-odysseus-secondary)',
-          accent: 'var(--color-odysseus-accent)',
-          gray: 'var(--color-odysseus-gray)',
-          dark: 'var(--color-odysseus-dark)',
-          surface: 'var(--color-odysseus-surface)',
-          'surface-hover': 'var(--color-odysseus-surface-hover)',
-          border: 'var(--color-odysseus-border)',
-          muted: 'var(--color-odysseus-muted)',
-          'text-primary': 'var(--color-odysseus-text-primary)',
-          'text-secondary': 'var(--color-odysseus-text-secondary)',
-          input: 'var(--color-odysseus-input)',
-        },
+        /* Core semantic colors */
+        primary: 'var(--color-primary)',
+        secondary: 'var(--color-secondary)',
+        accent: 'var(--color-accent)',
+        muted: 'var(--color-muted)',
+        dark: 'var(--color-dark)',
+        surface: 'var(--color-surface)',
+        'surface-hover': 'var(--color-surface-hover)',
+        border: 'var(--color-border)',
+        input: 'var(--color-input)',
+
+        /* Text colors */
+        'text-primary': 'var(--color-text-primary)',
+        'text-secondary': 'var(--color-text-secondary)',
+        'text-muted': 'var(--color-text-muted)',
         ice: {
           50: 'var(--color-ice-50)',
           100: 'var(--color-ice-100)',
@@ -141,50 +142,6 @@ export default {
             border: 'var(--color-validation-default-border)',
             bg: 'var(--color-validation-default-bg)',
             ring: 'var(--color-validation-default-ring)',
-          },
-        },
-        storage: {
-          tank: {
-            bg: 'var(--color-storage-tank-bg)',
-            hover: 'var(--color-storage-tank-hover)',
-            selected: 'var(--color-storage-tank-selected)',
-            border: 'var(--color-storage-tank-border)',
-          },
-          rack: {
-            bg: 'var(--color-storage-rack-bg)',
-            hover: 'var(--color-storage-rack-hover)',
-            selected: 'var(--color-storage-rack-selected)',
-            border: 'var(--color-storage-rack-border)',
-          },
-          box: {
-            bg: 'var(--color-storage-box-bg)',
-            hover: 'var(--color-storage-box-hover)',
-            selected: 'var(--color-storage-box-selected)',
-            border: 'var(--color-storage-box-border)',
-          },
-          'selected-border': 'var(--color-storage-selected-border)',
-          'selected-shadow': 'var(--color-storage-selected-shadow)',
-        },
-        ownership: {
-          user: {
-            bg: 'var(--color-ownership-user-bg)',
-            badge: 'var(--color-ownership-user-badge)',
-            light: 'var(--color-ownership-user-light)',
-            medium: 'var(--color-ownership-user-medium)',
-            border: 'var(--color-ownership-user-border)',
-          },
-          unassigned: {
-            bg: 'var(--color-ownership-unassigned-bg)',
-            badge: 'var(--color-ownership-unassigned-badge)',
-            light: 'var(--color-ownership-unassigned-light)',
-            border: 'var(--color-ownership-unassigned-border)',
-          },
-          other: {
-            bg: 'var(--color-ownership-other-bg)',
-            badge: 'var(--color-ownership-other-badge)',
-            light: 'var(--color-ownership-other-light)',
-            medium: 'var(--color-ownership-other-medium)',
-            border: 'var(--color-ownership-other-border)',
           },
         },
       },

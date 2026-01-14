@@ -108,7 +108,7 @@ export function AuthBaseModal({
           )}
 
           {/* Background fill - animates in after border */}
-          <div className="absolute inset-0 bg-odysseus-surface rounded-2xl shadow-2xl shadow-black/10 animate-sketch-fill-in" />
+          <div className="absolute inset-0 bg-surface rounded-2xl shadow-2xl shadow-black/10 animate-sketch-fill-in" />
 
           {/* Content - animates in last */}
           <div className="relative z-20 animate-sketch-content-in">

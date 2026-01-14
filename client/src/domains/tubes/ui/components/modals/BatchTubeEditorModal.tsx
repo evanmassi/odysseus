@@ -552,7 +552,7 @@ export default function BatchTubeEditorModal({
             conflictingFields={conflicts}
           />
 
-          <div className="flex justify-end space-x-4 pt-4 border-t border-odysseus-border">
+          <div className="flex justify-end space-x-4 pt-4 border-t border-border">
             <button
               type="button"
               onClick={onClose}

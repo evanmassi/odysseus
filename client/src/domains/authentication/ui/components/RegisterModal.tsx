@@ -241,13 +241,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="firstName"
-                className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
+                className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
               >
                 First name <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <UserRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                   size={16}
                 />
                 <input
@@ -284,13 +284,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           >
             <label
               htmlFor="lastName"
-              className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
+              className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
             >
               Last name <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
               <UserRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                 size={16}
               />
               <input
@@ -318,13 +318,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="email"
-                className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
+                className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
               >
                 Email <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                   size={16}
                 />
                 <input
@@ -358,13 +358,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             <div className="auth-input-container border-slate-200">
               <label
                 htmlFor="department"
-                className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium text-slate-400"
+                className="absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium text-slate-400"
               >
                 Department
               </label>
               <div className="relative px-3 py-2">
                 <Building2
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                   size={16}
                 />
                 <input
@@ -384,13 +384,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             <div className="auth-input-container border-slate-200">
               <label
                 htmlFor="position"
-                className="absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium text-slate-400"
+                className="absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium text-slate-400"
               >
                 Position
               </label>
               <div className="relative px-3 py-2">
                 <BriefcaseBusiness
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                   size={16}
                 />
                 <input
@@ -428,20 +428,20 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         </div>
 
         {/* Password Fields Group */}
-        <div className="pt-3 border-t border-odysseus-border space-y-2">
+        <div className="pt-3 border-t border-border space-y-2">
           <div>
             <div
               className={`auth-input-container ${getFieldBorderClass(passwordTouched, passwordMeetsRequirements)}`}
             >
               <label
                 htmlFor="password"
-                className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
+                className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
               >
                 Password <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <KeyRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                   size={16}
                 />
                 <input
@@ -484,13 +484,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="confirmPassword"
-                className={`absolute -top-2 left-3 bg-odysseus-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
+                className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
               >
                 Confirm password <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <KeyRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-odysseus-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
                   size={16}
                 />
                 <input
@@ -541,7 +541,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
       {onSwitchToLogin && (
         <div className="mt-4 text-center">
-          <p className="text-xs text-odysseus-muted">
+          <p className="text-xs text-text-muted">
             Already have an account?{' '}
             <button
               type="button"

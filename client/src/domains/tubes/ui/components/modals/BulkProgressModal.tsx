@@ -35,7 +35,7 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
       case 'validating':
         return <Loader2 className="w-5 h-5 animate-spin text-info-text" />;
       case 'updating':
-        return <Loader2 className="w-5 h-5 animate-spin text-odysseus-primary" />;
+        return <Loader2 className="w-5 h-5 animate-spin text-primary" />;
       case 'completing':
         return <CheckCircle className="w-5 h-5 text-success-text" />;
       default:
@@ -49,15 +49,15 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
   return (
     <ModalPortal>
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-modal-backdrop-in">
-        <div className="bg-odysseus-surface rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-odysseus-border animate-modal-reveal-in">
+        <div className="bg-surface rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-border animate-modal-reveal-in">
           <div className="text-center mb-6">
             <div className="mb-4">{getPhaseIcon(progress.phase)}</div>
 
-            <h3 className="text-lg font-semibold text-odysseus-dark mb-2">
+            <h3 className="text-lg font-semibold text-dark mb-2">
               {getPhaseLabel(progress.phase)}
             </h3>
 
-            <div className="text-sm text-odysseus-muted">
+            <div className="text-sm text-text-muted">
               {progress.current} of {progress.total} tubes
               {progress.currentTubeId && (
                 <div className="text-xs mt-1 text-gray-500">
@@ -69,13 +69,13 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
 
           {/* Progress Bar */}
           <div className="mb-6">
-            <div className="w-full bg-odysseus-border rounded-full h-3 mb-2">
+            <div className="w-full bg-border rounded-full h-3 mb-2">
               <div
-                className="bg-odysseus-primary h-3 rounded-full transition-all duration-300 ease-out"
+                className="bg-primary h-3 rounded-full transition-all duration-300 ease-out"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
-            <div className="text-center text-sm text-odysseus-muted">
+            <div className="text-center text-sm text-text-muted">
               {Math.round(progressPercentage)}% complete
             </div>
           </div>

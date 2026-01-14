@@ -9,7 +9,7 @@ import React from 'react';
 
 // Base skeleton animation
 const skeletonAnimation =
-  'animate-pulse bg-gradient-to-r from-odysseus-gray via-odysseus-border to-odysseus-gray bg-[length:200%_100%]';
+  'animate-pulse bg-gradient-to-r from-muted via-border to-muted bg-[length:200%_100%]';
 
 // Generic skeleton component
 interface SkeletonProps {
@@ -59,7 +59,7 @@ export const TubeGridSkeleton: React.FC<TubeGridSkeletonProps> = ({
     {Array.from({ length: rows * columns }).map((_, index) => (
       <div
         key={index}
-        className={`${skeletonAnimation} rounded-lg border border-odysseus-border`}
+        className={`${skeletonAnimation} rounded-lg border border-border`}
         style={{ width: cellSize, height: cellSize }}
       />
     ))}
@@ -78,7 +78,7 @@ export const SearchResultsSkeleton: React.FC<SearchResultsSkeletonProps> = ({
 }) => (
   <div className={`space-y-3 ${className}`} role="status" aria-label="Loading search results...">
     {Array.from({ length: itemCount }).map((_, index) => (
-      <div key={index} className="p-4 border border-odysseus-border rounded-lg">
+      <div key={index} className="p-4 border border-border rounded-lg">
         <div className="flex items-center space-x-3">
           <Skeleton width={20} height={20} />
           <div className="flex-1 space-y-2">
@@ -113,10 +113,10 @@ export const ModalSkeleton: React.FC<ModalSkeletonProps> = ({ size = 'md', class
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
       <div
-        className={`${sizeClasses[size]} w-full mx-4 bg-odysseus-surface rounded-lg shadow-xl ${className}`}
+        className={`${sizeClasses[size]} w-full mx-4 bg-surface rounded-lg shadow-xl ${className}`}
       >
         {/* Header */}
-        <div className="px-6 py-4 border-b border-odysseus-border">
+        <div className="px-6 py-4 border-b border-border">
           <Skeleton width="40%" height="1.25rem" />
         </div>
 
@@ -137,7 +137,7 @@ export const ModalSkeleton: React.FC<ModalSkeletonProps> = ({ size = 'md', class
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-odysseus-border flex justify-end space-x-3">
+        <div className="px-6 py-4 border-t border-border flex justify-end space-x-3">
           <Skeleton width={80} height={36} />
           <Skeleton width={100} height={36} />
         </div>
@@ -159,12 +159,12 @@ export const TableSkeleton: React.FC<TableSkeletonProps> = ({
   className = '',
 }) => (
   <div
-    className={`border border-odysseus-border rounded-lg overflow-hidden ${className}`}
+    className={`border border-border rounded-lg overflow-hidden ${className}`}
     role="status"
     aria-label="Loading table..."
   >
     {/* Header */}
-    <div className="bg-odysseus-gray px-4 py-3 border-b border-odysseus-border">
+    <div className="bg-muted px-4 py-3 border-b border-border">
       <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
         {Array.from({ length: columns }).map((_, index) => (
           <Skeleton key={index} width="60%" height="1rem" />
@@ -173,7 +173,7 @@ export const TableSkeleton: React.FC<TableSkeletonProps> = ({
     </div>
 
     {/* Rows */}
-    <div className="divide-y divide-odysseus-border">
+    <div className="divide-y divide-border">
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div key={rowIndex} className="px-4 py-3">
           <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}>
@@ -220,7 +220,7 @@ export const DashboardWidgetSkeleton: React.FC<DashboardWidgetSkeletonProps> = (
   className = '',
 }) => (
   <div
-    className={`p-6 border border-odysseus-border rounded-lg bg-odysseus-surface ${className}`}
+    className={`p-6 border border-border rounded-lg bg-surface ${className}`}
     role="status"
     aria-label="Loading widget..."
   >

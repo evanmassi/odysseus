@@ -1,8 +1,9 @@
 # Dark Mode Implementation Plan
 
 **Created:** 2026-01-13
-**Status:** Planning
-**Estimated Effort:** 28-38 hours (~1 week)
+**Last Updated:** 2026-01-14
+**Status:** Phase 0+1 Complete, Phase 2 In Progress
+**Estimated Effort:** 25-30 hours remaining
 **Target Platform:** Web application (Vercel frontend, Railway backend)
 
 ---
@@ -224,39 +225,200 @@ If fade is desired, add to `variables.css`:
 
 ---
 
-## Phase 2: Dark Palette Definition
+## Phase 2: Color System Cleanup & Standardization
 
-**Goal:** Define all dark mode color values
-**Effort:** 6-8 hours
-**Note:** This phase requires design judgment and may need iteration
+**Goal:** Create a clean, professional color system before defining dark palette
+**Effort:** 15-20 hours
+**Note:** This is prerequisite work that enables maintainable dark mode
 
-### 2.1 Create Dark Variables
+### Why This Phase Matters
 
-**File:** `client/src/shared/styles/base/variables.css` (modify)
+The current codebase has:
+- ~714 hardcoded color occurrences across 64+ files
+- `odysseus-*` prefixed variables (non-standard for application code)
+- ~15 unused CSS variables (dead code)
+- Inconsistent usage of Tailwind defaults vs custom variables
+
+Industry standard for applications is generic semantic names (like shadcn/ui, GitHub Primer). The `odysseus-*` prefix is typically used by framework/library authors to avoid namespace conflicts - unnecessary for an application.
+
+---
+
+### Phase 2a: Foundation - Rename & Clean CSS Variables
+
+**Goal:** Establish clean, semantic naming convention
+
+#### Variable Renaming
+
+| Current Variable | New Variable | Purpose |
+|-----------------|--------------|---------|
+| `--color-odysseus-primary` | `--color-primary` | Brand/action color |
+| `--color-odysseus-secondary` | `--color-secondary` | Secondary actions |
+| `--color-odysseus-accent` | `--color-accent` | Accent highlights |
+| `--color-odysseus-surface` | `--color-surface` | Primary backgrounds (cards, modals) |
+| `--color-odysseus-surface-hover` | `--color-surface-hover` | Hover states |
+| `--color-odysseus-gray` | `--color-muted` | Subtle backgrounds |
+| `--color-odysseus-dark` | `--color-dark` | Dark elements |
+| `--color-odysseus-border` | `--color-border` | Default borders |
+| `--color-odysseus-text-primary` | `--color-text-primary` | Main text |
+| `--color-odysseus-text-secondary` | `--color-text-secondary` | Muted text |
+| `--color-odysseus-muted` | `--color-text-muted` | Very muted text |
+| `--color-odysseus-input` | `--color-input` | Input backgrounds |
+
+#### Unused Variables to Remove
+
+These are confirmed unused (no Tailwind classes reference them):
+
+- All `--color-storage-*` variables (~12 variables)
+- All `--color-ownership-*` variables (~12 variables)
+- Any other confirmed dead code
+
+#### Files to Modify
+
+| File | Changes |
+|------|---------|
+| `client/src/shared/styles/base/variables.css` | Rename variables, remove unused |
+| `client/tailwind.config.js` | Update color mappings to new names |
+
+#### Tailwind Config Changes
+
+```javascript
+// Before
+colors: {
+  odysseus: {
+    primary: 'var(--color-odysseus-primary)',
+    surface: 'var(--color-odysseus-surface)',
+    // ...
+  }
+}
+
+// After
+colors: {
+  primary: 'var(--color-primary)',
+  surface: 'var(--color-surface)',
+  'surface-hover': 'var(--color-surface-hover)',
+  muted: 'var(--color-muted)',
+  border: 'var(--color-border)',
+  // Semantic text colors
+  'text-primary': 'var(--color-text-primary)',
+  'text-secondary': 'var(--color-text-secondary)',
+  // ...
+}
+```
+
+---
+
+### Phase 2b: Update Existing Odysseus Usages
+
+**Goal:** Replace all `odysseus-*` class usages with new semantic names
+
+This is mechanical find-and-replace:
+
+| Old Class | New Class |
+|-----------|-----------|
+| `bg-odysseus-surface` | `bg-surface` |
+| `bg-odysseus-surface-hover` | `bg-surface-hover` |
+| `bg-odysseus-gray` | `bg-muted` |
+| `text-odysseus-text-primary` | `text-text-primary` |
+| `text-odysseus-text-secondary` | `text-text-secondary` |
+| `border-odysseus-border` | `border-border` |
+| `bg-odysseus-primary` | `bg-primary` |
+| etc. | etc. |
+
+**Files affected:** Any file currently using `odysseus-*` classes
+
+---
+
+### Phase 2c: Replace Hardcoded Tailwind Colors
+
+**Goal:** Replace all hardcoded gray/slate/white/blue classes with semantic tokens
+
+#### Color Mapping Reference
+
+| Hardcoded Class | Semantic Replacement | Reasoning |
+|-----------------|---------------------|-----------|
+| `bg-white` | `bg-surface` | Card/modal backgrounds |
+| `bg-gray-50` | `bg-surface` or `bg-muted` | Light backgrounds |
+| `bg-gray-100` | `bg-surface-hover` or `bg-muted` | Slightly darker backgrounds |
+| `bg-slate-50` | `bg-surface` | Light backgrounds |
+| `bg-slate-100` | `bg-surface-hover` | Hover states |
+| `text-gray-900` | `text-text-primary` | Primary text |
+| `text-gray-700`, `text-gray-800` | `text-text-primary` | Primary text |
+| `text-gray-500`, `text-gray-600` | `text-text-secondary` | Secondary/muted text |
+| `text-slate-900` | `text-text-primary` | Primary text |
+| `text-slate-600`, `text-slate-700` | `text-text-secondary` | Secondary text |
+| `border-gray-200`, `border-gray-300` | `border-border` | Standard borders |
+| `border-slate-200` | `border-border` | Standard borders |
+| `hover:bg-gray-50` | `hover:bg-surface-hover` | Hover states |
+| `hover:bg-gray-100` | `hover:bg-surface-hover` | Hover states |
+| `bg-blue-600` | `bg-action` or `bg-primary` | Primary buttons |
+| `text-blue-600` | `text-action` or `text-primary` | Links, interactive text |
+
+#### Priority Order
+
+**1. CSS Files (fix once, affects everything):**
+- `buttons.css` - Button variants
+- `inputs.css` - Form inputs
+- `badges.css` - Badge styles
+- `focus.css` - Focus ring system
+
+**2. High-Impact Components (25+ occurrences each):**
+- `BaseModal.tsx`
+- `AppHeader.tsx`
+- `UserSettingsModal.tsx`
+- `Input.tsx`
+- `Select.tsx`
+- Table components
+- Form components
+
+**3. Remaining Components (~50 files):**
+- All other files with hardcoded colors
+
+#### Third-Party Components
+
+**React Hot Toast:**
+```typescript
+<Toaster
+  toastOptions={{
+    style: {
+      background: 'var(--color-surface)',
+      color: 'var(--color-text-primary)',
+      border: '1px solid var(--color-border)',
+    },
+  }}
+/>
+```
+
+---
+
+### Phase 2d: Dark Palette Definition
+
+**Goal:** Define all dark mode color values (after cleanup is complete)
+
+**File:** `client/src/shared/styles/base/variables.css`
 
 ```css
 /* Light mode (default) */
 :root {
-  --color-odysseus-primary: #2563eb;
-  --color-odysseus-surface: #ffffff;
-  --color-odysseus-gray: #f1f5f9;
-  --color-odysseus-text-primary: #1e293b;
-  --color-odysseus-border: #e2e8f0;
-  /* ... 80+ more ... */
+  --color-primary: #2563eb;
+  --color-surface: #ffffff;
+  --color-muted: #f1f5f9;
+  --color-text-primary: #1e293b;
+  --color-border: #e2e8f0;
+  /* ... */
 }
 
 /* Dark mode overrides */
 html[data-theme="dark"] {
-  --color-odysseus-primary: #60a5fa;
-  --color-odysseus-surface: #1e293b;
-  --color-odysseus-gray: #0f172a;
-  --color-odysseus-text-primary: #f1f5f9;
-  --color-odysseus-border: #334155;
-  /* ... matching overrides ... */
+  --color-primary: #60a5fa;
+  --color-surface: #1e293b;
+  --color-muted: #0f172a;
+  --color-text-primary: #f1f5f9;
+  --color-border: #334155;
+  /* ... */
 }
 ```
 
-### 2.2 Color Mapping Strategy
+#### Color Mapping Strategy
 
 | Category | Light Value | Dark Approach |
 |----------|-------------|---------------|
@@ -265,126 +427,23 @@ html[data-theme="dark"] {
 | **Elevated Surface** | White with shadow | Slate 700 (#334155) |
 | **Text Primary** | Slate 800 (#1e293b) | Slate 100 (#f1f5f9) |
 | **Text Secondary** | Slate 500 (#64748b) | Slate 400 (#94a3b8) |
-| **Text Muted** | Slate 400 (#94a3b8) | Slate 500 (#64748b) |
 | **Borders** | Gray 200 (#e2e8f0) | Slate 600 (#475569) |
 | **Primary Action** | Blue 600 (#2563eb) | Blue 400 (#60a5fa) |
 | **Danger** | Red 600 (#dc2626) | Red 400 (#f87171) |
 | **Success** | Green 600 (#16a34a) | Green 400 (#4ade80) |
 | **Warning** | Amber 500 (#f59e0b) | Amber 400 (#fbbf24) |
 
-### 2.3 Special Color Considerations
-
-**Storage Navigator (Tank/Rack/Box):**
-These use distinct hues to indicate hierarchy level. In dark mode:
-- Maintain the same hue relationships
-- Reduce saturation slightly (vivid colors on dark backgrounds can feel harsh)
-- Increase lightness to maintain visibility
-
-**Ownership Colors:**
-- User (green), Unassigned (gray), Other (blue) must remain distinguishable
-- Test with actual tube grid to ensure colors don't blend together
-
-**Audit Log Colors:**
-- Entity types (tube, researcher, user) and action types (create, update, delete) use semantic colors
-- These should feel consistent between modes while remaining readable
-
-**Ice Scale (50-900):**
-- This gradient is used for data visualization density
-- May need to be inverted or adjusted to maintain perceptual uniformity
-
-### 2.4 Design Review Checkpoint
+#### Design Review Checkpoint
 
 Before proceeding to Phase 3, validate the dark palette by:
 1. Applying it manually via browser dev tools
 2. Checking contrast ratios meet WCAG AA (4.5:1 for normal text)
-3. Reviewing the storage navigator grid with sample data
+3. Reviewing key screens with sample data
 4. Getting feedback from at least one other person
 
-**This is the phase most likely to need iteration.** Budget time for 1-2 revision rounds.
-
 ---
 
-## Phase 3: Fix Hardcoded Colors
-
-**Goal:** Replace all hardcoded colors with CSS variables
-**Effort:** 8-12 hours
-
-### 3.1 High Priority Files
-
-These are seen by every user on every session:
-
-| File | Hardcoded Values | Replacement |
-|------|------------------|-------------|
-| `BaseModal.tsx` | `bg-white`, `border-gray-200`, `text-slate-*` | `bg-odysseus-surface`, `border-odysseus-border`, `text-odysseus-text-*` |
-| `AppHeader.tsx` | `bg-white/90`, `text-blue-800` | CSS variables with opacity support |
-| `buttons.css` | `bg-white`, `text-gray-700`, `border-gray-300` | Variable-based button styles |
-| `focus.css` | `#3b82f6` hardcoded hex | `var(--focus-ring-color)` |
-
-### 3.2 Medium Priority Files
-
-Settings and configuration screens:
-
-| File | Issues |
-|------|--------|
-| `UserSettingsModal.tsx` | Tab styling uses `slate-*` colors |
-| `PositionDisplayPreferenceTab.tsx` | `gray-*` and `white` references |
-| `Input.tsx` | Some validation state borders hardcoded |
-| `Select.tsx` | Dropdown styling may have hardcoded values |
-
-### 3.3 Lower Priority Files
-
-Less frequently accessed:
-
-- Audit log table and filters
-- Admin user management panels
-- Error boundary fallback UI
-- Loading spinner containers
-
-### 3.4 Replacement Mapping Reference
-
-| Hardcoded Class | Replace With |
-|-----------------|--------------|
-| `bg-white` | `bg-odysseus-surface` |
-| `bg-gray-50`, `bg-gray-100` | `bg-odysseus-gray` |
-| `bg-slate-50` | `bg-odysseus-gray` |
-| `text-gray-700`, `text-gray-800` | `text-odysseus-text-primary` |
-| `text-gray-500`, `text-gray-600` | `text-odysseus-text-secondary` |
-| `text-slate-800`, `text-slate-900` | `text-odysseus-text-primary` |
-| `text-slate-500`, `text-slate-600` | `text-odysseus-text-secondary` |
-| `border-gray-200`, `border-gray-300` | `border-odysseus-border` |
-| `border-slate-200` | `border-odysseus-border` |
-| `hover:bg-gray-50` | `hover:bg-odysseus-surface-hover` |
-
-### 3.5 Third-Party Components
-
-**React Hot Toast:**
-
-The toast notification library needs explicit dark mode configuration.
-
-**File:** Where toast is configured (likely `client/src/app/` or a notifications utility)
-
-```typescript
-import { Toaster } from 'react-hot-toast';
-
-<Toaster
-  toastOptions={{
-    style: {
-      background: 'var(--color-odysseus-surface)',
-      color: 'var(--color-odysseus-text-primary)',
-      border: '1px solid var(--color-odysseus-border)',
-    },
-  }}
-/>
-```
-
-**Other potential libraries to check:**
-- Date pickers (if any)
-- Dropdown/select libraries (if not custom)
-- Tooltip libraries
-
----
-
-## Phase 4: UI Integration
+## Phase 3: UI Integration
 
 **Goal:** Add the theme toggle to user interface
 **Effort:** 3-4 hours
@@ -452,7 +511,7 @@ async updateThemePreference(theme: ThemePreference): Promise<void> {
 
 ---
 
-## Phase 5: Testing & Polish
+## Phase 4: Testing & Polish
 
 **Goal:** Ensure quality across all scenarios
 **Effort:** 6-8 hours
@@ -500,47 +559,54 @@ async updateThemePreference(theme: ThemePreference): Promise<void> {
 
 ## Implementation Schedule
 
-### Recommended Sequence (5-6 days)
+### Recommended Sequence
 
-| Day | Phase | Tasks | Deliverable |
-|-----|-------|-------|-------------|
-| **Day 1** | 0 + 1 | Flash prevention script (cookie-based), schema, context, provider, Tailwind config | Theme infrastructure complete, can toggle via dev tools |
-| **Day 2** | 2 | Define all 90+ dark color values, test basic screens | Dark palette defined, manual testing passes |
-| **Day 3** | 2 + 3 | Palette refinement based on testing, high-priority component fixes | Modals and header work correctly in dark mode |
-| **Day 4** | 3 + 4 | Remaining component fixes, theme toggle UI, settings integration | User-facing toggle works, most components themed |
-| **Day 5** | 5 | Third-party components, cross-browser testing | Feature complete |
-| **Day 6** | 5 | Polish, edge cases, documentation, final review | Ready for release |
+| Phase | Tasks | Deliverable |
+|-------|-------|-------------|
+| **Phase 0 + 1** (Complete) | Flash prevention script (cookie-based), schema, context, provider, Tailwind config | Theme infrastructure complete, can toggle via dev tools |
+| **Phase 2a** | Rename CSS variables, remove unused, update Tailwind config | Clean semantic variable system |
+| **Phase 2b** | Replace all `odysseus-*` class usages with new names | All components use new naming |
+| **Phase 2c** | Replace hardcoded Tailwind colors in CSS files and components | Fully centralized color system |
+| **Phase 2d** | Define dark mode color values | Dark palette defined, can test in browser |
+| **Phase 3** | Theme toggle UI, settings integration, multi-tab sync | User-facing toggle works |
+| **Phase 4** | Testing, accessibility validation, polish | Ready for release |
 
 ---
 
 ## Files Summary
 
-### New Files to Create
+### New Files Created (Phase 0+1 Complete)
 
-| Path | Purpose |
-|------|---------|
-| `client/src/app/contexts/ThemeContext.tsx` | Theme state management |
-| `client/src/app/providers/ThemeProvider.tsx` | Theme provider wrapper |
-| `client/src/shared/ui/components/ThemeToggle.tsx` | Toggle UI component |
+| Path | Purpose | Status |
+|------|---------|--------|
+| `client/src/app/contexts/ThemeContext.tsx` | Theme state management | Done |
+| `client/src/shared/ui/components/ThemeToggle.tsx` | Toggle UI component | Phase 3 |
 
-### Files to Modify
+### Files Modified (Phase 0+1 Complete)
+
+| Path | Changes | Status |
+|------|---------|--------|
+| `client/index.html` | Inline theme script (cookie-based) for flash prevention | Done |
+| `packages/shared-schemas/src/users/userSettingsSchemas.ts` | Theme field in schema | Done |
+| `client/tailwind.config.js` | `darkMode: ['class', '[data-theme="dark"]']` | Done |
+| `client/src/app/providers.tsx` | Wrapped with ThemeProvider | Done |
+| `client/src/domains/users/services/UserSettingsService.ts` | Theme persistence (cookie + server) | Done |
+| `client/src/domains/authentication/hooks/useUserSettings.ts` | Theme hooks | Done |
+
+### Files to Modify (Phase 2)
 
 | Path | Changes |
 |------|---------|
-| `client/index.html` | Add inline theme script (cookie-based) for flash prevention |
-| `packages/shared-schemas/src/users/userSettingsSchemas.ts` | Add theme field to schema |
-| `client/src/shared/styles/base/variables.css` | Add complete dark palette (~90 variables) |
-| `client/tailwind.config.js` | Enable `darkMode: 'class'` |
-| `client/src/app/providers.tsx` | Wrap with ThemeProvider |
-| `client/src/shared/ui/components/modals/BaseModal.tsx` | Replace hardcoded colors |
-| `client/src/domains/authentication/ui/components/UserSettingsModal.tsx` | Replace hardcoded colors |
-| `client/src/domains/authentication/ui/components/tabs/PositionDisplayPreferenceTab.tsx` | Replace colors, add theme section |
+| `client/src/shared/styles/base/variables.css` | Rename variables (drop `odysseus-`), remove unused, add dark palette |
+| `client/tailwind.config.js` | Update color mappings to new semantic names |
 | `client/src/shared/styles/components/buttons.css` | Replace hardcoded colors |
+| `client/src/shared/styles/components/inputs.css` | Replace hardcoded colors |
 | `client/src/shared/styles/utilities/focus.css` | Use CSS variable for focus ring |
+| `client/src/shared/ui/components/modals/BaseModal.tsx` | Replace hardcoded colors |
 | `client/src/app/components/layout/AppHeader.tsx` | Replace hardcoded colors |
-| `client/src/domains/users/services/UserSettingsService.ts` | Add theme persistence logic (cookie + server) |
-| Toast configuration file | Configure React Hot Toast for theming |
-| ~40-50 additional component files | Replace hardcoded color classes |
+| `client/src/domains/authentication/ui/components/UserSettingsModal.tsx` | Replace hardcoded colors |
+| Toast configuration | Configure React Hot Toast for theming |
+| ~60 additional component files | Replace hardcoded color classes, update `odysseus-*` usages |
 
 ---
 
@@ -581,38 +647,46 @@ async updateThemePreference(theme: ThemePreference): Promise<void> {
 
 ---
 
-## Appendix A: Color Variable Inventory
+## Appendix A: Color Variable Inventory (Post-Cleanup)
 
-Full list of variables requiring dark mode definitions:
+Full list of semantic variables requiring dark mode definitions:
 
-**Core Odysseus Colors (7):**
-`--color-odysseus-primary`, `--color-odysseus-secondary`, `--color-odysseus-accent`, `--color-odysseus-gray`, `--color-odysseus-dark`, `--color-odysseus-surface`, `--color-odysseus-border`
+**Core Colors (7):**
+`--color-primary`, `--color-secondary`, `--color-accent`, `--color-muted`, `--color-dark`, `--color-surface`, `--color-surface-hover`
+
+**Border & Input (2):**
+`--color-border`, `--color-input`
 
 **Text Colors (3):**
-`--color-odysseus-text-primary`, `--color-odysseus-text-secondary`, `--color-odysseus-text-muted`
+`--color-text-primary`, `--color-text-secondary`, `--color-text-muted`
 
-**Action Colors (10):**
-`--color-action`, `--color-action-hover`, `--color-danger`, `--color-danger-hover`, `--color-edit`, `--color-copy`, `--color-cut`, `--color-lock`, `--color-share`, `--color-cancel`
+**Action Colors (3):**
+`--color-action-default`, `--color-action-hover`, `--color-action-focus`
 
-**Semantic Colors (6):**
-`--color-warning`, `--color-success`, `--color-info`, `--color-validation-error`, `--color-validation-warning`, `--color-validation-success`
+**Semantic State Colors - Each with bg/hover/text/btnText variants (~24):**
+- Edit: `--color-edit-*`
+- Copy: `--color-copy-*`
+- Cut: `--color-cut-*`
+- Danger: `--color-danger-*`
+- Warning: `--color-warning-*`
+- Success: `--color-success-*`
+- Info: `--color-info-*`
+- Lock: `--color-lock-*`
+- Share: `--color-share-*`
+
+**Validation Colors (~15):**
+Error, Warning, Success variants for border, bg, text, label, ring, icon
 
 **Ice Scale (10):**
 `--color-ice-50` through `--color-ice-900`
 
-**Storage Navigator (~15):**
-Tank, Rack, Box variants for background, text, border, and hover states
-
-**Ownership (~9):**
-User, Unassigned, Other variants for background, text, and border
-
-**Audit Log (~12):**
-Entity type colors and action type colors
-
 **Focus System (2):**
 `--focus-ring-color`, `--focus-ring-offset`
 
-**Total: ~90 variables**
+**Frost (1):**
+`--color-frost`
+
+**Total after cleanup: ~65-70 variables** (reduced from ~90 by removing unused storage/ownership colors)
 
 ---
 

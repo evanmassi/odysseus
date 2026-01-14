@@ -60,10 +60,7 @@ export function RackEditModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label
-            htmlFor="rack-name"
-            className="block text-sm font-medium mb-1 text-odysseus-secondary"
-          >
+          <label htmlFor="rack-name" className="block text-sm font-medium mb-1 text-text-secondary">
             Rack Name
           </label>
           <input

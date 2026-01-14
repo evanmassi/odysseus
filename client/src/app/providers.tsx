@@ -96,10 +96,10 @@ export class ErrorBoundary extends Component<{ children: React.ReactNode }, Erro
   override render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-odysseus-dark flex items-center justify-center">
-          <div className="bg-odysseus-surface rounded-lg p-8 max-w-md mx-4">
+        <div className="min-h-screen bg-dark flex items-center justify-center">
+          <div className="bg-surface rounded-lg p-8 max-w-md mx-4">
             <h2 className="text-xl font-bold text-red-400 mb-4">Something went wrong</h2>
-            <p className="text-odysseus-muted mb-4">
+            <p className="text-text-muted mb-4">
               An unexpected error occurred. Please try refreshing the page.
             </p>
             <button onClick={() => window.location.reload()} className="btn btn-primary w-full">

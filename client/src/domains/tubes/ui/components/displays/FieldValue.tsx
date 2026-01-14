@@ -32,14 +32,14 @@ export const FieldValue: React.FC<FieldValueProps> = ({
   if (inline) {
     return (
       <div className={className}>
-        <span className="text-odysseus-dark/50 text-xs">{label}:</span>{' '}
+        <span className="text-dark/50 text-xs">{label}:</span>{' '}
         {isMixed ? (
           <>
             <AlertTriangle className="inline w-3 h-3 text-amber-500 mr-0.5" />
-            <span className="text-odysseus-dark/30 text-sm">—</span>
+            <span className="text-dark/30 text-sm">—</span>
           </>
         ) : (
-          <span className="text-odysseus-dark font-bold text-sm">{value}</span>
+          <span className="text-dark font-bold text-sm">{value}</span>
         )}
       </div>
     );
@@ -47,12 +47,12 @@ export const FieldValue: React.FC<FieldValueProps> = ({
 
   return (
     <div className={className}>
-      <div className="flex items-center gap-1 text-odysseus-dark/50 text-xs">
+      <div className="flex items-center gap-1 text-dark/50 text-xs">
         {label}
         {isMixed && <AlertTriangle className="w-3 h-3 text-amber-500" />}
       </div>
-      <div className="text-odysseus-dark font-bold text-sm">
-        {isMixed ? <span className="text-odysseus-dark/30 font-normal">—</span> : value}
+      <div className="text-dark font-bold text-sm">
+        {isMixed ? <span className="text-dark/30 font-normal">—</span> : value}
       </div>
     </div>
   );
