@@ -60,8 +60,6 @@ export class SocketService {
       // Uses getValidAccessToken() which auto-refreshes if token is expired
       const authToken = await sessionManager.getValidAccessToken();
 
-      logger.debug('Socket initializing', { hasToken: !!authToken });
-
       // Create socket connection with auth token
       this.socket = io(SOCKET_CONFIG.url, {
         ...SOCKET_CONFIG.options,

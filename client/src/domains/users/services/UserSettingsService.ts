@@ -8,7 +8,8 @@ import {
   type UserSettings,
   type UpdateUserSettingsRequest,
   type UserSettingsResponse,
-  type PositionDisplayPreference
+  type PositionDisplayPreference,
+  type ThemePreference,
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api/httpClient';
@@ -69,7 +70,9 @@ export class UserSettingsService {
    *
    * Updates only the defaultPositionDisplay field while preserving other settings.
    */
-  async updatePositionDisplayPreference(preference: PositionDisplayPreference): Promise<UserSettings> {
+  async updatePositionDisplayPreference(
+    preference: PositionDisplayPreference
+  ): Promise<UserSettings> {
     try {
       // Get current settings first
       const currentSettings = await this.getUserSettings();
@@ -77,7 +80,7 @@ export class UserSettingsService {
       // Update only the position display preference
       const updatedSettings: UserSettings = {
         ...currentSettings,
-        defaultPositionDisplay: preference
+        defaultPositionDisplay: preference,
       };
 
       return await this.updateUserSettings(updatedSettings);
@@ -86,6 +89,37 @@ export class UserSettingsService {
         throw new Error((error as Error).message);
       }
       throw new Error('Failed to update position display preference');
+    }
+  }
+
+  /**
+   * Update theme preference (convenience method)
+   *
+   * Updates only the theme field while preserving other settings.
+   * Also updates the cookie for immediate persistence.
+   */
+  async updateThemePreference(theme: ThemePreference): Promise<UserSettings> {
+    try {
+      // Update cookie immediately for fast access on next page load
+      const expires = new Date();
+      expires.setFullYear(expires.getFullYear() + 1);
+      document.cookie = `odysseus-theme=${theme}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+
+      // Get current settings first
+      const currentSettings = await this.getUserSettings();
+
+      // Update only the theme preference
+      const updatedSettings: UserSettings = {
+        ...currentSettings,
+        theme,
+      };
+
+      return await this.updateUserSettings(updatedSettings);
+    } catch (error) {
+      if (error && typeof error === 'object' && 'message' in error) {
+        throw new Error((error as Error).message);
+      }
+      throw new Error('Failed to update theme preference');
     }
   }
 }

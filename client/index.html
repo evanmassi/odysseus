@@ -2,6 +2,28 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- Theme initialization - must run before any rendering to prevent flash -->
+    <script>
+      (function() {
+        function getCookie(name) {
+          var match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+          return match ? match[2] : null;
+        }
+
+        var stored = getCookie('odysseus-theme');
+        var theme = 'light';
+
+        if (stored === 'dark') {
+          theme = 'dark';
+        } else if (stored === 'auto' || !stored) {
+          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            theme = 'dark';
+          }
+        }
+
+        document.documentElement.setAttribute('data-theme', theme);
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Odysseus</title>

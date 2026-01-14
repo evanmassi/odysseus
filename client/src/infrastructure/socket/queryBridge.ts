@@ -751,14 +751,8 @@ export class SocketQueryBridge {
           queryKeys.users.list()
         );
         if (cachedUsers && !cachedUsers.some(u => u.id === userId)) {
-          logger.debug('New online user not in cached user list, invalidating', { userId });
           void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
         }
-
-        logger.debug('Updated presence cache (user_online)', {
-          userId,
-          onlineCount: onlineUserIds.length,
-        });
       } catch (error) {
         logger.error('Invalid user_online event', { error });
       }
@@ -771,10 +765,6 @@ export class SocketQueryBridge {
 
         // Directly set the cache with the authoritative list from server
         this.queryClient.setQueryData(queryKeys.users.presence(), onlineUserIds);
-
-        logger.debug('Updated presence cache (user_offline)', {
-          onlineCount: onlineUserIds.length,
-        });
       } catch (error) {
         logger.error('Invalid user_offline event', { error });
       }
@@ -787,10 +777,6 @@ export class SocketQueryBridge {
 
         // Set the cache with authoritative list from server
         this.queryClient.setQueryData(queryKeys.users.presence(), onlineUserIds);
-
-        logger.debug('Received presence_state', {
-          onlineCount: onlineUserIds.length,
-        });
       } catch (error) {
         logger.error('Invalid presence_state event', { error });
       }

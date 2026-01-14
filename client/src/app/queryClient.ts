@@ -442,10 +442,4 @@ export function setupQueryPersistence(): void {
       },
     },
   });
-
-  if (env.isDev()) {
-    logger.debug('Query persistence configured', {
-      excludedPrefixes: EXCLUDED_QUERY_PREFIXES,
-    });
-  }
 }

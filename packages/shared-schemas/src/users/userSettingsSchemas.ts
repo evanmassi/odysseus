@@ -2,6 +2,17 @@ import { z } from 'zod';
 import { positionDisplayPreferenceSchema } from '../storage/positionSchemas';
 
 /**
+ * Theme Preference Schema
+ *
+ * Defines the available theme options for the application.
+ * - 'light': Always use light mode
+ * - 'dark': Always use dark mode
+ * - 'auto': Follow the operating system's theme preference
+ */
+export const themePreferenceSchema = z.enum(['light', 'dark', 'auto']);
+export type ThemePreference = z.infer<typeof themePreferenceSchema>;
+
+/**
  * User Settings Schema
  *
  * Extensible schema for per-user preferences and settings.
@@ -12,9 +23,9 @@ import { positionDisplayPreferenceSchema } from '../storage/positionSchemas';
  */
 export const userSettingsSchema = z.object({
   defaultPositionDisplay: positionDisplayPreferenceSchema.optional(),
+  theme: themePreferenceSchema.optional(),
 
   // Future settings can be added here:
-  // theme: z.enum(['light', 'dark', 'auto']).optional(),
   // language: z.string().optional(),
   // emailNotifications: z.boolean().optional(),
   // gridDensity: z.enum(['compact', 'normal', 'comfortable']).optional(),

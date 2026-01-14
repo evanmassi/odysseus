@@ -40,7 +40,10 @@
       "Bash(node --trace-deprecation -e:*)",
       "Bash(npx tsx:*)",
       "Bash(NODE_OPTIONS=\"--trace-deprecation\" npx tsx -e \"import ''./src/index''\")",
-      "Bash(node --trace-deprecation electron/main.js:*)"
+      "Bash(node --trace-deprecation electron/main.js:*)",
+      "Bash(npm run build:schemas:*)",
+      "Bash(npm run build:shared:*)",
+      "Bash(npm run build:server:*)"
     ]
   }
 }

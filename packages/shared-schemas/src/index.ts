@@ -372,6 +372,7 @@ export {
   userSettingsSchema,
   updateUserSettingsRequestSchema,
   userSettingsResponseSchema,
+  themePreferenceSchema,
 
   // Constants
   DEFAULT_USER_SETTINGS,
@@ -379,7 +380,8 @@ export {
   // Types
   type UserSettings,
   type UpdateUserSettingsRequest,
-  type UserSettingsResponse
+  type UserSettingsResponse,
+  type ThemePreference
 } from './users/userSettingsSchemas';
 
 // User Lookup Schemas (Public endpoint for display info)

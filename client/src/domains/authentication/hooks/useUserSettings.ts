@@ -9,7 +9,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@app/queryKeys';
 import { userSettingsService } from '@domains/users/services/UserSettingsService';
 
-import type { UserSettings, PositionDisplayPreference } from '@odysseus/shared-schemas';
+import type {
+  UserSettings,
+  PositionDisplayPreference,
+  ThemePreference,
+} from '@odysseus/shared-schemas';
 
 /**
  * Query hook for user settings
@@ -42,7 +46,7 @@ export function useUpdateUserSettingsMutation() {
 
   return useMutation({
     mutationFn: (settings: UserSettings) => userSettingsService.updateUserSettings(settings),
-    onSuccess: (updatedSettings) => {
+    onSuccess: updatedSettings => {
       // Update the settings cache with new data
       queryClient.setQueryData(queryKeys.users.settings(), updatedSettings);
     },
@@ -64,12 +68,33 @@ export function useUpdatePositionDisplayPreferenceMutation() {
   return useMutation({
     mutationFn: (preference: PositionDisplayPreference) =>
       userSettingsService.updatePositionDisplayPreference(preference),
-    onSuccess: (updatedSettings) => {
+    onSuccess: updatedSettings => {
       // Update the settings cache with new data
       queryClient.setQueryData(queryKeys.users.settings(), updatedSettings);
     },
     meta: {
       errorMessage: 'Failed to update position display preference',
+    },
+  });
+}
+
+/**
+ * Mutation hook for updating theme preference
+ *
+ * Convenience hook for updating only the theme preference.
+ * Also handles cookie persistence for flash prevention.
+ */
+export function useUpdateThemePreferenceMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (theme: ThemePreference) => userSettingsService.updateThemePreference(theme),
+    onSuccess: updatedSettings => {
+      // Update the settings cache with new data
+      queryClient.setQueryData(queryKeys.users.settings(), updatedSettings);
+    },
+    meta: {
+      errorMessage: 'Failed to update theme preference',
     },
   });
 }
@@ -87,6 +112,7 @@ export function useUserSettings() {
     // Settings data
     settings: settings ?? null,
     defaultPositionDisplay: settings?.defaultPositionDisplay ?? null,
+    theme: settings?.theme ?? 'auto',
 
     // Loading states
     isLoading,
@@ -108,27 +134,36 @@ export function useUserSettings() {
 export function useUserSettingsActions() {
   const updateSettingsMutation = useUpdateUserSettingsMutation();
   const updatePositionDisplayMutation = useUpdatePositionDisplayPreferenceMutation();
+  const updateThemeMutation = useUpdateThemePreferenceMutation();
 
   return {
     // Mutation functions
     updateSettings: updateSettingsMutation.mutate,
     updatePositionDisplay: updatePositionDisplayMutation.mutate,
+    updateTheme: updateThemeMutation.mutate,
 
     // Async versions (return promises)
     updateSettingsAsync: updateSettingsMutation.mutateAsync,
     updatePositionDisplayAsync: updatePositionDisplayMutation.mutateAsync,
+    updateThemeAsync: updateThemeMutation.mutateAsync,
 
     // Loading states
     isUpdatingSettings: updateSettingsMutation.isPending,
     isUpdatingPositionDisplay: updatePositionDisplayMutation.isPending,
-    isSaving: updateSettingsMutation.isPending || updatePositionDisplayMutation.isPending,
+    isUpdatingTheme: updateThemeMutation.isPending,
+    isSaving:
+      updateSettingsMutation.isPending ||
+      updatePositionDisplayMutation.isPending ||
+      updateThemeMutation.isPending,
 
     // Error states
     updateSettingsError: updateSettingsMutation.error,
     updatePositionDisplayError: updatePositionDisplayMutation.error,
+    updateThemeError: updateThemeMutation.error,
 
     // Reset functions
     resetUpdateSettingsError: updateSettingsMutation.reset,
     resetUpdatePositionDisplayError: updatePositionDisplayMutation.reset,
+    resetUpdateThemeError: updateThemeMutation.reset,
   };
 }

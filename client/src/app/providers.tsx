@@ -19,6 +19,7 @@ import {
 } from '@shared/ui/components/ConnectionStatusIndicator';
 import { notifications } from '@shared/utils/notifications';
 
+import { ThemeProvider } from './contexts/ThemeContext';
 import { queryClient, setupQueryPersistence } from './queryClient';
 
 // Dev-only: Expose notifications to console for testing
@@ -46,24 +47,26 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipPrimitive.Provider delayDuration={300} skipDelayDuration={300}>
-        {/* Cache Performance Monitoring - only in development */}
-        {/* Performance debugging removed for clean build */}
+      <ThemeProvider>
+        <TooltipPrimitive.Provider delayDuration={300} skipDelayDuration={300}>
+          {/* Cache Performance Monitoring - only in development */}
+          {/* Performance debugging removed for clean build */}
 
-        {/* Connection Status & Real-time Indicators */}
-        <RealtimeSyncIndicator />
-        <ConnectionStatusIndicator />
+          {/* Connection Status & Real-time Indicators */}
+          <RealtimeSyncIndicator />
+          <ConnectionStatusIndicator />
 
-        {/* Toast notifications - custom Toast component handles styling */}
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            duration: 3000,
-          }}
-        />
+          {/* Toast notifications - custom Toast component handles styling */}
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              duration: 3000,
+            }}
+          />
 
-        {children}
-      </TooltipPrimitive.Provider>
+          {children}
+        </TooltipPrimitive.Provider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
