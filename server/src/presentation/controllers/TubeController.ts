@@ -35,10 +35,11 @@ export class TubeController {
         const createRequests: CreateTubeRequest[] = req.body;
         const result = await this.tubeApplicationService.createTubes(createRequests, authenticatedUser);
 
-        logger.info('Bulk tubes created', {
+        logger.debug('Bulk tubes created', {
           created: result.created.length,
           failed: result.failed.length,
-          user: req.user?.username
+          user: req.user?.username,
+          requestId: req.requestId
         });
 
         // Use 207 Multi-Status for partial success, 201 for full success
@@ -53,16 +54,17 @@ export class TubeController {
         const createRequest: CreateTubeRequest = req.body;
         const tube = await this.tubeApplicationService.createTube(createRequest, authenticatedUser);
 
-        logger.info('Tube created', {
+        logger.debug('Tube created', {
           tubeId: tube.id,
           location: `${tube.location.tankId}-${tube.location.rackId}-${tube.location.boxId}-${tube.location.position}`,
-          user: req.user?.username
+          user: req.user?.username,
+          requestId: req.requestId
         });
 
         res.status(201).json(ErrorDto.success(tube));
       }
     } catch (error) {
-      handleControllerError(error, res, 'Failed to create tube(s)');
+      handleControllerError(error, res, 'Failed to create tube(s)', req.requestId);
     }
   }
 
@@ -79,7 +81,7 @@ export class TubeController {
       
       res.json(ErrorDto.success(tube));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get tube');
+      handleControllerError(error, res, 'Failed to get tube', req.requestId);
     }
   }
 
@@ -96,7 +98,7 @@ export class TubeController {
       
       res.json(ErrorDto.success(tubes));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get tubes');
+      handleControllerError(error, res, 'Failed to get tubes', req.requestId);
     }
   }
 
@@ -112,14 +114,15 @@ export class TubeController {
       
       const tube = await this.tubeApplicationService.updateTube(id, updateRequest, authenticatedUser);
       
-      logger.info('Tube updated', { 
-        tubeId: tube.id, 
-        user: req.user?.username 
+      logger.debug('Tube updated', {
+        tubeId: tube.id,
+        user: req.user?.username,
+        requestId: req.requestId
       });
       
       res.json(ErrorDto.success(tube));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update tube');
+      handleControllerError(error, res, 'Failed to update tube', req.requestId);
     }
   }
 
@@ -134,14 +137,15 @@ export class TubeController {
       
       await this.tubeApplicationService.deleteTube(id, authenticatedUser);
       
-      logger.info('Tube deleted', { 
-        tubeId: id, 
-        user: req.user?.username 
+      logger.debug('Tube deleted', {
+        tubeId: id,
+        user: req.user?.username,
+        requestId: req.requestId
       });
       
       res.json(ErrorDto.success({ deleted: true }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete tube');
+      handleControllerError(error, res, 'Failed to delete tube', req.requestId);
     }
   }
 
@@ -156,15 +160,16 @@ export class TubeController {
       
       const result = await this.tubeApplicationService.bulkUpdateTubes(bulkRequest, authenticatedUser);
       
-      logger.info('Bulk tube update completed', { 
-        updated: result.updated, 
+      logger.debug('Bulk tube update completed', {
+        updated: result.updated,
         failed: result.failed.length,
-        user: req.user?.username 
+        user: req.user?.username,
+        requestId: req.requestId
       });
       
       res.json(ErrorDto.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to bulk update tubes');
+      handleControllerError(error, res, 'Failed to bulk update tubes', req.requestId);
     }
   }
 
@@ -186,7 +191,7 @@ export class TubeController {
       
       res.json(ErrorDto.success(tubes));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get tubes by location');
+      handleControllerError(error, res, 'Failed to get tubes by location', req.requestId);
     }
   }
 
@@ -199,16 +204,16 @@ export class TubeController {
     try {
       const { rackId, boxId } = req.params;
       const authenticatedUser = this.getAuthenticatedUser(req);
-      
+
       const tubes = await this.tubeApplicationService.getTubesByRackAndBox(
-        rackId, 
-        boxId, 
+        rackId,
+        boxId,
         authenticatedUser
       );
-      
+
       res.json(ErrorDto.success(tubes));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get tubes by location');
+      handleControllerError(error, res, 'Failed to get tubes by location', req.requestId);
     }
   }
 
@@ -220,13 +225,13 @@ export class TubeController {
     try {
       const { query, limit, offset } = req.query;
       const authenticatedUser = this.getAuthenticatedUser(req);
-      
+
       if (!query || typeof query !== 'string') {
         const errorResponse = ErrorDto.customError('Search query is required', 400, 'MISSING_QUERY');
         res.status(errorResponse.status).json(errorResponse.response);
         return;
       }
-      
+
       const tubes = await this.tubeApplicationService.searchTubes(
         {
           query: query as string,
@@ -235,10 +240,10 @@ export class TubeController {
         },
         authenticatedUser
       );
-      
+
       res.json(ErrorDto.success(tubes));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to search tubes');
+      handleControllerError(error, res, 'Failed to search tubes', req.requestId);
     }
   }
 

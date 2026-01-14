@@ -37,7 +37,7 @@ export class ResearcherController {
         res.json(ErrorDto.success(researchers));
       }
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get researchers');
+      handleControllerError(error, res, 'Failed to get researchers', req.requestId);
     }
   }
 
@@ -52,14 +52,15 @@ export class ResearcherController {
 
       const researchers = await this.researcherApplicationService.getResearchersWithMetadata(userApiKey);
 
-      logger.info('Retrieved researchers with metadata', {
+      logger.debug('Retrieved researchers with metadata', {
         count: researchers.length,
-        requestedBy: req.user?.username
+        requestedBy: req.user?.username,
+        requestId: req.requestId
       });
 
       res.json(ErrorDto.success({ researchers }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get researchers with metadata');
+      handleControllerError(error, res, 'Failed to get researchers with metadata', req.requestId);
     }
   }
 
@@ -74,14 +75,15 @@ export class ResearcherController {
 
       const researchers = await this.researcherApplicationService.getUnlinkedResearchers(userApiKey);
 
-      logger.info('Retrieved unlinked researchers', {
+      logger.debug('Retrieved unlinked researchers', {
         count: researchers.length,
-        requestedBy: req.user?.username
+        requestedBy: req.user?.username,
+        requestId: req.requestId
       });
 
       res.json(ErrorDto.success({ researchers }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get unlinked researchers');
+      handleControllerError(error, res, 'Failed to get unlinked researchers', req.requestId);
     }
   }
 
@@ -98,7 +100,7 @@ export class ResearcherController {
 
       res.json(ErrorDto.success(researcher));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get researcher');
+      handleControllerError(error, res, 'Failed to get researcher', req.requestId);
     }
   }
 
@@ -110,18 +112,19 @@ export class ResearcherController {
     try {
       const createRequest: CreateResearcherRequest = req.body;
       const userApiKey = this.extractApiKey(req);
-      
+
       const researcher = await this.researcherApplicationService.createResearcher(createRequest, userApiKey);
-      
-      logger.info('Researcher created', {
+
+      logger.debug('Researcher created', {
         researcherId: researcher.id,
         name: `${researcher.firstName} ${researcher.lastName}`,
-        user: req.user?.username
+        user: req.user?.username,
+        requestId: req.requestId
       });
-      
+
       res.status(201).json(ErrorDto.success(researcher));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to create researcher');
+      handleControllerError(error, res, 'Failed to create researcher', req.requestId);
     }
   }
 
@@ -136,17 +139,18 @@ export class ResearcherController {
       const userApiKey = this.extractApiKey(req);
 
       const researcher = await this.researcherApplicationService.updateResearcher(id, updates, userApiKey);
-      
-      logger.info('Researcher updated', {
+
+      logger.debug('Researcher updated', {
         researcherId: researcher.id,
         name: `${researcher.firstName} ${researcher.lastName}`,
         active: researcher.active,
-        user: req.user?.username
+        user: req.user?.username,
+        requestId: req.requestId
       });
-      
+
       res.json(ErrorDto.success(researcher));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to update researcher');
+      handleControllerError(error, res, 'Failed to update researcher', req.requestId);
     }
   }
 
@@ -161,14 +165,15 @@ export class ResearcherController {
 
       await this.researcherApplicationService.deleteResearcher(researcherId, userApiKey);
 
-      logger.info('Researcher deleted', {
+      logger.debug('Researcher deleted', {
         researcherId: researcherId,
-        user: req.user?.username
+        user: req.user?.username,
+        requestId: req.requestId
       });
-      
+
       res.json(ErrorDto.success({ deleted: true }));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to delete researcher');
+      handleControllerError(error, res, 'Failed to delete researcher', req.requestId);
     }
   }
 
@@ -180,18 +185,19 @@ export class ResearcherController {
     try {
       const { id } = req.params;
       const userApiKey = this.extractApiKey(req);
-      
+
       const researcher = await this.researcherApplicationService.deactivateResearcher(id, userApiKey);
-      
-      logger.info('Researcher deactivated', {
+
+      logger.debug('Researcher deactivated', {
         researcherId: researcher.id,
         name: `${researcher.firstName} ${researcher.lastName}`,
-        user: req.user?.username
+        user: req.user?.username,
+        requestId: req.requestId
       });
-      
+
       res.json(ErrorDto.success(researcher));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to deactivate researcher');
+      handleControllerError(error, res, 'Failed to deactivate researcher', req.requestId);
     }
   }
 
@@ -203,18 +209,19 @@ export class ResearcherController {
     try {
       const { id } = req.params;
       const userApiKey = this.extractApiKey(req);
-      
+
       const researcher = await this.researcherApplicationService.activateResearcher(id, userApiKey);
-      
-      logger.info('Researcher activated', {
+
+      logger.debug('Researcher activated', {
         researcherId: researcher.id,
         name: `${researcher.firstName} ${researcher.lastName}`,
-        user: req.user?.username
+        user: req.user?.username,
+        requestId: req.requestId
       });
-      
+
       res.json(ErrorDto.success(researcher));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to activate researcher');
+      handleControllerError(error, res, 'Failed to activate researcher', req.requestId);
     }
   }
 
@@ -230,7 +237,7 @@ export class ResearcherController {
       
       res.json(ErrorDto.success(stats));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get researcher stats');
+      handleControllerError(error, res, 'Failed to get researcher stats', req.requestId);
     }
   }
 
@@ -253,7 +260,7 @@ export class ResearcherController {
 
       res.json(ErrorDto.success(researchers));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to search researchers');
+      handleControllerError(error, res, 'Failed to search researchers', req.requestId);
     }
   }
 
@@ -270,7 +277,7 @@ export class ResearcherController {
 
       res.json(ErrorDto.success(result));
     } catch (error) {
-      handleControllerError(error, res, 'Failed to get researcher tube count');
+      handleControllerError(error, res, 'Failed to get researcher tube count', req.requestId);
     }
   }
 

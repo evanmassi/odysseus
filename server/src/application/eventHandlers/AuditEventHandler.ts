@@ -143,8 +143,6 @@ export class AuditEventHandler {
     this.eventBus.subscribe('ResearcherDeactivated', (e) => this.handleResearcherDeactivated(e));
     this.eventBus.subscribe('ResearcherReactivated', (e) => this.handleResearcherReactivated(e));
     this.eventBus.subscribe('ResearcherDeleted', (e) => this.handleResearcherDeleted(e));
-
-    logger.info('AuditEventHandler subscribed to domain events');
   }
 
   // TUBE EVENT HANDLERS

@@ -38,7 +38,7 @@ export class SessionController {
         isCurrentSession: session.id === currentSessionId
       }));
 
-      logger.info('Sessions retrieved', { userId: req.user.id, count: sessions.length });
+      logger.debug('Sessions retrieved', { userId: req.user.id, count: sessions.length, requestId: req.requestId });
 
       res.status(200).json({
         success: true,
@@ -84,7 +84,7 @@ export class SessionController {
         throw new NotFoundError('Session not found or already revoked');
       }
 
-      logger.info('Session revoked', { userId: req.user.id, sessionId });
+      logger.debug('Session revoked', { userId: req.user.id, sessionId, requestId: req.requestId });
 
       res.status(200).json({
         success: true,
@@ -118,7 +118,7 @@ export class SessionController {
       // Revoke all other sessions
       const revokedCount = await this.userSessionRepository.batchRevoke(otherSessionIds);
 
-      logger.info('All other sessions revoked', { userId: req.user.id, revokedCount });
+      logger.debug('All other sessions revoked', { userId: req.user.id, revokedCount, requestId: req.requestId });
 
       res.status(200).json({
         success: true,

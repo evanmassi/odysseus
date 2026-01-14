@@ -35,7 +35,12 @@
       "Bash(cmd /c copy:*)",
       "Bash(cmd /c dir \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\public\")",
       "Bash(Copy-Item \"C:\\\\Users\\\\evan\\\\Pictures\\\\AI\\\\Gemini\\\\Odysseus\\\\favicon\\\\favicon.ico\" -Destination \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\public\\\\favicon.ico\")",
-      "Bash(git -C \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\" checkout client/public/favicon.svg)"
+      "Bash(git -C \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\" checkout client/public/favicon.svg)",
+      "Bash(npm view:*)",
+      "Bash(node --trace-deprecation -e:*)",
+      "Bash(npx tsx:*)",
+      "Bash(NODE_OPTIONS=\"--trace-deprecation\" npx tsx -e \"import ''./src/index''\")",
+      "Bash(node --trace-deprecation electron/main.js:*)"
     ]
   }
 }

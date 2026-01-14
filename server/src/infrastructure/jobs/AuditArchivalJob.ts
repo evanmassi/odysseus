@@ -19,20 +19,12 @@ export class AuditArchivalJob {
    */
   start(): void {
     if (!AUDIT_RETENTION_CONFIG.enableAutoArchival) {
-      logger.info('Audit archival job disabled by configuration');
       return;
     }
 
     if (this.task) {
-      logger.warn('Audit archival job already running');
       return;
     }
-
-    logger.info('Starting audit archival job', {
-      schedule: AUDIT_RETENTION_CONFIG.archivalJobSchedule,
-      activeRetentionDays: AUDIT_RETENTION_CONFIG.activeRetentionDays,
-      totalRetentionDays: AUDIT_RETENTION_CONFIG.totalRetentionDays,
-    });
 
     this.task = cron.schedule(
       AUDIT_RETENTION_CONFIG.archivalJobSchedule,
@@ -43,8 +35,6 @@ export class AuditArchivalJob {
         timezone: AUDIT_RETENTION_CONFIG.archivalJobTimezone,
       }
     );
-
-    logger.info('Audit archival job started successfully');
   }
 
   /**
@@ -54,7 +44,6 @@ export class AuditArchivalJob {
     if (this.task) {
       this.task.stop();
       this.task = null;
-      logger.info('Audit archival job stopped');
     }
   }
 
@@ -63,8 +52,6 @@ export class AuditArchivalJob {
    */
   private async runArchival(): Promise<void> {
     const startTime = Date.now();
-
-    logger.info('Starting scheduled audit log archival');
 
     try {
       // Archive old entries from active table to archive table
@@ -78,25 +65,23 @@ export class AuditArchivalJob {
 
       const duration = Date.now() - startTime;
 
-      logger.info('Scheduled audit log archival completed', {
+      logger.debug('Audit archival completed', {
         archived,
         deleted,
         duration: `${duration}ms`,
         activeTableCount: metrics.activeTable.count,
         archiveTableCount: metrics.archiveTable.count,
-        performanceWarning: metrics.performanceWarning,
       });
 
       // Log warning if active table is getting large
       if (metrics.performanceWarning) {
-        logger.warn('Active audit log table approaching warning threshold', {
+        logger.warn('Audit log table approaching threshold', {
           count: metrics.activeTable.count,
           threshold: AUDIT_RETENTION_CONFIG.activeTableWarningThreshold,
-          recommendation: 'Consider reducing active retention period or investigating log volume',
         });
       }
     } catch (error) {
-      logger.error('Scheduled audit log archival failed', {
+      logger.error('Audit archival failed', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });

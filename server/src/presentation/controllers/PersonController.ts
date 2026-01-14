@@ -36,7 +36,7 @@ export class PersonController {
         throw new NotFoundError('Person profile not found');
       }
 
-      logger.info('Profile retrieved', { userId: req.user.id, personId: person.id });
+      logger.debug('Profile retrieved', { userId: req.user.id, personId: person.id, requestId: req.requestId });
 
       res.status(200).json({
         success: true,
@@ -129,10 +129,11 @@ export class PersonController {
       // Save updated person
       await this.personRepository.save(person);
 
-      logger.info('Profile updated', {
+      logger.debug('Profile updated', {
         userId: req.user.id,
         personId: person.id,
-        fields: { firstName, lastName, position, department, email }
+        fields: { firstName, lastName, position, department, email },
+        requestId: req.requestId
       });
 
       res.status(200).json({

@@ -39,13 +39,23 @@ function toError(value: unknown): Error {
  * @param error - Caught exception (typed as unknown for safety)
  * @param res - Express response object
  * @param context - Log context describing the failed operation
+ * @param requestId - Optional request ID for traceability
  */
 export function handleControllerError(
   error: unknown,
   res: Response,
-  context: string
+  context: string,
+  requestId?: string
 ): void {
-  logger.error(context, error instanceof Error ? error : new Error(String(error)));
+  const err = error instanceof Error ? error : new Error(String(error));
+
+  logger.error(context, {
+    requestId,
+    errorType: err.constructor.name,
+    message: err.message,
+    stack: err.stack,
+    ...(isZodError(error) && { validationErrors: error.errors })
+  });
 
   // Zod validation errors get special handling
   if (isZodError(error)) {
@@ -59,7 +69,6 @@ export function handleControllerError(
     return;
   }
 
-  const err = toError(error);
   const errorResponse = ErrorDto.fromDomainError(err);
   res.status(errorResponse.status).json(errorResponse.response);
 }

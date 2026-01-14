@@ -171,8 +171,6 @@ export class SocketEventHandler {
         }
       });
     });
-
-    logger.info('SocketEventHandler presence handlers initialized');
   }
 
   /**
@@ -233,8 +231,6 @@ export class SocketEventHandler {
     this.eventBus.subscribe('ResearcherDeactivated', (e) => this.handleResearcherUpdated(e));
     this.eventBus.subscribe('ResearcherReactivated', (e) => this.handleResearcherUpdated(e));
     this.eventBus.subscribe('ResearcherDeleted', (e) => this.handleResearcherDeleted(e));
-
-    logger.info('SocketEventHandler subscribed to domain events');
   }
 
   // CONFIGURATION EVENT HANDLERS
@@ -315,7 +311,7 @@ export class SocketEventHandler {
         changedBy: lastEvent.userId,
       };
 
-      logger.info('Emitting batched configuration_updated Socket event', {
+      logger.debug('Emitting batched configuration_updated socket event', {
         eventTypes,
         eventCount: this.pendingConfigEvents.length,
         connectedClients: this.io.sockets.sockets.size,

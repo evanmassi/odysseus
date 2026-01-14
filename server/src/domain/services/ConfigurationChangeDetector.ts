@@ -76,13 +76,13 @@ export class ConfigurationChangeDetector {
     };
 
     // Detect lab name changes
-    logger.info('🔍 [ChangeDetector] Comparing lab names', {
+    logger.debug('Comparing lab names', {
       oldLabName: oldConfig.systemSettings.labName,
       newLabName: newConfig.systemSettings.labName,
       areEqual: oldConfig.systemSettings.labName === newConfig.systemSettings.labName
     });
     if (oldConfig.systemSettings.labName !== newConfig.systemSettings.labName) {
-      logger.info('🔍 [ChangeDetector] Lab name CHANGED - creating LabNameChangedEvent', {
+      logger.debug('Lab name changed', {
         from: oldConfig.systemSettings.labName,
         to: newConfig.systemSettings.labName
       });
@@ -163,7 +163,7 @@ export class ConfigurationChangeDetector {
       events.push(new ConfigurationUpdatedEvent(userId, summary));
     }
 
-    logger.info('🔍 [ChangeDetector] Detection complete', {
+    logger.debug('Configuration change detection complete', {
       totalEvents: events.length,
       eventTypes: events.map(e => e.eventName()),
       summary

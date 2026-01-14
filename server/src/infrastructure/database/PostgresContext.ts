@@ -34,18 +34,14 @@ export class PostgresContext {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      logger.info('PostgreSQL already initialized');
       return;
     }
 
     try {
-      logger.info('Initializing PostgreSQL database...');
-
       // Test connection
       const client = await this.pool.connect();
       try {
         await client.query('SELECT NOW()');
-        logger.info('PostgreSQL connection successful');
       } finally {
         client.release();
       }
@@ -57,9 +53,9 @@ export class PostgresContext {
       await this.insertDefaultConfiguration();
 
       this.initialized = true;
-      logger.info('PostgreSQL database initialized successfully');
+      logger.info('Database initialized');
     } catch (error) {
-      logger.error('PostgreSQL database initialization failed:', error);
+      logger.error('Database initialization failed:', error);
       throw error;
     }
   }
@@ -225,7 +221,6 @@ export class PostgresContext {
       )
     `);
 
-    logger.info('PostgreSQL tables created');
   }
 
   /**
@@ -371,8 +366,6 @@ export class PostgresContext {
     for (const indexSql of indexes) {
       await this.pool.query(indexSql);
     }
-
-    logger.info('PostgreSQL indexes created');
   }
 
   /**
@@ -464,8 +457,6 @@ export class PostgresContext {
         setweight(to_tsvector('english', COALESCE(created_by_name, '')), 'C')
       WHERE search_vector IS NULL
     `);
-
-    logger.info('PostgreSQL full-text search configured');
   }
 
   /**
@@ -501,11 +492,9 @@ export class PostgresContext {
            VALUES (1, $1, $2, $3)`,
           [version, now, configJson]
         );
-
-        logger.info('Default configuration initialized');
       }
     } catch (error) {
-      logger.error('Failed to ensure default configuration:', error);
+      logger.error('Failed to initialize default configuration:', error);
     }
   }
 
@@ -618,6 +607,5 @@ export class PostgresContext {
    */
   async close(): Promise<void> {
     await this.pool.end();
-    logger.info('PostgreSQL connection pool closed');
   }
 }

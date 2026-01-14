@@ -31,10 +31,6 @@ export class RouteRegistry {
    * Apply all registered modules to the Express app
    */
   applyRoutes(): void {
-    logger.info('Applying route modules', { 
-      moduleCount: this.modules.length 
-    });
-
     for (const module of this.modules) {
       this.registerModuleRoutes(module);
     }
@@ -44,8 +40,6 @@ export class RouteRegistry {
 
     // Apply 404 handler last
     this.apply404Handler();
-
-    logger.info('All route modules applied successfully');
   }
 
   /**

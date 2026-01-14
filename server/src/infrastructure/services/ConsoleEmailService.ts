@@ -1,4 +1,5 @@
 import { EmailService } from '@domain/services/EmailService';
+import { logger } from '@utils/logger';
 
 /**
  * Console Email Service Implementation
@@ -16,22 +17,19 @@ export class ConsoleEmailService implements EmailService {
   async sendVerificationEmail(email: string, token: string, username: string): Promise<void> {
     const verificationUrl = `${this.verificationBaseUrl}?token=${token}`;
 
-    console.log('\n=== EMAIL VERIFICATION (DEV MODE) ===');
-    console.log(`To: ${email}`);
-    console.log(`Subject: Verify your Odysseus account`);
-    console.log(`\nHi ${username},`);
-    console.log(`\nClick the link below to verify your email address:`);
-    console.log(`\n${verificationUrl}`);
-    console.log(`\nThis link expires in 48 hours.`);
-    console.log(`\nIf you didn't create this account, you can ignore this email.`);
-    console.log('=====================================\n');
+    logger.debug('Email verification (dev mode)', {
+      to: email,
+      subject: 'Verify your Odysseus account',
+      username,
+      verificationUrl,
+      expiresIn: '48 hours'
+    });
   }
 
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
-    // TODO: Implement password reset email
-    console.log('\n=== PASSWORD RESET EMAIL (DEV MODE) ===');
-    console.log(`To: ${email}`);
-    console.log(`Token: ${token}`);
-    console.log('========================================\n');
+    logger.debug('Password reset email (dev mode)', {
+      to: email,
+      tokenProvided: !!token
+    });
   }
 }

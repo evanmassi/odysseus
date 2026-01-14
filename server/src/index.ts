@@ -9,6 +9,7 @@ import { initializeRepositories, RepositoryFactory } from '@infrastructure/repos
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
 import { logger } from '@utils/logger';
 import { sanitizeStrings } from '@middleware/Validation';
+import { requestIdMiddleware } from '@middleware/RequestId';
 import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth';
 
 // Load environment variables from appropriate file
@@ -75,8 +76,6 @@ class OdysseusServer {
   }
 
   private setupDatabase(): void {
-    logger.info('Initializing PostgreSQL connection');
-    logger.info('Using clean repository pattern with DDD');
     this.repositoryFactory = initializeRepositories();
   }
 
@@ -90,19 +89,13 @@ class OdysseusServer {
     // Register socket authentication middleware (must be before connection handlers)
     const sessionService = this.serviceContainer.getSessionService();
     this.io.use(createSocketAuthMiddleware(sessionService));
-    logger.info('Socket authentication middleware registered');
 
-    // Initialize audit event handler to start listening for domain events
+    // Initialize event handlers for audit logging and real-time updates
     this.serviceContainer.getAuditEventHandler();
-    logger.info('Audit event handler initialized');
-
-    // Initialize Socket.IO event handler for real-time updates (includes presence)
     this.serviceContainer.getSocketEventHandler();
-    logger.info('Socket event handler initialized');
 
-    // Initialize and start audit archival job
+    // Start scheduled jobs
     this.serviceContainer.getAuditArchivalJob().start();
-    logger.info('Audit archival job started');
   }
 
   private setupMiddleware(): void {
@@ -122,9 +115,12 @@ class OdysseusServer {
     // Input sanitization (applies to all routes)
     this.app.use(sanitizeStrings);
 
+    // Request ID for traceability
+    this.app.use(requestIdMiddleware);
+
     // Logging
     this.app.use((req, res, next) => {
-      logger.info(`${req.method} ${req.path}`);
+      logger.info(`${req.method} ${req.path}`, { requestId: req.requestId });
       next();
     });
   }
@@ -162,11 +158,7 @@ class OdysseusServer {
     // Legacy tank delete - force-deletes all tubes in tank first
     // DDD route at /api/configuration/tanks/:tankId blocks if tubes exist
     this.app.delete('/api/tanks/:tankId', this.deleteTank.bind(this));
-
-    logger.info('🚀 Route system initialized', {
-      modules: registry.getModuleSummary()
-    });
-    }
+  }
 
   private setupErrorHandling(): void {
     this.app.use((error: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -231,9 +223,9 @@ class OdysseusServer {
       const port = process.env.PORT || 3001;
       this.server.listen(port, async () => {
         const isHealthy = await this.repositoryFactory.isHealthy();
-        logger.info(`🚀 Odysseus server started on port ${port}`);
-        logger.info(`📊 Database: PostgreSQL ${isHealthy ? 'Connected' : 'Disconnected'}`);
-        logger.info(`🏛️ Architecture: Clean Repository Pattern with DDD`);
+        logger.info(`Server started on port ${port}`, {
+          database: isHealthy ? 'connected' : 'disconnected'
+        });
       });
     } catch (error) {
       logger.error('Failed to start server:', error);
@@ -242,16 +234,12 @@ class OdysseusServer {
   }
 
   private async shutdown(): Promise<void> {
-    logger.info('Shutting down server...');
+    logger.info('Shutting down...');
     try {
-      // Stop audit archival job
       this.serviceContainer.getAuditArchivalJob().stop();
-      logger.info('Audit archival job stopped');
-
-      // Clean shutdown of repository factory
       await this.repositoryFactory.close();
       this.server.close(() => {
-        logger.info('Server shut down successfully');
+        logger.info('Server stopped');
         process.exit(0);
       });
     } catch (error) {
