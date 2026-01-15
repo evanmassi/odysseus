@@ -48,7 +48,9 @@ export function OnlineUsersBadges() {
 
       {/* Overflow indicator if more than 5 users online */}
       {onlineUsers.length > 5 && (
-        <span className="ml-1 text-xs text-slate-500 font-medium">+{onlineUsers.length - 5}</span>
+        <span className="ml-1 text-xs text-muted-foreground font-medium">
+          +{onlineUsers.length - 5}
+        </span>
       )}
     </div>
   );

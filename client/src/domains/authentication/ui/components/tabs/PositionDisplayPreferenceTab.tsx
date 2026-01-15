@@ -37,15 +37,15 @@ export function PositionDisplayPreferenceTab({
   return (
     <div className="space-y-2">
       {/* Header */}
-      <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 mb-4">
-        <Table2 size={22} className="text-gray-700" />
-        <h3 className="text-xl font-semibold text-gray-900">Display Preferences</h3>
+      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
+        <Table2 size={22} className="text-secondary-foreground" />
+        <h3 className="text-xl font-semibold text-foreground">Display Preferences</h3>
       </div>
 
       {/* Position Display Format Section */}
       <div>
-        <h4 className="text-base font-semibold text-gray-900 mb-2">Position Display Format</h4>
-        <p className="text-xs text-gray-600 mb-3">
+        <h4 className="text-base font-semibold text-foreground mb-2">Position Display Format</h4>
+        <p className="text-xs text-secondary-foreground mb-3">
           Choose how position labels are displayed throughout the application. This is your personal
           preference and won&apos;t affect other users.
         </p>
@@ -59,7 +59,7 @@ export function PositionDisplayPreferenceTab({
             className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
               currentFormat === 'numeric'
                 ? 'bg-action border-action text-white shadow-md'
-                : 'bg-white border-gray-300 text-gray-700 hover:border-action hover:bg-action/10'
+                : 'bg-background border-border text-secondary-foreground hover:border-action hover:bg-action/10'
             }`}
           >
             {savedFormat === 'numeric' && (
@@ -73,7 +73,7 @@ export function PositionDisplayPreferenceTab({
             )}
             <h5 className="text-sm font-semibold mb-1">Numeric</h5>
             <p
-              className={`text-xs mb-2 ${currentFormat === 'numeric' ? 'text-white/80' : 'text-gray-600'}`}
+              className={`text-xs mb-2 ${currentFormat === 'numeric' ? 'text-white/80' : 'text-secondary-foreground'}`}
             >
               Sequential numbers
             </p>
@@ -82,7 +82,7 @@ export function PositionDisplayPreferenceTab({
                 className={`font-mono px-1.5 py-0.5 rounded ${
                   currentFormat === 'numeric'
                     ? 'bg-action-hover text-white'
-                    : 'bg-gray-100 text-gray-700'
+                    : 'bg-muted text-secondary-foreground'
                 }`}
               >
                 1
@@ -91,7 +91,7 @@ export function PositionDisplayPreferenceTab({
                 className={`font-mono px-1.5 py-0.5 rounded ${
                   currentFormat === 'numeric'
                     ? 'bg-action-hover text-white'
-                    : 'bg-gray-100 text-gray-700'
+                    : 'bg-muted text-secondary-foreground'
                 }`}
               >
                 2
@@ -101,7 +101,7 @@ export function PositionDisplayPreferenceTab({
                 className={`font-mono px-1.5 py-0.5 rounded ${
                   currentFormat === 'numeric'
                     ? 'bg-action-hover text-white'
-                    : 'bg-gray-100 text-gray-700'
+                    : 'bg-muted text-secondary-foreground'
                 }`}
               >
                 81
@@ -116,7 +116,7 @@ export function PositionDisplayPreferenceTab({
             className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
               currentFormat === 'alphanumeric'
                 ? 'bg-action border-action text-white shadow-md'
-                : 'bg-white border-gray-300 text-gray-700 hover:border-action hover:bg-action/10'
+                : 'bg-background border-border text-secondary-foreground hover:border-action hover:bg-action/10'
             }`}
           >
             {savedFormat === 'alphanumeric' && (
@@ -132,7 +132,7 @@ export function PositionDisplayPreferenceTab({
             )}
             <h5 className="text-sm font-semibold mb-1">Alphanumeric</h5>
             <p
-              className={`text-xs mb-2 ${currentFormat === 'alphanumeric' ? 'text-white/80' : 'text-gray-600'}`}
+              className={`text-xs mb-2 ${currentFormat === 'alphanumeric' ? 'text-white/80' : 'text-secondary-foreground'}`}
             >
               Row letter + column
             </p>
@@ -141,7 +141,7 @@ export function PositionDisplayPreferenceTab({
                 className={`font-mono px-1.5 py-0.5 rounded ${
                   currentFormat === 'alphanumeric'
                     ? 'bg-action-hover text-white'
-                    : 'bg-gray-100 text-gray-700'
+                    : 'bg-muted text-secondary-foreground'
                 }`}
               >
                 A1
@@ -150,7 +150,7 @@ export function PositionDisplayPreferenceTab({
                 className={`font-mono px-1.5 py-0.5 rounded ${
                   currentFormat === 'alphanumeric'
                     ? 'bg-action-hover text-white'
-                    : 'bg-gray-100 text-gray-700'
+                    : 'bg-muted text-secondary-foreground'
                 }`}
               >
                 B2
@@ -160,7 +160,7 @@ export function PositionDisplayPreferenceTab({
                 className={`font-mono px-1.5 py-0.5 rounded ${
                   currentFormat === 'alphanumeric'
                     ? 'bg-action-hover text-white'
-                    : 'bg-gray-100 text-gray-700'
+                    : 'bg-muted text-secondary-foreground'
                 }`}
               >
                 I9
@@ -175,7 +175,7 @@ export function PositionDisplayPreferenceTab({
             className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
               !currentFormat
                 ? 'bg-action border-action text-white shadow-md'
-                : 'bg-white border-gray-300 text-gray-700 hover:border-action hover:bg-action/10'
+                : 'bg-background border-border text-secondary-foreground hover:border-action hover:bg-action/10'
             }`}
           >
             {!savedFormat && (
@@ -188,20 +188,26 @@ export function PositionDisplayPreferenceTab({
               </span>
             )}
             <h5 className="text-sm font-semibold mb-1">System Default</h5>
-            <p className={`text-xs mb-2 ${!currentFormat ? 'text-white/80' : 'text-gray-600'}`}>
+            <p
+              className={`text-xs mb-2 ${!currentFormat ? 'text-white/80' : 'text-secondary-foreground'}`}
+            >
               Alphanumeric format
             </p>
             <div className="flex items-center space-x-1 text-xs">
               <span
                 className={`font-mono px-1.5 py-0.5 rounded ${
-                  !currentFormat ? 'bg-action-hover text-white' : 'bg-gray-100 text-gray-700'
+                  !currentFormat
+                    ? 'bg-action-hover text-white'
+                    : 'bg-muted text-secondary-foreground'
                 }`}
               >
                 A1
               </span>
               <span
                 className={`font-mono px-1.5 py-0.5 rounded ${
-                  !currentFormat ? 'bg-action-hover text-white' : 'bg-gray-100 text-gray-700'
+                  !currentFormat
+                    ? 'bg-action-hover text-white'
+                    : 'bg-muted text-secondary-foreground'
                 }`}
               >
                 B2
@@ -209,7 +215,9 @@ export function PositionDisplayPreferenceTab({
               <span>...</span>
               <span
                 className={`font-mono px-1.5 py-0.5 rounded ${
-                  !currentFormat ? 'bg-action-hover text-white' : 'bg-gray-100 text-gray-700'
+                  !currentFormat
+                    ? 'bg-action-hover text-white'
+                    : 'bg-muted text-secondary-foreground'
                 }`}
               >
                 I9

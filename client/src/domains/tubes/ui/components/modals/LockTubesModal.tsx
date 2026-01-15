@@ -107,7 +107,7 @@ export function LockTubesModal({
         <div>
           <label
             htmlFor="lockNote"
-            className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1"
+            className="flex items-center gap-1.5 text-sm font-medium text-secondary-foreground mb-1"
           >
             <Notebook className="w-4 h-4" />
             Lock Note (optional)
@@ -120,18 +120,18 @@ export function LockTubesModal({
             onKeyDown={handleKeyDown}
             placeholder="e.g., Project X - Donor 123"
             maxLength={100}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-action-focus focus:border-action-focus"
+            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-action-focus focus:border-action-focus"
           />
           <div className="flex justify-between mt-1">
-            <p className="text-xs text-gray-500">Provides context for the lock.</p>
-            <p className="text-xs text-gray-500">{lockNote.length}/100</p>
+            <p className="text-xs text-muted-foreground">Provides context for the lock.</p>
+            <p className="text-xs text-muted-foreground">{lockNote.length}/100</p>
           </div>
         </div>
 
         {/* Info text */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
-          <Info size={16} className="text-slate-400 flex-shrink-0" />
-          <p className="text-xs text-slate-600">
+        <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
+          <Info size={16} className="text-muted-foreground flex-shrink-0" />
+          <p className="text-xs text-secondary-foreground">
             Locking prevents other users from editing or moving these tubes. You can unlock or share
             access anytime.
           </p>

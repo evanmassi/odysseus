@@ -78,11 +78,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
           className={`
             z-50 px-3 py-1.5
             text-xs font-medium
-            text-white
-            bg-slate-900
+            text-tooltip-foreground
+            bg-tooltip
             rounded-lg
             shadow-xl shadow-black/30
-            border border-slate-700
+            border border-tooltip-border
             font-['Lato',sans-serif]
             animate-in fade-in-0 zoom-in-95
             data-[state=closed]:animate-out
@@ -96,7 +96,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           `}
         >
           {content}
-          <TooltipPrimitive.Arrow className="fill-slate-900" width={12} height={6} />
+          <TooltipPrimitive.Arrow className="fill-tooltip" width={12} height={6} />
         </TooltipPrimitive.Content>
       </TooltipPrimitive.Portal>
     </TooltipPrimitive.Root>

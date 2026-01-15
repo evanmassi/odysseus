@@ -115,7 +115,7 @@ export function InfoDialog({
           aria-modal="true"
           aria-labelledby="info-dialog-title"
           aria-describedby="info-dialog-message"
-          className={`bg-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border ${styles.border} ${modalAnimationClass} ${closingPointerEvents}`}
+          className={`bg-background rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border ${styles.border} ${modalAnimationClass} ${closingPointerEvents}`}
           style={{ '--tw-shadow-color': styles.shadowColor } as React.CSSProperties}
         >
           <div className="flex items-center justify-between mb-6">
@@ -123,13 +123,13 @@ export function InfoDialog({
               <div className={`p-2 ${styles.iconBg} rounded-full`}>
                 <IconComponent className={`w-6 h-6 ${styles.iconColor}`} />
               </div>
-              <h2 id="info-dialog-title" className="text-xl font-bold text-dark">
+              <h2 id="info-dialog-title" className="text-xl font-bold text-foreground">
                 {title}
               </h2>
             </div>
             <button
               onClick={handleClose}
-              className="p-2 rounded-lg hover:bg-surface-hover text-text-muted hover:text-dark transition-all duration-200 focus-ring-default"
+              className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200 focus-ring-default"
               aria-label="Close dialog"
               type="button"
             >
@@ -138,7 +138,7 @@ export function InfoDialog({
           </div>
 
           <div className="mb-8">
-            <p id="info-dialog-message" className="text-text-muted leading-relaxed">
+            <p id="info-dialog-message" className="text-muted-foreground leading-relaxed">
               {message}
             </p>
           </div>

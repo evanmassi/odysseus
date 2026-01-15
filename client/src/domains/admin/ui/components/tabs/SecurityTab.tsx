@@ -49,20 +49,22 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
   return (
     <div className="space-y-2">
       {/* Header */}
-      <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 mb-4">
-        <Shield size={22} className="text-gray-700" />
-        <h3 className="text-xl font-semibold text-gray-900">Security</h3>
+      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
+        <Shield size={22} className="text-secondary-foreground" />
+        <h3 className="text-xl font-semibold text-foreground">Security</h3>
       </div>
 
       {/* Authentication Settings Section */}
       <div>
-        <h4 className="text-base font-semibold text-gray-900 mb-2">Authentication Settings</h4>
+        <h4 className="text-base font-semibold text-foreground mb-2">Authentication Settings</h4>
         <div className="space-y-1.5">
           {/* Enhanced Authentication Toggle */}
-          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Enhanced Authentication</h5>
-              <p className="text-xs text-gray-600">Enable stronger password-based authentication</p>
+              <h5 className="text-sm font-medium text-foreground">Enhanced Authentication</h5>
+              <p className="text-xs text-secondary-foreground">
+                Enable stronger password-based authentication
+              </p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -72,15 +74,15 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 className="sr-only peer"
                 aria-label="Enable enhanced authentication"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
+              <div className="w-11 h-6 bg-secondary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
             </label>
           </div>
 
           {/* Strong Password Requirements Toggle */}
-          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Strong Password Requirements</h5>
-              <p className="text-xs text-gray-600">
+              <h5 className="text-sm font-medium text-foreground">Strong Password Requirements</h5>
+              <p className="text-xs text-secondary-foreground">
                 Enforce complex password policies (uppercase, lowercase, numbers)
               </p>
             </div>
@@ -92,16 +94,16 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 className="sr-only peer"
                 aria-label="Require strong password requirements"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
+              <div className="w-11 h-6 bg-secondary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
             </label>
           </div>
 
           {/* Password Minimum Length & Special Characters - Combined Row */}
           <div className="grid grid-cols-2 gap-1.5">
-            <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
               <div>
-                <h5 className="text-sm font-medium text-gray-900">Minimum Password Length</h5>
-                <p className="text-xs text-gray-600">Enforce minimum length</p>
+                <h5 className="text-sm font-medium text-foreground">Minimum Password Length</h5>
+                <p className="text-xs text-secondary-foreground">Enforce minimum length</p>
               </div>
               <div className="flex flex-col items-center">
                 <input
@@ -112,14 +114,14 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                   onChange={e => onChange('passwordMinLength', parseInt(e.target.value))}
                   className="input w-16 text-xs h-6 py-0 px-2"
                 />
-                <p className="text-[10px] text-gray-500 mt-0.5">(4-128 characters)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">(4-128 characters)</p>
               </div>
             </div>
 
-            <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
               <div>
-                <h5 className="text-sm font-medium text-gray-900">Require Special Characters</h5>
-                <p className="text-xs text-gray-600">(!@#$%^&*)</p>
+                <h5 className="text-sm font-medium text-foreground">Require Special Characters</h5>
+                <p className="text-xs text-secondary-foreground">(!@#$%^&*)</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -129,7 +131,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                   className="sr-only peer"
                   aria-label="Require special characters in passwords"
                 />
-                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
+                <div className="w-11 h-6 bg-secondary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
               </label>
             </div>
           </div>
@@ -138,13 +140,13 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
 
       {/* Session Management Section */}
       <div>
-        <h4 className="text-base font-semibold text-gray-900 mb-2">Session Management</h4>
+        <h4 className="text-base font-semibold text-foreground mb-2">Session Management</h4>
         <div className="grid grid-cols-2 gap-1.5">
           {/* Auto-Logout */}
-          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Auto-Logout</h5>
-              <p className="text-xs text-gray-600">Logout after inactivity</p>
+              <h5 className="text-sm font-medium text-foreground">Auto-Logout</h5>
+              <p className="text-xs text-secondary-foreground">Logout after inactivity</p>
             </div>
             <div className="flex flex-col items-center">
               <input
@@ -155,15 +157,15 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 onChange={e => onChange('sessionTimeoutMinutes', parseInt(e.target.value))}
                 className="input w-16 text-xs h-6 py-0 px-2"
               />
-              <p className="text-[10px] text-gray-500 mt-0.5">(5-10080 min)</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">(5-10080 min)</p>
             </div>
           </div>
 
           {/* Logout Warning */}
-          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Logout Warning</h5>
-              <p className="text-xs text-gray-600">Warning before logout</p>
+              <h5 className="text-sm font-medium text-foreground">Logout Warning</h5>
+              <p className="text-xs text-secondary-foreground">Warning before logout</p>
             </div>
             <div className="flex flex-col items-center">
               <input
@@ -174,15 +176,15 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 onChange={e => onChange('idleWarningMinutes', parseInt(e.target.value))}
                 className="input w-16 text-xs h-6 py-0 px-2"
               />
-              <p className="text-[10px] text-gray-500 mt-0.5">(1-60 min)</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">(1-60 min)</p>
             </div>
           </div>
 
           {/* Max Login Time */}
-          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Max Login Time</h5>
-              <p className="text-xs text-gray-600">Force re-login after</p>
+              <h5 className="text-sm font-medium text-foreground">Max Login Time</h5>
+              <p className="text-xs text-secondary-foreground">Force re-login after</p>
             </div>
             <div className="flex flex-col items-center">
               <input
@@ -193,15 +195,15 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 onChange={e => onChange('absoluteSessionTimeoutHours', parseInt(e.target.value))}
                 className="input w-16 text-xs h-6 py-0 px-2"
               />
-              <p className="text-[10px] text-gray-500 mt-0.5">(1-720 hrs)</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">(1-720 hrs)</p>
             </div>
           </div>
 
           {/* Token Lifetime */}
-          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Token Lifetime</h5>
-              <p className="text-xs text-gray-600">Security refresh interval</p>
+              <h5 className="text-sm font-medium text-foreground">Token Lifetime</h5>
+              <p className="text-xs text-secondary-foreground">Security refresh interval</p>
             </div>
             <div className="flex flex-col items-center">
               <input
@@ -212,7 +214,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 onChange={e => onChange('accessTokenExpiryMinutes', parseInt(e.target.value))}
                 className="input w-16 text-xs h-6 py-0 px-2"
               />
-              <p className="text-[10px] text-gray-500 mt-0.5">(5-60 min)</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">(5-60 min)</p>
             </div>
           </div>
         </div>
@@ -220,13 +222,13 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
 
       {/* Rate Limiting Section */}
       <div>
-        <h4 className="text-base font-semibold text-gray-900 mb-2">Rate Limiting</h4>
+        <h4 className="text-base font-semibold text-foreground mb-2">Rate Limiting</h4>
         <div className="space-y-1.5">
           {/* Enable Rate Limiting Toggle */}
-          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Enable Rate Limiting</h5>
-              <p className="text-xs text-gray-600">Prevent brute force attacks</p>
+              <h5 className="text-sm font-medium text-foreground">Enable Rate Limiting</h5>
+              <p className="text-xs text-secondary-foreground">Prevent brute force attacks</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -236,7 +238,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 className="sr-only peer"
                 aria-label="Enable rate limiting to prevent brute force attacks"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
+              <div className="w-11 h-6 bg-secondary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
             </label>
           </div>
 
@@ -244,10 +246,10 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
           {config.enableRateLimiting && (
             <div className="grid grid-cols-2 gap-1.5">
               {/* Max Login Attempts Input */}
-              <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
                 <div>
-                  <h5 className="text-sm font-medium text-gray-900">Max Attempts/Minute</h5>
-                  <p className="text-xs text-gray-600">Limit login attempts</p>
+                  <h5 className="text-sm font-medium text-foreground">Max Attempts/Minute</h5>
+                  <p className="text-xs text-secondary-foreground">Limit login attempts</p>
                 </div>
                 <div className="flex flex-col items-center">
                   <input
@@ -258,15 +260,15 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                     onChange={e => onChange('loginAttemptsPerMinute', parseInt(e.target.value))}
                     className="input w-16 text-xs h-6 py-0 px-2"
                   />
-                  <p className="text-[10px] text-gray-500 mt-0.5">(1-50 attempts)</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">(1-50 attempts)</p>
                 </div>
               </div>
 
               {/* Lockout Duration Input */}
-              <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
                 <div>
-                  <h5 className="text-sm font-medium text-gray-900">Lockout Duration</h5>
-                  <p className="text-xs text-gray-600">Set lockout period</p>
+                  <h5 className="text-sm font-medium text-foreground">Lockout Duration</h5>
+                  <p className="text-xs text-secondary-foreground">Set lockout period</p>
                 </div>
                 <div className="flex flex-col items-center">
                   <input
@@ -277,7 +279,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                     onChange={e => onChange('lockoutDurationMinutes', parseInt(e.target.value))}
                     className="input w-16 text-xs h-6 py-0 px-2"
                   />
-                  <p className="text-[10px] text-gray-500 mt-0.5">(1-1440 minutes)</p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">(1-1440 minutes)</p>
                 </div>
               </div>
             </div>

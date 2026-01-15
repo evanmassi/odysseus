@@ -108,7 +108,7 @@ export function AuthBaseModal({
           )}
 
           {/* Background fill - animates in after border */}
-          <div className="absolute inset-0 bg-surface rounded-2xl shadow-2xl shadow-black/10 animate-sketch-fill-in" />
+          <div className="absolute inset-0 bg-background rounded-2xl shadow-2xl shadow-black/10 animate-sketch-fill-in" />
 
           {/* Content - animates in last */}
           <div className="relative z-20 animate-sketch-content-in">
@@ -122,7 +122,7 @@ export function AuthBaseModal({
                     <img src={odysseusLogo} alt="Odysseus" className="h-10 w-auto" />
                   </div>
                 )}
-                {subtitle && <p className="text-sm text-slate-400">{subtitle}</p>}
+                {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
               </div>
             )}
 

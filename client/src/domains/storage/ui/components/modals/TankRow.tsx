@@ -37,26 +37,30 @@ export function TankRow({
 }: TankRowProps) {
   const { onEditTank, onDeleteTank, onAddRack, canManageStorage } = useStorageManagerContext();
   return (
-    <div className="border border-gray-200 rounded-lg bg-white border-l-4 border-l-slate-600">
+    <div className="border border-border rounded-lg bg-background border-l-4 border-l-secondary-foreground">
       {/* Tank Header */}
-      <div className="bg-slate-50 px-2 py-1.5 rounded-tr-lg">
+      <div className="bg-muted px-2 py-1.5 rounded-tr-lg">
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-slate-100 transition-colors -mx-1 px-1 py-1 rounded text-left focus-ring-default"
+            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-accent transition-colors -mx-1 px-1 py-1 rounded text-left focus-ring-default"
             aria-expanded={!collapsed}
             aria-controls={`tank-content-${tank.id}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} tank ${tank.name}`}
           >
-            <div className="text-slate-500 flex-shrink-0" aria-hidden="true">
+            <div className="text-muted-foreground flex-shrink-0" aria-hidden="true">
               {collapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
             </div>
-            <TankIcon className="text-slate-600 flex-shrink-0" size={24} aria-hidden="true" />
-            <h3 className="text-base font-semibold text-slate-800 truncate">{tank.name}</h3>
-            <span className="text-xs text-slate-500 flex items-center gap-1.5 ml-auto">
+            <TankIcon
+              className="text-secondary-foreground flex-shrink-0"
+              size={24}
+              aria-hidden="true"
+            />
+            <h3 className="text-base font-semibold text-foreground truncate">{tank.name}</h3>
+            <span className="text-xs text-muted-foreground flex items-center gap-1.5 ml-auto">
               <span>{tank.location}</span>
-              <span className="text-slate-300">•</span>
+              <span className="text-muted-foreground">•</span>
               <span>
                 {tank.racks.length} {tank.racks.length === 1 ? 'rack' : 'racks'}
               </span>
@@ -67,7 +71,7 @@ export function TankRow({
               <Tooltip content="Edit tank" side="bottom">
                 <button
                   onClick={() => onEditTank(tank)}
-                  className="text-slate-500 hover:bg-slate-200 transition-colors p-1 rounded focus-ring-default"
+                  className="text-muted-foreground hover:bg-accent transition-colors p-1 rounded focus-ring-default"
                 >
                   <Edit3 size={16} />
                 </button>

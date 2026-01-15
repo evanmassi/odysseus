@@ -46,16 +46,16 @@ export const LocationDisplay = ({
 
   return (
     <div
-      className={`flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm ${className}`}
+      className={`flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm ${className}`}
     >
-      <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
-      <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
+      <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+      <div className="flex items-center gap-2 text-sm font-medium text-secondary-foreground">
         <span className="font-semibold">{tankName}</span>
-        <span className="text-slate-300">•</span>
+        <span className="text-muted-foreground">•</span>
         <span>{rackName}</span>
-        <span className="text-slate-300">•</span>
+        <span className="text-muted-foreground">•</span>
         <span>{boxName}</span>
-        <span className="text-slate-300">•</span>
+        <span className="text-muted-foreground">•</span>
         <span className="font-semibold">Position {positionLabel}</span>
       </div>
     </div>

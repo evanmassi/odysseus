@@ -354,10 +354,10 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
   return (
     <div className="space-y-2">
       {/* Header with Refresh Button */}
-      <div className="flex items-center justify-between pb-3 border-b border-gray-200 mb-4">
+      <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
         <div className="flex items-center space-x-2">
-          <UsersRound size={22} className="text-gray-700" />
-          <h3 className="text-xl font-semibold text-gray-900">Users</h3>
+          <UsersRound size={22} className="text-secondary-foreground" />
+          <h3 className="text-xl font-semibold text-foreground">Users</h3>
         </div>
         <button
           onClick={() => {
@@ -392,8 +392,8 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                     <UserRound size={14} className="text-amber-600" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-gray-900">{user.username}</div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-sm font-medium text-foreground">{user.username}</div>
+                    <div className="text-xs text-muted-foreground">
                       Registered {new Date(user.createdAt).toLocaleDateString()}
                     </div>
                   </div>
@@ -432,41 +432,47 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
       )}
 
       {/* All Users Table */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-background border border-border rounded-lg overflow-hidden overflow-x-auto">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">User</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Role</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
+                User
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
+                Role
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
                 Researcher
               </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
                 Last Active
               </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-background divide-y divide-border">
             {(users?.length ?? 0) > 0 ? (
               users.map(user => (
-                <tr key={user.id} className="hover:bg-gray-50">
+                <tr key={user.id} className="hover:bg-accent">
                   {/* User Cell - Name with username below */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-                        <UserRound size={14} className="text-gray-600" />
+                      <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
+                        <UserRound size={14} className="text-secondary-foreground" />
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-sm font-medium text-foreground">
                             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy */}
                             {user.lastName || user.firstName
                               ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`
                               : user.username}
                           </span>
                           {user.role === 'admin' && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-secondary-foreground">
                               Admin
                             </span>
                           )}
@@ -478,7 +484,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                             </Tooltip>
                           )}
                         </div>
-                        <div className="text-xs text-gray-500">{user.username}</div>
+                        <div className="text-xs text-muted-foreground">{user.username}</div>
                       </div>
                     </div>
                   </td>
@@ -503,7 +509,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                         />
                       </div>
                       {updating === user.id && (
-                        <RefreshCw size={12} className="animate-spin text-gray-400" />
+                        <RefreshCw size={12} className="animate-spin text-muted-foreground" />
                       )}
                     </div>
                   </td>
@@ -511,19 +517,19 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                   {/* Researcher Status Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     {user.researcherId ? (
-                      <div className="flex items-center gap-1.5 text-sm text-slate-500">
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                         <span>Linked</span>
                         <UserRoundCheck size={14} className="text-emerald-500 flex-shrink-0" />
                       </div>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground">
                         None
                       </span>
                     )}
                   </td>
 
                   {/* Last Activity Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-3 py-2 whitespace-nowrap text-sm text-muted-foreground">
                     {user.lastActivity ? new Date(user.lastActivity).toLocaleDateString() : 'Never'}
                   </td>
 
@@ -579,7 +585,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
               ))
             ) : (
               <tr>
-                <td colSpan={5} className="px-3 py-4 text-center text-sm text-gray-500">
+                <td colSpan={5} className="px-3 py-4 text-center text-sm text-muted-foreground">
                   No users found
                 </td>
               </tr>

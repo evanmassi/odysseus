@@ -39,7 +39,7 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
       case 'completing':
         return <CheckCircle className="w-5 h-5 text-success-text" />;
       default:
-        return <Loader2 className="w-5 h-5 animate-spin text-gray-500" />;
+        return <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />;
     }
   };
 
@@ -49,18 +49,18 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
   return (
     <ModalPortal>
       <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-modal-backdrop-in">
-        <div className="bg-surface rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-border animate-modal-reveal-in">
+        <div className="bg-background rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-border animate-modal-reveal-in">
           <div className="text-center mb-6">
             <div className="mb-4">{getPhaseIcon(progress.phase)}</div>
 
-            <h3 className="text-lg font-semibold text-dark mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               {getPhaseLabel(progress.phase)}
             </h3>
 
-            <div className="text-sm text-text-muted">
+            <div className="text-sm text-muted-foreground">
               {progress.current} of {progress.total} tubes
               {progress.currentTubeId && (
-                <div className="text-xs mt-1 text-gray-500">
+                <div className="text-xs mt-1 text-muted-foreground">
                   Processing: {progress.currentTubeId}
                 </div>
               )}
@@ -75,7 +75,7 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
-            <div className="text-center text-sm text-text-muted">
+            <div className="text-center text-sm text-muted-foreground">
               {Math.round(progressPercentage)}% complete
             </div>
           </div>

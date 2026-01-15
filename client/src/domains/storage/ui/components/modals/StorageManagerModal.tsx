@@ -487,10 +487,10 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         type="button"
         onClick={() => setViewMode('tree')}
         data-focus="none"
-        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
+        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
           viewMode === 'tree'
-            ? 'border-slate-600 text-slate-800'
-            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+            ? 'border-secondary-foreground text-foreground'
+            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
         }`}
       >
         <ListTree size={14} />
@@ -500,10 +500,10 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         type="button"
         onClick={() => setViewMode('byUser')}
         data-focus="none"
-        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
+        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
           viewMode === 'byUser'
-            ? 'border-slate-600 text-slate-800'
-            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+            ? 'border-secondary-foreground text-foreground'
+            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
         }`}
       >
         <UsersRound size={14} />
@@ -514,7 +514,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const footer = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3 text-[11px] text-slate-500 flex-shrink min-w-0">
+      <div className="flex items-center gap-3 text-[11px] text-muted-foreground flex-shrink min-w-0">
         <div className="flex items-center gap-1">
           <div className="w-1 h-3 rounded-sm bg-ownership-user-badge flex-shrink-0" />
           <span>You</span>

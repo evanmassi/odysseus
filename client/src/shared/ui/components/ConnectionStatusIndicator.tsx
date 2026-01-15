@@ -183,8 +183,8 @@ export const ConnectionStatusIndicator: React.FC = () => {
       <div
         className={`rounded-lg shadow-lg p-3 border-l-4 ${
           isOffline
-            ? 'bg-gray-800 border-t border-r border-b border-gray-700'
-            : 'bg-white dark:bg-gray-800 border-t border-r border-b border-gray-200 dark:border-gray-700 max-w-xs'
+            ? 'bg-status-offline border-t border-r border-b border-status-offline-border'
+            : 'bg-background border-t border-r border-b border-border max-w-xs'
         }`}
         style={{
           minWidth: isOffline ? '320px' : '200px',
@@ -201,7 +201,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
               </span>
             )}
             <span
-              className={`text-sm font-medium ${isOffline ? 'text-[var(--color-danger-bg)]' : 'text-gray-900 dark:text-gray-100'}`}
+              className={`text-sm font-medium ${isOffline ? 'text-[var(--color-danger-bg)]' : 'text-foreground'}`}
             >
               {status.text}
             </span>
@@ -210,7 +210,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
           {!isOffline && (
             <button
               onClick={() => setShowDetails(false)}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xs"
+              className="text-muted-foreground hover:text-secondary-foreground text-xs"
               aria-label="Hide connection details"
             >
               ✕
@@ -219,7 +219,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
         </div>
 
         <p
-          className={`text-xs mt-1 ${isOffline ? 'text-gray-300' : 'text-gray-600 dark:text-gray-400'}`}
+          className={`text-xs mt-1 ${isOffline ? 'text-status-offline-foreground' : 'text-secondary-foreground'}`}
         >
           {status.description}
         </p>
@@ -227,11 +227,11 @@ export const ConnectionStatusIndicator: React.FC = () => {
         {/* Additional details */}
         {(showDetails || shouldShow) && (
           <div
-            className={`mt-2 pt-2 border-t ${isOffline ? 'border-gray-600' : 'border-gray-200 dark:border-gray-600'}`}
+            className={`mt-2 pt-2 border-t ${isOffline ? 'border-status-offline-border' : 'border-border'}`}
           >
             {/* Online mode: show connection stats */}
             {!isOffline && (
-              <div className="text-xs text-gray-500 dark:text-gray-400 space-y-1">
+              <div className="text-xs text-muted-foreground space-y-1">
                 {networkStatus.downlink && (
                   <div>Speed: {networkStatus.downlink.toFixed(1)} Mbps</div>
                 )}
@@ -248,12 +248,12 @@ export const ConnectionStatusIndicator: React.FC = () => {
             {/* Offline mode: compact timestamp + retry button on same row */}
             {isOffline && (
               <div className="flex items-center justify-between">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-muted-foreground">
                   Last connected: {new Date(networkStatus.lastConnected).toLocaleTimeString()}
                 </span>
                 <button
                   onClick={networkStatus.retryConnection}
-                  className="p-1.5 bg-gray-700 hover:bg-gray-600 text-gray-200 rounded transition-colors"
+                  className="p-1.5 bg-status-offline-muted hover:bg-status-offline-hover text-status-offline-foreground rounded transition-colors"
                   aria-label="Retry connection"
                 >
                   <RefreshCw className="w-3 h-3" />

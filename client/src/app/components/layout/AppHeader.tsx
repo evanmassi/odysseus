@@ -244,7 +244,7 @@ export function AppHeader({
   })();
 
   return (
-    <header className="bg-white px-4 h-full flex items-center">
+    <header className="bg-background px-4 h-full flex items-center">
       <div className="flex justify-between items-center w-full">
         {/* Far Left: Logo */}
         <div className="flex items-center">
@@ -260,7 +260,7 @@ export function AppHeader({
                 <>
                   {/* Selection count - only show when more than 1 selected */}
                   {selectedPositions.size > 1 && (
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full mr-2">
+                    <span className="inline-flex items-center gap-1 text-sm font-medium text-secondary-foreground bg-muted px-2.5 py-1 rounded-full mr-2">
                       <TestTube className="w-3.5 h-3.5" />
                       {selectedPositions.size} selected
                     </span>
@@ -330,7 +330,7 @@ export function AppHeader({
                           (gridController.selection.unlockableCount ?? 0) > 0 ||
                           (gridController.selection.sharableCount ?? 0) > 0) && (
                           <>
-                            <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
+                            <div className="w-px h-4 bg-border mx-0.5"></div>
                             {(gridController.selection.lockableCount ?? 0) > 0 &&
                               gridController.lock && (
                                 <Tooltip content="Lock selected tube(s)" side="bottom">
@@ -376,7 +376,7 @@ export function AppHeader({
                       {/* Section 4: Remove */}
                       {selectionAnalysis.hasFilled && (
                         <>
-                          <div className="w-px h-4 bg-slate-300 mx-0.5"></div>
+                          <div className="w-px h-4 bg-border mx-0.5"></div>
                           <Tooltip content="Remove selected tube(s)" side="bottom">
                             <button
                               onClick={gridController.delete}
@@ -392,7 +392,7 @@ export function AppHeader({
                   )}
 
                   {/* Section 5: Clear (always last, visible even in view-only mode) */}
-                  {!isViewOnlySpace && <div className="w-px h-4 bg-slate-300 mx-0.5"></div>}
+                  {!isViewOnlySpace && <div className="w-px h-4 bg-border mx-0.5"></div>}
                   <Tooltip content="Clear selection" side="bottom">
                     <button onClick={onClearSelection} className="btn-header-ghost">
                       <X className="w-3 h-3 mr-1" />
@@ -433,13 +433,13 @@ export function AppHeader({
                 tabIndex={-1}
                 onKeyDown={handleMenuKeyDown}
                 onBlur={handleMenuBlur}
-                className="absolute top-10 right-0 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 z-50 min-w-48 p-1"
+                className="absolute top-10 right-0 bg-background rounded-lg shadow-lg border border-border py-1.5 z-50 min-w-48 p-1"
               >
                 {/* Lab Name */}
                 <div className="px-3 py-2">
                   <div className="flex items-center gap-3">
-                    <FlaskConical size={16} className="text-gray-400" />
-                    <span className="text-sm text-gray-700 font-medium">
+                    <FlaskConical size={16} className="text-muted-foreground" />
+                    <span className="text-sm text-secondary-foreground font-medium">
                       {currentLab?.name ?? 'Loading...'}
                     </span>
                   </div>
@@ -449,13 +449,15 @@ export function AppHeader({
                 {isAuthenticated && user && (
                   <div className="px-3 py-2">
                     <div className="flex items-center gap-3">
-                      <UserRound size={16} className="text-gray-400" />
-                      <span className="text-sm text-gray-700 font-medium">{user.username}</span>
+                      <UserRound size={16} className="text-muted-foreground" />
+                      <span className="text-sm text-secondary-foreground font-medium">
+                        {user.username}
+                      </span>
                     </div>
                   </div>
                 )}
 
-                <div className="h-px bg-gray-200 my-1" />
+                <div className="h-px bg-secondary my-1" />
 
                 {/* User Settings */}
                 <div className="px-1">
@@ -466,9 +468,9 @@ export function AppHeader({
                       setShowUserSettings(true);
                       setShowHamburgerMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors focus-ring-default"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
                   >
-                    <Settings size={16} className="text-gray-400" />
+                    <Settings size={16} className="text-muted-foreground" />
                     <span>{user?.role === 'admin' ? 'User Settings' : 'Settings'}</span>
                   </button>
 
@@ -480,9 +482,9 @@ export function AppHeader({
                       setShowStorageManager(true);
                       setShowHamburgerMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors focus-ring-default"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
                   >
-                    <TankIcon size={16} className="text-gray-400" />
+                    <TankIcon size={16} className="text-muted-foreground" />
                     <span>Storage Manager</span>
                   </button>
 
@@ -495,15 +497,15 @@ export function AppHeader({
                         setShowAdminPanel(true);
                         setShowHamburgerMenu(false);
                       }}
-                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors focus-ring-default"
+                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-red-50 hover:text-red-600 transition-colors focus-ring-default"
                     >
-                      <ShieldUser size={16} className="text-gray-400" />
+                      <ShieldUser size={16} className="text-muted-foreground" />
                       <span>Admin Settings</span>
                     </button>
                   )}
                 </div>
 
-                <div className="h-px bg-gray-200 my-1" />
+                <div className="h-px bg-secondary my-1" />
 
                 {/* Logout */}
                 <div className="px-1">
@@ -513,9 +515,9 @@ export function AppHeader({
                       handleLogout();
                       setShowHamburgerMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-gray-700 hover:bg-gray-100 transition-colors focus-ring-default"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
                   >
-                    <LogOut size={16} className="text-gray-400" />
+                    <LogOut size={16} className="text-muted-foreground" />
                     <span>Logout</span>
                   </button>
                 </div>

@@ -44,7 +44,7 @@ interface ContextMenuProps {
 
 /** Divider component for separating menu sections */
 function MenuDivider() {
-  return <div className="h-px bg-gray-200 my-1" />;
+  return <div className="h-px bg-secondary my-1" />;
 }
 
 /** Menu item component */
@@ -71,17 +71,19 @@ function MenuItem({
         w-full flex items-center justify-between py-2 px-3 rounded-md text-sm
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
-        ${danger ? 'text-gray-700 hover:bg-red-50 hover:text-red-600' : 'text-gray-700 hover:bg-gray-100'}
+        ${danger ? 'text-secondary-foreground hover:bg-red-50 hover:text-red-600' : 'text-secondary-foreground hover:bg-accent'}
       `}
     >
       <div className="flex items-center gap-3">
         <Icon
           size={16}
-          className={danger ? 'text-gray-400 group-hover:text-red-500' : 'text-gray-400'}
+          className={
+            danger ? 'text-muted-foreground group-hover:text-red-500' : 'text-muted-foreground'
+          }
         />
         <span>{label}</span>
       </div>
-      {shortcut && <span className="text-xs text-gray-400 font-mono ml-4">{shortcut}</span>}
+      {shortcut && <span className="text-xs text-muted-foreground font-mono ml-4">{shortcut}</span>}
     </button>
   );
 }
@@ -174,7 +176,7 @@ export function ContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-white rounded-lg shadow-lg border border-gray-200 py-1.5 min-w-52"
+      className="fixed z-50 bg-background rounded-lg shadow-lg border border-border py-1.5 min-w-52"
       style={{
         left: adjustedPosition.x,
         top: adjustedPosition.y,

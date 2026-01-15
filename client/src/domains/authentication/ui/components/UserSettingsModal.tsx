@@ -112,13 +112,16 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               data-focus="none"
-              className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-slate-100 ${
+              className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-muted ${
                 isActive
-                  ? 'border-l-slate-600 bg-slate-50 text-slate-800'
-                  : 'border-l-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-800'
+                  ? 'border-l-secondary-foreground bg-muted text-foreground'
+                  : 'border-l-transparent text-secondary-foreground hover:bg-muted hover:text-foreground'
               }`}
             >
-              <Icon size={18} className={isActive ? 'text-slate-600' : 'text-slate-400'} />
+              <Icon
+                size={18}
+                className={isActive ? 'text-secondary-foreground' : 'text-muted-foreground'}
+              />
               <span className="font-medium text-sm">{tab.label}</span>
             </button>
           );
@@ -128,7 +131,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
 
   const footer = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center space-x-1.5 text-[11px] text-slate-400 flex-shrink min-w-0">
+      <div className="flex items-center space-x-1.5 text-[11px] text-muted-foreground flex-shrink min-w-0">
         <AlertTriangle size={12} className="flex-shrink-0" />
         <span className="truncate">These settings apply only to your account.</span>
       </div>

@@ -23,9 +23,9 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
     <div className={className}>
       {!hideTitle && (
         <div className="flex items-center gap-2 mb-1.5">
-          <div className="h-px flex-1 bg-gray-200" />
-          <span className="text-xs text-dark/40 tracking-wide font-medium">{title}</span>
-          <div className="h-px flex-1 bg-gray-200" />
+          <div className="h-px flex-1 bg-border" />
+          <span className="text-xs text-foreground/40 tracking-wide font-medium">{title}</span>
+          <div className="h-px flex-1 bg-border" />
         </div>
       )}
       <div>{children}</div>

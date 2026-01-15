@@ -57,13 +57,13 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
 
   // Field border styling
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'border-gray-300';
+    if (!touched) return 'border-border';
     return isValid ? 'border-emerald-500' : 'input-field-error';
   };
 
   // Label color styling
   const getLabelColorClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'text-gray-700';
+    if (!touched) return 'text-secondary-foreground';
     return isValid ? 'text-emerald-700' : 'text-validation-error-label';
   };
 
@@ -147,9 +147,9 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 mb-4">
-        <UserRound size={22} className="text-gray-700" />
-        <h3 className="text-xl font-semibold text-gray-900">Account Information</h3>
+      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
+        <UserRound size={22} className="text-secondary-foreground" />
+        <h3 className="text-xl font-semibold text-foreground">Account Information</h3>
       </div>
 
       <div className="space-y-4 max-w-2xl">
@@ -161,13 +161,13 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           >
             <label
               htmlFor="account-firstName"
-              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
+              className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
             >
               First Name <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
               <UserRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <input
@@ -191,13 +191,13 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           >
             <label
               htmlFor="account-lastName"
-              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
+              className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
             >
               Last Name <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
               <UserRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <input
@@ -220,13 +220,13 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
         <div className={`auth-input-container ${getFieldBorderClass(emailTouched, emailIsValid)}`}>
           <label
             htmlFor="account-email"
-            className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(emailTouched, emailIsValid)}`}
+            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(emailTouched, emailIsValid)}`}
           >
             Email <span className="text-red-500">*</span>
           </label>
           <div className="relative px-3 py-2">
             <Mail
-              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
               size={16}
             />
             <input
@@ -252,16 +252,16 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
         {/* Department & Position */}
         <div className="grid grid-cols-2 gap-3">
           {/* Department */}
-          <div className="auth-input-container border-gray-300">
+          <div className="auth-input-container border-border">
             <label
               htmlFor="account-department"
-              className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold text-gray-700"
+              className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold text-secondary-foreground"
             >
               Department
             </label>
             <div className="relative px-3 py-2">
               <Building2
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <input
@@ -278,16 +278,16 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           </div>
 
           {/* Position */}
-          <div className="auth-input-container border-gray-300">
+          <div className="auth-input-container border-border">
             <label
               htmlFor="account-position"
-              className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold text-gray-700"
+              className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold text-secondary-foreground"
             >
               Position
             </label>
             <div className="relative px-3 py-2">
               <BriefcaseBusiness
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <input
@@ -306,10 +306,12 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
 
         {/* Password Confirmation Section */}
         {hasChanges && (
-          <div className="pt-4 border-t border-gray-200 space-y-2">
+          <div className="pt-4 border-t border-border space-y-2">
             <div className="mb-2">
-              <p className="text-sm font-semibold text-gray-900">Confirm Changes</p>
-              <p className="text-xs text-gray-600">Enter your current password to save changes</p>
+              <p className="text-sm font-semibold text-foreground">Confirm Changes</p>
+              <p className="text-xs text-secondary-foreground">
+                Enter your current password to save changes
+              </p>
             </div>
 
             <div
@@ -317,13 +319,13 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             >
               <label
                 htmlFor="account-currentPassword"
-                className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(passwordTouched, currentPassword.trim().length > 0)}`}
+                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(passwordTouched, currentPassword.trim().length > 0)}`}
               >
                 Current Password <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <KeyRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                   size={16}
                 />
                 <input
@@ -353,8 +355,8 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
         )}
 
         {!hasChanges && (
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-sm text-gray-500 italic">No changes to save</p>
+          <div className="pt-4 border-t border-border">
+            <p className="text-sm text-muted-foreground italic">No changes to save</p>
           </div>
         )}
       </div>

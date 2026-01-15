@@ -33,7 +33,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50">
-      <div className="bg-surface rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+      <div className="bg-background rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="mb-4 flex justify-center">
@@ -48,7 +48,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
 
           <img src={odysseusLogo} alt="Odysseus" className="h-10 w-auto mx-auto mb-2" />
 
-          <p className="text-text-muted">
+          <p className="text-muted-foreground">
             {state === 'error'
               ? 'Initialization Failed'
               : state === 'retrying'
@@ -63,13 +63,13 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
             {/* Progress Bar */}
             <div className="bg-border rounded-full h-2 mb-4 overflow-hidden">
               <div
-                className="bg-text-muted h-full rounded-full transition-all duration-300 ease-out progress-bar-shimmer"
+                className="bg-muted-foreground h-full rounded-full transition-all duration-300 ease-out progress-bar-shimmer"
                 style={{ width: `${progress}%` }}
               />
             </div>
 
             {/* Progress Text */}
-            <div className="flex justify-between items-center text-sm text-text-muted mb-4">
+            <div className="flex justify-between items-center text-sm text-muted-foreground mb-4">
               <span>{progress}% Complete</span>
               <span>{completedSteps.length} steps done</span>
             </div>
@@ -85,7 +85,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-dark truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {LOADING_MESSAGES[currentStep as keyof typeof LOADING_MESSAGES] ||
                       'Processing...'}
                   </p>
@@ -98,7 +98,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
         {/* Completed Steps */}
         {completedSteps.length > 0 && state !== 'error' && (
           <div className="mb-6">
-            <h3 className="text-sm font-medium text-text-muted mb-3">Completed:</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Completed:</h3>
             <div className="space-y-2">
               {completedSteps.slice(-3).map(step => (
                 <div key={step} className="flex items-center space-x-2 text-sm text-success-text">
@@ -107,7 +107,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
                 </div>
               ))}
               {completedSteps.length > 3 && (
-                <div className="text-xs text-text-muted pl-6">
+                <div className="text-xs text-muted-foreground pl-6">
                   ... and {completedSteps.length - 3} more
                 </div>
               )}
@@ -142,10 +142,10 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
             {/* Debug info - development only */}
             {env.isDev() && typeof error === 'object' && error.details && (
               <details className="mb-4">
-                <summary className="text-xs text-text-muted cursor-pointer hover:text-dark">
+                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
                   Debug Information
                 </summary>
-                <pre className="text-xs text-text-muted mt-2 p-2 bg-muted rounded overflow-auto">
+                <pre className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded overflow-auto">
                   {JSON.stringify(error.details, null, 2)}
                 </pre>
               </details>
@@ -194,7 +194,7 @@ export function AppLoadingSpinner({ message = 'Loading...' }: { message?: string
     <div className="flex items-center justify-center p-8">
       <div className="flex items-center space-x-3">
         <Spinner size="md" />
-        <span className="text-text-muted">{message}</span>
+        <span className="text-muted-foreground">{message}</span>
       </div>
     </div>
   );

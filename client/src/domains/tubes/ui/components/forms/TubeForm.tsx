@@ -137,8 +137,8 @@ export const TubeForm = ({
       {/* ROW 1: Donor Information */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
-          <h3 className="text-[10px] font-medium text-slate-400">Donor information</h3>
-          <div className="flex-1 h-px bg-slate-200"></div>
+          <h3 className="text-[10px] font-medium text-muted-foreground">Donor information</h3>
+          <div className="flex-1 h-px bg-secondary"></div>
         </div>
         <div className="grid grid-cols-3 gap-2.5">
           <ValidatedInput
@@ -181,8 +181,8 @@ export const TubeForm = ({
       {/* ROW 2: Sample Information (Part 1) - Media Fields */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
-          <h3 className="text-[10px] font-medium text-slate-400">Sample information</h3>
-          <div className="flex-1 h-px bg-slate-200"></div>
+          <h3 className="text-[10px] font-medium text-muted-foreground">Sample information</h3>
+          <div className="flex-1 h-px bg-secondary"></div>
         </div>
         <div className="grid grid-cols-4 gap-2.5">
           <div>
@@ -311,8 +311,8 @@ export const TubeForm = ({
       {/* ROW 4: Notes */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
-          <h3 className="text-[10px] font-medium text-slate-400">Notes</h3>
-          <div className="flex-1 h-px bg-slate-200"></div>
+          <h3 className="text-[10px] font-medium text-muted-foreground">Notes</h3>
+          <div className="flex-1 h-px bg-secondary"></div>
         </div>
         <ValidatedInput
           label=""

@@ -181,10 +181,10 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
   return (
     <div className="space-y-2">
       {/* Header with Add and Refresh Buttons */}
-      <div className="flex items-center justify-between pb-3 border-b border-gray-200 mb-4">
+      <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
         <div className="flex items-center space-x-2">
-          <ResearcherIcon size={22} className="text-gray-700" />
-          <h3 className="text-xl font-semibold text-gray-900">Researchers</h3>
+          <ResearcherIcon size={22} className="text-secondary-foreground" />
+          <h3 className="text-xl font-semibold text-foreground">Researchers</h3>
         </div>
         <div className="flex items-center space-x-2">
           <button
@@ -206,37 +206,45 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       </div>
 
       {/* Researchers Table */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="bg-background border border-border rounded-lg overflow-hidden overflow-x-auto">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
                 Researcher
               </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Position</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Tubes</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
+                Position
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
+                Tubes
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
                 Linked User
               </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Status</th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Actions</th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
+                Status
+              </th>
+              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-background divide-y divide-border">
             {researchers.length > 0 ? (
               researchers.map(researcher => (
-                <tr key={researcher.id} className="hover:bg-gray-50">
+                <tr key={researcher.id} className="hover:bg-accent">
                   {/* Researcher Info Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center mr-2">
-                        <ResearcherIcon size={14} className="text-gray-600" />
+                      <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
+                        <ResearcherIcon size={14} className="text-secondary-foreground" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-foreground">
                           {researcher.lastName}, {researcher.firstName}
                         </div>
-                        <div className="text-xs text-gray-500">{researcher.email}</div>
+                        <div className="text-xs text-muted-foreground">{researcher.email}</div>
                       </div>
                     </div>
                   </td>
@@ -245,14 +253,16 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                   <td className="px-3 py-2 whitespace-nowrap max-w-[150px]">
                     {researcher.position ? (
                       <Tooltip content={researcher.position} side="bottom">
-                        <div className="text-sm text-gray-900 truncate">{researcher.position}</div>
+                        <div className="text-sm text-foreground truncate">
+                          {researcher.position}
+                        </div>
                       </Tooltip>
                     ) : (
-                      <div className="text-sm text-gray-900 truncate">—</div>
+                      <div className="text-sm text-foreground truncate">—</div>
                     )}
                     {researcher.department && (
                       <Tooltip content={researcher.department} side="bottom">
-                        <div className="text-xs text-gray-500 truncate">
+                        <div className="text-xs text-muted-foreground truncate">
                           {researcher.department}
                         </div>
                       </Tooltip>
@@ -264,7 +274,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                     <span
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         researcher.tubeCount === 0
-                          ? 'bg-gray-100 text-gray-600'
+                          ? 'bg-muted text-secondary-foreground'
                           : 'bg-frost text-action-hover border border-action/30'
                       }`}
                     >
@@ -276,13 +286,13 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                   <td className="px-3 py-2 whitespace-nowrap">
                     {researcher.linkedUserId ? (
                       <div>
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-foreground">
                           {researcher.linkedUsername}
                         </div>
-                        <div className="text-xs text-gray-500">Linked</div>
+                        <div className="text-xs text-muted-foreground">Linked</div>
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-400">—</span>
+                      <span className="text-sm text-muted-foreground">—</span>
                     )}
                   </td>
 
@@ -297,7 +307,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                     ) : (
                       <Tooltip content="Inactive" side="bottom">
                         <span>
-                          <BadgeX size={18} className="text-gray-400" />
+                          <BadgeX size={18} className="text-muted-foreground" />
                         </span>
                       </Tooltip>
                     )}
@@ -333,7 +343,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="px-3 py-4 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-3 py-4 text-center text-sm text-muted-foreground">
                   {loading ? 'Loading researchers...' : 'No researchers found'}
                 </td>
               </tr>
@@ -343,25 +353,25 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       </div>
 
       {/* Statistics Summary */}
-      <div className="flex items-center gap-1.5 text-sm text-slate-500">
+      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <span>Total Researchers:</span>
-        <span className="font-semibold text-slate-700">{researchers.length}</span>
-        <span className="text-slate-300">•</span>
+        <span className="font-semibold text-secondary-foreground">{researchers.length}</span>
+        <span className="text-border">•</span>
         <span>With Tubes:</span>
-        <span className="font-semibold text-slate-700">
+        <span className="font-semibold text-secondary-foreground">
           {researchers.filter(r => r.tubeCount > 0).length}
         </span>
-        <span className="text-slate-300">•</span>
+        <span className="text-border">•</span>
         <span>Linked to Users:</span>
-        <span className="font-semibold text-slate-700">
+        <span className="font-semibold text-secondary-foreground">
           {researchers.filter(r => r.linkedUserId).length}
         </span>
       </div>
 
       {/* Safe Deletion Notice - Footnote */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
-        <Info size={16} className="text-slate-400 flex-shrink-0" />
-        <p className="text-xs text-slate-600">
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-border rounded-lg shadow-sm">
+        <Info size={16} className="text-muted-foreground flex-shrink-0" />
+        <p className="text-xs text-secondary-foreground">
           Researchers can only be deleted with zero tubes and no linked user.
         </p>
       </div>

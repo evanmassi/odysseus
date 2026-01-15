@@ -238,22 +238,22 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       <div style={{ minWidth: '280px' }}>
         <div className="space-y-3">
           {/* Position Header - Vertical stack layout */}
-          <div className="bg-slate-50 rounded-md px-3 py-2.5">
-            <div className="flex items-center gap-1.5 text-dark/60 text-xs tracking-wider mb-2">
+          <div className="bg-muted rounded-md px-3 py-2.5">
+            <div className="flex items-center gap-1.5 text-foreground/60 text-xs tracking-wider mb-2">
               <MapPin className="w-3 h-3" />
               <span>{tankName}</span>
             </div>
             <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-              <span className="text-slate-400 text-xs">Rack</span>
-              <span className="text-dark font-medium text-sm">{rackName}</span>
-              <span className="text-slate-400 text-xs">Box</span>
-              <span className="text-dark font-medium text-sm">{boxName}</span>
+              <span className="text-muted-foreground text-xs">Rack</span>
+              <span className="text-foreground font-medium text-sm">{rackName}</span>
+              <span className="text-muted-foreground text-xs">Box</span>
+              <span className="text-foreground font-medium text-sm">{boxName}</span>
               {formattedPositions && (
                 <>
-                  <span className="text-slate-400 text-xs">
+                  <span className="text-muted-foreground text-xs">
                     Position{positionCount > 1 ? 's' : ''}
                   </span>
-                  <span className="text-dark font-medium text-sm">{formattedPositions}</span>
+                  <span className="text-foreground font-medium text-sm">{formattedPositions}</span>
                 </>
               )}
             </div>
@@ -261,10 +261,10 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
 
           {/* Placeholder Message */}
           <div className="text-center py-6">
-            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
-              <TestTube className="w-6 h-6 text-dark/30" />
+            <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
+              <TestTube className="w-6 h-6 text-foreground/30" />
             </div>
-            <p className="text-dark/40 text-sm">{positionText}</p>
+            <p className="text-foreground/40 text-sm">{positionText}</p>
           </div>
         </div>
       </div>
@@ -380,24 +380,24 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     <div style={{ minWidth: '280px' }}>
       <div className="space-y-3">
         {/* Position Header - Vertical stack layout */}
-        <div className="bg-slate-50 rounded-md px-3 py-2.5">
-          <div className="flex items-center gap-1.5 text-dark/60 text-xs tracking-wider mb-2">
+        <div className="bg-muted rounded-md px-3 py-2.5">
+          <div className="flex items-center gap-1.5 text-foreground/60 text-xs tracking-wider mb-2">
             <MapPin className="w-3 h-3" />
             <span>{tankName}</span>
           </div>
           <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-            <span className="text-slate-400 text-xs">Rack</span>
-            <span className="text-dark font-medium text-sm">{rackName}</span>
-            <span className="text-slate-400 text-xs">Box</span>
-            <span className="text-dark font-medium text-sm">{boxName}</span>
-            <span className="text-slate-400 text-xs">{positionSummary.positionLabel}</span>
-            <span className="text-dark font-medium text-sm">
+            <span className="text-muted-foreground text-xs">Rack</span>
+            <span className="text-foreground font-medium text-sm">{rackName}</span>
+            <span className="text-muted-foreground text-xs">Box</span>
+            <span className="text-foreground font-medium text-sm">{boxName}</span>
+            <span className="text-muted-foreground text-xs">{positionSummary.positionLabel}</span>
+            <span className="text-foreground font-medium text-sm">
               {positionSummary.formattedPositions}
             </span>
           </div>
           {selectedTubes.length > 1 && (
-            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-slate-200">
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
+            <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-secondary-foreground bg-muted px-2 py-0.5 rounded-full">
                 <TestTube className="w-2.5 h-2.5" />
                 {selectedTubes.length} selected
               </span>
@@ -417,7 +417,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             <span
               className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
                 lockInfo.isOwnLock
-                  ? 'bg-slate-100 text-slate-600'
+                  ? 'bg-muted text-secondary-foreground'
                   : lockInfo.isLockedOut
                     ? 'bg-red-50 text-red-600'
                     : 'bg-amber-50 text-amber-600'
@@ -441,7 +441,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 <button
                   type="button"
                   onClick={() => setShowEditLockNoteModal(true)}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors cursor-pointer focus-ring-default"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground hover:bg-accent transition-colors cursor-pointer focus-ring-default"
                 >
                   {lockNoteDisplay?.isMixed ? (
                     <>
@@ -466,7 +466,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             ) : (
               // Non-clickable pill for non-owners - read-only
               firstTube.lockNote && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground">
                   <Notebook className="w-2.5 h-2.5" />
                   {firstTube.lockNote}
                 </span>
@@ -487,14 +487,14 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <InfoSection title="Donor Information">
           {/* Cell Type - Prominent */}
           {cellType ? (
-            <div className="text-dark font-semibold text-sm mb-1">{cellType}</div>
+            <div className="text-foreground font-semibold text-sm mb-1">{cellType}</div>
           ) : isFieldMixed('sample.cellType') ? (
             <div className="mb-1">
-              <div className="flex items-center gap-1 text-dark/50 text-xs">
+              <div className="flex items-center gap-1 text-foreground/50 text-xs">
                 Cell Type
                 <AlertTriangle className="w-3 h-3 text-amber-500" />
               </div>
-              <div className="text-dark/30 text-sm">—</div>
+              <div className="text-foreground/30 text-sm">—</div>
             </div>
           ) : null}
           {/* IDs in two columns - stacked layout for consistency */}
@@ -574,11 +574,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {(Boolean(notes) || isFieldMixed('sample.notes')) && (
           <InfoSection title="Notes">
             {notes ? (
-              <div className="text-dark/70 text-sm leading-relaxed">{notes}</div>
+              <div className="text-foreground/70 text-sm leading-relaxed">{notes}</div>
             ) : (
               <div className="flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3 text-amber-500" />
-                <span className="text-dark/30 text-sm">—</span>
+                <span className="text-foreground/30 text-sm">—</span>
               </div>
             )}
           </InfoSection>

@@ -14,11 +14,11 @@
   }
 
   .btn-secondary {
-    @apply btn bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-700 h-10 px-4 py-2 shadow-none;
+    @apply btn bg-transparent text-secondary-foreground hover:bg-accent hover:text-foreground h-10 px-4 py-2 shadow-none;
   }
 
   .btn-danger {
-    @apply btn bg-red-100 text-red-700 hover:bg-red-200 h-10 px-4 py-2;
+    @apply btn bg-danger-light text-danger-text hover:bg-danger-border h-10 px-4 py-2;
   }
 
   .btn-edit {
@@ -54,19 +54,19 @@
   }
 
   .btn-approve {
-    @apply btn bg-emerald-600 text-white hover:bg-emerald-700 hover:shadow-md h-10 px-4 py-2;
+    @apply btn bg-success-bg text-success-btnText hover:bg-success-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-cancel {
-    @apply btn border border-gray-300 bg-white text-gray-700 hover:bg-gray-100 h-10 px-4 py-2;
+    @apply btn border border-border bg-background text-foreground hover:bg-accent h-10 px-4 py-2;
   }
 
   .btn-refresh {
-    @apply btn bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-700 h-10 px-4 py-2 shadow-none;
+    @apply btn bg-transparent text-secondary-foreground hover:bg-accent hover:text-foreground h-10 px-4 py-2 shadow-none;
   }
 
   .btn-refresh-compact {
-    @apply btn-compact bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-700 shadow-none;
+    @apply btn-compact bg-transparent text-secondary-foreground hover:bg-accent hover:text-foreground shadow-none;
   }
 
   /* Compact Button Variants - For tables, inline actions, and space-constrained UIs */
@@ -80,23 +80,23 @@
   }
 
   .btn-primary-compact {
-    @apply btn-compact bg-transparent text-slate-400 hover:bg-blue-50 hover:text-action;
+    @apply btn-compact bg-transparent text-muted-foreground hover:bg-accent hover:text-action;
   }
 
   .btn-secondary-compact {
-    @apply btn-compact bg-transparent text-slate-400 hover:bg-slate-100 hover:text-slate-600;
+    @apply btn-compact bg-transparent text-muted-foreground hover:bg-accent hover:text-secondary-foreground;
   }
 
   .btn-danger-compact {
-    @apply btn-compact bg-transparent text-slate-400 hover:bg-red-50 hover:text-red-600;
+    @apply btn-compact bg-transparent text-muted-foreground hover:bg-danger-light hover:text-danger-text;
   }
 
   .btn-approve-compact {
-    @apply btn-compact bg-transparent text-slate-400 hover:bg-emerald-50 hover:text-emerald-600;
+    @apply btn-compact bg-transparent text-muted-foreground hover:bg-success-light hover:text-success-text;
   }
 
   .btn-password-compact {
-    @apply btn-compact bg-transparent text-slate-400 hover:bg-amber-50 hover:text-amber-600;
+    @apply btn-compact bg-transparent text-muted-foreground hover:bg-warning-light hover:text-warning-text;
   }
 
   /* Icon Button Size Modifiers - Combine with color classes (.btn-edit, .btn-danger, etc.) */
@@ -149,8 +149,8 @@
 
   .btn-header-control-danger {
     @apply inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-lg;
-    @apply bg-red-100 text-red-800 border border-red-200;
-    @apply hover:bg-red-200 hover:shadow-md;
+    @apply bg-danger-light text-danger-text border border-danger-border;
+    @apply hover:bg-danger-border hover:shadow-md;
     transition:
       all 200ms,
       box-shadow 200ms,
@@ -160,8 +160,8 @@
   /* Ghost Header Buttons */
   .btn-header-ghost {
     @apply inline-flex items-center px-1.5 py-0.5 text-sm font-medium rounded-md;
-    @apply bg-transparent text-slate-600 border border-transparent;
-    @apply hover:bg-white/80 hover:text-slate-800;
+    @apply bg-transparent text-secondary-foreground border border-transparent;
+    @apply hover:bg-accent hover:text-foreground;
     transition:
       all 200ms,
       box-shadow 200ms,
@@ -171,8 +171,8 @@
   /* Ghost Danger - Muted red, turns more red on hover */
   .btn-header-ghost-danger {
     @apply inline-flex items-center px-1.5 py-0.5 text-sm font-medium rounded-md;
-    @apply bg-transparent text-red-500 border border-transparent;
-    @apply hover:bg-red-50 hover:text-red-600;
+    @apply bg-transparent text-danger-text border border-transparent;
+    @apply hover:bg-danger-light hover:text-danger-bg;
     transition:
       all 200ms,
       box-shadow 200ms,

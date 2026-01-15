@@ -161,7 +161,7 @@ export function ShareAccessModal({
         {/* Currently Shared Users */}
         {currentlySharedUserIds.length > 0 && (
           <div>
-            <h4 className="block text-sm font-medium text-gray-700 mb-2">
+            <h4 className="block text-sm font-medium text-secondary-foreground mb-2">
               <UsersRound className="inline-block w-4 h-4 mr-1" />
               Currently Shared With
             </h4>
@@ -189,7 +189,7 @@ export function ShareAccessModal({
 
         {/* Add Users Section */}
         <div>
-          <h4 className="block text-sm font-medium text-gray-700 mb-2">
+          <h4 className="block text-sm font-medium text-secondary-foreground mb-2">
             <UserRoundPlus className="inline-block w-4 h-4 mr-1" />
             Share With Users
           </h4>
@@ -197,12 +197,12 @@ export function ShareAccessModal({
           {isLoadingUsers ? (
             <div className="flex items-center justify-center py-4">
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-action"></div>
-              <span className="ml-2 text-sm text-gray-500">Loading users...</span>
+              <span className="ml-2 text-sm text-muted-foreground">Loading users...</span>
             </div>
           ) : availableUsers.length === 0 ? (
-            <p className="text-sm text-gray-500 py-2">No other users available</p>
+            <p className="text-sm text-muted-foreground py-2">No other users available</p>
           ) : (
-            <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-lg divide-y divide-gray-100">
+            <div className="max-h-48 overflow-y-auto border border-border rounded-lg divide-y divide-muted">
               {availableUsers
                 .filter(u => !currentlySharedUserIds.includes(u.id))
                 .map(user => {
@@ -210,7 +210,7 @@ export function ShareAccessModal({
                   return (
                     <label
                       key={user.id}
-                      className={`flex items-center px-3 py-2 cursor-pointer hover:bg-gray-50 transition-colors ${
+                      className={`flex items-center px-3 py-2 cursor-pointer hover:bg-accent transition-colors ${
                         isSelected ? 'bg-action/10' : ''
                       }`}
                     >
@@ -218,10 +218,10 @@ export function ShareAccessModal({
                         type="checkbox"
                         checked={isSelected}
                         onChange={() => toggleUserSelection(user.id)}
-                        className="w-4 h-4 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
+                        className="w-4 h-4 border-border rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
                         style={{ accentColor: 'var(--color-action-default)' }}
                       />
-                      <span className="ml-3 text-sm text-gray-700">
+                      <span className="ml-3 text-sm text-secondary-foreground">
                         {user.firstName && user.lastName
                           ? `${user.firstName} ${user.lastName} (${user.username})`
                           : (user.username ?? user.id)}
@@ -234,9 +234,9 @@ export function ShareAccessModal({
         </div>
 
         {/* Info text */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
-          <Info size={16} className="text-slate-400 flex-shrink-0" />
-          <p className="text-xs text-slate-600">
+        <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
+          <Info size={16} className="text-muted-foreground flex-shrink-0" />
+          <p className="text-xs text-secondary-foreground">
             Shared users can edit tubes. Only you can unlock or revoke access.
           </p>
         </div>

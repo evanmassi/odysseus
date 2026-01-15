@@ -149,7 +149,7 @@ function EditModeContent({ isOpen, tubeId, onClose, lockContext }: EditModeConte
       >
         <div className="flex items-center justify-center py-12">
           <div className="spinner w-8 h-8"></div>
-          <span className="ml-3 text-text-muted">Loading tube data...</span>
+          <span className="ml-3 text-muted-foreground">Loading tube data...</span>
         </div>
       </BaseModal>
     );
@@ -789,15 +789,15 @@ function CreateModeContent({
           />
         )}
         {parsedPositions.length > 1 && batchLocationDisplay && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
-            <MapPin className="w-4 h-4 text-slate-400 flex-shrink-0" />
-            <div className="flex items-center gap-2 text-sm font-medium text-slate-600">
+          <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
+            <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <div className="flex items-center gap-2 text-sm font-medium text-secondary-foreground">
               <span className="font-semibold">{batchLocationDisplay.tankName}</span>
-              <span className="text-slate-300">•</span>
+              <span className="text-muted-foreground">•</span>
               <span>{batchLocationDisplay.rackName}</span>
-              <span className="text-slate-300">•</span>
+              <span className="text-muted-foreground">•</span>
               <span>{batchLocationDisplay.boxName}</span>
-              <span className="text-slate-300">•</span>
+              <span className="text-muted-foreground">•</span>
               <span className="font-semibold">Positions {batchLocationDisplay.positionRanges}</span>
             </div>
           </div>
@@ -818,7 +818,7 @@ function CreateModeContent({
                 type="checkbox"
                 checked={allowOverwrite}
                 onChange={e => setAllowOverwrite(e.target.checked)}
-                className="w-4 h-4 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
+                className="w-4 h-4 border-border rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
                 style={{ accentColor: 'var(--color-action-default)' }}
               />
               <span className="text-sm text-amber-700">

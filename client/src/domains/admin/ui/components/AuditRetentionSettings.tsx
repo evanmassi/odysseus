@@ -165,8 +165,10 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
   if (loading) {
     return (
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <div className="text-center text-sm text-gray-500">Loading retention settings...</div>
+      <div className="bg-background border border-border rounded-lg p-4">
+        <div className="text-center text-sm text-muted-foreground">
+          Loading retention settings...
+        </div>
       </div>
     );
   }
@@ -207,11 +209,11 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   return (
     <div className="space-y-3">
       {/* Header */}
-      <div className="bg-white border border-gray-200 rounded-lg p-3">
+      <div className="bg-background border border-border rounded-lg p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileClock className="w-4 h-4 text-gray-700" />
-            <h4 className="text-sm font-semibold text-gray-900">Audit Log Retention</h4>
+            <FileClock className="w-4 h-4 text-secondary-foreground" />
+            <h4 className="text-sm font-semibold text-foreground">Audit Log Retention</h4>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -224,9 +226,9 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
             </button>
             <button
               onClick={() => setIsCollapsed(true)}
-              className="p-1 hover:bg-gray-100 rounded focus-ring-default"
+              className="p-1 hover:bg-accent rounded focus-ring-default"
             >
-              <ChevronUp className="w-4 h-4 text-gray-600" />
+              <ChevronUp className="w-4 h-4 text-secondary-foreground" />
             </button>
           </div>
         </div>
@@ -270,29 +272,29 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
       {/* Retention Policy */}
       {policy && (
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
-          <h5 className="text-xs font-semibold text-gray-900 mb-2">Retention Policy</h5>
+        <div className="bg-background border border-border rounded-lg p-3">
+          <h5 className="text-xs font-semibold text-foreground mb-2">Retention Policy</h5>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div>
-              <div className="text-gray-500">Active Retention</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">
+              <div className="text-muted-foreground">Active Retention</div>
+              <div className="text-sm font-semibold text-foreground mt-1">
                 {policy.activeRetentionDays} days
               </div>
             </div>
             <div>
-              <div className="text-gray-500">Archive Retention</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">
+              <div className="text-muted-foreground">Archive Retention</div>
+              <div className="text-sm font-semibold text-foreground mt-1">
                 {policy.archiveRetentionDays} days
               </div>
             </div>
             <div>
-              <div className="text-gray-500">Total Retention</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">
+              <div className="text-muted-foreground">Total Retention</div>
+              <div className="text-sm font-semibold text-foreground mt-1">
                 {policy.totalRetentionDays} days
               </div>
             </div>
             <div>
-              <div className="text-gray-500">Auto Archival</div>
+              <div className="text-muted-foreground">Auto Archival</div>
               <div
                 className={`text-sm font-semibold mt-1 ${policy.enableAutoArchival ? 'text-success-bg' : 'text-danger-bg'}`}
               >
@@ -305,33 +307,33 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
       {/* Active Table Metrics */}
       {metrics && (
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <div className="bg-background border border-border rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <h5 className="text-xs font-semibold text-gray-900">Active Table (Hot Storage)</h5>
-            <div className="text-xs text-gray-500">Fast queries with full indexes</div>
+            <h5 className="text-xs font-semibold text-foreground">Active Table (Hot Storage)</h5>
+            <div className="text-xs text-muted-foreground">Fast queries with full indexes</div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div>
-              <div className="text-gray-500">Total Entries</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">
+              <div className="text-muted-foreground">Total Entries</div>
+              <div className="text-sm font-semibold text-foreground mt-1">
                 {formatNumber(metrics.activeTable.count)}
               </div>
             </div>
             <div>
-              <div className="text-gray-500">Oldest Entry</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">
+              <div className="text-muted-foreground">Oldest Entry</div>
+              <div className="text-sm font-semibold text-foreground mt-1">
                 {formatDate(metrics.activeTable.oldestEntry)}
               </div>
             </div>
             <div>
-              <div className="text-gray-500">Newest Entry</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">
+              <div className="text-muted-foreground">Newest Entry</div>
+              <div className="text-sm font-semibold text-foreground mt-1">
                 {formatDate(metrics.activeTable.newestEntry)}
               </div>
             </div>
             <div>
-              <div className="text-gray-500">Next Archival</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1 flex items-center gap-1">
+              <div className="text-muted-foreground">Next Archival</div>
+              <div className="text-sm font-semibold text-foreground mt-1 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {formatDate(metrics.nextArchivalDate)}
               </div>
@@ -342,27 +344,27 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
       {/* Archive Table Metrics */}
       {metrics && (
-        <div className="bg-white border border-gray-200 rounded-lg p-3">
+        <div className="bg-background border border-border rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <h5 className="text-xs font-semibold text-gray-900">Archive Table (Warm Storage)</h5>
-            <div className="text-xs text-gray-500">Minimal indexes, slower queries</div>
+            <h5 className="text-xs font-semibold text-foreground">Archive Table (Warm Storage)</h5>
+            <div className="text-xs text-muted-foreground">Minimal indexes, slower queries</div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
             <div>
-              <div className="text-gray-500">Total Entries</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">
+              <div className="text-muted-foreground">Total Entries</div>
+              <div className="text-sm font-semibold text-foreground mt-1">
                 {formatNumber(metrics.archiveTable.count)}
               </div>
             </div>
             <div>
-              <div className="text-gray-500">Oldest Entry</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">
+              <div className="text-muted-foreground">Oldest Entry</div>
+              <div className="text-sm font-semibold text-foreground mt-1">
                 {formatDate(metrics.archiveTable.oldestEntry)}
               </div>
             </div>
             <div>
-              <div className="text-gray-500">Retention Period</div>
-              <div className="text-sm font-semibold text-gray-900 mt-1">
+              <div className="text-muted-foreground">Retention Period</div>
+              <div className="text-sm font-semibold text-foreground mt-1">
                 {metrics.archiveTable.retentionDays} days
               </div>
             </div>
@@ -371,8 +373,8 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
       )}
 
       {/* Actions */}
-      <div className="bg-white border border-gray-200 rounded-lg p-3">
-        <h5 className="text-xs font-semibold text-gray-900 mb-2">Manual Operations</h5>
+      <div className="bg-background border border-border rounded-lg p-3">
+        <h5 className="text-xs font-semibold text-foreground mb-2">Manual Operations</h5>
         <div className="flex gap-2">
           <button
             onClick={runArchival}
@@ -384,13 +386,13 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </button>
           <button
             onClick={exportArchive}
-            className="btn-compact border border-border bg-surface text-text-secondary hover:bg-surface-hover hover:border-primary flex items-center space-x-1"
+            className="btn-compact border border-border bg-background text-secondary-foreground hover:bg-accent hover:border-primary flex items-center space-x-1"
           >
             <Download size={12} />
             <span>Export Archive</span>
           </button>
         </div>
-        <p className="text-xs text-gray-500 mt-2">
+        <p className="text-xs text-muted-foreground mt-2">
           Manual archival will move logs older than {policy?.activeRetentionDays} days to the
           archive table and delete logs older than {policy?.totalRetentionDays} days.
         </p>

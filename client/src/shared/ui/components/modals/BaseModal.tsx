@@ -123,22 +123,22 @@ export function BaseModal({
           aria-modal="true"
           aria-labelledby="modal-title"
           {...dataAttrs}
-          className={`bg-white rounded-2xl w-full ${sizeClass} mx-4 ${heightClass} shadow-2xl shadow-black/10 border border-gray-200 ${modalAnimationClass} ${pointerEventsClass} flex flex-col overflow-hidden ${className}`}
+          className={`bg-background rounded-2xl w-full ${sizeClass} mx-4 ${heightClass} shadow-2xl shadow-black/10 border border-border ${modalAnimationClass} ${pointerEventsClass} flex flex-col overflow-hidden ${className}`}
         >
-          <div className="bg-white px-6 py-3 border-b border-gray-200 flex-shrink-0">
+          <div className="bg-background px-6 py-3 border-b border-border flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="p-1.5 text-slate-500">{icon}</div>
+                <div className="p-1.5 text-muted-foreground">{icon}</div>
                 <div>
-                  <h2 id="modal-title" className="text-lg font-bold text-slate-800">
+                  <h2 id="modal-title" className="text-lg font-bold text-foreground">
                     {title}
                   </h2>
-                  {subtitle && <p className="text-slate-500 text-xs">{subtitle}</p>}
+                  {subtitle && <p className="text-muted-foreground text-xs">{subtitle}</p>}
                 </div>
               </div>
               <button
                 onClick={triggerClose}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-ring-default"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
                 aria-label="Close modal"
               >
                 <X size={20} />
@@ -147,12 +147,12 @@ export function BaseModal({
           </div>
 
           {tabs && tabOrientation === 'horizontal' && (
-            <div className="flex-shrink-0 border-b border-gray-200 bg-white">{tabs}</div>
+            <div className="flex-shrink-0 border-b border-border bg-background">{tabs}</div>
           )}
 
           <div className={`flex-1 min-h-0 flex ${hasVerticalTabs ? 'flex-row' : 'flex-col'}`}>
             {hasVerticalTabs && (
-              <div className="w-48 bg-white border-r border-gray-200 py-4 flex-shrink-0">
+              <div className="w-48 bg-background border-r border-border py-4 flex-shrink-0">
                 {tabs}
               </div>
             )}
@@ -163,7 +163,7 @@ export function BaseModal({
           </div>
 
           {footer && (
-            <div className="border-t border-gray-200 px-6 py-3 bg-white flex-shrink-0">
+            <div className="border-t border-border px-6 py-3 bg-background flex-shrink-0">
               {footer}
             </div>
           )}

@@ -124,10 +124,10 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         type="button"
         onClick={() => setActiveTab('direct')}
         data-focus="none"
-        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
+        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
           activeTab === 'direct'
-            ? 'border-slate-600 text-slate-800'
-            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+            ? 'border-secondary-foreground text-foreground'
+            : 'border-transparent text-muted-foreground hover:text-secondary-foreground hover:border-border'
         }`}
       >
         <RotateCcwKey size={14} />
@@ -137,10 +137,10 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         type="button"
         onClick={() => setActiveTab('token')}
         data-focus="none"
-        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-slate-100 border-b-2 -mb-px ${
+        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
           activeTab === 'token'
-            ? 'border-slate-600 text-slate-800'
-            : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+            ? 'border-secondary-foreground text-foreground'
+            : 'border-transparent text-muted-foreground hover:text-secondary-foreground hover:border-border'
         }`}
       >
         <ExternalLink size={14} />
@@ -165,7 +165,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         {activeTab === 'direct' ? (
           <div className="flex-1 flex flex-col">
             {/* User Info */}
-            <p className="text-sm text-slate-600 mb-6">
+            <p className="text-sm text-secondary-foreground mb-6">
               User: <span className="font-bold text-action-hover">{username}</span>
             </p>
 
@@ -173,13 +173,13 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
             <div className="mb-4">
               <div
                 className={`auth-input-container ${
-                  newPassword.length >= 4 ? 'border-emerald-500' : 'border-gray-300'
+                  newPassword.length >= 4 ? 'border-emerald-500' : 'border-border'
                 }`}
               >
                 <label
                   htmlFor="newPassword"
                   className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
-                    newPassword.length >= 4 ? 'text-emerald-700' : 'text-gray-700'
+                    newPassword.length >= 4 ? 'text-emerald-700' : 'text-secondary-foreground'
                   }`}
                 >
                   Temporary Password
@@ -196,7 +196,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 rounded focus-ring-default"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-ring-default"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -219,9 +219,9 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                     onChange={e => setRequirePasswordChange(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-7 h-4 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action"></div>
+                  <div className="w-7 h-4 bg-secondary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action"></div>
                 </div>
-                <span className="text-sm text-gray-700 group-hover:text-gray-900">
+                <span className="text-sm text-secondary-foreground group-hover:text-foreground">
                   Require password change on next login
                 </span>
               </label>
@@ -242,10 +242,10 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
           <div className="flex-1 flex flex-col">
             {!resetUrl ? (
               <div className="flex-1 flex flex-col">
-                <p className="text-sm text-slate-600 mb-4">
+                <p className="text-sm text-secondary-foreground mb-4">
                   User: <span className="font-bold text-action-hover">{username}</span>
                 </p>
-                <p className="text-sm text-slate-600 mb-4">
+                <p className="text-sm text-secondary-foreground mb-4">
                   Creates a secure, one-time link that expires in 15 minutes.
                 </p>
                 <div className="mt-auto">
@@ -260,8 +260,10 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
               </div>
             ) : (
               <div>
-                <p className="text-sm font-medium text-slate-700 mb-2">Reset Link Generated</p>
-                <div className="bg-slate-100 p-3 rounded-md mb-3 break-all text-sm">{resetUrl}</div>
+                <p className="text-sm font-medium text-secondary-foreground mb-2">
+                  Reset Link Generated
+                </p>
+                <div className="bg-muted p-3 rounded-md mb-3 break-all text-sm">{resetUrl}</div>
                 <button
                   onClick={handleCopyUrl}
                   className="w-full btn btn-primary h-11 text-base font-semibold flex items-center justify-center gap-2 mb-3"
@@ -279,11 +281,11 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                   )}
                 </button>
                 {expiresAt && (
-                  <p className="text-xs text-slate-600 text-center">
+                  <p className="text-xs text-secondary-foreground text-center">
                     Expires: {new Date(expiresAt).toLocaleString()}
                   </p>
                 )}
-                <p className="text-xs text-slate-600 mt-3">
+                <p className="text-xs text-secondary-foreground mt-3">
                   Share this link with the user. They can use it once to set a new password.
                 </p>
               </div>

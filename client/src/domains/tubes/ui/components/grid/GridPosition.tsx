@@ -146,7 +146,7 @@ export const GridPosition = memo<GridPositionProps>(
       >
         {/* Position number - compact responsive design */}
         <div
-          className="absolute top-0.5 right-0.5 font-semibold bg-white/95 rounded text-gray-700 shadow-sm border border-gray-300 flex items-center justify-center leading-none"
+          className="absolute top-0.5 right-0.5 font-semibold bg-background/95 rounded text-secondary-foreground shadow-sm border border-border flex items-center justify-center leading-none"
           style={{
             width: `${fontSize.positionFont + 2}px`,
             height: `${fontSize.positionFont + 2}px`,
@@ -220,24 +220,25 @@ export const GridPosition = memo<GridPositionProps>(
                 <div className="font-semibold text-white">{tube.sample.cellType || 'Unknown'}</div>
                 {donorInfo.internal && (
                   <div className="text-white">
-                    <span className="text-slate-400">Int. ID:</span> {donorInfo.internal}
+                    <span className="text-tooltip-muted">Int. ID:</span> {donorInfo.internal}
                   </div>
                 )}
                 {donorInfo.source && (
                   <div className="text-white">
-                    <span className="text-slate-400">Src. ID:</span>{' '}
+                    <span className="text-tooltip-muted">Src. ID:</span>{' '}
                     {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty donorSourceId should fall back to computed source */}
                     {tube.sample.donorSourceId || donorInfo.source}
                   </div>
                 )}
                 {tube.sample.lotNumber && (
                   <div className="text-white">
-                    <span className="text-slate-400">Lot #:</span> {tube.sample.lotNumber}
+                    <span className="text-tooltip-muted">Lot #:</span> {tube.sample.lotNumber}
                   </div>
                 )}
                 {tube.sample.cultureCondition && (
                   <div className="text-white">
-                    <span className="text-slate-400">Cond.:</span> {tube.sample.cultureCondition}
+                    <span className="text-tooltip-muted">Cond.:</span>{' '}
+                    {tube.sample.cultureCondition}
                   </div>
                 )}
               </div>

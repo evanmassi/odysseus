@@ -112,13 +112,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
   // Helper function to get field border class for container
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'border-slate-200';
+    if (!touched) return 'border-border';
     return isValid ? 'border-emerald-500' : 'input-field-error';
   };
 
   // Helper function to get label color class
   const getLabelColorClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'text-slate-400';
+    if (!touched) return 'text-muted-foreground';
     return isValid ? 'text-emerald-700' : 'text-validation-error-label';
   };
 
@@ -241,13 +241,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="firstName"
-                className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
+                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
               >
                 First name <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <UserRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                   size={16}
                 />
                 <input
@@ -268,12 +268,12 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             {/* Username Preview - Always visible */}
             <div className="min-h-[18px] ml-1">
               {usernamePreview ? (
-                <p className="text-[10px] text-gray-600">
+                <p className="text-[10px] text-secondary-foreground">
                   Username:{' '}
                   <span className="font-mono font-semibold text-blue-700">{usernamePreview}</span>
                 </p>
               ) : (
-                <p className="text-[10px] text-gray-400">Username:</p>
+                <p className="text-[10px] text-muted-foreground">Username:</p>
               )}
             </div>
           </div>
@@ -284,13 +284,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           >
             <label
               htmlFor="lastName"
-              className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
+              className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
             >
               Last name <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
               <UserRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <input
@@ -318,13 +318,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="email"
-                className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
+                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
               >
                 Email <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                   size={16}
                 />
                 <input
@@ -355,16 +355,16 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
           <div className="grid grid-cols-2 gap-3 items-start">
             {/* Department */}
-            <div className="auth-input-container border-slate-200">
+            <div className="auth-input-container border-border">
               <label
                 htmlFor="department"
-                className="absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium text-slate-400"
+                className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium text-muted-foreground"
               >
                 Department
               </label>
               <div className="relative px-3 py-2">
                 <Building2
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                   size={16}
                 />
                 <input
@@ -381,16 +381,16 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             </div>
 
             {/* Position */}
-            <div className="auth-input-container border-slate-200">
+            <div className="auth-input-container border-border">
               <label
                 htmlFor="position"
-                className="absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium text-slate-400"
+                className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium text-muted-foreground"
               >
                 Position
               </label>
               <div className="relative px-3 py-2">
                 <BriefcaseBusiness
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                   size={16}
                 />
                 <input
@@ -418,9 +418,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   disabled={isLoading}
                   className="sr-only peer"
                 />
-                <div className="w-7 h-4 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
+                <div className="w-7 h-4 bg-secondary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
               </div>
-              <span className="text-xs text-gray-700 group-hover:text-gray-900">
+              <span className="text-xs text-secondary-foreground group-hover:text-foreground">
                 I am a researcher
               </span>
             </label>
@@ -435,13 +435,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="password"
-                className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
+                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
               >
                 Password <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <KeyRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                   size={16}
                 />
                 <input
@@ -458,7 +458,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 rounded focus-enhanced"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-enhanced"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -484,13 +484,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="confirmPassword"
-                className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
+                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
               >
                 Confirm password <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <KeyRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                   size={16}
                 />
                 <input
@@ -506,7 +506,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 rounded focus-enhanced"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-enhanced"
                   aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 >
                   {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -532,16 +532,16 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         </button>
       </form>
 
-      <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-slate-50 border-l-4 border-l-slate-400 rounded-lg shadow-sm">
-        <Info size={16} className="text-slate-400 flex-shrink-0" />
-        <p className="text-xs text-slate-600">
+      <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
+        <Info size={16} className="text-muted-foreground flex-shrink-0" />
+        <p className="text-xs text-secondary-foreground">
           New users require admin approval before accessing the system.
         </p>
       </div>
 
       {onSwitchToLogin && (
         <div className="mt-4 text-center">
-          <p className="text-xs text-text-muted">
+          <p className="text-xs text-muted-foreground">
             Already have an account?{' '}
             <button
               type="button"

@@ -54,20 +54,20 @@ export function RegistrationSuccessModal({
       </div>
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-emerald-600 mb-1">Account Created</h2>
-        <p className="text-sm text-text-muted">
+        <p className="text-sm text-muted-foreground">
           {isPending ? 'Awaiting admin approval' : 'Ready to sign in'}
         </p>
       </div>
 
       {/* Username Display with Copy */}
       <div className="mb-6">
-        <div className="auth-input-container border-slate-200 relative">
-          <span className="absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium text-slate-400">
+        <div className="auth-input-container border-border relative">
+          <span className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium text-muted-foreground">
             Your username
           </span>
           <div className="flex items-center gap-2 px-3 py-2">
             <span
-              className="flex-1 font-mono text-sm font-semibold text-dark"
+              className="flex-1 font-mono text-sm font-semibold text-foreground"
               role="status"
               aria-label={`Your username is ${username}`}
             >
@@ -93,17 +93,17 @@ export function RegistrationSuccessModal({
             </button>
           </div>
         </div>
-        <p className="text-[10px] text-slate-400 mt-1.5 ml-1">
+        <p className="text-[10px] text-muted-foreground mt-1.5 ml-1">
           Please save this username for future login
         </p>
       </div>
 
       {/* Status Information */}
       <div className="mb-6">
-        <div className="p-2 bg-slate-50 rounded-lg">
+        <div className="p-2 bg-muted rounded-lg">
           <div className="flex items-start space-x-1.5">
-            <Info size={16} className="text-slate-400 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-slate-500 leading-snug">
+            <Info size={16} className="text-muted-foreground flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground leading-snug">
               {isPending
                 ? "An administrator will review your account. You'll be notified when approved."
                 : "You're all set! You can now log in with your username and password."}

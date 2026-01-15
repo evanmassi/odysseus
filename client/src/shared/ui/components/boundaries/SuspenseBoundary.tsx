@@ -56,7 +56,9 @@ const DefaultLoadingFallback: React.FC<DefaultLoadingFallbackProps> = ({
   >
     <div className="flex items-center space-x-3">
       <div className="animate-spin rounded-full h-6 w-6 border-2 border-primary border-t-transparent" />
-      <span className="text-text-muted text-sm">{name ? `Loading ${name}...` : 'Loading...'}</span>
+      <span className="text-muted-foreground text-sm">
+        {name ? `Loading ${name}...` : 'Loading...'}
+      </span>
     </div>
   </div>
 );
@@ -88,11 +90,11 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
           </svg>
         </div>
 
-        <h3 className="text-lg font-semibold text-dark mb-2">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Failed to load {name ?? 'component'}
         </h3>
 
-        <p className="text-text-muted mb-4 max-w-sm">
+        <p className="text-muted-foreground mb-4 max-w-sm">
           {error.message || 'Something went wrong while loading this component.'}
         </p>
 

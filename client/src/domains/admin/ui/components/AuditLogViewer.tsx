@@ -236,8 +236,8 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
       {/* Header with Filters */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h4 className="text-base font-semibold text-gray-900">Audit Log</h4>
-          <span className="text-xs text-gray-500">
+          <h4 className="text-base font-semibold text-foreground">Audit Log</h4>
+          <span className="text-xs text-muted-foreground">
             ({(pagination?.total || 0).toLocaleString()} total entries)
           </span>
         </div>
@@ -265,7 +265,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1 px-2 py-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+              className="flex items-center gap-1 px-2 py-1 text-xs text-secondary-foreground hover:text-foreground hover:bg-accent rounded"
             >
               <X className="w-3 h-3" />
               Clear Filters
@@ -304,7 +304,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
       {/* Loading State */}
       {loading && (
-        <div className="text-center py-8 text-sm text-gray-500">Loading audit log...</div>
+        <div className="text-center py-8 text-sm text-muted-foreground">Loading audit log...</div>
       )}
 
       {/* Error State */}
@@ -316,28 +316,36 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
       {/* Audit Log Table */}
       {!loading && !error && entries && entries.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="bg-background border border-border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-muted border-b border-border">
                 <tr>
-                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-32">
+                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground w-32">
                     Timestamp
                   </th>
-                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-24">User</th>
-                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-24">Action</th>
-                  <th className="px-2 py-2 text-left font-semibold text-gray-700 w-20">Item</th>
-                  <th className="px-2 py-2 text-left font-semibold text-gray-700">Details</th>
+                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground w-24">
+                    User
+                  </th>
+                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground w-24">
+                    Action
+                  </th>
+                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground w-20">
+                    Item
+                  </th>
+                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground">
+                    Details
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {entries.map(entry => (
-                  <tr key={entry.id} className="hover:bg-gray-50">
-                    <td className="px-2 py-2 whitespace-nowrap text-gray-500 text-[11px]">
+                  <tr key={entry.id} className="hover:bg-accent">
+                    <td className="px-2 py-2 whitespace-nowrap text-muted-foreground text-[11px]">
                       {formatTimestamp(entry.timestamp)}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
-                      <span className="font-medium text-gray-900">{entry.username}</span>
+                      <span className="font-medium text-foreground">{entry.username}</span>
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
                       <span className={getActionBadgeClass(entry.action)}>
@@ -362,11 +370,11 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                           {formatEntityType(entry.entityType)}
                         </span>
                       ) : (
-                        <span className="text-gray-400 text-xs">-</span>
+                        <span className="text-muted-foreground text-xs">-</span>
                       )}
                     </td>
                     <td
-                      className="px-2 py-2 text-gray-700 max-w-md truncate"
+                      className="px-2 py-2 text-secondary-foreground max-w-md truncate"
                       title={formatAuditDetails(entry)}
                     >
                       {formatAuditDetails(entry)}
@@ -381,12 +389,14 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
       {/* Empty State */}
       {!loading && !error && (!entries || entries.length === 0) && (
-        <div className="text-center py-8 text-sm text-gray-500">No audit log entries found.</div>
+        <div className="text-center py-8 text-sm text-muted-foreground">
+          No audit log entries found.
+        </div>
       )}
 
       {/* Pagination */}
       {!loading && entries && entries.length > 0 && (
-        <div className="flex items-center justify-between text-xs text-gray-600">
+        <div className="flex items-center justify-between text-xs text-secondary-foreground">
           <div>
             Showing {(filters.offset ?? 0) + 1} -{' '}
             {Math.min((filters.offset ?? 0) + (entries?.length ?? 0), pagination?.total ?? 0)} of{' '}
@@ -397,7 +407,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
             <button
               onClick={goToPreviousPage}
               disabled={(filters.offset ?? 0) === 0}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed focus-ring-default"
+              className="p-1 rounded hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed focus-ring-default"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -409,7 +419,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
             <button
               onClick={goToNextPage}
               disabled={!pagination?.hasMore}
-              className="p-1 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed focus-ring-default"
+              className="p-1 rounded hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed focus-ring-default"
             >
               <ChevronRight className="w-4 h-4" />
             </button>

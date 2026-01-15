@@ -216,7 +216,7 @@ export function AssignmentsByUserView({
 
   if (assignmentsByUser.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+      <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
         <UsersRound size={48} className="mb-4 opacity-50" />
         <p className="text-sm">No resource assignments found</p>
       </div>
@@ -238,7 +238,7 @@ export function AssignmentsByUserView({
             : 'border-l-ownership-other-badge';
 
         // Hover-only background for cleaner look
-        const headerBg = 'hover:bg-slate-50/50 transition-colors';
+        const headerBg = 'hover:bg-accent/50 transition-colors';
 
         // Badge colors - centralized via CSS variables
         const badgeBg = isCurrentUser
@@ -266,7 +266,7 @@ export function AssignmentsByUserView({
                 <button
                   type="button"
                   onClick={() => toggleUser(userAssignment.userId)}
-                  className="text-slate-600 hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
+                  className="text-secondary-foreground hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
                   aria-expanded={isExpanded}
                   aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${userAssignment.displayName}`}
                 >
@@ -291,7 +291,7 @@ export function AssignmentsByUserView({
                   aria-expanded={isExpanded}
                 >
                   {/* Username */}
-                  <span className="font-medium text-slate-800 text-sm truncate">
+                  <span className="font-medium text-foreground text-sm truncate">
                     {userAssignment.displayName}
                     {isCurrentUser && (
                       <span className="ml-1.5 text-xs text-ice-700 font-normal">(you)</span>
@@ -345,7 +345,7 @@ export function AssignmentsByUserView({
                           <button
                             type="button"
                             onClick={() => setReassigningUserId(null)}
-                            className="text-slate-500 hover:text-slate-700 p-1 rounded hover:bg-black/10 transition-colors focus-ring-default"
+                            className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-black/10 transition-colors focus-ring-default"
                           >
                             ×
                           </button>
@@ -361,7 +361,7 @@ export function AssignmentsByUserView({
                               e.stopPropagation();
                               setReassigningUserId(userAssignment.userId);
                             }}
-                            className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
+                            className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
                           >
                             <UserRoundPen size={14} />
                           </button>
@@ -480,7 +480,7 @@ export function AssignmentsByUserView({
                     <div key={`rack-${rackGroup.tankId}-${rackGroup.rackId}`}>
                       {/* Rack row - styled like tree view */}
                       <div
-                        className={`flex items-center gap-1.5 py-1 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${rackLeftBorderClass}`}
+                        className={`flex items-center gap-1.5 py-1 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${rackLeftBorderClass}`}
                       >
                         <StorageManagerContext.Consumer>
                           {ctx =>
@@ -494,8 +494,8 @@ export function AssignmentsByUserView({
                           }
                         </StorageManagerContext.Consumer>
                         <div className="flex items-center gap-1.5 flex-1">
-                          <RackIcon size={18} className="text-slate-700 flex-shrink-0" />
-                          <span className="font-medium text-slate-800 text-sm">
+                          <RackIcon size={18} className="text-secondary-foreground flex-shrink-0" />
+                          <span className="font-medium text-foreground text-sm">
                             {rackGroup.tankName} /{' '}
                             {formatResourceDisplayName(
                               rackGroup.rackName,
@@ -503,7 +503,9 @@ export function AssignmentsByUserView({
                             )}
                           </span>
                           {!rackGroup.ownsRack && (
-                            <span className="text-xs text-slate-500 italic">(boxes only)</span>
+                            <span className="text-xs text-muted-foreground italic">
+                              (boxes only)
+                            </span>
                           )}
                           {rackGroup.boxes.length > 0 && (
                             <span
@@ -522,7 +524,7 @@ export function AssignmentsByUserView({
                           {rackGroup.boxes.map(box => (
                             <div
                               key={`box-${box.tankId}-${box.rackId}-${box.boxId}`}
-                              className={`flex items-center gap-1.5 py-0.5 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${boxLeftBorderClass}`}
+                              className={`flex items-center gap-1.5 py-0.5 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${boxLeftBorderClass}`}
                             >
                               <StorageManagerContext.Consumer>
                                 {ctx =>
@@ -535,8 +537,11 @@ export function AssignmentsByUserView({
                                   )
                                 }
                               </StorageManagerContext.Consumer>
-                              <BoxIcon size={16} className="text-slate-700 flex-shrink-0" />
-                              <span className="font-medium text-slate-800 text-xs">
+                              <BoxIcon
+                                size={16}
+                                className="text-secondary-foreground flex-shrink-0"
+                              />
+                              <span className="font-medium text-foreground text-xs">
                                 {formatResourceDisplayName(box.boxName!, box.boxCustomLabel)}
                               </span>
                             </div>

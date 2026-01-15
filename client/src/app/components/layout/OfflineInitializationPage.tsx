@@ -65,18 +65,20 @@ export function OfflineInitializationPage({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50">
-      <div className="bg-surface rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
+      <div className="bg-background rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
         {/* Status Icon */}
         <div className="text-center mb-6">
           <div className="mb-4 flex justify-center">
             {isRetrying ? <Spinner size="xl" /> : <WifiOff className="w-14 h-14 text-danger-bg" />}
           </div>
 
-          <h1 className={`text-xl font-bold mb-2 ${isRetrying ? 'text-dark' : 'text-danger-bg'}`}>
+          <h1
+            className={`text-xl font-bold mb-2 ${isRetrying ? 'text-foreground' : 'text-danger-bg'}`}
+          >
             {isRetrying ? 'Connecting...' : "You're Offline"}
           </h1>
 
-          <p className="text-sm text-text-muted">
+          <p className="text-sm text-muted-foreground">
             {isRetrying ? 'Attempting to reach the server' : 'Connect to the internet to continue'}
           </p>
         </div>
@@ -85,8 +87,8 @@ export function OfflineInitializationPage({
         <div className="space-y-4">
           {!isRetrying && (
             <div className="text-center">
-              <p className="text-sm text-text-muted">
-                Retrying in <span className="font-semibold text-dark">{countdown}s</span>
+              <p className="text-sm text-muted-foreground">
+                Retrying in <span className="font-semibold text-foreground">{countdown}s</span>
               </p>
             </div>
           )}
@@ -101,7 +103,7 @@ export function OfflineInitializationPage({
           </button>
 
           {lastConnected && (
-            <div className="text-center text-xs text-text-muted pt-2">
+            <div className="text-center text-xs text-muted-foreground pt-2">
               Last connected: {lastConnected.toLocaleTimeString()}
             </div>
           )}

@@ -53,7 +53,10 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
     >
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
-          <label htmlFor="tank-name" className="block text-sm font-medium mb-1 text-text-secondary">
+          <label
+            htmlFor="tank-name"
+            className="block text-sm font-medium mb-1 text-secondary-foreground"
+          >
             Tank Name
           </label>
           <input
@@ -77,7 +80,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
         <div>
           <label
             htmlFor="tank-location"
-            className="block text-sm font-medium mb-1 text-text-secondary"
+            className="block text-sm font-medium mb-1 text-secondary-foreground"
           >
             Physical Location
           </label>
@@ -91,18 +94,20 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
           />
         </div>
 
-        <div className="bg-slate-50 border-l-4 border-l-slate-400 px-3 py-2 rounded-lg">
-          <div className="flex items-center gap-1.5 text-sm text-slate-500">
+        <div className="bg-muted border-l-4 border-l-muted-foreground px-3 py-2 rounded-lg">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <span>Racks:</span>
-            <span className="font-semibold text-slate-700">{editedTank.racks.length}</span>
-            <span className="text-slate-300">•</span>
+            <span className="font-semibold text-secondary-foreground">
+              {editedTank.racks.length}
+            </span>
+            <span className="text-muted-foreground">•</span>
             <span>Boxes:</span>
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-secondary-foreground">
               {editedTank.racks.reduce((total, rack) => total + rack.boxes.length, 0)}
             </span>
-            <span className="text-slate-300">•</span>
+            <span className="text-muted-foreground">•</span>
             <span>Positions:</span>
-            <span className="font-semibold text-slate-700">
+            <span className="font-semibold text-secondary-foreground">
               {editedTank.racks
                 .reduce(
                   (total, rack) =>
@@ -124,7 +129,7 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
             id="tankActive"
             checked={editedTank.isActive}
             onChange={e => setEditedTank({ ...editedTank, isActive: e.target.checked })}
-            className="w-4 h-4 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
+            className="w-4 h-4 border-border rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
             style={{ accentColor: 'var(--color-action-default)' }}
           />
           <label htmlFor="tankActive" className="text-sm">

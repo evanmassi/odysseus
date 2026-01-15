@@ -42,9 +42,9 @@ export function MonitoringTab(_props: MonitoringTabProps) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center space-x-2 pb-3 border-b border-gray-200">
-        <Activity size={22} className="text-gray-700" />
-        <h3 className="text-xl font-semibold text-gray-900">System Monitoring</h3>
+      <div className="flex items-center space-x-2 pb-3 border-b border-border">
+        <Activity size={22} className="text-secondary-foreground" />
+        <h3 className="text-xl font-semibold text-foreground">System Monitoring</h3>
       </div>
 
       {/* Audit Retention Settings - Collapsible */}

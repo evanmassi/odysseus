@@ -92,8 +92,8 @@ export function SessionListSection() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <RefreshCw className="animate-spin text-gray-400" size={24} />
-        <span className="ml-2 text-sm text-gray-600">Loading sessions...</span>
+        <RefreshCw className="animate-spin text-muted-foreground" size={24} />
+        <span className="ml-2 text-sm text-secondary-foreground">Loading sessions...</span>
       </div>
     );
   }
@@ -101,7 +101,7 @@ export function SessionListSection() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-secondary-foreground">
           Showing {displayedSessions.length} of {sessions.length} active session
           {sessions.length !== 1 ? 's' : ''}
         </p>
@@ -122,19 +122,25 @@ export function SessionListSection() {
       </div>
 
       {/* Desktop Table View */}
-      <div className="hidden md:block border border-gray-200 rounded-lg overflow-hidden">
+      <div className="hidden md:block border border-border rounded-lg overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-muted">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Device</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Location</th>
-              <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">
+              <th className="px-4 py-3 text-left text-xs font-semibold text-secondary-foreground">
+                Device
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-secondary-foreground">
+                Location
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-semibold text-secondary-foreground">
                 Last Active
               </th>
-              <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600">Actions</th>
+              <th className="px-4 py-3 text-right text-xs font-semibold text-secondary-foreground">
+                Actions
+              </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-background divide-y divide-border">
             {displayedSessions.map(session => {
               const { device, type } = parseUserAgent(session.userAgent);
               const DeviceIcon = session.isCurrentSession
@@ -155,9 +161,9 @@ export function SessionListSection() {
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center space-x-3">
-                      <DeviceIcon size={16} className="text-gray-400 flex-shrink-0" />
+                      <DeviceIcon size={16} className="text-muted-foreground flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{device}</p>
+                        <p className="text-sm font-medium text-foreground">{device}</p>
                         {session.isCurrentSession && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 mt-1">
                             Current Session
@@ -167,12 +173,14 @@ export function SessionListSection() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="text-sm text-gray-700">{session.ipAddress ?? 'Unknown'}</p>
+                    <p className="text-sm text-secondary-foreground">
+                      {session.ipAddress ?? 'Unknown'}
+                    </p>
                   </td>
                   <td className="px-4 py-3">
                     <div>
-                      <p className="text-sm text-gray-900 font-medium">{timestamp.relative}</p>
-                      <p className="text-xs text-gray-500">{timestamp.absolute}</p>
+                      <p className="text-sm text-foreground font-medium">{timestamp.relative}</p>
+                      <p className="text-xs text-muted-foreground">{timestamp.absolute}</p>
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
@@ -214,13 +222,13 @@ export function SessionListSection() {
           return (
             <div
               key={session.id}
-              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-emerald-50/50 border border-gray-200 border-l-4 border-l-emerald-500' : 'border border-gray-200 bg-white'}`}
+              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-emerald-50/50 border border-border border-l-4 border-l-emerald-500' : 'border border-border bg-background'}`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
-                  <DeviceIcon size={20} className="text-gray-400 flex-shrink-0" />
+                  <DeviceIcon size={20} className="text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{device}</p>
+                    <p className="text-sm font-medium text-foreground truncate">{device}</p>
                     {session.isCurrentSession && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 mt-1">
                         Current Session
@@ -244,14 +252,14 @@ export function SessionListSection() {
                   </Tooltip>
                 )}
               </div>
-              <div className="space-y-1 text-xs text-gray-600">
+              <div className="space-y-1 text-xs text-secondary-foreground">
                 <p>
                   <span className="font-medium">Location:</span> {session.ipAddress ?? 'Unknown'}
                 </p>
                 <div>
                   <span className="font-medium">Last Active:</span>
                   <p className="ml-0 mt-0.5">{timestamp.relative}</p>
-                  <p className="text-[11px] text-gray-500 ml-0">{timestamp.absolute}</p>
+                  <p className="text-[11px] text-muted-foreground ml-0">{timestamp.absolute}</p>
                 </div>
               </div>
             </div>
@@ -262,17 +270,17 @@ export function SessionListSection() {
       {/* Confirmation Dialog */}
       {showRevokeAllConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-modal-backdrop-in">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 animate-modal-blowup-in">
-            <div className="px-6 py-4 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900">Logout All Other Devices?</h3>
+          <div className="bg-background rounded-lg shadow-xl max-w-md w-full mx-4 animate-modal-blowup-in">
+            <div className="px-6 py-4 border-b border-border">
+              <h3 className="text-lg font-semibold text-foreground">Logout All Other Devices?</h3>
             </div>
             <div className="px-6 py-4">
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-secondary-foreground">
                 This will end all other active sessions ({otherSessionsCount} device
                 {otherSessionsCount !== 1 ? 's' : ''}). You will remain logged in on this device.
               </p>
             </div>
-            <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3">
+            <div className="px-6 py-4 bg-muted flex justify-end space-x-3">
               <button
                 onClick={() => setShowRevokeAllConfirm(false)}
                 disabled={isRevokingAll}

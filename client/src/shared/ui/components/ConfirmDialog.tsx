@@ -191,7 +191,7 @@ export function ConfirmDialog({
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
           aria-describedby="confirm-dialog-message"
-          className={`bg-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border ${styles.border} ${modalAnimationClass} ${closingPointerEvents}`}
+          className={`bg-background rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border ${styles.border} ${modalAnimationClass} ${closingPointerEvents}`}
           style={{ '--tw-shadow-color': styles.shadowColor } as React.CSSProperties}
         >
           {/* Header */}
@@ -200,14 +200,14 @@ export function ConfirmDialog({
               <div className={`p-2 ${styles.iconBg} rounded-full`}>
                 <AlertTriangle className={`w-6 h-6 ${styles.iconColor}`} />
               </div>
-              <h2 id="confirm-dialog-title" className="text-xl font-bold text-dark">
+              <h2 id="confirm-dialog-title" className="text-xl font-bold text-foreground">
                 {title}
               </h2>
             </div>
             <button
               onClick={handleCancel}
               disabled={isLoading}
-              className="p-2 rounded-lg hover:bg-surface-hover text-text-muted hover:text-dark transition-all duration-200 disabled:opacity-50 focus-ring-default"
+              className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-200 disabled:opacity-50 focus-ring-default"
               aria-label="Close dialog"
               type="button"
             >
@@ -217,7 +217,7 @@ export function ConfirmDialog({
 
           {/* Message */}
           <div className="mb-8">
-            <p id="confirm-dialog-message" className="text-text-muted leading-relaxed">
+            <p id="confirm-dialog-message" className="text-muted-foreground leading-relaxed">
               {message}
             </p>
           </div>

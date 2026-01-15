@@ -29,7 +29,7 @@ export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
     <div
       className={`
         inline-block rounded-full
-        border-border border-t-text-muted
+        border-border border-t-muted-foreground
         animate-spin
         ${sizeClasses[size]}
         ${className}

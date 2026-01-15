@@ -99,7 +99,7 @@ export function SearchContainer(_props: SearchContainerProps) {
       <div className="relative">
         <div className="flex items-center">
           <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-2 w-3 h-3 text-slate-400" />
+            <Search className="absolute left-2.5 top-2 w-3 h-3 text-muted-foreground" />
             <input
               ref={searchInputRef}
               type="text"
@@ -113,7 +113,7 @@ export function SearchContainer(_props: SearchContainerProps) {
             {/* Keyboard hint + Action Buttons */}
             <div className="absolute right-1 top-1 flex items-center space-x-1">
               {/* Keyboard shortcut hint - only show when empty */}
-              {!query && <span className="text-xs text-slate-300 font-mono">Ctrl+F</span>}
+              {!query && <span className="text-xs text-muted-foreground font-mono">Ctrl+F</span>}
 
               <Tooltip content="Filters" side="bottom">
                 <button
@@ -121,7 +121,7 @@ export function SearchContainer(_props: SearchContainerProps) {
                   className={`btn-icon-sm ${
                     hasActiveFilters || showFilters
                       ? 'bg-action text-white hover:bg-action-hover'
-                      : 'bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-700'
+                      : 'bg-transparent text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
                   }`}
                 >
                   <SlidersHorizontal className="w-2.5 h-2.5" />
@@ -131,7 +131,7 @@ export function SearchContainer(_props: SearchContainerProps) {
               <Tooltip content="Clear" side="bottom">
                 <button
                   onClick={handleClear}
-                  className="btn-icon-sm bg-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-700"
+                  className="btn-icon-sm bg-transparent text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
                 >
                   <X className="w-2.5 h-2.5" />
                 </button>
@@ -146,13 +146,13 @@ export function SearchContainer(_props: SearchContainerProps) {
         <div className="absolute top-full right-0 mt-2 flex gap-2 z-40">
           {/* Filters Panel - Left */}
           {showFilters && (
-            <div className="w-80 h-[500px] bg-white border border-gray-200 rounded-lg shadow-lg flex flex-col overflow-hidden">
+            <div className="w-80 h-[500px] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
               <FilterPanel onClose={() => setShowFilters(false)} />
             </div>
           )}
 
           {/* Search Results - Right */}
-          <div className="w-96 bg-white border border-gray-200 rounded-lg shadow-lg">
+          <div className="w-96 bg-background border border-border rounded-lg shadow-lg">
             <SearchResults
               results={results}
               isSearching={isSearching}

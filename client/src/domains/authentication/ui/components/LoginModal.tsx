@@ -132,7 +132,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
         <div className="text-center">
           <h2 className="text-xl font-bold text-emerald-600 mb-2">Password Changed</h2>
-          <p className="text-sm text-text-muted">Logging in...</p>
+          <p className="text-sm text-muted-foreground">Logging in...</p>
         </div>
       </AuthBaseModal>
     );
@@ -142,7 +142,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   if (passwordChangeRequired) {
     return (
       <AuthBaseModal key="password-change" showBranding="icon">
-        <h2 className="text-xl font-bold text-slate-800 text-center mb-4">Create New Password</h2>
+        <h2 className="text-xl font-bold text-foreground text-center mb-4">Create New Password</h2>
 
         <CreatePasswordForm
           onSubmit={handlePasswordChange}
@@ -191,7 +191,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
           <button
             onClick={handleResendVerification}
             disabled={isResending}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-action hover:bg-action-hover disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-action hover:bg-action-hover disabled:bg-muted-foreground text-white text-sm font-medium rounded-lg transition-colors"
             type="button"
           >
             {isResending ? (
@@ -220,17 +220,17 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Username or Email */}
         <div
-          className={`auth-input-container ${loginError ? 'input-field-error' : 'border-slate-200'}`}
+          className={`auth-input-container ${loginError ? 'input-field-error' : 'border-border'}`}
         >
           <label
             htmlFor="username"
-            className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-slate-400'}`}
+            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             Username or email
           </label>
           <div className="relative px-3 py-2">
             <UserRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-text-muted'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
               size={16}
             />
             <input
@@ -249,17 +249,17 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
         {/* Password */}
         <div
-          className={`auth-input-container ${loginError ? 'input-field-error' : 'border-slate-200'}`}
+          className={`auth-input-container ${loginError ? 'input-field-error' : 'border-border'}`}
         >
           <label
             htmlFor="password"
-            className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-slate-400'}`}
+            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             Password
           </label>
           <div className="relative px-3 py-2">
             <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-text-muted'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
               size={16}
             />
             <input
@@ -275,7 +275,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 rounded focus-enhanced"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-enhanced"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -301,7 +301,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
       {onSwitchToRegister && (
         <div className="mt-4 text-center">
-          <p className="text-xs text-text-muted">
+          <p className="text-xs text-muted-foreground">
             Don&apos;t have an account?{' '}
             <button
               type="button"

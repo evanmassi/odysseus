@@ -95,7 +95,7 @@ export function ValidatedInput({
     } else if (warning) {
       return `${baseClasses} text-validation-warning-label`;
     } else {
-      return `${baseClasses} text-text-secondary`;
+      return `${baseClasses} text-secondary-foreground`;
     }
   };
 
@@ -107,7 +107,7 @@ export function ValidatedInput({
     } else if (warning) {
       return `${baseClasses} text-validation-warning-helper`;
     } else {
-      return `${baseClasses} text-text-muted`;
+      return `${baseClasses} text-muted-foreground`;
     }
   };
 
@@ -191,7 +191,7 @@ export function ValidatedInput({
 
       {/* Character count for long fields */}
       {maxLength && !isUncontrolled && value && (
-        <div className="text-xs text-gray-400 mt-1 text-right">
+        <div className="text-xs text-muted-foreground mt-1 text-right">
           {value.length}/{maxLength}
         </div>
       )}

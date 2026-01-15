@@ -151,7 +151,7 @@ export function AssignmentDropdown({
 
   const formatOptionLabel = useCallback((option: AssignmentOption) => {
     if (option.isCommon) {
-      return <span className="italic text-slate-600">{option.label}</span>;
+      return <span className="italic text-secondary-foreground">{option.label}</span>;
     }
     const wrapperClass = option.isInherited ? 'italic' : '';
     if (option.firstName && option.lastName) {
@@ -160,7 +160,7 @@ export function AssignmentDropdown({
           <span className={option.isInherited ? '' : 'font-semibold'}>
             {option.lastName}, {option.firstName}
           </span>
-          <span className="text-slate-500"> ({option.username})</span>
+          <span className="text-muted-foreground"> ({option.username})</span>
         </span>
       );
     }

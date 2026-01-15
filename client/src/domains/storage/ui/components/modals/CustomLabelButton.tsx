@@ -13,7 +13,7 @@ interface CustomLabelButtonProps {
 export function CustomLabelButton({
   onClick,
   size = 14,
-  className = 'text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default',
+  className = 'text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded focus-ring-default',
 }: CustomLabelButtonProps) {
   return (
     <Tooltip content="Edit custom label" side="bottom">

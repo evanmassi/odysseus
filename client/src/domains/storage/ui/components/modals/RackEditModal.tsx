@@ -60,7 +60,10 @@ export function RackEditModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="rack-name" className="block text-sm font-medium mb-1 text-text-secondary">
+          <label
+            htmlFor="rack-name"
+            className="block text-sm font-medium mb-1 text-secondary-foreground"
+          >
             Rack Name
           </label>
           <input
@@ -81,7 +84,7 @@ export function RackEditModal({
             id="rackActive"
             checked={editedRack.isActive}
             onChange={e => setEditedRack({ ...editedRack, isActive: e.target.checked })}
-            className="w-4 h-4 border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
+            className="w-4 h-4 border-border rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
             style={{ accentColor: 'var(--color-action-default)' }}
           />
           <label htmlFor="rackActive" className="text-sm font-medium">

@@ -59,10 +59,10 @@ export const ResetPasswordPage: React.FC = () => {
   // Invalid or missing token
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <div
           ref={trapRef}
-          className="bg-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+          className="bg-background rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
         >
           <div className="text-center mb-4">
             <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
@@ -71,7 +71,7 @@ export const ResetPasswordPage: React.FC = () => {
             <h2 className="text-xl font-bold text-red-600">Invalid Reset Link</h2>
           </div>
 
-          <p className="text-gray-700 mb-6 text-center text-sm">
+          <p className="text-secondary-foreground mb-6 text-center text-sm">
             This password reset link is invalid or has expired. Please contact your administrator
             for a new reset link.
           </p>
@@ -90,10 +90,10 @@ export const ResetPasswordPage: React.FC = () => {
   // Success view after password reset
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+      <div className="min-h-screen flex items-center justify-center bg-muted">
         <div
           ref={trapRef}
-          className="bg-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+          className="bg-background rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
         >
           <div className="text-center">
             <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center">
@@ -105,7 +105,7 @@ export const ResetPasswordPage: React.FC = () => {
             </div>
 
             <h2 className="text-xl font-bold text-emerald-600 mb-2">Password Changed</h2>
-            <p className="text-sm text-text-muted">Redirecting to login...</p>
+            <p className="text-sm text-muted-foreground">Redirecting to login...</p>
           </div>
         </div>
       </div>
@@ -113,16 +113,16 @@ export const ResetPasswordPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100">
+    <div className="min-h-screen flex items-center justify-center bg-muted">
       <div
         ref={trapRef}
-        className="bg-surface rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+        className="bg-background rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
       >
         <div className="text-center mb-4">
           <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
             <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
           </div>
-          <h2 className="text-xl font-bold text-slate-800">Create New Password</h2>
+          <h2 className="text-xl font-bold text-foreground">Create New Password</h2>
         </div>
 
         <CreatePasswordForm
@@ -134,8 +134,8 @@ export const ResetPasswordPage: React.FC = () => {
         />
 
         {/* Help Text */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <p className="text-xs text-text-muted text-center">
+        <div className="mt-6 pt-4 border-t border-border">
+          <p className="text-xs text-muted-foreground text-center">
             This reset link expires in 15 minutes and can only be used once.
           </p>
         </div>

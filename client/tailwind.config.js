@@ -6,21 +6,51 @@ export default {
   theme: {
     extend: {
       colors: {
-        /* Core semantic colors */
-        primary: 'var(--color-primary)',
-        secondary: 'var(--color-secondary)',
-        accent: 'var(--color-accent)',
-        muted: 'var(--color-muted)',
-        dark: 'var(--color-dark)',
-        surface: 'var(--color-surface)',
-        'surface-hover': 'var(--color-surface-hover)',
-        border: 'var(--color-border)',
-        input: 'var(--color-input)',
+        /* Core color system */
 
-        /* Text colors */
-        'text-primary': 'var(--color-text-primary)',
-        'text-secondary': 'var(--color-text-secondary)',
-        'text-muted': 'var(--color-text-muted)',
+        /* Core */
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
+
+        /* Surfaces */
+        card: {
+          DEFAULT: 'var(--card)',
+          foreground: 'var(--card-foreground)',
+        },
+        popover: {
+          DEFAULT: 'var(--popover)',
+          foreground: 'var(--popover-foreground)',
+        },
+
+        /* Semantic */
+        primary: {
+          DEFAULT: 'var(--primary)',
+          foreground: 'var(--primary-foreground)',
+        },
+        secondary: {
+          DEFAULT: 'var(--secondary)',
+          foreground: 'var(--secondary-foreground)',
+        },
+        muted: {
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--muted-foreground)',
+        },
+        accent: {
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--accent-foreground)',
+        },
+        destructive: {
+          DEFAULT: 'var(--destructive)',
+          foreground: 'var(--destructive-foreground)',
+        },
+
+        /* Utilities */
+        border: 'var(--border)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
+
+        /* Application-specific extensions */
+
         ice: {
           50: 'var(--color-ice-50)',
           100: 'var(--color-ice-100)',
@@ -143,6 +173,31 @@ export default {
             bg: 'var(--color-validation-default-bg)',
             ring: 'var(--color-validation-default-ring)',
           },
+        },
+
+        /* Always-dark components */
+
+        toast: {
+          DEFAULT: 'var(--toast)',
+          foreground: 'var(--toast-foreground)',
+        },
+        tooltip: {
+          DEFAULT: 'var(--tooltip)',
+          foreground: 'var(--tooltip-foreground)',
+          border: 'var(--tooltip-border)',
+          muted: 'var(--tooltip-muted)',
+        },
+        'chip-active': {
+          DEFAULT: 'var(--chip-active)',
+          foreground: 'var(--chip-active-foreground)',
+          hover: 'var(--chip-active-hover)',
+        },
+        'status-offline': {
+          DEFAULT: 'var(--status-offline)',
+          foreground: 'var(--status-offline-foreground)',
+          border: 'var(--status-offline-border)',
+          muted: 'var(--status-offline-muted)',
+          hover: 'var(--status-offline-hover)',
         },
       },
       fontFamily: {

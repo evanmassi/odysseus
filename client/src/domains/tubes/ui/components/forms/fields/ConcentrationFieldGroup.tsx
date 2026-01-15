@@ -69,7 +69,7 @@ export const ConcentrationFieldGroup: React.FC<ConcentrationFieldGroupProps> = (
       {/* Concentration Field */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label htmlFor="concentration" className="block text-sm font-medium text-text-primary">
+          <label htmlFor="concentration" className="block text-sm font-medium text-foreground">
             Concentration
           </label>
           <div className="relative">
@@ -104,10 +104,7 @@ export const ConcentrationFieldGroup: React.FC<ConcentrationFieldGroupProps> = (
 
         {/* Concentration Unit Field */}
         <div className="space-y-2">
-          <label
-            htmlFor="concentrationUnit"
-            className="block text-sm font-medium text-text-primary"
-          >
+          <label htmlFor="concentrationUnit" className="block text-sm font-medium text-foreground">
             Unit
             {/* Number-safe check - required when concentration is provided */}
             {concentration !== undefined && concentration !== null && (
@@ -151,7 +148,7 @@ export const ConcentrationFieldGroup: React.FC<ConcentrationFieldGroupProps> = (
 
       {/* Smart Field Hint */}
       {(concentration ?? concentrationUnit) ? (
-        <div className="flex items-center space-x-2 text-sm text-text-secondary bg-surface/50 rounded-lg p-3 border border-border/50">
+        <div className="flex items-center space-x-2 text-sm text-secondary-foreground bg-background/50 rounded-lg p-3 border border-border/50">
           <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
             <span className="text-white text-xs">i</span>
           </div>

@@ -230,6 +230,7 @@ If fade is desired, add to `variables.css`:
 **Goal:** Create a clean, professional color system before defining dark palette
 **Effort:** 15-20 hours
 **Note:** This is prerequisite work that enables maintainable dark mode
+**Status:** Phase 2a-2b complete, Phase 2a-refactor in progress
 
 ### Why This Phase Matters
 
@@ -243,88 +244,153 @@ Industry standard for applications is generic semantic names (like shadcn/ui, Gi
 
 ---
 
-### Phase 2a: Foundation - Rename & Clean CSS Variables
+### Naming Convention: Shadcn/ui Standard
 
-**Goal:** Establish clean, semantic naming convention
+We adopt the **Shadcn/ui naming convention** - the most widely recognized standard in the React/Tailwind ecosystem. This ensures:
+- New developers instantly understand the color system
+- Battle-tested patterns for theming and dark mode
+- Consistency with industry best practices
 
-#### Variable Renaming
+#### The Shadcn Pattern
 
-| Current Variable | New Variable | Purpose |
-|-----------------|--------------|---------|
-| `--color-odysseus-primary` | `--color-primary` | Brand/action color |
-| `--color-odysseus-secondary` | `--color-secondary` | Secondary actions |
-| `--color-odysseus-accent` | `--color-accent` | Accent highlights |
-| `--color-odysseus-surface` | `--color-surface` | Primary backgrounds (cards, modals) |
-| `--color-odysseus-surface-hover` | `--color-surface-hover` | Hover states |
-| `--color-odysseus-gray` | `--color-muted` | Subtle backgrounds |
-| `--color-odysseus-dark` | `--color-dark` | Dark elements |
-| `--color-odysseus-border` | `--color-border` | Default borders |
-| `--color-odysseus-text-primary` | `--color-text-primary` | Main text |
-| `--color-odysseus-text-secondary` | `--color-text-secondary` | Muted text |
-| `--color-odysseus-muted` | `--color-text-muted` | Very muted text |
-| `--color-odysseus-input` | `--color-input` | Input backgrounds |
+```
+--{semantic-name}           → background/fill color
+--{semantic-name}-foreground → text color for content ON that background
+```
 
-#### Unused Variables to Remove
+#### Full Shadcn Color System Reference
 
-These are confirmed unused (no Tailwind classes reference them):
+```css
+/* ═══════════════════════════════════════════════════════════════════════════
+   CORE - Page-level colors
+   ═══════════════════════════════════════════════════════════════════════════ */
+--background              /* Page/app background */
+--foreground              /* Default text color on background */
 
-- All `--color-storage-*` variables (~12 variables)
-- All `--color-ownership-*` variables (~12 variables)
-- Any other confirmed dead code
+/* ═══════════════════════════════════════════════════════════════════════════
+   SURFACES - Cards, popovers, elevated elements
+   ═══════════════════════════════════════════════════════════════════════════ */
+--card                    /* Card backgrounds */
+--card-foreground         /* Text on cards */
+
+--popover                 /* Popover/dropdown backgrounds */
+--popover-foreground      /* Text in popovers */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SEMANTIC COLORS - Actions and states
+   ═══════════════════════════════════════════════════════════════════════════ */
+--primary                 /* Primary brand/action color (buttons, links) */
+--primary-foreground      /* Text ON primary backgrounds (e.g., button text) */
+
+--secondary               /* Secondary/subtle backgrounds */
+--secondary-foreground    /* Text on secondary backgrounds */
+
+--muted                   /* Muted/subtle backgrounds (disabled states, etc.) */
+--muted-foreground        /* Muted/subtle text (used anywhere for de-emphasis) */
+
+--accent                  /* Accent highlights (hover states, selections) */
+--accent-foreground       /* Text on accent backgrounds */
+
+--destructive             /* Danger/error/delete actions */
+--destructive-foreground  /* Text on destructive backgrounds */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UTILITIES - Borders, inputs, focus
+   ═══════════════════════════════════════════════════════════════════════════ */
+--border                  /* Default border color */
+--input                   /* Input field border color */
+--ring                    /* Focus ring color */
+```
+
+#### Why This Naming Works
+
+| Color Name | Tailwind Class | No Duplication |
+|------------|----------------|----------------|
+| `foreground` | `text-foreground` | ✓ Clean |
+| `muted-foreground` | `text-muted-foreground` | ✓ Clean |
+| `secondary-foreground` | `text-secondary-foreground` | ✓ Clean |
+| `border` | `border-border` | ⚠️ Accepted industry awkwardness |
+
+**Note:** `border-border` is the one accepted duplication - alternatives like `stroke` or `edge` are less intuitive and Shadcn uses this pattern.
+
+---
+
+### Phase 2a: Foundation - Variable Cleanup ✅ COMPLETE
+
+**Status:** Done
+**What was accomplished:**
+- Removed `odysseus-` prefix from all CSS variables
+- Removed ~24 unused storage/ownership variables
+- Updated Tailwind config to flat namespace
+
+---
+
+### Phase 2b: Update Component Classes ✅ COMPLETE
+
+**Status:** Done
+**What was accomplished:**
+- Replaced all `odysseus-*` Tailwind class usages
+- Remaining `odysseus-` occurrences are legitimate (storage keys, cookies, asset imports)
+
+---
+
+### Phase 2a-refactor: Adopt Shadcn Naming Convention 🔄 IN PROGRESS
+
+**Goal:** Refactor from our current naming to Shadcn standard to avoid `text-text-*` duplication
+
+#### Current → Shadcn Mapping
+
+| Current CSS Variable | Shadcn Variable | Purpose |
+|---------------------|-----------------|---------|
+| `--color-surface` | `--background` | Page/app background |
+| `--color-dark` | `--foreground` | Default text color |
+| `--color-text-primary` | `--foreground` | Main text (merge with dark) |
+| `--color-text-secondary` | `--secondary-foreground` | Secondary/muted text |
+| `--color-text-muted` | `--muted-foreground` | Very muted text |
+| `--color-surface-hover` | `--accent` | Hover state backgrounds |
+| `--color-muted` | `--muted` | Subtle backgrounds |
+| `--color-primary` | `--primary` | Brand/action color |
+| `--color-border` | `--border` | Default borders |
+| `--color-input` | `--input` | Input borders |
+
+#### Current → Shadcn Tailwind Class Mapping
+
+| Current Class | New Class | Notes |
+|---------------|-----------|-------|
+| `bg-surface` | `bg-background` | Page backgrounds |
+| `bg-surface-hover` | `bg-accent` | Hover states |
+| `bg-muted` | `bg-muted` | ✓ Same |
+| `bg-primary` | `bg-primary` | ✓ Same |
+| `text-dark` | `text-foreground` | Main text |
+| `text-text-primary` | `text-foreground` | Main text (dedupe) |
+| `text-text-secondary` | `text-secondary-foreground` | Secondary text |
+| `text-text-muted` | `text-muted-foreground` | Muted text |
+| `border-border` | `border-border` | ✓ Same (accepted) |
 
 #### Files to Modify
 
 | File | Changes |
 |------|---------|
-| `client/src/shared/styles/base/variables.css` | Rename variables, remove unused |
-| `client/tailwind.config.js` | Update color mappings to new names |
+| `client/src/shared/styles/base/variables.css` | Rename variables to Shadcn convention |
+| `client/tailwind.config.js` | Update color mappings |
+| All component files | Update class names |
 
-#### Tailwind Config Changes
+#### Additional Shadcn Variables to Add
 
-```javascript
-// Before
-colors: {
-  odysseus: {
-    primary: 'var(--color-odysseus-primary)',
-    surface: 'var(--color-odysseus-surface)',
-    // ...
-  }
-}
+These don't exist yet but are part of the full Shadcn system:
 
-// After
-colors: {
-  primary: 'var(--color-primary)',
-  surface: 'var(--color-surface)',
-  'surface-hover': 'var(--color-surface-hover)',
-  muted: 'var(--color-muted)',
-  border: 'var(--color-border)',
-  // Semantic text colors
-  'text-primary': 'var(--color-text-primary)',
-  'text-secondary': 'var(--color-text-secondary)',
-  // ...
-}
-```
-
----
-
-### Phase 2b: Update Existing Odysseus Usages
-
-**Goal:** Replace all `odysseus-*` class usages with new semantic names
-
-This is mechanical find-and-replace:
-
-| Old Class | New Class |
-|-----------|-----------|
-| `bg-odysseus-surface` | `bg-surface` |
-| `bg-odysseus-surface-hover` | `bg-surface-hover` |
-| `bg-odysseus-gray` | `bg-muted` |
-| `text-odysseus-text-primary` | `text-text-primary` |
-| `text-odysseus-text-secondary` | `text-text-secondary` |
-| `border-odysseus-border` | `border-border` |
-| `bg-odysseus-primary` | `bg-primary` |
-| etc. | etc. |
-
-**Files affected:** Any file currently using `odysseus-*` classes
+| Variable | Purpose | Initial Value |
+|----------|---------|---------------|
+| `--card` | Card backgrounds | Same as `--background` initially |
+| `--card-foreground` | Text on cards | Same as `--foreground` initially |
+| `--popover` | Popover backgrounds | Same as `--background` initially |
+| `--popover-foreground` | Text in popovers | Same as `--foreground` initially |
+| `--accent-foreground` | Text on accent | Dark text for light accent bg |
+| `--primary-foreground` | Text on primary buttons | White |
+| `--secondary` | Secondary backgrounds | Light gray |
+| `--destructive` | Danger color | Red |
+| `--destructive-foreground` | Text on destructive | White |
+| `--ring` | Focus ring color | Primary color |
 
 ---
 
@@ -647,18 +713,42 @@ async updateThemePreference(theme: ThemePreference): Promise<void> {
 
 ---
 
-## Appendix A: Color Variable Inventory (Post-Cleanup)
+## Appendix A: Color Variable Inventory (Shadcn Convention)
 
-Full list of semantic variables requiring dark mode definitions:
+Full list of semantic variables requiring dark mode definitions, using Shadcn naming:
 
-**Core Colors (7):**
-`--color-primary`, `--color-secondary`, `--color-accent`, `--color-muted`, `--color-dark`, `--color-surface`, `--color-surface-hover`
+### Core Shadcn Variables (12)
 
-**Border & Input (2):**
-`--color-border`, `--color-input`
+```css
+/* Backgrounds & Foregrounds */
+--background                /* Page background */
+--foreground                /* Default text */
 
-**Text Colors (3):**
-`--color-text-primary`, `--color-text-secondary`, `--color-text-muted`
+/* Surfaces */
+--card                      /* Card/elevated backgrounds */
+--card-foreground           /* Text on cards */
+--popover                   /* Popover backgrounds */
+--popover-foreground        /* Text in popovers */
+
+/* Semantic */
+--primary                   /* Primary brand color */
+--primary-foreground        /* Text on primary */
+--secondary                 /* Secondary backgrounds */
+--secondary-foreground      /* Secondary text */
+--muted                     /* Muted backgrounds */
+--muted-foreground          /* Muted text */
+--accent                    /* Hover/highlight backgrounds */
+--accent-foreground         /* Text on accent */
+--destructive               /* Danger/error */
+--destructive-foreground    /* Text on destructive */
+
+/* Utilities */
+--border                    /* Default borders */
+--input                     /* Input borders */
+--ring                      /* Focus ring */
+```
+
+### Application-Specific Extensions (~40)
 
 **Action Colors (3):**
 `--color-action-default`, `--color-action-hover`, `--color-action-focus`
@@ -686,7 +776,18 @@ Error, Warning, Success variants for border, bg, text, label, ring, icon
 **Frost (1):**
 `--color-frost`
 
-**Total after cleanup: ~65-70 variables** (reduced from ~90 by removing unused storage/ownership colors)
+### Variable Naming Summary
+
+| Category | Shadcn Standard | Our Extensions |
+|----------|-----------------|----------------|
+| Core backgrounds | `--background`, `--card`, `--popover` | - |
+| Core text | `--foreground`, `*-foreground` | - |
+| Actions | `--primary`, `--secondary`, `--accent`, `--destructive` | `--color-action-*` |
+| States | - | `--color-{state}-*` |
+| Validation | - | `--color-validation-*` |
+| Decorative | - | `--color-ice-*`, `--color-frost` |
+
+**Total: ~55-60 variables** (12 core Shadcn + ~45 app-specific extensions)
 
 ---
 

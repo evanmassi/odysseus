@@ -71,17 +71,17 @@ export function CreatePasswordForm({
   }, [newPassword, confirmPassword]);
 
   const newPasswordBorderClass = useMemo(() => {
-    if (!newPassword) return 'border-slate-200';
+    if (!newPassword) return 'border-border';
     if (passwordMeetsRequirements) return 'border-emerald-500';
     if (newPasswordTouched) return 'input-field-error';
-    return 'border-slate-200';
+    return 'border-border';
   }, [newPassword, passwordMeetsRequirements, newPasswordTouched]);
 
   const confirmPasswordBorderClass = useMemo(() => {
-    if (!confirmPassword) return 'border-slate-200';
+    if (!confirmPassword) return 'border-border';
     if (passwordsMatch && passwordMeetsRequirements) return 'border-emerald-500';
     if (confirmPassword.length > 0 && !passwordsMatch) return 'input-field-error';
-    return 'border-slate-200';
+    return 'border-border';
   }, [confirmPassword, passwordsMatch, passwordMeetsRequirements]);
 
   // Combined error (internal takes precedence, then external)
@@ -147,13 +147,13 @@ export function CreatePasswordForm({
         <div className={`auth-input-container ${newPasswordBorderClass}`}>
           <label
             htmlFor="newPassword"
-            className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium ${passwordMeetsRequirements ? 'text-emerald-700' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-label' : 'text-slate-400'}`}
+            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium ${passwordMeetsRequirements ? 'text-emerald-700' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             New Password
           </label>
           <div className="relative px-3 py-2">
             <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordMeetsRequirements ? 'text-emerald-600' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-icon' : 'text-text-muted'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordMeetsRequirements ? 'text-emerald-600' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
               size={16}
             />
             <input
@@ -172,7 +172,7 @@ export function CreatePasswordForm({
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 rounded focus-enhanced"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-enhanced"
               aria-label={showPassword ? 'Hide password' : 'Show password'}
             >
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -194,13 +194,13 @@ export function CreatePasswordForm({
         <div className={`auth-input-container ${confirmPasswordBorderClass}`}>
           <label
             htmlFor="confirmPassword"
-            className={`absolute -top-2 left-3 bg-surface px-1 text-[10px] font-medium ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-700' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-label' : 'text-slate-400'}`}
+            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-700' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             Confirm Password
           </label>
           <div className="relative px-3 py-2">
             <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-600' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-icon' : 'text-text-muted'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-600' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
               size={16}
             />
             <input
@@ -234,7 +234,7 @@ export function CreatePasswordForm({
 
       {onCancel && (
         <div className="mt-4 text-center">
-          <p className="text-xs text-text-muted">
+          <p className="text-xs text-muted-foreground">
             Return to{' '}
             <button
               type="button"

@@ -48,7 +48,7 @@ function FilterChip({ label, isSelected, onClick }: FilterChipProps) {
         ${
           isSelected
             ? 'bg-action text-white shadow-sm hover:bg-action-hover'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+            : 'bg-muted text-secondary-foreground hover:bg-secondary border border-border'
         }
       `}
     >
@@ -74,7 +74,7 @@ function EntityPill({ label, isSelected, onClick }: EntityPillProps) {
         ${
           isSelected
             ? 'bg-action text-white shadow-sm hover:bg-action-hover'
-            : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+            : 'bg-muted text-secondary-foreground hover:bg-secondary border border-border'
         }
       `}
     >
@@ -94,7 +94,7 @@ function ActiveFilterChip({ label, onRemove }: ActiveFilterChipProps) {
     <Tooltip content={`Remove ${label}`} side="bottom">
       <button
         onClick={onRemove}
-        className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-slate-600 text-white hover:bg-slate-700 transition-all focus-ring-default"
+        className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-chip-active text-chip-active-foreground hover:bg-chip-active-hover transition-all focus-ring-default"
       >
         <span>{label}</span>
         <X className="w-2.5 h-2.5" />
@@ -122,25 +122,25 @@ function CollapsibleSection({
   children,
 }: CollapsibleSectionProps) {
   return (
-    <div className="border-b border-gray-200 last:border-b-0">
+    <div className="border-b border-border last:border-b-0">
       <div className="p-1">
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-gray-50 transition-colors focus-ring-default"
+          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors focus-ring-default"
         >
           <div className="flex items-center space-x-2">
             {isOpen ? (
-              <ChevronDown className="w-4 h-4 text-gray-500" />
+              <ChevronDown className="w-4 h-4 text-muted-foreground" />
             ) : (
-              <ChevronRight className="w-4 h-4 text-gray-500" />
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
             )}
             <div className="flex items-center space-x-2">
               {icon}
-              <span className="text-sm font-semibold text-gray-900">{title}</span>
+              <span className="text-sm font-semibold text-foreground">{title}</span>
             </div>
           </div>
           {count > 0 && (
-            <span className="px-2 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs font-medium">
+            <span className="px-2 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs font-medium">
               {count}
             </span>
           )}
@@ -393,14 +393,14 @@ export function AuditLogFilterPanel({
   const hiddenCount = activeFilters.length - TRUNCATE_LIMIT;
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
+    <div className="bg-background rounded-lg border border-border">
       {/* Header */}
-      <div className="flex items-center justify-between p-3 border-b bg-gray-50 rounded-t-lg">
-        <h4 className="text-sm font-bold text-gray-900">Filters</h4>
+      <div className="flex items-center justify-between p-3 border-b bg-muted rounded-t-lg">
+        <h4 className="text-sm font-bold text-foreground">Filters</h4>
         <Tooltip content="Clear all filters" side="bottom">
           <button
             onClick={onClear}
-            className="px-2 py-1 text-xs text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded transition-colors focus-ring-default"
+            className="px-2 py-1 text-xs text-secondary-foreground hover:text-foreground hover:bg-accent rounded transition-colors focus-ring-default"
           >
             Clear All
           </button>
@@ -411,11 +411,11 @@ export function AuditLogFilterPanel({
       <div className="max-h-96 overflow-y-auto p-1" tabIndex={-1}>
         <div className="grid grid-cols-2">
           {/* Left Column: User & Action */}
-          <div className="border-r border-gray-200">
+          <div className="border-r border-border">
             {/* USER SECTION */}
             <CollapsibleSection
               title="User"
-              icon={<UserRound className="w-4 h-4 text-gray-500" />}
+              icon={<UserRound className="w-4 h-4 text-muted-foreground" />}
               count={getSectionCount('user')}
               isOpen={openSections.user}
               onToggle={() => toggleSection('user')}
@@ -425,14 +425,14 @@ export function AuditLogFilterPanel({
                 placeholder="Filter by username"
                 value={filters.username ?? ''}
                 onChange={e => onChange({ ...filters, username: e.target.value || undefined })}
-                className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus-ring-default"
+                className="w-full px-2 py-1.5 text-sm border border-border rounded focus-ring-default"
               />
             </CollapsibleSection>
 
             {/* ACTION SECTION */}
             <CollapsibleSection
               title="Action"
-              icon={<Zap className="w-4 h-4 text-gray-500" />}
+              icon={<Zap className="w-4 h-4 text-muted-foreground" />}
               count={getSectionCount('actions')}
               isOpen={openSections.actions}
               onToggle={() => toggleSection('actions')}
@@ -449,9 +449,9 @@ export function AuditLogFilterPanel({
                     ) : (
                       <ChevronRight className="w-3 h-3" />
                     )}
-                    <span className="text-xs font-medium text-gray-700">Tube</span>
+                    <span className="text-xs font-medium text-secondary-foreground">Tube</span>
                     {getEntityActionCount('tube') > 0 && (
-                      <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
+                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
                         {getEntityActionCount('tube')}
                       </span>
                     )}
@@ -482,9 +482,9 @@ export function AuditLogFilterPanel({
                     ) : (
                       <ChevronRight className="w-3 h-3" />
                     )}
-                    <span className="text-xs font-medium text-gray-700">Storage</span>
+                    <span className="text-xs font-medium text-secondary-foreground">Storage</span>
                     {getEntityActionCount('storage') > 0 && (
-                      <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
+                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
                         {getEntityActionCount('storage')}
                       </span>
                     )}
@@ -578,9 +578,9 @@ export function AuditLogFilterPanel({
                     ) : (
                       <ChevronRight className="w-3 h-3" />
                     )}
-                    <span className="text-xs font-medium text-gray-700">User</span>
+                    <span className="text-xs font-medium text-secondary-foreground">User</span>
                     {getEntityActionCount('user') > 0 && (
-                      <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
+                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
                         {getEntityActionCount('user')}
                       </span>
                     )}
@@ -611,9 +611,11 @@ export function AuditLogFilterPanel({
                     ) : (
                       <ChevronRight className="w-3 h-3" />
                     )}
-                    <span className="text-xs font-medium text-gray-700">Researcher</span>
+                    <span className="text-xs font-medium text-secondary-foreground">
+                      Researcher
+                    </span>
                     {getEntityActionCount('researcher') > 0 && (
-                      <span className="px-1.5 py-0.5 bg-slate-200 text-slate-700 rounded-full text-xs">
+                      <span className="px-1.5 py-0.5 bg-secondary text-secondary-foreground rounded-full text-xs">
                         {getEntityActionCount('researcher')}
                       </span>
                     )}
@@ -641,7 +643,7 @@ export function AuditLogFilterPanel({
             {/* ITEM SECTION */}
             <CollapsibleSection
               title="Item"
-              icon={<Box className="w-4 h-4 text-gray-500" />}
+              icon={<Box className="w-4 h-4 text-muted-foreground" />}
               count={getSectionCount('entityTypes')}
               isOpen={openSections.entityTypes}
               onToggle={() => toggleSection('entityTypes')}
@@ -662,7 +664,7 @@ export function AuditLogFilterPanel({
             {/* DATE SECTION */}
             <CollapsibleSection
               title="Date Range"
-              icon={<Calendar className="w-4 h-4 text-gray-500" />}
+              icon={<Calendar className="w-4 h-4 text-muted-foreground" />}
               count={getSectionCount('date')}
               isOpen={openSections.date}
               onToggle={() => toggleSection('date')}
@@ -670,7 +672,9 @@ export function AuditLogFilterPanel({
               <div className="space-y-3">
                 {/* Quick Presets */}
                 <div>
-                  <div className="text-xs font-medium text-gray-600 mb-2">Quick Ranges</div>
+                  <div className="text-xs font-medium text-secondary-foreground mb-2">
+                    Quick Ranges
+                  </div>
                   <div
                     className="flex flex-wrap gap-2"
                     role="group"
@@ -685,7 +689,7 @@ export function AuditLogFilterPanel({
                           ${
                             filters.datePreset === preset.value
                               ? 'bg-action text-white shadow-sm hover:bg-action-hover'
-                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
+                              : 'bg-muted text-secondary-foreground hover:bg-secondary border border-border'
                           }
                         `}
                       >
@@ -697,7 +701,9 @@ export function AuditLogFilterPanel({
 
                 {/* Custom Date Range */}
                 <fieldset className="border-0 p-0 m-0">
-                  <legend className="text-xs font-medium text-gray-600 mb-1">Custom Range</legend>
+                  <legend className="text-xs font-medium text-secondary-foreground mb-1">
+                    Custom Range
+                  </legend>
                   <div className="space-y-2">
                     <div>
                       <label htmlFor="audit-date-from" className="sr-only">
@@ -714,7 +720,7 @@ export function AuditLogFilterPanel({
                             datePreset: undefined,
                           })
                         }
-                        className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus-ring-default"
+                        className="w-full px-2 py-1.5 text-xs border border-border rounded focus-ring-default"
                         placeholder="From"
                         aria-label="Filter start date and time"
                       />
@@ -730,7 +736,7 @@ export function AuditLogFilterPanel({
                         onChange={e =>
                           onChange({ ...filters, dateTo: e.target.value || undefined })
                         }
-                        className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded focus-ring-default"
+                        className="w-full px-2 py-1.5 text-xs border border-border rounded focus-ring-default"
                         placeholder="To"
                         aria-label="Filter end date and time"
                       />
@@ -745,7 +751,7 @@ export function AuditLogFilterPanel({
 
       {/* Active Filters Summary - Footer */}
       {hasActiveFilters && (
-        <div className="px-3 py-2 bg-slate-50 border-t border-slate-200 rounded-b-lg">
+        <div className="px-3 py-2 bg-muted border-t border-border rounded-b-lg">
           <div className="flex flex-wrap gap-1 items-center">
             {visibleFilters.map((filter, idx) => (
               <ActiveFilterChip
@@ -757,7 +763,7 @@ export function AuditLogFilterPanel({
             {hiddenCount > 0 && (
               <button
                 onClick={() => setShowAllFilters(!showAllFilters)}
-                className="px-2 py-0.5 rounded text-xs bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all focus-ring-default"
+                className="px-2 py-0.5 rounded text-xs bg-secondary text-secondary-foreground hover:bg-muted transition-all focus-ring-default"
               >
                 {showAllFilters ? 'Show less' : `+${hiddenCount} more`}
               </button>

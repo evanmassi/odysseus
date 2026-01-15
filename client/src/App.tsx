@@ -61,7 +61,7 @@ function AppContent() {
       <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
           <div className="spinner mb-4 mx-auto w-8 h-8"></div>
-          <p className="text-lg font-medium text-gray-700">Finalizing...</p>
+          <p className="text-lg font-medium text-secondary-foreground">Finalizing...</p>
         </div>
       </div>
     );

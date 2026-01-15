@@ -120,32 +120,34 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 mb-4">
-        <Gauge size={22} className="text-gray-700" />
-        <h3 className="text-xl font-semibold text-gray-900">System</h3>
+      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
+        <Gauge size={22} className="text-secondary-foreground" />
+        <h3 className="text-xl font-semibold text-foreground">System</h3>
       </div>
 
       {/* Lab Name Section */}
       <div>
-        <h4 className="text-base font-semibold text-gray-900 mb-2">Laboratory</h4>
-        <div className="bg-gray-50 p-3 rounded-lg">
+        <h4 className="text-base font-semibold text-foreground mb-2">Laboratory</h4>
+        <div className="bg-muted p-3 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <FlaskConical size={18} className="text-gray-400" />
-              <span className="text-sm text-gray-400">Lab:</span>
+              <FlaskConical size={18} className="text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Lab:</span>
               {isEditingLabName ? (
                 <input
                   type="text"
                   value={labNameInput}
                   onChange={e => setLabNameInput(e.target.value)}
                   onKeyDown={handleLabNameKeyDown}
-                  className="text-sm font-medium text-gray-900 border border-gray-300 rounded px-2 py-1 focus-ring-default"
+                  className="text-sm font-medium text-foreground border border-border rounded px-2 py-1 focus-ring-default"
                   // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
                   autoFocus
                   disabled={isSavingLabName}
                 />
               ) : (
-                <span className="text-sm font-medium text-gray-900">{currentLab?.name ?? ''}</span>
+                <span className="text-sm font-medium text-foreground">
+                  {currentLab?.name ?? ''}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-1">
@@ -162,7 +164,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                   <button
                     onClick={handleCancelLabNameEdit}
                     disabled={isSavingLabName}
-                    className="p-1.5 text-gray-400 hover:bg-gray-100 rounded transition-colors disabled:opacity-50 focus-ring-default"
+                    className="p-1.5 text-muted-foreground hover:bg-accent rounded transition-colors disabled:opacity-50 focus-ring-default"
                     aria-label="Cancel editing"
                   >
                     <X size={16} />
@@ -171,7 +173,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
               ) : (
                 <button
                   onClick={() => setIsEditingLabName(true)}
-                  className="text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 px-2 py-1 rounded transition-colors focus-ring-default"
+                  className="text-xs text-muted-foreground hover:text-foreground hover:bg-accent px-2 py-1 rounded transition-colors focus-ring-default"
                 >
                   Edit
                 </button>
@@ -183,30 +185,30 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
 
       {/* System Statistics Section */}
       <div>
-        <h4 className="text-base font-semibold text-gray-900 mb-2">Statistics</h4>
+        <h4 className="text-base font-semibold text-foreground mb-2">Statistics</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* Total Tubes */}
-          <div className="bg-gray-50 p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-gray-900">{stats?.totalTubes ?? 0}</div>
-            <div className="text-xs text-gray-600">Total Tubes</div>
+          <div className="bg-muted p-2.5 rounded-lg">
+            <div className="text-xl font-bold text-foreground">{stats?.totalTubes ?? 0}</div>
+            <div className="text-xs text-secondary-foreground">Total Tubes</div>
           </div>
 
           {/* Total Users */}
-          <div className="bg-gray-50 p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-gray-900">{stats?.totalUsers ?? 0}</div>
-            <div className="text-xs text-gray-600">Total Users</div>
+          <div className="bg-muted p-2.5 rounded-lg">
+            <div className="text-xl font-bold text-foreground">{stats?.totalUsers ?? 0}</div>
+            <div className="text-xs text-secondary-foreground">Total Users</div>
           </div>
 
           {/* Total Researchers */}
-          <div className="bg-gray-50 p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-gray-900">{stats?.totalResearchers ?? 0}</div>
-            <div className="text-xs text-gray-600">Researchers</div>
+          <div className="bg-muted p-2.5 rounded-lg">
+            <div className="text-xl font-bold text-foreground">{stats?.totalResearchers ?? 0}</div>
+            <div className="text-xs text-secondary-foreground">Researchers</div>
           </div>
 
           {/* Last Backup */}
-          <div className="bg-gray-50 p-2.5 rounded-lg">
-            <div className="text-xs text-gray-600">Last Backup</div>
-            <div className="text-xs text-gray-600 font-medium">
+          <div className="bg-muted p-2.5 rounded-lg">
+            <div className="text-xs text-secondary-foreground">Last Backup</div>
+            <div className="text-xs text-secondary-foreground font-medium">
               {stats?.lastBackup ? new Date(stats.lastBackup).toLocaleDateString() : 'Never'}
             </div>
           </div>
@@ -215,13 +217,13 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
 
       {/* Audit & Monitoring Section */}
       <div>
-        <h4 className="text-base font-semibold text-gray-900 mb-2">Audit & Monitoring</h4>
+        <h4 className="text-base font-semibold text-foreground mb-2">Audit & Monitoring</h4>
         <div className="space-y-1.5">
           {/* Detailed Logging Toggle */}
-          <div className="flex items-center justify-between p-2.5 bg-gray-50 rounded-lg">
+          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-gray-900">Detailed Logging</h5>
-              <p className="text-xs text-gray-600">Log all system operations</p>
+              <h5 className="text-sm font-medium text-foreground">Detailed Logging</h5>
+              <p className="text-xs text-secondary-foreground">Log all system operations</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input
@@ -231,7 +233,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                 className="sr-only peer"
                 aria-label="Enable detailed logging for all system operations"
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
+              <div className="w-11 h-6 bg-secondary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
             </label>
           </div>
         </div>

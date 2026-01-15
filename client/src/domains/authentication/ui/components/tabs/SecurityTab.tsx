@@ -58,22 +58,22 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
   }, []);
 
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'border-gray-300';
+    if (!touched) return 'border-border';
     return isValid ? 'border-emerald-500' : 'input-field-error';
   };
 
   const getLabelColorClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'text-gray-700';
+    if (!touched) return 'text-secondary-foreground';
     return isValid ? 'text-emerald-700' : 'text-validation-error-label';
   };
 
   // Current password field styling - neutral (no green) with error state only
   const getCurrentPasswordBorderClass = () => {
-    return currentPasswordError ? 'input-field-error' : 'border-gray-300';
+    return currentPasswordError ? 'input-field-error' : 'border-border';
   };
 
   const getCurrentPasswordLabelClass = () => {
-    return currentPasswordError ? 'text-validation-error-label' : 'text-gray-700';
+    return currentPasswordError ? 'text-validation-error-label' : 'text-secondary-foreground';
   };
 
   const newPasswordMeetsRequirements = useMemo(() => {
@@ -158,26 +158,28 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 mb-4">
-        <Shield size={22} className="text-gray-700" />
-        <h3 className="text-xl font-semibold text-gray-900">Password Management</h3>
+      <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
+        <Shield size={22} className="text-secondary-foreground" />
+        <h3 className="text-xl font-semibold text-foreground">Password Management</h3>
       </div>
 
       <div className="space-y-4 max-w-2xl">
-        <p className="text-sm text-gray-600">Change your password to keep your account secure</p>
+        <p className="text-sm text-secondary-foreground">
+          Change your password to keep your account secure
+        </p>
 
         {/* Current Password */}
         <div className="space-y-1">
           <div className={`auth-input-container ${getCurrentPasswordBorderClass()}`}>
             <label
               htmlFor="security-currentPassword"
-              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getCurrentPasswordLabelClass()}`}
+              className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getCurrentPasswordLabelClass()}`}
             >
               Current Password <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
               <KeyRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <input
@@ -200,7 +202,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               <button
                 type="button"
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-dark transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
@@ -221,13 +223,13 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           >
             <label
               htmlFor="security-newPassword"
-              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}
+              className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}
             >
               New Password <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
               <KeyRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <input
@@ -247,7 +249,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               <button
                 type="button"
                 onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-dark transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label={showNewPassword ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
@@ -278,13 +280,13 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           >
             <label
               htmlFor="security-confirmPassword"
-              className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(confirmPasswordTouched, passwordsMatch)}`}
+              className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(confirmPasswordTouched, passwordsMatch)}`}
             >
               Confirm Password <span className="text-red-500">*</span>
             </label>
             <div className="relative px-3 py-2">
               <KeyRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted"
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                 size={16}
               />
               <input
@@ -304,7 +306,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               <button
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-dark transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
@@ -344,13 +346,13 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
       </div>
 
       {/* Session Management Section */}
-      <div className="pt-3 border-t border-gray-200">
-        <div className="flex items-center space-x-2 pb-3 border-b border-gray-200 mb-4">
-          <MonitorSmartphone size={22} className="text-gray-700" />
-          <h3 className="text-xl font-semibold text-gray-900">Active Sessions</h3>
+      <div className="pt-3 border-t border-border">
+        <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
+          <MonitorSmartphone size={22} className="text-secondary-foreground" />
+          <h3 className="text-xl font-semibold text-foreground">Active Sessions</h3>
         </div>
         <div className="max-w-4xl">
-          <p className="text-sm text-gray-600 mb-4">
+          <p className="text-sm text-secondary-foreground mb-4">
             Manage your active sessions across all devices. You can revoke access from any device.
           </p>
           <SessionListSection />

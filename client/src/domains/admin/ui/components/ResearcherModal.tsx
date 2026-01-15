@@ -99,7 +99,7 @@ export function ResearcherModal({
       className="max-w-2xl"
     >
       {mode === 'select-or-create' && (
-        <div className="mb-4 flex space-x-4 border-b border-gray-200 pb-3">
+        <div className="mb-4 flex space-x-4 border-b border-border pb-3">
           <label className="flex items-center space-x-2 cursor-pointer">
             <input
               type="radio"
@@ -107,7 +107,9 @@ export function ResearcherModal({
               onChange={() => setActionMode('create')}
               className="w-4 h-4"
             />
-            <span className="text-sm font-medium text-gray-700">Add New Researcher</span>
+            <span className="text-sm font-medium text-secondary-foreground">
+              Add New Researcher
+            </span>
           </label>
           <label className="flex items-center space-x-2 cursor-pointer">
             <input
@@ -116,7 +118,9 @@ export function ResearcherModal({
               onChange={() => setActionMode('select')}
               className="w-4 h-4"
             />
-            <span className="text-sm font-medium text-gray-700">Link Existing Researcher</span>
+            <span className="text-sm font-medium text-secondary-foreground">
+              Link Existing Researcher
+            </span>
           </label>
         </div>
       )}
@@ -128,17 +132,17 @@ export function ResearcherModal({
             {/* First Name */}
             <div>
               <div
-                className={`auth-input-container ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
+                className={`auth-input-container ${errors.firstName ? 'border-red-500' : 'border-border'}`}
               >
                 <label
                   htmlFor="firstName"
-                  className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.firstName ? 'text-red-600' : 'text-gray-700'}`}
+                  className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.firstName ? 'text-red-600' : 'text-secondary-foreground'}`}
                 >
                   First Name <span className="text-red-500">*</span>
                 </label>
                 <div className="relative px-3 py-2">
                   <User
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                     size={16}
                   />
                   <input
@@ -168,17 +172,17 @@ export function ResearcherModal({
             {/* Last Name */}
             <div>
               <div
-                className={`auth-input-container ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
+                className={`auth-input-container ${errors.lastName ? 'border-red-500' : 'border-border'}`}
               >
                 <label
                   htmlFor="lastName"
-                  className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.lastName ? 'text-red-600' : 'text-gray-700'}`}
+                  className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.lastName ? 'text-red-600' : 'text-secondary-foreground'}`}
                 >
                   Last Name <span className="text-red-500">*</span>
                 </label>
                 <div className="relative px-3 py-2">
                   <User
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                     size={16}
                   />
                   <input
@@ -198,17 +202,17 @@ export function ResearcherModal({
           {/* Email */}
           <div>
             <div
-              className={`auth-input-container ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+              className={`auth-input-container ${errors.email ? 'border-red-500' : 'border-border'}`}
             >
               <label
                 htmlFor="email"
-                className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.email ? 'text-red-600' : 'text-gray-700'}`}
+                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.email ? 'text-red-600' : 'text-secondary-foreground'}`}
               >
                 Email <span className="text-red-500">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                   size={16}
                 />
                 <input
@@ -228,16 +232,16 @@ export function ResearcherModal({
           <div className="grid grid-cols-2 gap-3">
             {/* Department - NOW BEFORE Position */}
             <div>
-              <div className="auth-input-container border-gray-300">
+              <div className="auth-input-container border-border">
                 <label
                   htmlFor="department"
-                  className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-700"
+                  className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
                 >
                   Department
                 </label>
                 <div className="relative px-3 py-2">
                   <Building2
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                     size={16}
                   />
                   <input
@@ -252,16 +256,16 @@ export function ResearcherModal({
 
             {/* Position */}
             <div>
-              <div className="auth-input-container border-gray-300">
+              <div className="auth-input-container border-border">
                 <label
                   htmlFor="position"
-                  className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide text-gray-700"
+                  className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
                 >
                   Position
                 </label>
                 <div className="relative px-3 py-2">
                   <Briefcase
-                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
                     size={16}
                   />
                   <input
@@ -298,17 +302,17 @@ export function ResearcherModal({
             unlinkedResearchers.map(researcher => (
               <div
                 key={researcher.id}
-                className="border border-gray-200 rounded p-3 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                className="border border-border rounded p-3 flex items-center justify-between hover:bg-accent transition-colors"
               >
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-gray-900">
+                  <div className="text-sm font-medium text-foreground">
                     {researcher.firstName} {researcher.lastName}
                   </div>
                   {researcher.email && (
-                    <div className="text-xs text-gray-500">{researcher.email}</div>
+                    <div className="text-xs text-muted-foreground">{researcher.email}</div>
                   )}
                   {researcher.position && (
-                    <div className="text-xs text-gray-500">{researcher.position}</div>
+                    <div className="text-xs text-muted-foreground">{researcher.position}</div>
                   )}
                 </div>
                 <button
@@ -322,7 +326,7 @@ export function ResearcherModal({
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-sm text-gray-500">No unlinked researchers available</p>
+              <p className="text-sm text-muted-foreground">No unlinked researchers available</p>
             </div>
           )}
         </div>

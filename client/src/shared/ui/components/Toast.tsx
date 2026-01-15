@@ -83,7 +83,7 @@ export function Toast({ type, message, visible = true }: ToastProps): React.Reac
       className={`
         flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg
         min-w-[280px] max-w-[420px]
-        bg-gray-800 border-l-4 ${config.borderClass}
+        bg-toast border-l-4 ${config.borderClass}
         transition-all duration-300 ease-out
         ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'}
       `}
@@ -92,7 +92,7 @@ export function Toast({ type, message, visible = true }: ToastProps): React.Reac
         className={`w-5 h-5 flex-shrink-0 ${config.iconClass} ${isLoading ? 'animate-spin' : ''}`}
         aria-hidden="true"
       />
-      <span className="text-sm text-gray-200 leading-snug">{message}</span>
+      <span className="text-sm text-toast-foreground leading-snug">{message}</span>
     </div>
   );
 }

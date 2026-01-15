@@ -82,7 +82,7 @@ export const TextField: React.FC<TextFieldProps> = ({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={name} className="block text-sm font-medium text-text-primary">
+      <label htmlFor={name} className="block text-sm font-medium text-foreground">
         {label}
         {required && <span className="text-validation-error-required ml-1">*</span>}
       </label>
@@ -132,7 +132,7 @@ export const SelectField: React.FC<SelectFieldProps> = ({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={name} className="block text-sm font-medium text-text-primary">
+      <label htmlFor={name} className="block text-sm font-medium text-foreground">
         {label}
         {required && <span className="text-validation-error-required ml-1">*</span>}
       </label>
@@ -182,7 +182,7 @@ export const DateField: React.FC<DateFieldProps> = ({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={name} className="block text-sm font-medium text-text-primary">
+      <label htmlFor={name} className="block text-sm font-medium text-foreground">
         {label}
         {required && <span className="text-validation-error-required ml-1">*</span>}
       </label>
@@ -227,7 +227,7 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={name} className="block text-sm font-medium text-text-primary">
+      <label htmlFor={name} className="block text-sm font-medium text-foreground">
         {label}
       </label>
       <div className="relative">

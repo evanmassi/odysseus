@@ -530,9 +530,11 @@ export function Dashboard() {
       <div className="main-layout">
         {/* Storage Navigator - Tank/Rack/Box */}
         <div className="storage-navigator-panel">
-          <div className="h-full flex flex-col bg-white rounded-lg">
+          <div className="h-full flex flex-col bg-background rounded-lg">
             <div className="px-4 pt-4 pb-2">
-              <h4 className="text-sm font-semibold text-slate-400 tracking-wide">Navigator</h4>
+              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide">
+                Navigator
+              </h4>
             </div>
             <div
               className="flex-1 pb-2 overflow-y-auto overflow-x-hidden scrollbar-hidden"
@@ -554,13 +556,13 @@ export function Dashboard() {
 
         {/* Main Grid - Square Constraint */}
         <div className="grid-section">
-          <div className="h-full flex flex-col bg-white rounded-lg">
+          <div className="h-full flex flex-col bg-background rounded-lg">
             <div className="px-4 pt-4 pb-2 flex items-center">
-              <h4 className="text-sm font-semibold text-slate-400 tracking-wide inline-flex items-center gap-1.5">
+              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
                 <span>{tankDisplayName}</span>
-                <span className="text-xs text-slate-300">•</span>
+                <span className="text-xs text-muted-foreground">•</span>
                 <span>{rackDisplayName}</span>
-                <span className="text-xs text-slate-300">•</span>
+                <span className="text-xs text-muted-foreground">•</span>
                 <span>{boxDisplayName}</span>
               </h4>
               {isViewOnlySpace && (
@@ -578,7 +580,7 @@ export function Dashboard() {
               {isCommonSpace && (
                 <div className="flex-1 flex justify-end">
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 cursor-help"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground cursor-help"
                     title="This space is available to all users."
                   >
                     <UsersRound className="w-2.5 h-2.5" />
@@ -612,9 +614,9 @@ export function Dashboard() {
 
         {/* Info Panel - Flexible Width */}
         <div className="info-panel" ref={infoPanelRef}>
-          <div className="h-full flex flex-col bg-white rounded-lg">
+          <div className="h-full flex flex-col bg-background rounded-lg">
             <div className="px-4 pt-4 pb-2">
-              <h4 className="text-sm font-semibold text-slate-400 tracking-wide">
+              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide">
                 Tube Information
               </h4>
             </div>

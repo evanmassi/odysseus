@@ -64,7 +64,7 @@ export function BoxEditModal({
         <div>
           <label
             htmlFor="box-grid-template"
-            className="block text-sm font-medium mb-1 text-text-secondary"
+            className="block text-sm font-medium mb-1 text-secondary-foreground"
           >
             Grid Size ({initialBox.name})
           </label>

@@ -78,8 +78,10 @@ export function CustomLabelEditModal({
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Generic Name (Read-only) */}
         <div>
-          <div className="block text-sm font-medium mb-1 text-text-secondary">System Name</div>
-          <div className="px-3 py-2 bg-gray-100 rounded text-gray-700 font-medium">
+          <div className="block text-sm font-medium mb-1 text-secondary-foreground">
+            System Name
+          </div>
+          <div className="px-3 py-2 bg-muted rounded text-secondary-foreground font-medium">
             {genericName}
           </div>
         </div>
@@ -88,7 +90,7 @@ export function CustomLabelEditModal({
         <div>
           <label
             htmlFor="custom-label-input"
-            className="block text-sm font-medium mb-1 text-text-secondary"
+            className="block text-sm font-medium mb-1 text-secondary-foreground"
           >
             Custom Label (optional)
           </label>
@@ -102,15 +104,15 @@ export function CustomLabelEditModal({
             maxLength={50}
           />
           <div className="flex justify-between mt-1">
-            <p className="text-xs text-gray-500">Leave blank to remove custom label.</p>
-            <p className="text-xs text-gray-500">{label.length}/50</p>
+            <p className="text-xs text-muted-foreground">Leave blank to remove custom label.</p>
+            <p className="text-xs text-muted-foreground">{label.length}/50</p>
           </div>
         </div>
 
         {/* Preview */}
-        <div className="flex items-center gap-1.5 text-sm text-slate-500">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <span>Preview:</span>
-          <span className="font-semibold text-slate-700">{previewName}</span>
+          <span className="font-semibold text-secondary-foreground">{previewName}</span>
         </div>
       </form>
 

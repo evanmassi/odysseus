@@ -108,7 +108,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
       <div className="p-4">
         <div className="flex items-center justify-center py-8">
           <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full" />
-          <span className="ml-2 text-sm text-gray-600">Searching...</span>
+          <span className="ml-2 text-sm text-secondary-foreground">Searching...</span>
         </div>
       </div>
     );
@@ -408,10 +408,10 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
     <div className="max-h-[600px] overflow-hidden relative flex flex-col">
       {/* Loading overlay when refetching */}
       {isSearching && (
-        <div className="absolute inset-0 bg-white/50 flex items-start justify-center pt-2 z-10">
-          <div className="flex items-center bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200">
+        <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
+          <div className="flex items-center bg-background px-3 py-1 rounded-full shadow-sm border border-border">
             <div className="animate-spin w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full" />
-            <span className="ml-2 text-xs text-gray-600">Updating...</span>
+            <span className="ml-2 text-xs text-secondary-foreground">Updating...</span>
           </div>
         </div>
       )}
@@ -423,7 +423,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {/* Results Header */}
         <div className="flex items-center justify-between border-b pb-2">
-          <div className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+          <div className="text-sm text-secondary-foreground font-medium">
             {totalCount} tube{totalCount !== 1 ? 's' : ''} found
           </div>
 
@@ -464,36 +464,36 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                   type="button"
                   key={index}
                   onClick={() => handleGroupClick(group)}
-                  className="w-full text-left p-2.5 bg-slate-50 rounded-md hover:bg-slate-100 cursor-pointer transition-all focus-ring-default"
+                  className="w-full text-left p-2.5 bg-muted rounded-md hover:bg-accent cursor-pointer transition-all focus-ring-default"
                   aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
                 >
                   {/* Line 1: Cell Type with tube count badge */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <TubeIcon
-                        className="text-slate-700 flex-shrink-0"
+                        className="text-secondary-foreground flex-shrink-0"
                         size={14}
                         aria-hidden="true"
                       />
-                      <span className="text-xs font-semibold text-slate-800">
+                      <span className="text-xs font-semibold text-foreground">
                         {highlightText(cellType, query)}
                       </span>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium text-white bg-slate-500 flex-shrink-0">
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium text-background bg-muted-foreground flex-shrink-0">
                       {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}
                     </span>
                   </div>
 
                   {/* Lines 2-4: Compact details with vertical indicator */}
                   <div className="flex mt-1">
-                    <div className="ml-[11px] mr-2 border-l-2 border-slate-300"></div>
-                    <div className="flex-1 space-y-0.5 text-xs text-slate-700">
+                    <div className="ml-[11px] mr-2 border-l-2 border-border"></div>
+                    <div className="flex-1 space-y-0.5 text-xs text-secondary-foreground">
                       {/* Line 2: Donor Internal ID · Donor Source ID */}
                       {(donorInternal || donorSource) && (
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {donorInternal && <span>{highlightText(donorInternal, query)}</span>}
                           {donorInternal && donorSource && (
-                            <span className="text-slate-300">·</span>
+                            <span className="text-muted-foreground">·</span>
                           )}
                           {donorSource && <span>{highlightText(donorSource, query)}</span>}
                         </div>
@@ -506,11 +506,11 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                             <span>{highlightText(cultureCondition, query)}</span>
                           )}
                           {cultureCondition && lotNumber && (
-                            <span className="text-slate-300">·</span>
+                            <span className="text-muted-foreground">·</span>
                           )}
                           {lotNumber && <span>{highlightText(lotNumber, query)}</span>}
                           {(cultureCondition || lotNumber) && concentration && (
-                            <span className="text-slate-300">·</span>
+                            <span className="text-muted-foreground">·</span>
                           )}
                           {concentration && <span>{concentration}</span>}
                         </div>
@@ -520,7 +520,9 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                       {(date || researcherName) && (
                         <div className="flex items-center gap-1.5 flex-wrap">
                           {date && <span>{date}</span>}
-                          {date && researcherName && <span className="text-slate-300">·</span>}
+                          {date && researcherName && (
+                            <span className="text-muted-foreground">·</span>
+                          )}
                           {researcherName && <span>{highlightText(researcherName, query)}</span>}
                         </div>
                       )}
@@ -528,10 +530,10 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                   </div>
 
                   {/* Line 5: Location */}
-                  <div className="inline-flex items-center gap-1.5 text-xs text-slate-500 mt-1">
+                  <div className="inline-flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
                     <MapPin className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
                     <span>{location}</span>
-                    <span className="text-slate-300">·</span>
+                    <span className="text-muted-foreground">·</span>
                     <span>{formatPositions(group.tubes)}</span>
                   </div>
                 </button>
@@ -539,10 +541,10 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
             })}
           </div>
         ) : (
-          <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <div className="text-center py-8 text-muted-foreground">
             <TubeIcon className="w-8 h-8 mx-auto mb-2 opacity-30" />
             <p className="text-sm">No results found</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Try adjusting your search or filters
             </p>
           </div>

@@ -71,14 +71,14 @@ export function RackRow({
     <div className="ml-2">
       {/* Rack Row */}
       <div
-        className={`flex gap-1.5 py-1 px-1.5 hover:bg-slate-50/50 transition-colors border-l-4 ${leftBorderClass}`}
+        className={`flex gap-1.5 py-1 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${leftBorderClass}`}
       >
         {/* Left side - vertically centered between rows */}
         <div className="flex items-center gap-1.5 self-center">
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="text-slate-700 flex-shrink-0 hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
+            className="text-secondary-foreground flex-shrink-0 hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
             aria-expanded={!collapsed}
             aria-controls={`rack-content-${rackKey}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
@@ -104,8 +104,12 @@ export function RackRow({
               aria-controls={`rack-content-${rackKey}`}
               aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
             >
-              <RackIcon className="text-slate-700 flex-shrink-0" size={18} aria-hidden="true" />
-              <span className="font-medium text-slate-800 text-sm">
+              <RackIcon
+                className="text-secondary-foreground flex-shrink-0"
+                size={18}
+                aria-hidden="true"
+              />
+              <span className="font-medium text-foreground text-sm">
                 {formatResourceDisplayName(rack.name, rack.customLabel)}
               </span>
               <span className={`text-xs px-2 py-0.5 rounded ml-auto ${badgeClass}`}>
@@ -149,7 +153,7 @@ export function RackRow({
                 <Tooltip content="Edit rack" side="bottom">
                   <button
                     onClick={() => onEditRack(tankId, rack)}
-                    className="text-slate-700 hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
+                    className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
                   >
                     <Edit3 size={14} />
                   </button>
