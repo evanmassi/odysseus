@@ -62,7 +62,7 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-muted">
         <div
           ref={trapRef}
-          className="bg-background rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+          className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
         >
           <div className="text-center mb-4">
             <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
@@ -93,7 +93,7 @@ export const ResetPasswordPage: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-muted">
         <div
           ref={trapRef}
-          className="bg-background rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+          className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
         >
           <div className="text-center">
             <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center">
@@ -116,13 +116,13 @@ export const ResetPasswordPage: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-muted">
       <div
         ref={trapRef}
-        className="bg-background rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+        className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
       >
         <div className="text-center mb-4">
           <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
             <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
           </div>
-          <h2 className="text-xl font-bold text-foreground">Create New Password</h2>
+          <h2 className="text-xl font-bold text-card-foreground">Create New Password</h2>
         </div>
 
         <CreatePasswordForm

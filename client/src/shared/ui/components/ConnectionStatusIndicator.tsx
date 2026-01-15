@@ -184,7 +184,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
         className={`rounded-lg shadow-lg p-3 border-l-4 ${
           isOffline
             ? 'bg-status-offline border-t border-r border-b border-status-offline-border'
-            : 'bg-background border-t border-r border-b border-border max-w-xs'
+            : 'bg-card border-t border-r border-b border-border max-w-xs'
         }`}
         style={{
           minWidth: isOffline ? '320px' : '200px',
@@ -201,7 +201,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
               </span>
             )}
             <span
-              className={`text-sm font-medium ${isOffline ? 'text-[var(--color-danger-bg)]' : 'text-foreground'}`}
+              className={`text-sm font-medium ${isOffline ? 'text-[var(--color-danger-bg)]' : 'text-card-foreground'}`}
             >
               {status.text}
             </span>

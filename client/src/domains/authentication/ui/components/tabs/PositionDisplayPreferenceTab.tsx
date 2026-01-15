@@ -39,12 +39,14 @@ export function PositionDisplayPreferenceTab({
       {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <Table2 size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-foreground">Display Preferences</h3>
+        <h3 className="text-xl font-semibold text-card-foreground">Display Preferences</h3>
       </div>
 
       {/* Position Display Format Section */}
       <div>
-        <h4 className="text-base font-semibold text-foreground mb-2">Position Display Format</h4>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">
+          Position Display Format
+        </h4>
         <p className="text-xs text-secondary-foreground mb-3">
           Choose how position labels are displayed throughout the application. This is your personal
           preference and won&apos;t affect other users.
@@ -59,7 +61,7 @@ export function PositionDisplayPreferenceTab({
             className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
               currentFormat === 'numeric'
                 ? 'bg-action border-action text-white shadow-md'
-                : 'bg-background border-border text-secondary-foreground hover:border-action hover:bg-action/10'
+                : 'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10'
             }`}
           >
             {savedFormat === 'numeric' && (
@@ -116,7 +118,7 @@ export function PositionDisplayPreferenceTab({
             className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
               currentFormat === 'alphanumeric'
                 ? 'bg-action border-action text-white shadow-md'
-                : 'bg-background border-border text-secondary-foreground hover:border-action hover:bg-action/10'
+                : 'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10'
             }`}
           >
             {savedFormat === 'alphanumeric' && (
@@ -175,7 +177,7 @@ export function PositionDisplayPreferenceTab({
             className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
               !currentFormat
                 ? 'bg-action border-action text-white shadow-md'
-                : 'bg-background border-border text-secondary-foreground hover:border-action hover:bg-action/10'
+                : 'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10'
             }`}
           >
             {!savedFormat && (

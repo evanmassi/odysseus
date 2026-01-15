@@ -90,7 +90,7 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
           </svg>
         </div>
 
-        <h3 className="text-lg font-semibold text-foreground mb-2">
+        <h3 className="text-lg font-semibold text-card-foreground mb-2">
           Failed to load {name ?? 'component'}
         </h3>
 

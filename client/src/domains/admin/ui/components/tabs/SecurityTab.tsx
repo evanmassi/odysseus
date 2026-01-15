@@ -51,17 +51,19 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
       {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <Shield size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-foreground">Security</h3>
+        <h3 className="text-xl font-semibold text-card-foreground">Security</h3>
       </div>
 
       {/* Authentication Settings Section */}
       <div>
-        <h4 className="text-base font-semibold text-foreground mb-2">Authentication Settings</h4>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">
+          Authentication Settings
+        </h4>
         <div className="space-y-1.5">
           {/* Enhanced Authentication Toggle */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-foreground">Enhanced Authentication</h5>
+              <h5 className="text-sm font-medium text-card-foreground">Enhanced Authentication</h5>
               <p className="text-xs text-secondary-foreground">
                 Enable stronger password-based authentication
               </p>
@@ -81,7 +83,9 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
           {/* Strong Password Requirements Toggle */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-foreground">Strong Password Requirements</h5>
+              <h5 className="text-sm font-medium text-card-foreground">
+                Strong Password Requirements
+              </h5>
               <p className="text-xs text-secondary-foreground">
                 Enforce complex password policies (uppercase, lowercase, numbers)
               </p>
@@ -102,7 +106,9 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
           <div className="grid grid-cols-2 gap-1.5">
             <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
               <div>
-                <h5 className="text-sm font-medium text-foreground">Minimum Password Length</h5>
+                <h5 className="text-sm font-medium text-card-foreground">
+                  Minimum Password Length
+                </h5>
                 <p className="text-xs text-secondary-foreground">Enforce minimum length</p>
               </div>
               <div className="flex flex-col items-center">
@@ -120,7 +126,9 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
 
             <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
               <div>
-                <h5 className="text-sm font-medium text-foreground">Require Special Characters</h5>
+                <h5 className="text-sm font-medium text-card-foreground">
+                  Require Special Characters
+                </h5>
                 <p className="text-xs text-secondary-foreground">(!@#$%^&*)</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
@@ -140,12 +148,12 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
 
       {/* Session Management Section */}
       <div>
-        <h4 className="text-base font-semibold text-foreground mb-2">Session Management</h4>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">Session Management</h4>
         <div className="grid grid-cols-2 gap-1.5">
           {/* Auto-Logout */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-foreground">Auto-Logout</h5>
+              <h5 className="text-sm font-medium text-card-foreground">Auto-Logout</h5>
               <p className="text-xs text-secondary-foreground">Logout after inactivity</p>
             </div>
             <div className="flex flex-col items-center">
@@ -164,7 +172,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
           {/* Logout Warning */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-foreground">Logout Warning</h5>
+              <h5 className="text-sm font-medium text-card-foreground">Logout Warning</h5>
               <p className="text-xs text-secondary-foreground">Warning before logout</p>
             </div>
             <div className="flex flex-col items-center">
@@ -183,7 +191,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
           {/* Max Login Time */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-foreground">Max Login Time</h5>
+              <h5 className="text-sm font-medium text-card-foreground">Max Login Time</h5>
               <p className="text-xs text-secondary-foreground">Force re-login after</p>
             </div>
             <div className="flex flex-col items-center">
@@ -202,7 +210,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
           {/* Token Lifetime */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-foreground">Token Lifetime</h5>
+              <h5 className="text-sm font-medium text-card-foreground">Token Lifetime</h5>
               <p className="text-xs text-secondary-foreground">Security refresh interval</p>
             </div>
             <div className="flex flex-col items-center">
@@ -222,12 +230,12 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
 
       {/* Rate Limiting Section */}
       <div>
-        <h4 className="text-base font-semibold text-foreground mb-2">Rate Limiting</h4>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">Rate Limiting</h4>
         <div className="space-y-1.5">
           {/* Enable Rate Limiting Toggle */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-foreground">Enable Rate Limiting</h5>
+              <h5 className="text-sm font-medium text-card-foreground">Enable Rate Limiting</h5>
               <p className="text-xs text-secondary-foreground">Prevent brute force attacks</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -248,7 +256,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
               {/* Max Login Attempts Input */}
               <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
                 <div>
-                  <h5 className="text-sm font-medium text-foreground">Max Attempts/Minute</h5>
+                  <h5 className="text-sm font-medium text-card-foreground">Max Attempts/Minute</h5>
                   <p className="text-xs text-secondary-foreground">Limit login attempts</p>
                 </div>
                 <div className="flex flex-col items-center">
@@ -267,7 +275,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
               {/* Lockout Duration Input */}
               <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
                 <div>
-                  <h5 className="text-sm font-medium text-foreground">Lockout Duration</h5>
+                  <h5 className="text-sm font-medium text-card-foreground">Lockout Duration</h5>
                   <p className="text-xs text-secondary-foreground">Set lockout period</p>
                 </div>
                 <div className="flex flex-col items-center">

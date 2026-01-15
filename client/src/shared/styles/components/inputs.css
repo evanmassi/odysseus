@@ -21,7 +21,7 @@
   }
 
   .input {
-    @apply flex h-10 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground placeholder:opacity-60 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground placeholder:opacity-60 disabled:cursor-not-allowed disabled:opacity-50;
     transition:
       border-color 200ms,
       box-shadow 200ms,
@@ -33,7 +33,7 @@
   }
 
   .input-compact {
-    @apply flex h-8 w-full rounded-md border border-border bg-background px-2 py-1 text-xs file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-muted-foreground placeholder:opacity-60 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-8 w-full rounded-md border border-border bg-input px-2 py-1 text-xs file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-muted-foreground placeholder:opacity-60 disabled:cursor-not-allowed disabled:opacity-50;
     transition:
       border-color 200ms,
       box-shadow 200ms,
@@ -58,7 +58,7 @@
   }
 
   .input-search:focus {
-    @apply bg-background border-border;
+    @apply bg-input border-border;
   }
 
   /* Form field inputs (ValidatedInput component) */
@@ -105,7 +105,7 @@
 
   .input-field {
     @apply h-9 px-4 py-1 rounded-lg transition-colors duration-200;
-    @apply bg-background text-foreground placeholder:text-muted-foreground placeholder:opacity-60;
+    @apply bg-input text-foreground placeholder:text-muted-foreground placeholder:opacity-60;
   }
 
   .input-field-normal {

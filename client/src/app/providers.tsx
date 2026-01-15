@@ -1,8 +1,7 @@
 /**
- * Application Providers Setup
+ * Application Providers
  *
- * Clean composition root that eliminates provider hell from App.tsx.
- * Centralizes all app-wide providers in proper order.
+ * Wraps app with React Query, theming, tooltips, and toast notifications
  */
 import React, { Component, useEffect, useRef } from 'react';
 
@@ -10,7 +9,6 @@ import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
-// Performance debugging removed for clean build
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
 import {
@@ -31,9 +29,6 @@ interface ProvidersProps {
   children: React.ReactNode;
 }
 
-/**
- * Root providers wrapper for the entire application
- */
 export function Providers({ children }: ProvidersProps) {
   const persistenceInitialized = useRef(false);
 
@@ -49,10 +44,6 @@ export function Providers({ children }: ProvidersProps) {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <TooltipPrimitive.Provider delayDuration={300} skipDelayDuration={300}>
-          {/* Cache Performance Monitoring - only in development */}
-          {/* Performance debugging removed for clean build */}
-
-          {/* Connection Status & Real-time Indicators */}
           <RealtimeSyncIndicator />
           <ConnectionStatusIndicator />
 
@@ -71,9 +62,6 @@ export function Providers({ children }: ProvidersProps) {
   );
 }
 
-/**
- * Custom error boundary for global error handling
- */
 interface ErrorBoundaryState {
   hasError: boolean;
   error?: Error;
@@ -97,7 +85,7 @@ export class ErrorBoundary extends Component<{ children: React.ReactNode }, Erro
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-foreground flex items-center justify-center">
-          <div className="bg-background rounded-lg p-8 max-w-md mx-4">
+          <div className="bg-card rounded-lg p-8 max-w-md mx-4">
             <h2 className="text-xl font-bold text-red-400 mb-4">Something went wrong</h2>
             <p className="text-muted-foreground mb-4">
               An unexpected error occurred. Please try refreshing the page.
@@ -114,9 +102,6 @@ export class ErrorBoundary extends Component<{ children: React.ReactNode }, Erro
   }
 }
 
-/**
- * Combined app providers with error boundary
- */
 export function AppProviders({ children }: ProvidersProps) {
   return (
     <ErrorBoundary>

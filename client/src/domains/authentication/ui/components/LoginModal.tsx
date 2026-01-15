@@ -142,7 +142,9 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   if (passwordChangeRequired) {
     return (
       <AuthBaseModal key="password-change" showBranding="icon">
-        <h2 className="text-xl font-bold text-foreground text-center mb-4">Create New Password</h2>
+        <h2 className="text-xl font-bold text-card-foreground text-center mb-4">
+          Create New Password
+        </h2>
 
         <CreatePasswordForm
           onSubmit={handlePasswordChange}
@@ -224,7 +226,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         >
           <label
             htmlFor="username"
-            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-muted-foreground'}`}
+            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             Username or email
           </label>
@@ -253,7 +255,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         >
           <label
             htmlFor="password"
-            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-muted-foreground'}`}
+            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             Password
           </label>

@@ -241,7 +241,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="firstName"
-                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
+                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
               >
                 First name <span className="text-red-500">*</span>
               </label>
@@ -284,7 +284,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           >
             <label
               htmlFor="lastName"
-              className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
+              className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
             >
               Last name <span className="text-red-500">*</span>
             </label>
@@ -318,7 +318,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="email"
-                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
+                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
               >
                 Email <span className="text-red-500">*</span>
               </label>
@@ -358,7 +358,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             <div className="auth-input-container border-border">
               <label
                 htmlFor="department"
-                className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium text-muted-foreground"
+                className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium text-muted-foreground"
               >
                 Department
               </label>
@@ -384,7 +384,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             <div className="auth-input-container border-border">
               <label
                 htmlFor="position"
-                className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium text-muted-foreground"
+                className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium text-muted-foreground"
               >
                 Position
               </label>
@@ -420,7 +420,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                 />
                 <div className="w-7 h-4 bg-secondary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
               </div>
-              <span className="text-xs text-secondary-foreground group-hover:text-foreground">
+              <span className="text-xs text-secondary-foreground group-hover:text-accent-foreground">
                 I am a researcher
               </span>
             </label>
@@ -435,7 +435,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="password"
-                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
+                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
               >
                 Password <span className="text-red-500">*</span>
               </label>
@@ -484,7 +484,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             >
               <label
                 htmlFor="confirmPassword"
-                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
+                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
               >
                 Confirm password <span className="text-red-500">*</span>
               </label>

@@ -149,7 +149,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
       {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <UserRound size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-foreground">Account Information</h3>
+        <h3 className="text-xl font-semibold text-card-foreground">Account Information</h3>
       </div>
 
       <div className="space-y-4 max-w-2xl">
@@ -161,7 +161,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           >
             <label
               htmlFor="account-firstName"
-              className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
+              className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
             >
               First Name <span className="text-red-500">*</span>
             </label>
@@ -191,7 +191,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           >
             <label
               htmlFor="account-lastName"
-              className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
+              className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
             >
               Last Name <span className="text-red-500">*</span>
             </label>
@@ -220,7 +220,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
         <div className={`auth-input-container ${getFieldBorderClass(emailTouched, emailIsValid)}`}>
           <label
             htmlFor="account-email"
-            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(emailTouched, emailIsValid)}`}
+            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(emailTouched, emailIsValid)}`}
           >
             Email <span className="text-red-500">*</span>
           </label>
@@ -255,7 +255,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           <div className="auth-input-container border-border">
             <label
               htmlFor="account-department"
-              className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold text-secondary-foreground"
+              className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold text-secondary-foreground"
             >
               Department
             </label>
@@ -281,7 +281,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           <div className="auth-input-container border-border">
             <label
               htmlFor="account-position"
-              className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold text-secondary-foreground"
+              className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold text-secondary-foreground"
             >
               Position
             </label>
@@ -308,7 +308,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
         {hasChanges && (
           <div className="pt-4 border-t border-border space-y-2">
             <div className="mb-2">
-              <p className="text-sm font-semibold text-foreground">Confirm Changes</p>
+              <p className="text-sm font-semibold text-card-foreground">Confirm Changes</p>
               <p className="text-xs text-secondary-foreground">
                 Enter your current password to save changes
               </p>
@@ -319,7 +319,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             >
               <label
                 htmlFor="account-currentPassword"
-                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(passwordTouched, currentPassword.trim().length > 0)}`}
+                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(passwordTouched, currentPassword.trim().length > 0)}`}
               >
                 Current Password <span className="text-red-500">*</span>
               </label>

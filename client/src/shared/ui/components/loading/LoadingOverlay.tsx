@@ -1,11 +1,8 @@
 /**
- * Loading Overlay Component
+ * Loading Overlay
  *
- * Full-page loading overlay with dark backdrop and centered card.
- * Matches the styling of the offline initialization page for consistency.
- * Use for major transitions, full-page loading states.
+ * Full-page loading state matching offline initialization page styling
  */
-
 import { Loader2 } from 'lucide-react';
 
 interface LoadingOverlayProps {
@@ -18,13 +15,13 @@ interface LoadingOverlayProps {
 export function LoadingOverlay({ message = 'Loading...', submessage }: LoadingOverlayProps) {
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50">
-      <div className="bg-background rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
+      <div className="bg-card rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
         <div className="text-center">
           <div className="mb-4">
             <Loader2 className="w-14 h-14 text-primary animate-spin mx-auto" />
           </div>
 
-          <h1 className="text-xl font-bold text-foreground mb-2">{message}</h1>
+          <h1 className="text-xl font-bold text-card-foreground mb-2">{message}</h1>
 
           {submessage && <p className="text-sm text-muted-foreground">{submessage}</p>}
         </div>

@@ -357,7 +357,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
       <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
         <div className="flex items-center space-x-2">
           <UsersRound size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-foreground">Users</h3>
+          <h3 className="text-xl font-semibold text-card-foreground">Users</h3>
         </div>
         <button
           onClick={() => {
@@ -392,7 +392,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                     <UserRound size={14} className="text-amber-600" />
                   </div>
                   <div>
-                    <div className="text-sm font-medium text-foreground">{user.username}</div>
+                    <div className="text-sm font-medium text-card-foreground">{user.username}</div>
                     <div className="text-xs text-muted-foreground">
                       Registered {new Date(user.createdAt).toLocaleDateString()}
                     </div>
@@ -432,7 +432,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
       )}
 
       {/* All Users Table */}
-      <div className="bg-background border border-border rounded-lg overflow-hidden overflow-x-auto">
+      <div className="bg-card border border-border rounded-lg overflow-hidden overflow-x-auto">
         <table className="min-w-full divide-y divide-border">
           <thead className="bg-muted">
             <tr>
@@ -453,7 +453,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
               </th>
             </tr>
           </thead>
-          <tbody className="bg-background divide-y divide-border">
+          <tbody className="bg-card divide-y divide-border">
             {(users?.length ?? 0) > 0 ? (
               users.map(user => (
                 <tr key={user.id} className="hover:bg-accent">
@@ -465,7 +465,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                       </div>
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-medium text-foreground">
+                          <span className="text-sm font-medium text-card-foreground">
                             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy */}
                             {user.lastName || user.firstName
                               ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`

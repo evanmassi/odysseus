@@ -409,7 +409,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
       {/* Loading overlay when refetching */}
       {isSearching && (
         <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
-          <div className="flex items-center bg-background px-3 py-1 rounded-full shadow-sm border border-border">
+          <div className="flex items-center bg-card px-3 py-1 rounded-full shadow-sm border border-border">
             <div className="animate-spin w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full" />
             <span className="ml-2 text-xs text-secondary-foreground">Updating...</span>
           </div>
@@ -475,7 +475,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                         size={14}
                         aria-hidden="true"
                       />
-                      <span className="text-xs font-semibold text-foreground">
+                      <span className="text-xs font-semibold text-card-foreground">
                         {highlightText(cellType, query)}
                       </span>
                     </div>

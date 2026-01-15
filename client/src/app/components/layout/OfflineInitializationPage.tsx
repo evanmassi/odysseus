@@ -65,7 +65,7 @@ export function OfflineInitializationPage({
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50">
-      <div className="bg-background rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
+      <div className="bg-card rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
         {/* Status Icon */}
         <div className="text-center mb-6">
           <div className="mb-4 flex justify-center">
@@ -73,7 +73,7 @@ export function OfflineInitializationPage({
           </div>
 
           <h1
-            className={`text-xl font-bold mb-2 ${isRetrying ? 'text-foreground' : 'text-danger-bg'}`}
+            className={`text-xl font-bold mb-2 ${isRetrying ? 'text-card-foreground' : 'text-danger-bg'}`}
           >
             {isRetrying ? 'Connecting...' : "You're Offline"}
           </h1>
@@ -88,7 +88,7 @@ export function OfflineInitializationPage({
           {!isRetrying && (
             <div className="text-center">
               <p className="text-sm text-muted-foreground">
-                Retrying in <span className="font-semibold text-foreground">{countdown}s</span>
+                Retrying in <span className="font-semibold text-card-foreground">{countdown}s</span>
               </p>
             </div>
           )}

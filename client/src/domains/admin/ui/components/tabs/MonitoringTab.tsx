@@ -44,7 +44,7 @@ export function MonitoringTab(_props: MonitoringTabProps) {
       {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border">
         <Activity size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-foreground">System Monitoring</h3>
+        <h3 className="text-xl font-semibold text-card-foreground">System Monitoring</h3>
       </div>
 
       {/* Audit Retention Settings - Collapsible */}

@@ -147,7 +147,7 @@ export function CreatePasswordForm({
         <div className={`auth-input-container ${newPasswordBorderClass}`}>
           <label
             htmlFor="newPassword"
-            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium ${passwordMeetsRequirements ? 'text-emerald-700' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-label' : 'text-muted-foreground'}`}
+            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${passwordMeetsRequirements ? 'text-emerald-700' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             New Password
           </label>
@@ -194,7 +194,7 @@ export function CreatePasswordForm({
         <div className={`auth-input-container ${confirmPasswordBorderClass}`}>
           <label
             htmlFor="confirmPassword"
-            className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-700' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-label' : 'text-muted-foreground'}`}
+            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-700' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             Confirm Password
           </label>

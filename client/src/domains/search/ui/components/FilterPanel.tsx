@@ -379,7 +379,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           <Tooltip content="Clear all filters" side="bottom">
             <button
               onClick={clearFilters}
-              className="px-2 py-1 text-xs text-secondary-foreground hover:text-foreground hover:bg-accent rounded transition-colors focus-ring-default"
+              className="px-2 py-1 text-xs text-secondary-foreground hover:text-accent-foreground hover:bg-accent rounded transition-colors focus-ring-default"
             >
               Clear All
             </button>
@@ -388,7 +388,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             <Tooltip content="Close filters" side="bottom">
               <button
                 onClick={onClose}
-                className="p-1 text-secondary-foreground hover:text-foreground hover:bg-secondary rounded transition-colors focus-ring-default"
+                className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors focus-ring-default"
               >
                 <X className="w-4 h-4" />
               </button>

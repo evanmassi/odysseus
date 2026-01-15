@@ -112,9 +112,7 @@ export const ModalSkeleton: React.FC<ModalSkeletonProps> = ({ size = 'md', class
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
-      <div
-        className={`${sizeClasses[size]} w-full mx-4 bg-background rounded-lg shadow-xl ${className}`}
-      >
+      <div className={`${sizeClasses[size]} w-full mx-4 bg-card rounded-lg shadow-xl ${className}`}>
         {/* Header */}
         <div className="px-6 py-4 border-b border-border">
           <Skeleton width="40%" height="1.25rem" />
@@ -220,7 +218,7 @@ export const DashboardWidgetSkeleton: React.FC<DashboardWidgetSkeletonProps> = (
   className = '',
 }) => (
   <div
-    className={`p-6 border border-border rounded-lg bg-background ${className}`}
+    className={`p-6 border border-border rounded-lg bg-card ${className}`}
     role="status"
     aria-label="Loading widget..."
   >

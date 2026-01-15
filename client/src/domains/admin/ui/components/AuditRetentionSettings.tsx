@@ -1,11 +1,8 @@
 /**
- * Audit Retention Settings Component
+ * Audit Retention Settings
  *
- * Displays retention policy, metrics, and manual archival controls.
- * Admin-only component for managing audit log retention.
- * Supports collapsed and expanded views for space efficiency.
+ * Admin controls for retention policy, metrics, and manual archival
  */
-
 import React, { useState, useEffect } from 'react';
 
 import {
@@ -41,7 +38,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   );
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
 
-  // Load metrics and policy
   const loadData = async () => {
     try {
       setLoading(true);
@@ -89,7 +85,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
     }
   };
 
-  // Export archived logs
   const exportArchive = async () => {
     try {
       const blob = await adminService.exportArchivedLogs();
@@ -107,7 +102,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
     }
   };
 
-  // Format date
   const formatDate = (date: Date | string | null) => {
     if (!date) return '-';
     const d = typeof date === 'string' ? new Date(date) : date;
@@ -123,7 +117,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
     return num.toLocaleString();
   };
 
-  // Determine status
   const getStatus = (): 'healthy' | 'warning' | 'critical' => {
     if (!metrics) return 'healthy';
     if (metrics.performanceWarning) return 'warning';
@@ -132,7 +125,6 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
   const status = getStatus();
 
-  // Status display
   const statusConfig = {
     healthy: {
       icon: CheckCircle,
@@ -165,7 +157,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
   if (loading) {
     return (
-      <div className="bg-background border border-border rounded-lg p-4">
+      <div className="bg-card border border-border rounded-lg p-4">
         <div className="text-center text-sm text-muted-foreground">
           Loading retention settings...
         </div>
@@ -209,11 +201,11 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   return (
     <div className="space-y-3">
       {/* Header */}
-      <div className="bg-background border border-border rounded-lg p-3">
+      <div className="bg-card border border-border rounded-lg p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <FileClock className="w-4 h-4 text-secondary-foreground" />
-            <h4 className="text-sm font-semibold text-foreground">Audit Log Retention</h4>
+            <h4 className="text-sm font-semibold text-card-foreground">Audit Log Retention</h4>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -272,24 +264,24 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
       {/* Retention Policy */}
       {policy && (
-        <div className="bg-background border border-border rounded-lg p-3">
-          <h5 className="text-xs font-semibold text-foreground mb-2">Retention Policy</h5>
+        <div className="bg-card border border-border rounded-lg p-3">
+          <h5 className="text-xs font-semibold text-card-foreground mb-2">Retention Policy</h5>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div>
               <div className="text-muted-foreground">Active Retention</div>
-              <div className="text-sm font-semibold text-foreground mt-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1">
                 {policy.activeRetentionDays} days
               </div>
             </div>
             <div>
               <div className="text-muted-foreground">Archive Retention</div>
-              <div className="text-sm font-semibold text-foreground mt-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1">
                 {policy.archiveRetentionDays} days
               </div>
             </div>
             <div>
               <div className="text-muted-foreground">Total Retention</div>
-              <div className="text-sm font-semibold text-foreground mt-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1">
                 {policy.totalRetentionDays} days
               </div>
             </div>
@@ -307,33 +299,35 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
       {/* Active Table Metrics */}
       {metrics && (
-        <div className="bg-background border border-border rounded-lg p-3">
+        <div className="bg-card border border-border rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <h5 className="text-xs font-semibold text-foreground">Active Table (Hot Storage)</h5>
+            <h5 className="text-xs font-semibold text-card-foreground">
+              Active Table (Hot Storage)
+            </h5>
             <div className="text-xs text-muted-foreground">Fast queries with full indexes</div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
             <div>
               <div className="text-muted-foreground">Total Entries</div>
-              <div className="text-sm font-semibold text-foreground mt-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1">
                 {formatNumber(metrics.activeTable.count)}
               </div>
             </div>
             <div>
               <div className="text-muted-foreground">Oldest Entry</div>
-              <div className="text-sm font-semibold text-foreground mt-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1">
                 {formatDate(metrics.activeTable.oldestEntry)}
               </div>
             </div>
             <div>
               <div className="text-muted-foreground">Newest Entry</div>
-              <div className="text-sm font-semibold text-foreground mt-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1">
                 {formatDate(metrics.activeTable.newestEntry)}
               </div>
             </div>
             <div>
               <div className="text-muted-foreground">Next Archival</div>
-              <div className="text-sm font-semibold text-foreground mt-1 flex items-center gap-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 {formatDate(metrics.nextArchivalDate)}
               </div>
@@ -344,27 +338,29 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
 
       {/* Archive Table Metrics */}
       {metrics && (
-        <div className="bg-background border border-border rounded-lg p-3">
+        <div className="bg-card border border-border rounded-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <h5 className="text-xs font-semibold text-foreground">Archive Table (Warm Storage)</h5>
+            <h5 className="text-xs font-semibold text-card-foreground">
+              Archive Table (Warm Storage)
+            </h5>
             <div className="text-xs text-muted-foreground">Minimal indexes, slower queries</div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs">
             <div>
               <div className="text-muted-foreground">Total Entries</div>
-              <div className="text-sm font-semibold text-foreground mt-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1">
                 {formatNumber(metrics.archiveTable.count)}
               </div>
             </div>
             <div>
               <div className="text-muted-foreground">Oldest Entry</div>
-              <div className="text-sm font-semibold text-foreground mt-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1">
                 {formatDate(metrics.archiveTable.oldestEntry)}
               </div>
             </div>
             <div>
               <div className="text-muted-foreground">Retention Period</div>
-              <div className="text-sm font-semibold text-foreground mt-1">
+              <div className="text-sm font-semibold text-card-foreground mt-1">
                 {metrics.archiveTable.retentionDays} days
               </div>
             </div>
@@ -373,8 +369,8 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
       )}
 
       {/* Actions */}
-      <div className="bg-background border border-border rounded-lg p-3">
-        <h5 className="text-xs font-semibold text-foreground mb-2">Manual Operations</h5>
+      <div className="bg-card border border-border rounded-lg p-3">
+        <h5 className="text-xs font-semibold text-card-foreground mb-2">Manual Operations</h5>
         <div className="flex gap-2">
           <button
             onClick={runArchival}
@@ -386,7 +382,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
           </button>
           <button
             onClick={exportArchive}
-            className="btn-compact border border-border bg-background text-secondary-foreground hover:bg-accent hover:border-primary flex items-center space-x-1"
+            className="btn-compact border border-border bg-card text-secondary-foreground hover:bg-accent hover:border-primary flex items-center space-x-1"
           >
             <Download size={12} />
             <span>Export Archive</span>

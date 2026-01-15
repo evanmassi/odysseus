@@ -122,12 +122,12 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
       {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <Gauge size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-foreground">System</h3>
+        <h3 className="text-xl font-semibold text-card-foreground">System</h3>
       </div>
 
       {/* Lab Name Section */}
       <div>
-        <h4 className="text-base font-semibold text-foreground mb-2">Laboratory</h4>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">Laboratory</h4>
         <div className="bg-muted p-3 rounded-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -139,13 +139,13 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                   value={labNameInput}
                   onChange={e => setLabNameInput(e.target.value)}
                   onKeyDown={handleLabNameKeyDown}
-                  className="text-sm font-medium text-foreground border border-border rounded px-2 py-1 focus-ring-default"
+                  className="text-sm font-medium text-card-foreground border border-border rounded px-2 py-1 focus-ring-default"
                   // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
                   autoFocus
                   disabled={isSavingLabName}
                 />
               ) : (
-                <span className="text-sm font-medium text-foreground">
+                <span className="text-sm font-medium text-card-foreground">
                   {currentLab?.name ?? ''}
                 </span>
               )}
@@ -173,7 +173,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
               ) : (
                 <button
                   onClick={() => setIsEditingLabName(true)}
-                  className="text-xs text-muted-foreground hover:text-foreground hover:bg-accent px-2 py-1 rounded transition-colors focus-ring-default"
+                  className="text-xs text-muted-foreground hover:text-accent-foreground hover:bg-accent px-2 py-1 rounded transition-colors focus-ring-default"
                 >
                   Edit
                 </button>
@@ -185,23 +185,25 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
 
       {/* System Statistics Section */}
       <div>
-        <h4 className="text-base font-semibold text-foreground mb-2">Statistics</h4>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">Statistics</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {/* Total Tubes */}
           <div className="bg-muted p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-foreground">{stats?.totalTubes ?? 0}</div>
+            <div className="text-xl font-bold text-card-foreground">{stats?.totalTubes ?? 0}</div>
             <div className="text-xs text-secondary-foreground">Total Tubes</div>
           </div>
 
           {/* Total Users */}
           <div className="bg-muted p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-foreground">{stats?.totalUsers ?? 0}</div>
+            <div className="text-xl font-bold text-card-foreground">{stats?.totalUsers ?? 0}</div>
             <div className="text-xs text-secondary-foreground">Total Users</div>
           </div>
 
           {/* Total Researchers */}
           <div className="bg-muted p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-foreground">{stats?.totalResearchers ?? 0}</div>
+            <div className="text-xl font-bold text-card-foreground">
+              {stats?.totalResearchers ?? 0}
+            </div>
             <div className="text-xs text-secondary-foreground">Researchers</div>
           </div>
 
@@ -217,12 +219,12 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
 
       {/* Audit & Monitoring Section */}
       <div>
-        <h4 className="text-base font-semibold text-foreground mb-2">Audit & Monitoring</h4>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">Audit & Monitoring</h4>
         <div className="space-y-1.5">
           {/* Detailed Logging Toggle */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-foreground">Detailed Logging</h5>
+              <h5 className="text-sm font-medium text-card-foreground">Detailed Logging</h5>
               <p className="text-xs text-secondary-foreground">Log all system operations</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">

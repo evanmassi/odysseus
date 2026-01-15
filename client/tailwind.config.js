@@ -39,53 +39,16 @@ export default {
           DEFAULT: 'var(--accent)',
           foreground: 'var(--accent-foreground)',
         },
-        destructive: {
-          DEFAULT: 'var(--destructive)',
-          foreground: 'var(--destructive-foreground)',
-        },
-
         /* Utilities */
         border: 'var(--border)',
         input: 'var(--input)',
-        ring: 'var(--ring)',
 
         /* Application-specific extensions */
 
-        ice: {
-          50: 'var(--color-ice-50)',
-          100: 'var(--color-ice-100)',
-          200: 'var(--color-ice-200)',
-          300: 'var(--color-ice-300)',
-          400: 'var(--color-ice-400)',
-          500: 'var(--color-ice-500)',
-          600: 'var(--color-ice-600)',
-          700: 'var(--color-ice-700)',
-          800: 'var(--color-ice-800)',
-          900: 'var(--color-ice-900)',
-        },
-        frost: 'var(--color-frost)',
         action: {
           DEFAULT: 'var(--color-action-default)',
           hover: 'var(--color-action-hover)',
           focus: 'var(--color-action-focus)',
-        },
-        edit: {
-          bg: 'var(--color-edit-bg)',
-          hover: 'var(--color-edit-hover)',
-          text: 'var(--color-edit-text)',
-          btnText: 'var(--color-edit-btnText)',
-        },
-        copy: {
-          bg: 'var(--color-copy-bg)',
-          hover: 'var(--color-copy-hover)',
-          text: 'var(--color-copy-text)',
-          btnText: 'var(--color-copy-btnText)',
-        },
-        cut: {
-          bg: 'var(--color-cut-bg)',
-          hover: 'var(--color-cut-hover)',
-          text: 'var(--color-cut-text)',
-          btnText: 'var(--color-cut-btnText)',
         },
         danger: {
           bg: 'var(--color-danger-bg)',
@@ -94,10 +57,6 @@ export default {
           btnText: 'var(--color-danger-btnText)',
           light: 'var(--color-danger-light)',
           border: 'var(--color-danger-border)',
-        },
-        password: {
-          bg: 'var(--color-password-bg)',
-          hover: 'var(--color-password-hover)',
         },
         clear: {
           bg: 'var(--color-clear-bg)',

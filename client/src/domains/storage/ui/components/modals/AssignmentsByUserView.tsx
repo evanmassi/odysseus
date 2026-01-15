@@ -291,10 +291,10 @@ export function AssignmentsByUserView({
                   aria-expanded={isExpanded}
                 >
                   {/* Username */}
-                  <span className="font-medium text-foreground text-sm truncate">
+                  <span className="font-medium text-card-foreground text-sm truncate">
                     {userAssignment.displayName}
                     {isCurrentUser && (
-                      <span className="ml-1.5 text-xs text-ice-700 font-normal">(you)</span>
+                      <span className="ml-1.5 text-xs text-primary font-normal">(you)</span>
                     )}
                   </span>
 
@@ -495,7 +495,7 @@ export function AssignmentsByUserView({
                         </StorageManagerContext.Consumer>
                         <div className="flex items-center gap-1.5 flex-1">
                           <RackIcon size={18} className="text-secondary-foreground flex-shrink-0" />
-                          <span className="font-medium text-foreground text-sm">
+                          <span className="font-medium text-card-foreground text-sm">
                             {rackGroup.tankName} /{' '}
                             {formatResourceDisplayName(
                               rackGroup.rackName,
@@ -541,7 +541,7 @@ export function AssignmentsByUserView({
                                 size={16}
                                 className="text-secondary-foreground flex-shrink-0"
                               />
-                              <span className="font-medium text-foreground text-xs">
+                              <span className="font-medium text-card-foreground text-xs">
                                 {formatResourceDisplayName(box.boxName!, box.boxCustomLabel)}
                               </span>
                             </div>

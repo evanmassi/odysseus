@@ -35,11 +35,11 @@
     --primary: #2563eb;
     --primary-foreground: #ffffff;
 
-    /* Secondary */
-    --secondary: #f1f5f9;
+    /* Secondary - for interactive secondary elements */
+    --secondary: #e2e8f0;
     --secondary-foreground: #475569;
 
-    /* Muted */
+    /* Muted - for subdued backgrounds */
     --muted: #f1f5f9;
     --muted-foreground: #64748b;
 
@@ -47,54 +47,16 @@
     --accent: #f8fafc;
     --accent-foreground: #1e293b;
 
-    /* Destructive */
-    --destructive: #f76969;
-    --destructive-foreground: #ffffff;
-
     /* Utilities */
     --border: #e2e8f0;
     --input: #e2e8f0;
-    --ring: #2563eb;
 
     /* Application-specific extensions */
-
-    /* Ice Color Scale */
-    --color-ice-50: #f0f9ff;
-    --color-ice-100: #e0f2fe;
-    --color-ice-200: #d4ebfd;
-    --color-ice-300: #c7e4fc;
-    --color-ice-400: #b9d9fb;
-    --color-ice-500: #93c5f8;
-    --color-ice-600: #6db1f5;
-    --color-ice-700: #4a9ef2;
-    --color-ice-800: #2b8aef;
-    --color-ice-900: #1976d2;
-
-    /* Frost */
-    --color-frost: #f2f4ff;
 
     /* Action Colors */
     --color-action-default: #5a8fc7;
     --color-action-hover: #4a7db5;
     --color-action-focus: #4a7db5;
-
-    /* Edit Action Theme */
-    --color-edit-bg: #5987b6;
-    --color-edit-hover: #4a7099;
-    --color-edit-text: #5987b6;
-    --color-edit-btnText: #ffffff;
-
-    /* Copy Action Theme */
-    --color-copy-bg: #70c5d4;
-    --color-copy-hover: #5fa7b4;
-    --color-copy-text: #70c5d4;
-    --color-copy-btnText: #ffffff;
-
-    /* Cut Action Theme */
-    --color-cut-bg: #69bbc1;
-    --color-cut-hover: #599fa4;
-    --color-cut-text: #69bbc1;
-    --color-cut-btnText: #ffffff;
 
     /* Danger Theme */
     --color-danger-bg: #f76969;
@@ -103,10 +65,6 @@
     --color-danger-btnText: #ffffff;
     --color-danger-light: #fde9e9;
     --color-danger-border: #fcb5b5;
-
-    /* Password Theme */
-    --color-password-bg: #737abd;
-    --color-password-hover: #5f66a8;
 
     /* Clear Theme */
     --color-clear-bg: #e5e7eb;
@@ -196,10 +154,9 @@
 
     /* Legacy compatibility */
     --action-focus: var(--color-action-focus);
-    --action-focus-glow: color-mix(in srgb, var(--color-action-focus) 70%, transparent);
 
     /* Audit Log - Entity Colors */
-    --color-audit-entity-tube: var(--color-ice-500); /* #93c5f8 - Sky blue */
+    --color-audit-entity-tube: #93c5f8;
     --color-audit-entity-storage: #5987b6; /* Steel blue */
     --color-audit-entity-person: #737abd; /* Purple */
     --color-audit-entity-system: #64748b; /* Slate */
@@ -267,29 +224,9 @@
     --accent: #334155;
     --accent-foreground: #f8fafc;
 
-    /* Destructive */
-    --destructive: #ef4444;
-    --destructive-foreground: #ffffff;
-
     /* Utilities */
     --border: #334155;
     --input: #334155;
-    --ring: #3b82f6;
-
-    /* Ice Color Scale */
-    --color-ice-50: #0c1929;
-    --color-ice-100: #132337;
-    --color-ice-200: #1a3148;
-    --color-ice-300: #234159;
-    --color-ice-400: #2d526b;
-    --color-ice-500: #3b6b8a;
-    --color-ice-600: #4a85a8;
-    --color-ice-700: #5a9fc6;
-    --color-ice-800: #6bb9e4;
-    --color-ice-900: #7dd3fc;
-
-    /* Frost */
-    --color-frost: #1e293b;
 
     /* Action Colors */
     --color-action-default: #60a5fa;

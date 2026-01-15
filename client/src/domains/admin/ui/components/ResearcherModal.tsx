@@ -136,7 +136,7 @@ export function ResearcherModal({
               >
                 <label
                   htmlFor="firstName"
-                  className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.firstName ? 'text-red-600' : 'text-secondary-foreground'}`}
+                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.firstName ? 'text-red-600' : 'text-secondary-foreground'}`}
                 >
                   First Name <span className="text-red-500">*</span>
                 </label>
@@ -176,7 +176,7 @@ export function ResearcherModal({
               >
                 <label
                   htmlFor="lastName"
-                  className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.lastName ? 'text-red-600' : 'text-secondary-foreground'}`}
+                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.lastName ? 'text-red-600' : 'text-secondary-foreground'}`}
                 >
                   Last Name <span className="text-red-500">*</span>
                 </label>
@@ -206,7 +206,7 @@ export function ResearcherModal({
             >
               <label
                 htmlFor="email"
-                className={`absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.email ? 'text-red-600' : 'text-secondary-foreground'}`}
+                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.email ? 'text-red-600' : 'text-secondary-foreground'}`}
               >
                 Email <span className="text-red-500">*</span>
               </label>
@@ -235,7 +235,7 @@ export function ResearcherModal({
               <div className="auth-input-container border-border">
                 <label
                   htmlFor="department"
-                  className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
+                  className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
                 >
                   Department
                 </label>
@@ -259,7 +259,7 @@ export function ResearcherModal({
               <div className="auth-input-container border-border">
                 <label
                   htmlFor="position"
-                  className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
+                  className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground"
                 >
                   Position
                 </label>
@@ -305,7 +305,7 @@ export function ResearcherModal({
                 className="border border-border rounded p-3 flex items-center justify-between hover:bg-accent transition-colors"
               >
                 <div className="flex-1">
-                  <div className="text-sm font-medium text-foreground">
+                  <div className="text-sm font-medium text-card-foreground">
                     {researcher.firstName} {researcher.lastName}
                   </div>
                   {researcher.email && (

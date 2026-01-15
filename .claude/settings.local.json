@@ -43,7 +43,9 @@
       "Bash(node --trace-deprecation electron/main.js:*)",
       "Bash(npm run build:schemas:*)",
       "Bash(npm run build:shared:*)",
-      "Bash(npm run build:server:*)"
+      "Bash(npm run build:server:*)",
+      "Bash(move \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\ui\\\\primitives\\\\shared\\\\ContextMenu.tsx\" \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\ui\\\\primitives\\\\ContextMenu.tsx\")",
+      "Bash(move:*)"
     ]
   }
 }

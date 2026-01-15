@@ -489,8 +489,8 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         data-focus="none"
         className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
           viewMode === 'tree'
-            ? 'border-secondary-foreground text-foreground'
-            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            ? 'border-secondary-foreground text-card-foreground'
+            : 'border-transparent text-muted-foreground hover:text-accent-foreground hover:border-border'
         }`}
       >
         <ListTree size={14} />
@@ -502,8 +502,8 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         data-focus="none"
         className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
           viewMode === 'byUser'
-            ? 'border-secondary-foreground text-foreground'
-            : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+            ? 'border-secondary-foreground text-card-foreground'
+            : 'border-transparent text-muted-foreground hover:text-accent-foreground hover:border-border'
         }`}
       >
         <UsersRound size={14} />

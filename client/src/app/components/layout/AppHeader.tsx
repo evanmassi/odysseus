@@ -433,7 +433,7 @@ export function AppHeader({
                 tabIndex={-1}
                 onKeyDown={handleMenuKeyDown}
                 onBlur={handleMenuBlur}
-                className="absolute top-10 right-0 bg-background rounded-lg shadow-lg border border-border py-1.5 z-50 min-w-48 p-1"
+                className="absolute top-10 right-0 bg-popover rounded-lg shadow-lg border border-border py-1.5 z-50 min-w-48 p-1"
               >
                 {/* Lab Name */}
                 <div className="px-3 py-2">

@@ -955,6 +955,20 @@ _No known architectural issues. CacheWarmingService was removed (2025-01-14) in 
 
 **Philosophy**: Comments explain **why** (business rationale, non-obvious decisions) not **what** (code shows this). The best comment is a well-named function.
 
+#### File Headers
+
+```typescript
+/**
+ * Plain English Title
+ *
+ * One-line description adding context beyond the filename
+ */
+```
+
+- Title in plain English ("Audit Log Viewer" not "AuditLogViewer")
+- Description adds value the filename doesn't convey
+- No bullet lists or feature enumerations
+
 #### ✅ DO Write Comments For:
 
 | Category | Example |

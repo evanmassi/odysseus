@@ -140,7 +140,7 @@ export function SessionListSection() {
               </th>
             </tr>
           </thead>
-          <tbody className="bg-background divide-y divide-border">
+          <tbody className="bg-card divide-y divide-border">
             {displayedSessions.map(session => {
               const { device, type } = parseUserAgent(session.userAgent);
               const DeviceIcon = session.isCurrentSession
@@ -163,7 +163,7 @@ export function SessionListSection() {
                     <div className="flex items-center space-x-3">
                       <DeviceIcon size={16} className="text-muted-foreground flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-foreground">{device}</p>
+                        <p className="text-sm font-medium text-card-foreground">{device}</p>
                         {session.isCurrentSession && (
                           <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 mt-1">
                             Current Session
@@ -179,7 +179,9 @@ export function SessionListSection() {
                   </td>
                   <td className="px-4 py-3">
                     <div>
-                      <p className="text-sm text-foreground font-medium">{timestamp.relative}</p>
+                      <p className="text-sm text-card-foreground font-medium">
+                        {timestamp.relative}
+                      </p>
                       <p className="text-xs text-muted-foreground">{timestamp.absolute}</p>
                     </div>
                   </td>
@@ -222,13 +224,13 @@ export function SessionListSection() {
           return (
             <div
               key={session.id}
-              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-emerald-50/50 border border-border border-l-4 border-l-emerald-500' : 'border border-border bg-background'}`}
+              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-emerald-50/50 border border-border border-l-4 border-l-emerald-500' : 'border border-border bg-card'}`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
                   <DeviceIcon size={20} className="text-muted-foreground flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{device}</p>
+                    <p className="text-sm font-medium text-card-foreground truncate">{device}</p>
                     {session.isCurrentSession && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 mt-1">
                         Current Session
@@ -270,9 +272,11 @@ export function SessionListSection() {
       {/* Confirmation Dialog */}
       {showRevokeAllConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-modal-backdrop-in">
-          <div className="bg-background rounded-lg shadow-xl max-w-md w-full mx-4 animate-modal-blowup-in">
+          <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4 animate-modal-blowup-in">
             <div className="px-6 py-4 border-b border-border">
-              <h3 className="text-lg font-semibold text-foreground">Logout All Other Devices?</h3>
+              <h3 className="text-lg font-semibold text-card-foreground">
+                Logout All Other Devices?
+              </h3>
             </div>
             <div className="px-6 py-4">
               <p className="text-sm text-secondary-foreground">

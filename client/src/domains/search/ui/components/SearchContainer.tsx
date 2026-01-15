@@ -146,13 +146,13 @@ export function SearchContainer(_props: SearchContainerProps) {
         <div className="absolute top-full right-0 mt-2 flex gap-2 z-40">
           {/* Filters Panel - Left */}
           {showFilters && (
-            <div className="w-80 h-[500px] bg-background border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
+            <div className="w-80 h-[500px] bg-popover border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
               <FilterPanel onClose={() => setShowFilters(false)} />
             </div>
           )}
 
           {/* Search Results - Right */}
-          <div className="w-96 bg-background border border-border rounded-lg shadow-lg">
+          <div className="w-96 bg-popover border border-border rounded-lg shadow-lg">
             <SearchResults
               results={results}
               isSearching={isSearching}

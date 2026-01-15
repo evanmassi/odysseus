@@ -1,8 +1,8 @@
 /**
- * Shared modal wrapper with built-in animation, focus trap, and keyboard handling.
- * Self-contained: manages its own exit animation timing and nested modal Escape support.
+ * Base Modal
+ *
+ * Reusable modal with animation, focus trap, and nested Escape support
  */
-
 import React from 'react';
 
 import { X } from 'lucide-react';
@@ -123,14 +123,14 @@ export function BaseModal({
           aria-modal="true"
           aria-labelledby="modal-title"
           {...dataAttrs}
-          className={`bg-background rounded-2xl w-full ${sizeClass} mx-4 ${heightClass} shadow-2xl shadow-black/10 border border-border ${modalAnimationClass} ${pointerEventsClass} flex flex-col overflow-hidden ${className}`}
+          className={`bg-card rounded-2xl w-full ${sizeClass} mx-4 ${heightClass} shadow-2xl shadow-black/10 border border-border ${modalAnimationClass} ${pointerEventsClass} flex flex-col overflow-hidden ${className}`}
         >
-          <div className="bg-background px-6 py-3 border-b border-border flex-shrink-0">
+          <div className="bg-card px-6 py-3 border-b border-border flex-shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="p-1.5 text-muted-foreground">{icon}</div>
                 <div>
-                  <h2 id="modal-title" className="text-lg font-bold text-foreground">
+                  <h2 id="modal-title" className="text-lg font-bold text-card-foreground">
                     {title}
                   </h2>
                   {subtitle && <p className="text-muted-foreground text-xs">{subtitle}</p>}
@@ -147,14 +147,12 @@ export function BaseModal({
           </div>
 
           {tabs && tabOrientation === 'horizontal' && (
-            <div className="flex-shrink-0 border-b border-border bg-background">{tabs}</div>
+            <div className="flex-shrink-0 border-b border-border bg-card">{tabs}</div>
           )}
 
           <div className={`flex-1 min-h-0 flex ${hasVerticalTabs ? 'flex-row' : 'flex-col'}`}>
             {hasVerticalTabs && (
-              <div className="w-48 bg-background border-r border-border py-4 flex-shrink-0">
-                {tabs}
-              </div>
+              <div className="w-48 bg-card border-r border-border py-4 flex-shrink-0">{tabs}</div>
             )}
 
             <div className={`flex-1 overflow-y-auto min-w-0 ${hasVerticalTabs ? '' : ''}`}>
@@ -163,9 +161,7 @@ export function BaseModal({
           </div>
 
           {footer && (
-            <div className="border-t border-border px-6 py-3 bg-background flex-shrink-0">
-              {footer}
-            </div>
+            <div className="border-t border-border px-6 py-3 bg-card flex-shrink-0">{footer}</div>
           )}
         </div>
       </div>

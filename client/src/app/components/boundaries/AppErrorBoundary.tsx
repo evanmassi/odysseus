@@ -142,14 +142,14 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       // Default error UI
       return (
         <div className="min-h-screen bg-gradient-to-br from-danger-light to-warning-light flex items-center justify-center p-4">
-          <div className="bg-background rounded-xl shadow-2xl p-8 w-full max-w-lg">
+          <div className="bg-card rounded-xl shadow-2xl p-8 w-full max-w-lg">
             {/* Error Icon and Title */}
             <div className="text-center mb-6">
               <div className="w-16 h-16 bg-danger-light rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="w-8 h-8 text-danger-bg" />
               </div>
 
-              <h1 className="text-2xl font-bold text-foreground mb-2">Something went wrong</h1>
+              <h1 className="text-2xl font-bold text-card-foreground mb-2">Something went wrong</h1>
 
               <p className="text-muted-foreground">
                 The application encountered an unexpected error and needs to recover.
@@ -175,7 +175,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             {/* Debug Information (Development Only) */}
             {env.isDev() && this.state.error?.stack && (
               <details className="mb-6">
-                <summary className="text-sm text-muted-foreground cursor-pointer hover:text-foreground mb-2">
+                <summary className="text-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mb-2">
                   🔧 Stack Trace (Development)
                 </summary>
                 <pre className="text-xs text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
@@ -183,7 +183,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
                 </pre>
                 {this.state.errorInfo?.componentStack && (
                   <>
-                    <summary className="text-sm text-muted-foreground cursor-pointer hover:text-foreground mt-3 mb-2">
+                    <summary className="text-sm text-muted-foreground cursor-pointer hover:text-accent-foreground mt-3 mb-2">
                       🧩 Component Stack
                     </summary>
                     <pre className="text-xs text-muted-foreground p-3 bg-muted rounded-lg overflow-auto max-h-40">
@@ -229,7 +229,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
             {/* Support Actions */}
             <div className="border-t border-border pt-6">
-              <h3 className="text-sm font-medium text-foreground mb-3">Need Help?</h3>
+              <h3 className="text-sm font-medium text-card-foreground mb-3">Need Help?</h3>
 
               <div className="space-y-2">
                 <button

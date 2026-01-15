@@ -60,7 +60,7 @@ export function HistoryControls({
   return (
     <div className={`relative ${className}`}>
       {/* Main controls */}
-      <div className="flex items-center space-x-1 bg-background rounded-lg shadow-sm border border-border p-1">
+      <div className="flex items-center space-x-1 bg-card rounded-lg shadow-sm border border-border p-1">
         {/* Undo button */}
         <Tooltip
           content={lastUndoOperation ? `Undo: ${lastUndoOperation.description}` : 'Nothing to undo'}
@@ -119,9 +119,9 @@ export function HistoryControls({
 
       {/* History dropdown */}
       {showHistory && (
-        <div className="absolute top-full left-0 mt-2 bg-background rounded-lg shadow-lg border border-border p-3 min-w-80 z-50">
+        <div className="absolute top-full left-0 mt-2 bg-popover rounded-lg shadow-lg border border-border p-3 min-w-80 z-50">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-foreground">Operation History</h3>
+            <h3 className="font-semibold text-popover-foreground">Operation History</h3>
             <button
               onClick={() => setShowHistory(false)}
               className="text-muted-foreground hover:text-secondary-foreground"

@@ -530,7 +530,7 @@ export function Dashboard() {
       <div className="main-layout">
         {/* Storage Navigator - Tank/Rack/Box */}
         <div className="storage-navigator-panel">
-          <div className="h-full flex flex-col bg-background rounded-lg">
+          <div className="h-full flex flex-col bg-card rounded-lg">
             <div className="px-4 pt-4 pb-2">
               <h4 className="text-sm font-semibold text-muted-foreground tracking-wide">
                 Navigator
@@ -556,7 +556,7 @@ export function Dashboard() {
 
         {/* Main Grid - Square Constraint */}
         <div className="grid-section">
-          <div className="h-full flex flex-col bg-background rounded-lg">
+          <div className="h-full flex flex-col bg-card rounded-lg">
             <div className="px-4 pt-4 pb-2 flex items-center">
               <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
                 <span>{tankDisplayName}</span>
@@ -614,7 +614,7 @@ export function Dashboard() {
 
         {/* Info Panel - Flexible Width */}
         <div className="info-panel" ref={infoPanelRef}>
-          <div className="h-full flex flex-col bg-background rounded-lg">
+          <div className="h-full flex flex-col bg-card rounded-lg">
             <div className="px-4 pt-4 pb-2">
               <h4 className="text-sm font-semibold text-muted-foreground tracking-wide">
                 Tube Information

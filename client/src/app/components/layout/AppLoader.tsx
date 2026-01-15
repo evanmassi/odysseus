@@ -33,7 +33,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50">
-      <div className="bg-background rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
+      <div className="bg-card rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="mb-4 flex justify-center">
@@ -85,7 +85,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
+                  <p className="text-sm font-medium text-card-foreground truncate">
                     {LOADING_MESSAGES[currentStep as keyof typeof LOADING_MESSAGES] ||
                       'Processing...'}
                   </p>
@@ -142,7 +142,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
             {/* Debug info - development only */}
             {env.isDev() && typeof error === 'object' && error.details && (
               <details className="mb-4">
-                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground">
+                <summary className="text-xs text-muted-foreground cursor-pointer hover:text-accent-foreground">
                   Debug Information
                 </summary>
                 <pre className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded overflow-auto">

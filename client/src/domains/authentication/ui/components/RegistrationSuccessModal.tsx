@@ -62,12 +62,12 @@ export function RegistrationSuccessModal({
       {/* Username Display with Copy */}
       <div className="mb-6">
         <div className="auth-input-container border-border relative">
-          <span className="absolute -top-2 left-3 bg-background px-1 text-[10px] font-medium text-muted-foreground">
+          <span className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium text-muted-foreground">
             Your username
           </span>
           <div className="flex items-center gap-2 px-3 py-2">
             <span
-              className="flex-1 font-mono text-sm font-semibold text-foreground"
+              className="flex-1 font-mono text-sm font-semibold text-card-foreground"
               role="status"
               aria-label={`Your username is ${username}`}
             >

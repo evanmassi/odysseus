@@ -2,7 +2,7 @@
 
 **Created:** 2026-01-13
 **Last Updated:** 2026-01-14
-**Status:** Phase 0+1 Complete, Phase 2 In Progress
+**Status:** Phase 0+1 Complete, Phase 2a-2d Complete, Phase 2e Pending
 **Estimated Effort:** 25-30 hours remaining
 **Target Platform:** Web application (Vercel frontend, Railway backend)
 
@@ -506,6 +506,50 @@ Before proceeding to Phase 3, validate the dark palette by:
 2. Checking contrast ratios meet WCAG AA (4.5:1 for normal text)
 3. Reviewing key screens with sample data
 4. Getting feedback from at least one other person
+
+---
+
+### Phase 2e: Use Semantic Classes Properly ✅ COMPLETE
+
+**Goal:** Replace direct `bg-background` usage with appropriate semantic classes where applicable
+**Status:** Complete
+
+#### The Problem
+
+Components are using `bg-background` directly instead of semantic classes like `bg-card`, `bg-popover`, `bg-input`. This defeats the purpose of having separate variables - you lose the ability to style different surface levels independently.
+
+#### What Needs to Change
+
+| Context | Current | Should Be |
+|---------|---------|-----------|
+| Modals/dialogs | `bg-background` | `bg-card` |
+| Cards/panels | `bg-background` | `bg-card` |
+| Dropdowns/menus | `bg-background` | `bg-popover` |
+| Form inputs | `bg-background` | `bg-input` |
+| Page background | `bg-background` | `bg-background` (correct) |
+
+#### Why This Matters for Dark Mode
+
+In dark mode, surface hierarchy matters:
+- `background`: `#0f172a` (darkest - page canvas)
+- `card`: `#1e293b` (lighter - shows elevation)
+- `popover`: `#1e293b` (floating elements)
+
+If everything uses `bg-background`, all surfaces look flat in dark mode.
+
+#### Cleanup Items
+
+1. ~~**Remove `destructive`**~~ ✅ Removed - was duplicate of `danger`
+2. ~~**Remove unused `ring`**~~ ✅ Removed - app uses custom focus ring system
+3. **Focus ring audit** - Separate task to ensure focus ring system is properly centralized (deferred)
+
+#### Files to Audit
+
+- All modal components (`BaseModal.tsx`, etc.)
+- Card components
+- Dropdown/menu components
+- Form input components
+- Panel/sidebar components
 
 ---
 

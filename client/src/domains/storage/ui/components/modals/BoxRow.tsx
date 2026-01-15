@@ -76,7 +76,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
         <div className="flex items-center">
           <div className="flex items-center gap-2 flex-1 px-1 py-0.5">
             <BoxIcon className="text-secondary-foreground flex-shrink-0" size={16} />
-            <span className="font-medium text-foreground text-xs">
+            <span className="font-medium text-card-foreground text-xs">
               {formatResourceDisplayName(box.name, box.customLabel)}
             </span>
             <span className={`text-xs px-2 py-0.5 rounded ml-auto ${badgeClass}`}>

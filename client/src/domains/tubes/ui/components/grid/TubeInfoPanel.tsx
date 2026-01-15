@@ -239,21 +239,23 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <div className="space-y-3">
           {/* Position Header - Vertical stack layout */}
           <div className="bg-muted rounded-md px-3 py-2.5">
-            <div className="flex items-center gap-1.5 text-foreground/60 text-xs tracking-wider mb-2">
+            <div className="flex items-center gap-1.5 text-card-foreground/60 text-xs tracking-wider mb-2">
               <MapPin className="w-3 h-3" />
               <span>{tankName}</span>
             </div>
             <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
               <span className="text-muted-foreground text-xs">Rack</span>
-              <span className="text-foreground font-medium text-sm">{rackName}</span>
+              <span className="text-card-foreground font-medium text-sm">{rackName}</span>
               <span className="text-muted-foreground text-xs">Box</span>
-              <span className="text-foreground font-medium text-sm">{boxName}</span>
+              <span className="text-card-foreground font-medium text-sm">{boxName}</span>
               {formattedPositions && (
                 <>
                   <span className="text-muted-foreground text-xs">
                     Position{positionCount > 1 ? 's' : ''}
                   </span>
-                  <span className="text-foreground font-medium text-sm">{formattedPositions}</span>
+                  <span className="text-card-foreground font-medium text-sm">
+                    {formattedPositions}
+                  </span>
                 </>
               )}
             </div>
@@ -262,9 +264,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           {/* Placeholder Message */}
           <div className="text-center py-6">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
-              <TestTube className="w-6 h-6 text-foreground/30" />
+              <TestTube className="w-6 h-6 text-card-foreground/30" />
             </div>
-            <p className="text-foreground/40 text-sm">{positionText}</p>
+            <p className="text-card-foreground/40 text-sm">{positionText}</p>
           </div>
         </div>
       </div>
@@ -381,17 +383,17 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       <div className="space-y-3">
         {/* Position Header - Vertical stack layout */}
         <div className="bg-muted rounded-md px-3 py-2.5">
-          <div className="flex items-center gap-1.5 text-foreground/60 text-xs tracking-wider mb-2">
+          <div className="flex items-center gap-1.5 text-card-foreground/60 text-xs tracking-wider mb-2">
             <MapPin className="w-3 h-3" />
             <span>{tankName}</span>
           </div>
           <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
             <span className="text-muted-foreground text-xs">Rack</span>
-            <span className="text-foreground font-medium text-sm">{rackName}</span>
+            <span className="text-card-foreground font-medium text-sm">{rackName}</span>
             <span className="text-muted-foreground text-xs">Box</span>
-            <span className="text-foreground font-medium text-sm">{boxName}</span>
+            <span className="text-card-foreground font-medium text-sm">{boxName}</span>
             <span className="text-muted-foreground text-xs">{positionSummary.positionLabel}</span>
-            <span className="text-foreground font-medium text-sm">
+            <span className="text-card-foreground font-medium text-sm">
               {positionSummary.formattedPositions}
             </span>
           </div>
@@ -473,7 +475,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               )
             )}
             {lockInfo.hasSharedUsers && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-ice-50 text-edit-hover">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-info-light text-info-text">
                 <UsersRound className="w-2.5 h-2.5" />
                 {lockInfo.sharedNames.length > 0
                   ? lockInfo.sharedNames.join(', ')
@@ -487,14 +489,14 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         <InfoSection title="Donor Information">
           {/* Cell Type - Prominent */}
           {cellType ? (
-            <div className="text-foreground font-semibold text-sm mb-1">{cellType}</div>
+            <div className="text-card-foreground font-semibold text-sm mb-1">{cellType}</div>
           ) : isFieldMixed('sample.cellType') ? (
             <div className="mb-1">
-              <div className="flex items-center gap-1 text-foreground/50 text-xs">
+              <div className="flex items-center gap-1 text-card-foreground/50 text-xs">
                 Cell Type
                 <AlertTriangle className="w-3 h-3 text-amber-500" />
               </div>
-              <div className="text-foreground/30 text-sm">—</div>
+              <div className="text-card-foreground/30 text-sm">—</div>
             </div>
           ) : null}
           {/* IDs in two columns - stacked layout for consistency */}
@@ -574,11 +576,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {(Boolean(notes) || isFieldMixed('sample.notes')) && (
           <InfoSection title="Notes">
             {notes ? (
-              <div className="text-foreground/70 text-sm leading-relaxed">{notes}</div>
+              <div className="text-card-foreground/70 text-sm leading-relaxed">{notes}</div>
             ) : (
               <div className="flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3 text-amber-500" />
-                <span className="text-foreground/30 text-sm">—</span>
+                <span className="text-card-foreground/30 text-sm">—</span>
               </div>
             )}
           </InfoSection>

@@ -126,7 +126,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         data-focus="none"
         className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
           activeTab === 'direct'
-            ? 'border-secondary-foreground text-foreground'
+            ? 'border-secondary-foreground text-card-foreground'
             : 'border-transparent text-muted-foreground hover:text-secondary-foreground hover:border-border'
         }`}
       >
@@ -139,7 +139,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         data-focus="none"
         className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
           activeTab === 'token'
-            ? 'border-secondary-foreground text-foreground'
+            ? 'border-secondary-foreground text-card-foreground'
             : 'border-transparent text-muted-foreground hover:text-secondary-foreground hover:border-border'
         }`}
       >
@@ -221,7 +221,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                   />
                   <div className="w-7 h-4 bg-secondary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action"></div>
                 </div>
-                <span className="text-sm text-secondary-foreground group-hover:text-foreground">
+                <span className="text-sm text-secondary-foreground group-hover:text-accent-foreground">
                   Require password change on next login
                 </span>
               </label>

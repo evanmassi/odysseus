@@ -37,7 +37,7 @@ export function TankRow({
 }: TankRowProps) {
   const { onEditTank, onDeleteTank, onAddRack, canManageStorage } = useStorageManagerContext();
   return (
-    <div className="border border-border rounded-lg bg-background border-l-4 border-l-secondary-foreground">
+    <div className="border border-border rounded-lg bg-card border-l-4 border-l-secondary-foreground">
       {/* Tank Header */}
       <div className="bg-muted px-2 py-1.5 rounded-tr-lg">
         <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ export function TankRow({
               size={24}
               aria-hidden="true"
             />
-            <h3 className="text-base font-semibold text-foreground truncate">{tank.name}</h3>
+            <h3 className="text-base font-semibold text-card-foreground truncate">{tank.name}</h3>
             <span className="text-xs text-muted-foreground flex items-center gap-1.5 ml-auto">
               <span>{tank.location}</span>
               <span className="text-muted-foreground">•</span>

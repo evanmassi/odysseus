@@ -14,27 +14,11 @@
   }
 
   .btn-secondary {
-    @apply btn bg-transparent text-secondary-foreground hover:bg-accent hover:text-foreground h-10 px-4 py-2 shadow-none;
+    @apply btn bg-transparent text-secondary-foreground hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 shadow-none;
   }
 
   .btn-danger {
     @apply btn bg-danger-light text-danger-text hover:bg-danger-border h-10 px-4 py-2;
-  }
-
-  .btn-edit {
-    @apply btn bg-edit-bg text-edit-btnText hover:bg-edit-hover hover:shadow-md h-10 px-4 py-2;
-  }
-
-  .btn-copy {
-    @apply btn bg-copy-bg text-copy-btnText hover:bg-copy-hover hover:shadow-md h-10 px-4 py-2;
-  }
-
-  .btn-cut {
-    @apply btn bg-cut-bg text-cut-btnText hover:bg-cut-hover hover:shadow-md h-10 px-4 py-2;
-  }
-
-  .btn-password {
-    @apply btn bg-password-bg text-white hover:bg-password-hover hover:shadow-md h-10 px-4 py-2;
   }
 
   .btn-clear {
@@ -58,15 +42,15 @@
   }
 
   .btn-cancel {
-    @apply btn border border-border bg-background text-foreground hover:bg-accent h-10 px-4 py-2;
+    @apply btn border border-border bg-card text-card-foreground hover:bg-accent h-10 px-4 py-2;
   }
 
   .btn-refresh {
-    @apply btn bg-transparent text-secondary-foreground hover:bg-accent hover:text-foreground h-10 px-4 py-2 shadow-none;
+    @apply btn bg-transparent text-secondary-foreground hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 shadow-none;
   }
 
   .btn-refresh-compact {
-    @apply btn-compact bg-transparent text-secondary-foreground hover:bg-accent hover:text-foreground shadow-none;
+    @apply btn-compact bg-transparent text-secondary-foreground hover:bg-accent hover:text-accent-foreground shadow-none;
   }
 
   /* Compact Button Variants - For tables, inline actions, and space-constrained UIs */
@@ -161,7 +145,7 @@
   .btn-header-ghost {
     @apply inline-flex items-center px-1.5 py-0.5 text-sm font-medium rounded-md;
     @apply bg-transparent text-secondary-foreground border border-transparent;
-    @apply hover:bg-accent hover:text-foreground;
+    @apply hover:bg-accent hover:text-accent-foreground;
     transition:
       all 200ms,
       box-shadow 200ms,
@@ -208,46 +192,6 @@
       all 200ms,
       box-shadow 200ms,
       outline 200ms;
-  }
-
-  /* Semantic Action Buttons */
-  .btn-header-control-compact-edit {
-    @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
-    @apply bg-edit-bg text-edit-btnText border border-edit-bg;
-    transition:
-      all 200ms,
-      box-shadow 200ms,
-      outline 200ms;
-  }
-
-  .btn-header-control-compact-edit:hover {
-    @apply shadow-md bg-edit-hover;
-  }
-
-  .btn-header-control-compact-copy {
-    @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
-    @apply bg-copy-bg text-copy-btnText border border-copy-bg;
-    transition:
-      all 200ms,
-      box-shadow 200ms,
-      outline 200ms;
-  }
-
-  .btn-header-control-compact-copy:hover {
-    @apply shadow-md bg-copy-hover;
-  }
-
-  .btn-header-control-compact-cut {
-    @apply inline-flex items-center px-2 py-1 text-xs font-medium rounded-md;
-    @apply bg-cut-bg text-cut-btnText border border-cut-bg;
-    transition:
-      all 200ms,
-      box-shadow 200ms,
-      outline 200ms;
-  }
-
-  .btn-header-control-compact-cut:hover {
-    @apply shadow-md bg-cut-hover;
   }
 
   .btn-header-control-compact-lock {

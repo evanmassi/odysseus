@@ -1,14 +1,14 @@
 @layer components {
   /* Menu Item for Dropdowns */
   .menu-item {
-    @apply w-full px-4 py-1.5 text-left hover:bg-accent flex items-center space-x-2 text-foreground text-sm transition-colors;
+    @apply w-full px-4 py-1.5 text-left hover:bg-accent flex items-center space-x-2 text-popover-foreground text-sm transition-colors;
   }
 
   .menu-item:focus {
-    outline: 2px solid var(--ring);
-    outline-offset: -2px; /* Inset for menu items */
+    outline: 2px solid var(--focus-ring-color);
+    outline-offset: -2px;
     box-shadow:
-      0 0 4px 0 color-mix(in srgb, var(--ring) 70%, transparent),
-      0 0 10px 2px color-mix(in srgb, var(--ring) 35%, transparent);
+      0 0 4px 0 var(--focus-ring-glow-outer),
+      0 0 10px 2px var(--focus-ring-blur);
   }
 }

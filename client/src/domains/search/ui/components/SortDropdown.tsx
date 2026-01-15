@@ -30,7 +30,7 @@ export function SortDropdown() {
       <select
         value={sortField}
         onChange={e => setSortField(e.target.value as SortField)}
-        className="text-xs border border-border rounded px-2 py-1 bg-background text-secondary-foreground hover:border-muted-foreground focus-ring-default"
+        className="text-xs border border-border rounded px-2 py-1 bg-input text-secondary-foreground hover:border-muted-foreground focus-ring-default"
       >
         {SORT_OPTIONS.map(option => (
           <option key={option.value} value={option.value}>
@@ -43,7 +43,7 @@ export function SortDropdown() {
       <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
         <button
           onClick={toggleSortDirection}
-          className="p-1 text-secondary-foreground hover:text-foreground hover:bg-secondary rounded transition-colors focus-ring-default"
+          className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors focus-ring-default"
         >
           {sortDirection === 'asc' ? (
             <ArrowUp className="w-4 h-4" />

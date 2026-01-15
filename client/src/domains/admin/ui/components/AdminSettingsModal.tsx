@@ -201,8 +201,8 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
             data-focus="none"
             className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-accent ${
               isActive
-                ? 'border-l-secondary-foreground bg-muted text-foreground'
-                : 'border-l-transparent text-secondary-foreground hover:bg-muted hover:text-foreground'
+                ? 'border-l-secondary-foreground bg-muted text-card-foreground'
+                : 'border-l-transparent text-secondary-foreground hover:bg-muted hover:text-accent-foreground'
             }`}
           >
             <Icon

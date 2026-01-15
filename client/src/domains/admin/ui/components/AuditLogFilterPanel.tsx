@@ -1,14 +1,8 @@
 /**
- * Audit Log Filter Panel Component
+ * Audit Log Filter Panel
  *
- * Provides comprehensive filtering UI for audit logs with:
- * - Multi-select action filters grouped by entity
- * - Entity type filters with color-coded pills
- * - Username search
- * - Date range presets and custom dates
- * - Active filters summary with quick removal
+ * Multi-select filters for actions, entity types, users, and date ranges
  */
-
 import React, { useState, useMemo, useCallback } from 'react';
 
 import { ChevronDown, ChevronRight, X, UserRound, Zap, Box, Calendar } from 'lucide-react';
@@ -31,7 +25,6 @@ interface AuditLogFilterPanelProps {
   onClear: () => void;
 }
 
-// Filter chip component - styled based on action type
 interface FilterChipProps {
   label: string;
   isSelected: boolean;
@@ -83,7 +76,6 @@ function EntityPill({ label, isSelected, onClick }: EntityPillProps) {
   );
 }
 
-// Active filter chip component
 interface ActiveFilterChipProps {
   label: string;
   onRemove: () => void;
@@ -103,7 +95,6 @@ function ActiveFilterChip({ label, onRemove }: ActiveFilterChipProps) {
   );
 }
 
-// Collapsible section component
 interface CollapsibleSectionProps {
   title: string;
   icon: React.ReactNode;
@@ -136,7 +127,7 @@ function CollapsibleSection({
             )}
             <div className="flex items-center space-x-2">
               {icon}
-              <span className="text-sm font-semibold text-foreground">{title}</span>
+              <span className="text-sm font-semibold text-card-foreground">{title}</span>
             </div>
           </div>
           {count > 0 && (
@@ -157,7 +148,6 @@ export function AuditLogFilterPanel({
   onApply: _onApply,
   onClear,
 }: AuditLogFilterPanelProps) {
-  // Collapsible section state
   const [openSections, setOpenSections] = useState({
     actions: false,
     entityTypes: true,
@@ -220,7 +210,6 @@ export function AuditLogFilterPanel({
     []
   );
 
-  // Date presets
   const datePresets = [
     { value: 'today', label: 'Today' },
     { value: 'last7days', label: 'Last 7 Days' },
@@ -230,7 +219,6 @@ export function AuditLogFilterPanel({
     { value: 'alltime', label: 'All Time' },
   ];
 
-  // Toggle action in multi-select
   const toggleAction = useCallback(
     (action: string) => {
       const actions = filters.actions ?? [];
@@ -242,7 +230,6 @@ export function AuditLogFilterPanel({
     [filters, onChange]
   );
 
-  // Toggle entity type in multi-select
   const toggleEntityType = useCallback(
     (entityType: string) => {
       const entityTypes = filters.entityTypes ?? [];
@@ -254,7 +241,6 @@ export function AuditLogFilterPanel({
     [filters, onChange]
   );
 
-  // Apply date preset
   const applyDatePreset = (preset: string) => {
     const now = new Date();
     let dateFrom: Date | undefined;
@@ -288,7 +274,6 @@ export function AuditLogFilterPanel({
     });
   };
 
-  // Toggle section
   const toggleSection = (section: keyof typeof openSections) => {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
@@ -393,14 +378,14 @@ export function AuditLogFilterPanel({
   const hiddenCount = activeFilters.length - TRUNCATE_LIMIT;
 
   return (
-    <div className="bg-background rounded-lg border border-border">
+    <div className="bg-card rounded-lg border border-border">
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b bg-muted rounded-t-lg">
-        <h4 className="text-sm font-bold text-foreground">Filters</h4>
+        <h4 className="text-sm font-bold text-card-foreground">Filters</h4>
         <Tooltip content="Clear all filters" side="bottom">
           <button
             onClick={onClear}
-            className="px-2 py-1 text-xs text-secondary-foreground hover:text-foreground hover:bg-accent rounded transition-colors focus-ring-default"
+            className="px-2 py-1 text-xs text-secondary-foreground hover:text-accent-foreground hover:bg-accent rounded transition-colors focus-ring-default"
           >
             Clear All
           </button>

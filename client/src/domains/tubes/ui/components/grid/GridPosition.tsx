@@ -146,7 +146,7 @@ export const GridPosition = memo<GridPositionProps>(
       >
         {/* Position number - compact responsive design */}
         <div
-          className="absolute top-0.5 right-0.5 font-semibold bg-background/95 rounded text-secondary-foreground shadow-sm border border-border flex items-center justify-center leading-none"
+          className="absolute top-0.5 right-0.5 font-semibold bg-popover/95 rounded text-secondary-foreground shadow-sm border border-border flex items-center justify-center leading-none"
           style={{
             width: `${fontSize.positionFont + 2}px`,
             height: `${fontSize.positionFont + 2}px`,

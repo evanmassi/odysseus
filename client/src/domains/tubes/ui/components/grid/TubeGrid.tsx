@@ -12,7 +12,7 @@ import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
 import { toPositionKey } from '@shared/types/GridSelection';
 
-import { ContextMenu } from '../../../../../shared/ui/primitives/shared/ContextMenu';
+import { ContextMenu } from '../../../../../shared/ui/primitives/ContextMenu';
 
 import { GridPosition } from './GridPosition';
 

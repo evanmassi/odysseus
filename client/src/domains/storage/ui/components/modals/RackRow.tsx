@@ -109,7 +109,7 @@ export function RackRow({
                 size={18}
                 aria-hidden="true"
               />
-              <span className="font-medium text-foreground text-sm">
+              <span className="font-medium text-card-foreground text-sm">
                 {formatResourceDisplayName(rack.name, rack.customLabel)}
               </span>
               <span className={`text-xs px-2 py-0.5 rounded ml-auto ${badgeClass}`}>

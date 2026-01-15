@@ -1,10 +1,8 @@
 /**
- * Context Menu Component
+ * Context Menu
  *
- * Windows 11-style context menu with clean, minimal design.
- * Gray icons, subtle hover states, keyboard shortcuts on the right.
+ * Windows 11-style right-click menu with keyboard shortcuts
  */
-
 import { useEffect, useRef } from 'react';
 
 import {
@@ -47,7 +45,6 @@ function MenuDivider() {
   return <div className="h-px bg-secondary my-1" />;
 }
 
-/** Menu item component */
 function MenuItem({
   icon: Icon,
   label,
@@ -176,7 +173,7 @@ export function ContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 bg-background rounded-lg shadow-lg border border-border py-1.5 min-w-52"
+      className="fixed z-50 bg-popover rounded-lg shadow-lg border border-border py-1.5 min-w-52"
       style={{
         left: adjustedPosition.x,
         top: adjustedPosition.y,

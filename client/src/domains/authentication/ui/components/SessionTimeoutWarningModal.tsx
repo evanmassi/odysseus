@@ -163,7 +163,7 @@ export function SessionTimeoutWarningModal() {
           aria-modal="true"
           aria-labelledby="session-timeout-title"
           aria-describedby="session-timeout-message"
-          className={`bg-background rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} ${modalAnimationClass}`}
+          className={`bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} ${modalAnimationClass}`}
         >
           {/* Header */}
           <div className="flex items-center justify-center mb-6">
@@ -171,7 +171,7 @@ export function SessionTimeoutWarningModal() {
               <div className={`p-2 ${styles.iconBg} rounded-full`}>
                 <Clock className={`w-6 h-6 ${styles.iconColor}`} />
               </div>
-              <h2 id="session-timeout-title" className="text-xl font-bold text-foreground">
+              <h2 id="session-timeout-title" className="text-xl font-bold text-card-foreground">
                 Session Expiring Soon
               </h2>
             </div>

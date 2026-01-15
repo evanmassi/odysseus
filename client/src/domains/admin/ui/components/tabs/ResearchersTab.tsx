@@ -184,7 +184,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
         <div className="flex items-center space-x-2">
           <ResearcherIcon size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-foreground">Researchers</h3>
+          <h3 className="text-xl font-semibold text-card-foreground">Researchers</h3>
         </div>
         <div className="flex items-center space-x-2">
           <button
@@ -206,7 +206,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       </div>
 
       {/* Researchers Table */}
-      <div className="bg-background border border-border rounded-lg overflow-hidden overflow-x-auto">
+      <div className="bg-card border border-border rounded-lg overflow-hidden overflow-x-auto">
         <table className="min-w-full divide-y divide-border">
           <thead className="bg-muted">
             <tr>
@@ -230,7 +230,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
               </th>
             </tr>
           </thead>
-          <tbody className="bg-background divide-y divide-border">
+          <tbody className="bg-card divide-y divide-border">
             {researchers.length > 0 ? (
               researchers.map(researcher => (
                 <tr key={researcher.id} className="hover:bg-accent">
@@ -241,7 +241,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                         <ResearcherIcon size={14} className="text-secondary-foreground" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-foreground">
+                        <div className="text-sm font-medium text-card-foreground">
                           {researcher.lastName}, {researcher.firstName}
                         </div>
                         <div className="text-xs text-muted-foreground">{researcher.email}</div>
@@ -253,12 +253,12 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                   <td className="px-3 py-2 whitespace-nowrap max-w-[150px]">
                     {researcher.position ? (
                       <Tooltip content={researcher.position} side="bottom">
-                        <div className="text-sm text-foreground truncate">
+                        <div className="text-sm text-card-foreground truncate">
                           {researcher.position}
                         </div>
                       </Tooltip>
                     ) : (
-                      <div className="text-sm text-foreground truncate">—</div>
+                      <div className="text-sm text-card-foreground truncate">—</div>
                     )}
                     {researcher.department && (
                       <Tooltip content={researcher.department} side="bottom">
@@ -275,7 +275,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                       className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
                         researcher.tubeCount === 0
                           ? 'bg-muted text-secondary-foreground'
-                          : 'bg-frost text-action-hover border border-action/30'
+                          : 'bg-muted text-action-hover border border-action/30'
                       }`}
                     >
                       {researcher.tubeCount}
@@ -286,7 +286,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                   <td className="px-3 py-2 whitespace-nowrap">
                     {researcher.linkedUserId ? (
                       <div>
-                        <div className="text-sm font-medium text-foreground">
+                        <div className="text-sm font-medium text-card-foreground">
                           {researcher.linkedUsername}
                         </div>
                         <div className="text-xs text-muted-foreground">Linked</div>

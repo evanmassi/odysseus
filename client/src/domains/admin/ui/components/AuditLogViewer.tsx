@@ -1,10 +1,8 @@
 /**
- * Audit Log Viewer Component
+ * Audit Log Viewer
  *
- * Displays audit log entries with filtering and pagination.
- * Shows detailed activity tracking for compliance and debugging.
+ * Paginated audit log table with filtering and archive search
  */
-
 import React, { useState, useEffect, useCallback } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
@@ -33,9 +31,7 @@ import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPane
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 interface AuditLogViewerProps {
-  /** Optional initial filters */
   initialFilters?: Partial<AuditLogFilters>;
-  /** Optional callback when filters change */
   onFiltersChange?: (filters: AuditLogFilters) => void;
 }
 
@@ -61,7 +57,6 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   const [filterState, setFilterState] = useState<AuditFilterState>({});
   const [includeArchive, setIncludeArchive] = useState(false);
 
-  // Load audit log entries
   const loadAuditLog = useCallback(async () => {
     try {
       setLoading(true);
@@ -81,12 +76,10 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     void loadAuditLog();
   }, [loadAuditLog]);
 
-  // Handle filter changes - apply immediately
   const handleFilterChange = useCallback(
     (newFilterState: AuditFilterState) => {
       setFilterState(newFilterState);
 
-      // Convert filter state to API filters and apply immediately
       const newFilters: AuditLogFilters = {
         limit: filters.limit,
         offset: 0,
@@ -102,7 +95,6 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     [filters.limit, onFiltersChange]
   );
 
-  // Clear filters
   const clearFilters = useCallback(() => {
     const resetFilters = {
       limit: 50,
@@ -129,7 +121,6 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     }
   };
 
-  // Format timestamp
   const formatTimestamp = (timestamp: string | Date) => {
     const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
     return date.toLocaleString('en-US', {
@@ -141,7 +132,6 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     });
   };
 
-  // Format action for display - simple verb
   const formatAction = (action: string) => {
     // Special cases for clearer display
     if (action === 'user_logged_in') return 'Login';
@@ -161,7 +151,6 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     return action.charAt(0).toUpperCase() + action.slice(1);
   };
 
-  // Get action badge class based on type
   const getActionBadgeClass = (action: string) => {
     if (action.includes('created')) return 'badge-action-created';
     if (action.includes('updated')) return 'badge-action-updated';
@@ -186,12 +175,10 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     return 'badge-action-default';
   };
 
-  // Format entity type for display
   const formatEntityType = (entityType: string) => {
     return entityType.charAt(0).toUpperCase() + entityType.slice(1);
   };
 
-  // Get entity badge class
   const getEntityBadgeClass = (entityType: string) => {
     if (entityType === 'tube') return 'badge-entity-tube';
     if (entityType === 'user') return 'badge-entity-user';
@@ -204,7 +191,6 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     return 'badge-entity-default';
   };
 
-  // Get entity icon component
   const getEntityIcon = (entityType: string) => {
     switch (entityType) {
       case 'tube':
@@ -236,7 +222,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
       {/* Header with Filters */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h4 className="text-base font-semibold text-foreground">Audit Log</h4>
+          <h4 className="text-base font-semibold text-card-foreground">Audit Log</h4>
           <span className="text-xs text-muted-foreground">
             ({(pagination?.total || 0).toLocaleString()} total entries)
           </span>
@@ -265,7 +251,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1 px-2 py-1 text-xs text-secondary-foreground hover:text-foreground hover:bg-accent rounded"
+              className="flex items-center gap-1 px-2 py-1 text-xs text-secondary-foreground hover:text-accent-foreground hover:bg-accent rounded"
             >
               <X className="w-3 h-3" />
               Clear Filters
@@ -316,7 +302,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
       {/* Audit Log Table */}
       {!loading && !error && entries && entries.length > 0 && (
-        <div className="bg-background border border-border rounded-lg overflow-hidden">
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead className="bg-muted border-b border-border">
@@ -345,7 +331,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
                       {formatTimestamp(entry.timestamp)}
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
-                      <span className="font-medium text-foreground">{entry.username}</span>
+                      <span className="font-medium text-card-foreground">{entry.username}</span>
                     </td>
                     <td className="px-2 py-2 whitespace-nowrap">
                       <span className={getActionBadgeClass(entry.action)}>
