@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 
 import { NAMING_PATTERNS, sortByName } from '@odysseus/shared-schemas';
-import { Plus, ListTree, UsersRound, Loader2 } from 'lucide-react';
+import { Plus, ListTree, UsersRound } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication';
@@ -27,6 +27,7 @@ import {
 import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
 import { useResourcePermissions } from '@domains/storage/hooks/useResourcePermissions';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
+import { Button } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils/notifications';
@@ -529,14 +530,9 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         </div>
       </div>
 
-      <button
-        onClick={onClose}
-        disabled={isMutating}
-        className="btn btn-secondary px-6 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isMutating && <Loader2 size={14} className="animate-spin" />}
-        {isMutating ? 'Saving...' : 'Done'}
-      </button>
+      <Button variant="secondary" onClick={onClose} isLoading={isMutating} loadingText="Saving...">
+        Done
+      </Button>
     </div>
   );
 
@@ -561,18 +557,16 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
           <div className="space-y-2">
             {canManageStorage && (
               <div className="flex justify-end">
-                <button
+                <Button
+                  variant="primary"
+                  size="sm"
                   onClick={handleAddNewTank}
-                  disabled={addTankMutation.isPending}
-                  className="btn btn-primary flex items-center gap-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  isLoading={addTankMutation.isPending}
+                  loadingText="Adding..."
+                  leftIcon={<Plus size={16} />}
                 >
-                  {addTankMutation.isPending ? (
-                    <Loader2 size={16} className="animate-spin" />
-                  ) : (
-                    <Plus size={16} />
-                  )}
-                  {addTankMutation.isPending ? 'Adding...' : 'Add Tank'}
-                </button>
+                  Add Tank
+                </Button>
               </div>
             )}
 

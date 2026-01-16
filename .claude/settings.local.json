@@ -45,7 +45,10 @@
       "Bash(npm run build:shared:*)",
       "Bash(npm run build:server:*)",
       "Bash(move \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\ui\\\\primitives\\\\shared\\\\ContextMenu.tsx\" \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\ui\\\\primitives\\\\ContextMenu.tsx\")",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npm uninstall:*)"
     ]
   }
 }

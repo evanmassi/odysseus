@@ -23,6 +23,7 @@ import {
 import { adminService } from '@domains/admin/services/AdminService';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { Tooltip } from '@shared/ui/primitives/tooltip';
 
@@ -237,44 +238,44 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
             }
             side="bottom"
           >
-            <button
+            <Button
+              variant={includeArchive ? 'primary' : 'secondary'}
+              size="xs"
               onClick={() => setIncludeArchive(!includeArchive)}
-              className={`btn-refresh-compact flex items-center space-x-1 ${
-                includeArchive ? 'bg-action text-white border-action hover:bg-action-hover' : ''
-              }`}
+              leftIcon={<Archive size={12} />}
             >
-              <Archive size={12} />
-              <span>{includeArchive ? 'With Archive' : 'Active Only'}</span>
-            </button>
+              {includeArchive ? 'With Archive' : 'Active Only'}
+            </Button>
           </Tooltip>
 
           {hasActiveFilters && (
-            <button
+            <Button
+              variant="ghost"
+              size="xs"
               onClick={clearFilters}
-              className="flex items-center gap-1 px-2 py-1 text-xs text-secondary-foreground hover:text-accent-foreground hover:bg-accent rounded"
+              leftIcon={<X className="w-3 h-3" />}
             >
-              <X className="w-3 h-3" />
               Clear Filters
-            </button>
+            </Button>
           )}
 
-          <button
+          <Button
+            variant={showFilters ? 'primary' : 'secondary'}
+            size="xs"
             onClick={() => setShowFilters(!showFilters)}
-            className={`btn-refresh-compact flex items-center space-x-1 ${
-              showFilters ? 'bg-action text-white border-action hover:bg-action-hover' : ''
-            }`}
+            leftIcon={<SlidersHorizontal size={12} />}
           >
-            <SlidersHorizontal size={12} />
-            <span>Filters</span>
-          </button>
+            Filters
+          </Button>
 
-          <button
+          <Button
+            variant="secondary"
+            size="xs"
             onClick={loadAuditLog}
-            className="btn-refresh-compact flex items-center space-x-1"
+            leftIcon={<RefreshCw size={12} />}
           >
-            <RefreshCw size={12} />
-            <span>Refresh</span>
-          </button>
+            Refresh
+          </Button>
         </div>
       </div>
 

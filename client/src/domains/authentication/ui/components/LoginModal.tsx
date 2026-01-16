@@ -21,6 +21,7 @@ import {
 import { authService } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
+import { Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { AuthBaseModal } from './AuthBaseModal';
@@ -182,12 +183,12 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
       {/* Email Verification Error Banner */}
       {loginError && isEmailVerificationError && (
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg animate-in slide-in-from-top-2 duration-300">
+        <div className="mb-6 p-4 bg-info-light border border-info-border rounded-lg animate-in slide-in-from-top-2 duration-300">
           <div className="flex items-start gap-3 mb-3">
-            <Mail className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <Mail className="w-5 h-5 text-info-text flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-semibold text-blue-800">Email Verification Required</p>
-              <p className="text-xs text-blue-700 mt-1">{loginError}</p>
+              <p className="text-sm font-semibold text-info-bg">Email Verification Required</p>
+              <p className="text-xs text-info-text mt-1">{loginError}</p>
             </div>
           </div>
           <button
@@ -285,20 +286,17 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
           </div>
         </div>
 
-        <button
+        <Button
           type="submit"
-          disabled={isLoading}
-          className="w-full btn btn-primary h-12 text-base font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="primary"
+          size="xl"
+          fullWidth
+          isLoading={isLoading}
+          loadingText="Authenticating..."
+          className="shadow-lg font-bold"
         >
-          {isLoading ? (
-            <div className="flex items-center justify-center space-x-2">
-              <div className="spinner w-5 h-5"></div>
-              <span>Authenticating...</span>
-            </div>
-          ) : (
-            'Sign In'
-          )}
-        </button>
+          Sign In
+        </Button>
       </form>
 
       {onSwitchToRegister && (

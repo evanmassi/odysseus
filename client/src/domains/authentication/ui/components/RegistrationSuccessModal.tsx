@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Copy, Check, Info } from 'lucide-react';
 
 import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
+import { Button } from '@shared/ui';
 
 import { AuthBaseModal } from './AuthBaseModal';
 
@@ -113,13 +114,15 @@ export function RegistrationSuccessModal({
       </div>
 
       {/* Close Button */}
-      <button
+      <Button
+        variant="primary"
+        size="xl"
+        fullWidth
         onClick={onClose}
-        className="w-full btn btn-primary h-12 text-base font-bold shadow-lg"
-        type="button"
+        className="shadow-lg font-bold"
       >
         {isPending ? 'Return to Login' : 'Continue to Login'}
-      </button>
+      </Button>
     </AuthBaseModal>
   );
 }

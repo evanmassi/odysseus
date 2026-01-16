@@ -12,6 +12,7 @@ import { AlertTriangle, RefreshCw, Home, Bug, ExternalLink } from 'lucide-react'
 
 import { env } from '@shared/config/environment';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 
 import type { AppInitializationError } from '@shared/errors/AppError';
 
@@ -198,32 +199,33 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             <div className="space-y-3 mb-6">
               {/* Primary Recovery Action */}
               {this.props.onRetry && (
-                <button
+                <Button
+                  variant="primary"
+                  fullWidth
                   onClick={this.handleRetry}
-                  className="btn-primary w-full flex items-center justify-center space-x-2 py-3"
+                  leftIcon={<RefreshCw className="w-4 h-4" />}
                 >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>Try Again</span>
-                </button>
+                  Try Again
+                </Button>
               )}
 
               {/* Secondary Recovery Actions */}
               <div className="grid grid-cols-2 gap-3">
-                <button
+                <Button
+                  variant="cancel"
                   onClick={this.handleReload}
-                  className="btn-cancel flex items-center justify-center space-x-2"
+                  leftIcon={<RefreshCw className="w-4 h-4" />}
                 >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>Reload Page</span>
-                </button>
+                  Reload Page
+                </Button>
 
-                <button
+                <Button
+                  variant="cancel"
                   onClick={this.handleGoHome}
-                  className="btn-cancel flex items-center justify-center space-x-2"
+                  leftIcon={<Home className="w-4 h-4" />}
                 >
-                  <Home className="w-4 h-4" />
-                  <span>Go Home</span>
-                </button>
+                  Go Home
+                </Button>
               </div>
             </div>
 
@@ -289,10 +291,9 @@ export function BootstrapError({ error, onRetry, canRetry }: BootstrapErrorProps
           </div>
 
           {canRetry && error.retryable && onRetry && (
-            <button onClick={onRetry} className="btn-danger inline-flex items-center space-x-2">
-              <RefreshCw className="w-4 h-4" />
-              <span>Retry Initialization</span>
-            </button>
+            <Button variant="danger" onClick={onRetry} leftIcon={<RefreshCw className="w-4 h-4" />}>
+              Retry Initialization
+            </Button>
           )}
         </div>
       </div>

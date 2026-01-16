@@ -1,14 +1,11 @@
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
 import { useSearchStore, type SortField } from '@domains/search';
-import { Tooltip } from '@shared/ui';
+import { Select, Tooltip } from '@shared/ui';
 
-interface SortOption {
-  value: SortField;
-  label: string;
-}
+import type { SelectOption } from '@shared/ui';
 
-const SORT_OPTIONS: SortOption[] = [
+const SORT_OPTIONS: SelectOption[] = [
   { value: 'location', label: 'Location' },
   { value: 'date', label: 'Date' },
   { value: 'cellType', label: 'Cell Type' },
@@ -27,17 +24,15 @@ export function SortDropdown() {
       <span className="text-xs font-medium text-secondary-foreground">Sort by:</span>
 
       {/* Sort Field Dropdown */}
-      <select
+      <Select
+        options={SORT_OPTIONS}
         value={sortField}
-        onChange={e => setSortField(e.target.value as SortField)}
-        className="text-xs border border-border rounded px-2 py-1 bg-input text-secondary-foreground hover:border-muted-foreground focus-ring-default"
-      >
-        {SORT_OPTIONS.map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        onChange={value => setSortField(value as SortField)}
+        size="sm"
+        variant="default"
+        aria-label="Sort field"
+        className="w-32"
+      />
 
       {/* Sort Direction Toggle */}
       <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">

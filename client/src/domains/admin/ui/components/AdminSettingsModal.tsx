@@ -1,19 +1,11 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 
 import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
-import {
-  Shield,
-  Activity,
-  AlertTriangle,
-  Save,
-  RefreshCw,
-  ShieldUser,
-  Gauge,
-  UsersRound,
-} from 'lucide-react';
+import { Shield, Activity, AlertTriangle, Save, ShieldUser, Gauge, UsersRound } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
@@ -223,17 +215,19 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         <span className="truncate">Changes apply to all users immediately</span>
       </div>
       <div className="flex space-x-2 flex-shrink-0">
-        <button onClick={handleClose} className="btn btn-secondary px-6">
+        <Button variant="secondary" onClick={handleClose}>
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
           onClick={saveConfiguration}
-          disabled={isSaving || !hasChanges}
-          className="btn btn-primary flex items-center space-x-2 text-sm px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!hasChanges}
+          isLoading={isSaving}
+          loadingText="Saving..."
+          leftIcon={<Save size={14} />}
         >
-          {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-          <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-        </button>
+          Save Changes
+        </Button>
       </div>
     </div>
   );

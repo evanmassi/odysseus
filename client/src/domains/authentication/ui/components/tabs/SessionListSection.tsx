@@ -12,7 +12,7 @@ import { Monitor, TabletSmartphone, MonitorCheck, LogOut, RefreshCw } from 'luci
 import { UAParser } from 'ua-parser-js';
 
 import { useUserSessions } from '@domains/users';
-import { Tooltip } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 export function SessionListSection() {
@@ -106,18 +106,16 @@ export function SessionListSection() {
           {sessions.length !== 1 ? 's' : ''}
         </p>
         {otherSessionsCount > 0 && (
-          <button
+          <Button
+            variant="danger"
+            size="xs"
             onClick={() => setShowRevokeAllConfirm(true)}
-            disabled={isRevokingAll}
-            className="btn btn-danger flex items-center space-x-2 text-xs px-3 py-1.5 disabled:opacity-50"
+            isLoading={isRevokingAll}
+            loadingText="Revoking..."
+            leftIcon={<LogOut size={12} />}
           >
-            {isRevokingAll ? (
-              <RefreshCw size={12} className="animate-spin" />
-            ) : (
-              <LogOut size={12} />
-            )}
-            <span>{isRevokingAll ? 'Revoking...' : 'Logout All Other Devices'}</span>
-          </button>
+            Logout All Other Devices
+          </Button>
         )}
       </div>
 
@@ -188,18 +186,16 @@ export function SessionListSection() {
                   <td className="px-4 py-3 text-right">
                     {!session.isCurrentSession && (
                       <Tooltip content="Logout from this session" side="bottom">
-                        <button
+                        <Button
+                          variant="danger"
+                          size="xs"
                           onClick={() => handleRevokeSession(session.id)}
-                          disabled={isRevoking || revokingSessionId === session.id}
-                          className="btn-danger-compact flex items-center space-x-1"
+                          disabled={isRevoking}
+                          isLoading={revokingSessionId === session.id}
+                          leftIcon={<LogOut size={12} />}
                         >
-                          {revokingSessionId === session.id ? (
-                            <RefreshCw size={12} className="animate-spin" />
-                          ) : (
-                            <LogOut size={12} />
-                          )}
-                          <span>Logout</span>
-                        </button>
+                          Logout
+                        </Button>
                       </Tooltip>
                     )}
                   </td>
@@ -240,17 +236,18 @@ export function SessionListSection() {
                 </div>
                 {!session.isCurrentSession && (
                   <Tooltip content="Logout from this session" side="bottom">
-                    <button
+                    <Button
+                      variant="danger"
+                      size="xs"
+                      iconOnly
                       onClick={() => handleRevokeSession(session.id)}
-                      disabled={isRevoking || revokingSessionId === session.id}
-                      className="btn-danger-compact flex-shrink-0 ml-2 flex items-center space-x-1"
+                      disabled={isRevoking}
+                      isLoading={revokingSessionId === session.id}
+                      aria-label="Logout from this session"
+                      className="flex-shrink-0 ml-2"
                     >
-                      {revokingSessionId === session.id ? (
-                        <RefreshCw size={12} className="animate-spin" />
-                      ) : (
-                        <LogOut size={12} />
-                      )}
-                    </button>
+                      <LogOut size={12} />
+                    </Button>
                   </Tooltip>
                 )}
               </div>
@@ -285,30 +282,22 @@ export function SessionListSection() {
               </p>
             </div>
             <div className="px-6 py-4 bg-muted flex justify-end space-x-3">
-              <button
+              <Button
+                variant="secondary"
                 onClick={() => setShowRevokeAllConfirm(false)}
                 disabled={isRevokingAll}
-                className="btn btn-secondary text-sm px-4 py-2"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="danger"
                 onClick={handleRevokeAll}
-                disabled={isRevokingAll}
-                className="btn btn-danger flex items-center space-x-2 text-sm px-4 py-2 disabled:opacity-50"
+                isLoading={isRevokingAll}
+                loadingText="Revoking..."
+                leftIcon={<LogOut size={14} />}
               >
-                {isRevokingAll ? (
-                  <>
-                    <RefreshCw size={14} className="animate-spin" />
-                    <span>Revoking...</span>
-                  </>
-                ) : (
-                  <>
-                    <LogOut size={14} />
-                    <span>Logout All</span>
-                  </>
-                )}
-              </button>
+                Logout All
+              </Button>
             </div>
           </div>
         </div>

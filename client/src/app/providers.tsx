@@ -11,6 +11,7 @@ import { Toaster } from 'react-hot-toast';
 
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import {
   ConnectionStatusIndicator,
   RealtimeSyncIndicator,
@@ -90,9 +91,9 @@ export class ErrorBoundary extends Component<{ children: React.ReactNode }, Erro
             <p className="text-muted-foreground mb-4">
               An unexpected error occurred. Please try refreshing the page.
             </p>
-            <button onClick={() => window.location.reload()} className="btn btn-primary w-full">
+            <Button variant="primary" fullWidth onClick={() => window.location.reload()}>
               Refresh Page
-            </button>
+            </Button>
           </div>
         </div>
       );

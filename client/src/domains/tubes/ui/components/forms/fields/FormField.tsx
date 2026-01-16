@@ -8,7 +8,9 @@
 import React from 'react';
 
 import { type CreateTubeRequest } from '@odysseus/shared-schemas';
-import { get } from 'react-hook-form';
+import { Controller, get } from 'react-hook-form';
+
+import { Select } from '@shared/ui';
 
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -130,34 +132,29 @@ export const SelectField: React.FC<SelectFieldProps> = ({
 }) => {
   const error = get(form.formState.errors, name);
 
+  // Convert options to include empty placeholder option
+  const selectOptions = [{ value: '', label: placeholder }, ...options];
+
   return (
     <div className="space-y-2">
       <label htmlFor={name} className="block text-sm font-medium text-card-foreground">
         {label}
         {required && <span className="text-validation-error-required ml-1">*</span>}
       </label>
-      <div className="relative">
-        <select
-          {...form.register(name)}
-          id={name}
-          disabled={disabled}
-          className={`input-field w-full ${error ? 'input-field-error' : 'input-field-normal'}`}
-        >
-          <option value="">{placeholder}</option>
-          {options.map(option => (
-            <option key={option.value} value={option.value} disabled={option.disabled}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-        {error && (
-          <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
-            <div className="w-5 h-5 rounded-full bg-validation-error-icon flex items-center justify-center">
-              <span className="text-white text-xs font-bold">!</span>
-            </div>
-          </div>
+      <Controller
+        name={name}
+        control={form.control}
+        render={({ field }) => (
+          <Select
+            options={selectOptions}
+            value={String(field.value ?? '')}
+            onChange={value => field.onChange(value)}
+            disabled={disabled}
+            state={error ? 'error' : 'default'}
+            fullWidth
+          />
         )}
-      </div>
+      />
       {error && (
         <p className="text-sm text-validation-error-helper flex items-center mt-1">
           <span className="mr-1">⚠️</span>

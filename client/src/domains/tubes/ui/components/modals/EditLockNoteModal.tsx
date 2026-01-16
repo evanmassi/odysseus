@@ -12,6 +12,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Pencil, AlertTriangle, Notebook } from 'lucide-react';
 
 import { useBulkUpdateTubesMutation } from '@domains/tubes/hooks';
+import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
@@ -111,12 +112,6 @@ export function EditLockNoteModal({
     }
   };
 
-  const buttonLabel = bulkUpdateMutation.isPending
-    ? 'Saving...'
-    : isSingleTube
-      ? 'Save'
-      : `Update ${tubeCount} Tubes`;
-
   const title = isSingleTube ? 'Edit Lock Note' : `Edit Lock Note (${tubeCount} tubes)`;
 
   return (
@@ -165,18 +160,19 @@ export function EditLockNoteModal({
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">
-          <button type="button" onClick={onClose} className="btn btn-secondary">
+          <Button variant="secondary" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleSave}
-            disabled={bulkUpdateMutation.isPending || !hasChanges}
-            className="btn btn-primary inline-flex items-center gap-2"
+            disabled={!hasChanges}
+            isLoading={bulkUpdateMutation.isPending}
+            loadingText="Saving..."
+            leftIcon={<Pencil size={16} />}
           >
-            <Pencil size={16} />
-            {buttonLabel}
-          </button>
+            {isSingleTube ? 'Save' : `Update ${tubeCount} Tubes`}
+          </Button>
         </div>
       </div>
     </BaseModal>

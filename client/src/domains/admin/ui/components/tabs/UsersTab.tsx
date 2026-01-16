@@ -27,10 +27,9 @@ import {
   UsersRound,
   KeyRound,
 } from 'lucide-react';
-import Select, { type CSSObjectWithLabel } from 'react-select';
 
 import { logger } from '@shared/infrastructure/logger';
-import { Tooltip } from '@shared/ui';
+import { Button, Select, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -41,49 +40,11 @@ import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
 
-// Role dropdown types and styles
-interface RoleOption {
-  value: 'admin' | 'user';
-  label: string;
-}
-
-const ROLE_OPTIONS: RoleOption[] = [
+// Role dropdown options
+const ROLE_OPTIONS = [
   { value: 'user', label: 'User' },
   { value: 'admin', label: 'Admin' },
 ];
-
-const getFocusBoxShadow = () =>
-  `0 0 0 var(--focus-ring-width) var(--focus-ring-color), 0 0 0 5px var(--focus-ring-glow-inner), 0 0 0 8px var(--focus-ring-glow-outer)`;
-
-const ROLE_SELECT_STYLES = {
-  control: (base: CSSObjectWithLabel, state: { isFocused: boolean }) => ({
-    ...base,
-    minHeight: '26px',
-    fontSize: '12px',
-    boxShadow: state.isFocused ? getFocusBoxShadow() : base.boxShadow,
-    borderColor: state.isFocused ? 'var(--focus-ring-color)' : base.borderColor,
-    '&:hover': {
-      borderColor: state.isFocused ? 'var(--focus-ring-color)' : base.borderColor,
-    },
-  }),
-  menu: (base: CSSObjectWithLabel) => ({
-    ...base,
-    fontSize: '12px',
-    width: 'auto',
-    minWidth: '100%',
-  }),
-  menuPortal: (base: CSSObjectWithLabel) => ({
-    ...base,
-    zIndex: 9999,
-  }),
-  dropdownIndicator: (base: CSSObjectWithLabel) => ({
-    ...base,
-    padding: '4px',
-  }),
-  indicatorSeparator: () => ({
-    display: 'none',
-  }),
-};
 
 /**
  * UsersTab Props Interface
@@ -359,16 +320,16 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
           <UsersRound size={22} className="text-secondary-foreground" />
           <h3 className="text-xl font-semibold text-card-foreground">Users</h3>
         </div>
-        <button
+        <Button
+          variant="secondary"
           onClick={() => {
             onUserUpdate();
             void loadPendingUsers();
           }}
-          className="btn-refresh flex items-center space-x-2"
+          leftIcon={<RefreshCw size={14} />}
         >
-          <RefreshCw size={14} />
-          <span>Refresh</span>
-        </button>
+          Refresh
+        </Button>
       </div>
 
       {/* Pending Approvals Section */}
@@ -400,30 +361,24 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                 </div>
 
                 <div className="flex items-center gap-1.5">
-                  <button
+                  <Button
+                    variant="success"
+                    size="xs"
                     onClick={() => approveUser(user.id, user.username)}
-                    disabled={processingApproval === user.id}
-                    className="btn-approve-compact flex items-center space-x-1"
+                    isLoading={processingApproval === user.id}
+                    leftIcon={<CheckCircle size={12} />}
                   >
-                    {processingApproval === user.id ? (
-                      <RefreshCw size={12} className="animate-spin" />
-                    ) : (
-                      <CheckCircle size={12} />
-                    )}
-                    <span>Approve</span>
-                  </button>
-                  <button
+                    Approve
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="xs"
                     onClick={() => rejectUser(user.id, user.username)}
                     disabled={processingApproval === user.id}
-                    className="btn-danger-compact flex items-center space-x-1"
+                    leftIcon={<XCircle size={12} />}
                   >
-                    {processingApproval === user.id ? (
-                      <RefreshCw size={12} className="animate-spin" />
-                    ) : (
-                      <XCircle size={12} />
-                    )}
-                    <span>Reject</span>
-                  </button>
+                    Reject
+                  </Button>
                 </div>
               </div>
             ))}
@@ -492,20 +447,18 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                   {/* Role Select Cell */}
                   <td className="px-3 py-2 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <div className="w-20">
-                        <Select<RoleOption>
-                          value={ROLE_OPTIONS.find(o => o.value === (user.role ?? 'user'))}
-                          onChange={option => {
-                            if (option) {
-                              void updateUserRole(user.id, option.value);
+                      <div className="w-24">
+                        <Select
+                          value={user.role ?? 'user'}
+                          onChange={newValue => {
+                            if (newValue && typeof newValue === 'string') {
+                              void updateUserRole(user.id, newValue as 'admin' | 'user');
                             }
                           }}
                           options={ROLE_OPTIONS}
-                          isDisabled={updating === user.id}
-                          isSearchable={false}
-                          styles={ROLE_SELECT_STYLES}
-                          menuPortalTarget={document.body}
-                          menuPlacement="auto"
+                          disabled={updating === user.id}
+                          size="sm"
+                          fullWidth
                         />
                       </div>
                       {updating === user.id && (
@@ -537,47 +490,55 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                   <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center gap-1">
                       <Tooltip content="Reset password" side="bottom">
-                        <button
+                        <Button
+                          variant="warning"
+                          size="xs"
+                          iconOnly
                           onClick={() => {
                             setPasswordResetModalData({ userId: user.id, username: user.username });
                             setIsPasswordResetModalOpen(true);
                           }}
-                          className="btn-password-compact"
+                          aria-label="Reset password"
                         >
                           <KeyRound size={16} />
-                        </button>
+                        </Button>
                       </Tooltip>
                       {user.researcherId ? (
                         <Tooltip content="Unlink researcher" side="bottom">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            iconOnly
                             onClick={() => unlinkResearcher(user.id, user.username)}
-                            className="btn-primary-compact"
+                            aria-label="Unlink researcher"
                           >
                             <Unlink2 size={16} />
-                          </button>
+                          </Button>
                         </Tooltip>
                       ) : (
                         <Tooltip content="Link researcher" side="bottom">
-                          <button
+                          <Button
+                            variant="ghost"
+                            size="xs"
+                            iconOnly
                             onClick={() => openLinkModal({ id: user.id, username: user.username })}
-                            className="btn-primary-compact"
+                            aria-label="Link researcher"
                           >
                             <Link2 size={16} />
-                          </button>
+                          </Button>
                         </Tooltip>
                       )}
                       <Tooltip content="Delete user" side="bottom">
-                        <button
+                        <Button
+                          variant="danger"
+                          size="xs"
+                          iconOnly
                           onClick={() => handleDeleteUser(user.id, user.username)}
-                          disabled={deleteUserMutation.isPending}
-                          className="btn-danger-compact"
+                          isLoading={deleteUserMutation.isPending}
+                          aria-label="Delete user"
                         >
-                          {deleteUserMutation.isPending ? (
-                            <RefreshCw size={16} className="animate-spin" />
-                          ) : (
-                            <Trash2 size={16} />
-                          )}
-                        </button>
+                          <Trash2 size={16} />
+                        </Button>
                       </Tooltip>
                     </div>
                   </td>

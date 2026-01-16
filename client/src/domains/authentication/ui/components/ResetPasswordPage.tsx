@@ -11,6 +11,7 @@ import { authenticationService } from '@domains/authentication/services/Authenti
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { Button } from '@shared/ui';
 
 import { CreatePasswordForm } from './CreatePasswordForm';
 
@@ -76,12 +77,15 @@ export const ResetPasswordPage: React.FC = () => {
             for a new reset link.
           </p>
 
-          <button
+          <Button
+            variant="primary"
+            size="xl"
+            fullWidth
             onClick={handleBackToLogin}
-            className="w-full btn btn-primary h-12 text-base font-bold shadow-lg"
+            className="shadow-lg font-bold"
           >
             Back to Login
-          </button>
+          </Button>
         </div>
       </div>
     );

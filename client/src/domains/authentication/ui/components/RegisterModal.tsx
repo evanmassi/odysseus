@@ -25,6 +25,7 @@ import {
 } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { AuthBaseModal } from './AuthBaseModal';
@@ -516,20 +517,17 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           </div>
         </div>
 
-        <button
+        <Button
           type="submit"
-          disabled={isLoading}
-          className="w-full btn btn-primary h-12 text-base font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-2.5"
+          variant="primary"
+          size="xl"
+          fullWidth
+          isLoading={isLoading}
+          loadingText="Creating your account..."
+          className="shadow-lg font-bold mt-2.5"
         >
-          {isLoading ? (
-            <div className="flex items-center justify-center space-x-2">
-              <div className="spinner w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-              <span>Creating your account...</span>
-            </div>
-          ) : (
-            'Create Account'
-          )}
-        </button>
+          Create Account
+        </Button>
       </form>
 
       <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">

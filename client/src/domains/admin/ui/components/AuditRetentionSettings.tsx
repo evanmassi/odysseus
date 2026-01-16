@@ -19,6 +19,7 @@ import {
 
 import { adminService } from '@domains/admin/services/AdminService';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 
 import type { RetentionMetrics, RetentionPolicy } from '@domains/admin/types/metrics';
 
@@ -208,14 +209,15 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
             <h4 className="text-sm font-semibold text-card-foreground">Audit Log Retention</h4>
           </div>
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="secondary"
+              size="xs"
               onClick={loadData}
-              disabled={loading}
-              className="btn-refresh-compact flex items-center space-x-1"
+              isLoading={loading}
+              leftIcon={<RefreshCw size={12} />}
             >
-              <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
-              <span>Refresh</span>
-            </button>
+              Refresh
+            </Button>
             <button
               onClick={() => setIsCollapsed(true)}
               className="p-1 hover:bg-accent rounded focus-ring-default"
@@ -372,21 +374,24 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
       <div className="bg-card border border-border rounded-lg p-3">
         <h5 className="text-xs font-semibold text-card-foreground mb-2">Manual Operations</h5>
         <div className="flex gap-2">
-          <button
+          <Button
+            variant="primary"
+            size="xs"
             onClick={runArchival}
-            disabled={archiving}
-            className="btn-compact bg-action text-white hover:bg-action-hover flex items-center space-x-1"
+            isLoading={archiving}
+            loadingText="Running Archival..."
+            leftIcon={<Archive size={12} />}
           >
-            <Archive size={12} className={archiving ? 'animate-spin' : ''} />
-            <span>{archiving ? 'Running Archival...' : 'Run Manual Archival'}</span>
-          </button>
-          <button
+            Run Manual Archival
+          </Button>
+          <Button
+            variant="cancel"
+            size="xs"
             onClick={exportArchive}
-            className="btn-compact border border-border bg-card text-secondary-foreground hover:bg-accent hover:border-primary flex items-center space-x-1"
+            leftIcon={<Download size={12} />}
           >
-            <Download size={12} />
-            <span>Export Archive</span>
-          </button>
+            Export Archive
+          </Button>
         </div>
         <p className="text-xs text-muted-foreground mt-2">
           Manual archival will move logs older than {policy?.activeRetentionDays} days to the

@@ -18,6 +18,7 @@ import {
 
 import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
@@ -343,14 +344,17 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             </div>
 
             {/* Save Button */}
-            <button
+            <Button
+              variant="primary"
               onClick={handleSave}
-              disabled={isUpdating || !currentPassword.trim()}
-              className="btn btn-primary flex items-center space-x-2 text-sm px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed mt-3"
+              disabled={!currentPassword.trim()}
+              isLoading={isUpdating}
+              loadingText="Saving..."
+              leftIcon={<Save size={14} />}
+              className="mt-3"
             >
-              {isUpdating ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-              <span>{isUpdating ? 'Saving...' : 'Save Changes'}</span>
-            </button>
+              Save Changes
+            </Button>
           </div>
         )}
 

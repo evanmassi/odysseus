@@ -14,6 +14,7 @@ import { Clock, LogOut } from 'lucide-react';
 import { useModalStore } from '@app/stores/modalStore';
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { Button } from '@shared/ui';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
 const EXIT_DURATION = 200;
@@ -200,22 +201,12 @@ export function SessionTimeoutWarningModal() {
 
           {/* Actions */}
           <div className="flex justify-center space-x-3">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="btn btn-secondary px-6 inline-flex items-center gap-2"
-            >
-              <LogOut size={18} />
+            <Button variant="secondary" onClick={handleLogout} leftIcon={<LogOut size={18} />}>
               Log Out
-            </button>
-            <button
-              ref={stayLoggedInRef}
-              type="button"
-              onClick={handleStayLoggedIn}
-              className="btn btn-primary px-6 font-medium"
-            >
+            </Button>
+            <Button ref={stayLoggedInRef} variant="primary" onClick={handleStayLoggedIn}>
               Stay Logged In
-            </button>
+            </Button>
           </div>
         </div>
       </div>

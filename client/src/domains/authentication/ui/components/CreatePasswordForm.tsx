@@ -13,6 +13,7 @@ import {
   type PasswordRequirements as PasswordConfig,
 } from '@domains/authentication/services/AuthenticationService';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 
 import { PasswordRequirements } from './PasswordRequirements';
 
@@ -216,20 +217,17 @@ export function CreatePasswordForm({
           </div>
         </div>
 
-        <button
+        <Button
           type="submit"
-          disabled={isLoading}
-          className="w-full btn btn-primary h-12 text-base font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="primary"
+          size="xl"
+          fullWidth
+          isLoading={isLoading}
+          loadingText={loadingText}
+          className="shadow-lg font-bold"
         >
-          {isLoading ? (
-            <div className="flex items-center justify-center space-x-2">
-              <div className="spinner w-5 h-5"></div>
-              <span>{loadingText}</span>
-            </div>
-          ) : (
-            submitText
-          )}
-        </button>
+          {submitText}
+        </Button>
       </form>
 
       {onCancel && (

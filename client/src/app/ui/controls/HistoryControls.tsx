@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { Undo2, Redo2, History, Trash2 } from 'lucide-react';
 
-import { Tooltip } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 
 import type { HistoryAction } from '@shared/types/Clipboard';
 
@@ -66,14 +66,15 @@ export function HistoryControls({
           content={lastUndoOperation ? `Undo: ${lastUndoOperation.description}` : 'Nothing to undo'}
           side="bottom"
         >
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={onUndo}
             disabled={!canUndo}
-            className="btn btn-sm btn-secondary flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            leftIcon={<Undo2 size={14} />}
           >
-            <Undo2 size={14} />
             <span className="hidden sm:inline">Undo</span>
-          </button>
+          </Button>
         </Tooltip>
 
         {/* Redo button */}
@@ -81,29 +82,42 @@ export function HistoryControls({
           content={nextRedoOperation ? `Redo: ${nextRedoOperation.description}` : 'Nothing to redo'}
           side="bottom"
         >
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={onRedo}
             disabled={!canRedo}
-            className="btn btn-sm btn-secondary flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+            leftIcon={<Redo2 size={14} />}
           >
-            <Redo2 size={14} />
             <span className="hidden sm:inline">Redo</span>
-          </button>
+          </Button>
         </Tooltip>
 
         {/* History toggle */}
         <Tooltip content="View operation history" side="bottom">
-          <button onClick={() => setShowHistory(!showHistory)} className="btn btn-sm btn-secondary">
+          <Button
+            variant="secondary"
+            size="sm"
+            iconOnly
+            onClick={() => setShowHistory(!showHistory)}
+            aria-label="View operation history"
+          >
             <History size={14} />
-          </button>
+          </Button>
         </Tooltip>
 
         {/* Clear history */}
         {(undoStack.length > 0 || redoStack.length > 0) && (
           <Tooltip content="Clear operation history" side="bottom">
-            <button onClick={onClearHistory} className="btn btn-sm text-red-600 hover:bg-red-50">
+            <Button
+              variant="danger"
+              size="sm"
+              iconOnly
+              onClick={onClearHistory}
+              aria-label="Clear operation history"
+            >
               <Trash2 size={14} />
-            </button>
+            </Button>
           </Tooltip>
         )}
       </div>
@@ -138,14 +152,14 @@ export function HistoryControls({
               {redoStack.map((operation, _index) => (
                 <div
                   key={`redo-${operation.id}`}
-                  className="flex items-center space-x-3 p-2 rounded bg-blue-50 border border-blue-200"
+                  className="flex items-center space-x-3 p-2 rounded bg-info-light border border-info-border"
                 >
-                  <span className="text-blue-600">{getOperationIcon(operation.type)}</span>
+                  <span className="text-info-text">{getOperationIcon(operation.type)}</span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm text-blue-800 truncate">
+                    <div className="text-sm text-info-bg truncate">
                       {formatOperationDescription(operation)}
                     </div>
-                    <div className="text-xs text-blue-600">
+                    <div className="text-xs text-info-text">
                       {operation.data.after?.tubes?.length || 0} tube(s) • Will redo
                     </div>
                   </div>
@@ -170,23 +184,23 @@ export function HistoryControls({
                     key={`undo-${operation.id}`}
                     className={`flex items-center space-x-3 p-2 rounded ${
                       index === 0
-                        ? 'bg-emerald-50 border border-emerald-200'
+                        ? 'bg-success-light border border-success-border'
                         : 'bg-muted border border-border'
                     }`}
                   >
-                    <span className={index === 0 ? 'text-emerald-600' : 'text-muted-foreground'}>
+                    <span className={index === 0 ? 'text-success-text' : 'text-muted-foreground'}>
                       {getOperationIcon(operation.type)}
                     </span>
                     <div className="flex-1 min-w-0">
                       <div
                         className={`text-sm truncate ${
-                          index === 0 ? 'text-emerald-800' : 'text-secondary-foreground'
+                          index === 0 ? 'text-success-bg' : 'text-secondary-foreground'
                         }`}
                       >
                         {formatOperationDescription(operation)}
                       </div>
                       <div
-                        className={`text-xs ${index === 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}
+                        className={`text-xs ${index === 0 ? 'text-success-text' : 'text-muted-foreground'}`}
                       >
                         {operation.data.after?.tubes?.length || 0} tube(s)
                         {index === 0 && ' • Last operation'}
@@ -200,16 +214,18 @@ export function HistoryControls({
           {/* History actions */}
           {(undoStack.length > 0 || redoStack.length > 0) && (
             <div className="mt-3 pt-3 border-t border-border">
-              <button
+              <Button
+                variant="danger"
+                size="sm"
+                fullWidth
                 onClick={() => {
                   onClearHistory();
                   setShowHistory(false);
                 }}
-                className="w-full btn btn-sm text-red-600 hover:bg-red-50"
+                leftIcon={<Trash2 size={14} />}
               >
-                <Trash2 size={14} className="mr-2" />
                 Clear All History
-              </button>
+              </Button>
             </div>
           )}
         </div>

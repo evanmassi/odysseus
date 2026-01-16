@@ -15,6 +15,7 @@ import { Share2, X, UserRoundPlus, UsersRound, Info } from 'lucide-react';
 
 import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
 import { useActiveUsersQuery } from '@domains/users';
+import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
@@ -243,20 +244,18 @@ export function ShareAccessModal({
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">
-          <button type="button" onClick={onClose} className="btn btn-secondary">
+          <Button variant="secondary" onClick={onClose}>
             {currentlySharedUserIds.length > 0 ? 'Done' : 'Cancel'}
-          </button>
+          </Button>
           {selectedUserIds.length > 0 && (
-            <button
-              type="button"
+            <Button
+              variant="primary"
               onClick={handleShare}
-              disabled={isProcessing}
-              className="btn btn-primary"
+              isLoading={isProcessing}
+              loadingText="Sharing..."
             >
-              {isProcessing
-                ? 'Sharing...'
-                : `Share with ${selectedUserIds.length} User${selectedUserIds.length !== 1 ? 's' : ''}`}
-            </button>
+              Share with {selectedUserIds.length} User{selectedUserIds.length !== 1 ? 's' : ''}
+            </Button>
           )}
         </div>
       </div>

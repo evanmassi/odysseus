@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { Save } from 'lucide-react';
 
+import { Button, Select } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
 
@@ -42,6 +43,23 @@ export function BoxEditModal({
     }
   }, [isOpen, initialBox.gridConfig]);
 
+  // Convert grid templates to Select options
+  const gridOptions = useMemo(
+    () =>
+      gridTemplates.map(template => ({
+        value: `${template.rows}x${template.cols}`,
+        label: `${template.rows}×${template.cols} Grid (${(template.rows * template.cols).toLocaleString()} positions)`,
+      })),
+    [gridTemplates]
+  );
+
+  const handleGridChange = (value: string | number | (string | number)[] | null) => {
+    if (typeof value !== 'string') return;
+    const [rows, cols] = value.split('x').map(Number);
+    const template = gridTemplates.find(t => t.rows === rows && t.cols === cols);
+    if (template) setSelectedGridConfig(template);
+  };
+
   const handleSave = async () => {
     await onSave(tankId, rackId, initialBox.id, selectedGridConfig);
     onClose();
@@ -62,43 +80,23 @@ export function BoxEditModal({
     >
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label
-            htmlFor="box-grid-template"
-            className="block text-sm font-medium mb-1 text-secondary-foreground"
-          >
-            Grid Size ({initialBox.name})
-          </label>
-          <select
-            id="box-grid-template"
-            className="input-field input-field-normal w-full"
+          <Select
+            label={`Grid Size (${initialBox.name})`}
+            options={gridOptions}
             value={`${selectedGridConfig.rows}x${selectedGridConfig.cols}`}
-            onChange={e => {
-              const [rows, cols] = e.target.value.split('x').map(Number);
-              const template = gridTemplates.find(t => t.rows === rows && t.cols === cols);
-              if (template) setSelectedGridConfig(template);
-            }}
+            onChange={handleGridChange}
             aria-label="Select grid template for box"
-          >
-            {gridTemplates.map(template => (
-              <option
-                key={`${template.rows}x${template.cols}`}
-                value={`${template.rows}x${template.cols}`}
-              >
-                {template.rows}×{template.cols} Grid (
-                {(template.rows * template.cols).toLocaleString()} positions)
-              </option>
-            ))}
-          </select>
+            fullWidth
+          />
         </div>
 
         <div className="flex justify-end gap-3">
-          <button type="button" onClick={onClose} className="btn btn-secondary">
+          <Button variant="secondary" onClick={onClose}>
             Cancel
-          </button>
-          <button type="submit" className="btn btn-primary flex items-center gap-2">
-            <Save size={16} />
+          </Button>
+          <Button type="submit" variant="primary" leftIcon={<Save size={16} />}>
             Save Changes
-          </button>
+          </Button>
         </div>
       </form>
     </BaseModal>

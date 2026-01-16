@@ -1,8 +1,9 @@
 import React, { useMemo, useCallback } from 'react';
 
-import Select, { type CSSObjectWithLabel } from 'react-select';
+import { Select } from '@shared/ui';
 
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
+import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 // Special value for explicitly unassigned/common boxes
 const COMMON_VALUE = '__COMMON__';
@@ -18,64 +19,8 @@ interface AssignmentDropdownProps {
   parentUserId?: string;
 }
 
-// Focus ring styles matching global focus system - blue neon glow
-const getFocusBoxShadow = () =>
-  `0 0 4px 0 rgba(59, 130, 246, 0.7), 0 0 10px 2px rgba(59, 130, 246, 0.35)`;
-const getFocusBorderColor = () => `#3b82f6`;
-
-const STYLES_SM = {
-  control: (base: CSSObjectWithLabel, state: { isFocused: boolean }) => ({
-    ...base,
-    minHeight: '24px',
-    fontSize: '11px',
-    boxShadow: state.isFocused ? getFocusBoxShadow() : base.boxShadow,
-    borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
-    borderWidth: state.isFocused ? '2px' : base.borderWidth,
-    '&:hover': {
-      borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
-    },
-  }),
-  menu: (base: CSSObjectWithLabel) => ({
-    ...base,
-    fontSize: '11px',
-    width: 'auto',
-    minWidth: '100%',
-    right: 0,
-  }),
-  menuPortal: (base: CSSObjectWithLabel) => ({
-    ...base,
-    zIndex: 9999,
-  }),
-};
-
-const STYLES_MD = {
-  control: (base: CSSObjectWithLabel, state: { isFocused: boolean }) => ({
-    ...base,
-    minHeight: '28px',
-    fontSize: '12px',
-    boxShadow: state.isFocused ? getFocusBoxShadow() : base.boxShadow,
-    borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
-    borderWidth: state.isFocused ? '2px' : base.borderWidth,
-    '&:hover': {
-      borderColor: state.isFocused ? getFocusBorderColor() : base.borderColor,
-    },
-  }),
-  menu: (base: CSSObjectWithLabel) => ({
-    ...base,
-    fontSize: '12px',
-    width: 'auto',
-    minWidth: '100%',
-    right: 0,
-  }),
-  menuPortal: (base: CSSObjectWithLabel) => ({
-    ...base,
-    zIndex: 9999,
-  }),
-};
-
-interface AssignmentOption {
-  value: string;
-  label: string;
+// Extended option with extra metadata for rendering
+interface AssignmentOption extends SelectOption {
   firstName?: string;
   lastName?: string;
   username?: string;
@@ -116,73 +61,117 @@ export function AssignmentDropdown({
 
   // Show Unassigned/Common at top only if enabled (for boxes), then users
   const options = useMemo(
-    () => (showCommonOption ? [COMMON_OPTION, ...userOptions] : userOptions),
+    (): AssignmentOption[] => (showCommonOption ? [COMMON_OPTION, ...userOptions] : userOptions),
     [userOptions, showCommonOption]
   );
 
-  const selectedOption = useMemo(() => {
-    if (value === null) return COMMON_OPTION;
-    if (value) return userOptions.find(o => o.value === value) ?? null;
-    // undefined = inherit from parent - show parent user with inherited flag
-    if (parentUserId) {
-      const parentOption = userOptions.find(o => o.value === parentUserId);
-      if (parentOption) {
-        return { ...parentOption, isInherited: true };
-      }
-    }
-    return null;
-  }, [value, userOptions, parentUserId]);
+  // Create a lookup map for option metadata
+  const optionMap = useMemo(() => {
+    const map = new Map<string, AssignmentOption>();
+    options.forEach(opt => map.set(String(opt.value), opt));
+    return map;
+  }, [options]);
+
+  // Determine current selected value for the Select
+  const selectedValue = useMemo(() => {
+    if (value === null) return COMMON_VALUE;
+    if (value) return value;
+    // undefined = inherit from parent - show parent user
+    if (parentUserId) return parentUserId;
+    return '';
+  }, [value, parentUserId]);
+
+  // Track if current display is inherited (for styling)
+  const isInherited = value === undefined && !!parentUserId;
 
   const handleChange = useCallback(
-    (option: AssignmentOption | null) => {
-      if (!option) {
+    (newValue: string | number | (string | number)[] | null) => {
+      if (newValue === null || newValue === '') {
         // Cleared - revert to inherit from rack
         onChange(undefined);
-      } else if (option.value === COMMON_VALUE) {
+      } else if (newValue === COMMON_VALUE) {
         // Explicitly unassigned/common
         onChange(null);
       } else {
         // Assigned to specific user
-        onChange(option.value);
+        onChange(String(newValue));
       }
     },
     [onChange]
   );
 
-  const formatOptionLabel = useCallback((option: AssignmentOption) => {
-    if (option.isCommon) {
-      return <span className="italic text-secondary-foreground">{option.label}</span>;
-    }
-    const wrapperClass = option.isInherited ? 'italic' : '';
-    if (option.firstName && option.lastName) {
-      return (
-        <span className={wrapperClass}>
-          <span className={option.isInherited ? '' : 'font-semibold'}>
-            {option.lastName}, {option.firstName}
-          </span>
-          <span className="text-muted-foreground"> ({option.username})</span>
-        </span>
-      );
-    }
-    return <span className={wrapperClass}>{option.username}</span>;
-  }, []);
+  // Custom option rendering
+  const renderOption = useCallback(
+    (option: SelectOption) => {
+      const fullOption = optionMap.get(String(option.value));
+      if (!fullOption) return option.label;
 
-  const widthClass = size === 'sm' ? 'w-48' : 'w-56';
-  const styles = size === 'sm' ? STYLES_SM : STYLES_MD;
+      if (fullOption.isCommon) {
+        return <span className="italic text-secondary-foreground">{fullOption.label}</span>;
+      }
+
+      if (fullOption.firstName && fullOption.lastName) {
+        return (
+          <span>
+            <span className="font-semibold">
+              {fullOption.lastName}, {fullOption.firstName}
+            </span>
+            <span className="text-muted-foreground"> ({fullOption.username})</span>
+          </span>
+        );
+      }
+
+      return <span>{fullOption.username}</span>;
+    },
+    [optionMap]
+  );
+
+  // Custom value rendering (for selected display)
+  const renderValue = useCallback(
+    (selectedOptions: SelectOption[]) => {
+      if (selectedOptions.length === 0) return null;
+
+      const option = selectedOptions[0];
+      const fullOption = optionMap.get(String(option.value));
+      if (!fullOption) return option.label;
+
+      const wrapperClass = isInherited ? 'italic' : '';
+
+      if (fullOption.isCommon) {
+        return <span className="italic text-secondary-foreground">{fullOption.label}</span>;
+      }
+
+      if (fullOption.firstName && fullOption.lastName) {
+        return (
+          <span className={wrapperClass}>
+            <span className={isInherited ? '' : 'font-semibold'}>
+              {fullOption.lastName}, {fullOption.firstName}
+            </span>
+            <span className="text-muted-foreground"> ({fullOption.username})</span>
+          </span>
+        );
+      }
+
+      return <span className={wrapperClass}>{fullOption.username}</span>;
+    },
+    [optionMap, isInherited]
+  );
+
+  const widthClass = size === 'sm' ? 'w-56' : 'w-64';
 
   return (
     <div className={`${widthClass} flex-shrink-0`}>
-      <Select<AssignmentOption>
-        value={selectedOption}
+      <Select
+        value={selectedValue}
         onChange={handleChange}
         options={options}
-        formatOptionLabel={formatOptionLabel}
-        isClearable
+        clearable
         placeholder="Assign..."
+        size={size}
+        fullWidth
+        renderOption={renderOption}
+        renderValue={renderValue}
         className="text-xs"
-        styles={styles}
-        menuPortalTarget={document.body}
-        menuPosition="fixed"
       />
     </div>
   );

@@ -1,6 +1,6 @@
 /**
  * Button Component Types
- * 
+ *
  * Type definitions for the accessible Button primitive component
  * Includes all variants, sizes, and interactive states
  */
@@ -8,28 +8,32 @@
 import type { ComponentProps, ReactNode } from 'react';
 
 // Button variant types
-export type ButtonVariant = 
-  | 'primary'       // Primary action button (filled)
-  | 'secondary'     // Secondary action button (outlined)
-  | 'tertiary'      // Tertiary action button (ghost/text)
-  | 'danger'        // Destructive action button
-  | 'success'       // Success/confirmation button
-  | 'warning'       // Warning action button
-  | 'ghost';        // Minimal button (no border/background)
+export type ButtonVariant =
+  | 'primary' // Primary action button (filled)
+  | 'secondary' // Secondary action button (outlined)
+  | 'tertiary' // Tertiary action button (ghost/text)
+  | 'danger' // Destructive action button
+  | 'success' // Success/confirmation button
+  | 'warning' // Warning action button
+  | 'info' // Informational action button
+  | 'ghost' // Minimal button (no border/background)
+  | 'ghost-danger' // Ghost button with danger styling (for toolbar delete actions)
+  | 'cancel' // Cancel/dismiss button
+  | 'clear'; // Clear/reset action button
 
 // Button size types
-export type ButtonSize = 
-  | 'xs'            // Extra small (24px height)
-  | 'sm'            // Small (32px height)
-  | 'md'            // Medium (40px height) - default
-  | 'lg'            // Large (48px height)
-  | 'xl';           // Extra large (56px height)
+export type ButtonSize =
+  | 'xs' // Extra small (24px height)
+  | 'sm' // Small (32px height)
+  | 'md' // Medium (40px height) - default
+  | 'lg' // Large (48px height)
+  | 'xl'; // Extra large (56px height)
 
 // Button shape types
-export type ButtonShape = 
-  | 'rounded'       // Standard rounded corners
-  | 'pill'          // Fully rounded (pill-shaped)
-  | 'square';       // Sharp corners
+export type ButtonShape =
+  | 'rounded' // Standard rounded corners
+  | 'pill' // Fully rounded (pill-shaped)
+  | 'square'; // Sharp corners
 
 // Button loading state
 export type ButtonLoadingState = {
@@ -47,34 +51,34 @@ export type ButtonIcon = {
 export interface BaseButtonProps extends Omit<ComponentProps<'button'>, 'children'> {
   // Content
   children?: ReactNode;
-  
+
   // Appearance
   variant?: ButtonVariant;
   size?: ButtonSize;
   shape?: ButtonShape;
-  
+
   // State
   isLoading?: boolean;
   loadingText?: string;
   disabled?: boolean;
-  
+
   // Icons
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   iconOnly?: boolean; // For icon-only buttons
-  
+
   // Layout
-  fullWidth?: boolean;  // Stretch to full width
-  
+  fullWidth?: boolean; // Stretch to full width
+
   // Accessibility
   'aria-label'?: string;
   'aria-describedby'?: string;
   'aria-expanded'?: boolean;
-  'aria-haspopup'?: boolean;
-  
+  'aria-haspopup'?: boolean | 'menu' | 'listbox' | 'tree' | 'grid' | 'dialog';
+
   // Custom styling
   className?: string;
-  
+
   // Event handlers
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
@@ -129,16 +133,16 @@ export interface ButtonStyleVariants {
 export interface ButtonTheme {
   // Base styles
   base: string;
-  
+
   // Variant styles
   variants: ButtonStyleVariants['variant'];
-  
-  // Size styles  
+
+  // Size styles
   sizes: ButtonStyleVariants['size'];
-  
+
   // Shape styles
   shapes: ButtonStyleVariants['shape'];
-  
+
   // State styles
   states: {
     disabled: string;
@@ -147,7 +151,7 @@ export interface ButtonTheme {
     hover: string;
     active: string;
   };
-  
+
   // Icon styles
   icons: {
     left: string;
@@ -171,7 +175,19 @@ export const defaultButtonProps: Partial<ButtonProps> = {
 
 // Type guards
 export const isButtonVariant = (value: string): value is ButtonVariant => {
-  return ['primary', 'secondary', 'tertiary', 'danger', 'success', 'warning', 'ghost'].includes(value);
+  return [
+    'primary',
+    'secondary',
+    'tertiary',
+    'danger',
+    'success',
+    'warning',
+    'info',
+    'ghost',
+    'ghost-danger',
+    'cancel',
+    'clear',
+  ].includes(value);
 };
 
 export const isButtonSize = (value: string): value is ButtonSize => {

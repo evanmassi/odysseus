@@ -18,6 +18,8 @@ import React, {
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
 
+import { Button } from '../../primitives';
+
 // Error boundary state
 interface ErrorBoundaryState {
   hasError: boolean;
@@ -78,12 +80,12 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
 
   return (
     <div
-      className="flex flex-col items-center justify-center p-8 min-h-[200px] border-2 border-dashed border-error-300 bg-error-50 rounded-lg"
+      className="flex flex-col items-center justify-center p-8 min-h-[200px] border-2 border-dashed border-danger-border bg-danger-light rounded-lg"
       role="alert"
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for display: empty name falls through to level
       aria-label={`Error in ${name || level}`}
     >
-      <div className="text-error-500 mb-4">
+      <div className="text-danger-bg mb-4">
         <svg className="w-16 h-16 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="12" cy="12" r="10" />
           <line x1="15" y1="9" x2="9" y2="15" />
@@ -91,18 +93,18 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
         </svg>
       </div>
 
-      <h2 className="text-xl font-bold text-error-900 mb-2">Something went wrong</h2>
+      <h2 className="text-xl font-bold text-validation-error-text mb-2">Something went wrong</h2>
 
-      <p className="text-error-700 text-center mb-4 max-w-md">
+      <p className="text-danger-text text-center mb-4 max-w-md">
         {isDevelopment ? error.message : `An error occurred while rendering this ${level}.`}
       </p>
 
       {isDevelopment && (
         <details className="mb-4 max-w-2xl w-full">
-          <summary className="cursor-pointer text-error-600 font-medium mb-2">
+          <summary className="cursor-pointer text-danger-text font-medium mb-2">
             Error Details
           </summary>
-          <div className="bg-error-100 p-4 rounded border text-sm font-mono text-error-800 overflow-auto max-h-40">
+          <div className="bg-muted p-4 rounded border border-danger-border text-sm font-mono text-card-foreground overflow-auto max-h-40">
             <div className="mb-2">
               <strong>Error ID:</strong> {errorId}
             </div>
@@ -124,15 +126,13 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
       )}
 
       <div className="flex space-x-3">
-        <button
-          onClick={retry}
-          className="btn px-4 py-2 bg-error-600 text-white rounded-md hover:bg-error-700 transition-colors"
-        >
+        <Button variant="danger" onClick={retry}>
           Try Again
-        </button>
+        </Button>
 
         {isDevelopment && (
-          <button
+          <Button
+            variant="secondary"
             onClick={() => {
               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
               // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
@@ -142,17 +142,16 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
               // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
               console.groupEnd();
             }}
-            className="btn px-4 py-2 bg-neutral-600 text-white rounded-md hover:bg-neutral-700 transition-colors"
           >
             Log to Console
-          </button>
+          </Button>
         )}
       </div>
 
       {level === 'page' && (
         <button
           onClick={() => window.location.reload()}
-          className="mt-3 text-error-600 hover:text-error-800 underline text-sm"
+          className="mt-3 text-danger-text hover:text-danger-bg underline text-sm"
         >
           Reload Page
         </button>

@@ -2,6 +2,8 @@ import React, { useRef, useEffect } from 'react';
 
 import { AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
+import { Select } from '../../primitives';
+
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
 interface ValidationAwareInputProps {
@@ -141,21 +143,33 @@ export function ValidatedInput({
       </label>
 
       {type === 'select' ? (
-        <select
-          ref={inputRef as React.RefObject<HTMLSelectElement>}
-          {...(isUncontrolled ? registration : { value, onChange: handleInputChange })}
-          onBlur={onBlur}
-          className={getInputClasses()}
-          disabled={disabled}
-          {...ariaProps}
-        >
-          {options?.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-          {children}
-        </select>
+        // Use Select primitive for controlled mode, native select for uncontrolled (registration)
+        isUncontrolled ? (
+          <select
+            ref={inputRef as React.RefObject<HTMLSelectElement>}
+            {...registration}
+            onBlur={onBlur}
+            className={getInputClasses()}
+            disabled={disabled}
+            {...ariaProps}
+          >
+            {options?.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+            {children}
+          </select>
+        ) : (
+          <Select
+            options={options ?? []}
+            value={value ?? ''}
+            onChange={newValue => onChange?.(String(newValue ?? ''))}
+            disabled={disabled}
+            state={error ? 'error' : warning ? 'warning' : hasConflict ? 'warning' : 'default'}
+            fullWidth
+          />
+        )
       ) : type === 'textarea' ? (
         <textarea
           ref={inputRef as React.RefObject<HTMLTextAreaElement>}

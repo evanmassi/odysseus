@@ -2,6 +2,7 @@ import React from 'react';
 
 import { AlertCircle, AlertTriangle } from 'lucide-react';
 
+import { Select } from '@shared/ui';
 import {
   formatToScientificNotation,
   isScientificNotationInput,
@@ -133,21 +134,26 @@ export function ConcentrationInput({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           disabled={disabled}
-          className={`${getInputClasses()} flex-[7] min-w-0`}
+          className={`${getInputClasses()} flex-1 min-w-0`}
         />
 
-        <select
-          value={unitValue}
-          onChange={e => onUnitChange(e.target.value)}
-          disabled={disabled}
-          className={`${getInputClasses()} flex-[3] relative z-50`}
-        >
-          {unitOptions.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <div className="w-20 relative z-50 flex-shrink-0">
+          <Select
+            options={unitOptions}
+            value={unitValue}
+            onChange={newValue => onUnitChange(String(newValue ?? ''))}
+            disabled={disabled}
+            state={
+              validation?.error
+                ? 'error'
+                : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for validation states
+                  validation?.warning || hasConflict
+                  ? 'warning'
+                  : 'default'
+            }
+            fullWidth
+          />
+        </div>
       </div>
 
       {validation?.helperText && (

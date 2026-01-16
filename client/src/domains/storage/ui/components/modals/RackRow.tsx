@@ -3,7 +3,7 @@ import React from 'react';
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
-import { Tooltip } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -196,13 +196,14 @@ export function RackRow({
                   className="input-number-sm w-14 px-2 py-0.5 focus-ring-default"
                 />
               </Tooltip>
-              <button
+              <Button
+                variant="primary"
+                size="xs"
                 onClick={() => onAddBox(tankId, rack.id)}
-                className="btn btn-primary flex items-center gap-1 text-xs !py-0 px-2 h-6"
+                leftIcon={<Plus size={12} />}
               >
-                <Plus size={12} />
                 Add {boxCountToAdd > 1 ? 'Boxes' : 'Box'}
-              </button>
+              </Button>
             </div>
           )}
         </div>

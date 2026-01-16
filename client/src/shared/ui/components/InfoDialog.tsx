@@ -9,7 +9,10 @@ import { X, AlertTriangle, Info } from 'lucide-react';
 
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
-import { ModalPortal } from '@shared/ui/components/ModalPortal';
+
+import { Button } from '../primitives';
+
+import { ModalPortal } from './ModalPortal';
 
 export interface InfoDialogProps {
   isOpen: boolean;
@@ -28,7 +31,6 @@ function getVariantStyles(variant: 'warning' | 'info') {
       iconColor: 'text-warning-bg',
       border: 'border-warning-border',
       shadowColor: 'var(--color-warning-bg)',
-      buttonClass: 'btn btn-secondary',
       Icon: AlertTriangle,
     };
   }
@@ -38,7 +40,6 @@ function getVariantStyles(variant: 'warning' | 'info') {
     iconColor: 'text-blue-600',
     border: 'border-blue-200',
     shadowColor: 'rgb(37 99 235)',
-    buttonClass: 'btn btn-secondary',
     Icon: Info,
   };
 }
@@ -142,14 +143,9 @@ export function InfoDialog({
           </div>
 
           <div className="flex justify-end">
-            <button
-              ref={closeButtonRef}
-              onClick={handleClose}
-              className={`${styles.buttonClass} px-6`}
-              type="button"
-            >
+            <Button ref={closeButtonRef} variant="secondary" onClick={handleClose}>
               {buttonText}
-            </button>
+            </Button>
           </div>
         </div>
       </div>

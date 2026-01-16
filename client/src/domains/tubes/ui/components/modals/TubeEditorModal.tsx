@@ -36,6 +36,7 @@ import {
 import { isOfflineError } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
+import { Button } from '@shared/ui';
 import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
@@ -402,20 +403,15 @@ function EditModeForm({
         </fieldset>
 
         <div className="flex justify-end space-x-4 pt-4 border-t border-border">
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn btn-secondary px-6"
-            disabled={isSubmitting}
-          >
+          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
             {isLockedOut ? 'Close' : 'Cancel'}
-          </button>
+          </Button>
           {!isLockedOut && (
             <>
-              <button
-                type="button"
-                className="btn btn-danger px-6"
+              <Button
+                variant="danger"
                 disabled={isSubmitting}
+                leftIcon={<Trash2 className="w-4 h-4" />}
                 onClick={() => {
                   modalService.showDeleteConfirm({
                     title: 'Remove Tube',
@@ -425,26 +421,18 @@ function EditModeForm({
                   });
                 }}
               >
-                <Trash2 className="w-4 h-4 mr-2" />
                 Remove Tube
-              </button>
-              <button
+              </Button>
+              <Button
                 type="submit"
-                className="btn btn-primary px-8"
-                disabled={isSubmitting || !canSubmit}
+                variant="primary"
+                disabled={!canSubmit}
+                isLoading={isSubmitting}
+                loadingText="Updating..."
+                leftIcon={<Save className="w-4 h-4" />}
               >
-                {isSubmitting ? (
-                  <div className="flex items-center space-x-2">
-                    <div className="spinner w-4 h-4"></div>
-                    <span>Updating...</span>
-                  </div>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Update Tube
-                  </>
-                )}
-              </button>
+                Update Tube
+              </Button>
             </>
           )}
         </div>
@@ -839,31 +827,19 @@ function CreateModeContent({
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-4 pt-4 border-t border-border">
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn btn-secondary px-6"
-            disabled={isSubmitting}
-          >
+          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="submit"
-            className="btn btn-primary px-8"
-            disabled={isSubmitting || !isFormValid}
+            variant="primary"
+            disabled={!isFormValid}
+            isLoading={isSubmitting}
+            loadingText="Adding..."
+            leftIcon={<Plus className="w-4 h-4" />}
           >
-            {isSubmitting ? (
-              <div className="flex items-center space-x-2">
-                <div className="spinner w-4 h-4"></div>
-                <span>Adding...</span>
-              </div>
-            ) : (
-              <>
-                <Plus className="w-4 h-4 mr-2" />
-                {parsedPositions.length === 1 ? 'Add Tube' : `Add ${parsedPositions.length} Tubes`}
-              </>
-            )}
-          </button>
+            {parsedPositions.length === 1 ? 'Add Tube' : `Add ${parsedPositions.length} Tubes`}
+          </Button>
         </div>
       </form>
     </BaseModal>

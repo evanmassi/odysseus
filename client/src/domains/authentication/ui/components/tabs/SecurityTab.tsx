@@ -7,12 +7,13 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import { KeyRound, Save, RefreshCw, Eye, EyeOff, Shield, MonitorSmartphone } from 'lucide-react';
+import { KeyRound, Save, Eye, EyeOff, Shield, MonitorSmartphone } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
 import { useChangePassword } from '@domains/users/hooks/useChangePassword';
 import { AnimatedCheckmark } from '@shared/components';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { PasswordRequirements } from '../PasswordRequirements';
@@ -323,14 +324,17 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
         {/* Save Button and Success Banner */}
         <div className="pt-1 pb-2">
           <div className="flex items-center gap-3 min-h-[38px]">
-            <button
+            <Button
+              variant="primary"
               onClick={handleSubmit}
-              disabled={!isFormValid || isChanging}
-              className="btn btn-primary flex items-center space-x-2 text-sm px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+              disabled={!isFormValid}
+              isLoading={isChanging}
+              loadingText="Changing Password..."
+              leftIcon={<Save size={14} />}
+              className="flex-shrink-0"
             >
-              {isChanging ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-              <span>{isChanging ? 'Changing Password...' : 'Change Password'}</span>
-            </button>
+              Change Password
+            </Button>
 
             {/* Success Banner - Appears next to button */}
             {showSuccess && (

@@ -43,7 +43,14 @@ export type {
 
 // Select primitives
 export { Select };
-export type { SelectProps, SelectOption } from './select/Select';
+export type {
+  SelectProps,
+  SelectOption,
+  SelectVariant,
+  SelectSize,
+  SelectState,
+  SelectRef,
+} from './select/types';
 
 // Table primitives
 export { Table, TableHeader, TableBody };

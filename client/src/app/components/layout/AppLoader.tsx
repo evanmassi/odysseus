@@ -8,7 +8,7 @@ import { AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
 
 import odysseusLogo from '@shared/assets/odysseus-logo-thick.svg';
 import { env } from '@shared/config/environment';
-import { Spinner } from '@shared/ui';
+import { Button, Spinner } from '@shared/ui';
 
 import { LOADING_MESSAGES } from '../../bootstrap/constants';
 
@@ -156,19 +156,20 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
         {/* Action Buttons */}
         <div className="flex space-x-3">
           {state === 'error' && canRetry && onRetry && (
-            <button
+            <Button
+              variant="primary"
               onClick={onRetry}
-              className="btn-primary flex-1 flex items-center justify-center space-x-2"
+              leftIcon={<RefreshCw className="w-4 h-4" />}
+              className="flex-1"
             >
-              <RefreshCw className="w-4 h-4" />
-              <span>Try Again</span>
-            </button>
+              Try Again
+            </Button>
           )}
 
           {onCancel && (
-            <button onClick={onCancel} className="btn-cancel">
+            <Button variant="cancel" onClick={onCancel}>
               Cancel
-            </button>
+            </Button>
           )}
         </div>
 

@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { WifiOff, RefreshCw } from 'lucide-react';
 
-import { Spinner } from '@shared/ui';
+import { Button, Spinner } from '@shared/ui';
 
 interface OfflineInitializationPageProps {
   onRetry: () => void;
@@ -93,14 +93,16 @@ export function OfflineInitializationPage({
             </div>
           )}
 
-          <button
+          <Button
+            variant="primary"
+            fullWidth
             onClick={handleRetry}
-            disabled={isRetrying}
-            className="btn-primary w-full flex items-center justify-center space-x-2"
+            isLoading={isRetrying}
+            loadingText="Connecting..."
+            leftIcon={<RefreshCw className="w-4 h-4" />}
           >
-            <RefreshCw className={`w-4 h-4 ${isRetrying ? 'animate-spin' : ''}`} />
-            <span>{isRetrying ? 'Connecting...' : 'Try Now'}</span>
-          </button>
+            Try Now
+          </Button>
 
           {lastConnected && (
             <div className="text-center text-xs text-muted-foreground pt-2">

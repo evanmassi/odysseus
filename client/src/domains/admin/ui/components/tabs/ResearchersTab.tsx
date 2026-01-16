@@ -17,7 +17,7 @@ import { sortByName } from '@odysseus/shared-schemas';
 import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Info } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
-import { Tooltip } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils';
@@ -187,21 +187,22 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
           <h3 className="text-xl font-semibold text-card-foreground">Researchers</h3>
         </div>
         <div className="flex items-center space-x-2">
-          <button
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => setShowAddModal(true)}
-            className="btn btn-primary flex items-center space-x-2 text-sm"
+            leftIcon={<Plus size={14} />}
           >
-            <Plus size={14} />
-            <span>Add Researcher</span>
-          </button>
-          <button
+            Add Researcher
+          </Button>
+          <Button
+            variant="secondary"
             onClick={loadResearchers}
-            disabled={loading}
-            className="btn-refresh flex items-center space-x-2"
+            isLoading={loading}
+            leftIcon={<RefreshCw size={14} />}
           >
-            <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-            <span>Refresh</span>
-          </button>
+            Refresh
+          </Button>
         </div>
       </div>
 
@@ -321,22 +322,22 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
                       }
                       side="bottom"
                     >
-                      <button
+                      <Button
+                        variant="danger"
+                        size="xs"
+                        iconOnly
                         onClick={() =>
                           deleteResearcher(
                             researcher.id,
                             `${researcher.lastName}, ${researcher.firstName}`
                           )
                         }
-                        disabled={!canDelete(researcher) || deleting === researcher.id}
-                        className="btn-danger-compact"
+                        disabled={!canDelete(researcher)}
+                        isLoading={deleting === researcher.id}
+                        aria-label="Delete researcher"
                       >
-                        {deleting === researcher.id ? (
-                          <RefreshCw size={16} className="animate-spin" />
-                        ) : (
-                          <Trash2 size={16} />
-                        )}
-                      </button>
+                        <Trash2 size={16} />
+                      </Button>
                     </Tooltip>
                   </td>
                 </tr>

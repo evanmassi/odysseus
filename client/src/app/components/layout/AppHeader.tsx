@@ -25,7 +25,7 @@ import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
 import { useStorageData } from '@domains/storage';
 import odysseusLogo from '@shared/assets/odysseus-logo-thick.svg';
 import { parsePositionKey, type PositionKey } from '@shared/types/GridSelection';
-import { SuspenseBoundary, Tooltip } from '@shared/ui';
+import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
 import { OnlineUsersBadges } from '@shared/ui/components';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
@@ -280,18 +280,24 @@ export function AppHeader({
                         }
                         side="bottom"
                       >
-                        <button onClick={gridController.openModal} className="btn-header-ghost">
-                          {gridController.selection.hasFilledSelection &&
-                          !gridController.selection.isMixed ? (
-                            <Edit className="w-3 h-3 mr-1" />
-                          ) : (
-                            <Plus className="w-3 h-3 mr-1" />
-                          )}
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          onClick={gridController.openModal}
+                          leftIcon={
+                            gridController.selection.hasFilledSelection &&
+                            !gridController.selection.isMixed ? (
+                              <Edit className="w-3 h-3" />
+                            ) : (
+                              <Plus className="w-3 h-3" />
+                            )
+                          }
+                        >
                           {gridController.selection.hasFilledSelection &&
                           !gridController.selection.isMixed
                             ? 'Edit'
                             : 'Add'}
-                        </button>
+                        </Button>
                       </Tooltip>
 
                       {/* Section 2: Copy, Cut, Paste */}
@@ -300,25 +306,37 @@ export function AppHeader({
                           {selectionAnalysis.hasFilled && (
                             <>
                               <Tooltip content="Copy selected tube(s)" side="bottom">
-                                <button onClick={gridController.copy} className="btn-header-ghost">
-                                  <Copy className="w-3 h-3 mr-1" />
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  onClick={gridController.copy}
+                                  leftIcon={<Copy className="w-3 h-3" />}
+                                >
                                   Copy
-                                </button>
+                                </Button>
                               </Tooltip>
                               <Tooltip content="Cut selected tube(s)" side="bottom">
-                                <button onClick={gridController.cut} className="btn-header-ghost">
-                                  <Scissors className="w-3 h-3 mr-1" />
+                                <Button
+                                  variant="ghost"
+                                  size="xs"
+                                  onClick={gridController.cut}
+                                  leftIcon={<Scissors className="w-3 h-3" />}
+                                >
                                   Cut
-                                </button>
+                                </Button>
                               </Tooltip>
                             </>
                           )}
                           {gridController?.canPaste && selectionAnalysis.hasSelection && (
                             <Tooltip content="Paste tube(s)" side="bottom">
-                              <button onClick={gridController.paste} className="btn-header-ghost">
-                                <ClipboardPaste className="w-3 h-3 mr-1" />
+                              <Button
+                                variant="ghost"
+                                size="xs"
+                                onClick={gridController.paste}
+                                leftIcon={<ClipboardPaste className="w-3 h-3" />}
+                              >
                                 Paste
-                              </button>
+                              </Button>
                             </Tooltip>
                           )}
                         </>
@@ -334,40 +352,43 @@ export function AppHeader({
                             {(gridController.selection.lockableCount ?? 0) > 0 &&
                               gridController.lock && (
                                 <Tooltip content="Lock selected tube(s)" side="bottom">
-                                  <button
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
                                     onClick={gridController.lock}
-                                    className="btn-header-ghost"
+                                    leftIcon={<Lock className="w-3 h-3" />}
                                   >
-                                    <Lock className="w-3 h-3 mr-1" />
                                     Lock
-                                  </button>
+                                  </Button>
                                 </Tooltip>
                               )}
                             {(gridController.selection.unlockableCount ?? 0) > 0 &&
                               gridController.unlock && (
                                 <Tooltip content="Unlock selected tube(s)" side="bottom">
-                                  <button
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
                                     onClick={gridController.unlock}
                                     disabled={gridController.selection.isUnlocking}
-                                    className="btn-header-ghost disabled:opacity-50"
+                                    leftIcon={<Unlock className="w-3 h-3" />}
                                   >
-                                    <Unlock className="w-3 h-3 mr-1" />
                                     {gridController.selection.isUnlocking
                                       ? 'Unlocking...'
                                       : 'Unlock'}
-                                  </button>
+                                  </Button>
                                 </Tooltip>
                               )}
                             {(gridController.selection.sharableCount ?? 0) > 0 &&
                               gridController.shareAccess && (
                                 <Tooltip content="Share access to locked tube(s)" side="bottom">
-                                  <button
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
                                     onClick={gridController.shareAccess}
-                                    className="btn-header-ghost"
+                                    leftIcon={<Share2 className="w-3 h-3" />}
                                   >
-                                    <Share2 className="w-3 h-3 mr-1" />
                                     Share
-                                  </button>
+                                  </Button>
                                 </Tooltip>
                               )}
                           </>
@@ -378,13 +399,14 @@ export function AppHeader({
                         <>
                           <div className="w-px h-4 bg-border mx-0.5"></div>
                           <Tooltip content="Remove selected tube(s)" side="bottom">
-                            <button
+                            <Button
+                              variant="ghost-danger"
+                              size="xs"
                               onClick={gridController.delete}
-                              className="btn-header-ghost-danger"
+                              leftIcon={<Trash2 className="w-3 h-3" />}
                             >
-                              <Trash2 className="w-3 h-3 mr-1" />
                               Remove
-                            </button>
+                            </Button>
                           </Tooltip>
                         </>
                       )}
@@ -394,10 +416,14 @@ export function AppHeader({
                   {/* Section 5: Clear (always last, visible even in view-only mode) */}
                   {!isViewOnlySpace && <div className="w-px h-4 bg-border mx-0.5"></div>}
                   <Tooltip content="Clear selection" side="bottom">
-                    <button onClick={onClearSelection} className="btn-header-ghost">
-                      <X className="w-3 h-3 mr-1" />
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      onClick={onClearSelection}
+                      leftIcon={<X className="w-3 h-3" />}
+                    >
                       Clear
-                    </button>
+                    </Button>
                   </Tooltip>
                 </>
               )}
@@ -414,16 +440,18 @@ export function AppHeader({
 
           {/* Hamburger Menu */}
           <div className="relative" ref={hamburgerMenuRef}>
-            <button
+            <Button
               ref={hamburgerButtonRef}
+              variant="ghost"
+              size="xs"
+              iconOnly
               onClick={() => setShowHamburgerMenu(!showHamburgerMenu)}
-              className="btn-header-ghost p-1.5"
               aria-haspopup="menu"
               aria-expanded={showHamburgerMenu}
               aria-label="Main menu"
             >
               <Menu size={20} />
-            </button>
+            </Button>
 
             {/* Hamburger Menu Dropdown - WAI-ARIA Menu Button pattern */}
             {showHamburgerMenu && (

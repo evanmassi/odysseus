@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { Info, Lock, Notebook } from 'lucide-react';
 
 import { useLockTubesMutation } from '@domains/tubes/hooks';
+import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
@@ -83,9 +84,6 @@ export function LockTubesModal({
   };
 
   const tubeCount = tubeIds.length;
-  const buttonLabel = lockMutation.isPending
-    ? 'Locking...'
-    : `Lock ${tubeCount} Tube${tubeCount !== 1 ? 's' : ''}`;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && !lockMutation.isPending) {
@@ -139,18 +137,18 @@ export function LockTubesModal({
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">
-          <button type="button" onClick={onClose} className="btn btn-secondary">
+          <Button variant="secondary" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleLock}
-            disabled={lockMutation.isPending}
-            className="btn btn-primary inline-flex items-center gap-2"
+            isLoading={lockMutation.isPending}
+            loadingText="Locking..."
+            leftIcon={<Lock size={16} />}
           >
-            <Lock size={16} />
-            {buttonLabel}
-          </button>
+            Lock {tubeCount} Tube{tubeCount !== 1 ? 's' : ''}
+          </Button>
         </div>
       </div>
     </BaseModal>

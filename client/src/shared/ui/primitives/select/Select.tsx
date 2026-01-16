@@ -8,110 +8,76 @@
 import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
+import { createPortal } from 'react-dom';
 
-// Basic select option interface
-export interface SelectOption {
-  value: string | number;
-  label: string;
-  disabled?: boolean;
-  description?: string;
-  icon?: React.ReactNode;
-}
+import { defaultSelectProps } from './types';
 
-// Select component props
-export interface SelectProps {
-  // Options
-  options: SelectOption[];
-  value?: string | number | (string | number)[];
-  defaultValue?: string | number | (string | number)[];
+import type { SelectOption, SelectProps, SelectRef } from './types';
 
-  // Behavior
-  multiple?: boolean;
-  searchable?: boolean;
-  clearable?: boolean;
-  disabled?: boolean;
-  loading?: boolean;
+// Re-export types for backward compatibility
+export type {
+  SelectOption,
+  SelectProps,
+  SelectRef,
+  SelectVariant,
+  SelectSize,
+  SelectState,
+} from './types';
 
-  // Appearance
-  variant?: 'default' | 'filled' | 'outlined';
-  size?: 'sm' | 'md' | 'lg';
-  placeholder?: string;
-
-  // Label and description
-  label?: string;
-  description?: string;
-  error?: string;
-
-  // Event handlers
-  onChange?: (value: string | number | (string | number)[] | null) => void;
-  onSearch?: (query: string) => void;
-  onOpen?: () => void;
-  onClose?: () => void;
-
-  // Accessibility
-  'aria-label'?: string;
-  'aria-describedby'?: string;
-
-  // Styling
-  className?: string;
-
-  // Advanced
-  maxHeight?: number;
-  closeOnSelect?: boolean;
-}
-
-// Select styling
+// Select styling using semantic design tokens
 const selectVariants = cva(
   [
-    // Base styles
+    // Base styles - rounded-lg matches input-field class
     'relative w-full cursor-pointer',
-    'bg-white border rounded-md',
+    'bg-card border rounded-lg',
     'transition-all duration-200',
     'disabled:opacity-50 disabled:cursor-not-allowed',
   ],
   {
     variants: {
       variant: {
-        default: 'border-neutral-300 hover:border-neutral-400',
-        filled: 'bg-neutral-100 border-transparent hover:bg-neutral-200',
-        outlined: 'border-2 border-neutral-300 hover:border-neutral-400',
+        default: 'border-border hover:border-muted-foreground',
+        filled: 'bg-muted border-transparent hover:bg-accent',
+        outlined: 'border-2 border-border hover:border-muted-foreground',
       },
       size: {
         sm: 'h-8 px-3 text-sm',
-        md: 'h-10 px-3 text-sm',
+        md: 'h-9 px-3 text-sm', // h-9 matches input-field class
         lg: 'h-12 px-4 text-base',
       },
       isOpen: {
-        true: 'ring-2 ring-primary-500 border-primary-500',
+        true: 'ring-2 ring-action border-action',
         false: '',
       },
-      hasError: {
-        true: 'border-error-500 focus:border-error-500 focus:ring-error-500',
-        false: '',
+      state: {
+        default: '',
+        error: 'border-danger-border focus:border-danger-border focus:ring-danger-border',
+        warning: 'border-warning-border focus:border-warning-border focus:ring-warning-border',
+        success: 'border-success-border focus:border-success-border focus:ring-success-border',
       },
     },
     defaultVariants: {
       variant: 'outlined',
       size: 'md',
       isOpen: false,
-      hasError: false,
+      state: 'default',
     },
   }
 );
 
-// Dropdown menu styling
+// Dropdown menu styling - uses fixed positioning via portal
 const dropdownVariants = cva(
   [
-    'absolute z-50 w-full mt-1',
-    'bg-white border border-neutral-300 rounded-md shadow-lg',
+    'fixed z-[9999]',
+    'bg-card border border-border rounded-lg shadow-lg',
     'max-h-60 overflow-auto',
     'py-1',
   ],
   {
     variants: {
       isOpen: {
-        true: 'opacity-100 translate-y-0',
-        false: 'opacity-0 -translate-y-2 pointer-events-none',
+        true: 'opacity-100',
+        false: 'opacity-0 pointer-events-none',
       },
     },
     defaultVariants: {
@@ -126,12 +92,12 @@ const optionVariants = cva(
   {
     variants: {
       isSelected: {
-        true: 'bg-primary-100 text-primary-900',
-        false: 'text-neutral-900',
+        true: 'bg-accent text-accent-foreground',
+        false: 'text-foreground',
       },
       isHighlighted: {
-        true: 'bg-primary-50',
-        false: 'hover:bg-neutral-50',
+        true: 'bg-muted',
+        false: 'hover:bg-muted',
       },
       isDisabled: {
         true: 'opacity-50 cursor-not-allowed',
@@ -146,24 +112,28 @@ const optionVariants = cva(
   }
 );
 
-// Simple Select Component (Basic Implementation)
-export const Select = forwardRef<HTMLDivElement, SelectProps>(
+// Select Component
+export const Select = forwardRef<SelectRef, SelectProps>(
   (
     {
       options,
       value,
       defaultValue,
-      multiple = false,
-      searchable = false,
-      clearable = false,
-      disabled = false,
-      loading = false,
-      variant = 'outlined',
-      size = 'md',
-      placeholder = 'Select an option...',
+      multiple = defaultSelectProps.multiple,
+      searchable = defaultSelectProps.searchable,
+      clearable = defaultSelectProps.clearable,
+      disabled = defaultSelectProps.disabled,
+      loading = defaultSelectProps.loading,
+      variant = defaultSelectProps.variant,
+      size = defaultSelectProps.size,
+      state = defaultSelectProps.state,
+      placeholder = defaultSelectProps.placeholder,
+      fullWidth = defaultSelectProps.fullWidth,
       label,
       description,
       error,
+      warning,
+      success,
       onChange,
       onSearch,
       onOpen,
@@ -171,12 +141,27 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
       'aria-label': ariaLabel,
       'aria-describedby': ariaDescribedBy,
       className,
-      maxHeight = 240,
-      closeOnSelect = !multiple,
+      maxHeight = defaultSelectProps.maxHeight,
+      closeOnSelect,
+      renderOption,
+      renderValue,
       ...props
     },
     ref
   ) => {
+    // Determine closeOnSelect default based on multiple
+    const shouldCloseOnSelect = closeOnSelect ?? !multiple;
+
+    // Determine current state based on error/warning/success props
+    const getCurrentState = () => {
+      if (error) return 'error';
+      if (warning) return 'warning';
+      if (success) return 'success';
+      return state;
+    };
+
+    const currentState = getCurrentState();
+
     // State
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -191,6 +176,10 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
     const selectRef = useRef<HTMLDivElement>(null);
     const searchInputRef = useRef<HTMLInputElement>(null);
     const optionsRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Dropdown position state for portal
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
     // IDs
     const id = useId();
@@ -207,7 +196,8 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
     // Get selected options for display
     const getSelectedOptions = useCallback(() => {
       const currentValue = value ?? selectedValue;
-      if (!currentValue) return [];
+      // Check for null/undefined specifically, not falsy - empty string '' is a valid value
+      if (currentValue === null || currentValue === undefined) return [];
 
       const values = Array.isArray(currentValue) ? currentValue : [currentValue];
       return options.filter(option => values.includes(option.value));
@@ -239,12 +229,12 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
 
         onChange?.(newValue);
 
-        if (closeOnSelect) {
+        if (shouldCloseOnSelect) {
           setIsOpen(false);
           setSearchQuery('');
         }
       },
-      [multiple, selectedValue, value, onChange, closeOnSelect]
+      [multiple, selectedValue, value, onChange, shouldCloseOnSelect]
     );
 
     // Handle clear selection
@@ -341,10 +331,46 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
       [onSearch]
     );
 
-    // Close dropdown on outside click
+    // Calculate dropdown position based on trigger element
+    const updateDropdownPosition = useCallback(() => {
+      if (!selectRef.current) return;
+      const rect = selectRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4, // 4px gap below trigger
+        left: rect.left,
+        width: rect.width,
+      });
+    }, []);
+
+    // Update position when dropdown opens and on scroll/resize
+    useEffect(() => {
+      if (!isOpen) return;
+
+      // Initial position calculation
+      updateDropdownPosition();
+
+      // Update on scroll (any scrollable ancestor) and resize
+      const handleScrollOrResize = () => {
+        updateDropdownPosition();
+      };
+
+      window.addEventListener('scroll', handleScrollOrResize, true);
+      window.addEventListener('resize', handleScrollOrResize);
+
+      return () => {
+        window.removeEventListener('scroll', handleScrollOrResize, true);
+        window.removeEventListener('resize', handleScrollOrResize);
+      };
+    }, [isOpen, updateDropdownPosition]);
+
+    // Close dropdown on outside click (check both trigger and dropdown since dropdown is portaled)
     useEffect(() => {
       const handleClickOutside = (event: MouseEvent) => {
-        if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
+        const target = event.target as Node;
+        const clickedTrigger = selectRef.current?.contains(target);
+        const clickedDropdown = dropdownRef.current?.contains(target);
+
+        if (!clickedTrigger && !clickedDropdown) {
           setIsOpen(false);
           setSearchQuery('');
         }
@@ -360,44 +386,63 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
     }, [isOpen]);
 
     // Generate classes
+    const wrapperClasses = fullWidth ? 'relative w-full' : 'relative';
     const selectClasses = selectVariants({
       variant,
       size,
       isOpen,
-      hasError: Boolean(error),
+      state: currentState,
       className,
     });
 
     const dropdownClasses = dropdownVariants({ isOpen });
 
     // Render display value
-    const renderDisplayValue = () => {
+    const renderDisplayValueContent = () => {
       if (loading) {
-        return <span className="text-neutral-500">Loading...</span>;
+        return <span className="text-muted-foreground">Loading...</span>;
       }
 
       if (selectedOptions.length === 0) {
-        return <span className="text-neutral-400">{placeholder}</span>;
+        return <span className="text-muted-foreground">{placeholder}</span>;
+      }
+
+      // Use custom renderValue if provided
+      if (renderValue) {
+        return renderValue(selectedOptions);
       }
 
       if (multiple && selectedOptions.length > 1) {
-        return <span className="text-neutral-900">{selectedOptions.length} items selected</span>;
+        return <span className="text-foreground">{selectedOptions.length} items selected</span>;
       }
 
       const firstOption = selectedOptions[0];
       return (
-        <span className="text-neutral-900 flex items-center gap-2">
+        <span className="text-foreground flex items-center gap-2">
           {firstOption.icon && <span>{firstOption.icon}</span>}
           {firstOption.label}
         </span>
       );
     };
 
+    // Get current message for display
+    const getCurrentMessage = () => {
+      if (error) return { message: error, type: 'error' as const };
+      if (warning) return { message: warning, type: 'warning' as const };
+      if (success) return { message: success, type: 'success' as const };
+      return null;
+    };
+
+    const currentMessage = getCurrentMessage();
+
     return (
-      <div className="relative">
+      <div className={wrapperClasses}>
         {/* Label */}
         {label && (
-          <label id={labelId} className="block text-sm font-medium text-neutral-700 mb-1.5">
+          <label
+            id={labelId}
+            className="block text-sm font-medium text-secondary-foreground mb-1.5"
+          >
             {label}
           </label>
         )}
@@ -420,7 +465,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
           aria-label={ariaLabel}
           aria-labelledby={label ? labelId : undefined}
           aria-describedby={
-            [ariaDescribedBy, description ? descriptionId : null, error ? errorId : null]
+            [ariaDescribedBy, description ? descriptionId : null, currentMessage ? errorId : null]
               .filter(Boolean)
               .join(' ') || undefined
           }
@@ -428,8 +473,8 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
           {...props}
         >
           {/* Display Value */}
-          <div className="flex items-center justify-between">
-            <div className="flex-1 truncate">{renderDisplayValue()}</div>
+          <div className="flex items-center justify-between h-full">
+            <div className="flex-1 truncate">{renderDisplayValueContent()}</div>
 
             <div className="flex items-center gap-1">
               {/* Clear Button */}
@@ -437,7 +482,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="p-1 hover:bg-neutral-200 rounded focus-ring-default"
+                  className="p-1 hover:bg-accent rounded focus-ring-default"
                   aria-label="Clear selection"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -448,9 +493,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
 
               {/* Dropdown Arrow */}
               <svg
-                className={`w-4 h-4 transition-transform duration-200 ${
-                  isOpen ? 'rotate-180' : ''
-                }`}
+                className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
                 viewBox="0 0 24 24"
                 fill="currentColor"
               >
@@ -458,19 +501,30 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
               </svg>
             </div>
           </div>
+        </div>
 
-          {/* Dropdown Menu */}
-          <div className={dropdownClasses} style={{ maxHeight }}>
+        {/* Dropdown Menu - rendered via portal to escape overflow containers */}
+        {createPortal(
+          <div
+            ref={dropdownRef}
+            className={dropdownClasses}
+            style={{
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              width: dropdownPosition.width,
+              maxHeight,
+            }}
+          >
             {/* Search Input */}
             {searchable && isOpen && (
-              <div className="px-3 py-2 border-b border-neutral-200">
+              <div className="px-3 py-2 border-b border-border">
                 <input
                   ref={searchInputRef}
                   type="text"
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search options..."
-                  className="input w-full px-2 py-1 text-sm border border-neutral-300 rounded"
+                  className="w-full px-2 py-1 text-sm border border-border rounded bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-action"
                 />
               </div>
             )}
@@ -484,7 +538,7 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
               aria-label={`${label || 'Select'} options`}
             >
               {filteredOptions.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-neutral-500">No options found</div>
+                <div className="px-3 py-2 text-sm text-muted-foreground">No options found</div>
               ) : (
                 filteredOptions.map((option, index) => {
                   const isSelected = selectedOptions.some(
@@ -512,51 +566,75 @@ export const Select = forwardRef<HTMLDivElement, SelectProps>(
                       aria-disabled={option.disabled}
                       tabIndex={isHighlighted ? 0 : -1}
                     >
-                      {multiple && (
-                        <div className="flex items-center">
-                          <input type="checkbox" checked={isSelected} readOnly className="mr-2" />
-                        </div>
-                      )}
+                      {renderOption ? (
+                        // Custom option rendering
+                        renderOption(option, { isSelected, isHighlighted })
+                      ) : (
+                        // Default option rendering
+                        <>
+                          {multiple && (
+                            <div className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                readOnly
+                                className="mr-2"
+                              />
+                            </div>
+                          )}
 
-                      {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
+                          {option.icon && <span className="flex-shrink-0">{option.icon}</span>}
 
-                      <div className="flex-1 min-w-0">
-                        <div className="truncate">{option.label}</div>
-                        {option.description && (
-                          <div className="text-xs text-neutral-500 truncate">
-                            {option.description}
+                          <div className="flex-1 min-w-0">
+                            <div className="truncate">{option.label}</div>
+                            {option.description && (
+                              <div className="text-xs text-muted-foreground truncate">
+                                {option.description}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
 
-                      {!multiple && isSelected && (
-                        <svg
-                          className="w-4 h-4 text-primary-600"
-                          viewBox="0 0 24 24"
-                          fill="currentColor"
-                        >
-                          <path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z" />
-                        </svg>
+                          {!multiple && isSelected && (
+                            <svg
+                              className="w-4 h-4 text-action"
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19L21 7l-1.41-1.41z" />
+                            </svg>
+                          )}
+                        </>
                       )}
                     </div>
                   );
                 })
               )}
             </div>
-          </div>
-        </div>
+          </div>,
+          document.body
+        )}
 
         {/* Description */}
         {description && (
-          <p id={descriptionId} className="text-xs text-neutral-500 mt-1">
+          <p id={descriptionId} className="text-xs text-muted-foreground mt-1">
             {description}
           </p>
         )}
 
-        {/* Error Message */}
-        {error && (
-          <p id={errorId} className="text-xs text-error-600 mt-1" role="alert">
-            {error}
+        {/* Error/Warning/Success Message */}
+        {currentMessage && (
+          <p
+            id={errorId}
+            className={`text-xs mt-1 ${
+              currentMessage.type === 'error'
+                ? 'text-danger-text'
+                : currentMessage.type === 'warning'
+                  ? 'text-warning-text'
+                  : 'text-success-text'
+            }`}
+            role="alert"
+          >
+            {currentMessage.message}
           </p>
         )}
       </div>

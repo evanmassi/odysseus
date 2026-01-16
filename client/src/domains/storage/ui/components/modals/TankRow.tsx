@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
-import { Tooltip } from '@shared/ui';
+import { Button, Tooltip } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 
 import { RackRow } from './RackRow';
@@ -127,13 +127,14 @@ export function TankRow({
                       className="input-number-sm w-14 px-2 py-1 text-sm focus-ring-default"
                     />
                   </Tooltip>
-                  <button
+                  <Button
+                    variant="primary"
+                    size="xs"
                     onClick={() => onAddRack(tank.id)}
-                    className="btn btn-primary flex items-center gap-1 text-sm !py-0 px-2 h-7"
+                    leftIcon={<Plus size={12} />}
                   >
-                    <Plus size={12} />
                     Add {rackCountToAdd > 1 ? 'Racks' : 'Rack'}
-                  </button>
+                  </Button>
                 </div>
               </div>
             )}

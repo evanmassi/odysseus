@@ -9,6 +9,7 @@ import { useState, useEffect } from 'react';
 import { KeyRound, Eye, EyeOff, Copy, Check, RotateCcwKey, ExternalLink } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils/notifications';
 
@@ -229,13 +230,17 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
             {/* Reset Button */}
             <div className="mt-auto">
-              <button
+              <Button
+                variant="primary"
+                size="lg"
+                fullWidth
                 onClick={handleDirectReset}
-                disabled={isLoading || !newPassword}
-                className="w-full btn btn-primary h-11 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={!newPassword}
+                isLoading={isLoading}
+                loadingText="Resetting..."
               >
-                {isLoading ? 'Resetting...' : 'Reset Password'}
-              </button>
+                Reset Password
+              </Button>
             </div>
           </div>
         ) : (
@@ -249,13 +254,16 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                   Creates a secure, one-time link that expires in 15 minutes.
                 </p>
                 <div className="mt-auto">
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    fullWidth
                     onClick={handleGenerateToken}
-                    disabled={isLoading}
-                    className="w-full btn btn-primary h-11 text-base font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    isLoading={isLoading}
+                    loadingText="Generating..."
                   >
-                    {isLoading ? 'Generating...' : 'Generate Reset Link'}
-                  </button>
+                    Generate Reset Link
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -264,22 +272,16 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                   Reset Link Generated
                 </p>
                 <div className="bg-muted p-3 rounded-md mb-3 break-all text-sm">{resetUrl}</div>
-                <button
+                <Button
+                  variant="primary"
+                  size="lg"
+                  fullWidth
                   onClick={handleCopyUrl}
-                  className="w-full btn btn-primary h-11 text-base font-semibold flex items-center justify-center gap-2 mb-3"
+                  leftIcon={copied ? <Check size={18} /> : <Copy size={18} />}
+                  className="mb-3"
                 >
-                  {copied ? (
-                    <>
-                      <Check size={18} />
-                      Copied!
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={18} />
-                      Copy Link
-                    </>
-                  )}
-                </button>
+                  {copied ? 'Copied!' : 'Copy Link'}
+                </Button>
                 {expiresAt && (
                   <p className="text-xs text-secondary-foreground text-center">
                     Expires: {new Date(expiresAt).toLocaleString()}

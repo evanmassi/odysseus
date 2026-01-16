@@ -6,11 +6,12 @@
  */
 import { useState, useEffect, lazy, Suspense } from 'react';
 
-import { Save, RefreshCw, Settings, Table2, UserRound, Shield, AlertTriangle } from 'lucide-react';
+import { Save, Settings, Table2, UserRound, Shield, AlertTriangle } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
@@ -136,17 +137,19 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
         <span className="truncate">These settings apply only to your account.</span>
       </div>
       <div className="flex space-x-2 flex-shrink-0">
-        <button onClick={handleClose} className="btn btn-secondary px-6">
+        <Button variant="secondary" onClick={handleClose}>
           Cancel
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
           onClick={handleSave}
-          disabled={isSaving || !hasChanges}
-          className="btn btn-primary flex items-center space-x-2 text-sm px-3 py-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={!hasChanges}
+          isLoading={isSaving}
+          loadingText="Saving..."
+          leftIcon={<Save size={14} />}
         >
-          {isSaving ? <RefreshCw size={14} className="animate-spin" /> : <Save size={14} />}
-          <span>{isSaving ? 'Saving...' : 'Save Changes'}</span>
-        </button>
+          Save Changes
+        </Button>
       </div>
     </div>
   );

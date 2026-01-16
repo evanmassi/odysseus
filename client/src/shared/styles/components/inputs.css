@@ -85,19 +85,6 @@
   .input-number-sm:focus {
     border-color: transparent;
   }
-
-  /* Small select dropdowns (for inline selections like role selectors) */
-  .select-sm {
-    @apply border border-border rounded-md text-xs;
-    transition:
-      border-color 200ms,
-      box-shadow 200ms,
-      outline 200ms;
-  }
-
-  .select-sm:focus {
-    border-color: transparent;
-  }
 }
 
 @layer utilities {

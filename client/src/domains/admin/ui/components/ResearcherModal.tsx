@@ -6,9 +6,10 @@ import {
   type CreateResearcherProfile,
   type AdminResearcher,
 } from '@odysseus/shared-schemas';
-import { Plus, RefreshCw, User, Mail, Building2, Briefcase } from 'lucide-react';
+import { Plus, User, Mail, Building2, Briefcase } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
+import { Button } from '@shared/ui';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
@@ -280,17 +281,17 @@ export function ResearcherModal({
           </div>
 
           <div className="pt-2 flex justify-end gap-3">
-            <button type="button" onClick={handleClose} className="btn btn-secondary">
+            <Button variant="secondary" onClick={handleClose}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={isSubmitting}
-              className="btn btn-primary flex items-center gap-2"
+              variant="primary"
+              isLoading={isSubmitting}
+              leftIcon={<Plus size={16} />}
             >
-              {isSubmitting ? <RefreshCw size={16} className="animate-spin" /> : <Plus size={16} />}
-              <span>{mode === 'create-only' ? 'Add' : 'Add & Link'}</span>
-            </button>
+              {mode === 'create-only' ? 'Add' : 'Add & Link'}
+            </Button>
           </div>
         </form>
       )}
@@ -315,13 +316,14 @@ export function ResearcherModal({
                     <div className="text-xs text-muted-foreground">{researcher.position}</div>
                   )}
                 </div>
-                <button
+                <Button
+                  variant="primary"
+                  size="xs"
                   onClick={() => handleLinkExisting(researcher.id)}
                   disabled={isSubmitting}
-                  className="btn btn-primary text-xs px-3 py-1"
                 >
                   Select
-                </button>
+                </Button>
               </div>
             ))
           ) : (

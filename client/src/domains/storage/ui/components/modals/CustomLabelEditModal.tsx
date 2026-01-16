@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { Save, Tag } from 'lucide-react';
 
+import { Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 
 import type { LabConfiguration } from '@domains/storage';
@@ -117,17 +118,12 @@ export function CustomLabelEditModal({
       </form>
 
       <div className="flex justify-end gap-3 mt-6">
-        <button type="button" onClick={onClose} className="btn btn-secondary">
+        <Button variant="secondary" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
-          onClick={() => void handleSave()}
-          className="btn btn-primary flex items-center gap-2"
-        >
-          <Save size={16} />
+        </Button>
+        <Button variant="primary" onClick={() => void handleSave()} leftIcon={<Save size={16} />}>
           Save Label
-        </button>
+        </Button>
       </div>
     </BaseModal>
   );

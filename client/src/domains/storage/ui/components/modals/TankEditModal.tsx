@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 
 import { getGridTotalPositions } from '@domains/storage';
+import { Button } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
 
@@ -139,18 +140,17 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
       </form>
 
       <div className="flex justify-end gap-3 mt-6 pt-4 border-t">
-        <button type="button" onClick={onClose} className="btn btn-secondary">
+        <Button variant="secondary" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="primary"
           onClick={() => void handleSave()}
           disabled={!editedTank.name.trim()}
-          className="btn btn-primary flex items-center gap-2"
+          leftIcon={<Save size={16} />}
         >
-          <Save size={16} />
           Save Changes
-        </button>
+        </Button>
       </div>
     </BaseModal>
   );

@@ -32,6 +32,8 @@ import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
+import { Button, type ButtonVariant } from '../primitives';
+
 export interface ConfirmDialogProps {
   /** Whether dialog is visible */
   isOpen: boolean;
@@ -69,7 +71,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
       iconColor: 'text-danger-bg',
       border: 'border-danger-border',
       shadowColor: 'var(--color-danger-bg)',
-      buttonClass: 'btn-danger',
+      buttonVariant: 'danger' as ButtonVariant,
     };
   }
 
@@ -79,7 +81,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
     iconColor: 'text-warning-bg',
     border: 'border-warning-border',
     shadowColor: 'var(--color-warning-bg)',
-    buttonClass: 'btn-warning',
+    buttonVariant: 'warning' as ButtonVariant,
   };
 }
 
@@ -224,30 +226,19 @@ export function ConfirmDialog({
 
           {/* Actions */}
           <div className="flex justify-end space-x-3">
-            <button
-              onClick={handleCancel}
-              disabled={isLoading}
-              className="btn btn-secondary px-6"
-              type="button"
-            >
+            <Button variant="secondary" onClick={handleCancel} disabled={isLoading}>
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               ref={confirmButtonRef}
+              variant={styles.buttonVariant}
               onClick={handleConfirm}
               disabled={isLoading}
-              className={`${styles.buttonClass} px-6`}
-              type="button"
+              isLoading={isLoading}
+              loadingText="Processing..."
             >
-              {isLoading ? (
-                <div className="flex items-center space-x-2">
-                  <div className="spinner w-4 h-4"></div>
-                  <span>Processing...</span>
-                </div>
-              ) : (
-                confirmText
-              )}
-            </button>
+              {confirmText}
+            </Button>
           </div>
         </div>
       </div>

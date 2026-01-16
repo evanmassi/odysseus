@@ -27,6 +27,7 @@ import {
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
@@ -553,40 +554,27 @@ export default function BatchTubeEditorModal({
           />
 
           <div className="flex justify-end space-x-4 pt-4 border-t border-border">
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-secondary px-6"
-              disabled={isSubmitting}
-            >
+            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
               Cancel
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger px-6"
+            </Button>
+            <Button
+              variant="danger"
               disabled={isSubmitting}
+              leftIcon={<Trash2 className="w-4 h-4" />}
               onClick={() => setShowDeleteConfirm(true)}
             >
-              <Trash2 className="w-4 h-4 mr-2" />
               Remove {tubes.length} Tubes
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="btn btn-primary px-8"
-              disabled={isSubmitting || !canSubmit}
+              variant="primary"
+              disabled={!canSubmit}
+              isLoading={isSubmitting}
+              loadingText="Updating..."
+              leftIcon={<Save className="w-4 h-4" />}
             >
-              {isSubmitting ? (
-                <div className="flex items-center space-x-2">
-                  <div className="spinner w-4 h-4"></div>
-                  <span>Updating...</span>
-                </div>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Update {tubes.length} Tubes
-                </>
-              )}
-            </button>
+              Update {tubes.length} Tubes
+            </Button>
           </div>
         </form>
 
@@ -601,14 +589,15 @@ export default function BatchTubeEditorModal({
                 </span>
               </div>
               {result.errors.length > 0 && (
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={handleRetryFailures}
-                  className="btn btn-sm btn-secondary flex items-center space-x-1"
                   disabled={isSubmitting}
+                  leftIcon={<RefreshCw size={14} />}
                 >
-                  <RefreshCw size={14} />
-                  <span>Retry</span>
-                </button>
+                  Retry
+                </Button>
               )}
             </div>
 

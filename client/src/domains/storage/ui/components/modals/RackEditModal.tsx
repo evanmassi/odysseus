@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { Save } from 'lucide-react';
 
+import { Button } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
 
@@ -94,17 +95,12 @@ export function RackEditModal({
       </form>
 
       <div className="flex justify-end gap-3 mt-6">
-        <button type="button" onClick={onClose} className="btn btn-secondary">
+        <Button variant="secondary" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
-          onClick={() => void handleSave()}
-          className="btn btn-primary flex items-center gap-2"
-        >
-          <Save size={16} />
+        </Button>
+        <Button variant="primary" onClick={() => void handleSave()} leftIcon={<Save size={16} />}>
           Save Changes
-        </button>
+        </Button>
       </div>
     </BaseModal>
   );

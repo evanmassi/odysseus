@@ -11,6 +11,8 @@ import React, { Suspense, useCallback, useState, forwardRef } from 'react';
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
 
+import { Button } from '../../primitives';
+
 import { ErrorBoundary, type ErrorBoundaryProps } from './ErrorBoundary';
 
 // Suspense boundary configuration
@@ -82,7 +84,7 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
         role="alert"
         aria-label={`Error loading ${name ?? 'component'}`}
       >
-        <div className="text-error-500 mb-4">
+        <div className="text-danger-bg mb-4">
           <svg className="w-12 h-12 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <circle cx="12" cy="12" r="10" />
             <line x1="15" y1="9" x2="9" y2="15" />
@@ -98,9 +100,9 @@ export const SuspenseBoundary: React.FC<SuspenseBoundaryProps> = ({
           {error.message || 'Something went wrong while loading this component.'}
         </p>
 
-        <button onClick={retry} className="btn-primary px-4 py-2">
+        <Button variant="primary" onClick={retry}>
           Try Again
-        </button>
+        </Button>
       </div>
     ),
     [className, name]

@@ -11,6 +11,8 @@ import React, { useEffect } from 'react';
 import { type CreateTubeRequest, type UpdateTubeRequest } from '@odysseus/shared-schemas';
 import { Controller } from 'react-hook-form';
 
+import { Select } from '@shared/ui';
+
 import type { UseFormReturn } from 'react-hook-form';
 
 /**
@@ -114,32 +116,25 @@ export const ConcentrationFieldGroup: React.FC<ConcentrationFieldGroupProps> = (
               <span className="text-validation-error-required ml-1">*</span>
             )}
           </label>
-          <div className="relative">
-            <Controller
-              control={form.control}
-              name="sample.concentrationUnit"
-              render={({ field }) => (
-                <select
-                  id="concentrationUnit"
-                  disabled={disabled}
-                  value={field.value ?? ''}
-                  onChange={e => field.onChange(e.target.value || undefined)}
-                  className={`input-field w-full ${form.formState.errors.sample?.concentrationUnit ? 'input-field-error' : 'input-field-normal'}`}
-                >
-                  <option value="">Select unit...</option>
-                  <option value="c/v">c/v (cells per volume)</option>
-                  <option value="c/mL">c/mL (cells per milliliter)</option>
-                </select>
-              )}
-            />
-            {form.formState.errors.sample?.concentrationUnit && (
-              <div className="absolute right-8 top-1/2 transform -translate-y-1/2">
-                <div className="w-5 h-5 rounded-full bg-validation-error-icon flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">!</span>
-                </div>
-              </div>
+          <Controller
+            control={form.control}
+            name="sample.concentrationUnit"
+            render={({ field }) => (
+              <Select
+                options={[
+                  { value: '', label: 'Select unit...' },
+                  { value: 'c/v', label: 'c/v (cells per volume)' },
+                  { value: 'c/mL', label: 'c/mL (cells per milliliter)' },
+                ]}
+                value={field.value ?? ''}
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string should also become undefined
+                onChange={value => field.onChange(value || undefined)}
+                disabled={disabled}
+                state={form.formState.errors.sample?.concentrationUnit ? 'error' : 'default'}
+                fullWidth
+              />
             )}
-          </div>
+          />
           {form.formState.errors.sample?.concentrationUnit && (
             <p className="text-sm text-validation-error-helper flex items-center mt-1">
               <span className="mr-1">⚠️</span>

@@ -1,5 +1,6 @@
 import { CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 
+import { Button } from '@shared/ui';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
 import type { BulkUpdateProgress } from '@domains/tubes/types';
@@ -110,9 +111,9 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
           {/* Close button (only shown when operation is complete) */}
           {canClose && (
             <div className="text-center">
-              <button onClick={onClose} className="btn btn-primary px-6">
+              <Button variant="primary" onClick={onClose}>
                 {hasErrors ? 'View Results' : 'Complete'}
-              </button>
+              </Button>
             </div>
           )}
         </div>
