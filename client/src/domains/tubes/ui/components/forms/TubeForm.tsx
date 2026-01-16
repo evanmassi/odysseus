@@ -198,7 +198,10 @@ export const TubeForm = ({
                       label="Concentration"
                       value={String(value ?? '')}
                       unitValue={unitValue ?? ''}
-                      onChange={onChange}
+                      onChange={async newValue => {
+                        onChange(newValue);
+                        await trigger('sample');
+                      }}
                       onUnitChange={async newUnit => {
                         onUnitChange(newUnit);
                         await trigger('sample');

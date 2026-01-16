@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 
 import { AlertCircle, AlertTriangle } from 'lucide-react';
 
@@ -48,12 +48,27 @@ export function ConcentrationInput({
     { value: 'c/mL', label: 'c/mL' },
   ];
 
+  // Track initial values to determine if field was edited
+  // useRef to capture initial value on first render only
+  const initialValueRef = useRef<string>(value);
+  const initialUnitRef = useRef<string>(unitValue);
+  const [isDirty, setIsDirty] = useState(false);
+
+  // Check if either value or unit has changed from initial
+  const checkDirty = (newValue: string, newUnit: string) => {
+    const valueChanged = newValue !== initialValueRef.current;
+    const unitChanged = newUnit !== initialUnitRef.current;
+    setIsDirty(valueChanged || unitChanged);
+  };
+
   // Map validation state to InputState for the Input primitive
+  // Only show success if user has actually edited the field
   const getInputState = (): InputState => {
     if (validation?.error) return 'error';
     if (validation?.warning) return 'warning';
     if (hasConflict) return 'warning';
-    if (value && !validation?.error && !validation?.warning) return 'success';
+    // Success only when: dirty (user edited) AND has value AND no errors
+    if (isDirty && value && !validation?.error && !validation?.warning) return 'success';
     return 'default';
   };
 
@@ -89,6 +104,7 @@ export function ConcentrationInput({
 
   const handleInputChange = (newValue: string) => {
     onChange(newValue);
+    checkDirty(newValue, unitValue);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -139,7 +155,11 @@ export function ConcentrationInput({
           <Select
             options={unitOptions}
             value={unitValue}
-            onChange={newValue => onUnitChange(String(newValue ?? ''))}
+            onChange={newValue => {
+              const newUnit = String(newValue ?? '');
+              onUnitChange(newUnit);
+              checkDirty(value, newUnit);
+            }}
             disabled={disabled}
             state={
               validation?.error
