@@ -8,16 +8,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import {
-  UserRound,
-  KeyRound,
-  Mail,
-  Building2,
-  BriefcaseBusiness,
-  Info,
-  Eye,
-  EyeOff,
-} from 'lucide-react';
+import { UserRound, KeyRound, Mail, Building2, BriefcaseBusiness, Info } from 'lucide-react';
 
 import {
   authService,
@@ -25,7 +16,7 @@ import {
 } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
+import { AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { AuthBaseModal } from './AuthBaseModal';
@@ -47,8 +38,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
   // Authentication fields
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // Researcher profile creation flag (defaults to true for backward compatibility)
@@ -111,16 +100,10 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
     void loadPasswordRequirements();
   }, []);
 
-  // Helper function to get field border class for container
-  const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'border-border';
-    return isValid ? 'border-success-border' : 'input-field-error';
-  };
-
-  // Helper function to get label color class
-  const getLabelColorClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'text-muted-foreground';
-    return isValid ? 'text-success-text' : 'text-validation-error-label';
+  // Convert touched/valid to AuthInput validation state
+  const getValidationState = (touched: boolean, isValid: boolean) => {
+    if (!touched) return 'default' as const;
+    return isValid ? ('success' as const) : ('error' as const);
   };
 
   // Validate email format
@@ -237,35 +220,20 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         <div className="grid grid-cols-2 gap-3 items-start">
           {/* First Name Column with Username */}
           <div className="space-y-1.5">
-            <div
-              className={`auth-input-container ${getFieldBorderClass(firstNameTouched, firstName.trim().length > 0)}`}
-            >
-              <label
-                htmlFor="firstName"
-                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
-              >
-                First name <span className="text-danger-text">*</span>
-              </label>
-              <div className="relative px-3 py-2">
-                <UserRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                  size={16}
-                />
-                <input
-                  ref={firstNameInputRef}
-                  type="text"
-                  id="firstName"
-                  value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
-                  onBlur={() => setFirstNameTouched(true)}
-                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                  placeholder="First name"
-                  required
-                  disabled={isLoading}
-                  maxLength={50}
-                />
-              </div>
-            </div>
+            <AuthInput
+              ref={firstNameInputRef}
+              id="firstName"
+              value={firstName}
+              onChange={setFirstName}
+              onBlur={() => setFirstNameTouched(true)}
+              label="First name"
+              placeholder="First name"
+              icon={<UserRound size={16} />}
+              state={getValidationState(firstNameTouched, firstName.trim().length > 0)}
+              required
+              disabled={isLoading}
+              maxLength={50}
+            />
             {/* Username Preview - Always visible */}
             <div className="min-h-[18px] ml-1">
               {usernamePreview ? (
@@ -280,74 +248,45 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           </div>
 
           {/* Last Name */}
-          <div
-            className={`auth-input-container ${getFieldBorderClass(lastNameTouched, lastName.trim().length > 0)}`}
-          >
-            <label
-              htmlFor="lastName"
-              className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
-            >
-              Last name <span className="text-danger-text">*</span>
-            </label>
-            <div className="relative px-3 py-2">
-              <UserRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
-              <input
-                type="text"
-                id="lastName"
-                value={lastName}
-                onChange={e => setLastName(e.target.value)}
-                onBlur={() => setLastNameTouched(true)}
-                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                placeholder="Last name"
-                required
-                disabled={isLoading}
-                maxLength={50}
-              />
-            </div>
-          </div>
+          <AuthInput
+            id="lastName"
+            value={lastName}
+            onChange={setLastName}
+            onBlur={() => setLastNameTouched(true)}
+            label="Last name"
+            placeholder="Last name"
+            icon={<UserRound size={16} />}
+            state={getValidationState(lastNameTouched, lastName.trim().length > 0)}
+            required
+            disabled={isLoading}
+            maxLength={50}
+          />
         </div>
 
         {/* Contact & Work Info Group */}
         <div className="space-y-2">
           {/* Email */}
           <div className="space-y-1">
-            <div
-              className={`auth-input-container ${emailError ? 'input-field-error' : getFieldBorderClass(emailTouched, emailIsValid)}`}
-            >
-              <label
-                htmlFor="email"
-                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
-              >
-                Email <span className="text-danger-text">*</span>
-              </label>
-              <div className="relative px-3 py-2">
-                <Mail
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                  size={16}
-                />
-                <input
-                  type="email"
-                  id="email"
-                  value={email}
-                  onChange={e => {
-                    setEmail(e.target.value);
-                    setEmailError(null); // Clear error when user types
-                  }}
-                  onBlur={e => {
-                    setEmail(e.target.value.trim());
-                    setEmailTouched(true);
-                  }}
-                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                  placeholder="name@institution.edu"
-                  required
-                  disabled={isLoading}
-                  maxLength={255}
-                />
-              </div>
-            </div>
+            <AuthInput
+              id="email"
+              type="email"
+              value={email}
+              onChange={value => {
+                setEmail(value);
+                setEmailError(null);
+              }}
+              onBlur={() => {
+                setEmail(email.trim());
+                setEmailTouched(true);
+              }}
+              label="Email"
+              placeholder="name@institution.edu"
+              icon={<Mail size={16} />}
+              state={emailError ? 'error' : getValidationState(emailTouched, emailIsValid)}
+              required
+              disabled={isLoading}
+              maxLength={255}
+            />
             {/* Email error message */}
             {emailError && (
               <p className="text-[11px] text-validation-error-helper ml-1">{emailError}</p>
@@ -356,56 +295,28 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
           <div className="grid grid-cols-2 gap-3 items-start">
             {/* Department */}
-            <div className="auth-input-container border-border">
-              <label
-                htmlFor="department"
-                className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium text-muted-foreground"
-              >
-                Department
-              </label>
-              <div className="relative px-3 py-2">
-                <Building2
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                  size={16}
-                />
-                <input
-                  type="text"
-                  id="department"
-                  value={department}
-                  onChange={e => setDepartment(e.target.value)}
-                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                  placeholder="Department name"
-                  disabled={isLoading}
-                  maxLength={100}
-                />
-              </div>
-            </div>
+            <AuthInput
+              id="department"
+              value={department}
+              onChange={setDepartment}
+              label="Department"
+              placeholder="Department name"
+              icon={<Building2 size={16} />}
+              disabled={isLoading}
+              maxLength={100}
+            />
 
             {/* Position */}
-            <div className="auth-input-container border-border">
-              <label
-                htmlFor="position"
-                className="absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium text-muted-foreground"
-              >
-                Position
-              </label>
-              <div className="relative px-3 py-2">
-                <BriefcaseBusiness
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                  size={16}
-                />
-                <input
-                  type="text"
-                  id="position"
-                  value={position}
-                  onChange={e => setPosition(e.target.value)}
-                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                  placeholder="Title or role"
-                  disabled={isLoading}
-                  maxLength={100}
-                />
-              </div>
-            </div>
+            <AuthInput
+              id="position"
+              value={position}
+              onChange={setPosition}
+              label="Position"
+              placeholder="Title or role"
+              icon={<BriefcaseBusiness size={16} />}
+              disabled={isLoading}
+              maxLength={100}
+            />
           </div>
 
           {/* Researcher Profile Toggle */}
@@ -431,41 +342,19 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         {/* Password Fields Group */}
         <div className="pt-3 border-t border-border space-y-2">
           <div>
-            <div
-              className={`auth-input-container ${getFieldBorderClass(passwordTouched, passwordMeetsRequirements)}`}
-            >
-              <label
-                htmlFor="password"
-                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
-              >
-                Password <span className="text-danger-text">*</span>
-              </label>
-              <div className="relative px-3 py-2">
-                <KeyRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                  size={16}
-                />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  onBlur={() => setPasswordTouched(true)}
-                  className="pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                  placeholder="Choose a secure password"
-                  required
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-enhanced"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
+            <AuthInput
+              id="password"
+              type="password"
+              value={password}
+              onChange={setPassword}
+              onBlur={() => setPasswordTouched(true)}
+              label="Password"
+              placeholder="Choose a secure password"
+              icon={<KeyRound size={16} />}
+              state={getValidationState(passwordTouched, passwordMeetsRequirements)}
+              required
+              disabled={isLoading}
+            />
 
             {/* Password Requirements - Always visible */}
             {passwordConfig && (
@@ -479,42 +368,18 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           </div>
 
           {/* Confirm Password */}
-          <div>
-            <div
-              className={`auth-input-container ${getFieldBorderClass(!!confirmPassword, password === confirmPassword)}`}
-            >
-              <label
-                htmlFor="confirmPassword"
-                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
-              >
-                Confirm password <span className="text-danger-text">*</span>
-              </label>
-              <div className="relative px-3 py-2">
-                <KeyRound
-                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                  size={16}
-                />
-                <input
-                  type={showConfirmPassword ? 'text' : 'password'}
-                  id="confirmPassword"
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                  className="pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-                  placeholder="Confirm password"
-                  required
-                  disabled={isLoading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-enhanced"
-                  aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                >
-                  {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-            </div>
-          </div>
+          <AuthInput
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            label="Confirm password"
+            placeholder="Confirm password"
+            icon={<KeyRound size={16} />}
+            state={getValidationState(!!confirmPassword, password === confirmPassword)}
+            required
+            disabled={isLoading}
+          />
         </div>
 
         <Button

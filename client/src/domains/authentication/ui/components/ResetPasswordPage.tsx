@@ -69,7 +69,7 @@ export const ResetPasswordPage: React.FC = () => {
             <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
               <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
             </div>
-            <h2 className="text-xl font-bold text-red-600">Invalid Reset Link</h2>
+            <h2 className="text-xl font-bold text-danger-text">Invalid Reset Link</h2>
           </div>
 
           <p className="text-secondary-foreground mb-6 text-center text-sm">
@@ -108,7 +108,7 @@ export const ResetPasswordPage: React.FC = () => {
               <AnimatedCheckmark size={64} />
             </div>
 
-            <h2 className="text-xl font-bold text-emerald-600 mb-2">Password Changed</h2>
+            <h2 className="text-xl font-bold text-success-text mb-2">Password Changed</h2>
             <p className="text-sm text-muted-foreground">Redirecting to login...</p>
           </div>
         </div>

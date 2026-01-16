@@ -130,7 +130,7 @@ export function ConcentrationInput({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          isDisabled={disabled}
+          disabled={disabled}
           state={getInputState()}
           className="flex-1 min-w-0"
         />

@@ -10,7 +10,7 @@ import React from 'react';
 import { type CreateTubeRequest } from '@odysseus/shared-schemas';
 import { Controller, get } from 'react-hook-form';
 
-import { Input, Select } from '@shared/ui';
+import { Input, Select, Textarea } from '@shared/ui';
 
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -101,7 +101,7 @@ export const TextField: React.FC<TextFieldProps> = ({
           min={min}
           max={max}
           placeholder={placeholder}
-          isDisabled={disabled}
+          disabled={disabled}
           state={error ? 'error' : 'default'}
           fullWidth
         />
@@ -197,7 +197,7 @@ export const DateField: React.FC<DateFieldProps> = ({
           onBlur={registration.onBlur}
           id={name}
           type="date"
-          isDisabled={disabled}
+          disabled={disabled}
           state={error ? 'error' : 'default'}
           fullWidth
         />
@@ -231,6 +231,7 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
   disabled = false,
 }) => {
   const error = get(form.formState.errors, name);
+  const registration = form.register(name);
 
   return (
     <div className="space-y-2">
@@ -238,13 +239,17 @@ export const TextAreaField: React.FC<TextAreaFieldProps> = ({
         {label}
       </label>
       <div className="relative">
-        <textarea
-          {...form.register(name)}
+        <Textarea
+          ref={registration.ref}
+          name={registration.name}
+          onChange={registration.onChange}
+          onBlur={registration.onBlur}
           id={name}
           rows={rows}
           placeholder={placeholder}
           disabled={disabled}
-          className={`input-field w-full resize-none ${error ? 'input-field-error' : 'input-field-normal'}`}
+          state={error ? 'error' : 'default'}
+          resize="none"
         />
         {error && (
           <div className="absolute right-3 top-3">

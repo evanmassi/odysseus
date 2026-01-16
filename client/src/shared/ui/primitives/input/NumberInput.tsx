@@ -19,8 +19,8 @@ export interface NumberInputProps {
   max?: number;
   /** Step increment */
   step?: number;
-  /** Size variant */
-  size?: 'xs' | 'sm' | 'md';
+  /** Size variant (matches standard form input heights: sm=32px, md=40px, lg=48px) */
+  size?: 'sm' | 'md' | 'lg';
   /** Whether the input is disabled */
   disabled?: boolean;
   /** Accessible label */
@@ -37,7 +37,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
       min,
       max,
       step = 1,
-      size = 'sm',
+      size = 'md',
       disabled = false,
       'aria-label': ariaLabel,
       className = '',
@@ -87,25 +87,25 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     const canDecrement = min === undefined || value > min;
     const canIncrement = max === undefined || value < max;
 
-    // Size-based styling
+    // Size-based styling (matches input-field pattern)
     const sizeStyles = {
-      xs: {
-        container: 'h-7',
-        button: 'w-6 text-xs',
-        input: 'w-10 text-xs',
-        icon: 12,
-      },
       sm: {
-        container: 'h-8',
+        container: 'h-8', // 32px
         button: 'w-7 text-sm',
         input: 'w-12 text-sm',
         icon: 14,
       },
       md: {
-        container: 'h-9',
-        button: 'w-8 text-base',
-        input: 'w-14 text-base',
+        container: 'h-9', // 36px - matches input-field pattern
+        button: 'w-8 text-sm',
+        input: 'w-14 text-sm',
         icon: 16,
+      },
+      lg: {
+        container: 'h-12', // 48px
+        button: 'w-9 text-base',
+        input: 'w-16 text-base',
+        icon: 18,
       },
     };
 

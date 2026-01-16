@@ -7,21 +7,12 @@
 
 import { useState, useRef } from 'react';
 
-import {
-  KeyRound,
-  UserRound,
-  Mail,
-  Eye,
-  EyeOff,
-  Clock,
-  AlertTriangle,
-  TimerOff,
-} from 'lucide-react';
+import { KeyRound, UserRound, Mail, Clock, AlertTriangle, TimerOff } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
-import { Button } from '@shared/ui';
+import { AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { AuthBaseModal } from './AuthBaseModal';
@@ -34,7 +25,6 @@ interface LoginModalProps {
 export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
@@ -222,69 +212,33 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Username or Email */}
-        <div
-          className={`auth-input-container ${loginError ? 'input-field-error' : 'border-border'}`}
-        >
-          <label
-            htmlFor="username"
-            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-muted-foreground'}`}
-          >
-            Username or email
-          </label>
-          <div className="relative px-3 py-2">
-            <UserRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
-              size={16}
-            />
-            <input
-              ref={usernameInputRef}
-              type="text"
-              id="username"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              className={`pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45 ${loginError ? 'text-validation-error-text' : ''}`}
-              placeholder="Your username or email"
-              required
-              disabled={isLoading}
-            />
-          </div>
-        </div>
+        <AuthInput
+          ref={usernameInputRef}
+          id="username"
+          type="text"
+          value={username}
+          onChange={setUsername}
+          label="Username or email"
+          placeholder="Your username or email"
+          icon={<UserRound size={16} />}
+          state={loginError ? 'error' : 'default'}
+          required
+          disabled={isLoading}
+        />
 
         {/* Password */}
-        <div
-          className={`auth-input-container ${loginError ? 'input-field-error' : 'border-border'}`}
-        >
-          <label
-            htmlFor="password"
-            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${loginError ? 'text-validation-error-label' : 'text-muted-foreground'}`}
-          >
-            Password
-          </label>
-          <div className="relative px-3 py-2">
-            <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${loginError ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
-              size={16}
-            />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              id="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              className={`pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45 ${loginError ? 'text-validation-error-text' : ''}`}
-              placeholder="Your password"
-              required
-              disabled={isLoading}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-enhanced"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-        </div>
+        <AuthInput
+          id="password"
+          type="password"
+          value={password}
+          onChange={setPassword}
+          label="Password"
+          placeholder="Your password"
+          icon={<KeyRound size={16} />}
+          state={loginError ? 'error' : 'default'}
+          required
+          disabled={isLoading}
+        />
 
         <Button
           type="submit"

@@ -109,7 +109,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                   onChange={value => onChange('passwordMinLength', value)}
                   min={4}
                   max={128}
-                  size="xs"
+                  size="sm"
                   aria-label="Minimum password length"
                 />
                 <p className="text-[10px] text-muted-foreground mt-0.5">(4-128 characters)</p>
@@ -149,7 +149,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 onChange={value => onChange('sessionTimeoutMinutes', value)}
                 min={5}
                 max={10080}
-                size="xs"
+                size="sm"
                 aria-label="Session timeout in minutes"
               />
               <p className="text-[10px] text-muted-foreground mt-0.5">(5-10080 min)</p>
@@ -168,7 +168,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 onChange={value => onChange('idleWarningMinutes', value)}
                 min={1}
                 max={60}
-                size="xs"
+                size="sm"
                 aria-label="Idle warning in minutes"
               />
               <p className="text-[10px] text-muted-foreground mt-0.5">(1-60 min)</p>
@@ -187,7 +187,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 onChange={value => onChange('absoluteSessionTimeoutHours', value)}
                 min={1}
                 max={720}
-                size="xs"
+                size="sm"
                 aria-label="Absolute session timeout in hours"
               />
               <p className="text-[10px] text-muted-foreground mt-0.5">(1-720 hrs)</p>
@@ -206,7 +206,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 onChange={value => onChange('accessTokenExpiryMinutes', value)}
                 min={5}
                 max={60}
-                size="xs"
+                size="sm"
                 aria-label="Access token expiry in minutes"
               />
               <p className="text-[10px] text-muted-foreground mt-0.5">(5-60 min)</p>
@@ -247,7 +247,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                     onChange={value => onChange('loginAttemptsPerMinute', value)}
                     min={1}
                     max={50}
-                    size="xs"
+                    size="sm"
                     aria-label="Login attempts per minute"
                   />
                   <p className="text-[10px] text-muted-foreground mt-0.5">(1-50 attempts)</p>
@@ -266,7 +266,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                     onChange={value => onChange('lockoutDurationMinutes', value)}
                     min={1}
                     max={1440}
-                    size="xs"
+                    size="sm"
                     aria-label="Lockout duration in minutes"
                   />
                   <p className="text-[10px] text-muted-foreground mt-0.5">(1-1440 minutes)</p>

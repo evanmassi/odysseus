@@ -6,10 +6,10 @@
 
 import { useState, useEffect } from 'react';
 
-import { KeyRound, Eye, EyeOff, Copy, Check, RotateCcwKey, ExternalLink } from 'lucide-react';
+import { KeyRound, Copy, Check, RotateCcwKey, ExternalLink } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Toggle } from '@shared/ui';
+import { AuthInput, Button, Toggle } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils/notifications';
 
@@ -32,7 +32,6 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'direct' | 'token'>('direct');
   const [newPassword, setNewPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [requirePasswordChange, setRequirePasswordChange] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [resetUrl, setResetUrl] = useState<string | null>(null);
@@ -44,7 +43,6 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
     if (isOpen) {
       setActiveTab('direct');
       setNewPassword('');
-      setShowPassword(false);
       setRequirePasswordChange(true);
       setResetUrl(null);
       setExpiresAt(null);
@@ -172,37 +170,15 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
             {/* Password Input */}
             <div className="mb-4">
-              <div
-                className={`auth-input-container ${
-                  newPassword.length >= 4 ? 'border-success-border' : 'border-border'
-                }`}
-              >
-                <label
-                  htmlFor="newPassword"
-                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
-                    newPassword.length >= 4 ? 'text-success-text' : 'text-secondary-foreground'
-                  }`}
-                >
-                  Temporary Password
-                </label>
-                <div className="relative px-3 py-2">
-                  <input
-                    id="newPassword"
-                    type={showPassword ? 'text' : 'password'}
-                    value={newPassword}
-                    onChange={e => setNewPassword(e.target.value)}
-                    className="pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-60"
-                    placeholder="Enter temporary password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-ring-default"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
+              <AuthInput
+                id="newPassword"
+                type="password"
+                value={newPassword}
+                onChange={setNewPassword}
+                label="Temporary Password"
+                placeholder="Enter temporary password"
+                state={newPassword.length >= 4 ? 'success' : 'default'}
+              />
               {newPassword && (
                 <p className={`text-xs mt-1 ml-1 ${getPasswordStrengthColor(newPassword)}`}>
                   Strength: {getPasswordStrength(newPassword)}

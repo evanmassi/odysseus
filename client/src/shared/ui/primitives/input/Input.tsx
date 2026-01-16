@@ -346,15 +346,15 @@ export const Input = forwardRef<InputRef, InputProps>(
       error,
       warning,
       success,
-      isRequired = defaultInputProps.isRequired,
+      required = defaultInputProps.required,
       validate,
       validateOn = defaultInputProps.validateOn,
       onValidationChange,
 
       // State props
       isLoading = defaultInputProps.isLoading,
-      isReadOnly,
-      isDisabled,
+      readOnly,
+      disabled,
 
       // HTML props
       type = defaultInputProps.type,
@@ -514,7 +514,7 @@ export const Input = forwardRef<InputRef, InputProps>(
       <div className={wrapperClasses}>
         {/* Label */}
         {label && (
-          <InputLabel htmlFor={id} isRequired={isRequired} className={labelClassName}>
+          <InputLabel htmlFor={id} isRequired={required} className={labelClassName}>
             {label}
           </InputLabel>
         )}
@@ -539,13 +539,13 @@ export const Input = forwardRef<InputRef, InputProps>(
             placeholder={placeholder}
             value={value}
             defaultValue={defaultValue}
-            disabled={isDisabled}
-            readOnly={isReadOnly}
-            required={isRequired}
+            disabled={disabled}
+            readOnly={readOnly}
+            required={required}
             aria-label={ariaLabel}
             aria-describedby={getAriaDescribedBy()}
             aria-invalid={ariaInvalid ?? currentState === 'error'}
-            aria-required={ariaRequired ?? isRequired}
+            aria-required={ariaRequired ?? required}
             onChange={handleChange}
             onBlur={handleBlur}
             onFocus={onFocus}

@@ -41,9 +41,9 @@ const selectVariants = cva(
         outlined: 'border-2 border-border hover:border-muted-foreground',
       },
       size: {
-        sm: 'h-8 px-3 text-sm',
-        md: 'h-9 px-3 text-sm', // h-9 matches input-field class
-        lg: 'h-12 px-4 text-base',
+        sm: 'h-8 px-3 text-sm', // 32px
+        md: 'h-9 px-3 text-sm', // 36px - matches input-field pattern
+        lg: 'h-12 px-4 text-base', // 48px
       },
       isOpen: {
         true: 'ring-2 ring-action border-action',
@@ -123,7 +123,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       searchable = defaultSelectProps.searchable,
       clearable = defaultSelectProps.clearable,
       disabled = defaultSelectProps.disabled,
-      loading = defaultSelectProps.loading,
+      isLoading = defaultSelectProps.isLoading,
       variant = defaultSelectProps.variant,
       size = defaultSelectProps.size,
       state = defaultSelectProps.state,
@@ -399,7 +399,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
 
     // Render display value
     const renderDisplayValueContent = () => {
-      if (loading) {
+      if (isLoading) {
         return <span className="text-muted-foreground">Loading...</span>;
       }
 

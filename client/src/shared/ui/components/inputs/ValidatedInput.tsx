@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 
 import { AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
-import { Input, Select } from '../../primitives';
+import { Input, Select, Textarea } from '../../primitives';
 
 import type { InputState } from '../../primitives/input/types';
 import type { UseFormRegisterReturn } from 'react-hook-form';
@@ -181,15 +181,21 @@ export function ValidatedInput({
           />
         )
       ) : type === 'textarea' ? (
-        <textarea
-          ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-          {...(isUncontrolled ? registration : { value, onChange: handleControlledChange })}
-          onBlur={onBlur}
+        <Textarea
+          ref={
+            isUncontrolled ? registration?.ref : (inputRef as React.RefObject<HTMLTextAreaElement>)
+          }
+          name={registration?.name}
+          value={isUncontrolled ? undefined : value}
+          onChange={isUncontrolled ? registration?.onChange : handleControlledChange}
+          onBlur={isUncontrolled ? registration?.onBlur : onBlur}
           placeholder={placeholder}
-          className={getInputClasses()}
+          state={getInputState()}
           disabled={disabled}
           maxLength={maxLength}
           rows={2}
+          resize="none"
+          fullWidth
           {...ariaProps}
         />
       ) : (
@@ -203,7 +209,7 @@ export function ValidatedInput({
           onBlur={isUncontrolled ? registration?.onBlur : onBlur}
           placeholder={placeholder}
           state={getInputState()}
-          isDisabled={disabled}
+          disabled={disabled}
           maxLength={maxLength}
           fullWidth
           {...ariaProps}

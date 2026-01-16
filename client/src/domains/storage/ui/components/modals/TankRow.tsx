@@ -121,7 +121,7 @@ export function TankRow({
                       onChange={onRackCountChange}
                       min={1}
                       max={50}
-                      size="xs"
+                      size="sm"
                       aria-label="Number of racks to add"
                     />
                   </Tooltip>

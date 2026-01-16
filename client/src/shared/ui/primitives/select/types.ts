@@ -13,10 +13,10 @@ export type SelectVariant =
   | 'filled' // Filled background select
   | 'outlined'; // Outlined with thicker border
 
-// Select size types
+// Select size types (matches input-field pattern)
 export type SelectSize =
   | 'sm' // Small (32px height)
-  | 'md' // Medium (40px height) - default
+  | 'md' // Medium (36px height) - default
   | 'lg'; // Large (48px height)
 
 // Select validation state types
@@ -60,7 +60,7 @@ export interface SelectProps {
   /** Disable the select */
   disabled?: boolean;
   /** Show loading state */
-  loading?: boolean;
+  isLoading?: boolean;
 
   // Appearance
   /** Visual variant */
@@ -132,7 +132,7 @@ export const defaultSelectProps: Partial<SelectProps> = {
   searchable: false,
   clearable: false,
   disabled: false,
-  loading: false,
+  isLoading: false,
   fullWidth: false,
   placeholder: 'Select an option...',
   maxHeight: 240,

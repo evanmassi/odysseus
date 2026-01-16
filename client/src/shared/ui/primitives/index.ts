@@ -9,10 +9,12 @@
 import { Button } from './button/Button';
 import { Checkbox } from './checkbox/Checkbox';
 import { Grid, GridItem } from './grid/Grid';
+import { AuthInput } from './input/AuthInput';
 import { Input } from './input/Input';
 import { NumberInput } from './input/NumberInput';
 import { Select } from './select/Select';
 import { Table, TableHeader, TableBody } from './table/Table';
+import { Textarea } from './textarea/Textarea';
 import { Toggle } from './toggle/Toggle';
 import { Tooltip } from './tooltip/Tooltip';
 
@@ -35,7 +37,8 @@ export { Toggle };
 export type { ToggleProps } from './toggle/Toggle';
 
 // Input primitives
-export { Input, NumberInput };
+export { AuthInput, Input, NumberInput };
+export type { AuthInputProps, AuthInputValidationState } from './input/AuthInput';
 export type { NumberInputProps } from './input/NumberInput';
 export type {
   InputProps,
@@ -66,6 +69,15 @@ export type {
 // Table primitives
 export { Table, TableHeader, TableBody };
 export type { TableProps, TableColumn, TableRow, SortConfig } from './table/Table';
+
+// Textarea primitives
+export { Textarea };
+export type {
+  TextareaProps,
+  TextareaState,
+  TextareaSize,
+  TextareaResize,
+} from './textarea/Textarea';
 
 // Tooltip primitives
 export { Tooltip };
@@ -118,7 +130,6 @@ export interface LoadingProps {
 }
 
 export interface DisabledProps {
-  isDisabled?: boolean;
   disabled?: boolean;
 }
 
@@ -167,6 +178,7 @@ export type ForwardedRef<T> =
 
 // Primitive component collection for easy importing
 export const Primitives = {
+  AuthInput,
   Button,
   Checkbox,
   Input,
@@ -175,6 +187,7 @@ export const Primitives = {
   Table,
   TableHeader,
   TableBody,
+  Textarea,
   Toggle,
   Grid,
   GridItem,

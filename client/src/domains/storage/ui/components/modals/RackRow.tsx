@@ -190,7 +190,7 @@ export function RackRow({
                   onChange={onBoxCountChange}
                   min={1}
                   max={26}
-                  size="xs"
+                  size="sm"
                   aria-label="Number of boxes to add"
                 />
               </Tooltip>

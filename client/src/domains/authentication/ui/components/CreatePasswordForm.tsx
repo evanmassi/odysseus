@@ -6,14 +6,14 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import { KeyRound, Eye, EyeOff, AlertTriangle } from 'lucide-react';
+import { KeyRound, AlertTriangle } from 'lucide-react';
 
 import {
   authService,
   type PasswordRequirements as PasswordConfig,
 } from '@domains/authentication/services/AuthenticationService';
 import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
+import { AuthInput, Button } from '@shared/ui';
 
 import { PasswordRequirements } from './PasswordRequirements';
 
@@ -45,7 +45,6 @@ export function CreatePasswordForm({
 }: CreatePasswordFormProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [internalError, setInternalError] = useState<string | null>(null);
   const [passwordConfig, setPasswordConfig] = useState<PasswordConfig | null>(null);
@@ -71,18 +70,20 @@ export function CreatePasswordForm({
     return confirmPassword.length > 0 && newPassword === confirmPassword;
   }, [newPassword, confirmPassword]);
 
-  const newPasswordBorderClass = useMemo(() => {
-    if (!newPassword) return 'border-border';
-    if (passwordMeetsRequirements) return 'border-success-border';
-    if (newPasswordTouched) return 'input-field-error';
-    return 'border-border';
+  // Validation state for new password
+  const newPasswordValidationState = useMemo(() => {
+    if (!newPassword) return 'default' as const;
+    if (passwordMeetsRequirements) return 'success' as const;
+    if (newPasswordTouched) return 'error' as const;
+    return 'default' as const;
   }, [newPassword, passwordMeetsRequirements, newPasswordTouched]);
 
-  const confirmPasswordBorderClass = useMemo(() => {
-    if (!confirmPassword) return 'border-border';
-    if (passwordsMatch && passwordMeetsRequirements) return 'border-success-border';
-    if (confirmPassword.length > 0 && !passwordsMatch) return 'input-field-error';
-    return 'border-border';
+  // Validation state for confirm password
+  const confirmPasswordValidationState = useMemo(() => {
+    if (!confirmPassword) return 'default' as const;
+    if (passwordsMatch && passwordMeetsRequirements) return 'success' as const;
+    if (confirmPassword.length > 0 && !passwordsMatch) return 'error' as const;
+    return 'default' as const;
   }, [confirmPassword, passwordsMatch, passwordMeetsRequirements]);
 
   // Combined error (internal takes precedence, then external)
@@ -145,41 +146,21 @@ export function CreatePasswordForm({
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* New Password */}
-        <div className={`auth-input-container ${newPasswordBorderClass}`}>
-          <label
-            htmlFor="newPassword"
-            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${passwordMeetsRequirements ? 'text-success-text' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-label' : 'text-muted-foreground'}`}
-          >
-            New Password
-          </label>
-          <div className="relative px-3 py-2">
-            <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordMeetsRequirements ? 'text-success-text' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
-              size={16}
-            />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              id="newPassword"
-              value={newPassword}
-              onChange={e => handlePasswordChange(e.target.value)}
-              onBlur={() => setNewPasswordTouched(true)}
-              className="pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-              placeholder="Enter new password"
-              required
-              disabled={isLoading}
-              // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional UX: focus first input when form appears
-              autoFocus
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-secondary-foreground rounded focus-enhanced"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-        </div>
+        <AuthInput
+          id="newPassword"
+          type="password"
+          value={newPassword}
+          onChange={handlePasswordChange}
+          onBlur={() => setNewPasswordTouched(true)}
+          label="New Password"
+          placeholder="Enter new password"
+          icon={<KeyRound size={16} />}
+          state={newPasswordValidationState}
+          required
+          disabled={isLoading}
+          // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional UX: focus first input when form appears
+          autoFocus
+        />
 
         {/* Password Requirements */}
         {passwordConfig && (
@@ -192,30 +173,18 @@ export function CreatePasswordForm({
         )}
 
         {/* Confirm Password */}
-        <div className={`auth-input-container ${confirmPasswordBorderClass}`}>
-          <label
-            htmlFor="confirmPassword"
-            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${passwordsMatch && passwordMeetsRequirements ? 'text-success-text' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-label' : 'text-muted-foreground'}`}
-          >
-            Confirm Password
-          </label>
-          <div className="relative px-3 py-2">
-            <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordsMatch && passwordMeetsRequirements ? 'text-success-text' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
-              size={16}
-            />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={e => handleConfirmChange(e.target.value)}
-              className="pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
-              placeholder="Confirm new password"
-              required
-              disabled={isLoading}
-            />
-          </div>
-        </div>
+        <AuthInput
+          id="confirmPassword"
+          type="password"
+          value={confirmPassword}
+          onChange={handleConfirmChange}
+          label="Confirm Password"
+          placeholder="Confirm new password"
+          icon={<KeyRound size={16} />}
+          state={confirmPasswordValidationState}
+          required
+          disabled={isLoading}
+        />
 
         <Button
           type="submit"

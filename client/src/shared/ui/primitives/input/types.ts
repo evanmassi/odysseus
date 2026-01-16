@@ -1,6 +1,6 @@
 /**
  * Input Component Types
- * 
+ *
  * Type definitions for accessible Input primitive components
  * Includes text, number, search, and validation functionality
  */
@@ -8,30 +8,30 @@
 import type { ComponentProps, ReactNode } from 'react';
 
 // Input variant types
-export type InputVariant = 
-  | 'default'       // Standard input
-  | 'filled'        // Filled background input
-  | 'outlined'      // Outlined input (default)
-  | 'underlined'    // Underlined input
-  | 'ghost';        // Minimal input (no border)
+export type InputVariant =
+  | 'default' // Standard input
+  | 'filled' // Filled background input
+  | 'outlined' // Outlined input (default)
+  | 'underlined' // Underlined input
+  | 'ghost'; // Minimal input (no border)
 
 // Input size types
-export type InputSize = 
-  | 'xs'            // Extra small (28px height)
-  | 'sm'            // Small (32px height)
-  | 'md'            // Medium (40px height) - default
-  | 'lg'            // Large (48px height)
-  | 'xl';           // Extra large (56px height)
+export type InputSize =
+  | 'xs' // Extra small (28px height)
+  | 'sm' // Small (32px height)
+  | 'md' // Medium (40px height) - default
+  | 'lg' // Large (48px height)
+  | 'xl'; // Extra large (56px height)
 
 // Input state types
-export type InputState = 
-  | 'default'       // Normal state
-  | 'error'         // Error state
-  | 'warning'       // Warning state
-  | 'success';      // Success state
+export type InputState =
+  | 'default' // Normal state
+  | 'error' // Error state
+  | 'warning' // Warning state
+  | 'success'; // Success state
 
 // Input types (HTML input types)
-export type InputType = 
+export type InputType =
   | 'text'
   | 'email'
   | 'password'
@@ -61,45 +61,45 @@ export interface BaseInputProps extends Omit<ComponentProps<'input'>, 'size' | '
   variant?: InputVariant;
   size?: InputSize;
   state?: InputState;
-  
+
   // Label and description
   label?: string;
   description?: string;
   placeholder?: string;
-  
+
   // Icons and addons
   leftIcon?: ReactNode;
   rightIcon?: ReactNode;
   prefix?: string | ReactNode;
   suffix?: string | ReactNode;
-  
+
   // Validation
   error?: string;
   warning?: string;
   success?: string;
-  isRequired?: boolean;
+  required?: boolean;
   validate?: ValidationFunction | ValidationFunction[];
   validateOn?: 'blur' | 'change' | 'submit';
-  
+
   // State
   isLoading?: boolean;
-  isReadOnly?: boolean;
-  isDisabled?: boolean;
-  
+  readOnly?: boolean;
+  disabled?: boolean;
+
   // Layout
   fullWidth?: boolean;
-  
+
   // Accessibility
   'aria-label'?: string;
   'aria-describedby'?: string;
   'aria-invalid'?: boolean;
   'aria-required'?: boolean;
-  
+
   // Custom styling
   className?: string;
   inputClassName?: string;
   labelClassName?: string;
-  
+
   // Event handlers
   onValueChange?: (value: string) => void;
   onValidationChange?: (result: ValidationResult) => void;
@@ -177,7 +177,7 @@ export interface InputGroupProps {
   children: ReactNode;
   label?: string;
   description?: string;
-  isRequired?: boolean;
+  required?: boolean;
   error?: string;
   orientation?: 'horizontal' | 'vertical';
   spacing?: 'none' | 'sm' | 'md' | 'lg';
@@ -195,7 +195,7 @@ export interface InputAddonProps {
 export interface InputLabelProps {
   children: ReactNode;
   htmlFor?: string;
-  isRequired?: boolean;
+  required?: boolean;
   className?: string;
 }
 
@@ -224,42 +224,42 @@ export interface InputStyleVariants {
 export interface InputTheme {
   // Base styles
   base: string;
-  
+
   // Wrapper styles
   wrapper: string;
-  
+
   // Input field styles
   input: string;
-  
+
   // Variant styles
   variants: InputStyleVariants['variant'];
-  
+
   // Size styles
   sizes: InputStyleVariants['size'];
-  
+
   // State styles
   states: InputStyleVariants['state'];
-  
+
   // Label styles
   label: {
     base: string;
     required: string;
     disabled: string;
   };
-  
+
   // Description styles
   description: string;
-  
+
   // Error message styles
   error: string;
-  
+
   // Icon styles
   icons: {
     left: string;
     right: string;
     loading: string;
   };
-  
+
   // Addon styles
   addons: {
     left: string;
@@ -275,9 +275,9 @@ export const defaultInputProps: Partial<InputProps> = {
   state: 'default',
   validateOn: 'blur',
   fullWidth: false,
-  isRequired: false,
-  isDisabled: false,
-  isReadOnly: false,
+  required: false,
+  disabled: false,
+  readOnly: false,
   isLoading: false,
   spellCheck: true,
 };
@@ -296,5 +296,18 @@ export const isInputState = (value: string): value is InputState => {
 };
 
 export const isInputType = (value: string): value is InputType => {
-  return ['text', 'email', 'password', 'number', 'tel', 'url', 'search', 'date', 'time', 'datetime-local', 'month', 'week'].includes(value);
+  return [
+    'text',
+    'email',
+    'password',
+    'number',
+    'tel',
+    'url',
+    'search',
+    'date',
+    'time',
+    'datetime-local',
+    'month',
+    'week',
+  ].includes(value);
 };
