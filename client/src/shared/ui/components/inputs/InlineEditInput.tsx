@@ -57,7 +57,7 @@ export function InlineEditInput({
   }, [value, onSave]);
 
   return (
-    <div className="absolute inset-0 bg-white border-2 border-amber-400 rounded-lg shadow-lg z-30 flex items-center p-1">
+    <div className="absolute inset-0 bg-card border-2 border-warning-border rounded-lg shadow-lg z-30 flex items-center p-1">
       <input
         ref={inputRef}
         type="text"
@@ -76,7 +76,7 @@ export function InlineEditInput({
               e.stopPropagation();
               onSave(value);
             }}
-            className="p-0.5 rounded bg-emerald-100 text-emerald-600 hover:bg-emerald-200 transition-colors focus-ring-default"
+            className="p-0.5 rounded bg-success-light text-success-text hover:bg-success-border transition-colors focus-ring-default"
           >
             <Check size={10} />
           </button>

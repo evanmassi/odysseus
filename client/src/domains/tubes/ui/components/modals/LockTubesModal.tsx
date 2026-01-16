@@ -13,7 +13,7 @@ import { useEffect, useState } from 'react';
 import { Info, Lock, Notebook } from 'lucide-react';
 
 import { useLockTubesMutation } from '@domains/tubes/hooks';
-import { Button } from '@shared/ui';
+import { Button, Input } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
@@ -110,15 +110,15 @@ export function LockTubesModal({
             <Notebook className="w-4 h-4" />
             Lock Note (optional)
           </label>
-          <input
+          <Input
             id="lockNote"
             type="text"
             value={lockNote}
-            onChange={e => setLockNote(e.target.value)}
+            onValueChange={setLockNote}
             onKeyDown={handleKeyDown}
             placeholder="e.g., Project X - Donor 123"
             maxLength={100}
-            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-action-focus focus:border-action-focus"
+            fullWidth
           />
           <div className="flex justify-between mt-1">
             <p className="text-xs text-muted-foreground">Provides context for the lock.</p>

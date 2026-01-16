@@ -36,7 +36,7 @@ import {
 import { isOfflineError } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
-import { Button } from '@shared/ui';
+import { Button, Checkbox } from '@shared/ui';
 import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
@@ -793,23 +793,17 @@ function CreateModeContent({
 
         {/* Mixed Selection Warning */}
         {positionAnalysis.isMixed && (
-          <div className="px-3 py-2 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm">
+          <div className="px-3 py-2 bg-warning-light border-l-4 border-l-warning-border rounded-lg shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-              <span className="text-sm text-amber-700">
+              <AlertTriangle className="w-4 h-4 text-warning-icon flex-shrink-0" />
+              <span className="text-sm text-warning-text">
                 {positionAnalysis.occupiedPositions.length} position
                 {positionAnalysis.occupiedPositions.length > 1 ? 's are' : ' is'} occupied.
               </span>
             </div>
             <label className="flex items-center gap-2 cursor-pointer ml-6">
-              <input
-                type="checkbox"
-                checked={allowOverwrite}
-                onChange={e => setAllowOverwrite(e.target.checked)}
-                className="w-4 h-4 border-border rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
-                style={{ accentColor: 'var(--color-action-default)' }}
-              />
-              <span className="text-sm text-amber-700">
+              <Checkbox checked={allowOverwrite} onChange={setAllowOverwrite} />
+              <span className="text-sm text-warning-text">
                 Overwrite existing tube{positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}
               </span>
             </label>

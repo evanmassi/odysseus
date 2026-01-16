@@ -73,14 +73,14 @@ export function CreatePasswordForm({
 
   const newPasswordBorderClass = useMemo(() => {
     if (!newPassword) return 'border-border';
-    if (passwordMeetsRequirements) return 'border-emerald-500';
+    if (passwordMeetsRequirements) return 'border-success-border';
     if (newPasswordTouched) return 'input-field-error';
     return 'border-border';
   }, [newPassword, passwordMeetsRequirements, newPasswordTouched]);
 
   const confirmPasswordBorderClass = useMemo(() => {
     if (!confirmPassword) return 'border-border';
-    if (passwordsMatch && passwordMeetsRequirements) return 'border-emerald-500';
+    if (passwordsMatch && passwordMeetsRequirements) return 'border-success-border';
     if (confirmPassword.length > 0 && !passwordsMatch) return 'input-field-error';
     return 'border-border';
   }, [confirmPassword, passwordsMatch, passwordMeetsRequirements]);
@@ -137,9 +137,9 @@ export function CreatePasswordForm({
     <>
       {/* Error Banner */}
       {displayError && (
-        <div className="mb-4 px-3 py-2 bg-red-50 border-l-4 border-l-red-500 rounded-lg shadow-sm flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
-          <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-          <span className="text-sm text-red-700">{displayError}</span>
+        <div className="mb-4 px-3 py-2 bg-danger-light border-l-4 border-l-danger-border rounded-lg shadow-sm flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
+          <AlertTriangle className="w-4 h-4 text-danger-text flex-shrink-0" />
+          <span className="text-sm text-danger-text">{displayError}</span>
         </div>
       )}
 
@@ -148,13 +148,13 @@ export function CreatePasswordForm({
         <div className={`auth-input-container ${newPasswordBorderClass}`}>
           <label
             htmlFor="newPassword"
-            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${passwordMeetsRequirements ? 'text-emerald-700' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-label' : 'text-muted-foreground'}`}
+            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${passwordMeetsRequirements ? 'text-success-text' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             New Password
           </label>
           <div className="relative px-3 py-2">
             <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordMeetsRequirements ? 'text-emerald-600' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordMeetsRequirements ? 'text-success-text' : newPasswordTouched && !passwordMeetsRequirements ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
               size={16}
             />
             <input
@@ -163,7 +163,7 @@ export function CreatePasswordForm({
               value={newPassword}
               onChange={e => handlePasswordChange(e.target.value)}
               onBlur={() => setNewPasswordTouched(true)}
-              className="pl-7 pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+              className="pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
               placeholder="Enter new password"
               required
               disabled={isLoading}
@@ -195,13 +195,13 @@ export function CreatePasswordForm({
         <div className={`auth-input-container ${confirmPasswordBorderClass}`}>
           <label
             htmlFor="confirmPassword"
-            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-700' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-label' : 'text-muted-foreground'}`}
+            className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium ${passwordsMatch && passwordMeetsRequirements ? 'text-success-text' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-label' : 'text-muted-foreground'}`}
           >
             Confirm Password
           </label>
           <div className="relative px-3 py-2">
             <KeyRound
-              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordsMatch && passwordMeetsRequirements ? 'text-emerald-600' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
+              className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${passwordsMatch && passwordMeetsRequirements ? 'text-success-text' : confirmPassword.length > 0 && !passwordsMatch ? 'text-validation-error-icon' : 'text-muted-foreground'}`}
               size={16}
             />
             <input
@@ -209,7 +209,7 @@ export function CreatePasswordForm({
               id="confirmPassword"
               value={confirmPassword}
               onChange={e => handleConfirmChange(e.target.value)}
-              className="pl-7 pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+              className="pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
               placeholder="Confirm new password"
               required
               disabled={isLoading}
@@ -237,7 +237,7 @@ export function CreatePasswordForm({
             <button
               type="button"
               onClick={onCancel}
-              className="text-action-hover font-semibold hover:text-[#3d6a99] transition-colors focus-enhanced rounded px-1"
+              className="text-action-hover font-semibold hover:text-action transition-colors focus-enhanced rounded px-1"
               disabled={isLoading}
             >
               {cancelText}

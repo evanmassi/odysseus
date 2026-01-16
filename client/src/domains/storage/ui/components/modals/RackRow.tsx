@@ -3,7 +3,7 @@ import React from 'react';
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
-import { Button, Tooltip } from '@shared/ui';
+import { Button, NumberInput, Tooltip } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -162,7 +162,7 @@ export function RackRow({
                   <Tooltip content="Remove rack" side="bottom">
                     <button
                       onClick={() => onDeleteRack(tankId, rack.id)}
-                      className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
+                      className="text-danger-text hover:bg-danger-light transition-colors p-1 rounded focus-ring-default"
                     >
                       <Trash2 size={14} />
                     </button>
@@ -185,15 +185,13 @@ export function RackRow({
           {canManageStorage && (
             <div className="flex items-center gap-2 py-0.5 px-1.5">
               <Tooltip content="Number of boxes to add" side="bottom">
-                <input
-                  type="number"
-                  min="1"
-                  max="26"
+                <NumberInput
                   value={boxCountToAdd}
-                  onChange={e =>
-                    onBoxCountChange(Math.max(1, Math.min(26, parseInt(e.target.value) || 1)))
-                  }
-                  className="input-number-sm w-14 px-2 py-0.5 focus-ring-default"
+                  onChange={onBoxCountChange}
+                  min={1}
+                  max={26}
+                  size="xs"
+                  aria-label="Number of boxes to add"
                 />
               </Tooltip>
               <Button

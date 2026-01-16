@@ -7,7 +7,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 
 import { ChevronDown, ChevronRight, X, UserRound, Zap, Box, Calendar } from 'lucide-react';
 
-import { Tooltip } from '@shared/ui';
+import { Input, Tooltip } from '@shared/ui';
 
 export interface AuditFilterState {
   actions?: string[];
@@ -405,12 +405,13 @@ export function AuditLogFilterPanel({
               isOpen={openSections.user}
               onToggle={() => toggleSection('user')}
             >
-              <input
+              <Input
                 type="text"
                 placeholder="Filter by username"
                 value={filters.username ?? ''}
-                onChange={e => onChange({ ...filters, username: e.target.value || undefined })}
-                className="w-full px-2 py-1.5 text-sm border border-border rounded focus-ring-default"
+                onValueChange={value => onChange({ ...filters, username: value || undefined })}
+                size="sm"
+                fullWidth
               />
             </CollapsibleSection>
 

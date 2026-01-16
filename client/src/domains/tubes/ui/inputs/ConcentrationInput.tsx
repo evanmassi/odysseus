@@ -2,11 +2,13 @@ import React from 'react';
 
 import { AlertCircle, AlertTriangle } from 'lucide-react';
 
-import { Select } from '@shared/ui';
+import { Input, Select } from '@shared/ui';
 import {
   formatToScientificNotation,
   isScientificNotationInput,
 } from '@shared/utils/scientificNotation';
+
+import type { InputState } from '@shared/ui/primitives/input/types';
 
 interface ConcentrationFieldProps {
   label: string;
@@ -46,18 +48,13 @@ export function ConcentrationInput({
     { value: 'c/mL', label: 'c/mL' },
   ];
 
-  const getInputClasses = () => {
-    if (validation?.error) {
-      return 'input-field input-field-error';
-    } else if (validation?.warning) {
-      return 'input-field border-2 border-validation-warning-border bg-validation-warning-bg text-validation-warning-text';
-    } else if (hasConflict) {
-      return 'input-field input-field-conflict';
-    } else if (value && !validation?.error && !validation?.warning) {
-      return 'input-field input-field-normal border-validation-success-border bg-validation-success-bg';
-    } else {
-      return 'input-field input-field-normal';
-    }
+  // Map validation state to InputState for the Input primitive
+  const getInputState = (): InputState => {
+    if (validation?.error) return 'error';
+    if (validation?.warning) return 'warning';
+    if (hasConflict) return 'warning';
+    if (value && !validation?.error && !validation?.warning) return 'success';
+    return 'default';
   };
 
   const getLabelClasses = () => {
@@ -126,15 +123,16 @@ export function ConcentrationInput({
       </label>
 
       <div className="flex gap-1">
-        <input
+        <Input
           type="text"
           value={value}
-          onChange={e => handleInputChange(e.target.value)}
+          onValueChange={handleInputChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          disabled={disabled}
-          className={`${getInputClasses()} flex-1 min-w-0`}
+          isDisabled={disabled}
+          state={getInputState()}
+          className="flex-1 min-w-0"
         />
 
         <div className="w-20 relative z-50 flex-shrink-0">

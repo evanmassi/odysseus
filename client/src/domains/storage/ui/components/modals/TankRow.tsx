@@ -2,7 +2,7 @@ import React from 'react';
 
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
-import { Button, Tooltip } from '@shared/ui';
+import { Button, NumberInput, Tooltip } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 
 import { RackRow } from './RackRow';
@@ -80,7 +80,7 @@ export function TankRow({
                 <Tooltip content="Remove tank" side="bottom">
                   <button
                     onClick={() => onDeleteTank(tank.id)}
-                    className="text-red-500 hover:bg-red-100 transition-colors p-1 rounded focus-ring-default"
+                    className="text-danger-text hover:bg-danger-light transition-colors p-1 rounded focus-ring-default"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -116,15 +116,13 @@ export function TankRow({
               <div className="ml-2 mt-1">
                 <div className="flex items-center gap-2 py-1 px-1.5">
                   <Tooltip content="Number of racks to add" side="bottom">
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
+                    <NumberInput
                       value={rackCountToAdd}
-                      onChange={e =>
-                        onRackCountChange(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))
-                      }
-                      className="input-number-sm w-14 px-2 py-1 text-sm focus-ring-default"
+                      onChange={onRackCountChange}
+                      min={1}
+                      max={50}
+                      size="xs"
+                      aria-label="Number of racks to add"
                     />
                   </Tooltip>
                   <Button

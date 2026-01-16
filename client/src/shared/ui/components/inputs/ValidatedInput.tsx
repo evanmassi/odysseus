@@ -1,9 +1,10 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useCallback } from 'react';
 
 import { AlertTriangle, AlertCircle, CheckCircle } from 'lucide-react';
 
-import { Select } from '../../primitives';
+import { Input, Select } from '../../primitives';
 
+import type { InputState } from '../../primitives/input/types';
 import type { UseFormRegisterReturn } from 'react-hook-form';
 
 interface ValidationAwareInputProps {
@@ -124,12 +125,21 @@ export function ValidatedInput({
     return null;
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    if (onChange) {
-      onChange(e.target.value);
-    }
+  // Handle controlled mode change - convert event to value for parent
+  const handleControlledChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+      onChange?.(e.target.value);
+    },
+    [onChange]
+  );
+
+  // Determine InputState for the Input primitive
+  const getInputState = (): InputState => {
+    if (error) return 'error';
+    if (warning) return 'warning';
+    if (hasConflict) return 'warning'; // Conflict uses warning-like styling
+    if (!isUncontrolled && value && !error && !warning) return 'success';
+    return 'default';
   };
 
   return (
@@ -173,7 +183,7 @@ export function ValidatedInput({
       ) : type === 'textarea' ? (
         <textarea
           ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-          {...(isUncontrolled ? registration : { value, onChange: handleInputChange })}
+          {...(isUncontrolled ? registration : { value, onChange: handleControlledChange })}
           onBlur={onBlur}
           placeholder={placeholder}
           className={getInputClasses()}
@@ -183,15 +193,19 @@ export function ValidatedInput({
           {...ariaProps}
         />
       ) : (
-        <input
-          ref={inputRef as React.RefObject<HTMLInputElement>}
+        // Use Input primitive for text, email, password, number, date types
+        <Input
+          ref={isUncontrolled ? registration?.ref : (inputRef as React.RefObject<HTMLInputElement>)}
           type={type}
-          {...(isUncontrolled ? registration : { value, onChange: handleInputChange })}
-          onBlur={onBlur}
+          name={registration?.name}
+          value={isUncontrolled ? undefined : value}
+          onChange={isUncontrolled ? registration?.onChange : handleControlledChange}
+          onBlur={isUncontrolled ? registration?.onBlur : onBlur}
           placeholder={placeholder}
-          className={getInputClasses()}
-          disabled={disabled}
+          state={getInputState()}
+          isDisabled={disabled}
           maxLength={maxLength}
+          fullWidth
           {...ariaProps}
         />
       )}

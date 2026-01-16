@@ -19,6 +19,7 @@ import { Gauge, FlaskConical, Check, X } from 'lucide-react';
 import { queryKeys } from '@app/queryKeys';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api/httpClient';
+import { Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
@@ -156,7 +157,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                   <button
                     onClick={handleSaveLabName}
                     disabled={isSavingLabName}
-                    className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded transition-colors disabled:opacity-50 focus-ring-default"
+                    className="p-1.5 text-success-text hover:bg-success-light rounded transition-colors disabled:opacity-50 focus-ring-default"
                     aria-label="Save lab name"
                   >
                     <Check size={16} />
@@ -227,16 +228,11 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
               <h5 className="text-sm font-medium text-card-foreground">Detailed Logging</h5>
               <p className="text-xs text-secondary-foreground">Log all system operations</p>
             </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={config.enableDetailedLogging}
-                onChange={e => onChange('enableDetailedLogging', e.target.checked)}
-                className="sr-only peer"
-                aria-label="Enable detailed logging for all system operations"
-              />
-              <div className="w-11 h-6 bg-secondary peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-action"></div>
-            </label>
+            <Toggle
+              checked={config.enableDetailedLogging}
+              onChange={checked => onChange('enableDetailedLogging', checked)}
+              aria-label="Enable detailed logging for all system operations"
+            />
           </div>
         </div>
       </div>

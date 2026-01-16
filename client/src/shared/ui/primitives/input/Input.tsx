@@ -1,6 +1,6 @@
 /**
  * Input Component
- * 
+ *
  * Accessible, customizable input primitive following design system tokens
  * Supports validation, multiple variants, sizes, and full WCAG AA compliance
  */
@@ -13,7 +13,6 @@ import { defaultInputProps } from './types';
 
 import type { InputProps, InputRef, ValidationResult } from './types';
 
-
 // Input styling using class-variance-authority for type-safe variants
 const inputVariants = cva(
   // Base input styles
@@ -23,110 +22,97 @@ const inputVariants = cva(
 
     // Typography using design tokens
     'font-normal text-base',
-    'placeholder:text-neutral-400',
+    'placeholder:text-muted-foreground',
 
     // Transitions
     'transition-all duration-200 ease-out',
 
     // Disabled styles
     'disabled:cursor-not-allowed disabled:opacity-50',
-    'disabled:bg-neutral-50',
+    'disabled:bg-muted',
 
     // Read-only styles
-    'read-only:cursor-default read-only:bg-neutral-50',
+    'read-only:cursor-default read-only:bg-muted',
   ],
   {
     variants: {
       // Variant styles
       variant: {
         default: [
-          'bg-white border border-neutral-300',
-          'hover:border-neutral-400',
-          'focus:border-primary-500',
+          'bg-card border border-border',
+          'hover:border-muted-foreground',
+          'focus:border-action',
         ],
         filled: [
-          'bg-neutral-100 border border-transparent',
-          'hover:bg-neutral-200',
-          'focus:bg-white focus:border-primary-500',
+          'bg-muted border border-transparent',
+          'hover:bg-accent',
+          'focus:bg-card focus:border-action',
         ],
         outlined: [
-          'bg-transparent border-2 border-neutral-300',
-          'hover:border-neutral-400',
-          'focus:border-primary-500',
+          'bg-transparent border-2 border-border',
+          'hover:border-muted-foreground',
+          'focus:border-action',
         ],
         underlined: [
-          'bg-transparent border-0 border-b-2 border-neutral-300',
+          'bg-transparent border-0 border-b-2 border-border',
           'rounded-none',
-          'hover:border-neutral-400',
-          'focus:border-primary-500',
+          'hover:border-muted-foreground',
+          'focus:border-action',
         ],
-        ghost: [
-          'bg-transparent border-0',
-          'hover:bg-neutral-50',
-          'focus:bg-neutral-50',
-        ],
+        ghost: ['bg-transparent border-0', 'hover:bg-muted', 'focus:bg-muted'],
       },
-      
+
       // Size styles using design system spacing
       size: {
         xs: [
-          'h-7 px-2 text-xs',     // 28px height
+          'h-7 px-2 text-xs', // 28px height
           'rounded-sm',
         ],
         sm: [
-          'h-8 px-3 text-sm',     // 32px height
+          'h-8 px-3 text-sm', // 32px height
           'rounded-md',
         ],
         md: [
-          'h-10 px-3 text-sm',    // 40px height (default)
-          'rounded-md',
+          'h-9 px-4 text-sm', // 36px height (default) - matches input-field
+          'rounded-lg',
         ],
         lg: [
-          'h-12 px-4 text-base',  // 48px height
+          'h-12 px-4 text-base', // 48px height
           'rounded-lg',
         ],
         xl: [
-          'h-14 px-5 text-base',  // 56px height
+          'h-14 px-5 text-base', // 56px height
           'rounded-lg',
         ],
       },
-      
+
       // State styles
       state: {
         default: '',
-        error: [
-          'border-error-500 focus:border-error-500',
-          'focus:ring-error-500',
-        ],
-        warning: [
-          'border-warning-500 focus:border-warning-500',
-          'focus:ring-warning-500',
-        ],
-        success: [
-          'border-success-500 focus:border-success-500',
-          'focus:ring-success-500',
-        ],
+        error: ['border-danger-border focus:border-danger-border', 'focus:ring-danger-border'],
+        warning: ['border-warning-border focus:border-warning-border', 'focus:ring-warning-border'],
+        success: ['border-success-border focus:border-success-border', 'focus:ring-success-border'],
       },
-      
+
       // Full width option
       fullWidth: {
         true: 'w-full',
         false: 'w-auto',
       },
-      
+
       // Has left icon
       hasLeftIcon: {
         true: '',
         false: '',
       },
-      
+
       // Has right icon
       hasRightIcon: {
         true: '',
         false: '',
       },
     },
-    
+
     // Compound variants for icon padding adjustments
     compoundVariants: [
       // Left icon padding adjustments
@@ -155,7 +141,7 @@ const inputVariants = cva(
         size: 'xl',
         className: 'pl-12',
       },
-      
+
       // Right icon padding adjustments
       {
         hasRightIcon: true,
@@ -183,7 +169,7 @@ const inputVariants = cva(
         className: 'pr-12',
       },
     ],
-    
+
     // Default variants
     defaultVariants: {
       variant: 'outlined',
@@ -231,7 +217,7 @@ const iconVariants = cva(['absolute top-1/2 transform -translate-y-1/2 pointer-e
     { position: 'left', size: 'md', className: 'ml-3' },
     { position: 'left', size: 'lg', className: 'ml-3.5' },
     { position: 'left', size: 'xl', className: 'ml-4' },
-    
+
     // Right icon positioning
     { position: 'right', size: 'xs', className: 'mr-2' },
     { position: 'right', size: 'sm', className: 'mr-2.5' },
@@ -255,14 +241,7 @@ const InputLoadingSpinner: React.FC<InputLoadingSpinnerProps> = ({ size }) => {
       role="status"
       aria-label="Loading"
     >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path
         className="opacity-75 animate-spin"
         fill="currentColor"
@@ -280,14 +259,19 @@ interface InputLabelProps {
   className?: string;
 }
 
-const InputLabel: React.FC<InputLabelProps> = ({ htmlFor, children, isRequired, className = '' }) => (
+const InputLabel: React.FC<InputLabelProps> = ({
+  htmlFor,
+  children,
+  isRequired,
+  className = '',
+}) => (
   <label
     htmlFor={htmlFor}
-    className={`block text-sm font-medium text-neutral-700 mb-1.5 ${className}`}
+    className={`block text-sm font-medium text-secondary-foreground mb-1.5 ${className}`}
   >
     {children}
     {isRequired && (
-      <span className="text-error-500 ml-1" aria-label="required">
+      <span className="text-danger-text ml-1" aria-label="required">
         *
       </span>
     )}
@@ -302,10 +286,7 @@ interface InputDescriptionProps {
 }
 
 const InputDescription: React.FC<InputDescriptionProps> = ({ id, children, className = '' }) => (
-  <p
-    id={id}
-    className={`text-xs text-neutral-500 mt-1 ${className}`}
-  >
+  <p id={id} className={`text-xs text-muted-foreground mt-1 ${className}`}>
     {children}
   </p>
 );
@@ -318,19 +299,20 @@ interface InputErrorProps {
   className?: string;
 }
 
-const InputError: React.FC<InputErrorProps> = ({ id, children, type = 'error', className = '' }) => {
+const InputError: React.FC<InputErrorProps> = ({
+  id,
+  children,
+  type = 'error',
+  className = '',
+}) => {
   const colors = {
-    error: 'text-error-600',
-    warning: 'text-warning-600',
-    success: 'text-success-600',
+    error: 'text-danger-text',
+    warning: 'text-warning-text',
+    success: 'text-success-text',
   };
-  
+
   return (
-    <p
-      id={id}
-      className={`text-xs ${colors[type]} mt-1 ${className}`}
-      role="alert"
-    >
+    <p id={id} className={`text-xs ${colors[type]} mt-1 ${className}`} role="alert">
       {children}
     </p>
   );
@@ -344,7 +326,7 @@ export const Input = forwardRef<InputRef, InputProps>(
       label,
       description,
       placeholder,
-      
+
       // Styling props
       variant = defaultInputProps.variant,
       size = defaultInputProps.size,
@@ -353,13 +335,13 @@ export const Input = forwardRef<InputRef, InputProps>(
       className,
       inputClassName,
       labelClassName,
-      
+
       // Icon props
       leftIcon,
       rightIcon,
       prefix,
       suffix,
-      
+
       // Validation props
       error,
       warning,
@@ -368,29 +350,29 @@ export const Input = forwardRef<InputRef, InputProps>(
       validate,
       validateOn = defaultInputProps.validateOn,
       onValidationChange,
-      
+
       // State props
       isLoading = defaultInputProps.isLoading,
       isReadOnly,
       isDisabled,
-      
+
       // HTML props
       type = defaultInputProps.type,
       value,
       defaultValue,
-      
+
       // Event handlers
       onChange,
       onValueChange,
       onBlur,
       onFocus,
-      
+
       // Accessibility props
       'aria-label': ariaLabel,
       'aria-describedby': ariaDescribedBy,
       'aria-invalid': ariaInvalid,
       'aria-required': ariaRequired,
-      
+
       // Other props
       ...props
     },
@@ -400,10 +382,10 @@ export const Input = forwardRef<InputRef, InputProps>(
     const id = useId();
     const descriptionId = `${id}-description`;
     const errorId = `${id}-error`;
-    
+
     // Internal validation state
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
-    
+
     // Determine current state
     const getCurrentState = useCallback(() => {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to determine input state
@@ -414,57 +396,64 @@ export const Input = forwardRef<InputRef, InputProps>(
       if (success || validationResult?.type === 'success') return 'success';
       return state;
     }, [error, warning, success, validationResult, state]);
-    
+
     const currentState = getCurrentState();
-    
+
     // Validation function
-    const runValidation = useCallback(async (inputValue: string) => {
-      if (!validate) return;
-      
-      try {
-        const validators = Array.isArray(validate) ? validate : [validate];
-        const results = await Promise.all(
-          validators.map(validator => validator(inputValue))
-        );
-        
-        // Find first failed validation or return success
-        const failedResult = results.find(result => !result.isValid);
-        const finalResult = failedResult ?? { isValid: true, type: 'success' as const };
-        
-        setValidationResult(finalResult);
-        onValidationChange?.(finalResult);
-      } catch (error) {
-        const errorResult = {
-          isValid: false,
-          message: 'Validation error',
-          type: 'error' as const,
-        };
-        setValidationResult(errorResult);
-        onValidationChange?.(errorResult);
-      }
-    }, [validate, onValidationChange]);
-    
+    const runValidation = useCallback(
+      async (inputValue: string) => {
+        if (!validate) return;
+
+        try {
+          const validators = Array.isArray(validate) ? validate : [validate];
+          const results = await Promise.all(validators.map(validator => validator(inputValue)));
+
+          // Find first failed validation or return success
+          const failedResult = results.find(result => !result.isValid);
+          const finalResult = failedResult ?? { isValid: true, type: 'success' as const };
+
+          setValidationResult(finalResult);
+          onValidationChange?.(finalResult);
+        } catch (error) {
+          const errorResult = {
+            isValid: false,
+            message: 'Validation error',
+            type: 'error' as const,
+          };
+          setValidationResult(errorResult);
+          onValidationChange?.(errorResult);
+        }
+      },
+      [validate, onValidationChange]
+    );
+
     // Handle input change
-    const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-      const newValue = event.target.value;
-      
-      onChange?.(event);
-      onValueChange?.(newValue);
-      
-      if (validateOn === 'change') {
-        void runValidation(newValue);
-      }
-    }, [onChange, onValueChange, validateOn, runValidation]);
-    
+    const handleChange = useCallback(
+      (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.value;
+
+        onChange?.(event);
+        onValueChange?.(newValue);
+
+        if (validateOn === 'change') {
+          void runValidation(newValue);
+        }
+      },
+      [onChange, onValueChange, validateOn, runValidation]
+    );
+
     // Handle input blur
-    const handleBlur = useCallback((event: React.FocusEvent<HTMLInputElement>) => {
-      onBlur?.(event);
-      
-      if (validateOn === 'blur') {
-        void runValidation(event.target.value);
-      }
-    }, [onBlur, validateOn, runValidation]);
-    
+    const handleBlur = useCallback(
+      (event: React.FocusEvent<HTMLInputElement>) => {
+        onBlur?.(event);
+
+        if (validateOn === 'blur') {
+          void runValidation(event.target.value);
+        }
+      },
+      [onBlur, validateOn, runValidation]
+    );
+
     // Determine aria-describedby
     const getAriaDescribedBy = useCallback(() => {
       const descriptions: string[] = [];
@@ -475,10 +464,19 @@ export const Input = forwardRef<InputRef, InputProps>(
       if (error || warning || success || validationResult?.message) {
         descriptions.push(errorId);
       }
-      
+
       return descriptions.length > 0 ? descriptions.join(' ') : undefined;
-    }, [ariaDescribedBy, description, descriptionId, error, warning, success, validationResult, errorId]);
-    
+    }, [
+      ariaDescribedBy,
+      description,
+      descriptionId,
+      error,
+      warning,
+      success,
+      validationResult,
+      errorId,
+    ]);
+
     // Generate component classes
     const wrapperClasses = wrapperVariants({ fullWidth, className });
     const inputClasses = inputVariants({
@@ -492,7 +490,7 @@ export const Input = forwardRef<InputRef, InputProps>(
       hasRightIcon: Boolean(rightIcon || suffix || isLoading),
       className: inputClassName,
     });
-    
+
     // Get current error/warning/success message
     const getCurrentMessage = () => {
       if (error) return { message: error, type: 'error' as const };
@@ -509,22 +507,18 @@ export const Input = forwardRef<InputRef, InputProps>(
       }
       return null;
     };
-    
+
     const currentMessage = getCurrentMessage();
-    
+
     return (
       <div className={wrapperClasses}>
         {/* Label */}
         {label && (
-          <InputLabel
-            htmlFor={id}
-            isRequired={isRequired}
-            className={labelClassName}
-          >
+          <InputLabel htmlFor={id} isRequired={isRequired} className={labelClassName}>
             {label}
           </InputLabel>
         )}
-        
+
         {/* Input wrapper with icons */}
         <div className="relative">
           {/* Left icon or prefix */}
@@ -535,7 +529,7 @@ export const Input = forwardRef<InputRef, InputProps>(
               {leftIcon || prefix}
             </div>
           )}
-          
+
           {/* Input element */}
           <input
             ref={ref}
@@ -550,33 +544,29 @@ export const Input = forwardRef<InputRef, InputProps>(
             required={isRequired}
             aria-label={ariaLabel}
             aria-describedby={getAriaDescribedBy()}
-            aria-invalid={ariaInvalid ?? (currentState === 'error')}
+            aria-invalid={ariaInvalid ?? currentState === 'error'}
             aria-required={ariaRequired ?? isRequired}
             onChange={handleChange}
             onBlur={handleBlur}
             onFocus={onFocus}
             {...props}
           />
-          
+
           {/* Right icon, suffix, or loading spinner */}
           {isLoading ? (
             <InputLoadingSpinner size={size!} />
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/suffix
-          ) : (rightIcon || suffix) ? (
+          ) : // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/suffix
+          rightIcon || suffix ? (
             <div className={iconVariants({ position: 'right', size })}>
               {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading render: show first available icon/suffix */}
               {rightIcon || suffix}
             </div>
           ) : null}
         </div>
-        
+
         {/* Description */}
-        {description && (
-          <InputDescription id={descriptionId}>
-            {description}
-          </InputDescription>
-        )}
-        
+        {description && <InputDescription id={descriptionId}>{description}</InputDescription>}
+
         {/* Error/Warning/Success message */}
         {currentMessage && (
           <InputError id={errorId} type={currentMessage.type}>

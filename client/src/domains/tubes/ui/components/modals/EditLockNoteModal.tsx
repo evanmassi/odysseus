@@ -12,7 +12,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { Pencil, AlertTriangle, Notebook } from 'lucide-react';
 
 import { useBulkUpdateTubesMutation } from '@domains/tubes/hooks';
-import { Button } from '@shared/ui';
+import { Button, Input } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
@@ -125,8 +125,8 @@ export function EditLockNoteModal({
       <div className="space-y-4">
         {/* Mixed notes warning */}
         {hasMixedNotes && (
-          <div className="flex items-start gap-2 text-sm text-amber-700 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm px-3 py-2">
-            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5 text-amber-500" />
+          <div className="flex items-start gap-2 text-sm text-warning-text bg-warning-light border-l-4 border-l-warning-border rounded-lg shadow-sm px-3 py-2">
+            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5 text-warning-icon" />
             <p>Saving will overwrite existing notes.</p>
           </div>
         )}
@@ -140,17 +140,17 @@ export function EditLockNoteModal({
             <Notebook className="w-4 h-4" />
             Lock Note (optional)
           </label>
-          <input
+          <Input
             id="lockNote"
             type="text"
             value={lockNote}
-            onChange={e => setLockNote(e.target.value)}
+            onValueChange={setLockNote}
             onKeyDown={handleKeyDown}
             placeholder={
               hasMixedNotes ? 'Enter new note for all tubes...' : 'e.g., Project X - Donor 123'
             }
             maxLength={100}
-            className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-action-focus focus:border-action-focus"
+            fullWidth
           />
           <div className="flex justify-between mt-1">
             <p className="text-xs text-muted-foreground">Provides context for the lock.</p>

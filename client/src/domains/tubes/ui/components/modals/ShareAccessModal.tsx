@@ -15,7 +15,7 @@ import { Share2, X, UserRoundPlus, UsersRound, Info } from 'lucide-react';
 
 import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
 import { useActiveUsersQuery } from '@domains/users';
-import { Button } from '@shared/ui';
+import { Button, Checkbox } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
@@ -177,7 +177,7 @@ export function ShareAccessModal({
                     type="button"
                     onClick={() => handleRevoke(userId)}
                     disabled={isProcessing}
-                    className="p-1 text-action hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50 focus-enhanced"
+                    className="p-1 text-action hover:text-danger-text hover:bg-danger-light rounded transition-colors disabled:opacity-50 focus-enhanced"
                     title="Revoke access"
                   >
                     <X size={16} />
@@ -215,12 +215,9 @@ export function ShareAccessModal({
                         isSelected ? 'bg-action/10' : ''
                       }`}
                     >
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={isSelected}
                         onChange={() => toggleUserSelection(user.id)}
-                        className="w-4 h-4 border-border rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
-                        style={{ accentColor: 'var(--color-action-default)' }}
                       />
                       <span className="ml-3 text-sm text-secondary-foreground">
                         {user.firstName && user.lastName

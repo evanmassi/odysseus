@@ -10,7 +10,7 @@ import React from 'react';
 import { type CreateTubeRequest } from '@odysseus/shared-schemas';
 import { Controller, get } from 'react-hook-form';
 
-import { Select } from '@shared/ui';
+import { Input, Select } from '@shared/ui';
 
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -81,6 +81,7 @@ export const TextField: React.FC<TextFieldProps> = ({
   max,
 }) => {
   const error = get(form.formState.errors, name);
+  const registration = form.register(name);
 
   return (
     <div className="space-y-2">
@@ -89,16 +90,20 @@ export const TextField: React.FC<TextFieldProps> = ({
         {required && <span className="text-validation-error-required ml-1">*</span>}
       </label>
       <div className="relative">
-        <input
-          {...form.register(name)}
+        <Input
+          ref={registration.ref}
+          name={registration.name}
+          onChange={registration.onChange}
+          onBlur={registration.onBlur}
           id={name}
           type={type}
           step={step}
           min={min}
           max={max}
           placeholder={placeholder}
-          disabled={disabled}
-          className={`input-field w-full ${error ? 'input-field-error' : 'input-field-normal'}`}
+          isDisabled={disabled}
+          state={error ? 'error' : 'default'}
+          fullWidth
         />
         {error && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -176,6 +181,7 @@ export const DateField: React.FC<DateFieldProps> = ({
   disabled = false,
 }) => {
   const error = get(form.formState.errors, name);
+  const registration = form.register(name);
 
   return (
     <div className="space-y-2">
@@ -184,12 +190,16 @@ export const DateField: React.FC<DateFieldProps> = ({
         {required && <span className="text-validation-error-required ml-1">*</span>}
       </label>
       <div className="relative">
-        <input
-          {...form.register(name)}
+        <Input
+          ref={registration.ref}
+          name={registration.name}
+          onChange={registration.onChange}
+          onBlur={registration.onBlur}
           id={name}
           type="date"
-          disabled={disabled}
-          className={`input-field w-full ${error ? 'input-field-error' : 'input-field-normal'}`}
+          isDisabled={disabled}
+          state={error ? 'error' : 'default'}
+          fullWidth
         />
         {error && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

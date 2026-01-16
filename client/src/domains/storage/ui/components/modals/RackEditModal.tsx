@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 import { Save } from 'lucide-react';
 
-import { Button } from '@shared/ui';
+import { Button, Checkbox, Input } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
 
@@ -67,26 +67,22 @@ export function RackEditModal({
           >
             Rack Name
           </label>
-          <input
+          <Input
             id="rack-name"
             type="text"
-            className="input w-full"
             value={editedRack.name}
-            onChange={e => setEditedRack({ ...editedRack, name: e.target.value })}
+            onValueChange={value => setEditedRack({ ...editedRack, name: value })}
             placeholder="Rack 1"
-            required
-            aria-required="true"
+            fullWidth
+            aria-required
           />
         </div>
 
         <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
+          <Checkbox
             id="rackActive"
             checked={editedRack.isActive}
-            onChange={e => setEditedRack({ ...editedRack, isActive: e.target.checked })}
-            className="w-4 h-4 border-border rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
-            style={{ accentColor: 'var(--color-action-default)' }}
+            onChange={checked => setEditedRack({ ...editedRack, isActive: checked })}
           />
           <label htmlFor="rackActive" className="text-sm font-medium">
             Active (visible in rack selector)

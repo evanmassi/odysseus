@@ -7,10 +7,13 @@
 
 // Import all components first
 import { Button } from './button/Button';
+import { Checkbox } from './checkbox/Checkbox';
 import { Grid, GridItem } from './grid/Grid';
 import { Input } from './input/Input';
+import { NumberInput } from './input/NumberInput';
 import { Select } from './select/Select';
 import { Table, TableHeader, TableBody } from './table/Table';
+import { Toggle } from './toggle/Toggle';
 import { Tooltip } from './tooltip/Tooltip';
 
 // Button primitives
@@ -23,12 +26,20 @@ export type {
   ButtonRef,
 } from './button/types';
 
+// Checkbox primitives
+export { Checkbox };
+export type { CheckboxProps } from './checkbox/Checkbox';
+
+// Toggle primitives
+export { Toggle };
+export type { ToggleProps } from './toggle/Toggle';
+
 // Input primitives
-export { Input };
+export { Input, NumberInput };
+export type { NumberInputProps } from './input/NumberInput';
 export type {
   InputProps,
   TextInputProps,
-  NumberInputProps,
   SearchInputProps,
   DateInputProps,
   PasswordInputProps,
@@ -157,11 +168,14 @@ export type ForwardedRef<T> =
 // Primitive component collection for easy importing
 export const Primitives = {
   Button,
+  Checkbox,
   Input,
+  NumberInput,
   Select,
   Table,
   TableHeader,
   TableBody,
+  Toggle,
   Grid,
   GridItem,
   Tooltip,

@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { KeyRound, Eye, EyeOff, Copy, Check, RotateCcwKey, ExternalLink } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
+import { Button, Toggle } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils/notifications';
 
@@ -113,9 +113,9 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
   const getPasswordStrengthColor = (password: string): string => {
     const strength = getPasswordStrength(password);
-    if (strength === 'Too short' || strength === 'Weak') return 'text-red-600';
-    if (strength === 'Medium') return 'text-yellow-600';
-    if (strength === 'Strong') return 'text-emerald-600';
+    if (strength === 'Too short' || strength === 'Weak') return 'text-danger-text';
+    if (strength === 'Medium') return 'text-warning-text';
+    if (strength === 'Strong') return 'text-success-text';
     return '';
   };
 
@@ -174,13 +174,13 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
             <div className="mb-4">
               <div
                 className={`auth-input-container ${
-                  newPassword.length >= 4 ? 'border-emerald-500' : 'border-border'
+                  newPassword.length >= 4 ? 'border-success-border' : 'border-border'
                 }`}
               >
                 <label
                   htmlFor="newPassword"
-                  className={`absolute -top-2 left-3 bg-white px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
-                    newPassword.length >= 4 ? 'text-emerald-700' : 'text-secondary-foreground'
+                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide transition-colors ${
+                    newPassword.length >= 4 ? 'text-success-text' : 'text-secondary-foreground'
                   }`}
                 >
                   Temporary Password
@@ -191,7 +191,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
                     type={showPassword ? 'text' : 'password'}
                     value={newPassword}
                     onChange={e => setNewPassword(e.target.value)}
-                    className="pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                    className="pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-60"
                     placeholder="Enter temporary password"
                   />
                   <button
@@ -211,21 +211,16 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
             </div>
 
             {/* Require Password Change Toggle */}
-            <div className="mb-4">
-              <label className="flex items-center space-x-2 cursor-pointer group">
-                <div className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={requirePasswordChange}
-                    onChange={e => setRequirePasswordChange(e.target.checked)}
-                    className="sr-only peer"
-                  />
-                  <div className="w-7 h-4 bg-secondary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action"></div>
-                </div>
-                <span className="text-sm text-secondary-foreground group-hover:text-accent-foreground">
-                  Require password change on next login
-                </span>
-              </label>
+            <div className="mb-4 flex items-center space-x-2 group">
+              <Toggle
+                checked={requirePasswordChange}
+                onChange={setRequirePasswordChange}
+                size="sm"
+                aria-label="Require password change on next login"
+              />
+              <span className="text-sm text-secondary-foreground group-hover:text-accent-foreground cursor-default">
+                Require password change on next login
+              </span>
             </div>
 
             {/* Reset Button */}

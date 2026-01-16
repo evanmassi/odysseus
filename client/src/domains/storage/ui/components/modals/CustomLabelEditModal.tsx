@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { Save, Tag } from 'lucide-react';
 
-import { Button } from '@shared/ui';
+import { Button, Input } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 
 import type { LabConfiguration } from '@domains/storage';
@@ -95,14 +95,14 @@ export function CustomLabelEditModal({
           >
             Custom Label (optional)
           </label>
-          <input
+          <Input
             id="custom-label-input"
             type="text"
-            className="input w-full"
             value={label}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setLabel(e.target.value)}
+            onValueChange={setLabel}
             placeholder="e.g., My Lab Samples"
             maxLength={50}
+            fullWidth
           />
           <div className="flex justify-between mt-1">
             <p className="text-xs text-muted-foreground">Leave blank to remove custom label.</p>

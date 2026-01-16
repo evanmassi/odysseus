@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
 
 import { getGridTotalPositions } from '@domains/storage';
-import { Button } from '@shared/ui';
+import { Button, Checkbox, Input } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
 
@@ -60,19 +60,19 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
           >
             Tank Name
           </label>
-          <input
+          <Input
             id="tank-name"
             type="text"
-            className="input w-full text-lg font-medium"
             value={editedTank.name}
-            onChange={e => setEditedTank({ ...editedTank, name: e.target.value })}
+            onValueChange={value => setEditedTank({ ...editedTank, name: value })}
             placeholder="Main Cryogenic Storage"
-            required
-            aria-required="true"
+            className="text-lg font-medium"
+            fullWidth
+            aria-required
             aria-invalid={!editedTank.name.trim()}
           />
           {!editedTank.name.trim() && (
-            <p id="tank-name-error" className="text-red-500 text-xs mt-1" role="alert">
+            <p id="tank-name-error" className="text-danger-text text-xs mt-1" role="alert">
               Tank name is required
             </p>
           )}
@@ -85,13 +85,13 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
           >
             Physical Location
           </label>
-          <input
+          <Input
             id="tank-location"
             type="text"
-            className="input w-full"
             value={editedTank.location || ''}
-            onChange={e => setEditedTank({ ...editedTank, location: e.target.value })}
+            onValueChange={value => setEditedTank({ ...editedTank, location: value })}
             placeholder="Lab Room 101, Building A"
+            fullWidth
           />
         </div>
 
@@ -125,13 +125,10 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
         </div>
 
         <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
+          <Checkbox
             id="tankActive"
             checked={editedTank.isActive}
-            onChange={e => setEditedTank({ ...editedTank, isActive: e.target.checked })}
-            className="w-4 h-4 border-border rounded focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0"
-            style={{ accentColor: 'var(--color-action-default)' }}
+            onChange={checked => setEditedTank({ ...editedTank, isActive: checked })}
           />
           <label htmlFor="tankActive" className="text-sm">
             Active (available for storage)

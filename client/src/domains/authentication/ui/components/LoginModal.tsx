@@ -132,7 +132,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         </div>
 
         <div className="text-center">
-          <h2 className="text-xl font-bold text-emerald-600 mb-2">Password Changed</h2>
+          <h2 className="text-xl font-bold text-success-text mb-2">Password Changed</h2>
           <p className="text-sm text-muted-foreground">Logging in...</p>
         </div>
       </AuthBaseModal>
@@ -166,16 +166,16 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     >
       {/* Session Expiration Banners */}
       {logoutReason === 'idle_timeout' && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm mb-4 animate-in slide-in-from-top-2 duration-300">
-          <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
-          <span className="text-sm text-amber-700">Session timed out due to inactivity</span>
+        <div className="flex items-center gap-2 px-3 py-2 bg-warning-light border-l-4 border-l-warning-border rounded-lg shadow-sm mb-4 animate-in slide-in-from-top-2 duration-300">
+          <Clock className="w-4 h-4 text-warning-text flex-shrink-0" />
+          <span className="text-sm text-warning-text">Session timed out due to inactivity</span>
         </div>
       )}
 
       {logoutReason === 'token_expired' && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm mb-4 animate-in slide-in-from-top-2 duration-300">
-          <TimerOff className="w-4 h-4 text-amber-500 flex-shrink-0" />
-          <span className="text-sm text-amber-700">
+        <div className="flex items-center gap-2 px-3 py-2 bg-warning-light border-l-4 border-l-warning-border rounded-lg shadow-sm mb-4 animate-in slide-in-from-top-2 duration-300">
+          <TimerOff className="w-4 h-4 text-warning-text flex-shrink-0" />
+          <span className="text-sm text-warning-text">
             Your session has expired. Please sign in again.
           </span>
         </div>
@@ -214,9 +214,9 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
       {/* Generic Login Error Banner */}
       {loginError && !isEmailVerificationError && (
-        <div className="mb-4 px-3 py-2 bg-red-50 border-l-4 border-l-red-500 rounded-lg shadow-sm flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
-          <AlertTriangle className="w-4 h-4 text-red-500 flex-shrink-0" />
-          <span className="text-sm text-red-700">{loginError}</span>
+        <div className="mb-4 px-3 py-2 bg-danger-light border-l-4 border-l-danger-border rounded-lg shadow-sm flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
+          <AlertTriangle className="w-4 h-4 text-danger-text flex-shrink-0" />
+          <span className="text-sm text-danger-text">{loginError}</span>
         </div>
       )}
 
@@ -242,7 +242,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
               id="username"
               value={username}
               onChange={e => setUsername(e.target.value)}
-              className={`pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45 ${loginError ? 'text-validation-error-text' : ''}`}
+              className={`pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45 ${loginError ? 'text-validation-error-text' : ''}`}
               placeholder="Your username or email"
               required
               disabled={isLoading}
@@ -270,7 +270,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
               id="password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              className={`pl-7 pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45 ${loginError ? 'text-validation-error-text' : ''}`}
+              className={`pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45 ${loginError ? 'text-validation-error-text' : ''}`}
               placeholder="Your password"
               required
               disabled={isLoading}
@@ -306,7 +306,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
             <button
               type="button"
               onClick={onSwitchToRegister}
-              className="text-action-hover font-semibold hover:text-[#3d6a99] transition-colors focus-enhanced rounded px-1"
+              className="text-action-hover font-semibold hover:text-action transition-colors focus-enhanced rounded px-1"
             >
               Register here
             </button>

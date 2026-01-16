@@ -114,13 +114,13 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
   // Helper function to get field border class for container
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'border-border';
-    return isValid ? 'border-emerald-500' : 'input-field-error';
+    return isValid ? 'border-success-border' : 'input-field-error';
   };
 
   // Helper function to get label color class
   const getLabelColorClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'text-muted-foreground';
-    return isValid ? 'text-emerald-700' : 'text-validation-error-label';
+    return isValid ? 'text-success-text' : 'text-validation-error-label';
   };
 
   // Validate email format
@@ -244,7 +244,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                 htmlFor="firstName"
                 className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
               >
-                First name <span className="text-red-500">*</span>
+                First name <span className="text-danger-text">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <UserRound
@@ -258,7 +258,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   value={firstName}
                   onChange={e => setFirstName(e.target.value)}
                   onBlur={() => setFirstNameTouched(true)}
-                  className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                   placeholder="First name"
                   required
                   disabled={isLoading}
@@ -271,7 +271,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
               {usernamePreview ? (
                 <p className="text-[10px] text-secondary-foreground">
                   Username:{' '}
-                  <span className="font-mono font-semibold text-blue-700">{usernamePreview}</span>
+                  <span className="font-mono font-semibold text-action">{usernamePreview}</span>
                 </p>
               ) : (
                 <p className="text-[10px] text-muted-foreground">Username:</p>
@@ -287,7 +287,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
               htmlFor="lastName"
               className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
             >
-              Last name <span className="text-red-500">*</span>
+              Last name <span className="text-danger-text">*</span>
             </label>
             <div className="relative px-3 py-2">
               <UserRound
@@ -300,7 +300,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
                 onBlur={() => setLastNameTouched(true)}
-                className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                 placeholder="Last name"
                 required
                 disabled={isLoading}
@@ -321,7 +321,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                 htmlFor="email"
                 className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${emailError ? 'text-validation-error-label' : getLabelColorClass(emailTouched, emailIsValid)}`}
               >
-                Email <span className="text-red-500">*</span>
+                Email <span className="text-danger-text">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <Mail
@@ -340,7 +340,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                     setEmail(e.target.value.trim());
                     setEmailTouched(true);
                   }}
-                  className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                   placeholder="name@institution.edu"
                   required
                   disabled={isLoading}
@@ -373,7 +373,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   id="department"
                   value={department}
                   onChange={e => setDepartment(e.target.value)}
-                  className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                   placeholder="Department name"
                   disabled={isLoading}
                   maxLength={100}
@@ -399,7 +399,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   id="position"
                   value={position}
                   onChange={e => setPosition(e.target.value)}
-                  className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                   placeholder="Title or role"
                   disabled={isLoading}
                   maxLength={100}
@@ -438,7 +438,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                 htmlFor="password"
                 className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(passwordTouched, passwordMeetsRequirements)}`}
               >
-                Password <span className="text-red-500">*</span>
+                Password <span className="text-danger-text">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <KeyRound
@@ -451,7 +451,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   onBlur={() => setPasswordTouched(true)}
-                  className="pl-7 pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                  className="pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                   placeholder="Choose a secure password"
                   required
                   disabled={isLoading}
@@ -487,7 +487,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                 htmlFor="confirmPassword"
                 className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-medium transition-colors ${getLabelColorClass(!!confirmPassword, password === confirmPassword)}`}
               >
-                Confirm password <span className="text-red-500">*</span>
+                Confirm password <span className="text-danger-text">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <KeyRound
@@ -499,7 +499,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={e => setConfirmPassword(e.target.value)}
-                  className="pl-7 pr-8 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                  className="pl-7 pr-8 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                   placeholder="Confirm password"
                   required
                   disabled={isLoading}
@@ -544,7 +544,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             <button
               type="button"
               onClick={onSwitchToLogin}
-              className="text-action-hover font-semibold hover:text-[#3d6a99] transition-colors focus-enhanced rounded px-1"
+              className="text-action-hover font-semibold hover:text-action transition-colors focus-enhanced rounded px-1"
             >
               Sign in
             </button>
