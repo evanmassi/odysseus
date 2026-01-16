@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 
+import { getUserInitials } from '@shared/utils/userDisplayUtils';
+
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
@@ -36,19 +38,8 @@ export function useResourceOwnership(
         const user = users.find(u => u.id === userId);
         if (!user) return null;
 
-        let initials: string;
-        if (user.firstName && user.lastName) {
-          // Use actual name initials from Person
-          initials = (user.firstName.charAt(0) + user.lastName.charAt(0)).toUpperCase();
-        } else {
-          // Fallback to username-based initials
-          const first = user.username.charAt(0);
-          const last = user.username.charAt(1) || '';
-          initials = (first + last).toUpperCase();
-        }
-
         return {
-          initials,
+          initials: getUserInitials(user.username, user.firstName, user.lastName),
           username: user.username,
           firstName: user.firstName,
           lastName: user.lastName,

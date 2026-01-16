@@ -25,7 +25,7 @@ import {
 import { AlertTriangle } from 'lucide-react';
 import { Controller } from 'react-hook-form';
 
-import { ValidatedInput } from '@shared/ui';
+import { Select, ValidatedInput } from '@shared/ui';
 
 import { ConcentrationInput } from '../../inputs/ConcentrationInput';
 
@@ -292,22 +292,47 @@ export const TubeForm = ({
           badge={getConflictBadge('sample.date')}
           hasConflict={hasConflict('sample.date')}
         />
-        <ValidatedInput
-          label="Researcher"
-          type="select"
-          registration={register('researcherId')}
-          error={Boolean(getFieldError('researcherId', errors))}
-          helperText={getFieldError('researcherId', errors)}
-          disabled={isLoading}
-          badge={getConflictBadge('researcherId')}
-          hasConflict={hasConflict('researcherId')}
-          options={[
-            { value: '', label: 'Select researcher...' },
-            ...researchers.map(r => ({
-              value: r.id,
-              label: formatResearcherDropdownDisplay(r),
-            })),
-          ]}
+        <Controller
+          name="researcherId"
+          control={control}
+          render={({ field: { value, onChange } }) => {
+            const error = getFieldError('researcherId', errors);
+            const hasFieldConflict = hasConflict('researcherId');
+            return (
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${
+                    error ? 'text-validation-error-label' : 'text-secondary-foreground'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    Researcher
+                    {getConflictBadge('researcherId')}
+                  </span>
+                </label>
+                <Select
+                  options={[
+                    { value: '', label: 'Select researcher...' },
+                    ...researchers.map(r => ({
+                      value: r.id,
+                      label: formatResearcherDropdownDisplay(r),
+                    })),
+                  ]}
+                  value={value ?? ''}
+                  onChange={newValue => onChange(newValue ?? '')}
+                  disabled={isLoading}
+                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
+                  fullWidth
+                  placeholder="Select researcher..."
+                />
+                {error && (
+                  <div className="flex items-center mt-1 text-xs text-validation-error-helper">
+                    <span>{error}</span>
+                  </div>
+                )}
+              </div>
+            );
+          }}
         />
       </div>
 
