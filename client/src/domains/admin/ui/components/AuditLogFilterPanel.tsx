@@ -7,7 +7,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 
 import { ChevronDown, ChevronRight, X, UserRound, Zap, Box, Calendar } from 'lucide-react';
 
-import { Input, Tooltip } from '@shared/ui';
+import { Button, Input, Tooltip } from '@shared/ui';
 
 export interface AuditFilterState {
   actions?: string[];
@@ -383,12 +383,9 @@ export function AuditLogFilterPanel({
       <div className="flex items-center justify-between p-3 border-b bg-muted rounded-t-lg">
         <h4 className="text-sm font-bold text-card-foreground">Filters</h4>
         <Tooltip content="Clear all filters" side="bottom">
-          <button
-            onClick={onClear}
-            className="px-2 py-1 text-xs text-secondary-foreground hover:text-accent-foreground hover:bg-accent rounded transition-colors focus-ring-default"
-          >
+          <Button variant="ghost" size="xs" onClick={onClear}>
             Clear All
-          </button>
+          </Button>
         </Tooltip>
       </div>
 
@@ -747,12 +744,9 @@ export function AuditLogFilterPanel({
               />
             ))}
             {hiddenCount > 0 && (
-              <button
-                onClick={() => setShowAllFilters(!showAllFilters)}
-                className="px-2 py-0.5 rounded text-xs bg-secondary text-secondary-foreground hover:bg-muted transition-all focus-ring-default"
-              >
+              <Button variant="ghost" size="xs" onClick={() => setShowAllFilters(!showAllFilters)}>
                 {showAllFilters ? 'Show less' : `+${hiddenCount} more`}
-              </button>
+              </Button>
             )}
           </div>
         </div>

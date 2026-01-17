@@ -200,15 +200,17 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
                 required
                 disabled={isChanging}
               />
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="xs"
+                iconOnly
                 onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-accent-foreground transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
                 aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
                 {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -247,15 +249,17 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
                 required
                 disabled={isChanging}
               />
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="xs"
+                iconOnly
                 onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-accent-foreground transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
                 aria-label={showNewPassword ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
                 {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -304,15 +308,17 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
                 required
                 disabled={isChanging}
               />
-              <button
-                type="button"
+              <Button
+                variant="ghost"
+                size="xs"
+                iconOnly
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-accent-foreground transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2"
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                 tabIndex={-1}
               >
                 {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
+              </Button>
             </div>
           </div>
 

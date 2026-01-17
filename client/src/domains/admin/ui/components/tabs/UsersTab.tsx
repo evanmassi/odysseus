@@ -12,7 +12,7 @@
  * @module admin/ui/components/tabs
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import {
   RefreshCw,
@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Select, Tooltip } from '@shared/ui';
+import { Button, Select, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -39,6 +39,7 @@ import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
+import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
 
 // Role dropdown options
 const ROLE_OPTIONS = [
@@ -100,6 +101,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
     userId: string;
     username: string;
   } | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
 
   // Mutation hook for user deletion
   // Handles cache invalidation for users list and storage configuration
@@ -312,6 +314,198 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
     await onUserUpdate(); // Make sure to await the update
   };
 
+  /**
+   * Sort users based on current sort configuration
+   */
+  const sortedUsers = useMemo(() => {
+    if (!sortConfig) return users;
+
+    return [...users].sort((a, b) => {
+      const direction = sortConfig.direction === 'asc' ? 1 : -1;
+
+      switch (sortConfig.columnId) {
+        case 'user': {
+          const nameA = (a.lastName ?? a.username).toLowerCase();
+          const nameB = (b.lastName ?? b.username).toLowerCase();
+          return nameA.localeCompare(nameB) * direction;
+        }
+        case 'role':
+          return (a.role ?? 'user').localeCompare(b.role ?? 'user') * direction;
+        case 'lastActivity': {
+          const dateA = a.lastActivity ? new Date(a.lastActivity).getTime() : 0;
+          const dateB = b.lastActivity ? new Date(b.lastActivity).getTime() : 0;
+          return (dateA - dateB) * direction;
+        }
+        default:
+          return 0;
+      }
+    });
+  }, [users, sortConfig]);
+
+  // Define table columns
+  const userColumns: TableColumn<TableRow>[] = [
+    {
+      id: 'user',
+      header: 'User',
+      sortable: true,
+      render: (_, row) => {
+        const user = row as unknown as AdminUser;
+        return (
+          <div className="flex items-center whitespace-nowrap">
+            <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
+              <UserRound size={14} className="text-secondary-foreground" />
+            </div>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm font-medium text-card-foreground">
+                  {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy */}
+                  {user.lastName || user.firstName
+                    ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`
+                    : user.username}
+                </span>
+                {user.role === 'admin' && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-secondary-foreground">
+                    Admin
+                  </span>
+                )}
+                {user.requirePasswordChange && (
+                  <Tooltip content="Password change required on next login" side="bottom">
+                    <span className="text-warning-text text-xs flex items-center gap-0.5">⚠️</span>
+                  </Tooltip>
+                )}
+              </div>
+              <div className="text-xs text-muted-foreground">{user.username}</div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'role',
+      header: 'Role',
+      sortable: true,
+      render: (_, row) => {
+        const user = row as unknown as AdminUser;
+        return (
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <div className="w-24">
+              <Select
+                value={user.role ?? 'user'}
+                onChange={newValue => {
+                  if (newValue && typeof newValue === 'string') {
+                    void updateUserRole(user.id, newValue as 'admin' | 'user');
+                  }
+                }}
+                options={ROLE_OPTIONS}
+                disabled={updating === user.id}
+                size="sm"
+                fullWidth
+              />
+            </div>
+            {updating === user.id && (
+              <RefreshCw size={12} className="animate-spin text-muted-foreground" />
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      id: 'researcher',
+      header: 'Researcher',
+      render: (_, row) => {
+        const user = row as unknown as AdminUser;
+        if (user.researcherId) {
+          return (
+            <div className="flex items-center gap-1.5 text-sm text-muted-foreground whitespace-nowrap">
+              <span>Linked</span>
+              <UserRoundCheck size={14} className="text-success-text flex-shrink-0" />
+            </div>
+          );
+        }
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground whitespace-nowrap">
+            None
+          </span>
+        );
+      },
+    },
+    {
+      id: 'lastActivity',
+      header: 'Last Active',
+      sortable: true,
+      render: (_, row) => {
+        const user = row as unknown as AdminUser;
+        return (
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            {user.lastActivity ? new Date(user.lastActivity).toLocaleDateString() : 'Never'}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      render: (_, row) => {
+        const user = row as unknown as AdminUser;
+        return (
+          <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
+            <Tooltip content="Reset password" side="bottom">
+              <Button
+                variant="warning"
+                size="xs"
+                iconOnly
+                onClick={() => {
+                  setPasswordResetModalData({ userId: user.id, username: user.username });
+                  setIsPasswordResetModalOpen(true);
+                }}
+                aria-label="Reset password"
+              >
+                <KeyRound size={16} />
+              </Button>
+            </Tooltip>
+            {user.researcherId ? (
+              <Tooltip content="Unlink researcher" side="bottom">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  iconOnly
+                  onClick={() => unlinkResearcher(user.id, user.username)}
+                  aria-label="Unlink researcher"
+                >
+                  <Unlink2 size={16} />
+                </Button>
+              </Tooltip>
+            ) : (
+              <Tooltip content="Link researcher" side="bottom">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  iconOnly
+                  onClick={() => openLinkModal({ id: user.id, username: user.username })}
+                  aria-label="Link researcher"
+                >
+                  <Link2 size={16} />
+                </Button>
+              </Tooltip>
+            )}
+            <Tooltip content="Delete user" side="bottom">
+              <Button
+                variant="danger"
+                size="xs"
+                iconOnly
+                onClick={() => handleDeleteUser(user.id, user.username)}
+                isLoading={deleteUserMutation.isPending}
+                aria-label="Delete user"
+              >
+                <Trash2 size={16} />
+              </Button>
+            </Tooltip>
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="space-y-2">
       {/* Header with Refresh Button */}
@@ -387,173 +581,19 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
       )}
 
       {/* All Users Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden overflow-x-auto">
-        <table className="min-w-full divide-y divide-border">
-          <thead className="bg-muted">
-            <tr>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                User
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Role
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Researcher
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Last Active
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-card divide-y divide-border">
-            {(users?.length ?? 0) > 0 ? (
-              users.map(user => (
-                <tr key={user.id} className="hover:bg-accent">
-                  {/* User Cell - Name with username below */}
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
-                        <UserRound size={14} className="text-secondary-foreground" />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-medium text-card-foreground">
-                            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy */}
-                            {user.lastName || user.firstName
-                              ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`
-                              : user.username}
-                          </span>
-                          {user.role === 'admin' && (
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-secondary-foreground">
-                              Admin
-                            </span>
-                          )}
-                          {user.requirePasswordChange && (
-                            <Tooltip content="Password change required on next login" side="bottom">
-                              <span className="text-warning-text text-xs flex items-center gap-0.5">
-                                ⚠️
-                              </span>
-                            </Tooltip>
-                          )}
-                        </div>
-                        <div className="text-xs text-muted-foreground">{user.username}</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Role Select Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <div className="w-24">
-                        <Select
-                          value={user.role ?? 'user'}
-                          onChange={newValue => {
-                            if (newValue && typeof newValue === 'string') {
-                              void updateUserRole(user.id, newValue as 'admin' | 'user');
-                            }
-                          }}
-                          options={ROLE_OPTIONS}
-                          disabled={updating === user.id}
-                          size="sm"
-                          fullWidth
-                        />
-                      </div>
-                      {updating === user.id && (
-                        <RefreshCw size={12} className="animate-spin text-muted-foreground" />
-                      )}
-                    </div>
-                  </td>
-
-                  {/* Researcher Status Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {user.researcherId ? (
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <span>Linked</span>
-                        <UserRoundCheck size={14} className="text-emerald-500 flex-shrink-0" />
-                      </div>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground">
-                        None
-                      </span>
-                    )}
-                  </td>
-
-                  {/* Last Activity Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap text-sm text-muted-foreground">
-                    {user.lastActivity ? new Date(user.lastActivity).toLocaleDateString() : 'Never'}
-                  </td>
-
-                  {/* Actions Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center gap-1">
-                      <Tooltip content="Reset password" side="bottom">
-                        <Button
-                          variant="warning"
-                          size="xs"
-                          iconOnly
-                          onClick={() => {
-                            setPasswordResetModalData({ userId: user.id, username: user.username });
-                            setIsPasswordResetModalOpen(true);
-                          }}
-                          aria-label="Reset password"
-                        >
-                          <KeyRound size={16} />
-                        </Button>
-                      </Tooltip>
-                      {user.researcherId ? (
-                        <Tooltip content="Unlink researcher" side="bottom">
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            iconOnly
-                            onClick={() => unlinkResearcher(user.id, user.username)}
-                            aria-label="Unlink researcher"
-                          >
-                            <Unlink2 size={16} />
-                          </Button>
-                        </Tooltip>
-                      ) : (
-                        <Tooltip content="Link researcher" side="bottom">
-                          <Button
-                            variant="ghost"
-                            size="xs"
-                            iconOnly
-                            onClick={() => openLinkModal({ id: user.id, username: user.username })}
-                            aria-label="Link researcher"
-                          >
-                            <Link2 size={16} />
-                          </Button>
-                        </Tooltip>
-                      )}
-                      <Tooltip content="Delete user" side="bottom">
-                        <Button
-                          variant="danger"
-                          size="xs"
-                          iconOnly
-                          onClick={() => handleDeleteUser(user.id, user.username)}
-                          isLoading={deleteUserMutation.isPending}
-                          aria-label="Delete user"
-                        >
-                          <Trash2 size={16} />
-                        </Button>
-                      </Tooltip>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} className="px-3 py-4 text-center text-sm text-muted-foreground">
-                  No users found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Table
+        columns={userColumns}
+        data={(sortedUsers ?? []) as TableRow[]}
+        size="sm"
+        variant="default"
+        hoverable
+        rounded="lg"
+        sortable
+        sortConfig={sortConfig}
+        onSort={setSortConfig}
+        emptyMessage="No users found"
+        aria-label="Users list"
+      />
 
       {/* Link Researcher Modal */}
       {researcherModalData && (

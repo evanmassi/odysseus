@@ -5,7 +5,7 @@ import { Shield, Activity, AlertTriangle, Save, ShieldUser, Gauge, UsersRound } 
 
 import { useModalStore } from '@app/stores/modalStore';
 import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
+import { Button, Tab, Tabs } from '@shared/ui';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
@@ -172,40 +172,26 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     }
   };
 
-  const tabItems = [
-    { id: 'system', label: 'System', icon: Gauge },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'users', label: 'Users', icon: UsersRound },
-    { id: 'researchers', label: 'Researchers', icon: ResearcherIcon },
-    { id: 'monitoring', label: 'Monitoring', icon: Activity },
-  ] as const;
+  type TabId = 'security' | 'users' | 'researchers' | 'system' | 'monitoring';
 
-  // Vertical sidebar tabs
   const tabs = (
-    <nav className="space-y-1">
-      {tabItems.map(tab => {
-        const Icon = tab.icon;
-        const isActive = activeTab === tab.id;
-        return (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            data-focus="none"
-            className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-accent ${
-              isActive
-                ? 'border-l-secondary-foreground bg-muted text-card-foreground'
-                : 'border-l-transparent text-secondary-foreground hover:bg-muted hover:text-accent-foreground'
-            }`}
-          >
-            <Icon
-              size={tab.id === 'researchers' ? 24 : 18}
-              className={isActive ? 'text-secondary-foreground' : 'text-muted-foreground'}
-            />
-            <span className="font-medium text-sm">{tab.label}</span>
-          </button>
-        );
-      })}
-    </nav>
+    <Tabs value={activeTab} onChange={v => setActiveTab(v as TabId)}>
+      <Tab id="system" icon={<Gauge size={18} />}>
+        System
+      </Tab>
+      <Tab id="security" icon={<Shield size={18} />}>
+        Security
+      </Tab>
+      <Tab id="users" icon={<UsersRound size={18} />}>
+        Users
+      </Tab>
+      <Tab id="researchers" icon={<ResearcherIcon size={24} />}>
+        Researchers
+      </Tab>
+      <Tab id="monitoring" icon={<Activity size={18} />}>
+        Monitoring
+      </Tab>
+    </Tabs>
   );
 
   const footer = (

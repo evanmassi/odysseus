@@ -1,102 +1,40 @@
 /**
  * Table Component
- * 
- * Accessible table primitive with sorting, selection, and responsive design
- * Supports virtualization for large datasets and full WCAG AA compliance
+ *
+ * Accessible table primitive with sorting, selection, and responsive design.
  */
 
 import React, { forwardRef, createContext, useContext } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 
-// Table column definition
-export interface TableColumn<T = Record<string, unknown>> {
-  id: string;
-  header: string;
-  accessor?: keyof T | ((row: T) => React.ReactNode);
-  width?: string | number;
-  minWidth?: string | number;
-  sortable?: boolean;
-  align?: 'left' | 'center' | 'right';
-  sticky?: boolean;
-  render?: (value: unknown, row: T, index: number) => React.ReactNode;
-}
+import { defaultTableProps } from './types';
 
-// Table row data
-export interface TableRow {
-  id: string | number;
-  [key: string]: unknown;
-}
+import type {
+  TableColumn,
+  TableRow,
+  TableProps,
+  TableRef,
+  TableContextValue,
+  TableRounded,
+} from './types';
 
-// Sort configuration
-export interface SortConfig {
-  columnId: string;
-  direction: 'asc' | 'desc';
-}
-
-// Table component props
-export interface TableProps<T = TableRow> {
-  // Data
-  columns: TableColumn<T>[];
-  data: T[];
-  
-  // Features
-  sortable?: boolean;
-  selectable?: boolean;
-  multiSelect?: boolean;
-  striped?: boolean;
-  hoverable?: boolean;
-  
-  // State
-  selectedRows?: (string | number)[];
-  sortConfig?: SortConfig;
-  loading?: boolean;
-  
-  // Appearance
-  variant?: 'default' | 'bordered' | 'borderless';
-  size?: 'sm' | 'md' | 'lg';
-  stickyHeader?: boolean;
-  
-  // Pagination
-  pagination?: {
-    page: number;
-    pageSize: number;
-    total: number;
-  };
-  
-  // Event handlers
-  onSort?: (config: SortConfig) => void;
-  onSelectionChange?: (selectedIds: (string | number)[]) => void;
-  onRowClick?: (row: T, index: number) => void;
-  
-  // Empty state
-  emptyMessage?: string;
-  loadingMessage?: string;
-  
-  // Accessibility
-  'aria-label'?: string;
-  
-  // Styling
-  className?: string;
-  headerClassName?: string;
-  bodyClassName?: string;
-  rowClassName?: string | ((row: T, index: number) => string);
-  
-  // Advanced
-  maxHeight?: string | number;
-  virtualized?: boolean;
-}
+// Re-export types
+export type {
+  TableColumn,
+  TableRow,
+  TableProps,
+  TableRef,
+  TableVariant,
+  TableSize,
+  TableState,
+  TableRounded,
+  SortConfig,
+  SortDirection,
+  TablePagination,
+} from './types';
 
 // Table context
-interface TableContextValue {
-  selectable: boolean;
-  multiSelect: boolean;
-  selectedRows: (string | number)[];
-  onSelectionChange: (selectedIds: (string | number)[]) => void;
-  sortConfig?: SortConfig;
-  onSort?: (config: SortConfig) => void;
-}
-
 const TableContext = createContext<TableContextValue | null>(null);
 
 const useTableContext = () => {
@@ -107,39 +45,40 @@ const useTableContext = () => {
   return context;
 };
 
-// Table styling
-const tableVariants = cva(
-  ['w-full border-collapse'],
-  {
-    variants: {
-      variant: {
-        default: 'border border-neutral-200',
-        bordered: 'border-2 border-neutral-300',
-        borderless: '',
-      },
-      size: {
-        sm: 'text-sm',
-        md: 'text-base',
-        lg: 'text-lg',
-      },
+// Table styling with semantic tokens
+const tableVariants = cva(['w-full border-collapse'], {
+  variants: {
+    variant: {
+      default: 'border border-border',
+      bordered: 'border-2 border-border',
+      borderless: '',
     },
-    defaultVariants: {
-      variant: 'default',
-      size: 'md',
+    size: {
+      sm: 'text-sm',
+      md: 'text-base',
+      lg: 'text-lg',
     },
-  }
-);
+    state: {
+      default: '',
+      error: 'border-danger-border',
+      warning: 'border-warning-border',
+      success: 'border-success-border',
+    },
+  },
+  defaultVariants: {
+    variant: 'default',
+    size: 'md',
+    state: 'default',
+  },
+});
 
-// Header styling
+// Header styling with semantic tokens
 const headerVariants = cva(
-  [
-    'px-4 py-3 text-left font-semibold text-neutral-900',
-    'border-b border-neutral-200 bg-neutral-50',
-  ],
+  ['px-4 py-3 text-left font-semibold text-foreground', 'border-b border-border bg-muted'],
   {
     variants: {
       sortable: {
-        true: 'cursor-pointer hover:bg-neutral-100 select-none',
+        true: 'cursor-pointer hover:bg-accent select-none',
         false: '',
       },
       sticky: {
@@ -160,53 +99,47 @@ const headerVariants = cva(
   }
 );
 
-// Cell styling
-const cellVariants = cva(
-  ['px-4 py-3 border-b border-neutral-200'],
-  {
-    variants: {
-      align: {
-        left: 'text-left',
-        center: 'text-center',
-        right: 'text-right',
-      },
+// Cell styling with semantic tokens
+const cellVariants = cva(['px-4 py-3 border-b border-border'], {
+  variants: {
+    align: {
+      left: 'text-left',
+      center: 'text-center',
+      right: 'text-right',
     },
-    defaultVariants: {
-      align: 'left',
-    },
-  }
-);
+  },
+  defaultVariants: {
+    align: 'left',
+  },
+});
 
-// Row styling
-const rowVariants = cva(
-  [''],
-  {
-    variants: {
-      striped: {
-        true: 'even:bg-neutral-50',
-        false: '',
-      },
-      hoverable: {
-        true: 'hover:bg-neutral-50 cursor-pointer',
-        false: '',
-      },
-      selectable: {
-        true: 'cursor-pointer',
-        false: '',
-      },
-      selected: {
-        true: 'bg-primary-50',
-        false: '',
-      },
+// Row styling with semantic tokens
+const rowVariants = cva([''], {
+  variants: {
+    striped: {
+      true: 'even:bg-muted',
+      false: '',
     },
-    defaultVariants: {
-      striped: false,
-      hoverable: false,
-      selectable: false,
-      selected: false,
+    hoverable: {
+      true: 'hover:bg-muted cursor-pointer',
+      false: '',
     },
-  }
-);
+    selectable: {
+      true: 'cursor-pointer',
+      false: '',
+    },
+    selected: {
+      true: 'bg-accent',
+      false: '',
+    },
+  },
+  defaultVariants: {
+    striped: false,
+    hoverable: false,
+    selectable: false,
+    selected: false,
+  },
+});
 
 // Sort indicator component
 interface SortIndicatorProps {
@@ -217,16 +150,16 @@ interface SortIndicatorProps {
 const SortIndicator: React.FC<SortIndicatorProps> = ({ direction, className = '' }) => (
   <span className={`ml-2 inline-block ${className}`}>
     {!direction ? (
-      <svg className="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8.71 12.29L12 8.99l3.29 3.3c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L12.7 6.88c-.39-.39-1.02-.39-1.41 0L7.29 10.88c-.39.39-.39 1.02 0 1.41.39.39 1.03.39 1.42 0zM8.71 15.71L12 19.01l3.29-3.3c.39-.39 1.02-.39 1.41 0 .39.39.39 1.02 0 1.41l-4 4c-.39.39-1.02.39-1.41 0l-4-4c-.39-.39-.39-1.02 0-1.41.39-.39 1.03-.39 1.42 0z"/>
+      <svg className="w-4 h-4 text-muted-foreground" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8.71 12.29L12 8.99l3.29 3.3c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L12.7 6.88c-.39-.39-1.02-.39-1.41 0L7.29 10.88c-.39.39-.39 1.02 0 1.41.39.39 1.03.39 1.42 0zM8.71 15.71L12 19.01l3.29-3.3c.39-.39 1.02-.39 1.41 0 .39.39.39 1.02 0 1.41l-4 4c-.39.39-1.02.39-1.41 0l-4-4c-.39-.39-.39-1.02 0-1.41.39-.39 1.03-.39 1.42 0z" />
       </svg>
     ) : direction === 'asc' ? (
-      <svg className="w-4 h-4 text-primary-600" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M8.71 12.29L12 8.99l3.29 3.3c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L12.7 6.88c-.39-.39-1.02-.39-1.41 0L7.29 10.88c-.39.39-.39 1.02 0 1.41.39.39 1.03.39 1.42 0z"/>
+      <svg className="w-4 h-4 text-action" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8.71 12.29L12 8.99l3.29 3.3c.39.39 1.02.39 1.41 0 .39-.39.39-1.02 0-1.41L12.7 6.88c-.39-.39-1.02-.39-1.41 0L7.29 10.88c-.39.39-.39 1.02 0 1.41.39.39 1.03.39 1.42 0z" />
       </svg>
     ) : (
-      <svg className="w-4 h-4 text-primary-600" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M15.29 11.71L12 15.01 8.71 11.7c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l4 4c.39.39 1.02.39 1.41 0l4-4c.39.39.39 1.02 0 1.41-.39.39-1.03.39-1.42 0z"/>
+      <svg className="w-4 h-4 text-action" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.29 11.71L12 15.01 8.71 11.7c-.39-.39-1.02-.39-1.41 0-.39.39-.39 1.02 0 1.41l4 4c.39.39 1.02.39 1.41 0l4-4c.39.39.39 1.02 0 1.41-.39.39-1.03.39-1.42 0z" />
       </svg>
     )}
   </span>
@@ -240,7 +173,12 @@ interface TableCheckboxProps {
   'aria-label'?: string;
 }
 
-const TableCheckbox: React.FC<TableCheckboxProps> = ({ checked, indeterminate, onChange, 'aria-label': ariaLabel }) => (
+const TableCheckbox: React.FC<TableCheckboxProps> = ({
+  checked,
+  indeterminate,
+  onChange,
+  'aria-label': ariaLabel,
+}) => (
   <input
     type="checkbox"
     checked={checked}
@@ -248,45 +186,36 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({ checked, indeterminate, o
       if (input) input.indeterminate = Boolean(indeterminate);
     }}
     onChange={e => onChange(e.target.checked)}
-    className="rounded border-neutral-300 text-primary-600 focus:ring-primary-500"
+    className="rounded border-border text-action focus:ring-action"
     aria-label={ariaLabel}
   />
 );
 
 // Table Header component
-export const TableHeader = <T,>({ 
-  columns, 
-  className = '' 
-}: { 
+export const TableHeader = <T,>({
+  columns,
+  className = '',
+}: {
   columns: TableColumn<T>[];
   className?: string;
 }) => {
-  const { 
-    selectable, 
-    multiSelect, 
-    selectedRows, 
-    onSelectionChange, 
-    sortConfig, 
-    onSort 
-  } = useTableContext();
-  
+  const { selectable, multiSelect, selectedRows, onSelectionChange, sortConfig, onSort } =
+    useTableContext();
+
   const handleSelectAll = (checked: boolean) => {
-    // This would need access to all row IDs
-    // In a real implementation, you'd pass this through context
-    onSelectionChange(checked ? [] : []); // Simplified
+    // Simplified - in real implementation would need access to all row IDs
+    onSelectionChange(checked ? [] : []);
   };
-  
+
   const handleSort = (columnId: string) => {
     if (!onSort) return;
-    
-    const newDirection = 
-      sortConfig?.columnId === columnId && sortConfig.direction === 'asc'
-        ? 'desc'
-        : 'asc';
-    
+
+    const newDirection =
+      sortConfig?.columnId === columnId && sortConfig.direction === 'asc' ? 'desc' : 'asc';
+
     onSort({ columnId, direction: newDirection });
   };
-  
+
   return (
     <thead className={className}>
       <tr>
@@ -295,18 +224,18 @@ export const TableHeader = <T,>({
             {multiSelect && (
               <TableCheckbox
                 checked={selectedRows.length > 0}
-                indeterminate={selectedRows.length > 0 && selectedRows.length < 100} // Simplified
+                indeterminate={selectedRows.length > 0 && selectedRows.length < 100}
                 onChange={handleSelectAll}
                 aria-label="Select all rows"
               />
             )}
           </th>
         )}
-        
+
         {columns.map(column => {
           const isSorted = sortConfig?.columnId === column.id;
           const sortDirection = isSorted ? sortConfig.direction : undefined;
-          
+
           return (
             <th
               key={column.id}
@@ -322,16 +251,18 @@ export const TableHeader = <T,>({
               onClick={column.sortable ? () => handleSort(column.id) : undefined}
               role={column.sortable ? 'columnheader button' : 'columnheader'}
               aria-sort={
-                isSorted 
-                  ? sortDirection === 'asc' ? 'ascending' : 'descending'
-                  : column.sortable ? 'none' : undefined
+                isSorted
+                  ? sortDirection === 'asc'
+                    ? 'ascending'
+                    : 'descending'
+                  : column.sortable
+                    ? 'none'
+                    : undefined
               }
             >
               <div className="flex items-center">
                 {column.header}
-                {column.sortable && (
-                  <SortIndicator direction={sortDirection} />
-                )}
+                {column.sortable && <SortIndicator direction={sortDirection} />}
               </div>
             </th>
           );
@@ -342,14 +273,14 @@ export const TableHeader = <T,>({
 };
 
 // Table Body component
-export const TableBody = <T extends TableRow>({ 
+export const TableBody = <T extends TableRow>({
   columns,
   data,
   striped = false,
   hoverable = false,
   rowClassName,
   onRowClick,
-  className = ''
+  className = '',
 }: {
   columns: TableColumn<T>[];
   data: T[];
@@ -360,46 +291,45 @@ export const TableBody = <T extends TableRow>({
   className?: string;
 }) => {
   const { selectable, selectedRows, onSelectionChange } = useTableContext();
-  
+
   const handleRowSelect = (rowId: string | number, checked: boolean) => {
     const newSelection = checked
       ? [...selectedRows, rowId]
       : selectedRows.filter(id => id !== rowId);
-    
+
     onSelectionChange(newSelection);
   };
-  
-  const getCellValue = (column: TableColumn<T>, row: T): React.ReactNode => {
+
+  const getCellValue = (column: TableColumn<T>, row: T, index: number): React.ReactNode => {
     if (column.render) {
       return column.render(
-        column.accessor ?
-          (typeof column.accessor === 'function' ? column.accessor(row) : row[column.accessor])
+        column.accessor
+          ? typeof column.accessor === 'function'
+            ? column.accessor(row)
+            : row[column.accessor]
           : undefined,
         row,
-        0 // index would be passed from parent
+        index
       );
     }
 
     if (column.accessor) {
-      const value = typeof column.accessor === 'function'
-        ? column.accessor(row)
-        : row[column.accessor];
+      const value =
+        typeof column.accessor === 'function' ? column.accessor(row) : row[column.accessor];
 
-      // Type assertion: table values must be renderable primitives or React nodes
       return value as React.ReactNode;
     }
 
     return null;
   };
-  
+
   return (
     <tbody className={className}>
       {data.map((row, index) => {
         const isSelected = selectedRows.includes(row.id);
-        const finalRowClassName = typeof rowClassName === 'function'
-          ? rowClassName(row, index)
-          : rowClassName ?? '';
-        
+        const finalRowClassName =
+          typeof rowClassName === 'function' ? rowClassName(row, index) : (rowClassName ?? '');
+
         return (
           <tr
             key={row.id}
@@ -416,12 +346,12 @@ export const TableBody = <T extends TableRow>({
               <td className={cellVariants({})}>
                 <TableCheckbox
                   checked={isSelected}
-                  onChange={(checked) => handleRowSelect(row.id, checked)}
+                  onChange={checked => handleRowSelect(row.id, checked)}
                   aria-label={`Select row ${index + 1}`}
                 />
               </td>
             )}
-            
+
             {columns.map(column => (
               <td
                 key={column.id}
@@ -431,7 +361,7 @@ export const TableBody = <T extends TableRow>({
                   minWidth: column.minWidth,
                 }}
               >
-                {getCellValue(column, row)}
+                {getCellValue(column, row, index)}
               </td>
             ))}
           </tr>
@@ -442,79 +372,87 @@ export const TableBody = <T extends TableRow>({
 };
 
 // Main Table component
-export const Table = forwardRef<HTMLTableElement, TableProps>(
+// Rounded container classes mapping
+const roundedClasses: Record<TableRounded, string> = {
+  none: '',
+  sm: 'rounded-sm',
+  md: 'rounded-md',
+  lg: 'rounded-lg',
+};
+
+export const Table = forwardRef<TableRef, TableProps>(
   (
     {
       columns,
       data,
-      sortable = false,
-      selectable = false,
-      multiSelect = false,
-      striped = false,
-      hoverable = true,
-      selectedRows = [],
+      sortable = defaultTableProps.sortable,
+      selectable = defaultTableProps.selectable,
+      multiSelect = defaultTableProps.multiSelect,
+      striped = defaultTableProps.striped,
+      hoverable = defaultTableProps.hoverable,
+      selectedRows = defaultTableProps.selectedRows,
       sortConfig,
-      loading = false,
-      variant = 'default',
-      size = 'md',
-      stickyHeader = false,
+      loading = defaultTableProps.loading,
+      variant = defaultTableProps.variant,
+      size = defaultTableProps.size,
+      state = defaultTableProps.state,
+      stickyHeader = defaultTableProps.stickyHeader,
+      rounded = defaultTableProps.rounded,
       pagination: _pagination,
       onSort,
       onSelectionChange = () => {},
       onRowClick,
-      emptyMessage = 'No data available',
-      loadingMessage = 'Loading...',
+      emptyMessage = defaultTableProps.emptyMessage,
+      loadingMessage = defaultTableProps.loadingMessage,
       'aria-label': ariaLabel,
       className,
       headerClassName,
       bodyClassName,
       rowClassName,
       maxHeight,
-      virtualized: _virtualized = false,
+      virtualized: _virtualized = defaultTableProps.virtualized,
       ...props
     },
     ref
   ) => {
+    // When rounded, border moves to wrapper - use borderless for table
+    const needsRoundedWrapper = rounded && rounded !== 'none';
+    const effectiveVariant = needsRoundedWrapper ? 'borderless' : variant;
+
     // Table classes
-    const tableClasses = tableVariants({ variant, size, className });
-    
+    const tableClasses = tableVariants({ variant: effectiveVariant, size, state, className });
+
     // Context value
     const contextValue: TableContextValue = {
-      selectable,
-      multiSelect,
-      selectedRows,
+      selectable: selectable!,
+      multiSelect: multiSelect!,
+      selectedRows: selectedRows!,
       onSelectionChange,
       sortConfig,
       onSort: sortable ? onSort : undefined,
     };
-    
+
     // Loading state
     if (loading) {
       return (
         <div className="flex items-center justify-center py-8">
-          <div className="text-neutral-500">{loadingMessage}</div>
+          <div className="text-muted-foreground">{loadingMessage}</div>
         </div>
       );
     }
-    
+
     // Empty state
     if (data.length === 0) {
       return (
         <div className="flex items-center justify-center py-8">
-          <div className="text-neutral-500">{emptyMessage}</div>
+          <div className="text-muted-foreground">{emptyMessage}</div>
         </div>
       );
     }
-    
+
     const tableContent = (
       <TableContext.Provider value={contextValue}>
-        <table
-          ref={ref}
-          className={tableClasses}
-          role="table"
-          aria-label={ariaLabel}
-          {...props}
-        >
+        <table ref={ref} className={tableClasses} role="table" aria-label={ariaLabel} {...props}>
           <TableHeader columns={columns} className={headerClassName} />
           <TableBody
             columns={columns}
@@ -528,19 +466,39 @@ export const Table = forwardRef<HTMLTableElement, TableProps>(
         </table>
       </TableContext.Provider>
     );
-    
-    // Wrap in container for max height or sticky header
-    if (maxHeight ?? stickyHeader) {
+
+    // Determine if we need a wrapper container
+    const needsScrollWrapper = maxHeight ?? stickyHeader;
+
+    // When rounded, move border from table to wrapper for proper corner rendering
+    const borderClassForWrapper =
+      needsRoundedWrapper && variant === 'default'
+        ? 'border border-border'
+        : needsRoundedWrapper && variant === 'bordered'
+          ? 'border-2 border-border'
+          : '';
+
+    // Build wrapper classes
+    const wrapperClasses = [
+      needsRoundedWrapper
+        ? `overflow-hidden ${roundedClasses[rounded!]} ${borderClassForWrapper}`
+        : '',
+      needsScrollWrapper ? 'overflow-auto' : '',
+      stickyHeader ? 'relative' : '',
+    ]
+      .filter(Boolean)
+      .join(' ');
+
+    // Wrap if needed for rounded corners, max height, or sticky header
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR, not null coalescing
+    if (needsRoundedWrapper || needsScrollWrapper) {
       return (
-        <div
-          className={`overflow-auto ${stickyHeader ? 'relative' : ''}`}
-          style={{ maxHeight }}
-        >
+        <div className={wrapperClasses} style={maxHeight ? { maxHeight } : undefined}>
           {tableContent}
         </div>
       );
     }
-    
+
     return tableContent;
   }
 );

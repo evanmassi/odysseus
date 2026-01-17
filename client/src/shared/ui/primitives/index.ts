@@ -14,6 +14,7 @@ import { Input } from './input/Input';
 import { NumberInput } from './input/NumberInput';
 import { Select } from './select/Select';
 import { Table, TableHeader, TableBody } from './table/Table';
+import { Tabs, Tab } from './tabs/Tabs';
 import { Textarea } from './textarea/Textarea';
 import { Toggle } from './toggle/Toggle';
 import { Tooltip } from './tooltip/Tooltip';
@@ -68,7 +69,18 @@ export type {
 
 // Table primitives
 export { Table, TableHeader, TableBody };
-export type { TableProps, TableColumn, TableRow, SortConfig } from './table/Table';
+export type {
+  TableProps,
+  TableColumn,
+  TableRow,
+  TableRef,
+  TableVariant,
+  TableSize,
+  TableState,
+  SortConfig,
+  SortDirection,
+  TablePagination,
+} from './table/types';
 
 // Textarea primitives
 export { Textarea };
@@ -82,6 +94,10 @@ export type {
 // Tooltip primitives
 export { Tooltip };
 export type { TooltipProps } from './tooltip/Tooltip';
+
+// Tabs primitives
+export { Tabs, Tab };
+export type { TabsProps, TabProps, TabOrientation } from './tabs/Tabs';
 
 // Grid primitives
 export { Grid, GridItem };
@@ -187,6 +203,8 @@ export const Primitives = {
   Table,
   TableHeader,
   TableBody,
+  Tabs,
+  Tab,
   Textarea,
   Toggle,
   Grid,

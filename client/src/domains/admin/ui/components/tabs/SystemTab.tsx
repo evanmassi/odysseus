@@ -19,7 +19,7 @@ import { Gauge, FlaskConical, Check, X } from 'lucide-react';
 import { queryKeys } from '@app/queryKeys';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api/httpClient';
-import { Toggle } from '@shared/ui';
+import { Button, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
@@ -154,30 +154,31 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
             <div className="flex items-center gap-1">
               {isEditingLabName ? (
                 <>
-                  <button
+                  <Button
+                    variant="success"
+                    size="xs"
+                    iconOnly
                     onClick={handleSaveLabName}
                     disabled={isSavingLabName}
-                    className="p-1.5 text-success-text hover:bg-success-light rounded transition-colors disabled:opacity-50 focus-ring-default"
                     aria-label="Save lab name"
                   >
                     <Check size={16} />
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    iconOnly
                     onClick={handleCancelLabNameEdit}
                     disabled={isSavingLabName}
-                    className="p-1.5 text-muted-foreground hover:bg-accent rounded transition-colors disabled:opacity-50 focus-ring-default"
                     aria-label="Cancel editing"
                   >
                     <X size={16} />
-                  </button>
+                  </Button>
                 </>
               ) : (
-                <button
-                  onClick={() => setIsEditingLabName(true)}
-                  className="text-xs text-muted-foreground hover:text-accent-foreground hover:bg-accent px-2 py-1 rounded transition-colors focus-ring-default"
-                >
+                <Button variant="ghost" size="xs" onClick={() => setIsEditingLabName(true)}>
                   Edit
-                </button>
+                </Button>
               )}
             </div>
           </div>

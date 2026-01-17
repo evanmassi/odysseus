@@ -16,7 +16,7 @@ import {
 } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
-import { AuthInput, Button } from '@shared/ui';
+import { AuthInput, Button, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { AuthBaseModal } from './AuthBaseModal';
@@ -321,21 +321,18 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
           {/* Researcher Profile Toggle */}
           <div className="ml-1">
-            <label className="flex items-center space-x-1.5 cursor-pointer group">
-              <div className="relative inline-flex items-center cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={createResearcher}
-                  onChange={e => setCreateResearcher(e.target.checked)}
-                  disabled={isLoading}
-                  className="sr-only peer"
-                />
-                <div className="w-7 h-4 bg-secondary peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-action/30 rounded-full peer peer-checked:after:translate-x-3 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-border after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-action peer-disabled:opacity-50 peer-disabled:cursor-not-allowed"></div>
-              </div>
+            <div className="flex items-center space-x-1.5 cursor-pointer group">
+              <Toggle
+                checked={createResearcher}
+                onChange={setCreateResearcher}
+                disabled={isLoading}
+                size="sm"
+                aria-label="I am a researcher"
+              />
               <span className="text-xs text-secondary-foreground group-hover:text-accent-foreground">
                 I am a researcher
               </span>
-            </label>
+            </div>
           </div>
         </div>
 

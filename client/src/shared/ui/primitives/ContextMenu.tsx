@@ -1,7 +1,7 @@
 /**
  * Context Menu
  *
- * Windows 11-style right-click menu with keyboard shortcuts
+ * Right-click menu for grid cell operations with keyboard shortcut hints.
  */
 import { useEffect, useRef } from 'react';
 
@@ -40,7 +40,6 @@ interface ContextMenuProps {
   isUnlocking?: boolean;
 }
 
-/** Divider component for separating menu sections */
 function MenuDivider() {
   return <div className="h-px bg-secondary my-1" />;
 }
@@ -68,14 +67,14 @@ function MenuItem({
         w-full flex items-center justify-between py-2 px-3 rounded-md text-sm
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
-        ${danger ? 'text-secondary-foreground hover:bg-red-50 hover:text-red-600' : 'text-secondary-foreground hover:bg-accent'}
+        ${danger ? 'text-secondary-foreground hover:bg-danger-light hover:text-danger-text' : 'text-secondary-foreground hover:bg-accent'}
       `}
     >
       <div className="flex items-center gap-3">
         <Icon
           size={16}
           className={
-            danger ? 'text-muted-foreground group-hover:text-red-500' : 'text-muted-foreground'
+            danger ? 'text-muted-foreground group-hover:text-danger-text' : 'text-muted-foreground'
           }
         />
         <span>{label}</span>

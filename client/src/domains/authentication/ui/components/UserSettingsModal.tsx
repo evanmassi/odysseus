@@ -11,7 +11,7 @@ import { Save, Settings, Table2, UserRound, Shield, AlertTriangle } from 'lucide
 import { useModalStore } from '@app/stores/modalStore';
 import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
 import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
+import { Button, Tab, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
@@ -104,30 +104,16 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   // Vertical sidebar tabs (only rendered if multiple tabs)
   const tabs =
     tabItems.length > 1 ? (
-      <nav className="space-y-1">
+      <Tabs value={activeTab} onChange={v => setActiveTab(v as 'account' | 'security' | 'display')}>
         {tabItems.map(tab => {
           const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
           return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              data-focus="none"
-              className={`w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors border-l-4 focus:outline-none focus:bg-muted ${
-                isActive
-                  ? 'border-l-secondary-foreground bg-muted text-card-foreground'
-                  : 'border-l-transparent text-secondary-foreground hover:bg-muted hover:text-accent-foreground'
-              }`}
-            >
-              <Icon
-                size={18}
-                className={isActive ? 'text-secondary-foreground' : 'text-muted-foreground'}
-              />
-              <span className="font-medium text-sm">{tab.label}</span>
-            </button>
+            <Tab key={tab.id} id={tab.id} icon={<Icon size={18} />}>
+              {tab.label}
+            </Tab>
           );
         })}
-      </nav>
+      </Tabs>
     ) : undefined;
 
   const footer = (

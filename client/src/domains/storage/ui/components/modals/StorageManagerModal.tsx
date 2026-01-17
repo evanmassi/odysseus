@@ -27,7 +27,7 @@ import {
 import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
 import { useResourcePermissions } from '@domains/storage/hooks/useResourcePermissions';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
-import { Button } from '@shared/ui';
+import { Button, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils/notifications';
@@ -483,34 +483,14 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   };
 
   const tabs = (
-    <div className="flex items-center gap-6 px-4">
-      <button
-        type="button"
-        onClick={() => setViewMode('tree')}
-        data-focus="none"
-        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
-          viewMode === 'tree'
-            ? 'border-secondary-foreground text-card-foreground'
-            : 'border-transparent text-muted-foreground hover:text-accent-foreground hover:border-border'
-        }`}
-      >
-        <ListTree size={14} />
+    <Tabs value={viewMode} onChange={v => setViewMode(v as 'tree' | 'byUser')}>
+      <Tab id="tree" icon={<ListTree size={14} />}>
         By Location
-      </button>
-      <button
-        type="button"
-        onClick={() => setViewMode('byUser')}
-        data-focus="none"
-        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
-          viewMode === 'byUser'
-            ? 'border-secondary-foreground text-card-foreground'
-            : 'border-transparent text-muted-foreground hover:text-accent-foreground hover:border-border'
-        }`}
-      >
-        <UsersRound size={14} />
+      </Tab>
+      <Tab id="byUser" icon={<UsersRound size={14} />}>
         By User
-      </button>
-    </div>
+      </Tab>
+    </Tabs>
   );
 
   const footer = (
@@ -550,7 +530,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         tabOrientation="horizontal"
         footer={footer}
         contentClassName="p-3"
-        className="!max-w-md max-h-[80vh]"
+        className="!max-w-lg max-h-[80vh]"
         onClose={onClose}
       >
         {viewMode === 'tree' ? (

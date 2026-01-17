@@ -11,13 +11,13 @@
  * @module admin/ui/components/tabs
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
 import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Info } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Tooltip } from '@shared/ui';
+import { Button, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils';
@@ -26,6 +26,7 @@ import { adminService } from '../../../services/AdminService';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
+import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
 
 /**
  * ResearchersTab Props Interface
@@ -62,6 +63,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
     researcherId: string;
     researcherName: string;
   } | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
 
   /**
    * Load researchers on component mount
@@ -178,6 +180,171 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
     onResearcherUpdate?.();
   };
 
+  /**
+   * Sort researchers based on current sort configuration
+   */
+  const sortedResearchers = useMemo(() => {
+    if (!sortConfig) return researchers;
+
+    return [...researchers].sort((a, b) => {
+      const direction = sortConfig.direction === 'asc' ? 1 : -1;
+
+      switch (sortConfig.columnId) {
+        case 'researcher': {
+          const nameA = `${a.lastName}, ${a.firstName}`.toLowerCase();
+          const nameB = `${b.lastName}, ${b.firstName}`.toLowerCase();
+          return nameA.localeCompare(nameB) * direction;
+        }
+        case 'tubes':
+          return (a.tubeCount - b.tubeCount) * direction;
+        case 'status':
+          return ((a.active ? 1 : 0) - (b.active ? 1 : 0)) * direction;
+        default:
+          return 0;
+      }
+    });
+  }, [researchers, sortConfig]);
+
+  // Define table columns
+  const researcherColumns: TableColumn<TableRow>[] = [
+    {
+      id: 'researcher',
+      header: 'Researcher',
+      sortable: true,
+      render: (_, row) => {
+        const researcher = row as unknown as AdminResearcher;
+        return (
+          <div className="flex items-center whitespace-nowrap">
+            <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
+              <ResearcherIcon size={14} className="text-secondary-foreground" />
+            </div>
+            <div>
+              <div className="text-sm font-medium text-card-foreground">
+                {researcher.lastName}, {researcher.firstName}
+              </div>
+              <div className="text-xs text-muted-foreground">{researcher.email}</div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'position',
+      header: 'Position',
+      render: (_, row) => {
+        const researcher = row as unknown as AdminResearcher;
+        return (
+          <div className="whitespace-nowrap max-w-[150px]">
+            {researcher.position ? (
+              <Tooltip content={researcher.position} side="bottom">
+                <div className="text-sm text-card-foreground truncate">{researcher.position}</div>
+              </Tooltip>
+            ) : (
+              <div className="text-sm text-card-foreground truncate">—</div>
+            )}
+            {researcher.department && (
+              <Tooltip content={researcher.department} side="bottom">
+                <div className="text-xs text-muted-foreground truncate">
+                  {researcher.department}
+                </div>
+              </Tooltip>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      id: 'tubes',
+      header: 'Tubes',
+      sortable: true,
+      render: (_, row) => {
+        const researcher = row as unknown as AdminResearcher;
+        return (
+          <span
+            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
+              researcher.tubeCount === 0
+                ? 'bg-muted text-secondary-foreground'
+                : 'bg-muted text-action-hover border border-action/30'
+            }`}
+          >
+            {researcher.tubeCount}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'linkedUser',
+      header: 'Linked User',
+      render: (_, row) => {
+        const researcher = row as unknown as AdminResearcher;
+        if (researcher.linkedUserId) {
+          return (
+            <div className="whitespace-nowrap">
+              <div className="text-sm font-medium text-card-foreground">
+                {researcher.linkedUsername}
+              </div>
+              <div className="text-xs text-muted-foreground">Linked</div>
+            </div>
+          );
+        }
+        return <span className="text-sm text-muted-foreground whitespace-nowrap">—</span>;
+      },
+    },
+    {
+      id: 'status',
+      header: 'Status',
+      sortable: true,
+      render: (_, row) => {
+        const researcher = row as unknown as AdminResearcher;
+        if (researcher.active) {
+          return (
+            <Tooltip content="Active" side="bottom">
+              <span className="whitespace-nowrap">
+                <BadgeCheck size={18} className="text-success-text" />
+              </span>
+            </Tooltip>
+          );
+        }
+        return (
+          <Tooltip content="Inactive" side="bottom">
+            <span className="whitespace-nowrap">
+              <BadgeX size={18} className="text-muted-foreground" />
+            </span>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      render: (_, row) => {
+        const researcher = row as unknown as AdminResearcher;
+        return (
+          <div className="whitespace-nowrap text-sm font-medium">
+            <Tooltip
+              content={!canDelete(researcher) ? getDeletionStatus(researcher) : 'Delete researcher'}
+              side="bottom"
+            >
+              <Button
+                variant="danger"
+                size="xs"
+                iconOnly
+                onClick={() =>
+                  deleteResearcher(researcher.id, `${researcher.lastName}, ${researcher.firstName}`)
+                }
+                disabled={!canDelete(researcher)}
+                isLoading={deleting === researcher.id}
+                aria-label="Delete researcher"
+              >
+                <Trash2 size={16} />
+              </Button>
+            </Tooltip>
+          </div>
+        );
+      },
+    },
+  ];
+
   return (
     <div className="space-y-2">
       {/* Header with Add and Refresh Buttons */}
@@ -207,151 +374,21 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       </div>
 
       {/* Researchers Table */}
-      <div className="bg-card border border-border rounded-lg overflow-hidden overflow-x-auto">
-        <table className="min-w-full divide-y divide-border">
-          <thead className="bg-muted">
-            <tr>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Researcher
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Position
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Tubes
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Linked User
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Status
-              </th>
-              <th className="px-3 py-2 text-left text-xs font-semibold text-secondary-foreground">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-card divide-y divide-border">
-            {researchers.length > 0 ? (
-              researchers.map(researcher => (
-                <tr key={researcher.id} className="hover:bg-accent">
-                  {/* Researcher Info Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
-                        <ResearcherIcon size={14} className="text-secondary-foreground" />
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium text-card-foreground">
-                          {researcher.lastName}, {researcher.firstName}
-                        </div>
-                        <div className="text-xs text-muted-foreground">{researcher.email}</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Position Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap max-w-[150px]">
-                    {researcher.position ? (
-                      <Tooltip content={researcher.position} side="bottom">
-                        <div className="text-sm text-card-foreground truncate">
-                          {researcher.position}
-                        </div>
-                      </Tooltip>
-                    ) : (
-                      <div className="text-sm text-card-foreground truncate">—</div>
-                    )}
-                    {researcher.department && (
-                      <Tooltip content={researcher.department} side="bottom">
-                        <div className="text-xs text-muted-foreground truncate">
-                          {researcher.department}
-                        </div>
-                      </Tooltip>
-                    )}
-                  </td>
-
-                  {/* Tube Count Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        researcher.tubeCount === 0
-                          ? 'bg-muted text-secondary-foreground'
-                          : 'bg-muted text-action-hover border border-action/30'
-                      }`}
-                    >
-                      {researcher.tubeCount}
-                    </span>
-                  </td>
-
-                  {/* Linked User Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {researcher.linkedUserId ? (
-                      <div>
-                        <div className="text-sm font-medium text-card-foreground">
-                          {researcher.linkedUsername}
-                        </div>
-                        <div className="text-xs text-muted-foreground">Linked</div>
-                      </div>
-                    ) : (
-                      <span className="text-sm text-muted-foreground">—</span>
-                    )}
-                  </td>
-
-                  {/* Active Status Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap">
-                    {researcher.active ? (
-                      <Tooltip content="Active" side="bottom">
-                        <span>
-                          <BadgeCheck size={18} className="text-emerald-600" />
-                        </span>
-                      </Tooltip>
-                    ) : (
-                      <Tooltip content="Inactive" side="bottom">
-                        <span>
-                          <BadgeX size={18} className="text-muted-foreground" />
-                        </span>
-                      </Tooltip>
-                    )}
-                  </td>
-
-                  {/* Actions Cell */}
-                  <td className="px-3 py-2 whitespace-nowrap text-sm font-medium">
-                    <Tooltip
-                      content={
-                        !canDelete(researcher) ? getDeletionStatus(researcher) : 'Delete researcher'
-                      }
-                      side="bottom"
-                    >
-                      <Button
-                        variant="danger"
-                        size="xs"
-                        iconOnly
-                        onClick={() =>
-                          deleteResearcher(
-                            researcher.id,
-                            `${researcher.lastName}, ${researcher.firstName}`
-                          )
-                        }
-                        disabled={!canDelete(researcher)}
-                        isLoading={deleting === researcher.id}
-                        aria-label="Delete researcher"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    </Tooltip>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="px-3 py-4 text-center text-sm text-muted-foreground">
-                  {loading ? 'Loading researchers...' : 'No researchers found'}
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <Table
+        columns={researcherColumns}
+        data={sortedResearchers as TableRow[]}
+        size="sm"
+        variant="default"
+        hoverable
+        rounded="lg"
+        sortable
+        sortConfig={sortConfig}
+        onSort={setSortConfig}
+        loading={loading}
+        emptyMessage="No researchers found"
+        loadingMessage="Loading researchers..."
+        aria-label="Researchers list"
+      />
 
       {/* Statistics Summary */}
       <div className="flex items-center gap-1.5 text-sm text-muted-foreground">

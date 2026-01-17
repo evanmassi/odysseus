@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react';
 import { KeyRound, Copy, Check, RotateCcwKey, ExternalLink } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
-import { AuthInput, Button, Toggle } from '@shared/ui';
+import { AuthInput, Button, Tab, Tabs, Toggle } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils/notifications';
 
@@ -118,34 +118,14 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
   };
 
   const tabs = (
-    <div className="flex items-center gap-6 px-4">
-      <button
-        type="button"
-        onClick={() => setActiveTab('direct')}
-        data-focus="none"
-        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
-          activeTab === 'direct'
-            ? 'border-secondary-foreground text-card-foreground'
-            : 'border-transparent text-muted-foreground hover:text-secondary-foreground hover:border-border'
-        }`}
-      >
-        <RotateCcwKey size={14} />
+    <Tabs value={activeTab} onChange={v => setActiveTab(v as 'direct' | 'token')}>
+      <Tab id="direct" icon={<RotateCcwKey size={14} />}>
         Set Password
-      </button>
-      <button
-        type="button"
-        onClick={() => setActiveTab('token')}
-        data-focus="none"
-        className={`flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px ${
-          activeTab === 'token'
-            ? 'border-secondary-foreground text-card-foreground'
-            : 'border-transparent text-muted-foreground hover:text-secondary-foreground hover:border-border'
-        }`}
-      >
-        <ExternalLink size={14} />
+      </Tab>
+      <Tab id="token" icon={<ExternalLink size={14} />}>
         Generate Link
-      </button>
-    </div>
+      </Tab>
+    </Tabs>
   );
 
   return (

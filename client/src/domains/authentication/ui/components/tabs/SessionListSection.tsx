@@ -153,7 +153,7 @@ export function SessionListSection() {
                   key={session.id}
                   className={
                     session.isCurrentSession
-                      ? 'bg-emerald-50/50 border-l-4 border-l-emerald-500'
+                      ? 'bg-success-light/50 border-l-4 border-l-success-bg'
                       : ''
                   }
                 >
@@ -163,7 +163,7 @@ export function SessionListSection() {
                       <div>
                         <p className="text-sm font-medium text-card-foreground">{device}</p>
                         {session.isCurrentSession && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 mt-1">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-light text-success-text mt-1">
                             Current Session
                           </span>
                         )}
@@ -220,7 +220,7 @@ export function SessionListSection() {
           return (
             <div
               key={session.id}
-              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-emerald-50/50 border border-border border-l-4 border-l-emerald-500' : 'border border-border bg-card'}`}
+              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-success-light/50 border border-border border-l-4 border-l-success-bg' : 'border border-border bg-card'}`}
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -228,7 +228,7 @@ export function SessionListSection() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-card-foreground truncate">{device}</p>
                     {session.isCurrentSession && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 mt-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-light text-success-text mt-1">
                         Current Session
                       </span>
                     )}

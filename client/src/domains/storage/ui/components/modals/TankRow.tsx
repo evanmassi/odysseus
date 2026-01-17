@@ -69,21 +69,27 @@ export function TankRow({
           {canManageStorage && (
             <div className="flex items-center gap-0.5 flex-shrink-0">
               <Tooltip content="Edit tank" side="bottom">
-                <button
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  iconOnly
                   onClick={() => onEditTank(tank)}
-                  className="text-muted-foreground hover:bg-accent transition-colors p-1 rounded focus-ring-default"
+                  aria-label="Edit tank"
                 >
                   <Edit3 size={16} />
-                </button>
+                </Button>
               </Tooltip>
               {canDeleteTank && (
                 <Tooltip content="Remove tank" side="bottom">
-                  <button
+                  <Button
+                    variant="danger"
+                    size="xs"
+                    iconOnly
                     onClick={() => onDeleteTank(tank.id)}
-                    className="text-danger-text hover:bg-danger-light transition-colors p-1 rounded focus-ring-default"
+                    aria-label="Remove tank"
                   >
                     <Trash2 size={16} />
-                  </button>
+                  </Button>
                 </Tooltip>
               )}
             </div>

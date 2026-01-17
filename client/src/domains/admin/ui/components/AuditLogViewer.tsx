@@ -23,13 +23,14 @@ import {
 import { adminService } from '@domains/admin/services/AdminService';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
 import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
+import { Button, Table } from '@shared/ui';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { Tooltip } from '@shared/ui/primitives/tooltip';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
+import type { TableColumn, TableRow } from '@shared/ui';
 
 interface AuditLogViewerProps {
   initialFilters?: Partial<AuditLogFilters>;
@@ -215,6 +216,86 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     key => key !== 'datePreset' && filterState[key as keyof AuditFilterState]
   );
 
+  // Define table columns - use TableRow base type, cast in render functions
+  const auditLogColumns: TableColumn<TableRow>[] = [
+    {
+      id: 'timestamp',
+      header: 'Timestamp',
+      width: '8rem',
+      render: (_, row) => {
+        const entry = row as unknown as AuditLogEntry;
+        return (
+          <span className="whitespace-nowrap text-muted-foreground text-[11px]">
+            {formatTimestamp(entry.timestamp)}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'username',
+      header: 'User',
+      width: '6rem',
+      render: (_, row) => {
+        const entry = row as unknown as AuditLogEntry;
+        return (
+          <span className="font-medium text-card-foreground whitespace-nowrap">
+            {entry.username}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'action',
+      header: 'Action',
+      width: '6rem',
+      render: (_, row) => {
+        const entry = row as unknown as AuditLogEntry;
+        return (
+          <span className={`whitespace-nowrap ${getActionBadgeClass(entry.action)}`}>
+            {formatAction(entry.action)}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'entityType',
+      header: 'Item',
+      width: '5rem',
+      render: (_, row) => {
+        const entry = row as unknown as AuditLogEntry;
+        if (!entry.entityType) {
+          return <span className="text-muted-foreground text-xs">-</span>;
+        }
+        const icon = getEntityIcon(entry.entityType);
+        return (
+          <span className={`whitespace-nowrap ${getEntityBadgeClass(entry.entityType)} gap-1`}>
+            {icon === 'researcher' ? (
+              <ResearcherIcon size={12} />
+            ) : icon === 'tank' ? (
+              <Icon iconNode={refrigeratorFreezer} size={12} />
+            ) : icon && typeof icon !== 'string' ? (
+              React.createElement(icon, { size: 12 })
+            ) : null}
+            {formatEntityType(entry.entityType)}
+          </span>
+        );
+      },
+    },
+    {
+      id: 'details',
+      header: 'Details',
+      render: (_, row) => {
+        const entry = row as unknown as AuditLogEntry;
+        const details = formatAuditDetails(entry);
+        return (
+          <span className="text-secondary-foreground max-w-md truncate block" title={details}>
+            {details}
+          </span>
+        );
+      },
+    },
+  ];
+
   const currentPage = Math.floor((filters.offset ?? 0) / (filters.limit ?? 50)) + 1;
   const totalPages = Math.ceil((pagination?.total ?? 0) / (filters.limit ?? 50));
 
@@ -303,75 +384,16 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
       {/* Audit Log Table */}
       {!loading && !error && entries && entries.length > 0 && (
-        <div className="bg-card border border-border rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-xs">
-              <thead className="bg-muted border-b border-border">
-                <tr>
-                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground w-32">
-                    Timestamp
-                  </th>
-                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground w-24">
-                    User
-                  </th>
-                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground w-24">
-                    Action
-                  </th>
-                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground w-20">
-                    Item
-                  </th>
-                  <th className="px-2 py-2 text-left font-semibold text-secondary-foreground">
-                    Details
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {entries.map(entry => (
-                  <tr key={entry.id} className="hover:bg-accent">
-                    <td className="px-2 py-2 whitespace-nowrap text-muted-foreground text-[11px]">
-                      {formatTimestamp(entry.timestamp)}
-                    </td>
-                    <td className="px-2 py-2 whitespace-nowrap">
-                      <span className="font-medium text-card-foreground">{entry.username}</span>
-                    </td>
-                    <td className="px-2 py-2 whitespace-nowrap">
-                      <span className={getActionBadgeClass(entry.action)}>
-                        {formatAction(entry.action)}
-                      </span>
-                    </td>
-                    <td className="px-2 py-2 whitespace-nowrap">
-                      {entry.entityType ? (
-                        <span className={`${getEntityBadgeClass(entry.entityType)} gap-1`}>
-                          {(() => {
-                            const icon = getEntityIcon(entry.entityType);
-                            if (icon === 'researcher') {
-                              return <ResearcherIcon size={12} />;
-                            } else if (icon === 'tank') {
-                              return <Icon iconNode={refrigeratorFreezer} size={12} />;
-                            } else if (icon && typeof icon !== 'string') {
-                              const IconComponent = icon;
-                              return <IconComponent size={12} />;
-                            }
-                            return null;
-                          })()}
-                          {formatEntityType(entry.entityType)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground text-xs">-</span>
-                      )}
-                    </td>
-                    <td
-                      className="px-2 py-2 text-secondary-foreground max-w-md truncate"
-                      title={formatAuditDetails(entry)}
-                    >
-                      {formatAuditDetails(entry)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <Table
+          columns={auditLogColumns}
+          data={entries as TableRow[]}
+          size="sm"
+          variant="default"
+          hoverable
+          rounded="lg"
+          className="text-xs"
+          aria-label="Audit log entries"
+        />
       )}
 
       {/* Empty State */}
@@ -391,25 +413,31 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="ghost"
+              size="xs"
+              iconOnly
               onClick={goToPreviousPage}
               disabled={(filters.offset ?? 0) === 0}
-              className="p-1 rounded hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed focus-ring-default"
+              aria-label="Previous page"
             >
               <ChevronLeft className="w-4 h-4" />
-            </button>
+            </Button>
 
             <span className="px-2">
               Page {currentPage} of {totalPages || 1}
             </span>
 
-            <button
+            <Button
+              variant="ghost"
+              size="xs"
+              iconOnly
               onClick={goToNextPage}
               disabled={!pagination?.hasMore}
-              className="p-1 rounded hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed focus-ring-default"
+              aria-label="Next page"
             >
               <ChevronRight className="w-4 h-4" />
-            </button>
+            </Button>
           </div>
         </div>
       )}

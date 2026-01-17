@@ -151,21 +151,27 @@ export function RackRow({
                   />
                 )}
                 <Tooltip content="Edit rack" side="bottom">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    iconOnly
                     onClick={() => onEditRack(tankId, rack)}
-                    className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
+                    aria-label="Edit rack"
                   >
                     <Edit3 size={14} />
-                  </button>
+                  </Button>
                 </Tooltip>
                 {canDeleteRack && (
                   <Tooltip content="Remove rack" side="bottom">
-                    <button
+                    <Button
+                      variant="danger"
+                      size="xs"
+                      iconOnly
                       onClick={() => onDeleteRack(tankId, rack.id)}
-                      className="text-danger-text hover:bg-danger-light transition-colors p-1 rounded focus-ring-default"
+                      aria-label="Remove rack"
                     >
                       <Trash2 size={14} />
-                    </button>
+                    </Button>
                   </Tooltip>
                 )}
               </div>

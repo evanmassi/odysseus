@@ -61,11 +61,11 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
             peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30
             rounded-full peer
             ${sizes.translate}
-            peer-checked:after:border-white
+            peer-checked:after:border-card
             after:content-['']
             after:absolute
             ${sizes.thumb}
-            after:bg-white
+            after:bg-card
             after:border-border
             after:border
             after:rounded-full
