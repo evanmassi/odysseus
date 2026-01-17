@@ -13,7 +13,7 @@ import { useSearch, useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubeStore } from '@domains/tubes';
-import { Tooltip } from '@shared/ui';
+import { Chip, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 
 import { SortDropdown } from './SortDropdown';
@@ -479,9 +479,9 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                         {highlightText(cellType, query)}
                       </span>
                     </div>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium text-background bg-muted-foreground flex-shrink-0">
+                    <Chip size="sm" className="text-background bg-muted-foreground flex-shrink-0">
                       {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}
-                    </span>
+                    </Chip>
                   </div>
 
                   {/* Lines 2-4: Compact details with vertical indicator */}

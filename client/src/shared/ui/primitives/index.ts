@@ -8,6 +8,7 @@
 // Import all components first
 import { Button } from './button/Button';
 import { Checkbox } from './checkbox/Checkbox';
+import { Chip } from './chip/Chip';
 import { Grid, GridItem } from './grid/Grid';
 import { AuthInput } from './input/AuthInput';
 import { Input } from './input/Input';
@@ -32,6 +33,18 @@ export type {
 // Checkbox primitives
 export { Checkbox };
 export type { CheckboxProps } from './checkbox/Checkbox';
+
+// Chip primitives
+export { Chip };
+export type {
+  ChipProps,
+  ChipColor,
+  ChipSize,
+  ChipShape,
+  ChipBehavior,
+  ChipEntityType,
+  ChipRef,
+} from './chip/types';
 
 // Toggle primitives
 export { Toggle };
@@ -197,18 +210,19 @@ export const Primitives = {
   AuthInput,
   Button,
   Checkbox,
+  Chip,
+  Grid,
+  GridItem,
   Input,
   NumberInput,
   Select,
-  Table,
-  TableHeader,
-  TableBody,
-  Tabs,
   Tab,
+  Table,
+  TableBody,
+  TableHeader,
+  Tabs,
   Textarea,
   Toggle,
-  Grid,
-  GridItem,
   Tooltip,
 } as const;
 

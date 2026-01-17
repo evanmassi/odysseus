@@ -20,57 +20,11 @@ import { useActiveResearchersQuery } from '@domains/researchers';
 import { useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { useTubes } from '@domains/tubes/hooks';
-import { Tooltip } from '@shared/ui';
+import { Chip, Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
 import type { TubeData, Researcher } from '@odysseus/shared-schemas';
-
-interface FilterChipProps {
-  label: string;
-  isSelected: boolean;
-  onClick: () => void;
-  showRemove?: boolean;
-}
-
-function FilterChip({ label, isSelected, onClick, showRemove = false }: FilterChipProps) {
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        px-1.5 py-0.5 rounded-full text-xs font-medium transition-all focus-ring-default
-        ${
-          isSelected
-            ? 'bg-action text-white shadow-sm hover:bg-action-hover'
-            : 'bg-muted text-secondary-foreground hover:bg-secondary border border-border'
-        }
-        ${showRemove ? 'flex items-center space-x-1.5' : ''}
-      `}
-    >
-      <span>{label}</span>
-      {showRemove && <X className="w-3 h-3" />}
-    </button>
-  );
-}
-
-interface ActiveFilterChipProps {
-  label: string;
-  onRemove: () => void;
-}
-
-function ActiveFilterChip({ label, onRemove }: ActiveFilterChipProps) {
-  return (
-    <Tooltip content={`Remove ${label}`} side="bottom">
-      <button
-        onClick={onRemove}
-        className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-secondary-foreground text-background hover:bg-foreground transition-all focus-ring-default"
-      >
-        <span>{label}</span>
-        <X className="w-2.5 h-2.5" />
-      </button>
-    </Tooltip>
-  );
-}
 
 interface CollapsibleSectionProps {
   title: string;
@@ -417,12 +371,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Tank filters">
                   {filterOptions.tankIds.map(tankId => (
-                    <FilterChip
+                    <Chip
                       key={tankId}
-                      label={getTankName(tankId)}
-                      isSelected={isSelected('tankIds', tankId)}
-                      onClick={() => toggleFilterValue('tankIds', tankId)}
-                    />
+                      behavior="selectable"
+                      size="xs"
+                      selected={isSelected('tankIds', tankId)}
+                      onSelect={() => toggleFilterValue('tankIds', tankId)}
+                    >
+                      {getTankName(tankId)}
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -437,12 +394,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Rack filters">
                   {filterOptions.rackIds.map(rackId => (
-                    <FilterChip
+                    <Chip
                       key={rackId}
-                      label={`Rack ${rackId}`}
-                      isSelected={isSelected('rackIds', rackId)}
-                      onClick={() => toggleFilterValue('rackIds', rackId)}
-                    />
+                      behavior="selectable"
+                      size="xs"
+                      selected={isSelected('rackIds', rackId)}
+                      onSelect={() => toggleFilterValue('rackIds', rackId)}
+                    >
+                      Rack {rackId}
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -457,12 +417,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Box filters">
                   {filterOptions.boxIds.map(boxId => (
-                    <FilterChip
+                    <Chip
                       key={boxId}
-                      label={`Box ${boxId}`}
-                      isSelected={isSelected('boxIds', boxId)}
-                      onClick={() => toggleFilterValue('boxIds', boxId)}
-                    />
+                      behavior="selectable"
+                      size="xs"
+                      selected={isSelected('boxIds', boxId)}
+                      onSelect={() => toggleFilterValue('boxIds', boxId)}
+                    >
+                      Box {boxId}
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -488,12 +451,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Cell type filters">
                   {filterOptions.cellTypes.map(cellType => (
-                    <FilterChip
+                    <Chip
                       key={cellType}
-                      label={cellType}
-                      isSelected={isSelected('cellTypes', cellType)}
-                      onClick={() => toggleFilterValue('cellTypes', cellType)}
-                    />
+                      behavior="selectable"
+                      size="xs"
+                      selected={isSelected('cellTypes', cellType)}
+                      onSelect={() => toggleFilterValue('cellTypes', cellType)}
+                    >
+                      {cellType}
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -508,12 +474,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 </div>
                 <div className="flex flex-wrap gap-2" role="group" aria-label="Lot number filters">
                   {filterOptions.lotNumbers.map(lotNumber => (
-                    <FilterChip
+                    <Chip
                       key={lotNumber}
-                      label={lotNumber}
-                      isSelected={isSelected('lotNumbers', lotNumber)}
-                      onClick={() => toggleFilterValue('lotNumbers', lotNumber)}
-                    />
+                      behavior="selectable"
+                      size="xs"
+                      selected={isSelected('lotNumbers', lotNumber)}
+                      onSelect={() => toggleFilterValue('lotNumbers', lotNumber)}
+                    >
+                      {lotNumber}
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -534,12 +503,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                   aria-label="Donor internal ID filters"
                 >
                   {filterOptions.donorInternalIds.map(donorId => (
-                    <FilterChip
+                    <Chip
                       key={donorId}
-                      label={donorId}
-                      isSelected={isSelected('donorInternalIds', donorId)}
-                      onClick={() => toggleFilterValue('donorInternalIds', donorId)}
-                    />
+                      behavior="selectable"
+                      size="xs"
+                      selected={isSelected('donorInternalIds', donorId)}
+                      onSelect={() => toggleFilterValue('donorInternalIds', donorId)}
+                    >
+                      {donorId}
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -560,12 +532,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                   aria-label="Donor source ID filters"
                 >
                   {filterOptions.donorSourceIds.map(donorId => (
-                    <FilterChip
+                    <Chip
                       key={donorId}
-                      label={donorId}
-                      isSelected={isSelected('donorSourceIds', donorId)}
-                      onClick={() => toggleFilterValue('donorSourceIds', donorId)}
-                    />
+                      behavior="selectable"
+                      size="xs"
+                      selected={isSelected('donorSourceIds', donorId)}
+                      onSelect={() => toggleFilterValue('donorSourceIds', donorId)}
+                    >
+                      {donorId}
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -586,12 +561,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                   aria-label="Culture condition filters"
                 >
                   {filterOptions.cultureConditions.map(condition => (
-                    <FilterChip
+                    <Chip
                       key={condition}
-                      label={condition}
-                      isSelected={isSelected('cultureConditions', condition)}
-                      onClick={() => toggleFilterValue('cultureConditions', condition)}
-                    />
+                      behavior="selectable"
+                      size="xs"
+                      selected={isSelected('cultureConditions', condition)}
+                      onSelect={() => toggleFilterValue('cultureConditions', condition)}
+                    >
+                      {condition}
+                    </Chip>
                   ))}
                 </div>
               </div>
@@ -610,12 +588,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           >
             <div className="flex flex-wrap gap-2">
               {filterOptions.researchers.map((researcher: Researcher) => (
-                <FilterChip
+                <Chip
                   key={researcher.id}
-                  label={formatResearcherDropdownDisplay(researcher)}
-                  isSelected={isSelected('researcherIds', researcher.id)}
-                  onClick={() => toggleFilterValue('researcherIds', researcher.id)}
-                />
+                  behavior="selectable"
+                  size="xs"
+                  selected={isSelected('researcherIds', researcher.id)}
+                  onSelect={() => toggleFilterValue('researcherIds', researcher.id)}
+                >
+                  {formatResearcherDropdownDisplay(researcher)}
+                </Chip>
               ))}
             </div>
           </CollapsibleSection>
@@ -671,11 +652,21 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
         <div className="px-3 py-2 bg-muted border-t border-border flex-shrink-0">
           <div className="flex flex-wrap gap-1 items-center">
             {visibleFilters.map((filter, idx) => (
-              <ActiveFilterChip
+              <Tooltip
+                content={`Remove ${filter.label}`}
+                side="bottom"
                 key={`${filter.category}-${idx}`}
-                label={filter.label}
-                onRemove={filter.onRemove}
-              />
+              >
+                <Chip
+                  behavior="removable"
+                  size="xs"
+                  color="active"
+                  shape="rounded"
+                  onRemove={filter.onRemove}
+                >
+                  {filter.label}
+                </Chip>
+              </Tooltip>
             ))}
             {hiddenCount > 0 && (
               <button

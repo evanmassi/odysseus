@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Select, Tooltip, Table } from '@shared/ui';
+import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -423,9 +423,9 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
           );
         }
         return (
-          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground whitespace-nowrap">
+          <Chip size="sm" color="default">
             None
-          </span>
+          </Chip>
         );
       },
     },

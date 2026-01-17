@@ -5,9 +5,9 @@
  */
 import React, { useState, useMemo, useCallback } from 'react';
 
-import { ChevronDown, ChevronRight, X, UserRound, Zap, Box, Calendar } from 'lucide-react';
+import { ChevronDown, ChevronRight, UserRound, Zap, Box, Calendar } from 'lucide-react';
 
-import { Button, Input, Tooltip } from '@shared/ui';
+import { Button, Chip, Input, Tooltip } from '@shared/ui';
 
 export interface AuditFilterState {
   actions?: string[];
@@ -23,76 +23,6 @@ interface AuditLogFilterPanelProps {
   onChange: (filters: AuditFilterState) => void;
   onApply: () => void;
   onClear: () => void;
-}
-
-interface FilterChipProps {
-  label: string;
-  isSelected: boolean;
-  onClick: () => void;
-  actionValue?: string;
-}
-
-function FilterChip({ label, isSelected, onClick }: FilterChipProps) {
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        px-2 py-0.5 rounded-full text-xs font-medium transition-all focus-ring-default
-        ${
-          isSelected
-            ? 'bg-action text-white shadow-sm hover:bg-action-hover'
-            : 'bg-muted text-secondary-foreground hover:bg-secondary border border-border'
-        }
-      `}
-    >
-      {label}
-    </button>
-  );
-}
-
-// Entity type pill with color coding - uses exact table badge styles
-interface EntityPillProps {
-  label: string;
-  entityType: string;
-  isSelected: boolean;
-  onClick: () => void;
-}
-
-function EntityPill({ label, isSelected, onClick }: EntityPillProps) {
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        px-2 py-0.5 rounded-full text-xs font-medium transition-all focus-ring-default
-        ${
-          isSelected
-            ? 'bg-action text-white shadow-sm hover:bg-action-hover'
-            : 'bg-muted text-secondary-foreground hover:bg-secondary border border-border'
-        }
-      `}
-    >
-      {label}
-    </button>
-  );
-}
-
-interface ActiveFilterChipProps {
-  label: string;
-  onRemove: () => void;
-}
-
-function ActiveFilterChip({ label, onRemove }: ActiveFilterChipProps) {
-  return (
-    <Tooltip content={`Remove ${label}`} side="bottom">
-      <button
-        onClick={onRemove}
-        className="flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-chip-active text-chip-active-foreground hover:bg-chip-active-hover transition-all focus-ring-default"
-      >
-        <span>{label}</span>
-        <X className="w-2.5 h-2.5" />
-      </button>
-    </Tooltip>
-  );
 }
 
 interface CollapsibleSectionProps {
@@ -442,13 +372,15 @@ export function AuditLogFilterPanel({
                   {openSections.tubeActions && (
                     <div className="flex flex-wrap gap-1 ml-4">
                       {actionGroups.tube.map(action => (
-                        <FilterChip
+                        <Chip
                           key={action.value}
-                          label={action.label}
-                          actionValue={action.value}
-                          isSelected={filters.actions?.includes(action.value) ?? false}
-                          onClick={() => toggleAction(action.value)}
-                        />
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes(action.value) ?? false}
+                          onSelect={() => toggleAction(action.value)}
+                        >
+                          {action.label}
+                        </Chip>
                       ))}
                     </div>
                   )}
@@ -476,75 +408,95 @@ export function AuditLogFilterPanel({
                     <div className="ml-4 space-y-1">
                       {/* Tank actions */}
                       <div className="flex flex-wrap gap-1">
-                        <FilterChip
-                          label="Tank Created"
-                          actionValue="tank_created"
-                          isSelected={filters.actions?.includes('tank_created') ?? false}
-                          onClick={() => toggleAction('tank_created')}
-                        />
-                        <FilterChip
-                          label="Tank Updated"
-                          actionValue="tank_updated"
-                          isSelected={filters.actions?.includes('tank_updated') ?? false}
-                          onClick={() => toggleAction('tank_updated')}
-                        />
-                        <FilterChip
-                          label="Tank Deleted"
-                          actionValue="tank_deleted"
-                          isSelected={filters.actions?.includes('tank_deleted') ?? false}
-                          onClick={() => toggleAction('tank_deleted')}
-                        />
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('tank_created') ?? false}
+                          onSelect={() => toggleAction('tank_created')}
+                        >
+                          Tank Created
+                        </Chip>
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('tank_updated') ?? false}
+                          onSelect={() => toggleAction('tank_updated')}
+                        >
+                          Tank Updated
+                        </Chip>
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('tank_deleted') ?? false}
+                          onSelect={() => toggleAction('tank_deleted')}
+                        >
+                          Tank Deleted
+                        </Chip>
                       </div>
                       {/* Rack actions */}
                       <div className="flex flex-wrap gap-1">
-                        <FilterChip
-                          label="Rack Created"
-                          actionValue="rack_created"
-                          isSelected={filters.actions?.includes('rack_created') ?? false}
-                          onClick={() => toggleAction('rack_created')}
-                        />
-                        <FilterChip
-                          label="Rack Updated"
-                          actionValue="rack_updated"
-                          isSelected={filters.actions?.includes('rack_updated') ?? false}
-                          onClick={() => toggleAction('rack_updated')}
-                        />
-                        <FilterChip
-                          label="Rack Deleted"
-                          actionValue="rack_deleted"
-                          isSelected={filters.actions?.includes('rack_deleted') ?? false}
-                          onClick={() => toggleAction('rack_deleted')}
-                        />
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('rack_created') ?? false}
+                          onSelect={() => toggleAction('rack_created')}
+                        >
+                          Rack Created
+                        </Chip>
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('rack_updated') ?? false}
+                          onSelect={() => toggleAction('rack_updated')}
+                        >
+                          Rack Updated
+                        </Chip>
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('rack_deleted') ?? false}
+                          onSelect={() => toggleAction('rack_deleted')}
+                        >
+                          Rack Deleted
+                        </Chip>
                       </div>
                       {/* Box actions */}
                       <div className="flex flex-wrap gap-1">
-                        <FilterChip
-                          label="Box Created"
-                          actionValue="box_created"
-                          isSelected={filters.actions?.includes('box_created') ?? false}
-                          onClick={() => toggleAction('box_created')}
-                        />
-                        <FilterChip
-                          label="Box Updated"
-                          actionValue="box_updated"
-                          isSelected={filters.actions?.includes('box_updated') ?? false}
-                          onClick={() => toggleAction('box_updated')}
-                        />
-                        <FilterChip
-                          label="Box Deleted"
-                          actionValue="box_deleted"
-                          isSelected={filters.actions?.includes('box_deleted') ?? false}
-                          onClick={() => toggleAction('box_deleted')}
-                        />
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('box_created') ?? false}
+                          onSelect={() => toggleAction('box_created')}
+                        >
+                          Box Created
+                        </Chip>
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('box_updated') ?? false}
+                          onSelect={() => toggleAction('box_updated')}
+                        >
+                          Box Updated
+                        </Chip>
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('box_deleted') ?? false}
+                          onSelect={() => toggleAction('box_deleted')}
+                        >
+                          Box Deleted
+                        </Chip>
                       </div>
                       {/* Lab name change */}
                       <div className="flex flex-wrap gap-1">
-                        <FilterChip
-                          label="Lab Name Changed"
-                          actionValue="lab_name_changed"
-                          isSelected={filters.actions?.includes('lab_name_changed') ?? false}
-                          onClick={() => toggleAction('lab_name_changed')}
-                        />
+                        <Chip
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes('lab_name_changed') ?? false}
+                          onSelect={() => toggleAction('lab_name_changed')}
+                        >
+                          Lab Name Changed
+                        </Chip>
                       </div>
                     </div>
                   )}
@@ -571,13 +523,15 @@ export function AuditLogFilterPanel({
                   {openSections.userActions && (
                     <div className="flex flex-wrap gap-1 ml-4">
                       {actionGroups.user.map(action => (
-                        <FilterChip
+                        <Chip
                           key={action.value}
-                          label={action.label}
-                          actionValue={action.value}
-                          isSelected={filters.actions?.includes(action.value) ?? false}
-                          onClick={() => toggleAction(action.value)}
-                        />
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes(action.value) ?? false}
+                          onSelect={() => toggleAction(action.value)}
+                        >
+                          {action.label}
+                        </Chip>
                       ))}
                     </div>
                   )}
@@ -606,13 +560,15 @@ export function AuditLogFilterPanel({
                   {openSections.researcherActions && (
                     <div className="flex flex-wrap gap-1 ml-4">
                       {actionGroups.researcher.map(action => (
-                        <FilterChip
+                        <Chip
                           key={action.value}
-                          label={action.label}
-                          actionValue={action.value}
-                          isSelected={filters.actions?.includes(action.value) ?? false}
-                          onClick={() => toggleAction(action.value)}
-                        />
+                          behavior="selectable"
+                          size="sm"
+                          selected={filters.actions?.includes(action.value) ?? false}
+                          onSelect={() => toggleAction(action.value)}
+                        >
+                          {action.label}
+                        </Chip>
                       ))}
                     </div>
                   )}
@@ -633,13 +589,15 @@ export function AuditLogFilterPanel({
             >
               <div className="flex flex-wrap gap-2">
                 {entityTypes.map(entity => (
-                  <EntityPill
+                  <Chip
                     key={entity.value}
-                    label={entity.label}
-                    entityType={entity.value}
-                    isSelected={filters.entityTypes?.includes(entity.value) ?? false}
-                    onClick={() => toggleEntityType(entity.value)}
-                  />
+                    behavior="selectable"
+                    size="sm"
+                    selected={filters.entityTypes?.includes(entity.value) ?? false}
+                    onSelect={() => toggleEntityType(entity.value)}
+                  >
+                    {entity.label}
+                  </Chip>
                 ))}
               </div>
             </CollapsibleSection>
@@ -664,20 +622,15 @@ export function AuditLogFilterPanel({
                     aria-label="Quick date range presets"
                   >
                     {datePresets.map(preset => (
-                      <button
+                      <Chip
                         key={preset.value}
-                        onClick={() => applyDatePreset(preset.value)}
-                        className={`
-                          px-2 py-0.5 text-xs rounded-full font-medium transition-all focus-ring-default
-                          ${
-                            filters.datePreset === preset.value
-                              ? 'bg-action text-white shadow-sm hover:bg-action-hover'
-                              : 'bg-muted text-secondary-foreground hover:bg-secondary border border-border'
-                          }
-                        `}
+                        behavior="selectable"
+                        size="sm"
+                        selected={filters.datePreset === preset.value}
+                        onSelect={() => applyDatePreset(preset.value)}
                       >
                         {preset.label}
-                      </button>
+                      </Chip>
                     ))}
                   </div>
                 </div>
@@ -737,11 +690,21 @@ export function AuditLogFilterPanel({
         <div className="px-3 py-2 bg-muted border-t border-border rounded-b-lg">
           <div className="flex flex-wrap gap-1 items-center">
             {visibleFilters.map((filter, idx) => (
-              <ActiveFilterChip
+              <Tooltip
+                content={`Remove ${filter.label}`}
+                side="bottom"
                 key={`${filter.label}-${idx}`}
-                label={filter.label}
-                onRemove={filter.onRemove}
-              />
+              >
+                <Chip
+                  behavior="removable"
+                  size="sm"
+                  color="active"
+                  shape="rounded"
+                  onRemove={filter.onRemove}
+                >
+                  {filter.label}
+                </Chip>
+              </Tooltip>
             ))}
             {hiddenCount > 0 && (
               <Button variant="ghost" size="xs" onClick={() => setShowAllFilters(!showAllFilters)}>

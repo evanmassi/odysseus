@@ -16,7 +16,7 @@ import {
   formatPositionRangesForBox,
 } from '@domains/storage';
 import { parsePositionKey } from '@shared/types/GridSelection';
-import { Tooltip } from '@shared/ui';
+import { Chip, Tooltip } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateUtils';
 
 import { useTubeStore } from '../../../stores/tubeStore';
@@ -399,15 +399,17 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </div>
           {selectedTubes.length > 1 && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
-              <span className="inline-flex items-center gap-1 text-xs font-medium text-secondary-foreground bg-muted px-2 py-0.5 rounded-full">
-                <TestTube className="w-2.5 h-2.5" />
+              <Chip size="sm" color="default" leftIcon={<TestTube className="w-2.5 h-2.5" />}>
                 {selectedTubes.length} selected
-              </span>
+              </Chip>
               {hasConflicts && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-600 rounded-full text-xs font-medium">
-                  <AlertTriangle className="w-2.5 h-2.5" />
+                <Chip
+                  size="sm"
+                  color="warning"
+                  leftIcon={<AlertTriangle className="w-2.5 h-2.5" />}
+                >
                   Mixed values
-                </span>
+                </Chip>
               )}
             </div>
           )}
@@ -416,18 +418,13 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {/* Lock Status - Pill badges */}
         {lockInfo && (
           <div className="flex flex-wrap gap-1.5">
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                lockInfo.isOwnLock
-                  ? 'bg-muted text-secondary-foreground'
-                  : lockInfo.isLockedOut
-                    ? 'bg-red-50 text-red-600'
-                    : 'bg-amber-50 text-amber-600'
-              }`}
+            <Chip
+              size="sm"
+              color={lockInfo.isOwnLock ? 'default' : lockInfo.isLockedOut ? 'danger' : 'warning'}
+              leftIcon={<Lock className="w-2.5 h-2.5" />}
             >
-              <Lock className="w-2.5 h-2.5" />
               {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
-            </span>
+            </Chip>
             {ownedLockedTubes.length > 0 ? (
               // Clickable pill for lock owner(s) - can edit note
               <Tooltip
@@ -468,19 +465,17 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             ) : (
               // Non-clickable pill for non-owners - read-only
               firstTube.lockNote && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground">
-                  <Notebook className="w-2.5 h-2.5" />
+                <Chip size="sm" color="default" leftIcon={<Notebook className="w-2.5 h-2.5" />}>
                   {firstTube.lockNote}
-                </span>
+                </Chip>
               )
             )}
             {lockInfo.hasSharedUsers && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-info-light text-info-text">
-                <UsersRound className="w-2.5 h-2.5" />
+              <Chip size="sm" color="info" leftIcon={<UsersRound className="w-2.5 h-2.5" />}>
                 {lockInfo.sharedNames.length > 0
                   ? lockInfo.sharedNames.join(', ')
                   : `${firstTube.sharedWithUserIds!.length} user(s)`}
-              </span>
+              </Chip>
             )}
           </div>
         )}

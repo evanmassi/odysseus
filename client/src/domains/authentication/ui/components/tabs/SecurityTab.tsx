@@ -7,13 +7,13 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import { KeyRound, Save, Eye, EyeOff, Shield, MonitorSmartphone } from 'lucide-react';
+import { KeyRound, Save, Shield, MonitorSmartphone } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
 import { useChangePassword } from '@domains/users/hooks/useChangePassword';
 import { AnimatedCheckmark } from '@shared/components';
 import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
+import { AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { PasswordRequirements } from '../PasswordRequirements';
@@ -39,10 +39,6 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
 
   const [currentPasswordError, setCurrentPasswordError] = useState<string | null>(null);
 
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
   const [passwordRequirements, setPasswordRequirements] = useState<PasswordConfig | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -58,23 +54,10 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
     void fetchRequirements();
   }, []);
 
-  const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'border-border';
-    return isValid ? 'border-emerald-500' : 'input-field-error';
-  };
-
-  const getLabelColorClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'text-secondary-foreground';
-    return isValid ? 'text-emerald-700' : 'text-validation-error-label';
-  };
-
-  // Current password field styling - neutral (no green) with error state only
-  const getCurrentPasswordBorderClass = () => {
-    return currentPasswordError ? 'input-field-error' : 'border-border';
-  };
-
-  const getCurrentPasswordLabelClass = () => {
-    return currentPasswordError ? 'text-validation-error-label' : 'text-secondary-foreground';
+  // Convert touched/valid to AuthInput validation state
+  const getValidationState = (touched: boolean, isValid: boolean) => {
+    if (!touched) return 'default' as const;
+    return isValid ? ('success' as const) : ('error' as const);
   };
 
   const newPasswordMeetsRequirements = useMemo(() => {
@@ -171,98 +154,50 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
 
         {/* Current Password */}
         <div className="space-y-1">
-          <div className={`auth-input-container ${getCurrentPasswordBorderClass()}`}>
-            <label
-              htmlFor="security-currentPassword"
-              className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getCurrentPasswordLabelClass()}`}
-            >
-              Current Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative px-3 py-2">
-              <KeyRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
-              <input
-                type={showCurrentPassword ? 'text' : 'password'}
-                id="security-currentPassword"
-                value={currentPassword}
-                onChange={e => {
-                  setCurrentPassword(e.target.value);
-                  setShowSuccess(false);
-                  // Clear error when user starts typing
-                  if (currentPasswordError) {
-                    setCurrentPasswordError(null);
-                  }
-                }}
-                className="pl-7 pr-10 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
-                placeholder="Enter current password"
-                required
-                disabled={isChanging}
-              />
-              <Button
-                variant="ghost"
-                size="xs"
-                iconOnly
-                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                aria-label={showCurrentPassword ? 'Hide password' : 'Show password'}
-                tabIndex={-1}
-              >
-                {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </Button>
-            </div>
-          </div>
-
+          <AuthInput
+            id="security-currentPassword"
+            type="password"
+            value={currentPassword}
+            onChange={value => {
+              setCurrentPassword(value);
+              setShowSuccess(false);
+              if (currentPasswordError) {
+                setCurrentPasswordError(null);
+              }
+            }}
+            label="Current Password"
+            placeholder="Enter current password"
+            icon={<KeyRound size={16} />}
+            state={currentPasswordError ? 'error' : 'default'}
+            required
+            disabled={isChanging}
+          />
           {currentPasswordError && (
-            <p className="text-[10px] text-red-600 ml-1 mt-1">{currentPasswordError}</p>
+            <p className="text-[10px] text-danger-text ml-1">{currentPasswordError}</p>
           )}
         </div>
 
         {/* New Password */}
         <div className="space-y-1">
-          <div
-            className={`auth-input-container ${getFieldBorderClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}
-          >
-            <label
-              htmlFor="security-newPassword"
-              className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(newPasswordTouched, newPasswordMeetsRequirements && newPasswordIsDifferent)}`}
-            >
-              New Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative px-3 py-2">
-              <KeyRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
-              <input
-                type={showNewPassword ? 'text' : 'password'}
-                id="security-newPassword"
-                value={newPassword}
-                onChange={e => {
-                  setNewPassword(e.target.value);
-                  setShowSuccess(false);
-                }}
-                onBlur={() => setNewPasswordTouched(true)}
-                className="pl-7 pr-10 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
-                placeholder="Enter new password"
-                required
-                disabled={isChanging}
-              />
-              <Button
-                variant="ghost"
-                size="xs"
-                iconOnly
-                onClick={() => setShowNewPassword(!showNewPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                aria-label={showNewPassword ? 'Hide password' : 'Show password'}
-                tabIndex={-1}
-              >
-                {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </Button>
-            </div>
-          </div>
-
+          <AuthInput
+            id="security-newPassword"
+            type="password"
+            value={newPassword}
+            onChange={value => {
+              setNewPassword(value);
+              setShowSuccess(false);
+            }}
+            onBlur={() => setNewPasswordTouched(true)}
+            label="New Password"
+            placeholder="Enter new password"
+            icon={<KeyRound size={16} />}
+            state={getValidationState(
+              newPasswordTouched,
+              newPasswordMeetsRequirements && newPasswordIsDifferent
+            )}
+            required
+            disabled={isChanging}
+          />
           {passwordRequirements && (
             <PasswordRequirements
               password={newPassword}
@@ -270,9 +205,8 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               showError={newPasswordTouched && !newPasswordMeetsRequirements}
             />
           )}
-
           {!newPasswordIsDifferent && newPasswordTouched && (
-            <p className="text-[10px] text-red-600 ml-1 mt-1">
+            <p className="text-[10px] text-danger-text ml-1">
               New password must be different from current password
             </p>
           )}
@@ -280,50 +214,24 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
 
         {/* Confirm Password */}
         <div className="space-y-1">
-          <div
-            className={`auth-input-container ${getFieldBorderClass(confirmPasswordTouched, passwordsMatch)}`}
-          >
-            <label
-              htmlFor="security-confirmPassword"
-              className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(confirmPasswordTouched, passwordsMatch)}`}
-            >
-              Confirm Password <span className="text-red-500">*</span>
-            </label>
-            <div className="relative px-3 py-2">
-              <KeyRound
-                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
-                size={16}
-              />
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="security-confirmPassword"
-                value={confirmPassword}
-                onChange={e => {
-                  setConfirmPassword(e.target.value);
-                  setShowSuccess(false);
-                }}
-                onBlur={() => setConfirmPasswordTouched(true)}
-                className="pl-7 pr-10 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
-                placeholder="Confirm new password"
-                required
-                disabled={isChanging}
-              />
-              <Button
-                variant="ghost"
-                size="xs"
-                iconOnly
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2"
-                aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
-                tabIndex={-1}
-              >
-                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </Button>
-            </div>
-          </div>
-
+          <AuthInput
+            id="security-confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={value => {
+              setConfirmPassword(value);
+              setShowSuccess(false);
+            }}
+            onBlur={() => setConfirmPasswordTouched(true)}
+            label="Confirm Password"
+            placeholder="Confirm new password"
+            icon={<KeyRound size={16} />}
+            state={getValidationState(confirmPasswordTouched, passwordsMatch)}
+            required
+            disabled={isChanging}
+          />
           {confirmPasswordTouched && !passwordsMatch && confirmPassword.length > 0 && (
-            <p className="text-[10px] text-red-600 ml-1 mt-1">Passwords do not match</p>
+            <p className="text-[10px] text-danger-text ml-1">Passwords do not match</p>
           )}
         </div>
 

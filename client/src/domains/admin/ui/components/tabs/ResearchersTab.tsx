@@ -17,7 +17,7 @@ import { sortByName } from '@odysseus/shared-schemas';
 import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Info } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Tooltip, Table } from '@shared/ui';
+import { Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils';
@@ -260,15 +260,13 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       render: (_, row) => {
         const researcher = row as unknown as AdminResearcher;
         return (
-          <span
-            className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
-              researcher.tubeCount === 0
-                ? 'bg-muted text-secondary-foreground'
-                : 'bg-muted text-action-hover border border-action/30'
-            }`}
+          <Chip
+            size="sm"
+            color="default"
+            className={researcher.tubeCount > 0 ? 'text-action-hover border border-action/30' : ''}
           >
             {researcher.tubeCount}
-          </span>
+          </Chip>
         );
       },
     },

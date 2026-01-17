@@ -49,7 +49,8 @@
       "Bash(npm run type-check:*)",
       "Bash(npx eslint:*)",
       "Bash(npm uninstall:*)",
-      "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\public\\\\favicon.ico\")"
+      "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\public\\\\favicon.ico\")",
+      "Bash(pushd:*)"
     ]
   }
 }
