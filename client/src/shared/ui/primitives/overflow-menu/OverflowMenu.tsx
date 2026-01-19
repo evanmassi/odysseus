@@ -1,8 +1,9 @@
 /**
  * OverflowMenu Component
  *
- * A vertical three-dot menu (⋮) that opens a dropdown with action items.
+ * A vertical three-dot menu that opens a dropdown with action items.
  * Uses portal-based rendering to escape overflow containers.
+ * Implements WAI-ARIA Menu Button pattern for full keyboard accessibility.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -10,30 +11,44 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { MoreVertical } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
+import { useMenuKeyboardNavigation } from '@shared/hooks/keyboard';
+
 import type { OverflowMenuProps, OverflowMenuItem } from './types';
 
 function MenuDivider() {
-  return <div className="h-px bg-secondary my-1" />;
+  return <div className="h-px bg-border my-1" />;
 }
 
 function MenuItem({ item, onClose }: { item: OverflowMenuItem; onClose: () => void }) {
   const Icon = item.icon;
 
+  const handleClick = () => {
+    if (!item.disabled) {
+      item.onClick();
+      onClose();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      handleClick();
+    }
+  };
+
   return (
     <button
       type="button"
-      onClick={() => {
-        if (!item.disabled) {
-          item.onClick();
-          onClose();
-        }
-      }}
+      role="menuitem"
+      tabIndex={0}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
       disabled={item.disabled}
       className={`
         w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
-        ${item.danger ? 'text-secondary-foreground hover:bg-danger-light hover:text-danger-text' : 'text-secondary-foreground hover:bg-accent'}
+        ${item.danger ? 'text-secondary-foreground hover:bg-danger-light hover:text-danger-text dark:hover:text-danger-text-hover' : 'text-secondary-foreground hover:bg-accent'}
       `}
     >
       <Icon
@@ -59,6 +74,18 @@ export function OverflowMenu({
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
+  // Keyboard navigation (WAI-ARIA Menu Button pattern)
+  const { handleKeyDown, handleBlur } = useMenuKeyboardNavigation({
+    menuRef,
+    triggerRef,
+    isOpen,
+    onClose: handleClose,
+  });
 
   // Calculate position when menu opens
   const updatePosition = useCallback(() => {
@@ -126,27 +153,8 @@ export function OverflowMenu({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
-  // Handle escape key to close
-  useEffect(() => {
-    if (!isOpen) return;
-
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setIsOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, [isOpen]);
-
   const handleToggle = () => {
     setIsOpen(prev => !prev);
-  };
-
-  const handleClose = () => {
-    setIsOpen(false);
   };
 
   // Size classes for trigger button
@@ -185,7 +193,11 @@ export function OverflowMenu({
             left: position.left,
           }}
           role="menu"
+          aria-label={ariaLabel}
           aria-hidden={!isOpen}
+          tabIndex={-1}
+          onKeyDown={handleKeyDown}
+          onBlur={handleBlur}
         >
           <div className="px-1">
             {items.map((item, index) => (

@@ -18,6 +18,7 @@ export type ButtonVariant =
   | 'info' // Informational action button
   | 'ghost' // Minimal button (no border/background)
   | 'ghost-danger' // Ghost button with danger styling (for toolbar delete actions)
+  | 'ghost-warning' // Ghost button with warning styling (for toolbar warning actions)
   | 'cancel' // Cancel/dismiss button
   | 'clear'; // Clear/reset action button
 
@@ -185,6 +186,7 @@ export const isButtonVariant = (value: string): value is ButtonVariant => {
     'info',
     'ghost',
     'ghost-danger',
+    'ghost-warning',
     'cancel',
     'clear',
   ].includes(value);

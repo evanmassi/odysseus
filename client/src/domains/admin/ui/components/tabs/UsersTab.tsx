@@ -451,7 +451,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
           <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
             <Tooltip content="Reset password" side="bottom">
               <Button
-                variant="warning"
+                variant="ghost-warning"
                 size="xs"
                 iconOnly
                 onClick={() => {
@@ -490,7 +490,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
             )}
             <Tooltip content="Delete user" side="bottom">
               <Button
-                variant="danger"
+                variant="ghost-danger"
                 size="xs"
                 iconOnly
                 onClick={() => handleDeleteUser(user.id, user.username)}

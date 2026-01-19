@@ -132,7 +132,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ${fullWidth ? 'w-full' : 'w-auto'}
           bg-card border
           text-card-foreground
-          placeholder:text-muted-foreground placeholder:opacity-60
+          placeholder:text-muted-foreground placeholder:opacity-40
           transition-colors duration-200
           focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0
           disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted

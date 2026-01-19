@@ -209,7 +209,7 @@ export function TubeGrid({
   if (error) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center">
-        <div className="text-red-600 mb-4">Failed to load tubes</div>
+        <div className="text-validation-error-text mb-4">Failed to load tubes</div>
         <div className="text-sm text-muted-foreground">
           {boxId ? `${tankId} › Rack ${rackId} › Box ${boxId}` : `${tankId} › Rack ${rackId}`}
         </div>

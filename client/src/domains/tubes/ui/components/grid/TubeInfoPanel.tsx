@@ -237,28 +237,40 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return (
       <div style={{ minWidth: '280px' }}>
         <div className="space-y-3">
-          {/* Position Header - Vertical stack layout */}
+          {/* Location Header - Breadcrumb + Position */}
           <div className="bg-muted rounded-md px-3 py-2.5">
-            <div className="flex items-center gap-1.5 text-card-foreground/60 text-xs tracking-wider mb-2">
-              <MapPin className="w-3 h-3" />
-              <span>{tankName}</span>
+            {/* Breadcrumb path */}
+            <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
+              <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+              <Tooltip content={tankName} side="bottom">
+                <span className="text-card-foreground font-medium truncate max-w-24">
+                  {tankName}
+                </span>
+              </Tooltip>
+              <span className="text-muted-foreground flex-shrink-0">›</span>
+              <Tooltip content={rackName} side="bottom">
+                <span className="text-card-foreground font-medium truncate max-w-24">
+                  {rackName}
+                </span>
+              </Tooltip>
+              <span className="text-muted-foreground flex-shrink-0">›</span>
+              <Tooltip content={boxName} side="bottom">
+                <span className="text-card-foreground font-medium truncate max-w-24">
+                  {boxName}
+                </span>
+              </Tooltip>
             </div>
-            <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-              <span className="text-muted-foreground text-xs">Rack</span>
-              <span className="text-card-foreground font-medium text-sm">{rackName}</span>
-              <span className="text-muted-foreground text-xs">Box</span>
-              <span className="text-card-foreground font-medium text-sm">{boxName}</span>
-              {formattedPositions && (
-                <>
-                  <span className="text-muted-foreground text-xs">
-                    Position{positionCount > 1 ? 's' : ''}
-                  </span>
-                  <span className="text-card-foreground font-medium text-sm">
-                    {formattedPositions}
-                  </span>
-                </>
-              )}
-            </div>
+            {/* Position line */}
+            {formattedPositions && (
+              <div className="flex items-baseline gap-1.5 mt-1.5">
+                <span className="text-muted-foreground text-xs">
+                  Position{positionCount > 1 ? 's' : ''}:
+                </span>
+                <span className="text-card-foreground font-medium text-sm">
+                  {formattedPositions}
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Placeholder Message */}
@@ -381,18 +393,26 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   return (
     <div style={{ minWidth: '280px' }}>
       <div className="space-y-3">
-        {/* Position Header - Vertical stack layout */}
+        {/* Location Header - Breadcrumb + Position */}
         <div className="bg-muted rounded-md px-3 py-2.5">
-          <div className="flex items-center gap-1.5 text-card-foreground/60 text-xs tracking-wider mb-2">
-            <MapPin className="w-3 h-3" />
-            <span>{tankName}</span>
+          {/* Breadcrumb path */}
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
+            <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+            <Tooltip content={tankName} side="bottom">
+              <span className="text-card-foreground font-medium truncate max-w-24">{tankName}</span>
+            </Tooltip>
+            <span className="text-muted-foreground flex-shrink-0">›</span>
+            <Tooltip content={rackName} side="bottom">
+              <span className="text-card-foreground font-medium truncate max-w-24">{rackName}</span>
+            </Tooltip>
+            <span className="text-muted-foreground flex-shrink-0">›</span>
+            <Tooltip content={boxName} side="bottom">
+              <span className="text-card-foreground font-medium truncate max-w-24">{boxName}</span>
+            </Tooltip>
           </div>
-          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1">
-            <span className="text-muted-foreground text-xs">Rack</span>
-            <span className="text-card-foreground font-medium text-sm">{rackName}</span>
-            <span className="text-muted-foreground text-xs">Box</span>
-            <span className="text-card-foreground font-medium text-sm">{boxName}</span>
-            <span className="text-muted-foreground text-xs">{positionSummary.positionLabel}</span>
+          {/* Position line */}
+          <div className="flex items-baseline gap-1.5 mt-1.5">
+            <span className="text-muted-foreground text-xs">{positionSummary.positionLabel}:</span>
             <span className="text-card-foreground font-medium text-sm">
               {positionSummary.formattedPositions}
             </span>

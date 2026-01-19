@@ -485,7 +485,7 @@ export function AppHeader({
                   </div>
                 )}
 
-                <div className="h-px bg-secondary my-1" />
+                <div className="h-px bg-border my-1" />
 
                 {/* User Settings */}
                 <div className="px-1">
@@ -525,7 +525,7 @@ export function AppHeader({
                         setShowAdminPanel(true);
                         setShowHamburgerMenu(false);
                       }}
-                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-red-50 hover:text-red-600 transition-colors focus-ring-default"
+                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-danger-light hover:text-danger-text dark:hover:text-danger-text-hover transition-colors focus-ring-default"
                     >
                       <ShieldUser size={16} className="text-muted-foreground" />
                       <span>Admin Settings</span>
@@ -533,7 +533,7 @@ export function AppHeader({
                   )}
                 </div>
 
-                <div className="h-px bg-secondary my-1" />
+                <div className="h-px bg-border my-1" />
 
                 {/* Logout */}
                 <div className="px-1">

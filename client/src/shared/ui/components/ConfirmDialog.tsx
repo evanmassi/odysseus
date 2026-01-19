@@ -67,8 +67,7 @@ export interface ConfirmDialogProps {
 function getVariantStyles(variant: 'danger' | 'warning') {
   if (variant === 'danger') {
     return {
-      iconBg: 'bg-danger-light',
-      iconColor: 'text-danger-bg',
+      iconColor: 'text-danger-text',
       border: 'border-danger-border',
       shadowColor: 'hsl(var(--color-danger-bg))',
       buttonVariant: 'danger' as ButtonVariant,
@@ -77,8 +76,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
 
   // Warning variant
   return {
-    iconBg: 'bg-warning-light',
-    iconColor: 'text-warning-bg',
+    iconColor: 'text-warning-text',
     border: 'border-warning-border',
     shadowColor: 'hsl(var(--color-warning-bg))',
     buttonVariant: 'warning' as ButtonVariant,
@@ -199,9 +197,7 @@ export function ConfirmDialog({
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className={`p-2 ${styles.iconBg} rounded-full`}>
-                <AlertTriangle className={`w-6 h-6 ${styles.iconColor}`} />
-              </div>
+              <AlertTriangle className={`w-6 h-6 ${styles.iconColor}`} />
               <h2 id="confirm-dialog-title" className="text-xl font-bold text-card-foreground">
                 {title}
               </h2>

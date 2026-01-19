@@ -108,7 +108,7 @@ export function VerifyEmailPage() {
     <div className="min-h-screen bg-gradient-to-br from-primary via-blue-600 to-blue-700 flex items-center justify-center p-4">
       <div className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border border-border">
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center shadow-lg">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-danger-bg to-danger-hover flex items-center justify-center shadow-lg">
             <XCircle className="w-10 h-10 text-white" />
           </div>
         </div>
@@ -118,9 +118,11 @@ export function VerifyEmailPage() {
           <p className="text-secondary-foreground">{error}</p>
         </div>
 
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-red-800 font-medium mb-2">Common reasons for failure:</p>
-          <ul className="text-sm text-red-700 space-y-1 list-disc list-inside">
+        <div className="bg-validation-error-bg border border-validation-error-border rounded-lg p-4 mb-6">
+          <p className="text-sm text-validation-error-text font-medium mb-2">
+            Common reasons for failure:
+          </p>
+          <ul className="text-sm text-validation-error-text space-y-1 list-disc list-inside">
             <li>Verification link expired (48 hours)</li>
             <li>Link already used</li>
             <li>Invalid or corrupted token</li>

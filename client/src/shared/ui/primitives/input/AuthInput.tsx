@@ -127,7 +127,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
             maxLength={maxLength}
             // eslint-disable-next-line jsx-a11y/no-autofocus -- Controlled by parent for intentional UX
             autoFocus={autoFocus}
-            className={`${icon ? 'pl-7' : ''} ${isPasswordType ? 'pr-8' : ''} text-sm placeholder:text-muted-foreground placeholder:opacity-45 ${inputTextClass}`}
+            className={`${icon ? 'pl-7' : ''} ${isPasswordType ? 'pr-8' : ''} text-sm placeholder:text-muted-foreground placeholder:opacity-40 ${inputTextClass}`}
             placeholder={placeholder}
           />
           {isPasswordType && (

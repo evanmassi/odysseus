@@ -51,7 +51,10 @@
       "Bash(npm uninstall:*)",
       "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\public\\\\favicon.ico\")",
       "Bash(pushd:*)",
-      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\ui\\\\primitives\\\\grid\")"
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\ui\\\\primitives\\\\grid\")",
+      "WebFetch(domain:docs.stripe.com)",
+      "WebFetch(domain:ui.jln.dev)",
+      "WebFetch(domain:medium.com)"
     ]
   }
 }

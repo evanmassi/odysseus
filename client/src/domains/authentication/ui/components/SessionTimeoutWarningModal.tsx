@@ -149,7 +149,7 @@ export function SessionTimeoutWarningModal() {
     iconBg: isUrgent ? 'bg-danger-light' : 'bg-warning-light',
     iconColor: isUrgent ? 'text-danger-bg' : 'text-warning-bg',
     border: isUrgent ? 'border-danger-border' : 'border-warning-border',
-    shadow: isUrgent ? 'shadow-red-500/30' : 'shadow-yellow-500/30',
+    shadow: isUrgent ? 'shadow-danger-bg/30' : 'shadow-warning-bg/30',
     timerColor: isUrgent ? 'text-danger-bg' : 'text-warning-bg',
   };
 

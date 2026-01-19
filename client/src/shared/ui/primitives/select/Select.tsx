@@ -404,7 +404,14 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       }
 
       if (selectedOptions.length === 0) {
-        return <span className="text-muted-foreground">{placeholder}</span>;
+        return <span className="text-muted-foreground opacity-40">{placeholder}</span>;
+      }
+
+      // Treat empty-value options as placeholders (e.g., { value: '', label: 'Select...' })
+      const firstOption = selectedOptions[0];
+      const isEmptyValueOption = firstOption.value === '' || firstOption.value === null;
+      if (isEmptyValueOption && !multiple) {
+        return <span className="text-muted-foreground opacity-40">{firstOption.label}</span>;
       }
 
       // Use custom renderValue if provided
@@ -416,7 +423,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
         return <span className="text-foreground">{selectedOptions.length} items selected</span>;
       }
 
-      const firstOption = selectedOptions[0];
       return (
         <span className="text-foreground flex items-center gap-2">
           {firstOption.icon && <span>{firstOption.icon}</span>}
@@ -524,7 +530,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search options..."
-                  className="w-full px-2 py-1 text-sm border border-border rounded bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-action"
+                  className="w-full px-2 py-1 text-sm border border-border rounded bg-background text-foreground placeholder:text-muted-foreground placeholder:opacity-40 focus:outline-none focus:ring-1 focus:ring-action"
                 />
               </div>
             )}

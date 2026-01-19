@@ -5,7 +5,7 @@
  * Supports validation, multiple variants, sizes, and full WCAG AA compliance
  */
 
-import React, { forwardRef, useState, useId, useCallback } from 'react';
+import React, { forwardRef, useState, useId, useCallback, useEffect } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -22,7 +22,7 @@ const inputVariants = cva(
 
     // Typography using design tokens
     'font-normal text-base text-foreground',
-    'placeholder:text-muted-foreground',
+    'placeholder:text-muted-foreground placeholder:opacity-40',
 
     // Transitions
     'transition-all duration-200 ease-out',
@@ -386,6 +386,19 @@ export const Input = forwardRef<InputRef, InputProps>(
     // Internal validation state
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
 
+    // Track if date input has a value (for placeholder styling)
+    const [dateHasValue, setDateHasValue] = useState(() => {
+      if (type !== 'date') return false;
+      return Boolean(value ?? defaultValue);
+    });
+
+    // Sync dateHasValue when controlled value changes
+    useEffect(() => {
+      if (type === 'date' && value !== undefined) {
+        setDateHasValue(Boolean(value));
+      }
+    }, [type, value]);
+
     // Determine current state
     const getCurrentState = useCallback(() => {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to determine input state
@@ -435,11 +448,16 @@ export const Input = forwardRef<InputRef, InputProps>(
         onChange?.(event);
         onValueChange?.(newValue);
 
+        // Track date value for placeholder styling
+        if (type === 'date') {
+          setDateHasValue(Boolean(newValue));
+        }
+
         if (validateOn === 'change') {
           void runValidation(newValue);
         }
       },
-      [onChange, onValueChange, validateOn, runValidation]
+      [onChange, onValueChange, validateOn, runValidation, type]
     );
 
     // Handle input blur
@@ -535,7 +553,13 @@ export const Input = forwardRef<InputRef, InputProps>(
             ref={ref}
             id={id}
             type={type}
-            className={inputClasses}
+            className={`${inputClasses}${
+              type === 'date'
+                ? dateHasValue
+                  ? ' has-value text-foreground'
+                  : ' text-muted-foreground/40'
+                : ''
+            }`}
             placeholder={placeholder}
             value={value}
             defaultValue={defaultValue}

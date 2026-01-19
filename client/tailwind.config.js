@@ -55,8 +55,10 @@ export default {
           bg: 'hsl(var(--color-danger-bg) / <alpha-value>)',
           hover: 'hsl(var(--color-danger-hover) / <alpha-value>)',
           text: 'hsl(var(--color-danger-text) / <alpha-value>)',
+          'text-hover': 'hsl(var(--color-danger-text-hover) / <alpha-value>)',
           btnText: 'hsl(var(--color-danger-btnText) / <alpha-value>)',
           light: 'hsl(var(--color-danger-light) / <alpha-value>)',
+          'light-hover': 'hsl(var(--color-danger-light-hover) / <alpha-value>)',
           border: 'hsl(var(--color-danger-border) / <alpha-value>)',
         },
         clear: {
@@ -68,8 +70,10 @@ export default {
           bg: 'hsl(var(--color-warning-bg) / <alpha-value>)',
           hover: 'hsl(var(--color-warning-hover) / <alpha-value>)',
           text: 'hsl(var(--color-warning-text) / <alpha-value>)',
+          'text-hover': 'hsl(var(--color-warning-text-hover) / <alpha-value>)',
           btnText: 'hsl(var(--color-warning-btnText) / <alpha-value>)',
           light: 'hsl(var(--color-warning-light) / <alpha-value>)',
+          'light-hover': 'hsl(var(--color-warning-light-hover) / <alpha-value>)',
           border: 'hsl(var(--color-warning-border) / <alpha-value>)',
         },
         lock: {

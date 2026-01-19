@@ -66,8 +66,8 @@ const buttonVariants = cva(
         // Danger - destructive actions
         danger: [
           'bg-danger-light text-danger-text border border-danger-light',
-          'hover:bg-danger-border hover:border-danger-border',
-          'active:bg-danger-border',
+          'hover:bg-danger-light-hover hover:border-danger-light-hover',
+          'active:bg-danger-light-hover',
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 
@@ -105,8 +105,15 @@ const buttonVariants = cva(
         // Ghost Danger - ghost button with danger styling (for toolbar delete actions)
         'ghost-danger': [
           'bg-transparent text-danger-text border-transparent',
-          'hover:bg-danger-light hover:text-danger-bg',
+          'hover:bg-danger-light hover:text-danger-text dark:hover:text-danger-text-hover',
           'active:bg-danger-light',
+        ],
+
+        // Ghost Warning - ghost button with warning styling (for toolbar warning actions)
+        'ghost-warning': [
+          'bg-transparent text-warning-text border-transparent',
+          'hover:bg-warning-light hover:text-warning-text dark:hover:text-warning-text-hover',
+          'active:bg-warning-light',
         ],
 
         // Cancel - dialog cancel actions

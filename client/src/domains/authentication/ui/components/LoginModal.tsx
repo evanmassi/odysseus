@@ -204,9 +204,9 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
       {/* Generic Login Error Banner */}
       {loginError && !isEmailVerificationError && (
-        <div className="mb-4 px-3 py-2 bg-danger-light border-l-4 border-l-danger-border rounded-lg shadow-sm flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
-          <AlertTriangle className="w-4 h-4 text-danger-text flex-shrink-0" />
-          <span className="text-sm text-danger-text">{loginError}</span>
+        <div className="mb-4 px-3 py-2 bg-validation-error-bg border-l-4 border-l-validation-error-border rounded-lg shadow-sm flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
+          <AlertTriangle className="w-4 h-4 text-validation-error-icon flex-shrink-0" />
+          <span className="text-sm text-validation-error-text">{loginError}</span>
         </div>
       )}
 

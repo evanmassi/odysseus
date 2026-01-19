@@ -377,7 +377,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
 
       {/* Error State */}
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded text-sm">
+        <div className="bg-validation-error-bg border border-validation-error-border text-validation-error-text px-3 py-2 rounded text-sm">
           {error}
         </div>
       )}
