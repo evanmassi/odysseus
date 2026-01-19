@@ -11,7 +11,7 @@ import { X } from 'lucide-react';
 
 import { defaultChipProps } from './types';
 
-import type { ChipProps, ChipRef, ChipEntityType } from './types';
+import type { ChipProps, ChipRef } from './types';
 
 const chipVariants = cva(
   [
@@ -25,11 +25,11 @@ const chipVariants = cva(
         default: 'bg-muted text-secondary-foreground',
         primary: 'bg-action-light text-action',
         active: 'bg-chip-active text-chip-active-foreground hover:bg-chip-active-hover',
+        inverted: 'bg-muted-foreground text-background',
         success: 'bg-success-light text-success-text',
         warning: 'bg-warning-light text-warning-text',
         danger: 'bg-danger-light text-danger-text',
         info: 'bg-info-light text-info-text',
-        entity: '',
       },
       size: {
         xs: 'h-5 px-1.5 text-[10px]',
@@ -80,18 +80,17 @@ const chipVariants = cva(
   }
 );
 
-const entityColors: Record<ChipEntityType, string> = {
-  storage: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  sample: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  user: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-  researcher: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-};
-
 interface RemoveButtonProps {
   onClick: (e: React.MouseEvent) => void;
   disabled?: boolean;
   size: 'xs' | 'sm' | 'md';
 }
+
+const iconSizeClasses: Record<'xs' | 'sm' | 'md', string> = {
+  xs: '[&>svg]:w-2.5 [&>svg]:h-2.5',
+  sm: '[&>svg]:w-3 [&>svg]:h-3',
+  md: '[&>svg]:w-3.5 [&>svg]:h-3.5',
+};
 
 function RemoveButton({ onClick, disabled, size }: RemoveButtonProps) {
   const iconSizes = {
@@ -125,7 +124,6 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       onSelect,
       onRemove,
       leftIcon,
-      entityType,
       disabled = defaultChipProps.disabled,
       count,
       'aria-label': ariaLabel,
@@ -134,18 +132,16 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     ref
   ) => {
     const isInteractive = behavior !== 'static';
-    const effectiveColor = entityType ? 'entity' : color;
 
     const chipClasses = [
       chipVariants({
-        color: effectiveColor,
+        color,
         size: size!,
         shape,
         behavior,
         selected,
         disabled,
       }),
-      entityType ? entityColors[entityType] : '',
       className,
     ]
       .filter(Boolean)
@@ -174,7 +170,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
 
     const content = (
       <>
-        {leftIcon && <span className="flex-shrink-0">{leftIcon}</span>}
+        {leftIcon && <span className={`flex-shrink-0 ${iconSizeClasses[size!]}`}>{leftIcon}</span>}
         <span>{children}</span>
         {count !== undefined && (
           <span className="ml-1 rounded-full bg-black/10 dark:bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none">

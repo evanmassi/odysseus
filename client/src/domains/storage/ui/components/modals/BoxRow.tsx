@@ -4,6 +4,7 @@ import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { Edit3, Trash2 } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
+import { getOwnershipIndicatorStyles, type OwnershipType } from '@shared/ui/components/badges';
 import { BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -40,26 +41,19 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
   const isExplicitlyCommon = box.assignedUserId === null;
   const isUnassigned = !effectiveOwnerId;
 
-  // Left border accent with subtle tint
-  const leftBorderClass = isBoxOwnedByUser
-    ? 'border-l-ownership-user-badge'
+  const ownershipType: OwnershipType = isBoxOwnedByUser
+    ? 'currentUser'
     : isUnassigned || isExplicitlyCommon
-      ? 'border-l-ownership-unassigned-badge'
-      : 'border-l-ownership-other-badge';
-
-  // Badge colors - centralized via CSS variables
-  const badgeClass = isBoxOwnedByUser
-    ? 'bg-ownership-user-badge text-white'
-    : isUnassigned || isExplicitlyCommon
-      ? 'bg-ownership-unassigned-badge text-white'
-      : 'bg-ownership-other-badge text-white';
+      ? 'unassigned'
+      : 'otherUser';
+  const ownershipStyles = getOwnershipIndicatorStyles(ownershipType);
 
   // Show non-admin custom label button on Row 1
   const showInlineCustomLabel = !canManageStorage && canEditResource(box, rack);
 
   return (
     <div
-      className={`flex gap-1.5 py-0.5 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${leftBorderClass}`}
+      className={`flex gap-1.5 py-0.5 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${ownershipStyles.border}`}
     >
       {/* Left side - vertically centered between rows */}
       <div className="flex items-center self-center">
@@ -79,7 +73,9 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
             <span className="font-medium text-card-foreground text-xs">
               {formatResourceDisplayName(box.name, box.customLabel)}
             </span>
-            <span className={`text-xs px-2 py-0.5 rounded ml-auto ${badgeClass}`}>
+            <span
+              className={`text-xs px-2 py-0.5 rounded ml-auto ${ownershipStyles.background} ${ownershipStyles.text}`}
+            >
               {box.gridConfig.rows}×{box.gridConfig.cols}
             </span>
           </div>

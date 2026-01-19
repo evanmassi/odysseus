@@ -4,6 +4,7 @@ import { formatResourceDisplayName, type UserDisplayInfo } from '@odysseus/share
 import { UsersRound, ChevronDown, ChevronRight, UserRoundX, UserRoundPen } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
+import { getOwnershipIndicatorStyles, type OwnershipType } from '@shared/ui/components/badges';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -230,22 +231,15 @@ export function AssignmentsByUserView({
         const isCurrentUser = userAssignment.userId === currentUserId;
         const isUnassigned = userAssignment.userId === null;
 
-        // Left border accent with subtle tint
-        const headerLeftBorder = isCurrentUser
-          ? 'border-l-ownership-user-badge'
+        const ownershipType: OwnershipType = isCurrentUser
+          ? 'currentUser'
           : isUnassigned
-            ? 'border-l-ownership-unassigned-badge'
-            : 'border-l-ownership-other-badge';
+            ? 'unassigned'
+            : 'otherUser';
+        const ownershipStyles = getOwnershipIndicatorStyles(ownershipType);
 
         // Hover-only background for cleaner look
         const headerBg = 'hover:bg-accent/50 transition-colors';
-
-        // Badge colors - centralized via CSS variables
-        const badgeBg = isCurrentUser
-          ? 'bg-ownership-user-badge'
-          : isUnassigned
-            ? 'bg-ownership-unassigned-badge'
-            : 'bg-ownership-other-badge';
 
         // Group assignments by rack for better display
         const racks = userAssignment.assignments.filter(a => a.type === 'rack');
@@ -260,7 +254,9 @@ export function AssignmentsByUserView({
         return (
           <div key={userAssignment.userId ?? 'unassigned'} className="rounded-lg overflow-hidden">
             {/* User Header */}
-            <div className={`flex gap-3 px-3 py-2 ${headerBg} border-l-4 ${headerLeftBorder}`}>
+            <div
+              className={`flex gap-3 px-3 py-2 ${headerBg} border-l-4 ${ownershipStyles.border}`}
+            >
               {/* Left side - vertically centered between rows */}
               <div className="flex items-center gap-2 self-center">
                 <button
@@ -275,7 +271,7 @@ export function AssignmentsByUserView({
 
                 {/* User Avatar/Initials */}
                 <div
-                  className={`w-6 h-6 rounded-full ${badgeBg} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
+                  className={`w-6 h-6 rounded-full ${ownershipStyles.background} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
                 >
                   {isUnassigned ? <UsersRound size={14} /> : userAssignment.initials}
                 </div>
@@ -302,7 +298,7 @@ export function AssignmentsByUserView({
                   <div className="flex items-center gap-2 text-xs ml-auto">
                     {userAssignment.rackCount > 0 && (
                       <span
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded text-white ${badgeBg}`}
+                        className={`flex items-center gap-1 px-2 py-0.5 rounded ${ownershipStyles.background} ${ownershipStyles.text}`}
                       >
                         <RackIcon size={12} />
                         {userAssignment.rackCount}
@@ -310,7 +306,7 @@ export function AssignmentsByUserView({
                     )}
                     {userAssignment.boxCount > 0 && (
                       <span
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded text-white ${badgeBg}`}
+                        className={`flex items-center gap-1 px-2 py-0.5 rounded ${ownershipStyles.background} ${ownershipStyles.text}`}
                       >
                         <BoxIcon size={12} />
                         {userAssignment.boxCount}
@@ -458,29 +454,11 @@ export function AssignmentsByUserView({
                       return a.rackId.localeCompare(b.rackId);
                     });
 
-                  // Rack row styling - left border accent only, hover-only background
-                  const rackLeftBorderClass = isCurrentUser
-                    ? 'border-l-ownership-user-badge'
-                    : isUnassigned
-                      ? 'border-l-ownership-unassigned-badge'
-                      : 'border-l-ownership-other-badge';
-                  // Badge colors - centralized via CSS variables
-                  const rackBadgeClass = isCurrentUser
-                    ? 'bg-ownership-user-badge text-white'
-                    : isUnassigned
-                      ? 'bg-ownership-unassigned-badge text-white'
-                      : 'bg-ownership-other-badge text-white';
-                  const boxLeftBorderClass = isCurrentUser
-                    ? 'border-l-ownership-user-badge'
-                    : isUnassigned
-                      ? 'border-l-ownership-unassigned-badge'
-                      : 'border-l-ownership-other-badge';
-
                   return rackGroups.map(rackGroup => (
                     <div key={`rack-${rackGroup.tankId}-${rackGroup.rackId}`}>
                       {/* Rack row - styled like tree view */}
                       <div
-                        className={`flex items-center gap-1.5 py-1 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${rackLeftBorderClass}`}
+                        className={`flex items-center gap-1.5 py-1 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${ownershipStyles.border}`}
                       >
                         <StorageManagerContext.Consumer>
                           {ctx =>
@@ -509,7 +487,7 @@ export function AssignmentsByUserView({
                           )}
                           {rackGroup.boxes.length > 0 && (
                             <span
-                              className={`text-xs px-2 py-0.5 rounded ml-auto ${rackBadgeClass}`}
+                              className={`text-xs px-2 py-0.5 rounded ml-auto ${ownershipStyles.background} ${ownershipStyles.text}`}
                             >
                               {rackGroup.boxes.length}{' '}
                               {rackGroup.boxes.length === 1 ? 'box' : 'boxes'}
@@ -524,7 +502,7 @@ export function AssignmentsByUserView({
                           {rackGroup.boxes.map(box => (
                             <div
                               key={`box-${box.tankId}-${box.rackId}-${box.boxId}`}
-                              className={`flex items-center gap-1.5 py-0.5 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${boxLeftBorderClass}`}
+                              className={`flex items-center gap-1.5 py-0.5 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${ownershipStyles.border}`}
                             >
                               <StorageManagerContext.Consumer>
                                 {ctx =>

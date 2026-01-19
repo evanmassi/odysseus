@@ -132,13 +132,14 @@ export const GridPosition = memo<GridPositionProps>(
       `}
         style={
           {
-            backgroundColor: colors?.backgroundColor ?? '#f8f9fa',
-            color: colors?.textColor ?? (tube ? '#000' : '#999'),
+            backgroundColor: colors?.backgroundColor ?? 'var(--grid-empty)',
+            color:
+              colors?.textColor ?? (tube ? 'var(--foreground)' : 'var(--grid-empty-foreground)'),
             width: '100%',
             height: '100%',
             aspectRatio: '1',
             // CSS custom properties for dynamic theming
-            '--border-color': colors?.borderColor ?? '#C4C4C4',
+            '--border-color': colors?.borderColor ?? 'var(--grid-border)',
           } as React.CSSProperties
         }
         data-grid-size={`${gridConfig.rows}x${gridConfig.cols}`}
@@ -146,12 +147,15 @@ export const GridPosition = memo<GridPositionProps>(
       >
         {/* Position number - compact responsive design */}
         <div
-          className="absolute top-0.5 right-0.5 font-semibold bg-popover/95 rounded text-secondary-foreground shadow-sm border border-border flex items-center justify-center leading-none"
+          className="absolute top-0.5 right-0.5 font-semibold rounded-sm shadow-sm border flex items-center justify-center leading-none"
           style={{
-            width: `${fontSize.positionFont + 2}px`,
-            height: `${fontSize.positionFont + 2}px`,
             fontSize: `${fontSize.positionFont}px`,
+            paddingInline: '3px',
+            paddingBlock: '1px',
             zIndex: 3,
+            backgroundColor: 'var(--grid-position-label)',
+            color: 'var(--grid-position-label-foreground)',
+            borderColor: 'var(--grid-position-label-border)',
           }}
         >
           {formatPositionForBox(position, tankId, rackId, boxId, gridConfig, currentLab, settings)}

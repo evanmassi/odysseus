@@ -479,7 +479,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                         {highlightText(cellType, query)}
                       </span>
                     </div>
-                    <Chip size="sm" className="text-background bg-muted-foreground flex-shrink-0">
+                    <Chip size="sm" color="inverted" className="flex-shrink-0">
                       {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}
                     </Chip>
                   </div>

@@ -9,7 +9,6 @@
 import { Button } from './button/Button';
 import { Checkbox } from './checkbox/Checkbox';
 import { Chip } from './chip/Chip';
-import { Grid, GridItem } from './grid/Grid';
 import { AuthInput } from './input/AuthInput';
 import { Input } from './input/Input';
 import { NumberInput } from './input/NumberInput';
@@ -42,7 +41,6 @@ export type {
   ChipSize,
   ChipShape,
   ChipBehavior,
-  ChipEntityType,
   ChipRef,
 } from './chip/types';
 
@@ -111,10 +109,6 @@ export type { TooltipProps } from './tooltip/Tooltip';
 // Tabs primitives
 export { Tabs, Tab };
 export type { TabsProps, TabProps, TabOrientation } from './tabs/Tabs';
-
-// Grid primitives
-export { Grid, GridItem };
-export type { GridProps, GridItemProps } from './grid/Grid';
 
 // Re-export design system tokens for convenience
 export {
@@ -211,8 +205,6 @@ export const Primitives = {
   Button,
   Checkbox,
   Chip,
-  Grid,
-  GridItem,
   Input,
   NumberInput,
   Select,

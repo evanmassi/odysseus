@@ -12,17 +12,15 @@ export type ChipColor =
   | 'default'
   | 'primary'
   | 'active'
+  | 'inverted'
   | 'success'
   | 'warning'
   | 'danger'
-  | 'info'
-  | 'entity';
+  | 'info';
 
 export type ChipSize = 'xs' | 'sm' | 'md';
 
 export type ChipShape = 'rounded' | 'pill';
-
-export type ChipEntityType = 'storage' | 'sample' | 'user' | 'researcher';
 
 export interface ChipProps {
   children: ReactNode;
@@ -34,7 +32,6 @@ export interface ChipProps {
   onSelect?: () => void;
   onRemove?: () => void;
   leftIcon?: ReactNode;
-  entityType?: ChipEntityType;
   disabled?: boolean;
   count?: number;
   'aria-label'?: string;
@@ -57,11 +54,11 @@ export const isChipColor = (value: string): value is ChipColor => {
     'default',
     'primary',
     'active',
+    'inverted',
     'success',
     'warning',
     'danger',
     'info',
-    'entity',
   ].includes(value);
 };
 

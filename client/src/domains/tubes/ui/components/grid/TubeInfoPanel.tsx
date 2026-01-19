@@ -399,15 +399,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </div>
           {selectedTubes.length > 1 && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
-              <Chip size="sm" color="default" leftIcon={<TestTube className="w-2.5 h-2.5" />}>
+              <Chip size="sm" color="default" leftIcon={<TestTube />}>
                 {selectedTubes.length} selected
               </Chip>
               {hasConflicts && (
-                <Chip
-                  size="sm"
-                  color="warning"
-                  leftIcon={<AlertTriangle className="w-2.5 h-2.5" />}
-                >
+                <Chip size="sm" color="warning" leftIcon={<AlertTriangle />}>
                   Mixed values
                 </Chip>
               )}
@@ -421,7 +417,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             <Chip
               size="sm"
               color={lockInfo.isOwnLock ? 'default' : lockInfo.isLockedOut ? 'danger' : 'warning'}
-              leftIcon={<Lock className="w-2.5 h-2.5" />}
+              leftIcon={<Lock />}
             >
               {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
             </Chip>
@@ -465,13 +461,13 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             ) : (
               // Non-clickable pill for non-owners - read-only
               firstTube.lockNote && (
-                <Chip size="sm" color="default" leftIcon={<Notebook className="w-2.5 h-2.5" />}>
+                <Chip size="sm" color="default" leftIcon={<Notebook />}>
                   {firstTube.lockNote}
                 </Chip>
               )
             )}
             {lockInfo.hasSharedUsers && (
-              <Chip size="sm" color="info" leftIcon={<UsersRound className="w-2.5 h-2.5" />}>
+              <Chip size="sm" color="info" leftIcon={<UsersRound />}>
                 {lockInfo.sharedNames.length > 0
                   ? lockInfo.sharedNames.join(', ')
                   : `${firstTube.sharedWithUserIds!.length} user(s)`}

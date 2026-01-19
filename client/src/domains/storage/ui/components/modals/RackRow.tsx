@@ -4,6 +4,7 @@ import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
 import { Button, NumberInput, Tooltip } from '@shared/ui';
+import { getOwnershipIndicatorStyles, type OwnershipType } from '@shared/ui/components/badges';
 import { RackIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -50,19 +51,12 @@ export function RackRow({
   const isRackOwnedByUser = isOwnedByCurrentUser(rack);
   const isUnassigned = !rack.assignedUserId;
 
-  // Left border accent with subtle tint
-  const leftBorderClass = isRackOwnedByUser
-    ? 'border-l-ownership-user-badge'
+  const ownershipType: OwnershipType = isRackOwnedByUser
+    ? 'currentUser'
     : isUnassigned
-      ? 'border-l-ownership-unassigned-badge'
-      : 'border-l-ownership-other-badge';
-
-  // Badge colors - centralized via CSS variables
-  const badgeClass = isRackOwnedByUser
-    ? 'bg-ownership-user-badge text-white'
-    : isUnassigned
-      ? 'bg-ownership-unassigned-badge text-white'
-      : 'bg-ownership-other-badge text-white';
+      ? 'unassigned'
+      : 'otherUser';
+  const ownershipStyles = getOwnershipIndicatorStyles(ownershipType);
 
   // Show non-admin custom label button on Row 1
   const showInlineCustomLabel = !canManageStorage && canEditResource(rack);
@@ -71,7 +65,7 @@ export function RackRow({
     <div className="ml-2">
       {/* Rack Row */}
       <div
-        className={`flex gap-1.5 py-1 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${leftBorderClass}`}
+        className={`flex gap-1.5 py-1 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${ownershipStyles.border}`}
       >
         {/* Left side - vertically centered between rows */}
         <div className="flex items-center gap-1.5 self-center">
@@ -112,7 +106,9 @@ export function RackRow({
               <span className="font-medium text-card-foreground text-sm">
                 {formatResourceDisplayName(rack.name, rack.customLabel)}
               </span>
-              <span className={`text-xs px-2 py-0.5 rounded ml-auto ${badgeClass}`}>
+              <span
+                className={`text-xs px-2 py-0.5 rounded ml-auto ${ownershipStyles.background} ${ownershipStyles.text}`}
+              >
                 {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
               </span>
             </button>

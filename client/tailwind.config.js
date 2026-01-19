@@ -158,6 +158,11 @@ export default {
           muted: 'var(--status-offline-muted)',
           hover: 'var(--status-offline-hover)',
         },
+        ownership: {
+          'user-badge': 'var(--ownership-user-badge)',
+          'other-badge': 'var(--ownership-other-badge)',
+          'unassigned-badge': 'var(--ownership-unassigned-badge)',
+        },
       },
       fontFamily: {
         sans: ['Lato', 'system-ui', 'sans-serif'],

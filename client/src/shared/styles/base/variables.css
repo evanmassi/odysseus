@@ -169,6 +169,28 @@
     --color-audit-action-auth: #64748b;
     --color-audit-action-link: var(--color-share-bg);
 
+    /* Ownership Indicator - Resource assignment visualization */
+    --ownership-user-badge: #5a8fc7;
+    --ownership-other-badge: #64748b;
+    --ownership-unassigned-badge: #78716c;
+
+    /* Tube Grid - Cell and selection styling */
+    --grid-border: #e5e7eb;
+    --grid-empty: #f8f9fa;
+    --grid-empty-foreground: #999999;
+    --grid-position-label: #ffffff;
+    --grid-position-label-foreground: #475569;
+    --grid-position-label-border: #d1d5db;
+    --grid-selection: var(--color-action-default);
+    --grid-selection-glow: rgba(37, 99, 235, 0.8);
+    --grid-selection-overlay: rgba(37, 99, 235, 0.18);
+    --grid-selection-empty: rgba(37, 99, 235, 0.08);
+    --grid-preview: rgba(100, 116, 139, 0.5);
+    --grid-preview-overlay: rgba(100, 116, 139, 0.12);
+    --grid-cut-opacity: 0.65;
+    --grid-copied: #475569;
+    --grid-copied-alt: #ffffff;
+
     /* Always-dark components - maintain dark styling regardless of theme */
 
     /* Toast */
@@ -307,6 +329,28 @@
     --focus-ring-glow-inner: #1e3a5f;
     --focus-ring-glow-outer: rgba(96, 165, 250, 0.3);
     --focus-ring-blur: rgba(96, 165, 250, 0.2);
+
+    /* Ownership Indicator - Resource assignment visualization */
+    --ownership-user-badge: #60a5fa;
+    --ownership-other-badge: #94a3b8;
+    --ownership-unassigned-badge: #a8a29e;
+
+    /* Tube Grid - Cell and selection styling */
+    --grid-border: #374151;
+    --grid-empty: #263244;
+    --grid-position-label: #1f2937;
+    --grid-position-label-foreground: #9ca3af;
+    --grid-position-label-border: #374151;
+    --grid-empty-foreground: #6b7280;
+    --grid-selection: var(--color-action-default);
+    --grid-selection-glow: rgba(96, 165, 250, 0.7);
+    --grid-selection-overlay: rgba(96, 165, 250, 0.25);
+    --grid-selection-empty: rgba(96, 165, 250, 0.15);
+    --grid-preview: rgba(148, 163, 184, 0.5);
+    --grid-preview-overlay: rgba(148, 163, 184, 0.15);
+    --grid-cut-opacity: 0.5;
+    --grid-copied: #94a3b8;
+    --grid-copied-alt: #1e293b;
 
     /* Always-dark components - same values as light theme */
 

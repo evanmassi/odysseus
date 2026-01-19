@@ -50,7 +50,8 @@
       "Bash(npx eslint:*)",
       "Bash(npm uninstall:*)",
       "Bash(del \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\public\\\\favicon.ico\")",
-      "Bash(pushd:*)"
+      "Bash(pushd:*)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\ui\\\\primitives\\\\grid\")"
     ]
   }
 }

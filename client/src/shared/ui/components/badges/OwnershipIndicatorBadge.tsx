@@ -2,6 +2,8 @@ import { UsersRound } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
 
+import { getOwnershipIndicatorStyles } from './ownershipIndicator';
+
 export type OwnershipType = 'unassigned' | 'currentUser' | 'otherUser';
 
 interface OwnershipIndicatorBadgeProps {
@@ -37,23 +39,13 @@ export function OwnershipIndicatorBadge({
   };
 
   const { badge: badgeSize, icon: iconSize, text: textSize } = sizeClasses[size];
+  const ownershipStyles = getOwnershipIndicatorStyles(type);
 
-  // Variant-specific styling
-  const variantStyles = {
-    default: {
-      unassigned: 'bg-ownership-unassigned-badge text-white',
-      currentUser: 'bg-ownership-user-badge text-white',
-      otherUser: 'bg-ownership-other-badge text-white',
-    },
-    navigator: {
-      // No background, inherit text color from parent button (matches selected/hover states)
-      unassigned: 'text-inherit',
-      currentUser: 'text-inherit',
-      otherUser: 'text-inherit',
-    },
-  };
-
-  const colorClass = variantStyles[variant][type];
+  // Navigator variant doesn't use ownership colors - inherits from parent for selected/hover states
+  const colorClass =
+    variant === 'navigator'
+      ? 'text-inherit'
+      : `${ownershipStyles.background} ${ownershipStyles.text}`;
 
   // Navigator variant: inline text/icon without circular container
   if (variant === 'navigator') {

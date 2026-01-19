@@ -374,7 +374,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                     <Chip
                       key={tankId}
                       behavior="selectable"
-                      size="xs"
+                      size="sm"
                       selected={isSelected('tankIds', tankId)}
                       onSelect={() => toggleFilterValue('tankIds', tankId)}
                     >
@@ -397,7 +397,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                     <Chip
                       key={rackId}
                       behavior="selectable"
-                      size="xs"
+                      size="sm"
                       selected={isSelected('rackIds', rackId)}
                       onSelect={() => toggleFilterValue('rackIds', rackId)}
                     >
@@ -420,7 +420,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                     <Chip
                       key={boxId}
                       behavior="selectable"
-                      size="xs"
+                      size="sm"
                       selected={isSelected('boxIds', boxId)}
                       onSelect={() => toggleFilterValue('boxIds', boxId)}
                     >
@@ -454,7 +454,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                     <Chip
                       key={cellType}
                       behavior="selectable"
-                      size="xs"
+                      size="sm"
                       selected={isSelected('cellTypes', cellType)}
                       onSelect={() => toggleFilterValue('cellTypes', cellType)}
                     >
@@ -477,7 +477,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                     <Chip
                       key={lotNumber}
                       behavior="selectable"
-                      size="xs"
+                      size="sm"
                       selected={isSelected('lotNumbers', lotNumber)}
                       onSelect={() => toggleFilterValue('lotNumbers', lotNumber)}
                     >
@@ -506,7 +506,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                     <Chip
                       key={donorId}
                       behavior="selectable"
-                      size="xs"
+                      size="sm"
                       selected={isSelected('donorInternalIds', donorId)}
                       onSelect={() => toggleFilterValue('donorInternalIds', donorId)}
                     >
@@ -535,7 +535,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                     <Chip
                       key={donorId}
                       behavior="selectable"
-                      size="xs"
+                      size="sm"
                       selected={isSelected('donorSourceIds', donorId)}
                       onSelect={() => toggleFilterValue('donorSourceIds', donorId)}
                     >
@@ -564,7 +564,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                     <Chip
                       key={condition}
                       behavior="selectable"
-                      size="xs"
+                      size="sm"
                       selected={isSelected('cultureConditions', condition)}
                       onSelect={() => toggleFilterValue('cultureConditions', condition)}
                     >
@@ -591,7 +591,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
                 <Chip
                   key={researcher.id}
                   behavior="selectable"
-                  size="xs"
+                  size="sm"
                   selected={isSelected('researcherIds', researcher.id)}
                   onSelect={() => toggleFilterValue('researcherIds', researcher.id)}
                 >
@@ -659,7 +659,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
               >
                 <Chip
                   behavior="removable"
-                  size="xs"
+                  size="sm"
                   color="active"
                   shape="rounded"
                   onRemove={filter.onRemove}
