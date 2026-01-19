@@ -63,7 +63,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
     if (!networkStatus.isOnline) {
       return {
         icon: 'wifi-off',
-        color: 'var(--color-danger-bg)',
+        color: 'hsl(var(--color-danger-bg))',
         text: 'Offline - Read-only',
         description: 'Viewing cached data, changes blocked until reconnected.',
       };
@@ -72,7 +72,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
     if (networkStatus.reconnectAttempts > 0) {
       return {
         icon: '◐',
-        color: 'var(--color-warning-bg)',
+        color: 'hsl(var(--color-warning-bg))',
         text: `Reconnecting... (${networkStatus.reconnectAttempts})`,
         description: 'Attempting to restore connection',
       };
@@ -81,7 +81,7 @@ export const ConnectionStatusIndicator: React.FC = () => {
     if (pendingOperations > 0) {
       return {
         icon: '◐',
-        color: 'var(--color-info-bg)',
+        color: 'hsl(var(--color-info-bg))',
         text: `Syncing (${pendingOperations})`,
         description: `${pendingOperations} operation${pendingOperations > 1 ? 's' : ''} pending`,
       };
@@ -91,35 +91,35 @@ export const ConnectionStatusIndicator: React.FC = () => {
       case ConnectionQuality.EXCELLENT:
         return {
           icon: '●',
-          color: 'var(--color-success-bg)',
+          color: 'hsl(var(--color-success-bg))',
           text: 'Excellent',
           description: 'High-speed connection - all features available',
         };
       case ConnectionQuality.GOOD:
         return {
           icon: '●',
-          color: 'var(--color-success-bg)',
+          color: 'hsl(var(--color-success-bg))',
           text: 'Connected',
           description: 'Good connection quality',
         };
       case ConnectionQuality.FAIR:
         return {
           icon: '●',
-          color: 'var(--color-warning-bg)',
+          color: 'hsl(var(--color-warning-bg))',
           text: 'Slow',
           description: 'Connection is slow - some features may be limited',
         };
       case ConnectionQuality.POOR:
         return {
           icon: '●',
-          color: 'var(--color-danger-bg)',
+          color: 'hsl(var(--color-danger-bg))',
           text: 'Very Slow',
           description: 'Poor connection - consider checking your network',
         };
       default:
         return {
           icon: '●',
-          color: 'var(--color-success-bg)',
+          color: 'hsl(var(--color-success-bg))',
           text: 'Connected',
           description: 'Connected to server',
         };
@@ -138,11 +138,11 @@ export const ConnectionStatusIndicator: React.FC = () => {
   const getDotColor = () => {
     switch (connectionQuality) {
       case ConnectionQuality.POOR:
-        return 'var(--color-danger-bg)';
+        return 'hsl(var(--color-danger-bg))';
       case ConnectionQuality.FAIR:
-        return 'var(--color-warning-bg)';
+        return 'hsl(var(--color-warning-bg))';
       default:
-        return 'var(--color-success-bg)';
+        return 'hsl(var(--color-success-bg))';
     }
   };
 
@@ -151,11 +151,11 @@ export const ConnectionStatusIndicator: React.FC = () => {
   const getCardBorderColor = () => {
     switch (connectionQuality) {
       case ConnectionQuality.POOR:
-        return 'var(--color-danger-bg)';
+        return 'hsl(var(--color-danger-bg))';
       case ConnectionQuality.FAIR:
-        return 'var(--color-warning-bg)';
+        return 'hsl(var(--color-warning-bg))';
       default:
-        return 'var(--color-success-bg)';
+        return 'hsl(var(--color-success-bg))';
     }
   };
 
@@ -188,20 +188,20 @@ export const ConnectionStatusIndicator: React.FC = () => {
         }`}
         style={{
           minWidth: isOffline ? '320px' : '200px',
-          borderLeftColor: isOffline ? 'var(--color-danger-bg)' : getCardBorderColor(),
+          borderLeftColor: isOffline ? 'hsl(var(--color-danger-bg))' : getCardBorderColor(),
         }}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             {status.icon === 'wifi-off' ? (
-              <WifiOff className="w-4 h-4 text-[var(--color-danger-bg)]" />
+              <WifiOff className="w-4 h-4 text-[hsl(var(--color-danger-bg))]" />
             ) : (
               <span style={{ color: status.color }} className="text-sm">
                 {status.icon}
               </span>
             )}
             <span
-              className={`text-sm font-medium ${isOffline ? 'text-[var(--color-danger-bg)]' : 'text-card-foreground'}`}
+              className={`text-sm font-medium ${isOffline ? 'text-[hsl(var(--color-danger-bg))]' : 'text-card-foreground'}`}
             >
               {status.text}
             </span>

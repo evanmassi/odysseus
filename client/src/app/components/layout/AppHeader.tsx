@@ -244,7 +244,7 @@ export function AppHeader({
   })();
 
   return (
-    <header className="bg-card px-4 h-full flex items-center">
+    <header className="bg-background px-4 h-full flex items-center">
       <div className="flex justify-between items-center w-full">
         {/* Far Left: Logo */}
         <div className="flex items-center">

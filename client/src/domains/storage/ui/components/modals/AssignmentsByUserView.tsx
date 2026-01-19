@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 
 import { formatResourceDisplayName, type UserDisplayInfo } from '@odysseus/shared-schemas';
 import { UsersRound, ChevronDown, ChevronRight, UserRoundX, UserRoundPen } from 'lucide-react';
@@ -6,12 +6,14 @@ import { UsersRound, ChevronDown, ChevronRight, UserRoundX, UserRoundPen } from 
 import { Tooltip } from '@shared/ui';
 import { getOwnershipIndicatorStyles, type OwnershipType } from '@shared/ui/components/badges';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
+import { OverflowMenu } from '@shared/ui/primitives/overflow-menu';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { OwnershipBadge } from './OwnershipBadge';
 import { StorageManagerContext } from './StorageManagerContext';
 
 import type { LabConfiguration } from '@domains/storage';
+import type { OverflowMenuItem } from '@shared/ui/primitives/overflow-menu';
 
 interface UserInfo {
   initials: string;
@@ -215,6 +217,31 @@ export function AssignmentsByUserView({
     return result;
   }, [lab, getUserInfo, currentUserId]);
 
+  // Build overflow menu items for a user
+  const buildOverflowMenuItems = useCallback(
+    (userId: string): OverflowMenuItem[] => {
+      const items: OverflowMenuItem[] = [
+        {
+          icon: UserRoundPen,
+          label: 'Reassign All',
+          onClick: () => setReassigningUserId(userId),
+        },
+        {
+          icon: UserRoundX,
+          label: 'Unassign All',
+          onClick: () => {
+            if (onBulkUnassign) {
+              onBulkUnassign(userId);
+            }
+          },
+          danger: true,
+        },
+      ];
+      return items;
+    },
+    [onBulkUnassign]
+  );
+
   if (assignmentsByUser.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -248,139 +275,112 @@ export function AssignmentsByUserView({
         // Check if showing reassign dropdown for this user
         const isReassigning = reassigningUserId === userAssignment.userId;
 
-        // Determine if we need to show the actions row
-        const showActionsRow = canManageStorage && !isUnassigned && userAssignment.userId;
+        // Show overflow menu for assigned users when admin and not currently reassigning
+        const showOverflowMenu =
+          canManageStorage && !isUnassigned && userAssignment.userId && !isReassigning;
 
         return (
           <div key={userAssignment.userId ?? 'unassigned'} className="rounded-lg overflow-hidden">
-            {/* User Header */}
+            {/* User Header - Single row layout */}
             <div
-              className={`flex gap-3 px-3 py-2 ${headerBg} border-l-4 ${ownershipStyles.border}`}
+              className={`flex items-center gap-3 px-3 py-2 ${headerBg} border-l-4 ${ownershipStyles.border}`}
             >
-              {/* Left side - vertically centered between rows */}
-              <div className="flex items-center gap-2 self-center">
-                <button
-                  type="button"
-                  onClick={() => toggleUser(userAssignment.userId)}
-                  className="text-secondary-foreground hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
-                  aria-expanded={isExpanded}
-                  aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${userAssignment.displayName}`}
-                >
-                  {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                </button>
+              {/* Collapse toggle */}
+              <button
+                type="button"
+                onClick={() => toggleUser(userAssignment.userId)}
+                className="text-secondary-foreground hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
+                aria-expanded={isExpanded}
+                aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${userAssignment.displayName}`}
+              >
+                {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </button>
 
-                {/* User Avatar/Initials */}
-                <div
-                  className={`w-6 h-6 rounded-full ${ownershipStyles.background} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
-                >
-                  {isUnassigned ? <UsersRound size={14} /> : userAssignment.initials}
+              {/* User Avatar/Initials */}
+              <div
+                className={`w-6 h-6 rounded-full ${ownershipStyles.background} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}
+              >
+                {isUnassigned ? <UsersRound size={14} /> : userAssignment.initials}
+              </div>
+
+              {/* User identity - clickable for expand/collapse */}
+              <button
+                type="button"
+                onClick={() => toggleUser(userAssignment.userId)}
+                className="flex items-center gap-3 flex-1 min-w-0 hover:bg-black/10 transition-colors px-1 py-0.5 rounded text-left focus-ring-default"
+                aria-expanded={isExpanded}
+              >
+                {/* Username */}
+                <span className="font-medium text-card-foreground text-sm truncate">
+                  {userAssignment.displayName}
+                  {isCurrentUser && (
+                    <span className="ml-1.5 text-xs text-primary font-normal">(you)</span>
+                  )}
+                </span>
+
+                {/* Counts - styled like ownership badges */}
+                <div className="flex items-center gap-2 text-xs ml-auto">
+                  {userAssignment.rackCount > 0 && (
+                    <span
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded ${ownershipStyles.background} ${ownershipStyles.text}`}
+                    >
+                      <RackIcon size={12} />
+                      {userAssignment.rackCount}
+                    </span>
+                  )}
+                  {userAssignment.boxCount > 0 && (
+                    <span
+                      className={`flex items-center gap-1 px-2 py-0.5 rounded ${ownershipStyles.background} ${ownershipStyles.text}`}
+                    >
+                      <BoxIcon size={12} />
+                      {userAssignment.boxCount}
+                    </span>
+                  )}
                 </div>
-              </div>
+              </button>
 
-              {/* Right side - stacked rows */}
-              <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-                {/* Row 1: Identity - clickable for expand/collapse */}
-                <button
-                  type="button"
-                  onClick={() => toggleUser(userAssignment.userId)}
-                  className="flex items-center gap-3 flex-1 hover:bg-black/10 transition-colors px-1 py-0.5 rounded text-left focus-ring-default"
-                  aria-expanded={isExpanded}
+              {/* Reassign dropdown (shown when reassigning) */}
+              {isReassigning && (
+                <div
+                  className="flex items-center gap-1 flex-shrink-0"
+                  role="presentation"
+                  onClick={e => e.stopPropagation()}
+                  onKeyDown={e => e.stopPropagation()}
                 >
-                  {/* Username */}
-                  <span className="font-medium text-card-foreground text-sm truncate">
-                    {userAssignment.displayName}
-                    {isCurrentUser && (
-                      <span className="ml-1.5 text-xs text-primary font-normal">(you)</span>
-                    )}
-                  </span>
+                  <AssignmentDropdown
+                    value={undefined}
+                    users={users.filter(u => u.id !== userAssignment.userId)}
+                    onChange={toUserId => {
+                      if (toUserId && onBulkReassign) {
+                        onBulkReassign(userAssignment.userId!, toUserId);
+                      }
+                      setReassigningUserId(null);
+                    }}
+                    size="sm"
+                  />
+                  <Tooltip content="Cancel" side="bottom">
+                    <button
+                      type="button"
+                      onClick={() => setReassigningUserId(null)}
+                      className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-black/10 transition-colors focus-ring-default"
+                    >
+                      ×
+                    </button>
+                  </Tooltip>
+                </div>
+              )}
 
-                  {/* Counts - styled like ownership badges */}
-                  <div className="flex items-center gap-2 text-xs ml-auto">
-                    {userAssignment.rackCount > 0 && (
-                      <span
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded ${ownershipStyles.background} ${ownershipStyles.text}`}
-                      >
-                        <RackIcon size={12} />
-                        {userAssignment.rackCount}
-                      </span>
-                    )}
-                    {userAssignment.boxCount > 0 && (
-                      <span
-                        className={`flex items-center gap-1 px-2 py-0.5 rounded ${ownershipStyles.background} ${ownershipStyles.text}`}
-                      >
-                        <BoxIcon size={12} />
-                        {userAssignment.boxCount}
-                      </span>
-                    )}
-                  </div>
-                </button>
-
-                {/* Row 2: Actions */}
-                {showActionsRow && (
-                  <div className="flex items-center gap-1 pl-1">
-                    {isReassigning ? (
-                      // Reassign dropdown
-                      <div
-                        className="flex items-center gap-1"
-                        role="presentation"
-                        onClick={e => e.stopPropagation()}
-                        onKeyDown={e => e.stopPropagation()}
-                      >
-                        <AssignmentDropdown
-                          value={undefined}
-                          users={users.filter(u => u.id !== userAssignment.userId)}
-                          onChange={toUserId => {
-                            if (toUserId && onBulkReassign) {
-                              onBulkReassign(userAssignment.userId!, toUserId);
-                            }
-                            setReassigningUserId(null);
-                          }}
-                          size="sm"
-                        />
-                        <Tooltip content="Cancel" side="bottom">
-                          <button
-                            type="button"
-                            onClick={() => setReassigningUserId(null)}
-                            className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-black/10 transition-colors focus-ring-default"
-                          >
-                            ×
-                          </button>
-                        </Tooltip>
-                      </div>
-                    ) : (
-                      // Action buttons
-                      <>
-                        <Tooltip content="Reassign all resources to another user" side="bottom">
-                          <button
-                            type="button"
-                            onClick={e => {
-                              e.stopPropagation();
-                              setReassigningUserId(userAssignment.userId);
-                            }}
-                            className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
-                          >
-                            <UserRoundPen size={14} />
-                          </button>
-                        </Tooltip>
-                        <Tooltip content="Unassign all resources from this user" side="bottom">
-                          <button
-                            type="button"
-                            onClick={e => {
-                              e.stopPropagation();
-                              if (onBulkUnassign) {
-                                onBulkUnassign(userAssignment.userId!);
-                              }
-                            }}
-                            className="text-red-700 hover:bg-red-500/20 transition-colors p-1 rounded focus-ring-default"
-                          >
-                            <UserRoundX size={14} />
-                          </button>
-                        </Tooltip>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+              {/* Overflow menu (shown when not reassigning) */}
+              {showOverflowMenu && (
+                <div className="flex-shrink-0">
+                  <OverflowMenu
+                    items={buildOverflowMenuItems(userAssignment.userId!)}
+                    dividerBefore={['Unassign All']}
+                    size="sm"
+                    aria-label={`Actions for ${userAssignment.displayName}`}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Assignments List */}

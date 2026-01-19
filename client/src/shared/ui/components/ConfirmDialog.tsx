@@ -70,7 +70,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
       iconBg: 'bg-danger-light',
       iconColor: 'text-danger-bg',
       border: 'border-danger-border',
-      shadowColor: 'var(--color-danger-bg)',
+      shadowColor: 'hsl(var(--color-danger-bg))',
       buttonVariant: 'danger' as ButtonVariant,
     };
   }
@@ -80,7 +80,7 @@ function getVariantStyles(variant: 'danger' | 'warning') {
     iconBg: 'bg-warning-light',
     iconColor: 'text-warning-bg',
     border: 'border-warning-border',
-    shadowColor: 'var(--color-warning-bg)',
+    shadowColor: 'hsl(var(--color-warning-bg))',
     buttonVariant: 'warning' as ButtonVariant,
   };
 }

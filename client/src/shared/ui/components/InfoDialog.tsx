@@ -30,16 +30,16 @@ function getVariantStyles(variant: 'warning' | 'info') {
       iconBg: 'bg-warning-light',
       iconColor: 'text-warning-bg',
       border: 'border-warning-border',
-      shadowColor: 'var(--color-warning-bg)',
+      shadowColor: 'hsl(var(--color-warning-bg))',
       Icon: AlertTriangle,
     };
   }
 
   return {
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-    border: 'border-blue-200',
-    shadowColor: 'rgb(37 99 235)',
+    iconBg: 'bg-info-light',
+    iconColor: 'text-info-bg',
+    border: 'border-info-border',
+    shadowColor: 'hsl(var(--color-info-bg))',
     Icon: Info,
   };
 }

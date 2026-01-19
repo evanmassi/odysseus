@@ -567,7 +567,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {(Boolean(notes) || isFieldMixed('sample.notes')) && (
           <InfoSection title="Notes">
             {notes ? (
-              <div className="text-card-foreground/70 text-sm leading-relaxed">{notes}</div>
+              <div className="text-card-foreground/85 text-sm leading-relaxed">{notes}</div>
             ) : (
               <div className="flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3 text-amber-500" />

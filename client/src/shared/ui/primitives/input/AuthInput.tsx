@@ -90,13 +90,13 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
       error: 'text-validation-error-icon',
     }[state];
 
-    // Input text color for error/warning state
+    // Input text color based on validation state
     const inputTextClass =
       state === 'error'
         ? 'text-validation-error-text'
         : state === 'warning'
           ? 'text-warning-text'
-          : '';
+          : 'text-foreground';
 
     return (
       <div className={`auth-input-container ${borderClass} ${className}`}>

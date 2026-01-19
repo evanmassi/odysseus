@@ -36,32 +36,32 @@ export interface ToastProps {
 const TOAST_CONFIG = {
   success: {
     icon: CheckCircle,
-    borderClass: 'border-l-[var(--color-success-bg)]',
-    iconClass: 'text-[var(--color-success-bg)]',
+    borderClass: 'border-l-[hsl(var(--color-success-bg))]',
+    iconClass: 'text-[hsl(var(--color-success-bg))]',
     ariaLive: 'polite' as const,
   },
   error: {
     icon: XCircle,
-    borderClass: 'border-l-[var(--color-danger-bg)]',
-    iconClass: 'text-[var(--color-danger-bg)]',
+    borderClass: 'border-l-[hsl(var(--color-danger-bg))]',
+    iconClass: 'text-[hsl(var(--color-danger-bg))]',
     ariaLive: 'assertive' as const,
   },
   warning: {
     icon: AlertTriangle,
-    borderClass: 'border-l-[var(--color-warning-bg)]',
-    iconClass: 'text-[var(--color-warning-bg)]',
+    borderClass: 'border-l-[hsl(var(--color-warning-bg))]',
+    iconClass: 'text-[hsl(var(--color-warning-bg))]',
     ariaLive: 'assertive' as const,
   },
   info: {
     icon: Info,
-    borderClass: 'border-l-[var(--color-info-bg)]',
-    iconClass: 'text-[var(--color-info-bg)]',
+    borderClass: 'border-l-[hsl(var(--color-info-bg))]',
+    iconClass: 'text-[hsl(var(--color-info-bg))]',
     ariaLive: 'polite' as const,
   },
   loading: {
     icon: Loader2,
-    borderClass: 'border-l-[var(--color-info-bg)]',
-    iconClass: 'text-[var(--color-info-bg)]',
+    borderClass: 'border-l-[hsl(var(--color-info-bg))]',
+    iconClass: 'text-[hsl(var(--color-info-bg))]',
     ariaLive: 'polite' as const,
   },
 } as const;

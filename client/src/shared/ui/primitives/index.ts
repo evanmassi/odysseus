@@ -12,6 +12,7 @@ import { Chip } from './chip/Chip';
 import { AuthInput } from './input/AuthInput';
 import { Input } from './input/Input';
 import { NumberInput } from './input/NumberInput';
+import { OverflowMenu } from './overflow-menu/OverflowMenu';
 import { Select } from './select/Select';
 import { Table, TableHeader, TableBody } from './table/Table';
 import { Tabs, Tab } from './tabs/Tabs';
@@ -105,6 +106,10 @@ export type {
 // Tooltip primitives
 export { Tooltip };
 export type { TooltipProps } from './tooltip/Tooltip';
+
+// OverflowMenu primitives
+export { OverflowMenu };
+export type { OverflowMenuProps, OverflowMenuItem } from './overflow-menu/types';
 
 // Tabs primitives
 export { Tabs, Tab };
@@ -207,6 +212,7 @@ export const Primitives = {
   Chip,
   Input,
   NumberInput,
+  OverflowMenu,
   Select,
   Tab,
   Table,

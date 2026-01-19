@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
 
 import { Button, NumberInput, Tooltip } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
+import { OverflowMenu } from '@shared/ui/primitives/overflow-menu';
 
 import { RackRow } from './RackRow';
 import { useStorageManagerContext } from './StorageManagerContext';
 
 import type { TankConfiguration } from '@domains/storage';
+import type { OverflowMenuItem } from '@shared/ui/primitives/overflow-menu';
 
 interface TankRowProps {
   tank: TankConfiguration;
@@ -36,6 +38,32 @@ export function TankRow({
   canDeleteTank,
 }: TankRowProps) {
   const { onEditTank, onDeleteTank, onAddRack, canManageStorage } = useStorageManagerContext();
+
+  // Build overflow menu items
+  const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
+    const items: OverflowMenuItem[] = [
+      {
+        icon: Edit3,
+        label: 'Edit Tank',
+        onClick: () => onEditTank(tank),
+      },
+    ];
+
+    if (canDeleteTank) {
+      items.push({
+        icon: Trash2,
+        label: 'Delete Tank',
+        onClick: () => onDeleteTank(tank.id),
+        danger: true,
+      });
+    }
+
+    return items;
+  }, [tank, canDeleteTank, onEditTank, onDeleteTank]);
+
+  // Divider before Delete Tank
+  const dividerBefore = canDeleteTank ? ['Delete Tank'] : [];
+
   return (
     <div className="border border-border rounded-lg bg-card border-l-4 border-l-secondary-foreground">
       {/* Tank Header */}
@@ -67,31 +95,12 @@ export function TankRow({
             </span>
           </button>
           {canManageStorage && (
-            <div className="flex items-center gap-0.5 flex-shrink-0">
-              <Tooltip content="Edit tank" side="bottom">
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  iconOnly
-                  onClick={() => onEditTank(tank)}
-                  aria-label="Edit tank"
-                >
-                  <Edit3 size={16} />
-                </Button>
-              </Tooltip>
-              {canDeleteTank && (
-                <Tooltip content="Remove tank" side="bottom">
-                  <Button
-                    variant="danger"
-                    size="xs"
-                    iconOnly
-                    onClick={() => onDeleteTank(tank.id)}
-                    aria-label="Remove tank"
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </Tooltip>
-              )}
+            <div className="flex-shrink-0">
+              <OverflowMenu
+                items={overflowMenuItems}
+                dividerBefore={dividerBefore}
+                aria-label={`Actions for tank ${tank.name}`}
+              />
             </div>
           )}
         </div>

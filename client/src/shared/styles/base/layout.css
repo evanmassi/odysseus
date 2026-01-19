@@ -31,7 +31,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--page);
+  background-color: hsl(var(--page));
 }
 
 .app-header {
@@ -46,7 +46,7 @@
   gap: 20px;
   padding: 16px;
   align-items: flex-start;
-  background-color: var(--page);
+  background-color: hsl(var(--page));
 }
 
 /* Storage Navigator Panel - Flexible width for custom labels */

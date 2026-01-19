@@ -21,7 +21,7 @@ const inputVariants = cva(
     'w-full relative',
 
     // Typography using design tokens
-    'font-normal text-base',
+    'font-normal text-base text-foreground',
     'placeholder:text-muted-foreground',
 
     // Transitions

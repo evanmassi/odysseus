@@ -66,7 +66,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           disabled:cursor-not-allowed disabled:opacity-50
           ${className}
         `}
-        style={{ accentColor: 'var(--color-action-default)' }}
+        style={{ accentColor: 'hsl(var(--color-action-default))' }}
       />
     );
   }

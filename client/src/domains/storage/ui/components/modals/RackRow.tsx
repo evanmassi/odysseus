@@ -1,11 +1,12 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
-import { ChevronDown, ChevronRight, Edit3, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronRight, Edit3, Plus, Tag, Trash2 } from 'lucide-react';
 
 import { Button, NumberInput, Tooltip } from '@shared/ui';
 import { getOwnershipIndicatorStyles, type OwnershipType } from '@shared/ui/components/badges';
 import { RackIcon } from '@shared/ui/components/icons';
+import { OverflowMenu } from '@shared/ui/primitives/overflow-menu';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { BoxRow } from './BoxRow';
@@ -14,6 +15,7 @@ import { OwnershipBadge } from './OwnershipBadge';
 import { useStorageManagerContext } from './StorageManagerContext';
 
 import type { RackConfiguration } from '@domains/storage';
+import type { OverflowMenuItem } from '@shared/ui/primitives/overflow-menu';
 
 interface RackRowProps {
   rack: RackConfiguration;
@@ -58,122 +60,135 @@ export function RackRow({
       : 'otherUser';
   const ownershipStyles = getOwnershipIndicatorStyles(ownershipType);
 
-  // Show non-admin custom label button on Row 1
+  // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(rack);
+
+  // Build overflow menu items for admin
+  const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
+    if (!canManageStorage) return [];
+
+    const items: OverflowMenuItem[] = [];
+
+    // Custom label - only if user can edit this resource (admin owner or admin for unassigned)
+    if (canEditResource(rack)) {
+      items.push({
+        icon: Tag,
+        label: 'Custom Label',
+        onClick: () => onEditRackLabel(tankId, rack.id, rack.customLabel ?? ''),
+      });
+    }
+
+    items.push({
+      icon: Edit3,
+      label: 'Edit Rack',
+      onClick: () => onEditRack(tankId, rack),
+    });
+
+    if (canDeleteRack) {
+      items.push({
+        icon: Trash2,
+        label: 'Delete Rack',
+        onClick: () => onDeleteRack(tankId, rack.id),
+        danger: true,
+      });
+    }
+
+    return items;
+  }, [
+    canManageStorage,
+    canEditResource,
+    canDeleteRack,
+    rack,
+    tankId,
+    onEditRackLabel,
+    onEditRack,
+    onDeleteRack,
+  ]);
+
+  // Divider before Delete Rack
+  const dividerBefore = canDeleteRack ? ['Delete Rack'] : [];
 
   return (
     <div className="ml-2">
-      {/* Rack Row */}
+      {/* Rack Row - Single line layout */}
       <div
-        className={`flex gap-1.5 py-1 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${ownershipStyles.border}`}
+        className={`flex items-center gap-1.5 py-1 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${ownershipStyles.border}`}
       >
-        {/* Left side - vertically centered between rows */}
-        <div className="flex items-center gap-1.5 self-center">
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            className="text-secondary-foreground flex-shrink-0 hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
-            aria-expanded={!collapsed}
-            aria-controls={`rack-content-${rackKey}`}
-            aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
-          >
-            {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-          </button>
-          <OwnershipBadge
-            userId={rack.assignedUserId}
-            size="md"
-            isOwnedByCurrentUser={isRackOwnedByUser}
+        {/* Collapse toggle */}
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="text-secondary-foreground flex-shrink-0 hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
+          aria-expanded={!collapsed}
+          aria-controls={`rack-content-${rackKey}`}
+          aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
+        >
+          {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
+        </button>
+
+        {/* Ownership badge */}
+        <OwnershipBadge
+          userId={rack.assignedUserId}
+          size="md"
+          isOwnedByCurrentUser={isRackOwnedByUser}
+        />
+
+        {/* Rack identity - clickable for expand/collapse */}
+        <button
+          type="button"
+          onClick={onToggleCollapse}
+          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-black/10 transition-colors px-1 py-0.5 rounded text-left focus-ring-default"
+          aria-expanded={!collapsed}
+          aria-controls={`rack-content-${rackKey}`}
+          aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
+        >
+          <RackIcon
+            className="text-secondary-foreground flex-shrink-0"
+            size={18}
+            aria-hidden="true"
           />
-        </div>
+          <span className="font-medium text-card-foreground text-sm truncate">
+            {formatResourceDisplayName(rack.name, rack.customLabel)}
+          </span>
+          <span
+            className={`text-xs px-2 py-0.5 rounded ml-auto flex-shrink-0 ${ownershipStyles.background} ${ownershipStyles.text}`}
+          >
+            {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
+          </span>
+        </button>
 
-        {/* Right side - stacked rows */}
-        <div className="flex flex-col flex-1 min-w-0 gap-0.5">
-          {/* Row 1: Identity + optional custom label for non-admins */}
-          <div className="flex items-center">
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              className="flex items-center gap-2 flex-1 cursor-pointer hover:bg-black/10 transition-colors px-1 py-0.5 rounded text-left focus-ring-default"
-              aria-expanded={!collapsed}
-              aria-controls={`rack-content-${rackKey}`}
-              aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
-            >
-              <RackIcon
-                className="text-secondary-foreground flex-shrink-0"
-                size={18}
-                aria-hidden="true"
+        {/* Admin: Assignment dropdown + Overflow menu */}
+        {canManageStorage && (
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {currentUser?.role === 'admin' && (
+              <AssignmentDropdown
+                value={rack.assignedUserId}
+                users={users}
+                onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
+                size="md"
               />
-              <span className="font-medium text-card-foreground text-sm">
-                {formatResourceDisplayName(rack.name, rack.customLabel)}
-              </span>
-              <span
-                className={`text-xs px-2 py-0.5 rounded ml-auto ${ownershipStyles.background} ${ownershipStyles.text}`}
-              >
-                {rack.boxes.length} {rack.boxes.length === 1 ? 'box' : 'boxes'}
-              </span>
-            </button>
-
-            {/* Custom label button for non-admin owners (fixed width) */}
-            {!canManageStorage && (
-              <div className="w-7 flex-shrink-0 flex justify-center">
-                {showInlineCustomLabel && (
-                  <CustomLabelButton
-                    onClick={() => onEditRackLabel(tankId, rack.id, rack.customLabel ?? '')}
-                  />
-                )}
-              </div>
+            )}
+            {overflowMenuItems.length > 0 && (
+              <OverflowMenu
+                items={overflowMenuItems}
+                dividerBefore={dividerBefore}
+                size="sm"
+                aria-label={`Actions for rack ${rack.name}`}
+              />
             )}
           </div>
+        )}
 
-          {/* Row 2: Admin actions only */}
-          {canManageStorage && (
-            <div className="flex items-center gap-1 pl-1">
-              {/* Assignment Dropdown (admin only) */}
-              {currentUser?.role === 'admin' && (
-                <AssignmentDropdown
-                  value={rack.assignedUserId}
-                  users={users}
-                  onChange={userId => onAssignRack(tankId, rack.id, userId ?? undefined)}
-                  size="md"
-                />
-              )}
-
-              {/* Custom Label + Edit/Delete buttons - right aligned */}
-              <div className="flex items-center gap-1 ml-auto">
-                {/* Custom Label Button (for admin owners) */}
-                {canEditResource(rack) && (
-                  <CustomLabelButton
-                    onClick={() => onEditRackLabel(tankId, rack.id, rack.customLabel ?? '')}
-                  />
-                )}
-                <Tooltip content="Edit rack" side="bottom">
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    iconOnly
-                    onClick={() => onEditRack(tankId, rack)}
-                    aria-label="Edit rack"
-                  >
-                    <Edit3 size={14} />
-                  </Button>
-                </Tooltip>
-                {canDeleteRack && (
-                  <Tooltip content="Remove rack" side="bottom">
-                    <Button
-                      variant="danger"
-                      size="xs"
-                      iconOnly
-                      onClick={() => onDeleteRack(tankId, rack.id)}
-                      aria-label="Remove rack"
-                    >
-                      <Trash2 size={14} />
-                    </Button>
-                  </Tooltip>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        {/* Non-admin owner: Custom label button */}
+        {!canManageStorage && (
+          <div className="w-7 flex-shrink-0 flex justify-center">
+            {showInlineCustomLabel && (
+              <CustomLabelButton
+                onClick={() => onEditRackLabel(tankId, rack.id, rack.customLabel ?? '')}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       {/* Boxes - collapsible */}

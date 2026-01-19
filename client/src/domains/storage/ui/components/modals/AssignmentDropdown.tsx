@@ -46,8 +46,7 @@ export function AssignmentDropdown({
   const userOptions = useMemo(
     (): AssignmentOption[] =>
       users.map(u => {
-        const label =
-          u.firstName && u.lastName ? `${u.lastName}, ${u.firstName} (${u.username})` : u.username;
+        const label = u.firstName && u.lastName ? `${u.lastName}, ${u.firstName}` : u.username;
         return {
           value: u.id,
           label,
@@ -112,11 +111,8 @@ export function AssignmentDropdown({
 
       if (fullOption.firstName && fullOption.lastName) {
         return (
-          <span>
-            <span className="font-semibold">
-              {fullOption.lastName}, {fullOption.firstName}
-            </span>
-            <span className="text-muted-foreground"> ({fullOption.username})</span>
+          <span className="font-semibold">
+            {fullOption.lastName}, {fullOption.firstName}
           </span>
         );
       }
@@ -143,11 +139,8 @@ export function AssignmentDropdown({
 
       if (fullOption.firstName && fullOption.lastName) {
         return (
-          <span className={wrapperClass}>
-            <span className={isInherited ? '' : 'font-semibold'}>
-              {fullOption.lastName}, {fullOption.firstName}
-            </span>
-            <span className="text-muted-foreground"> ({fullOption.username})</span>
+          <span className={`${wrapperClass} ${isInherited ? '' : 'font-semibold'}`}>
+            {fullOption.lastName}, {fullOption.firstName}
           </span>
         );
       }
@@ -157,7 +150,7 @@ export function AssignmentDropdown({
     [optionMap, isInherited]
   );
 
-  const widthClass = size === 'sm' ? 'w-56' : 'w-64';
+  const widthClass = size === 'sm' ? 'w-36' : 'w-40';
 
   return (
     <div className={`${widthClass} flex-shrink-0`}>

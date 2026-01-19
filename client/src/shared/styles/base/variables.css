@@ -13,138 +13,140 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    background-color: var(--page);
+    background-color: hsl(var(--page));
+    color: hsl(var(--foreground));
   }
 
   :root {
     /* Color system: --{name} for backgrounds, --{name}-foreground for text */
+    /* HSL format enables Tailwind opacity modifiers (e.g., text-foreground/50) */
 
     /* Core */
-    --background: #ffffff;
-    --foreground: #1e293b;
-    --page: #f1f5f9;
+    --background: 0 0% 100%;
+    --foreground: 222.2 47.4% 11.2%;
+    --page: 0 0% 100%;
 
-    /* Card */
-    --card: #ffffff;
-    --card-foreground: #1e293b;
+    /* Card - panels get noticeable tint, page stays white */
+    --card: 210 20% 93.5%;
+    --card-foreground: 222.2 47.4% 11.2%;
 
     /* Popover */
-    --popover: #ffffff;
-    --popover-foreground: #1e293b;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 47.4% 11.2%;
 
     /* Primary */
-    --primary: #2563eb;
-    --primary-foreground: #ffffff;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 0 0% 100%;
 
     /* Secondary - for interactive secondary elements */
-    --secondary: #e2e8f0;
-    --secondary-foreground: #475569;
+    --secondary: 214.3 31.8% 91.4%;
+    --secondary-foreground: 215.4 19.3% 34.5%;
 
     /* Muted - for subdued backgrounds */
-    --muted: #f1f5f9;
-    --muted-foreground: #64748b;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
     /* Accent */
-    --accent: #f8fafc;
-    --accent-foreground: #1e293b;
+    --accent: 210 40% 98%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     /* Utilities */
-    --border: #e2e8f0;
-    --input: #e2e8f0;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
 
     /* Application-specific extensions */
 
     /* Action Colors */
-    --color-action-default: #5a8fc7;
-    --color-action-hover: #4a7db5;
-    --color-action-focus: #4a7db5;
+    --color-action-default: 210 50% 56.7%;
+    --color-action-hover: 210 43.1% 50%;
+    --color-action-focus: 210 43.1% 50%;
 
     /* Danger Theme */
-    --color-danger-bg: #f76969;
-    --color-danger-hover: #d25959;
-    --color-danger-text: #f76969;
-    --color-danger-btnText: #ffffff;
-    --color-danger-light: #fde9e9;
-    --color-danger-border: #fcb5b5;
+    --color-danger-bg: 0 90.6% 69%;
+    --color-danger-hover: 0 56.1% 58.4%;
+    --color-danger-text: 0 90.6% 69%;
+    --color-danger-btnText: 0 0% 100%;
+    --color-danger-light: 0 85.7% 95.3%;
+    --color-danger-border: 0 93.3% 85.1%;
 
     /* Clear Theme */
-    --color-clear-bg: #e5e7eb;
-    --color-clear-hover: #d1d5db;
-    --color-clear-text: #4b5563;
+    --color-clear-bg: 220 13% 91%;
+    --color-clear-hover: 220 13% 82.7%;
+    --color-clear-text: 220 8.9% 46.1%;
 
     /* Warning Theme */
-    --color-warning-bg: #eab308;
-    --color-warning-hover: #ca8a04;
-    --color-warning-text: #eab308;
-    --color-warning-btnText: #ffffff;
-    --color-warning-light: #fef3c7;
-    --color-warning-border: #fde68a;
+    --color-warning-bg: 45.4 93.4% 47.5%;
+    --color-warning-hover: 45.4 93.4% 40%;
+    --color-warning-text: 45.4 93.4% 47.5%;
+    --color-warning-btnText: 0 0% 100%;
+    --color-warning-light: 48 96.5% 88.8%;
+    --color-warning-border: 48 95.8% 76.1%;
 
     /* Lock Action Theme (Slate) */
-    --color-lock-bg: #64748b;
-    --color-lock-hover: #475569;
-    --color-lock-text: #64748b;
-    --color-lock-btnText: #ffffff;
+    --color-lock-bg: 215.4 16.3% 46.9%;
+    --color-lock-hover: 215.4 19.3% 34.5%;
+    --color-lock-text: 215.4 16.3% 46.9%;
+    --color-lock-btnText: 0 0% 100%;
 
     /* Share Action Theme (Indigo) */
-    --color-share-bg: #6366f1;
-    --color-share-hover: #4f46e5;
-    --color-share-text: #6366f1;
-    --color-share-btnText: #ffffff;
+    --color-share-bg: 238.7 83.5% 66.7%;
+    --color-share-hover: 243.4 75.4% 58.6%;
+    --color-share-text: 238.7 83.5% 66.7%;
+    --color-share-btnText: 0 0% 100%;
 
     /* Success Theme (Emerald) */
-    --color-success-bg: #10b981;
-    --color-success-hover: #059669;
-    --color-success-text: #10b981;
-    --color-success-btnText: #ffffff;
-    --color-success-light: #d1fae5;
-    --color-success-border: #a7f3d0;
+    --color-success-bg: 160.1 84.1% 39.4%;
+    --color-success-hover: 161.4 93.5% 30.4%;
+    --color-success-text: 160.1 84.1% 39.4%;
+    --color-success-btnText: 0 0% 100%;
+    --color-success-light: 152.4 76% 91.4%;
+    --color-success-border: 156.2 71.6% 79%;
 
     /* Info Theme */
-    --color-info-bg: #3b82f6;
-    --color-info-hover: #2563eb;
-    --color-info-text: #3b82f6;
-    --color-info-btnText: #ffffff;
-    --color-info-light: #dbeafe;
-    --color-info-border: #bfdbfe;
+    --color-info-bg: 217.2 91.2% 59.8%;
+    --color-info-hover: 221.2 83.2% 53.3%;
+    --color-info-text: 217.2 91.2% 59.8%;
+    --color-info-btnText: 0 0% 100%;
+    --color-info-light: 213.8 100% 93.9%;
+    --color-info-border: 213.3 96.9% 87.3%;
 
     /* Validation - Error */
-    --color-validation-error-border: #e55050;
-    --color-validation-error-bg: #fff9f9;
-    --color-validation-error-text: #b84848;
-    --color-validation-error-label: #b84848;
-    --color-validation-error-helper: #b84848;
-    --color-validation-error-ring: #f76969;
-    --color-validation-error-icon: #b84848;
-    --color-validation-error-required: #f76969;
+    --color-validation-error-border: 0 73.7% 60.6%;
+    --color-validation-error-bg: 0 100% 98.8%;
+    --color-validation-error-text: 0 42.9% 50%;
+    --color-validation-error-label: 0 42.9% 50%;
+    --color-validation-error-helper: 0 42.9% 50%;
+    --color-validation-error-ring: 0 90.6% 69%;
+    --color-validation-error-icon: 0 42.9% 50%;
+    --color-validation-error-required: 0 90.6% 69%;
 
     /* Validation - Warning */
-    --color-validation-warning-border: #f6d484;
-    --color-validation-warning-bg: #fefce8;
-    --color-validation-warning-text: #602a0c;
-    --color-validation-warning-label: #602a0c;
-    --color-validation-warning-helper: #967b4a;
-    --color-validation-warning-ring: #eab308;
-    --color-validation-warning-icon: #efc576;
+    --color-validation-warning-border: 40.7 86.4% 74.3%;
+    --color-validation-warning-bg: 55 92.3% 95.1%;
+    --color-validation-warning-text: 20.5 82.4% 21.2%;
+    --color-validation-warning-label: 20.5 82.4% 21.2%;
+    --color-validation-warning-helper: 36.9 34.3% 43.9%;
+    --color-validation-warning-ring: 45.4 93.4% 47.5%;
+    --color-validation-warning-icon: 38.8 80.3% 69.8%;
 
     /* Validation - Success */
-    --color-validation-success-border: #c3f0e6;
-    --color-validation-success-bg: #f0faf7;
-    --color-validation-success-text: #3a8a74;
-    --color-validation-success-label: #5ba995;
-    --color-validation-success-ring: #87d8c3;
-    --color-validation-success-icon: #87d8c3;
+    --color-validation-success-border: 166.1 51.4% 85.3%;
+    --color-validation-success-bg: 156 41.2% 96.3%;
+    --color-validation-success-text: 161.2 40% 38.4%;
+    --color-validation-success-label: 163.2 32.6% 50.6%;
+    --color-validation-success-ring: 166.1 46.8% 68.8%;
+    --color-validation-success-icon: 166.1 46.8% 68.8%;
 
     /* Validation - Default */
-    --color-validation-default-border: #e2e8f0;
-    --color-validation-default-bg: #ffffff;
-    --color-validation-default-ring: #4a7db5;
+    --color-validation-default-border: 214.3 31.8% 91.4%;
+    --color-validation-default-bg: 0 0% 100%;
+    --color-validation-default-ring: 210 43.1% 50%;
 
     /* Focus Ring System */
-    --focus-ring-color: #4a7db5;
-    --focus-ring-glow-inner: #d1f9ff;
-    --focus-ring-glow-outer: rgba(74, 125, 181, 0.3);
-    --focus-ring-blur: rgba(74, 125, 181, 0.2);
+    --focus-ring-color: 210 43.1% 50%;
+    --focus-ring-glow-inner: 186.7 92.9% 90.6%;
+    --focus-ring-glow-outer: 210 43.1% 50% / 0.3;
+    --focus-ring-blur: 210 43.1% 50% / 0.2;
     --focus-ring-width: 2px;
     --focus-ring-offset: 0px;
 
@@ -157,225 +159,225 @@
     --action-focus: var(--color-action-focus);
 
     /* Audit Log - Entity Colors */
-    --color-audit-entity-tube: #93c5f8;
-    --color-audit-entity-storage: #5987b6; /* Steel blue */
-    --color-audit-entity-person: #737abd; /* Purple */
-    --color-audit-entity-system: #64748b; /* Slate */
+    --color-audit-entity-tube: 209.3 89.7% 77.3%;
+    --color-audit-entity-storage: 209.5 36.1% 52.7%;
+    --color-audit-entity-person: 236.5 28.4% 59.4%;
+    --color-audit-entity-system: 215.4 16.3% 46.9%;
 
     /* Audit Log - Action Colors */
     --color-audit-action-create: var(--color-success-bg);
     --color-audit-action-update: var(--color-info-bg);
     --color-audit-action-delete: var(--color-danger-bg);
     --color-audit-action-move: var(--color-warning-bg);
-    --color-audit-action-auth: #64748b;
+    --color-audit-action-auth: 215.4 16.3% 46.9%;
     --color-audit-action-link: var(--color-share-bg);
 
     /* Ownership Indicator - Resource assignment visualization */
-    --ownership-user-badge: #5a8fc7;
-    --ownership-other-badge: #64748b;
-    --ownership-unassigned-badge: #78716c;
+    --ownership-user-badge: 210 50% 56.7%;
+    --ownership-other-badge: 215.4 16.3% 46.9%;
+    --ownership-unassigned-badge: 30 6.3% 44.7%;
 
     /* Tube Grid - Cell and selection styling */
-    --grid-border: #e5e7eb;
-    --grid-empty: #f8f9fa;
-    --grid-empty-foreground: #999999;
-    --grid-position-label: #ffffff;
-    --grid-position-label-foreground: #475569;
-    --grid-position-label-border: #d1d5db;
+    --grid-border: 220 13% 91%;
+    --grid-empty: 210 15% 90%;
+    --grid-empty-foreground: 0 0% 60%;
+    --grid-position-label: 0 0% 100%;
+    --grid-position-label-foreground: 215.4 19.3% 34.5%;
+    --grid-position-label-border: 220 13% 82.7%;
     --grid-selection: var(--color-action-default);
-    --grid-selection-glow: rgba(37, 99, 235, 0.8);
-    --grid-selection-overlay: rgba(37, 99, 235, 0.18);
-    --grid-selection-empty: rgba(37, 99, 235, 0.08);
-    --grid-preview: rgba(100, 116, 139, 0.5);
-    --grid-preview-overlay: rgba(100, 116, 139, 0.12);
+    --grid-selection-glow: 221.2 83.2% 53.3% / 0.8;
+    --grid-selection-overlay: 221.2 83.2% 53.3% / 0.18;
+    --grid-selection-empty: 221.2 83.2% 53.3% / 0.08;
+    --grid-preview: 215 20.2% 46.9% / 0.5;
+    --grid-preview-overlay: 215 20.2% 46.9% / 0.12;
     --grid-cut-opacity: 0.65;
-    --grid-copied: #475569;
-    --grid-copied-alt: #ffffff;
+    --grid-copied: 215.4 19.3% 34.5%;
+    --grid-copied-alt: 0 0% 100%;
 
     /* Always-dark components - maintain dark styling regardless of theme */
 
     /* Toast */
-    --toast: #1f2937;
-    --toast-foreground: #e5e7eb;
+    --toast: 220 14.3% 15.9%;
+    --toast-foreground: 220 13% 91%;
 
     /* Tooltip */
-    --tooltip: #0f172a;
-    --tooltip-foreground: #ffffff;
-    --tooltip-border: #334155;
-    --tooltip-muted: #94a3b8;
+    --tooltip: 222.2 47.4% 11.2%;
+    --tooltip-foreground: 0 0% 100%;
+    --tooltip-border: 215.3 25% 26.7%;
+    --tooltip-muted: 215 20.2% 65.1%;
 
     /* Chip Active */
-    --chip-active: #475569;
-    --chip-active-foreground: #ffffff;
-    --chip-active-hover: #334155;
+    --chip-active: 215.4 19.3% 34.5%;
+    --chip-active-foreground: 0 0% 100%;
+    --chip-active-hover: 215.3 25% 26.7%;
 
     /* Status Offline */
-    --status-offline: #1f2937;
-    --status-offline-foreground: #d1d5db;
-    --status-offline-border: #374151;
-    --status-offline-muted: #374151;
-    --status-offline-hover: #4b5563;
+    --status-offline: 220 14.3% 15.9%;
+    --status-offline-foreground: 220 13% 82.7%;
+    --status-offline-border: 217.2 19.2% 26.7%;
+    --status-offline-muted: 217.2 19.2% 26.7%;
+    --status-offline-hover: 220 8.9% 46.1%;
   }
 
   /* Dark theme - activated via data-theme="dark" on html element */
   [data-theme='dark'] {
     /* Core */
-    --background: #0f172a;
-    --foreground: #f8fafc;
-    --page: #0f172a;
+    --background: 222.2 47.4% 11.2%;
+    --foreground: 210 33% 92%;
+    --page: 222.2 47.4% 11.2%;
 
     /* Card */
-    --card: #1e293b;
-    --card-foreground: #f8fafc;
+    --card: 217.2 32.6% 17.5%;
+    --card-foreground: 210 33% 92%;
 
     /* Popover */
-    --popover: #1e293b;
-    --popover-foreground: #f8fafc;
+    --popover: 217.2 32.6% 17.5%;
+    --popover-foreground: 210 33% 92%;
 
     /* Primary */
-    --primary: #3b82f6;
-    --primary-foreground: #ffffff;
+    --primary: 217.2 91.2% 59.8%;
+    --primary-foreground: 0 0% 100%;
 
     /* Secondary */
-    --secondary: #1e293b;
-    --secondary-foreground: #94a3b8;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 215 20.2% 65.1%;
 
     /* Muted */
-    --muted: #334155;
-    --muted-foreground: #94a3b8;
+    --muted: 215.3 25% 26.7%;
+    --muted-foreground: 215 20.2% 65.1%;
 
     /* Accent */
-    --accent: #334155;
-    --accent-foreground: #f8fafc;
+    --accent: 215.3 25% 26.7%;
+    --accent-foreground: 210 33% 92%;
 
     /* Utilities */
-    --border: #334155;
-    --input: #334155;
+    --border: 215.3 25% 26.7%;
+    --input: 215.3 25% 26.7%;
 
     /* Action Colors */
-    --color-action-default: #60a5fa;
-    --color-action-hover: #3b82f6;
-    --color-action-focus: #3b82f6;
+    --color-action-default: 213.1 93.9% 67.8%;
+    --color-action-hover: 217.2 91.2% 59.8%;
+    --color-action-focus: 217.2 91.2% 59.8%;
 
     /* Danger Theme */
-    --color-danger-bg: #ef4444;
-    --color-danger-hover: #dc2626;
-    --color-danger-text: #fca5a5;
-    --color-danger-btnText: #ffffff;
-    --color-danger-light: #450a0a;
-    --color-danger-border: #7f1d1d;
+    --color-danger-bg: 0 84.2% 60.2%;
+    --color-danger-hover: 0 72.2% 50.6%;
+    --color-danger-text: 0 93.5% 81.8%;
+    --color-danger-btnText: 0 0% 100%;
+    --color-danger-light: 0 62.8% 15.7%;
+    --color-danger-border: 0 62.8% 30.6%;
 
     /* Warning Theme */
-    --color-warning-bg: #f59e0b;
-    --color-warning-hover: #d97706;
-    --color-warning-text: #fcd34d;
-    --color-warning-btnText: #000000;
-    --color-warning-light: #451a03;
-    --color-warning-border: #78350f;
+    --color-warning-bg: 37.7 92.1% 50.2%;
+    --color-warning-hover: 32.1 94.6% 43.7%;
+    --color-warning-text: 50.4 97.8% 63.5%;
+    --color-warning-btnText: 0 0% 0%;
+    --color-warning-light: 28 80.4% 14.1%;
+    --color-warning-border: 28 72.5% 25.7%;
 
     /* Success Theme */
-    --color-success-bg: #22c55e;
-    --color-success-hover: #16a34a;
-    --color-success-text: #86efac;
-    --color-success-btnText: #000000;
-    --color-success-light: #052e16;
-    --color-success-border: #166534;
+    --color-success-bg: 142.1 70.6% 45.3%;
+    --color-success-hover: 142.1 76.2% 36.3%;
+    --color-success-text: 142.4 70.6% 73.9%;
+    --color-success-btnText: 0 0% 0%;
+    --color-success-light: 143.8 61.2% 9.4%;
+    --color-success-border: 142.1 64.2% 24.1%;
 
     /* Info Theme */
-    --color-info-bg: #3b82f6;
-    --color-info-hover: #2563eb;
-    --color-info-text: #93c5fd;
-    --color-info-btnText: #ffffff;
-    --color-info-light: #172554;
-    --color-info-border: #1e40af;
+    --color-info-bg: 217.2 91.2% 59.8%;
+    --color-info-hover: 221.2 83.2% 53.3%;
+    --color-info-text: 213.3 96.9% 78.4%;
+    --color-info-btnText: 0 0% 100%;
+    --color-info-light: 226.2 57% 20.8%;
+    --color-info-border: 224.4 64.3% 32.9%;
 
     /* Clear Theme */
-    --color-clear-bg: #475569;
-    --color-clear-hover: #334155;
-    --color-clear-text: #cbd5e1;
+    --color-clear-bg: 215.4 19.3% 34.5%;
+    --color-clear-hover: 215.3 25% 26.7%;
+    --color-clear-text: 212.7 26.8% 83.9%;
 
     /* Validation - Error */
-    --color-validation-error-border: #991b1b;
-    --color-validation-error-bg: #450a0a;
-    --color-validation-error-text: #fca5a5;
-    --color-validation-error-label: #fca5a5;
-    --color-validation-error-helper: #f87171;
-    --color-validation-error-ring: #ef4444;
-    --color-validation-error-icon: #f87171;
-    --color-validation-error-required: #ef4444;
+    --color-validation-error-border: 0 62.8% 30.6%;
+    --color-validation-error-bg: 0 62.8% 15.7%;
+    --color-validation-error-text: 0 93.5% 81.8%;
+    --color-validation-error-label: 0 93.5% 81.8%;
+    --color-validation-error-helper: 0 86.7% 71.4%;
+    --color-validation-error-ring: 0 84.2% 60.2%;
+    --color-validation-error-icon: 0 86.7% 71.4%;
+    --color-validation-error-required: 0 84.2% 60.2%;
 
     /* Validation - Warning */
-    --color-validation-warning-border: #92400e;
-    --color-validation-warning-bg: #451a03;
-    --color-validation-warning-text: #fcd34d;
-    --color-validation-warning-label: #fcd34d;
-    --color-validation-warning-helper: #fbbf24;
-    --color-validation-warning-ring: #f59e0b;
-    --color-validation-warning-icon: #fbbf24;
+    --color-validation-warning-border: 26.2 90.5% 31.4%;
+    --color-validation-warning-bg: 28 80.4% 14.1%;
+    --color-validation-warning-text: 50.4 97.8% 63.5%;
+    --color-validation-warning-label: 50.4 97.8% 63.5%;
+    --color-validation-warning-helper: 43.3 96.4% 56.3%;
+    --color-validation-warning-ring: 37.7 92.1% 50.2%;
+    --color-validation-warning-icon: 43.3 96.4% 56.3%;
 
     /* Validation - Success */
-    --color-validation-success-border: #166534;
-    --color-validation-success-bg: #052e16;
-    --color-validation-success-text: #86efac;
-    --color-validation-success-label: #86efac;
-    --color-validation-success-ring: #22c55e;
-    --color-validation-success-icon: #4ade80;
+    --color-validation-success-border: 142.1 64.2% 24.1%;
+    --color-validation-success-bg: 143.8 61.2% 9.4%;
+    --color-validation-success-text: 142.4 70.6% 73.9%;
+    --color-validation-success-label: 142.4 70.6% 73.9%;
+    --color-validation-success-ring: 142.1 70.6% 45.3%;
+    --color-validation-success-icon: 141.7 69.2% 58%;
 
     /* Validation - Default */
-    --color-validation-default-border: #334155;
-    --color-validation-default-bg: #1e293b;
-    --color-validation-default-ring: #60a5fa;
+    --color-validation-default-border: 215.3 25% 26.7%;
+    --color-validation-default-bg: 217.2 32.6% 17.5%;
+    --color-validation-default-ring: 213.1 93.9% 67.8%;
 
     /* Focus Ring System */
-    --focus-ring-color: #60a5fa;
-    --focus-ring-glow-inner: #1e3a5f;
-    --focus-ring-glow-outer: rgba(96, 165, 250, 0.3);
-    --focus-ring-blur: rgba(96, 165, 250, 0.2);
+    --focus-ring-color: 213.1 93.9% 67.8%;
+    --focus-ring-glow-inner: 213.8 50% 24.3%;
+    --focus-ring-glow-outer: 213.1 93.9% 67.8% / 0.3;
+    --focus-ring-blur: 213.1 93.9% 67.8% / 0.2;
 
     /* Ownership Indicator - Resource assignment visualization */
-    --ownership-user-badge: #60a5fa;
-    --ownership-other-badge: #94a3b8;
-    --ownership-unassigned-badge: #a8a29e;
+    --ownership-user-badge: 213.1 93.9% 67.8%;
+    --ownership-other-badge: 215 20.2% 65.1%;
+    --ownership-unassigned-badge: 30 6.1% 64.5%;
 
     /* Tube Grid - Cell and selection styling */
-    --grid-border: #374151;
-    --grid-empty: #263244;
-    --grid-position-label: #1f2937;
-    --grid-position-label-foreground: #9ca3af;
-    --grid-position-label-border: #374151;
-    --grid-empty-foreground: #6b7280;
+    --grid-border: 217.2 19.2% 26.7%;
+    --grid-empty: 215 24% 20.8%;
+    --grid-position-label: 220 14.3% 15.9%;
+    --grid-position-label-foreground: 220 10.6% 64.9%;
+    --grid-position-label-border: 217.2 19.2% 26.7%;
+    --grid-empty-foreground: 220 8.9% 46.1%;
     --grid-selection: var(--color-action-default);
-    --grid-selection-glow: rgba(96, 165, 250, 0.7);
-    --grid-selection-overlay: rgba(96, 165, 250, 0.25);
-    --grid-selection-empty: rgba(96, 165, 250, 0.15);
-    --grid-preview: rgba(148, 163, 184, 0.5);
-    --grid-preview-overlay: rgba(148, 163, 184, 0.15);
+    --grid-selection-glow: 213.1 93.9% 67.8% / 0.7;
+    --grid-selection-overlay: 213.1 93.9% 67.8% / 0.25;
+    --grid-selection-empty: 213.1 93.9% 67.8% / 0.15;
+    --grid-preview: 215 20.2% 65.1% / 0.5;
+    --grid-preview-overlay: 215 20.2% 65.1% / 0.15;
     --grid-cut-opacity: 0.5;
-    --grid-copied: #94a3b8;
-    --grid-copied-alt: #1e293b;
+    --grid-copied: 215 20.2% 65.1%;
+    --grid-copied-alt: 217.2 32.6% 17.5%;
 
     /* Always-dark components - same values as light theme */
 
     /* Toast */
-    --toast: #1f2937;
-    --toast-foreground: #e5e7eb;
+    --toast: 220 14.3% 15.9%;
+    --toast-foreground: 220 13% 91%;
 
     /* Tooltip */
-    --tooltip: #0f172a;
-    --tooltip-foreground: #ffffff;
-    --tooltip-border: #334155;
-    --tooltip-muted: #94a3b8;
+    --tooltip: 222.2 47.4% 11.2%;
+    --tooltip-foreground: 0 0% 100%;
+    --tooltip-border: 215.3 25% 26.7%;
+    --tooltip-muted: 215 20.2% 65.1%;
 
     /* Chip Active */
-    --chip-active: #475569;
-    --chip-active-foreground: #ffffff;
-    --chip-active-hover: #334155;
+    --chip-active: 215.4 19.3% 34.5%;
+    --chip-active-foreground: 0 0% 100%;
+    --chip-active-hover: 215.3 25% 26.7%;
 
     /* Status Offline */
-    --status-offline: #1f2937;
-    --status-offline-foreground: #d1d5db;
-    --status-offline-border: #374151;
-    --status-offline-muted: #374151;
-    --status-offline-hover: #4b5563;
+    --status-offline: 220 14.3% 15.9%;
+    --status-offline-foreground: 220 13% 82.7%;
+    --status-offline-border: 217.2 19.2% 26.7%;
+    --status-offline-muted: 217.2 19.2% 26.7%;
+    --status-offline-hover: 220 8.9% 46.1%;
   }
 }
