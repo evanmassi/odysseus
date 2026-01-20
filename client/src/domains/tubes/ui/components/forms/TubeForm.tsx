@@ -302,7 +302,7 @@ export const TubeForm = ({
               <div>
                 <label
                   className={`block text-sm font-medium mb-1 ${
-                    error ? 'text-validation-error-label' : 'text-secondary-foreground'
+                    error ? 'text-danger-text' : 'text-secondary-foreground'
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -326,7 +326,7 @@ export const TubeForm = ({
                   placeholder="Select researcher..."
                 />
                 {error && (
-                  <div className="flex items-center mt-1 text-xs text-validation-error-helper">
+                  <div className="flex items-center mt-1 text-xs text-danger-text">
                     <span>{error}</span>
                   </div>
                 )}

@@ -6,14 +6,14 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import { KeyRound, AlertTriangle } from 'lucide-react';
+import { KeyRound } from 'lucide-react';
 
 import {
   authService,
   type PasswordRequirements as PasswordConfig,
 } from '@domains/authentication/services/AuthenticationService';
 import { logger } from '@shared/infrastructure/logger';
-import { AuthInput, Button } from '@shared/ui';
+import { AlertBanner, AuthInput, Button } from '@shared/ui';
 
 import { PasswordRequirements } from './PasswordRequirements';
 
@@ -137,12 +137,7 @@ export function CreatePasswordForm({
   return (
     <>
       {/* Error Banner */}
-      {displayError && (
-        <div className="mb-4 px-3 py-2 bg-danger-light border-l-4 border-l-danger-border rounded-lg shadow-sm flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
-          <AlertTriangle className="w-4 h-4 text-danger-text flex-shrink-0" />
-          <span className="text-sm text-danger-text">{displayError}</span>
-        </div>
-      )}
+      {displayError && <AlertBanner variant="error">{displayError}</AlertBanner>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* New Password */}

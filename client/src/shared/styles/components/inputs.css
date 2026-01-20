@@ -109,12 +109,12 @@
   }
 
   .input-field-error {
-    @apply border-2 border-validation-error-border bg-validation-error-bg;
+    @apply border-2 border-danger-border bg-danger-light;
   }
 
   .input-field-error:focus,
   .input-field-error:focus-within {
-    @apply border-validation-error-ring outline-none;
+    @apply border-danger-bg outline-none;
     animation: pulseErrorRing 2.5s ease-in-out infinite;
     transition: border-color 0.3s;
   }

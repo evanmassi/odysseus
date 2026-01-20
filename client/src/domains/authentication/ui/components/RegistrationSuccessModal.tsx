@@ -51,10 +51,10 @@ export function RegistrationSuccessModal({
     <AuthBaseModal showBranding="icon" zIndex={60}>
       {/* Success Header */}
       <div className="flex justify-center mb-2">
-        <AnimatedCheckmark size={64} />
+        <AnimatedCheckmark size={64} className="text-success-text" />
       </div>
       <div className="text-center mb-6">
-        <h2 className="text-xl font-bold text-emerald-600 mb-1">Account Created</h2>
+        <h2 className="text-xl font-bold text-success-text mb-1">Account Created</h2>
         <p className="text-sm text-muted-foreground">
           {isPending ? 'Awaiting admin approval' : 'Ready to sign in'}
         </p>

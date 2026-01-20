@@ -6,6 +6,7 @@
  */
 
 // Import all components first
+import { AlertBanner } from './alert-banner/AlertBanner';
 import { Button } from './button/Button';
 import { Checkbox } from './checkbox/Checkbox';
 import { Chip } from './chip/Chip';
@@ -19,6 +20,10 @@ import { Tabs, Tab } from './tabs/Tabs';
 import { Textarea } from './textarea/Textarea';
 import { Toggle } from './toggle/Toggle';
 import { Tooltip } from './tooltip/Tooltip';
+
+// AlertBanner primitives
+export { AlertBanner };
+export type { AlertBannerProps, AlertBannerVariant } from './alert-banner/types';
 
 // Button primitives
 export { Button };
@@ -206,6 +211,7 @@ export type ForwardedRef<T> =
 
 // Primitive component collection for easy importing
 export const Primitives = {
+  AlertBanner,
   AuthInput,
   Button,
   Checkbox,

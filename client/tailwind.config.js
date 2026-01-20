@@ -92,8 +92,10 @@ export default {
           bg: 'hsl(var(--color-success-bg) / <alpha-value>)',
           hover: 'hsl(var(--color-success-hover) / <alpha-value>)',
           text: 'hsl(var(--color-success-text) / <alpha-value>)',
+          'text-hover': 'hsl(var(--color-success-text-hover) / <alpha-value>)',
           btnText: 'hsl(var(--color-success-btnText) / <alpha-value>)',
           light: 'hsl(var(--color-success-light) / <alpha-value>)',
+          'light-hover': 'hsl(var(--color-success-light-hover) / <alpha-value>)',
           border: 'hsl(var(--color-success-border) / <alpha-value>)',
         },
         info: {
@@ -105,16 +107,6 @@ export default {
           border: 'hsl(var(--color-info-border) / <alpha-value>)',
         },
         validation: {
-          error: {
-            border: 'hsl(var(--color-validation-error-border) / <alpha-value>)',
-            bg: 'hsl(var(--color-validation-error-bg) / <alpha-value>)',
-            text: 'hsl(var(--color-validation-error-text) / <alpha-value>)',
-            label: 'hsl(var(--color-validation-error-label) / <alpha-value>)',
-            helper: 'hsl(var(--color-validation-error-helper) / <alpha-value>)',
-            ring: 'hsl(var(--color-validation-error-ring) / <alpha-value>)',
-            icon: 'hsl(var(--color-validation-error-icon) / <alpha-value>)',
-            required: 'hsl(var(--color-validation-error-required) / <alpha-value>)',
-          },
           warning: {
             border: 'hsl(var(--color-validation-warning-border) / <alpha-value>)',
             bg: 'hsl(var(--color-validation-warning-bg) / <alpha-value>)',
@@ -123,14 +115,6 @@ export default {
             helper: 'hsl(var(--color-validation-warning-helper) / <alpha-value>)',
             ring: 'hsl(var(--color-validation-warning-ring) / <alpha-value>)',
             icon: 'hsl(var(--color-validation-warning-icon) / <alpha-value>)',
-          },
-          success: {
-            border: 'hsl(var(--color-validation-success-border) / <alpha-value>)',
-            bg: 'hsl(var(--color-validation-success-bg) / <alpha-value>)',
-            text: 'hsl(var(--color-validation-success-text) / <alpha-value>)',
-            label: 'hsl(var(--color-validation-success-label) / <alpha-value>)',
-            ring: 'hsl(var(--color-validation-success-ring) / <alpha-value>)',
-            icon: 'hsl(var(--color-validation-success-icon) / <alpha-value>)',
           },
           default: {
             border: 'hsl(var(--color-validation-default-border) / <alpha-value>)',

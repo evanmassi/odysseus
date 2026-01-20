@@ -7,12 +7,12 @@
 
 import { useState, useRef } from 'react';
 
-import { KeyRound, UserRound, Mail, Clock, AlertTriangle, TimerOff } from 'lucide-react';
+import { KeyRound, UserRound, Mail, Clock, TimerOff } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
-import { AuthInput, Button } from '@shared/ui';
+import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { AuthBaseModal } from './AuthBaseModal';
@@ -118,7 +118,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     return (
       <AuthBaseModal key="password-success" showBranding="icon">
         <div className="flex justify-center mb-4">
-          <AnimatedCheckmark size={64} />
+          <AnimatedCheckmark size={64} className="text-success-text" />
         </div>
 
         <div className="text-center">
@@ -156,19 +156,15 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     >
       {/* Session Expiration Banners */}
       {logoutReason === 'idle_timeout' && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-warning-light border-l-4 border-l-warning-border rounded-lg shadow-sm mb-4 animate-in slide-in-from-top-2 duration-300">
-          <Clock className="w-4 h-4 text-warning-text flex-shrink-0" />
-          <span className="text-sm text-warning-text">Session timed out due to inactivity</span>
-        </div>
+        <AlertBanner variant="warning" icon={Clock}>
+          Session timed out due to inactivity
+        </AlertBanner>
       )}
 
       {logoutReason === 'token_expired' && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-warning-light border-l-4 border-l-warning-border rounded-lg shadow-sm mb-4 animate-in slide-in-from-top-2 duration-300">
-          <TimerOff className="w-4 h-4 text-warning-text flex-shrink-0" />
-          <span className="text-sm text-warning-text">
-            Your session has expired. Please sign in again.
-          </span>
-        </div>
+        <AlertBanner variant="warning" icon={TimerOff}>
+          Your session has expired. Please sign in again.
+        </AlertBanner>
       )}
 
       {/* Email Verification Error Banner */}
@@ -204,10 +200,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
 
       {/* Generic Login Error Banner */}
       {loginError && !isEmailVerificationError && (
-        <div className="mb-4 px-3 py-2 bg-validation-error-bg border-l-4 border-l-validation-error-border rounded-lg shadow-sm flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
-          <AlertTriangle className="w-4 h-4 text-validation-error-icon flex-shrink-0" />
-          <span className="text-sm text-validation-error-text">{loginError}</span>
-        </div>
+        <AlertBanner variant="error">{loginError}</AlertBanner>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">

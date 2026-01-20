@@ -8,7 +8,7 @@ import { AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
 
 import odysseusLogo from '@shared/assets/odysseus-logo-thick.svg';
 import { env } from '@shared/config/environment';
-import { Button, Spinner } from '@shared/ui';
+import { AlertBanner, Button, Spinner } from '@shared/ui';
 
 import { LOADING_MESSAGES } from '../../bootstrap/constants';
 
@@ -120,13 +120,13 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
           <div className="mb-6">
             <div className="bg-danger-light border border-danger-border rounded-lg p-4 mb-4">
               <div className="flex items-start space-x-3">
-                <AlertCircle className="w-5 h-5 text-danger-bg flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-danger-text flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <h4 className="text-sm font-medium text-validation-error-text mb-1">
+                  <h4 className="text-sm font-medium text-danger-text mb-1">
                     {typeof error === 'string' ? error : error.message}
                   </h4>
                   {typeof error === 'object' && (
-                    <p className="text-sm text-validation-error-text">
+                    <p className="text-sm text-danger-text">
                       Step: {error.step} ({error.code})
                     </p>
                   )}
@@ -175,14 +175,9 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
 
         {/* Loading Timeout Warning */}
         {state === 'initializing' && progress === 0 && (
-          <div className="mt-6 px-3 py-2 bg-warning-light border-l-4 border-l-warning-bg rounded-lg shadow-sm">
-            <div className="flex items-start gap-2">
-              <Clock className="w-4 h-4 text-warning-bg flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-warning-text">
-                Taking longer than expected? Check your internet connection.
-              </p>
-            </div>
-          </div>
+          <AlertBanner variant="warning" icon={Clock} spacing="none" className="mt-6">
+            Taking longer than expected? Check your internet connection.
+          </AlertBanner>
         )}
       </div>
     </div>

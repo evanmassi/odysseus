@@ -90,14 +90,14 @@ export const ConcentrationFieldGroup: React.FC<ConcentrationFieldGroupProps> = (
             />
             {form.formState.errors.sample?.concentration && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="w-5 h-5 rounded-full bg-validation-error-icon flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-danger-bg flex items-center justify-center">
                   <span className="text-white text-xs font-bold">!</span>
                 </div>
               </div>
             )}
           </div>
           {form.formState.errors.sample?.concentration && (
-            <p className="text-sm text-validation-error-helper flex items-center mt-1">
+            <p className="text-sm text-danger-text flex items-center mt-1">
               <span className="mr-1">⚠️</span>
               {form.formState.errors.sample?.concentration.message}
             </p>
@@ -113,7 +113,7 @@ export const ConcentrationFieldGroup: React.FC<ConcentrationFieldGroupProps> = (
             Unit
             {/* Number-safe check - required when concentration is provided */}
             {concentration !== undefined && concentration !== null && (
-              <span className="text-validation-error-required ml-1">*</span>
+              <span className="text-danger-bg ml-1">*</span>
             )}
           </label>
           <Controller
@@ -136,7 +136,7 @@ export const ConcentrationFieldGroup: React.FC<ConcentrationFieldGroupProps> = (
             )}
           />
           {form.formState.errors.sample?.concentrationUnit && (
-            <p className="text-sm text-validation-error-helper flex items-center mt-1">
+            <p className="text-sm text-danger-text flex items-center mt-1">
               <span className="mr-1">⚠️</span>
               {form.formState.errors.sample?.concentrationUnit.message}
             </p>

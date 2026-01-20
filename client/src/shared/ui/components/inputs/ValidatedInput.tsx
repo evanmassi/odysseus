@@ -84,7 +84,7 @@ export function ValidatedInput({
     } else if (hasConflict) {
       return 'input-field input-field-conflict w-full';
     } else if (!isUncontrolled && value && !error && !warning) {
-      return 'input-field input-field-normal w-full border-validation-success-border bg-validation-success-bg';
+      return 'input-field input-field-normal w-full border-success-border bg-success-light';
     } else {
       return 'input-field input-field-normal w-full';
     }
@@ -94,7 +94,7 @@ export function ValidatedInput({
     const baseClasses = 'block text-sm font-medium mb-1';
 
     if (error) {
-      return `${baseClasses} text-validation-error-label`;
+      return `${baseClasses} text-danger-text`;
     } else if (warning) {
       return `${baseClasses} text-validation-warning-label`;
     } else {
@@ -106,7 +106,7 @@ export function ValidatedInput({
     const baseClasses = 'flex items-center mt-1 text-xs';
 
     if (error) {
-      return `${baseClasses} text-validation-error-helper`;
+      return `${baseClasses} text-danger-text`;
     } else if (warning) {
       return `${baseClasses} text-validation-warning-helper`;
     } else {
@@ -116,11 +116,11 @@ export function ValidatedInput({
 
   const getIcon = () => {
     if (error) {
-      return <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-error-icon" />;
+      return <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0 text-danger-text" />;
     } else if (warning) {
       return <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-warning-icon" />;
     } else if (!isUncontrolled && value && !error && !warning) {
-      return <CheckCircle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-success-icon" />;
+      return <CheckCircle className="w-4 h-4 mr-1 flex-shrink-0 text-success-text" />;
     }
     return null;
   };
@@ -147,7 +147,7 @@ export function ValidatedInput({
       <label className={getLabelClasses()}>
         <span className="flex items-center gap-1.5">
           {label}
-          {required && <span className="text-validation-error-required">*</span>}
+          {required && <span className="text-danger-bg">*</span>}
           {badge}
         </span>
       </label>

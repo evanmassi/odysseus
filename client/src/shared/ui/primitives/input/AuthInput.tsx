@@ -79,7 +79,7 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
       default: 'text-muted-foreground',
       success: 'text-success-text',
       warning: 'text-warning-text',
-      error: 'text-validation-error-label',
+      error: 'text-danger-text',
     }[state];
 
     // Icon color based on validation state
@@ -87,13 +87,13 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
       default: 'text-muted-foreground',
       success: 'text-success-text',
       warning: 'text-warning-text',
-      error: 'text-validation-error-icon',
+      error: 'text-danger-text',
     }[state];
 
     // Input text color based on validation state
     const inputTextClass =
       state === 'error'
-        ? 'text-validation-error-text'
+        ? 'text-danger-text'
         : state === 'warning'
           ? 'text-warning-text'
           : 'text-foreground';

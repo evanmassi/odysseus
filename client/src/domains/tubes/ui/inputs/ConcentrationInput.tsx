@@ -76,7 +76,7 @@ export function ConcentrationInput({
     const baseClasses = 'block text-sm font-medium mb-1';
 
     if (validation?.error) {
-      return `${baseClasses} text-validation-error-label`;
+      return `${baseClasses} text-danger-text`;
     } else if (validation?.warning) {
       return `${baseClasses} text-validation-warning-label`;
     } else {
@@ -180,7 +180,7 @@ export function ConcentrationInput({
           flex items-center mt-1 text-xs
           ${
             validation.error
-              ? 'text-validation-error-helper'
+              ? 'text-danger-text'
               : validation.warning
                 ? 'text-validation-warning-helper'
                 : 'text-muted-foreground'
@@ -188,7 +188,7 @@ export function ConcentrationInput({
         `}
         >
           {validation.error && (
-            <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-error-icon" />
+            <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0 text-danger-text" />
           )}
           {validation.warning && (
             <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-warning-icon" />

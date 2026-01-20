@@ -133,13 +133,13 @@ export function ResearcherModal({
             {/* First Name */}
             <div>
               <div
-                className={`auth-input-container ${errors.firstName ? 'border-validation-error-border' : 'border-border'}`}
+                className={`auth-input-container ${errors.firstName ? 'border-danger-border' : 'border-border'}`}
               >
                 <label
                   htmlFor="firstName"
-                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.firstName ? 'text-validation-error-text' : 'text-secondary-foreground'}`}
+                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.firstName ? 'text-danger-text' : 'text-secondary-foreground'}`}
                 >
-                  First Name <span className="text-validation-error-required">*</span>
+                  First Name <span className="text-danger-bg">*</span>
                 </label>
                 <div className="relative px-3 py-2">
                   <User
@@ -166,22 +166,20 @@ export function ResearcherModal({
                 </div>
               </div>
               {errors.firstName && (
-                <p className="text-xs text-validation-error-text mt-1 ml-1">
-                  {errors.firstName.message}
-                </p>
+                <p className="text-xs text-danger-text mt-1 ml-1">{errors.firstName.message}</p>
               )}
             </div>
 
             {/* Last Name */}
             <div>
               <div
-                className={`auth-input-container ${errors.lastName ? 'border-validation-error-border' : 'border-border'}`}
+                className={`auth-input-container ${errors.lastName ? 'border-danger-border' : 'border-border'}`}
               >
                 <label
                   htmlFor="lastName"
-                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.lastName ? 'text-validation-error-text' : 'text-secondary-foreground'}`}
+                  className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.lastName ? 'text-danger-text' : 'text-secondary-foreground'}`}
                 >
-                  Last Name <span className="text-validation-error-required">*</span>
+                  Last Name <span className="text-danger-bg">*</span>
                 </label>
                 <div className="relative px-3 py-2">
                   <User
@@ -197,9 +195,7 @@ export function ResearcherModal({
                 </div>
               </div>
               {errors.lastName && (
-                <p className="text-xs text-validation-error-text mt-1 ml-1">
-                  {errors.lastName.message}
-                </p>
+                <p className="text-xs text-danger-text mt-1 ml-1">{errors.lastName.message}</p>
               )}
             </div>
           </div>
@@ -207,13 +203,13 @@ export function ResearcherModal({
           {/* Email */}
           <div>
             <div
-              className={`auth-input-container ${errors.email ? 'border-validation-error-border' : 'border-border'}`}
+              className={`auth-input-container ${errors.email ? 'border-danger-border' : 'border-border'}`}
             >
               <label
                 htmlFor="email"
-                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.email ? 'text-validation-error-text' : 'text-secondary-foreground'}`}
+                className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold uppercase tracking-wide ${errors.email ? 'text-danger-text' : 'text-secondary-foreground'}`}
               >
-                Email <span className="text-validation-error-required">*</span>
+                Email <span className="text-danger-bg">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <Mail
@@ -230,7 +226,7 @@ export function ResearcherModal({
               </div>
             </div>
             {errors.email && (
-              <p className="text-xs text-validation-error-text mt-1 ml-1">{errors.email.message}</p>
+              <p className="text-xs text-danger-text mt-1 ml-1">{errors.email.message}</p>
             )}
           </div>
 

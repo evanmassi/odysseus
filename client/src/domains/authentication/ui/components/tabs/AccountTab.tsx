@@ -59,13 +59,13 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
   // Field border styling
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'border-border';
-    return isValid ? 'border-validation-success-border' : 'input-field-error';
+    return isValid ? 'border-success-border' : 'input-field-error';
   };
 
   // Label color styling
   const getLabelColorClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'text-secondary-foreground';
-    return isValid ? 'text-validation-success-text' : 'text-validation-error-label';
+    return isValid ? 'text-success-text' : 'text-danger-text';
   };
 
   // Email validation
@@ -164,7 +164,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               htmlFor="account-firstName"
               className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(firstNameTouched, firstName.trim().length > 0)}`}
             >
-              First Name <span className="text-validation-error-required">*</span>
+              First Name <span className="text-danger-bg">*</span>
             </label>
             <div className="relative px-3 py-2">
               <UserRound
@@ -194,7 +194,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               htmlFor="account-lastName"
               className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(lastNameTouched, lastName.trim().length > 0)}`}
             >
-              Last Name <span className="text-validation-error-required">*</span>
+              Last Name <span className="text-danger-bg">*</span>
             </label>
             <div className="relative px-3 py-2">
               <UserRound
@@ -223,7 +223,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             htmlFor="account-email"
             className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(emailTouched, emailIsValid)}`}
           >
-            Email <span className="text-validation-error-required">*</span>
+            Email <span className="text-danger-bg">*</span>
           </label>
           <div className="relative px-3 py-2">
             <Mail
@@ -322,7 +322,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 htmlFor="account-currentPassword"
                 className={`absolute -top-2 left-3 bg-card px-1 text-[10px] font-semibold transition-colors ${getLabelColorClass(passwordTouched, currentPassword.trim().length > 0)}`}
               >
-                Current Password <span className="text-validation-error-required">*</span>
+                Current Password <span className="text-danger-bg">*</span>
               </label>
               <div className="relative px-3 py-2">
                 <KeyRound

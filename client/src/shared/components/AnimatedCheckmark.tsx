@@ -29,7 +29,7 @@ export function AnimatedCheckmark({ size = 48, className = '' }: AnimatedCheckma
           cy="26"
           r="24"
           fill="none"
-          stroke="#10b981"
+          stroke="currentColor"
           strokeWidth="2"
           className={`checkmark-circle ${isVisible ? 'animate' : ''}`}
           style={{
@@ -42,7 +42,7 @@ export function AnimatedCheckmark({ size = 48, className = '' }: AnimatedCheckma
         {/* Checkmark */}
         <path
           fill="none"
-          stroke="#10b981"
+          stroke="currentColor"
           strokeWidth="3"
           strokeLinecap="round"
           strokeLinejoin="round"

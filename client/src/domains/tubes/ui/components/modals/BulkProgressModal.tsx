@@ -84,13 +84,13 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
           {/* Error Summary */}
           {hasErrors && (
             <div className="mb-4 p-3 bg-danger-light border border-danger-border rounded-lg">
-              <div className="flex items-center space-x-2 text-validation-error-text mb-2">
+              <div className="flex items-center space-x-2 text-danger-text mb-2">
                 <AlertCircle size={16} />
                 <span className="font-medium text-sm">
                   {progress.errors.length} issue{progress.errors.length > 1 ? 's' : ''} encountered
                 </span>
               </div>
-              <div className="max-h-20 overflow-y-auto text-xs text-validation-error-text space-y-1">
+              <div className="max-h-20 overflow-y-auto text-xs text-danger-text space-y-1">
                 {progress.errors.slice(0, 3).map((error, index) => (
                   <div key={index} className="flex items-start space-x-1">
                     <XCircle size={12} className="mt-0.5 flex-shrink-0" />

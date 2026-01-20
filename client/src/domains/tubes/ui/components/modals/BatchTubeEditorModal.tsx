@@ -580,11 +580,11 @@ export default function BatchTubeEditorModal({
 
         {/* Results Summary */}
         {result && !result.success && result.errors.length > 0 && !showProgress && (
-          <div className="mt-6 p-4 bg-validation-error-bg border border-validation-error-border rounded-lg">
+          <div className="mt-6 p-4 bg-danger-light border border-danger-border rounded-lg">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
-                <XCircle size={20} className="text-validation-error-icon" />
-                <span className="font-semibold text-validation-error-text">
+                <XCircle size={20} className="text-danger-text" />
+                <span className="font-semibold text-danger-text">
                   Update Issues ({result.errors.length})
                 </span>
               </div>
@@ -603,25 +603,20 @@ export default function BatchTubeEditorModal({
 
             <div className="max-h-32 overflow-y-auto space-y-2">
               {result.errors.slice(0, 5).map((error, index) => (
-                <div
-                  key={index}
-                  className="text-sm text-validation-error-text flex items-start space-x-2"
-                >
+                <div key={index} className="text-sm text-danger-text flex items-start space-x-2">
                   <div className="font-mono text-xs bg-danger-light px-2 py-1 rounded">
                     {error.itemId}
                   </div>
                   <div className="flex-1">
                     {error.error}
                     {error.field && (
-                      <span className="ml-2 text-xs text-validation-error-helper">
-                        ({error.field})
-                      </span>
+                      <span className="ml-2 text-xs text-danger-text">({error.field})</span>
                     )}
                   </div>
                 </div>
               ))}
               {result.errors.length > 5 && (
-                <div className="text-sm text-validation-error-helper italic">
+                <div className="text-sm text-danger-text italic">
                   +{result.errors.length - 5} more errors...
                 </div>
               )}

@@ -31,19 +31,19 @@ export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
 
   return (
     <div className="fixed top-4 left-4 right-4 z-50 max-w-2xl mx-auto">
-      <div className="bg-validation-error-bg border border-validation-error-border rounded-lg p-4 shadow-lg">
+      <div className="bg-danger-light border border-danger-border rounded-lg p-4 shadow-lg">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
-            <AlertTriangle className="text-validation-error-icon mt-0.5" size={20} />
+            <AlertTriangle className="text-danger-text mt-0.5" size={20} />
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-validation-error-text mb-2">
+              <h3 className="text-sm font-medium text-danger-text mb-2">
                 Connection Errors ({errors.length})
               </h3>
               <div className="space-y-2 max-h-32 overflow-y-auto">
                 {errors.slice(-3).map((error, index) => (
                   <div
                     key={index}
-                    className="text-xs text-validation-error-text font-mono bg-validation-error-bg p-2 rounded border border-validation-error-border"
+                    className="text-xs text-danger-text font-mono bg-danger-light p-2 rounded border border-danger-border"
                   >
                     {error}
                   </div>

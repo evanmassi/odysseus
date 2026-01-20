@@ -105,7 +105,7 @@ export const ResetPasswordPage: React.FC = () => {
             </div>
 
             <div className="flex justify-center mb-4">
-              <AnimatedCheckmark size={64} />
+              <AnimatedCheckmark size={64} className="text-success-text" />
             </div>
 
             <h2 className="text-xl font-bold text-success-text mb-2">Password Changed</h2>

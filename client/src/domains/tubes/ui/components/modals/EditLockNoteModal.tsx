@@ -9,10 +9,10 @@
 
 import { useState, useMemo, useEffect, useRef } from 'react';
 
-import { Pencil, AlertTriangle, Notebook } from 'lucide-react';
+import { Pencil, Notebook } from 'lucide-react';
 
 import { useBulkUpdateTubesMutation } from '@domains/tubes/hooks';
-import { Button, Input } from '@shared/ui';
+import { AlertBanner, Button, Input } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
@@ -125,10 +125,9 @@ export function EditLockNoteModal({
       <div className="space-y-4">
         {/* Mixed notes warning */}
         {hasMixedNotes && (
-          <div className="flex items-start gap-2 text-sm text-warning-text bg-warning-light border-l-4 border-l-warning-border rounded-lg shadow-sm px-3 py-2">
-            <AlertTriangle size={16} className="flex-shrink-0 mt-0.5 text-warning-icon" />
-            <p>Saving will overwrite existing notes.</p>
-          </div>
+          <AlertBanner variant="warning" spacing="none">
+            Saving will overwrite existing notes.
+          </AlertBanner>
         )}
 
         {/* Lock Note Input */}

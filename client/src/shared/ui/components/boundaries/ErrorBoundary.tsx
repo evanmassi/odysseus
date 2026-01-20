@@ -85,7 +85,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for display: empty name falls through to level
       aria-label={`Error in ${name || level}`}
     >
-      <div className="text-danger-bg mb-4">
+      <div className="text-danger-text mb-4">
         <svg className="w-16 h-16 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor">
           <circle cx="12" cy="12" r="10" />
           <line x1="15" y1="9" x2="9" y2="15" />
@@ -93,7 +93,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
         </svg>
       </div>
 
-      <h2 className="text-xl font-bold text-validation-error-text mb-2">Something went wrong</h2>
+      <h2 className="text-xl font-bold text-danger-text mb-2">Something went wrong</h2>
 
       <p className="text-danger-text text-center mb-4 max-w-md">
         {isDevelopment ? error.message : `An error occurred while rendering this ${level}.`}

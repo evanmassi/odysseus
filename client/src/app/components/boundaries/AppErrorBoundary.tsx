@@ -160,12 +160,10 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             {/* Error Details */}
             <div className="bg-danger-light border border-danger-border rounded-lg p-4 mb-6">
               <div className="flex items-start space-x-3">
-                <Bug className="w-5 h-5 text-danger-bg flex-shrink-0 mt-0.5" />
+                <Bug className="w-5 h-5 text-danger-text flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium text-validation-error-text mb-1">
-                    Error Details
-                  </h4>
-                  <p className="text-sm text-validation-error-text break-words">
+                  <h4 className="text-sm font-medium text-danger-text mb-1">Error Details</h4>
+                  <p className="text-sm text-danger-text break-words">
                     {this.state.error?.message ?? 'Unknown error occurred'}
                   </p>
                   <p className="text-xs text-danger-text mt-2">Error ID: {this.state.errorId}</p>
@@ -275,12 +273,10 @@ export function BootstrapError({ error, onRetry, canRetry }: BootstrapErrorProps
   return (
     <div className="bg-danger-light border border-danger-border rounded-lg p-6">
       <div className="flex items-start space-x-4">
-        <AlertTriangle className="w-6 h-6 text-danger-bg flex-shrink-0" />
+        <AlertTriangle className="w-6 h-6 text-danger-text flex-shrink-0" />
         <div className="flex-1">
-          <h3 className="text-lg font-medium text-validation-error-text mb-2">
-            Initialization Failed
-          </h3>
-          <p className="text-validation-error-text mb-3">{error.message}</p>
+          <h3 className="text-lg font-medium text-danger-text mb-2">Initialization Failed</h3>
+          <p className="text-danger-text mb-3">{error.message}</p>
           <div className="text-sm text-danger-text mb-4">
             <p>
               Phase: <span className="font-mono">{error.phase}</span>

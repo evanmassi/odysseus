@@ -288,9 +288,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
               maxLength={255}
             />
             {/* Email error message */}
-            {emailError && (
-              <p className="text-[11px] text-validation-error-helper ml-1">{emailError}</p>
-            )}
+            {emailError && <p className="text-[11px] text-danger-text ml-1">{emailError}</p>}
           </div>
 
           <div className="grid grid-cols-2 gap-3 items-start">

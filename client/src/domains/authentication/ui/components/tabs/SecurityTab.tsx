@@ -252,9 +252,9 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
 
             {/* Success Banner - Appears next to button */}
             {showSuccess && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-1.5 flex items-center space-x-2 animate-in fade-in slide-in-from-right-2 duration-300">
-                <AnimatedCheckmark size={24} />
-                <span className="text-xs font-medium text-emerald-900">
+              <div className="bg-success-light border border-success-border rounded-lg px-3 py-1.5 flex items-center space-x-2 animate-in fade-in slide-in-from-right-2 duration-300">
+                <AnimatedCheckmark size={24} className="text-success-text" />
+                <span className="text-xs font-medium text-success-text">
                   Password changed successfully
                 </span>
               </div>

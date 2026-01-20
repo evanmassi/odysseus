@@ -27,46 +27,46 @@
     @apply px-2 py-1 bg-warning-light text-validation-warning-label text-xs rounded;
   }
 
-  /* Error alerts - Uses validation.error colors */
+  /* Error alerts - Uses danger colors */
   .alert-error {
-    @apply alert bg-validation-error-bg border-validation-error-border;
+    @apply alert bg-danger-light border-danger-border;
   }
 
   .alert-error-icon {
-    @apply text-validation-error-icon;
+    @apply text-danger-text;
   }
 
   .alert-error-heading {
-    @apply font-medium text-validation-error-text;
+    @apply font-medium text-danger-text;
   }
 
   .alert-error-text {
-    @apply text-sm text-validation-error-helper;
+    @apply text-sm text-danger-text;
   }
 
   .alert-error-accent {
-    @apply px-2 py-1 bg-danger-light text-validation-error-text text-xs rounded;
+    @apply px-2 py-1 bg-danger-light text-danger-text text-xs rounded;
   }
 
-  /* Success alerts - Uses validation.success colors */
+  /* Success alerts */
   .alert-success {
-    @apply alert bg-validation-success-bg border-validation-success-border;
+    @apply alert bg-success-light border-success-border;
   }
 
   .alert-success-icon {
-    @apply text-validation-success-icon;
+    @apply text-success-text;
   }
 
   .alert-success-heading {
-    @apply font-medium text-validation-success-text;
+    @apply font-medium text-success-text;
   }
 
   .alert-success-text {
-    @apply text-sm text-validation-success-label;
+    @apply text-sm text-success-text;
   }
 
   .alert-success-accent {
-    @apply px-2 py-1 bg-success-light text-validation-success-text text-xs rounded;
+    @apply px-2 py-1 bg-success-light text-success-text text-xs rounded;
   }
 
   /* Info alerts */
