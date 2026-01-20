@@ -16,28 +16,28 @@ const variantStyles: Record<
   { bg: string; border: string; icon: string; text: string; defaultIcon: LucideIcon }
 > = {
   error: {
-    bg: 'bg-danger-light',
+    bg: 'bg-muted',
     border: 'border-l-danger-border',
     icon: 'text-danger-text',
     text: 'text-danger-text',
     defaultIcon: AlertTriangle,
   },
   warning: {
-    bg: 'bg-validation-warning-bg',
-    border: 'border-l-validation-warning-border',
-    icon: 'text-validation-warning-icon',
-    text: 'text-validation-warning-text',
+    bg: 'bg-muted',
+    border: 'border-l-warning-border',
+    icon: 'text-warning-text',
+    text: 'text-warning-text',
     defaultIcon: AlertCircle,
   },
   info: {
-    bg: 'bg-validation-default-bg',
+    bg: 'bg-muted',
     border: 'border-l-action',
     icon: 'text-action',
     text: 'text-secondary-foreground',
     defaultIcon: Info,
   },
   success: {
-    bg: 'bg-success-light',
+    bg: 'bg-muted',
     border: 'border-l-success-border',
     icon: 'text-success-text',
     text: 'text-success-text',

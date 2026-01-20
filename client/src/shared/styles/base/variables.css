@@ -62,13 +62,13 @@
     --color-action-focus: 210 43.1% 50%;
 
     /* Danger Theme */
-    --color-danger-bg: 350 75% 50%;
-    --color-danger-hover: 350 80% 42%;
+    --color-danger-bg: 350 45% 52%;
+    --color-danger-hover: 350 55% 44%;
     --color-danger-text: 350 75% 45%;
     --color-danger-text-hover: 350 80% 35%;
     --color-danger-btnText: 0 0% 100%;
     --color-danger-light: 350 60% 97%;
-    --color-danger-light-hover: 350 70% 90%;
+    --color-danger-light-hover: 350 70% 94%;
     --color-danger-border: 350 70% 60%;
 
     /* Clear Theme */
@@ -77,35 +77,35 @@
     --color-clear-text: 220 8.9% 46.1%;
 
     /* Warning Theme */
-    --color-warning-bg: 45.4 93.4% 47.5%;
-    --color-warning-hover: 45.4 93.4% 40%;
-    --color-warning-text: 45 85% 38%;
-    --color-warning-text-hover: 45 90% 30%;
-    --color-warning-btnText: 0 0% 100%;
-    --color-warning-light: 48 90% 94%;
-    --color-warning-light-hover: 48 85% 88%;
-    --color-warning-border: 48 95.8% 76.1%;
+    --color-warning-bg: 38 75% 50%;
+    --color-warning-hover: 38 80% 42%;
+    --color-warning-text: 38 75% 45%;
+    --color-warning-text-hover: 38 80% 35%;
+    --color-warning-btnText: 0 0% 0%;
+    --color-warning-light: 38 60% 97%;
+    --color-warning-light-hover: 38 70% 94%;
+    --color-warning-border: 38 70% 60%;
 
-    /* Lock Action Theme (Slate) */
+    /* Lock Theme */
     --color-lock-bg: 215.4 16.3% 46.9%;
     --color-lock-hover: 215.4 19.3% 34.5%;
     --color-lock-text: 215.4 16.3% 46.9%;
     --color-lock-btnText: 0 0% 100%;
 
-    /* Share Action Theme (Indigo) */
+    /* Share Theme */
     --color-share-bg: 238.7 83.5% 66.7%;
     --color-share-hover: 243.4 75.4% 58.6%;
     --color-share-text: 238.7 83.5% 66.7%;
     --color-share-btnText: 0 0% 100%;
 
-    /* Success Theme (Emerald ~160° hue) */
+    /* Success Theme */
     --color-success-bg: 160 75% 50%;
     --color-success-hover: 160 80% 42%;
     --color-success-text: 160 75% 45%;
     --color-success-text-hover: 160 80% 35%;
     --color-success-btnText: 0 0% 100%;
     --color-success-light: 160 60% 97%;
-    --color-success-light-hover: 160 70% 90%;
+    --color-success-light-hover: 160 70% 94%;
     --color-success-border: 160 70% 60%;
 
     /* Info Theme */
@@ -115,15 +115,6 @@
     --color-info-btnText: 0 0% 100%;
     --color-info-light: 213.8 100% 93.9%;
     --color-info-border: 213.3 96.9% 87.3%;
-
-    /* Validation - Warning */
-    --color-validation-warning-border: 40.7 86.4% 74.3%;
-    --color-validation-warning-bg: 55 92.3% 95.1%;
-    --color-validation-warning-text: 20.5 82.4% 21.2%;
-    --color-validation-warning-label: 20.5 82.4% 21.2%;
-    --color-validation-warning-helper: 36.9 34.3% 43.9%;
-    --color-validation-warning-ring: 45.4 93.4% 47.5%;
-    --color-validation-warning-icon: 38.8 80.3% 69.8%;
 
     /* Validation - Default */
     --color-validation-default-border: 214.3 31.8% 91.4%;
@@ -140,7 +131,7 @@
 
     /* Focus Ring System - Validation States */
     --focus-ring-error: var(--color-danger-bg);
-    --focus-ring-warning: var(--color-validation-warning-ring);
+    --focus-ring-warning: var(--color-warning-bg);
     --focus-ring-success: var(--color-success-bg);
 
     /* Legacy compatibility */
@@ -248,33 +239,33 @@
     --color-action-focus: 217.2 91.2% 59.8%;
 
     /* Danger Theme */
-    --color-danger-bg: 350 70% 55%;
-    --color-danger-hover: 350 75% 48%;
-    --color-danger-text: 350 85% 80%;
-    --color-danger-text-hover: 350 85% 80%;
+    --color-danger-bg: 350 40% 52%;
+    --color-danger-hover: 350 50% 45%;
+    --color-danger-text: 350 85% 69%;
+    --color-danger-text-hover: 350 85% 69%;
     --color-danger-btnText: 0 0% 100%;
-    --color-danger-light: 350 35% 14%;
-    --color-danger-light-hover: 350 45% 25%;
+    --color-danger-light: 350 40% 14%;
+    --color-danger-light-hover: 350 50% 18%;
     --color-danger-border: 350 60% 45%;
 
     /* Warning Theme */
-    --color-warning-bg: 37.7 92.1% 50.2%;
-    --color-warning-hover: 32.1 94.6% 43.7%;
-    --color-warning-text: 45 90% 65%;
-    --color-warning-text-hover: 45 95% 78%;
+    --color-warning-bg: 38 70% 55%;
+    --color-warning-hover: 38 75% 48%;
+    --color-warning-text: 38 85% 69%;
+    --color-warning-text-hover: 38 85% 69%;
     --color-warning-btnText: 0 0% 0%;
-    --color-warning-light: 45 45% 18%;
-    --color-warning-light-hover: 45 50% 24%;
-    --color-warning-border: 45 60% 40%;
+    --color-warning-light: 38 40% 14%;
+    --color-warning-light-hover: 38 50% 18%;
+    --color-warning-border: 38 60% 45%;
 
-    /* Success Theme (Emerald ~160° hue) */
+    /* Success Theme */
     --color-success-bg: 160 70% 55%;
     --color-success-hover: 160 75% 48%;
-    --color-success-text: 160 85% 80%;
-    --color-success-text-hover: 160 85% 80%;
+    --color-success-text: 160 85% 69%;
+    --color-success-text-hover: 160 85% 69%;
     --color-success-btnText: 0 0% 100%;
-    --color-success-light: 160 35% 14%;
-    --color-success-light-hover: 160 45% 25%;
+    --color-success-light: 160 40% 14%;
+    --color-success-light-hover: 160 50% 18%;
     --color-success-border: 160 60% 45%;
 
     /* Info Theme */
@@ -289,15 +280,6 @@
     --color-clear-bg: 215.4 19.3% 34.5%;
     --color-clear-hover: 215.3 25% 26.7%;
     --color-clear-text: 212.7 26.8% 83.9%;
-
-    /* Validation - Warning */
-    --color-validation-warning-border: 26.2 90.5% 31.4%;
-    --color-validation-warning-bg: 28 80.4% 14.1%;
-    --color-validation-warning-text: 50.4 97.8% 63.5%;
-    --color-validation-warning-label: 50.4 97.8% 63.5%;
-    --color-validation-warning-helper: 43.3 96.4% 56.3%;
-    --color-validation-warning-ring: 37.7 92.1% 50.2%;
-    --color-validation-warning-icon: 43.3 96.4% 56.3%;
 
     /* Validation - Default */
     --color-validation-default-border: 215.3 25% 26.7%;

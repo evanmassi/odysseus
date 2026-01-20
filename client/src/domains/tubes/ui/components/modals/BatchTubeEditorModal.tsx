@@ -27,7 +27,7 @@ import {
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
+import { AlertBanner, Button } from '@shared/ui';
 import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
@@ -519,13 +519,10 @@ export default function BatchTubeEditorModal({
         dataAttribute="data-batch-edit-modal"
       >
         {conflicts.length > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm mb-3">
-            <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <span className="text-sm text-amber-700">
-              {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
-              {conflicts.length > 1 ? 'have' : 'has'} been cleared
-            </span>
-          </div>
+          <AlertBanner variant="warning" icon={AlertTriangle} spacing="sm">
+            {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
+            {conflicts.length > 1 ? 'have' : 'has'} been cleared
+          </AlertBanner>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -580,7 +577,7 @@ export default function BatchTubeEditorModal({
 
         {/* Results Summary */}
         {result && !result.success && result.errors.length > 0 && !showProgress && (
-          <div className="mt-6 p-4 bg-danger-light border border-danger-border rounded-lg">
+          <div className="mt-6 p-4 bg-muted border border-danger-border rounded-lg">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
                 <XCircle size={20} className="text-danger-text" />
@@ -604,9 +601,7 @@ export default function BatchTubeEditorModal({
             <div className="max-h-32 overflow-y-auto space-y-2">
               {result.errors.slice(0, 5).map((error, index) => (
                 <div key={index} className="text-sm text-danger-text flex items-start space-x-2">
-                  <div className="font-mono text-xs bg-danger-light px-2 py-1 rounded">
-                    {error.itemId}
-                  </div>
+                  <div className="font-mono text-xs bg-muted px-2 py-1 rounded">{error.itemId}</div>
                   <div className="flex-1">
                     {error.error}
                     {error.field && (

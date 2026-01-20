@@ -35,7 +35,7 @@ export const FieldValue: React.FC<FieldValueProps> = ({
         <span className="text-card-foreground/50 text-xs">{label}:</span>{' '}
         {isMixed ? (
           <>
-            <AlertTriangle className="inline w-3 h-3 text-amber-500 mr-0.5" />
+            <AlertTriangle className="inline w-3 h-3 text-warning-text mr-0.5" />
             <span className="text-card-foreground/30 text-sm">—</span>
           </>
         ) : (
@@ -49,7 +49,7 @@ export const FieldValue: React.FC<FieldValueProps> = ({
     <div className={className}>
       <div className="flex items-center gap-1 text-card-foreground/50 text-xs">
         {label}
-        {isMixed && <AlertTriangle className="w-3 h-3 text-amber-500" />}
+        {isMixed && <AlertTriangle className="w-3 h-3 text-warning-text" />}
       </div>
       <div className="text-card-foreground font-medium text-sm">
         {isMixed ? <span className="text-card-foreground/30 font-normal">—</span> : value}

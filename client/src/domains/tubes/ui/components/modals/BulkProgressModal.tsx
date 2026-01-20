@@ -83,7 +83,7 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
 
           {/* Error Summary */}
           {hasErrors && (
-            <div className="mb-4 p-3 bg-danger-light border border-danger-border rounded-lg">
+            <div className="mb-4 p-3 bg-muted border border-danger-border rounded-lg">
               <div className="flex items-center space-x-2 text-danger-text mb-2">
                 <AlertCircle size={16} />
                 <span className="font-medium text-sm">

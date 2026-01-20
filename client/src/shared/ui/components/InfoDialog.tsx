@@ -27,7 +27,7 @@ export interface InfoDialogProps {
 function getVariantStyles(variant: 'warning' | 'info') {
   if (variant === 'warning') {
     return {
-      iconBg: 'bg-warning-light',
+      iconBg: 'bg-muted',
       iconColor: 'text-warning-bg',
       border: 'border-warning-border',
       shadowColor: 'hsl(var(--color-warning-bg))',
@@ -36,7 +36,7 @@ function getVariantStyles(variant: 'warning' | 'info') {
   }
 
   return {
-    iconBg: 'bg-info-light',
+    iconBg: 'bg-muted',
     iconColor: 'text-info-bg',
     border: 'border-info-border',
     shadowColor: 'hsl(var(--color-info-bg))',

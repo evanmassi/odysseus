@@ -49,7 +49,7 @@ const CONFLICT_FIELD_MAP: Record<string, string> = {
 };
 
 // Conflict indicator icon for fields with mixed values
-const ConflictIcon = () => <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />;
+const ConflictIcon = () => <AlertTriangle className="w-3.5 h-3.5 text-warning-text" />;
 
 /**
  * Form values union - supports both create and edit modes

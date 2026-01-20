@@ -3,33 +3,33 @@
 
   /* Base alert container */
   .alert {
-    @apply p-3 rounded-lg border-2;
+    @apply p-3 rounded-lg bg-muted border-l-4;
   }
 
-  /* Warning alerts - Uses validation.warning colors */
+  /* Warning alerts */
   .alert-warning {
-    @apply alert bg-validation-warning-bg border-validation-warning-border;
+    @apply alert border-l-warning-border;
   }
 
   .alert-warning-icon {
-    @apply text-validation-warning-icon;
+    @apply text-warning-text;
   }
 
   .alert-warning-heading {
-    @apply font-medium text-validation-warning-label;
+    @apply font-medium text-warning-text;
   }
 
   .alert-warning-text {
-    @apply text-sm text-validation-warning-text;
+    @apply text-sm text-warning-text;
   }
 
   .alert-warning-accent {
-    @apply px-2 py-1 bg-warning-light text-validation-warning-label text-xs rounded;
+    @apply px-2 py-1 bg-muted text-warning-text text-xs rounded;
   }
 
   /* Error alerts - Uses danger colors */
   .alert-error {
-    @apply alert bg-danger-light border-danger-border;
+    @apply alert border-l-danger-border;
   }
 
   .alert-error-icon {
@@ -45,12 +45,12 @@
   }
 
   .alert-error-accent {
-    @apply px-2 py-1 bg-danger-light text-danger-text text-xs rounded;
+    @apply px-2 py-1 bg-muted text-danger-text text-xs rounded;
   }
 
   /* Success alerts */
   .alert-success {
-    @apply alert bg-success-light border-success-border;
+    @apply alert border-l-success-border;
   }
 
   .alert-success-icon {
@@ -66,12 +66,12 @@
   }
 
   .alert-success-accent {
-    @apply px-2 py-1 bg-success-light text-success-text text-xs rounded;
+    @apply px-2 py-1 bg-muted text-success-text text-xs rounded;
   }
 
   /* Info alerts */
   .alert-info {
-    @apply alert bg-info-light border-info-border;
+    @apply alert border-l-info-border;
   }
 
   .alert-info-icon {
@@ -87,6 +87,6 @@
   }
 
   .alert-info-accent {
-    @apply px-2 py-1 bg-info-light text-info-bg text-xs rounded;
+    @apply px-2 py-1 bg-muted text-info-bg text-xs rounded;
   }
 }

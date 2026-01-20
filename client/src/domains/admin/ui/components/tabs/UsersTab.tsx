@@ -528,10 +528,10 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
 
       {/* Pending Approvals Section */}
       {pendingUsers.length > 0 && (
-        <div className="bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm p-3">
+        <div className="bg-muted border-l-4 border-l-warning-border rounded-lg shadow-sm p-3">
           <div className="flex items-center gap-2 mb-3">
-            <Clock className="w-4 h-4 text-amber-500 flex-shrink-0" />
-            <h4 className="text-sm font-medium text-amber-700">
+            <Clock className="w-4 h-4 text-warning-text flex-shrink-0" />
+            <h4 className="text-sm font-medium text-warning-text">
               Pending Approvals ({pendingUsers.length})
             </h4>
           </div>
@@ -540,11 +540,11 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
             {pendingUsers.map(user => (
               <div
                 key={user.id}
-                className="bg-white/70 rounded-md p-2.5 flex items-center justify-between"
+                className="bg-card/70 rounded-md p-2.5 flex items-center justify-between"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center">
-                    <UserRound size={14} className="text-amber-600" />
+                  <div className="w-7 h-7 rounded-full bg-warning-light-hover flex items-center justify-center">
+                    <UserRound size={14} className="text-warning-text" />
                   </div>
                   <div>
                     <div className="text-sm font-medium text-card-foreground">{user.username}</div>

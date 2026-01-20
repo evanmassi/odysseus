@@ -80,7 +80,7 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
 
   return (
     <div
-      className="flex flex-col items-center justify-center p-8 min-h-[200px] border-2 border-dashed border-danger-border bg-danger-light rounded-lg"
+      className="flex flex-col items-center justify-center p-8 min-h-[200px] border-2 border-dashed border-danger-border bg-muted rounded-lg"
       role="alert"
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for display: empty name falls through to level
       aria-label={`Error in ${name || level}`}

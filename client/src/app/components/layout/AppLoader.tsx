@@ -118,7 +118,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
         {/* Error State */}
         {state === 'error' && error && (
           <div className="mb-6">
-            <div className="bg-danger-light border border-danger-border rounded-lg p-4 mb-4">
+            <div className="bg-muted border border-danger-border rounded-lg p-4 mb-4">
               <div className="flex items-start space-x-3">
                 <AlertCircle className="w-5 h-5 text-danger-text flex-shrink-0 mt-0.5" />
                 <div className="flex-1">

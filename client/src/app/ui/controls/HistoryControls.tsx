@@ -184,7 +184,7 @@ export function HistoryControls({
                     key={`undo-${operation.id}`}
                     className={`flex items-center space-x-3 p-2 rounded ${
                       index === 0
-                        ? 'bg-success-light border border-success-border'
+                        ? 'bg-muted border border-success-border'
                         : 'bg-muted border border-border'
                     }`}
                   >

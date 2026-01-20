@@ -80,11 +80,11 @@ export function ValidatedInput({
     if (error) {
       return 'input-field input-field-error w-full';
     } else if (warning) {
-      return 'input-field w-full border-2 border-validation-warning-border bg-validation-warning-bg text-validation-warning-text';
+      return 'input-field w-full border-2 border-warning-border';
     } else if (hasConflict) {
       return 'input-field input-field-conflict w-full';
     } else if (!isUncontrolled && value && !error && !warning) {
-      return 'input-field input-field-normal w-full border-success-border bg-success-light';
+      return 'input-field input-field-normal w-full border-success-border';
     } else {
       return 'input-field input-field-normal w-full';
     }
@@ -96,7 +96,7 @@ export function ValidatedInput({
     if (error) {
       return `${baseClasses} text-danger-text`;
     } else if (warning) {
-      return `${baseClasses} text-validation-warning-label`;
+      return `${baseClasses} text-warning-text`;
     } else {
       return `${baseClasses} text-secondary-foreground`;
     }
@@ -108,7 +108,7 @@ export function ValidatedInput({
     if (error) {
       return `${baseClasses} text-danger-text`;
     } else if (warning) {
-      return `${baseClasses} text-validation-warning-helper`;
+      return `${baseClasses} text-warning-text`;
     } else {
       return `${baseClasses} text-muted-foreground`;
     }
@@ -118,7 +118,7 @@ export function ValidatedInput({
     if (error) {
       return <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0 text-danger-text" />;
     } else if (warning) {
-      return <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-warning-icon" />;
+      return <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0 text-warning-text" />;
     } else if (!isUncontrolled && value && !error && !warning) {
       return <CheckCircle className="w-4 h-4 mr-1 flex-shrink-0 text-success-text" />;
     }

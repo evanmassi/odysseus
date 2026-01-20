@@ -142,11 +142,11 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
       // Default error UI
       return (
-        <div className="min-h-screen bg-gradient-to-br from-danger-light to-warning-light flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-muted to-muted flex items-center justify-center p-4">
           <div className="bg-card rounded-xl shadow-2xl p-8 w-full max-w-lg">
             {/* Error Icon and Title */}
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-danger-light rounded-full flex items-center justify-center mx-auto mb-4">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <AlertTriangle className="w-8 h-8 text-danger-bg" />
               </div>
 
@@ -158,7 +158,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
             </div>
 
             {/* Error Details */}
-            <div className="bg-danger-light border border-danger-border rounded-lg p-4 mb-6">
+            <div className="bg-muted border border-danger-border rounded-lg p-4 mb-6">
               <div className="flex items-start space-x-3">
                 <Bug className="w-5 h-5 text-danger-text flex-shrink-0 mt-0.5" />
                 <div className="flex-1 min-w-0">
@@ -271,7 +271,7 @@ interface BootstrapErrorProps {
 
 export function BootstrapError({ error, onRetry, canRetry }: BootstrapErrorProps) {
   return (
-    <div className="bg-danger-light border border-danger-border rounded-lg p-6">
+    <div className="bg-muted border border-danger-border rounded-lg p-6">
       <div className="flex items-start space-x-4">
         <AlertTriangle className="w-6 h-6 text-danger-text flex-shrink-0" />
         <div className="flex-1">

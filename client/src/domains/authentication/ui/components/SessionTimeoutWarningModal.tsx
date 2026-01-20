@@ -146,7 +146,7 @@ export function SessionTimeoutWarningModal() {
 
   // Warning variant styling (matching ConfirmDialog pattern)
   const styles = {
-    iconBg: isUrgent ? 'bg-danger-light' : 'bg-warning-light',
+    iconBg: 'bg-muted',
     iconColor: isUrgent ? 'text-danger-bg' : 'text-warning-bg',
     border: isUrgent ? 'border-danger-border' : 'border-warning-border',
     shadow: isUrgent ? 'shadow-danger-bg/30' : 'shadow-warning-bg/30',

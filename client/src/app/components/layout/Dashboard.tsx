@@ -568,7 +568,7 @@ export function Dashboard() {
               {isViewOnlySpace && (
                 <div className="flex-1 flex justify-end">
                   <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-50 text-amber-600 cursor-help"
+                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-warning-text cursor-help"
                     title="You can view, but not modify, tubes here."
                   >
                     <ScanEye className="w-2.5 h-2.5" />

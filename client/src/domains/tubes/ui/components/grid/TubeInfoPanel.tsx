@@ -505,7 +505,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             <div className="mb-1">
               <div className="flex items-center gap-1 text-card-foreground/50 text-xs">
                 Cell Type
-                <AlertTriangle className="w-3 h-3 text-amber-500" />
+                <AlertTriangle className="w-3 h-3 text-warning-text" />
               </div>
               <div className="text-card-foreground/30 text-sm">—</div>
             </div>
@@ -590,7 +590,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <div className="text-card-foreground/85 text-sm leading-relaxed">{notes}</div>
             ) : (
               <div className="flex items-center gap-1">
-                <AlertTriangle className="w-3 h-3 text-amber-500" />
+                <AlertTriangle className="w-3 h-3 text-warning-text" />
                 <span className="text-card-foreground/30 text-sm">—</span>
               </div>
             )}

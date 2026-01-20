@@ -65,9 +65,9 @@ const buttonVariants = cva(
 
         // Danger - destructive actions
         danger: [
-          'bg-danger-light text-danger-text border border-danger-light',
-          'hover:bg-danger-light-hover hover:border-danger-light-hover',
-          'active:bg-danger-light-hover',
+          'bg-danger-bg text-danger-btnText border border-danger-bg',
+          'hover:bg-danger-hover hover:border-danger-hover',
+          'active:bg-danger-hover',
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 

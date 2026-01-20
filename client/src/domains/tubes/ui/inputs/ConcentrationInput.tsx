@@ -78,7 +78,7 @@ export function ConcentrationInput({
     if (validation?.error) {
       return `${baseClasses} text-danger-text`;
     } else if (validation?.warning) {
-      return `${baseClasses} text-validation-warning-label`;
+      return `${baseClasses} text-warning-text`;
     } else {
       return `${baseClasses} text-secondary-foreground`;
     }
@@ -182,7 +182,7 @@ export function ConcentrationInput({
             validation.error
               ? 'text-danger-text'
               : validation.warning
-                ? 'text-validation-warning-helper'
+                ? 'text-warning-text'
                 : 'text-muted-foreground'
           }
         `}
@@ -191,7 +191,7 @@ export function ConcentrationInput({
             <AlertCircle className="w-4 h-4 mr-1 flex-shrink-0 text-danger-text" />
           )}
           {validation.warning && (
-            <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0 text-validation-warning-icon" />
+            <AlertTriangle className="w-4 h-4 mr-1 flex-shrink-0 text-warning-text" />
           )}
           <span>{validation.helperText}</span>
         </div>

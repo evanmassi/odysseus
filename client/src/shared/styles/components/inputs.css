@@ -109,7 +109,7 @@
   }
 
   .input-field-error {
-    @apply border-2 border-danger-border bg-danger-light;
+    @apply border-2 border-danger-border;
   }
 
   .input-field-error:focus,
@@ -121,14 +121,14 @@
 
   /* Conflict state - for batch edit fields with mixed values */
   .input-field-conflict {
-    @apply border border-amber-300 bg-amber-50/50;
+    @apply border border-warning-border;
   }
 
   .input-field-conflict:hover:not(:disabled) {
-    @apply border-amber-400;
+    @apply border-warning-bg;
   }
 
   .input-field-conflict:focus {
-    @apply border-amber-400 ring-2 ring-amber-200 outline-none;
+    @apply border-warning-bg ring-2 ring-warning-border outline-none;
   }
 }

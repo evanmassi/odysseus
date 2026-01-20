@@ -31,7 +31,7 @@ export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
 
   return (
     <div className="fixed top-4 left-4 right-4 z-50 max-w-2xl mx-auto">
-      <div className="bg-danger-light border border-danger-border rounded-lg p-4 shadow-lg">
+      <div className="bg-muted border border-danger-border rounded-lg p-4 shadow-lg">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
             <AlertTriangle className="text-danger-text mt-0.5" size={20} />
@@ -43,7 +43,7 @@ export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
                 {errors.slice(-3).map((error, index) => (
                   <div
                     key={index}
-                    className="text-xs text-danger-text font-mono bg-danger-light p-2 rounded border border-danger-border"
+                    className="text-xs text-danger-text font-mono bg-muted p-2 rounded border border-danger-border"
                   >
                     {error}
                   </div>

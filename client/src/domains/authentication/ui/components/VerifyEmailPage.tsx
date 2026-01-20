@@ -118,7 +118,7 @@ export function VerifyEmailPage() {
           <p className="text-secondary-foreground">{error}</p>
         </div>
 
-        <div className="bg-danger-light border border-danger-border rounded-lg p-4 mb-6">
+        <div className="bg-muted border border-danger-border rounded-lg p-4 mb-6">
           <p className="text-sm text-danger-text font-medium mb-2">Common reasons for failure:</p>
           <ul className="text-sm text-danger-text space-y-1 list-disc list-inside">
             <li>Verification link expired (48 hours)</li>

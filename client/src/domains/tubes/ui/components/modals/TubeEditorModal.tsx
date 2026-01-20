@@ -36,7 +36,7 @@ import {
 import { isOfflineError } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
-import { Button, Checkbox } from '@shared/ui';
+import { AlertBanner, Button, Checkbox } from '@shared/ui';
 import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
@@ -361,13 +361,13 @@ function EditModeForm({
 
         {/* Stale Form Warning Banner */}
         {showStaleWarning && (
-          <div className="flex items-start gap-3 p-3 bg-amber-50 border-l-4 border-l-amber-500 rounded-lg shadow-sm">
-            <AlertTriangle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+          <div className="flex items-start gap-3 p-3 bg-muted border-l-4 border-l-warning-border rounded-lg shadow-sm">
+            <AlertTriangle className="w-5 h-5 text-warning-text flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h3 className="text-sm font-medium text-amber-700">
+              <h3 className="text-sm font-medium text-warning-text">
                 This tube was modified by another user
               </h3>
-              <p className="text-xs text-amber-600 mt-0.5">
+              <p className="text-xs text-warning-text mt-0.5">
                 Refresh to load their changes (your edits will be lost), or continue editing and
                 save your version (their changes will be overwritten).
               </p>
@@ -375,14 +375,14 @@ function EditModeForm({
                 <button
                   type="button"
                   onClick={handleRefresh}
-                  className="text-xs font-medium px-2 py-1 rounded bg-amber-600 text-white hover:bg-amber-700 transition-colors"
+                  className="text-xs font-medium px-2 py-1 rounded bg-warning-bg text-warning-btnText hover:bg-warning-hover transition-colors"
                 >
                   Refresh
                 </button>
                 <button
                   type="button"
                   onClick={() => setStaleWarningDismissed(true)}
-                  className="text-xs font-medium px-2 py-1 rounded bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors"
+                  className="text-xs font-medium px-2 py-1 rounded bg-warning-light-hover text-warning-text hover:bg-warning-border transition-colors"
                 >
                   Continue Editing
                 </button>
@@ -793,21 +793,19 @@ function CreateModeContent({
 
         {/* Mixed Selection Warning */}
         {positionAnalysis.isMixed && (
-          <div className="px-3 py-2 bg-validation-warning-bg border-l-4 border-l-validation-warning-border rounded-lg shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-validation-warning-icon flex-shrink-0" />
-              <span className="text-sm text-validation-warning-text">
-                {positionAnalysis.occupiedPositions.length} position
-                {positionAnalysis.occupiedPositions.length > 1 ? 's are' : ' is'} occupied.
-              </span>
-            </div>
-            <label className="flex items-center gap-2 cursor-pointer ml-6">
+          <AlertBanner
+            variant="warning"
+            icon={AlertTriangle}
+            title={`${positionAnalysis.occupiedPositions.length} position${positionAnalysis.occupiedPositions.length > 1 ? 's are' : ' is'} occupied.`}
+            spacing="none"
+          >
+            <label className="flex items-center gap-2 cursor-pointer">
               <Checkbox checked={allowOverwrite} onChange={setAllowOverwrite} />
-              <span className="text-sm text-validation-warning-text">
+              <span>
                 Overwrite existing tube{positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}
               </span>
             </label>
-          </div>
+          </AlertBanner>
         )}
 
         <TubeForm

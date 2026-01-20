@@ -107,15 +107,6 @@ export default {
           border: 'hsl(var(--color-info-border) / <alpha-value>)',
         },
         validation: {
-          warning: {
-            border: 'hsl(var(--color-validation-warning-border) / <alpha-value>)',
-            bg: 'hsl(var(--color-validation-warning-bg) / <alpha-value>)',
-            text: 'hsl(var(--color-validation-warning-text) / <alpha-value>)',
-            label: 'hsl(var(--color-validation-warning-label) / <alpha-value>)',
-            helper: 'hsl(var(--color-validation-warning-helper) / <alpha-value>)',
-            ring: 'hsl(var(--color-validation-warning-ring) / <alpha-value>)',
-            icon: 'hsl(var(--color-validation-warning-icon) / <alpha-value>)',
-          },
           default: {
             border: 'hsl(var(--color-validation-default-border) / <alpha-value>)',
             bg: 'hsl(var(--color-validation-default-bg) / <alpha-value>)',
