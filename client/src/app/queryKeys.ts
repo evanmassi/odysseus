@@ -62,6 +62,7 @@ export const queryKeys = {
         ? ([...queryKeys.researchers.all, 'list', filters] as const)
         : ([...queryKeys.researchers.all, 'list'] as const),
     lists: () => [...queryKeys.researchers.all, 'list'] as const, // Canonical base query
+    visible: () => [...queryKeys.researchers.all, 'visible'] as const, // Approved + active only
     admin: (filters?: ResearcherQueryFilters) =>
       filters
         ? ([...queryKeys.researchers.all, 'admin', filters] as const)

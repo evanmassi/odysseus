@@ -72,7 +72,7 @@ export function TankRow({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-accent transition-colors -mx-1 px-1 py-1 rounded text-left focus-ring-default"
+            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-accent transition-colors -mx-1 px-1 py-1 rounded text-left"
             aria-expanded={!collapsed}
             aria-controls={`tank-content-${tank.id}`}
             aria-label={`${collapsed ? 'Expand' : 'Collapse'} tank ${tank.name}`}

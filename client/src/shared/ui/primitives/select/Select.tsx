@@ -488,7 +488,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="p-1 hover:bg-accent rounded focus-ring-default"
+                  className="p-1 hover:bg-accent rounded"
                   aria-label="Clear selection"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">

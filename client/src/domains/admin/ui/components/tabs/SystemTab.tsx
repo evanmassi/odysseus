@@ -140,7 +140,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
                   value={labNameInput}
                   onChange={e => setLabNameInput(e.target.value)}
                   onKeyDown={handleLabNameKeyDown}
-                  className="text-sm font-medium text-card-foreground border border-border rounded px-2 py-1 focus-ring-default"
+                  className="text-sm font-medium text-card-foreground border border-border rounded px-2 py-1"
                   // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
                   autoFocus
                   disabled={isSavingLabName}

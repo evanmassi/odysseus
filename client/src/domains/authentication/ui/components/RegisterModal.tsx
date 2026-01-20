@@ -403,7 +403,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             <button
               type="button"
               onClick={onSwitchToLogin}
-              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors focus-enhanced rounded px-1"
+              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors rounded px-1"
             >
               Sign in
             </button>

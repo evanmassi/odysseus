@@ -1,4 +1,4 @@
-import { Researcher } from '@domain/entities/Researcher';
+import { Researcher, ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
 import { Person } from '@domain/entities/Person';
 
 /**
@@ -31,6 +31,8 @@ export interface ResearcherResponse {
   personId: string;
   active: boolean;
   createdAt: string;
+  approvalStatus: ResearcherApprovalStatus;
+  source: ResearcherSource;
   // Denormalized Person fields for display
   firstName: string;
   lastName: string;
@@ -66,6 +68,8 @@ export class ResearcherDto {
       personId: researcher.personId,
       active: researcher.active,
       createdAt: researcher.createdAt.toISOString(),
+      approvalStatus: researcher.approvalStatus,
+      source: researcher.source,
       firstName: person.firstName,
       lastName: person.lastName,
       email: person.email,

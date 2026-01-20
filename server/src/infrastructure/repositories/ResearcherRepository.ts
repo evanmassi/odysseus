@@ -17,7 +17,7 @@ import { ResearcherMapper, ResearcherRow } from '@infrastructure/database/mapper
 /**
  * Explicit column list for researchers table queries
  */
-const RESEARCHER_COLUMNS = 'id, person_id, active, created_at';
+const RESEARCHER_COLUMNS = 'id, person_id, active, created_at, approval_status, source';
 
 /**
  * ResearcherRepository - Researcher data access
@@ -44,7 +44,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findByName(firstName: string, lastName: string): Promise<Researcher | null> {
     const row = await this.context.queryOne<ResearcherRow>(`
-      SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
+      SELECT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       WHERE p.first_name = $1 AND p.last_name = $2
     `, [firstName, lastName]);
@@ -61,7 +61,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findAll(): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(`
-      SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
+      SELECT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       ORDER BY p.last_name, p.first_name
     `);
@@ -83,13 +83,15 @@ export class ResearcherRepository implements IResearcherRepository {
     const row = ResearcherMapper.toRow(researcher);
 
     await this.context.execute(`
-      INSERT INTO researchers (id, person_id, active, created_at)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO researchers (id, person_id, active, created_at, approval_status, source)
+      VALUES ($1, $2, $3, $4, $5, $6)
       ON CONFLICT (id) DO UPDATE SET
         person_id = EXCLUDED.person_id,
         active = EXCLUDED.active,
-        created_at = EXCLUDED.created_at
-    `, [row.id, row.person_id, row.active, row.created_at]);
+        created_at = EXCLUDED.created_at,
+        approval_status = EXCLUDED.approval_status,
+        source = EXCLUDED.source
+    `, [row.id, row.person_id, row.active, row.created_at, row.approval_status, row.source]);
   }
 
   async delete(id: string): Promise<boolean> {
@@ -117,11 +119,21 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findByStatus(isActive: boolean): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(`
-      SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
+      SELECT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       WHERE r.active = $1
       ORDER BY p.last_name, p.first_name
     `, [isActive]);
+    return ResearcherMapper.fromRows(rows);
+  }
+
+  async findApprovedAndActive(): Promise<Researcher[]> {
+    const rows = await this.context.queryMany<ResearcherRow>(`
+      SELECT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
+      INNER JOIN persons p ON r.person_id = p.id
+      WHERE r.active = TRUE AND r.approval_status = 'approved'
+      ORDER BY p.last_name, p.first_name
+    `);
     return ResearcherMapper.fromRows(rows);
   }
 
@@ -158,7 +170,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async searchByName(namePattern: string): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(`
-      SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
+      SELECT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
       INNER JOIN persons p ON r.person_id = p.id
       WHERE p.first_name ILIKE $1 OR p.last_name ILIKE $1
       ORDER BY p.last_name, p.first_name
@@ -168,7 +180,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findSimilarNames(firstName: string, lastName: string): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
+      `SELECT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
        INNER JOIN persons p ON r.person_id = p.id
        WHERE (p.first_name ILIKE $1 OR p.last_name ILIKE $2)
        AND NOT (p.first_name = $3 AND p.last_name = $4)
@@ -221,7 +233,7 @@ export class ResearcherRepository implements IResearcherRepository {
     }
 
     // Build query with JOIN for name sorting
-    let query = `SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
+    let query = `SELECT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
                  INNER JOIN persons p ON r.person_id = p.id`;
     if (conditions.length > 0) {
       query += ` WHERE ${conditions.join(' AND ')}`;
@@ -276,7 +288,7 @@ export class ResearcherRepository implements IResearcherRepository {
   async findAllSortedByName(ascending: boolean = true): Promise<Researcher[]> {
     const order = ascending ? 'ASC' : 'DESC';
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
+      `SELECT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
        INNER JOIN persons p ON r.person_id = p.id
        ORDER BY p.last_name ${order}, p.first_name ${order}`
     );
@@ -314,7 +326,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findWithAssignedTubes(): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT DISTINCT r.id, r.person_id, r.active, r.created_at FROM researchers r
+      `SELECT DISTINCT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
        INNER JOIN persons p ON r.person_id = p.id
        INNER JOIN tubes t ON r.id = t.researcher_id
        WHERE r.active = TRUE
@@ -325,7 +337,7 @@ export class ResearcherRepository implements IResearcherRepository {
 
   async findWithoutTubes(): Promise<Researcher[]> {
     const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT r.id, r.person_id, r.active, r.created_at FROM researchers r
+      `SELECT r.id, r.person_id, r.active, r.created_at, r.approval_status, r.source FROM researchers r
        INNER JOIN persons p ON r.person_id = p.id
        LEFT JOIN tubes t ON r.id = t.researcher_id
        WHERE t.researcher_id IS NULL AND r.active = TRUE
@@ -496,13 +508,15 @@ export class ResearcherRepository implements IResearcherRepository {
 
       const row = ResearcherMapper.toRow(researcher);
       await this.context.execute(`
-        INSERT INTO researchers (id, person_id, active, created_at)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO researchers (id, person_id, active, created_at, approval_status, source)
+        VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT (id) DO UPDATE SET
           person_id = EXCLUDED.person_id,
           active = EXCLUDED.active,
-          created_at = EXCLUDED.created_at
-      `, [row.id, row.person_id, row.active, row.created_at]);
+          created_at = EXCLUDED.created_at,
+          approval_status = EXCLUDED.approval_status,
+          source = EXCLUDED.source
+      `, [row.id, row.person_id, row.active, row.created_at, row.approval_status, row.source]);
     }
   }
 
@@ -537,10 +551,10 @@ export class ResearcherRepository implements IResearcherRepository {
 
       const row = ResearcherMapper.toRow(researcher);
       await this.context.execute(`
-        INSERT INTO researchers (id, person_id, active, created_at)
-        VALUES ($1, $2, $3, $4)
+        INSERT INTO researchers (id, person_id, active, created_at, approval_status, source)
+        VALUES ($1, $2, $3, $4, $5, $6)
         ON CONFLICT DO NOTHING
-      `, [row.id, row.person_id, row.active, row.created_at]);
+      `, [row.id, row.person_id, row.active, row.created_at, row.approval_status, row.source]);
 
       createdResearchers.push(researcher);
     }

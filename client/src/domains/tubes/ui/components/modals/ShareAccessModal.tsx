@@ -177,7 +177,7 @@ export function ShareAccessModal({
                     type="button"
                     onClick={() => handleRevoke(userId)}
                     disabled={isProcessing}
-                    className="p-1 text-action hover:text-danger-text hover:bg-danger-light rounded transition-colors disabled:opacity-50 focus-enhanced"
+                    className="p-1 text-action hover:text-danger-text hover:bg-danger-light rounded transition-colors disabled:opacity-50"
                     title="Revoke access"
                   >
                     <X size={16} />

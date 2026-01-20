@@ -118,7 +118,7 @@ export function RackRow({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="text-secondary-foreground flex-shrink-0 hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
+          className="text-secondary-foreground flex-shrink-0 hover:bg-black/10 rounded p-0.5 transition-colors"
           aria-expanded={!collapsed}
           aria-controls={`rack-content-${rackKey}`}
           aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}
@@ -137,7 +137,7 @@ export function RackRow({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-black/10 transition-colors px-1 py-0.5 rounded text-left focus-ring-default"
+          className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer hover:bg-black/10 transition-colors px-1 py-0.5 rounded text-left"
           aria-expanded={!collapsed}
           aria-controls={`rack-content-${rackKey}`}
           aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${rack.name}`}

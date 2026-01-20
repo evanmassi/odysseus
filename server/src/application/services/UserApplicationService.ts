@@ -19,7 +19,8 @@ import {
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
   UserLoggedOutEvent,
-  UserApprovedEvent
+  UserApprovedEvent,
+  UserRejectedEvent
 } from '@domain/events/UserEvents';
 
 /**
@@ -439,7 +440,10 @@ export class UserApplicationService {
     let researcher: Researcher | undefined = undefined;
 
     if (createResearcher) {
-      researcher = Researcher.create(person.id);
+      researcher = Researcher.create(person.id, {
+        isUserApproved: isFirstUser,
+        source: 'registration'
+      });
       researcherId = researcher.id;
     }
 
@@ -604,9 +608,20 @@ export class UserApplicationService {
       throw new NotFoundError(`User not found: ${userId}`, { userId });
     }
 
+    const username = user.username;
+
     // Reject user (domain method enforces business rules)
     user.reject(admin);
     await this.userRepository.save(user);
+
+    // Publish event to trigger cleanup of linked researcher/person
+    if (this.eventBus) {
+      await this.eventBus.publish(new UserRejectedEvent(
+        userId,
+        username,
+        admin.username
+      ));
+    }
   }
 
   /**

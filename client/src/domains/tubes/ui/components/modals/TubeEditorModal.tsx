@@ -21,7 +21,7 @@ import {
   formatResourceDisplayName,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { MapPin, AlertTriangle, Edit, Plus, Save, Trash2, Lock } from 'lucide-react';
+import { MapPin, Edit, Plus, Save, Trash2, Lock } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
@@ -794,7 +794,6 @@ function CreateModeContent({
         {positionAnalysis.isMixed && (
           <AlertBanner
             variant="warning"
-            icon={AlertTriangle}
             title={`${positionAnalysis.occupiedPositions.length} position${positionAnalysis.occupiedPositions.length > 1 ? 's are' : ' is'} occupied.`}
             spacing="none"
           >

@@ -67,7 +67,7 @@ export function InlineEditInput({
         onBlur={handleBlur}
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty placeholder is meaningless, generate helpful text
         placeholder={placeholder || `Edit ${fieldName}`}
-        className="flex-1 text-xs bg-transparent border-none focus-ring-default px-1"
+        className="flex-1 text-xs bg-transparent border-none px-1"
       />
       <div className="flex space-x-1 ml-1">
         <Tooltip content="Save (Enter)" side="bottom">
@@ -76,7 +76,7 @@ export function InlineEditInput({
               e.stopPropagation();
               onSave(value);
             }}
-            className="p-0.5 rounded bg-success-light text-success-text hover:bg-success-border transition-colors focus-ring-default"
+            className="p-0.5 rounded bg-success-light text-success-text hover:bg-success-border transition-colors"
           >
             <Check size={10} />
           </button>
@@ -87,7 +87,7 @@ export function InlineEditInput({
               e.stopPropagation();
               onCancel();
             }}
-            className="p-0.5 rounded bg-danger-light text-danger-text hover:bg-danger-border transition-colors focus-ring-default"
+            className="p-0.5 rounded bg-danger-light text-danger-text hover:bg-danger-border transition-colors"
           >
             <X size={10} />
           </button>

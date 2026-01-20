@@ -8,7 +8,7 @@ import {
   formatConcentrationDisplay,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { AlertTriangle, XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
+import { XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
 import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
@@ -519,7 +519,7 @@ export default function BatchTubeEditorModal({
         dataAttribute="data-batch-edit-modal"
       >
         {conflicts.length > 0 && (
-          <AlertBanner variant="warning" icon={AlertTriangle} spacing="sm">
+          <AlertBanner variant="warning" spacing="sm">
             {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
             {conflicts.length > 1 ? 'have' : 'has'} been cleared
           </AlertBanner>

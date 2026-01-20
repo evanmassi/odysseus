@@ -153,7 +153,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
             <CustomLabelButton
               onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
               size={12}
-              className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded focus-ring-default"
+              className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded"
             />
           )}
         </div>

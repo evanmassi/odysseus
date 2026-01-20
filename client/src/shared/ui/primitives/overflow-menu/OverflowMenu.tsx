@@ -173,7 +173,7 @@ export function OverflowMenu({
         ref={triggerRef}
         type="button"
         onClick={handleToggle}
-        className={`text-muted-foreground hover:text-secondary-foreground hover:bg-accent rounded transition-colors focus-ring-default ${sizeClasses}`}
+        className={`text-muted-foreground hover:text-secondary-foreground hover:bg-accent rounded transition-colors ${sizeClasses}`}
         aria-label={ariaLabel}
         aria-expanded={isOpen}
         aria-haspopup="menu"

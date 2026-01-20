@@ -14,7 +14,7 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
-import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX } from 'lucide-react';
+import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Clock } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
@@ -294,6 +294,18 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       sortable: true,
       render: (_, row) => {
         const researcher = row as unknown as AdminResearcher;
+
+        // Pending approval takes precedence (researcher not yet vetted)
+        if (researcher.approvalStatus === 'pending') {
+          return (
+            <Tooltip content="Pending Approval - Linked user not yet approved" side="bottom">
+              <span className="whitespace-nowrap">
+                <Clock size={18} className="text-warning-text" />
+              </span>
+            </Tooltip>
+          );
+        }
+
         if (researcher.active) {
           return (
             <Tooltip content="Active" side="bottom">
@@ -389,7 +401,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       />
 
       {/* Statistics Summary */}
-      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
         <span>Total Researchers:</span>
         <span className="font-semibold text-secondary-foreground">{researchers.length}</span>
         <span className="text-border">•</span>
@@ -402,6 +414,15 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
         <span className="font-semibold text-secondary-foreground">
           {researchers.filter(r => r.linkedUserId).length}
         </span>
+        {researchers.filter(r => r.approvalStatus === 'pending').length > 0 && (
+          <>
+            <span className="text-border">•</span>
+            <span>Pending Approval:</span>
+            <span className="font-semibold text-warning-text">
+              {researchers.filter(r => r.approvalStatus === 'pending').length}
+            </span>
+          </>
+        )}
       </div>
 
       {/* Safe Deletion Notice - Footnote */}

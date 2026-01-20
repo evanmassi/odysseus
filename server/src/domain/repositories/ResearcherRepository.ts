@@ -55,16 +55,21 @@ export interface ResearcherRepository {
    * Find all active researchers
    */
   findActive(): Promise<Researcher[]>;
-  
+
   /**
    * Find all inactive researchers
    */
   findInactive(): Promise<Researcher[]>;
-  
+
   /**
    * Find researchers by active status
    */
   findByStatus(isActive: boolean): Promise<Researcher[]>;
+
+  /**
+   * Find researchers that are both approved AND active (visible to users)
+   */
+  findApprovedAndActive(): Promise<Researcher[]>;
   
   /**
    * Activate/deactivate researcher

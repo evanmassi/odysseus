@@ -14,6 +14,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import {
   RefreshCw,
   UserRound,
@@ -28,6 +29,7 @@ import {
   KeyRound,
 } from 'lucide-react';
 
+import { queryKeys } from '@app/queryKeys';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
@@ -106,6 +108,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
   // Mutation hook for user deletion
   // Handles cache invalidation for users list and storage configuration
   const deleteUserMutation = useDeleteUserMutation();
+  const queryClient = useQueryClient();
 
   /**
    * Load pending users on component mount and when user list updates
@@ -194,6 +197,8 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
         notifications.success(`User "${username}" approved successfully`);
         await loadPendingUsers();
         onUserUpdate();
+        // Invalidate researchers cache - approving user also approves linked researcher
+        void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
       } else {
         notifications.error('Failed to approve user');
       }

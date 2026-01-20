@@ -154,3 +154,34 @@ export class ResearcherDeletedEvent extends DomainEvent {
     };
   }
 }
+
+/** Emitted when a researcher is approved due to user approval cascade */
+export class ResearcherApprovedEvent extends DomainEvent {
+  constructor(
+    public readonly researcherId: string,
+    public readonly firstName: string,
+    public readonly lastName: string,
+    public readonly linkedUserId: string,
+    public readonly approvedBy: string
+  ) {
+    super(1);
+  }
+
+  eventName(): string {
+    return 'ResearcherApproved';
+  }
+
+  getAggregateId(): string {
+    return this.researcherId;
+  }
+
+  protected getEventData(): Record<string, any> {
+    return {
+      researcherId: this.researcherId,
+      firstName: this.firstName,
+      lastName: this.lastName,
+      linkedUserId: this.linkedUserId,
+      approvedBy: this.approvedBy
+    };
+  }
+}

@@ -5,3 +5,6 @@
  */
 
 export { AnimatedCheckmark } from './AnimatedCheckmark';
+export { AnimatedInfoMark } from './AnimatedInfoMark';
+export { AnimatedWarningMark } from './AnimatedWarningMark';
+export { AnimatedXMark } from './AnimatedXMark';

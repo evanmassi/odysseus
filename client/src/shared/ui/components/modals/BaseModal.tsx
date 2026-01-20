@@ -138,7 +138,7 @@ export function BaseModal({
               </div>
               <button
                 onClick={triggerClose}
-                className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
+                className="p-1.5 rounded-lg text-muted-foreground hover:text-secondary-foreground hover:bg-accent transition-colors"
                 aria-label="Close modal"
               >
                 <X size={20} />

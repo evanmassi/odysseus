@@ -431,7 +431,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
             <Tooltip content="Export search results" side="bottom">
               <button
                 onClick={handleExportResults}
-                className="flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors text-action [[data-theme=dark]_&]:text-action/70 hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 focus-ring-default"
+                className="flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors text-action [[data-theme=dark]_&]:text-action/70 hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90"
               >
                 <Download className="w-3 h-3" />
                 <span>Export</span>
@@ -464,7 +464,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                   type="button"
                   key={index}
                   onClick={() => handleGroupClick(group)}
-                  className="w-full text-left p-2.5 bg-muted rounded-md hover:bg-accent cursor-pointer transition-all focus-ring-default"
+                  className="w-full text-left p-2.5 bg-muted rounded-md hover:bg-accent cursor-pointer transition-all"
                   aria-label={`View ${group.totalCount} tube${group.totalCount !== 1 ? 's' : ''} of ${cellType}${donorInternal ? `, donor ${donorInternal}` : ''}${location ? `, located in ${location}` : ''}`}
                 >
                   {/* Line 1: Cell Type with tube count badge */}

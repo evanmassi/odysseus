@@ -124,12 +124,17 @@
     --color-validation-default-ring: 210 43.1% 50%;
 
     /* Focus Ring System */
-    --focus-ring-color: 210 43.1% 50%;
+    --focus-ring-color: 200 85% 58%;
+    --focus-ring-contrast: 0 0% 100%;
     --focus-ring-glow-inner: 186.7 92.9% 90.6%;
-    --focus-ring-glow-outer: 210 43.1% 50% / 0.3;
-    --focus-ring-blur: 210 43.1% 50% / 0.2;
+    --focus-ring-glow-outer: 200 85% 58% / 0.45;
+    --focus-ring-blur: 200 85% 58% / 0.3;
     --focus-ring-width: 2px;
     --focus-ring-offset: 0px;
+
+    /* Shadcn-compatible aliases */
+    --ring: var(--focus-ring-color);
+    --ring-offset: var(--background);
 
     /* Focus Ring System - Validation States */
     --focus-ring-error: var(--color-danger-bg);
@@ -292,9 +297,13 @@
 
     /* Focus Ring System */
     --focus-ring-color: 213.1 93.9% 67.8%;
+    --focus-ring-contrast: var(--page);
     --focus-ring-glow-inner: 213.8 50% 24.3%;
-    --focus-ring-glow-outer: 213.1 93.9% 67.8% / 0.3;
-    --focus-ring-blur: 213.1 93.9% 67.8% / 0.2;
+    --focus-ring-glow-outer: 213.1 93.9% 67.8% / 0.35;
+    --focus-ring-blur: 213.1 93.9% 67.8% / 0.25;
+
+    /* Shadcn-compatible aliases */
+    --ring: var(--focus-ring-color);
 
     /* Ownership Indicator - Resource assignment visualization */
     --ownership-user-badge: 213.1 93.9% 67.8%;

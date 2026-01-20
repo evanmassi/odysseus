@@ -1,4 +1,4 @@
-import { Researcher } from '@domain/entities/Researcher';
+import { Researcher, ResearcherApprovalStatus, ResearcherSource } from '@domain/entities/Researcher';
 
 /**
  * Database row structure for researchers table
@@ -8,6 +8,8 @@ export interface ResearcherRow {
   person_id: string;
   active: boolean;
   created_at: Date | string;
+  approval_status: ResearcherApprovalStatus;
+  source: ResearcherSource;
 }
 
 /**
@@ -23,7 +25,9 @@ export class ResearcherMapper {
       id: researcher.id,
       person_id: researcher.personId,
       active: researcher.active,
-      created_at: researcher.createdAt
+      created_at: researcher.createdAt,
+      approval_status: researcher.approvalStatus,
+      source: researcher.source
     };
   }
 
@@ -39,7 +43,9 @@ export class ResearcherMapper {
       id: row.id,
       personId: row.person_id,
       active: row.active,
-      createdAt
+      createdAt,
+      approvalStatus: row.approval_status,
+      source: row.source
     });
   }
 

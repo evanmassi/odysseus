@@ -23,11 +23,14 @@ CREATE TABLE IF NOT EXISTS researchers (
   id TEXT PRIMARY KEY,
   person_id TEXT NOT NULL REFERENCES persons(id) ON DELETE CASCADE,
   active BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  approval_status TEXT NOT NULL DEFAULT 'approved' CHECK (approval_status IN ('pending', 'approved')),
+  source TEXT NOT NULL DEFAULT 'admin' CHECK (source IN ('registration', 'admin'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_researchers_active ON researchers(active);
 CREATE INDEX IF NOT EXISTS idx_researchers_person_id ON researchers(person_id);
+CREATE INDEX IF NOT EXISTS idx_researchers_approval_status ON researchers(approval_status);
 
 -- USERS TABLE
 CREATE TABLE IF NOT EXISTS users (

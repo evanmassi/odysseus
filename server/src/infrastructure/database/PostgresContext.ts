@@ -81,7 +81,47 @@ export class PostgresContext {
       )
     `);
 
-    // Tubes table
+    // Researchers table (must be before tubes and users due to foreign keys)
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS researchers (
+        id TEXT PRIMARY KEY,
+        person_id TEXT NOT NULL,
+        active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL,
+        approval_status TEXT NOT NULL DEFAULT 'approved' CHECK (approval_status IN ('pending', 'approved')),
+        source TEXT NOT NULL DEFAULT 'admin' CHECK (source IN ('registration', 'admin')),
+        FOREIGN KEY (person_id) REFERENCES persons(id)
+      )
+    `);
+
+    // Users table
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        api_key TEXT NOT NULL UNIQUE,
+        role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
+        password_hash TEXT,
+        salt TEXT,
+        created_at TIMESTAMPTZ NOT NULL,
+        researcher_id TEXT,
+        person_id TEXT,
+        status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+        email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+        email_verification_token TEXT,
+        email_verification_expiry TIMESTAMPTZ,
+        last_verification_email_sent TIMESTAMPTZ,
+        password_reset_token TEXT,
+        password_reset_expiry TIMESTAMPTZ,
+        require_password_change BOOLEAN NOT NULL DEFAULT FALSE,
+        last_password_change TIMESTAMPTZ,
+        settings JSONB DEFAULT '{}',
+        FOREIGN KEY (researcher_id) REFERENCES researchers(id) ON DELETE CASCADE,
+        FOREIGN KEY (person_id) REFERENCES persons(id)
+      )
+    `);
+
+    // Tubes table (after researchers and users due to foreign keys)
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS tubes (
         id TEXT PRIMARY KEY,
@@ -112,44 +152,6 @@ export class PostgresContext {
         UNIQUE(tank_id, rack_id, box_id, position),
         FOREIGN KEY (researcher_id) REFERENCES researchers(id),
         FOREIGN KEY (locked_by) REFERENCES users(id)
-      )
-    `);
-
-    // Researchers table (create before users due to foreign key)
-    await this.pool.query(`
-      CREATE TABLE IF NOT EXISTS researchers (
-        id TEXT PRIMARY KEY,
-        person_id TEXT NOT NULL,
-        active BOOLEAN NOT NULL DEFAULT TRUE,
-        created_at TIMESTAMPTZ NOT NULL,
-        FOREIGN KEY (person_id) REFERENCES persons(id)
-      )
-    `);
-
-    // Users table
-    await this.pool.query(`
-      CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        username TEXT NOT NULL UNIQUE,
-        api_key TEXT NOT NULL UNIQUE,
-        role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
-        password_hash TEXT,
-        salt TEXT,
-        created_at TIMESTAMPTZ NOT NULL,
-        researcher_id TEXT,
-        person_id TEXT,
-        status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
-        email_verified BOOLEAN NOT NULL DEFAULT FALSE,
-        email_verification_token TEXT,
-        email_verification_expiry TIMESTAMPTZ,
-        last_verification_email_sent TIMESTAMPTZ,
-        password_reset_token TEXT,
-        password_reset_expiry TIMESTAMPTZ,
-        require_password_change BOOLEAN NOT NULL DEFAULT FALSE,
-        last_password_change TIMESTAMPTZ,
-        settings JSONB DEFAULT '{}',
-        FOREIGN KEY (researcher_id) REFERENCES researchers(id) ON DELETE CASCADE,
-        FOREIGN KEY (person_id) REFERENCES persons(id)
       )
     `);
 
@@ -356,6 +358,7 @@ export class PostgresContext {
       // Researcher indexes
       'CREATE INDEX IF NOT EXISTS idx_researchers_active ON researchers(active)',
       'CREATE INDEX IF NOT EXISTS idx_researchers_person_id ON researchers(person_id)',
+      'CREATE INDEX IF NOT EXISTS idx_researchers_approval_status ON researchers(approval_status)',
 
       // Configuration indexes
       'CREATE INDEX IF NOT EXISTS idx_configuration_versions_updated_at ON configuration_versions(updated_at DESC)',
@@ -494,7 +497,9 @@ export class PostgresContext {
         );
       }
     } catch (error) {
-      logger.error('Failed to initialize default configuration:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorStack = error instanceof Error ? error.stack : undefined;
+      logger.error('Failed to initialize default configuration:', { message: errorMessage, stack: errorStack });
     }
   }
 

@@ -1,7 +1,8 @@
-import React, { useMemo, useState, createRef, useCallback } from 'react';
+import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 
 import { StorageNavigatorItem } from './StorageNavigatorItem';
 import { TreeLineOverlay } from './TreeLineOverlay';
+import { getNodeKey } from './types';
 import { useStorageNavigation } from './useStorageNavigation';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
 
@@ -54,11 +55,15 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     isBoxSelected,
   } = useStorageNavigation(data, selected, onSelect);
 
+  // Stable ref storage - persists across re-renders
+  const nodeRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
+
   // Build flat list of visible nodes for keyboard navigation
   const visibleNodes = useMemo((): VisibleTreeNode[] => {
     const nodes: VisibleTreeNode[] = [];
 
     data.tanks.forEach((tank, tankIndex) => {
+      const tankKey = getNodeKey('tank', tank.id);
       const tankNode: VisibleTreeNode = {
         id: tank.id,
         name: tank.name,
@@ -67,7 +72,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
         isExpanded: expandedTanks.has(tank.id),
         isSelected: isTankSelected(tank.id),
         hasChildren: tank.racks.length > 0,
-        ref: createRef<HTMLButtonElement>(),
+        nodeKey: tankKey,
         ariaLevel: 1,
         ariaPosinset: tankIndex + 1,
         ariaSetsize: data.tanks.length,
@@ -78,6 +83,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
       if (expandedTanks.has(tank.id)) {
         tank.racks.forEach((rack, rackIndex) => {
           const compositeKey = `${tank.id}-${rack.id}`;
+          const rackKey = getNodeKey('rack', tank.id, rack.id);
           const rackNode: VisibleTreeNode = {
             id: rack.id,
             name: rack.name,
@@ -87,7 +93,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
             isExpanded: expandedRacks.has(compositeKey),
             isSelected: isRackSelected(tank.id, rack.id),
             hasChildren: rack.boxes.length > 0,
-            ref: createRef<HTMLButtonElement>(),
+            nodeKey: rackKey,
             ariaLevel: 2,
             ariaPosinset: rackIndex + 1,
             ariaSetsize: tank.racks.length,
@@ -97,6 +103,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
           // Only include boxes if rack is expanded
           if (expandedRacks.has(compositeKey)) {
             rack.boxes.forEach((box, boxIndex) => {
+              const boxKey = getNodeKey('box', tank.id, rack.id, box.id);
               const boxNode: VisibleTreeNode = {
                 id: box.id,
                 name: box.name,
@@ -107,7 +114,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                 isExpanded: false,
                 isSelected: isBoxSelected(tank.id, rack.id, box.id),
                 hasChildren: false,
-                ref: createRef<HTMLButtonElement>(),
+                nodeKey: boxKey,
                 ariaLevel: 3,
                 ariaPosinset: boxIndex + 1,
                 ariaSetsize: rack.boxes.length,
@@ -122,12 +129,56 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     return nodes;
   }, [data, expandedTanks, expandedRacks, isTankSelected, isRackSelected, isBoxSelected]);
 
-  // Track which node has keyboard focus
-  const [focusedIndex, setFocusedIndex] = useState(() => {
-    // Initialize to first selected node, or 0 if none selected
-    const selectedIndex = visibleNodes.findIndex(node => node.isSelected);
-    return selectedIndex >= 0 ? selectedIndex : 0;
+  // Build a quick lookup map for finding nodes by key
+  const nodeKeyToIndex = useMemo(() => {
+    const map = new Map<string, number>();
+    visibleNodes.forEach((node, index) => {
+      map.set(node.nodeKey, index);
+    });
+    return map;
+  }, [visibleNodes]);
+
+  // Track which node has keyboard focus by key (stable across tree changes)
+  const [focusedKey, setFocusedKey] = useState<string | null>(() => {
+    // Initialize to first selected node, or first node if none selected
+    const selectedNode = visibleNodes.find(node => node.isSelected);
+    return selectedNode?.nodeKey ?? visibleNodes[0]?.nodeKey ?? null;
   });
+
+  // Compute focused index from key
+  const focusedIndex = focusedKey ? (nodeKeyToIndex.get(focusedKey) ?? 0) : 0;
+
+  // When tree changes, ensure focusedKey still exists; if not, find closest valid node
+  useEffect(() => {
+    if (!focusedKey || !nodeKeyToIndex.has(focusedKey)) {
+      // Key no longer exists - find first visible node or reset
+      const firstKey = visibleNodes[0]?.nodeKey ?? null;
+      setFocusedKey(firstKey);
+    }
+  }, [focusedKey, nodeKeyToIndex, visibleNodes]);
+
+  // Setter that converts index to key
+  const setFocusedIndex = useCallback(
+    (index: number) => {
+      const node = visibleNodes[index];
+      if (node) {
+        setFocusedKey(node.nodeKey);
+      }
+    },
+    [visibleNodes]
+  );
+
+  // Get ref for a node by key
+  const getNodeRef = useCallback((nodeKey: string) => nodeRefs.current.get(nodeKey) ?? null, []);
+
+  // Set ref for a node by key
+  const setNodeRef = useCallback((nodeKey: string, element: HTMLButtonElement | null) => {
+    if (element) {
+      nodeRefs.current.set(nodeKey, element);
+    } else {
+      nodeRefs.current.delete(nodeKey);
+    }
+  }, []);
 
   // Handle node selection from keyboard
   const handleSelectNode = useCallback(
@@ -153,6 +204,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     onToggleTank: toggleTank,
     onToggleRack: toggleRack,
     onSelectNode: handleSelectNode,
+    getNodeRef,
   });
 
   return (
@@ -171,8 +223,9 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
         {data.tanks.map((tank, _tankIndex) => {
           const tankExpanded = expandedTanks.has(tank.id);
           const tankSelected = isTankSelected(tank.id);
-          const nodeIndex = visibleNodes.findIndex(n => n.id === tank.id && n.level === 'tank');
-          const node = visibleNodes[nodeIndex];
+          const tankKey = getNodeKey('tank', tank.id);
+          const tankNodeIndex = nodeKeyToIndex.get(tankKey) ?? -1;
+          const tankNode = visibleNodes[tankNodeIndex];
 
           return (
             <StorageNavigatorItem
@@ -187,21 +240,20 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                 toggleTank(tank.id);
                 selectTank(tank.id);
               }}
-              tabIndex={nodeIndex === focusedIndex ? 0 : -1}
-              buttonRef={node?.ref}
-              onFocus={() => setFocusedIndex(nodeIndex)}
-              ariaLevel={node?.ariaLevel}
-              ariaPosinset={node?.ariaPosinset}
-              ariaSetsize={node?.ariaSetsize}
+              tabIndex={tankNodeIndex === focusedIndex ? 0 : -1}
+              buttonRef={el => setNodeRef(tankKey, el)}
+              onFocus={() => setFocusedKey(tankKey)}
+              ariaLevel={tankNode?.ariaLevel}
+              ariaPosinset={tankNode?.ariaPosinset}
+              ariaSetsize={tankNode?.ariaSetsize}
             >
               {tank.racks.map((rack, _rackIndex) => {
                 const compositeKey = `${tank.id}-${rack.id}`;
                 const rackExpanded = expandedRacks.has(compositeKey);
                 const rackSelected = isRackSelected(tank.id, rack.id);
-                const nodeIndex = visibleNodes.findIndex(
-                  n => n.id === rack.id && n.level === 'rack'
-                );
-                const node = visibleNodes[nodeIndex];
+                const rackKey = getNodeKey('rack', tank.id, rack.id);
+                const rackNodeIndex = nodeKeyToIndex.get(rackKey) ?? -1;
+                const rackNode = visibleNodes[rackNodeIndex];
 
                 return (
                   <StorageNavigatorItem
@@ -216,21 +268,20 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                       toggleRack(tank.id, rack.id);
                       selectRack(tank.id, rack.id);
                     }}
-                    tabIndex={nodeIndex === focusedIndex ? 0 : -1}
-                    buttonRef={node?.ref}
-                    onFocus={() => setFocusedIndex(nodeIndex)}
-                    ariaLevel={node?.ariaLevel}
-                    ariaPosinset={node?.ariaPosinset}
-                    ariaSetsize={node?.ariaSetsize}
+                    tabIndex={rackNodeIndex === focusedIndex ? 0 : -1}
+                    buttonRef={el => setNodeRef(rackKey, el)}
+                    onFocus={() => setFocusedKey(rackKey)}
+                    ariaLevel={rackNode?.ariaLevel}
+                    ariaPosinset={rackNode?.ariaPosinset}
+                    ariaSetsize={rackNode?.ariaSetsize}
                     ownershipType={computeOwnershipType(rack.assignedUserId, currentUser?.id)}
                     ownershipInitials={currentUser?.initials}
                   >
                     {rack.boxes.map((box, _boxIndex) => {
                       const boxSelected = isBoxSelected(tank.id, rack.id, box.id);
-                      const nodeIndex = visibleNodes.findIndex(
-                        n => n.id === box.id && n.level === 'box'
-                      );
-                      const node = visibleNodes[nodeIndex];
+                      const boxKey = getNodeKey('box', tank.id, rack.id, box.id);
+                      const boxNodeIndex = nodeKeyToIndex.get(boxKey) ?? -1;
+                      const boxNode = visibleNodes[boxNodeIndex];
 
                       return (
                         <StorageNavigatorItem
@@ -242,12 +293,12 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                           isExpanded={false}
                           onToggle={() => {}}
                           onSelect={() => selectBox(tank.id, rack.id, box.id)}
-                          tabIndex={nodeIndex === focusedIndex ? 0 : -1}
-                          buttonRef={node?.ref}
-                          onFocus={() => setFocusedIndex(nodeIndex)}
-                          ariaLevel={node?.ariaLevel}
-                          ariaPosinset={node?.ariaPosinset}
-                          ariaSetsize={node?.ariaSetsize}
+                          tabIndex={boxNodeIndex === focusedIndex ? 0 : -1}
+                          buttonRef={el => setNodeRef(boxKey, el)}
+                          onFocus={() => setFocusedKey(boxKey)}
+                          ariaLevel={boxNode?.ariaLevel}
+                          ariaPosinset={boxNode?.ariaPosinset}
+                          ariaSetsize={boxNode?.ariaSetsize}
                           ownershipType={computeOwnershipType(
                             getEffectiveOwner(box.assignedUserId, rack.assignedUserId),
                             currentUser?.id

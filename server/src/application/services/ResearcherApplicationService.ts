@@ -55,6 +55,21 @@ export class ResearcherApplicationService {
   }
 
   /**
+   * Get only visible researchers (approved AND active)
+   * Used for dropdowns where only vetted, working researchers should appear
+   */
+  async getVisibleResearchers(userApiKey?: string): Promise<ResearcherResponse[]> {
+    const researchers = await this.researcherRepository.findApprovedAndActive();
+    const researchersWithPersons = await Promise.all(
+      researchers.map(async (researcher) => ({
+        researcher,
+        person: await this.getPersonForResearcher(researcher)
+      }))
+    );
+    return researchersWithPersons.map(item => ResearcherDto.toResponse(item.researcher, item.person));
+  }
+
+  /**
    * Get all researchers with admin metadata (tube counts, linked users)
    * Admin-only: includes sensitive relationship data for management purposes
    */
@@ -67,6 +82,8 @@ export class ResearcherApplicationService {
     email?: string;
     active: boolean;
     createdAt: string | Date;
+    approvalStatus: 'pending' | 'approved';
+    source: 'registration' | 'admin';
     tubeCount: number;
     linkedUserId: string | null;
     linkedUsername: string | null;
@@ -93,6 +110,8 @@ export class ResearcherApplicationService {
           email: person.email,
           active: researcher.active,
           createdAt: researcher.createdAt,
+          approvalStatus: researcher.approvalStatus,
+          source: researcher.source,
           tubeCount,
           linkedUserId: linkedUser?.id ?? null,
           linkedUsername: linkedUser?.username ?? null,
@@ -311,6 +330,14 @@ export class ResearcherApplicationService {
 
     // Update Researcher entity for active status
     if (updates.active !== undefined) {
+      // Can only toggle active status on approved researchers
+      if (researcher.isPending()) {
+        throw new ValidationError('Cannot change active status of pending researcher', {
+          researcherId: id,
+          approvalStatus: researcher.approvalStatus
+        });
+      }
+
       if (updates.active) {
         researcher.activate();
       } else {
@@ -409,6 +436,14 @@ export class ResearcherApplicationService {
       throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
     }
 
+    // Can only toggle active status on approved researchers
+    if (researcher.isPending()) {
+      throw new ValidationError('Cannot change active status of pending researcher', {
+        researcherId: id,
+        approvalStatus: researcher.approvalStatus
+      });
+    }
+
     const person = await this.personRepository.findById(researcher.personId);
     if (!person) {
       throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
@@ -443,6 +478,14 @@ export class ResearcherApplicationService {
     const researcher = await this.researcherRepository.findById(id);
     if (!researcher) {
       throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
+    }
+
+    // Can only toggle active status on approved researchers
+    if (researcher.isPending()) {
+      throw new ValidationError('Cannot change active status of pending researcher', {
+        researcherId: id,
+        approvalStatus: researcher.approvalStatus
+      });
     }
 
     const person = await this.personRepository.findById(researcher.personId);

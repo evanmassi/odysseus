@@ -9,6 +9,7 @@ interface UseTreeKeyboardNavigationProps {
   onToggleTank: (id: string) => void;
   onToggleRack: (tankId: string, rackId: string) => void;
   onSelectNode: (node: VisibleTreeNode) => void;
+  getNodeRef: (nodeKey: string) => HTMLButtonElement | null;
 }
 
 function findParentIndex(nodes: VisibleTreeNode[], currentIndex: number): number {
@@ -57,6 +58,7 @@ export function useTreeKeyboardNavigation({
   onToggleTank,
   onToggleRack,
   onSelectNode,
+  getNodeRef,
 }: UseTreeKeyboardNavigationProps) {
   const [searchString, setSearchString] = useState('');
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
@@ -64,11 +66,12 @@ export function useTreeKeyboardNavigation({
   const focusNode = useCallback(
     (index: number) => {
       if (index >= 0 && index < visibleNodes.length) {
+        const node = visibleNodes[index];
         setFocusedIndex(index);
-        visibleNodes[index].ref.current?.focus();
+        getNodeRef(node.nodeKey)?.focus();
       }
     },
-    [visibleNodes, setFocusedIndex]
+    [visibleNodes, setFocusedIndex, getNodeRef]
   );
 
   const handleKeyDown = useCallback(

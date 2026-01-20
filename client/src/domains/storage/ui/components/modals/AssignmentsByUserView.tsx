@@ -289,7 +289,7 @@ export function AssignmentsByUserView({
               <button
                 type="button"
                 onClick={() => toggleUser(userAssignment.userId)}
-                className="text-secondary-foreground hover:bg-black/10 rounded p-0.5 transition-colors focus-ring-default"
+                className="text-secondary-foreground hover:bg-black/10 rounded p-0.5 transition-colors"
                 aria-expanded={isExpanded}
                 aria-label={`${isExpanded ? 'Collapse' : 'Expand'} ${userAssignment.displayName}`}
               >
@@ -307,7 +307,7 @@ export function AssignmentsByUserView({
               <button
                 type="button"
                 onClick={() => toggleUser(userAssignment.userId)}
-                className="flex items-center gap-3 flex-1 min-w-0 hover:bg-black/10 transition-colors px-1 py-0.5 rounded text-left focus-ring-default"
+                className="flex items-center gap-3 flex-1 min-w-0 hover:bg-black/10 transition-colors px-1 py-0.5 rounded text-left"
                 aria-expanded={isExpanded}
               >
                 {/* Username */}
@@ -362,7 +362,7 @@ export function AssignmentsByUserView({
                     <button
                       type="button"
                       onClick={() => setReassigningUserId(null)}
-                      className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-black/10 transition-colors focus-ring-default"
+                      className="text-muted-foreground hover:text-secondary-foreground p-1 rounded hover:bg-black/10 transition-colors"
                     >
                       ×
                     </button>

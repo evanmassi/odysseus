@@ -7,10 +7,10 @@
 
 import { useState } from 'react';
 
-import { Copy, Check, Info } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 
 import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
-import { Button } from '@shared/ui';
+import { AlertBanner, Button } from '@shared/ui';
 
 import { AuthBaseModal } from './AuthBaseModal';
 
@@ -76,7 +76,7 @@ export function RegistrationSuccessModal({
             </span>
             <button
               onClick={handleCopyUsername}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-action [[data-theme=dark]_&]:text-action/70 hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 rounded focus-enhanced transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-action [[data-theme=dark]_&]:text-action/70 hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 rounded transition-colors"
               type="button"
               aria-label={`Copy username ${username}`}
             >
@@ -101,16 +101,11 @@ export function RegistrationSuccessModal({
 
       {/* Status Information */}
       <div className="mb-6">
-        <div className="p-2 bg-muted rounded-lg">
-          <div className="flex items-start space-x-1.5">
-            <Info size={16} className="text-muted-foreground flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground leading-snug">
-              {isPending
-                ? "An administrator will review your account. You'll be notified when approved."
-                : "You're all set! You can now log in with your username and password."}
-            </p>
-          </div>
-        </div>
+        <AlertBanner variant="info" spacing="none" className="text-xs">
+          {isPending
+            ? "An administrator will review your account. You'll be notified when approved."
+            : "You're all set! You can now log in with your username and password."}
+        </AlertBanner>
       </div>
 
       {/* Close Button */}

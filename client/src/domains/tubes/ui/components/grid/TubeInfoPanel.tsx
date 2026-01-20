@@ -456,7 +456,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 <button
                   type="button"
                   onClick={() => setShowEditLockNoteModal(true)}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground hover:bg-accent transition-colors cursor-pointer focus-ring-default"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground hover:bg-accent transition-colors cursor-pointer"
                 >
                   {lockNoteDisplay?.isMixed ? (
                     <>

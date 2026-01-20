@@ -21,6 +21,7 @@ import { GetCurrentConfigurationQueryHandler, GetConfigurationHistoryQueryHandle
 import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
 import { AuditEventHandler } from '@application/eventHandlers/AuditEventHandler';
 import { SocketEventHandler } from '@application/eventHandlers/SocketEventHandler';
+import { ResearcherApprovalEventHandler } from '@application/eventHandlers/ResearcherApprovalEventHandler';
 import type { Server as SocketIOServer } from 'socket.io';
 
 // Controllers
@@ -162,6 +163,7 @@ export class ServiceContainer {
   // Event Handlers
   private auditEventHandler?: AuditEventHandler;
   private socketEventHandler?: SocketEventHandler;
+  private researcherApprovalEventHandler?: ResearcherApprovalEventHandler;
 
   // Middleware
   private authMiddleware?: AuthMiddleware;
@@ -926,6 +928,19 @@ export class ServiceContainer {
       );
     }
     return this.socketEventHandler;
+  }
+
+  getResearcherApprovalEventHandler(): ResearcherApprovalEventHandler {
+    if (!this.researcherApprovalEventHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.researcherApprovalEventHandler = new ResearcherApprovalEventHandler(
+        this.getEventBus(),
+        repositories.researchers,
+        repositories.users,
+        repositories.persons
+      );
+    }
+    return this.researcherApprovalEventHandler;
   }
 
   // LEGACY SERVICES (for non-migrated controllers)

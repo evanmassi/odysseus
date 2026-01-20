@@ -55,7 +55,7 @@ export interface StorageNavigatorItemProps {
   onSelect: () => void;
   children?: React.ReactNode;
   tabIndex?: -1 | 0;
-  buttonRef?: React.RefObject<HTMLButtonElement>;
+  buttonRef?: ((element: HTMLButtonElement | null) => void) | React.RefObject<HTMLButtonElement>;
   onFocus?: () => void;
   ariaLevel?: number;
   ariaPosinset?: number;
@@ -74,8 +74,20 @@ export interface VisibleTreeNode {
   isExpanded: boolean;
   isSelected: boolean;
   hasChildren: boolean;
-  ref: React.RefObject<HTMLButtonElement>;
+  nodeKey: string;
   ariaLevel: number;
   ariaPosinset: number;
   ariaSetsize: number;
+}
+
+// Generate unique composite key for a node
+export function getNodeKey(
+  level: 'tank' | 'rack' | 'box',
+  tankId: string,
+  rackId?: string,
+  boxId?: string
+): string {
+  if (level === 'tank') return `tank:${tankId}`;
+  if (level === 'rack') return `rack:${tankId}:${rackId}`;
+  return `box:${tankId}:${rackId}:${boxId}`;
 }

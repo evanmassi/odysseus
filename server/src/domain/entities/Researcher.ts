@@ -4,117 +4,140 @@ import { generateId } from '@domain/utils/generateId';
 /**
  * Researcher Entity
  *
- * Links a Person to research activities (tube ownership).
- * Profile data (name, email, etc.) lives in Person entity.
+ * Links a Person to research activities. Approval workflow prevents researchers
+ * from appearing in dropdowns until their linked user account is approved.
  */
+
+export type ResearcherApprovalStatus = 'pending' | 'approved';
+export type ResearcherSource = 'registration' | 'admin';
+
 export class Researcher {
   private constructor(
     private readonly _id: string,
     private readonly _personId: string,
     private _active: boolean,
-    private readonly _createdAt: Date
+    private readonly _createdAt: Date,
+    private _approvalStatus: ResearcherApprovalStatus,
+    private readonly _source: ResearcherSource
   ) {
     this.validate();
   }
 
   /**
-   * Factory method to create a new researcher
+   * Creates researcher with approval status based on source and user approval state.
+   * Admin-created researchers are always approved. Registration-created researchers
+   * are pending until the linked user is approved.
    */
-  static create(personId: string): Researcher {
+  static create(
+    personId: string,
+    options?: {
+      isUserApproved?: boolean;
+      source?: ResearcherSource;
+    }
+  ): Researcher {
     const id = generateId('researcher');
     const now = new Date();
-    return new Researcher(id, personId, true, now);
+    const source = options?.source ?? 'admin';
+    const isUserApproved = options?.isUserApproved ?? false;
+
+    const approvalStatus: ResearcherApprovalStatus =
+      source === 'admin' ? 'approved' : (isUserApproved ? 'approved' : 'pending');
+
+    return new Researcher(id, personId, true, now, approvalStatus, source);
   }
 
-  /**
-   * Factory method to reconstitute researcher from persistence data
-   */
   static fromData(data: {
     id: string;
     personId: string;
     active: boolean;
     createdAt: string | Date;
+    approvalStatus?: ResearcherApprovalStatus;
+    source?: ResearcherSource;
   }): Researcher {
     return new Researcher(
       data.id,
       data.personId,
       data.active,
-      typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt
+      typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt,
+      data.approvalStatus ?? 'approved',
+      data.source ?? 'admin'
     );
   }
 
-  /**
-   * Validate researcher state
-   */
   private validate(): void {
     if (!this._personId || this._personId.trim().length === 0) {
       throw new ValidationError('Person ID is required');
     }
   }
 
-  /**
-   * Business method: Activate researcher
-   */
+  approve(): void {
+    this._approvalStatus = 'approved';
+  }
+
+  isPending(): boolean {
+    return this._approvalStatus === 'pending';
+  }
+
+  isApproved(): boolean {
+    return this._approvalStatus === 'approved';
+  }
+
+  /** Returns true only if approved AND active - used for user-facing visibility */
+  isVisible(): boolean {
+    return this._approvalStatus === 'approved' && this._active;
+  }
+
   activate(): void {
     this._active = true;
   }
 
-  /**
-   * Business method: Deactivate researcher
-   */
   deactivate(): void {
     this._active = false;
   }
 
-  /**
-   * Business method: Toggle active status
-   */
   toggleActiveStatus(): void {
     this._active = !this._active;
   }
 
-  /**
-   * Business query: Check if researcher is active
-   */
   isActive(): boolean {
     return this._active;
   }
 
-  /**
-   * Convert to data object for persistence
-   */
   toData(): {
     id: string;
     personId: string;
     active: boolean;
     createdAt: string;
+    approvalStatus: ResearcherApprovalStatus;
+    source: ResearcherSource;
   } {
     return {
       id: this._id,
       personId: this._personId,
       active: this._active,
-      createdAt: this._createdAt.toISOString()
+      createdAt: this._createdAt.toISOString(),
+      approvalStatus: this._approvalStatus,
+      source: this._source
     };
   }
 
-  /**
-   * Equality check (identity-based for entities)
-   */
   equals(other: Researcher): boolean {
     if (!other) return false;
     return this._id === other._id;
   }
 
-  /**
-   * String representation
-   */
   toString(): string {
-    return `Researcher(${this._id})${this._active ? '' : ' [Inactive]'}`;
+    const statusParts: string[] = [];
+    if (!this._active) statusParts.push('Inactive');
+    if (this._approvalStatus === 'pending') statusParts.push('Pending Approval');
+    const statusStr = statusParts.length > 0 ? ` [${statusParts.join(', ')}]` : '';
+    return `Researcher(${this._id})${statusStr}`;
   }
 
-  // Getters
   get id(): string { return this._id; }
   get personId(): string { return this._personId; }
   get active(): boolean { return this._active; }
   get createdAt(): Date { return new Date(this._createdAt); }
+  get approvalStatus(): ResearcherApprovalStatus { return this._approvalStatus; }
+  get source(): ResearcherSource { return this._source; }
 }

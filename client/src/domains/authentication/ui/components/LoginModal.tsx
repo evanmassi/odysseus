@@ -253,7 +253,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
             <button
               type="button"
               onClick={onSwitchToRegister}
-              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors focus-enhanced rounded px-1"
+              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors rounded px-1"
             >
               Register here
             </button>

@@ -26,6 +26,7 @@ export class ResearcherService {
    * Fetch all researchers with optional filters
    * TypeScript overloads for type safety:
    * - admin: true → returns AdminResearcher[] (with tubeCount, linkedUserId, linkedUsername)
+   * - visible: true → returns only approved+active researchers (for dropdowns)
    * - admin: false/undefined → returns Researcher[] (basic fields only)
    */
   static async list(options: {
@@ -34,19 +35,26 @@ export class ResearcherService {
   }): Promise<AdminResearcher[]>;
   static async list(options?: {
     admin?: false;
+    visible?: boolean;
     filters?: ResearcherQueryFilters;
   }): Promise<Researcher[]>;
   static async list(options?: {
     admin?: boolean;
+    visible?: boolean;
     filters?: ResearcherQueryFilters;
   }): Promise<Researcher[] | AdminResearcher[]> {
-    const { admin = false, filters } = options ?? {};
+    const { admin = false, visible = false, filters } = options ?? {};
 
     const queryParams = new URLSearchParams();
 
     // Add admin flag if requested
     if (admin) {
       queryParams.set('admin', 'true');
+    }
+
+    // Add visible flag for dropdown filtering (approved + active only)
+    if (visible) {
+      queryParams.set('visible', 'true');
     }
 
     // Add filters

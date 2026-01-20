@@ -11,6 +11,12 @@
 import { z } from 'zod';
 import type { Person } from '../persons/personSchemas';
 
+export const researcherApprovalStatusSchema = z.enum(['pending', 'approved']);
+export const researcherSourceSchema = z.enum(['registration', 'admin']);
+
+export type ResearcherApprovalStatus = z.infer<typeof researcherApprovalStatusSchema>;
+export type ResearcherSource = z.infer<typeof researcherSourceSchema>;
+
 /**
  * Researcher Domain Entity
  *
@@ -23,6 +29,8 @@ export const researcherSchema = z.object({
   personId: z.string(),
   active: z.boolean(),
   createdAt: z.union([z.string().datetime('Invalid created date'), z.date()]),
+  approvalStatus: researcherApprovalStatusSchema.optional().default('approved'),
+  source: researcherSourceSchema.optional().default('admin'),
   // Denormalized Person fields for display
   firstName: z.string(),
   lastName: z.string(),
@@ -91,6 +99,10 @@ export const adminResearcherSchema = researcherSchema.extend({
   email: z.string(),
   position: z.string().optional(),
   department: z.string().optional(),
+
+  // Approval workflow fields (required in admin view)
+  approvalStatus: researcherApprovalStatusSchema,
+  source: researcherSourceSchema,
 
   // Admin metadata
   tubeCount: z.number().int().min(0),

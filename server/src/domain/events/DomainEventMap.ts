@@ -45,14 +45,16 @@ import type {
   UserLoggedOutEvent,
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
-  UserApprovedEvent
+  UserApprovedEvent,
+  UserRejectedEvent
 } from './UserEvents';
 import type {
   ResearcherCreatedEvent,
   ResearcherUpdatedEvent,
   ResearcherDeactivatedEvent,
   ResearcherReactivatedEvent,
-  ResearcherDeletedEvent
+  ResearcherDeletedEvent,
+  ResearcherApprovedEvent
 } from './ResearcherEvents';
 import type {
   VerificationEmailSentEvent,
@@ -128,6 +130,7 @@ export interface DomainEventMap {
   'UserLinkedToResearcher': UserLinkedToResearcherEvent;
   'UserUnlinkedFromResearcher': UserUnlinkedFromResearcherEvent;
   'UserApproved': UserApprovedEvent;
+  'UserRejected': UserRejectedEvent;
 
   // Researcher events
   'ResearcherCreated': ResearcherCreatedEvent;
@@ -135,6 +138,7 @@ export interface DomainEventMap {
   'ResearcherDeactivated': ResearcherDeactivatedEvent;
   'ResearcherReactivated': ResearcherReactivatedEvent;
   'ResearcherDeleted': ResearcherDeletedEvent;
+  'ResearcherApproved': ResearcherApprovedEvent;
 
   // Email verification events
   'VerificationEmailSent': VerificationEmailSentEvent;

@@ -6,15 +6,22 @@
    * Use data-focus attribute to opt out or customize:
    *   - data-focus="none"   - No focus ring (element has custom visual feedback like modal tabs)
    *   - data-focus="custom" - Custom focus handling (grid elements, tubes)
-   *   - data-focus="light"  - White focus ring for dark backgrounds
    *
    * Special cases handled by CSS:
    *   - .input-field-error  - Validation error state (pulsing red border)
    *   - .auth-input-container - Container-managed focus (:focus-within)
+   *
+   * Light focus ring (white for dark backgrounds) - Not currently used.
+   * To add: use data-focus="light" attribute with this rule:
+   *   [data-focus='light']:focus-visible {
+   *     outline: var(--focus-ring-width) solid white;
+   *     outline-offset: var(--focus-ring-offset);
+   *     box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 0 0 6px rgba(255,255,255,0.15);
+   *   }
    */
 
   /* Global Default Focus Ring - Applied to all focusable elements without data-focus */
-  /* Soft glow style matching tube selection highlighting */
+  /* Contrast ring (inner) + colored outer ring + neon glow */
   button:not([data-focus]):focus-visible,
   a:not([data-focus]):focus-visible,
   input:not([data-focus]):not(.input-field-error):focus-visible,
@@ -23,11 +30,12 @@
   [role='button']:not([data-focus]):focus-visible,
   [role='menuitem']:not([data-focus]):focus-visible,
   [tabindex]:not([tabindex='-1']):not([data-focus]):focus-visible {
-    outline: 2px solid #3b82f6;
-    outline-offset: 1px;
+    outline: 1px solid hsl(var(--focus-ring-contrast));
+    outline-offset: var(--focus-ring-offset);
     box-shadow:
-      0 0 4px 0 rgba(59, 130, 246, 0.7),
-      0 0 10px 2px rgba(59, 130, 246, 0.35);
+      0 0 0 3px hsl(var(--ring)),
+      0 0 6px 2px hsl(var(--focus-ring-glow-outer)),
+      0 0 14px 4px hsl(var(--focus-ring-blur));
   }
 
   /* Container-managed focus - auth-input-container handles :focus-within styling */
@@ -37,15 +45,5 @@
   .auth-input-container textarea:focus-visible {
     outline: none !important;
     box-shadow: none !important;
-  }
-
-  /* Light focus ring - White for dark backgrounds */
-  [data-focus='light']:focus-visible {
-    outline: var(--focus-ring-width) solid white;
-    outline-offset: var(--focus-ring-offset);
-    box-shadow:
-      0 0 0 3px rgba(255, 255, 255, 0.3),
-      0 0 0 6px rgba(255, 255, 255, 0.15),
-      0 0 8px 6px rgba(255, 255, 255, 0.1);
   }
 }

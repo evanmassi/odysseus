@@ -90,9 +90,10 @@ class OdysseusServer {
     const sessionService = this.serviceContainer.getSessionService();
     this.io.use(createSocketAuthMiddleware(sessionService));
 
-    // Initialize event handlers for audit logging and real-time updates
+    // Initialize event handlers for audit logging, real-time updates, and approval workflows
     this.serviceContainer.getAuditEventHandler();
     this.serviceContainer.getSocketEventHandler();
+    this.serviceContainer.getResearcherApprovalEventHandler();
 
     // Start scheduled jobs
     this.serviceContainer.getAuditArchivalJob().start();

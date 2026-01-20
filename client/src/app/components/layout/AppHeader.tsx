@@ -499,7 +499,7 @@ export function AppHeader({
                       setShowUserSettings(true);
                       setShowHamburgerMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors"
                   >
                     <Settings size={16} className="text-muted-foreground" />
                     <span>{user?.role === 'admin' ? 'User Settings' : 'Settings'}</span>
@@ -513,7 +513,7 @@ export function AppHeader({
                       setShowStorageManager(true);
                       setShowHamburgerMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors"
                   >
                     <TankIcon size={16} className="text-muted-foreground" />
                     <span>Storage Manager</span>
@@ -528,7 +528,7 @@ export function AppHeader({
                         setShowAdminPanel(true);
                         setShowHamburgerMenu(false);
                       }}
-                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
+                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors"
                     >
                       <ShieldUser size={16} className="text-muted-foreground" />
                       <span>Admin Settings</span>
@@ -546,7 +546,7 @@ export function AppHeader({
                       handleLogout();
                       setShowHamburgerMenu(false);
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
+                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors"
                   >
                     <LogOut size={16} className="text-muted-foreground" />
                     <span>Logout</span>

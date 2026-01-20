@@ -18,10 +18,12 @@ export class ResearcherController {
    * Get all researchers
    * GET /api/researchers
    * GET /api/researchers?admin=true (includes metadata: tubeCount, linkedUserId, linkedUsername)
+   * GET /api/researchers?visible=true (only approved AND active - for dropdowns)
    */
   async getAllResearchers(req: Request, res: Response): Promise<void> {
     try {
       const includeAdminData = req.query.admin === 'true';
+      const visibleOnly = req.query.visible === 'true';
 
       if (includeAdminData) {
         // Admin data requires authentication
@@ -29,6 +31,11 @@ export class ResearcherController {
         // Returns AdminResearcher[] with metadata
         const researchers = await this.researcherApplicationService.getResearchersWithMetadata(userApiKey);
         res.json(ErrorDto.success({ researchers }));
+      } else if (visibleOnly) {
+        // Only approved+active researchers (for dropdowns)
+        const userApiKey = this.extractOptionalApiKey(req);
+        const researchers = await this.researcherApplicationService.getVisibleResearchers(userApiKey);
+        res.json(ErrorDto.success(researchers));
       } else {
         // Basic data can be accessed with optional auth
         const userApiKey = this.extractOptionalApiKey(req);

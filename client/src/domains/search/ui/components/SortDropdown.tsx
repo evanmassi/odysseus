@@ -38,7 +38,7 @@ export function SortDropdown() {
       <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
         <button
           onClick={toggleSortDirection}
-          className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors focus-ring-default"
+          className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors"
         >
           {sortDirection === 'asc' ? (
             <ArrowUp className="w-4 h-4" />

@@ -248,3 +248,29 @@ export class UserApprovedEvent extends DomainEvent {
     };
   }
 }
+
+export class UserRejectedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly username: string,
+    public readonly rejectedBy: string
+  ) {
+    super(1);
+  }
+
+  eventName(): string {
+    return 'UserRejected';
+  }
+
+  getAggregateId(): string {
+    return this.userId;
+  }
+
+  protected getEventData(): Record<string, any> {
+    return {
+      userId: this.userId,
+      username: this.username,
+      rejectedBy: this.rejectedBy
+    };
+  }
+}

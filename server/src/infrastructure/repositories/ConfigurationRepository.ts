@@ -12,6 +12,9 @@ import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { logger } from '@utils/logger';
 
+/** Type for configuration JSON stored in JSONB columns */
+type ConfigurationJson = Parameters<typeof Configuration.fromData>[0];
+
 /**
  * ConfigurationRepository - Configuration data access
  *
@@ -26,7 +29,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   async getCurrent(): Promise<Configuration | null> {
     try {
-      const row = await this.context.queryOne<{ config_json: string; version: number; updated_at: Date | string }>(`
+      const row = await this.context.queryOne<{ config_json: ConfigurationJson; version: number; updated_at: Date | string }>(`
         SELECT config_json, version, updated_at
         FROM configuration_current
         WHERE id = 1
@@ -36,12 +39,12 @@ export class ConfigurationRepository implements IConfigurationRepository {
         throw new ValidationError('Configuration not found. Database initialization may have failed.');
       }
 
-      const configData = JSON.parse(row.config_json);
-      return Configuration.fromData(configData);
+      return Configuration.fromData(row.config_json);
 
     } catch (error) {
-      logger.error('Failed to get current configuration:', { error });
-      throw new ValidationError(`Database error retrieving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to get current configuration:', { message: errorMessage });
+      throw new ValidationError(`Database error retrieving configuration: ${errorMessage}`);
     }
   }
 
@@ -76,7 +79,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   async getByVersion(version: number): Promise<Configuration | null> {
     try {
-      const row = await this.context.queryOne<{ config_json: string }>(`
+      const row = await this.context.queryOne<{ config_json: ConfigurationJson }>(`
         SELECT config_json
         FROM configuration_versions
         WHERE version = $1
@@ -86,7 +89,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
         return null;
       }
 
-      const configData = JSON.parse(row.config_json);
+      const configData = row.config_json;
       return Configuration.fromData(configData);
 
     } catch (error) {
@@ -97,7 +100,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   async getHistory(limit: number = 50): Promise<ConfigurationHistory[]> {
     try {
-      const rows = await this.context.queryMany<{ version: number; updated_at: Date | string; change_description: string; changed_by: string; config_json: string }>(`
+      const rows = await this.context.queryMany<{ version: number; updated_at: Date | string; change_description: string; changed_by: string; config_json: ConfigurationJson }>(`
         SELECT version, updated_at, change_description, changed_by, config_json
         FROM configuration_versions
         ORDER BY version DESC
@@ -105,7 +108,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       `, [limit]);
 
       return rows.map(row => {
-        const configData = JSON.parse(row.config_json);
+        const configData = row.config_json;
         const configuration = Configuration.fromData(configData);
 
         return {
@@ -538,7 +541,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
     try {
       // Get the snapshot data
-      const row = await this.context.queryOne<{ config_json: string }>(`
+      const row = await this.context.queryOne<{ config_json: ConfigurationJson }>(`
         SELECT config_json FROM configuration_snapshots WHERE id = $1
       `, [snapshotId]);
 
@@ -547,7 +550,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
       }
 
       // Parse and restore the configuration
-      const configData = JSON.parse(row.config_json);
+      const configData = row.config_json;
       const config = Configuration.fromData(configData);
 
       await this.saveWithVersioning(config, `Restored from snapshot ${snapshotId}`);
@@ -1189,14 +1192,14 @@ export class ConfigurationRepository implements IConfigurationRepository {
           }
 
           // Load and validate configuration
-          const configRow = await client.query<{ config_json: string; version: number }>(
+          const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
             'SELECT config_json, version FROM configuration_current WHERE id = 1'
           );
           if (configRow.rows.length === 0) {
             throw new ValidationError('No configuration found');
           }
 
-          const configData = JSON.parse(configRow.rows[0].config_json);
+          const configData = configRow.rows[0].config_json;
           const currentVersion = configRow.rows[0].version;
           const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
 
@@ -1278,14 +1281,14 @@ export class ConfigurationRepository implements IConfigurationRepository {
           }
 
           // Load and validate configuration
-          const configRow = await client.query<{ config_json: string; version: number }>(
+          const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
             'SELECT config_json, version FROM configuration_current WHERE id = 1'
           );
           if (configRow.rows.length === 0) {
             throw new ValidationError('No configuration found');
           }
 
-          const configData = JSON.parse(configRow.rows[0].config_json);
+          const configData = configRow.rows[0].config_json;
           const currentVersion = configRow.rows[0].version;
           const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
 
@@ -1294,7 +1297,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
           }
 
           const tank = configData.tanks[tankIndex];
-          const rackIndex = tank.racks.findIndex((r: { id: string }) => r.id === rackId);
+          const rackIndex = tank.racks.findIndex((r) => String(r.id) === String(rackId));
 
           if (rackIndex === -1) {
             throw new NotFoundError(`Rack '${rackId}' not found in tank '${tankId}'`);
@@ -1376,14 +1379,14 @@ export class ConfigurationRepository implements IConfigurationRepository {
           }
 
           // Load and validate configuration
-          const configRow = await client.query<{ config_json: string; version: number }>(
+          const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
             'SELECT config_json, version FROM configuration_current WHERE id = 1'
           );
           if (configRow.rows.length === 0) {
             throw new ValidationError('No configuration found');
           }
 
-          const configData = JSON.parse(configRow.rows[0].config_json);
+          const configData = configRow.rows[0].config_json;
           const currentVersion = configRow.rows[0].version;
           const tankIndex = configData.tanks.findIndex((t: { id: string }) => t.id === tankId);
 
@@ -1392,14 +1395,14 @@ export class ConfigurationRepository implements IConfigurationRepository {
           }
 
           const tank = configData.tanks[tankIndex];
-          const rackIndex = tank.racks.findIndex((r: { id: string }) => r.id === rackId);
+          const rackIndex = tank.racks.findIndex((r) => String(r.id) === String(rackId));
 
           if (rackIndex === -1) {
             throw new NotFoundError(`Rack '${rackId}' not found in tank '${tankId}'`);
           }
 
           const rack = tank.racks[rackIndex];
-          const boxIndex = rack.boxes.findIndex((b: { name: string }) => b.name === boxIdUpper);
+          const boxIndex = rack.boxes.findIndex((b) => b.name === boxIdUpper);
 
           if (boxIndex === -1) {
             throw new NotFoundError(`Box '${boxId}' not found in rack '${rackId}'`);

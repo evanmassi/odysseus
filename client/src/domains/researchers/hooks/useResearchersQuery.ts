@@ -162,21 +162,20 @@ export function useDeleteResearcherMutation() {
 }
 
 /**
- * Hook to get active researchers only (commonly used in forms)
+ * Hook to get visible researchers (approved AND active)
+ * Used for dropdowns where only vetted, working researchers should appear
  *
- * Derives from base list via 'select' to eliminate duplicate API calls.
- * Uses client-side filtering for small-medium datasets.
+ * Server-side filtering ensures pending researchers don't show in dropdowns
  */
 export function useActiveResearchersQuery(options?: {
-  queryOptions?: Omit<
-    UseQueryOptions<Researcher[], Error, Researcher[]>,
-    'queryKey' | 'queryFn' | 'select'
-  >;
+  queryOptions?: Omit<UseQueryOptions<Researcher[], Error, Researcher[]>, 'queryKey' | 'queryFn'>;
 }) {
   return useQuery<Researcher[], Error, Researcher[]>({
-    queryKey: queryKeys.researchers.lists(),
-    queryFn: () => ResearcherService.list(),
-    select: researchers => researchers.filter(r => r.active !== false),
+    queryKey: queryKeys.researchers.visible(),
+    queryFn: async () => {
+      const researchers = await ResearcherService.list({ visible: true });
+      return sortByName(researchers);
+    },
     ...DOMAIN_QUERY_OPTIONS.researchers,
     ...options?.queryOptions,
   });

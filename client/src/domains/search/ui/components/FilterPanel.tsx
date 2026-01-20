@@ -48,7 +48,7 @@ function CollapsibleSection({
       <div className="p-1">
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors focus-ring-default"
+          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors"
         >
           <div className="flex items-center space-x-2">
             {isOpen ? (
@@ -333,7 +333,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           <Tooltip content="Clear all filters" side="bottom">
             <button
               onClick={clearFilters}
-              className="px-2 py-1 text-xs text-secondary-foreground hover:text-accent-foreground hover:bg-accent rounded transition-colors focus-ring-default"
+              className="px-2 py-1 text-xs text-secondary-foreground hover:text-accent-foreground hover:bg-accent rounded transition-colors"
             >
               Clear All
             </button>
@@ -342,7 +342,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             <Tooltip content="Close filters" side="bottom">
               <button
                 onClick={onClose}
-                className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors focus-ring-default"
+                className="p-1 text-secondary-foreground hover:text-accent-foreground hover:bg-secondary rounded transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -671,7 +671,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             {hiddenCount > 0 && (
               <button
                 onClick={() => setShowAllFilters(!showAllFilters)}
-                className="px-2 py-0.5 rounded text-xs bg-secondary text-secondary-foreground hover:bg-accent transition-all focus-ring-default"
+                className="px-2 py-0.5 rounded text-xs bg-secondary text-secondary-foreground hover:bg-accent transition-all"
               >
                 {showAllFilters ? 'Show less' : `+${hiddenCount} more`}
               </button>

@@ -58,7 +58,7 @@ export function DisplayTab({
           <button
             type="button"
             onClick={() => onThemeChange('light')}
-            className={`px-3 py-3 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
+            className={`px-3 py-3 rounded-lg border-2 text-left transition-all relative ${
               theme === 'light'
                 ? 'bg-action [[data-theme=dark]_&]:bg-action/70 border-action [[data-theme=dark]_&]:border-action/70 text-white shadow-md'
                 : 'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10'
@@ -89,7 +89,7 @@ export function DisplayTab({
           <button
             type="button"
             onClick={() => onThemeChange('dark')}
-            className={`px-3 py-3 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
+            className={`px-3 py-3 rounded-lg border-2 text-left transition-all relative ${
               theme === 'dark'
                 ? 'bg-action [[data-theme=dark]_&]:bg-action/70 border-action [[data-theme=dark]_&]:border-action/70 text-white shadow-md'
                 : 'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10'
@@ -120,7 +120,7 @@ export function DisplayTab({
           <button
             type="button"
             onClick={() => onThemeChange('auto')}
-            className={`px-3 py-3 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
+            className={`px-3 py-3 rounded-lg border-2 text-left transition-all relative ${
               theme === 'auto'
                 ? 'bg-action [[data-theme=dark]_&]:bg-action/70 border-action [[data-theme=dark]_&]:border-action/70 text-white shadow-md'
                 : 'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10'
@@ -165,7 +165,7 @@ export function DisplayTab({
           <button
             type="button"
             onClick={() => handleFormatChange('numeric')}
-            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
+            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative ${
               currentFormat === 'numeric'
                 ? 'bg-action [[data-theme=dark]_&]:bg-action/70 border-action [[data-theme=dark]_&]:border-action/70 text-white shadow-md'
                 : 'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10'
@@ -222,7 +222,7 @@ export function DisplayTab({
           <button
             type="button"
             onClick={() => handleFormatChange('alphanumeric')}
-            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
+            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative ${
               currentFormat === 'alphanumeric'
                 ? 'bg-action [[data-theme=dark]_&]:bg-action/70 border-action [[data-theme=dark]_&]:border-action/70 text-white shadow-md'
                 : 'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10'
@@ -281,7 +281,7 @@ export function DisplayTab({
           <button
             type="button"
             onClick={() => handleFormatChange(null)}
-            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative focus-ring-default ${
+            className={`px-3 py-2 rounded-lg border-2 text-left transition-all relative ${
               !currentFormat
                 ? 'bg-action [[data-theme=dark]_&]:bg-action/70 border-action [[data-theme=dark]_&]:border-action/70 text-white shadow-md'
                 : 'bg-card border-border text-secondary-foreground hover:border-action hover:bg-action/10'

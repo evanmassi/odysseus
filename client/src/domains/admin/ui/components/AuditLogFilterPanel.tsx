@@ -47,7 +47,7 @@ function CollapsibleSection({
       <div className="p-1">
         <button
           onClick={onToggle}
-          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors focus-ring-default"
+          className="w-full flex items-center justify-between py-2 px-2 rounded hover:bg-accent transition-colors"
         >
           <div className="flex items-center space-x-2">
             {isOpen ? (
@@ -656,7 +656,7 @@ export function AuditLogFilterPanel({
                             datePreset: undefined,
                           })
                         }
-                        className="w-full px-2 py-1.5 text-xs border border-border rounded focus-ring-default"
+                        className="w-full px-2 py-1.5 text-xs border border-border rounded"
                         placeholder="From"
                         aria-label="Filter start date and time"
                       />
@@ -672,7 +672,7 @@ export function AuditLogFilterPanel({
                         onChange={e =>
                           onChange({ ...filters, dateTo: e.target.value || undefined })
                         }
-                        className="w-full px-2 py-1.5 text-xs border border-border rounded focus-ring-default"
+                        className="w-full px-2 py-1.5 text-xs border border-border rounded"
                         placeholder="To"
                         aria-label="Filter end date and time"
                       />

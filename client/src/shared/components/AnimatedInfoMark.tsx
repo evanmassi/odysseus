@@ -1,17 +1,17 @@
 /**
- * AnimatedCheckmark Component
+ * AnimatedInfoMark Component
  *
- * SVG-based animated checkmark with circle stroke animation.
- * Used as success indicator for form submissions.
+ * SVG-based animated info mark (circle with exclamation) with stroke animation.
+ * Used as info indicator for alerts and feedback.
  */
 import { useEffect, useState } from 'react';
 
-interface AnimatedCheckmarkProps {
+interface AnimatedInfoMarkProps {
   size?: number;
   className?: string;
 }
 
-export function AnimatedCheckmark({ size = 48, className = '' }: AnimatedCheckmarkProps) {
+export function AnimatedInfoMark({ size = 48, className = '' }: AnimatedInfoMarkProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -22,7 +22,7 @@ export function AnimatedCheckmark({ size = 48, className = '' }: AnimatedCheckma
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
-      <svg width={size} height={size} viewBox="0 0 52 52" className="animate-checkmark">
+      <svg width={size} height={size} viewBox="0 0 52 52">
         {/* Circle */}
         <circle
           cx="26"
@@ -31,7 +31,6 @@ export function AnimatedCheckmark({ size = 48, className = '' }: AnimatedCheckma
           fill="none"
           stroke="currentColor"
           strokeWidth="5"
-          className={`checkmark-circle ${isVisible ? 'animate' : ''}`}
           style={{
             strokeDasharray: '151',
             strokeDashoffset: isVisible ? '0' : '151',
@@ -39,19 +38,29 @@ export function AnimatedCheckmark({ size = 48, className = '' }: AnimatedCheckma
           }}
         />
 
-        {/* Checkmark */}
+        {/* Exclamation line (draws top to bottom) */}
         <path
           fill="none"
           stroke="currentColor"
           strokeWidth="6"
           strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M15 27l7 7 15-15"
-          className={`checkmark-check ${isVisible ? 'animate' : ''}`}
+          d="M26 14 L26 30"
           style={{
-            strokeDasharray: '48',
-            strokeDashoffset: isVisible ? '0' : '48',
-            transition: 'stroke-dashoffset 0.4s cubic-bezier(0.65, 0, 0.45, 1) 0.4s',
+            strokeDasharray: '17',
+            strokeDashoffset: isVisible ? '0' : '17',
+            transition: 'stroke-dashoffset 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.5s',
+          }}
+        />
+
+        {/* Exclamation dot (fades in) */}
+        <circle
+          cx="26"
+          cy="38"
+          r="3.5"
+          fill="currentColor"
+          style={{
+            opacity: isVisible ? 1 : 0,
+            transition: 'opacity 0.2s ease-in-out 0.75s',
           }}
         />
       </svg>

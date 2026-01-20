@@ -171,7 +171,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
     return (
       <button
         type="button"
-        className={`${currentStatus.alertClass} rounded-lg p-3 cursor-pointer w-full text-left focus-ring-default`}
+        className={`${currentStatus.alertClass} rounded-lg p-3 cursor-pointer w-full text-left`}
         onClick={() => setIsCollapsed(false)}
         aria-expanded="false"
         aria-label="Expand audit retention settings"
@@ -218,10 +218,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
             >
               Refresh
             </Button>
-            <button
-              onClick={() => setIsCollapsed(true)}
-              className="p-1 hover:bg-accent rounded focus-ring-default"
-            >
+            <button onClick={() => setIsCollapsed(true)} className="p-1 hover:bg-accent rounded">
               <ChevronUp className="w-4 h-4 text-secondary-foreground" />
             </button>
           </div>
