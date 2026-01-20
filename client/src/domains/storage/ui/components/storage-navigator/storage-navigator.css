@@ -5,14 +5,26 @@
  */
 
 :root {
-  /* Storage Navigator Button Colors */
-  --storage-nav-text: #64748b;
-  --storage-nav-text-muted: #94a3b8;
-  --storage-nav-hover-bg: #f1f5f9;
-  --storage-nav-hover-text: #334155;
-  --storage-nav-selected-bg: #ebf2f8;
-  --storage-nav-selected-hover-bg: #dee9f4;
-  --storage-nav-selected-text: #5a8fc7;
+  /* Storage Navigator Button Colors - Light Mode */
+  --storage-nav-text: hsl(215 16% 47%);
+  --storage-nav-text-muted: hsl(215 16% 65%);
+  --storage-nav-hover-bg: hsl(210 40% 96%);
+  --storage-nav-hover-text: hsl(215 25% 27%);
+  --storage-nav-selected-bg: hsl(210 47% 95%);
+  --storage-nav-selected-hover-bg: hsl(209 52% 91%);
+  --storage-nav-selected-text: hsl(210 52% 57%);
+}
+
+[data-theme='dark'] {
+  /* Storage Navigator Button Colors - Dark Mode */
+  /* Aligned with grid colors for consistency */
+  --storage-nav-text: hsl(215 20% 65%);
+  --storage-nav-text-muted: hsl(220 9% 46%);
+  --storage-nav-hover-bg: hsl(215 30% 50% / 0.12);
+  --storage-nav-hover-text: hsl(210 33% 92%);
+  --storage-nav-selected-bg: hsl(215 24% 19%);
+  --storage-nav-selected-hover-bg: hsl(215 28% 23%);
+  --storage-nav-selected-text: hsl(210 33% 92%);
 }
 
 /* Base button styles - shared by all levels */

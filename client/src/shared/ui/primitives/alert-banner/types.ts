@@ -23,6 +23,9 @@ export interface AlertBannerProps {
   /** Optional title for multi-line banners */
   title?: string;
 
+  /** Optional action buttons/controls rendered below the message */
+  actions?: ReactNode;
+
   /** Whether to show entrance animation */
   animate?: boolean;
 

@@ -361,17 +361,13 @@ function EditModeForm({
 
         {/* Stale Form Warning Banner */}
         {showStaleWarning && (
-          <div className="flex items-start gap-3 p-3 bg-muted border-l-4 border-l-warning-border rounded-lg shadow-sm">
-            <AlertTriangle className="w-5 h-5 text-warning-text flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="text-sm font-medium text-warning-text">
-                This tube was modified by another user
-              </h3>
-              <p className="text-xs text-warning-text mt-0.5">
-                Refresh to load their changes (your edits will be lost), or continue editing and
-                save your version (their changes will be overwritten).
-              </p>
-              <div className="flex gap-2 mt-2">
+          <AlertBanner
+            variant="warning"
+            title="This tube was modified by another user"
+            spacing="none"
+            className="text-xs"
+            actions={
+              <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={handleRefresh}
@@ -387,8 +383,11 @@ function EditModeForm({
                   Continue Editing
                 </button>
               </div>
-            </div>
-          </div>
+            }
+          >
+            Refresh to load their changes (your edits will be lost), or continue editing and save
+            your version (their changes will be overwritten).
+          </AlertBanner>
         )}
 
         <fieldset disabled={isLockedOut} className={isLockedOut ? 'opacity-60' : ''}>

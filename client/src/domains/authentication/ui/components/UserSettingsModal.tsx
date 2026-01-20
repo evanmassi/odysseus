@@ -8,6 +8,7 @@ import { useState, useEffect, lazy, Suspense } from 'react';
 
 import { Save, Settings, Table2, UserRound, Shield, AlertTriangle } from 'lucide-react';
 
+import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
 import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
 import { logger } from '@shared/infrastructure/logger';
@@ -17,12 +18,16 @@ import { notifications } from '@shared/utils';
 
 import { useUserSettings, useUserSettingsActions } from '../../hooks/useUserSettings';
 
-import type { UserSettings, PositionDisplayPreference } from '@odysseus/shared-schemas';
+import type {
+  UserSettings,
+  PositionDisplayPreference,
+  ThemePreference,
+} from '@odysseus/shared-schemas';
 
 // Lazy-load tab components for code splitting
-const PositionDisplayPreferenceTab = lazy(() =>
-  import('./tabs/PositionDisplayPreferenceTab').then(m => ({
-    default: m.PositionDisplayPreferenceTab,
+const DisplayTab = lazy(() =>
+  import('./tabs/DisplayTab').then(m => ({
+    default: m.DisplayTab,
   }))
 );
 const AccountTab = lazy(() => import('./tabs/AccountTab').then(m => ({ default: m.AccountTab })));
@@ -44,6 +49,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   const { settings, isLoading } = useUserSettings();
   const { updateSettings, isSaving } = useUserSettingsActions();
   const modalService = useModalStore();
+  const { setPreference } = useTheme();
 
   // Load settings when modal opens
   useEffect(() => {
@@ -58,6 +64,16 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
       ...prev,
       defaultPositionDisplay: preference?.format ? preference : undefined,
     }));
+  };
+
+  const handleThemeChange = (theme: ThemePreference) => {
+    // Update local state for save
+    setLocalSettings(prev => ({
+      ...prev,
+      theme,
+    }));
+    // Apply theme immediately for instant visual feedback
+    setPreference(theme);
   };
 
   const handleSave = async () => {
@@ -86,6 +102,10 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     if (hasChanges) {
       modalService.showUnsavedConfirm({
         onConfirm: () => {
+          // Revert theme to original if it was changed
+          if (localSettings.theme !== originalSettings.theme) {
+            setPreference(originalSettings.theme ?? 'auto');
+          }
           modalService.hideUnsavedConfirm();
           onClose();
         },
@@ -98,7 +118,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   const tabItems = [
     { id: 'account', label: 'Account', icon: UserRound },
     { id: 'security', label: 'Security', icon: Shield },
-    { id: 'display', label: 'Display Preferences', icon: Table2 },
+    { id: 'display', label: 'Display', icon: Table2 },
   ] as const;
 
   // Vertical sidebar tabs (only rendered if multiple tabs)
@@ -170,10 +190,13 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
           )}
           {activeTab === 'display' && (
             <Suspense fallback={<TabSkeleton />}>
-              <PositionDisplayPreferenceTab
+              <DisplayTab
                 defaultPositionDisplay={localSettings.defaultPositionDisplay}
                 savedPositionDisplay={originalSettings.defaultPositionDisplay}
                 onChange={handlePositionDisplayChange}
+                theme={localSettings.theme ?? 'auto'}
+                savedTheme={originalSettings.theme ?? 'auto'}
+                onThemeChange={handleThemeChange}
               />
             </Suspense>
           )}

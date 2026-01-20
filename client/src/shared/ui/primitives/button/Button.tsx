@@ -43,8 +43,10 @@ const buttonVariants = cva(
         // Primary - main action button
         primary: [
           'bg-action text-white border border-action',
+          '[[data-theme=dark]_&]:bg-action/70 [[data-theme=dark]_&]:border-action/70',
           'hover:bg-action-hover hover:border-action-hover',
-          'active:bg-action-hover',
+          '[[data-theme=dark]_&]:hover:bg-action-hover/70 [[data-theme=dark]_&]:hover:border-action-hover/70',
+          'active:bg-action-hover [[data-theme=dark]_&]:active:bg-action-hover/70',
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 
@@ -65,9 +67,9 @@ const buttonVariants = cva(
 
         // Danger - destructive actions
         danger: [
-          'bg-danger-bg text-danger-btnText border border-danger-bg',
-          'hover:bg-danger-hover hover:border-danger-hover',
-          'active:bg-danger-hover',
+          'bg-danger-bg/70 text-danger-btnText border border-danger-bg/70',
+          'hover:bg-danger-hover/70 hover:border-danger-hover/70',
+          'active:bg-danger-hover/70',
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 
@@ -81,17 +83,17 @@ const buttonVariants = cva(
 
         // Warning - caution actions
         warning: [
-          'bg-warning-bg text-warning-btnText border border-warning-bg',
-          'hover:bg-warning-hover hover:border-warning-hover',
-          'active:bg-warning-hover',
-          'shadow-sm hover:shadow-lg active:shadow-sm',
+          'bg-warning-bg/70 text-warning-btnText border border-warning-bg/70',
+          'hover:bg-warning-hover/70 hover:border-warning-hover/70',
+          'active:bg-warning-hover/70',
+          'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 
         // Info - informational actions
         info: [
-          'bg-info-bg text-info-btnText border border-info-bg',
-          'hover:bg-info-hover hover:border-info-hover',
-          'active:bg-info-hover',
+          'bg-info-bg/70 text-info-btnText border border-info-bg/70',
+          'hover:bg-info-hover/70 hover:border-info-hover/70',
+          'active:bg-info-hover/70',
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 

@@ -11,11 +11,11 @@
 
 import { useState, useMemo } from 'react';
 
-import { Share2, X, UserRoundPlus, UsersRound, Info } from 'lucide-react';
+import { Share2, X, UserRoundPlus, UsersRound } from 'lucide-react';
 
 import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
 import { useActiveUsersQuery } from '@domains/users';
-import { Button, Checkbox } from '@shared/ui';
+import { AlertBanner, Button, Checkbox } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
@@ -232,12 +232,9 @@ export function ShareAccessModal({
         </div>
 
         {/* Info text */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
-          <Info size={16} className="text-muted-foreground flex-shrink-0" />
-          <p className="text-xs text-secondary-foreground">
-            Shared users can edit tubes. Only you can unlock or revoke access.
-          </p>
-        </div>
+        <AlertBanner variant="info" spacing="none" className="text-xs">
+          Shared users can edit tubes. Only you can unlock or revoke access.
+        </AlertBanner>
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">

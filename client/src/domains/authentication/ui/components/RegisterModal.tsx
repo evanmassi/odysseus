@@ -8,7 +8,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import { UserRound, KeyRound, Mail, Building2, BriefcaseBusiness, Info } from 'lucide-react';
+import { UserRound, KeyRound, Mail, Building2, BriefcaseBusiness } from 'lucide-react';
 
 import {
   authService,
@@ -16,7 +16,7 @@ import {
 } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
-import { AuthInput, Button, Toggle } from '@shared/ui';
+import { AlertBanner, AuthInput, Button, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { AuthBaseModal } from './AuthBaseModal';
@@ -239,7 +239,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
               {usernamePreview ? (
                 <p className="text-[10px] text-secondary-foreground">
                   Username:{' '}
-                  <span className="font-mono font-semibold text-action">{usernamePreview}</span>
+                  <span className="font-mono font-semibold text-action [[data-theme=dark]_&]:text-action/70">
+                    {usernamePreview}
+                  </span>
                 </p>
               ) : (
                 <p className="text-[10px] text-muted-foreground">Username:</p>
@@ -390,12 +392,9 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         </Button>
       </form>
 
-      <div className="mt-3 flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
-        <Info size={16} className="text-muted-foreground flex-shrink-0" />
-        <p className="text-xs text-secondary-foreground">
-          New users require admin approval before accessing the system.
-        </p>
-      </div>
+      <AlertBanner variant="info" spacing="none" className="mt-3 text-xs">
+        New users require admin approval before accessing the system.
+      </AlertBanner>
 
       {onSwitchToLogin && (
         <div className="mt-4 text-center">
@@ -404,7 +403,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
             <button
               type="button"
               onClick={onSwitchToLogin}
-              className="text-action-hover font-semibold hover:text-action transition-colors focus-enhanced rounded px-1"
+              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors focus-enhanced rounded px-1"
             >
               Sign in
             </button>

@@ -31,8 +31,8 @@ const variantStyles: Record<
   },
   info: {
     bg: 'bg-muted',
-    border: 'border-l-action',
-    icon: 'text-action',
+    border: 'border-l-muted-foreground',
+    icon: 'text-muted-foreground',
     text: 'text-secondary-foreground',
     defaultIcon: Info,
   },
@@ -57,6 +57,7 @@ export function AlertBanner({
   children,
   icon,
   title,
+  actions,
   animate = defaultAlertBannerProps.animate,
   className = '',
   spacing = defaultAlertBannerProps.spacing,
@@ -66,7 +67,8 @@ export function AlertBanner({
   const animationClass = animate ? 'animate-in slide-in-from-top-2 duration-300' : '';
   const spacingClass = spacingStyles[spacing ?? 'md'];
 
-  if (title) {
+  // Complex layout: has title or actions
+  if (title != null || actions != null) {
     return (
       <div
         className={`px-3 py-2 ${styles.bg} border-l-4 ${styles.border} rounded-lg shadow-sm ${animationClass} ${spacingClass} ${className}`}
@@ -75,14 +77,16 @@ export function AlertBanner({
         <div className="flex items-start gap-2">
           <Icon className={`w-4 h-4 ${styles.icon} flex-shrink-0 mt-0.5`} />
           <div className="flex-1 min-w-0">
-            <p className={`text-sm font-medium ${styles.text}`}>{title}</p>
-            <div className={`text-sm ${styles.text} mt-1`}>{children}</div>
+            {title && <p className={`text-sm font-medium ${styles.text}`}>{title}</p>}
+            <div className={`text-sm ${styles.text} ${title ? 'mt-1' : ''}`}>{children}</div>
+            {actions && <div className="mt-2">{actions}</div>}
           </div>
         </div>
       </div>
     );
   }
 
+  // Simple layout: just message
   return (
     <div
       className={`px-3 py-2 ${styles.bg} border-l-4 ${styles.border} rounded-lg shadow-sm flex items-center gap-2 ${animationClass} ${spacingClass} ${className}`}

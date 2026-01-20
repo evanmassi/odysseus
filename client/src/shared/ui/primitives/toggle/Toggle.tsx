@@ -70,7 +70,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
             after:border
             after:rounded-full
             after:transition-all
-            peer-checked:bg-action
+            peer-checked:bg-action [[data-theme=dark]_&]:peer-checked:bg-action/70
           `}
         />
       </label>

@@ -62,8 +62,8 @@
     --color-action-focus: 210 43.1% 50%;
 
     /* Danger Theme */
-    --color-danger-bg: 350 45% 52%;
-    --color-danger-hover: 350 55% 44%;
+    --color-danger-bg: 350 75% 45%;
+    --color-danger-hover: 350 80% 35%;
     --color-danger-text: 350 75% 45%;
     --color-danger-text-hover: 350 80% 35%;
     --color-danger-btnText: 0 0% 100%;
@@ -112,8 +112,10 @@
     --color-info-bg: 217.2 91.2% 59.8%;
     --color-info-hover: 221.2 83.2% 53.3%;
     --color-info-text: 217.2 91.2% 59.8%;
+    --color-info-text-hover: 221.2 83.2% 53.3%;
     --color-info-btnText: 0 0% 100%;
     --color-info-light: 213.8 100% 93.9%;
+    --color-info-light-hover: 213.8 100% 90%;
     --color-info-border: 213.3 96.9% 87.3%;
 
     /* Validation - Default */
@@ -222,7 +224,7 @@
     --secondary-foreground: 215 20.2% 65.1%;
 
     /* Muted */
-    --muted: 215.3 25% 26.7%;
+    --muted: 215 24% 19%;
     --muted-foreground: 215 20.2% 65.1%;
 
     /* Accent */
@@ -234,13 +236,13 @@
     --input: 215.3 25% 26.7%;
 
     /* Action Colors */
-    --color-action-default: 213.1 93.9% 67.8%;
-    --color-action-hover: 217.2 91.2% 59.8%;
-    --color-action-focus: 217.2 91.2% 59.8%;
+    --color-action-default: 213 85% 67.8%;
+    --color-action-hover: 217 85% 59.8%;
+    --color-action-focus: 217 85% 59.8%;
 
     /* Danger Theme */
-    --color-danger-bg: 350 40% 52%;
-    --color-danger-hover: 350 50% 45%;
+    --color-danger-bg: 350 85% 69%;
+    --color-danger-hover: 350 85% 54%;
     --color-danger-text: 350 85% 69%;
     --color-danger-text-hover: 350 85% 69%;
     --color-danger-btnText: 0 0% 100%;
@@ -272,8 +274,10 @@
     --color-info-bg: 217.2 91.2% 59.8%;
     --color-info-hover: 221.2 83.2% 53.3%;
     --color-info-text: 213.3 96.9% 78.4%;
+    --color-info-text-hover: 213.3 96.9% 78.4%;
     --color-info-btnText: 0 0% 100%;
     --color-info-light: 226.2 57% 20.8%;
+    --color-info-light-hover: 226.2 57% 25%;
     --color-info-border: 224.4 64.3% 32.9%;
 
     /* Clear Theme */

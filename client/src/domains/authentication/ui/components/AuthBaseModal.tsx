@@ -10,7 +10,7 @@
 import { type ReactNode, type RefObject, useRef, useState, useEffect } from 'react';
 
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
-import odysseusLogo from '@shared/assets/odysseus-logo-thick-altered.svg';
+import OdysseusLogo from '@shared/assets/odysseus-logo-thick-altered.svg?react';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
 import { SketchBorder } from '@shared/ui/components/SketchBorder';
@@ -119,7 +119,10 @@ export function AuthBaseModal({
                 </div>
                 {showBranding === true && (
                   <div className="mx-auto mb-4 flex items-center justify-center">
-                    <img src={odysseusLogo} alt="Odysseus" className="h-10 w-auto" />
+                    <OdysseusLogo
+                      className="h-10 w-auto text-secondary-foreground [[data-theme=dark]_&]:text-muted-foreground"
+                      aria-label="Odysseus"
+                    />
                   </div>
                 )}
                 {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}

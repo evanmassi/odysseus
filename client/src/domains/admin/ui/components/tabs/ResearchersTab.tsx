@@ -14,10 +14,10 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
-import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Info } from 'lucide-react';
+import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Chip, Tooltip, Table } from '@shared/ui';
+import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils';
@@ -262,8 +262,8 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
         return (
           <Chip
             size="sm"
-            color="default"
-            className={researcher.tubeCount > 0 ? 'text-action-hover border border-action/30' : ''}
+            color={researcher.tubeCount > 0 ? 'primary' : 'default'}
+            className={researcher.tubeCount > 0 ? 'border border-action' : 'border border-border'}
           >
             {researcher.tubeCount}
           </Chip>
@@ -324,7 +324,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
               side="bottom"
             >
               <Button
-                variant="danger"
+                variant="ghost-danger"
                 size="xs"
                 iconOnly
                 onClick={() =>
@@ -405,12 +405,9 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       </div>
 
       {/* Safe Deletion Notice - Footnote */}
-      <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-border rounded-lg shadow-sm">
-        <Info size={16} className="text-muted-foreground flex-shrink-0" />
-        <p className="text-xs text-secondary-foreground">
-          Researchers can only be deleted with zero tubes and no linked user.
-        </p>
-      </div>
+      <AlertBanner variant="info" spacing="none" className="text-xs">
+        Researchers can only be deleted with zero tubes and no linked user.
+      </AlertBanner>
 
       {/* Add Researcher Modal */}
       <ResearcherModal

@@ -6,6 +6,7 @@
 :root {
   /* Layout Heights */
   --layout-header-height: 56px;
+  --layout-top-padding: 8px;
   --panel-title-height: 40px;
 
   /* Design Tokens - Unified spacing and typography */
@@ -31,6 +32,7 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
+  padding-top: var(--layout-top-padding);
   background-color: hsl(var(--page));
 }
 
@@ -40,11 +42,11 @@
 }
 
 .main-layout {
-  height: calc(100vh - var(--layout-header-height));
+  height: calc(100vh - var(--layout-header-height) - var(--layout-top-padding));
   display: flex;
   justify-content: center;
   gap: 20px;
-  padding: 16px;
+  padding: 8px 16px 16px;
   align-items: flex-start;
   background-color: hsl(var(--page));
 }
@@ -66,7 +68,10 @@
   min-width: 0;
   min-height: 0;
   /* Cap width to available height so side space is even */
-  max-width: calc(100vh - var(--layout-header-height) - var(--panel-title-height) - 32px);
+  max-width: calc(
+    100vh - var(--layout-header-height) - var(--layout-top-padding) - var(--panel-title-height) -
+      32px
+  );
 }
 
 /* Info Panel - Flexible Width */
@@ -101,7 +106,13 @@
 /* TubeGrid - Square based on container width or viewport height */
 .tube-grid {
   /* Use the smaller of container width or viewport-based height */
-  width: min(100cqw, calc(100vh - var(--layout-header-height) - var(--panel-title-height) - 56px));
+  width: min(
+    100cqw,
+    calc(
+      100vh - var(--layout-header-height) - var(--layout-top-padding) - var(--panel-title-height) -
+        56px
+    )
+  );
   aspect-ratio: 1;
   gap: 4px;
 }

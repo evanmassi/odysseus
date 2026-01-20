@@ -180,7 +180,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
           <button
             onClick={handleResendVerification}
             disabled={isResending}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-action hover:bg-action-hover disabled:bg-muted-foreground text-white text-sm font-medium rounded-lg transition-colors"
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-action [[data-theme=dark]_&]:bg-action/70 hover:bg-action-hover [[data-theme=dark]_&]:hover:bg-action-hover/70 disabled:bg-muted-foreground text-white text-sm font-medium rounded-lg transition-colors"
             type="button"
           >
             {isResending ? (
@@ -253,7 +253,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
             <button
               type="button"
               onClick={onSwitchToRegister}
-              className="text-action-hover font-semibold hover:text-action transition-colors focus-enhanced rounded px-1"
+              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors focus-enhanced rounded px-1"
             >
               Register here
             </button>

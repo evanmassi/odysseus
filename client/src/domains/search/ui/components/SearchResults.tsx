@@ -431,7 +431,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
             <Tooltip content="Export search results" side="bottom">
               <button
                 onClick={handleExportResults}
-                className="flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors text-action hover:text-action-hover focus-ring-default"
+                className="flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors text-action [[data-theme=dark]_&]:text-action/70 hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 focus-ring-default"
               >
                 <Download className="w-3 h-3" />
                 <span>Export</span>

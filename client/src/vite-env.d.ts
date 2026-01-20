@@ -1,6 +1,18 @@
 /// <reference types="vite/client" />
 
 /**
+ * SVG as React Component Type Definitions
+ *
+ * Enables importing SVG files as React components using the ?react suffix.
+ * Example: import Logo from './logo.svg?react';
+ */
+declare module '*.svg?react' {
+  import type { FC, SVGProps } from 'react';
+  const content: FC<SVGProps<SVGSVGElement>>;
+  export default content;
+}
+
+/**
  * Vite Environment Variables Type Definitions
  *
  * This file provides TypeScript type definitions for Vite's environment variables.

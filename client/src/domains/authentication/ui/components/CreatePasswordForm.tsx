@@ -201,7 +201,7 @@ export function CreatePasswordForm({
             <button
               type="button"
               onClick={onCancel}
-              className="text-action-hover font-semibold hover:text-action transition-colors focus-enhanced rounded px-1"
+              className="text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors focus-enhanced rounded px-1"
               disabled={isLoading}
             >
               {cancelText}

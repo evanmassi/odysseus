@@ -6,7 +6,7 @@
 
 import { AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
 
-import odysseusLogo from '@shared/assets/odysseus-logo-thick.svg';
+import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { env } from '@shared/config/environment';
 import { AlertBanner, Button, Spinner } from '@shared/ui';
 
@@ -46,7 +46,10 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
             )}
           </div>
 
-          <img src={odysseusLogo} alt="Odysseus" className="h-10 w-auto mx-auto mb-2" />
+          <OdysseusLogo
+            className="h-10 w-auto mx-auto mb-2 text-secondary-foreground [[data-theme=dark]_&]:text-muted-foreground"
+            aria-label="Odysseus"
+          />
 
           <p className="text-muted-foreground">
             {state === 'error'

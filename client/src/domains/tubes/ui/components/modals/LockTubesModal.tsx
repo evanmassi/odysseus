@@ -10,10 +10,10 @@
 
 import { useEffect, useState } from 'react';
 
-import { Info, Lock, Notebook } from 'lucide-react';
+import { Lock, Notebook } from 'lucide-react';
 
 import { useLockTubesMutation } from '@domains/tubes/hooks';
-import { Button, Input } from '@shared/ui';
+import { AlertBanner, Button, Input } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
@@ -127,13 +127,10 @@ export function LockTubesModal({
         </div>
 
         {/* Info text */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
-          <Info size={16} className="text-muted-foreground flex-shrink-0" />
-          <p className="text-xs text-secondary-foreground">
-            Locking prevents other users from editing or moving these tubes. You can unlock or share
-            access anytime.
-          </p>
-        </div>
+        <AlertBanner variant="info" spacing="none" className="text-xs">
+          Locking prevents other users from editing or moving these tubes. You can unlock or share
+          access anytime.
+        </AlertBanner>
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">

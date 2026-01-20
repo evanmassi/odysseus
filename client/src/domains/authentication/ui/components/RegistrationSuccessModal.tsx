@@ -76,7 +76,7 @@ export function RegistrationSuccessModal({
             </span>
             <button
               onClick={handleCopyUsername}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-action hover:text-action-hover rounded focus-enhanced transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-action [[data-theme=dark]_&]:text-action/70 hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 rounded focus-enhanced transition-colors"
               type="button"
               aria-label={`Copy username ${username}`}
             >

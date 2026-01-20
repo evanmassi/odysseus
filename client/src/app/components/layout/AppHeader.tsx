@@ -23,7 +23,7 @@ import {
 import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
 import { useStorageData } from '@domains/storage';
-import odysseusLogo from '@shared/assets/odysseus-logo-thick.svg';
+import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { parsePositionKey, type PositionKey } from '@shared/types/GridSelection';
 import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
 import { OnlineUsersBadges } from '@shared/ui/components';
@@ -248,7 +248,10 @@ export function AppHeader({
       <div className="flex justify-between items-center w-full">
         {/* Far Left: Logo */}
         <div className="flex items-center">
-          <img src={odysseusLogo} alt="Odysseus" className="h-11 w-auto" />
+          <OdysseusLogo
+            className="h-11 w-auto text-secondary-foreground [[data-theme=dark]_&]:text-muted-foreground"
+            aria-label="Odysseus"
+          />
         </div>
 
         {/* Right Side: Controls + Search + Hamburger */}
@@ -525,7 +528,7 @@ export function AppHeader({
                         setShowAdminPanel(true);
                         setShowHamburgerMenu(false);
                       }}
-                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-danger-light hover:text-danger-text dark:hover:text-danger-text-hover transition-colors focus-ring-default"
+                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors focus-ring-default"
                     >
                       <ShieldUser size={16} className="text-muted-foreground" />
                       <span>Admin Settings</span>

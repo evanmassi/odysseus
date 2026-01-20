@@ -3,7 +3,7 @@
  *
  * Paginated audit log table with filtering and archive search
  */
-import React, { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createElement } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import {
@@ -274,7 +274,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
             ) : icon === 'tank' ? (
               <Icon iconNode={refrigeratorFreezer} size={12} />
             ) : icon && typeof icon !== 'string' ? (
-              React.createElement(icon, { size: 12 })
+              createElement(icon, { size: 12 })
             ) : null}
             {formatEntityType(entry.entityType)}
           </span>
