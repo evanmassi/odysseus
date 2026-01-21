@@ -10,114 +10,114 @@
     @apply bg-muted border-l-2 border-y border-r border-y-border border-r-border;
   }
 
-  /* Entity Type Badges - For Audit Log */
-  .badge-entity-tube {
+  /* Audit Log Entity Badges */
+  .badge-audit-entity-tube {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-tube);
-    color: var(--color-audit-entity-tube);
+    border-left-color: hsl(var(--color-audit-entity-tube));
+    color: hsl(var(--color-audit-entity-tube));
   }
 
-  .badge-entity-user {
+  .badge-audit-entity-user {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-person);
-    color: var(--color-audit-entity-person);
+    border-left-color: hsl(var(--color-audit-entity-person));
+    color: hsl(var(--color-audit-entity-person));
   }
 
-  .badge-entity-researcher {
+  .badge-audit-entity-researcher {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-person);
-    color: var(--color-audit-entity-person);
+    border-left-color: hsl(var(--color-audit-entity-person));
+    color: hsl(var(--color-audit-entity-person));
   }
 
-  .badge-entity-tank {
+  .badge-audit-entity-tank {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-storage);
-    color: var(--color-audit-entity-storage);
+    border-left-color: hsl(var(--color-audit-entity-storage));
+    color: hsl(var(--color-audit-entity-storage));
   }
 
-  .badge-entity-rack {
+  .badge-audit-entity-rack {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-storage);
-    color: var(--color-audit-entity-storage);
+    border-left-color: hsl(var(--color-audit-entity-storage));
+    color: hsl(var(--color-audit-entity-storage));
   }
 
-  .badge-entity-box {
+  .badge-audit-entity-box {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-storage);
-    color: var(--color-audit-entity-storage);
+    border-left-color: hsl(var(--color-audit-entity-storage));
+    color: hsl(var(--color-audit-entity-storage));
   }
 
-  .badge-entity-lab {
+  .badge-audit-entity-lab {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-system);
-    color: var(--color-audit-entity-system);
+    border-left-color: hsl(var(--color-audit-entity-system));
+    color: hsl(var(--color-audit-entity-system));
   }
 
-  .badge-entity-configuration {
+  .badge-audit-entity-configuration {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-system);
-    color: var(--color-audit-entity-system);
+    border-left-color: hsl(var(--color-audit-entity-system));
+    color: hsl(var(--color-audit-entity-system));
   }
 
-  .badge-entity-default {
+  .badge-audit-entity-default {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-system);
-    color: var(--color-audit-entity-system);
+    border-left-color: hsl(var(--color-audit-entity-system));
+    color: hsl(var(--color-audit-entity-system));
   }
 
-  /* Action Type Badges - For Audit Log */
-  .badge-action-created {
+  /* Audit Log Action Badges */
+  .badge-audit-action-created {
     @apply badge-audit;
-    border-left-color: var(--color-audit-action-create);
-    color: var(--color-audit-action-create);
+    border-left-color: hsl(var(--color-audit-action-create));
+    color: hsl(var(--color-audit-action-create));
   }
 
-  .badge-action-updated {
+  .badge-audit-action-updated {
     @apply badge-audit;
-    border-left-color: var(--color-audit-action-update);
-    color: var(--color-audit-action-update);
+    border-left-color: hsl(var(--color-audit-action-update));
+    color: hsl(var(--color-audit-action-update));
   }
 
-  .badge-action-moved {
+  .badge-audit-action-moved {
     @apply badge-audit;
-    border-left-color: var(--color-audit-action-move);
-    color: var(--color-audit-action-move);
+    border-left-color: hsl(var(--color-audit-action-move));
+    color: hsl(var(--color-audit-action-move));
   }
 
-  .badge-action-deleted {
+  .badge-audit-action-deleted {
     @apply badge-audit;
-    border-left-color: var(--color-audit-action-delete);
-    color: var(--color-audit-action-delete);
+    border-left-color: hsl(var(--color-audit-action-delete));
+    color: hsl(var(--color-audit-action-delete));
   }
 
-  .badge-action-login {
+  .badge-audit-action-login {
     @apply badge-audit;
-    border-left-color: var(--color-audit-action-create);
-    color: var(--color-audit-action-create);
+    border-left-color: hsl(var(--color-audit-action-create));
+    color: hsl(var(--color-audit-action-create));
   }
 
-  .badge-action-logout {
+  .badge-audit-action-logout {
     @apply badge-audit;
-    border-left-color: var(--color-audit-action-auth);
-    color: var(--color-audit-action-auth);
+    border-left-color: hsl(var(--color-audit-action-auth));
+    color: hsl(var(--color-audit-action-auth));
   }
 
-  .badge-action-linked {
+  .badge-audit-action-linked {
     @apply badge-audit;
-    border-left-color: var(--color-audit-action-link);
-    color: var(--color-audit-action-link);
+    border-left-color: hsl(var(--color-audit-action-link));
+    color: hsl(var(--color-audit-action-link));
   }
 
-  .badge-action-unlinked {
+  .badge-audit-action-unlinked {
     @apply badge-audit;
-    border-left-color: var(--color-audit-action-auth);
-    color: var(--color-audit-action-auth);
+    border-left-color: hsl(var(--color-audit-action-delete));
+    color: hsl(var(--color-audit-action-delete));
   }
 
-  .badge-action-default {
+  .badge-audit-action-default {
     @apply badge-audit;
-    border-left-color: var(--color-audit-entity-system);
-    color: var(--color-audit-entity-system);
+    border-left-color: hsl(var(--color-audit-entity-system));
+    color: hsl(var(--color-audit-entity-system));
   }
 
   /* Status Badges - For general use (using CSS variables from design system) */

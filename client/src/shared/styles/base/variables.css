@@ -151,12 +151,12 @@
     --color-audit-entity-system: 215.4 16.3% 46.9%;
 
     /* Audit Log - Action Colors */
-    --color-audit-action-create: var(--color-success-bg);
-    --color-audit-action-update: var(--color-info-bg);
-    --color-audit-action-delete: var(--color-danger-bg);
-    --color-audit-action-move: var(--color-warning-bg);
+    --color-audit-action-create: var(--color-success-text);
+    --color-audit-action-update: var(--color-info-text);
+    --color-audit-action-delete: var(--color-danger-text);
+    --color-audit-action-move: var(--color-warning-text);
     --color-audit-action-auth: 215.4 16.3% 46.9%;
-    --color-audit-action-link: var(--color-share-bg);
+    --color-audit-action-link: var(--color-share-text);
 
     /* Ownership Indicator - Resource assignment visualization */
     --ownership-user-badge: 210 50% 56.7%;
@@ -304,6 +304,15 @@
 
     /* Shadcn-compatible aliases */
     --ring: var(--focus-ring-color);
+
+    /* Audit Log - Entity Colors (adjusted for dark backgrounds) */
+    --color-audit-entity-tube: 199 85% 65%;
+    --color-audit-entity-storage: 210 45% 60%;
+    --color-audit-entity-person: 250 40% 70%;
+    --color-audit-entity-system: 215 20% 60%;
+
+    /* Audit Log - Action Colors (auth needs override, others use semantic colors) */
+    --color-audit-action-auth: 215 20% 60%;
 
     /* Ownership Indicator - Resource assignment visualization */
     --ownership-user-badge: 213.1 93.9% 67.8%;

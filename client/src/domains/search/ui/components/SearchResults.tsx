@@ -4,6 +4,7 @@ import {
   type TubeData,
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
+  formatResourceDisplayName,
 } from '@odysseus/shared-schemas';
 import { Download, MapPin } from 'lucide-react';
 
@@ -13,6 +14,7 @@ import { useSearch, useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubeStore } from '@domains/tubes';
+import { useUserLookupQuery } from '@domains/users';
 import { Chip, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 
@@ -41,6 +43,14 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
   const totalCount = results?.total ?? 0;
   const query = results?.query ?? '';
   const matchedTerms = results?.matchedTerms ?? [];
+
+  // Extract unique lockedBy user IDs for display name lookup
+  const lockedByUserIds = useMemo(() => {
+    const tubeList = results?.tubes ?? [];
+    const ids = tubeList.map(t => t.lockedBy).filter((id): id is string => !!id);
+    return [...new Set(ids)];
+  }, [results?.tubes]);
+  const { data: lockedByUsers = [] } = useUserLookupQuery(lockedByUserIds);
 
   // Client-side sorting of grouped results - MUST be called before early returns
   const sortedGroups = useMemo(() => {
@@ -194,6 +204,17 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
     return researcher ? formatResearcherDropdownDisplay(researcher) : '';
   };
 
+  // Get user display name from ID (for locked-by field)
+  const getUserDisplayName = (userId: string | undefined): string => {
+    if (!userId) return '';
+    const user = lockedByUsers.find(u => u.id === userId);
+    if (!user) return '';
+    if (user.firstName && user.lastName) {
+      return `${user.lastName}, ${user.firstName}`;
+    }
+    return user.username;
+  };
+
   // Format date as MM/DD/YYYY
   const formatDate = (dateString: string | Date | undefined): string => {
     if (!dateString) return '';
@@ -209,6 +230,31 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
   };
 
   const handleExportResults = () => {
+    // Escape CSV value - wrap in quotes if contains comma, quote, or newline
+    const escapeCsvValue = (value: string): string => {
+      if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+        return `"${value.replace(/"/g, '""')}"`;
+      }
+      return value;
+    };
+
+    // Get display names for a location
+    const getLocationNames = (tankId: string, rackId: string, boxId: string) => {
+      const tanks = getCurrentTanks();
+      const tank = tanks.find(t => t.id === tankId);
+      const tankName = tank?.name ?? `Tank ${tankId}`;
+
+      const rack = tank?.racks?.find(r => r.id === rackId);
+      const rackGenericName = rack?.name ?? `Rack ${rackId}`;
+      const rackName = formatResourceDisplayName(rackGenericName, rack?.customLabel);
+
+      const box = rack?.boxes?.find(b => b.id === boxId);
+      const boxGenericName = box?.name ?? `Box ${boxId}`;
+      const boxName = formatResourceDisplayName(boxGenericName, box?.customLabel);
+
+      return { tankName, rackName, boxName, box };
+    };
+
     const headers = [
       'Tank',
       'Rack',
@@ -218,17 +264,32 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
       'Cell Type',
       'Donor Internal ID',
       'Donor Source ID',
-      'Lot Number',
-      'Researcher ID',
+      'Concentration',
       'Date',
+      'Lot Number',
+      'Researcher',
+      'Media Type',
+      'Media Supplements',
+      'Media Selection',
+      'Culture Condition',
+      'Notes',
+      'Locked',
+      'Locked By',
+      'Lock Note',
+      'Created At',
+      'Updated At',
     ];
+
     const csvContent = [
       headers.join(','),
       ...tubes.map(tube => {
-        // Get box configuration for position label formatting
-        const box = getBox(tube.location.tankId, tube.location.rackId, tube.location.boxId);
-        let positionLabel = tube.location.position.toString();
+        const { tankName, rackName, boxName, box } = getLocationNames(
+          tube.location.tankId,
+          tube.location.rackId,
+          tube.location.boxId
+        );
 
+        let positionLabel = tube.location.position.toString();
         if (box?.gridConfig) {
           try {
             positionLabel = formatPositionForBox(
@@ -241,24 +302,36 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
               userSettings
             );
           } catch {
-            // Fall back to numeric if formatting fails
             positionLabel = tube.location.position.toString();
           }
         }
 
-        return [
-          tube.location.tankId,
-          tube.location.rackId,
-          tube.location.boxId,
-          tube.location.position,
+        const values = [
+          tankName,
+          rackName,
+          boxName,
+          tube.location.position.toString(),
           positionLabel,
           tube.sample.cellType ?? '',
           tube.sample.donorInternalId ?? '',
           tube.sample.donorSourceId ?? '',
+          formatConcentrationDisplay(tube.sample.concentration, tube.sample.concentrationUnit),
+          formatDate(tube.sample.date),
           tube.sample.lotNumber ?? '',
-          tube.researcherId ?? '',
-          tube.sample.date ?? '',
-        ].join(',');
+          getResearcherName(tube.researcherId),
+          tube.sample.media?.type ?? '',
+          tube.sample.media?.supplements ?? '',
+          tube.sample.media?.selection ?? '',
+          tube.sample.cultureCondition ?? '',
+          tube.sample.notes ?? '',
+          tube.isLocked ? 'Yes' : 'No',
+          getUserDisplayName(tube.lockedBy),
+          tube.lockNote ?? '',
+          formatDate(tube.timestamps.createdAt),
+          formatDate(tube.timestamps.updatedAt),
+        ];
+
+        return values.map(escapeCsvValue).join(',');
       }),
     ].join('\n');
 

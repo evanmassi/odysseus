@@ -154,27 +154,27 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   };
 
   const getActionBadgeClass = (action: string) => {
-    if (action.includes('created')) return 'badge-action-created';
-    if (action.includes('updated')) return 'badge-action-updated';
-    if (action.includes('password_changed')) return 'badge-action-updated';
-    if (action.includes('role_changed')) return 'badge-action-updated';
-    if (action.includes('moved')) return 'badge-action-moved';
-    if (action.includes('deleted')) return 'badge-action-deleted';
-    if (action.includes('deactivated')) return 'badge-action-deleted';
-    if (action.includes('unlinked')) return 'badge-action-unlinked';
-    if (action.includes('logged_in')) return 'badge-action-login';
-    if (action.includes('logged_out')) return 'badge-action-logout';
-    if (action.includes('linked')) return 'badge-action-linked';
-    if (action.includes('reactivated')) return 'badge-action-created';
-    if (action.includes('approved')) return 'badge-action-created';
-    if (action.includes('assigned')) return 'badge-action-linked';
-    if (action.includes('unassigned')) return 'badge-action-unlinked';
-    if (action.includes('reassigned')) return 'badge-action-moved';
-    if (action.includes('locked')) return 'badge-action-logout';
-    if (action.includes('unlocked')) return 'badge-action-login';
-    if (action.includes('shared')) return 'badge-action-linked';
-    if (action.includes('revoked')) return 'badge-action-unlinked';
-    return 'badge-action-default';
+    if (action.includes('created')) return 'badge-audit-action-created';
+    if (action.includes('updated')) return 'badge-audit-action-updated';
+    if (action.includes('password_changed')) return 'badge-audit-action-updated';
+    if (action.includes('role_changed')) return 'badge-audit-action-updated';
+    if (action.includes('moved')) return 'badge-audit-action-moved';
+    if (action.includes('deleted')) return 'badge-audit-action-deleted';
+    if (action.includes('deactivated')) return 'badge-audit-action-deleted';
+    if (action.includes('unlinked')) return 'badge-audit-action-unlinked';
+    if (action.includes('logged_in')) return 'badge-audit-action-login';
+    if (action.includes('logged_out')) return 'badge-audit-action-logout';
+    if (action.includes('linked')) return 'badge-audit-action-linked';
+    if (action.includes('reactivated')) return 'badge-audit-action-created';
+    if (action.includes('approved')) return 'badge-audit-action-created';
+    if (action.includes('assigned')) return 'badge-audit-action-linked';
+    if (action.includes('unassigned')) return 'badge-audit-action-unlinked';
+    if (action.includes('reassigned')) return 'badge-audit-action-moved';
+    if (action.includes('locked')) return 'badge-audit-action-moved';
+    if (action.includes('unlocked')) return 'badge-audit-action-created';
+    if (action.includes('shared')) return 'badge-audit-action-linked';
+    if (action.includes('revoked')) return 'badge-audit-action-unlinked';
+    return 'badge-audit-action-default';
   };
 
   const formatEntityType = (entityType: string) => {
@@ -182,15 +182,15 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
   };
 
   const getEntityBadgeClass = (entityType: string) => {
-    if (entityType === 'tube') return 'badge-entity-tube';
-    if (entityType === 'user') return 'badge-entity-user';
-    if (entityType === 'researcher') return 'badge-entity-researcher';
-    if (entityType === 'tank') return 'badge-entity-tank';
-    if (entityType === 'rack') return 'badge-entity-rack';
-    if (entityType === 'box') return 'badge-entity-box';
-    if (entityType === 'lab') return 'badge-entity-lab';
-    if (entityType === 'configuration') return 'badge-entity-configuration';
-    return 'badge-entity-default';
+    if (entityType === 'tube') return 'badge-audit-entity-tube';
+    if (entityType === 'user') return 'badge-audit-entity-user';
+    if (entityType === 'researcher') return 'badge-audit-entity-researcher';
+    if (entityType === 'tank') return 'badge-audit-entity-tank';
+    if (entityType === 'rack') return 'badge-audit-entity-rack';
+    if (entityType === 'box') return 'badge-audit-entity-box';
+    if (entityType === 'lab') return 'badge-audit-entity-lab';
+    if (entityType === 'configuration') return 'badge-audit-entity-configuration';
+    return 'badge-audit-entity-default';
   };
 
   const getEntityIcon = (entityType: string) => {

@@ -49,14 +49,21 @@ function hasChangesArray(
 }
 
 /**
- * Safely parse audit log details JSON string
- * Returns an object or empty object on parse failure
+ * Safely parse audit log details
+ * Handles string JSON, pre-parsed objects, null, or undefined
  */
-function parseAuditDetailsJson(detailsJson: string): Record<string, unknown> {
+function parseAuditDetailsJson(details: unknown): Record<string, unknown> {
   try {
-    const parsed: unknown = JSON.parse(detailsJson);
-    if (typeof parsed === 'object' && parsed !== null) {
-      return parsed as Record<string, unknown>;
+    // Already an object (possibly pre-parsed by response handling)
+    if (typeof details === 'object' && details !== null) {
+      return details as Record<string, unknown>;
+    }
+    // Valid JSON string
+    if (typeof details === 'string' && details.length > 0) {
+      const parsed: unknown = JSON.parse(details);
+      if (typeof parsed === 'object' && parsed !== null) {
+        return parsed as Record<string, unknown>;
+      }
     }
     return {};
   } catch {
@@ -109,13 +116,33 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
     const action = entry.action;
     const entityType = entry.entityType;
 
-    // TUBES: Show location or bulk update count
+    // TUBES: Show location, bulk operations, or lock details
     if (entityType === 'tube') {
       if (action === 'tube_bulk_updated') {
         const count = getNumberProperty(details, 'count');
         if (count > 0) {
           return `${count} tube${count !== 1 ? 's' : ''} updated`;
         }
+      }
+      if (action === 'tubes_locked') {
+        const count = getNumberProperty(details, 'tubeCount');
+        const lockNote = getStringProperty(details, 'lockNote');
+        const noteText = lockNote ? `: "${lockNote}"` : '';
+        return `${count} tube${count !== 1 ? 's' : ''} locked${noteText}`;
+      }
+      if (action === 'tubes_unlocked') {
+        const count = getNumberProperty(details, 'tubeCount');
+        return `${count} tube${count !== 1 ? 's' : ''} unlocked`;
+      }
+      if (action === 'tube_access_shared') {
+        const tubeCount = getNumberProperty(details, 'tubeCount');
+        const sharedCount = getNumberProperty(details, 'sharedWithCount');
+        return `${tubeCount} tube${tubeCount !== 1 ? 's' : ''} shared with ${sharedCount} user${sharedCount !== 1 ? 's' : ''}`;
+      }
+      if (action === 'tube_access_revoked') {
+        const tubeCount = getNumberProperty(details, 'tubeCount');
+        const revokedCount = getNumberProperty(details, 'revokedCount');
+        return `${tubeCount} tube${tubeCount !== 1 ? 's' : ''} access revoked from ${revokedCount} user${revokedCount !== 1 ? 's' : ''}`;
       }
       const displayLocation = getStringProperty(details, 'displayLocation');
       if (displayLocation) return displayLocation;
