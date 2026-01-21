@@ -19,8 +19,8 @@ export interface NumberInputProps {
   max?: number;
   /** Step increment */
   step?: number;
-  /** Size variant (matches standard form input heights: sm=32px, md=40px, lg=48px) */
-  size?: 'sm' | 'md' | 'lg';
+  /** Size variant */
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   /** Whether the input is disabled */
   disabled?: boolean;
   /** Accessible label */
@@ -87,22 +87,27 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
     const canDecrement = min === undefined || value > min;
     const canIncrement = max === undefined || value < max;
 
-    // Size-based styling (matches input-field pattern)
     const sizeStyles = {
+      xs: {
+        container: 'h-6',
+        button: 'w-5 text-xs',
+        input: 'w-8 text-xs',
+        icon: 12,
+      },
       sm: {
-        container: 'h-8', // 32px
+        container: 'h-8',
         button: 'w-7 text-sm',
         input: 'w-12 text-sm',
         icon: 14,
       },
       md: {
-        container: 'h-9', // 36px - matches input-field pattern
+        container: 'h-9',
         button: 'w-8 text-sm',
         input: 'w-14 text-sm',
         icon: 16,
       },
       lg: {
-        container: 'h-12', // 48px
+        container: 'h-12',
         button: 'w-9 text-base',
         input: 'w-16 text-base',
         icon: 18,

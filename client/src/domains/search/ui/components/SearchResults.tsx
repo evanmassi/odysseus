@@ -15,7 +15,7 @@ import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubeStore } from '@domains/tubes';
 import { useUserLookupQuery } from '@domains/users';
-import { Chip, Tooltip } from '@shared/ui';
+import { Button, Chip, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 
 import { SortDropdown } from './SortDropdown';
@@ -115,8 +115,8 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
   // NOW safe to do early returns after all hooks are called
   if (!results && isSearching) {
     return (
-      <div className="p-4">
-        <div className="flex items-center justify-center py-8">
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="flex items-center">
           <div className="animate-spin w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full" />
           <span className="ml-2 text-sm text-secondary-foreground">Searching...</span>
         </div>
@@ -125,7 +125,15 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
   }
 
   if (!results) {
-    return null;
+    return (
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="text-center text-muted-foreground">
+          <TubeIcon className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p className="text-sm">Search inventory</p>
+          <p className="text-xs mt-1">Browse with filters</p>
+        </div>
+      </div>
+    );
   }
 
   // Helper: Highlight matching terms with underline accent
@@ -478,7 +486,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
   };
 
   return (
-    <div className="max-h-[600px] overflow-hidden relative flex flex-col">
+    <div className="flex-1 max-h-[600px] overflow-hidden relative flex flex-col">
       {/* Loading overlay when refetching */}
       {isSearching && (
         <div className="absolute inset-0 bg-background/50 flex items-start justify-center pt-2 z-10">
@@ -502,13 +510,14 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
 
           {tubes.length > 0 && (
             <Tooltip content="Export search results" side="bottom">
-              <button
+              <Button
+                variant="ghost"
+                size="xs"
+                leftIcon={<Download className="w-3 h-3" />}
                 onClick={handleExportResults}
-                className="flex items-center space-x-1 px-2 py-1 text-xs rounded transition-colors text-action [[data-theme=dark]_&]:text-action/70 hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90"
               >
-                <Download className="w-3 h-3" />
-                <span>Export</span>
-              </button>
+                Export
+              </Button>
             </Tooltip>
           )}
         </div>

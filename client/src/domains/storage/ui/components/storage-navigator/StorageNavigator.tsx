@@ -214,12 +214,17 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     >
       <div
         role="tree"
+        data-tree-id="navigator"
         aria-label="Storage hierarchy"
         onKeyDown={handleKeyDown}
         tabIndex={-1}
         className="relative flex flex-col gap-1 outline-none"
       >
-        <TreeLineOverlay expandedTanks={expandedTanks} expandedRacks={expandedRacks} />
+        <TreeLineOverlay
+          expandedTanks={expandedTanks}
+          expandedRacks={expandedRacks}
+          treeId="navigator"
+        />
         {data.tanks.map((tank, _tankIndex) => {
           const tankExpanded = expandedTanks.has(tank.id);
           const tankSelected = isTankSelected(tank.id);

@@ -151,6 +151,7 @@
     transform: translateY(-12px);
   }
 }
+
 @layer components {
   .animate-modal-backdrop-in {
     animation: modal-backdrop-in 250ms ease-out forwards;

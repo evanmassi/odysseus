@@ -80,8 +80,8 @@ export function AuditLogFilterPanel({
 }: AuditLogFilterPanelProps) {
   const [openSections, setOpenSections] = useState({
     actions: false,
-    entityTypes: true,
-    user: true,
+    entityTypes: false,
+    user: false,
     date: false,
     // Action subsections
     tubeActions: false,
@@ -645,8 +645,7 @@ export function AuditLogFilterPanel({
                       <label htmlFor="audit-date-from" className="sr-only">
                         From date
                       </label>
-                      <input
-                        id="audit-date-from"
+                      <Input
                         type="datetime-local"
                         value={filters.dateFrom ?? ''}
                         onChange={e =>
@@ -656,25 +655,26 @@ export function AuditLogFilterPanel({
                             datePreset: undefined,
                           })
                         }
-                        className="w-full px-2 py-1.5 text-xs border border-border rounded"
                         placeholder="From"
                         aria-label="Filter start date and time"
+                        size="xs"
+                        fullWidth
                       />
                     </div>
                     <div>
                       <label htmlFor="audit-date-to" className="sr-only">
                         To date
                       </label>
-                      <input
-                        id="audit-date-to"
+                      <Input
                         type="datetime-local"
                         value={filters.dateTo ?? ''}
                         onChange={e =>
                           onChange({ ...filters, dateTo: e.target.value || undefined })
                         }
-                        className="w-full px-2 py-1.5 text-xs border border-border rounded"
                         placeholder="To"
                         aria-label="Filter end date and time"
+                        size="xs"
+                        fullWidth
                       />
                     </div>
                   </div>

@@ -15,6 +15,7 @@ export type SelectVariant =
 
 // Select size types (matches input-field pattern)
 export type SelectSize =
+  | 'xs' // Extra small (28px height)
   | 'sm' // Small (32px height)
   | 'md' // Medium (36px height) - default
   | 'lg'; // Large (48px height)
@@ -144,7 +145,7 @@ export const isSelectVariant = (value: string): value is SelectVariant => {
 };
 
 export const isSelectSize = (value: string): value is SelectSize => {
-  return ['sm', 'md', 'lg'].includes(value);
+  return ['xs', 'sm', 'md', 'lg'].includes(value);
 };
 
 export const isSelectState = (value: string): value is SelectState => {

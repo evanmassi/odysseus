@@ -100,6 +100,31 @@
       outline 200ms;
   }
 
+  .btn-icon-secondary {
+    @apply btn-icon-sm bg-transparent text-muted-foreground hover:bg-accent hover:text-secondary-foreground;
+  }
+
+  .btn-icon-action {
+    @apply btn-icon-sm text-white;
+    @apply bg-action hover:bg-action-hover;
+  }
+
+  [data-theme='dark'] .btn-icon-action {
+    @apply bg-action/70 hover:bg-action-hover/70;
+  }
+
+  [data-theme='dark'] .btn-variant-primary {
+    @apply bg-action/70 border-action/70;
+  }
+
+  [data-theme='dark'] .btn-variant-primary:hover {
+    @apply bg-action-hover/70 border-action-hover/70;
+  }
+
+  [data-theme='dark'] .btn-variant-primary:active {
+    @apply bg-action-hover/70;
+  }
+
   /* Header button with white focus ring (hamburger menu on blue background) */
   .btn-header-menu {
     @apply p-1.5 cursor-pointer rounded transition-colors;

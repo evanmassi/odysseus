@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 
 import { NAMING_PATTERNS, sortByName } from '@odysseus/shared-schemas';
 import { Plus, ListTree, UsersRound } from 'lucide-react';
@@ -32,6 +32,9 @@ import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils/notifications';
 
+import { TreeLineOverlay } from '../storage-navigator/TreeLineOverlay';
+
+import '../storage-navigator/storage-navigator.css';
 import { AssignmentsByUserView } from './AssignmentsByUserView';
 import { BoxEditModal } from './BoxEditModal';
 import { CustomLabelEditModal } from './CustomLabelEditModal';
@@ -153,6 +156,29 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   const [boxCountToAdd, setBoxCountToAdd] = useState<Record<string, number>>({});
 
   const gridTemplates = getAvailableGridTemplates();
+
+  // Convert collapsed state to expanded state for TreeLineOverlay
+  const expandedTanks = useMemo(() => {
+    if (!currentLab) return new Set<string>();
+    const all = new Set(currentLab.equipment.tanks.map(t => t.id));
+    collapsedTanks.forEach(id => all.delete(id));
+    return all;
+  }, [currentLab, collapsedTanks]);
+
+  const expandedRacks = useMemo(() => {
+    if (!currentLab) return new Set<string>();
+    // Convert from `${tankId}-rack-${rackId}` to `${tankId}-${rackId}` format
+    const expanded = new Set<string>();
+    currentLab.equipment.tanks.forEach(tank => {
+      tank.racks.forEach(rack => {
+        const modalKey = `${tank.id}-rack-${rack.id}`;
+        if (!collapsedRacks.has(modalKey)) {
+          expanded.add(`${tank.id}-${rack.id}`);
+        }
+      });
+    });
+    return expanded;
+  }, [currentLab, collapsedRacks]);
 
   const toggleTankCollapse = (tankId: string) => {
     setCollapsedTanks(prev => {
@@ -551,26 +577,33 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
             )}
 
             <StorageManagerContext.Provider value={contextValue}>
-              <div className="space-y-1.5">
-                {currentLab.equipment.tanks.map(tank => (
-                  <TankRow
-                    key={tank.id}
-                    tank={tank}
-                    collapsed={collapsedTanks.has(tank.id)}
-                    rackCountToAdd={rackCountToAdd[tank.id] || 1}
-                    boxCountToAdd={boxCountToAdd}
-                    onToggleCollapse={() => toggleTankCollapse(tank.id)}
-                    onToggleRackCollapse={toggleRackCollapse}
-                    onRackCountChange={count =>
-                      setRackCountToAdd(prev => ({ ...prev, [tank.id]: count }))
-                    }
-                    onBoxCountChange={(rackKey, count) =>
-                      setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
-                    }
-                    collapsedRacks={collapsedRacks}
-                    canDeleteTank={currentLab.equipment.tanks.length > 1}
-                  />
-                ))}
+              <div className="relative" role="tree" data-tree-id="modal">
+                <TreeLineOverlay
+                  expandedTanks={expandedTanks}
+                  expandedRacks={expandedRacks}
+                  treeId="modal"
+                />
+                <div className="space-y-1">
+                  {currentLab.equipment.tanks.map(tank => (
+                    <TankRow
+                      key={tank.id}
+                      tank={tank}
+                      collapsed={collapsedTanks.has(tank.id)}
+                      rackCountToAdd={rackCountToAdd[tank.id] || 1}
+                      boxCountToAdd={boxCountToAdd}
+                      onToggleCollapse={() => toggleTankCollapse(tank.id)}
+                      onToggleRackCollapse={toggleRackCollapse}
+                      onRackCountChange={count =>
+                        setRackCountToAdd(prev => ({ ...prev, [tank.id]: count }))
+                      }
+                      onBoxCountChange={(rackKey, count) =>
+                        setBoxCountToAdd(prev => ({ ...prev, [rackKey]: count }))
+                      }
+                      collapsedRacks={collapsedRacks}
+                      canDeleteTank={currentLab.equipment.tanks.length > 1}
+                    />
+                  ))}
+                </div>
               </div>
             </StorageManagerContext.Provider>
           </div>

@@ -40,13 +40,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        // Primary - main action button
+        // Primary - main action button (dark mode handled in buttons.css)
         primary: [
+          'btn-variant-primary',
           'bg-action text-white border border-action',
-          '[[data-theme=dark]_&]:bg-action/70 [[data-theme=dark]_&]:border-action/70',
           'hover:bg-action-hover hover:border-action-hover',
-          '[[data-theme=dark]_&]:hover:bg-action-hover/70 [[data-theme=dark]_&]:hover:border-action-hover/70',
-          'active:bg-action-hover [[data-theme=dark]_&]:active:bg-action-hover/70',
+          'active:bg-action-hover',
           'shadow-sm hover:shadow-md active:shadow-sm',
         ],
 

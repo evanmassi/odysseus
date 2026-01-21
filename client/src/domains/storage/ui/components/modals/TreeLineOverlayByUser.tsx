@@ -7,58 +7,58 @@ interface TreeLine {
   x2: number;
   y2: number;
   strokeWidth: number;
-  type: 'tank-vertical' | 'rack-branch' | 'rack-vertical' | 'box-branch';
+  type: 'user-vertical' | 'rack-branch' | 'rack-vertical' | 'box-branch';
 }
 
-interface TreeLineOverlayProps {
-  expandedTanks: Set<string>;
-  expandedRacks: Set<string>;
-  /** Unique identifier for the tree container. Uses `[role="tree"][data-tree-id="${treeId}"]` selector. */
-  treeId?: string;
+interface TreeLineOverlayByUserProps {
+  expandedUsers: Set<string | null>;
 }
 
 // Visual alignment offset to position lines at the left edge of button content
-// Aligns with the icon area of each button
 const LINE_OFFSET = 11;
 const VERTICAL_OFFSET = 0;
 
-export function TreeLineOverlay({ expandedTanks, expandedRacks, treeId }: TreeLineOverlayProps) {
+/**
+ * Tree Line Overlay for By User View
+ *
+ * Draws connecting lines for user -> rack -> box hierarchy in the
+ * Assignments By User tab of the Storage Manager modal.
+ */
+export function TreeLineOverlayByUser({ expandedUsers }: TreeLineOverlayByUserProps) {
   const [lines, setLines] = useState<TreeLine[]>([]);
   const containerRef = useRef<Element | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const mutationObserverRef = useRef<MutationObserver | null>(null);
 
   const calculateAllLines = useCallback(() => {
-    const selector = treeId ? `[role="tree"][data-tree-id="${treeId}"]` : '[role="tree"]';
-    const container = document.querySelector(selector);
+    const container = document.querySelector('[role="tree"][data-view="by-user"]');
     if (!container) return;
 
     containerRef.current = container;
     const containerRect = container.getBoundingClientRect();
     const allLines: TreeLine[] = [];
 
-    // Find all tank items
-    const tankItems = container.querySelectorAll('[data-level="tank"]');
+    // Find all user items
+    const userItems = container.querySelectorAll('[data-level="user"]');
 
-    tankItems.forEach(tankItem => {
-      const tankId = (tankItem as HTMLElement).dataset['id'];
-      if (!tankId || !expandedTanks.has(tankId)) return;
+    userItems.forEach(userItem => {
+      const userId = (userItem as HTMLElement).dataset['id'] ?? 'unassigned';
+      // Convert to the same format used in expandedUsers (null for unassigned, string for others)
+      const expandKey = userId === 'unassigned' ? null : userId;
+      if (!expandedUsers.has(expandKey)) return;
 
-      const tankButton = tankItem.querySelector('button');
-      if (!tankButton) return;
+      const userButton = userItem.querySelector('button');
+      if (!userButton) return;
 
-      const tankRect = tankButton.getBoundingClientRect();
-      const tankX = tankRect.left - containerRect.left + LINE_OFFSET;
-      const tankBottomY = tankRect.bottom - containerRect.top - 2;
+      const userRect = userButton.getBoundingClientRect();
+      const userX = userRect.left - containerRect.left + LINE_OFFSET;
+      const userBottomY = userRect.bottom - containerRect.top - 2;
 
-      // Find all racks under this tank
-      const rackItems = tankItem.querySelectorAll('[data-level="rack"]');
-      let lastRackY = tankBottomY;
+      // Find all racks under this user
+      const rackItems = userItem.querySelectorAll('[data-level="rack"]');
+      let lastRackY = userBottomY;
 
       rackItems.forEach(rackItem => {
-        const rackId = (rackItem as HTMLElement).dataset['id'];
-        if (!rackId) return;
-
         const rackButton = rackItem.querySelector('button');
         if (!rackButton) return;
 
@@ -69,10 +69,10 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks, treeId }: TreeLi
         // Track last rack's Y position for vertical line ending
         lastRackY = rackY;
 
-        // Add horizontal branch from tank to rack
+        // Add horizontal branch from user to rack
         allLines.push({
-          id: `rack-branch-${tankId}-${rackId}`,
-          x1: tankX,
+          id: `rack-branch-${userId}-${(rackItem as HTMLElement).dataset['id']}`,
+          x1: userX,
           y1: rackY,
           x2: rackX,
           y2: rackY,
@@ -80,66 +80,63 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks, treeId }: TreeLi
           type: 'rack-branch',
         });
 
-        // Handle boxes if rack is expanded (using composite key)
-        const compositeKey = `${tankId}-${rackId}`;
-        if (expandedRacks.has(compositeKey)) {
-          const boxItems = rackItem.querySelectorAll('[data-level="box"]');
-          let lastBoxY = rackRect.bottom - containerRect.top;
+        // Find all boxes under this rack
+        const boxItems = rackItem.querySelectorAll('[data-level="box"]');
+        let lastBoxY = rackRect.bottom - containerRect.top;
 
-          boxItems.forEach(boxItem => {
-            const boxButton = boxItem.querySelector('button');
-            if (!boxButton) return;
+        boxItems.forEach(boxItem => {
+          const boxButton = boxItem.querySelector('button, [role="listitem"]');
+          if (!boxButton) return;
 
-            const boxRect = boxButton.getBoundingClientRect();
-            const boxX = boxRect.left - containerRect.left + LINE_OFFSET;
-            const boxY = boxRect.top - containerRect.top + boxRect.height / 2 + VERTICAL_OFFSET;
+          const boxRect = boxButton.getBoundingClientRect();
+          const boxX = boxRect.left - containerRect.left + LINE_OFFSET;
+          const boxY = boxRect.top - containerRect.top + boxRect.height / 2 + VERTICAL_OFFSET;
 
-            // Track last box's Y position for vertical line ending
-            lastBoxY = boxY;
+          // Track last box's Y position for vertical line ending
+          lastBoxY = boxY;
 
-            // Add horizontal branch from rack to box
-            allLines.push({
-              id: `box-branch-${tankId}-${rackId}-${(boxItem as HTMLElement).dataset['id']}`,
-              x1: rackX,
-              y1: boxY,
-              x2: boxX,
-              y2: boxY,
-              strokeWidth: 1.5,
-              type: 'box-branch',
-            });
+          // Add horizontal branch from rack to box
+          allLines.push({
+            id: `box-branch-${userId}-${(rackItem as HTMLElement).dataset['id']}-${(boxItem as HTMLElement).dataset['id']}`,
+            x1: rackX,
+            y1: boxY,
+            x2: boxX,
+            y2: boxY,
+            strokeWidth: 1.5,
+            type: 'box-branch',
           });
+        });
 
-          // Add vertical line connecting boxes under this rack
-          if (boxItems.length > 0) {
-            allLines.push({
-              id: `rack-vertical-${tankId}-${rackId}`,
-              x1: rackX,
-              y1: rackRect.bottom - containerRect.top - 2,
-              x2: rackX,
-              y2: lastBoxY,
-              strokeWidth: 1.5,
-              type: 'rack-vertical',
-            });
-          }
+        // Add vertical line connecting boxes under this rack
+        if (boxItems.length > 0) {
+          allLines.push({
+            id: `rack-vertical-${userId}-${(rackItem as HTMLElement).dataset['id']}`,
+            x1: rackX,
+            y1: rackRect.bottom - containerRect.top - 2,
+            x2: rackX,
+            y2: lastBoxY,
+            strokeWidth: 1.5,
+            type: 'rack-vertical',
+          });
         }
       });
 
-      // Add vertical line connecting racks under this tank
+      // Add vertical line connecting racks under this user
       if (rackItems.length > 0) {
         allLines.push({
-          id: `tank-vertical-${tankId}`,
-          x1: tankX,
-          y1: tankBottomY,
-          x2: tankX,
+          id: `user-vertical-${userId}`,
+          x1: userX,
+          y1: userBottomY,
+          x2: userX,
           y2: lastRackY,
           strokeWidth: 1.5,
-          type: 'tank-vertical',
+          type: 'user-vertical',
         });
       }
     });
 
     setLines(allLines);
-  }, [expandedTanks, expandedRacks, treeId]);
+  }, [expandedUsers]);
 
   // Setup observers and initial calculation
   useEffect(() => {
@@ -188,7 +185,7 @@ export function TreeLineOverlay({ expandedTanks, expandedRacks, treeId }: TreeLi
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [expandedTanks, expandedRacks, calculateAllLines]);
+  }, [expandedUsers, calculateAllLines]);
 
   if (lines.length === 0) return null;
 

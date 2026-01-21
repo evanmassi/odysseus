@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
@@ -9,17 +9,91 @@ import { Tooltip } from '@shared/ui';
 import { FilterPanel } from './FilterPanel';
 import { SearchResults } from './SearchResults';
 
-interface SearchContainerProps {}
-
-export function SearchContainer(_props: SearchContainerProps) {
+export function SearchContainer() {
   const { query, filters, results, isSearching, search, clear, refetch } = useSearch();
 
+  const [showDropdown, setShowDropdown] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [isClosingDropdown, setIsClosingDropdown] = useState(false);
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Ctrl+F keyboard shortcut
+  const closeDropdown = useCallback(() => {
+    if (!showDropdown || isClosingDropdown) return;
+
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+
+    setIsClosingDropdown(true);
+    closeTimeoutRef.current = setTimeout(() => {
+      setShowDropdown(false);
+      setShowFilters(false);
+      setIsClosingDropdown(false);
+    }, 200);
+  }, [isClosingDropdown, showDropdown]);
+
+  const handleFilterToggle = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      if (!showDropdown) {
+        setShowFilters(true);
+        setShowDropdown(true);
+      } else {
+        setShowFilters(prev => !prev);
+      }
+    },
+    [showDropdown]
+  );
+
+  const handleClear = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      clear();
+
+      if (showDropdown && !isClosingDropdown) {
+        setIsClosingDropdown(true);
+        if (closeTimeoutRef.current) {
+          clearTimeout(closeTimeoutRef.current);
+        }
+        closeTimeoutRef.current = setTimeout(() => {
+          setShowDropdown(false);
+          setShowFilters(false);
+          setIsClosingDropdown(false);
+        }, 200);
+      }
+    },
+    [clear, showDropdown, isClosingDropdown]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showDropdown || isClosingDropdown) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      const isOutsideContainer = containerRef.current && !containerRef.current.contains(target);
+      const isOutsideDropdown = dropdownRef.current && !dropdownRef.current.contains(target);
+      const isInsideSelectDropdown = (target as Element).closest?.('[data-select-dropdown]');
+
+      if (isOutsideContainer && isOutsideDropdown && !isInsideSelectDropdown) {
+        closeDropdown();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDropdown, isClosingDropdown, closeDropdown]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === 'f') {
@@ -27,38 +101,22 @@ export function SearchContainer(_props: SearchContainerProps) {
         searchInputRef.current?.focus();
       }
 
-      // Escape key to close results and filters
-      if (e.key === 'Escape') {
-        setShowResults(false);
-        setShowFilters(false);
+      if (e.key === 'Escape' && showDropdown) {
+        closeDropdown();
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  // Click outside to close results and filters
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setShowResults(false);
-        setShowFilters(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [closeDropdown, showDropdown]);
 
   const handleSearch = async () => {
     if (!query.trim() && Object.keys(filters).length === 0) {
       return;
     }
 
-    // Trigger search
     await refetch();
-    setShowResults(true);
+    setShowDropdown(true);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -68,26 +126,16 @@ export function SearchContainer(_props: SearchContainerProps) {
           await handleSearch();
         } catch (error) {
           logger.error('Search failed', { error });
-          // Error already shown by React Query
         }
       })();
     }
   };
 
-  // Auto-show/hide results when query or filters change (not when results update)
   useEffect(() => {
     if (query.trim() || Object.keys(filters).length > 0) {
-      setShowResults(true);
-    } else {
-      // Close results when search is empty
-      setShowResults(false);
+      setShowDropdown(true);
     }
   }, [query, filters]);
-
-  const handleClear = () => {
-    clear();
-    setShowResults(false);
-  };
 
   const hasActiveFilters = Object.values(filters).some(value =>
     Array.isArray(value) ? value.length > 0 : value !== undefined
@@ -95,7 +143,6 @@ export function SearchContainer(_props: SearchContainerProps) {
 
   return (
     <div ref={containerRef} className="relative">
-      {/* Search Bar */}
       <div className="relative">
         <div className="flex items-center">
           <div className="relative flex-1">
@@ -110,29 +157,22 @@ export function SearchContainer(_props: SearchContainerProps) {
               className="input-search w-56 pl-8 pr-[4.5rem]"
             />
 
-            {/* Keyboard hint + Action Buttons */}
-            <div className="absolute right-1 top-1 flex items-center space-x-1">
-              {/* Keyboard shortcut hint - only show when empty */}
-              {!query && <span className="text-xs text-muted-foreground font-mono">Ctrl+F</span>}
+            <div className="absolute right-1 top-1 flex items-center space-x-1 z-50">
+              {!query && <span className="text-xs text-muted-foreground/40 font-mono">Ctrl+F</span>}
 
               <Tooltip content="Filters" side="bottom">
                 <button
-                  onClick={() => setShowFilters(!showFilters)}
-                  className={`btn-icon-sm ${
-                    hasActiveFilters || showFilters
-                      ? 'bg-action text-white hover:bg-action-hover'
-                      : 'bg-transparent text-muted-foreground hover:bg-secondary hover:text-secondary-foreground'
-                  }`}
+                  onClick={handleFilterToggle}
+                  className={
+                    hasActiveFilters || showFilters ? 'btn-icon-action' : 'btn-icon-secondary'
+                  }
                 >
                   <SlidersHorizontal className="w-2.5 h-2.5" />
                 </button>
               </Tooltip>
 
               <Tooltip content="Clear" side="bottom">
-                <button
-                  onClick={handleClear}
-                  className="btn-icon-sm bg-transparent text-muted-foreground hover:bg-secondary hover:text-secondary-foreground"
-                >
+                <button onClick={handleClear} className="btn-icon-secondary">
                   <X className="w-2.5 h-2.5" />
                 </button>
               </Tooltip>
@@ -141,23 +181,27 @@ export function SearchContainer(_props: SearchContainerProps) {
         </div>
       </div>
 
-      {/* Search Results & Filters Panel - Side by Side */}
-      {showResults && (
-        <div className="absolute top-full right-0 mt-2 flex gap-2 z-40">
-          {/* Filters Panel - Left */}
-          {showFilters && (
-            <div className="w-80 h-[500px] bg-popover border border-border rounded-lg shadow-lg flex flex-col overflow-hidden">
-              <FilterPanel onClose={() => setShowFilters(false)} />
+      {(showDropdown || isClosingDropdown) && (
+        <div
+          ref={dropdownRef}
+          className={`absolute top-full right-0 mt-2 z-40 bg-popover border border-border rounded-lg shadow-lg overflow-hidden ${
+            isClosingDropdown ? 'animate-dropdown-reveal-out' : 'animate-dropdown-reveal-in'
+          }`}
+        >
+          <div className="flex items-stretch">
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${
+                showFilters ? 'w-80' : 'w-0'
+              }`}
+            >
+              <div className="w-80 h-[500px] flex flex-col border-r border-border">
+                <FilterPanel onClose={() => setShowFilters(false)} />
+              </div>
             </div>
-          )}
 
-          {/* Search Results - Right */}
-          <div className="w-96 bg-popover border border-border rounded-lg shadow-lg">
-            <SearchResults
-              results={results}
-              isSearching={isSearching}
-              onClose={() => setShowResults(false)}
-            />
+            <div className="w-96 min-h-[500px] flex flex-col">
+              <SearchResults results={results} isSearching={isSearching} onClose={closeDropdown} />
+            </div>
           </div>
         </div>
       )}

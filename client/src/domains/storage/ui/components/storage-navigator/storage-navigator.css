@@ -148,3 +148,100 @@
 .storage-nav-button.selected .storage-nav-button__chevron {
   color: var(--storage-nav-selected-text);
 }
+
+/* Modal variant - for Storage Manager modal with admin controls */
+/* Container wrapper for modal items (enables flex layout with controls) */
+.storage-nav-item--modal {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  gap: 0.25rem;
+}
+
+/* In modal, the button should shrink to make room for controls */
+.storage-nav-item--modal .storage-nav-button {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Modal tank level wrapper positioning */
+.storage-nav-item--modal.storage-nav-item--tank {
+  margin-left: 0;
+}
+
+.storage-nav-item--modal.storage-nav-item--rack {
+  margin-left: 1rem;
+  width: calc(100% - 1rem);
+}
+
+.storage-nav-item--modal.storage-nav-item--box {
+  margin-left: 2rem;
+  width: calc(100% - 2rem);
+}
+
+/* In modal wrappers, buttons take full width of their container */
+.storage-nav-item--modal .storage-nav-button--tank,
+.storage-nav-item--modal .storage-nav-button--rack,
+.storage-nav-item--modal .storage-nav-button--box {
+  width: 100%;
+  margin-left: 0;
+}
+
+/* Count pill styling - consistent with navigator */
+.storage-nav-pill {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Muted styling for info pills */
+.storage-nav-pill--muted {
+  background-color: var(--storage-nav-hover-bg);
+  color: var(--storage-nav-text-muted);
+}
+
+/* Modal content area - space for children */
+.storage-nav-children {
+  margin-top: 0.25rem;
+}
+
+.storage-nav-children--rack {
+  /* Space for boxes and add button */
+}
+
+/* Add controls container - for number input + add button */
+.storage-nav-add-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Modal-specific color overrides - adjusted for bg-card background */
+/* Scoped to modal tree containers */
+[data-tree-id='modal'],
+[data-view='by-user'] {
+  /* Light mode - works against white card background */
+  --storage-nav-text: hsl(215 20% 40%);
+  --storage-nav-text-muted: hsl(215 16% 55%);
+  --storage-nav-hover-bg: hsl(210 40% 96%);
+  --storage-nav-hover-text: hsl(215 25% 27%);
+  --storage-nav-selected-bg: hsl(210 47% 95%);
+  --storage-nav-selected-hover-bg: hsl(209 52% 91%);
+  --storage-nav-selected-text: hsl(210 52% 45%);
+}
+
+[data-theme='dark'] [data-tree-id='modal'],
+[data-theme='dark'] [data-view='by-user'] {
+  /* Dark mode - increased contrast for bg-card (~15.5% lightness) */
+  --storage-nav-text: hsl(215 20% 75%);
+  --storage-nav-text-muted: hsl(220 15% 58%);
+  --storage-nav-hover-bg: hsl(215 30% 50% / 0.18);
+  --storage-nav-hover-text: hsl(210 33% 95%);
+  --storage-nav-selected-bg: hsl(215 28% 24%);
+  --storage-nav-selected-hover-bg: hsl(215 32% 28%);
+  --storage-nav-selected-text: hsl(210 40% 95%);
+}

@@ -20,7 +20,7 @@ import { useActiveResearchersQuery } from '@domains/researchers';
 import { useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { useTubes } from '@domains/tubes/hooks';
-import { Chip, Tooltip } from '@shared/ui';
+import { Chip, Input, Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
@@ -80,9 +80,8 @@ interface FilterPanelProps {
 export function FilterPanel({ onClose }: FilterPanelProps = {}) {
   const { filters, toggleFilterValue, setSearchFilters, clearFilters } = useSearchStore();
 
-  // Collapsible section state - start with Location open
   const [openSections, setOpenSections] = useState({
-    location: true,
+    location: false,
     sample: false,
     researcher: false,
     date: false,
@@ -327,7 +326,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
   return (
     <div className="flex flex-col h-full">
       {/* Header with Clear All and Close buttons - Fixed */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-border bg-muted flex-shrink-0">
+      <div className="flex items-center justify-between h-9 px-4 border-b border-border bg-muted flex-shrink-0">
         <span className="text-xs font-medium text-secondary-foreground">Filters</span>
         <div className="flex items-center space-x-2">
           <Tooltip content="Clear all filters" side="bottom">
@@ -618,13 +617,13 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
               >
                 From:
               </label>
-              <input
-                id="filter-date-from"
+              <Input
                 type="date"
                 value={filters.dateFrom ?? ''}
                 onChange={e => updateDateFilter('dateFrom', e.target.value)}
-                className="w-full text-sm border border-border rounded-md p-2 input-form-field"
                 aria-label="Filter start date"
+                size="sm"
+                fullWidth
               />
             </div>
             <div>
@@ -634,13 +633,13 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
               >
                 To:
               </label>
-              <input
-                id="filter-date-to"
+              <Input
                 type="date"
                 value={filters.dateTo ?? ''}
                 onChange={e => updateDateFilter('dateTo', e.target.value)}
-                className="w-full text-sm border border-border rounded-md p-2 input-form-field"
                 aria-label="Filter end date"
+                size="sm"
+                fullWidth
               />
             </div>
           </div>

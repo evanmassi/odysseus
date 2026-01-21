@@ -20,7 +20,7 @@ export function SortDropdown() {
   const toggleSortDirection = useSearchStore(state => state.toggleSortDirection);
 
   return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-muted border-b border-border">
+    <div className="flex items-center gap-2 h-9 px-4 bg-muted border-b border-border">
       <span className="text-xs font-medium text-secondary-foreground">Sort by:</span>
 
       {/* Sort Field Dropdown */}
@@ -28,7 +28,7 @@ export function SortDropdown() {
         options={SORT_OPTIONS}
         value={sortField}
         onChange={value => setSortField(value as SortField)}
-        size="sm"
+        size="xs"
         variant="default"
         aria-label="Sort field"
         className="w-32"

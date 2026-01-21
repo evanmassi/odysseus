@@ -1,9 +1,8 @@
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { Edit3, Tag, Trash2 } from 'lucide-react';
 
-import { getOwnershipIndicatorStyles, type OwnershipType } from '@shared/ui/components/badges';
 import { BoxIcon } from '@shared/ui/components/icons';
 import { OverflowMenu } from '@shared/ui/primitives/overflow-menu';
 
@@ -11,6 +10,7 @@ import { AssignmentDropdown } from './AssignmentDropdown';
 import { CustomLabelButton } from './CustomLabelButton';
 import { OwnershipBadge } from './OwnershipBadge';
 import { useStorageManagerContext } from './StorageManagerContext';
+import '../storage-navigator/storage-navigator.css';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
 import type { OverflowMenuItem } from '@shared/ui/primitives/overflow-menu';
@@ -39,15 +39,6 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
   const effectiveOwnerId =
     box.assignedUserId === null ? undefined : (box.assignedUserId ?? rack.assignedUserId);
   const isBoxOwnedByUser = isOwnedByCurrentUser(box, rack);
-  const isExplicitlyCommon = box.assignedUserId === null;
-  const isUnassigned = !effectiveOwnerId;
-
-  const ownershipType: OwnershipType = isBoxOwnedByUser
-    ? 'currentUser'
-    : isUnassigned || isExplicitlyCommon
-      ? 'unassigned'
-      : 'otherUser';
-  const ownershipStyles = getOwnershipIndicatorStyles(ownershipType);
 
   // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(box, rack);
@@ -103,61 +94,67 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
   const dividerBefore = canDeleteBox ? ['Delete Box'] : [];
 
   return (
-    <div
-      className={`flex items-center gap-1.5 py-0.5 px-1.5 hover:bg-accent/50 transition-colors border-l-4 ${ownershipStyles.border}`}
-    >
-      {/* Ownership badge */}
-      <OwnershipBadge userId={effectiveOwnerId} size="sm" isOwnedByCurrentUser={isBoxOwnedByUser} />
-
-      {/* Box identity */}
-      <div className="flex items-center gap-2 flex-1 min-w-0 px-1 py-0.5">
-        <BoxIcon className="text-secondary-foreground flex-shrink-0" size={16} />
-        <span className="font-medium text-card-foreground text-xs truncate">
-          {formatResourceDisplayName(box.name, box.customLabel)}
-        </span>
-        <span
-          className={`text-xs px-2 py-0.5 rounded ml-auto flex-shrink-0 ${ownershipStyles.background} ${ownershipStyles.text}`}
+    <div data-level="box" data-id={box.id}>
+      {/* Box Row - Navigator styled button with inline controls */}
+      <div className="storage-nav-item--modal storage-nav-item--box">
+        <button
+          type="button"
+          className="storage-nav-button storage-nav-button--box"
+          aria-label={`Box ${box.name}`}
         >
-          {box.gridConfig.rows}×{box.gridConfig.cols}
-        </span>
+          <OwnershipBadge
+            userId={effectiveOwnerId}
+            size="sm"
+            isOwnedByCurrentUser={isBoxOwnedByUser}
+          />
+          <div className="storage-nav-button__icon">
+            <BoxIcon size={14} aria-hidden="true" />
+          </div>
+          <span className="storage-nav-button__text">
+            {formatResourceDisplayName(box.name, box.customLabel)}
+          </span>
+          <span className="storage-nav-pill storage-nav-pill--muted">
+            {box.gridConfig.rows}×{box.gridConfig.cols}
+          </span>
+        </button>
+
+        {/* Admin: Assignment dropdown + Overflow menu */}
+        {canManageStorage && (
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {currentUser?.role === 'admin' && (
+              <AssignmentDropdown
+                value={box.assignedUserId}
+                users={users}
+                onChange={userId => onAssignBox(tankId, rackId, box.id, userId)}
+                size="sm"
+                showCommonOption
+                parentUserId={rack.assignedUserId}
+              />
+            )}
+            {overflowMenuItems.length > 0 && (
+              <OverflowMenu
+                items={overflowMenuItems}
+                dividerBefore={dividerBefore}
+                size="sm"
+                aria-label={`Actions for box ${box.name}`}
+              />
+            )}
+          </div>
+        )}
+
+        {/* Non-admin owner: Custom label button */}
+        {!canManageStorage && (
+          <div className="w-7 flex-shrink-0 flex justify-center">
+            {showInlineCustomLabel && (
+              <CustomLabelButton
+                onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
+                size={12}
+                className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded"
+              />
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Admin: Assignment dropdown + Overflow menu */}
-      {canManageStorage && (
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {currentUser?.role === 'admin' && (
-            <AssignmentDropdown
-              value={box.assignedUserId}
-              users={users}
-              onChange={userId => onAssignBox(tankId, rackId, box.id, userId)}
-              size="sm"
-              showCommonOption
-              parentUserId={rack.assignedUserId}
-            />
-          )}
-          {overflowMenuItems.length > 0 && (
-            <OverflowMenu
-              items={overflowMenuItems}
-              dividerBefore={dividerBefore}
-              size="sm"
-              aria-label={`Actions for box ${box.name}`}
-            />
-          )}
-        </div>
-      )}
-
-      {/* Non-admin owner: Custom label button */}
-      {!canManageStorage && (
-        <div className="w-7 flex-shrink-0 flex justify-center">
-          {showInlineCustomLabel && (
-            <CustomLabelButton
-              onClick={() => onEditBoxLabel(tankId, rackId, box.id, box.customLabel ?? '')}
-              size={12}
-              className="text-secondary-foreground hover:bg-black/10 transition-colors p-1 rounded"
-            />
-          )}
-        </div>
-      )}
     </div>
   );
 }

@@ -44,11 +44,11 @@ export function useSearch() {
 
   // Format results using SearchEngine
   // Use original query for highlighting (immediate feedback), not debounced query
-  const formattedResults: DisplayResults | null = SearchEngine.formatResultsForDisplay(
-    searchResult.data,
-    query,
-    researchers
-  );
+  // Only format results if search is actually active (has query or filters)
+  const isSearchActive = !!debouncedQuery.trim() || hasActiveFilters();
+  const formattedResults: DisplayResults | null = isSearchActive
+    ? SearchEngine.formatResultsForDisplay(searchResult.data, query, researchers)
+    : null;
 
   return {
     // State

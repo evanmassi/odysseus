@@ -41,6 +41,7 @@ const selectVariants = cva(
         outlined: 'border-2 border-border hover:border-muted-foreground',
       },
       size: {
+        xs: 'h-7 px-2 text-xs', // 28px
         sm: 'h-8 px-3 text-sm', // 32px
         md: 'h-9 px-3 text-sm', // 36px - matches input-field pattern
         lg: 'h-12 px-4 text-base', // 48px
@@ -514,10 +515,11 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           <div
             ref={dropdownRef}
             className={dropdownClasses}
+            data-select-dropdown
             style={{
               top: dropdownPosition.top,
               left: dropdownPosition.left,
-              width: dropdownPosition.width,
+              minWidth: dropdownPosition.width,
               maxHeight,
             }}
           >
