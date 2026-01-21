@@ -128,7 +128,20 @@ export class PublicRouteModule implements RouteModule {
           status: 'OK',
           timestamp: new Date().toISOString(),
           service: 'odysseus-api',
-          version: '1.0.0'
+          version: process.env.npm_package_version ?? '1.0.0'
+        }
+      });
+    });
+
+    // Version info endpoint
+    router.get('/version', async (req, res) => {
+      res.json({
+        success: true,
+        data: {
+          version: process.env.npm_package_version ?? '1.0.0',
+          environment: process.env.NODE_ENV ?? 'development',
+          nodeVersion: process.version,
+          platform: process.platform
         }
       });
     });

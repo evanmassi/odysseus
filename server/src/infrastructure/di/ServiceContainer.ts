@@ -35,6 +35,7 @@ import { UserController } from '@presentation/controllers/UserController';
 import { PersonController } from '@presentation/controllers/PersonController';
 import { SessionController } from '@presentation/controllers/SessionController';
 import { AuditController } from '@presentation/controllers/AuditController';
+import { ExportController } from '@presentation/controllers/ExportController';
 
 // Application services
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
@@ -42,6 +43,7 @@ import { ResearcherApplicationService } from '@application/services/ResearcherAp
 import { UserApplicationService } from '@application/services/UserApplicationService';
 import { AuditService } from '@application/services/AuditService';
 import { AuditRetentionService } from '@application/services/AuditRetentionService';
+import { ExportService } from '@application/services/ExportService';
 import { PresenceService } from '@application/services/PresenceService';
 import { TubePositionService, AccessControlService, ValidationService } from '@domain/services';
 import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
@@ -137,6 +139,10 @@ export class ServiceContainer {
   private personController?: PersonController;
   private sessionController?: SessionController;
   private auditController?: AuditController;
+  private exportController?: ExportController;
+
+  // Application services - Export
+  private exportService?: ExportService;
 
   // Infrastructure services
   private passwordService?: PasswordService;
@@ -891,6 +897,29 @@ export class ServiceContainer {
       );
     }
     return this.auditController;
+  }
+
+  getExportService(): ExportService {
+    if (!this.exportService) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.exportService = new ExportService(
+        repositories.tubes,
+        repositories.users,
+        repositories.researchers,
+        repositories.persons,
+        repositories.configurations
+      );
+    }
+    return this.exportService;
+  }
+
+  getExportController(): ExportController {
+    if (!this.exportController) {
+      this.exportController = new ExportController(
+        this.getExportService()
+      );
+    }
+    return this.exportController;
   }
 
   getAuditEventHandler(): AuditEventHandler {

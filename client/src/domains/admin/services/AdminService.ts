@@ -707,14 +707,88 @@ export class AdminService {
 
       const query = params.toString() ? `?${params.toString()}` : '';
 
-      const response = await httpClient.get<Blob>(`/admin/audit/retention/export${query}`, {
-        responseType: 'blob',
-      });
-
-      return response.data;
+      return await httpClient.getBlob(`/admin/audit/retention/export${query}`);
     } catch (error) {
       // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to export archived logs', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Get application version info (public endpoint)
+   */
+  async getVersionInfo(): Promise<{
+    success: boolean;
+    data: {
+      version: string;
+      environment: string;
+      nodeVersion: string;
+      platform: string;
+    };
+  }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          version: string;
+          environment: string;
+          nodeVersion: string;
+          platform: string;
+        };
+      }>('/public/version');
+
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to get version info', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Export tubes data in CSV or JSON format
+   */
+  async exportTubes(format: 'csv' | 'json'): Promise<Blob> {
+    try {
+      return await httpClient.getBlob(`/admin/export/tubes?format=${format}`);
+    } catch (error) {
+      logger.error('Failed to export tubes', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Export users data in CSV or JSON format (excludes sensitive data)
+   */
+  async exportUsers(format: 'csv' | 'json'): Promise<Blob> {
+    try {
+      return await httpClient.getBlob(`/admin/export/users?format=${format}`);
+    } catch (error) {
+      logger.error('Failed to export users', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Export researchers data in CSV or JSON format
+   */
+  async exportResearchers(format: 'csv' | 'json'): Promise<Blob> {
+    try {
+      return await httpClient.getBlob(`/admin/export/researchers?format=${format}`);
+    } catch (error) {
+      logger.error('Failed to export researchers', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Export system configuration backup (JSON only)
+   */
+  async exportSystemBackup(): Promise<Blob> {
+    try {
+      return await httpClient.getBlob('/admin/export/system-backup');
+    } catch (error) {
+      logger.error('Failed to export system backup', { error });
       throw error;
     }
   }

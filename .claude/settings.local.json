@@ -54,7 +54,9 @@
       "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\evan\\\\Desktop\\\\Odysseus\\\\odysseus-app\\\\client\\\\src\\\\shared\\\\ui\\\\primitives\\\\grid\")",
       "WebFetch(domain:docs.stripe.com)",
       "WebFetch(domain:ui.jln.dev)",
-      "WebFetch(domain:medium.com)"
+      "WebFetch(domain:medium.com)",
+      "Bash(npm run client:check:*)",
+      "Bash(npm run lint:*)"
     ]
   }
 }

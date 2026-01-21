@@ -140,13 +140,14 @@ class OdysseusServer {
     const personController = this.serviceContainer.getPersonController();
     const sessionController = this.serviceContainer.getSessionController();
     const auditController = this.serviceContainer.getAuditController();
+    const exportController = this.serviceContainer.getExportController();
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
     const configurationRepository = this.repositoryFactory.getConfigurationRepository();
 
     // Register all route modules with ConfigurationRepository for dynamic rate limiting
     registry.registerModule(new PublicRouteModule(authController, configurationRepository));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, configurationRepository));
-    registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, authMiddleware));
+    registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, exportController, authMiddleware));
     const tubeLockController = this.serviceContainer.getTubeLockController();
     registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, authMiddleware, configurationRepository));
     registry.registerModule(new ConfigurationRouteModule(configurationController, authMiddleware));

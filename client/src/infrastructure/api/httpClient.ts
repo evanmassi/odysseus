@@ -228,6 +228,45 @@ export class HttpClient {
     return this.request<T>('GET', url, undefined, headers);
   }
 
+  /**
+   * GET request that returns a Blob (for file downloads)
+   */
+  async getBlob(url: string, headers?: Record<string, string>): Promise<Blob> {
+    const fullUrl = url.startsWith('http') ? url : `${this.baseURL}${url}`;
+    const requestHeaders = { ...this.defaultHeaders, ...headers };
+    // Remove Content-Type for blob requests - let browser set it
+    delete requestHeaders['Content-Type'];
+
+    const response = await fetch(fullUrl, {
+      method: 'GET',
+      headers: requestHeaders,
+      signal: AbortSignal.timeout(this.timeout),
+    });
+
+    if (!response.ok) {
+      // Try to parse error as JSON
+      const errorData = await response.json().catch(() => null);
+      const errorParsed = errorEnvelopeSchema.safeParse(errorData);
+
+      if (errorParsed.success) {
+        throw new ApiError(
+          errorParsed.data.error,
+          response.status,
+          errorParsed.data.code,
+          errorParsed.data.details
+        );
+      }
+
+      throw new ApiError(
+        errorData?.message || `HTTP ${response.status}: ${response.statusText}`,
+        response.status,
+        errorData?.code
+      );
+    }
+
+    return response.blob();
+  }
+
   async post<T = unknown>(
     url: string,
     data?: unknown,
@@ -405,6 +444,7 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
   const originalPost = httpClient.post.bind(httpClient);
   const originalPut = httpClient.put.bind(httpClient);
   const originalDelete = httpClient.delete.bind(httpClient);
+  const originalGetBlob = httpClient.getBlob.bind(httpClient);
 
   // Build auth headers with proactive token refresh
   async function buildAuthHeaders(sessionManager: TokenProvider): Promise<Record<string, string>> {
@@ -538,5 +578,28 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
     headers?: Record<string, string>
   ) {
     return injectWithData<T>(originalPut, url, data, headers, sessionManager);
+  };
+
+  // Override getBlob with auth injection (returns Blob directly, no transformation needed)
+  httpClient.getBlob = async function (url: string, headers?: Record<string, string>) {
+    const authHeaders = await buildAuthHeaders(sessionManager);
+    const requestHeaders = { ...headers, ...authHeaders };
+
+    try {
+      return await originalGetBlob(url, requestHeaders);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        if (error.code && SESSION_TERMINAL_ERRORS.has(error.code)) {
+          throw error;
+        }
+
+        const newToken = await sessionManager.getValidAccessToken();
+        if (newToken) {
+          const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
+          return await originalGetBlob(url, retryHeaders);
+        }
+      }
+      throw error;
+    }
   };
 }

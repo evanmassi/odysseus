@@ -1,14 +1,7 @@
 /**
- * System Tab Component
+ * System Tab
  *
- * Provides admin interface for viewing system configuration including:
- * - Lab name configuration
- * - System statistics (tubes, users, researchers, backups)
- * - Audit settings (logging configuration)
- *
- * Part of the Admin Settings modal tab system.
- *
- * @module admin/ui/components/tabs
+ * Admin interface for lab settings, audit configuration, data export, and system statistics.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -19,44 +12,30 @@ import { Gauge, FlaskConical, Check, X } from 'lucide-react';
 import { queryKeys } from '@app/queryKeys';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api/httpClient';
+import { logger } from '@shared/infrastructure/logger';
 import { Button, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
+import { adminService } from '../../../services/AdminService';
+
+import { DataExportSection } from './DataExportSection';
+
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
-/**
- * SystemTab Props Interface
- *
- * @interface SystemTabProps
- */
+function formatBytes(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+}
+
 export interface SystemTabProps {
-  /** Current security configuration (for audit settings) */
   config: SecurityConfig;
-
-  /** System statistics (tubes, users, researchers, backup info) */
   stats: SystemMetrics | null;
-
-  /** Callback invoked when any security setting is changed */
   onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
 }
 
-/**
- * System Tab Component
- *
- * Displays read-only system statistics and audit controls.
- *
- * @param {SystemTabProps} props - Component props
- * @returns {JSX.Element} System configuration interface
- *
- * @example
- * ```tsx
- * <SystemTab
- *   config={config}
- *   stats={systemStats}
- *   onChange={handleConfigChange}
- * />
- * ```
- */
 export function SystemTab({ config, stats, onChange }: SystemTabProps) {
   const { currentLab } = useStorageData();
   const queryClient = useQueryClient();
@@ -66,10 +45,33 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
   const [labNameInput, setLabNameInput] = useState(currentLab?.name ?? '');
   const [isSavingLabName, setIsSavingLabName] = useState(false);
 
+  // Version info state
+  const [versionInfo, setVersionInfo] = useState<{
+    version: string;
+    environment: string;
+    nodeVersion: string;
+    platform: string;
+  } | null>(null);
+
   // Sync input when currentLab changes
   useEffect(() => {
     setLabNameInput(currentLab?.name ?? '');
   }, [currentLab?.name]);
+
+  // Fetch version info on mount
+  useEffect(() => {
+    async function fetchVersionInfo() {
+      try {
+        const response = await adminService.getVersionInfo();
+        if (response.success) {
+          setVersionInfo(response.data);
+        }
+      } catch (error) {
+        logger.error('Failed to fetch version info', { error });
+      }
+    }
+    void fetchVersionInfo();
+  }, []);
 
   const handleSaveLabName = useCallback(async () => {
     const trimmedName = labNameInput.trim();
@@ -120,13 +122,11 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <Gauge size={22} className="text-secondary-foreground" />
         <h3 className="text-xl font-semibold text-card-foreground">System</h3>
       </div>
 
-      {/* Lab Name Section */}
       <div>
         <h4 className="text-base font-semibold text-card-foreground mb-2">Laboratory</h4>
         <div className="bg-muted p-3 rounded-lg">
@@ -185,45 +185,9 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
         </div>
       </div>
 
-      {/* System Statistics Section */}
-      <div>
-        <h4 className="text-base font-semibold text-card-foreground mb-2">Statistics</h4>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {/* Total Tubes */}
-          <div className="bg-muted p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-card-foreground">{stats?.totalTubes ?? 0}</div>
-            <div className="text-xs text-secondary-foreground">Total Tubes</div>
-          </div>
-
-          {/* Total Users */}
-          <div className="bg-muted p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-card-foreground">{stats?.totalUsers ?? 0}</div>
-            <div className="text-xs text-secondary-foreground">Total Users</div>
-          </div>
-
-          {/* Total Researchers */}
-          <div className="bg-muted p-2.5 rounded-lg">
-            <div className="text-xl font-bold text-card-foreground">
-              {stats?.totalResearchers ?? 0}
-            </div>
-            <div className="text-xs text-secondary-foreground">Researchers</div>
-          </div>
-
-          {/* Last Backup */}
-          <div className="bg-muted p-2.5 rounded-lg">
-            <div className="text-xs text-secondary-foreground">Last Backup</div>
-            <div className="text-xs text-secondary-foreground font-medium">
-              {stats?.lastBackup ? new Date(stats.lastBackup).toLocaleDateString() : 'Never'}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Audit & Monitoring Section */}
       <div>
         <h4 className="text-base font-semibold text-card-foreground mb-2">Audit & Monitoring</h4>
         <div className="space-y-1.5">
-          {/* Detailed Logging Toggle */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
               <h5 className="text-sm font-medium text-card-foreground">Detailed Logging</h5>
@@ -235,6 +199,37 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
               aria-label="Enable detailed logging for all system operations"
             />
           </div>
+        </div>
+      </div>
+
+      <DataExportSection />
+
+      <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
+        <span>Total Tubes:</span>
+        <span className="font-semibold text-secondary-foreground">{stats?.totalTubes ?? 0}</span>
+        <span className="text-border">•</span>
+        <span>Total Users:</span>
+        <span className="font-semibold text-secondary-foreground">{stats?.totalUsers ?? 0}</span>
+        <span className="text-border">•</span>
+        <span>Researchers:</span>
+        <span className="font-semibold text-secondary-foreground">
+          {stats?.totalResearchers ?? 0}
+        </span>
+        <span className="text-border">•</span>
+        <span>Database:</span>
+        <span className="font-semibold text-secondary-foreground">
+          {stats?.databaseSize ? formatBytes(stats.databaseSize) : '—'}
+        </span>
+        <span className="text-border">•</span>
+        <span>Last Backup:</span>
+        <span className="font-semibold text-secondary-foreground">
+          {stats?.lastBackup ? new Date(stats.lastBackup).toLocaleDateString() : 'Never'}
+        </span>
+      </div>
+
+      <div className="border-t border-border pt-3">
+        <div className="text-xs text-muted-foreground">
+          Odysseus v{versionInfo?.version ?? '—'} · © 2025 Evan Massi
         </div>
       </div>
     </div>

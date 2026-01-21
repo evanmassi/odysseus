@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-import { AlertTriangle, X, Copy } from 'lucide-react';
+import { CircleX, X, Copy } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
 
@@ -34,7 +34,7 @@ export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
       <div className="bg-muted border border-danger-border rounded-lg p-4 shadow-lg">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
-            <AlertTriangle className="text-danger-text mt-0.5" size={20} />
+            <CircleX className="text-danger-text mt-0.5" size={20} />
             <div className="flex-1">
               <h3 className="text-sm font-medium text-danger-text mb-2">
                 Connection Errors ({errors.length})

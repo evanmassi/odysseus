@@ -1127,11 +1127,18 @@ export class ConfigurationRepository implements IConfigurationRepository {
         ? (backupRow.updated_at instanceof Date ? backupRow.updated_at.toISOString() : backupRow.updated_at)
         : new Date().toISOString();
 
+      // Get database size in bytes
+      const sizeRow = await this.context.queryOne<{ size: string }>(`
+        SELECT pg_database_size(current_database()) as size
+      `);
+      const databaseSize = parseInt(sizeRow?.size || '0', 10);
+
       return {
         totalTubes,
         totalUsers,
         totalResearchers,
-        lastBackup
+        lastBackup,
+        databaseSize
       };
 
     } catch (error) {

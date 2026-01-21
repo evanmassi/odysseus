@@ -4,189 +4,90 @@ Professional Liquid Nitrogen Tube Inventory Management System for laboratory res
 
 ## Overview
 
-Odysseus is a desktop application built for XcellBio to manage and track liquid nitrogen tube inventories in research laboratories. It provides a comprehensive solution for organizing samples across a hierarchical storage system (Tanks → Racks → Boxes → Tubes) with advanced search, filtering, and bulk operation capabilities.
+Odysseus is a web application to manage and track liquid nitrogen tube inventories in research laboratories. It provides a comprehensive solution for organizing samples across a hierarchical storage system (Tanks → Racks → Boxes → Tubes) with advanced search, tube locking, and real-time collaboration features.
 
 ## Tech Stack
 
 ### Frontend
-- **React 18** - UI framework
-- **TypeScript** - Type safety
+- **React 18** with TypeScript
 - **Vite** - Build tool and dev server
 - **TanStack Query** - Server state management
-- **Zustand** - Client state management
+- **Zustand** - UI state management
 - **Tailwind CSS** - Styling
-- **React Hook Form** - Form management
-- **Zod** - Schema validation
+- **React Hook Form + Zod** - Form handling and validation
 
 ### Backend
-- **Express** - HTTP server
-- **SQLite** (better-sqlite3) - Database
-- **Clean Architecture** - Architectural pattern
-- **Domain-Driven Design** - Design approach
+- **Express** with TypeScript
+- **PostgreSQL** - Database
+- **Clean Architecture** - Domain → Application → Infrastructure → Presentation
 - **CQRS Pattern** - Commands and Queries separation
-- **JWT** - Authentication
-- **Socket.IO** - Real-time communication
+- **JWT** - Authentication with refresh tokens
+- **Socket.IO** - Real-time updates
 
-### Desktop
-- **Electron** - Desktop application framework
-
-### Testing
-- **Vitest** - Test runner
-- **Testing Library** - Component testing
+### Shared
+- **@odysseus/shared-schemas** - Centralized Zod schemas (monorepo package)
 
 ## Project Structure
 
-This is a monorepo using npm workspaces:
-
 ```
 odysseus-app/
-├── client/              # React frontend
-├── server/              # Express backend
-│   ├── domain/         # Domain entities and business logic
-│   ├── application/    # Use cases (commands/queries)
-│   ├── infrastructure/ # External services, repositories
-│   └── presentation/   # HTTP controllers and routes
-├── packages/
-│   └── shared-schemas/ # Shared TypeScript schemas
-└── electron/           # Electron main process
+├── client/                 # React frontend
+│   └── src/
+│       ├── app/            # Providers, query config, stores
+│       ├── domains/        # Feature modules (tubes, researchers, search, etc.)
+│       ├── shared/         # Reusable components, hooks, utils
+│       └── infrastructure/ # HTTP client, socket, caching
+├── server/                 # Express backend
+│   └── src/
+│       ├── domain/         # Entities, repositories (interfaces), domain services
+│       ├── application/    # Use cases, DTOs, commands, queries, event handlers
+│       ├── infrastructure/ # Repository implementations, database, external services
+│       └── presentation/   # Controllers, routes, middleware
+└── packages/
+    └── shared-schemas/     # Shared Zod validation schemas
 ```
-
-The backend follows **Clean Architecture** principles with distinct layers:
-- **Domain Layer**: Core business entities and rules
-- **Application Layer**: Use cases and business workflows
-- **Infrastructure Layer**: Database, external services, repositories
-- **Presentation Layer**: HTTP routes, controllers, DTOs
 
 ## Prerequisites
 
-- **Node.js** - v18 or higher recommended
-- **Windows 10/11** - Required for current build configuration
-- **Visual Studio Build Tools** - Required for native dependencies (better-sqlite3)
+- **Node.js** v18+
+- **PostgreSQL** database
+- **npm** for package management
 
 ## Installation
-
-Clone the repository and install dependencies:
 
 ```bash
 npm install
 ```
 
-This will install dependencies for the root, client, server, and shared packages.
-
 ## Development
 
-### Run the full application (recommended)
-
 ```bash
+# Full stack (server + client)
 npm run dev
+
+# Individual components
+npm run dev:client    # React on port 3000
+npm run dev:server    # Express on port 3001
 ```
 
-This starts the server, client dev server, and Electron app concurrently.
-
-### Run individual components
+## Build & Test
 
 ```bash
-# Client only (Vite dev server on port 5173)
-npm run dev:client
-
-# Server only (Express API)
-npm run dev:server
-
-# Electron (requires client to be running)
-npm run dev:electron
+npm run build         # Build all
+npm test              # Run all tests
+npm run lint          # Lint client
+npm run typecheck     # Type checking
 ```
 
-## Build
+## Key Features
 
-Build all components for production:
-
-```bash
-npm run build
-```
-
-Individual builds:
-
-```bash
-npm run build:client
-npm run build:server
-npm run build:shared
-```
-
-## Testing
-
-```bash
-# Run all tests
-npm test
-
-# Client tests
-npm run test:client
-
-# Server tests
-npm run test:server
-```
-
-## Code Quality
-
-```bash
-# Lint
-npm run lint
-
-# Lint with auto-fix
-npm run lint:fix
-
-# Format code
-npm run format
-
-# Type checking
-npm run typecheck
-```
-
-## Packaging
-
-Package the application for distribution:
-
-```bash
-# All platforms (based on electron-builder config)
-npm run package
-
-# Windows specifically
-npm run package:win
-```
-
-## Features
-
-- **Tube Inventory Management** - Track liquid nitrogen sample tubes
-- **Hierarchical Storage** - Organize by Tanks → Racks → Boxes → Tubes
-- **Researcher Management** - Associate samples with researchers
-- **Advanced Search** - Filter by multiple criteria
-- **Bulk Operations** - Import/export and batch updates
-- **Real-time Sync** - WebSocket support for collaborative updates
-- **Offline Support** - Local-first with SQLite database
-- **Security** - JWT authentication with role-based access control
-- **Audit Trail** - Track changes and operations
-
-## Architecture Highlights
-
-### Clean Architecture
-The server is organized following Clean Architecture principles, ensuring:
-- **Separation of Concerns** - Each layer has a specific responsibility
-- **Dependency Inversion** - Dependencies flow inward toward the domain
-- **Testability** - Business logic is independent of frameworks
-- **Flexibility** - Easy to swap implementations (e.g., database, auth)
-
-### Path Aliases
-The project uses TypeScript path aliases for cleaner imports:
-- `@domain/*` - Domain entities and business logic
-- `@application/*` - Use cases and commands/queries
-- `@infrastructure/*` - External services and repositories
-- `@presentation/*` - Controllers and HTTP layer
-- `@shared/*` - Shared utilities and types
-
-### Design Patterns
-- **Repository Pattern** - Data access abstraction
-- **CQRS** - Command Query Responsibility Segregation
-- **Dependency Injection** - Service container for loose coupling
-- **Domain Events** - Event-driven architecture for side effects
+- **Tube Inventory** - CRUD with hierarchical storage (Tank/Rack/Box/Position)
+- **Tube Locking** - Lock tubes with optional sharing to specific users
+- **Researcher Management** - Link researchers to tubes with approval workflow
+- **Advanced Search** - Full-text search with filters and saved searches
+- **Real-time Sync** - Socket.IO for collaborative updates
+- **Audit Trail** - Track all changes with archival
+- **Role-based Access** - Admin and user roles with configurable security
 
 ## License
 
@@ -195,7 +96,3 @@ MIT
 ## Author
 
 Evan Massi
-
-## Company
-
-XcellBio

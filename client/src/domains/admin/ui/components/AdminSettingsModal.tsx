@@ -97,12 +97,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       const response = await adminService.getMetrics();
 
       if (response.success && response.data) {
-        setSystemStats({
-          totalTubes: response.data.totalTubes || 0,
-          totalUsers: response.data.totalUsers || 1,
-          totalResearchers: response.data.totalResearchers || 0,
-          lastBackup: new Date().toISOString(),
-        });
+        setSystemStats(response.data);
       }
     } catch (error) {
       logger.error('Failed to load system stats', { error });

@@ -3,7 +3,7 @@ const path = require('path');
 const isDev = process.env.NODE_ENV === 'development';
 
 // Set AppUserModelId for proper Windows taskbar icon
-app.setAppUserModelId('com.xcellbio.odysseus');
+app.setAppUserModelId('com.evanmassi.odysseus');
 
 let mainWindow;
 

@@ -1,6 +1,6 @@
 {
   "name": "odysseus",
-  "version": "2.0.0",
+  "version": "1.0.0",
   "description": "Professional Liquid Nitrogen Tube Inventory Management System",
   "main": "electron/main.js",
   "homepage": "./",
@@ -69,7 +69,7 @@
     "wait-on": "^8.0.4"
   },
   "build": {
-    "appId": "com.xcellbio.odysseus",
+    "appId": "com.evanmassi.odysseus",
     "productName": "Odysseus",
     "npmRebuild": false,
     "directories": {
@@ -94,6 +94,6 @@
       "verifyUpdateCodeSignature": false
     }
   },
-  "author": "XcellBio",
+  "author": "Evan Massi",
   "license": "MIT"
 }

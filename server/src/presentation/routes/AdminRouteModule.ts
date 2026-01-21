@@ -11,6 +11,7 @@ import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { AuditController } from '@presentation/controllers/AuditController';
+import { ExportController } from '@presentation/controllers/ExportController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { validateBody, validateParams } from '@middleware/Validation';
 import {
@@ -24,6 +25,7 @@ export class AdminRouteModule implements RouteModule {
     private readonly authController: AuthController,
     private readonly researcherController: ResearcherController,
     private readonly auditController: AuditController,
+    private readonly exportController: ExportController,
     private readonly authMiddleware: AuthMiddleware
   ) {}
 
@@ -203,6 +205,24 @@ export class AdminRouteModule implements RouteModule {
 
     router.get('/database/status',
       this.getDatabaseStatus.bind(this)
+    );
+
+    // DATA EXPORT ENDPOINTS
+
+    router.get('/export/tubes',
+      this.exportController.exportTubes.bind(this.exportController)
+    );
+
+    router.get('/export/users',
+      this.exportController.exportUsers.bind(this.exportController)
+    );
+
+    router.get('/export/researchers',
+      this.exportController.exportResearchers.bind(this.exportController)
+    );
+
+    router.get('/export/system-backup',
+      this.exportController.exportSystemBackup.bind(this.exportController)
     );
   }
 
