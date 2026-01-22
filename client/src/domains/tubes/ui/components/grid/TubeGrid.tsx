@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 
@@ -141,26 +141,32 @@ export function TubeGrid({
   );
 
   // Position click handler (delegates to grid controller)
-  const handlePositionClick = (position: number, event: React.MouseEvent | React.KeyboardEvent) => {
-    setFocusedPosition(position); // Update keyboard focus on click
-    controller.handlePositionClick(position, event, gridConfig.cols);
-  };
+  const handlePositionClick = useCallback(
+    (position: number, event: React.MouseEvent | React.KeyboardEvent) => {
+      setFocusedPosition(position); // Update keyboard focus on click
+      controller.handlePositionClick(position, event, gridConfig.cols);
+    },
+    [controller, gridConfig.cols]
+  );
 
-  const handlePositionRightClick = (position: number, event: React.MouseEvent) => {
-    event.preventDefault();
+  const handlePositionRightClick = useCallback(
+    (position: number, event: React.MouseEvent) => {
+      event.preventDefault();
 
-    // Replace selection with clicked position if not already selected
-    // (right-click on unselected item selects only that item)
-    if (!controller.isPositionSelected(position)) {
-      controller.actions.setSelection(position);
-    }
+      // Replace selection with clicked position if not already selected
+      // (right-click on unselected item selects only that item)
+      if (!controller.isPositionSelected(position)) {
+        controller.actions.setSelection(position);
+      }
 
-    // Position menu relative to clicked tube
-    const target = event.currentTarget as HTMLElement;
-    const rect = target.getBoundingClientRect();
+      // Position menu relative to clicked tube
+      const target = event.currentTarget as HTMLElement;
+      const rect = target.getBoundingClientRect();
 
-    controller.contextMenu.show(rect.left + rect.width / 2, rect.top + rect.height / 2);
-  };
+      controller.contextMenu.show(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    },
+    [controller]
+  );
 
   // Focus grid on mount
   useEffect(() => {

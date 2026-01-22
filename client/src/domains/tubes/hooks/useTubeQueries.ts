@@ -19,7 +19,7 @@ import {
 } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
-import { TubeService } from '@domains/tubes/services/TubeService';
+import { TubeService, type TubeStats } from '@domains/tubes/services/TubeService';
 import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
 import type { TubeData } from '@domains/tubes/types';
@@ -315,68 +315,16 @@ export const usePrefetchTubeLocation = () => {
 /**
  * Get tube statistics and aggregations
  *
- * New functionality - analytics queries
+ * Fetches pre-computed statistics from the server instead of
+ * downloading all tubes and counting on the client.
  */
 export const useTubeStats = (
-  tankId?: string,
-  rackId?: string,
-  boxId?: string, // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic stats data structure
-  options: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn'> = {}
+  options: Omit<UseQueryOptions<TubeStats>, 'queryKey' | 'queryFn'> = {}
 ) => {
   return useQuery({
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty string IDs are invalid, use 'all' for aggregated queries
-    queryKey: [...queryKeys.tubes.locationStats(tankId || 'all', rackId || 'all'), boxId || 'all'],
+    queryKey: queryKeys.tubes.stats(),
     queryFn: async () => {
-      // Get all tubes for statistics
-      const schemaTubes = await TubeService.fetchTubes();
-      let tubes = schemaTubes.map(convertSchemaToSharedTubeData);
-
-      // Filter by location if specified
-      if (tankId && tankId !== 'all') {
-        tubes = tubes.filter(tube => tube.location.tankId === tankId);
-      }
-      if (rackId !== undefined) {
-        tubes = tubes.filter(tube => tube.location.rackId === rackId);
-      }
-      if (boxId) {
-        tubes = tubes.filter(tube => tube.location.boxId === boxId);
-      }
-
-      // Calculate statistics
-      const stats = {
-        total: tubes.length,
-        byTank: {} as Record<string, number>,
-        byRack: {} as Record<string, number>,
-        byBox: {} as Record<string, number>,
-        byResearcher: {} as Record<string, number>,
-        byCellType: {} as Record<string, number>,
-        emptyPositions: 0,
-        occupiedPositions: tubes.length,
-      };
-
-      tubes.forEach(tube => {
-        // Tank statistics
-        stats.byTank[tube.location.tankId] = (stats.byTank[tube.location.tankId] || 0) + 1;
-
-        // Rack statistics
-        stats.byRack[tube.location.rackId] = (stats.byRack[tube.location.rackId] || 0) + 1;
-
-        // Box statistics
-        stats.byBox[tube.location.boxId] = (stats.byBox[tube.location.boxId] || 0) + 1;
-
-        // Researcher statistics
-        if (tube.researcherId) {
-          stats.byResearcher[tube.researcherId] = (stats.byResearcher[tube.researcherId] || 0) + 1;
-        }
-
-        // Cell type statistics
-        if (tube.sample.cellType) {
-          stats.byCellType[tube.sample.cellType] =
-            (stats.byCellType[tube.sample.cellType] || 0) + 1;
-        }
-      });
-
-      return stats;
+      return TubeService.fetchStats();
     },
     staleTime: 10 * 60 * 1000, // Statistics stale slower (10 minutes)
     gcTime: 30 * 60 * 1000, // Keep stats longer in cache

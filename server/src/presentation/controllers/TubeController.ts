@@ -248,6 +248,22 @@ export class TubeController {
   }
 
   /**
+   * Get tube statistics
+   * GET /api/tubes/stats
+   */
+  async getStats(req: Request, res: Response): Promise<void> {
+    try {
+      const authenticatedUser = this.getAuthenticatedUser(req);
+
+      const stats = await this.tubeApplicationService.getStats(authenticatedUser);
+
+      res.json(ErrorDto.success(stats));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to get tube statistics', req.requestId);
+    }
+  }
+
+  /**
    * Helper: Extract authenticated user from OAuth 2.0 middleware
    */
   private getAuthenticatedUser(req: Request): User {

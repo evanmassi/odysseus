@@ -8,3 +8,4 @@
 export { useAnimatedClose } from './useAnimatedClose';
 export { useDebounce } from './useDebounce';
 export { useFocusTrap } from './useFocusTrap';
+export { useTextTruncation } from './useTextTruncation';

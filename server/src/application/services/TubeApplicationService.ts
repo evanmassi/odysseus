@@ -828,4 +828,36 @@ export class TubeApplicationService {
 
     return { revoked, skipped };
   }
+
+  /** Server-side aggregation avoids fetching all tubes over the network. */
+  async getStats(authenticatedUser: User): Promise<{
+    totalTubes: number;
+    tubesByTank: Record<string, number>;
+    tubesByResearcher: Record<string, number>;
+    averageTubesPerBox: number;
+    oldestTube?: { id: string; createdAt: string };
+    newestTube?: { id: string; createdAt: string };
+    completionRate: number;
+    expirationRate: number;
+  }> {
+    this.accessControlService.requireCanViewTubes(authenticatedUser);
+
+    const stats = await this.tubeRepository.getStats();
+
+    // Serialize dates to ISO strings for JSON response
+    return {
+      totalTubes: stats.totalTubes,
+      tubesByTank: stats.tubesByTank,
+      tubesByResearcher: stats.tubesByResearcher,
+      averageTubesPerBox: stats.averageTubesPerBox,
+      oldestTube: stats.oldestTube
+        ? { id: stats.oldestTube.id, createdAt: stats.oldestTube.createdAt.toISOString() }
+        : undefined,
+      newestTube: stats.newestTube
+        ? { id: stats.newestTube.id, createdAt: stats.newestTube.createdAt.toISOString() }
+        : undefined,
+      completionRate: stats.completionRate,
+      expirationRate: stats.expirationRate,
+    };
+  }
 }

@@ -66,8 +66,12 @@ export class ResourceRouteModule implements RouteModule {
       this.tubeController.getTubesByLocation.bind(this.tubeController)
     );
 
-    router.get('/tubes/search', 
+    router.get('/tubes/search',
       this.tubeController.searchTubes.bind(this.tubeController)
+    );
+
+    router.get('/tubes/stats',
+      this.tubeController.getStats.bind(this.tubeController)
     );
 
     router.get('/tubes/rack/:rackId/box/:boxId', 

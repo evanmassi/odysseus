@@ -1,9 +1,10 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Icon, Rows3, Box as BoxIcon } from 'lucide-react';
 
+import { useTextTruncation } from '@shared/hooks';
 import { OwnershipIndicatorBadge } from '@shared/ui/components';
 import { Tooltip } from '@shared/ui/primitives';
 
@@ -29,27 +30,7 @@ export const StorageNavigatorItem: React.FC<StorageNavigatorItemProps> = ({
   ownershipInitials,
 }) => {
   const hasChildren = !!children;
-  const textRef = useRef<HTMLSpanElement>(null);
-  const [isTruncated, setIsTruncated] = useState(false);
-
-  // Detect text truncation
-  useEffect(() => {
-    const checkTruncation = () => {
-      if (textRef.current) {
-        setIsTruncated(textRef.current.scrollWidth > textRef.current.clientWidth);
-      }
-    };
-
-    checkTruncation();
-
-    // Re-check on resize
-    const resizeObserver = new ResizeObserver(checkTruncation);
-    if (textRef.current) {
-      resizeObserver.observe(textRef.current);
-    }
-
-    return () => resizeObserver.disconnect();
-  }, [name]);
+  const { ref: textRef, isTruncated } = useTextTruncation<HTMLSpanElement>([name]);
 
   const iconSize = level === 'tank' ? 20 : level === 'rack' ? 18 : 16;
 

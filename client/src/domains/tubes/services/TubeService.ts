@@ -25,6 +25,7 @@ import {
   shareAccessResultSchema,
   revokeAccessResultSchema,
 } from '@odysseus/shared-schemas';
+import { z } from 'zod';
 
 import { httpClient } from '@infra/api/httpClient';
 import { normalizeDateString } from '@shared/utils/dateUtils';
@@ -236,4 +237,35 @@ export class TubeService {
       revokeAccessResultSchema
     );
   }
+
+  /** Fetches pre-computed statistics from server instead of downloading all tubes. */
+  static async fetchStats(): Promise<TubeStats> {
+    return await httpClient.getData(`${this.BASE_PATH}/stats`, tubeStatsSchema);
+  }
 }
+
+/**
+ * Tube statistics response schema
+ */
+const tubeStatsSchema = z.object({
+  totalTubes: z.number(),
+  tubesByTank: z.record(z.string(), z.number()),
+  tubesByResearcher: z.record(z.string(), z.number()),
+  averageTubesPerBox: z.number(),
+  oldestTube: z
+    .object({
+      id: z.string(),
+      createdAt: z.string(),
+    })
+    .optional(),
+  newestTube: z
+    .object({
+      id: z.string(),
+      createdAt: z.string(),
+    })
+    .optional(),
+  completionRate: z.number(),
+  expirationRate: z.number(),
+});
+
+export type TubeStats = z.infer<typeof tubeStatsSchema>;
