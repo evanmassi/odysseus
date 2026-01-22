@@ -159,11 +159,8 @@ export function TubeGrid({
         controller.actions.setSelection(position);
       }
 
-      // Position menu relative to clicked tube
-      const target = event.currentTarget as HTMLElement;
-      const rect = target.getBoundingClientRect();
-
-      controller.contextMenu.show(rect.left + rect.width / 2, rect.top + rect.height / 2);
+      // Position menu at actual mouse cursor position
+      controller.contextMenu.show(event.clientX, event.clientY);
     },
     [controller]
   );

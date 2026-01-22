@@ -135,7 +135,7 @@ export const useGridSelection = ({
       };
 
       if (shouldDelay) {
-        // Delay to distinguish from double-click (Windows Explorer, macOS Finder pattern)
+        // Delay to distinguish single-click from double-click on multi-selection
         clickTimerRef.current = setTimeout(executeSelection, 200);
       } else {
         // Execute immediately for instant feedback

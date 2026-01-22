@@ -4,7 +4,7 @@
  * Right-click menu for grid cell operations with keyboard shortcut hints.
  * Implements WAI-ARIA Menu pattern for full keyboard accessibility.
  */
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useCallback, useLayoutEffect } from 'react';
 
 import {
   Plus,
@@ -42,6 +42,9 @@ interface ContextMenuProps {
   onShare?: () => void;
   isUnlocking?: boolean;
 }
+
+const ANIMATION_DURATION = 50;
+const VIEWPORT_PADDING = 8;
 
 function MenuDivider() {
   return <div className="h-px bg-border my-1" />;
@@ -122,61 +125,129 @@ export function ContextMenu({
   isUnlocking = false,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [isAnimatingIn, setIsAnimatingIn] = useState(false);
+  const [adjustedPosition, setAdjustedPosition] = useState({ x: 0, y: 0 });
+  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevPositionRef = useRef<{ x: number; y: number } | null>(null);
 
-  // Keyboard navigation (WAI-ARIA Menu pattern)
-  const { handleKeyDown, handleBlur } = useMenuKeyboardNavigation({
-    menuRef,
-    isOpen: isVisible,
-    onClose,
-  });
+  // Adjust position to keep menu in viewport (after measuring actual size)
+  useLayoutEffect(() => {
+    if (!isVisible || !menuRef.current) {
+      return;
+    }
 
-  // Calculate position to keep menu in viewport
-  const adjustedPosition = (() => {
-    const estimatedWidth = 220;
-    const estimatedHeight = 320;
+    const menu = menuRef.current;
+    const rect = menu.getBoundingClientRect();
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    let { x, y } = position;
+    let x = position.x;
+    let y = position.y;
 
-    if (x + estimatedWidth > viewportWidth) {
-      x = Math.max(10, viewportWidth - estimatedWidth - 10);
+    // Flip horizontally if would overflow right
+    if (x + rect.width > viewportWidth - VIEWPORT_PADDING) {
+      x = Math.max(VIEWPORT_PADDING, x - rect.width);
     }
 
-    if (y + estimatedHeight > viewportHeight) {
-      y = Math.max(10, viewportHeight - estimatedHeight - 10);
+    // Flip vertically if would overflow bottom
+    if (y + rect.height > viewportHeight - VIEWPORT_PADDING) {
+      y = Math.max(VIEWPORT_PADDING, y - rect.height);
     }
 
-    return { x, y };
-  })();
+    // Ensure doesn't go off left/top
+    x = Math.max(VIEWPORT_PADDING, x);
+    y = Math.max(VIEWPORT_PADDING, y);
 
-  // Handle click outside to close
+    setAdjustedPosition({ x, y });
+  }, [isVisible, position.x, position.y]);
+
+  // Handle visibility and animation
+  useEffect(() => {
+    if (isVisible) {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
+
+      // Small delay to allow position adjustment before animating
+      requestAnimationFrame(() => {
+        setIsAnimatingIn(true);
+      });
+    } else {
+      setIsAnimatingIn(false);
+    }
+  }, [isVisible]);
+
+  // Handle position changes while menu is open (right-click on different tube)
+  // Using useLayoutEffect to prevent visual flicker when cancelling close animation
+  useLayoutEffect(() => {
+    if (!isVisible) {
+      prevPositionRef.current = null;
+      return;
+    }
+
+    const positionChanged =
+      prevPositionRef.current &&
+      (prevPositionRef.current.x !== position.x || prevPositionRef.current.y !== position.y);
+
+    if (positionChanged) {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
+      setIsAnimatingIn(true);
+    }
+
+    prevPositionRef.current = { x: position.x, y: position.y };
+  }, [isVisible, position.x, position.y]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
+    };
+  }, []);
+
+  const closeMenu = useCallback(() => {
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+    onClose();
+  }, [onClose]);
+
+  const { handleKeyDown, handleBlur } = useMenuKeyboardNavigation({
+    menuRef,
+    isOpen: isVisible,
+    onClose: closeMenu,
+  });
+
+  // Handle click outside
   useEffect(() => {
     if (!isVisible) return;
 
     const handleClickOutside = (e: MouseEvent) => {
+      // Ignore right-clicks - they update position via contextmenu event
+      // This prevents the close animation from starting before position updates
+      if (e.button === 2) return;
+
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
+        closeMenu();
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isVisible, closeMenu]);
 
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isVisible, onClose]);
-
+  // Don't render if not visible
   if (!isVisible) return null;
 
-  // Determine Add/Edit label and icon
   const isEditMode = hasFilledSelection && !isMixedSelection;
   const openLabel = isEditMode ? 'Edit' : 'Add';
   const OpenIcon = isEditMode ? Edit : Plus;
-
-  // Check which sections have content
   const hasClipboardSection = hasFilledSelection || (canPaste && selectedCount > 0);
-  // Boolean OR logic for checking if any lock action is available
+
   /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
   const hasLockSection =
     (lockableCount > 0 && onLock) ||
@@ -191,6 +262,9 @@ export function ContextMenu({
       style={{
         left: adjustedPosition.x,
         top: adjustedPosition.y,
+        transform: isAnimatingIn ? 'scale(1)' : 'scale(0.95)',
+        opacity: isAnimatingIn ? 1 : 0,
+        transition: `transform ${ANIMATION_DURATION}ms ease-out, opacity ${ANIMATION_DURATION}ms ease-out`,
       }}
       role="menu"
       aria-label="Context menu"
@@ -198,18 +272,16 @@ export function ContextMenu({
       onKeyDown={handleKeyDown}
       onBlur={handleBlur}
     >
-      {/* Section 1: Add/Edit */}
       {selectedCount > 0 && (
         <>
           <div className="px-1">
             <MenuItem icon={OpenIcon} label={openLabel} shortcut="Enter" onClick={onOpen} />
           </div>
-          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for divider visibility */}
+          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
           {(hasClipboardSection || hasLockSection || hasFilledSelection) && <MenuDivider />}
         </>
       )}
 
-      {/* Section 2: Copy, Cut, Paste */}
       {hasClipboardSection && (
         <>
           <div className="px-1">
@@ -221,7 +293,7 @@ export function ContextMenu({
                   shortcut="Ctrl+C"
                   onClick={() => {
                     onCopy();
-                    onClose();
+                    closeMenu();
                   }}
                 />
                 <MenuItem
@@ -230,7 +302,7 @@ export function ContextMenu({
                   shortcut="Ctrl+X"
                   onClick={() => {
                     onCut();
-                    onClose();
+                    closeMenu();
                   }}
                 />
               </>
@@ -242,17 +314,16 @@ export function ContextMenu({
                 shortcut="Ctrl+V"
                 onClick={() => {
                   onPaste();
-                  onClose();
+                  closeMenu();
                 }}
               />
             )}
           </div>
-          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for divider visibility */}
+          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
           {(hasLockSection || hasFilledSelection) && <MenuDivider />}
         </>
       )}
 
-      {/* Section 3: Lock, Unlock, Share */}
       {hasLockSection && (
         <>
           <div className="px-1">
@@ -263,7 +334,7 @@ export function ContextMenu({
                 shortcut="Shift+L"
                 onClick={() => {
                   onLock();
-                  onClose();
+                  closeMenu();
                 }}
               />
             )}
@@ -275,7 +346,7 @@ export function ContextMenu({
                 onClick={() => {
                   if (!isUnlocking) {
                     onUnlock();
-                    onClose();
+                    closeMenu();
                   }
                 }}
                 disabled={isUnlocking}
@@ -288,7 +359,7 @@ export function ContextMenu({
                 shortcut="Shift+S"
                 onClick={() => {
                   onShare();
-                  onClose();
+                  closeMenu();
                 }}
               />
             )}
@@ -297,10 +368,18 @@ export function ContextMenu({
         </>
       )}
 
-      {/* Section 4: Remove (at bottom) */}
       {hasFilledSelection && (
         <div className="px-1">
-          <MenuItem icon={Trash2} label="Remove" shortcut="Del" onClick={onDelete} danger />
+          <MenuItem
+            icon={Trash2}
+            label="Remove"
+            shortcut="Del"
+            onClick={() => {
+              onDelete();
+              closeMenu();
+            }}
+            danger
+          />
         </div>
       )}
     </div>

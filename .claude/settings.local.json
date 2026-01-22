@@ -45,7 +45,9 @@
       "WebFetch(domain:docs.stripe.com)",
       "WebFetch(domain:ui.jln.dev)",
       "WebFetch(domain:medium.com)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:floating-ui.com)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
