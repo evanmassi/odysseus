@@ -29,6 +29,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   const [loginError, setLoginError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [isResending, setIsResending] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const {
     login,
     forceChangePassword,
@@ -129,6 +130,29 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     );
   }
 
+  // Show forgot password message
+  if (showForgotPassword) {
+    return (
+      <AuthBaseModal key="forgot-password" showBranding="icon">
+        <div className="text-center">
+          <h2 className="text-xl font-bold text-secondary-foreground [[data-theme=dark]_&]:text-muted-foreground mb-4">
+            Forgot password?
+          </h2>
+          <p className="text-sm text-muted-foreground mb-6">
+            Please contact your administrator to reset your password.
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowForgotPassword(false)}
+            className="text-xs text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors rounded px-1"
+          >
+            Back to login
+          </button>
+        </div>
+      </AuthBaseModal>
+    );
+  }
+
   // Show password change form when required
   if (passwordChangeRequired) {
     return (
@@ -220,18 +244,29 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         />
 
         {/* Password */}
-        <AuthInput
-          id="password"
-          type="password"
-          value={password}
-          onChange={setPassword}
-          label="Password"
-          placeholder="Your password"
-          icon={<KeyRound size={16} />}
-          state={loginError ? 'error' : 'default'}
-          required
-          disabled={isLoading}
-        />
+        <div>
+          <AuthInput
+            id="password"
+            type="password"
+            value={password}
+            onChange={setPassword}
+            label="Password"
+            placeholder="Your password"
+            icon={<KeyRound size={16} />}
+            state={loginError ? 'error' : 'default'}
+            required
+            disabled={isLoading}
+          />
+          <div className="text-right mt-0.5">
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              className="text-xs text-action [[data-theme=dark]_&]:text-action/70 font-semibold hover:text-action-hover [[data-theme=dark]_&]:hover:text-action/90 transition-colors rounded px-1"
+            >
+              Forgot password?
+            </button>
+          </div>
+        </div>
 
         <Button
           type="submit"
