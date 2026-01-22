@@ -1,7 +1,0 @@
-C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\admin\ui\components\tabs\SecurityTab.tsx
-C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\authentication\ui\components\RegistrationSuccessModal.tsx
-C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\storage\ui\components\storage-navigator\StorageNavigator.tsx
-C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\ui\components\grid\GridPosition.tsx
-C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\ui\components\grid\TubeGrid.tsx
-C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\ui\components\modals\DeleteConfirmDialog.tsx
-C:\Users\evan\Desktop\Odysseus\odysseus-app\client\src\domains\tubes\ui\components\modals\OverwriteConfirmDialog.tsx

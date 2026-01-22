@@ -1,2 +1,0 @@
-  10:1   error  Dependency cycle detected                      import/no-cycle
-   11:1   error  Dependency cycle detected                                                                                  import/no-cycle
