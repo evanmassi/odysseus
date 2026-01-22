@@ -10,16 +10,21 @@ import { useEffect, useState } from 'react';
 interface AnimatedCheckmarkProps {
   size?: number;
   className?: string;
+  /** Delay in ms before animation starts (useful when inside animated containers) */
+  delay?: number;
 }
 
-export function AnimatedCheckmark({ size = 48, className = '' }: AnimatedCheckmarkProps) {
+export function AnimatedCheckmark({
+  size = 48,
+  className = '',
+  delay = 50,
+}: AnimatedCheckmarkProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Trigger animation on mount
-    const timer = setTimeout(() => setIsVisible(true), 50);
+    const timer = setTimeout(() => setIsVisible(true), delay);
     return () => clearTimeout(timer);
-  }, []);
+  }, [delay]);
 
   // Uses Lucide's 24x24 viewBox with exact CircleCheck geometry
 

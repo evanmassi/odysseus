@@ -2,14 +2,12 @@
  * Session Timeout Warning Modal
  *
  * Displays a countdown warning when the user's session is about to expire.
- * Allows user to extend session ("Stay Logged In") or log out immediately.
- *
- * Styled to match ConfirmDialog pattern for visual consistency.
+ * Features a circular progress ring that visually depletes as time runs out.
  */
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 
-import { Clock, LogOut } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
@@ -18,6 +16,10 @@ import { Button } from '@shared/ui';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
 const EXIT_DURATION = 200;
+
+// Circle geometry for progress ring
+const CIRCLE_RADIUS = 54;
+const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
 
 /**
  * Format milliseconds as MM:SS
@@ -31,34 +33,32 @@ function formatTime(ms: number): string {
 
 /**
  * SessionTimeoutWarningModal Component
- *
- * Shows a countdown timer warning the user their session will expire.
- * Provides options to extend the session or log out.
  */
 export function SessionTimeoutWarningModal() {
   const { sessionTimeoutWarning } = useModalStore();
   const { isOpen, timeRemainingMs, onStayLoggedIn, onLogout } = sessionTimeoutWarning;
 
-  // Ref for focusing the primary action button
   const stayLoggedInRef = useRef<HTMLButtonElement>(null);
+  const initialTimeRef = useRef<number | null>(null);
+  // Use ref for pending action to avoid stale closure issues with useAnimatedClose
+  const pendingActionRef = useRef<'stayLoggedIn' | 'logout' | 'timeout' | null>(null);
 
-  // Local countdown state for smooth animation
   const [displayTime, setDisplayTime] = useState(timeRemainingMs);
-  const [pendingAction, setPendingAction] = useState<'stayLoggedIn' | 'logout' | 'timeout' | null>(
-    null
-  );
 
   // Handle the actual close action after animation completes
   const handleCloseComplete = useCallback(() => {
-    if (pendingAction === 'stayLoggedIn') {
+    const action = pendingActionRef.current;
+    if (action === 'stayLoggedIn') {
       onStayLoggedIn();
-    } else if (pendingAction === 'logout') {
+    } else if (action === 'logout') {
       onLogout('manual');
-    } else if (pendingAction === 'timeout') {
+    } else if (action === 'timeout') {
       onLogout('timeout');
     }
-    setPendingAction(null);
-  }, [pendingAction, onStayLoggedIn, onLogout]);
+    pendingActionRef.current = null;
+    // Reset initial time ref when modal closes so next open captures fresh value
+    initialTimeRef.current = null;
+  }, [onStayLoggedIn, onLogout]);
 
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,
@@ -75,21 +75,30 @@ export function SessionTimeoutWarningModal() {
     autoFocusFirstInput: false,
   });
 
-  // Sync with server-provided time
+  // Capture initial time only once when modal first opens
   useEffect(() => {
-    setDisplayTime(timeRemainingMs);
-  }, [timeRemainingMs]);
+    if (isOpen && timeRemainingMs > 0 && initialTimeRef.current === null) {
+      initialTimeRef.current = timeRemainingMs;
+      setDisplayTime(timeRemainingMs);
+    }
+  }, [isOpen, timeRemainingMs]);
 
-  // Local countdown timer (updates every second for smooth display)
+  // Sync display time with server updates (but don't reset initial time)
+  useEffect(() => {
+    if (isVisible && !isClosing && timeRemainingMs > 0) {
+      setDisplayTime(timeRemainingMs);
+    }
+  }, [timeRemainingMs, isVisible, isClosing]);
+
+  // Local countdown timer
   useEffect(() => {
     if (!isVisible || isClosing) return;
 
     const interval = setInterval(() => {
       setDisplayTime(prev => {
         const newTime = Math.max(0, prev - 1000);
-        // If time runs out, trigger timeout logout (not manual)
         if (newTime <= 0) {
-          setPendingAction('timeout');
+          pendingActionRef.current = 'timeout';
           triggerClose();
           return 0;
         }
@@ -100,19 +109,17 @@ export function SessionTimeoutWarningModal() {
     return () => clearInterval(interval);
   }, [isVisible, isClosing, triggerClose]);
 
-  // Handle stay logged in
   const handleStayLoggedIn = useCallback(() => {
-    setPendingAction('stayLoggedIn');
+    pendingActionRef.current = 'stayLoggedIn';
     triggerClose();
   }, [triggerClose]);
 
-  // Handle manual logout (user clicked "Log Out" button)
   const handleLogout = useCallback(() => {
-    setPendingAction('logout');
+    pendingActionRef.current = 'logout';
     triggerClose();
   }, [triggerClose]);
 
-  // Keyboard navigation: Enter confirms (stay logged in), Escape logs out
+  // Keyboard navigation
   useEffect(() => {
     if (!isVisible || isClosing) return;
 
@@ -129,9 +136,7 @@ export function SessionTimeoutWarningModal() {
     };
 
     document.addEventListener('keydown', handleKeyDown, true);
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown, true);
-    };
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
   }, [isVisible, isClosing, handleStayLoggedIn, handleLogout]);
 
   if (!isVisible) return null;
@@ -142,16 +147,16 @@ export function SessionTimeoutWarningModal() {
   const modalAnimationClass = isClosing ? 'animate-modal-blowup-out' : 'animate-modal-blowup-in';
 
   const formattedTime = formatTime(displayTime);
-  const isUrgent = displayTime <= 60000; // Less than 1 minute
+  const isUrgent = displayTime <= 60000;
 
-  // Warning variant styling (matching ConfirmDialog pattern)
-  const styles = {
-    iconBg: 'bg-muted',
-    iconColor: isUrgent ? 'text-danger-bg' : 'text-warning-bg',
-    border: isUrgent ? 'border-danger-border' : 'border-warning-border',
-    shadow: isUrgent ? 'shadow-danger-bg/30' : 'shadow-warning-bg/30',
-    timerColor: isUrgent ? 'text-danger-bg' : 'text-warning-bg',
-  };
+  // Progress calculation (1 = full, 0 = empty)
+  const initialTime = initialTimeRef.current ?? timeRemainingMs;
+  const progress = initialTime > 0 ? displayTime / initialTime : 0;
+  const strokeOffset = CIRCLE_CIRCUMFERENCE * (1 - progress);
+
+  // Color transitions from warning to danger
+  const ringColor = isUrgent ? 'text-danger-bg' : 'text-warning-bg';
+  const borderColor = isUrgent ? 'border-danger-border' : 'border-warning-border';
 
   return (
     <ModalPortal>
@@ -162,49 +167,103 @@ export function SessionTimeoutWarningModal() {
           ref={trapRef}
           role="alertdialog"
           aria-modal="true"
-          aria-labelledby="session-timeout-title"
+          aria-label="Session expiring warning"
           aria-describedby="session-timeout-message"
-          className={`bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl ${styles.shadow} border ${styles.border} ${modalAnimationClass}`}
+          className={`bg-card rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl border ${borderColor} ${modalAnimationClass}`}
         >
-          {/* Header */}
-          <div className="flex items-center justify-center mb-6">
-            <div className="flex items-center space-x-3">
-              <div className={`p-2 ${styles.iconBg} rounded-full`}>
-                <Clock className={`w-6 h-6 ${styles.iconColor}`} />
+          {/* Circular countdown timer */}
+          <div className="flex flex-col items-center mb-5">
+            <div className={`relative ${ringColor}`}>
+              {/* Glow layer (behind the ring) */}
+              <svg
+                width="140"
+                height="140"
+                viewBox="0 0 120 120"
+                className={`absolute inset-0 transform -rotate-90 ${isUrgent ? 'animate-countdown-pulse' : ''}`}
+                style={{ filter: 'blur(6px)', opacity: 0.5 }}
+              >
+                <circle
+                  cx="60"
+                  cy="60"
+                  r={CIRCLE_RADIUS}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="6"
+                  strokeLinecap="round"
+                  style={{
+                    strokeDasharray: CIRCLE_CIRCUMFERENCE,
+                    strokeDashoffset: strokeOffset,
+                    transition: 'stroke-dashoffset 1s linear',
+                  }}
+                />
+              </svg>
+
+              {/* Main ring */}
+              <svg
+                width="140"
+                height="140"
+                viewBox="0 0 120 120"
+                className="relative transform -rotate-90"
+              >
+                {/* Background track */}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r={CIRCLE_RADIUS}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  className="opacity-15"
+                />
+                {/* Progress ring */}
+                <circle
+                  cx="60"
+                  cy="60"
+                  r={CIRCLE_RADIUS}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  style={{
+                    strokeDasharray: CIRCLE_CIRCUMFERENCE,
+                    strokeDashoffset: strokeOffset,
+                    transition: 'stroke-dashoffset 1s linear',
+                  }}
+                />
+              </svg>
+
+              {/* Timer text centered in ring */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span
+                  className={`text-3xl font-mono font-normal tracking-tight ${ringColor}`}
+                  role="timer"
+                  aria-live="polite"
+                  aria-label={`Time remaining: ${formattedTime}`}
+                >
+                  {formattedTime}
+                </span>
               </div>
-              <h2 id="session-timeout-title" className="text-xl font-bold text-card-foreground">
-                Session Expiring Soon
-              </h2>
             </div>
-          </div>
 
-          {/* Message and Timer */}
-          <div className="text-center mb-8">
-            <p id="session-timeout-message" className="text-muted-foreground mb-4">
-              Your session will expire due to inactivity.
-            </p>
-
-            {/* Countdown display */}
-            <div
-              className={`text-5xl font-mono font-bold mb-4 ${styles.timerColor}`}
-              role="timer"
-              aria-live="polite"
-              aria-label={`Time remaining: ${formattedTime}`}
+            <p
+              id="session-timeout-message"
+              className="text-sm text-muted-foreground mt-3 text-center"
             >
-              {formattedTime}
-            </div>
-
-            <p className="text-sm text-muted-foreground">
-              Click &quot;Stay Logged In&quot; to continue your session.
+              Your session will expire due to inactivity
             </p>
           </div>
 
-          {/* Actions */}
-          <div className="flex justify-center space-x-3">
-            <Button variant="secondary" onClick={handleLogout} leftIcon={<LogOut size={18} />}>
+          {/* Actions - right aligned */}
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleLogout}
+              leftIcon={<LogOut size={16} />}
+            >
               Log Out
             </Button>
-            <Button ref={stayLoggedInRef} variant="primary" onClick={handleStayLoggedIn}>
+            <Button ref={stayLoggedInRef} variant="primary" size="sm" onClick={handleStayLoggedIn}>
               Stay Logged In
             </Button>
           </div>

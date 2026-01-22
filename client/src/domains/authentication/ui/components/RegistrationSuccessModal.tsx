@@ -51,7 +51,7 @@ export function RegistrationSuccessModal({
     <AuthBaseModal showBranding="icon" zIndex={60}>
       {/* Success Header */}
       <div className="flex justify-center mb-2">
-        <AnimatedCheckmark size={64} className="text-success-text" />
+        <AnimatedCheckmark size={64} className="text-success-text" delay={750} />
       </div>
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-success-text mb-1">Account Created</h2>

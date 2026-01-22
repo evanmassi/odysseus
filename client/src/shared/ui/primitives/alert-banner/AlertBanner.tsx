@@ -4,9 +4,12 @@
  * Inline alert component for displaying contextual messages in forms and modals.
  */
 
-import { CheckCircle } from 'lucide-react';
-
-import { AnimatedInfoMark, AnimatedWarningMark, AnimatedXMark } from '@shared/components';
+import {
+  AnimatedCheckmark,
+  AnimatedInfoMark,
+  AnimatedWarningMark,
+  AnimatedXMark,
+} from '@shared/components';
 
 import { defaultAlertBannerProps } from './types';
 
@@ -43,7 +46,7 @@ const variantStyles: Record<
     border: 'border-l-success-border',
     icon: 'text-success-text',
     text: 'text-success-text',
-    defaultIcon: CheckCircle,
+    defaultIcon: null, // Uses AnimatedCheckmark instead
   },
 };
 
@@ -69,7 +72,7 @@ export function AlertBanner({
   const animationClass = animate ? 'animate-in slide-in-from-top-2 duration-300' : '';
   const spacingClass = spacingStyles[spacing ?? 'md'];
 
-  // Render icon - use animated icons for error/warning/info when no custom icon provided
+  // Render icon - use animated icons when no custom icon provided
   const renderIcon = (extraClass = '') => {
     if (!icon) {
       if (variant === 'error') {
@@ -83,6 +86,11 @@ export function AlertBanner({
       if (variant === 'info') {
         return (
           <AnimatedInfoMark size={16} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
+        );
+      }
+      if (variant === 'success') {
+        return (
+          <AnimatedCheckmark size={16} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
         );
       }
     }

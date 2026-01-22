@@ -128,6 +128,10 @@ export class SessionManager implements TokenProvider {
   private lastKnownTimeUntilTimeout: number | null = null;
   private boundActivityHandler: (() => void) | null = null;
 
+  // Tracks whether server has confirmed authentication in this app instance (page load)
+  // Used to distinguish "session expired while here" vs "session already expired on arrival"
+  private hasConfirmedAuth: boolean = false;
+
   constructor(
     private authHttpClient: AuthHttpClient,
     private storage: SessionStorage,
@@ -283,7 +287,8 @@ export class SessionManager implements TokenProvider {
     // Check if refresh token is still valid
     if (tokens.refreshTokenExpiry <= new Date()) {
       logger.error('Refresh token expired');
-      this.clearSession();
+      const reason = this.hasConfirmedAuth ? 'token_expired' : 'manual_logout';
+      this.clearSession(reason);
       return false;
     }
 
@@ -330,7 +335,8 @@ export class SessionManager implements TokenProvider {
 
     // All retry attempts failed
     logger.error('Token refresh failed after all retry attempts');
-    this.clearSession();
+    const reason = this.hasConfirmedAuth ? 'token_expired' : 'manual_logout';
+    this.clearSession(reason);
     return false;
   }
 
@@ -426,6 +432,7 @@ export class SessionManager implements TokenProvider {
 
     this.refreshPromise = null;
     this.lastKnownTimeUntilTimeout = null;
+    this.hasConfirmedAuth = false;
 
     this.onSessionExpired?.(reason);
   }
@@ -531,9 +538,14 @@ export class SessionManager implements TokenProvider {
       // Session no longer authenticated - server may have logged us out
       if (!data.isAuthenticated) {
         logger.info('Session no longer authenticated', { reason: data.reason });
-        this.clearSession('idle_timeout');
+        // Only show timeout banner if session expired while user was actively using the app
+        const reason = this.hasConfirmedAuth ? 'idle_timeout' : 'manual_logout';
+        this.clearSession(reason);
         return;
       }
+
+      // Mark that we've confirmed authentication in this app instance
+      this.hasConfirmedAuth = true;
 
       if (data.showWarning && data.timeUntilIdleTimeoutMs !== undefined) {
         if (!this.isWarningShown && this.warningCallbacks) {

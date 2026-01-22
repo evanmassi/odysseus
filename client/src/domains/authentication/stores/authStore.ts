@@ -241,7 +241,7 @@ export const useAuthStore = create<AuthStore>()(
           });
 
           // Brief delay to show success animation
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 2500));
 
           // Now complete authentication
           set({

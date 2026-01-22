@@ -118,7 +118,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     return (
       <AuthBaseModal key="password-success" showBranding="icon">
         <div className="flex justify-center mb-4">
-          <AnimatedCheckmark size={64} className="text-success-text" />
+          <AnimatedCheckmark size={64} className="text-success-text" delay={750} />
         </div>
 
         <div className="text-center">

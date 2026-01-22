@@ -11,9 +11,8 @@ import { KeyRound, Save, Shield, MonitorSmartphone } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
 import { useChangePassword } from '@domains/users/hooks/useChangePassword';
-import { AnimatedCheckmark } from '@shared/components';
 import { logger } from '@shared/infrastructure/logger';
-import { AuthInput, Button } from '@shared/ui';
+import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { PasswordRequirements } from '../PasswordRequirements';
@@ -250,14 +249,10 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               Change Password
             </Button>
 
-            {/* Success Banner - Appears next to button */}
             {showSuccess && (
-              <div className="bg-muted border border-success-border rounded-lg px-3 py-1.5 flex items-center space-x-2 animate-in fade-in slide-in-from-right-2 duration-300">
-                <AnimatedCheckmark size={24} className="text-success-text" />
-                <span className="text-xs font-medium text-success-text">
-                  Password changed successfully
-                </span>
-              </div>
+              <AlertBanner variant="success" spacing="none">
+                Password changed successfully
+              </AlertBanner>
             )}
           </div>
         </div>

@@ -47,4 +47,21 @@
   .animate-tube-select {
     animation: tubePulse 1.5s ease-in-out infinite;
   }
+
+  /* Session timeout countdown - gentle breathing glow */
+  @keyframes countdownPulse {
+    0%,
+    100% {
+      opacity: 1;
+      filter: drop-shadow(0 0 4px currentColor);
+    }
+    50% {
+      opacity: 0.85;
+      filter: drop-shadow(0 0 8px currentColor);
+    }
+  }
+
+  .animate-countdown-pulse {
+    animation: countdownPulse 2.5s ease-in-out infinite;
+  }
 }
