@@ -41,8 +41,6 @@ export const BOOTSTRAP_STEPS: BootstrapStepInfo[] = [
   },
 ];
 
-export const BOOTSTRAP_TIMEOUT = 30000; // 30 seconds
-
 /**
  * Loading messages for each bootstrap step
  */

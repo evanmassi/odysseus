@@ -3,16 +3,14 @@ import { useMemo } from 'react';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Edit3, Plus, Trash2 } from 'lucide-react';
 
-import { Button, NumberInput, Tooltip } from '@shared/ui';
+import { Button, NumberInput, Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
-import { OverflowMenu } from '@shared/ui/primitives/overflow-menu';
 
 import { RackRow } from './RackRow';
 import { useStorageManagerContext } from './StorageManagerContext';
 import '../storage-navigator/storage-navigator.css';
 
 import type { TankConfiguration } from '@domains/storage';
-import type { OverflowMenuItem } from '@shared/ui/primitives/overflow-menu';
 
 interface TankRowProps {
   tank: TankConfiguration;

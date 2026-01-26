@@ -23,9 +23,8 @@ import {
 import { adminService } from '@domains/admin/services/AdminService';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Table } from '@shared/ui';
+import { Button, Table, Tooltip } from '@shared/ui';
 import { ResearcherIcon } from '@shared/ui/components/icons';
-import { Tooltip } from '@shared/ui/primitives/tooltip';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 

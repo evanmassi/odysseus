@@ -2,13 +2,11 @@ import React, { useRef, useState } from 'react';
 
 import { AlertCircle, AlertTriangle } from 'lucide-react';
 
-import { Input, Select } from '@shared/ui';
+import { Input, Select, type InputState } from '@shared/ui';
 import {
   formatToScientificNotation,
   isScientificNotationInput,
 } from '@shared/utils/scientificNotation';
-
-import type { InputState } from '@shared/ui/primitives/input/types';
 
 interface ConcentrationFieldProps {
   label: string;

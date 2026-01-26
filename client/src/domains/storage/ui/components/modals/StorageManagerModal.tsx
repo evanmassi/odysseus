@@ -8,7 +8,6 @@ import { useAuthStore } from '@domains/authentication';
 import {
   useStorageData,
   useUpdateResourceLabelMutation,
-  getNextTankNumber,
   extractAssignedUserIds,
   useAddTankMutation,
   useUpdateTankMutation,
@@ -49,6 +48,16 @@ import type {
   BoxConfiguration,
   GridConfiguration,
 } from '@domains/storage';
+
+/** Get next available tank number from existing tanks */
+function getNextTankNumber(existingTanks: TankConfiguration[]): number {
+  const tankNumbers = existingTanks
+    .map(tank => tank.id.replace(NAMING_PATTERNS.TANK.PREFIX, ''))
+    .filter(num => num !== undefined && num !== '')
+    .map(num => parseInt(num!))
+    .filter(num => !isNaN(num));
+  return tankNumbers.length > 0 ? Math.max(...tankNumbers) + 1 : 1;
+}
 
 interface StorageManagerModalProps {
   isOpen: boolean;

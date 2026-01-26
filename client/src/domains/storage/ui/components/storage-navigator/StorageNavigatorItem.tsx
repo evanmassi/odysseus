@@ -5,8 +5,8 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Icon, Rows3, Box as BoxIcon } from 'lucide-react';
 
 import { useTextTruncation } from '@shared/hooks';
+import { Tooltip } from '@shared/ui';
 import { OwnershipIndicatorBadge } from '@shared/ui/components';
-import { Tooltip } from '@shared/ui/primitives';
 
 import type { StorageNavigatorItemProps } from './types';
 import './storage-navigator.css';

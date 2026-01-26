@@ -107,11 +107,3 @@ export function useAppBootstrap(): UseAppBootstrapResult {
     flags: bootstrapState.flags,
   };
 }
-
-/**
- * Simplified hook for components that just need to know if app is ready
- */
-export function useAppReady(): boolean {
-  const { isReady } = useAppBootstrap();
-  return isReady;
-}

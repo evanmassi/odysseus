@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import { Check, X } from 'lucide-react';
 
-import { Tooltip } from '@shared/ui/primitives/tooltip';
+import { Tooltip } from '../../primitives/tooltip/Tooltip';
 
 interface QuickEditFieldProps {
   initialValue: string;

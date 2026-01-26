@@ -27,16 +27,3 @@ export {
   isInfrastructureError,
   isConflictError,
 } from './AppError';
-
-// Error mapping utilities
-export {
-  mapError,
-  mapQueryError,
-  mapFormError,
-  mapApiError,
-  mapApiErrorSync,
-  getErrorSeverity,
-  shouldReportError,
-  getErrorContext,
-  type ErrorSeverity,
-} from './mapError';

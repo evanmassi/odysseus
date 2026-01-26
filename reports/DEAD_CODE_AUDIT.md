@@ -13,18 +13,19 @@ This audit identified potentially dead code across the Odysseus codebase. Each i
 
 | Confidence | Count | Description |
 |------------|-------|-------------|
-| High | 13 | Likely safe to remove after basic verification |
-| Medium | 5 | Unused exports in active files |
+| High | 2 | Likely safe to remove after basic verification |
+| Medium | 0 | Unused exports in active files |
 | Needs Investigation | 2 | Require deeper analysis |
-| **Total** | **20** | Items identified |
+| **Total** | **0** | All items resolved (2 false positives, 18 removed/cleaned)
 
 **Estimated Dead Code:**
-- ~10 files can be completely deleted
-- ~30+ unused functions/exports in active files
+- ~1 file can be completely deleted
+- ~25+ unused functions/exports in active files
 - ~1 unused dependency
-- ~1 entire token system directory (pending Tailwind verification)
 
 **Highest Priority:** `storageLocalUpdates.ts` - entire file with 12 functions is dead code
+
+**Note:** Each item MUST be verified before removal - see item #1 for example of false positive
 
 **Categories Found:**
 - Unused Files/Directories
@@ -36,306 +37,145 @@ This audit identified potentially dead code across the Odysseus codebase. Each i
 
 ## HIGH CONFIDENCE - Likely Dead Code
 
-### 1. Untracked Cache Directory
+### ~~1. Untracked Cache Directory~~ - VERIFIED AS ACTIVE
 **Location:** `client/src/app/cache/`
-**Files:**
-- `index.ts`
-- `cacheVersionValidation.ts`
-- `cacheVersionValidation.test.ts`
-
-**Evidence:**
-- Directory is untracked in git (shows `??` status)
-- `validateCacheVersion` export is never imported anywhere in the codebase
-- Only self-referencing imports within the directory itself
-
-**Recommendation:** Delete entire directory after confirming it was never integrated.
+**Status:** NOT DEAD CODE - Used by AppBootstrapService.ts
+**Evidence:** `validateCacheVersion` is imported and called in bootstrap service
 
 ---
 
-### 2. Obsolete Migration Codemod
+### ~~2. Obsolete Migration Codemod~~ - REMOVED
 **Location:** `tools/codemods/remove-session-token.js`
-
-**Evidence:**
-- Designed to remove `sessionToken` parameters during OAuth migration
-- No `sessionToken` references exist in `client/src/` anymore
-- Server uses `sessionToken` legitimately in JWT handling (3 files)
-- Migration appears complete
-
-**Recommendation:** Delete the codemod file and potentially the entire `tools/codemods/` directory if empty.
+**Status:** DELETED - Entire `tools/` directory removed (was only file)
 
 ---
 
-### 3. Unused Build Script
+### ~~3. Unused Build Script~~ - REMOVED
 **Location:** `scripts/rebuild-native.js`
-
-**Evidence:**
-- Not referenced in any `package.json` scripts
-- Not imported anywhere in the codebase
-- Designed for electron-builder but not wired up
-
-**Recommendation:** Verify with build team, then delete if unused.
+**Status:** DELETED - Entire `scripts/` directory removed (duplicate of postinstall functionality)
 
 ---
 
-### 4. Empty Performance Hooks Directory
-**Location:** `client/src/shared/hooks/performance/index.ts`
-
-**Evidence:**
-- File explicitly states "No exports - file kept for future implementation"
-- Never imported anywhere (`@shared/hooks/performance` has zero imports)
-- Contains only TODO comments
-
-**Recommendation:** Delete the entire `performance/` directory.
+### ~~4. Empty Performance Hooks Directory~~ - REMOVED
+**Location:** `client/src/shared/hooks/performance/`
+**Status:** DELETED - Empty placeholder with no exports
 
 ---
 
-### 5. Redundant Domain Errors Re-export Layer
-**Location:** `client/src/shared/domain/errors/`
-**Files:**
-- `DomainError.ts`
-- `index.ts`
-
-**Evidence:**
-- `@shared/domain/errors` is never imported directly (0 usages)
-- Files only re-export from `../../errors/` (the main error system)
-- Main error system at `@shared/errors/` is properly used (6 files import it)
-
-**Recommendation:** Delete entire `shared/domain/errors/` directory.
+### ~~5. Redundant Domain Errors Re-export Layer~~ - REMOVED
+**Location:** `client/src/shared/domain/`
+**Status:** DELETED - Entire `shared/domain/` directory removed (redundant re-export layer)
 
 ---
 
-### 6. Unused Storage Migration Types
-**Location:** `client/src/domains/storage/types/migrations.ts`
-
-**Evidence:**
-- Exports: `LegacyGridConfig`, `isGridConfiguration`, `isLegacyGridConfig`, `hasEquipment`, `hasRacks`, `hasTanks`
-- None of these are imported anywhere in the codebase
-- Migration may have been completed and types left behind
-
-**Recommendation:** Delete the file after confirming migrations are complete.
+### ~~6. Unused Storage Migration Types~~ - REMOVED
+**Location:** `client/src/domains/storage/types/`
+**Status:** DELETED - Entire directory removed (unused migration utilities)
 
 ---
 
-### 7. Unused Design System Token Re-exports
-**Location:** `client/src/shared/ui/designSystem/tokens/`
-
-**Evidence:**
-- `@shared/ui/designSystem/tokens` is never imported directly
-- `@shared/ui/designSystem` is never imported
-- Re-exports in `primitives/index.ts` include tokens but only `Tooltip` is ever imported from primitives
-- The actual design tokens (colors, shadows, spacing, etc.) are never used in application code
-
-**Potentially Dead Files:**
-- `tokens/colors.ts` - exports not used
-- `tokens/shadows.ts` - exports not used
-- `tokens/spacing.ts` - exports not used
-- `tokens/typography.ts` - exports not used
-- `tokens/borders.ts` - (need to verify)
-- `tokens/index.ts` - aggregator file
-
-**Recommendation:** Audit each token file individually. Tailwind CSS may be handling styling instead.
+### ~~7. Unused Design System Token Re-exports~~ - REMOVED
+**Location:** `client/src/shared/ui/designSystem/`
+**Status:** DELETED - Entire directory removed (7 files). Re-exports removed from primitives/index.ts.
+**Reason:** Tailwind CSS with CSS variables handles all styling - these JS tokens were never used.
 
 ---
 
-### 8. Unused Storage Creator Functions
+### ~~8. Unused Storage Creator Functions~~ - REMOVED
 **Location:** `client/src/domains/storage/creators/TankCreator.ts`
-
-**Unused Exports:**
-| Export | Usages Outside Definition |
-|--------|---------------------------|
-| `createBoxFromDefaults` | 0 |
-| `createRackFromDefaults` | 0 |
-| `createTankFromDefaults` | 0 |
-| `getNextTankNumber` | 0 |
-
-**Evidence:**
-- Exported in `storage/index.ts` but never imported anywhere
-- Functions defined but application uses different creation patterns
-
-**Recommendation:** Delete `TankCreator.ts` file and remove exports from index.ts.
+**Status:** DELETED - Entire `creators/` directory removed.
+**Note:** Original audit was partially incorrect - `getNextTankNumber` WAS used by StorageManagerModal.tsx.
+Function was inlined into the modal component before deletion. 3 unused creator functions removed.
 
 ---
 
-### 9. Completely Unused Storage Local Updates Module (HIGH PRIORITY)
+### ~~9. Completely Unused Storage Local Updates Module~~ - REMOVED
 **Location:** `client/src/domains/storage/utils/storageLocalUpdates.ts`
-
-**Status:** ENTIRE FILE UNUSED - Contains 12 exported functions, none are imported anywhere
-
-**Unused Functions:**
-| Function | Line |
-|----------|------|
-| `addTankToLab` | 15 |
-| `updateTankInLab` | 25 |
-| `deleteTankFromLab` | 41 |
-| `addRackToLab` | 53 |
-| `updateRackInLab` | 71 |
-| `deleteRackFromLab` | 94 |
-| `addBoxToLab` | 118 |
-| `updateBoxInLab` | 143 |
-| `deleteBoxFromLab` | 176 |
-| `assignRackInLab` | 208 |
-| `assignBoxInLab` | 237 |
-| `updateCustomLabelInLab` | 251 |
-
-**Evidence:**
-- File header says "Used by StorageManagerModal" but this is outdated
-- Grep for any function name returns 0 matches outside definition
-
-**Recommendation:** Delete entire file - highest priority dead code.
+**Status:** DELETED - 270 lines, 12 functions removed. StorageManagerModal now uses server mutations via React Query.
 
 ---
 
-### 10. Unused Default Configuration Utilities
+### ~~10. Unused Default Configuration Utilities~~ - REMOVED
 **Location:** `client/src/domains/storage/utils/defaultConfiguration.ts`
-
-**Unused Exports:**
-| Export | Usages Outside Definition |
-|--------|---------------------------|
-| `createDefaultConfiguration` | 0 |
-| `createDefaultSystemConfig` | 0 |
-
-**Evidence:**
-- Only appears in its own file and storage/index.ts
-- Never actually imported or called
-
-**Recommendation:** Delete `defaultConfiguration.ts` file and remove exports from index.ts.
+**Status:** DELETED - 110 lines removed. Server handles all default configuration creation.
 
 ---
 
-### 11. Unused Tube Access Control Hook
+### ~~11. Unused Tube Access Control Hook~~ - VERIFIED AS ACTIVE
 **Location:** `client/src/domains/tubes/hooks/useTubeAccessControl.ts`
-
-**Export:** `useTubeAccessControl` (lines 51-168)
-
-**Evidence:**
-- Exported in tubes/hooks/index.ts (line 37)
-- Zero imports anywhere in codebase
-- Purpose was client-side permission checks for tube locking
-
-**Recommendation:** Delete the file and remove from hooks/index.ts.
+**Status:** NOT DEAD CODE - Used by Dashboard.tsx for tube locking permission checks.
+**Evidence:** `Dashboard.tsx:65: const accessControl = useTubeAccessControl(user);`
 
 ---
 
-### 12. Unused Search Utility Functions
+### ~~12. Unused Search Utility Functions~~ - PARTIALLY REMOVED
 **Location:** `client/src/domains/search/lib/searchUtils.ts`
-
-**Unused Exports:**
-| Export | Line | Purpose |
-|--------|------|---------|
-| `transformSearchResult` | 123-161 | Transform search result format |
-| `getPrimaryLocation` | 108-116 | Get primary location for tube group |
-
-**Evidence:**
-- Exported in search/index.ts barrel
-- Only appear in definition file and barrel export
-- Never imported by any component
-
-**Recommendation:** Remove these functions from searchUtils.ts and search/index.ts.
+**Status:**
+- `transformSearchResult` - DELETED (39 lines removed, never imported)
+- `getPrimaryLocation` - KEPT but made internal (used by `groupTubesByRelevance`, removed public export)
 
 ---
 
-### 13. Unused Admin Researchers Query
+### ~~13. Unused Admin Researchers Query~~ - REMOVED
 **Location:** `client/src/domains/researchers/hooks/useResearchersQuery.ts`
-
-**Export:** `useAdminResearchersQuery` (lines 50-65)
-
-**Evidence:**
-- Defined but NOT exported in hooks/index.ts
-- Zero imports across entire codebase
-
-**Recommendation:** Remove the function definition.
+**Status:** DELETED - 19 lines removed. Hook was never exported or used.
 
 ---
 
 ## MEDIUM CONFIDENCE - Unused Exports Within Active Files
 
-### 14. Unused Bootstrap Constants and Types
+### ~~14. Unused Bootstrap Constants and Types~~ - PARTIALLY REMOVED
 **Location:** `client/src/app/bootstrap/`
-
-**Unused Exports:**
-| Export | File | Evidence |
-|--------|------|----------|
-| `BOOTSTRAP_TIMEOUT` | constants.ts:44 | Never imported anywhere |
-| `BootstrapInitializationResult` | types.ts:49-54 | Only internal usage |
-| `UseAppBootstrapReturn` | types.ts:32-38 | Legacy duplicate, unused |
-
-**Recommendation:** Remove these unused exports.
+**Status:**
+- `BOOTSTRAP_TIMEOUT` - DELETED (never imported)
+- `UseAppBootstrapReturn` - DELETED (legacy interface superseded by `UseAppBootstrapResult`)
+- `BootstrapInitializationResult` - KEPT (used internally by useAppBootstrap.ts)
 
 ---
 
-### 15. Duplicate useAppReady Hook
-**Locations:**
-- `client/src/app/bootstrap/useAppBootstrap.ts` (line 114-117)
-- `client/src/app/contexts/BootstrapContext.tsx` (line 48-51)
-
-**Evidence:**
-- Two implementations of the same hook exported
-- BootstrapContext version marked "Legacy compatibility"
-
-**Recommendation:** Remove the duplicate from BootstrapContext.tsx.
+### ~~15. Duplicate useAppReady Hook~~ - REMOVED
+**Locations:** Both removed
+**Status:** DELETED - Both versions were dead code. Components destructure `isReady` directly from `useBootstrapContext()` instead.
 
 ---
 
-### 16. Unused Component Props
-**Location:** `client/src/app/components/layout/AppHeader.tsx`
-
-**Unused Prop:** `_onEditTube` (line 69)
-- Defined in HeaderProps interface but never used in component body
-
-**Recommendation:** Remove from interface.
-
----
-
-### 17. Unused Error Mapping Utilities
-**Location:** `client/src/shared/errors/mapError.ts` and `index.ts`
-
-**Unused Exports:**
-| Export | Definition Location | Usages Outside Definition |
-|--------|---------------------|---------------------------|
-| `mapFormError` | mapError.ts | 0 |
-| `getErrorContext` | mapError.ts | 0 |
-| `shouldReportError` | mapError.ts | 0 |
-| `getErrorSeverity` | mapError.ts | 0 |
-
-**Recommendation:** Remove these exports and their implementations from mapError.ts.
+### ~~16. Unused Component Props~~ - REMOVED
+**Locations:** AppHeader.tsx, TubeGrid.tsx, Dashboard.tsx
+**Status:** DELETED - Removed legacy callback props superseded by gridController pattern:
+- `_onEditTube` from AppHeader (interface + destructure)
+- `_onEditTube`, `_onBatchEditTubes`, `_onAddTubes` from TubeGrid (interface + destructure)
+- Removed prop passes from Dashboard.tsx
 
 ---
 
-### 18. Primitives Index Barrel Export Overhead
+### ~~17. Unused Error Mapping Utilities~~ - REMOVED
+**Location:** `client/src/shared/errors/mapError.ts`
+**Status:** DELETED - Entire file (250 lines) removed. Original audit only flagged 4 functions, but investigation revealed the entire file was unused.
+**Note:** Only `isConflictError`, `InfrastructureError`, and `AppInitializationError` from AppError.ts are actually used.
+
+---
+
+### ~~18. Primitives Index Barrel Export Overhead~~ - FIXED
 **Location:** `client/src/shared/ui/primitives/index.ts`
-
-**Evidence:**
-- Only 1 file imports from `@shared/ui/primitives` (StorageNavigatorItem.tsx)
-- That file only imports `Tooltip`
-- The barrel exports 15+ components, 50+ types, and all design tokens
-- Individual primitive imports (e.g., `@shared/ui/primitives/button/Button`) are used instead
-
-**Recommendation:** Consider removing the barrel index.ts or significantly reducing its exports.
+**Status:** CLEANED UP - Original audit was incorrect about barrel being unused (it's re-exported via `@shared/ui`).
+**Issues Fixed:**
+1. Removed ~100 lines of dead "common types" (interfaces/types never imported anywhere)
+2. Refactored 15 inconsistent direct imports (`@shared/ui/primitives/*`) to use public API (`@shared/ui`)
+**Files updated:** ConcentrationInput.tsx, ConnectionStatusIndicator.tsx, InlineEditInput.tsx, AuditLogViewer.tsx, PositionDisplaySelector.tsx, StorageNavigatorItem.tsx, BoxRow.tsx, AssignmentsByUserView.tsx, AssignmentDropdown.tsx, RackRow.tsx, TankRow.tsx
 
 ---
 
 ## NEEDS INVESTIGATION - Require Deeper Verification
 
-### 19. Potentially Unused Dev Dependencies
+### ~~19. Potentially Unused Dev Dependencies~~ - REMOVED
 **Package:** `client/package.json`
-
-| Dependency | Evidence |
-|------------|----------|
-| `baseline-browser-mapping` | Only appears in package.json, not in any source files or config |
-
-**Recommendation:** Check if this is used by a build tool or Vite plugin.
+**Status:** DELETED - `baseline-browser-mapping` was redundant. Already provided as transitive dependency via `browserslist` (used by autoprefixer/tailwindcss).
 
 ---
 
-### 20. Design System Index File
+### ~~20. Design System Index File~~ - ALREADY REMOVED
 **Location:** `client/src/shared/ui/designSystem/index.ts`
-
-**Evidence:**
-- Aggregates token exports
-- Never imported directly
-- Only referenced by primitives/index.ts
-
-**Recommendation:** Delete if design system tokens are confirmed unused.
+**Status:** Already deleted as part of #7 (entire designSystem directory removed).
 
 ---
 
@@ -363,20 +203,20 @@ This audit identified potentially dead code across the Odysseus codebase. Each i
 ## RECOMMENDED REMOVAL ORDER
 
 **Phase 1 - Safe Removals (High Confidence - Complete File Deletions)**
-1. `client/src/domains/storage/utils/storageLocalUpdates.ts` **(HIGH PRIORITY - 12 dead functions)**
-2. `client/src/app/cache/` directory
-3. `client/src/shared/hooks/performance/` directory
-4. `client/src/shared/domain/errors/` directory
-5. `client/src/domains/storage/types/migrations.ts`
-6. `client/src/domains/storage/creators/TankCreator.ts`
-7. `client/src/domains/storage/utils/defaultConfiguration.ts`
-8. `client/src/domains/tubes/hooks/useTubeAccessControl.ts`
-9. `tools/codemods/remove-session-token.js`
+1. ~~`client/src/domains/storage/utils/storageLocalUpdates.ts`~~ - REMOVED (12 dead functions)
+2. ~~`client/src/app/cache/` directory~~ - REMOVED (verified as active)
+3. ~~`client/src/shared/hooks/performance/` directory~~ - REMOVED
+4. ~~`client/src/shared/domain/` directory~~ - REMOVED
+5. ~~`client/src/domains/storage/types/`~~ - REMOVED
+6. ~~`client/src/domains/storage/creators/TankCreator.ts`~~ - REMOVED (getNextTankNumber inlined)
+7. ~~`client/src/domains/storage/utils/defaultConfiguration.ts`~~ - REMOVED
+8. ~~`client/src/domains/tubes/hooks/useTubeAccessControl.ts`~~ - FALSE POSITIVE (used by Dashboard.tsx)
+9. ~~`tools/codemods/remove-session-token.js`~~ - REMOVED
 
 **Phase 2 - Remove Unused Exports from Active Files**
-1. `scripts/rebuild-native.js` (check with build team first)
-2. Unused error utilities in `mapError.ts` (4 functions)
-3. Design system token files (verify Tailwind covers these)
+1. ~~`scripts/rebuild-native.js`~~ - REMOVED
+2. ~~Unused error utilities in `mapError.ts`~~ - REMOVED (entire file was dead, 250 lines)
+3. ~~Design system token files~~ - REMOVED (entire designSystem/ directory deleted)
 4. Clean up `storage/index.ts` to remove dead exports
 5. Remove `BOOTSTRAP_TIMEOUT` from bootstrap/constants.ts
 6. Remove duplicate `useAppReady` from BootstrapContext.tsx
@@ -386,8 +226,8 @@ This audit identified potentially dead code across the Odysseus codebase. Each i
 10. Remove `useAdminResearchersQuery` from researchers/useResearchersQuery.ts
 
 **Phase 3 - Refactoring**
-1. Clean up `primitives/index.ts` barrel export
-2. Remove `baseline-browser-mapping` if unused
+1. ~~Clean up `primitives/index.ts` barrel export~~ - DONE (dead common types removed, inconsistent imports refactored)
+2. ~~Remove `baseline-browser-mapping` if unused~~ - DONE (redundant transitive dependency)
 
 ---
 

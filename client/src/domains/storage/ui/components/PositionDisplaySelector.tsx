@@ -16,7 +16,7 @@ import {
   getPositionDisplayForBox,
   hasCustomPositionDisplay,
 } from '@domains/storage/utils/positionDisplayUtils';
-import { Select, type SelectOption } from '@shared/ui/primitives/select/Select';
+import { Select, type SelectOption } from '@shared/ui';
 
 import type { GridConfiguration } from '@odysseus/shared-schemas';
 

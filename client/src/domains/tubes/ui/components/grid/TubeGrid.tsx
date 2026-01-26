@@ -28,9 +28,6 @@ interface TubeGridProps {
   boxId: string;
   selectedPositions: Set<PositionKey>;
   onSelectionChange: (positions: Set<PositionKey>) => void;
-  _onEditTube?: (tubeId: string) => void;
-  _onBatchEditTubes?: (tubeIds: string[]) => void;
-  _onAddTubes?: (positions: PositionKey[]) => void;
   gridController: GridControllerReturn;
   // Lock context (optional - for lock-enabled grids)
   lockContext?: LockContext;
@@ -47,9 +44,6 @@ export function TubeGrid({
   boxId,
   selectedPositions,
   onSelectionChange,
-  _onEditTube,
-  _onBatchEditTubes,
-  _onAddTubes,
   gridController,
   lockContext,
 }: TubeGridProps) {

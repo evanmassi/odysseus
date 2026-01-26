@@ -103,9 +103,9 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
 };
 
 /**
- * Get primary location for a group of tubes
+ * Get primary location for a group of tubes (internal helper)
  */
-export const getPrimaryLocation = (tubes: TubeData[]): string => {
+const getPrimaryLocation = (tubes: TubeData[]): string => {
   if (tubes.length === 0) return 'No location';
 
   // Return raw location data - display names will be resolved in UI components
@@ -113,49 +113,4 @@ export const getPrimaryLocation = (tubes: TubeData[]): string => {
   const tankId = firstTube.location.tankId || NAMING_PATTERNS.TANK.ID_PATTERN(1);
 
   return `${tankId}:${firstTube.location.rackId}:${firstTube.location.boxId}`;
-};
-
-/**
- * Transform search result to SearchResults format
- *
- * Includes matchedTerms (synonyms, normalized forms) for highlighting.
- */
-export const transformSearchResult = (
-  searchResult: { data: unknown[]; matchedTerms?: string[] }, // Accept API response with matchedTerms
-  query: string
-) => {
-  // Convert API response tubes to proper TubeData format with type validation
-  const tubes: TubeData[] = (searchResult.data || [])
-    .filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null)
-    .map(tube => {
-      const sample =
-        typeof tube['sample'] === 'object' && tube['sample'] !== null
-          ? (tube['sample'] as Record<string, unknown>)
-          : {};
-
-      return {
-        ...tube,
-        sample: {
-          ...sample,
-          // Convert concentration from string|number to number for storage consistency
-          concentration:
-            typeof sample['concentration'] === 'string'
-              ? sample['concentration']
-                ? Number(sample['concentration'])
-                : undefined
-              : sample['concentration'],
-        },
-      } as TubeData;
-    });
-
-  const grouped = groupTubesByRelevance(tubes, query);
-
-  return {
-    tubes,
-    grouped,
-    matchedTerms: searchResult.matchedTerms, // Pass through for highlighting
-    total: tubes.length,
-    query,
-    hasResults: tubes.length > 0,
-  };
 };

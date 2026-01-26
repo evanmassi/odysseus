@@ -44,27 +44,6 @@ export function useResearchersQuery(options?: {
 }
 
 /**
- * Hook to fetch all researchers with admin metadata
- * Use this for admin UI that needs tubeCount, linkedUserId, linkedUsername
- */
-export function useAdminResearchersQuery(options?: {
-  filters?: { active?: boolean; search?: string };
-  queryOptions?: Omit<UseQueryOptions<AdminResearcher[]>, 'queryKey' | 'queryFn'>;
-}) {
-  const { filters, queryOptions } = options ?? {};
-
-  return useQuery({
-    queryKey: queryKeys.researchers.admin(filters),
-    queryFn: async (): Promise<AdminResearcher[]> => {
-      const researchers = await ResearcherService.list({ admin: true, filters });
-      return sortByName(researchers);
-    },
-    ...DOMAIN_QUERY_OPTIONS.researchers,
-    ...queryOptions,
-  });
-}
-
-/**
  * Hook to fetch a single researcher by ID
  */
 export function useResearcherQuery(

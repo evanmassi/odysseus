@@ -29,14 +29,6 @@ export interface BootstrapStepInfo {
   error?: string;
 }
 
-export interface UseAppBootstrapReturn {
-  isLoading: boolean;
-  currentStep: BootstrapStep;
-  error: string | null;
-  steps: BootstrapStepInfo[];
-  retry: () => void;
-}
-
 export interface BootstrapError {
   message: string;
   step: BootstrapStep;

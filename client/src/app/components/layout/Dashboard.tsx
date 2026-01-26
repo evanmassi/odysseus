@@ -271,73 +271,6 @@ export function Dashboard() {
     }
   };
 
-  /**
-   * Unified Add Tube Handler
-   * Opens modal in 'add' mode with position keys
-   */
-  const handleAddTube = (positions?: PositionKey[]) => {
-    // Use provided position keys or current selection
-    const positionKeys = positions ?? Array.from(selectedPositions ?? []);
-
-    if (positionKeys.length === 0) return;
-
-    modalService.showTubeEditorModal({
-      mode: 'add',
-      positions: positionKeys,
-      rackId: currentRack,
-      boxId: currentBox,
-      preserveSelection: positionKeys.length > 1, // Preserve multi-selection for batch adds
-    });
-  };
-
-  /**
-   * Unified Edit Tube Handler
-   * Accepts tubeId (string) or TubeData object, normalizes to ID only
-   * Opens modal in 'edit' mode with single tube ID
-   */
-  const handleEditTube = (input: string | TubeData) => {
-    const tubeId = typeof input === 'string' ? input : input.id;
-
-    if (!tubeId) {
-      logger.warn('handleEditTube called with invalid input', { input });
-      return;
-    }
-
-    modalService.showTubeEditorModal({
-      mode: 'edit',
-      tubeId,
-    });
-  };
-
-  /**
-   * Unified Batch Edit Handler
-   * Accepts array of tube IDs or TubeData objects, normalizes to IDs only
-   * Opens modal in 'batch' mode with multiple tube IDs
-   */
-  const handleBatchEditTubes = (inputs: Array<string | TubeData>) => {
-    // Normalize: extract IDs from objects or use string IDs directly
-    const tubeIds = inputs
-      .map(item => (typeof item === 'string' ? item : item.id))
-      .filter((id): id is string => Boolean(id));
-
-    if (tubeIds.length === 0) {
-      logger.warn('Batch edit requested but no valid tube IDs found', { inputs });
-      return;
-    }
-
-    // Single tube? Use edit mode instead
-    if (tubeIds.length === 1) {
-      handleEditTube(tubeIds[0]);
-      return;
-    }
-
-    modalService.showTubeEditorModal({
-      mode: 'batch',
-      tubeIds,
-      preserveSelection: true, // Maintain multi-selection after batch operation
-    });
-  };
-
   const handleCloseModal = () => {
     modalService.hideTubeEditorModal();
   };
@@ -601,9 +534,6 @@ export function Dashboard() {
                     isStorageNavigatorFocused() || isSelectorActive ? new Set() : selectedPositions
                   }
                   onSelectionChange={handleSelectionChange}
-                  _onEditTube={handleEditTube}
-                  _onBatchEditTubes={handleBatchEditTubes}
-                  _onAddTubes={handleAddTube}
                   gridController={gridController}
                   lockContext={lockContext}
                 />

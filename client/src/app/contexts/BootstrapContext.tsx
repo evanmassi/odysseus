@@ -40,12 +40,3 @@ export function useBootstrapContext(): UseAppBootstrapResult {
 
   return context;
 }
-
-/**
- * Legacy compatibility - components can still check bootstrap readiness
- * but don't trigger new bootstrap processes
- */
-export function useAppReady(): boolean {
-  const { isReady } = useBootstrapContext();
-  return isReady;
-}

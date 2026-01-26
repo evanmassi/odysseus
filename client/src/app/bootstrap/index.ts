@@ -6,7 +6,7 @@
 export { AppBootstrapService, appBootstrapService } from './AppBootstrapService';
 
 // React hooks
-export { useAppBootstrap, useAppReady } from './useAppBootstrap';
+export { useAppBootstrap } from './useAppBootstrap';
 
 // Types
 export type {
@@ -15,7 +15,6 @@ export type {
   BootstrapStepInfo,
   BootstrapError,
   UseAppBootstrapResult,
-  UseAppBootstrapReturn,
 } from './types';
 
 // Constants

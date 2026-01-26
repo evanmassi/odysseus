@@ -12,7 +12,8 @@ import { RefreshCw, WifiOff } from 'lucide-react';
 
 import { useNetworkStatus, ConnectionQuality } from '@infra/connection/networkMonitor';
 import { getOptimisticUpdatesService } from '@infra/optimistic/optimisticUpdates';
-import { Tooltip } from '@shared/ui/primitives/tooltip';
+
+import { Tooltip } from '../primitives/tooltip/Tooltip';
 
 /**
  * Connection status indicator component

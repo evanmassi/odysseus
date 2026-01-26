@@ -1,9 +1,8 @@
 import React, { useMemo, useCallback } from 'react';
 
-import { Select } from '@shared/ui';
+import { Select, type SelectOption } from '@shared/ui';
 
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
-import type { SelectOption } from '@shared/ui/primitives/select/types';
 
 // Special value for explicitly unassigned/common boxes
 const COMMON_VALUE = '__COMMON__';

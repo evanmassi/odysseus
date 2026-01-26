@@ -6,19 +6,15 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { SessionManager } from '@app/services/SessionManager';
 
-import type { TokenPair, SessionConfig, SessionStorage } from './types';
+import type { TokenPair, SessionConfig } from './types';
 import type { AuthHttpClient } from '@infra/api/AuthHttpClient';
 
 // Mock storage matching actual SessionStorage interface
-function createMockStorage(): SessionStorage & {
-  getTokens: ReturnType<typeof vi.fn>;
-  setTokens: ReturnType<typeof vi.fn>;
-  clearTokens: ReturnType<typeof vi.fn>;
-} {
+function createMockStorage() {
   return {
-    getTokens: vi.fn(),
-    setTokens: vi.fn(),
-    clearTokens: vi.fn(),
+    getTokens: vi.fn<[], TokenPair | null>(),
+    setTokens: vi.fn<[TokenPair], void>(),
+    clearTokens: vi.fn<[], void>(),
   };
 }
 

@@ -4,17 +4,15 @@ import { formatResourceDisplayName, type UserDisplayInfo } from '@odysseus/share
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { UsersRound, ChevronDown, UserRoundX, UserRoundPen } from 'lucide-react';
 
-import { Tooltip } from '@shared/ui';
+import { Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { OwnershipIndicatorBadge } from '@shared/ui/components';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
-import { OverflowMenu } from '@shared/ui/primitives/overflow-menu';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { TreeLineOverlayByUser } from './TreeLineOverlayByUser';
 import '../storage-navigator/storage-navigator.css';
 
 import type { LabConfiguration } from '@domains/storage';
-import type { OverflowMenuItem } from '@shared/ui/primitives/overflow-menu';
 
 interface UserInfo {
   initials: string;

@@ -66,7 +66,6 @@ const useLazyUserSettings = PreloadHelpers.createHook(
 
 interface HeaderProps {
   selectedPositions?: Set<PositionKey>;
-  _onEditTube?: (tubeId: string) => void;
   onClearSelection?: () => void;
   tubes?: TubeData[];
   // Grid controller actions passed from parent
@@ -97,7 +96,6 @@ interface HeaderProps {
 
 export function AppHeader({
   selectedPositions = new Set(),
-  _onEditTube,
   onClearSelection,
   tubes = [],
   gridController,

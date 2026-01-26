@@ -41,14 +41,6 @@ export {
 // Services
 export { StorageService } from './services/StorageService';
 
-// Creators (Object Creation)
-export {
-  createBoxFromDefaults,
-  createRackFromDefaults,
-  createTankFromDefaults,
-  getNextTankNumber,
-} from './creators/TankCreator';
-
 // Types and Schemas (re-exported from shared package)
 export type {
   GridConfiguration,
@@ -98,12 +90,6 @@ export {
   hasCustomPositionDisplay,
   formatPositionRangesForBox,
 } from './utils/positionDisplayUtils';
-
-// Default Configuration (for fresh installs)
-export {
-  createDefaultConfiguration,
-  createDefaultSystemConfig,
-} from './utils/defaultConfiguration';
 
 // User Assignment Utilities
 export { extractAssignedUserIds } from './utils/extractAssignedUserIds';

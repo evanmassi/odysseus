@@ -10,11 +10,7 @@ export { SearchEngine } from './engine/SearchEngine';
 export type { HighlightedSegment, DisplayResults } from './engine/SearchEngine';
 
 // Utilities
-export {
-  groupTubesByRelevance,
-  getPrimaryLocation,
-  transformSearchResult,
-} from './lib/searchUtils';
+export { groupTubesByRelevance } from './lib/searchUtils';
 
 // UI Store (UI State Only)
 export { useSearchStore } from './stores/searchStore';

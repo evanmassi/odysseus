@@ -3,8 +3,8 @@ import { useMemo } from 'react';
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { Edit3, Tag, Trash2 } from 'lucide-react';
 
+import { OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
-import { OverflowMenu } from '@shared/ui/primitives/overflow-menu';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { CustomLabelButton } from './CustomLabelButton';
@@ -13,7 +13,6 @@ import { useStorageManagerContext } from './StorageManagerContext';
 import '../storage-navigator/storage-navigator.css';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
-import type { OverflowMenuItem } from '@shared/ui/primitives/overflow-menu';
 
 interface BoxRowProps {
   box: BoxConfiguration;

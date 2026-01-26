@@ -4,9 +4,8 @@ import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Edit3, Plus, Tag, Trash2 } from 'lucide-react';
 
-import { Button, NumberInput, Tooltip } from '@shared/ui';
+import { Button, NumberInput, Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
-import { OverflowMenu } from '@shared/ui/primitives/overflow-menu';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { BoxRow } from './BoxRow';
@@ -16,7 +15,6 @@ import { useStorageManagerContext } from './StorageManagerContext';
 import '../storage-navigator/storage-navigator.css';
 
 import type { RackConfiguration } from '@domains/storage';
-import type { OverflowMenuItem } from '@shared/ui/primitives/overflow-menu';
 
 interface RackRowProps {
   rack: RackConfiguration;
