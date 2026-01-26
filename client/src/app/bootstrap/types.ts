@@ -16,6 +16,7 @@ export type BootstrapStep =
   | 'initialization'
   | 'auth-check'
   | 'session-restore'
+  | 'cache-validation'
   | 'socket-connection'
   | 'data-loading'
   | 'complete'

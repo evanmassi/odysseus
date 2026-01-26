@@ -20,6 +20,11 @@ export const BOOTSTRAP_STEPS: BootstrapStepInfo[] = [
     completed: false,
   },
   {
+    step: 'cache-validation',
+    label: 'Validating Cache',
+    completed: false,
+  },
+  {
     step: 'socket-connection',
     label: 'Connecting to Server',
     completed: false,
@@ -45,6 +50,7 @@ export const LOADING_MESSAGES = {
   initialization: 'Initializing Application',
   'auth-check': 'Checking Authentication',
   'session-restore': 'Restoring Session',
+  'cache-validation': 'Validating Cache',
   'socket-connection': 'Connecting to Server',
   'data-loading': 'Loading Data',
   complete: 'Ready',

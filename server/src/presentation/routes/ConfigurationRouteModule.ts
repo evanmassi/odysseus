@@ -69,6 +69,17 @@ export class ConfigurationRouteModule implements RouteModule {
     );
 
     /**
+     * GET /api/configuration/version
+     * Get current configuration version (lightweight)
+     *
+     * Access: Any authenticated user
+     * Used by: Client-side cache validation on startup
+     */
+    router.get('/version',
+      this.configurationController.getConfigurationVersion.bind(this.configurationController)
+    );
+
+    /**
      * GET /api/configuration/health
      * Check configuration system health
      *
@@ -395,7 +406,7 @@ export class ConfigurationRouteModule implements RouteModule {
    * Get route count for monitoring
    */
   getRouteCount(): number {
-    return 26; // Total number of routes configured (12 original + 14 CQRS)
+    return 27; // Total number of routes configured (13 original + 14 CQRS)
   }
 
   // MIDDLEWARE FUNCTIONS

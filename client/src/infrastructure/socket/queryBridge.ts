@@ -865,17 +865,9 @@ export class SocketQueryBridge {
             difference: currentVersion - newVersion,
           });
 
-          // Show warning notification to user
           notifications.warning(
             'Database was reset. Your local settings have been synchronized with the server.'
           );
-
-          // Clear all localStorage to prevent stale data issues
-          try {
-            localStorage.removeItem('odysseus-configuration-store');
-          } catch (clearError) {
-            logger.error('Failed to clear localStorage', { clearError });
-          }
         }
 
         // Update tracked version for next comparison

@@ -13,7 +13,7 @@ import { queryKeys } from '@app/queryKeys';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Toggle } from '@shared/ui';
+import { Button, Input, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../services/AdminService';
@@ -135,12 +135,13 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
               <FlaskConical size={18} className="text-muted-foreground" />
               <span className="text-sm text-muted-foreground">Lab:</span>
               {isEditingLabName ? (
-                <input
+                <Input
                   type="text"
                   value={labNameInput}
-                  onChange={e => setLabNameInput(e.target.value)}
+                  onValueChange={setLabNameInput}
                   onKeyDown={handleLabNameKeyDown}
-                  className="text-sm font-medium text-card-foreground border border-border rounded px-2 py-1"
+                  variant="default"
+                  size="sm"
                   // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
                   autoFocus
                   disabled={isSavingLabName}

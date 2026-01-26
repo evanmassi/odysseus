@@ -197,6 +197,27 @@ export class ConfigurationController {
   }
 
   /**
+   * GET /api/configuration/version
+   * Get current configuration version (lightweight endpoint for cache validation)
+   */
+  async getConfigurationVersion(req: Request, res: Response): Promise<void> {
+    try {
+      const configuration = await this.getCurrentConfigurationHandler.handle({});
+
+      res.json({
+        success: true,
+        data: {
+          version: configuration.version,
+          updatedAt: configuration.updatedAt
+        }
+      });
+
+    } catch (error) {
+      this.handleError(error, res, 'Failed to get configuration version');
+    }
+  }
+
+  /**
    * GET /api/configuration/health
    * Check configuration system health
    */

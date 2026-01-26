@@ -301,12 +301,7 @@ export function AssignmentsByUserView({
                       username={userAssignment.username}
                       size="md"
                     />
-                    <span className="storage-nav-button__text">
-                      {userAssignment.displayName}
-                      {isCurrentUser && (
-                        <span className="ml-1.5 text-xs text-primary font-normal">(you)</span>
-                      )}
-                    </span>
+                    <span className="storage-nav-button__text">{userAssignment.displayName}</span>
 
                     {/* Counts - styled like ownership badges */}
                     <div className="flex items-center gap-1.5 text-xs mr-1">

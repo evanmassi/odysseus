@@ -47,7 +47,9 @@
       "WebFetch(domain:medium.com)",
       "WebSearch",
       "WebFetch(domain:floating-ui.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(docker exec:*)",
+      "Bash(du:*)"
     ]
   }
 }

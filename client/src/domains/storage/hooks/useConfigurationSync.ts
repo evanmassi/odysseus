@@ -16,9 +16,6 @@ import { logger } from '@shared/infrastructure/logger';
 import { useInitializeConfigurationMutation } from './useStorageEquipmentMutations';
 import { useLoadStorageQuery } from './useStorageQuery';
 
-// One-time cleanup of legacy Zustand localStorage (runs once per session)
-const legacyStorageCleanedUp = { done: false };
-
 export function useConfigurationSync() {
   const { data, isSuccess, isError } = useLoadStorageQuery();
   const initializeMutation = useInitializeConfigurationMutation();
@@ -26,14 +23,6 @@ export function useConfigurationSync() {
 
   // Track if initial save has been attempted (for fresh installs only)
   const hasInitialized = useRef(false);
-
-  // Clean up legacy Zustand localStorage key (one-time migration cleanup)
-  useEffect(() => {
-    if (!legacyStorageCleanedUp.done) {
-      legacyStorageCleanedUp.done = true;
-      localStorage.removeItem('odysseus-configuration-store');
-    }
-  }, []);
 
   // Initialize server with defaults if no config exists (fresh install)
   // Note: Only runs when server is reachable but returns 404/error for config

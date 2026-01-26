@@ -3,7 +3,7 @@
  */
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
-import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
 import { useSearchStore } from '@domains/search/stores/searchStore';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { initializeNetworkMonitor, cleanupNetworkMonitor } from '@infra/connection/networkMonitor';
@@ -12,6 +12,7 @@ import { initializeOptimisticUpdates } from '@infra/optimistic/optimisticUpdates
 import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
 import { logger } from '@shared/infrastructure/logger';
 
+import { validateCacheVersion } from '../cache';
 import { queryClient } from '../queryClient';
 import { queryKeys } from '../queryKeys';
 
@@ -116,6 +117,27 @@ export class AppBootstrapService {
         // Non-fatal: Continue bootstrap even if session restoration fails
         // User will simply need to log in again
         this.updateStep('session-restore', true);
+      }
+
+      // Validate cached data against server version
+      // Clears stale cache if database was reset or version mismatch detected
+      this.updateStep('cache-validation', false);
+      try {
+        const tokens = sessionManager.getTokens();
+        const accessToken = tokens?.accessToken ?? null;
+        const result = await validateCacheVersion(accessToken);
+
+        if (!result.isValid) {
+          logger.info('Cache invalidated due to version mismatch', {
+            serverVersion: result.serverVersion,
+            cachedVersion: result.cachedVersion,
+          });
+        }
+        this.updateStep('cache-validation', true);
+      } catch (error) {
+        logger.warn('Cache validation failed, continuing with existing cache', { error });
+        // Non-fatal: Continue even if validation fails
+        this.updateStep('cache-validation', true);
       }
 
       // Initialize advanced real-time systems
