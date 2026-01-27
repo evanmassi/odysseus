@@ -89,12 +89,12 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       lg: 'px-4 py-3 text-base rounded-lg',
     };
 
-    // State classes (border colors)
+    // State classes - validation border colors (focus ring handled by global focus.css)
     const stateClasses = {
-      default: 'border-border hover:border-muted-foreground focus:border-action',
-      error: 'border-danger-border focus:border-danger-border',
-      warning: 'border-warning-border focus:border-warning-border',
-      success: 'border-success-border focus:border-success-border',
+      default: 'border-border hover:border-muted-foreground',
+      error: 'border-danger-border',
+      warning: 'border-warning-border',
+      success: 'border-success-border',
     };
 
     // Resize classes
@@ -134,7 +134,6 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           text-card-foreground
           placeholder:text-muted-foreground placeholder:opacity-40
           transition-colors duration-200
-          focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0
           disabled:cursor-not-allowed disabled:opacity-50 disabled:bg-muted
           read-only:cursor-default read-only:bg-muted
           ${sizeClasses[size]}

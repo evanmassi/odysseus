@@ -41,23 +41,24 @@ const inputVariants = cva(
         default: [
           'bg-card border border-border',
           'hover:border-muted-foreground',
-          'focus:border-action',
+          // Focus styling handled by global focus.css
         ],
         filled: [
           'bg-muted border border-transparent',
           'hover:bg-accent',
-          'focus:bg-card focus:border-action',
+          'focus:bg-card',
+          // Focus ring handled by global focus.css
         ],
         outlined: [
           'bg-transparent border-2 border-border',
           'hover:border-muted-foreground',
-          'focus:border-action',
+          // Focus styling handled by global focus.css
         ],
         underlined: [
           'bg-transparent border-0 border-b-2 border-border',
           'rounded-none',
           'hover:border-muted-foreground',
-          'focus:border-action',
+          // Focus styling handled by global focus.css
         ],
         ghost: ['bg-transparent border-0', 'hover:bg-muted', 'focus:bg-muted'],
       },
@@ -86,12 +87,12 @@ const inputVariants = cva(
         ],
       },
 
-      // State styles
+      // State styles - validation border colors (focus ring handled by global focus.css)
       state: {
         default: '',
-        error: ['border-danger-border focus:border-danger-border', 'focus:ring-danger-border'],
-        warning: ['border-warning-border focus:border-warning-border', 'focus:ring-warning-border'],
-        success: ['border-success-border focus:border-success-border', 'focus:ring-success-border'],
+        error: 'border-danger-border',
+        warning: 'border-warning-border',
+        success: 'border-success-border',
       },
 
       // Full width option

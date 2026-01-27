@@ -50,11 +50,12 @@ const selectVariants = cva(
         true: 'ring-2 ring-action border-action',
         false: '',
       },
+      // State styles - validation border colors (focus ring handled by global focus.css)
       state: {
         default: '',
-        error: 'border-danger-border focus:border-danger-border focus:ring-danger-border',
-        warning: 'border-warning-border focus:border-warning-border focus:ring-warning-border',
-        success: 'border-success-border focus:border-success-border focus:ring-success-border',
+        error: 'border-danger-border',
+        warning: 'border-warning-border',
+        success: 'border-success-border',
       },
     },
     defaultVariants: {
