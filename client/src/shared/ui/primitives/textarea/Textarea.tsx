@@ -89,7 +89,6 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       lg: 'px-4 py-3 text-base rounded-lg',
     };
 
-    // State classes - validation border colors (focus ring handled by global focus.css)
     const stateClasses = {
       default: 'border-border hover:border-muted-foreground',
       error: 'border-danger-border',

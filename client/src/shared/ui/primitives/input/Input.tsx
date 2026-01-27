@@ -38,27 +38,13 @@ const inputVariants = cva(
     variants: {
       // Variant styles
       variant: {
-        default: [
-          'bg-card border border-border',
-          'hover:border-muted-foreground',
-          // Focus styling handled by global focus.css
-        ],
-        filled: [
-          'bg-muted border border-transparent',
-          'hover:bg-accent',
-          'focus:bg-card',
-          // Focus ring handled by global focus.css
-        ],
-        outlined: [
-          'bg-transparent border-2 border-border',
-          'hover:border-muted-foreground',
-          // Focus styling handled by global focus.css
-        ],
+        default: ['bg-card border border-border', 'hover:border-muted-foreground'],
+        filled: ['bg-muted border border-transparent', 'hover:bg-accent', 'focus:bg-card'],
+        outlined: ['bg-transparent border-2 border-border', 'hover:border-muted-foreground'],
         underlined: [
           'bg-transparent border-0 border-b-2 border-border',
           'rounded-none',
           'hover:border-muted-foreground',
-          // Focus styling handled by global focus.css
         ],
         ghost: ['bg-transparent border-0', 'hover:bg-muted', 'focus:bg-muted'],
       },
@@ -87,7 +73,6 @@ const inputVariants = cva(
         ],
       },
 
-      // State styles - validation border colors (focus ring handled by global focus.css)
       state: {
         default: '',
         error: 'border-danger-border',

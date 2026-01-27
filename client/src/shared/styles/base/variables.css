@@ -58,6 +58,8 @@
     --overlay: 0 0% 0% / 0.6;
     --overlay-emphasis: 0 0% 0% / 0.7;
 
+    --auth-sketch-border: 0 0% 100%;
+
     /* Application-specific extensions */
 
     /* Action Colors */
@@ -243,6 +245,8 @@
     /* Utilities */
     --border: 215.3 25% 26.7%;
     --input: 215.3 25% 26.7%;
+
+    --auth-sketch-border: 215 20.2% 65.1%;
 
     /* Action Colors */
     --color-action-default: 213 85% 67.8%;

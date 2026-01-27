@@ -102,7 +102,7 @@ export function AuthBaseModal({
               height={dimensions.height}
               borderRadius={16}
               strokeWidth={2}
-              strokeColor="white"
+              strokeColor="hsl(var(--auth-sketch-border))"
               className="z-10"
             />
           )}
