@@ -14,7 +14,7 @@ interface LoadingOverlayProps {
 
 export function LoadingOverlay({ message = 'Loading...', submessage }: LoadingOverlayProps) {
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center z-50">
       <div className="bg-card rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
         <div className="text-center">
           <div className="mb-4">

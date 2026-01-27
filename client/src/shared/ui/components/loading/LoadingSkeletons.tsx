@@ -111,7 +111,7 @@ export const ModalSkeleton: React.FC<ModalSkeletonProps> = ({ size = 'md', class
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--overlay))]">
       <div className={`${sizeClasses[size]} w-full mx-4 bg-card rounded-lg shadow-xl ${className}`}>
         {/* Header */}
         <div className="px-6 py-4 border-b border-border">

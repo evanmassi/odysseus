@@ -112,8 +112,7 @@ export function BaseModal({
   return (
     <ModalPortal>
       <div
-        className={`fixed inset-0 bg-black/50 backdrop-blur-[2px] z-50 ${backdropAnimationClass} ${isClosing ? 'pointer-events-none' : ''}`}
-        style={{ willChange: 'backdrop-filter' }}
+        className={`fixed inset-0 bg-[hsl(var(--overlay))] z-50 ${backdropAnimationClass} ${isClosing ? 'pointer-events-none' : ''}`}
       />
 
       <div className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none">

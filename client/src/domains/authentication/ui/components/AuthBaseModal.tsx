@@ -85,7 +85,7 @@ export function AuthBaseModal({
   return (
     <ModalPortal>
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-[3px] flex items-center justify-center ${zIndexClass} animate-modal-backdrop-in`}
+        className={`fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center ${zIndexClass} animate-modal-backdrop-in`}
       >
         <div
           ref={el => {

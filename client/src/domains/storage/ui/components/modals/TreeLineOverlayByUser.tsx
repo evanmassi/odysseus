@@ -18,6 +18,10 @@ interface TreeLineOverlayByUserProps {
 const LINE_OFFSET = 11;
 const VERTICAL_OFFSET = 0;
 
+// Throttle/debounce timing constants for performance
+const RESIZE_THROTTLE_MS = 100;
+const MUTATION_DEBOUNCE_MS = 150;
+
 /**
  * Tree Line Overlay for By User View
  *
@@ -29,6 +33,9 @@ export function TreeLineOverlayByUser({ expandedUsers }: TreeLineOverlayByUserPr
   const containerRef = useRef<Element | null>(null);
   const resizeObserverRef = useRef<ResizeObserver | null>(null);
   const mutationObserverRef = useRef<MutationObserver | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const lastResizeRef = useRef<number>(0);
 
   const calculateAllLines = useCallback(() => {
     const container = document.querySelector('[role="tree"][data-view="by-user"]');
@@ -138,6 +145,39 @@ export function TreeLineOverlayByUser({ expandedUsers }: TreeLineOverlayByUserPr
     setLines(allLines);
   }, [expandedUsers]);
 
+  // Debounced calculation using requestAnimationFrame for smooth updates
+  const debouncedCalculate = useCallback(
+    (delayMs: number) => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+
+      debounceTimerRef.current = setTimeout(() => {
+        rafRef.current = requestAnimationFrame(() => {
+          calculateAllLines();
+        });
+      }, delayMs);
+    },
+    [calculateAllLines]
+  );
+
+  // Throttled calculation for resize events
+  const throttledCalculate = useCallback(() => {
+    const now = Date.now();
+    if (now - lastResizeRef.current >= RESIZE_THROTTLE_MS) {
+      lastResizeRef.current = now;
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      rafRef.current = requestAnimationFrame(() => {
+        calculateAllLines();
+      });
+    }
+  }, [calculateAllLines]);
+
   // Setup observers and initial calculation
   useEffect(() => {
     // Initial calculation with delay for DOM to settle
@@ -145,15 +185,14 @@ export function TreeLineOverlayByUser({ expandedUsers }: TreeLineOverlayByUserPr
       calculateAllLines();
     }, 50);
 
-    // Setup resize observer to recalculate on container resize
+    // Setup resize observer with throttling
     resizeObserverRef.current = new ResizeObserver(() => {
-      calculateAllLines();
+      throttledCalculate();
     });
 
-    // Setup mutation observer to watch for DOM changes (expand/collapse)
+    // Setup mutation observer with debouncing
     mutationObserverRef.current = new MutationObserver(() => {
-      // Debounce mutations
-      setTimeout(calculateAllLines, 50);
+      debouncedCalculate(MUTATION_DEBOUNCE_MS);
     });
 
     // Observe container after it's found
@@ -172,20 +211,22 @@ export function TreeLineOverlayByUser({ expandedUsers }: TreeLineOverlayByUserPr
     return () => {
       clearTimeout(initialTimer);
       clearTimeout(observeTimer);
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
       resizeObserverRef.current?.disconnect();
       mutationObserverRef.current?.disconnect();
     };
-  }, [calculateAllLines]);
+  }, [calculateAllLines, debouncedCalculate, throttledCalculate]);
 
   // Recalculate lines when expansion state changes
   useEffect(() => {
-    // Wait for Radix Collapsible animation to complete
-    const timer = setTimeout(() => {
-      calculateAllLines();
-    }, 350);
-
-    return () => clearTimeout(timer);
-  }, [expandedUsers, calculateAllLines]);
+    // Wait for Radix Collapsible animation to complete, then use debounced calculate
+    debouncedCalculate(300);
+  }, [expandedUsers, debouncedCalculate]);
 
   if (lines.length === 0) return null;
 
@@ -205,7 +246,6 @@ export function TreeLineOverlayByUser({ expandedUsers }: TreeLineOverlayByUserPr
       <style>
         {`
           .tree-line {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             stroke: var(--storage-nav-text-muted, #cbd5e1);
           }
         `}

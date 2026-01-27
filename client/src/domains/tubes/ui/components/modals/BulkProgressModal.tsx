@@ -49,7 +49,7 @@ export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkP
 
   return (
     <ModalPortal>
-      <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 animate-modal-backdrop-in">
+      <div className="fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center z-50 animate-modal-backdrop-in">
         <div className="bg-card rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl border border-border animate-modal-reveal-in">
           <div className="text-center mb-6">
             <div className="mb-4">{getPhaseIcon(progress.phase)}</div>

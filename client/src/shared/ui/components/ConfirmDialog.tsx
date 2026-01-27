@@ -183,7 +183,7 @@ export function ConfirmDialog({
   return (
     <ModalPortal>
       <div
-        className={`fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 ${backdropAnimationClass} ${closingPointerEvents}`}
+        className={`fixed inset-0 bg-[hsl(var(--overlay-emphasis))] flex items-center justify-center z-50 ${backdropAnimationClass} ${closingPointerEvents}`}
       >
         <div
           ref={trapRef}

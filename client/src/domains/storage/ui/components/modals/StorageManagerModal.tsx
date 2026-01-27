@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 
 import { NAMING_PATTERNS, sortByName } from '@odysseus/shared-schemas';
 import { Plus, ListTree, UsersRound } from 'lucide-react';
@@ -213,18 +213,19 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     });
   };
 
-  const handleAssignRack = (tankId: string, rackId: string, userId: string | undefined) => {
-    assignRackMutation.mutate({ tankId, rackId, assignedUserId: userId ?? null });
-  };
+  const handleAssignRack = useCallback(
+    (tankId: string, rackId: string, userId: string | undefined) => {
+      assignRackMutation.mutate({ tankId, rackId, assignedUserId: userId ?? null });
+    },
+    [assignRackMutation]
+  );
 
-  const handleAssignBox = (
-    tankId: string,
-    rackId: string,
-    boxId: string,
-    userId: string | null | undefined
-  ) => {
-    assignBoxMutation.mutate({ tankId, rackId, boxId, assignedUserId: userId ?? null });
-  };
+  const handleAssignBox = useCallback(
+    (tankId: string, rackId: string, boxId: string, userId: string | null | undefined) => {
+      assignBoxMutation.mutate({ tankId, rackId, boxId, assignedUserId: userId ?? null });
+    },
+    [assignBoxMutation]
+  );
 
   const handleUpdateCustomLabel = (
     type: 'rack' | 'box',
@@ -239,41 +240,50 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     );
   };
 
-  const handleCreateRack = (tankId: string) => {
-    const count = rackCountToAdd[tankId] || 1;
-    addRacksMutation.mutate(
-      { tankId, count },
-      {
-        onSuccess: data => {
-          const newRackKeys = data.rackIds.map(id => `${tankId}-rack-${id}`);
-          setCollapsedRacks(prev => new Set([...prev, ...newRackKeys]));
-          setRackCountToAdd(prev => ({ ...prev, [tankId]: 1 }));
+  const handleCreateRack = useCallback(
+    (tankId: string) => {
+      const count = rackCountToAdd[tankId] || 1;
+      addRacksMutation.mutate(
+        { tankId, count },
+        {
+          onSuccess: data => {
+            const newRackKeys = data.rackIds.map(id => `${tankId}-rack-${id}`);
+            setCollapsedRacks(prev => new Set([...prev, ...newRackKeys]));
+            setRackCountToAdd(prev => ({ ...prev, [tankId]: 1 }));
+          },
+        }
+      );
+    },
+    [rackCountToAdd, addRacksMutation]
+  );
+
+  const handleAddBox = useCallback(
+    (tankId: string, rackId: string) => {
+      const rackKey = `${tankId}-${rackId}`;
+      const count = boxCountToAdd[rackKey] || 1;
+      addBoxesMutation.mutate(
+        { tankId, rackId, count },
+        { onSuccess: () => setBoxCountToAdd(prev => ({ ...prev, [rackKey]: 1 })) }
+      );
+    },
+    [boxCountToAdd, addBoxesMutation]
+  );
+
+  const handleRemoveBox = useCallback(
+    (tankId: string, rackId: string, boxId: string) => {
+      modalService.showDeleteConfirm({
+        title: 'Delete Box',
+        message: 'Are you sure you want to delete this box? This action is blocked if tubes exist.',
+        onConfirm: () => {
+          deleteBoxMutation.mutate(
+            { tankId, rackId, boxId },
+            { onSettled: () => modalService.hideDeleteConfirm() }
+          );
         },
-      }
-    );
-  };
-
-  const handleAddBox = (tankId: string, rackId: string) => {
-    const rackKey = `${tankId}-${rackId}`;
-    const count = boxCountToAdd[rackKey] || 1;
-    addBoxesMutation.mutate(
-      { tankId, rackId, count },
-      { onSuccess: () => setBoxCountToAdd(prev => ({ ...prev, [rackKey]: 1 })) }
-    );
-  };
-
-  const handleRemoveBox = (tankId: string, rackId: string, boxId: string) => {
-    modalService.showDeleteConfirm({
-      title: 'Delete Box',
-      message: 'Are you sure you want to delete this box? This action is blocked if tubes exist.',
-      onConfirm: () => {
-        deleteBoxMutation.mutate(
-          { tankId, rackId, boxId },
-          { onSettled: () => modalService.hideDeleteConfirm() }
-        );
-      },
-    });
-  };
+      });
+    },
+    [modalService, deleteBoxMutation]
+  );
 
   const handleUpdateBoxGrid = (
     tankId: string,
@@ -306,26 +316,30 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     );
   };
 
-  const handleDeleteRack = (tankId: string, rackId: string) => {
-    if (!currentLab) return;
+  const handleDeleteRack = useCallback(
+    (tankId: string, rackId: string) => {
+      if (!currentLab) return;
 
-    const tank = currentLab.equipment.tanks.find(t => t.id === tankId);
-    if (!tank || tank.racks.length <= 1) {
-      notifications.error('Cannot delete the last rack in a tank');
-      return;
-    }
+      const tank = currentLab.equipment.tanks.find(t => t.id === tankId);
+      if (!tank || tank.racks.length <= 1) {
+        notifications.error('Cannot delete the last rack in a tank');
+        return;
+      }
 
-    modalService.showDeleteConfirm({
-      title: 'Delete Rack',
-      message: 'Are you sure you want to delete this rack? This action is blocked if tubes exist.',
-      onConfirm: () => {
-        deleteRackMutation.mutate(
-          { tankId, rackId },
-          { onSettled: () => modalService.hideDeleteConfirm() }
-        );
-      },
-    });
-  };
+      modalService.showDeleteConfirm({
+        title: 'Delete Rack',
+        message:
+          'Are you sure you want to delete this rack? This action is blocked if tubes exist.',
+        onConfirm: () => {
+          deleteRackMutation.mutate(
+            { tankId, rackId },
+            { onSettled: () => modalService.hideDeleteConfirm() }
+          );
+        },
+      });
+    },
+    [currentLab, modalService, deleteRackMutation]
+  );
 
   const handleAddNewTank = () => {
     if (!currentLab) return;
@@ -351,25 +365,29 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     );
   };
 
-  const handleDeleteTank = (tankId: string) => {
-    if (!currentLab) return;
+  const handleDeleteTank = useCallback(
+    (tankId: string) => {
+      if (!currentLab) return;
 
-    if (currentLab.equipment.tanks.length <= 1) {
-      notifications.error('Cannot delete the last tank in the laboratory');
-      return;
-    }
+      if (currentLab.equipment.tanks.length <= 1) {
+        notifications.error('Cannot delete the last tank in the laboratory');
+        return;
+      }
 
-    modalService.showDeleteConfirm({
-      title: 'Delete Tank',
-      message: 'Are you sure you want to delete this tank? This action is blocked if tubes exist.',
-      onConfirm: () => {
-        deleteTankMutation.mutate(
-          { tankId },
-          { onSettled: () => modalService.hideDeleteConfirm() }
-        );
-      },
-    });
-  };
+      modalService.showDeleteConfirm({
+        title: 'Delete Tank',
+        message:
+          'Are you sure you want to delete this tank? This action is blocked if tubes exist.',
+        onConfirm: () => {
+          deleteTankMutation.mutate(
+            { tankId },
+            { onSettled: () => modalService.hideDeleteConfirm() }
+          );
+        },
+      });
+    },
+    [currentLab, modalService, deleteTankMutation]
+  );
 
   const handleUpdateTank = (tankId: string, updates: Partial<TankConfiguration>) => {
     updateTankMutation.mutate(
@@ -479,43 +497,80 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     });
   };
 
-  if (!currentLab) return null;
+  // Stable callbacks for context to prevent unnecessary re-renders
+  const onEditTank = useCallback((tank: TankConfiguration) => {
+    setTankModalData(tank);
+    setIsTankModalOpen(true);
+  }, []);
 
-  const contextValue = {
-    users: dropdownUsers,
-    currentUser,
-    getUserInfo,
-    isOwnedByCurrentUser,
-    canEditResource,
-    canManageStorage,
-    onEditTank: (tank: TankConfiguration) => {
-      setTankModalData(tank);
-      setIsTankModalOpen(true);
-    },
-    onDeleteTank: handleDeleteTank,
-    onAddRack: handleCreateRack,
-    onEditRack: (tankId: string, rack: RackConfiguration) => {
-      setRackModalData({ tankId, rack });
-      setIsRackModalOpen(true);
-    },
-    onDeleteRack: handleDeleteRack,
-    onAddBox: handleAddBox,
-    onAssignRack: handleAssignRack,
-    onEditRackLabel: (tankId: string, rackId: string, currentLabel: string) => {
-      setLabelModalData({ type: 'rack', tankId, rackId, currentLabel });
-      setIsLabelModalOpen(true);
-    },
-    onEditBox: (tankId: string, rackId: string, box: BoxConfiguration) => {
-      setBoxModalData({ tankId, rackId, box });
-      setIsBoxModalOpen(true);
-    },
-    onDeleteBox: handleRemoveBox,
-    onAssignBox: handleAssignBox,
-    onEditBoxLabel: (tankId: string, rackId: string, boxId: string, currentLabel: string) => {
+  const onEditRack = useCallback((tankId: string, rack: RackConfiguration) => {
+    setRackModalData({ tankId, rack });
+    setIsRackModalOpen(true);
+  }, []);
+
+  const onEditRackLabel = useCallback((tankId: string, rackId: string, currentLabel: string) => {
+    setLabelModalData({ type: 'rack', tankId, rackId, currentLabel });
+    setIsLabelModalOpen(true);
+  }, []);
+
+  const onEditBox = useCallback((tankId: string, rackId: string, box: BoxConfiguration) => {
+    setBoxModalData({ tankId, rackId, box });
+    setIsBoxModalOpen(true);
+  }, []);
+
+  const onEditBoxLabel = useCallback(
+    (tankId: string, rackId: string, boxId: string, currentLabel: string) => {
       setLabelModalData({ type: 'box', tankId, rackId, boxId, currentLabel });
       setIsLabelModalOpen(true);
     },
-  };
+    []
+  );
+
+  // Memoized context value to prevent child re-renders
+  const contextValue = useMemo(
+    () => ({
+      users: dropdownUsers,
+      currentUser,
+      getUserInfo,
+      isOwnedByCurrentUser,
+      canEditResource,
+      canManageStorage,
+      onEditTank,
+      onDeleteTank: handleDeleteTank,
+      onAddRack: handleCreateRack,
+      onEditRack,
+      onDeleteRack: handleDeleteRack,
+      onAddBox: handleAddBox,
+      onAssignRack: handleAssignRack,
+      onEditRackLabel,
+      onEditBox,
+      onDeleteBox: handleRemoveBox,
+      onAssignBox: handleAssignBox,
+      onEditBoxLabel,
+    }),
+    [
+      dropdownUsers,
+      currentUser,
+      getUserInfo,
+      isOwnedByCurrentUser,
+      canEditResource,
+      canManageStorage,
+      onEditTank,
+      handleDeleteTank,
+      handleCreateRack,
+      onEditRack,
+      handleDeleteRack,
+      handleAddBox,
+      handleAssignRack,
+      onEditRackLabel,
+      onEditBox,
+      handleRemoveBox,
+      handleAssignBox,
+      onEditBoxLabel,
+    ]
+  );
+
+  if (!currentLab) return null;
 
   const tabs = (
     <Tabs value={viewMode} onChange={v => setViewMode(v as 'tree' | 'byUser')}>

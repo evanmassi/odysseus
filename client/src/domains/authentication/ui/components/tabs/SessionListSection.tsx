@@ -266,7 +266,7 @@ export function SessionListSection() {
 
       {/* Confirmation Dialog */}
       {showRevokeAllConfirm && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-50 animate-modal-backdrop-in">
+        <div className="fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center z-50 animate-modal-backdrop-in">
           <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4 animate-modal-blowup-in">
             <div className="px-6 py-4 border-b border-border">
               <h3 className="text-lg font-semibold text-card-foreground">
