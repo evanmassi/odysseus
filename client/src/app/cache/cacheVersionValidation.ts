@@ -101,6 +101,12 @@ export async function validateCacheVersion(
   accessToken: string | null
 ): Promise<VersionCheckResult> {
   if (!accessToken) {
+    // No session but cached data exists → stale from previous DB/session — clear it
+    const cachedVersion = getCachedConfigVersion(queryClient);
+    if (cachedVersion !== null) {
+      clearStaleCaches(queryClient);
+    }
+
     return {
       isValid: true,
       serverVersion: null,
