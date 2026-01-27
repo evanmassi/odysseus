@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 import { Save } from 'lucide-react';
 
+import { useEditModalForm } from '@shared/hooks';
 import { Button, Checkbox, Input } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
@@ -27,14 +28,11 @@ export function RackEditModal({
   onSave,
   onClose,
 }: RackEditModalProps) {
-  const [editedRack, setEditedRack] = useState(initialRack);
-
-  // Reset form state when modal opens with new data
-  useEffect(() => {
-    if (isOpen) {
-      setEditedRack(initialRack);
-    }
-  }, [isOpen, initialRack]);
+  const {
+    formData: editedRack,
+    setFormData: setEditedRack,
+    createSubmitHandler,
+  } = useEditModalForm(isOpen, initialRack);
 
   const handleSave = async () => {
     await onSave(tankId, editedRack.id, {
@@ -44,12 +42,9 @@ export function RackEditModal({
     onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editedRack.name.trim()) {
-      void handleSave();
-    }
-  };
+  const handleSubmit = createSubmitHandler(async () => {
+    if (editedRack.name.trim()) await handleSave();
+  });
 
   return (
     <BaseModal

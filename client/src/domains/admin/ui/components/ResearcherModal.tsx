@@ -12,7 +12,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@shared/ui';
 import { ResearcherIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
-import { notifications } from '@shared/utils';
+import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 
 export interface ResearcherModalProps {
   isOpen: boolean;
@@ -51,38 +51,28 @@ export function ResearcherModal({
   });
 
   const handleCreate = async (data: CreateResearcherProfile) => {
-    setIsSubmitting(true);
-    try {
-      await onCreateResearcher(data);
-      notifications.success('Researcher added successfully');
-      reset();
-      onSuccess();
-      onClose();
-    } catch (error: unknown) {
-      const message =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Failed to add researcher';
-      notifications.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await withAsyncHandler(() => onCreateResearcher(data), {
+      setLoading: setIsSubmitting,
+      successMessage: 'Researcher added successfully',
+      errorMessage: 'Failed to add researcher',
+      onSuccess: () => {
+        reset();
+        onSuccess();
+        onClose();
+      },
+    });
   };
 
   const handleLinkExisting = async (researcherId: string) => {
-    setIsSubmitting(true);
-    try {
-      await onLinkExisting(researcherId);
-      notifications.success('Researcher linked successfully');
-      onSuccess();
-      onClose();
-    } catch (error: unknown) {
-      const message =
-        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Failed to link researcher';
-      notifications.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await withAsyncHandler(() => onLinkExisting(researcherId), {
+      setLoading: setIsSubmitting,
+      successMessage: 'Researcher linked successfully',
+      errorMessage: 'Failed to link researcher',
+      onSuccess: () => {
+        onSuccess();
+        onClose();
+      },
+    });
   };
 
   const handleClose = () => {

@@ -43,6 +43,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { ConfigurationDto } from '@application/dto/ConfigurationDto';
+import { BaseController } from '@presentation/controllers/BaseController';
 
 /** Response shape for configuration import endpoint */
 interface ImportConfigurationResponse {
@@ -71,7 +72,7 @@ interface ImportConfigurationResponse {
  * - POST /api/configuration/import - Import configuration
  * - GET /api/configuration/health - Configuration health check
  */
-export class ConfigurationController {
+export class ConfigurationController extends BaseController {
 
   constructor(
     // Query handlers
@@ -104,7 +105,9 @@ export class ConfigurationController {
     private bulkUnassignHandler: BulkUnassignResourcesCommandHandler,
     private bulkReassignHandler: BulkReassignResourcesCommandHandler,
     private initializeConfigHandler: InitializeConfigurationCommandHandler
-  ) {}
+  ) {
+    super();
+  }
 
   // QUERY ENDPOINTS
 
@@ -904,14 +907,11 @@ export class ConfigurationController {
   /**
    * Extract user ID from authenticated request
    */
-  private extractUserId(req: Request): string {
-    // Assuming user ID is added to request by authentication middleware
+  protected override extractUserId(req: Request): string {
     const userId = req.user?.id;
-    
     if (!userId) {
       throw new ValidationError('User authentication required');
     }
-    
     return userId;
   }
 

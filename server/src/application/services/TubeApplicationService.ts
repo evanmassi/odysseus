@@ -172,27 +172,13 @@ export class TubeApplicationService {
     created: TubeResponse[];
     failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
   }> {
-    const created: TubeResponse[] = [];
-    const failed: Array<{ index: number; request: CreateTubeRequest; error: string }> = [];
+    const { succeeded: created, failed } = await this.executeBatch(
+      requests,
+      (req) => this.createTube(req, authenticatedUser),
+      (req, index, error) => ({ index, request: req, error })
+    );
 
-    for (let i = 0; i < requests.length; i++) {
-      try {
-        const tube = await this.createTube(requests[i], authenticatedUser);
-        created.push(tube);
-      } catch (error) {
-        failed.push({
-          index: i,
-          request: requests[i],
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    }
-
-    return {
-      success: failed.length === 0,
-      created,
-      failed
-    };
+    return { success: failed.length === 0, created, failed };
   }
 
   /**
@@ -494,11 +480,7 @@ export class TubeApplicationService {
       tube.id,
       tube.location,
       authenticatedUser.id,
-      {
-        cellType: tube.cellType ?? '',
-        donorInternalId: tube.donorInternalId ?? '',
-        donorSourceId: tube.donorSourceId ?? '',
-      }
+      tube.sampleData
     ));
   }
 
@@ -514,23 +496,13 @@ export class TubeApplicationService {
     updated: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
-    // No upfront permission check - each tube is authorized individually
+    // No upfront permission check — each tube is authorized individually
     // This allows users to batch edit tubes they have access to (own space or shared access)
-
-    const updated: string[] = [];
-    const failed: Array<{ id: string; error: string }> = [];
-
-    for (const item of request.updates) {
-      try {
-        await this.updateTube(item.id, item.updates, authenticatedUser);
-        updated.push(item.id);
-      } catch (error) {
-        failed.push({
-          id: item.id,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    }
+    const { succeeded: updated, failed } = await this.executeBatch(
+      request.updates,
+      async (item) => { await this.updateTube(item.id, item.updates, authenticatedUser); return item.id; },
+      (item, _index, error) => ({ id: item.id, error })
+    );
 
     // Publish bulk update event (only if some succeeded)
     if (updated.length > 0) {
@@ -541,11 +513,7 @@ export class TubeApplicationService {
       ));
     }
 
-    return {
-      success: failed.length === 0,
-      updated,
-      failed
-    };
+    return { success: failed.length === 0, updated, failed };
   }
 
   /**
@@ -562,26 +530,13 @@ export class TubeApplicationService {
     // Check general tube edit permission (bulk delete uses same permission as bulk edit)
     this.accessControlService.requireCanBulkEditTubes(authenticatedUser);
 
-    const deleted: string[] = [];
-    const failed: Array<{ id: string; error: string }> = [];
+    const { succeeded: deleted, failed } = await this.executeBatch(
+      tubeIds,
+      async (id) => { await this.deleteTube(id, authenticatedUser); return id; },
+      (id, _index, error) => ({ id, error })
+    );
 
-    for (const id of tubeIds) {
-      try {
-        await this.deleteTube(id, authenticatedUser);
-        deleted.push(id);
-      } catch (error) {
-        failed.push({
-          id,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    }
-
-    return {
-      success: failed.length === 0,
-      deleted,
-      failed
-    };
+    return { success: failed.length === 0, deleted, failed };
   }
 
   /**
@@ -864,5 +819,28 @@ export class TubeApplicationService {
       completionRate: stats.completionRate,
       expirationRate: stats.expirationRate,
     };
+  }
+
+  /**
+   * Execute an operation on each item, collecting successes and failures.
+   * Shared scaffold for createTubes, bulkUpdateTubes, and bulkDeleteTubes.
+   */
+  private async executeBatch<TItem, TSuccess, TFailure>(
+    items: TItem[],
+    operation: (item: TItem, index: number) => Promise<TSuccess>,
+    onFailure: (item: TItem, index: number, error: string) => TFailure
+  ): Promise<{ succeeded: TSuccess[]; failed: TFailure[] }> {
+    const succeeded: TSuccess[] = [];
+    const failed: TFailure[] = [];
+
+    for (let i = 0; i < items.length; i++) {
+      try {
+        succeeded.push(await operation(items[i], i));
+      } catch (error) {
+        failed.push(onFailure(items[i], i, error instanceof Error ? error.message : 'Unknown error'));
+      }
+    }
+
+    return { succeeded, failed };
   }
 }

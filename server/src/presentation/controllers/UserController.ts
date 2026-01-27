@@ -7,19 +7,22 @@ import { UserRepository } from '@domain/repositories/UserRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { userSettingsSchema, userLookupRequestSchema } from '@odysseus/shared-schemas';
+import { BaseController } from '@presentation/controllers/BaseController';
 
 /**
  * User Controller
  *
  * Handles user-related HTTP requests (settings, profile, lookup, etc.)
  */
-export class UserController {
+export class UserController extends BaseController {
   constructor(
     private updateUserSettingsHandler: UpdateUserSettingsCommandHandler,
     private getUserSettingsHandler: GetUserSettingsQueryHandler,
     private userRepository: UserRepository,
     private personRepository: PersonRepository
-  ) {}
+  ) {
+    super();
+  }
 
   /**
    * GET /api/users/me/settings
@@ -146,17 +149,6 @@ export class UserController {
     } catch (error) {
       handleControllerError(error, res, 'Failed to list active users');
     }
-  }
-
-  /**
-   * Extract user ID from authenticated request
-   */
-  private extractUserId(req: Request): string {
-    const user = req.user;
-    if (!user?.id) {
-      throw new Error('User not authenticated');
-    }
-    return user.id;
   }
 
 }

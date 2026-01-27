@@ -456,14 +456,10 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
 
     if (entityType === 'researcher') {
       const researcherName = getStringProperty(details, 'researcherName') || '-';
-      const createdBy = getStringProperty(details, 'createdBy');
-      const deactivatedBy = getStringProperty(details, 'deactivatedBy');
-      const reactivatedBy = getStringProperty(details, 'reactivatedBy');
 
       if (action === 'researcher_created') {
         const email = getStringProperty(details, 'email');
-        const emailPart = email ? ` (${email})` : '';
-        return plain(`${researcherName}${emailPart} by ${createdBy}`);
+        return plain(email ? `${researcherName} (${email})` : researcherName);
       }
 
       if (action === 'researcher_updated') {
@@ -489,14 +485,7 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       if (action === 'researcher_deactivated') {
         const tubeCount = getNumberProperty(details, 'tubesReassignedCount');
         const tubeText = tubeCount > 0 ? ` (${tubeCount} tubes reassigned to Unknown)` : '';
-        return plain(`${researcherName}${tubeText} by ${deactivatedBy}`);
-      }
-      if (action === 'researcher_reactivated') {
-        return plain(`${researcherName} by ${reactivatedBy}`);
-      }
-      if (action === 'researcher_deleted') {
-        const deletedBy = getStringProperty(details, 'deletedBy');
-        return plain(deletedBy ? `${researcherName} by ${deletedBy}` : researcherName);
+        return plain(`${researcherName}${tubeText}`);
       }
 
       return plain(researcherName);
@@ -507,8 +496,6 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     if (entityType === 'user') {
       const username = getStringProperty(details, 'username') || '-';
       const changedBy = getStringProperty(details, 'changedBy');
-      const linkedBy = getStringProperty(details, 'linkedBy');
-      const unlinkedBy = getStringProperty(details, 'unlinkedBy');
 
       if (action === 'user_created') {
         const role = getStringProperty(details, 'role') || 'user';
@@ -529,19 +516,15 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         return plain('Password changed');
       }
       if (action === 'user_approved') {
-        const approvedBy = getStringProperty(details, 'approvedBy');
-        return plain(approvedBy ? `${username} approved by ${approvedBy}` : `${username} approved`);
+        return plain(`${username} approved`);
       }
       if (action === 'user_linked_to_researcher') {
         const researcherName = getStringProperty(details, 'researcherName');
-        return plain(`${username} linked to ${researcherName} by ${linkedBy}`);
+        return plain(`${username} linked to ${researcherName}`);
       }
       if (action === 'user_unlinked_from_researcher') {
         const researcherName = getStringProperty(details, 'researcherName');
-        return plain(`${username} unlinked from ${researcherName} by ${unlinkedBy}`);
-      }
-      if (action === 'user_deleted') {
-        return plain(username);
+        return plain(`${username} unlinked from ${researcherName}`);
       }
 
       return plain(username);

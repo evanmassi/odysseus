@@ -4,6 +4,7 @@ import { CreateResearcherRequest } from '@application/dto/ResearcherDto';
 import { ErrorDto } from '@application/dto/ErrorDto';
 import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { logger } from '@utils/logger';
+import { BaseController } from '@presentation/controllers/BaseController';
 
 /**
  * ResearcherController - HTTP request/response handling for researchers
@@ -11,8 +12,10 @@ import { logger } from '@utils/logger';
  * Pure presentation layer - handles HTTP concerns only.
  * Delegates all business logic to application service.
  */
-export class ResearcherController {
-  constructor(private researcherApplicationService: ResearcherApplicationService) {}
+export class ResearcherController extends BaseController {
+  constructor(private researcherApplicationService: ResearcherApplicationService) {
+    super();
+  }
 
   /**
    * Get all researchers
@@ -286,25 +289,6 @@ export class ResearcherController {
     } catch (error) {
       handleControllerError(error, res, 'Failed to get researcher tube count', req.requestId);
     }
-  }
-
-  /**
-   * Helper: Extract API key from request (required)
-   */
-  private extractApiKey(req: Request): string {
-    const user = req.user;
-    if (!user?.apiKey) {
-      throw new Error('Authentication required');
-    }
-    return user.apiKey;
-  }
-
-  /**
-   * Helper: Extract API key from request (optional)
-   */
-  private extractOptionalApiKey(req: Request): string | undefined {
-    const user = req.user;
-    return user?.apiKey;
   }
 
 }

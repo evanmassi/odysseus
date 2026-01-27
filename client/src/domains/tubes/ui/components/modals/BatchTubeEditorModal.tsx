@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 
 import {
-  type UpdateTubeFormInput,
   type CreateTubeRequest,
   type UpdateTubeRequest,
   updateTubeRequestSchema,
@@ -12,7 +11,6 @@ import { XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
 import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
-import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import {
@@ -21,6 +19,7 @@ import {
   formatPositionRangesForBox,
 } from '@domains/storage';
 import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
+import { useTubeModalFocusReturn } from '@domains/tubes/hooks/useTubeModalFocusReturn';
 import {
   useBulkUpdateTubesMutation,
   useBulkDeleteTubesMutation,
@@ -73,38 +72,6 @@ interface BatchEditConflictAnalysis {
   researcherId: FieldConflictAnalysis<string>;
 }
 
-/**
- * Convert TubeData to UpdateTubeFormInput for form initialization
- * Only converts editable fields (sample + researcherId, no location)
- * Returns form INPUT type (pre-transformation)
- */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function convertTubeDataToFormData(tubeData: TubeData): Partial<UpdateTubeFormInput> {
-  return {
-    sample: {
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
-      cellType: tubeData.sample.cellType || '',
-      donorInternalId: tubeData.sample.donorInternalId ?? '',
-      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
-      donorSourceId: tubeData.sample.donorSourceId || '',
-      concentration: formatConcentrationDisplay(tubeData.sample.concentration) || undefined,
-      concentrationUnit: tubeData.sample.concentrationUnit,
-      date: tubeData.sample.date ?? '',
-      media: tubeData.sample.media ?? { type: '', supplements: '', selection: '' },
-      cultureCondition: tubeData.sample.cultureCondition ?? '',
-      lotNumber: tubeData.sample.lotNumber ?? '',
-      notes: tubeData.sample.notes ?? '',
-    },
-    researcherId: tubeData.researcherId,
-  };
-}
-
-/**
- * Convert TubeFormData to UpdateTubeRequest for API updates
- * Uses the standard transformToUpdateRequest for consistent PATCH semantics
- * Note: This local function was removed - now using centralized transform
- */
-
 export default function BatchTubeEditorModal({
   isOpen = true,
   tubeIds,
@@ -113,31 +80,13 @@ export default function BatchTubeEditorModal({
 }: BatchTubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { analyzeFieldConflicts } = useFieldResolverQuery();
-  const modalService = useModalStore();
 
   // Fetch tubes by IDs, with legacy support during transition
   const { data: allTubes = [] } = useTubes();
   const tubes = legacyTubes ?? allTubes.filter(tube => tubeIds.includes(tube.id));
 
   // Focus return management - restore focus when modal unmounts
-  // Skip restoration for batch operations to preserve multi-selection
-  // IMPORTANT: Capture preserveSelection flag on mount to avoid race condition with hideTubeEditorModal
-  const [shouldPreserveSelection] = useState(modalService.tubeEditorModal.preserveSelection);
-
-  useEffect(() => {
-    return () => {
-      // Don't restore focus if preserveSelection is enabled (batch operations)
-      // This prevents focus from returning to a specific position and clearing selection
-      if (shouldPreserveSelection) {
-        return;
-      }
-
-      const previousFocus = modalService.tubeEditorModal.previousFocusElement;
-      if (previousFocus && typeof previousFocus.focus === 'function') {
-        setTimeout(() => previousFocus.focus(), 0);
-      }
-    };
-  }, [shouldPreserveSelection, modalService.tubeEditorModal.previousFocusElement]);
+  useTubeModalFocusReturn();
 
   // Analyze all editable fields for conflicts across selected tubes
   const conflictAnalysis = useMemo(() => {

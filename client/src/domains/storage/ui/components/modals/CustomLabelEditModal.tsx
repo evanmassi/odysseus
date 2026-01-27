@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { Save, Tag } from 'lucide-react';
 
+import { useEditModalForm } from '@shared/hooks';
 import { Button, Input } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
 
@@ -35,14 +36,11 @@ export function CustomLabelEditModal({
   onSave,
   onClose,
 }: CustomLabelEditModalProps) {
-  const [label, setLabel] = useState(resourceInfo.initialLabel ?? '');
-
-  // Reset form state when modal opens with new data
-  useEffect(() => {
-    if (isOpen) {
-      setLabel(resourceInfo.initialLabel ?? '');
-    }
-  }, [isOpen, resourceInfo.initialLabel]);
+  const {
+    formData: label,
+    setFormData: setLabel,
+    createSubmitHandler,
+  } = useEditModalForm(isOpen, resourceInfo.initialLabel ?? '');
 
   const tank = currentLab.equipment.tanks.find(t => t.id === resourceInfo.tankId);
   const rack = tank?.racks.find(r => r.id === resourceInfo.rackId);
@@ -63,10 +61,7 @@ export function CustomLabelEditModal({
     onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    void handleSave();
-  };
+  const handleSubmit = createSubmitHandler(handleSave);
 
   return (
     <BaseModal

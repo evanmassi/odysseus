@@ -29,6 +29,7 @@ import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox } from '@domains/storage';
 import { useTubes, useTube } from '@domains/tubes';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
+import { useTubeModalFocusReturn } from '@domains/tubes/hooks/useTubeModalFocusReturn';
 import {
   useUpdateTubeMutation,
   useDeleteTubeMutation,
@@ -112,16 +113,7 @@ function EditModeContent({ isOpen, tubeId, onClose, lockContext }: EditModeConte
   const { data: tube, isLoading: isFetchingTube, isError } = useTube(tubeId);
 
   // Focus return management - restore focus when modal unmounts
-  useEffect(() => {
-    return () => {
-      const previousFocus = modalService.tubeEditorModal.previousFocusElement;
-      if (previousFocus && typeof previousFocus.focus === 'function') {
-        setTimeout(() => {
-          previousFocus.focus();
-        }, 0);
-      }
-    };
-  }, [modalService.tubeEditorModal.previousFocusElement]);
+  useTubeModalFocusReturn();
 
   // Error state - tube was deleted or doesn't exist
   if (isError) {
@@ -456,31 +448,12 @@ function CreateModeContent({
   const updateTubeMutation = useUpdateTubeMutation();
   const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();
-  const modalService = useModalStore();
 
   // State for overwrite confirmation
   const [allowOverwrite, setAllowOverwrite] = useState(false);
 
   // Focus return management - restore focus when modal unmounts
-  // IMPORTANT: Capture preserveSelection flag on mount to avoid race condition with hideTubeEditorModal
-  const [shouldPreserveSelection] = useState(modalService.tubeEditorModal.preserveSelection);
-
-  useEffect(() => {
-    return () => {
-      // Don't restore focus if preserveSelection is enabled (batch operations)
-      // This prevents focus from returning to a specific position and clearing selection
-      if (shouldPreserveSelection) {
-        return;
-      }
-
-      const previousFocus = modalService.tubeEditorModal.previousFocusElement;
-      if (previousFocus && typeof previousFocus.focus === 'function') {
-        setTimeout(() => {
-          previousFocus.focus();
-        }, 0);
-      }
-    };
-  }, [shouldPreserveSelection, modalService.tubeEditorModal.previousFocusElement]);
+  useTubeModalFocusReturn();
 
   // Parse selected positions from string format
   const parsedPositions = useMemo(() => {

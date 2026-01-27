@@ -4,16 +4,18 @@ import { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest, TubeSearchRequ
 import { ErrorDto } from '@application/dto/ErrorDto';
 import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { logger } from '@utils/logger';
-import type { User } from '@domain/entities/User';
+import { BaseController } from '@presentation/controllers/BaseController';
 
 /**
  * TubeController - HTTP request/response handling for tubes
- * 
+ *
  * Pure presentation layer - handles HTTP concerns only.
  * Delegates all business logic to application service.
  */
-export class TubeController {
-  constructor(private tubeApplicationService: TubeApplicationService) {}
+export class TubeController extends BaseController {
+  constructor(private tubeApplicationService: TubeApplicationService) {
+    super();
+  }
 
   /**
    * Create new tube(s)
@@ -263,16 +265,6 @@ export class TubeController {
     }
   }
 
-  /**
-   * Helper: Extract authenticated user from OAuth 2.0 middleware
-   */
-  private getAuthenticatedUser(req: Request): User {
-    const user = req.user;
-    if (!user) {
-      throw new Error('Authentication required - user not found in request context');
-    }
-    return user;
-  }
 
   /** Valid sort fields for tube search */
   private static readonly VALID_SORT_FIELDS = ['createdAt', 'updatedAt', 'position', 'researcherId', 'cellType'] as const;

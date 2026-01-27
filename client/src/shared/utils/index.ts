@@ -9,3 +9,4 @@ export * from './gridClipboard';
 export * from './notifications';
 export * from './scientificNotation';
 export * from './tubeAccessControl';
+export * from './asyncErrorHandler';

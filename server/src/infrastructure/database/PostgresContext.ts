@@ -530,6 +530,23 @@ export class PostgresContext {
     }
   }
 
+  /**
+   * Query rows by ID list with auto-generated IN clause placeholders.
+   * Returns empty array for empty ID lists (no query executed).
+   */
+  async queryByIds<T extends QueryResultRow>(
+    table: string,
+    columns: string,
+    ids: string[]
+  ): Promise<T[]> {
+    if (ids.length === 0) return [];
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    return this.queryMany<T>(
+      `SELECT ${columns} FROM ${table} WHERE id IN (${placeholders})`,
+      ids
+    );
+  }
+
   async execute(sql: string, params: unknown[] = []): Promise<QueryResult> {
     try {
       return await this.pool.query(sql, params);

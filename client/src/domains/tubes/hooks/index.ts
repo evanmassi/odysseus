@@ -36,6 +36,9 @@ export {
 // Lock access control hooks
 export { useTubeAccessControl } from './useTubeAccessControl';
 
+// Modal utilities
+export { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
+
 // Form hooks (public API - generic implementation is private)
 export {
   useCreateTubeForm,

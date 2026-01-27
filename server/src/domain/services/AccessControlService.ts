@@ -701,112 +701,39 @@ export class AccessControlService {
     }
   }
 
-  // ADDITIONAL REQUIRE METHODS
+  // REQUIRE METHODS — throw PermissionError if check fails
 
-  /**
-   * Require user can create tubes (OAuth 2.0 token-based authorization)
-   */
+  /** Require user can create tubes (OAuth 2.0 token-based authorization) */
   requireCanCreateTube(user: User): void {
-    if (!user.hasPermission('create_tubes')) {
-      throw new PermissionError('User does not have permission to create tubes', {
-        userId: user.id,
-        username: user.username,
-        role: user.roleString,
-        requiredPermission: 'create_tubes'
-      });
-    }
-
-    // OAuth 2.0: User presence here validates active authentication
-    // Valid access token (30-minute lifespan) ensures recent authentication
+    this.requirePermission(user, 'create_tubes', 'create tubes');
   }
 
-  /**
-   * Require user can view tube (throws if not allowed)
-   */
+  /** Require user can view a specific tube (permission + ownership) */
   requireCanViewTube(user: User, tube: Tube): void {
-    if (!user.hasPermission('view_tubes')) {
-      throw new PermissionError('User does not have permission to view tubes', {
-        userId: user.id,
-        tubeId: tube.id
-      });
-    }
-
-    // Regular users can only view their own tubes
-    if (!user.isAdmin() && tube.researcherId !== user.researcherId) {
-      throw new PermissionError('User can only view their own tubes', {
-        userId: user.id,
-        tubeId: tube.id,
-        tubeResearcherId: tube.researcherId
-      });
-    }
+    this.requirePermission(user, 'view_tubes', 'view tubes', { tubeId: tube.id });
+    this.requireTubeOwnership(user, tube, 'view');
   }
 
-  /**
-   * Require user can view tubes (throws if not allowed)
-   */
+  /** Require user can view tubes list */
   requireCanViewTubes(user: User): void {
-    if (!user.hasPermission('view_tubes')) {
-      throw new PermissionError('User does not have permission to view tubes', {
-        userId: user.id,
-        role: user.roleString
-      });
-    }
+    this.requirePermission(user, 'view_tubes', 'view tubes');
   }
 
-  /**
-   * Require user can edit tube (throws if not allowed)
-   */
+  /** Require user can edit a specific tube (permission + ownership) */
   requireCanEditTube(user: User, tube: Tube): void {
-    if (!user.hasPermission('edit_tubes')) {
-      throw new PermissionError('User does not have permission to edit tubes', {
-        userId: user.id,
-        tubeId: tube.id
-      });
-    }
-
-    // Regular users can only edit their own tubes
-    if (!user.isAdmin() && tube.researcherId !== user.researcherId) {
-      throw new PermissionError('User can only edit their own tubes', {
-        userId: user.id,
-        tubeId: tube.id,
-        tubeResearcherId: tube.researcherId
-      });
-    }
+    this.requirePermission(user, 'edit_tubes', 'edit tubes', { tubeId: tube.id });
+    this.requireTubeOwnership(user, tube, 'edit');
   }
 
-  /**
-   * Require user can delete tube (throws if not allowed)
-   */
+  /** Require user can delete a specific tube (permission + ownership) */
   requireCanDeleteTube(user: User, tube: Tube): void {
-    if (!user.hasPermission('delete_tubes')) {
-      throw new PermissionError('User does not have permission to delete tubes', {
-        userId: user.id,
-        tubeId: tube.id
-      });
-    }
-
-    // Regular users can only delete their own tubes
-    if (!user.isAdmin() && tube.researcherId !== user.researcherId) {
-      throw new PermissionError('User can only delete their own tubes', {
-        userId: user.id,
-        tubeId: tube.id,
-        tubeResearcherId: tube.researcherId
-      });
-    }
+    this.requirePermission(user, 'delete_tubes', 'delete tubes', { tubeId: tube.id });
+    this.requireTubeOwnership(user, tube, 'delete');
   }
 
-  /**
-   * Require user can bulk edit tubes (throws if not allowed)
-   */
+  /** Require user can bulk edit tubes (permission + admin) */
   requireCanBulkEditTubes(user: User): void {
-    if (!user.hasPermission('bulk_edit')) {
-      throw new PermissionError('User does not have permission for bulk operations', {
-        userId: user.id,
-        role: user.roleString
-      });
-    }
-
-    // Bulk operations require admin or elevated permissions
+    this.requirePermission(user, 'bulk_edit', 'perform bulk operations');
     if (!user.isAdmin()) {
       throw new PermissionError('Bulk operations require administrative privileges', {
         userId: user.id,
@@ -815,9 +742,7 @@ export class AccessControlService {
     }
   }
 
-  /**
-   * Require user can manage users (OAuth 2.0 token-based authorization)
-   */
+  /** Require user can manage users (OAuth 2.0 token-based authorization) */
   requireCanManageUsers(user: User): void {
     if (!user.isAdmin()) {
       throw new PermissionError('User management requires administrative privileges', {
@@ -826,20 +751,39 @@ export class AccessControlService {
         requiredRole: 'admin'
       });
     }
-
-    // OAuth 2.0: Valid access token (30-minute lifespan) ensures fresh admin authentication
-    // No additional session checks needed - token validity = authentication freshness
   }
 
-  /**
-   * Require user can manage researchers (throws if not allowed)
-   */
+  /** Require user can manage researchers */
   requireCanManageResearchers(user: User): void {
-    // Allow users to manage researchers (needed for tube creation)
-    if (!user.hasPermission('manage_researchers')) {
-      throw new PermissionError('User does not have permission to manage researchers', {
+    this.requirePermission(user, 'manage_researchers', 'manage researchers');
+  }
+
+  // SHARED REQUIRE HELPERS
+
+  /** Throws PermissionError if user lacks the given permission */
+  private requirePermission(
+    user: User,
+    permission: string,
+    action: string,
+    extra?: Record<string, unknown>
+  ): void {
+    if (!user.hasPermission(permission)) {
+      throw new PermissionError(`User does not have permission to ${action}`, {
         userId: user.id,
-        role: user.roleString
+        role: user.roleString,
+        requiredPermission: permission,
+        ...extra
+      });
+    }
+  }
+
+  /** Throws PermissionError if non-admin user doesn't own the tube */
+  private requireTubeOwnership(user: User, tube: Tube, action: string): void {
+    if (!user.isAdmin() && tube.researcherId !== user.researcherId) {
+      throw new PermissionError(`User can only ${action} their own tubes`, {
+        userId: user.id,
+        tubeId: tube.id,
+        tubeResearcherId: tube.researcherId
       });
     }
   }

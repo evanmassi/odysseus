@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useMemo } from 'react';
 
 import { Save } from 'lucide-react';
 
+import { useEditModalForm } from '@shared/hooks';
 import { Button, Select } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
@@ -32,16 +33,11 @@ export function BoxEditModal({
   onSave,
   onClose,
 }: BoxEditModalProps) {
-  const [selectedGridConfig, setSelectedGridConfig] = useState<GridConfiguration>(
-    initialBox.gridConfig
-  );
-
-  // Reset form state when modal opens with new data
-  useEffect(() => {
-    if (isOpen) {
-      setSelectedGridConfig(initialBox.gridConfig);
-    }
-  }, [isOpen, initialBox.gridConfig]);
+  const {
+    formData: selectedGridConfig,
+    setFormData: setSelectedGridConfig,
+    createSubmitHandler,
+  } = useEditModalForm<GridConfiguration>(isOpen, initialBox.gridConfig);
 
   // Convert grid templates to Select options
   const gridOptions = useMemo(
@@ -65,10 +61,7 @@ export function BoxEditModal({
     onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    void handleSave();
-  };
+  const handleSubmit = createSubmitHandler(handleSave);
 
   return (
     <BaseModal

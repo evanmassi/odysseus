@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 
 import { Save } from 'lucide-react';
 
 import { getGridTotalPositions } from '@domains/storage';
+import { useEditModalForm } from '@shared/hooks';
 import { Button, Checkbox, Input } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
@@ -17,14 +18,11 @@ interface TankEditModalProps {
 }
 
 export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEditModalProps) {
-  const [editedTank, setEditedTank] = useState(initialTank);
-
-  // Reset form state when modal opens with new data
-  useEffect(() => {
-    if (isOpen) {
-      setEditedTank(initialTank);
-    }
-  }, [isOpen, initialTank]);
+  const {
+    formData: editedTank,
+    setFormData: setEditedTank,
+    createSubmitHandler,
+  } = useEditModalForm(isOpen, initialTank);
 
   const handleSave = async () => {
     if (editedTank.name.trim()) {
@@ -37,12 +35,9 @@ export function TankEditModal({ isOpen, initialTank, onSave, onClose }: TankEdit
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (editedTank.name.trim()) {
-      void handleSave();
-    }
-  };
+  const handleSubmit = createSubmitHandler(async () => {
+    if (editedTank.name.trim()) await handleSave();
+  });
 
   return (
     <BaseModal

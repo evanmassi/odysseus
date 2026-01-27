@@ -9,7 +9,7 @@ import type {
 import { ErrorDto } from '@application/dto/ErrorDto';
 import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { logger } from '@utils/logger';
-import type { User } from '@domain/entities/User';
+import { BaseController } from '@presentation/controllers/BaseController';
 
 /**
  * TubeLockController - HTTP request/response handling for tube locking
@@ -17,8 +17,10 @@ import type { User } from '@domain/entities/User';
  * Pure presentation layer - handles HTTP concerns only.
  * Delegates all business logic to application service.
  */
-export class TubeLockController {
-  constructor(private tubeApplicationService: TubeApplicationService) {}
+export class TubeLockController extends BaseController {
+  constructor(private tubeApplicationService: TubeApplicationService) {
+    super();
+  }
 
   /**
    * Lock tubes
@@ -116,17 +118,6 @@ export class TubeLockController {
     } catch (error) {
       handleControllerError(error, res, 'Failed to revoke tube access', req.requestId);
     }
-  }
-
-  /**
-   * Helper: Extract authenticated user from OAuth 2.0 middleware
-   */
-  private getAuthenticatedUser(req: Request): User {
-    const user = req.user;
-    if (!user) {
-      throw new Error('Authentication required - user not found in request context');
-    }
-    return user;
   }
 
 }

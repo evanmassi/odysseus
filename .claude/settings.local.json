@@ -50,7 +50,9 @@
       "WebFetch(domain:github.com)",
       "Bash(docker exec:*)",
       "Bash(du:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm run test:server:*)",
+      "Bash(npm run test:client:*)"
     ]
   }
 }

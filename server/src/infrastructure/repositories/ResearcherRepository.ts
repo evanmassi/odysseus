@@ -69,13 +69,7 @@ export class ResearcherRepository implements IResearcherRepository {
   }
 
   async findByIds(ids: string[]): Promise<Researcher[]> {
-    if (ids.length === 0) return [];
-
-    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
-    const rows = await this.context.queryMany<ResearcherRow>(
-      `SELECT ${RESEARCHER_COLUMNS} FROM researchers WHERE id IN (${placeholders})`,
-      ids
-    );
+    const rows = await this.context.queryByIds<ResearcherRow>('researchers', RESEARCHER_COLUMNS, ids);
     return ResearcherMapper.fromRows(rows);
   }
 

@@ -81,13 +81,7 @@ export class PersonRepository implements IPersonRepository {
   }
 
   async findByIds(ids: string[]): Promise<Person[]> {
-    if (ids.length === 0) return [];
-
-    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
-    const rows = await this.context.queryMany<PersonRow>(
-      `SELECT ${PERSON_COLUMNS} FROM persons WHERE id IN (${placeholders})`,
-      ids
-    );
+    const rows = await this.context.queryByIds<PersonRow>('persons', PERSON_COLUMNS, ids);
     return PersonMapper.fromRows(rows);
   }
 }

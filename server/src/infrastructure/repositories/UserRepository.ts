@@ -135,13 +135,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async findByIds(ids: string[]): Promise<User[]> {
-    if (ids.length === 0) return [];
-
-    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE id IN (${placeholders})`,
-      ids
-    );
+    const rows = await this.context.queryByIds<UserRow>('users', USER_COLUMNS, ids);
     return UserMapper.fromRows(rows);
   }
 

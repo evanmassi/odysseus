@@ -5,7 +5,7 @@ import type { TubeResponse } from '@application/dto/TubeDto';
 import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import { logger } from '@utils/logger';
 import { SearchCriteriaMapper } from '@presentation/mappers/SearchCriteriaMapper';
-import type { User } from '@domain/entities/User';
+import { BaseController } from '@presentation/controllers/BaseController';
 
 /** Grouped search result structure for batch display */
 interface GroupedResult {
@@ -22,8 +22,10 @@ interface GroupedResult {
  * Pure presentation layer - handles HTTP concerns only.
  * Delegates all business logic to existing application services.
  */
-export class SearchController {
-  constructor(private tubeApplicationService: TubeApplicationService) {}
+export class SearchController extends BaseController {
+  constructor(private tubeApplicationService: TubeApplicationService) {
+    super();
+  }
 
   /**
    * Advanced tube search with filters
@@ -385,18 +387,6 @@ export class SearchController {
 
     // Sort groups by count (descending)
     return groupedResults.sort((a, b) => b.totalCount - a.totalCount);
-  }
-
-
-  /**
-   * Helper: Extract authenticated user from middleware
-   */
-  private getAuthenticatedUser(req: Request): User {
-    const user = req.user;
-    if (!user) {
-      throw new Error('Authentication required - user not found in request context');
-    }
-    return user;
   }
 
 }

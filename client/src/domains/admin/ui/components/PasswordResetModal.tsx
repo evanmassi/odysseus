@@ -11,6 +11,7 @@ import { KeyRound, Copy, Check, RotateCcwKey, ExternalLink } from 'lucide-react'
 import { logger } from '@shared/infrastructure/logger';
 import { AuthInput, Button, Tab, Tabs, Toggle } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
+import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 import { notifications } from '@shared/utils/notifications';
 
 import { adminService } from '../../services/AdminService';
@@ -56,33 +57,35 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
       return;
     }
 
-    setIsLoading(true);
-    try {
-      await adminService.resetUserPassword(userId, newPassword, requirePasswordChange);
-      notifications.success('Password reset successfully');
-      onSuccess();
-      onClose();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to reset password';
-      notifications.error(message);
-    } finally {
-      setIsLoading(false);
-    }
+    await withAsyncHandler(
+      async () => {
+        await adminService.resetUserPassword(userId, newPassword, requirePasswordChange);
+      },
+      {
+        setLoading: setIsLoading,
+        successMessage: 'Password reset successfully',
+        errorMessage: 'Failed to reset password',
+        onSuccess: () => {
+          onSuccess();
+          onClose();
+        },
+      }
+    );
   };
 
   const handleGenerateToken = async () => {
-    setIsLoading(true);
-    try {
-      const response = await adminService.generatePasswordResetToken(userId);
-      setResetUrl(response.resetUrl);
-      setExpiresAt(response.expiresAt);
-      notifications.success('Reset link generated successfully');
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Failed to generate reset link';
-      notifications.error(message);
-    } finally {
-      setIsLoading(false);
-    }
+    await withAsyncHandler(
+      async () => {
+        const response = await adminService.generatePasswordResetToken(userId);
+        setResetUrl(response.resetUrl);
+        setExpiresAt(response.expiresAt);
+      },
+      {
+        setLoading: setIsLoading,
+        successMessage: 'Reset link generated successfully',
+        errorMessage: 'Failed to generate reset link',
+      }
+    );
   };
 
   const handleCopyUrl = () => {
