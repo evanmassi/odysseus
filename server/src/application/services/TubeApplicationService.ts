@@ -493,7 +493,12 @@ export class TubeApplicationService {
     await this.eventBus.publish(new TubeDeletedEvent(
       tube.id,
       tube.location,
-      authenticatedUser.id
+      authenticatedUser.id,
+      {
+        cellType: tube.cellType ?? '',
+        donorInternalId: tube.donorInternalId ?? '',
+        donorSourceId: tube.donorSourceId ?? '',
+      }
     ));
   }
 

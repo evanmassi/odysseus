@@ -49,7 +49,8 @@
       "WebFetch(domain:floating-ui.com)",
       "WebFetch(domain:github.com)",
       "Bash(docker exec:*)",
-      "Bash(du:*)"
+      "Bash(du:*)",
+      "Bash(node:*)"
     ]
   }
 }

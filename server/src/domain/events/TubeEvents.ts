@@ -100,7 +100,12 @@ export class TubeDeletedEvent extends DomainEvent {
   constructor(
     public readonly tubeId: string,
     public readonly location: Location,
-    public readonly deletedBy: string
+    public readonly deletedBy: string,
+    public readonly sampleSnapshot: {
+      cellType: string;
+      donorInternalId: string;
+      donorSourceId: string;
+    }
   ) {
     super(1);
   }
@@ -117,7 +122,8 @@ export class TubeDeletedEvent extends DomainEvent {
     return {
       tubeId: this.tubeId,
       location: this.location.toData(),
-      deletedBy: this.deletedBy
+      deletedBy: this.deletedBy,
+      sampleSnapshot: this.sampleSnapshot
     };
   }
 }

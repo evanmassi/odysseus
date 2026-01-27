@@ -285,11 +285,14 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
       header: 'Details',
       render: (_, row) => {
         const entry = row as unknown as AuditLogEntry;
-        const details = formatAuditDetails(entry);
+        const { text, fullText } = formatAuditDetails(entry);
+        const tooltipContent = fullText ?? text;
         return (
-          <span className="text-secondary-foreground max-w-md truncate block" title={details}>
-            {details}
-          </span>
+          <Tooltip content={tooltipContent} side="bottom" align="start" disabled={text === '-'}>
+            <div className="overflow-hidden max-w-[40vw]">
+              <span className="text-secondary-foreground truncate block">{text}</span>
+            </div>
+          </Tooltip>
         );
       },
     },
@@ -390,7 +393,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
           variant="default"
           hoverable
           rounded="lg"
-          className="text-xs"
+          className="text-xs table-fixed"
           aria-label="Audit log entries"
         />
       )}

@@ -1,15 +1,16 @@
 /**
  * Audit Log Formatters
  *
- * Utility functions for formatting audit log entry details for display.
- * Extracts formatting logic from AuditLogViewer component.
+ * Formats audit log entry details for display with consistent separators:
+ *   · (center dot) for location paths
+ *   — (em dash) for separating location from change details
+ *   → (arrow) for before/after transitions
+ *   : (colon) after subject names or counts
+ *   , (comma) for listing multiple items
+ *   () for parenthetical metadata
  */
 
 import type { AuditLogEntry } from '@odysseus/shared-schemas';
-
-/**
- * Type Definitions for Parsed Audit Log Details
- */
 
 /**
  * Represents a single change record in audit logs
@@ -29,8 +30,7 @@ function isAuditChangeRecord(value: unknown): value is AuditChangeRecord {
     value !== null &&
     'field' in value &&
     typeof (value as Record<string, unknown>)['field'] === 'string' &&
-    'oldValue' in value &&
-    'newValue' in value
+    ('oldValue' in value || 'newValue' in value)
   );
 }
 
@@ -50,15 +50,12 @@ function hasChangesArray(
 
 /**
  * Safely parse audit log details
- * Handles string JSON, pre-parsed objects, null, or undefined
  */
 function parseAuditDetailsJson(details: unknown): Record<string, unknown> {
   try {
-    // Already an object (possibly pre-parsed by response handling)
     if (typeof details === 'object' && details !== null) {
       return details as Record<string, unknown>;
     }
-    // Valid JSON string
     if (typeof details === 'string' && details.length > 0) {
       const parsed: unknown = JSON.parse(details);
       if (typeof parsed === 'object' && parsed !== null) {
@@ -71,25 +68,16 @@ function parseAuditDetailsJson(details: unknown): Record<string, unknown> {
   }
 }
 
-/**
- * Safely get a string property from details object
- */
 function getStringProperty(details: Record<string, unknown>, key: string): string {
   const value = details[key];
   return typeof value === 'string' ? value : '';
 }
 
-/**
- * Safely get a number property from details object
- */
 function getNumberProperty(details: Record<string, unknown>, key: string): number {
   const value = details[key];
   return typeof value === 'number' ? value : 0;
 }
 
-/**
- * Find a change record by field name from a validated changes array
- */
 function findChangeByField(
   details: Record<string, unknown>,
   fieldName: string
@@ -97,299 +85,470 @@ function findChangeByField(
   if (!hasChangesArray(details)) {
     return undefined;
   }
-
   return details.changes.filter(isAuditChangeRecord).find(change => change.field === fieldName);
 }
 
+function getAllChanges(details: Record<string, unknown>): AuditChangeRecord[] {
+  if (!hasChangesArray(details)) {
+    return [];
+  }
+  return details.changes.filter(isAuditChangeRecord);
+}
+
+/** Map raw field names to human-readable labels */
+const FIELD_LABELS: Record<string, string> = {
+  cellType: 'Cell Type',
+  donorInternalId: 'Internal ID',
+  donorSourceId: 'Source ID',
+  concentration: 'Concentration',
+  concentrationUnit: 'Concentration Unit',
+  media: 'Media',
+  cultureCondition: 'Culture Condition',
+  lotNumber: 'Lot Number',
+  notes: 'Notes',
+  date: 'Date',
+  location: 'Location',
+  passage: 'Passage',
+  firstName: 'First Name',
+  lastName: 'Last Name',
+  email: 'Email',
+  position: 'Position',
+  name: 'Name',
+  isActive: 'Active Status',
+  'gridConfig.rows': 'Grid Rows',
+  'gridConfig.cols': 'Grid Columns',
+};
+
+function getFieldLabel(field: string): string {
+  return FIELD_LABELS[field] ?? field;
+}
+
 /**
- * Format audit log entry details for display
- *
- * Parses the JSON details field and formats it based on entity type and action.
- * Returns a human-readable string describing what happened.
- *
- * @param entry - The audit log entry to format
- * @returns Formatted details string
+ * Normalize location separators for display.
+ * Converts legacy " / " separators to " · " for consistency.
  */
-export function formatAuditDetails(entry: AuditLogEntry): string {
+function normalizeLocation(location: string): string {
+  return location.split(' / ').join(' · ');
+}
+
+/**
+ * Get the display location from details, normalizing separators
+ */
+function getLocation(details: Record<string, unknown>): string {
+  const display = getStringProperty(details, 'displayLocation');
+  if (display) return normalizeLocation(display);
+  const raw = getStringProperty(details, 'location');
+  if (raw) return raw;
+  return '';
+}
+
+/**
+ * Build a storage path with center dot separators
+ */
+function storagePath(...parts: string[]): string {
+  return parts.filter(Boolean).join(' · ');
+}
+
+/**
+ * Format a list of changed field names with truncation.
+ */
+function formatChangedFields(changes: AuditChangeRecord[]): { text: string; full?: string } {
+  const labels = changes.map(c => getFieldLabel(c.field));
+  if (labels.length <= 3) return { text: labels.join(', ') };
+  return {
+    text: `${labels.slice(0, 3).join(', ')} +${labels.length - 3} more`,
+    full: labels.join(', '),
+  };
+}
+
+/**
+ * Format a list of usernames with truncation.
+ */
+function formatUserList(users: unknown[]): { text: string; full?: string } {
+  const names = users
+    .filter(
+      (u): u is { username: string } =>
+        typeof u === 'object' &&
+        u !== null &&
+        'username' in u &&
+        typeof (u as Record<string, unknown>)['username'] === 'string'
+    )
+    .map(u => u.username);
+
+  if (names.length === 0) return { text: 'unknown' };
+  if (names.length <= 3) return { text: names.join(', ') };
+  return {
+    text: `${names.slice(0, 3).join(', ')} +${names.length - 3} more`,
+    full: names.join(', '),
+  };
+}
+
+/** Result from formatAuditDetails with optional tooltip content */
+export interface AuditDetailFormatted {
+  /** Display text (may be truncated) */
+  text: string;
+  /** Full untruncated text for tooltip — only set when content was truncated */
+  fullText?: string;
+}
+
+/**
+ * Format audit log entry details for display.
+ *
+ * Consistent separator conventions:
+ *   · location paths    — change details    → transitions    : subject prefix    , lists
+ */
+export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
+  const plain = (text: string): AuditDetailFormatted => ({ text });
+
   try {
     const details = parseAuditDetailsJson(entry.details);
     const action = entry.action;
     const entityType = entry.entityType;
 
-    // TUBES: Show location, bulk operations, or lock details
+    // ── TUBE EVENTS ──
+
     if (entityType === 'tube') {
       if (action === 'tube_bulk_updated') {
         const count = getNumberProperty(details, 'count');
+        const summary = getStringProperty(details, 'changesSummary');
         if (count > 0) {
-          return `${count} tube${count !== 1 ? 's' : ''} updated`;
+          return plain(summary || `${count} tube${count !== 1 ? 's' : ''} updated`);
         }
       }
+
       if (action === 'tubes_locked') {
         const count = getNumberProperty(details, 'tubeCount');
         const lockNote = getStringProperty(details, 'lockNote');
         const noteText = lockNote ? `: "${lockNote}"` : '';
-        return `${count} tube${count !== 1 ? 's' : ''} locked${noteText}`;
+        return plain(`${count} tube${count !== 1 ? 's' : ''} locked${noteText}`);
       }
+
       if (action === 'tubes_unlocked') {
         const count = getNumberProperty(details, 'tubeCount');
-        return `${count} tube${count !== 1 ? 's' : ''} unlocked`;
+        return plain(`${count} tube${count !== 1 ? 's' : ''} unlocked`);
       }
+
       if (action === 'tube_access_shared') {
         const tubeCount = getNumberProperty(details, 'tubeCount');
-        const sharedCount = getNumberProperty(details, 'sharedWithCount');
-        return `${tubeCount} tube${tubeCount !== 1 ? 's' : ''} shared with ${sharedCount} user${sharedCount !== 1 ? 's' : ''}`;
+        const sharedUsers = details['sharedWithUsers'];
+        if (Array.isArray(sharedUsers)) {
+          const users = formatUserList(sharedUsers);
+          const prefix = `${tubeCount} tube${tubeCount !== 1 ? 's' : ''} shared with`;
+          return {
+            text: `${prefix} ${users.text}`,
+            fullText: users.full ? `${prefix} ${users.full}` : undefined,
+          };
+        }
+        return plain(
+          `${tubeCount} tube${tubeCount !== 1 ? 's' : ''} shared with ${getNumberProperty(details, 'sharedWithCount')} user(s)`
+        );
       }
+
       if (action === 'tube_access_revoked') {
         const tubeCount = getNumberProperty(details, 'tubeCount');
-        const revokedCount = getNumberProperty(details, 'revokedCount');
-        return `${tubeCount} tube${tubeCount !== 1 ? 's' : ''} access revoked from ${revokedCount} user${revokedCount !== 1 ? 's' : ''}`;
+        const revokedUsers = details['revokedUsers'];
+        if (Array.isArray(revokedUsers)) {
+          const users = formatUserList(revokedUsers);
+          const prefix = `${tubeCount} tube${tubeCount !== 1 ? 's' : ''} revoked from`;
+          return {
+            text: `${prefix} ${users.text}`,
+            fullText: users.full ? `${prefix} ${users.full}` : undefined,
+          };
+        }
+        return plain(
+          `${tubeCount} tube${tubeCount !== 1 ? 's' : ''} revoked from ${getNumberProperty(details, 'revokedCount')} user(s)`
+        );
       }
-      const displayLocation = getStringProperty(details, 'displayLocation');
-      if (displayLocation) return displayLocation;
-      const location = getStringProperty(details, 'location');
-      if (location) return location;
-      return '-';
+
+      if (action === 'tube_moved') {
+        const oldLoc =
+          getStringProperty(details, 'oldDisplayLocation') ||
+          getStringProperty(details, 'oldLocation');
+        const newLoc =
+          getStringProperty(details, 'displayLocation') ||
+          getStringProperty(details, 'newLocation');
+        if (oldLoc && newLoc) {
+          return plain(`${normalizeLocation(oldLoc)} → ${normalizeLocation(newLoc)}`);
+        }
+      }
+
+      if (action === 'tube_updated') {
+        const location = getLocation(details);
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const fields = formatChangedFields(changes);
+          const text = location ? `${location} — ${fields.text} changed` : `${fields.text} changed`;
+          const fullText = fields.full
+            ? location
+              ? `${location} — ${fields.full} changed`
+              : `${fields.full} changed`
+            : undefined;
+          return { text, fullText };
+        }
+        return plain(location || '-');
+      }
+
+      if (action === 'tube_created' || action === 'tube_deleted') {
+        const location = getLocation(details);
+        const cellType = getStringProperty(details, 'cellType');
+        const internalId = getStringProperty(details, 'donorInternalId');
+        const sourceId = getStringProperty(details, 'donorSourceId');
+        const infoParts: string[] = [];
+        if (cellType) infoParts.push(cellType);
+        if (internalId) infoParts.push(`I.ID: ${internalId}`);
+        if (sourceId) infoParts.push(`S.ID: ${sourceId}`);
+        const infoSuffix = infoParts.length > 0 ? ` (${infoParts.join(', ')})` : '';
+        return plain(location ? `${location}${infoSuffix}` : '-');
+      }
+
+      // Fallback for any other tube action
+      const location = getLocation(details);
+      return plain(location || '-');
     }
 
-    // TANK EVENTS
+    // ── TANK EVENTS ──
+
     if (entityType === 'tank') {
-      if (action === 'tank_created') {
-        const tankName =
-          getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
-        return `Tank '${tankName}'`;
-      }
-      if (action === 'tank_deleted') {
-        const tankName =
-          getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
-        return `Tank '${tankName}'`;
-      }
+      const tankName =
+        getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
+
       if (action === 'tank_updated') {
         const nameChange = findChangeByField(details, 'name');
         if (nameChange) {
-          return `Tank '${nameChange.oldValue}' renamed to '${nameChange.newValue}'`;
+          return plain(`${nameChange.oldValue} → ${nameChange.newValue}`);
         }
         const activeChange = findChangeByField(details, 'isActive');
         if (activeChange) {
-          const tankName = getStringProperty(details, 'tankId') || '';
-          return `Tank '${tankName}' ${activeChange.newValue ? 'activated' : 'deactivated'}`;
+          return plain(`${tankName} ${activeChange.newValue ? 'activated' : 'deactivated'}`);
         }
       }
-      const tankName = getStringProperty(details, 'tankId') || '';
-      return `Tank '${tankName}'`;
+
+      return plain(tankName);
     }
 
-    // RACK EVENTS
+    // ── RACK EVENTS ──
+
     if (entityType === 'rack') {
       const tankName =
         getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
       const rackName =
-        getStringProperty(details, 'rackName') ||
-        `Rack ${getStringProperty(details, 'rackId')}` ||
-        '';
-      const path = `${tankName}/${rackName}`;
+        getStringProperty(details, 'rackName') || getStringProperty(details, 'rackId') || '';
+      const path = storagePath(tankName, rackName);
 
-      if (action === 'rack_created') {
-        return path;
-      }
-      if (action === 'rack_deleted') {
-        return path;
-      }
       if (action === 'rack_updated') {
         const nameChange = findChangeByField(details, 'name');
         if (nameChange) {
-          const oldPath = `${tankName}/${nameChange.oldValue}`;
-          return `${oldPath} renamed to '${nameChange.newValue}'`;
+          return plain(
+            `${storagePath(tankName, String(nameChange.oldValue))} → ${nameChange.newValue}`
+          );
         }
         const activeChange = findChangeByField(details, 'isActive');
         if (activeChange) {
-          return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
+          return plain(`${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`);
         }
       }
+
       if (action === 'rack_label_updated') {
         const oldLabel = details['oldLabel'] as string | null;
         const newLabel = details['newLabel'] as string | null;
         if (oldLabel && newLabel) {
-          return `${path}: Label changed from '${oldLabel}' to '${newLabel}'`;
+          return plain(`${path} — label ${oldLabel} → ${newLabel}`);
         } else if (newLabel) {
-          return `${path}: Label set to '${newLabel}'`;
+          return plain(`${path} — label set to ${newLabel}`);
         } else if (oldLabel) {
-          return `${path}: Label '${oldLabel}' removed`;
+          return plain(`${path} — label ${oldLabel} removed`);
         }
-        return path;
+        return plain(path);
       }
+
       if (action === 'rack_assigned') {
         const newOwner = details['newOwner'] as { username?: string } | null;
-        return `${path} assigned to ${newOwner?.username ?? 'user'}`;
+        return plain(`${path} assigned to ${newOwner?.username ?? 'user'}`);
       }
       if (action === 'rack_unassigned') {
         const previousOwner = details['previousOwner'] as { username?: string } | null;
-        return `${path} unassigned from ${previousOwner?.username ?? 'user'}`;
+        return plain(`${path} unassigned from ${previousOwner?.username ?? 'user'}`);
       }
       if (action === 'rack_reassigned') {
         const previousOwner = details['previousOwner'] as { username?: string } | null;
         const newOwner = details['newOwner'] as { username?: string } | null;
-        return `${path}: ${previousOwner?.username ?? 'user'} → ${newOwner?.username ?? 'user'}`;
+        return plain(
+          `${path} — ${previousOwner?.username ?? 'user'} → ${newOwner?.username ?? 'user'}`
+        );
       }
-      return path;
+
+      return plain(path);
     }
 
-    // BOX EVENTS
+    // ── BOX EVENTS ──
+
     if (entityType === 'box') {
       const tankName =
         getStringProperty(details, 'tankName') || getStringProperty(details, 'tankId') || '';
       const rackName =
-        getStringProperty(details, 'rackName') ||
-        `Rack ${getStringProperty(details, 'rackId')}` ||
-        '';
+        getStringProperty(details, 'rackName') || getStringProperty(details, 'rackId') || '';
       const boxName =
-        getStringProperty(details, 'boxName') || `Box ${getStringProperty(details, 'boxId')}` || '';
-      const path = `${tankName}/${rackName}/${boxName}`;
+        getStringProperty(details, 'boxName') || getStringProperty(details, 'boxId') || '';
+      const path = storagePath(tankName, rackName, boxName);
 
-      if (action === 'box_created') {
-        return path;
-      }
-      if (action === 'box_deleted') {
-        return path;
-      }
       if (action === 'box_updated') {
         const nameChange = findChangeByField(details, 'name');
         if (nameChange) {
-          const oldPath = `${tankName}/${rackName}/Box ${nameChange.oldValue}`;
-          return `${oldPath} renamed to 'Box ${nameChange.newValue}'`;
+          return plain(
+            `${storagePath(tankName, rackName, String(nameChange.oldValue))} → ${nameChange.newValue}`
+          );
         }
         const rowChange = findChangeByField(details, 'gridConfig.rows');
         const colChange = findChangeByField(details, 'gridConfig.cols');
         if (rowChange && colChange) {
-          return `${path} resized to ${rowChange.newValue}x${colChange.newValue}`;
+          return plain(`${path} resized to ${rowChange.newValue}x${colChange.newValue}`);
         }
         const activeChange = findChangeByField(details, 'isActive');
         if (activeChange) {
-          return `${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`;
+          return plain(`${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`);
         }
       }
+
       if (action === 'box_label_updated') {
         const oldLabel = details['oldLabel'] as string | null;
         const newLabel = details['newLabel'] as string | null;
         if (oldLabel && newLabel) {
-          return `${path}: Label changed from '${oldLabel}' to '${newLabel}'`;
+          return plain(`${path} — label ${oldLabel} → ${newLabel}`);
         } else if (newLabel) {
-          return `${path}: Label set to '${newLabel}'`;
+          return plain(`${path} — label set to ${newLabel}`);
         } else if (oldLabel) {
-          return `${path}: Label '${oldLabel}' removed`;
+          return plain(`${path} — label ${oldLabel} removed`);
         }
-        return path;
+        return plain(path);
       }
+
       if (action === 'box_assigned') {
         const newOwner = details['newOwner'] as { username?: string } | null;
-        return `${path} assigned to ${newOwner?.username ?? 'user'}`;
+        return plain(`${path} assigned to ${newOwner?.username ?? 'user'}`);
       }
       if (action === 'box_unassigned') {
         const previousOwner = details['previousOwner'] as { username?: string } | null;
-        return `${path} unassigned from ${previousOwner?.username ?? 'user'}`;
+        return plain(`${path} unassigned from ${previousOwner?.username ?? 'user'}`);
       }
       if (action === 'box_reassigned') {
         const previousOwner = details['previousOwner'] as { username?: string } | null;
         const newOwner = details['newOwner'] as { username?: string } | null;
-        return `${path}: ${previousOwner?.username ?? 'user'} → ${newOwner?.username ?? 'user'}`;
+        return plain(
+          `${path} — ${previousOwner?.username ?? 'user'} → ${newOwner?.username ?? 'user'}`
+        );
       }
-      return path;
+
+      return plain(path);
     }
 
-    // LAB EVENTS
+    // ── LAB EVENTS ──
+
     if (entityType === 'lab') {
       const oldName = getStringProperty(details, 'oldName');
       const newName = getStringProperty(details, 'newName');
       if (action === 'lab_name_changed' && oldName && newName) {
-        return `'${oldName}' renamed to '${newName}'`;
+        return plain(`${oldName} → ${newName}`);
       }
-      return newName || '-';
+      return plain(newName || '-');
     }
 
-    // RESEARCHER EVENTS
+    // ── RESEARCHER EVENTS ──
+
     if (entityType === 'researcher') {
       const researcherName = getStringProperty(details, 'researcherName') || '-';
       const createdBy = getStringProperty(details, 'createdBy');
-      const updatedBy = getStringProperty(details, 'updatedBy');
       const deactivatedBy = getStringProperty(details, 'deactivatedBy');
       const reactivatedBy = getStringProperty(details, 'reactivatedBy');
 
       if (action === 'researcher_created') {
         const email = getStringProperty(details, 'email');
         const emailPart = email ? ` (${email})` : '';
-        return `${researcherName}${emailPart} by ${createdBy}`;
+        return plain(`${researcherName}${emailPart} by ${createdBy}`);
       }
+
       if (action === 'researcher_updated') {
-        const emailChange = findChangeByField(details, 'email');
-        if (emailChange) {
-          return `${researcherName}: Email changed to ${emailChange.newValue} by ${updatedBy}`;
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const parts: string[] = [];
+          for (const change of changes) {
+            if (change.field === 'firstName' || change.field === 'lastName') {
+              if (!parts.includes('Name updated')) parts.push('Name updated');
+            } else if (change.field === 'email') {
+              parts.push(`Email → ${change.newValue}`);
+            } else if (change.field === 'position') {
+              parts.push(`Position → ${change.newValue}`);
+            } else {
+              parts.push(`${getFieldLabel(change.field)} changed`);
+            }
+          }
+          return plain(`${researcherName} — ${parts.join(', ')}`);
         }
-        const positionChange = findChangeByField(details, 'position');
-        if (positionChange) {
-          return `${researcherName}: Position changed to '${positionChange.newValue}' by ${updatedBy}`;
-        }
-        const firstNameChange = findChangeByField(details, 'firstName');
-        const lastNameChange = findChangeByField(details, 'lastName');
-        // Intentional OR - checking if either name field changed
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (firstNameChange || lastNameChange) {
-          return `${researcherName}: Name updated by ${updatedBy}`;
-        }
-        return `${researcherName} updated by ${updatedBy}`;
+        return plain(`${researcherName} updated`);
       }
+
       if (action === 'researcher_deactivated') {
         const tubeCount = getNumberProperty(details, 'tubesReassignedCount');
         const tubeText = tubeCount > 0 ? ` (${tubeCount} tubes reassigned to Unknown)` : '';
-        return `${researcherName}${tubeText} by ${deactivatedBy}`;
+        return plain(`${researcherName}${tubeText} by ${deactivatedBy}`);
       }
       if (action === 'researcher_reactivated') {
-        return `${researcherName} by ${reactivatedBy}`;
+        return plain(`${researcherName} by ${reactivatedBy}`);
       }
-      return researcherName;
+      if (action === 'researcher_deleted') {
+        const deletedBy = getStringProperty(details, 'deletedBy');
+        return plain(deletedBy ? `${researcherName} by ${deletedBy}` : researcherName);
+      }
+
+      return plain(researcherName);
     }
 
-    // USER EVENTS
+    // ── USER EVENTS ──
+
     if (entityType === 'user') {
       const username = getStringProperty(details, 'username') || '-';
       const changedBy = getStringProperty(details, 'changedBy');
       const linkedBy = getStringProperty(details, 'linkedBy');
       const unlinkedBy = getStringProperty(details, 'unlinkedBy');
-      const deletedBy = getStringProperty(details, 'deletedBy');
 
       if (action === 'user_created') {
         const role = getStringProperty(details, 'role') || 'user';
         const isFirstUser = username !== '-' && !changedBy;
-        return isFirstUser
-          ? `${username} (Role: ${role}) - First user setup`
-          : `${username} (Role: ${role})`;
+        return plain(
+          isFirstUser ? `${username} (${role}) — first user setup` : `${username} (${role})`
+        );
       }
-      if (action === 'user_logged_in') {
-        return username;
-      }
-      if (action === 'user_logged_out') {
-        return username;
+      if (action === 'user_logged_in' || action === 'user_logged_out') {
+        return plain(username);
       }
       if (action === 'user_role_changed') {
+        const oldRole = getStringProperty(details, 'oldRole');
         const newRole = getStringProperty(details, 'newRole');
-        return `Role changed to ${newRole}`;
+        return plain(oldRole ? `${oldRole} → ${newRole}` : `Role → ${newRole}`);
       }
       if (action === 'user_password_changed') {
-        return 'Password changed';
+        return plain('Password changed');
+      }
+      if (action === 'user_approved') {
+        const approvedBy = getStringProperty(details, 'approvedBy');
+        return plain(approvedBy ? `${username} approved by ${approvedBy}` : `${username} approved`);
       }
       if (action === 'user_linked_to_researcher') {
         const researcherName = getStringProperty(details, 'researcherName');
-        return `${username} linked to researcher ${researcherName} by ${linkedBy}`;
+        return plain(`${username} linked to ${researcherName} by ${linkedBy}`);
       }
       if (action === 'user_unlinked_from_researcher') {
         const researcherName = getStringProperty(details, 'researcherName');
-        return `${username} unlinked from researcher ${researcherName} by ${unlinkedBy}`;
+        return plain(`${username} unlinked from ${researcherName} by ${unlinkedBy}`);
       }
       if (action === 'user_deleted') {
-        return `${username} by ${deletedBy}`;
+        return plain(username);
       }
-      return username;
+
+      return plain(username);
     }
 
-    // BULK CONFIGURATION EVENTS
+    // ── BULK CONFIGURATION EVENTS ──
+
     if (entityType === 'configuration') {
       const fromUser = details['fromUser'] as { username?: string } | null;
       const toUser = details['toUser'] as { username?: string } | null;
@@ -398,16 +557,18 @@ export function formatAuditDetails(entry: AuditLogEntry): string {
       const resourceSummary = `${racksAffected} rack${racksAffected !== 1 ? 's' : ''}, ${boxesAffected} box${boxesAffected !== 1 ? 'es' : ''}`;
 
       if (action === 'resources_bulk_unassigned') {
-        return `${resourceSummary} unassigned from ${fromUser?.username ?? 'user'}`;
+        return plain(`${resourceSummary} unassigned from ${fromUser?.username ?? 'user'}`);
       }
       if (action === 'resources_bulk_reassigned') {
-        return `${resourceSummary}: ${fromUser?.username ?? 'user'} → ${toUser?.username ?? 'user'}`;
+        return plain(
+          `${resourceSummary} — ${fromUser?.username ?? 'user'} → ${toUser?.username ?? 'user'}`
+        );
       }
-      return resourceSummary;
+      return plain(resourceSummary);
     }
 
-    return '-';
+    return plain('-');
   } catch {
-    return '-';
+    return plain('-');
   }
 }

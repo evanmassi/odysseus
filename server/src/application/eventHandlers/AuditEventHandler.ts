@@ -179,7 +179,7 @@ export class AuditEventHandler {
       // Get position display based on box configuration
       const positionDisplay = box.formatPosition(location.position);
 
-      return `${tank.name} / ${rack.name} / ${box.name} / ${positionDisplay}`;
+      return `${tank.name} · ${rack.name} · ${box.name} · ${positionDisplay}`;
     } catch (error) {
       logger.warn('Failed to get display location, using fallback', { error });
       return location.toString();
@@ -364,6 +364,9 @@ export class AuditEventHandler {
           rackId: event.location.rackId,
           boxId: event.location.boxId,
           position: event.location.position,
+          cellType: event.sampleSnapshot.cellType,
+          donorInternalId: event.sampleSnapshot.donorInternalId,
+          donorSourceId: event.sampleSnapshot.donorSourceId,
           deletedBy: username,
           deletedAt: event.occurredOn.toISOString(),
         },
