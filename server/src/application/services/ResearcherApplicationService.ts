@@ -152,12 +152,7 @@ export class ResearcherApplicationService {
    * Get researcher by ID
    */
   async getResearcherById(id: string, userApiKey?: string): Promise<ResearcherResponse> {
-    const researcher = await this.researcherRepository.findById(id);
-
-    if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
-    }
-
+    const researcher = await this.getResearcherOrThrow(id);
     const person = await this.getPersonForResearcher(researcher);
     return ResearcherDto.toResponse(researcher, person);
   }
@@ -282,16 +277,8 @@ export class ResearcherApplicationService {
     const user = await this.getUserByApiKey(userApiKey);
     this.accessControlService.requireCanManageResearchers(user);
 
-    const researcher = await this.researcherRepository.findById(id);
-    if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
-    }
-
-    // Get associated Person entity
-    const person = await this.personRepository.findById(researcher.personId);
-    if (!person) {
-      throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
-    }
+    const researcher = await this.getResearcherOrThrow(id);
+    const person = await this.getPersonForResearcher(researcher);
 
     // Track changes for audit
     const changes: AuditChange[] = [];
@@ -371,10 +358,7 @@ export class ResearcherApplicationService {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireAdminAccess(user);
 
-    const researcher = await this.researcherRepository.findById(id);
-    if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
-    }
+    const researcher = await this.getResearcherOrThrow(id);
 
     // Get Person data for error messages and cleanup
     const person = await this.getPersonForResearcher(researcher);
@@ -431,10 +415,7 @@ export class ResearcherApplicationService {
     const user = await this.getUserByApiKey(userApiKey);
     this.accessControlService.requireCanManageResearchers(user);
 
-    const researcher = await this.researcherRepository.findById(id);
-    if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
-    }
+    const researcher = await this.getResearcherOrThrow(id);
 
     // Can only toggle active status on approved researchers
     if (researcher.isPending()) {
@@ -444,10 +425,7 @@ export class ResearcherApplicationService {
       });
     }
 
-    const person = await this.personRepository.findById(researcher.personId);
-    if (!person) {
-      throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
-    }
+    const person = await this.getPersonForResearcher(researcher);
 
     // Count tubes before deactivation for audit
     const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
@@ -475,10 +453,7 @@ export class ResearcherApplicationService {
     const user = await this.getUserByApiKey(userApiKey);
     this.accessControlService.requireCanManageResearchers(user);
 
-    const researcher = await this.researcherRepository.findById(id);
-    if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
-    }
+    const researcher = await this.getResearcherOrThrow(id);
 
     // Can only toggle active status on approved researchers
     if (researcher.isPending()) {
@@ -488,10 +463,7 @@ export class ResearcherApplicationService {
       });
     }
 
-    const person = await this.personRepository.findById(researcher.personId);
-    if (!person) {
-      throw new NotFoundError(`Person not found for researcher: ${researcher.personId}`, { personId: researcher.personId });
-    }
+    const person = await this.getPersonForResearcher(researcher);
 
     // Reactivate researcher
     researcher.activate();
@@ -546,11 +518,7 @@ export class ResearcherApplicationService {
    * Get tube count for a specific researcher
    */
   async getResearcherTubeCount(id: string, userApiKey?: string): Promise<{ tubeCount: number }> {
-    const researcher = await this.researcherRepository.findById(id);
-
-    if (!researcher) {
-      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
-    }
+    const researcher = await this.getResearcherOrThrow(id);
 
     const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
 
@@ -560,6 +528,14 @@ export class ResearcherApplicationService {
   /**
    * Helper: Get authenticated user
    */
+  private async getResearcherOrThrow(id: string): Promise<Researcher> {
+    const researcher = await this.researcherRepository.findById(id);
+    if (!researcher) {
+      throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
+    }
+    return researcher;
+  }
+
   private async getUserByApiKey(apiKey: string): Promise<User> {
     const user = await this.userRepository.findByApiKey(apiKey);
     if (!user) {

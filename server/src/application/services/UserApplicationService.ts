@@ -204,11 +204,7 @@ export class UserApplicationService {
    */
   async getUserById(id: string, requesterApiKey: string): Promise<UserResponse> {
     const requester = await this.getUserByApiKey(requesterApiKey);
-    const user = await this.userRepository.findById(id);
-
-    if (!user) {
-      throw new NotFoundError(`User not found: ${id}`, { userId: id });
-    }
+    const user = await this.getUserOrThrow(id);
 
     // Users can view themselves, admins can view anyone
     if (!requester.isAdmin() && requester.id !== user.id) {
@@ -223,14 +219,10 @@ export class UserApplicationService {
    */
   async updateUserRole(userId: string, request: UpdateUserRoleRequest, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
-    const targetUser = await this.userRepository.findById(userId);
-
-    if (!targetUser) {
-      throw new NotFoundError(`User not found: ${userId}`, { userId });
-    }
+    const targetUser = await this.getUserOrThrow(userId);
 
     this.accessControlService.requireCanManageUsers(admin);
-    
+
     // Prevent admin from changing their own role (lockout protection)
     if (admin.id === targetUser.id) {
       throw new PermissionError('Cannot change your own role', { userId: admin.id });
@@ -264,11 +256,7 @@ export class UserApplicationService {
    */
   async deleteUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
-    const targetUser = await this.userRepository.findById(userId);
-
-    if (!targetUser) {
-      throw new NotFoundError(`User not found: ${userId}`, { userId });
-    }
+    const targetUser = await this.getUserOrThrow(userId);
 
     this.accessControlService.requireCanManageUsers(admin);
 
@@ -362,6 +350,14 @@ export class UserApplicationService {
     const user = await this.userRepository.findByApiKey(apiKey);
     if (!user) {
       throw new PermissionError('Invalid authentication', { apiKey: '***' });
+    }
+    return user;
+  }
+
+  private async getUserOrThrow(id: string): Promise<User> {
+    const user = await this.userRepository.findById(id);
+    if (!user) {
+      throw new NotFoundError(`User not found: ${id}`, { userId: id });
     }
     return user;
   }
@@ -568,10 +564,7 @@ export class UserApplicationService {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
 
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new NotFoundError(`User not found: ${userId}`, { userId });
-    }
+    const user = await this.getUserOrThrow(userId);
 
     // Approve user (domain method enforces business rules)
     user.approve(admin);
@@ -603,10 +596,7 @@ export class UserApplicationService {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
 
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new NotFoundError(`User not found: ${userId}`, { userId });
-    }
+    const user = await this.getUserOrThrow(userId);
 
     const username = user.username;
 
@@ -664,10 +654,7 @@ export class UserApplicationService {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
 
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new NotFoundError(`User not found: ${userId}`, { userId });
-    }
+    const user = await this.getUserOrThrow(userId);
 
     const researcher = await this.researcherRepository.findById(researcherId);
     if (!researcher) {
@@ -721,10 +708,7 @@ export class UserApplicationService {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
 
-    const user = await this.userRepository.findById(userId);
-    if (!user) {
-      throw new NotFoundError(`User not found: ${userId}`, { userId });
-    }
+    const user = await this.getUserOrThrow(userId);
 
     if (!user.hasResearcherProfile()) {
       throw new ValidationError('User has no linked researcher profile', { userId });

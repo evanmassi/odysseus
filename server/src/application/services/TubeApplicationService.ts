@@ -79,6 +79,14 @@ export class TubeApplicationService {
     };
   }
 
+  private async getTubeOrThrow(id: string): Promise<Tube> {
+    const tube = await this.tubeRepository.findById(id);
+    if (!tube) {
+      throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
+    }
+    return tube;
+  }
+
   /**
    * Create a new tube
    *Trust Zod-validated input, enforce business rules only
@@ -185,11 +193,7 @@ export class TubeApplicationService {
    * Get tube by ID
    */
   async getTubeById(id: string, authenticatedUser: User): Promise<TubeResponse> {
-    const tube = await this.tubeRepository.findById(id);
-
-    if (!tube) {
-      throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
-    }
+    const tube = await this.getTubeOrThrow(id);
 
     // Check view access: container ownership OR shared access
     const containerInfo = await this.getContainerInfo(
@@ -297,11 +301,7 @@ export class TubeApplicationService {
    * Trust Zod-validated input, check business rules only
    */
   async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User): Promise<TubeResponse> {
-    const existingTube = await this.tubeRepository.findById(id);
-
-    if (!existingTube) {
-      throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
-    }
+    const existingTube = await this.getTubeOrThrow(id);
 
     // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
@@ -442,11 +442,7 @@ export class TubeApplicationService {
    * Delete tube
    */
   async deleteTube(id: string, authenticatedUser: User): Promise<void> {
-    const tube = await this.tubeRepository.findById(id);
-
-    if (!tube) {
-      throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
-    }
+    const tube = await this.getTubeOrThrow(id);
 
     // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
