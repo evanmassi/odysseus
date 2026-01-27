@@ -134,12 +134,13 @@ export class AddBoxesCommandHandler {
     }
 
     const expectedVersion = currentConfig.version;
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `Added ${command.count} box(es) to rack '${rack.name}' in tank '${tank.name}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     for (const event of events) {
       await this.eventBus.publish(event);
@@ -237,12 +238,13 @@ export class UpdateBoxCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `Updated box '${boxData.name}' in rack '${rack.name}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     await this.eventBus.publish(new BoxUpdatedEvent(
       command.userId,
@@ -381,12 +383,13 @@ export class AssignBoxCommandHandler {
     const action = command.assignedUserId
       ? (previousUserId ? 'Reassigned' : 'Assigned')
       : 'Unassigned';
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `${action} box '${box.name}' in rack '${rack.name}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     if (command.assignedUserId && previousUserId) {
       await this.eventBus.publish(new BoxReassignedEvent(

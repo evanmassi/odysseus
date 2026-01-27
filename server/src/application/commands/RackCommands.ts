@@ -121,12 +121,13 @@ export class AddRacksCommandHandler {
     }
 
     const expectedVersion = currentConfig.version;
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `Added ${command.count} rack(s) to tank '${tank.name}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     for (const event of events) {
       await this.eventBus.publish(event);
@@ -204,12 +205,13 @@ export class UpdateRackCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `Updated rack '${configData.tanks[tankIndex].racks[rackIndex].name}' in tank '${tank.name}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     await this.eventBus.publish(new RackUpdatedEvent(
       command.userId,
@@ -339,12 +341,13 @@ export class AssignRackCommandHandler {
     const action = command.assignedUserId
       ? (previousUserId ? 'Reassigned' : 'Assigned')
       : 'Unassigned';
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `${action} rack '${rack.name}' in tank '${tank.name}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     if (command.assignedUserId && previousUserId) {
       await this.eventBus.publish(new RackReassignedEvent(

@@ -66,12 +66,13 @@ export class AddTankCommandHandler {
 
     const expectedVersion = currentConfig.version;
     currentConfig.addTank(tankId, command.name);
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `Added tank '${command.name}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     await this.eventBus.publish(new TankAddedEvent(
       command.userId,
@@ -156,12 +157,13 @@ export class UpdateTankCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `Updated tank '${configData.tanks[tankIndex].name}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     await this.eventBus.publish(new TankUpdatedEvent(
       command.userId,

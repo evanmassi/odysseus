@@ -78,12 +78,13 @@ export class BulkUnassignResourcesCommandHandler {
 
     const expectedVersion = currentConfig.version;
     currentConfig.clearAllAssignmentsForUser(command.fromUserId);
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `Bulk unassigned all resources from user '${fromUser.username}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     await this.eventBus.publish(new BulkResourcesUnassignedEvent(
       command.userId,
@@ -167,12 +168,13 @@ export class BulkReassignResourcesCommandHandler {
       systemSettings: configData.systemSettings
     });
 
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `Bulk reassigned resources from '${fromUser.username}' to '${toUser.username}'`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     await this.eventBus.publish(new BulkResourcesReassignedEvent(
       command.userId,

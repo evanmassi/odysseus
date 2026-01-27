@@ -21,7 +21,7 @@ export interface ConfigurationRepository {
   /**
    * Save configuration (create or update)
    */
-  save(configuration: Configuration): Promise<void>;
+  save(configuration: Configuration): Promise<number>;
   
   /**
    * Check if configuration exists
@@ -53,7 +53,7 @@ export interface ConfigurationRepository {
   /**
    * Save configuration with version increment
    */
-  saveWithVersioning(configuration: Configuration, changeDescription?: string): Promise<void>;
+  saveWithVersioning(configuration: Configuration, changeDescription?: string): Promise<number>;
 
   /**
    * Save with optimistic locking. @throws ConflictError if version mismatch.
@@ -63,7 +63,7 @@ export interface ConfigurationRepository {
     expectedVersion: number,
     changeDescription?: string,
     changedBy?: string
-  ): Promise<void>;
+  ): Promise<number>;
 
   // ATOMIC EQUIPMENT DELETION
   // These methods atomically verify no tubes exist before deleting equipment,

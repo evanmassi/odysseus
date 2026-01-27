@@ -140,12 +140,13 @@ export class UpdateSystemConfigurationCommandHandler {
 
     // Save the updated configuration with optimistic locking
     const expectedVersion = currentConfig.version;
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       updatedConfig,
       expectedVersion,
       'Updated system configuration',
       command.userId
     );
+    updatedConfig.applyPersistedVersion(newVersion);
 
     return updatedConfig;
   }
@@ -226,12 +227,13 @@ export class UpdateEquipmentConfigurationCommandHandler {
 
     // Save the updated configuration with optimistic locking
     const expectedVersion = currentConfig.version;
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       updatedConfig,
       expectedVersion,
       'Updated equipment configuration',
       command.userId
     );
+    updatedConfig.applyPersistedVersion(newVersion);
 
     return updatedConfig;
   }
@@ -281,12 +283,13 @@ export class ResetConfigurationToDefaultCommandHandler {
 
     const defaultConfig = Configuration.createDefault();
 
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       defaultConfig,
       expectedVersion,
       'Reset configuration to defaults',
       command.userId
     );
+    defaultConfig.applyPersistedVersion(newVersion);
 
     return defaultConfig;
   }
@@ -361,12 +364,13 @@ export class ImportConfigurationCommandHandler {
 
       // Save imported configuration with optimistic locking
       const expectedVersion = currentConfig?.version ?? 0;
-      await this.configurationRepository.saveWithOptimisticLock(
+      const newVersion = await this.configurationRepository.saveWithOptimisticLock(
         importedConfig,
         expectedVersion,
         'Imported configuration',
         command.userId
       );
+      importedConfig.applyPersistedVersion(newVersion);
 
       return {
         isValid: true,
@@ -472,12 +476,13 @@ export class UpdateBoxPositionDisplayCommandHandler {
 
     // Save the updated configuration with optimistic locking
     const expectedVersion = currentConfig.version;
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       updatedConfig,
       expectedVersion,
       `Updated position display for box ${command.boxId} in tank ${command.tankId}, rack ${command.rackId}`,
       command.userId
     );
+    updatedConfig.applyPersistedVersion(newVersion);
 
     return updatedConfig;
   }
@@ -546,7 +551,7 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
 
     // Save the updated configuration with optimistic locking
     const expectedVersion = currentConfig.version;
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       updatedConfig,
       expectedVersion,
       command.positionDisplay
@@ -554,6 +559,7 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
         : 'Cleared lab default position display',
       command.userId
     );
+    updatedConfig.applyPersistedVersion(newVersion);
 
     return updatedConfig;
   }
@@ -715,12 +721,13 @@ export class UpdateResourceLabelCommandHandler {
     );
 
     // Save the updated configuration with optimistic locking
-    await this.configurationRepository.saveWithOptimisticLock(
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
       `Updated ${command.resourceType} label`,
       command.userId
     );
+    currentConfig.applyPersistedVersion(newVersion);
 
     // Emit label change event if label actually changed
     const newLabel = command.customLabel?.trim() || undefined;

@@ -326,7 +326,7 @@ export class Configuration {
       this._equipment,
       newSystemSettings,
       new Date(),
-      this._version + 1
+      this._version
     );
   }
 
@@ -340,7 +340,7 @@ export class Configuration {
       newEquipment,
       this._systemSettings,
       new Date(),
-      this._version + 1
+      this._version
     );
   }
 
@@ -370,7 +370,7 @@ export class Configuration {
       newEquipment,
       this._systemSettings,
       new Date(),
-      this._version + 1
+      this._version
     );
   }
 
@@ -419,7 +419,7 @@ export class Configuration {
       newEquipment,
       this._systemSettings,
       new Date(),
-      this._version + 1
+      this._version
     );
   }
 
@@ -517,7 +517,7 @@ export class Configuration {
       newEquipment,
       this._systemSettings,
       new Date(),
-      this._version + 1
+      this._version
     );
   }
 
@@ -895,7 +895,7 @@ export class Configuration {
       this._equipment,
       newSystemSettings,
       new Date(),
-      this._version + 1
+      this._version
     );
   }
 
@@ -1039,7 +1039,14 @@ export class Configuration {
    */
   private touch(): void {
     this._updatedAt = new Date();
-    this._version++;
+  }
+
+  /**
+   * Apply the persisted version from the database after a successful save.
+   * The database sequence is the single source of truth for version numbers.
+   */
+  applyPersistedVersion(version: number): void {
+    this._version = version;
   }
 
   /**

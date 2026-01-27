@@ -39,7 +39,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
         throw new ValidationError('Configuration not found. Database initialization may have failed.');
       }
 
-      return Configuration.fromData(row.config_json);
+      return Configuration.fromData({ ...row.config_json, version: row.version });
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
@@ -48,8 +48,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async save(configuration: Configuration): Promise<void> {
-    await this.saveWithVersioning(configuration, 'Configuration updated');
+  async save(configuration: Configuration): Promise<number> {
+    return this.saveWithVersioning(configuration, 'Configuration updated');
   }
 
   async exists(): Promise<boolean> {
@@ -138,8 +138,9 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async saveWithVersioning(configuration: Configuration, changeDescription: string = 'Configuration updated', changedBy: string = 'system'): Promise<void> {
+  async saveWithVersioning(configuration: Configuration, changeDescription: string = 'Configuration updated', changedBy: string = 'system'): Promise<number> {
     try {
+      let newVersion = 0;
       await this.context.transaction(async (client) => {
         const now = new Date();
         const configJson = JSON.stringify(configuration.toData());
@@ -152,7 +153,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
           [now, changeDescription, changedBy, configJson]
         );
 
-        const newVersion = versionResult.rows[0].version;
+        newVersion = versionResult.rows[0].version;
 
         // Update current configuration
         await client.query(
@@ -165,6 +166,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
         logger.info(`Configuration saved with version ${newVersion}: ${changeDescription}`);
       });
 
+      return newVersion;
+
     } catch (error) {
       logger.error('Failed to save configuration with versioning:', { error });
       throw new ValidationError(`Database error saving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -176,8 +179,9 @@ export class ConfigurationRepository implements IConfigurationRepository {
     expectedVersion: number,
     changeDescription: string = 'Configuration updated',
     changedBy: string = 'system'
-  ): Promise<void> {
+  ): Promise<number> {
     try {
+      let newVersion = 0;
       await this.context.transaction(async (client) => {
         const now = new Date();
         const configJson = JSON.stringify(configuration.toData());
@@ -190,7 +194,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
           [now, changeDescription, changedBy, configJson]
         );
 
-        const newVersion = versionResult.rows[0].version;
+        newVersion = versionResult.rows[0].version;
 
         // Optimistic lock: only update if version matches expected
         const updateResult = await client.query(
@@ -213,6 +217,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
         logger.info(`Configuration saved with optimistic lock (v${expectedVersion} → v${newVersion}): ${changeDescription}`);
       });
+
+      return newVersion;
 
     } catch (error) {
       // Re-throw ConflictError without wrapping
