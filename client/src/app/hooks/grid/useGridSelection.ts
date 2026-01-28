@@ -75,7 +75,7 @@ export const useGridSelection = ({
   }, []);
 
   const handlePositionClick = useCallback(
-    (position: number, event: React.MouseEvent | React.KeyboardEvent, gridSize: number = 9) => {
+    (position: number, event: React.MouseEvent | React.KeyboardEvent) => {
       // Clear any pending click timer
       if (clickTimerRef.current) {
         clearTimeout(clickTimerRef.current);
@@ -107,7 +107,7 @@ export const useGridSelection = ({
 
         if (shiftKey && currentAnchor !== null) {
           // Shift+Click: Range selection from anchor to current position
-          const rangePositions = getSelectionRange(currentAnchor, position, gridSize);
+          const rangePositions = getSelectionRange(currentAnchor, position);
           rangePositions.forEach(pos => {
             newSelection.add(toPositionKey(ctx, pos));
           });

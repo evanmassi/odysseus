@@ -179,6 +179,10 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     const optionsRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
+    // Typeahead refs for native select-style type-to-jump
+    const typeaheadRef = useRef('');
+    const typeaheadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
     // Dropdown position state for portal
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
 
@@ -316,10 +320,44 @@ export const Select = forwardRef<SelectRef, SelectProps>(
               selectRef.current?.focus();
             }
             break;
+
+          default: {
+            // Typeahead: skip for searchable selects and non-printable keys
+            if (searchable) break;
+            if (e.key.length > 1) break;
+
+            e.preventDefault();
+            typeaheadRef.current += e.key;
+
+            if (typeaheadTimerRef.current) clearTimeout(typeaheadTimerRef.current);
+            typeaheadTimerRef.current = setTimeout(() => {
+              typeaheadRef.current = '';
+            }, 500);
+
+            const matchIndex = filteredOptions.findIndex(option =>
+              option.label.toLowerCase().startsWith(typeaheadRef.current.toLowerCase())
+            );
+
+            if (matchIndex >= 0) {
+              if (isOpen) {
+                setHighlightedIndex(matchIndex);
+              } else {
+                handleOptionSelect(filteredOptions[matchIndex]);
+              }
+            }
+            break;
+          }
         }
       },
-      [isOpen, highlightedIndex, filteredOptions, handleOptionSelect, onOpen, onClose]
+      [isOpen, highlightedIndex, filteredOptions, handleOptionSelect, onOpen, onClose, searchable]
     );
+
+    // Clean up typeahead timer on unmount
+    useEffect(() => {
+      return () => {
+        if (typeaheadTimerRef.current) clearTimeout(typeaheadTimerRef.current);
+      };
+    }, []);
 
     // Handle search input change
     const handleSearchChange = useCallback(

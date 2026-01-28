@@ -138,9 +138,9 @@ export function TubeGrid({
   const handlePositionClick = useCallback(
     (position: number, event: React.MouseEvent | React.KeyboardEvent) => {
       setFocusedPosition(position); // Update keyboard focus on click
-      controller.handlePositionClick(position, event, gridConfig.cols);
+      controller.handlePositionClick(position, event);
     },
-    [controller, gridConfig.cols]
+    [controller]
   );
 
   const handlePositionRightClick = useCallback(

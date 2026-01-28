@@ -115,7 +115,7 @@ export function useGridKeyboardNavigation(
           // Shift+Arrow: Extend selection
           if (shiftKey) {
             const currentAnchor = useTubeStore.getState().selectionAnchor ?? focusedPosition;
-            const rangePositions = getSelectionRange(currentAnchor, newPosition, gridConfig.cols);
+            const rangePositions = getSelectionRange(currentAnchor, newPosition);
             const newSelection = new Set<PositionKey>();
             rangePositions.forEach(pos => {
               newSelection.add(toPositionKey(ctx, pos));

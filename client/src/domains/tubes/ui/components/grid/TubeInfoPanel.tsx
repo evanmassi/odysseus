@@ -511,7 +511,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             </div>
           ) : null}
           {/* IDs in two columns - stacked layout for consistency */}
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
             <FieldValue
               label="Internal ID"
               value={donorInternalId}
@@ -530,7 +530,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {/* Sample Information - Only show if at least one field has a value */}
         {hasSampleInfo && (
           <InfoSection title="Sample Information">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
               <FieldValue
                 label="Condition"
                 value={cultureCondition}

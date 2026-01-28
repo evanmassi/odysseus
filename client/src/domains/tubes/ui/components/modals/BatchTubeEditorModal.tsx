@@ -106,6 +106,23 @@ export default function BatchTubeEditorModal({
       researcherId: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.researcherId),
     } satisfies BatchEditConflictAnalysis;
 
+    // Concentration and unit are a coupled pair — if either conflicts, treat both as conflicting
+    if (
+      analysis.concentration.state === 'conflict' ||
+      analysis.concentrationUnit.state === 'conflict'
+    ) {
+      analysis.concentration = {
+        ...analysis.concentration,
+        state: 'conflict',
+        commonValue: undefined,
+      };
+      analysis.concentrationUnit = {
+        ...analysis.concentrationUnit,
+        state: 'conflict',
+        commonValue: undefined,
+      };
+    }
+
     // Extract conflicting fields
     const conflictingFields = Object.entries(analysis)
       .filter(([_, value]) => value.state === 'conflict')

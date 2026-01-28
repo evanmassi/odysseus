@@ -7,24 +7,24 @@ import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
  * Get all positions within a rectangular selection
  */
 export function getPositionsInRectangle(
-  start: GridCoordinates, 
-  end: GridCoordinates, 
+  start: GridCoordinates,
+  end: GridCoordinates,
   gridCols: number = 9
 ): number[] {
   const positions: number[] = [];
-  
+
   const minRow = Math.min(start.row, end.row);
   const maxRow = Math.max(start.row, end.row);
   const minCol = Math.min(start.col, end.col);
   const maxCol = Math.max(start.col, end.col);
-  
+
   for (let row = minRow; row <= maxRow; row++) {
     for (let col = minCol; col <= maxCol; col++) {
       const position = row * gridCols + col + 1;
       positions.push(position);
     }
   }
-  
+
   return positions;
 }
 
@@ -51,7 +51,7 @@ export function positionToCoordinates(position: number, gridSize: number = 9): G
   const zeroBasedPosition = position - 1;
   return {
     row: Math.floor(zeroBasedPosition / gridSize),
-    col: zeroBasedPosition % gridSize
+    col: zeroBasedPosition % gridSize,
   };
 }
 
@@ -73,11 +73,15 @@ export function coordinatesToPosition(row: number, col: number, gridSize: number
  * @param gridSize Number of columns (default 9)
  * @returns Pixel coordinates
  */
-export function getPixelCoordinates(position: number, cellSize: number, gridSize: number = 9): { x: number; y: number } {
+export function getPixelCoordinates(
+  position: number,
+  cellSize: number,
+  gridSize: number = 9
+): { x: number; y: number } {
   const coords = positionToCoordinates(position, gridSize);
   return {
     x: coords.col * cellSize,
-    y: coords.row * cellSize
+    y: coords.row * cellSize,
   };
 }
 
@@ -87,32 +91,21 @@ export function getPixelCoordinates(position: number, cellSize: number, gridSize
  * @param maxPositions Maximum positions (defaults to standard equipment configuration)
  * @returns Whether position is valid
  */
-export function isValidPosition(position: number, maxPositions: number = EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX): boolean {
+export function isValidPosition(
+  position: number,
+  maxPositions: number = EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX
+): boolean {
   return position >= 1 && position <= maxPositions && Number.isInteger(position);
 }
 
 /**
- * Get all positions in a rectangular selection
+ * Get all positions in a sequential range between two positions
  * @param startPos Start position (1-based)
  * @param endPos End position (1-based)
- * @param gridSize Number of columns (default 9)
  * @returns Array of selected positions
  */
-export function getSelectionRange(startPos: number, endPos: number, gridSize: number = 9): number[] {
-  const start = positionToCoordinates(startPos, gridSize);
-  const end = positionToCoordinates(endPos, gridSize);
-  
-  const minRow = Math.min(start.row, end.row);
-  const maxRow = Math.max(start.row, end.row);
-  const minCol = Math.min(start.col, end.col);
-  const maxCol = Math.max(start.col, end.col);
-  
-  const positions: number[] = [];
-  for (let row = minRow; row <= maxRow; row++) {
-    for (let col = minCol; col <= maxCol; col++) {
-      positions.push(coordinatesToPosition(row, col, gridSize));
-    }
-  }
-  
-  return positions;
+export function getSelectionRange(startPos: number, endPos: number): number[] {
+  const min = Math.min(startPos, endPos);
+  const max = Math.max(startPos, endPos);
+  return Array.from({ length: max - min + 1 }, (_, i) => min + i);
 }

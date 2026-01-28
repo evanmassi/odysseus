@@ -22,7 +22,7 @@ export const InfoSection: React.FC<InfoSectionProps> = ({
   return (
     <div className={className}>
       {!hideTitle && (
-        <div className="flex items-center gap-2 mb-1.5">
+        <div className="flex items-center gap-2 mb-2.5">
           <div className="h-px flex-1 bg-border" />
           <span className="text-xs text-card-foreground/40 tracking-wide font-medium">{title}</span>
           <div className="h-px flex-1 bg-border" />
