@@ -3,6 +3,8 @@ import { create } from 'zustand';
 
 import { type PositionKey } from '@shared/types/GridSelection';
 
+import type { SelectionMode } from '@shared/types/Clipboard';
+
 /**
  * Tube Store - Client State Management
  *
@@ -26,6 +28,8 @@ interface CleanTubeState {
   // Selection state
   selectedPositions: Set<PositionKey>;
   selectionAnchor: number | null; // Last clicked position for Shift+Click range selection
+  /** Tracks how the current selection was made — used by paste to choose positioning strategy */
+  lastSelectionMethod: SelectionMode;
 
   // Socket connection state (managed centrally by AppBootstrapService)
   isConnected: boolean;
@@ -42,6 +46,7 @@ interface CleanTubeActions {
   clearSelection: () => void;
   setSelection: (positions: Set<PositionKey>) => void;
   setSelectionAnchor: (position: number | null) => void; // Set anchor for range selection
+  setLastSelectionMethod: (method: SelectionMode) => void;
 
   // Store reset (used on logout)
   resetStore: () => void;
@@ -53,6 +58,7 @@ export const useTubeStore = create<CleanTubeStore>((set, get) => ({
   // Pure UI state - server state handled by React Query
   selectedPositions: new Set<PositionKey>(),
   selectionAnchor: null, // No anchor until first click
+  lastSelectionMethod: 'standard' as SelectionMode,
   currentTank: NAMING_PATTERNS.TANK.ID_PATTERN(1),
   currentRack: '1',
   currentBox: 'A',
@@ -106,12 +112,14 @@ export const useTubeStore = create<CleanTubeStore>((set, get) => ({
   clearSelection: () => set({ selectedPositions: new Set<PositionKey>(), selectionAnchor: null }),
   setSelection: positions => set({ selectedPositions: positions }),
   setSelectionAnchor: position => set({ selectionAnchor: position }),
+  setLastSelectionMethod: method => set({ lastSelectionMethod: method }),
 
   // Reset store to initial state (used on logout)
   resetStore: () =>
     set({
       selectedPositions: new Set<PositionKey>(),
       selectionAnchor: null,
+      lastSelectionMethod: 'standard' as SelectionMode,
       currentTank: NAMING_PATTERNS.TANK.ID_PATTERN(1),
       currentRack: '1',
       currentBox: 'A',

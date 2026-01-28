@@ -5,8 +5,10 @@
  * Validation patterns with zero side effects.
  */
 
-import type { GridConfiguration} from '@/domains/storage';
+import type { GridConfiguration } from '@/domains/storage';
 import { getGridTotalPositions } from '@/domains/storage';
+
+import type { SelectionMode } from '@shared/types/Clipboard';
 
 /**
  * Grid configuration for validation (re-export shared schema type)
@@ -23,26 +25,22 @@ export interface PasteValidationResult {
 }
 
 /**
- * Validates a paste operation between source and target grids
- *
- * @param sourcePositions - Original positions of tubes being copied
- * @param targetAnchor - First position in target grid where paste will start
- * @param sourceGrid - Grid configuration of source box
- * @param targetGrid - Grid configuration of target box
- * @returns Validation result with warnings and valid target positions
+ * Validates a paste operation between source and target grids.
+ * Uses coordinate-based mapping for drag selections and sequential mapping otherwise,
+ * matching the actual paste positioning logic.
  */
 export function validatePasteOperation(
   sourcePositions: number[],
   targetAnchor: number,
   sourceGrid: GridConfig,
-  targetGrid: GridConfig
+  targetGrid: GridConfig,
+  selectionMode: SelectionMode = 'standard'
 ): PasteValidationResult {
   const warnings: string[] = [];
+  const totalTargetPositions = getGridTotalPositions(targetGrid);
 
-  // Check grid size mismatch (warn user about layout changes)
   const gridSizeMismatch =
-    sourceGrid.rows !== targetGrid.rows ||
-    sourceGrid.cols !== targetGrid.cols;
+    sourceGrid.rows !== targetGrid.rows || sourceGrid.cols !== targetGrid.cols;
 
   if (gridSizeMismatch) {
     warnings.push(
@@ -50,16 +48,42 @@ export function validatePasteOperation(
     );
   }
 
-  // Calculate target positions using same relative positioning logic as paste
-  const minSource = Math.min(...sourcePositions);
-  const targetPositions = sourcePositions.map(
-    pos => targetAnchor + (pos - minSource)
-  );
+  let targetPositions: number[];
 
-  // Check for out-of-bounds positions
-  const validPositions = targetPositions.filter(
-    pos => pos >= 1 && pos <= getGridTotalPositions(targetGrid)
-  );
+  if (selectionMode === 'drag') {
+    // Coordinate-based mapping matching rectangular paste logic
+    const posToRowCol = (pos: number, cols: number) => ({
+      row: Math.floor((pos - 1) / cols),
+      col: (pos - 1) % cols,
+    });
+    const rowColToPos = (row: number, col: number, cols: number) => row * cols + col + 1;
+
+    const sourceCoords = sourcePositions.map(pos => posToRowCol(pos, sourceGrid.cols));
+    const minRow = Math.min(...sourceCoords.map(c => c.row));
+    const minCol = Math.min(...sourceCoords.map(c => c.col));
+    const anchorCoords = posToRowCol(targetAnchor, targetGrid.cols);
+
+    targetPositions = sourceCoords.map(({ row, col }) => {
+      const targetRow = anchorCoords.row + (row - minRow);
+      const targetCol = anchorCoords.col + (col - minCol);
+
+      if (
+        targetRow < 0 ||
+        targetRow >= targetGrid.rows ||
+        targetCol < 0 ||
+        targetCol >= targetGrid.cols
+      ) {
+        return -1; // Out of bounds marker
+      }
+
+      return rowColToPos(targetRow, targetCol, targetGrid.cols);
+    });
+  } else {
+    // Sequential mapping: anchor, anchor+1, anchor+2, ...
+    targetPositions = sourcePositions.map((_, index) => targetAnchor + index);
+  }
+
+  const validPositions = targetPositions.filter(pos => pos >= 1 && pos <= totalTargetPositions);
 
   if (validPositions.length < targetPositions.length) {
     const skipped = targetPositions.length - validPositions.length;
@@ -71,6 +95,6 @@ export function validatePasteOperation(
   return {
     isValid: warnings.length === 0,
     warnings,
-    validTargetPositions: validPositions
+    validTargetPositions: validPositions,
   };
 }

@@ -158,10 +158,11 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
         setDragPreview(new Set()); // Clear preview
       }
 
-      // Update selection anchor to last position in drag for future Shift+Click
+      // Update selection anchor and mark as drag selection for paste behavior
       if (isDragging && dragStartPositionRef.current !== null) {
-        const { setSelectionAnchor } = useTubeStore.getState();
+        const { setSelectionAnchor, setLastSelectionMethod } = useTubeStore.getState();
         setSelectionAnchor(dragStartPositionRef.current);
+        setLastSelectionMethod('drag');
       }
 
       setIsDragging(false);

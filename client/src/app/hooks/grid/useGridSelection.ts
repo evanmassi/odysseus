@@ -101,7 +101,8 @@ export const useGridSelection = ({
       const executeSelection = () => {
         // Read anchor fresh from store
         const currentAnchor = useTubeStore.getState().selectionAnchor;
-        const { setSelectionAnchor } = useTubeStore.getState();
+        const { setSelectionAnchor, setLastSelectionMethod } = useTubeStore.getState();
+        setLastSelectionMethod('standard');
 
         const newSelection = new Set<PositionKey>();
 

@@ -14,6 +14,7 @@ import { tubeDataToCreateRequest } from '@odysseus/shared-schemas';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useStorageData } from '@domains/storage';
+import { useTubeStore } from '@domains/tubes';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
 import { toPositionKey, parsePositionKey } from '@shared/types/GridSelection';
 import { writeClipboardOS, readClipboardOS } from '@shared/utils/gridClipboard';
@@ -114,6 +115,7 @@ export const useGridClipboard = ({
       tubes: selectedTubes,
       operation: 'copy',
       timestamp: new Date(),
+      selectionMode: useTubeStore.getState().lastSelectionMethod,
       sourceLocation: ctx,
     };
 
@@ -164,6 +166,7 @@ export const useGridClipboard = ({
       tubes: selectedTubes,
       operation: 'cut',
       timestamp: new Date(),
+      selectionMode: useTubeStore.getState().lastSelectionMethod,
       sourceLocation: ctx,
     };
 
@@ -244,7 +247,8 @@ export const useGridClipboard = ({
             sourcePositions,
             anchorPosition,
             sourceGridConfig,
-            targetGridConfig
+            targetGridConfig,
+            clipData.selectionMode
           );
 
           if (!validation.isValid) {
@@ -268,67 +272,80 @@ export const useGridClipboard = ({
           }
         }
 
-        // Convert positions to row/col coordinates for proper cross-grid mapping
-        const sourceCols = sourceGridConfig?.cols ?? 9;
-        const targetCols = targetGridConfig?.cols ?? 5;
-        const targetRows = targetGridConfig?.rows ?? 5;
-
-        // Helper to convert position to (row, col) - 0-indexed
-        const posToRowCol = (pos: number, cols: number) => ({
-          row: Math.floor((pos - 1) / cols),
-          col: (pos - 1) % cols,
-        });
-
-        // Helper to convert (row, col) to position - 1-indexed
-        const rowColToPos = (row: number, col: number, cols: number) => row * cols + col + 1;
-
-        // Get source coordinates for all tubes
-        const sourceCoords = clipData.tubes.map(tube => ({
-          tube,
-          ...posToRowCol(tube.location.position, sourceCols),
-        }));
-
-        // Find the top-left corner of the source selection
-        const minSourceRow = Math.min(...sourceCoords.map(c => c.row));
-        const minSourceCol = Math.min(...sourceCoords.map(c => c.col));
-
-        // Get anchor coordinates in target grid
-        const anchorCoords = posToRowCol(anchorPosition, targetCols);
+        const targetTotalPositions = targetGridConfig
+          ? targetGridConfig.rows * targetGridConfig.cols
+          : 81;
 
         // Track which source tube IDs were successfully mapped (for cut operation)
         const pastedSourceTubeIds: string[] = [];
 
-        tubesToPaste = sourceCoords
-          .map(({ tube, row, col }) => {
-            // Calculate relative position from source selection's top-left
-            const relativeRow = row - minSourceRow;
-            const relativeCol = col - minSourceCol;
+        if (clipData.selectionMode === 'drag') {
+          // Rectangular paste: preserve 2D spatial layout
+          const sourceCols = sourceGridConfig?.cols ?? 9;
+          const targetCols = targetGridConfig?.cols ?? 5;
+          const targetRows = targetGridConfig?.rows ?? 5;
 
-            // Apply to anchor position in target grid
-            const targetRow = anchorCoords.row + relativeRow;
-            const targetCol = anchorCoords.col + relativeCol;
+          const posToRowCol = (pos: number, cols: number) => ({
+            row: Math.floor((pos - 1) / cols),
+            col: (pos - 1) % cols,
+          });
+          const rowColToPos = (row: number, col: number, cols: number) => row * cols + col + 1;
 
-            // Check if target position is within grid bounds
-            if (
-              targetRow < 0 ||
-              targetRow >= targetRows ||
-              targetCol < 0 ||
-              targetCol >= targetCols
-            ) {
-              return null;
-            }
+          const sourceCoords = clipData.tubes.map(tube => ({
+            tube,
+            ...posToRowCol(tube.location.position, sourceCols),
+          }));
 
-            const newPosition = rowColToPos(targetRow, targetCol, targetCols);
-            pastedSourceTubeIds.push(tube.id);
+          const minSourceRow = Math.min(...sourceCoords.map(c => c.row));
+          const minSourceCol = Math.min(...sourceCoords.map(c => c.col));
+          const anchorCoords = posToRowCol(anchorPosition, targetCols);
 
-            return tubeDataToCreateRequest(tube, {
-              tankId: ctx.tankId,
-              rackId: ctx.rackId,
-              boxId: ctx.boxId,
-              position: newPosition,
-            });
-          })
-          .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
+          tubesToPaste = sourceCoords
+            .map(({ tube, row, col }) => {
+              const targetRow = anchorCoords.row + (row - minSourceRow);
+              const targetCol = anchorCoords.col + (col - minSourceCol);
+
+              if (
+                targetRow < 0 ||
+                targetRow >= targetRows ||
+                targetCol < 0 ||
+                targetCol >= targetCols
+              ) {
+                return null;
+              }
+
+              const newPosition = rowColToPos(targetRow, targetCol, targetCols);
+              pastedSourceTubeIds.push(tube.id);
+
+              return tubeDataToCreateRequest(tube, {
+                tankId: ctx.tankId,
+                rackId: ctx.rackId,
+                boxId: ctx.boxId,
+                position: newPosition,
+              });
+            })
+            .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
+        } else {
+          // Sequential paste: place tubes one after another from anchor
+          tubesToPaste = clipData.tubes
+            .map((tube, index) => {
+              const targetPosition = anchorPosition + index;
+
+              if (targetPosition < 1 || targetPosition > targetTotalPositions) {
+                return null;
+              }
+
+              pastedSourceTubeIds.push(tube.id);
+
+              return tubeDataToCreateRequest(tube, {
+                tankId: ctx.tankId,
+                rackId: ctx.rackId,
+                boxId: ctx.boxId,
+                position: targetPosition,
+              });
+            })
+            .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
+        }
 
         // Store for cut operation
         (clipData as { _pastedSourceTubeIds?: string[] })._pastedSourceTubeIds =
