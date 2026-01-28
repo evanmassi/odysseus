@@ -1,11 +1,12 @@
 /* Grid Position Styles - Indicators moved to SVG for crisp rendering at any size */
 
-/* Tube content container - absolute centering for variable content */
 .tube-content {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  width: 94%;
+  height: 88%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -33,13 +34,13 @@
 
 .cell-line {
   font-weight: 700;
-  word-wrap: break-word;
   overflow-wrap: break-word;
-  hyphens: auto;
-  line-height: 1.1;
+  line-height: 1.15;
   overflow: hidden;
   display: -webkit-box;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  line-clamp: 2;
   max-width: 100%;
   text-align: center;
 }
@@ -266,7 +267,7 @@
     filter 0.3s ease;
 }
 
-/* Marching ants pattern matches OS clipboard conventions (Photoshop, Excel, etc.) */
+/* Marching ants pattern for cut selection indicator */
 @keyframes marching-ants {
   0% {
     background-position:

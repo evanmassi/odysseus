@@ -28,7 +28,6 @@ import type { Researcher } from '@odysseus/shared-schemas';
 import type { LockContext } from '@shared/types/GridSelection';
 import type { TubeData } from '@shared/types/Tube';
 
-// All field paths for conflict analysis
 const FIELD_PATHS = [
   'sample.cellType',
   'sample.donorInternalId',
@@ -46,7 +45,6 @@ const FIELD_PATHS = [
   'createdByName',
 ] as const;
 
-// Sample info field paths for checking section visibility
 const SAMPLE_INFO_PATHS = [
   'sample.cultureCondition',
   'sample.lotNumber',
@@ -60,23 +58,14 @@ const SAMPLE_INFO_PATHS = [
 
 interface TubeInfoPanelProps {
   selectedTubes: TubeData[];
-  /** Lock context for displaying lock information */
   lockContext?: LockContext;
 }
 
 export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps) {
-  // Use new React Query + Field Resolver hook
   const { getTubeValue, analyzeFieldConflicts, tubes } = useFieldResolverQuery();
-
-  // Fetch researchers for foreign key resolution (researcherId → name)
-  // Uses React Query for automatic caching - no extra network calls on re-renders
   const { data: researchers = [] } = useResearchersQuery();
-
-  // Get user settings for position display preferences
   const { settings: userSettings } = useUserSettings();
 
-  // Create researcher lookup map for O(1) resolution performance
-  // Memoized to avoid recreation on every render
   const researcherMap = useMemo(() => {
     const map = new Map<string, Researcher>();
     researchers.forEach(researcher => {
@@ -85,11 +74,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return map;
   }, [researchers]);
 
-  // Get current location and configuration
   const { currentTank, currentRack, currentBox, selectedPositions } = useTubeStore();
   const { currentLab } = useStorageData();
 
-  // Modal state for editing lock notes
   const [showEditLockNoteModal, setShowEditLockNoteModal] = useState(false);
 
   const {
@@ -99,15 +86,12 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     box: currentBoxObj,
   } = useLocationDisplayNames(currentTank, currentRack, currentBox);
 
-  // Format position summary with flexible display
-  // IMPORTANT: Must be before early return to comply with Rules of Hooks
   const positionSummary = useMemo(() => {
     if (selectedTubes.length === 0) return { positionLabel: '', formattedPositions: '' };
 
     const firstTube = selectedTubes[0];
     const positions = selectedTubes.map(t => t.location.position);
 
-    // Get grid config for position formatting
     const gridConfig = currentBoxObj?.gridConfig ?? {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
@@ -128,8 +112,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return { positionLabel, formattedPositions };
   }, [selectedTubes, currentBoxObj, currentLab, userSettings]);
 
-  // Memoized field analysis - compute all conflicts and values once
-  // IMPORTANT: Must be before early return to comply with Rules of Hooks
   const fieldAnalysis = useMemo(() => {
     if (selectedTubes.length === 0) {
       return { mixedFields: new Set<string>(), values: {} };
@@ -148,7 +130,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           mixedFields.add(path);
           values[path] = undefined;
         } else {
-          // Type guard: Filter out non-display types
           const value = analysis.commonValue;
           if (
             typeof value === 'string' ||
@@ -167,14 +148,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return { mixedFields, values };
   }, [selectedTubes, getTubeValue, analyzeFieldConflicts]);
 
-  // For multi-tube editing: find all tubes where user owns the lock
-  // Must be before early return to comply with Rules of Hooks
   const ownedLockedTubes = useMemo(() => {
     if (!lockContext || selectedTubes.length === 0) return [];
     return selectedTubes.filter(tube => tube.isLocked && lockContext.isLockedByCurrentUser(tube));
   }, [selectedTubes, lockContext]);
 
-  // Check if all selected tubes have the same lock note (for display)
   const lockNoteDisplay = useMemo(() => {
     if (ownedLockedTubes.length === 0) return null;
     if (ownedLockedTubes.length === 1) {
@@ -188,9 +166,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     };
   }, [ownedLockedTubes]);
 
-  // Reset modal state when underlying data becomes invalid
-  // This prevents "auto-opening" when selecting new locked tubes after the modal
-  // was closed due to selection change (ownedLockedTubes became empty)
+  // Prevents auto-opening when selecting new locked tubes after previous selection was cleared
   useEffect(() => {
     if (showEditLockNoteModal && ownedLockedTubes.length === 0) {
       setShowEditLockNoteModal(false);
@@ -198,10 +174,8 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   }, [showEditLockNoteModal, ownedLockedTubes.length]);
 
   if (selectedTubes.length === 0) {
-    // Show position info even when no tubes selected
     const positionCount = selectedPositions.size;
 
-    // Extract position numbers from position keys
     const positions = Array.from(selectedPositions)
       .map(key => {
         const parsed = parsePositionKey(key);
@@ -209,7 +183,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       })
       .sort((a, b) => a - b);
 
-    // Get grid config for position formatting
     const gridConfig = currentBoxObj?.gridConfig ?? {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
       cols: EQUIPMENT_DEFAULTS.GRID_COLS,
@@ -237,9 +210,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return (
       <div style={{ minWidth: '280px' }}>
         <div className="space-y-3">
-          {/* Location Header - Breadcrumb + Position */}
           <div className="bg-muted rounded-md px-3 py-2.5">
-            {/* Breadcrumb path */}
             <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
               <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
               <Tooltip content={tankName} side="bottom">
@@ -260,7 +231,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 </span>
               </Tooltip>
             </div>
-            {/* Position line */}
             {formattedPositions && (
               <div className="flex items-baseline gap-1.5 mt-1.5">
                 <span className="text-muted-foreground text-xs">
@@ -273,7 +243,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             )}
           </div>
 
-          {/* Placeholder Message */}
           <div className="text-center py-6">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
               <TestTube className="w-6 h-6 text-card-foreground/30" />
@@ -285,20 +254,16 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     );
   }
 
-  // Get first tube for display (or common values if multiple selected)
   const firstTube = selectedTubes[0];
 
-  // Helper to check if a field has conflicting values
   const isFieldMixed = (path: string): boolean => {
     return fieldAnalysis.mixedFields.has(path);
   };
 
-  // Helper to get display value for a field
   const getDisplayValue = (path: string): string | number | null | undefined => {
     return fieldAnalysis.values[path];
   };
 
-  // Format values for display
   const cellType = getDisplayValue('sample.cellType');
   const donorInternalId = getDisplayValue('sample.donorInternalId');
   const donorSourceId = getDisplayValue('sample.donorSourceId');
@@ -314,7 +279,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const createdByName = getDisplayValue('createdByName');
   const notes = getDisplayValue('sample.notes');
 
-  // Format complex values
   const formattedConcentration =
     concentration !== undefined
       ? formatConcentrationDisplay(
@@ -324,7 +288,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       : undefined;
   const formattedDate = date ? formatDateForDisplay(date as string | Date) : undefined;
 
-  // Show current researcher, fall back to historical name if researcher was deleted
+  // Fall back to historical createdByName if researcher was deleted
   const researcherDisplay = (() => {
     if (researcherId && researcherMap.has(researcherId as string)) {
       return formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!);
@@ -332,7 +296,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return (createdByName as string | undefined) ?? undefined;
   })();
 
-  // Detect if any fields have conflicts across selected tubes
   const hasConflicts = tubes.hasAnyConflicts(selectedTubes, [
     'sample.cellType',
     'sample.donorInternalId',
@@ -349,7 +312,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     'sample.notes',
   ]);
 
-  // Check if any sample information fields have values or are mixed
   const hasSampleInfo =
     cultureCondition !== undefined ||
     lotNumber !== undefined ||
@@ -361,7 +323,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     researcherDisplay !== undefined ||
     SAMPLE_INFO_PATHS.some(path => fieldAnalysis.mixedFields.has(path));
 
-  // Lock information for pill badges
   const lockInfo =
     firstTube.isLocked && lockContext
       ? {
@@ -376,9 +337,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   return (
     <div style={{ minWidth: '280px' }}>
       <div className="space-y-3">
-        {/* Location Header - Breadcrumb + Position */}
         <div className="bg-muted rounded-md px-3 py-2.5">
-          {/* Breadcrumb path */}
           <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
             <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
             <Tooltip content={tankName} side="bottom">
@@ -393,7 +352,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <span className="text-card-foreground font-medium truncate max-w-24">{boxName}</span>
             </Tooltip>
           </div>
-          {/* Position line */}
           <div className="flex items-baseline gap-1.5 mt-1.5">
             <span className="text-muted-foreground text-xs">{positionSummary.positionLabel}:</span>
             <span className="text-card-foreground font-medium text-sm">
@@ -414,7 +372,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           )}
         </div>
 
-        {/* Lock Status - Pill badges */}
         {lockInfo && (
           <div className="flex flex-wrap gap-1.5">
             <Chip
@@ -425,7 +382,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
             </Chip>
             {ownedLockedTubes.length > 0 ? (
-              // Clickable pill for lock owner(s) - can edit note
               <Tooltip
                 content={
                   lockNoteDisplay?.isMixed
@@ -462,7 +418,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 </button>
               </Tooltip>
             ) : (
-              // Non-clickable pill for non-owners - read-only
               firstTube.lockNote && (
                 <Chip size="sm" color="default" leftIcon={<Notebook />}>
                   {firstTube.lockNote}
@@ -479,9 +434,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </div>
         )}
 
-        {/* Donor Information */}
         <InfoSection title="Donor Information">
-          {/* Cell Type - Prominent */}
           {cellType ? (
             <div className="text-card-foreground font-semibold text-sm mb-1">{cellType}</div>
           ) : isFieldMixed('sample.cellType') ? (
@@ -493,7 +446,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               <div className="text-card-foreground/30 text-sm">—</div>
             </div>
           ) : null}
-          {/* IDs in two columns - stacked layout for consistency */}
           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
             <FieldValue
               label="Internal ID"
@@ -510,7 +462,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </div>
         </InfoSection>
 
-        {/* Sample Information - Only show if at least one field has a value */}
         {hasSampleInfo && (
           <InfoSection title="Sample Information">
             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
@@ -566,7 +517,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </InfoSection>
         )}
 
-        {/* Notes */}
         {(Boolean(notes) || isFieldMixed('sample.notes')) && (
           <InfoSection title="Notes">
             {notes ? (
@@ -581,7 +531,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         )}
       </div>
 
-      {/* Edit Lock Note Modal */}
       <EditLockNoteModal
         isOpen={showEditLockNoteModal && ownedLockedTubes.length > 0}
         tubes={ownedLockedTubes}

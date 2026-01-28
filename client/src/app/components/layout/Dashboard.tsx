@@ -100,7 +100,7 @@ export function Dashboard() {
   // State to track when selector area is active/focused
   const [isSelectorActive, setIsSelectorActive] = useState(false);
 
-  // Clear selection when clicking outside the grid and panels (Excel/Figma behavior)
+  // Clear selection when clicking outside the grid and panels
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -586,27 +586,17 @@ export function Dashboard() {
         />
       </SuspenseBoundary>
 
-      {(() => {
-        const tubeIds = modalService.tubeEditorModal.tubeIds ?? [];
-        const resolvedTubes = tubeIds
-          .map(id => tubes.find(t => t.id === id))
-          .filter((tube): tube is TubeData => tube !== undefined);
-
-        return (
-          <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="BatchTubeEditorModal">
-            <BatchTubeEditorModal
-              isOpen={
-                modalService.tubeEditorModal.isOpen &&
-                modalService.tubeEditorModal.mode === 'batch' &&
-                tubeIds.length > 0
-              }
-              tubeIds={tubeIds}
-              tubes={resolvedTubes}
-              onClose={handleCloseModal}
-            />
-          </SuspenseBoundary>
-        );
-      })()}
+      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="BatchTubeEditorModal">
+        <BatchTubeEditorModal
+          isOpen={
+            modalService.tubeEditorModal.isOpen &&
+            modalService.tubeEditorModal.mode === 'batch' &&
+            (modalService.tubeEditorModal.tubeIds ?? []).length > 0
+          }
+          tubeIds={modalService.tubeEditorModal.tubeIds ?? []}
+          onClose={handleCloseModal}
+        />
+      </SuspenseBoundary>
 
       {/* Unified System Delete Confirmation Dialog */}
       <DeleteConfirmDialog

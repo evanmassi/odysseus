@@ -30,7 +30,7 @@ export type AdminResetPasswordRequest = z.infer<typeof adminResetPasswordRequest
  * Admin generates password reset token response
  *
  * Returns full reset URL with embedded token.
- * Admin shares this link via Slack/in-person (no email dependency).
+ * Admin shares this link manually (no email dependency).
  */
 export const generatePasswordResetTokenResponseSchema = z.object({
   resetUrl: z.string().url(),

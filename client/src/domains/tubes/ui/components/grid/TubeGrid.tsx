@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 
@@ -47,9 +47,6 @@ export function TubeGrid({
   gridController,
   lockContext,
 }: TubeGridProps) {
-  // Component manages its own selection via props, no need for store selection
-
-  // Server state from React Query
   const {
     data: tubes = [],
     isLoading,
@@ -58,21 +55,12 @@ export function TubeGrid({
     staleTime: 2 * 60 * 1000,
   });
   const { getBox } = useStorageData();
-  // Auth store subscribed for reactive updates
-
-  // Data loading is now handled by GridNavigationService
-  // This component just displays the current data from the store
-
-  // Use the specific tankId passed from parent
   const boxConfig = getBox(tankId, rackId, boxId);
   const gridConfig = boxConfig?.gridConfig ?? {
     rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
     cols: EQUIPMENT_DEFAULTS.GRID_COLS,
     template: 'standard',
   };
-
-  // Grid reference
-  const gridRef = useRef<HTMLDivElement>(null);
 
   // Use grid controller passed from parent (single controller instance)
   const controller = gridController;
@@ -109,29 +97,24 @@ export function TubeGrid({
     setClipboard,
   });
 
-  // Font sizing hook (responsive font calculation)
-  const fontSizing = useGridFontSizing({
-    gridRef,
+  // Callback ref from this hook guarantees font recalculation on grid mount
+  const { fontSize, gridRef, gridNode } = useGridFontSizing({
     gridConfig,
   });
 
   // Create dynamic grid based on configuration
   const positions = Array.from({ length: getGridTotalPositions(gridConfig) }, (_, i) => i + 1);
 
-  // Tubes are already filtered by location from React Query hook
-  const currentTubes = tubes;
-
-  // Create lookup for quick access (memoized for performance)
   const tubesByPosition = useMemo(
     () =>
-      currentTubes.reduce(
+      tubes.reduce(
         (acc, tube) => {
           acc[tube.location.position] = tube;
           return acc;
         },
         {} as Record<number, TubeData>
       ),
-    [currentTubes]
+    [tubes]
   );
 
   // Position click handler (delegates to grid controller)
@@ -159,25 +142,25 @@ export function TubeGrid({
     [controller]
   );
 
-  // Focus grid on mount
+  // Focus grid once it mounts after data loads
   useEffect(() => {
-    if (gridRef.current) {
-      gridRef.current.focus();
+    if (gridNode) {
+      gridNode.focus();
     }
-  }, []);
+  }, [gridNode]);
 
   // Sync animations on selection change (force reflow to restart animation)
   useEffect(() => {
-    if (!gridRef.current) return;
+    if (!gridNode) return;
 
-    const selectedElements = gridRef.current.querySelectorAll('.selected');
+    const selectedElements = gridNode.querySelectorAll('.selected');
     selectedElements.forEach(el => {
       const element = el as HTMLElement;
       element.style.animation = 'none';
       element.offsetHeight; // Force reflow to restart animation
       element.style.animation = '';
     });
-  }, [selectedPositions]);
+  }, [selectedPositions, gridNode]);
 
   // Dynamic CSS grid based on configuration - CSS handles sizing via container queries
   const gridStyle = {
@@ -267,7 +250,7 @@ export function TubeGrid({
                 _isKeyboardFocused={isKeyboardFocused}
                 quickEditMode={quickEditMode}
                 gridConfig={gridConfig}
-                fontSize={fontSizing.fontSize}
+                fontSize={fontSize}
                 onPositionClick={handlePositionClick}
                 onPositionRightClick={handlePositionRightClick}
                 onPositionDoubleClick={controller.handlePositionDoubleClick}

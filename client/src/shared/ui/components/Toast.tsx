@@ -68,7 +68,7 @@ const TOAST_CONFIG = {
 
 /**
  * Custom toast component with left border accent style
- * Matches Linear/Notion aesthetic - dark background, colored border indicator
+ * Dark background with colored left border accent indicator
  */
 export function Toast({ type, message, visible = true }: ToastProps): React.ReactElement {
   const config = TOAST_CONFIG[type];

@@ -18,6 +18,11 @@ export interface TubeRepository {
   findById(id: string): Promise<Tube | null>;
   
   /**
+   * Find multiple tubes by IDs in a single query
+   */
+  findByIds(ids: string[]): Promise<Tube[]>;
+
+  /**
    * Find all tubes in the system
    */
   findAll(): Promise<Tube[]>;

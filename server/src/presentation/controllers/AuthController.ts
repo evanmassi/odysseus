@@ -1290,7 +1290,7 @@ export class AuthController {
    * POST /api/admin/users/:userId/generate-reset-token
    *
    * Use when: User prefers to set own password (15-minute one-time link)
-   * Delivery: Admin shares link manually via Slack/in-person (no email dependency)
+   * Delivery: Admin shares link manually (no email dependency)
    */
   async generatePasswordResetToken(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {

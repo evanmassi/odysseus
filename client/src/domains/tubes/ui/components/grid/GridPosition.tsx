@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 
 import { useUserSettings } from '@domains/authentication/hooks/useUserSettings';
 import { useStorageData } from '@domains/storage';
@@ -19,6 +19,15 @@ import type { GridConfiguration } from '@domains/storage';
 import type { TubeData } from '@domains/tubes/types';
 
 import './color-indicators.css';
+
+/** Avoids mid-word breaks and truncation by scaling font to fit longer cell type names. */
+function getCellTypeFontSize(baseFont: number, text: string): number {
+  const len = text.length;
+  if (len <= 6) return baseFont;
+  if (len <= 10) return baseFont * 0.85;
+  if (len <= 16) return baseFont * 0.72;
+  return baseFont * 0.62;
+}
 
 interface GridPositionProps {
   position: number;
@@ -95,21 +104,27 @@ export const GridPosition = memo<GridPositionProps>(
       : null;
     const donorInfo = tube ? parseDonorInfo(tube) : { internal: '', source: '' };
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType is validation failure, show fallback
+    const cellTypeText = tube?.sample?.cellType || 'Unknown';
+    const cellTypeFontSize = useMemo(
+      () => getCellTypeFontSize(fontSize.cellFont, cellTypeText),
+      [fontSize.cellFont, cellTypeText]
+    );
+
     return (
       <div
         key={`${position}-${animationKey}`}
         onClick={e => onPositionClick(position, e)}
-        onDoubleClick={e => onPositionDoubleClick?.(position, e)}
-        onContextMenu={e => onPositionRightClick(position, e)}
-        onMouseDown={e => onMouseDown(position, e)}
-        onMouseMove={() => onMouseMove(position)}
         onKeyDown={e => {
-          // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic for keyboard event handling
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             onPositionClick(position, e);
           }
         }}
+        onDoubleClick={e => onPositionDoubleClick?.(position, e)}
+        onContextMenu={e => onPositionRightClick(position, e)}
+        onMouseDown={e => onMouseDown(position, e)}
+        onMouseMove={() => onMouseMove(position)}
         role="gridcell"
         aria-label={
           tube
@@ -253,10 +268,9 @@ export const GridPosition = memo<GridPositionProps>(
             <div className="tube-content p-2 flex flex-col items-center justify-center text-center">
               <div
                 className="cell-line font-medium leading-tight"
-                style={{ fontSize: `${fontSize.cellFont}px` }}
+                style={{ fontSize: `${cellTypeFontSize}px` }}
               >
-                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
-                {tube.sample.cellType || 'Unknown'}
+                {cellTypeText}
               </div>
               {donorInfo.internal && (
                 <div

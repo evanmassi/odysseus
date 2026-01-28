@@ -16,6 +16,7 @@ import {
   type UpdateTubeRequest,
   type TubeData,
   type Researcher,
+  createTubeRequestSchema,
   updateTubeRequestSchema,
   formatConcentrationDisplay,
   formatResourceDisplayName,
@@ -33,6 +34,7 @@ import { useTubeModalFocusReturn } from '@domains/tubes/hooks/useTubeModalFocusR
 import {
   useUpdateTubeMutation,
   useDeleteTubeMutation,
+  usePasteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { isOfflineError } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
@@ -446,6 +448,7 @@ function CreateModeContent({
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: allTubes = [] } = useTubes();
   const updateTubeMutation = useUpdateTubeMutation();
+  const pasteTubesMutation = usePasteTubesMutation();
   const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();
 
@@ -623,27 +626,29 @@ function CreateModeContent({
       let errorCount = 0;
       const errors: string[] = [];
 
-      // Process empty positions (creates)
-      for (const { location } of positionAnalysis.emptyPositions) {
+      // Batch create all empty positions in a single request
+      if (positionAnalysis.emptyPositions.length > 0) {
         try {
-          const tubeDataWithLocation = { ...formData, location };
-          const result = await submitTube(tubeDataWithLocation, location);
+          const createRequests: CreateTubeRequest[] = positionAnalysis.emptyPositions.map(
+            ({ location }) => createTubeRequestSchema.parse({ ...formData, location })
+          );
 
-          if (result.success) {
-            successCount++;
-          } else {
+          const result = await pasteTubesMutation.mutateAsync({ tubes: createRequests });
+          successCount += result.created.length;
+
+          for (const failure of result.failed) {
             errorCount++;
-            errors.push(`Position ${location.position}: ${result.error ?? 'Unknown error'}`);
+            errors.push(
+              `Position ${createRequests[failure.index].location.position}: ${failure.error}`
+            );
           }
         } catch (error) {
-          // If offline, stop processing - global handler shows notification
           if (isOfflineError(error)) {
             return;
           }
-          errorCount++;
-          errors.push(
-            `Position ${location.position}: ${error instanceof Error ? error.message : 'Unknown error'}`
-          );
+          // Total failure — count all creates as failed
+          errorCount += positionAnalysis.emptyPositions.length;
+          errors.push(error instanceof Error ? error.message : 'Unknown error');
         }
       }
 

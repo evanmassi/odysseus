@@ -529,45 +529,37 @@ export const useBulkDeleteTubesMutation = (
 
   return useMutation({
     mutationFn: async ({ tubeIds, onProgress }) => {
-      const results: Array<{ id: string; success: boolean; error?: string }> = [];
-      let successful = 0;
-      let failed = 0;
+      onProgress?.({ completed: 0, total: tubeIds.length, currentId: tubeIds[0] });
 
-      // Process tubes sequentially for deletes (safer)
-      for (const id of tubeIds) {
-        try {
-          onProgress?.({ completed: results.length, total: tubeIds.length, currentId: id });
+      const result = await TubeService.bulkDeleteTubes(tubeIds);
 
-          await TubeService.deleteTube(id);
+      onProgress?.({
+        completed: tubeIds.length,
+        total: tubeIds.length,
+        currentId: tubeIds[tubeIds.length - 1],
+      });
 
-          successful++;
-          results.push({ id, success: true });
-        } catch (error: unknown) {
-          failed++;
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          results.push({ id, success: false, error: errorMessage });
-          // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-          logger.error(`Failed to delete tube ${id}`, { error });
-        }
-      }
+      const successfulIds = result.deleted;
+      const errors = result.failed.map(f => ({
+        itemId: f.id,
+        tubeId: f.id,
+        error: f.error,
+      }));
 
       return {
-        success: successful > 0,
+        success: result.success,
         totalProcessed: tubeIds.length,
-        successCount: successful,
-        successful,
-        failed,
-        errorCount: failed,
+        successCount: successfulIds.length,
+        successful: successfulIds.length,
+        failed: result.failed.length,
+        errorCount: result.failed.length,
         total: tubeIds.length,
-        results,
-        errors: results
-          .filter(r => !r.success)
-          .map(r => ({
-            itemId: r.id,
-            tubeId: r.id,
-            error: r.error ?? 'Unknown error',
-          })),
-        duration: 0, // Add proper timing if needed
+        results: [
+          ...successfulIds.map(id => ({ id, success: true })),
+          ...result.failed.map(f => ({ id: f.id, success: false, error: f.error })),
+        ],
+        errors,
+        duration: 0,
       };
     },
 

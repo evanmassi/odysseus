@@ -26,7 +26,6 @@ export const FieldValue: React.FC<FieldValueProps> = ({
   inline = true,
   isMixed = false,
 }) => {
-  // Don't render if no value and not mixed
   if (!value && value !== 0 && !isMixed) return null;
 
   if (inline) {

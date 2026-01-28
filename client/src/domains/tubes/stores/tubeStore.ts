@@ -9,65 +9,49 @@ import type { SelectionMode } from '@shared/types/Clipboard';
  * Tube Store - Client State Management
  *
  * Client-only UI state. Server state is handled by React Query hooks.
- *
- * Responsibilities:
- * - UI State: Navigation (tank/rack/box), selections
- * - Socket Connection: Real-time updates integration
- * - Client Utilities: Duplicate cleanup
  */
 
-/**
- * Pure client UI state - no server/domain type dependencies
- */
 interface CleanTubeState {
-  // Navigation state
   currentTank: string;
   currentRack: string;
   currentBox: string;
 
-  // Selection state
   selectedPositions: Set<PositionKey>;
-  selectionAnchor: number | null; // Last clicked position for Shift+Click range selection
-  /** Tracks how the current selection was made — used by paste to choose positioning strategy */
+  selectionAnchor: number | null;
+  /** Determines paste positioning strategy (rectangular vs sequential) */
   lastSelectionMethod: SelectionMode;
 
-  // Socket connection state (managed centrally by AppBootstrapService)
   isConnected: boolean;
 }
 
 interface CleanTubeActions {
-  // Navigation actions (used by GridNavigationService)
   setCurrentTank: (tankId: string) => void;
   setCurrentRack: (rackId: string) => void;
   setCurrentBox: (boxId: string) => void;
 
-  // Selection actions
   togglePosition: (position: PositionKey) => void;
   clearSelection: () => void;
   setSelection: (positions: Set<PositionKey>) => void;
-  setSelectionAnchor: (position: number | null) => void; // Set anchor for range selection
+  setSelectionAnchor: (position: number | null) => void;
   setLastSelectionMethod: (method: SelectionMode) => void;
 
-  // Store reset (used on logout)
   resetStore: () => void;
 }
 
 interface CleanTubeStore extends CleanTubeState, CleanTubeActions {}
 
 export const useTubeStore = create<CleanTubeStore>((set, get) => ({
-  // Pure UI state - server state handled by React Query
   selectedPositions: new Set<PositionKey>(),
-  selectionAnchor: null, // No anchor until first click
+  selectionAnchor: null,
   lastSelectionMethod: 'standard' as SelectionMode,
   currentTank: NAMING_PATTERNS.TANK.ID_PATTERN(1),
   currentRack: '1',
   currentBox: 'A',
 
-  // Socket connection is now managed centrally (legacy state preserved for compatibility)
-  isConnected: true, // Always true since bootstrap handles connection
+  // Legacy state preserved for compatibility — bootstrap handles connection
+  isConnected: true,
 
-  // NAVIGATION ACTIONS - Used by GridNavigationService
-  // Clear selection on location change (matches Excel/Figma behavior)
+  // Clear selection on location change
   setCurrentTank: tankId => {
     const { currentTank } = get();
     if (tankId !== currentTank) {
@@ -97,7 +81,6 @@ export const useTubeStore = create<CleanTubeStore>((set, get) => ({
     }
   },
 
-  // SELECTION ACTIONS - Pure client state
   togglePosition: position => {
     const { selectedPositions } = get();
     const newSelection = new Set(selectedPositions);
@@ -114,7 +97,6 @@ export const useTubeStore = create<CleanTubeStore>((set, get) => ({
   setSelectionAnchor: position => set({ selectionAnchor: position }),
   setLastSelectionMethod: method => set({ lastSelectionMethod: method }),
 
-  // Reset store to initial state (used on logout)
   resetStore: () =>
     set({
       selectedPositions: new Set<PositionKey>(),

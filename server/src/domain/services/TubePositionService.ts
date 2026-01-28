@@ -332,6 +332,93 @@ export class TubePositionService {
   }
 
   /**
+   * Batch-validate positions within a single box (synchronous, no DB calls).
+   * All positions must be in the same tank/rack/box.
+   */
+  validatePositionBatch(
+    positions: Array<{ tankId: string; rackId: string; boxId: string; position: number }>,
+    preloadedData: {
+      config: Configuration;
+      occupiedPositions: Set<number>;
+      maxPosition: number;
+      tubesInBox: Tube[];
+    }
+  ): Map<number, { isValid: boolean; reason?: string }> {
+    const results = new Map<number, { isValid: boolean; reason?: string }>();
+
+    if (positions.length === 0) return results;
+
+    // 1. Validate equipment config once using the first position's location
+    const { tankId, rackId, boxId } = positions[0];
+    const testLocation = Location.create(tankId, rackId, boxId, 1);
+    const locationValid = preloadedData.config.isLocationValid(
+      Location.create(tankId, rackId, boxId, 1)
+    );
+
+    // Check if box exists at all (position 1 may exceed max, so check box separately)
+    const boxInfo = preloadedData.config.getBox(tankId, rackId, boxId);
+    if (!boxInfo) {
+      const reason = `Location ${tankId}-${rackId}-${boxId} does not exist in equipment configuration`;
+      for (const pos of positions) {
+        results.set(pos.position, { isValid: false, reason });
+      }
+      return results;
+    }
+
+    // 2. Track intra-batch claimed positions to detect duplicates within the batch
+    const claimedInBatch = new Set<number>();
+
+    for (const pos of positions) {
+      // Check position exceeds max
+      if (pos.position > preloadedData.maxPosition) {
+        results.set(pos.position, {
+          isValid: false,
+          reason: `Position ${pos.position} exceeds box capacity of ${preloadedData.maxPosition}`
+        });
+        continue;
+      }
+
+      // Check against pre-existing occupied positions
+      if (preloadedData.occupiedPositions.has(pos.position)) {
+        results.set(pos.position, {
+          isValid: false,
+          reason: `Position ${pos.position} is already occupied`
+        });
+        continue;
+      }
+
+      // Check against intra-batch duplicates
+      if (claimedInBatch.has(pos.position)) {
+        results.set(pos.position, {
+          isValid: false,
+          reason: `Position ${pos.position} is claimed by another tube in this batch`
+        });
+        continue;
+      }
+
+      claimedInBatch.add(pos.position);
+      results.set(pos.position, { isValid: true });
+    }
+
+    // 3. Occupancy warning (>90% full including batch size)
+    const totalOccupied = preloadedData.occupiedPositions.size + claimedInBatch.size;
+    const occupancyRate = totalOccupied / preloadedData.maxPosition;
+    if (occupancyRate > 0.9) {
+      // Add warning to all valid results
+      for (const [position, result] of results) {
+        if (result.isValid) {
+          results.set(position, {
+            isValid: true,
+            reason: `Warning: Box ${boxId} will be ${Math.round(occupancyRate * 100)}% full after this batch`
+          });
+        }
+      }
+    }
+
+    return results;
+  }
+
+  /**
    * Validate position for tube placement (used by application service)
    */
   async validatePosition(

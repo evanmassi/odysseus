@@ -111,6 +111,26 @@ export class TubeService {
   }
 
   /**
+   * Bulk delete tubes - single request to server
+   */
+  static async bulkDeleteTubes(tubeIds: string[]): Promise<{
+    success: boolean;
+    deleted: string[];
+    failed: Array<{ id: string; error: string }>;
+  }> {
+    const response = await httpClient.post<{
+      success: boolean;
+      data: {
+        success: boolean;
+        deleted: string[];
+        failed: Array<{ id: string; error: string }>;
+      };
+    }>('/tubes/bulk-delete', { tubeIds });
+
+    return response.data.data;
+  }
+
+  /**
    * Fetch tubes by specific location
    */
   static async fetchTubesByLocation(

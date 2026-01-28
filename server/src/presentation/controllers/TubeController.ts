@@ -176,6 +176,30 @@ export class TubeController extends BaseController {
   }
 
   /**
+   * Bulk delete tubes
+   * POST /api/tubes/bulk-delete
+   */
+  async bulkDeleteTubes(req: Request, res: Response): Promise<void> {
+    try {
+      const { tubeIds } = req.body;
+      const authenticatedUser = this.getAuthenticatedUser(req);
+
+      const result = await this.tubeApplicationService.bulkDeleteTubes(tubeIds, authenticatedUser);
+
+      logger.debug('Bulk tube delete completed', {
+        deleted: result.deleted.length,
+        failed: result.failed.length,
+        user: req.user?.username,
+        requestId: req.requestId
+      });
+
+      res.json(ErrorDto.success(result));
+    } catch (error) {
+      handleControllerError(error, res, 'Failed to bulk delete tubes', req.requestId);
+    }
+  }
+
+  /**
    * Get tubes by complete location
    * GET /api/tubes/location?tankId=X&rackId=Y&boxId=Z
    */

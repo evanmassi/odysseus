@@ -38,24 +38,16 @@ import { BulkProgressModal } from './BulkProgressModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 
 import type { FieldConflictAnalysis } from '@app/hooks/useSimpleFieldResolver';
-import type { BulkUpdateProgress, BulkUpdateResult, TubeData } from '@domains/tubes/types';
+import type { BulkUpdateProgress, BulkUpdateResult } from '@domains/tubes/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
 export interface BatchTubeEditorModalProps {
-  /** Whether modal is open - controls visibility with exit animation */
   isOpen?: boolean;
   tubeIds: string[];
-  /** Optional pre-fetched tubes. If not provided, fetches from cache using tubeIds */
-  tubes?: TubeData[];
   onClose: () => void;
 }
 
-/**
- * Analysis object structure for all batch-editable fields
- *
- * Media fields use dot-notation string keys ('media.type')
- * and must be accessed with bracket notation: analysis['media.type']
- */
+/** Media fields use dot-notation keys and require bracket notation: analysis['media.type'] */
 interface BatchEditConflictAnalysis {
   cellType: FieldConflictAnalysis<string>;
   donorInternalId: FieldConflictAnalysis<string>;
@@ -72,10 +64,12 @@ interface BatchEditConflictAnalysis {
   researcherId: FieldConflictAnalysis<string>;
 }
 
-/**
- * Recursively picks only the fields marked as dirty by React Hook Form.
- * Prevents sending untouched/conflicting fields that would clear data on the server.
- */
+const COUPLED_FIELDS: Record<string, string[]> = {
+  concentration: ['concentrationUnit'],
+  concentrationUnit: ['concentration'],
+};
+
+/** Extracts only user-modified fields to avoid clearing server data. Coupled fields always sent together for cross-field validation. */
 function pickDirtyFields(
   data: Record<string, unknown>,
   dirty: Record<string, unknown>
@@ -103,26 +97,36 @@ function pickDirtyFields(
     }
   }
 
+  // Pull in coupled siblings required by cross-field validation
+  for (const key of Object.keys(result)) {
+    const siblings = COUPLED_FIELDS[key];
+    if (!siblings) continue;
+    for (const sibling of siblings) {
+      if (!(sibling in result) && data[sibling] !== undefined) {
+        result[sibling] = data[sibling];
+      }
+    }
+  }
+
   return result;
 }
 
 export default function BatchTubeEditorModal({
   isOpen = true,
   tubeIds,
-  tubes: legacyTubes,
   onClose,
 }: BatchTubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { analyzeFieldConflicts } = useFieldResolverQuery();
 
-  // Fetch tubes by IDs, with legacy support during transition
   const { data: allTubes = [] } = useTubes();
-  const tubes = legacyTubes ?? allTubes.filter(tube => tubeIds.includes(tube.id));
+  const tubes = useMemo(
+    () => allTubes.filter(tube => tubeIds.includes(tube.id)),
+    [allTubes, tubeIds]
+  );
 
-  // Focus return management - restore focus when modal unmounts
   useTubeModalFocusReturn();
 
-  // Analyze all editable fields for conflicts across selected tubes
   const conflictAnalysis = useMemo(() => {
     const analysis = {
       cellType: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.cellType),
@@ -140,7 +144,7 @@ export default function BatchTubeEditorModal({
       researcherId: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.researcherId),
     } satisfies BatchEditConflictAnalysis;
 
-    // Concentration and unit are a coupled pair — if either conflicts, treat both as conflicting
+    // Partial updates to concentration/unit pair corrupt data — treat as joint conflict
     if (
       analysis.concentration.state === 'conflict' ||
       analysis.concentrationUnit.state === 'conflict'
@@ -157,7 +161,6 @@ export default function BatchTubeEditorModal({
       };
     }
 
-    // Extract conflicting fields
     const conflictingFields = Object.entries(analysis)
       .filter(([_, value]) => value.state === 'conflict')
       .map(([key, _]) => key);
@@ -165,7 +168,6 @@ export default function BatchTubeEditorModal({
     return { analysis, conflictingFields };
   }, [tubes, analyzeFieldConflicts]);
 
-  // Build initial form data: use common/mixed values, clear only conflicting fields
   const resolvedData = useMemo(() => {
     const { analysis } = conflictAnalysis;
 
@@ -183,7 +185,7 @@ export default function BatchTubeEditorModal({
             : '',
         concentration:
           analysis.concentration.state !== 'conflict'
-            ? analysis.concentration.commonValue
+            ? analysis.concentration.commonValue != null
               ? formatConcentrationDisplay(analysis.concentration.commonValue)
               : undefined
             : undefined,
@@ -237,24 +239,27 @@ export default function BatchTubeEditorModal({
   });
   const [result, setResult] = useState<BulkUpdateResult | null>(null);
 
-  // Only using form for field editing UI, not the submit handler
-  // Actual submission uses bulk mutations
-  // Uses useBatchEditTubeForm (updateTubeRequestSchema) - location not required for editing
   const { form, isSubmitting: formSubmitting } = useBatchEditTubeForm({
     initialData: resolvedData,
   });
 
-  // CRITICAL: Subscribe to formState by destructuring in render phase (React Hook Form v7 Proxy pattern)
-  // Without this, component won't re-render when errors/dirtyFields change
+  // Destructure in render phase so React Hook Form's proxy triggers re-renders
   const { errors, dirtyFields, isValid, isDirty } = form.formState;
 
-  // Button should be disabled if form is invalid OR no changes have been made
   const canSubmit = isValid && isDirty;
 
-  // Sync form with resolved data only until the user starts editing.
-  // Once dirty, stop resetting — prevents socket/query updates from wiping in-progress edits.
-  // IMPORTANT: Do NOT include `form` in deps - it changes every render and causes infinite reset loop
+  // Prevents socket updates from overwriting user changes mid-edit
   const userHasEdited = useRef(false);
+  const prevTubeIdsRef = useRef<string[]>([]);
+  useEffect(() => {
+    const key = tubeIds.join(',');
+    if (key !== prevTubeIdsRef.current.join(',')) {
+      userHasEdited.current = false;
+      prevTubeIdsRef.current = tubeIds;
+    }
+  }, [tubeIds]);
+
+  // Sync form with server data until first edit
   useEffect(() => {
     if (!userHasEdited.current) {
       form.reset(resolvedData);
@@ -262,18 +267,25 @@ export default function BatchTubeEditorModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedData]);
 
-  // Track when the user first makes an edit
   useEffect(() => {
-    if (isDirty) {
-      userHasEdited.current = true;
-    }
+    if (isDirty) userHasEdited.current = true;
   }, [isDirty]);
 
-  // Bulk operations
   const bulkUpdateMutation = useBulkUpdateTubesMutation();
   const bulkDeleteMutation = useBulkDeleteTubesMutation();
   const isSubmitting =
     formSubmitting || bulkUpdateMutation.isPending || bulkDeleteMutation.isPending;
+
+  /** Builds a validated payload from only the fields the user modified */
+  const buildDirtyPayload = (): UpdateTubeRequest | undefined => {
+    const rawFormData = form.getValues();
+    const dirty = form.formState.dirtyFields;
+    const dirtyPayload = pickDirtyFields(rawFormData, dirty);
+
+    if (Object.keys(dirtyPayload).length === 0) return undefined;
+
+    return updateTubeRequestSchema.parse(dirtyPayload);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -281,21 +293,14 @@ export default function BatchTubeEditorModal({
     setResult(null);
 
     try {
-      const rawFormData = form.getValues();
-      const dirtyFields = form.formState.dirtyFields;
+      const validatedUpdates = buildDirtyPayload();
 
-      // Only send fields the user actually modified — prevents clearing conflicting fields
-      const dirtyPayload = pickDirtyFields(rawFormData, dirtyFields);
-
-      if (Object.keys(dirtyPayload).length === 0) {
+      if (!validatedUpdates) {
         notifications.info('No changes to save');
         setShowProgress(false);
         return;
       }
 
-      const validatedUpdates = updateTubeRequestSchema.parse(dirtyPayload);
-
-      // Send validated data to bulk update mutation
       const bulkResult = await bulkUpdateMutation.mutateAsync({
         tubeIds,
         updates: validatedUpdates,
@@ -313,7 +318,6 @@ export default function BatchTubeEditorModal({
 
       setResult(bulkResult);
 
-      // Show final result
       if (bulkResult.success) {
         notifications.success(`Updated ${tubeIds.length} tubes successfully`);
         setShowProgress(false);
@@ -330,13 +334,12 @@ export default function BatchTubeEditorModal({
 
   const handleProgressClose = () => {
     setShowProgress(false);
-    // Errors are already shown in the UI via result.errors
   };
 
   const handleRetryFailures = async () => {
     if (!result || result.success) return;
 
-    const failedTubeIds = result.errors.map(error => error.itemId); // Note: retryable logic needs to be implemented if needed
+    const failedTubeIds = result.errors.map(error => error.itemId);
 
     if (failedTubeIds.length === 0) {
       notifications.info('No retryable failures found');
@@ -348,14 +351,14 @@ export default function BatchTubeEditorModal({
     setResult(null);
 
     try {
-      // Get raw form data for retry
-      const rawFormData = form.getValues();
+      const validatedUpdates = buildDirtyPayload();
 
-      // Validate and transform through Zod schema: INPUT → OUTPUT
-      // This transforms raw form data to proper API request format
-      const validatedUpdates = updateTubeRequestSchema.parse(rawFormData);
+      if (!validatedUpdates) {
+        notifications.info('No changes to retry');
+        setShowProgress(false);
+        return;
+      }
 
-      // Send validated data to bulk update mutation
       const retryResult = await bulkUpdateMutation.mutateAsync({
         tubeIds: failedTubeIds,
         updates: validatedUpdates,
@@ -424,10 +427,7 @@ export default function BatchTubeEditorModal({
   const rackId = tubes[0]?.location.rackId || '';
   const boxId = tubes[0]?.location.boxId || '';
 
-  // Filter errors to only show errors for dirty fields
-  // Special handling for cross-field validation (e.g., concentration + unit refinement)
-  // NOTE: No useMemo - recalculates on every render, but this is fine (cheap object traversal)
-  // This ensures filtered errors update immediately when validation runs
+  // Only show validation errors for fields the user has touched
   const RELATED_FIELDS: Record<string, string[]> = {
     concentration: ['concentrationUnit'],
     concentrationUnit: ['concentration'],
@@ -543,7 +543,6 @@ export default function BatchTubeEditorModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Position display - matches other modals */}
           <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
             <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
             <div className="flex items-center gap-2 text-sm font-medium text-secondary-foreground">
@@ -592,7 +591,6 @@ export default function BatchTubeEditorModal({
           </div>
         </form>
 
-        {/* Results Summary */}
         {result && !result.success && result.errors.length > 0 && !showProgress && (
           <div className="mt-6 p-4 bg-muted border border-danger-border rounded-lg">
             <div className="flex items-center justify-between mb-3">
@@ -643,7 +641,6 @@ export default function BatchTubeEditorModal({
         )}
       </BaseModal>
 
-      {/* Progress Modal */}
       <BulkProgressModal
         isOpen={showProgress}
         progress={progress}
@@ -664,5 +661,4 @@ export default function BatchTubeEditorModal({
   );
 }
 
-// Named export for backward compatibility
 export { BatchTubeEditorModal };

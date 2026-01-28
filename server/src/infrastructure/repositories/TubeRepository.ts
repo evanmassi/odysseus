@@ -37,6 +37,17 @@ export class TubeRepository implements ITubeRepository {
     return row ? TubeMapper.fromRow(row) : null;
   }
 
+  async findByIds(ids: string[]): Promise<Tube[]> {
+    if (ids.length === 0) return [];
+
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await this.context.queryMany<TubeRow>(
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE id IN (${placeholders})`,
+      ids
+    );
+    return TubeMapper.fromRows(rows);
+  }
+
   async findAll(): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(`SELECT ${this.TUBE_COLUMNS} FROM tubes ORDER BY created_at DESC`);
     return TubeMapper.fromRows(rows);

@@ -794,21 +794,20 @@ export function getConditionStyleForBox(
   return conditionIndicatorStyles[styleIndex];
 }
 
-// Helper function to format donor ID for grid display (last 5 digits)
-export function formatIdForGrid(id: string): string {
+/** Grid cells only have room for trailing digits — users identify donors by the last few characters. */
+export function formatIdForGrid(id: string, maxLength = 5): string {
   if (!id || id.trim() === '') return '';
 
   const cleanId = id.trim();
 
-  // For any ID longer than 5 characters, show last 5 characters with "..." prefix
-  if (cleanId.length > 5) {
-    return `...${cleanId.substring(cleanId.length - 5)}`;
+  if (cleanId.length > maxLength) {
+    return `...${cleanId.substring(cleanId.length - maxLength)}`;
   }
 
   return cleanId;
 }
 
-// Helper function to extract both internal and source IDs from donor data
+/** Supports both new separate ID fields and legacy JSON donor format for backwards compatibility. */
 export function parseDonorInfo(tubeData: TubeData): { internal: string; source: string } {
   const adaptedData = adaptTubeDataForColorSystem(tubeData);
 
@@ -816,7 +815,7 @@ export function parseDonorInfo(tubeData: TubeData): { internal: string; source: 
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check if either donor field is present
   if (adaptedData.donorInternalId || adaptedData.donorSourceId) {
     return {
-      internal: formatIdForGrid(adaptedData.donorInternalId ?? ''),
+      internal: formatIdForGrid(adaptedData.donorInternalId ?? '', 8),
       source: formatIdForGrid(adaptedData.donorSourceId ?? ''),
     };
   }
@@ -830,7 +829,7 @@ export function parseDonorInfo(tubeData: TubeData): { internal: string; source: 
     const source = donorData.source || '';
 
     return {
-      internal: formatIdForGrid(internal),
+      internal: formatIdForGrid(internal, 8),
       source: formatIdForGrid(source),
     };
   } catch (e) {
@@ -841,7 +840,7 @@ export function parseDonorInfo(tubeData: TubeData): { internal: string; source: 
     }
     // True legacy format - treat as internal ID
     return {
-      internal: formatIdForGrid(rawDonor),
+      internal: formatIdForGrid(rawDonor, 8),
       source: '',
     };
   }

@@ -50,6 +50,10 @@ export const BulkUpdateHttpSchema = z.object({
   })).min(1, "At least one update is required")
 });
 
+export const BulkDeleteHttpSchema = z.object({
+  tubeIds: z.array(z.string().min(1)).min(1, "At least one tube ID is required")
+});
+
 // Tube Lock HTTP Schemas
 export const LockTubesHttpSchema = lockTubesRequestSchema;
 export const UnlockTubesHttpSchema = unlockTubesRequestSchema;
@@ -61,6 +65,7 @@ export type CreateTubeHttpData = z.infer<typeof CreateTubeHttpSchema>;
 export type UpdateTubeHttpData = z.infer<typeof UpdateTubeHttpSchema>;
 export type CreateResearcherHttpData = z.infer<typeof CreateResearcherHttpSchema>;
 export type BulkUpdateHttpData = z.infer<typeof BulkUpdateHttpSchema>;
+export type BulkDeleteHttpData = z.infer<typeof BulkDeleteHttpSchema>;
 export type LocationQueryData = z.infer<typeof LocationQuerySchema>;
 export type LockTubesHttpData = z.infer<typeof LockTubesHttpSchema>;
 export type UnlockTubesHttpData = z.infer<typeof UnlockTubesHttpSchema>;

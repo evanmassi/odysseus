@@ -179,7 +179,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     const optionsRef = useRef<HTMLDivElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Typeahead refs for native select-style type-to-jump
     const typeaheadRef = useRef('');
     const typeaheadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -322,7 +321,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
             break;
 
           default: {
-            // Typeahead: skip for searchable selects and non-printable keys
             if (searchable) break;
             if (e.key.length > 1) break;
 
@@ -352,7 +350,6 @@ export const Select = forwardRef<SelectRef, SelectProps>(
       [isOpen, highlightedIndex, filteredOptions, handleOptionSelect, onOpen, onClose, searchable]
     );
 
-    // Clean up typeahead timer on unmount
     useEffect(() => {
       return () => {
         if (typeaheadTimerRef.current) clearTimeout(typeaheadTimerRef.current);
