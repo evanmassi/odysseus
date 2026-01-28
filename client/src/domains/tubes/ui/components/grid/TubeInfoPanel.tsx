@@ -324,29 +324,12 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       : undefined;
   const formattedDate = date ? formatDateForDisplay(date as string | Date) : undefined;
 
-  // Researcher display with historical name tracking
+  // Show current researcher, fall back to historical name if researcher was deleted
   const researcherDisplay = (() => {
-    const currentName =
-      researcherId && researcherMap.has(researcherId as string)
-        ? formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!)
-        : undefined;
-
-    const historicalName = createdByName as string | undefined;
-
-    // No researcher info at all
-    if (!historicalName && !currentName) return undefined;
-
-    // Only have historical name (researcher deleted or unlinked)
-    if (!currentName) return historicalName;
-
-    // Only have current name (old tube before Person entity implementation)
-    if (!historicalName) return currentName;
-
-    // Names match - no change
-    if (historicalName === currentName) return currentName;
-
-    // Names differ - show historical with current in parentheses
-    return `${historicalName} (now ${currentName})`;
+    if (researcherId && researcherMap.has(researcherId as string)) {
+      return formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!);
+    }
+    return (createdByName as string | undefined) ?? undefined;
   })();
 
   // Detect if any fields have conflicts across selected tubes

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 
 import {
   type CreateTubeRequest,
@@ -70,6 +70,40 @@ interface BatchEditConflictAnalysis {
   lotNumber: FieldConflictAnalysis<string>;
   notes: FieldConflictAnalysis<string>;
   researcherId: FieldConflictAnalysis<string>;
+}
+
+/**
+ * Recursively picks only the fields marked as dirty by React Hook Form.
+ * Prevents sending untouched/conflicting fields that would clear data on the server.
+ */
+function pickDirtyFields(
+  data: Record<string, unknown>,
+  dirty: Record<string, unknown>
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+
+  for (const key of Object.keys(dirty)) {
+    const dirtyValue = dirty[key];
+    const dataValue = data[key];
+
+    if (dirtyValue === true) {
+      result[key] = dataValue;
+    } else if (
+      typeof dirtyValue === 'object' &&
+      dirtyValue !== null &&
+      !Array.isArray(dirtyValue)
+    ) {
+      const nested = pickDirtyFields(
+        (dataValue as Record<string, unknown>) ?? {},
+        dirtyValue as Record<string, unknown>
+      );
+      if (Object.keys(nested).length > 0) {
+        result[key] = nested;
+      }
+    }
+  }
+
+  return result;
 }
 
 export default function BatchTubeEditorModal({
@@ -217,13 +251,23 @@ export default function BatchTubeEditorModal({
   // Button should be disabled if form is invalid OR no changes have been made
   const canSubmit = isValid && isDirty;
 
-  // Reset form when resolved data changes to update dirty tracking baseline
-  // This ensures defaultValues stay in sync with current tube selection
+  // Sync form with resolved data only until the user starts editing.
+  // Once dirty, stop resetting — prevents socket/query updates from wiping in-progress edits.
   // IMPORTANT: Do NOT include `form` in deps - it changes every render and causes infinite reset loop
+  const userHasEdited = useRef(false);
   useEffect(() => {
-    form.reset(resolvedData);
+    if (!userHasEdited.current) {
+      form.reset(resolvedData);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedData]);
+
+  // Track when the user first makes an edit
+  useEffect(() => {
+    if (isDirty) {
+      userHasEdited.current = true;
+    }
+  }, [isDirty]);
 
   // Bulk operations
   const bulkUpdateMutation = useBulkUpdateTubesMutation();
@@ -237,12 +281,19 @@ export default function BatchTubeEditorModal({
     setResult(null);
 
     try {
-      // Get raw form data
       const rawFormData = form.getValues();
+      const dirtyFields = form.formState.dirtyFields;
 
-      // Validate and transform through Zod schema: INPUT → OUTPUT
-      // This transforms raw form data to proper API request format
-      const validatedUpdates = updateTubeRequestSchema.parse(rawFormData);
+      // Only send fields the user actually modified — prevents clearing conflicting fields
+      const dirtyPayload = pickDirtyFields(rawFormData, dirtyFields);
+
+      if (Object.keys(dirtyPayload).length === 0) {
+        notifications.info('No changes to save');
+        setShowProgress(false);
+        return;
+      }
+
+      const validatedUpdates = updateTubeRequestSchema.parse(dirtyPayload);
 
       // Send validated data to bulk update mutation
       const bulkResult = await bulkUpdateMutation.mutateAsync({

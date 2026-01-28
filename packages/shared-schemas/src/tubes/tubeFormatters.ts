@@ -46,8 +46,8 @@ export function formatConcentrationDisplay(
   const exponent = Math.floor(Math.log10(Math.abs(value)));
   const mantissa = value / Math.pow(10, exponent);
   
-  // Format: always show one decimal place
-  const mantissaFormatted = mantissa.toFixed(1);
+  // Format: always show two decimal places to distinguish close values
+  const mantissaFormatted = mantissa.toFixed(2);
   const exponentFormatted = exponent >= 0 ? `+${exponent}` : `${exponent}`;
   const scientificNotation = `${mantissaFormatted}E${exponentFormatted}`;
   
