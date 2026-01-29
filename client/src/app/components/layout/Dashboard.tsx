@@ -32,6 +32,8 @@ import { parsePositionKey } from '@shared/types/GridSelection';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { UnsavedConfirmDialog } from '@shared/ui/components/UnsavedConfirmDialog';
+import { Chip } from '@shared/ui/primitives/chip/Chip';
+import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils/notifications';
 
 import { useGridController } from '../../hooks/grid';
@@ -504,25 +506,26 @@ export function Dashboard() {
               </h4>
               {isViewOnlySpace && (
                 <div className="flex-1 flex justify-end">
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-warning-text cursor-help"
-                    title="You can view, but not modify, tubes here."
-                  >
-                    <ScanEye className="w-2.5 h-2.5" />
-                    View Only - Assigned to{' '}
-                    <span className="font-semibold">{spaceOwnerName ?? 'another user'}</span>
-                  </span>
+                  <Tooltip content="You can view, but not modify, tubes here.">
+                    <Chip color="warning" size="sm" leftIcon={<ScanEye />} className="cursor-help">
+                      View Only - Assigned to{' '}
+                      <span className="font-semibold">{spaceOwnerName ?? 'another user'}</span>
+                    </Chip>
+                  </Tooltip>
                 </div>
               )}
               {isCommonSpace && (
                 <div className="flex-1 flex justify-end">
-                  <span
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground cursor-help"
-                    title="This space is available to all users."
-                  >
-                    <UsersRound className="w-2.5 h-2.5" />
-                    Unassigned/Common
-                  </span>
+                  <Tooltip content="This space is available to all users.">
+                    <Chip
+                      color="default"
+                      size="sm"
+                      leftIcon={<UsersRound />}
+                      className="cursor-help"
+                    >
+                      Unassigned/Common
+                    </Chip>
+                  </Tooltip>
                 </div>
               )}
             </div>

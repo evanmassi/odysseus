@@ -128,6 +128,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
       count,
       'aria-label': ariaLabel,
       className,
+      ...rest
     },
     ref
   ) => {
@@ -194,6 +195,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
           disabled={disabled}
           aria-label={ariaLabel}
           aria-pressed={behavior === 'selectable' ? selected : undefined}
+          {...rest}
         >
           {content}
         </button>
@@ -201,7 +203,12 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
     }
 
     return (
-      <span ref={ref as React.Ref<HTMLSpanElement>} className={chipClasses} aria-label={ariaLabel}>
+      <span
+        ref={ref as React.Ref<HTMLSpanElement>}
+        className={chipClasses}
+        aria-label={ariaLabel}
+        {...rest}
+      >
         {content}
       </span>
     );

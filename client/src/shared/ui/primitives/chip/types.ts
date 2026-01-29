@@ -4,7 +4,7 @@
  * Type definitions for the Chip primitive supporting static, selectable, and removable behaviors.
  */
 
-import type { ReactNode } from 'react';
+import type { HTMLAttributes, ReactNode } from 'react';
 
 export type ChipBehavior = 'static' | 'selectable' | 'removable';
 
@@ -22,7 +22,7 @@ export type ChipSize = 'xs' | 'sm' | 'md';
 
 export type ChipShape = 'rounded' | 'pill';
 
-export interface ChipProps {
+export interface ChipProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
   children: ReactNode;
   color?: ChipColor;
   size?: ChipSize;
@@ -34,8 +34,6 @@ export interface ChipProps {
   leftIcon?: ReactNode;
   disabled?: boolean;
   count?: number;
-  'aria-label'?: string;
-  className?: string;
 }
 
 export type ChipRef = HTMLButtonElement | HTMLSpanElement;
