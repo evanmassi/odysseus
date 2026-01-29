@@ -50,6 +50,7 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
   // Use refs for transient drag state to prevent stale closures in RAF callbacks
   const dragStartPositionRef = useRef<number | null>(null);
   const isDragWithCtrlRef = useRef<boolean>(false);
+  const isDraggingRef = useRef<boolean>(false);
 
   // UI-related state only
   const [isDragging, setIsDragging] = useState(false);
@@ -74,7 +75,8 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
       const withCtrl = isDragWithCtrlRef.current;
 
       if (dragStart !== null && dragStart !== position) {
-        if (!isDragging) {
+        if (!isDraggingRef.current) {
+          isDraggingRef.current = true;
           setIsDragging(true);
         }
 
@@ -107,7 +109,7 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
       }
       rafIdRef.current = null;
     },
-    [isDragging, gridConfig, selectedPositions, ctx]
+    [gridConfig, selectedPositions, ctx]
   );
 
   /**
@@ -165,6 +167,7 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
         setLastSelectionMethod('drag');
       }
 
+      isDraggingRef.current = false;
       setIsDragging(false);
       dragStartPositionRef.current = null;
       isDragWithCtrlRef.current = false;
