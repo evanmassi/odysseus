@@ -38,6 +38,8 @@ export interface UseGridClipboardProps {
   currentUserId?: string;
   /** When true, container is assigned to another user */
   isViewOnlySpace?: boolean;
+  /** Users without a researcher profile can only browse (no edit operations) */
+  hasResearcherProfile?: boolean;
 }
 
 export interface UseGridClipboardReturn {
@@ -65,6 +67,7 @@ export const useGridClipboard = ({
   onSelectionChange,
   currentUserId,
   isViewOnlySpace = false,
+  hasResearcherProfile = true,
 }: UseGridClipboardProps): UseGridClipboardReturn => {
   const clipboard = useGridUiStore(state => state.clipboard);
   const setClipboard = useGridUiStore(state => state.setClipboard);
@@ -85,6 +88,12 @@ export const useGridClipboard = ({
 
   // Copy operation
   const copy = useCallback(async () => {
+    // Users without researcher profile cannot perform clipboard operations
+    if (!hasResearcherProfile) {
+      notifications.warning('Researcher profile required to copy tubes.');
+      return;
+    }
+
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
 
@@ -131,10 +140,17 @@ export const useGridClipboard = ({
     setClipboard,
     isViewOnlySpace,
     currentUserId,
+    hasResearcherProfile,
   ]);
 
   // Cut operation
   const cut = useCallback(async () => {
+    // Users without researcher profile cannot perform clipboard operations
+    if (!hasResearcherProfile) {
+      notifications.warning('Researcher profile required to cut tubes.');
+      return;
+    }
+
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
 
@@ -186,11 +202,18 @@ export const useGridClipboard = ({
     onSelectionChange,
     isViewOnlySpace,
     currentUserId,
+    hasResearcherProfile,
   ]);
 
   // Paste operation
   const paste = useCallback(
     async (options?: { targetStart?: number }) => {
+      // Users without researcher profile cannot perform clipboard operations
+      if (!hasResearcherProfile) {
+        notifications.warning('Researcher profile required to paste tubes.');
+        return;
+      }
+
       // Block paste in view-only spaces (creates new tubes)
       if (isViewOnlySpace) {
         notifications.warning('Cannot add tubes to a space assigned to another user.');
@@ -446,6 +469,7 @@ export const useGridClipboard = ({
       modalService,
       tubes,
       isViewOnlySpace,
+      hasResearcherProfile,
     ]
   );
 

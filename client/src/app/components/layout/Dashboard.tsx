@@ -408,6 +408,9 @@ export function Dashboard() {
     };
   })();
 
+  // Users without a researcher profile can only browse (admins always have full access)
+  const hasResearcherProfile = user?.role === 'admin' || !!user?.researcherId;
+
   const gridController = useGridController({
     tankId: currentTank,
     rackId: currentRack,
@@ -433,6 +436,7 @@ export function Dashboard() {
     isUnlocking: unlockTubesMutation.isPending,
     currentUserId: user?.id,
     isViewOnlySpace,
+    hasResearcherProfile,
   });
 
   return (

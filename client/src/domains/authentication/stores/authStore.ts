@@ -28,12 +28,13 @@ export type LoginResult =
   | { success: false; error: string }
   | { success: 'password_change_required' };
 
-// User interface (unchanged for compatibility)
+// User interface - matches server's toPublicData() response
 export interface User {
   id: string;
   username: string;
   lastActivity: string;
   role?: 'admin' | 'user';
+  researcherId?: string;
 }
 
 /**

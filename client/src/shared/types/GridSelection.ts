@@ -108,6 +108,8 @@ export interface GridControllerProps {
   // When true, 'add' operations are blocked client-side
   // Modify operations check tube-level shared access before proceeding
   isViewOnlySpace?: boolean;
+  // Users without a researcher profile can only browse (no edit operations)
+  hasResearcherProfile?: boolean;
 }
 
 export interface GridControllerReturn {

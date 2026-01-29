@@ -49,6 +49,7 @@ export const useGridController = ({
   isUnlocking = false,
   currentUserId,
   isViewOnlySpace = false,
+  hasResearcherProfile = true,
 }: GridControllerProps): GridControllerReturn => {
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
 
@@ -104,6 +105,7 @@ export const useGridController = ({
       onSelectionChange,
       currentUserId,
       isViewOnlySpace,
+      hasResearcherProfile,
     });
 
   // Modal service
@@ -120,15 +122,27 @@ export const useGridController = ({
   });
 
   /**
+   * Guard for users without researcher profile - blocks all editing operations
+   */
+  const guardNoResearcherProfile = useCallback((): boolean => {
+    if (!hasResearcherProfile) {
+      notifications.warning('Researcher profile required to perform this action.');
+      return true;
+    }
+    return false;
+  }, [hasResearcherProfile]);
+
+  /**
    * Simple view-only guard for 'add' operations only
    */
   const guardAddInViewOnly = useCallback((): boolean => {
+    if (guardNoResearcherProfile()) return true;
     if (isViewOnlySpace) {
       notifications.warning('Cannot add tubes to a space assigned to another user.');
       return true;
     }
     return false;
-  }, [isViewOnlySpace]);
+  }, [isViewOnlySpace, guardNoResearcherProfile]);
 
   /**
    * Get selected tubes for modification check
@@ -150,6 +164,9 @@ export const useGridController = ({
    * Returns true if blocked (operation should not proceed)
    */
   const guardModifyOperation = useCallback((): boolean => {
+    // Users without researcher profile cannot modify anything
+    if (guardNoResearcherProfile()) return true;
+
     // If user owns the container, no check needed
     if (!isViewOnlySpace) return false;
 
@@ -164,7 +181,7 @@ export const useGridController = ({
     }
 
     return false;
-  }, [isViewOnlySpace, getSelectedTubes, currentUserId]);
+  }, [isViewOnlySpace, getSelectedTubes, currentUserId, guardNoResearcherProfile]);
 
   // Unified modal opener
   const openModal = useCallback(() => {
@@ -227,6 +244,9 @@ export const useGridController = ({
         clickTimerRef.current = null;
       }
 
+      // Users without researcher profile cannot edit
+      if (guardNoResearcherProfile()) return;
+
       const positionKey = toPositionKey(ctx, position);
 
       // Double-click on multi-selection opens batch mode
@@ -274,6 +294,7 @@ export const useGridController = ({
       openModal,
       clickTimerRef,
       guardAddInViewOnly,
+      guardNoResearcherProfile,
     ]
   );
 
@@ -319,6 +340,9 @@ export const useGridController = ({
   const toggleLock = useCallback(async () => {
     if (!lockContext || isUnlocking) return;
 
+    // Users without researcher profile cannot perform lock operations
+    if (guardNoResearcherProfile()) return;
+
     // Check modification access before lock operations
     if (guardModifyOperation()) return;
 
@@ -353,11 +377,15 @@ export const useGridController = ({
     onUnlockTubes,
     isUnlocking,
     guardModifyOperation,
+    guardNoResearcherProfile,
   ]);
 
   // Lock operation (opens modal)
   const lockTubes = useCallback(() => {
     if (!lockContext || !onLockTubes) return;
+
+    // Users without researcher profile cannot perform lock operations
+    if (guardNoResearcherProfile()) return;
 
     // Check modification access before opening lock modal
     if (guardModifyOperation()) return;
@@ -388,11 +416,15 @@ export const useGridController = ({
     tubes,
     onLockTubes,
     guardModifyOperation,
+    guardNoResearcherProfile,
   ]);
 
   // Unlock operation
   const unlockTubes = useCallback(async () => {
     if (!lockContext || !onUnlockTubes || isUnlocking) return;
+
+    // Users without researcher profile cannot perform unlock operations
+    if (guardNoResearcherProfile()) return;
 
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
@@ -413,11 +445,22 @@ export const useGridController = ({
     }
 
     await onUnlockTubes(unlockableTubeIds);
-  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onUnlockTubes, isUnlocking]);
+  }, [
+    lockContext,
+    selectedPositionsInThisBox,
+    resolveTube,
+    tubes,
+    onUnlockTubes,
+    isUnlocking,
+    guardNoResearcherProfile,
+  ]);
 
   // Share access operation
   const shareAccess = useCallback(() => {
     if (!lockContext || !onShareAccess) return;
+
+    // Users without researcher profile cannot share access
+    if (guardNoResearcherProfile()) return;
 
     const positions = selectedPositionsInThisBox();
     if (positions.length === 0) return;
@@ -438,7 +481,14 @@ export const useGridController = ({
     }
 
     onShareAccess(sharableTubeIds);
-  }, [lockContext, selectedPositionsInThisBox, resolveTube, tubes, onShareAccess]);
+  }, [
+    lockContext,
+    selectedPositionsInThisBox,
+    resolveTube,
+    tubes,
+    onShareAccess,
+    guardNoResearcherProfile,
+  ]);
 
   // Mouse position handler
   const setMousePosition = useCallback(

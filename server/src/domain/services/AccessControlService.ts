@@ -48,6 +48,16 @@ export class AccessControlService {
       return this.createDeniedResult('User does not have permission to create tubes');
     }
 
+    // Admins can create tubes without a researcher profile
+    if (user.isAdmin()) {
+      return this.createAllowedResult('Admin access');
+    }
+
+    // Non-admins require a linked researcher profile for tube operations
+    if (!user.hasResearcherProfile()) {
+      return this.createDeniedResult('Researcher profile required for tube operations');
+    }
+
     // Access token presence validates user activity (30-minute token lifespan)
     return this.createAllowedResult('OAuth 2.0 token validation successful');
   }
@@ -159,6 +169,11 @@ export class AccessControlService {
       return this.createAllowedResult('Admin access');
     }
 
+    // Non-admins require a linked researcher profile for tube operations
+    if (!user.hasResearcherProfile()) {
+      return this.createDeniedResult('Researcher profile required for tube operations');
+    }
+
     // Check container assignment
     if (containerInfo) {
       const { rack, box } = containerInfo;
@@ -201,6 +216,11 @@ export class AccessControlService {
     // Admin can unlock any tube
     if (user.isAdmin()) {
       return this.createAllowedResult('Admin access');
+    }
+
+    // Non-admins require a linked researcher profile for tube operations
+    if (!user.hasResearcherProfile()) {
+      return this.createDeniedResult('Researcher profile required for tube operations');
     }
 
     // Lock owner can unlock
@@ -260,6 +280,11 @@ export class AccessControlService {
     // Admin can share any tube
     if (user.isAdmin()) {
       return this.createAllowedResult('Admin access');
+    }
+
+    // Non-admins require a linked researcher profile for tube operations
+    if (!user.hasResearcherProfile()) {
+      return this.createDeniedResult('Researcher profile required for tube operations');
     }
 
     // Lock owner can share
@@ -490,6 +515,11 @@ export class AccessControlService {
       return this.createAllowedResult('Admin access');
     }
 
+    // Non-admins require a linked researcher profile for tube operations
+    if (!user.hasResearcherProfile()) {
+      return this.createDeniedResult('Researcher profile required for tube operations');
+    }
+
     const { rack, box } = containerInfo;
 
     // Box-level assignment takes precedence
@@ -706,6 +736,14 @@ export class AccessControlService {
   /** Require user can create tubes (OAuth 2.0 token-based authorization) */
   requireCanCreateTube(user: User): void {
     this.requirePermission(user, 'create_tubes', 'create tubes');
+
+    // Non-admins require a linked researcher profile for tube operations
+    if (!user.isAdmin() && !user.hasResearcherProfile()) {
+      throw new PermissionError('Researcher profile required for tube operations', {
+        userId: user.id,
+        role: user.roleString
+      });
+    }
   }
 
   /** Require user can view a specific tube (permission + ownership) */

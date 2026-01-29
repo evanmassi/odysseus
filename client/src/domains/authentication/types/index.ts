@@ -3,6 +3,7 @@ export interface User {
   username: string;
   lastActivity: string;
   role?: 'admin' | 'user';
+  researcherId?: string;
 }
 
 export interface AuthCredentials {
