@@ -15,10 +15,9 @@ import type { TubeData } from '@odysseus/shared-schemas';
 /**
  * Check if user can modify a specific tube
  *
- * Logic:
- * - If user owns the container (!isViewOnlySpace) → can modify
- * - If view-only space + user has shared access → can modify
- * - If view-only space + no shared access → cannot modify
+ * Two-phase check (mirrors server-side canAccessTubeForModification):
+ * 1. Base access: container ownership OR shared access to the tube
+ * 2. Lock access: if tube is locked, user must be lock owner or shared user
  *
  * @param tube - The tube to check
  * @param currentUserId - The current user's ID
@@ -29,12 +28,27 @@ export function canModifyTube(
   currentUserId: string | undefined,
   isViewOnlySpace: boolean
 ): boolean {
-  // User owns the container - can modify anything
-  if (!isViewOnlySpace) return true;
+  // Phase 1: Check base access (container OR shared)
+  const hasContainerAccess = !isViewOnlySpace;
+  const hasSharedAccess = currentUserId
+    ? (tube.sharedWithUserIds?.includes(currentUserId) ?? false)
+    : false;
 
-  // View-only space requires shared access
-  if (!currentUserId) return false;
-  return tube.sharedWithUserIds?.includes(currentUserId) ?? false;
+  if (!hasContainerAccess && !hasSharedAccess) {
+    return false;
+  }
+
+  // Phase 2: If tube is locked, verify lock access
+  if (tube.isLocked) {
+    if (!currentUserId) return false;
+    const isLockOwner = tube.lockedBy === currentUserId;
+    const hasLockSharedAccess = tube.sharedWithUserIds?.includes(currentUserId) ?? false;
+    if (!isLockOwner && !hasLockSharedAccess) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 export interface BatchModifyResult {
@@ -42,6 +56,8 @@ export interface BatchModifyResult {
   canModifyAll: boolean;
   /** Number of tubes that cannot be modified */
   blockedCount: number;
+  /** Number of tubes blocked due to lock (subset of blockedCount) */
+  lockedCount: number;
   /** Tubes that can be modified */
   modifiable: TubeData[];
   /** Tubes that cannot be modified */
@@ -49,14 +65,37 @@ export interface BatchModifyResult {
 }
 
 /**
+ * Check if a tube is blocked specifically due to lock (not container access)
+ * Used to provide accurate error messages
+ */
+function isBlockedByLock(
+  tube: TubeData,
+  currentUserId: string | undefined,
+  isViewOnlySpace: boolean
+): boolean {
+  // If tube isn't locked, lock isn't the blocker
+  if (!tube.isLocked) return false;
+
+  // Check if user has base access (would pass phase 1)
+  const hasContainerAccess = !isViewOnlySpace;
+  const hasSharedAccess = currentUserId
+    ? (tube.sharedWithUserIds?.includes(currentUserId) ?? false)
+    : false;
+  if (!hasContainerAccess && !hasSharedAccess) return false; // Blocked by container, not lock
+
+  // User has base access but tube is locked - check lock access
+  if (!currentUserId) return true;
+  const isLockOwner = tube.lockedBy === currentUserId;
+  const hasLockSharedAccess = tube.sharedWithUserIds?.includes(currentUserId) ?? false;
+
+  return !isLockOwner && !hasLockSharedAccess;
+}
+
+/**
  * Check if user can modify all tubes in a selection
  *
  * For batch operations (edit, delete, copy, cut), we require ALL tubes
  * to be modifiable. This prevents partial operations that confuse users.
- *
- * @param tubes - The tubes to check
- * @param currentUserId - The current user's ID
- * @param isViewOnlySpace - Whether the container is assigned to another user
  */
 export function canModifyAllTubes(
   tubes: TubeData[],
@@ -65,18 +104,23 @@ export function canModifyAllTubes(
 ): BatchModifyResult {
   const modifiable: TubeData[] = [];
   const blocked: TubeData[] = [];
+  let lockedCount = 0;
 
   for (const tube of tubes) {
     if (canModifyTube(tube, currentUserId, isViewOnlySpace)) {
       modifiable.push(tube);
     } else {
       blocked.push(tube);
+      if (isBlockedByLock(tube, currentUserId, isViewOnlySpace)) {
+        lockedCount++;
+      }
     }
   }
 
   return {
     canModifyAll: blocked.length === 0,
     blockedCount: blocked.length,
+    lockedCount,
     modifiable,
     blocked,
   };
@@ -84,12 +128,31 @@ export function canModifyAllTubes(
 
 /**
  * Get a user-friendly message explaining why modification is blocked
- *
- * @param blockedCount - Number of tubes that cannot be modified
+ * Distinguishes between lock-based and container-based blocking
  */
-export function getBlockedModificationMessage(blockedCount: number): string {
-  if (blockedCount === 1) {
-    return 'Cannot modify selection. 1 tube is in a space assigned to another user without shared access.';
+export function getBlockedModificationMessage(result: BatchModifyResult): string {
+  const { blockedCount, lockedCount } = result;
+  const containerBlockedCount = blockedCount - lockedCount;
+
+  if (blockedCount === 0) return '';
+
+  const parts: string[] = [];
+
+  if (lockedCount > 0) {
+    parts.push(
+      lockedCount === 1
+        ? '1 tube is locked by another user'
+        : `${lockedCount} tubes are locked by another user`
+    );
   }
-  return `Cannot modify selection. ${blockedCount} tubes are in a space assigned to another user without shared access.`;
+
+  if (containerBlockedCount > 0) {
+    parts.push(
+      containerBlockedCount === 1
+        ? '1 tube is in a space without access'
+        : `${containerBlockedCount} tubes are in a space without access`
+    );
+  }
+
+  return `Cannot modify selection. ${parts.join(' and ')}.`;
 }

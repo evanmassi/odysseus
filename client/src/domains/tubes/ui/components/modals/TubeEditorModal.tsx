@@ -22,7 +22,7 @@ import {
   formatResourceDisplayName,
   EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
-import { MapPin, Edit, Plus, Save, Trash2, Lock } from 'lucide-react';
+import { MapPin, Edit, Plus, Save, Trash2 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
@@ -38,7 +38,7 @@ import {
 } from '@domains/tubes/hooks/useTubeMutations';
 import { isOfflineError } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
-import { parsePositionKey, type PositionKey, type LockContext } from '@shared/types/GridSelection';
+import { parsePositionKey, type PositionKey } from '@shared/types/GridSelection';
 import { AlertBanner, Button, Checkbox } from '@shared/ui';
 import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { BaseModal } from '@shared/ui/components/modals';
@@ -68,29 +68,19 @@ export interface TubeEditorModalProps {
   rackId?: string;
   boxId?: string;
   selectedPositions?: Set<PositionKey>;
-
-  // Lock context (optional - for lock-enabled editing)
-  lockContext?: LockContext;
 }
 
 /**
  * Tube Editor Modal Component - detects mode based on props
  */
 export function TubeEditorModal(props: TubeEditorModalProps) {
-  const { isOpen = true, tubeId, onClose, lockContext } = props;
+  const { isOpen = true, tubeId, onClose } = props;
 
   // Mode detection
   const isEditMode = Boolean(tubeId);
 
   if (isEditMode) {
-    return (
-      <EditModeContent
-        isOpen={isOpen}
-        tubeId={tubeId!}
-        onClose={onClose}
-        lockContext={lockContext}
-      />
-    );
+    return <EditModeContent isOpen={isOpen} tubeId={tubeId!} onClose={onClose} />;
   } else {
     return <CreateModeContent {...props} isOpen={isOpen} onClose={onClose} />;
   }
@@ -104,10 +94,9 @@ interface EditModeContentProps {
   isOpen: boolean;
   tubeId: string;
   onClose: () => void;
-  lockContext?: LockContext;
 }
 
-function EditModeContent({ isOpen, tubeId, onClose, lockContext }: EditModeContentProps) {
+function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const modalService = useModalStore();
 
@@ -150,10 +139,6 @@ function EditModeContent({ isOpen, tubeId, onClose, lockContext }: EditModeConte
     );
   }
 
-  // Check if user is locked out of this tube
-  const isLockedOut = lockContext?.isLockedOutFrom(tube) ?? false;
-  const lockOwnerName = lockContext?.getLockOwnerName(tube);
-
   return (
     <EditModeForm
       isOpen={isOpen}
@@ -162,8 +147,6 @@ function EditModeContent({ isOpen, tubeId, onClose, lockContext }: EditModeConte
       researchers={researchers}
       onClose={onClose}
       modalService={modalService}
-      isLockedOut={isLockedOut}
-      lockOwnerName={lockOwnerName}
     />
   );
 }
@@ -179,8 +162,6 @@ interface EditModeFormProps {
   researchers: Researcher[];
   onClose: () => void;
   modalService: ReturnType<typeof useModalStore>;
-  isLockedOut?: boolean;
-  lockOwnerName?: string;
 }
 
 function EditModeForm({
@@ -190,8 +171,6 @@ function EditModeForm({
   researchers,
   onClose,
   modalService,
-  isLockedOut = false,
-  lockOwnerName,
 }: EditModeFormProps) {
   // Build initialData from tube - uses FORM INPUT type (pre-transformation)
   // concentration as string, date as string
@@ -322,8 +301,8 @@ function EditModeForm({
   return (
     <BaseModal
       isOpen={isOpen}
-      title={isLockedOut ? 'View Tube (Read Only)' : 'Edit Tube'}
-      icon={isLockedOut ? <Lock className="w-5 h-5" /> : <Edit className="w-5 h-5" />}
+      title="Edit Tube"
+      icon={<Edit className="w-5 h-5" />}
       onClose={onClose}
       dataAttribute="data-tube-modal"
       mode="edit"
@@ -335,23 +314,6 @@ function EditModeForm({
           boxId={tube.location.boxId}
           position={tube.location.position}
         />
-
-        {/* Lock Warning Banner */}
-        {isLockedOut && (
-          <div className="flex items-start gap-3 p-3 bg-red-50 rounded-lg">
-            <Lock className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="text-sm font-medium text-red-700">This tube is locked</h3>
-              <p className="text-xs text-red-600">
-                {lockOwnerName ? `Locked by ${lockOwnerName}. ` : ''}
-                You cannot edit this tube until the lock owner unlocks it or shares access with you.
-              </p>
-              {tube.lockNote && (
-                <p className="text-xs text-red-600 mt-1 italic">&quot;{tube.lockNote}&quot;</p>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* Stale Form Warning Banner */}
         {showStaleWarning && (
@@ -384,7 +346,7 @@ function EditModeForm({
           </AlertBanner>
         )}
 
-        <fieldset disabled={isLockedOut} className={isLockedOut ? 'opacity-60' : ''}>
+        <fieldset>
           <TubeForm
             control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}
             register={form.register as UseFormRegister<CreateTubeRequest | UpdateTubeRequest>}
@@ -397,37 +359,33 @@ function EditModeForm({
 
         <div className="flex justify-end space-x-4 pt-4 border-t border-border">
           <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
-            {isLockedOut ? 'Close' : 'Cancel'}
+            Cancel
           </Button>
-          {!isLockedOut && (
-            <>
-              <Button
-                variant="danger"
-                disabled={isSubmitting}
-                leftIcon={<Trash2 className="w-4 h-4" />}
-                onClick={() => {
-                  modalService.showDeleteConfirm({
-                    title: 'Remove Tube',
-                    message: `Are you sure you want to remove this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
-                    confirmText: 'Remove',
-                    onConfirm: handleDelete,
-                  });
-                }}
-              >
-                Remove Tube
-              </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                disabled={!canSubmit}
-                isLoading={isSubmitting}
-                loadingText="Updating..."
-                leftIcon={<Save className="w-4 h-4" />}
-              >
-                Update Tube
-              </Button>
-            </>
-          )}
+          <Button
+            variant="danger"
+            disabled={isSubmitting}
+            leftIcon={<Trash2 className="w-4 h-4" />}
+            onClick={() => {
+              modalService.showDeleteConfirm({
+                title: 'Remove Tube',
+                message: `Are you sure you want to remove this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
+                confirmText: 'Remove',
+                onConfirm: handleDelete,
+              });
+            }}
+          >
+            Remove Tube
+          </Button>
+          <Button
+            type="submit"
+            variant="primary"
+            disabled={!canSubmit}
+            isLoading={isSubmitting}
+            loadingText="Updating..."
+            leftIcon={<Save className="w-4 h-4" />}
+          >
+            Update Tube
+          </Button>
         </div>
       </form>
     </BaseModal>

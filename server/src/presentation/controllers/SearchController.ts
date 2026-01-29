@@ -36,7 +36,7 @@ export class SearchController extends BaseController {
    */
   async advancedSearch(req: Request, res: Response): Promise<void> {
     try {
-      logger.info('🔍 [SearchController] Received search request:', req.body);
+      logger.debug('[SearchController] Received search request');
 
       const { query, filters, limit, offset, sortBy, sortOrder, groupBy } = req.body;
       const authenticatedUser = this.getAuthenticatedUser(req);
@@ -50,13 +50,11 @@ export class SearchController extends BaseController {
         sortOrder
       });
 
-      logger.info('🔍 [SearchController] Searching with criteria:', {
+      logger.debug('[SearchController] Searching with criteria', {
         query: searchCriteria.query,
         activeFilters: SearchCriteriaMapper.countActiveFilters(searchCriteria),
         limit: searchCriteria.limit,
         offset: searchCriteria.offset,
-        sortBy: searchCriteria.sortBy,
-        sortOrder: searchCriteria.sortOrder
       });
 
       // Use enhanced search that returns matchedTerms for highlighting
@@ -73,7 +71,7 @@ export class SearchController extends BaseController {
       const shouldGroup = groupBy !== 'none';
       const grouped = shouldGroup ? this.autoGroupTubes(tubes, groupBy) : undefined;
 
-      logger.info(`📊 [SearchController] Grouping: ${shouldGroup ? `enabled (${grouped?.length} groups)` : 'disabled'}`);
+      logger.debug(`[SearchController] Grouping: ${shouldGroup ? `enabled (${grouped?.length} groups)` : 'disabled'}`);
 
       // Transform to SearchResultSchema format (with optional grouped field and matchedTerms)
       const result = {
@@ -93,10 +91,9 @@ export class SearchController extends BaseController {
         }
       };
 
-      logger.info('📤 [SearchController] Sending response:', {
+      logger.debug('[SearchController] Sending response', {
         tubeCount: tubes.length,
         groupCount: grouped?.length || 0,
-        hasGrouping: !!grouped,
         matchedTermsCount: matchedTerms.length
       });
 

@@ -589,7 +589,6 @@ export function Dashboard() {
           }
           tubeId={modalService.tubeEditorModal.tubeId}
           onClose={handleCloseModal}
-          lockContext={lockContext}
         />
       </SuspenseBoundary>
 

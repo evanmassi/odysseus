@@ -111,11 +111,11 @@ export const useGridClipboard = ({
       .map(item => tubes.find(t => t.id === item.tubeId))
       .filter((tube): tube is TubeData => tube !== undefined);
 
-    // Check modification access in view-only spaces
-    if (isViewOnlySpace && selectedTubes.length > 0) {
+    // Check modification access (container AND lock status)
+    if (selectedTubes.length > 0) {
       const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace);
       if (!result.canModifyAll) {
-        notifications.warning(getBlockedModificationMessage(result.blockedCount));
+        notifications.warning(getBlockedModificationMessage(result));
         return;
       }
     }
@@ -168,12 +168,12 @@ export const useGridClipboard = ({
       .map(item => tubes.find(t => t.id === item.tubeId))
       .filter((tube): tube is TubeData => tube !== undefined);
 
-    // Check modification access in view-only spaces
+    // Check modification access (container AND lock status)
     // Cut requires modify access since it will delete the source tubes
-    if (isViewOnlySpace && selectedTubes.length > 0) {
+    if (selectedTubes.length > 0) {
       const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace);
       if (!result.canModifyAll) {
-        notifications.warning(getBlockedModificationMessage(result.blockedCount));
+        notifications.warning(getBlockedModificationMessage(result));
         return;
       }
     }
@@ -398,6 +398,15 @@ export const useGridClipboard = ({
           )!;
         });
 
+        // Check if user can overwrite the conflicting tubes (lock + container access)
+        const overwriteResult = canModifyAllTubes(conflictingTubes, currentUserId, isViewOnlySpace);
+        if (!overwriteResult.canModifyAll) {
+          notifications.warning(
+            `Cannot paste here. ${getBlockedModificationMessage(overwriteResult).replace('Cannot modify selection. ', '')}`
+          );
+          return;
+        }
+
         const userConfirmed = await new Promise<boolean>(resolve => {
           modalService.showOverwriteConfirm({
             title: 'Overwrite Confirmation',
@@ -469,6 +478,7 @@ export const useGridClipboard = ({
       modalService,
       tubes,
       isViewOnlySpace,
+      currentUserId,
       hasResearcherProfile,
     ]
   );

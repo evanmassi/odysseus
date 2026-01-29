@@ -756,16 +756,14 @@ export class TubeApplicationService {
 
     // Publish single batch event after all tubes processed
     if (locked.length > 0) {
-      logger.info('🔒 [TubeService] Publishing TubesLockedEvent', {
+      logger.debug('[TubeService] Publishing TubesLockedEvent', {
         lockedCount: locked.length,
-        userId: authenticatedUser.id
       });
       await this.eventBus.publish(new TubesLockedEvent(
         locked,
         authenticatedUser.id,
         request.lockNote
       ));
-      logger.info('🔒 [TubeService] TubesLockedEvent published');
     }
 
     return { locked, skipped };
@@ -819,15 +817,13 @@ export class TubeApplicationService {
 
     // Publish single batch event after all tubes processed
     if (unlocked.length > 0) {
-      logger.info('🔓 [TubeService] Publishing TubesUnlockedEvent', {
+      logger.debug('[TubeService] Publishing TubesUnlockedEvent', {
         unlockedCount: unlocked.length,
-        userId: authenticatedUser.id
       });
       await this.eventBus.publish(new TubesUnlockedEvent(
         unlocked,
         authenticatedUser.id
       ));
-      logger.info('🔓 [TubeService] TubesUnlockedEvent published');
     }
 
     return { unlocked, skipped };

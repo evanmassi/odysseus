@@ -162,13 +162,12 @@ export const useGridController = ({
    * Guard for modify operations (edit, delete, copy, cut)
    * Checks if ALL selected tubes can be modified by the current user
    * Returns true if blocked (operation should not proceed)
+   *
+   * Checks both container access AND lock status - locks can exist in any space
    */
   const guardModifyOperation = useCallback((): boolean => {
     // Users without researcher profile cannot modify anything
     if (guardNoResearcherProfile()) return true;
-
-    // If user owns the container, no check needed
-    if (!isViewOnlySpace) return false;
 
     const selectedTubes = getSelectedTubes();
     if (selectedTubes.length === 0) return false;
@@ -176,7 +175,7 @@ export const useGridController = ({
     const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace);
 
     if (!result.canModifyAll) {
-      notifications.warning(getBlockedModificationMessage(result.blockedCount));
+      notifications.warning(getBlockedModificationMessage(result));
       return true;
     }
 
