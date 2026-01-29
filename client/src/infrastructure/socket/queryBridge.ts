@@ -356,6 +356,9 @@ export class SocketQueryBridge {
           queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
         });
 
+        // Invalidate global lists query (used by TubeEditorModal position analysis)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
@@ -397,6 +400,9 @@ export class SocketQueryBridge {
           });
         }
 
+        // Invalidate global lists query (used by TubeEditorModal position analysis)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
       } catch (error) {
@@ -416,6 +422,9 @@ export class SocketQueryBridge {
         void this.queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.location(location.tankId, location.rackId, location.boxId),
         });
+
+        // Invalidate global lists query (used by TubeEditorModal position analysis)
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
 
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });

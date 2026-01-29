@@ -619,9 +619,9 @@ export class TubeApplicationService {
     deleted: string[];
     failed: Array<{ id: string; error: string }>;
   }> {
-    // Check general tube edit permission (bulk delete uses same permission as bulk edit)
-    this.accessControlService.requireCanBulkEditTubes(authenticatedUser);
-
+    // No upfront permission check — each tube is authorized individually
+    // This allows users to delete tubes they have access to (own space or shared access)
+    // Consistent with bulkUpdateTubes which uses the same per-tube authorization pattern
     const config = await this.configurationRepository.getCurrent();
 
     // Pre-fetch all tubes in one query

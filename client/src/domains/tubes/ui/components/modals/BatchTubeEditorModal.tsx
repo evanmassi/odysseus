@@ -24,7 +24,7 @@ import {
   useBulkUpdateTubesMutation,
   useBulkDeleteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
-import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
+import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button } from '@shared/ui';
 import { InfoDialog } from '@shared/ui/components/InfoDialog';
@@ -119,11 +119,8 @@ export default function BatchTubeEditorModal({
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { analyzeFieldConflicts } = useFieldResolverQuery();
 
-  const { data: allTubes = [] } = useTubes();
-  const tubes = useMemo(
-    () => allTubes.filter(tube => tubeIds.includes(tube.id)),
-    [allTubes, tubeIds]
-  );
+  // Fetch specific tubes by ID - ensures fresh data regardless of cache state
+  const { data: tubes = [] } = useBulkTubes(tubeIds);
 
   useTubeModalFocusReturn();
 
@@ -251,21 +248,26 @@ export default function BatchTubeEditorModal({
   // Prevents socket updates from overwriting user changes mid-edit
   const userHasEdited = useRef(false);
   const prevTubeIdsRef = useRef<string[]>([]);
+  const initialResetDone = useRef(false);
+
+  // Reset form only when tubeIds change (user selected different tubes)
   useEffect(() => {
     const key = tubeIds.join(',');
     if (key !== prevTubeIdsRef.current.join(',')) {
       userHasEdited.current = false;
+      initialResetDone.current = false;
       prevTubeIdsRef.current = tubeIds;
     }
   }, [tubeIds]);
 
-  // Sync form with server data until first edit
+  // Sync form with server data only once per tube selection, after data is loaded
   useEffect(() => {
-    if (!userHasEdited.current) {
+    if (!userHasEdited.current && !initialResetDone.current && tubes.length > 0) {
       form.reset(resolvedData);
+      initialResetDone.current = true;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resolvedData]);
+  }, [resolvedData, tubes.length]);
 
   useEffect(() => {
     if (isDirty) userHasEdited.current = true;

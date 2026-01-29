@@ -2,21 +2,14 @@
   "name": "odysseus",
   "version": "1.0.0",
   "description": "Professional Liquid Nitrogen Tube Inventory Management System",
-  "main": "electron/main.js",
-  "homepage": "./",
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\" \"npm run dev:electron\"",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
     "dev:server": "cd server && npm run dev",
     "dev:client": "cd client && npm run dev",
-    "dev:electron": "wait-on http://localhost:5173 && electron .",
-    "postinstall": "electron-rebuild -f -w better-sqlite3 || echo 'Rebuild failed - Visual Studio Build Tools required'",
     "build": "npm run build:shared && npm run build:server && npm run build:client",
     "build:shared": "npm --workspace @odysseus/shared-schemas run build",
     "build:server": "cd server && npm run build",
     "build:client": "cd client && npm run build",
-    "start": "electron .",
-    "package": "npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES=true electron-builder",
-    "package:win": "npm run build && cross-env CSC_IDENTITY_AUTO_DISCOVERY=false ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES=true electron-builder --win",
     "test": "npm run test:server && npm run test:client",
     "test:server": "cd server && npm test",
     "test:client": "cd client && npm test",
@@ -28,7 +21,7 @@
     "format:client": "cd client && npm run format",
     "typecheck": "npm run typecheck:client",
     "typecheck:client": "cd client && npm run typecheck",
-    "clean": "rimraf server/dist client/dist dist",
+    "clean": "rimraf server/dist client/dist",
     "prepare": "husky"
   },
   "workspaces": [
@@ -38,7 +31,6 @@
   ],
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "better-sqlite3": "^12.2.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
@@ -58,41 +50,8 @@
     "file-stream-rotator": "1.0.0"
   },
   "devDependencies": {
-    "@electron/rebuild": "^4.0.1",
     "concurrently": "^9.2.1",
-    "cross-env": "^10.0.0",
-    "electron": "^37.4.0",
-    "electron-builder": "^26.0.12",
-    "rcedit": "^5.0.2",
-    "rimraf": "^6.1.0",
-    "sharp": "^0.34.5",
-    "wait-on": "^8.0.4"
-  },
-  "build": {
-    "appId": "com.evanmassi.odysseus",
-    "productName": "Odysseus",
-    "npmRebuild": false,
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "electron/main.js",
-      "electron/SecretManager.js",
-      "client/dist/**/*",
-      "server/dist/**/*",
-      "assets/icons/**/*",
-      "packages/shared-schemas/dist/**/*"
-    ],
-    "asarUnpack": [
-      "**/*.node"
-    ],
-    "win": {
-      "target": "dir",
-      "icon": "assets/icons/icon.ico",
-      "forceCodeSigning": false,
-      "signAndEditExecutable": false,
-      "verifyUpdateCodeSignature": false
-    }
+    "rimraf": "^6.1.0"
   },
   "author": "Evan Massi",
   "license": "MIT"
