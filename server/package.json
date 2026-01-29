@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && tsc-alias && npm run copy-shared-schemas",
-    "copy-shared-schemas": "powershell -Command \"if (-not (Test-Path 'dist\\node_modules\\@odysseus\\shared-schemas\\dist')) { New-Item -ItemType Directory -Path 'dist\\node_modules\\@odysseus\\shared-schemas\\dist' -Force }; Copy-Item -Path '..\\packages\\shared-schemas\\dist\\*' -Destination 'dist\\node_modules\\@odysseus\\shared-schemas\\dist\\' -Force; Copy-Item -Path '..\\packages\\shared-schemas\\package.json' -Destination 'dist\\node_modules\\@odysseus\\shared-schemas\\' -Force\"",
+    "copy-shared-schemas": "node -e \"const fs=require('fs');const path=require('path');const src='../packages/shared-schemas';const dest='dist/node_modules/@odysseus/shared-schemas';fs.mkdirSync(path.join(dest,'dist'),{recursive:true});fs.readdirSync(path.join(src,'dist')).forEach(f=>fs.copyFileSync(path.join(src,'dist',f),path.join(dest,'dist',f)));fs.copyFileSync(path.join(src,'package.json'),path.join(dest,'package.json'));\"",
     "start": "node dist/index.js",
     "package": "npm run build",
     "test": "jest",
