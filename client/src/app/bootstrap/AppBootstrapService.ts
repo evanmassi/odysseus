@@ -251,21 +251,13 @@ export class AppBootstrapService {
 export const appBootstrapService = new AppBootstrapService();
 
 /**
- * Session cleanup subscription
+ * Session Cleanup Subscription
  *
- * Listens to auth state changes and resets domain UI stores on logout.
- * This keeps authentication domain decoupled from feature domains.
+ * Resets domain UI stores on logout. Socket reconnection on login handled by useAuthSocketSync.
  */
 let wasAuthenticated = useAuthStore.getState().isAuthenticated;
 useAuthStore.subscribe(state => {
   const isAuthenticated = state.isAuthenticated;
-
-  if (!wasAuthenticated && isAuthenticated) {
-    // User logged in - reconnect socket with authentication
-    // This ensures presence tracking works (socket may have connected without auth during initial bootstrap)
-    cleanupSocket();
-    void initializeSocket(queryClient);
-  }
 
   if (wasAuthenticated && !isAuthenticated) {
     // User logged out - reset all domain UI state

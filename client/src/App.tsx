@@ -7,6 +7,7 @@ import { AppErrorBoundary } from '@app/components/boundaries/AppErrorBoundary';
 import { AppLoader } from '@app/components/layout/AppLoader';
 import { Dashboard } from '@app/components/layout/Dashboard';
 import { BootstrapProvider } from '@app/contexts/BootstrapContext';
+import { useAuthSocketSync } from '@app/hooks';
 import { AppProviders } from '@app/providers';
 import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
@@ -31,6 +32,8 @@ function AppContent() {
   const { errors, clearErrors } = useErrorStore();
   const { isConnected } = useTubeStore();
   const { isAuthenticated } = useAuthStore();
+
+  useAuthSocketSync();
 
   // Prefetch user settings in background (only when authenticated)
   // Settings are cached by React Query and available throughout the app
