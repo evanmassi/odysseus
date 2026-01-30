@@ -16,6 +16,7 @@ import {
   Lock,
   Unlock,
   Share2,
+  Printer,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -41,6 +42,8 @@ interface ContextMenuProps {
   onUnlock?: () => void;
   onShare?: () => void;
   isUnlocking?: boolean;
+  canPrintLabel?: boolean;
+  onPrintLabel?: () => void;
 }
 
 const ANIMATION_DURATION = 50;
@@ -123,6 +126,8 @@ export function ContextMenu({
   onUnlock,
   onShare,
   isUnlocking = false,
+  canPrintLabel = false,
+  onPrintLabel,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [isAnimatingIn, setIsAnimatingIn] = useState(false);
@@ -363,6 +368,23 @@ export function ContextMenu({
                 }}
               />
             )}
+          </div>
+          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */}
+          {(canPrintLabel || hasFilledSelection) && <MenuDivider />}
+        </>
+      )}
+
+      {canPrintLabel && onPrintLabel && (
+        <>
+          <div className="px-1">
+            <MenuItem
+              icon={Printer}
+              label="Print Label"
+              onClick={() => {
+                onPrintLabel();
+                closeMenu();
+              }}
+            />
           </div>
           {hasFilledSelection && <MenuDivider />}
         </>

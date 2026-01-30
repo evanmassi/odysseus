@@ -12,6 +12,7 @@ import type {
   LabelLines,
   PrintOptions,
   PrintResult,
+  PreviewResult,
 } from '../types';
 
 class PrintServiceImpl {
@@ -97,6 +98,28 @@ class PrintServiceImpl {
 
   clearDrivers(): void {
     this.drivers.clear();
+  }
+
+  /**
+   * Render a preview of the label using the specified driver.
+   * Returns null if the driver doesn't support preview or preview fails.
+   */
+  async renderPreview(
+    label: LabelLines,
+    driverType: PrinterType,
+    options: PrintOptions
+  ): Promise<PreviewResult | null> {
+    const driver = this.drivers.get(driverType);
+
+    if (!driver?.renderPreview) {
+      return null;
+    }
+
+    try {
+      return await driver.renderPreview(label, options);
+    } catch {
+      return null;
+    }
   }
 }
 

@@ -2,4 +2,4 @@
  * Printing Hooks
  */
 
-// export { usePrintLabels } from './usePrintLabels';
+export { usePrintLabels } from './usePrintLabels';

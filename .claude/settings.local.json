@@ -59,7 +59,8 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:s3.amazonaws.com)",
       "WebFetch(domain:developers.dymo.com)",
-      "WebFetch(domain:domoticx.net)"
+      "WebFetch(domain:domoticx.net)",
+      "Bash(npx vitest:*)"
     ]
   }
 }

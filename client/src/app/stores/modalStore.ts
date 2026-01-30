@@ -63,6 +63,12 @@ interface ShareAccessModalState {
   previousFocusElement?: HTMLElement | null;
 }
 
+interface PrintLabelModalState {
+  isOpen: boolean;
+  tubeId: string;
+  previousFocusElement?: HTMLElement | null;
+}
+
 interface SessionTimeoutWarningState {
   isOpen: boolean;
   timeRemainingMs: number;
@@ -77,6 +83,7 @@ interface LocalModalState {
   tubeEditorModal: TubeEditorModalState;
   lockTubesModal: LockTubesModalState;
   shareAccessModal: ShareAccessModalState;
+  printLabelModal: PrintLabelModalState;
   sessionTimeoutWarning: SessionTimeoutWarningState;
 }
 
@@ -123,6 +130,9 @@ interface ModalActions {
 
   showShareAccessModal: (tubeIds: string[]) => void;
   hideShareAccessModal: () => void;
+
+  showPrintLabelModal: (tubeId: string) => void;
+  hidePrintLabelModal: () => void;
 
   showSessionTimeoutWarning: (config: {
     timeRemainingMs: number;
@@ -174,6 +184,11 @@ const initialShareAccessModal: ShareAccessModalState = {
   tubeIds: [],
 };
 
+const initialPrintLabelModal: PrintLabelModalState = {
+  isOpen: false,
+  tubeId: '',
+};
+
 const initialSessionTimeoutWarning: SessionTimeoutWarningState = {
   isOpen: false,
   timeRemainingMs: 0,
@@ -194,6 +209,7 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   tubeEditorModal: initialTubeEditorModal,
   lockTubesModal: initialLockTubesModal,
   shareAccessModal: initialShareAccessModal,
+  printLabelModal: initialPrintLabelModal,
   sessionTimeoutWarning: initialSessionTimeoutWarning,
 
   // Delete confirmation actions
@@ -338,6 +354,24 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
     }));
   },
 
+  // Print label modal actions
+  showPrintLabelModal: tubeId => {
+    const previousFocusElement = document.activeElement as HTMLElement;
+    set({
+      printLabelModal: {
+        isOpen: true,
+        tubeId,
+        previousFocusElement,
+      },
+    });
+  },
+
+  hidePrintLabelModal: () => {
+    set(state => ({
+      printLabelModal: { ...state.printLabelModal, isOpen: false },
+    }));
+  },
+
   // Session timeout warning actions
   showSessionTimeoutWarning: config => {
     set({
@@ -375,6 +409,7 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
       tubeEditorModal: initialTubeEditorModal,
       lockTubesModal: initialLockTubesModal,
       shareAccessModal: initialShareAccessModal,
+      printLabelModal: initialPrintLabelModal,
       sessionTimeoutWarning: initialSessionTimeoutWarning,
     });
   },
@@ -394,6 +429,7 @@ export const useModalStore = () => {
     tubeEditorModal: state.tubeEditorModal,
     lockTubesModal: state.lockTubesModal,
     shareAccessModal: state.shareAccessModal,
+    printLabelModal: state.printLabelModal,
     sessionTimeoutWarning: state.sessionTimeoutWarning,
 
     // Actions
@@ -409,6 +445,8 @@ export const useModalStore = () => {
     hideLockTubesModal: state.hideLockTubesModal,
     showShareAccessModal: state.showShareAccessModal,
     hideShareAccessModal: state.hideShareAccessModal,
+    showPrintLabelModal: state.showPrintLabelModal,
+    hidePrintLabelModal: state.hidePrintLabelModal,
     showSessionTimeoutWarning: state.showSessionTimeoutWarning,
     updateSessionTimeoutWarning: state.updateSessionTimeoutWarning,
     hideSessionTimeoutWarning: state.hideSessionTimeoutWarning,

@@ -14,6 +14,7 @@ import type {
   LabelLines,
   PrintOptions,
   PrintResult,
+  PreviewResult,
 } from '../types';
 
 const SDK_URL = 'https://labelwriter.com/software/dls/sdk/js/dymo.connect.framework.js';
@@ -30,6 +31,13 @@ interface DymoPrinter {
 interface DymoLabel {
   print(printerName: string): void;
   isValidLabel(): boolean;
+  /**
+   * Render a PNG preview of the label.
+   * @param renderParamsXml - Optional XML for render parameters (resolution, etc.)
+   * @param printerName - Optional printer name for accurate preview
+   * @returns Base64-encoded PNG string
+   */
+  render(renderParamsXml?: string, printerName?: string): string;
 }
 
 interface DymoFramework {
@@ -175,6 +183,45 @@ class DymoDriverImpl implements PrinterDriver {
         failedCount: options.copies,
         error: message,
       };
+    }
+  }
+
+  async renderPreview(label: LabelLines, options: PrintOptions): Promise<PreviewResult | null> {
+    try {
+      await this.ensureSdkLoaded();
+
+      if (!this.sdk) {
+        return null;
+      }
+
+      const labelXml = generateLabelXml(label, options.labelSize);
+      const dymoLabel = this.sdk.openLabelXml(labelXml);
+
+      if (!dymoLabel.isValidLabel()) {
+        return null;
+      }
+
+      // Render at high resolution for crisp preview
+      // Scale factor: render at ~300 DPI equivalent for the label size
+      const dpi = 300;
+      const targetWidth = Math.round(options.labelSize.width * dpi);
+      const targetHeight = Math.round(options.labelSize.height * dpi);
+
+      // Dymo render() returns base64 PNG string
+      const base64Png = dymoLabel.render();
+
+      if (!base64Png) {
+        return null;
+      }
+
+      return {
+        imageData: `data:image/png;base64,${base64Png}`,
+        width: targetWidth,
+        height: targetHeight,
+      };
+    } catch {
+      // Preview rendering is non-critical, return null on failure
+      return null;
     }
   }
 

@@ -880,7 +880,7 @@ If implementing label size configuration:
 ### Unit Tests
 
 - `labelFormatter.ts` - 52 tests covering field transformations and missing data ✅
-- `DymoDriver.ts` - 16 tests with mock SDK, error handling ✅
+- `DymoDriver.ts` - 22 tests with mock SDK, error handling, preview rendering ✅
 - `cryoTubeLabel.ts` - 17 tests for XML generation, escaping, dimensions ✅
 
 ### Integration Tests
@@ -920,8 +920,8 @@ If implementing label size configuration:
 - [x] Create Dymo XML label template (`templates/dymo/cryoTubeLabel.ts`)
 - [x] Register `DymoDriver` in `init.ts`
 - [x] Write unit tests for driver and template (33 tests)
-- [ ] Manual testing with real Dymo 450 printer
-- [ ] Iterate on label template until layout is correct
+- [ ] Manual testing with real Dymo 450 printer (deferred - no printer available)
+- [ ] Iterate on label template until layout is correct (deferred)
 
 **Implementation Notes:**
 - SDK loaded lazily from `labelwriter.com/software/dls/sdk/js/dymo.connect.framework.js`
@@ -929,15 +929,21 @@ If implementing label size configuration:
 - Dimensions converted to twips (1 inch = 1440 twips)
 - Dependency injection pattern for testability
 
-### Phase 3: UI Integration
+### Phase 3: UI Integration ✅ COMPLETE
 
 **Goal:** Connect printing to the tube grid.
 
-- [ ] Create `usePrintLabels` hook
-- [ ] Create `PrintLabelsModal` component
-- [ ] Modify `ContextMenu.tsx` to add "Print Labels" option
-- [ ] Wire up `TubeGrid.tsx` to open modal with selected tubes
-- [ ] End-to-end testing of full flow
+- [x] Create `usePrintLabels` hook
+- [x] Create `PrintLabelModal` component
+- [x] Create `LabelPreview` component (visual mock of label content)
+- [x] Modify `ContextMenu.tsx` to add "Print Label" option
+- [x] Add "Print" button to `AppHeader.tsx` contextual toolbar
+- [x] Wire up `TubeGrid.tsx` to open modal with selected tube
+- [x] Add `printLabelModal` to `modalStore.ts`
+- [x] Add SDK preview rendering for visual testing without printer
+- [ ] End-to-end testing of full flow (requires printer)
+
+**SDK Preview Feature:** Added `renderPreview()` method to `PrinterDriver` interface and `DymoDriver`. The `PrintLabelModal` now shows SDK-rendered PNG preview when available (with "(SDK Preview)" label), falling back to text-based preview when SDK is unavailable. This allows developers to verify label layout visually without a physical printer.
 
 ### Phase 4: Polish & Error Handling
 

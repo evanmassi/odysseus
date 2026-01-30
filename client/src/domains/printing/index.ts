@@ -15,6 +15,7 @@ export type {
   LabelLines,
   PrintOptions,
   PrintResult,
+  PreviewResult,
 } from './types';
 
 export { BUILT_IN_LABEL_SIZES, DEFAULT_LABEL_SIZE_ID, DEFAULT_PRINT_OPTIONS } from './types';
@@ -28,6 +29,9 @@ export type { DymoSdkProvider } from './drivers';
 
 // Templates
 export { generateLabelXml } from './templates';
+
+// Hooks
+export { usePrintLabels } from './hooks';
 
 // Utilities
 export {

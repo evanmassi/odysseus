@@ -24,6 +24,7 @@ import { BatchTubeEditorModal } from '@domains/tubes/ui/components/modals/BatchT
 import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
 import { LockTubesModal } from '@domains/tubes/ui/components/modals/LockTubesModal';
 import { OverwriteConfirmDialog } from '@domains/tubes/ui/components/modals/OverwriteConfirmDialog';
+import { PrintLabelModal } from '@domains/tubes/ui/components/modals/PrintLabelModal';
 import { ShareAccessModal } from '@domains/tubes/ui/components/modals/ShareAccessModal';
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
 import { useUserLookupQuery } from '@domains/users';
@@ -318,6 +319,13 @@ export function Dashboard() {
     [modalService]
   );
 
+  const handlePrintLabel = useCallback(
+    (tubeId: string) => {
+      modalService.showPrintLabelModal(tubeId);
+    },
+    [modalService]
+  );
+
   const lockContext = useMemo(() => {
     if (!user) return undefined;
 
@@ -460,6 +468,10 @@ export function Dashboard() {
             lock: gridController.actions.lock,
             unlock: gridController.actions.unlock,
             shareAccess: gridController.actions.shareAccess,
+            printLabel:
+              selectionAnalysis.filledPositions.size === 1 && selectionAnalysis.selectedTubes[0]
+                ? () => handlePrintLabel(selectionAnalysis.selectedTubes[0].id)
+                : undefined,
           }}
           isViewOnlySpace={isViewOnlySpace}
         />
@@ -543,6 +555,7 @@ export function Dashboard() {
                   onSelectionChange={handleSelectionChange}
                   gridController={gridController}
                   lockContext={lockContext}
+                  onPrintLabel={handlePrintLabel}
                 />
               </ErrorBoundary>
             </div>
@@ -649,6 +662,13 @@ export function Dashboard() {
           .filter((t): t is TubeData => t !== undefined)}
         currentUserId={user?.id ?? ''}
         onClose={modalService.hideShareAccessModal}
+      />
+
+      {/* Print Label Modal */}
+      <PrintLabelModal
+        isOpen={modalService.printLabelModal.isOpen}
+        tubeId={modalService.printLabelModal.tubeId}
+        onClose={modalService.hidePrintLabelModal}
       />
     </div>
   );

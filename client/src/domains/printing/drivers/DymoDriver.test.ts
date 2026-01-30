@@ -44,6 +44,7 @@ function createMockSdk(
     openLabelXml: vi.fn(() => ({
       print: vi.fn(),
       isValidLabel: vi.fn(() => true),
+      render: vi.fn(() => 'base64PngData'),
     })),
     ...overrides,
   };
@@ -208,6 +209,7 @@ describe('DymoDriver', () => {
         openLabelXml: vi.fn(() => ({
           print: mockPrint,
           isValidLabel: vi.fn(() => true),
+          render: vi.fn(() => 'base64PngData'),
         })),
       });
       const provider = createMockProvider(sdk);
@@ -227,6 +229,7 @@ describe('DymoDriver', () => {
         openLabelXml: vi.fn(() => ({
           print: mockPrint,
           isValidLabel: vi.fn(() => true),
+          render: vi.fn(() => 'base64PngData'),
         })),
       });
       const provider = createMockProvider(sdk);
@@ -246,6 +249,7 @@ describe('DymoDriver', () => {
         openLabelXml: vi.fn(() => ({
           print: vi.fn(),
           isValidLabel: vi.fn(() => false),
+          render: vi.fn(() => 'base64PngData'),
         })),
       });
       const provider = createMockProvider(sdk);
@@ -269,6 +273,7 @@ describe('DymoDriver', () => {
         openLabelXml: vi.fn(() => ({
           print: mockPrint,
           isValidLabel: vi.fn(() => true),
+          render: vi.fn(() => 'base64PngData'),
         })),
       });
       const provider = createMockProvider(sdk);
@@ -309,6 +314,107 @@ describe('DymoDriver', () => {
       await driver.print(defaultLines, 'DYMO LabelWriter 450', defaultOptions);
 
       expect(loadSdk).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('renderPreview', () => {
+    it('should return preview result when SDK renders successfully', async () => {
+      const mockRender = vi.fn(() => 'mockBase64PngData');
+      const sdk = createMockSdk({
+        openLabelXml: vi.fn(() => ({
+          print: vi.fn(),
+          isValidLabel: vi.fn(() => true),
+          render: mockRender,
+        })),
+      });
+      const provider = createMockProvider(sdk);
+      const driver = new DymoDriver(provider);
+
+      const result = await driver.renderPreview(defaultLines, defaultOptions);
+
+      expect(result).not.toBeNull();
+      expect(result?.imageData).toBe('data:image/png;base64,mockBase64PngData');
+      expect(result?.width).toBeGreaterThan(0);
+      expect(result?.height).toBeGreaterThan(0);
+      expect(mockRender).toHaveBeenCalled();
+    });
+
+    it('should return null when label is invalid', async () => {
+      const sdk = createMockSdk({
+        openLabelXml: vi.fn(() => ({
+          print: vi.fn(),
+          isValidLabel: vi.fn(() => false),
+          render: vi.fn(() => 'mockBase64PngData'),
+        })),
+      });
+      const provider = createMockProvider(sdk);
+      const driver = new DymoDriver(provider);
+
+      const result = await driver.renderPreview(defaultLines, defaultOptions);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when render returns empty string', async () => {
+      const sdk = createMockSdk({
+        openLabelXml: vi.fn(() => ({
+          print: vi.fn(),
+          isValidLabel: vi.fn(() => true),
+          render: vi.fn(() => ''),
+        })),
+      });
+      const provider = createMockProvider(sdk);
+      const driver = new DymoDriver(provider);
+
+      const result = await driver.renderPreview(defaultLines, defaultOptions);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when render throws', async () => {
+      const sdk = createMockSdk({
+        openLabelXml: vi.fn(() => ({
+          print: vi.fn(),
+          isValidLabel: vi.fn(() => true),
+          render: vi.fn(() => {
+            throw new Error('Render failed');
+          }),
+        })),
+      });
+      const provider = createMockProvider(sdk);
+      const driver = new DymoDriver(provider);
+
+      const result = await driver.renderPreview(defaultLines, defaultOptions);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null when SDK fails to load', async () => {
+      const provider: DymoSdkProvider = {
+        loadSdk: vi.fn(() => Promise.reject(new Error('SDK load failed'))),
+      };
+      const driver = new DymoDriver(provider);
+
+      const result = await driver.renderPreview(defaultLines, defaultOptions);
+
+      expect(result).toBeNull();
+    });
+
+    it('should calculate dimensions based on label size', async () => {
+      const sdk = createMockSdk();
+      const provider = createMockProvider(sdk);
+      const driver = new DymoDriver(provider);
+
+      // Use DTCR-3000 which is 1.5" x 0.75"
+      const largerSize = BUILT_IN_LABEL_SIZES[2]; // 1.50" × 0.75"
+      const options: PrintOptions = { ...defaultOptions, labelSize: largerSize };
+
+      const result = await driver.renderPreview(defaultLines, options);
+
+      expect(result).not.toBeNull();
+      // At 300 DPI: 1.5" * 300 = 450, 0.75" * 300 = 225
+      expect(result?.width).toBe(450);
+      expect(result?.height).toBe(225);
     });
   });
 });

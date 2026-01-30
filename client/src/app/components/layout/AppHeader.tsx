@@ -18,6 +18,7 @@ import {
   Share2,
   TestTube,
   FlaskConical,
+  Printer,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -89,6 +90,8 @@ interface HeaderProps {
     lock?: () => void;
     unlock?: () => Promise<void>;
     shareAccess?: () => void;
+    // Print action (optional)
+    printLabel?: () => void;
   };
   // View-only mode (container assigned to another user)
   isViewOnlySpace?: boolean;
@@ -422,7 +425,26 @@ export function AppHeader({
                           </>
                         )}
 
-                      {/* Section 4: Remove */}
+                      {/* Section 4: Print (single filled tube only) */}
+                      {selectionAnalysis.hasFilled &&
+                        selectionAnalysis.filledPositions.size === 1 &&
+                        gridController.printLabel && (
+                          <>
+                            <div className="w-px h-4 bg-border mx-0.5"></div>
+                            <Tooltip content="Print label for this tube" side="bottom">
+                              <Button
+                                variant="ghost"
+                                size="xs"
+                                onClick={gridController.printLabel}
+                                leftIcon={<Printer className="w-3 h-3" />}
+                              >
+                                Print
+                              </Button>
+                            </Tooltip>
+                          </>
+                        )}
+
+                      {/* Section 5: Remove */}
                       {selectionAnalysis.hasFilled && (
                         <>
                           <div className="w-px h-4 bg-border mx-0.5"></div>

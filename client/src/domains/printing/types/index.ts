@@ -60,6 +60,15 @@ export interface PrintResult {
   error?: string;
 }
 
+export interface PreviewResult {
+  /** Base64-encoded PNG image data (data URL format) */
+  imageData: string;
+  /** Width in pixels */
+  width: number;
+  /** Height in pixels */
+  height: number;
+}
+
 export interface PrinterDriver {
   readonly type: PrinterType;
   readonly displayName: string;
@@ -70,4 +79,10 @@ export interface PrinterDriver {
   getPrinters(): Promise<PrinterInfo[]>;
 
   print(label: LabelLines, printerName: string, options: PrintOptions): Promise<PrintResult>;
+
+  /**
+   * Render a preview image of the label (optional).
+   * Returns a base64-encoded PNG if supported, or null if not available.
+   */
+  renderPreview?(label: LabelLines, options: PrintOptions): Promise<PreviewResult | null>;
 }

@@ -10,7 +10,7 @@ import {
 import { useStorageData, getGridTotalPositions } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey } from '@shared/types/GridSelection';
+import { toPositionKey, parsePositionKey } from '@shared/types/GridSelection';
 
 import { ContextMenu } from '../../../../../shared/ui/primitives/ContextMenu';
 
@@ -31,6 +31,8 @@ interface TubeGridProps {
   gridController: GridControllerReturn;
   // Lock context (optional - for lock-enabled grids)
   lockContext?: LockContext;
+  // Print label callback (optional)
+  onPrintLabel?: (tubeId: string) => void;
 }
 
 /**
@@ -46,6 +48,7 @@ export function TubeGrid({
   onSelectionChange,
   gridController,
   lockContext,
+  onPrintLabel,
 }: TubeGridProps) {
   const {
     data: tubes = [],
@@ -116,6 +119,24 @@ export function TubeGrid({
       ),
     [tubes]
   );
+
+  // Compute print label eligibility (exactly 1 filled tube selected)
+  const printLabelState = useMemo(() => {
+    if (!onPrintLabel || controller.selection.filledCount !== 1) {
+      return { canPrint: false, tubeId: undefined };
+    }
+    // Find the single selected tube
+    const selectedTube = Array.from(selectedPositions)
+      .map(key => {
+        const { position } = parsePositionKey(key);
+        return tubesByPosition[position];
+      })
+      .find(t => t !== undefined);
+    return {
+      canPrint: !!selectedTube,
+      tubeId: selectedTube?.id,
+    };
+  }, [onPrintLabel, controller.selection.filledCount, selectedPositions, tubesByPosition]);
 
   // Position click handler (delegates to grid controller)
   const handlePositionClick = useCallback(
@@ -289,6 +310,12 @@ export function TubeGrid({
         onUnlock={controller.actions.unlock}
         onShare={controller.actions.shareAccess}
         isUnlocking={controller.selection.isUnlocking}
+        canPrintLabel={printLabelState.canPrint}
+        onPrintLabel={
+          printLabelState.canPrint && printLabelState.tubeId
+            ? () => onPrintLabel?.(printLabelState.tubeId!)
+            : undefined
+        }
       />
     </div>
   );
