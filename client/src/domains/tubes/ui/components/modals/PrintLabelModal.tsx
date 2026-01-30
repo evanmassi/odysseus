@@ -38,26 +38,39 @@ interface LabelPreviewProps {
   isLoadingPreview?: boolean;
 }
 
-/** Visual preview of the label content */
+// Scale factor: pixels per inch for preview rendering
+const PREVIEW_SCALE = 160;
+
+/** Visual preview of the label content with proportional sizing */
 function LabelPreview({ lines, size, sdkPreview, isLoadingPreview }: LabelPreviewProps) {
   const activeLines = [lines.line1, lines.line2, lines.line3, lines.line4].filter(Boolean);
 
-  // Scale preview to roughly match label proportions
-  const aspectRatio = size.width / size.height;
-  const previewWidth = Math.min(280, aspectRatio * 80);
+  // Calculate proportional dimensions based on actual label size
+  const previewWidth = Math.round(size.width * PREVIEW_SCALE);
+  const previewHeight = Math.round(size.height * PREVIEW_SCALE);
+
+  // Calculate font size to fill available space
+  const lineCount = Math.max(activeLines.length, 1);
+  const availableHeight = previewHeight - 8; // Account for padding
+  const lineHeight = 1.3;
+  // Font size that fills vertical space with current line count
+  const verticalFit = availableHeight / (lineCount * lineHeight);
+  // Cap based on width (roughly 20 chars should fit)
+  const horizontalFit = previewWidth / 14;
+  const fontSize = Math.max(9, Math.min(verticalFit, horizontalFit));
 
   // Show SDK-rendered preview if available
   if (sdkPreview) {
     return (
       <div className="flex flex-col items-center">
         <div
-          className="bg-white border-2 border-solid border-border rounded overflow-hidden"
-          style={{ width: `${previewWidth}px`, minWidth: '200px' }}
+          className="bg-white border border-border rounded-lg overflow-hidden"
+          style={{ width: previewWidth, height: previewHeight }}
         >
           <img
             src={sdkPreview.imageData}
             alt="Label preview"
-            className="w-full h-auto"
+            className="w-full h-full object-contain"
             style={{ imageRendering: 'crisp-edges' }}
           />
         </div>
@@ -73,35 +86,37 @@ function LabelPreview({ lines, size, sdkPreview, isLoadingPreview }: LabelPrevie
     return (
       <div className="flex flex-col items-center">
         <div
-          className="bg-white border-2 border-dashed border-border rounded px-3 py-2 min-h-[60px] flex flex-col items-center justify-center"
-          style={{ width: `${previewWidth}px`, minWidth: '200px' }}
+          className="bg-white border border-border rounded-lg flex flex-col items-center justify-center"
+          style={{ width: previewWidth, height: previewHeight }}
         >
           <Spinner size="sm" />
-          <span className="text-xs text-muted-foreground mt-2">Rendering preview...</span>
+          <span className="text-xs text-muted-foreground mt-1">Rendering...</span>
         </div>
         <span className="text-xs text-muted-foreground mt-2">{size.name}</span>
       </div>
     );
   }
 
-  // Fallback: Text-based preview
+  // Fallback: Text-based preview with autofit
   return (
     <div className="flex flex-col items-center">
       <div
-        className="bg-white border-2 border-dashed border-border rounded px-3 py-2 font-mono text-xs text-gray-800 min-h-[60px] flex flex-col justify-center"
+        className="bg-white border border-border rounded-lg px-2 font-mono text-gray-800 flex flex-col justify-center overflow-hidden"
         style={{
-          width: `${previewWidth}px`,
-          minWidth: '200px',
+          width: previewWidth,
+          height: previewHeight,
+          fontSize: `${fontSize}px`,
+          lineHeight: lineHeight,
         }}
       >
         {activeLines.length > 0 ? (
           activeLines.map((line, i) => (
-            <div key={i} className="truncate leading-relaxed">
+            <div key={i} className="truncate">
               {line}
             </div>
           ))
         ) : (
-          <div className="text-muted-foreground italic text-center">No label content</div>
+          <div className="text-muted-foreground italic text-center text-xs">No label content</div>
         )}
       </div>
       <span className="text-xs text-muted-foreground mt-2">{size.name}</span>
