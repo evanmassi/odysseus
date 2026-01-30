@@ -879,8 +879,9 @@ If implementing label size configuration:
 
 ### Unit Tests
 
-- `labelFormatter.ts` - test all field transformations, truncation, missing data
-- `DymoService.ts` - mock SDK, test error handling
+- `labelFormatter.ts` - 52 tests covering field transformations and missing data ✅
+- `DymoDriver.ts` - 16 tests with mock SDK, error handling ✅
+- `cryoTubeLabel.ts` - 17 tests for XML generation, escaping, dimensions ✅
 
 ### Integration Tests
 
@@ -907,19 +908,26 @@ If implementing label size configuration:
 - [x] Define `PrinterDriver` interface and shared types (`types/index.ts`)
 - [x] Create `PrintService` orchestrator (`services/PrintService.ts`)
 - [x] Create `labelFormatter` utility (`utils/labelFormatter.ts`)
-- [x] Write unit tests for formatter (52 tests passing)
+- [x] Write unit tests for formatter (52 tests)
 - [x] Create `init.ts` for driver registration
 
-### Phase 2: Dymo Driver
+### Phase 2: Dymo Driver ✅ COMPLETE
 
 **Goal:** Implement the first (and only MVP) driver.
 
-- [ ] Research Dymo SDK integration details
-- [ ] Create `DymoDriver` implementing `PrinterDriver` interface
-- [ ] Create Dymo XML label template (`templates/dymo/cryoTubeLabel.ts`)
-- [ ] Register `DymoDriver` in `init.ts`
+- [x] Research Dymo SDK integration details
+- [x] Create `DymoDriver` implementing `PrinterDriver` interface
+- [x] Create Dymo XML label template (`templates/dymo/cryoTubeLabel.ts`)
+- [x] Register `DymoDriver` in `init.ts`
+- [x] Write unit tests for driver and template (33 tests)
 - [ ] Manual testing with real Dymo 450 printer
 - [ ] Iterate on label template until layout is correct
+
+**Implementation Notes:**
+- SDK loaded lazily from `labelwriter.com/software/dls/sdk/js/dymo.connect.framework.js`
+- Uses `AlwaysFit` text mode for automatic font scaling
+- Dimensions converted to twips (1 inch = 1440 twips)
+- Dependency injection pattern for testability
 
 ### Phase 3: UI Integration
 
@@ -1138,12 +1146,12 @@ That's it. The UI, hooks, and `PrintService` don't change at all.
 
 ### Effort Breakdown
 
-| Phase | Effort |
-|-------|--------|
-| Phase 1: Foundation | ~20% |
-| Phase 2: Dymo Driver | ~35% |
-| Phase 3: UI Integration | ~30% |
-| Phase 4: Polish | ~15% |
+| Phase | Effort | Status |
+|-------|--------|--------|
+| Phase 1: Foundation | ~20% | ✅ Complete |
+| Phase 2: Dymo Driver | ~35% | ✅ Complete |
+| Phase 3: UI Integration | ~30% | Pending |
+| Phase 4: Polish | ~15% | Pending |
 
 ### Main Unknowns
 

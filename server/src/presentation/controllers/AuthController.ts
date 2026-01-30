@@ -842,11 +842,10 @@ export class AuthController {
           try {
             const sendCommand = new SendVerificationEmailCommand(user.id, user.id);
             await this.sendVerificationEmailHandler.handle(sendCommand);
-            logger.info('Verification email sent', { userId: user.id, email: person.email });
+            logger.info('Verification email sent', { userId: user.id });
           } catch (emailError) {
             logger.error('Failed to send verification email', {
               userId: user.id,
-              email: person.email,
               error: emailError instanceof Error ? emailError.message : String(emailError)
             });
             // Don't fail registration if email sending fails - user is still created
@@ -1100,14 +1099,7 @@ export class AuthController {
       const command = new VerifyEmailCommand(token);
       const user = await this.verifyEmailHandler.handle(command);
 
-      // Get email from Person entity for logging
-      if (user.personId) {
-        const person = await this.personRepository.findById(user.personId);
-        logger.info('Email verified successfully', {
-          userId: user.id,
-          email: person?.email || 'unknown'
-        });
-      }
+      logger.info('Email verified successfully', { userId: user.id });
 
       res.status(200).json({
         success: true,
@@ -1153,10 +1145,7 @@ export class AuthController {
       const command = new ResendVerificationEmailCommand(user.id, user.id);
       await this.resendVerificationHandler.handle(command);
 
-      logger.info('Verification email resent (public)', {
-        userId: user.id,
-        usernameOrEmail
-      });
+      logger.info('Verification email resent (public)', { userId: user.id });
 
       res.status(200).json({
         success: true,
@@ -1185,14 +1174,7 @@ export class AuthController {
       const command = new ResendVerificationEmailCommand(req.user.id, req.user.id);
       await this.resendVerificationHandler.handle(command);
 
-      // Get email from Person entity for logging
-      if (req.user.personId) {
-        const person = await this.personRepository.findById(req.user.personId);
-        logger.info('Verification email resent', {
-          userId: req.user.id,
-          email: person?.email || 'unknown'
-        });
-      }
+      logger.info('Verification email resent', { userId: req.user.id });
 
       res.status(200).json({
         success: true,

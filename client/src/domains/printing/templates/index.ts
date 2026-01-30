@@ -2,4 +2,4 @@
  * Label Templates
  */
 
-// export * from './dymo';
+export * from './dymo';

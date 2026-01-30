@@ -15,21 +15,13 @@ export class ConsoleEmailService implements EmailService {
   }
 
   async sendVerificationEmail(email: string, token: string, username: string): Promise<void> {
-    const verificationUrl = `${this.verificationBaseUrl}?token=${token}`;
-
-    logger.debug('Email verification (dev mode)', {
-      to: email,
+    logger.debug('[ConsoleEmailService] Verification email generated (dev mode)', {
       subject: 'Verify your Odysseus account',
-      username,
-      verificationUrl,
       expiresIn: '48 hours'
     });
   }
 
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
-    logger.debug('Password reset email (dev mode)', {
-      to: email,
-      tokenProvided: !!token
-    });
+    logger.debug('[ConsoleEmailService] Password reset email generated (dev mode)');
   }
 }

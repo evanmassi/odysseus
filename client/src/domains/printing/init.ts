@@ -4,10 +4,9 @@
  * Registers available printer drivers at app startup.
  */
 
+import { DymoDriver } from './drivers';
 import { PrintService } from './services/PrintService';
 
 export function initializePrintService(): void {
-  // import { DymoDriver } from './drivers/DymoDriver';
-  // PrintService.registerDriver(new DymoDriver());
-  void PrintService;
+  PrintService.registerDriver(new DymoDriver());
 }

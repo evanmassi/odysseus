@@ -54,7 +54,12 @@
       "Bash(npm run test:server:*)",
       "Bash(npm run test:client:*)",
       "Bash(npx ts-node:*)",
-      "WebFetch(domain:www.divbio.com)"
+      "WebFetch(domain:www.divbio.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:s3.amazonaws.com)",
+      "WebFetch(domain:developers.dymo.com)",
+      "WebFetch(domain:domoticx.net)"
     ]
   }
 }
