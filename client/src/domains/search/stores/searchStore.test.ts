@@ -95,7 +95,7 @@ describe('searchStore', () => {
 
   describe('setSearchFilters()', () => {
     it('should set filters', () => {
-      const filters = { cellType: ['iPSC', 'MSC'], researcherId: ['r-1'] };
+      const filters = { cellTypes: ['iPSC', 'MSC'], researcherIds: ['r-1'] };
 
       act(() => {
         useSearchStore.getState().setSearchFilters(filters);
@@ -106,13 +106,13 @@ describe('searchStore', () => {
 
     it('should replace existing filters', () => {
       act(() => {
-        useSearchStore.getState().setSearchFilters({ cellType: ['A'] });
-        useSearchStore.getState().setSearchFilters({ researcherId: ['B'] });
+        useSearchStore.getState().setSearchFilters({ cellTypes: ['A'] });
+        useSearchStore.getState().setSearchFilters({ researcherIds: ['B'] });
       });
 
       const filters = useSearchStore.getState().filters;
-      expect(filters.cellType).toBeUndefined();
-      expect(filters.researcherId).toEqual(['B']);
+      expect(filters.cellTypes).toBeUndefined();
+      expect(filters.researcherIds).toEqual(['B']);
     });
   });
 
@@ -120,7 +120,7 @@ describe('searchStore', () => {
     it('should clear query and filters', () => {
       act(() => {
         useSearchStore.getState().setSearchQuery('test');
-        useSearchStore.getState().setSearchFilters({ cellType: ['iPSC'] });
+        useSearchStore.getState().setSearchFilters({ cellTypes: ['iPSC'] });
         useSearchStore.getState().clearSearch();
       });
 
@@ -134,7 +134,7 @@ describe('searchStore', () => {
     it('should clear only filters', () => {
       act(() => {
         useSearchStore.getState().setSearchQuery('test');
-        useSearchStore.getState().setSearchFilters({ cellType: ['iPSC'] });
+        useSearchStore.getState().setSearchFilters({ cellTypes: ['iPSC'] });
         useSearchStore.getState().clearFilters();
       });
 
@@ -177,37 +177,37 @@ describe('searchStore', () => {
   describe('toggleFilterValue()', () => {
     it('should add value to empty filter', () => {
       act(() => {
-        useSearchStore.getState().toggleFilterValue('cellType', 'iPSC');
+        useSearchStore.getState().toggleFilterValue('cellTypes', 'iPSC');
       });
 
-      expect(useSearchStore.getState().filters.cellType).toEqual(['iPSC']);
+      expect(useSearchStore.getState().filters.cellTypes).toEqual(['iPSC']);
     });
 
     it('should add value to existing filter', () => {
       act(() => {
-        useSearchStore.getState().setSearchFilters({ cellType: ['iPSC'] });
-        useSearchStore.getState().toggleFilterValue('cellType', 'MSC');
+        useSearchStore.getState().setSearchFilters({ cellTypes: ['iPSC'] });
+        useSearchStore.getState().toggleFilterValue('cellTypes', 'MSC');
       });
 
-      expect(useSearchStore.getState().filters.cellType).toEqual(['iPSC', 'MSC']);
+      expect(useSearchStore.getState().filters.cellTypes).toEqual(['iPSC', 'MSC']);
     });
 
     it('should remove value if already exists', () => {
       act(() => {
-        useSearchStore.getState().setSearchFilters({ cellType: ['iPSC', 'MSC'] });
-        useSearchStore.getState().toggleFilterValue('cellType', 'iPSC');
+        useSearchStore.getState().setSearchFilters({ cellTypes: ['iPSC', 'MSC'] });
+        useSearchStore.getState().toggleFilterValue('cellTypes', 'iPSC');
       });
 
-      expect(useSearchStore.getState().filters.cellType).toEqual(['MSC']);
+      expect(useSearchStore.getState().filters.cellTypes).toEqual(['MSC']);
     });
 
     it('should remove filter key when array becomes empty', () => {
       act(() => {
-        useSearchStore.getState().setSearchFilters({ cellType: ['iPSC'] });
-        useSearchStore.getState().toggleFilterValue('cellType', 'iPSC');
+        useSearchStore.getState().setSearchFilters({ cellTypes: ['iPSC'] });
+        useSearchStore.getState().toggleFilterValue('cellTypes', 'iPSC');
       });
 
-      expect(useSearchStore.getState().filters.cellType).toBeUndefined();
+      expect(useSearchStore.getState().filters.cellTypes).toBeUndefined();
     });
   });
 
@@ -218,7 +218,7 @@ describe('searchStore', () => {
 
     it('should return true when filters exist', () => {
       act(() => {
-        useSearchStore.getState().setSearchFilters({ cellType: ['iPSC'] });
+        useSearchStore.getState().setSearchFilters({ cellTypes: ['iPSC'] });
       });
 
       expect(useSearchStore.getState().hasActiveFilters()).toBe(true);
@@ -226,7 +226,7 @@ describe('searchStore', () => {
 
     it('should return false for empty arrays', () => {
       act(() => {
-        useSearchStore.getState().setSearchFilters({ cellType: [] });
+        useSearchStore.getState().setSearchFilters({ cellTypes: [] });
       });
 
       expect(useSearchStore.getState().hasActiveFilters()).toBe(false);
@@ -240,7 +240,7 @@ describe('searchStore', () => {
 
     it('should count array items', () => {
       act(() => {
-        useSearchStore.getState().setSearchFilters({ cellType: ['iPSC', 'MSC'] });
+        useSearchStore.getState().setSearchFilters({ cellTypes: ['iPSC', 'MSC'] });
       });
 
       expect(useSearchStore.getState().getActiveFilterCount()).toBe(2);
@@ -249,8 +249,8 @@ describe('searchStore', () => {
     it('should count multiple filter types', () => {
       act(() => {
         useSearchStore.getState().setSearchFilters({
-          cellType: ['iPSC'],
-          researcherId: ['r-1', 'r-2'],
+          cellTypes: ['iPSC'],
+          researcherIds: ['r-1', 'r-2'],
         });
       });
 

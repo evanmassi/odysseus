@@ -11,6 +11,10 @@ import { useTubeStore } from './tubeStore';
 
 import type { PositionKey } from '@shared/types/GridSelection';
 
+// Helper to create valid PositionKey values for tests
+const pk = (n: number): PositionKey => `tank-1:rack-1:box-A:${n}` as PositionKey;
+const pkSet = (...positions: number[]): Set<PositionKey> => new Set(positions.map(pk));
+
 describe('tubeStore', () => {
   beforeEach(() => {
     // Reset store to initial state before each test
@@ -52,7 +56,7 @@ describe('tubeStore', () => {
     it('should clear selection when tank changes', () => {
       act(() => {
         const store = useTubeStore.getState();
-        store.setSelection(new Set([1, 2, 3] as PositionKey[]));
+        store.setSelection(pkSet(1, 2, 3));
         store.setSelectionAnchor(1);
       });
 
@@ -69,7 +73,7 @@ describe('tubeStore', () => {
     it('should not clear selection when setting same tank', () => {
       act(() => {
         const store = useTubeStore.getState();
-        store.setSelection(new Set([1, 2] as PositionKey[]));
+        store.setSelection(pkSet(1, 2));
         store.setCurrentTank('tank-1'); // Same as initial
       });
 
@@ -89,7 +93,7 @@ describe('tubeStore', () => {
     it('should clear selection when rack changes', () => {
       act(() => {
         const store = useTubeStore.getState();
-        store.setSelection(new Set([10, 20] as PositionKey[]));
+        store.setSelection(pkSet(10, 20));
         store.setSelectionAnchor(10);
       });
 
@@ -104,7 +108,7 @@ describe('tubeStore', () => {
     it('should not clear selection when setting same rack', () => {
       act(() => {
         const store = useTubeStore.getState();
-        store.setSelection(new Set([5] as PositionKey[]));
+        store.setSelection(pkSet(5));
         store.setCurrentRack('1'); // Same as initial
       });
 
@@ -124,7 +128,7 @@ describe('tubeStore', () => {
     it('should clear selection when box changes', () => {
       act(() => {
         const store = useTubeStore.getState();
-        store.setSelection(new Set([1, 5, 9] as PositionKey[]));
+        store.setSelection(pkSet(1, 5, 9));
         store.setSelectionAnchor(5);
       });
 
@@ -139,7 +143,7 @@ describe('tubeStore', () => {
     it('should not clear selection when setting same box', () => {
       act(() => {
         const store = useTubeStore.getState();
-        store.setSelection(new Set([7, 8, 9] as PositionKey[]));
+        store.setSelection(pkSet(7, 8, 9));
         store.setCurrentBox('A'); // Same as initial
       });
 
@@ -150,69 +154,69 @@ describe('tubeStore', () => {
   describe('togglePosition()', () => {
     it('should add position to selection', () => {
       act(() => {
-        useTubeStore.getState().togglePosition(5 as PositionKey);
+        useTubeStore.getState().togglePosition(pk(5));
       });
 
       const positions = useTubeStore.getState().selectedPositions;
-      expect(positions.has(5 as PositionKey)).toBe(true);
+      expect(positions.has(pk(5))).toBe(true);
       expect(positions.size).toBe(1);
     });
 
     it('should remove position if already selected', () => {
       act(() => {
-        useTubeStore.getState().togglePosition(5 as PositionKey);
+        useTubeStore.getState().togglePosition(pk(5));
       });
 
-      expect(useTubeStore.getState().selectedPositions.has(5 as PositionKey)).toBe(true);
+      expect(useTubeStore.getState().selectedPositions.has(pk(5))).toBe(true);
 
       act(() => {
-        useTubeStore.getState().togglePosition(5 as PositionKey);
+        useTubeStore.getState().togglePosition(pk(5));
       });
 
-      expect(useTubeStore.getState().selectedPositions.has(5 as PositionKey)).toBe(false);
+      expect(useTubeStore.getState().selectedPositions.has(pk(5))).toBe(false);
     });
 
     it('should toggle multiple positions independently', () => {
       act(() => {
         const store = useTubeStore.getState();
-        store.togglePosition(1 as PositionKey);
-        store.togglePosition(2 as PositionKey);
-        store.togglePosition(3 as PositionKey);
+        store.togglePosition(pk(1));
+        store.togglePosition(pk(2));
+        store.togglePosition(pk(3));
       });
 
       expect(useTubeStore.getState().selectedPositions.size).toBe(3);
 
       act(() => {
-        useTubeStore.getState().togglePosition(2 as PositionKey);
+        useTubeStore.getState().togglePosition(pk(2));
       });
 
       const positions = useTubeStore.getState().selectedPositions;
       expect(positions.size).toBe(2);
-      expect(positions.has(1 as PositionKey)).toBe(true);
-      expect(positions.has(2 as PositionKey)).toBe(false);
-      expect(positions.has(3 as PositionKey)).toBe(true);
+      expect(positions.has(pk(1))).toBe(true);
+      expect(positions.has(pk(2))).toBe(false);
+      expect(positions.has(pk(3))).toBe(true);
     });
   });
 
   describe('setSelection()', () => {
     it('should replace entire selection', () => {
       act(() => {
-        useTubeStore.getState().setSelection(new Set([1, 2] as PositionKey[]));
+        useTubeStore.getState().setSelection(pkSet(1, 2));
       });
 
       act(() => {
-        useTubeStore.getState().setSelection(new Set([10, 20, 30] as PositionKey[]));
+        useTubeStore.getState().setSelection(pkSet(10, 20, 30));
       });
 
       const positions = useTubeStore.getState().selectedPositions;
       expect(positions.size).toBe(3);
-      expect(positions.has(1 as PositionKey)).toBe(false);
-      expect(positions.has(10 as PositionKey)).toBe(true);
+      expect(positions.has(pk(1))).toBe(false);
+      expect(positions.has(pk(10))).toBe(true);
     });
 
     it('should accept empty set', () => {
       act(() => {
-        useTubeStore.getState().setSelection(new Set([1, 2, 3] as PositionKey[]));
+        useTubeStore.getState().setSelection(pkSet(1, 2, 3));
       });
 
       act(() => {
@@ -226,7 +230,7 @@ describe('tubeStore', () => {
   describe('clearSelection()', () => {
     it('should clear all selected positions', () => {
       act(() => {
-        useTubeStore.getState().setSelection(new Set([1, 2, 3, 4, 5] as PositionKey[]));
+        useTubeStore.getState().setSelection(pkSet(1, 2, 3, 4, 5));
       });
 
       expect(useTubeStore.getState().selectedPositions.size).toBe(5);
@@ -287,15 +291,15 @@ describe('tubeStore', () => {
   describe('setLastSelectionMethod()', () => {
     it('should update selection method', () => {
       act(() => {
-        useTubeStore.getState().setLastSelectionMethod('rectangular');
+        useTubeStore.getState().setLastSelectionMethod('drag');
       });
 
-      expect(useTubeStore.getState().lastSelectionMethod).toBe('rectangular');
+      expect(useTubeStore.getState().lastSelectionMethod).toBe('drag');
     });
 
     it('should track standard selection method', () => {
       act(() => {
-        useTubeStore.getState().setLastSelectionMethod('rectangular');
+        useTubeStore.getState().setLastSelectionMethod('drag');
       });
 
       act(() => {
@@ -314,9 +318,9 @@ describe('tubeStore', () => {
         store.setCurrentTank('tank-99');
         store.setCurrentRack('15');
         store.setCurrentBox('Z');
-        store.setSelection(new Set([1, 2, 3, 4, 5] as PositionKey[]));
+        store.setSelection(pkSet(1, 2, 3, 4, 5));
         store.setSelectionAnchor(3);
-        store.setLastSelectionMethod('rectangular');
+        store.setLastSelectionMethod('drag');
       });
 
       // Verify state changed
@@ -341,13 +345,13 @@ describe('tubeStore', () => {
   describe('Selection Immutability', () => {
     it('should create new Set on toggle (immutability)', () => {
       act(() => {
-        useTubeStore.getState().togglePosition(1 as PositionKey);
+        useTubeStore.getState().togglePosition(pk(1));
       });
 
       const firstSet = useTubeStore.getState().selectedPositions;
 
       act(() => {
-        useTubeStore.getState().togglePosition(2 as PositionKey);
+        useTubeStore.getState().togglePosition(pk(2));
       });
 
       const secondSet = useTubeStore.getState().selectedPositions;
@@ -357,7 +361,7 @@ describe('tubeStore', () => {
 
     it('should create new Set on location change', () => {
       act(() => {
-        useTubeStore.getState().setSelection(new Set([1, 2, 3] as PositionKey[]));
+        useTubeStore.getState().setSelection(pkSet(1, 2, 3));
       });
 
       const firstSet = useTubeStore.getState().selectedPositions;

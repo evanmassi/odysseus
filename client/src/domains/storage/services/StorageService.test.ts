@@ -206,12 +206,12 @@ describe('StorageService', () => {
       mockHttpClient.put.mockResolvedValue({ data: { success: true } });
 
       await StorageService.updateBox('tank-1', 'rack-1', 'A', {
-        gridConfig: { rows: 10, cols: 10 },
+        gridConfig: { rows: 10, cols: 10, template: '10x10' },
       });
 
       expect(mockHttpClient.put).toHaveBeenCalledWith(
         '/configuration/tanks/tank-1/racks/rack-1/boxes/A',
-        { gridConfig: { rows: 10, cols: 10 } }
+        { gridConfig: { rows: 10, cols: 10, template: '10x10' } }
       );
     });
   });

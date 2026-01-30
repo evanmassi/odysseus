@@ -28,7 +28,13 @@ describe('SearchService', () => {
   describe('searchTubes()', () => {
     it('should perform search with query', async () => {
       const mockResult = {
-        tubes: [{ id: 'tube-1', sampleName: 'Sample A' }],
+        data: [
+          {
+            id: 'tube-1',
+            location: { tankId: 't1', rackId: 'r1', boxId: 'b1', position: 1 },
+            sample: {},
+          },
+        ],
         pagination: { total: 1, limit: 50, offset: 0, hasMore: false },
       };
 
@@ -46,7 +52,7 @@ describe('SearchService', () => {
         }),
         expect.anything()
       );
-      expect(result.tubes).toEqual(mockResult.tubes);
+      expect(result.data).toEqual(mockResult.data);
     });
 
     it('should pass filters to API', async () => {

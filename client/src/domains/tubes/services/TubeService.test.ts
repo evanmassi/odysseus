@@ -236,6 +236,7 @@ describe('TubeService', () => {
     it('should normalize dates in update request', async () => {
       const updates: UpdateTubeRequest = {
         sample: {
+          cellType: undefined,
           date: '2024-06-20T12:00:00Z',
         },
       };
@@ -331,19 +332,19 @@ describe('TubeService', () => {
     it('should lock tubes with note', async () => {
       mockHttpClient.postData.mockResolvedValue({
         locked: ['tube_1', 'tube_2'],
-        failed: [],
+        skipped: [],
       });
 
       const result = await TubeService.lockTubes({
         tubeIds: ['tube_1', 'tube_2'],
-        note: 'Under analysis',
+        lockNote: 'Under analysis',
       });
 
       expect(mockHttpClient.postData).toHaveBeenCalledWith(
         '/tubes/lock',
         {
           tubeIds: ['tube_1', 'tube_2'],
-          note: 'Under analysis',
+          lockNote: 'Under analysis',
         },
         expect.any(Object)
       );
@@ -353,7 +354,7 @@ describe('TubeService', () => {
     it('should handle lock failures', async () => {
       mockHttpClient.postData.mockResolvedValue({
         locked: ['tube_1'],
-        failed: [{ tubeId: 'tube_2', error: 'Already locked' }],
+        skipped: [{ tubeId: 'tube_2', reason: 'Already locked' }],
       });
 
       const result = await TubeService.lockTubes({
@@ -361,7 +362,7 @@ describe('TubeService', () => {
       });
 
       expect(result.locked).toHaveLength(1);
-      expect(result.failed).toHaveLength(1);
+      expect(result.skipped).toHaveLength(1);
     });
   });
 
@@ -369,7 +370,7 @@ describe('TubeService', () => {
     it('should unlock tubes', async () => {
       mockHttpClient.postData.mockResolvedValue({
         unlocked: ['tube_1', 'tube_2'],
-        failed: [],
+        skipped: [],
       });
 
       const result = await TubeService.unlockTubes({
@@ -391,7 +392,7 @@ describe('TubeService', () => {
     it('should share access with users', async () => {
       mockHttpClient.postData.mockResolvedValue({
         shared: ['tube_1'],
-        failed: [],
+        skipped: [],
       });
 
       const result = await TubeService.shareTubeAccess({
@@ -415,7 +416,7 @@ describe('TubeService', () => {
     it('should revoke access from users', async () => {
       mockHttpClient.postData.mockResolvedValue({
         revoked: ['tube_1'],
-        failed: [],
+        skipped: [],
       });
 
       const result = await TubeService.revokeTubeAccess({
@@ -534,8 +535,8 @@ describe('TubeService', () => {
   describe('bulkUpdateTubes()', () => {
     it('should update multiple tubes', async () => {
       const updates = [
-        { id: 'tube_1', data: { sample: { notes: 'Note 1' } } },
-        { id: 'tube_2', data: { sample: { notes: 'Note 2' } } },
+        { id: 'tube_1', data: { sample: { cellType: undefined, notes: 'Note 1' } } },
+        { id: 'tube_2', data: { sample: { cellType: undefined, notes: 'Note 2' } } },
       ];
 
       mockHttpClient.post.mockResolvedValue({
@@ -562,8 +563,8 @@ describe('TubeService', () => {
 
     it('should handle partial update failures', async () => {
       const updates = [
-        { id: 'tube_1', data: { sample: { notes: 'Note' } } },
-        { id: 'tube_locked', data: { sample: { notes: 'Note' } } },
+        { id: 'tube_1', data: { sample: { cellType: undefined, notes: 'Note' } } },
+        { id: 'tube_locked', data: { sample: { cellType: undefined, notes: 'Note' } } },
       ];
 
       mockHttpClient.post.mockResolvedValue({

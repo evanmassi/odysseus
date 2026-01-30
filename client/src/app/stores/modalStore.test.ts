@@ -166,14 +166,14 @@ describe('modalStore', () => {
       act(() => {
         modalStore.getState().showTubeEditorModal({
           mode: 'add',
-          positions: ['key-1', 'key-2'],
+          positions: ['tank-1:rack-1:box-1:1', 'tank-1:rack-1:box-1:2'],
         });
       });
 
       const state = modalStore.getState().tubeEditorModal;
       expect(state.isOpen).toBe(true);
       expect(state.mode).toBe('add');
-      expect(state.positions).toEqual(['key-1', 'key-2']);
+      expect(state.positions).toEqual(['tank-1:rack-1:box-1:1', 'tank-1:rack-1:box-1:2']);
     });
 
     it('should open in edit mode with tubeId', () => {

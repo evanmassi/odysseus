@@ -449,7 +449,7 @@ describe('HttpClient', () => {
 
       const callArgs = vi.mocked(global.fetch).mock.calls[0];
       const headers = (callArgs[1] as RequestInit).headers as Record<string, string>;
-      expect(headers.Authorization).toBeUndefined();
+      expect(headers['Authorization']).toBeUndefined();
     });
   });
 
