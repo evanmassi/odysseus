@@ -206,4 +206,201 @@ describe('generateLabelXml', () => {
       expect(xml).toContain('<TextFitMode>AlwaysFit</TextFitMode>');
     });
   });
+
+  describe('edge cases', () => {
+    describe('complex XML escaping', () => {
+      it('should escape multiple special characters in one string', () => {
+        const lines: LabelLines = { line1: 'R&D <Test> "Sample" \'Cell\' & More' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain(
+          'R&amp;D &lt;Test&gt; &quot;Sample&quot; &apos;Cell&apos; &amp; More'
+        );
+        expect(xml).not.toContain('R&D <Test>');
+      });
+
+      it('should escape special characters in all four lines', () => {
+        const lines: LabelLines = {
+          line1: 'Cell & Type',
+          line2: 'ID <001>',
+          line3: 'Lot "A"',
+          line4: "John's Sample",
+        };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('Cell &amp; Type');
+        expect(xml).toContain('ID &lt;001&gt;');
+        expect(xml).toContain('Lot &quot;A&quot;');
+        expect(xml).toContain('John&apos;s Sample');
+      });
+
+      it('should handle consecutive special characters', () => {
+        const lines: LabelLines = { line1: '<<&&>>' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('&lt;&lt;&amp;&amp;&gt;&gt;');
+      });
+
+      it('should handle already-escaped-looking text', () => {
+        const lines: LabelLines = { line1: '&amp; should become &amp;amp;' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('&amp;amp; should become &amp;amp;amp;');
+      });
+    });
+
+    describe('very long content', () => {
+      it('should handle all four lines with 100+ characters each', () => {
+        const longText = 'X'.repeat(150);
+        const lines: LabelLines = {
+          line1: longText,
+          line2: longText,
+          line3: longText,
+          line4: longText,
+        };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain(longText);
+        expect((xml.match(/<TextObject>/g) ?? []).length).toBe(4);
+      });
+
+      it('should handle single line with 500+ characters', () => {
+        const veryLongText = 'A'.repeat(500);
+        const lines: LabelLines = { line1: veryLongText };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain(veryLongText);
+      });
+    });
+
+    describe('unicode content', () => {
+      it('should handle unicode characters', () => {
+        const lines: LabelLines = { line1: 'Célula α-β γ δ ε' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('Célula α-β γ δ ε');
+      });
+
+      it('should handle Japanese characters', () => {
+        const lines: LabelLines = { line1: '細胞タイプ 研究者' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('細胞タイプ 研究者');
+      });
+
+      it('should handle emoji', () => {
+        const lines: LabelLines = { line1: 'Sample 🧪 Test 🔬' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('Sample 🧪 Test 🔬');
+      });
+
+      it('should handle mixed unicode and special characters', () => {
+        const lines: LabelLines = { line1: 'α & β <γ> "δ"' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('α &amp; β &lt;γ&gt; &quot;δ&quot;');
+      });
+    });
+
+    describe('whitespace handling', () => {
+      it('should preserve multiple spaces', () => {
+        const lines: LabelLines = { line1: 'Cell    Type    Here' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('Cell    Type    Here');
+      });
+
+      it('should handle tabs', () => {
+        const lines: LabelLines = { line1: 'Cell\tType' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('Cell\tType');
+      });
+
+      it('should handle leading and trailing spaces', () => {
+        const lines: LabelLines = { line1: '  Spaced  ' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('  Spaced  ');
+      });
+    });
+
+    describe('extreme label sizes', () => {
+      it('should handle minimum practical size', () => {
+        const lines: LabelLines = { line1: 'Test' };
+        const tinySize: LabelSize = {
+          id: 'tiny',
+          width: 0.5,
+          height: 0.25,
+          name: '0.50" × 0.25"',
+        };
+        const xml = generateLabelXml(lines, tinySize);
+
+        // 0.5" = 720 twips, 0.25" = 360 twips
+        expect(xml).toContain('Width="360"');
+        expect(xml).toContain('Height="720"');
+      });
+
+      it('should handle large size', () => {
+        const lines: LabelLines = { line1: 'Test' };
+        const largeSize: LabelSize = {
+          id: 'large',
+          width: 4.0,
+          height: 2.0,
+          name: '4.00" × 2.00"',
+        };
+        const xml = generateLabelXml(lines, largeSize);
+
+        // 4.0" = 5760 twips, 2.0" = 2880 twips
+        expect(xml).toContain('Width="2880"');
+        expect(xml).toContain('Height="5760"');
+      });
+
+      it('should handle fractional dimensions', () => {
+        const lines: LabelLines = { line1: 'Test' };
+        const fractionalSize: LabelSize = {
+          id: 'fractional',
+          width: 1.333,
+          height: 0.666,
+          name: '1.333" × 0.666"',
+        };
+        const xml = generateLabelXml(lines, fractionalSize);
+
+        // Should round to integers
+        expect(xml).toMatch(/Width="\d+"/);
+        expect(xml).toMatch(/Height="\d+"/);
+      });
+    });
+
+    describe('empty and minimal content', () => {
+      it('should handle empty string lines (not undefined)', () => {
+        const lines: LabelLines = {
+          line1: '',
+          line2: '',
+          line3: '',
+          line4: '',
+        };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        // Empty strings should be treated as no content
+        expect(xml).not.toContain('<TextObject>');
+      });
+
+      it('should handle single character content', () => {
+        const lines: LabelLines = { line1: 'X' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        expect(xml).toContain('>X</String>');
+      });
+
+      it('should handle whitespace-only content', () => {
+        const lines: LabelLines = { line1: '   ' };
+        const xml = generateLabelXml(lines, defaultSize);
+
+        // Implementation dependent - may or may not include
+        expect(xml).toContain('<DieCutLabel');
+      });
+    });
+  });
 });

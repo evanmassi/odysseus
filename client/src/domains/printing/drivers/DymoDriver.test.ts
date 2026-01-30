@@ -417,4 +417,216 @@ describe('DymoDriver', () => {
       expect(result?.height).toBe(225);
     });
   });
+
+  describe('edge cases', () => {
+    describe('copy counts', () => {
+      it('should handle zero copies gracefully', async () => {
+        const mockPrint = vi.fn();
+        const sdk = createMockSdk({
+          openLabelXml: vi.fn(() => ({
+            print: mockPrint,
+            isValidLabel: vi.fn(() => true),
+            render: vi.fn(() => 'base64'),
+          })),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const options: PrintOptions = { ...defaultOptions, copies: 0 };
+        const result = await driver.print(defaultLines, 'DYMO LabelWriter 450', options);
+
+        expect(result.success).toBe(true);
+        expect(result.printedCount).toBe(0);
+        expect(mockPrint).not.toHaveBeenCalled();
+      });
+
+      it('should handle max copies (50)', async () => {
+        const mockPrint = vi.fn();
+        const sdk = createMockSdk({
+          openLabelXml: vi.fn(() => ({
+            print: mockPrint,
+            isValidLabel: vi.fn(() => true),
+            render: vi.fn(() => 'base64'),
+          })),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const options: PrintOptions = { ...defaultOptions, copies: 50 };
+        const result = await driver.print(defaultLines, 'DYMO LabelWriter 450', options);
+
+        expect(result.success).toBe(true);
+        expect(result.printedCount).toBe(50);
+        expect(mockPrint).toHaveBeenCalledTimes(50);
+      });
+
+      it('should handle single copy', async () => {
+        const mockPrint = vi.fn();
+        const sdk = createMockSdk({
+          openLabelXml: vi.fn(() => ({
+            print: mockPrint,
+            isValidLabel: vi.fn(() => true),
+            render: vi.fn(() => 'base64'),
+          })),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const options: PrintOptions = { ...defaultOptions, copies: 1 };
+        const result = await driver.print(defaultLines, 'DYMO LabelWriter 450', options);
+
+        expect(result.success).toBe(true);
+        expect(result.printedCount).toBe(1);
+        expect(mockPrint).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe('empty and minimal content', () => {
+      it('should handle empty label lines', async () => {
+        const mockPrint = vi.fn();
+        const sdk = createMockSdk({
+          openLabelXml: vi.fn(() => ({
+            print: mockPrint,
+            isValidLabel: vi.fn(() => true),
+            render: vi.fn(() => 'base64'),
+          })),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const emptyLines: LabelLines = {};
+        const result = await driver.print(emptyLines, 'DYMO LabelWriter 450', defaultOptions);
+
+        expect(result.success).toBe(true);
+        expect(mockPrint).toHaveBeenCalled();
+      });
+
+      it('should handle single line label', async () => {
+        const mockPrint = vi.fn();
+        const sdk = createMockSdk({
+          openLabelXml: vi.fn(() => ({
+            print: mockPrint,
+            isValidLabel: vi.fn(() => true),
+            render: vi.fn(() => 'base64'),
+          })),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const singleLine: LabelLines = { line1: 'Only one line' };
+        const result = await driver.print(singleLine, 'DYMO LabelWriter 450', defaultOptions);
+
+        expect(result.success).toBe(true);
+      });
+    });
+
+    describe('printer states', () => {
+      it('should handle printer with no model name', async () => {
+        const sdk = createMockSdk({
+          getPrintersAsync: vi.fn(() =>
+            Promise.resolve([{ name: 'Generic Printer', isConnected: true }])
+          ),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const printers = await driver.getPrinters();
+
+        expect(printers).toHaveLength(1);
+        expect(printers[0].model).toBeUndefined();
+      });
+
+      it('should handle multiple printers with mixed states', async () => {
+        const sdk = createMockSdk({
+          getPrintersAsync: vi.fn(() =>
+            Promise.resolve([
+              { name: 'Printer 1', modelName: 'Model A', isConnected: true },
+              { name: 'Printer 2', modelName: 'Model B', isConnected: false },
+              { name: 'Printer 3', isLocal: true },
+              { name: 'Printer 4' }, // No connection info
+            ])
+          ),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const printers = await driver.getPrinters();
+
+        expect(printers).toHaveLength(4);
+        expect(printers[0].isConnected).toBe(true);
+        expect(printers[1].isConnected).toBe(false);
+        expect(printers[2].isConnected).toBe(true); // isLocal fallback
+        expect(printers[3].isConnected).toBe(true); // default true
+      });
+    });
+
+    describe('special characters in content', () => {
+      it('should handle XML special characters', async () => {
+        const mockPrint = vi.fn();
+        const sdk = createMockSdk({
+          openLabelXml: vi.fn(() => ({
+            print: mockPrint,
+            isValidLabel: vi.fn(() => true),
+            render: vi.fn(() => 'base64'),
+          })),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const specialLines: LabelLines = {
+          line1: 'R&D <Test> "Sample"',
+          line2: "John's & Jane's",
+        };
+        const result = await driver.print(specialLines, 'DYMO LabelWriter 450', defaultOptions);
+
+        expect(result.success).toBe(true);
+      });
+
+      it('should handle unicode content', async () => {
+        const mockPrint = vi.fn();
+        const sdk = createMockSdk({
+          openLabelXml: vi.fn(() => ({
+            print: mockPrint,
+            isValidLabel: vi.fn(() => true),
+            render: vi.fn(() => 'base64'),
+          })),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const unicodeLines: LabelLines = {
+          line1: 'Célula α-β γ',
+          line2: '細胞タイプ',
+        };
+        const result = await driver.print(unicodeLines, 'DYMO LabelWriter 450', defaultOptions);
+
+        expect(result.success).toBe(true);
+      });
+    });
+
+    describe('all copies fail', () => {
+      it('should report all failures correctly', async () => {
+        const mockPrint = vi.fn(() => {
+          throw new Error('Printer offline');
+        });
+        const sdk = createMockSdk({
+          openLabelXml: vi.fn(() => ({
+            print: mockPrint,
+            isValidLabel: vi.fn(() => true),
+            render: vi.fn(() => 'base64'),
+          })),
+        });
+        const provider = createMockProvider(sdk);
+        const driver = new DymoDriver(provider);
+
+        const options: PrintOptions = { ...defaultOptions, copies: 3 };
+        const result = await driver.print(defaultLines, 'DYMO LabelWriter 450', options);
+
+        expect(result.success).toBe(false);
+        expect(result.printedCount).toBe(0);
+        expect(result.failedCount).toBe(3);
+        expect(result.error).toContain('Printer offline');
+      });
+    });
+  });
 });

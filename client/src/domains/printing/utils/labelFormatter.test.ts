@@ -409,3 +409,170 @@ describe('countLabelLines', () => {
     expect(countLabelLines({ line1: 'a', line2: '' })).toBe(1);
   });
 });
+
+// ── Edge Cases ──
+
+describe('edge cases', () => {
+  describe('very long text', () => {
+    it('handles very long cell type (100+ chars)', () => {
+      const longCellType = 'A'.repeat(150);
+      const tube = createTube({ cellType: longCellType });
+      const result = formatTubeForLabel(tube);
+      expect(result.line1).toBe(longCellType);
+    });
+
+    it('handles very long donor IDs', () => {
+      const longId = 'ID-' + '1234567890'.repeat(10);
+      const tube = createTube({ donorInternalId: longId, donorSourceId: longId });
+      const result = formatTubeForLabel(tube);
+      expect(result.line2).toBe(`${longId} / ${longId}`);
+    });
+
+    it('handles very long culture condition and lot number', () => {
+      const longCondition = 'Extended-Culture-Condition-' + 'X'.repeat(50);
+      const longLot = 'LOT-' + '9'.repeat(50);
+      const tube = createTube({ cultureCondition: longCondition, lotNumber: longLot });
+      const result = formatTubeForLabel(tube);
+      expect(result.line3).toBe(`${longCondition}, Lot ${longLot}`);
+    });
+  });
+
+  describe('special characters', () => {
+    it('handles XML special characters in cell type', () => {
+      const tube = createTube({ cellType: 'R&D <Test> "Sample" \'Cell\'' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line1).toBe('R&D <Test> "Sample" \'Cell\'');
+    });
+
+    it('handles slashes in donor IDs', () => {
+      const tube = createTube({
+        donorInternalId: 'INT/001/A',
+        donorSourceId: 'SRC\\002\\B',
+      });
+      const result = formatTubeForLabel(tube);
+      expect(result.line2).toBe('INT/001/A / SRC\\002\\B');
+    });
+
+    it('handles special characters in culture condition', () => {
+      const tube = createTube({ cultureCondition: '3D-Matrix (10% FBS + Growth Factor)' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line3).toBe('3D-Matrix (10% FBS + Growth Factor)');
+    });
+  });
+
+  describe('unicode characters', () => {
+    it('handles unicode in cell type', () => {
+      const tube = createTube({ cellType: 'Célula Neuronal α-β' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line1).toBe('Célula Neuronal α-β');
+    });
+
+    it('handles emoji in notes (not on label but tests robustness)', () => {
+      const tube = createTube({ cellType: 'Test 🧪 Cell' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line1).toBe('Test 🧪 Cell');
+    });
+
+    it('handles Japanese characters', () => {
+      const tube = createTube({ cellType: '細胞タイプ' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line1).toBe('細胞タイプ');
+    });
+  });
+
+  describe('whitespace handling', () => {
+    it('treats whitespace-only cell type as empty', () => {
+      const tube = createTube({ cellType: '   ' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line1).toBeUndefined();
+    });
+
+    it('treats whitespace-only donor ID as empty', () => {
+      const tube = createTube({ donorInternalId: '  \t  ', donorSourceId: '  \n  ' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line2).toBeUndefined();
+    });
+
+    it('preserves internal whitespace', () => {
+      const tube = createTube({ cellType: 'iPSC   Neuron' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line1).toBe('iPSC   Neuron');
+    });
+
+    it('handles tabs in values', () => {
+      const tube = createTube({ cellType: 'Cell\tType' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line1).toBe('Cell\tType');
+    });
+  });
+
+  describe('numeric edge cases', () => {
+    it('handles zero concentration', () => {
+      const tube = createTube({ concentration: 0, concentrationUnit: 'c/mL' });
+      const result = formatTubeForLabel(tube);
+      // Zero should still format (implementation dependent)
+      expect(result.line4).toBeDefined();
+    });
+
+    it('handles very large concentration', () => {
+      const tube = createTube({ concentration: 999999999999, concentrationUnit: 'c/mL' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line4).toBeDefined();
+      expect(result.line4).toContain('E+');
+    });
+
+    it('handles very small concentration', () => {
+      const tube = createTube({ concentration: 0.00001, concentrationUnit: 'c/mL' });
+      const result = formatTubeForLabel(tube);
+      expect(result.line4).toBeDefined();
+    });
+
+    it('handles negative concentration gracefully', () => {
+      const tube = createTube({ concentration: -1000, concentrationUnit: 'c/mL' });
+      const result = formatTubeForLabel(tube);
+      // Should handle gracefully (not crash)
+      expect(result.line4).toBeDefined();
+    });
+  });
+
+  describe('date edge cases', () => {
+    it('handles leap year date', () => {
+      expect(formatLabelDate('2024-02-29')).toBe('02/29/24');
+    });
+
+    it('handles year 2000', () => {
+      expect(formatLabelDate('2000-01-01')).toBe('01/01/00');
+    });
+
+    it('handles future date', () => {
+      expect(formatLabelDate('2099-12-31')).toBe('12/31/99');
+    });
+
+    it('handles date with timezone offset', () => {
+      const result = formatLabelDate('2026-01-29T12:00:00+05:00');
+      expect(result).toMatch(/^\d{2}\/\d{2}\/\d{2}$/);
+    });
+  });
+
+  describe('researcher edge cases', () => {
+    it('handles single-letter names', () => {
+      const researcher = createResearcher('A', 'B');
+      expect(getResearcherInitials(researcher)).toBe('AB');
+    });
+
+    it('handles very long names', () => {
+      const researcher = createResearcher('Bartholomew', 'Weatherington');
+      expect(getResearcherInitials(researcher)).toBe('BW');
+    });
+
+    it('handles hyphenated names', () => {
+      const researcher = createResearcher('Mary-Jane', 'Watson-Parker');
+      expect(getResearcherInitials(researcher)).toBe('MW');
+    });
+
+    it('handles names with accents', () => {
+      const researcher = createResearcher('José', 'García');
+      expect(getResearcherInitials(researcher)).toBe('JG');
+    });
+  });
+});
