@@ -61,7 +61,8 @@
       "WebFetch(domain:developers.dymo.com)",
       "WebFetch(domain:domoticx.net)",
       "Bash(npx vitest:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "WebFetch(domain:vite.dev)"
     ]
   }
 }
