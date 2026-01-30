@@ -197,15 +197,20 @@ export const concentrationPreprocessor = z
 /**
  * Concentration schema for UPDATE operations (PATCH semantics)
  * - null → null (clear field)
- * - empty → undefined (no change)
+ * - empty string → null (clear field, consistent with unit field)
+ * - undefined → undefined (no change)
  * - value → number (set/update)
  * - invalid → validation error
  */
 export const concentrationPreprocessorNullable = z
   .unknown()
   .transform((val, ctx) => {
-    // Preserve null for tri-state PATCH semantics
+    // Preserve null for clearing
     if (val === null) return null;
+    // Empty string = clear (consistent with nullableOptionalFromEmpty for unit)
+    if (val === '' || (typeof val === 'string' && val.trim() === '')) return null;
+    // Undefined = no change (field not included in update)
+    if (val === undefined) return undefined;
 
     const result = parseConcentrationInput(val);
 

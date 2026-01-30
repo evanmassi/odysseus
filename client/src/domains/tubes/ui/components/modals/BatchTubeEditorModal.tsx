@@ -184,12 +184,12 @@ export default function BatchTubeEditorModal({
           analysis.concentration.state !== 'conflict'
             ? analysis.concentration.commonValue != null
               ? formatConcentrationDisplay(analysis.concentration.commonValue)
-              : undefined
-            : undefined,
+              : ''
+            : '',
         concentrationUnit:
           analysis.concentrationUnit.state !== 'conflict'
-            ? analysis.concentrationUnit.commonValue
-            : undefined,
+            ? (analysis.concentrationUnit.commonValue ?? '')
+            : '',
         date:
           analysis.date.state !== 'conflict'
             ? analysis.date.commonValue

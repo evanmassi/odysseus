@@ -70,28 +70,32 @@ export class SampleData {
   }
 
   private validateConcentration(): void {
+    // Treat both null and undefined as "absent" (supports PATCH semantics where null = clear)
+    const hasConcentration = this._concentration !== undefined && this._concentration !== null;
+    const hasUnit = this._concentrationUnit !== undefined && this._concentrationUnit !== null;
+
     // Business rule: Concentration requires unit
-    if (this._concentration !== undefined && this._concentrationUnit === undefined) {
+    if (hasConcentration && !hasUnit) {
       throw new ValidationError('Concentration requires a unit (c/v or c/mL)');
     }
 
     // Business rule: Unit requires concentration
-    if (this._concentrationUnit !== undefined && this._concentration === undefined) {
+    if (hasUnit && !hasConcentration) {
       throw new ValidationError('Concentration unit requires a concentration value');
     }
 
     // Business rule: Concentration must be positive
-    if (this._concentration !== undefined && this._concentration <= 0) {
+    if (hasConcentration && this._concentration! <= 0) {
       throw new ValidationError('Concentration must be greater than 0');
     }
 
     // Business rule: Concentration reasonable limits
-    if (this._concentration !== undefined && this._concentration > 1e12) {
+    if (hasConcentration && this._concentration! > 1e12) {
       throw new ValidationError('Concentration exceeds reasonable limits');
     }
 
     // Validate unit values
-    if (this._concentrationUnit !== undefined && !['c/v', 'c/mL'].includes(this._concentrationUnit)) {
+    if (hasUnit && !['c/v', 'c/mL'].includes(this._concentrationUnit!)) {
       throw new ValidationError('Concentration unit must be "c/v" or "c/mL"');
     }
   }
@@ -186,13 +190,29 @@ export class SampleData {
     lotNumber?: string | null;
     notes?: string | null;
   }>): SampleData {
+    // Compute new concentration values with PATCH semantics
+    // null = clear, undefined = preserve, value = set
+    let newConcentration = updates.concentration === null
+      ? undefined
+      : (updates.concentration !== undefined ? updates.concentration : this._concentration);
+    let newConcentrationUnit = updates.concentrationUnit === null
+      ? undefined
+      : (updates.concentrationUnit !== undefined ? updates.concentrationUnit : this._concentrationUnit);
+
+    // Business rule: concentration and unit are coupled - clearing one clears both
+    // This ensures the invariant "both present or both absent" is maintained
+    if (updates.concentration === null || updates.concentrationUnit === null) {
+      newConcentration = undefined;
+      newConcentrationUnit = undefined;
+    }
+
     return SampleData.create({
       cellType: updates.cellType !== undefined ? updates.cellType : this._cellType,
       // null = clear (convert to undefined), undefined = preserve, value = set
       donorInternalId: updates.donorInternalId === null ? undefined : (updates.donorInternalId !== undefined ? updates.donorInternalId : this._donorInternalId),
       donorSourceId: updates.donorSourceId === null ? undefined : (updates.donorSourceId !== undefined ? updates.donorSourceId : this._donorSourceId),
-      concentration: updates.concentration === null ? undefined : (updates.concentration !== undefined ? updates.concentration : this._concentration),
-      concentrationUnit: updates.concentrationUnit === null ? undefined : (updates.concentrationUnit !== undefined ? updates.concentrationUnit : this._concentrationUnit),
+      concentration: newConcentration,
+      concentrationUnit: newConcentrationUnit,
       date: updates.date === null ? undefined : (updates.date !== undefined ? updates.date : this._date),
       // Deep merge for nested objects: preserve sibling fields when partially updating
       media: updates.media === null
