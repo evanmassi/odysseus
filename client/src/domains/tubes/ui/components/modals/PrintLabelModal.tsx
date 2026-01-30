@@ -39,7 +39,7 @@ interface LabelPreviewProps {
 }
 
 // Scale factor: pixels per inch for preview rendering
-const PREVIEW_SCALE = 160;
+const PREVIEW_SCALE = 250;
 
 /** Visual preview of the label content with proportional sizing */
 function LabelPreview({ lines, size, sdkPreview, isLoadingPreview }: LabelPreviewProps) {
@@ -258,14 +258,12 @@ export function PrintLabelModal({ isOpen, onClose, tubeId }: PrintLabelModalProp
         {modalState === 'ready' && (
           <>
             {/* Label Preview */}
-            <div className="bg-muted/30 rounded-lg p-4">
-              <LabelPreview
-                lines={labelLines}
-                size={selectedSize}
-                sdkPreview={preview}
-                isLoadingPreview={isRenderingPreview}
-              />
-            </div>
+            <LabelPreview
+              lines={labelLines}
+              size={selectedSize}
+              sdkPreview={preview}
+              isLoadingPreview={isRenderingPreview}
+            />
 
             {/* Printer Selection */}
             <div className="grid grid-cols-2 gap-4">
