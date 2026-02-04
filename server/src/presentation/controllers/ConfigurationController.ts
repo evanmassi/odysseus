@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { logger } from '@utils/logger';
 import {
   GetCurrentConfigurationQueryHandler,
+  GetConfigurationForUserQueryHandler,
   GetConfigurationHistoryQueryHandler,
   GetConfigurationByVersionQueryHandler,
   CheckConfigurationHealthQueryHandler
@@ -18,7 +19,8 @@ import {
 import {
   AddTankCommandHandler,
   UpdateTankCommandHandler,
-  DeleteTankCommandHandler
+  DeleteTankCommandHandler,
+  SetTankDemoStatusCommandHandler
 } from '@application/commands/TankCommands';
 import {
   AddRacksCommandHandler,
@@ -77,6 +79,7 @@ export class ConfigurationController extends BaseController {
   constructor(
     // Query handlers
     private getCurrentConfigurationHandler: GetCurrentConfigurationQueryHandler,
+    private getConfigurationForUserHandler: GetConfigurationForUserQueryHandler,
     private getConfigurationHistoryHandler: GetConfigurationHistoryQueryHandler,
     private getConfigurationByVersionHandler: GetConfigurationByVersionQueryHandler,
     private checkConfigurationHealthHandler: CheckConfigurationHealthQueryHandler,
@@ -94,6 +97,7 @@ export class ConfigurationController extends BaseController {
     private addTankHandler: AddTankCommandHandler,
     private updateTankHandler: UpdateTankCommandHandler,
     private deleteTankHandler: DeleteTankCommandHandler,
+    private setTankDemoStatusHandler: SetTankDemoStatusCommandHandler,
     private addRacksHandler: AddRacksCommandHandler,
     private updateRackHandler: UpdateRackCommandHandler,
     private deleteRackHandler: DeleteRackCommandHandler,
@@ -113,11 +117,22 @@ export class ConfigurationController extends BaseController {
 
   /**
    * GET /api/configuration
-   * Get current system configuration
+   * Get current system configuration filtered by user's demo status.
+   * Demo users see only demo tanks; real users see only real tanks.
    */
   async getCurrentConfiguration(req: Request, res: Response): Promise<void> {
     try {
-      const configuration = await this.getCurrentConfigurationHandler.handle({});
+      // Get user from request for demo filtering
+      const user = req.user;
+
+      let configuration;
+      if (user) {
+        // Filter configuration by user's demo status
+        configuration = await this.getConfigurationForUserHandler.handle({ user });
+      } else {
+        // Fallback for unauthenticated requests (shouldn't happen with auth middleware)
+        configuration = await this.getCurrentConfigurationHandler.handle({});
+      }
 
       // Use DTO to transform domain entity to API response format
       const configurationResponse = ConfigurationDto.toResponse(configuration);
@@ -597,6 +612,35 @@ export class ConfigurationController extends BaseController {
       });
     } catch (error) {
       this.handleError(error, res, 'Failed to delete tank');
+    }
+  }
+
+  /**
+   * PUT /api/admin/tanks/:tankId/demo-status
+   * Set tank demo status (admin only)
+   */
+  async setTankDemoStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const tankId = req.params.tankId;
+      const { isDemo } = req.body;
+
+      if (typeof isDemo !== 'boolean') {
+        res.status(400).json({
+          error: { code: 'INVALID_REQUEST', message: 'isDemo must be a boolean' }
+        });
+        return;
+      }
+
+      await this.setTankDemoStatusHandler.handle({ userId, tankId, isDemo });
+
+      res.json({
+        success: true,
+        data: { success: true },
+        message: `Tank '${tankId}' demo status set to ${isDemo}`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to set tank demo status');
     }
   }
 

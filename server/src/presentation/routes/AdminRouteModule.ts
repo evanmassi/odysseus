@@ -12,12 +12,15 @@ import { AuthController } from '@presentation/controllers/AuthController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
+import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { validateBody, validateParams } from '@middleware/Validation';
 import {
   updateSecurityConfigSchema,
   createResearcherProfileSchema,
-  adminResetPasswordRequestSchema
+  adminResetPasswordRequestSchema,
+  setUserDemoStatusSchema,
+  setTankDemoStatusSchema
 } from '@odysseus/shared-schemas';
 
 export class AdminRouteModule implements RouteModule {
@@ -26,6 +29,7 @@ export class AdminRouteModule implements RouteModule {
     private readonly researcherController: ResearcherController,
     private readonly auditController: AuditController,
     private readonly exportController: ExportController,
+    private readonly configurationController: ConfigurationController,
     private readonly authMiddleware: AuthMiddleware
   ) {}
 
@@ -108,6 +112,24 @@ export class AdminRouteModule implements RouteModule {
     router.post('/users/:userId/generate-reset-token',
       validateParams(z.object({ userId: z.string() })),
       this.authController.generatePasswordResetToken.bind(this.authController)
+    );
+
+    // DEMO MANAGEMENT ENDPOINTS
+
+    router.get('/demo/users',
+      this.authController.getDemoUsers.bind(this.authController)
+    );
+
+    router.put('/users/:userId/demo-status',
+      validateParams(z.object({ userId: z.string() })),
+      validateBody(setUserDemoStatusSchema),
+      this.authController.setUserDemoStatus.bind(this.authController)
+    );
+
+    router.put('/tanks/:tankId/demo-status',
+      validateParams(z.object({ tankId: z.string() })),
+      validateBody(setTankDemoStatusSchema),
+      this.configurationController.setTankDemoStatus.bind(this.configurationController)
     );
 
     // RESEARCHER MANAGEMENT ENDPOINTS

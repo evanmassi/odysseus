@@ -304,6 +304,13 @@ export {
   syncStatusResponseSchema,
   auditLogResponseSchema,
 
+  // Demo Management Schemas
+  setUserDemoStatusSchema,
+  setTankDemoStatusSchema,
+  demoUsersResponseSchema,
+  demoTanksResponseSchema,
+  demoResetResponseSchema,
+
   // Constants
   DEFAULT_SECURITY_CONFIG,
 
@@ -320,7 +327,14 @@ export {
   type AdminUsersResponse,
   type SystemMetricsResponse,
   type SyncStatusResponse,
-  type AuditLogResponse
+  type AuditLogResponse,
+
+  // Demo Management Types
+  type SetUserDemoStatus,
+  type SetTankDemoStatus,
+  type DemoUsersResponse,
+  type DemoTanksResponse,
+  type DemoResetResponse
 } from './admin/adminSchemas';
 
 // Authentication Schemas (Registration, Login, Email Verification)

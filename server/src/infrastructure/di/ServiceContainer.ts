@@ -7,7 +7,7 @@ import { UpdateSystemConfigurationCommandHandler, UpdateEquipmentConfigurationCo
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 // CQRS CQRS Command Handlers - Storage Management
-import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler } from '@application/commands/TankCommands';
+import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, SetTankDemoStatusCommandHandler } from '@application/commands/TankCommands';
 import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
 import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
 import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
@@ -15,7 +15,7 @@ import { InitializeConfigurationCommandHandler } from '@application/commands/Ini
 
 // CQRS Query Handlers
 import { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
-import { GetCurrentConfigurationQueryHandler, GetConfigurationHistoryQueryHandler, GetConfigurationByVersionQueryHandler, CheckConfigurationHealthQueryHandler } from '@application/queries/ConfigurationQueries';
+import { GetCurrentConfigurationQueryHandler, GetConfigurationForUserQueryHandler, GetConfigurationHistoryQueryHandler, GetConfigurationByVersionQueryHandler, CheckConfigurationHealthQueryHandler } from '@application/queries/ConfigurationQueries';
 
 // Event Bus
 import { InMemoryEventBus } from '@infrastructure/events/InMemoryEventBus';
@@ -124,10 +124,12 @@ export class ServiceContainer {
   
   // CQRS Query Handlers - Configuration Domain
   private getCurrentConfigurationHandler?: GetCurrentConfigurationQueryHandler;
+  private getConfigurationForUserHandler?: GetConfigurationForUserQueryHandler;
   private getConfigurationHistoryHandler?: GetConfigurationHistoryQueryHandler;
   private getConfigurationByVersionHandler?: GetConfigurationByVersionQueryHandler;
   private checkConfigurationHealthHandler?: CheckConfigurationHealthQueryHandler;
-  
+  private setTankDemoStatusHandler?: SetTankDemoStatusCommandHandler;
+
   // Controllers
   private authController?: AuthController;
   private tubeController?: TubeController;
@@ -513,6 +515,18 @@ export class ServiceContainer {
     return this.deleteTankHandler;
   }
 
+  getSetTankDemoStatusHandler(): SetTankDemoStatusCommandHandler {
+    if (!this.setTankDemoStatusHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.setTankDemoStatusHandler = new SetTankDemoStatusCommandHandler(
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.setTankDemoStatusHandler;
+  }
+
   getAddRacksHandler(): AddRacksCommandHandler {
     if (!this.addRacksHandler) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -701,6 +715,16 @@ export class ServiceContainer {
     return this.getCurrentConfigurationHandler;
   }
 
+  getGetConfigurationForUserHandler(): GetConfigurationForUserQueryHandler {
+    if (!this.getConfigurationForUserHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.getConfigurationForUserHandler = new GetConfigurationForUserQueryHandler(
+        repositories.configurations
+      );
+    }
+    return this.getConfigurationForUserHandler;
+  }
+
   getGetConfigurationHistoryHandler(): GetConfigurationHistoryQueryHandler {
     if (!this.getConfigurationHistoryHandler) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -783,6 +807,7 @@ export class ServiceContainer {
       this.configurationController = new ConfigurationController(
         // Query handlers (first per constructor)
         this.getGetCurrentConfigurationHandler(),
+        this.getGetConfigurationForUserHandler(),
         this.getGetConfigurationHistoryHandler(),
         this.getGetConfigurationByVersionHandler(),
         this.getGetCheckConfigurationHealthHandler(),
@@ -800,6 +825,7 @@ export class ServiceContainer {
         this.getAddTankHandler(),
         this.getUpdateTankHandler(),
         this.getDeleteTankHandler(),
+        this.getSetTankDemoStatusHandler(),
         this.getAddRacksHandler(),
         this.getUpdateRackHandler(),
         this.getDeleteRackHandler(),
