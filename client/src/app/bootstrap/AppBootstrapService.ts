@@ -13,6 +13,7 @@ import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
 import { logger } from '@shared/infrastructure/logger';
 
 import { validateCacheVersion } from '../cache';
+import { clearChunkReloadFlag } from '../chunkErrorRecovery';
 import { queryClient } from '../queryClient';
 import { queryKeys } from '../queryKeys';
 
@@ -214,6 +215,11 @@ export class AppBootstrapService {
       this.updateStep('complete', true);
       this.state.isLoading = false;
       this.isInitialized = true;
+
+      // Clear chunk reload flag after successful bootstrap
+      // This allows future chunk errors to trigger a reload
+      clearChunkReloadFlag();
+
       this.notify();
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Bootstrap failed';
