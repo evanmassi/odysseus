@@ -17,7 +17,7 @@ import type {
   PreviewResult,
 } from '../types';
 
-const SDK_URL = 'https://labelwriter.com/software/dls/sdk/js/dymo.connect.framework.js';
+const SDK_URL = 'https://cdn.jsdelivr.net/gh/dymosoftware/dymo-connect-framework@master/dymo.connect.framework.js';
 
 /** Subset of Dymo SDK types we use */
 interface DymoPrinter {
@@ -40,12 +40,18 @@ interface DymoLabel {
   render(renderParamsXml?: string, printerName?: string): string;
 }
 
+interface LabelRenderParams {
+  pngUseDisplayResolution?: boolean;
+  shadowDepth?: number;
+}
+
 interface DymoFramework {
   init(callback: () => void): void;
   checkEnvironment(): { isBrowserSupported: boolean; isFrameworkInstalled: boolean };
   getPrinters(): DymoPrinter[];
   getPrintersAsync(): Promise<DymoPrinter[]>;
   openLabelXml(xml: string): DymoLabel;
+  createLabelRenderParamsXml(params: LabelRenderParams): string;
 }
 
 declare global {
@@ -201,14 +207,19 @@ class DymoDriverImpl implements PrinterDriver {
         return null;
       }
 
-      // Render at high resolution for crisp preview
-      // Scale factor: render at ~300 DPI equivalent for the label size
+      // Create render params for high resolution preview
+      const renderParamsXml = this.sdk.createLabelRenderParamsXml({
+        pngUseDisplayResolution: true,
+        shadowDepth: 0,
+      });
+
+      // Dymo render() returns base64 PNG string
+      const base64Png = dymoLabel.render(renderParamsXml);
+
+      // Get actual dimensions from rendered image
       const dpi = 300;
       const targetWidth = Math.round(options.labelSize.width * dpi);
       const targetHeight = Math.round(options.labelSize.height * dpi);
-
-      // Dymo render() returns base64 PNG string
-      const base64Png = dymoLabel.render();
 
       if (!base64Png) {
         return null;

@@ -178,12 +178,8 @@ export function PrintLabelModal({ isOpen, onClose, tubeId }: PrintLabelModalProp
     return 'ready';
   }, [isDiscovering, tubeLoading, isPrinting, error, lastResult, availablePrinters.length]);
 
-  // Render SDK preview when ready and dependencies change
-  useEffect(() => {
-    if (modalState === 'ready' && selectedPrinter && Object.keys(labelLines).length > 0) {
-      void renderPreview(labelLines, { labelSize: selectedSize });
-    }
-  }, [modalState, selectedPrinter, labelLines, selectedSize, renderPreview]);
+  // Skip SDK preview - use text-based preview for crisp display
+  // SDK preview renders at low resolution and appears blurry when scaled
 
   const handlePrint = async () => {
     const result = await printLabel(labelLines, {
