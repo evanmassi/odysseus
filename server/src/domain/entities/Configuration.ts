@@ -50,7 +50,7 @@ export class Configuration {
 
     // Create default tank with nested racks
     const defaultTanks = [
-      Tank.create(NAMING_PATTERNS.TANK.ID_PATTERN(1), NAMING_PATTERNS.TANK.DEFAULT_NAME(1), defaultRacks, EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK, true)
+      Tank.create(NAMING_PATTERNS.TANK.ID_PATTERN(1), NAMING_PATTERNS.TANK.DEFAULT_NAME(1), defaultRacks, EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK, true, 'Main Lab', false)
     ];
 
     const equipment = EquipmentConfiguration.create(defaultTanks);
@@ -88,6 +88,7 @@ export class Configuration {
       }>;
       maxRacks?: number;
       isActive?: boolean;
+      isDemo?: boolean;
     }>;
     systemSettings: {
       labName: string;
@@ -142,7 +143,8 @@ export class Configuration {
         racks,
         tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
         tankData.isActive ?? true,
-        tankData.location || 'Main Lab'
+        tankData.location || 'Main Lab',
+        tankData.isDemo ?? false
       );
     });
 
@@ -224,7 +226,9 @@ export class Configuration {
       tank.name,
       [...tank.racks, newRack] as Rack[],
       tank.maxRacks,
-      tank.isActive
+      tank.isActive,
+      tank.location,
+      tank.isDemo
     );
 
     // Recreate equipment with updated tank
@@ -283,7 +287,9 @@ export class Configuration {
       tank.name,
       newRacks as Rack[],
       tank.maxRacks,
-      tank.isActive
+      tank.isActive,
+      tank.location,
+      tank.isDemo
     );
 
     // Recreate equipment with updated tank
@@ -359,7 +365,9 @@ export class Configuration {
       tank.name,
       racks,
       tank.maxRacks,
-      tank.isActive
+      tank.isActive,
+      tank.location,
+      tank.isDemo
     );
 
     const newTanks = [...this._equipment.tanks];
@@ -408,7 +416,9 @@ export class Configuration {
       tank.name,
       newRacks as Rack[],
       tank.maxRacks,
-      tank.isActive
+      tank.isActive,
+      tank.location,
+      tank.isDemo
     );
 
     const newTanks = [...this._equipment.tanks];
@@ -495,14 +505,14 @@ export class Configuration {
     newRacks[rackIndex] = updatedRack;
 
     // Create new tank with updated racks
-    // Preserve tank.location
     const updatedTank = Tank.create(
       tank.id,
       tank.name,
       newRacks as Rack[],
       tank.maxRacks,
       tank.isActive,
-      tank.location
+      tank.location,
+      tank.isDemo
     );
 
     // Create new tanks array with updated tank
@@ -587,7 +597,8 @@ export class Configuration {
       updatedRacks as Rack[],
       tank.maxRacks,
       tank.isActive,
-      tank.location
+      tank.location,
+      tank.isDemo
     );
 
     // Rebuild equipment with updated tank
@@ -707,7 +718,8 @@ export class Configuration {
           updatedRacks as Rack[],
           tank.maxRacks,
           tank.isActive,
-          tank.location
+          tank.location,
+          tank.isDemo
         );
       }
 
@@ -778,7 +790,8 @@ export class Configuration {
         updatedRacks as Rack[],
         tank.maxRacks,
         tank.isActive,
-        tank.location
+        tank.location,
+        tank.isDemo
       );
 
       const updatedTanks = [...this._equipment.tanks];
@@ -830,7 +843,8 @@ export class Configuration {
         updatedRacks as Rack[],
         tank.maxRacks,
         tank.isActive,
-        tank.location
+        tank.location,
+        tank.isDemo
       );
 
       const updatedTanks = [...this._equipment.tanks];
@@ -919,6 +933,35 @@ export class Configuration {
   }
 
   /**
+   * Business query: Get tanks marked as demo
+   */
+  getDemoTanks(): readonly Tank[] {
+    return this._equipment.tanks.filter(t => t.isDemo);
+  }
+
+  /**
+   * Business query: Get tanks NOT marked as demo (real tanks)
+   */
+  getRealTanks(): readonly Tank[] {
+    return this._equipment.tanks.filter(t => !t.isDemo);
+  }
+
+  /**
+   * Business query: Get tanks filtered by user's demo status
+   * Demo users see only demo tanks; real users see only real tanks
+   */
+  getTanksForUserDemoStatus(isDemo: boolean): readonly Tank[] {
+    return isDemo ? this.getDemoTanks() : this.getRealTanks();
+  }
+
+  /**
+   * Business query: Get IDs of tanks accessible to a user based on demo status
+   */
+  getTankIdsForUserDemoStatus(isDemo: boolean): string[] {
+    return this.getTanksForUserDemoStatus(isDemo).map(t => t.id);
+  }
+
+  /**
    * Business query: Get available positions in a box
    */
   getAvailablePositions(tankId: string, rackId: string | number, boxId: string, occupiedPositions: number[]): number[] {
@@ -973,6 +1016,7 @@ export class Configuration {
       }>;
       maxRacks?: number;
       isActive?: boolean;
+      isDemo?: boolean;
     }>;
     systemSettings: {
       labName: string;
@@ -1023,7 +1067,8 @@ export class Configuration {
         racks,
         tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
         tankData.isActive ?? true,
-        tankData.location || 'Main Lab'
+        tankData.location || 'Main Lab',
+        tankData.isDemo ?? false
       );
     });
 
@@ -1078,6 +1123,7 @@ export class Configuration {
       }>;
       maxRacks: number;
       isActive: boolean;
+      isDemo: boolean;
     }>;
     systemSettings: {
       labName: string;

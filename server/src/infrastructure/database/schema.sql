@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_reset_expiry TIMESTAMPTZ,
   require_password_change BOOLEAN DEFAULT FALSE,
   last_password_change TIMESTAMPTZ,
+  is_demo BOOLEAN NOT NULL DEFAULT FALSE,
   settings TEXT
 );
 
@@ -61,6 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_researcher_id ON users(researcher_id);
 CREATE INDEX IF NOT EXISTS idx_users_person_id ON users(person_id);
 CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
+CREATE INDEX IF NOT EXISTS idx_users_is_demo ON users(is_demo);
 CREATE INDEX IF NOT EXISTS idx_users_email_verification_token ON users(email_verification_token);
 CREATE INDEX IF NOT EXISTS idx_users_password_reset_token ON users(password_reset_token);
 

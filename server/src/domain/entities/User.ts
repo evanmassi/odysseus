@@ -22,6 +22,7 @@ export class User {
   private _passwordResetExpiry?: Date;
   private _requirePasswordChange: boolean = false;
   private _lastPasswordChange?: Date;
+  private _isDemo: boolean = false;
   private _settings: UserSettings;
 
   private constructor(
@@ -42,6 +43,7 @@ export class User {
     passwordResetExpiry?: Date | string,
     requirePasswordChange?: boolean,
     lastPasswordChange?: Date | string,
+    isDemo?: boolean,
     settings?: UserSettings
   ) {
     this._emailVerified = emailVerified ?? false;
@@ -60,6 +62,7 @@ export class User {
     this._lastPasswordChange = lastPasswordChange
       ? (typeof lastPasswordChange === 'string' ? new Date(lastPasswordChange) : lastPasswordChange)
       : undefined;
+    this._isDemo = isDemo ?? false;
     this._settings = settings ?? DEFAULT_USER_SETTINGS;
     this.validate();
   }
@@ -175,6 +178,7 @@ export class User {
     passwordResetExpiry?: string;
     requirePasswordChange?: number;
     lastPasswordChange?: string;
+    isDemo?: boolean | number;
     settings?: UserSettings | string;
   }): User {
     // Parse settings from JSON string if needed
@@ -212,6 +216,7 @@ export class User {
       data.passwordResetExpiry,
       data.requirePasswordChange === 1,
       data.lastPasswordChange,
+      data.isDemo === true || data.isDemo === 1,
       parsedSettings
     );
 
@@ -490,6 +495,14 @@ export class User {
   }
 
   /**
+   * Business method: Set user's demo status (admin operation)
+   */
+  setDemoStatus(isDemo: boolean): void {
+    this._isDemo = isDemo;
+    this.recordActivity();
+  }
+
+  /**
    * Business method: Unlink researcher profile from user
    * Used when deleting users to preserve researcher records for tube history
    */
@@ -535,6 +548,7 @@ export class User {
     researcherId?: string;
     personId?: string;
     status: 'pending' | 'approved' | 'rejected';
+    isDemo: boolean;
     settings: UserSettings;
   } {
     return {
@@ -547,6 +561,7 @@ export class User {
       researcherId: this._researcherId,
       personId: this._personId,
       status: this._status,
+      isDemo: this._isDemo,
       settings: this._settings
     };
   }
@@ -561,6 +576,7 @@ export class User {
     createdAt: string;
     lastActivity: string;
     status: 'pending' | 'approved' | 'rejected';
+    isDemo: boolean;
     researcherId?: string;
     personId?: string;
   } {
@@ -571,6 +587,7 @@ export class User {
       createdAt: this._createdAt.toISOString(),
       lastActivity: this._lastActivity.toISOString(),
       status: this._status,
+      isDemo: this._isDemo,
       researcherId: this._researcherId,
       personId: this._personId
     };
@@ -617,6 +634,7 @@ export class User {
   get passwordResetExpiry(): Date | undefined { return this._passwordResetExpiry; }
   get requirePasswordChange(): boolean { return this._requirePasswordChange; }
   get lastPasswordChange(): Date | undefined { return this._lastPasswordChange; }
+  get isDemo(): boolean { return this._isDemo; }
 
   // Convenience getters
   get roleString(): 'admin' | 'user' { return this._role.role; }
@@ -867,6 +885,7 @@ export class User {
       this._passwordResetExpiry,
       this._requirePasswordChange,
       this._lastPasswordChange,
+      this._isDemo,
       newSettings
     );
 
