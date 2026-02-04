@@ -1,5 +1,6 @@
 import { Configuration } from '@domain/entities/Configuration';
 import { ConfigurationRepository, ConfigurationHistory } from '@domain/repositories/ConfigurationRepository';
+import { User } from '@domain/entities/User';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 
 // CONFIGURATION QUERY CONTRACTS
@@ -55,11 +56,45 @@ export class GetCurrentConfigurationQueryHandler {
 }
 
 /**
+ * Get Configuration for User Query
+ *
+ * Returns configuration filtered by user's demo status.
+ * Demo users see only demo tanks; real users see only real tanks.
+ */
+export interface GetConfigurationForUserQuery {
+  user: User;
+}
+
+/**
+ * Get Configuration for User Query Handler
+ *
+ * Returns the current configuration with tanks filtered by user's demo status.
+ * Used by API endpoints to enforce demo mode isolation.
+ */
+export class GetConfigurationForUserQueryHandler {
+  constructor(private configurationRepository: ConfigurationRepository) {}
+
+  async handle(query: GetConfigurationForUserQuery): Promise<Configuration> {
+    let configuration = await this.configurationRepository.getCurrent();
+
+    if (!configuration) {
+      configuration = await this.configurationRepository.ensureDefault();
+    }
+
+    // Return configuration with tanks filtered by user's demo status
+    // The Configuration entity provides helper methods for this
+    return configuration.withFilteredTanks(
+      configuration.getTanksForUserDemoStatus(query.user.isDemo)
+    );
+  }
+}
+
+/**
  * Get Configuration History Query Handler
- * 
+ *
  * Returns historical configuration versions with pagination.
  * Used for audit trails and configuration rollback features.
- * 
+ *
  * @example
  * const handler = new GetConfigurationHistoryQueryHandler(configRepository);
  * const history = await handler.handle({ limit: 10, offset: 0 });

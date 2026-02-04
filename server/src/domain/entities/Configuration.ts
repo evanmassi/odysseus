@@ -962,6 +962,20 @@ export class Configuration {
   }
 
   /**
+   * Create a new Configuration with only the specified tanks.
+   * Used for demo mode isolation in API responses.
+   */
+  withFilteredTanks(tanks: readonly Tank[]): Configuration {
+    const filteredEquipment = EquipmentConfiguration.create([...tanks]);
+    return new Configuration(
+      filteredEquipment,
+      this._systemSettings,
+      this._updatedAt,
+      this._version
+    );
+  }
+
+  /**
    * Business query: Get available positions in a box
    */
   getAvailablePositions(tankId: string, rackId: string | number, boxId: string, occupiedPositions: number[]): number[] {

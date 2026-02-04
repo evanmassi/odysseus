@@ -80,6 +80,17 @@ export class TubeApplicationService {
     };
   }
 
+  /**
+   * Get tank IDs accessible to user based on demo status.
+   * Demo users see only demo tanks; real users see only real tanks.
+   */
+  private async getAllowedTankIds(user: User): Promise<string[]> {
+    const config = await this.configurationRepository.getCurrent();
+    if (!config) return [];
+
+    return config.getTankIdsForUserDemoStatus(user.isDemo);
+  }
+
   private async getTubeOrThrow(id: string): Promise<Tube> {
     const tube = await this.tubeRepository.findById(id);
     if (!tube) {
@@ -89,8 +100,8 @@ export class TubeApplicationService {
   }
 
   /**
-   * Create a new tube
-   *Trust Zod-validated input, enforce business rules only
+   * Create a new tube.
+   * Trust Zod-validated input, enforce business rules only.
    */
   async createTube(request: CreateTubeRequest, authenticatedUser: User, options?: { config?: Configuration | null; positionValidation?: { isValid: boolean; reason?: string }; researcherNameCache?: Map<string, string> }): Promise<TubeResponse> {
     // 1. Check permissions
@@ -98,6 +109,20 @@ export class TubeApplicationService {
 
     // 2. Map DTO to domain (thin, no logic)
     const tubeData = TubeDto.fromCreateRequest(request);
+
+    // 2.1 Demo mode isolation: verify tank is accessible to user
+    const config = options?.config !== undefined ? options.config : await this.configurationRepository.getCurrent();
+    if (config) {
+      const tank = config.tanks.find(t => t.id === tubeData.location.tankId);
+      if (tank && tank.isDemo !== authenticatedUser.isDemo) {
+        throw new PermissionError(
+          authenticatedUser.isDemo
+            ? 'Demo users can only create tubes in demo tanks'
+            : 'Cannot create tubes in demo tanks',
+          { tankId: tubeData.location.tankId }
+        );
+      }
+    }
 
     // 2.5. Check container access (assignment protects the container)
     const containerInfo = await this.getContainerInfo(
@@ -304,17 +329,28 @@ export class TubeApplicationService {
   }
 
   /**
-   * Get all tubes with filtering
+   * Get all tubes with filtering.
+   * Applies demo mode isolation: demo users see only demo tanks, real users see only real tanks.
    */
   async getAllTubes(authenticatedUser: User, searchRequest?: TubeSearchRequest): Promise<TubeResponse[]> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
+    // Get allowed tank IDs based on user's demo status
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+
     let tubes: Tube[];
 
     if (searchRequest && Object.keys(searchRequest).length > 0) {
-      tubes = await this.tubeRepository.search(searchRequest as TubeSearchCriteria);
+      // Merge demo tank filter with search criteria
+      const filteredCriteria: TubeSearchCriteria = {
+        ...searchRequest,
+        tankIds: searchRequest.tankIds?.length
+          ? searchRequest.tankIds.filter(id => allowedTankIds.includes(id))
+          : allowedTankIds
+      };
+      tubes = await this.tubeRepository.search(filteredCriteria);
     } else {
-      tubes = await this.tubeRepository.findAll();
+      tubes = await this.tubeRepository.findByTankIds(allowedTankIds);
     }
 
     return TubeDto.toResponseList(tubes);
@@ -352,7 +388,8 @@ export class TubeApplicationService {
   }
 
   /**
-   * Search tubes with advanced criteria
+   * Search tubes with advanced criteria.
+   * Applies demo mode isolation.
    */
   async searchTubes(
     searchRequest: TubeSearchRequest,
@@ -360,18 +397,40 @@ export class TubeApplicationService {
   ): Promise<TubeResponse[]> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const tubes = await this.tubeRepository.search(searchRequest as TubeSearchCriteria);
+    // Apply demo tank filter
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const filteredCriteria: TubeSearchCriteria = {
+      ...searchRequest,
+      tankIds: searchRequest.tankIds?.length
+        ? searchRequest.tankIds.filter(id => allowedTankIds.includes(id))
+        : allowedTankIds
+    };
+
+    const tubes = await this.tubeRepository.search(filteredCriteria);
 
     return TubeDto.toResponseList(tubes);
   }
 
+  /**
+   * Search tubes with highlighting.
+   * Applies demo mode isolation.
+   */
   async searchTubesWithHighlighting(
     searchRequest: TubeSearchRequest,
     authenticatedUser: User
   ): Promise<TubeSearchResponse> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const result = await this.tubeRepository.searchWithHighlighting(searchRequest as TubeSearchCriteria);
+    // Apply demo tank filter
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const filteredCriteria: TubeSearchCriteria = {
+      ...searchRequest,
+      tankIds: searchRequest.tankIds?.length
+        ? searchRequest.tankIds.filter(id => allowedTankIds.includes(id))
+        : allowedTankIds
+    };
+
+    const result = await this.tubeRepository.searchWithHighlighting(filteredCriteria);
 
     return {
       tubes: TubeDto.toResponseList(result.tubes),

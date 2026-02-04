@@ -40,6 +40,12 @@ export interface DeleteTankCommand {
   tankId: string;
 }
 
+export interface SetTankDemoStatusCommand {
+  userId: string;
+  tankId: string;
+  isDemo: boolean;
+}
+
 // COMMAND HANDLERS
 
 /** Creates a new tank in the configuration. */
@@ -212,6 +218,76 @@ export class DeleteTankCommandHandler {
       command.userId,
       command.tankId,
       tankName
+    ));
+  }
+
+  private async getUserById(userId: string): Promise<User> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new ValidationError(`User not found: ${userId}`);
+    }
+    return user;
+  }
+}
+
+/** Sets a tank's demo status (admin only). */
+export class SetTankDemoStatusCommandHandler {
+  constructor(
+    private configurationRepository: ConfigurationRepository,
+    private userRepository: UserRepository,
+    private eventBus: EventBus
+  ) {}
+
+  async handle(command: SetTankDemoStatusCommand): Promise<void> {
+    const currentConfig = await this.configurationRepository.getCurrent();
+    if (!currentConfig) {
+      throw new ValidationError('No configuration found. Initialize system first.');
+    }
+
+    const user = await this.getUserById(command.userId);
+    if (!user.role.isAdmin()) {
+      throw PermissionError.configurationManagement('set tank demo status', command.userId);
+    }
+
+    const tank = currentConfig.tanks.find(t => t.id === command.tankId);
+    if (!tank) {
+      throw new NotFoundError(`Tank '${command.tankId}' not found`);
+    }
+
+    // Skip if no change
+    if (tank.isDemo === command.isDemo) {
+      return;
+    }
+
+    const changes: FieldChange[] = [{
+      field: 'isDemo',
+      oldValue: tank.isDemo,
+      newValue: command.isDemo
+    }];
+
+    const configData = currentConfig.toData();
+    const tankIndex = configData.tanks.findIndex(t => t.id === command.tankId);
+    configData.tanks[tankIndex].isDemo = command.isDemo;
+
+    const expectedVersion = currentConfig.version;
+    currentConfig.updateFromData({
+      tanks: configData.tanks,
+      systemSettings: configData.systemSettings
+    });
+
+    const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      currentConfig,
+      expectedVersion,
+      `Set tank '${tank.name}' demo status to ${command.isDemo}`,
+      command.userId
+    );
+    currentConfig.applyPersistedVersion(newVersion);
+
+    await this.eventBus.publish(new TankUpdatedEvent(
+      command.userId,
+      command.tankId,
+      tank.name,
+      changes
     ));
   }
 
