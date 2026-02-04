@@ -17,25 +17,20 @@ import { logger } from '@shared/infrastructure/logger';
 
 import { authService, isPasswordChangeRequired } from '../services/AuthenticationService';
 
+import type { User } from '../types';
 import type { PasswordChangeRequiredResponse } from '../types/api';
 import type { AuthDebugInfo } from '../types/debug';
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
 import type { TokenPair, SessionStatus } from '@shared/session/types';
+
+// Re-export User for external consumers
+export type { User };
 
 /** Structured result from login for explicit error handling */
 export type LoginResult =
   | { success: true }
   | { success: false; error: string }
   | { success: 'password_change_required' };
-
-// User interface - matches server's toPublicData() response
-export interface User {
-  id: string;
-  username: string;
-  lastActivity: string;
-  role?: 'admin' | 'user';
-  researcherId?: string;
-}
 
 /**
  * Enhanced authentication state

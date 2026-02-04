@@ -4,6 +4,7 @@ export interface User {
   lastActivity: string;
   role?: 'admin' | 'user';
   researcherId?: string;
+  isDemo?: boolean;
 }
 
 export interface AuthCredentials {
