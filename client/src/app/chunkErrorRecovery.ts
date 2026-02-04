@@ -3,6 +3,11 @@
  *
  * Handles stale chunk errors that occur after deployments when the browser
  * has cached an old index.html referencing chunks that no longer exist.
+ *
+ * Strategy:
+ * - On chunk load failure, reload the page once to get fresh assets
+ * - Use sessionStorage to prevent infinite reload loops
+ * - Only clear the reload flag after app successfully initializes
  */
 
 import { logger } from '@shared/infrastructure/logger';
@@ -25,8 +30,11 @@ function handleChunkError(event: Event): void {
   window.location.reload();
 }
 
-function clearReloadFlag(): void {
-  // Clear the flag on successful page load
+/**
+ * Clear the reload flag after successful app initialization.
+ * Call this from the bootstrap service after the app is fully loaded.
+ */
+export function clearChunkReloadFlag(): void {
   sessionStorage.removeItem(RELOAD_KEY);
 }
 
@@ -34,7 +42,6 @@ export function initChunkErrorRecovery(): void {
   // Listen for Vite's preload error event
   window.addEventListener('vite:preloadError', handleChunkError);
 
-  // Clear the reload flag once the page loads successfully
-  // This allows future chunk errors to trigger a reload
-  clearReloadFlag();
+  // Note: The reload flag is cleared by clearChunkReloadFlag() after successful bootstrap,
+  // not here. This prevents infinite reloads if the HTML is still stale after reload.
 }
