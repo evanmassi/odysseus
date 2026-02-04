@@ -214,6 +214,17 @@ export class TubeRepository implements ITubeRepository {
     return TubeMapper.fromRows(rows);
   }
 
+  async findByTankIds(tankIds: string[]): Promise<Tube[]> {
+    if (tankIds.length === 0) return [];
+
+    const placeholders = tankIds.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await this.context.queryMany<TubeRow>(
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id IN (${placeholders}) ORDER BY tank_id, rack_id, box_id, position`,
+      tankIds
+    );
+    return TubeMapper.fromRows(rows);
+  }
+
   async findByTankAndRack(tankId: string, rackId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
       `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 ORDER BY box_id, position`,

@@ -69,7 +69,12 @@ export interface TubeRepository {
    * Find all tubes in a specific tank
    */
   findByTank(tankId: string): Promise<Tube[]>;
-  
+
+  /**
+   * Find all tubes in multiple tanks (for demo mode filtering)
+   */
+  findByTankIds(tankIds: string[]): Promise<Tube[]>;
+
   /**
    * Find all tubes in a specific rack within a tank
    */

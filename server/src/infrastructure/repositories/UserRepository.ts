@@ -13,7 +13,7 @@ import * as crypto from 'crypto';
 const USER_COLUMNS = `
   id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
   email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
-  password_reset_token, password_reset_expiry, require_password_change, last_password_change, settings
+  password_reset_token, password_reset_expiry, require_password_change, last_password_change, is_demo, settings
 `.trim();
 
 /**
@@ -56,7 +56,7 @@ export class UserRepository implements IUserRepository {
     const row = await this.context.queryOne<UserRow>(
       `SELECT u.id, u.username, u.api_key, u.role, u.password_hash, u.salt, u.created_at, u.researcher_id, u.person_id, u.status,
               u.email_verified, u.email_verification_token, u.email_verification_expiry, u.last_verification_email_sent,
-              u.password_reset_token, u.password_reset_expiry, u.require_password_change, u.last_password_change, u.settings
+              u.password_reset_token, u.password_reset_expiry, u.require_password_change, u.last_password_change, u.is_demo, u.settings
        FROM users u INNER JOIN persons p ON u.person_id = p.id WHERE LOWER(p.email) = $1`,
       [normalizedEmail]
     );
@@ -147,8 +147,8 @@ export class UserRepository implements IUserRepository {
         INSERT INTO users (
           id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
           email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
-          password_reset_token, password_reset_expiry, require_password_change, last_password_change, settings
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+          password_reset_token, password_reset_expiry, require_password_change, last_password_change, is_demo, settings
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
         ON CONFLICT (id) DO UPDATE SET
           username = EXCLUDED.username,
           api_key = EXCLUDED.api_key,
@@ -167,12 +167,13 @@ export class UserRepository implements IUserRepository {
           password_reset_expiry = EXCLUDED.password_reset_expiry,
           require_password_change = EXCLUDED.require_password_change,
           last_password_change = EXCLUDED.last_password_change,
+          is_demo = EXCLUDED.is_demo,
           settings = EXCLUDED.settings
       `, [
         row.id, row.username, row.api_key, row.role, row.password_hash, row.salt, row.created_at,
         row.researcher_id, row.person_id, row.status, row.email_verified, row.email_verification_token,
         row.email_verification_expiry, row.last_verification_email_sent, row.password_reset_token,
-        row.password_reset_expiry, row.require_password_change, row.last_password_change, row.settings
+        row.password_reset_expiry, row.require_password_change, row.last_password_change, row.is_demo, row.settings
       ]);
     } catch (error) {
       // Translate database-specific errors to domain errors
@@ -219,14 +220,14 @@ export class UserRepository implements IUserRepository {
 
   async findAdmins(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      "`SELECT ${USER_COLUMNS} FROM users WHERE role = 'admin' ORDER BY created_at`"
+      `SELECT ${USER_COLUMNS} FROM users WHERE role = 'admin' ORDER BY created_at`
     );
     return UserMapper.fromRows(rows);
   }
 
   async findRegularUsers(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      "`SELECT ${USER_COLUMNS} FROM users WHERE role = 'user' ORDER BY created_at`"
+      `SELECT ${USER_COLUMNS} FROM users WHERE role = 'user' ORDER BY created_at`
     );
     return UserMapper.fromRows(rows);
   }
@@ -268,6 +269,36 @@ export class UserRepository implements IUserRepository {
       [status]
     );
     return UserMapper.fromRows(rows);
+  }
+
+  // DEMO MODE OPERATIONS
+
+  async findDemoUsers(): Promise<User[]> {
+    const rows = await this.context.queryMany<UserRow>(
+      `SELECT ${USER_COLUMNS} FROM users WHERE is_demo = true ORDER BY created_at DESC`
+    );
+    return UserMapper.fromRows(rows);
+  }
+
+  async findDemoUserIds(): Promise<string[]> {
+    const rows = await this.context.queryMany<{ id: string }>(
+      'SELECT id FROM users WHERE is_demo = true'
+    );
+    return rows.map(row => row.id);
+  }
+
+  async findNonDemoUsers(): Promise<User[]> {
+    const rows = await this.context.queryMany<UserRow>(
+      `SELECT ${USER_COLUMNS} FROM users WHERE is_demo = false ORDER BY created_at DESC`
+    );
+    return UserMapper.fromRows(rows);
+  }
+
+  async countDemoUsers(): Promise<number> {
+    const result = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM users WHERE is_demo = true'
+    );
+    return parseInt(result?.count || '0', 10);
   }
 
   // USER MANAGEMENT OPERATIONS

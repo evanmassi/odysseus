@@ -131,6 +131,28 @@ export interface UserRepository {
    */
   findByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<User[]>;
 
+  // DEMO MODE OPERATIONS
+
+  /**
+   * Find all demo users
+   */
+  findDemoUsers(): Promise<User[]>;
+
+  /**
+   * Find IDs of all demo users (for filtering)
+   */
+  findDemoUserIds(): Promise<string[]>;
+
+  /**
+   * Find all non-demo (real) users
+   */
+  findNonDemoUsers(): Promise<User[]>;
+
+  /**
+   * Count demo users
+   */
+  countDemoUsers(): Promise<number>;
+
   // USER MANAGEMENT OPERATIONS
 
   /**

@@ -22,6 +22,7 @@ export interface UserRow {
   password_reset_expiry?: Date | string;
   require_password_change?: boolean;
   last_password_change?: Date | string;
+  is_demo?: boolean;
   settings?: string;
 }
 
@@ -58,6 +59,7 @@ export class UserMapper {
       password_reset_expiry: user.passwordResetExpiry || undefined,
       require_password_change: user.requirePasswordChange,
       last_password_change: user.lastPasswordChange || undefined,
+      is_demo: user.isDemo,
       settings: settingsJson
     };
   }
@@ -114,6 +116,7 @@ export class UserMapper {
       passwordResetExpiry: passwordResetExpiry,
       requirePasswordChange: row.require_password_change ? 1 : 0,
       lastPasswordChange: lastPasswordChange,
+      isDemo: row.is_demo,
       settings: row.settings
     });
   }
