@@ -247,12 +247,20 @@ export class SearchController extends BaseController {
    */
   async saveSearch(req: Request, res: Response): Promise<void> {
     try {
+      const authenticatedUser = this.getAuthenticatedUser(req);
+
+      // Demo users cannot save searches
+      if (authenticatedUser.isDemo) {
+        res.status(403).json({ success: false, error: 'Saving searches is not available in demo mode' });
+        return;
+      }
+
       const { name, searchOptions } = req.body;
-      
+
       // Placeholder - return success until saved search feature is implemented
-      res.json({ 
-        success: true, 
-        searchId: `search_${Date.now()}` 
+      res.json({
+        success: true,
+        searchId: `search_${Date.now()}`
       });
     } catch (error) {
       handleControllerError(error, res, 'Failed to save search');
