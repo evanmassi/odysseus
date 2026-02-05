@@ -120,6 +120,15 @@ export class AuditEventHandler {
     return demoTankIds.has(tankId);
   }
 
+  /**
+   * Check if any of the provided tanks are demo tanks.
+   * Used for bulk operations that may span multiple tanks.
+   */
+  private async anyTankIsDemo(tankIds: string[]): Promise<boolean> {
+    const demoTankIds = await this.getDemoTankIds();
+    return tankIds.some(id => demoTankIds.has(id));
+  }
+
   /** Wrap an audit logging operation with standardized error handling. */
   private async safeLogAudit(
     eventName: string,
@@ -152,6 +161,7 @@ export class AuditEventHandler {
     entityId?: string;
     occurredOn: Date;
     tankId?: string;
+    tankIds?: string[];
     buildDetails: (username: string) => Record<string, unknown> | Promise<Record<string, unknown>>;
   }): Promise<void> {
     await this.safeLogAudit(params.eventName, params.context, async () => {
@@ -162,8 +172,13 @@ export class AuditEventHandler {
         return;
       }
 
-      // Skip audit logging for actions on demo tanks
+      // Skip audit logging for actions on demo tanks (single tank)
       if (params.tankId && await this.isTankDemo(params.tankId)) {
+        return;
+      }
+
+      // Skip audit logging for bulk actions if any tank is demo
+      if (params.tankIds && params.tankIds.length > 0 && await this.anyTankIsDemo(params.tankIds)) {
         return;
       }
 
@@ -422,6 +437,7 @@ export class AuditEventHandler {
       action: 'tube_bulk_updated',
       entityType: 'tube',
       occurredOn: event.occurredOn,
+      tankIds: event.tankIds,
       buildDetails: (username) => ({
         tubeIds: event.tubeIds,
         count: event.tubeIds.length,
@@ -451,6 +467,7 @@ export class AuditEventHandler {
       action: 'tubes_locked',
       entityType: 'tube',
       occurredOn: event.occurredOn,
+      tankIds: event.tankIds,
       buildDetails: (username) => ({
         tubeCount: event.tubeIds.length,
         tubeIds: event.tubeIds.slice(0, 10),
@@ -469,6 +486,7 @@ export class AuditEventHandler {
       action: 'tubes_unlocked',
       entityType: 'tube',
       occurredOn: event.occurredOn,
+      tankIds: event.tankIds,
       buildDetails: (username) => ({
         tubeCount: event.tubeIds.length,
         tubeIds: event.tubeIds.slice(0, 10),
@@ -483,6 +501,7 @@ export class AuditEventHandler {
       eventName: 'tube access shared', context: { tubeIds: event.tubeIds },
       actorId: event.sharedBy, action: 'tube_access_shared', entityType: 'tube',
       occurredOn: event.occurredOn,
+      tankIds: event.tankIds,
       buildDetails: async (username) => {
         const sharedWithUsers = await this.resolveUsernames(event.addedUserIds);
         return {
@@ -499,6 +518,7 @@ export class AuditEventHandler {
       eventName: 'tube access revoked', context: { tubeIds: event.tubeIds },
       actorId: event.revokedBy, action: 'tube_access_revoked', entityType: 'tube',
       occurredOn: event.occurredOn,
+      tankIds: event.tankIds,
       buildDetails: async (username) => {
         const revokedUsers = await this.resolveUsernames(event.revokedUserIds);
         return {
