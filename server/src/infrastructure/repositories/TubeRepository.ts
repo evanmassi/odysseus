@@ -1037,6 +1037,17 @@ export class TubeRepository implements ITubeRepository {
     return result.rowCount ?? 0;
   }
 
+  async deleteByTankIds(tankIds: string[]): Promise<number> {
+    if (tankIds.length === 0) return 0;
+
+    const placeholders = tankIds.map((_, i) => `$${i + 1}`).join(',');
+    const result = await this.context.execute(
+      `DELETE FROM tubes WHERE tank_id IN (${placeholders})`,
+      tankIds
+    );
+    return result.rowCount ?? 0;
+  }
+
   async updateResearcherForMany(tubeIds: string[], newResearcher: string): Promise<number> {
     if (tubeIds.length === 0) return 0;
 

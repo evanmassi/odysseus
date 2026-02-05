@@ -132,6 +132,10 @@ export class AdminRouteModule implements RouteModule {
       this.configurationController.setTankDemoStatus.bind(this.configurationController)
     );
 
+    router.post('/demo/reset',
+      this.configurationController.resetDemoData.bind(this.configurationController)
+    );
+
     // RESEARCHER MANAGEMENT ENDPOINTS
 
     // Get unlinked researchers (for user linking interface) - must come before /researchers

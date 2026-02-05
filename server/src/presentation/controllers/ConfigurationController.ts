@@ -20,7 +20,8 @@ import {
   AddTankCommandHandler,
   UpdateTankCommandHandler,
   DeleteTankCommandHandler,
-  SetTankDemoStatusCommandHandler
+  SetTankDemoStatusCommandHandler,
+  ResetDemoDataCommandHandler
 } from '@application/commands/TankCommands';
 import {
   AddRacksCommandHandler,
@@ -98,6 +99,7 @@ export class ConfigurationController extends BaseController {
     private updateTankHandler: UpdateTankCommandHandler,
     private deleteTankHandler: DeleteTankCommandHandler,
     private setTankDemoStatusHandler: SetTankDemoStatusCommandHandler,
+    private resetDemoDataHandler: ResetDemoDataCommandHandler,
     private addRacksHandler: AddRacksCommandHandler,
     private updateRackHandler: UpdateRackCommandHandler,
     private deleteRackHandler: DeleteRackCommandHandler,
@@ -641,6 +643,28 @@ export class ConfigurationController extends BaseController {
       });
     } catch (error) {
       this.handleError(error, res, 'Failed to set tank demo status');
+    }
+  }
+
+  /**
+   * POST /api/admin/demo/reset
+   * Delete all tubes in demo tanks (admin only)
+   */
+  async resetDemoData(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+
+      const result = await this.resetDemoDataHandler.handle({ userId });
+
+      res.json({
+        success: true,
+        data: {
+          message: 'Demo data reset successfully',
+          deletedTubes: result.deletedTubes
+        }
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to reset demo data');
     }
   }
 

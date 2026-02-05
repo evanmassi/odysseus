@@ -7,7 +7,7 @@ import { UpdateSystemConfigurationCommandHandler, UpdateEquipmentConfigurationCo
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 // CQRS CQRS Command Handlers - Storage Management
-import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, SetTankDemoStatusCommandHandler } from '@application/commands/TankCommands';
+import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, SetTankDemoStatusCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
 import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
 import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
 import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
@@ -129,6 +129,7 @@ export class ServiceContainer {
   private getConfigurationByVersionHandler?: GetConfigurationByVersionQueryHandler;
   private checkConfigurationHealthHandler?: CheckConfigurationHealthQueryHandler;
   private setTankDemoStatusHandler?: SetTankDemoStatusCommandHandler;
+  private resetDemoDataHandler?: ResetDemoDataCommandHandler;
 
   // Controllers
   private authController?: AuthController;
@@ -527,6 +528,18 @@ export class ServiceContainer {
     return this.setTankDemoStatusHandler;
   }
 
+  getResetDemoDataHandler(): ResetDemoDataCommandHandler {
+    if (!this.resetDemoDataHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.resetDemoDataHandler = new ResetDemoDataCommandHandler(
+        repositories.configurations,
+        repositories.tubes,
+        repositories.users
+      );
+    }
+    return this.resetDemoDataHandler;
+  }
+
   getAddRacksHandler(): AddRacksCommandHandler {
     if (!this.addRacksHandler) {
       const repositories = this.repositoryFactory.getRepositories();
@@ -826,6 +839,7 @@ export class ServiceContainer {
         this.getUpdateTankHandler(),
         this.getDeleteTankHandler(),
         this.getSetTankDemoStatusHandler(),
+        this.getResetDemoDataHandler(),
         this.getAddRacksHandler(),
         this.getUpdateRackHandler(),
         this.getDeleteRackHandler(),

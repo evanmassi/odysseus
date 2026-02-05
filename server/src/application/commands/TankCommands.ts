@@ -46,6 +46,10 @@ export interface SetTankDemoStatusCommand {
   isDemo: boolean;
 }
 
+export interface ResetDemoDataCommand {
+  userId: string;
+}
+
 // COMMAND HANDLERS
 
 /** Creates a new tank in the configuration. */
@@ -289,6 +293,46 @@ export class SetTankDemoStatusCommandHandler {
       tank.name,
       changes
     ));
+  }
+
+  private async getUserById(userId: string): Promise<User> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new ValidationError(`User not found: ${userId}`);
+    }
+    return user;
+  }
+}
+
+/** Deletes all tubes in demo tanks (admin only). */
+export class ResetDemoDataCommandHandler {
+  constructor(
+    private configurationRepository: ConfigurationRepository,
+    private tubeRepository: TubeRepository,
+    private userRepository: UserRepository
+  ) {}
+
+  async handle(command: ResetDemoDataCommand): Promise<{ deletedTubes: number }> {
+    const user = await this.getUserById(command.userId);
+    if (!user.role.isAdmin()) {
+      throw PermissionError.configurationManagement('reset demo data', command.userId);
+    }
+
+    const currentConfig = await this.configurationRepository.getCurrent();
+    if (!currentConfig) {
+      throw new ValidationError('No configuration found.');
+    }
+
+    const demoTankIds = currentConfig.tanks
+      .filter(t => t.isDemo)
+      .map(t => t.id);
+
+    if (demoTankIds.length === 0) {
+      return { deletedTubes: 0 };
+    }
+
+    const deletedTubes = await this.tubeRepository.deleteByTankIds(demoTankIds);
+    return { deletedTubes };
   }
 
   private async getUserById(userId: string): Promise<User> {

@@ -174,6 +174,11 @@ export interface TubeRepository {
    * Delete multiple tubes by IDs
    */
   deleteMany(ids: string[]): Promise<number>; // Returns count of deleted tubes
+
+  /**
+   * Delete all tubes in specified tanks (for demo reset)
+   */
+  deleteByTankIds(tankIds: string[]): Promise<number>; // Returns count of deleted tubes
   
   /**
    * Update multiple tubes with same researcher
