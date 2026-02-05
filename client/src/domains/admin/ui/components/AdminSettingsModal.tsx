@@ -224,7 +224,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   return (
     <BaseModal
       isOpen={isOpen}
-      icon={<ShieldUser size={20} />}
+      icon={<ShieldUser size={24} />}
       title="Admin Settings"
       subtitle="Security & System Configuration"
       size="xl"

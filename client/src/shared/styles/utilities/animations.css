@@ -1,4 +1,21 @@
 @layer utilities {
+  /* Icon micro-interaction on hover */
+  @keyframes iconPop {
+    0% {
+      transform: scale(1) rotate(0deg);
+    }
+    50% {
+      transform: scale(1.2) rotate(-5deg);
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+    }
+  }
+
+  .animate-icon-pop {
+    animation: iconPop 350ms ease-out;
+  }
+
   /* Two-layer neon glow effect that pulses */
   @keyframes pulseErrorRing {
     0%,

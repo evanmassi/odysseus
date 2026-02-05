@@ -163,7 +163,7 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   return (
     <BaseModal
       isOpen={isOpen}
-      icon={<Settings size={20} />}
+      icon={<Settings size={24} />}
       title="User Settings"
       subtitle="Account & Personal Preferences"
       size="lg"
