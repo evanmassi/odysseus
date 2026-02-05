@@ -20,14 +20,13 @@ import {
   updateTubeRequestSchema,
   formatConcentrationDisplay,
   formatResourceDisplayName,
-  EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
 import { MapPin, Edit, Plus, Save, Trash2 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
-import { useStorageData, formatPositionRangesForBox } from '@domains/storage';
+import { useStorageData, formatPositionRangesForBox, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubes, useTube } from '@domains/tubes';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import { useTubeModalFocusReturn } from '@domains/tubes/hooks/useTubeModalFocusReturn';
@@ -483,11 +482,7 @@ function CreateModeContent({
 
     // Get box config for flexible position formatting
     const boxObj = getBox(firstLocation.tankId, firstLocation.rackId, firstLocation.boxId);
-    const gridConfig = boxObj?.gridConfig ?? {
-      rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
-      cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-      template: 'standard' as const,
-    };
+    const gridConfig = boxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
     const positions = parsedPositions.map(p => p.location.position);
     const positionRanges = formatPositionRangesForBox(

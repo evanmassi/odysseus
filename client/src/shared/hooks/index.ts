@@ -10,3 +10,4 @@ export { useDebounce } from './useDebounce';
 export { useFocusTrap } from './useFocusTrap';
 export { useTextTruncation } from './useTextTruncation';
 export { useEditModalForm } from './useEditModalForm';
+export { useHoverAnimation } from './useHoverAnimation';

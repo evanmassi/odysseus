@@ -68,14 +68,14 @@
     --color-action-focus: 210 43.1% 50%;
 
     /* Danger Theme */
-    --color-danger-bg: 350 75% 45%;
-    --color-danger-hover: 350 80% 35%;
-    --color-danger-text: 350 75% 45%;
-    --color-danger-text-hover: 350 80% 35%;
+    --color-danger-bg: 1 62% 44%;
+    --color-danger-hover: 1 70% 36%;
+    --color-danger-text: 1 62% 44%;
+    --color-danger-text-hover: 1 70% 36%;
     --color-danger-btnText: 0 0% 100%;
-    --color-danger-light: 350 60% 97%;
-    --color-danger-light-hover: 350 70% 94%;
-    --color-danger-border: 350 70% 60%;
+    --color-danger-light: 1 55% 97%;
+    --color-danger-light-hover: 1 60% 94%;
+    --color-danger-border: 1 55% 55%;
 
     /* Clear Theme */
     --color-clear-bg: 220 13% 91%;
@@ -83,14 +83,14 @@
     --color-clear-text: 220 8.9% 46.1%;
 
     /* Warning Theme */
-    --color-warning-bg: 38 75% 50%;
-    --color-warning-hover: 38 80% 42%;
-    --color-warning-text: 38 75% 45%;
-    --color-warning-text-hover: 38 80% 35%;
+    --color-warning-bg: 44 74% 52%;
+    --color-warning-hover: 44 80% 44%;
+    --color-warning-text: 44 74% 45%;
+    --color-warning-text-hover: 44 80% 38%;
     --color-warning-btnText: 0 0% 0%;
-    --color-warning-light: 38 60% 97%;
-    --color-warning-light-hover: 38 70% 94%;
-    --color-warning-border: 38 70% 60%;
+    --color-warning-light: 44 75% 97%;
+    --color-warning-light-hover: 44 78% 94%;
+    --color-warning-border: 44 70% 55%;
 
     /* Lock Theme */
     --color-lock-bg: 215.4 16.3% 46.9%;
@@ -105,24 +105,24 @@
     --color-share-btnText: 0 0% 100%;
 
     /* Success Theme */
-    --color-success-bg: 160 75% 50%;
-    --color-success-hover: 160 80% 42%;
-    --color-success-text: 160 75% 45%;
-    --color-success-text-hover: 160 80% 35%;
+    --color-success-bg: 152 38% 42%;
+    --color-success-hover: 152 45% 34%;
+    --color-success-text: 152 38% 42%;
+    --color-success-text-hover: 152 45% 34%;
     --color-success-btnText: 0 0% 100%;
-    --color-success-light: 160 60% 97%;
-    --color-success-light-hover: 160 70% 94%;
-    --color-success-border: 160 70% 60%;
+    --color-success-light: 152 40% 97%;
+    --color-success-light-hover: 152 45% 94%;
+    --color-success-border: 152 35% 50%;
 
     /* Info Theme */
-    --color-info-bg: 217.2 91.2% 59.8%;
-    --color-info-hover: 221.2 83.2% 53.3%;
-    --color-info-text: 217.2 91.2% 59.8%;
-    --color-info-text-hover: 221.2 83.2% 53.3%;
+    --color-info-bg: 220 80% 55%;
+    --color-info-hover: 220 85% 47%;
+    --color-info-text: 220 80% 50%;
+    --color-info-text-hover: 220 85% 42%;
     --color-info-btnText: 0 0% 100%;
-    --color-info-light: 213.8 100% 93.9%;
-    --color-info-light-hover: 213.8 100% 90%;
-    --color-info-border: 213.3 96.9% 87.3%;
+    --color-info-light: 220 55% 97%;
+    --color-info-light-hover: 220 60% 94%;
+    --color-info-border: 220 70% 65%;
 
     /* Validation - Default */
     --color-validation-default-border: 214.3 31.8% 91.4%;
@@ -167,7 +167,7 @@
     /* Ownership Indicator - Resource assignment visualization */
     --ownership-user-badge: 210 50% 56.7%;
     --ownership-other-badge: 215.4 16.3% 46.9%;
-    --ownership-unassigned-badge: 30 6.3% 44.7%;
+    --ownership-unassigned-badge: 45 40% 48%;
 
     /* Tube Grid - Cell and selection styling */
     --grid-border: 220 13% 91%;
@@ -254,44 +254,44 @@
     --color-action-focus: 217 85% 59.8%;
 
     /* Danger Theme */
-    --color-danger-bg: 350 85% 69%;
-    --color-danger-hover: 350 85% 54%;
-    --color-danger-text: 350 85% 69%;
-    --color-danger-text-hover: 350 85% 69%;
+    --color-danger-bg: 1 62% 60%;
+    --color-danger-hover: 1 70% 52%;
+    --color-danger-text: 1 62% 65%;
+    --color-danger-text-hover: 1 70% 58%;
     --color-danger-btnText: 0 0% 100%;
-    --color-danger-light: 350 40% 14%;
-    --color-danger-light-hover: 350 50% 18%;
-    --color-danger-border: 350 60% 45%;
+    --color-danger-light: 1 35% 12%;
+    --color-danger-light-hover: 1 40% 16%;
+    --color-danger-border: 1 50% 45%;
 
     /* Warning Theme */
-    --color-warning-bg: 38 70% 55%;
-    --color-warning-hover: 38 75% 48%;
-    --color-warning-text: 38 85% 69%;
-    --color-warning-text-hover: 38 85% 69%;
+    --color-warning-bg: 44 74% 55%;
+    --color-warning-hover: 44 78% 48%;
+    --color-warning-text: 44 78% 65%;
+    --color-warning-text-hover: 44 80% 58%;
     --color-warning-btnText: 0 0% 0%;
-    --color-warning-light: 38 40% 14%;
-    --color-warning-light-hover: 38 50% 18%;
-    --color-warning-border: 38 60% 45%;
+    --color-warning-light: 44 40% 10%;
+    --color-warning-light-hover: 44 45% 14%;
+    --color-warning-border: 44 65% 45%;
 
     /* Success Theme */
-    --color-success-bg: 160 70% 55%;
-    --color-success-hover: 160 75% 48%;
-    --color-success-text: 160 85% 69%;
-    --color-success-text-hover: 160 85% 69%;
+    --color-success-bg: 152 38% 50%;
+    --color-success-hover: 152 45% 42%;
+    --color-success-text: 152 45% 60%;
+    --color-success-text-hover: 152 50% 52%;
     --color-success-btnText: 0 0% 100%;
-    --color-success-light: 160 40% 14%;
-    --color-success-light-hover: 160 50% 18%;
-    --color-success-border: 160 60% 45%;
+    --color-success-light: 152 15% 12%;
+    --color-success-light-hover: 152 20% 16%;
+    --color-success-border: 152 35% 40%;
 
     /* Info Theme */
-    --color-info-bg: 217.2 91.2% 59.8%;
-    --color-info-hover: 221.2 83.2% 53.3%;
-    --color-info-text: 213.3 96.9% 78.4%;
-    --color-info-text-hover: 213.3 96.9% 78.4%;
+    --color-info-bg: 220 80% 60%;
+    --color-info-hover: 220 85% 52%;
+    --color-info-text: 220 80% 70%;
+    --color-info-text-hover: 220 85% 62%;
     --color-info-btnText: 0 0% 100%;
-    --color-info-light: 226.2 57% 20.8%;
-    --color-info-light-hover: 226.2 57% 25%;
-    --color-info-border: 224.4 64.3% 32.9%;
+    --color-info-light: 220 55% 12%;
+    --color-info-light-hover: 220 60% 16%;
+    --color-info-border: 220 65% 40%;
 
     /* Clear Theme */
     --color-clear-bg: 215.4 19.3% 34.5%;
@@ -323,9 +323,9 @@
     --color-audit-action-auth: 215 20% 60%;
 
     /* Ownership Indicator - Resource assignment visualization */
-    --ownership-user-badge: 213.1 93.9% 67.8%;
+    --ownership-user-badge: 213 85% 67.8%;
     --ownership-other-badge: 215 20.2% 65.1%;
-    --ownership-unassigned-badge: 30 6.1% 64.5%;
+    --ownership-unassigned-badge: 45 45% 62%;
 
     /* Tube Grid - Cell and selection styling */
     --grid-border: 217.2 19.2% 26.7%;

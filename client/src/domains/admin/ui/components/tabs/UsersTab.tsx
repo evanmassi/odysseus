@@ -464,7 +464,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
           <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
             <Tooltip content="Reset password" side="bottom">
               <Button
-                variant="ghost-warning"
+                variant="ghost"
                 size="xs"
                 iconOnly
                 onClick={() => {

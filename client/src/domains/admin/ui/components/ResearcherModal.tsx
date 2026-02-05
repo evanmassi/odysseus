@@ -6,11 +6,10 @@ import {
   type CreateResearcherProfile,
   type AdminResearcher,
 } from '@odysseus/shared-schemas';
-import { Plus, User, Mail, Building2, Briefcase } from 'lucide-react';
+import { Plus, User, Mail, Building2, Briefcase, Dna } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '@shared/ui';
-import { ResearcherIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals';
 import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 
@@ -85,7 +84,7 @@ export function ResearcherModal({
     <BaseModal
       isOpen={isOpen}
       title={mode === 'create-only' ? 'Add Researcher' : `Link Researcher to ${username}`}
-      icon={<ResearcherIcon size={24} />}
+      icon={<Dna size={24} />}
       onClose={handleClose}
       className="max-w-2xl"
     >

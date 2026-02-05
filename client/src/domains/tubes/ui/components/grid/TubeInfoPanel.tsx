@@ -3,7 +3,6 @@ import React, { useMemo, useState, useEffect } from 'react';
 import {
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
-  EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
 import { AlertTriangle, Lock, MapPin, Notebook, Pencil, TestTube, UsersRound } from 'lucide-react';
 
@@ -14,6 +13,7 @@ import {
   useStorageData,
   useLocationDisplayNames,
   formatPositionRangesForBox,
+  DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
 import { parsePositionKey } from '@shared/types/GridSelection';
 import { Chip, Tooltip } from '@shared/ui';
@@ -92,11 +92,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     const firstTube = selectedTubes[0];
     const positions = selectedTubes.map(t => t.location.position);
 
-    const gridConfig = currentBoxObj?.gridConfig ?? {
-      rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
-      cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-      template: 'standard' as const,
-    };
+    const gridConfig = currentBoxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
     const formattedPositions = formatPositionRangesForBox(
       positions,
@@ -183,11 +179,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
       })
       .sort((a, b) => a - b);
 
-    const gridConfig = currentBoxObj?.gridConfig ?? {
-      rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
-      cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-      template: 'standard' as const,
-    };
+    const gridConfig = currentBoxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
     const formattedPositions =
       positions.length > 0

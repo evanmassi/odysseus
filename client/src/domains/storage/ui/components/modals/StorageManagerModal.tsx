@@ -610,7 +610,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     <>
       <BaseModal
         isOpen={isOpen}
-        icon={<TankIcon size={20} />}
+        icon={<TankIcon size={24} />}
         title="Storage Manager"
         subtitle="Storage Layout & Assignments"
         size="lg"

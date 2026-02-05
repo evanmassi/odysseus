@@ -1,9 +1,9 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo, useMemo, useRef, useCallback } from 'react';
 
 import { useUserSettings } from '@domains/authentication/hooks/useUserSettings';
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
-import { InlineEditInput, Tooltip } from '@shared/ui';
+import { InlineEditInput } from '@shared/ui';
 
 import {
   getTubeColor,
@@ -51,6 +51,9 @@ interface GridPositionProps {
   onMouseMove: (position: number) => void;
   onQuickEditSave: (position: number, field: string, value: string) => void;
   onQuickEditCancel: () => void;
+  // Shared tooltip handlers - parent renders single tooltip instance
+  onHoverStart: (tube: TubeData, rect: DOMRect) => void;
+  onHoverEnd: () => void;
   // Lock indicator props (optional - for lock-enabled grids)
   isLockedOut?: boolean;
   isLockedByCurrentUser?: boolean;
@@ -82,6 +85,8 @@ export const GridPosition = memo<GridPositionProps>(
     onMouseMove,
     onQuickEditSave,
     onQuickEditCancel,
+    onHoverStart,
+    onHoverEnd,
     isLockedOut,
     isLockedByCurrentUser,
     hasSharedAccess,
@@ -111,8 +116,21 @@ export const GridPosition = memo<GridPositionProps>(
       [fontSize.cellFont, cellTypeText]
     );
 
+    const cellRef = useRef<HTMLDivElement>(null);
+
+    const handleMouseEnter = useCallback(() => {
+      if (tube && cellRef.current) {
+        onHoverStart(tube, cellRef.current.getBoundingClientRect());
+      }
+    }, [tube, onHoverStart]);
+
+    const handleMouseLeave = useCallback(() => {
+      onHoverEnd();
+    }, [onHoverEnd]);
+
     return (
       <div
+        ref={cellRef}
         key={`${position}-${animationKey}`}
         onClick={e => onPositionClick(position, e)}
         onKeyDown={e => {
@@ -125,6 +143,8 @@ export const GridPosition = memo<GridPositionProps>(
         onContextMenu={e => onPositionRightClick(position, e)}
         onMouseDown={e => onMouseDown(position, e)}
         onMouseMove={() => onMouseMove(position)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         role="gridcell"
         aria-label={
           tube
@@ -231,65 +251,32 @@ export const GridPosition = memo<GridPositionProps>(
           />
         )}
 
-        {/* Tube content with breathing room */}
+        {/* Tube content - tooltip handled by parent TubeGrid */}
         {tube ? (
-          <Tooltip
-            content={
-              <div className="flex flex-col gap-1">
-                {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty cellType should show fallback */}
-                <div className="font-semibold text-white">{tube.sample.cellType || 'Unknown'}</div>
-                {donorInfo.internal && (
-                  <div className="text-white">
-                    <span className="text-tooltip-muted">Int. ID:</span> {donorInfo.internal}
-                  </div>
-                )}
-                {donorInfo.source && (
-                  <div className="text-white">
-                    <span className="text-tooltip-muted">Src. ID:</span>{' '}
-                    {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty donorSourceId should fall back to computed source */}
-                    {tube.sample.donorSourceId || donorInfo.source}
-                  </div>
-                )}
-                {tube.sample.lotNumber && (
-                  <div className="text-white">
-                    <span className="text-tooltip-muted">Lot #:</span> {tube.sample.lotNumber}
-                  </div>
-                )}
-                {tube.sample.cultureCondition && (
-                  <div className="text-white">
-                    <span className="text-tooltip-muted">Cond.:</span>{' '}
-                    {tube.sample.cultureCondition}
-                  </div>
-                )}
-              </div>
-            }
-            delayDuration={400}
-          >
-            <div className="tube-content p-2 flex flex-col items-center justify-center text-center">
-              <div
-                className="cell-line font-medium leading-tight"
-                style={{ fontSize: `${cellTypeFontSize}px` }}
-              >
-                {cellTypeText}
-              </div>
-              {donorInfo.internal && (
-                <div
-                  className="donor-internal leading-tight"
-                  style={{ fontSize: `${fontSize.donorFont}px` }}
-                >
-                  {donorInfo.internal}
-                </div>
-              )}
-              {donorInfo.source && (
-                <div
-                  className="donor-source leading-tight"
-                  style={{ fontSize: `${fontSize.donorFont}px` }}
-                >
-                  {donorInfo.source}
-                </div>
-              )}
+          <div className="tube-content p-2 flex flex-col items-center justify-center text-center">
+            <div
+              className="cell-line font-medium leading-tight"
+              style={{ fontSize: `${cellTypeFontSize}px` }}
+            >
+              {cellTypeText}
             </div>
-          </Tooltip>
+            {donorInfo.internal && (
+              <div
+                className="donor-internal leading-tight"
+                style={{ fontSize: `${fontSize.donorFont}px` }}
+              >
+                {donorInfo.internal}
+              </div>
+            )}
+            {donorInfo.source && (
+              <div
+                className="donor-source leading-tight"
+                style={{ fontSize: `${fontSize.donorFont}px` }}
+              >
+                {donorInfo.source}
+              </div>
+            )}
+          </div>
         ) : (
           <div className="tube-content p-2 flex flex-col items-center justify-center text-center">
             <div

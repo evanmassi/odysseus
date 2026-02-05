@@ -2,6 +2,7 @@
  * Auth Socket Sync
  *
  * Reconnects socket on login to enable presence tracking with authenticated session.
+ * Skips first mount to avoid race condition with AppBootstrapService socket initialization.
  */
 import { useEffect, useRef } from 'react';
 
@@ -17,8 +18,18 @@ export function useAuthSocketSync(): void {
 
   const wasAuthenticatedRef = useRef(isAuthenticated);
   const isReconnectingRef = useRef(false);
+  const isFirstMountRef = useRef(true);
 
   useEffect(() => {
+    // Skip first mount - bootstrap handles socket init for restored sessions.
+    // This prevents race condition where both bootstrap and this hook try to
+    // initialize/cleanup socket simultaneously, causing cascading re-renders.
+    if (isFirstMountRef.current) {
+      isFirstMountRef.current = false;
+      wasAuthenticatedRef.current = isAuthenticated;
+      return;
+    }
+
     const wasAuthenticated = wasAuthenticatedRef.current;
 
     // Reconnect socket on login transition to get fresh auth token

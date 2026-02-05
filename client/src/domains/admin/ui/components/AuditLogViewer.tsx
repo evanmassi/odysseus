@@ -18,13 +18,13 @@ import {
   Icon,
   Rows3,
   Box,
+  Dna,
 } from 'lucide-react';
 
 import { adminService } from '@domains/admin/services/AdminService';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Table, Tooltip } from '@shared/ui';
-import { ResearcherIcon } from '@shared/ui/components/icons';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 
@@ -269,7 +269,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
         return (
           <span className={`whitespace-nowrap ${getEntityBadgeClass(entry.entityType)} gap-1`}>
             {icon === 'researcher' ? (
-              <ResearcherIcon size={12} />
+              <Dna size={12} />
             ) : icon === 'tank' ? (
               <Icon iconNode={refrigeratorFreezer} size={12} />
             ) : icon && typeof icon !== 'string' ? (
