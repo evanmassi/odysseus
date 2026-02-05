@@ -669,8 +669,10 @@ export class TubeApplicationService {
 
     // Publish bulk update event (only if some succeeded)
     if (updated.length > 0) {
+      const tankIds = [...new Set(updated.map(id => tubeMap.get(id)!.location.tankId))];
       await this.eventBus.publish(new BulkTubesUpdatedEvent(
         updated,
+        tankIds,
         authenticatedUser.id,
         { updated: updated.length, failed: failed.length }
       ));
@@ -827,11 +829,13 @@ export class TubeApplicationService {
 
     // Publish single batch event after all tubes processed
     if (locked.length > 0) {
+      const tankIds = [...new Set(locked.map(id => tubeMap.get(id)!.location.tankId))];
       logger.debug('[TubeService] Publishing TubesLockedEvent', {
         lockedCount: locked.length,
       });
       await this.eventBus.publish(new TubesLockedEvent(
         locked,
+        tankIds,
         authenticatedUser.id,
         request.lockNote
       ));
@@ -888,11 +892,13 @@ export class TubeApplicationService {
 
     // Publish single batch event after all tubes processed
     if (unlocked.length > 0) {
+      const tankIds = [...new Set(unlocked.map(id => tubeMap.get(id)!.location.tankId))];
       logger.debug('[TubeService] Publishing TubesUnlockedEvent', {
         unlockedCount: unlocked.length,
       });
       await this.eventBus.publish(new TubesUnlockedEvent(
         unlocked,
+        tankIds,
         authenticatedUser.id
       ));
     }
@@ -959,8 +965,10 @@ export class TubeApplicationService {
 
     // Publish single batch event after all tubes processed
     if (shared.length > 0) {
+      const tankIds = [...new Set(shared.map(id => tubeMap.get(id)!.location.tankId))];
       await this.eventBus.publish(new TubeAccessSharedEvent(
         shared,
+        tankIds,
         request.userIds,
         tubeSharedUsers,
         authenticatedUser.id
@@ -1017,8 +1025,10 @@ export class TubeApplicationService {
 
     // Publish single batch event after all tubes processed
     if (revoked.length > 0) {
+      const tankIds = [...new Set(revoked.map(id => tubeMap.get(id)!.location.tankId))];
       await this.eventBus.publish(new TubeAccessRevokedEvent(
         revoked,
+        tankIds,
         request.userIds,
         tubeSharedUsers,
         authenticatedUser.id

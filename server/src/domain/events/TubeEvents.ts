@@ -127,6 +127,7 @@ export class TubeDeletedEvent extends DomainEvent {
 export class BulkTubesUpdatedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
+    public readonly tankIds: string[],
     public readonly updatedBy: string,
     public readonly changesSummary: Record<string, any>
   ) {
@@ -145,6 +146,7 @@ export class BulkTubesUpdatedEvent extends DomainEvent {
   protected getEventData(): Record<string, any> {
     return {
       tubeIds: this.tubeIds,
+      tankIds: this.tankIds,
       updatedBy: this.updatedBy,
       changesSummary: this.changesSummary
     };

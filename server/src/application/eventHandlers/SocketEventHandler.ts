@@ -492,12 +492,21 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
+      // Determine which rooms to emit to based on tank demo status
+      const rooms = new Set<'demo' | 'real'>();
+      for (const tankId of event.tankIds) {
+        rooms.add(await this.getRoomForTank(tankId));
+      }
+
       logger.debug('Emitting tubes_bulk_updated socket event', {
         count: event.tubeIds.length,
+        rooms: [...rooms],
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('tubes_bulk_updated', payload);
+      for (const room of rooms) {
+        this.io.to(room).emit('tubes_bulk_updated', payload);
+      }
     } catch (error) {
       logger.error('Failed to emit tubes_bulk_updated event', {
         error: error instanceof Error ? error.message : String(error),
@@ -765,12 +774,21 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
+      // Determine which rooms to emit to based on tank demo status
+      const rooms = new Set<'demo' | 'real'>();
+      for (const tankId of event.tankIds) {
+        rooms.add(await this.getRoomForTank(tankId));
+      }
+
       logger.debug('Emitting tubes_locked socket event', {
         count: event.tubeIds.length,
+        rooms: [...rooms],
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('tubes_locked', payload);
+      for (const room of rooms) {
+        this.io.to(room).emit('tubes_locked', payload);
+      }
     } catch (error) {
       logger.error('Failed to emit tubes_locked event', {
         error: error instanceof Error ? error.message : String(error),
@@ -788,12 +806,21 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
+      // Determine which rooms to emit to based on tank demo status
+      const rooms = new Set<'demo' | 'real'>();
+      for (const tankId of event.tankIds) {
+        rooms.add(await this.getRoomForTank(tankId));
+      }
+
       logger.debug('Emitting tubes_unlocked socket event', {
         count: event.tubeIds.length,
+        rooms: [...rooms],
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('tubes_unlocked', payload);
+      for (const room of rooms) {
+        this.io.to(room).emit('tubes_unlocked', payload);
+      }
     } catch (error) {
       logger.error('Failed to emit tubes_unlocked event', {
         error: error instanceof Error ? error.message : String(error),
@@ -812,13 +839,22 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
+      // Determine which rooms to emit to based on tank demo status
+      const rooms = new Set<'demo' | 'real'>();
+      for (const tankId of event.tankIds) {
+        rooms.add(await this.getRoomForTank(tankId));
+      }
+
       logger.debug('Emitting tube_access_shared Socket event', {
         tubeCount: event.tubeIds.length,
         userCount: event.addedUserIds.length,
+        rooms: [...rooms],
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('tube_access_shared', payload);
+      for (const room of rooms) {
+        this.io.to(room).emit('tube_access_shared', payload);
+      }
     } catch (error) {
       logger.error('Failed to emit tube_access_shared event', {
         error: error instanceof Error ? error.message : String(error),
@@ -837,13 +873,22 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
+      // Determine which rooms to emit to based on tank demo status
+      const rooms = new Set<'demo' | 'real'>();
+      for (const tankId of event.tankIds) {
+        rooms.add(await this.getRoomForTank(tankId));
+      }
+
       logger.debug('Emitting tube_access_revoked Socket event', {
         tubeCount: event.tubeIds.length,
         userCount: event.revokedUserIds.length,
+        rooms: [...rooms],
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('tube_access_revoked', payload);
+      for (const room of rooms) {
+        this.io.to(room).emit('tube_access_revoked', payload);
+      }
     } catch (error) {
       logger.error('Failed to emit tube_access_revoked event', {
         error: error instanceof Error ? error.message : String(error),

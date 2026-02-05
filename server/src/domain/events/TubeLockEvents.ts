@@ -10,6 +10,7 @@ import { DomainEvent } from '@domain/events/DomainEvent';
 export class TubesLockedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
+    public readonly tankIds: string[],
     public readonly lockedBy: string,
     public readonly lockNote: string | undefined
   ) {
@@ -27,6 +28,7 @@ export class TubesLockedEvent extends DomainEvent {
   protected getEventData(): Record<string, unknown> {
     return {
       tubeIds: this.tubeIds,
+      tankIds: this.tankIds,
       count: this.tubeIds.length,
       lockedBy: this.lockedBy,
       lockNote: this.lockNote
@@ -37,6 +39,7 @@ export class TubesLockedEvent extends DomainEvent {
 export class TubesUnlockedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
+    public readonly tankIds: string[],
     public readonly unlockedBy: string
   ) {
     super(1);
@@ -53,6 +56,7 @@ export class TubesUnlockedEvent extends DomainEvent {
   protected getEventData(): Record<string, unknown> {
     return {
       tubeIds: this.tubeIds,
+      tankIds: this.tankIds,
       count: this.tubeIds.length,
       unlockedBy: this.unlockedBy
     };
@@ -62,6 +66,7 @@ export class TubesUnlockedEvent extends DomainEvent {
 export class TubeAccessSharedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
+    public readonly tankIds: string[],
     public readonly addedUserIds: string[],
     public readonly tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }>,
     public readonly sharedBy: string
@@ -80,6 +85,7 @@ export class TubeAccessSharedEvent extends DomainEvent {
   protected getEventData(): Record<string, unknown> {
     return {
       tubeIds: this.tubeIds,
+      tankIds: this.tankIds,
       addedUserIds: this.addedUserIds,
       tubeSharedUsers: this.tubeSharedUsers,
       sharedBy: this.sharedBy
@@ -90,6 +96,7 @@ export class TubeAccessSharedEvent extends DomainEvent {
 export class TubeAccessRevokedEvent extends DomainEvent {
   constructor(
     public readonly tubeIds: string[],
+    public readonly tankIds: string[],
     public readonly revokedUserIds: string[],
     public readonly tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }>,
     public readonly revokedBy: string
@@ -108,6 +115,7 @@ export class TubeAccessRevokedEvent extends DomainEvent {
   protected getEventData(): Record<string, unknown> {
     return {
       tubeIds: this.tubeIds,
+      tankIds: this.tankIds,
       revokedUserIds: this.revokedUserIds,
       tubeSharedUsers: this.tubeSharedUsers,
       revokedBy: this.revokedBy
