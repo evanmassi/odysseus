@@ -2,8 +2,7 @@
  * AnimatedCheckmark Component
  *
  * SVG-based animated checkmark with circle stroke animation.
- * Uses Lucide CircleCheck's exact geometry for consistency.
- * Used as success indicator for form submissions.
+ * Uses Lucide CircleCheckBig's exact geometry for consistency.
  */
 import { useEffect, useState } from 'react';
 
@@ -26,16 +25,14 @@ export function AnimatedCheckmark({
     return () => clearTimeout(timer);
   }, [delay]);
 
-  // Uses Lucide's 24x24 viewBox with exact CircleCheck geometry
+  // Uses Lucide's 24x24 viewBox with exact CircleCheckBig geometry
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
       <svg width={size} height={size} viewBox="0 0 24 24">
-        {/* Circle (Lucide: cx=12, cy=12, r=10) */}
-        <circle
-          cx="12"
-          cy="12"
-          r="10"
+        {/* Arc (incomplete circle with gap for checkmark) */}
+        <path
+          d="M21.801 10A10 10 0 1 1 17 3.335"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
@@ -49,17 +46,18 @@ export function AnimatedCheckmark({
           }}
         />
 
-        {/* Checkmark (Lucide: m9 12 2 2 4-4) */}
+        {/* Checkmark (extends outside circle) */}
         <path
+          d="m9 11 3 3L22 4"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          d="m9 12 2 2 4-4"
+          pathLength="100"
           style={{
-            strokeDasharray: '9',
-            strokeDashoffset: isVisible ? '0' : '9',
+            strokeDasharray: '100',
+            strokeDashoffset: isVisible ? '0' : '100',
             transition: 'stroke-dashoffset 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.5s',
           }}
         />

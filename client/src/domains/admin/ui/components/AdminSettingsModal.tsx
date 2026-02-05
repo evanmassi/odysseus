@@ -1,12 +1,20 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 
 import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
-import { Shield, Activity, AlertTriangle, Save, ShieldUser, Gauge, UsersRound } from 'lucide-react';
+import {
+  Shield,
+  Activity,
+  AlertTriangle,
+  Save,
+  ShieldUser,
+  Gauge,
+  UsersRound,
+  Dna,
+} from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Tab, Tabs } from '@shared/ui';
-import { ResearcherIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
@@ -180,7 +188,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       <Tab id="users" icon={<UsersRound size={18} />}>
         Users
       </Tab>
-      <Tab id="researchers" icon={<ResearcherIcon size={24} />}>
+      <Tab id="researchers" icon={<Dna size={24} />}>
         Researchers
       </Tab>
       <Tab id="monitoring" icon={<Activity size={18} />}>
@@ -216,7 +224,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   return (
     <BaseModal
       isOpen={isOpen}
-      icon={<ShieldUser size={20} />}
+      icon={<ShieldUser size={24} />}
       title="Admin Settings"
       subtitle="Security & System Configuration"
       size="xl"

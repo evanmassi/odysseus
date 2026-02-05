@@ -7,11 +7,10 @@
 
 import { useMemo } from 'react';
 
-import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import { MapPin } from 'lucide-react';
 
 import { useUserSettings } from '@domains/authentication/hooks/useUserSettings';
-import { useStorageData, useLocationDisplayNames } from '@domains/storage';
+import { useStorageData, useLocationDisplayNames, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 
 export interface LocationDisplayProps {
@@ -36,11 +35,7 @@ export const LocationDisplay = ({
 
   // Format position label using box's configuration
   const positionLabel = useMemo(() => {
-    const gridConfig = box?.gridConfig ?? {
-      rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
-      cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-      template: 'standard' as const,
-    };
+    const gridConfig = box?.gridConfig ?? DEFAULT_GRID_CONFIG;
     return formatPositionForBox(position, tankId, rackId, boxId, gridConfig, currentLab, settings);
   }, [box, position, tankId, rackId, boxId, currentLab, settings]);
 

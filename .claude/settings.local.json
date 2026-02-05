@@ -66,7 +66,9 @@
       "WebFetch(domain:labelwriter.com)",
       "WebFetch(domain:support.joinhandshake.com)",
       "WebFetch(domain:reactjs.org)",
-      "WebFetch(domain:legacy.reactjs.org)"
+      "WebFetch(domain:legacy.reactjs.org)",
+      "WebFetch(domain:railway.com)",
+      "WebFetch(domain:lucide.dev)"
     ]
   }
 }

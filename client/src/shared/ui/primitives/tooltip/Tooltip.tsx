@@ -1,11 +1,10 @@
 /**
  * Tooltip Component
  *
- * Accessible tooltip with frosted glass styling
- * Built on Radix UI Tooltip primitive
+ * Accessible tooltip with frosted glass styling built on Radix UI.
  */
 
-import React, { useState, useRef } from 'react';
+import React from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
@@ -24,6 +23,10 @@ export interface TooltipProps {
   disabled?: boolean;
   /** Additional class name for the content */
   className?: string;
+  /** Controlled open state */
+  open?: boolean;
+  /** Callback when open state changes */
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -34,42 +37,16 @@ export const Tooltip: React.FC<TooltipProps> = ({
   delayDuration,
   disabled = false,
   className = '',
+  open,
+  onOpenChange,
 }) => {
-  const [open, setOpen] = useState(false);
-  const isPointerInteraction = useRef(false);
-
   if (disabled || !content) {
     return <>{children}</>;
   }
 
   return (
-    <TooltipPrimitive.Root
-      delayDuration={delayDuration}
-      open={open}
-      onOpenChange={newOpen => {
-        // Only allow opening from pointer/hover interactions, not keyboard focus
-        if (newOpen && !isPointerInteraction.current) {
-          return;
-        }
-        setOpen(newOpen);
-      }}
-    >
-      <TooltipPrimitive.Trigger
-        asChild
-        onPointerEnter={() => {
-          isPointerInteraction.current = true;
-          setOpen(true);
-        }}
-        onPointerLeave={() => {
-          isPointerInteraction.current = false;
-          setOpen(false);
-        }}
-        onFocus={() => {
-          isPointerInteraction.current = false;
-        }}
-      >
-        {children}
-      </TooltipPrimitive.Trigger>
+    <TooltipPrimitive.Root delayDuration={delayDuration} open={open} onOpenChange={onOpenChange}>
+      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
           side={side}

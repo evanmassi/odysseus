@@ -33,6 +33,7 @@ import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
 
 import type { TubeData } from '@domains/tubes/types';
+import type { LucideIcon } from 'lucide-react';
 // Assets - using ES6 imports for proper module resolution
 
 // Lazy load modals for code splitting
@@ -64,6 +65,39 @@ const useLazyStorageManager = PreloadHelpers.createHook(
 const useLazyUserSettings = PreloadHelpers.createHook(
   () => import('@domains/authentication/ui/components/UserSettingsModal')
 );
+
+type IconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
+
+interface HamburgerMenuItemProps {
+  icon: IconComponent;
+  label: string;
+  onClick: () => void;
+  triggerProps?: Record<string, unknown>;
+}
+
+function HamburgerMenuItem({ icon: Icon, label, onClick, triggerProps }: HamburgerMenuItemProps) {
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleMouseEnter = useCallback(() => {
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 350);
+  }, []);
+
+  return (
+    <button
+      {...triggerProps}
+      role="menuitem"
+      onClick={onClick}
+      onMouseEnter={handleMouseEnter}
+      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+    >
+      <span className={isAnimating ? 'animate-icon-pop' : ''}>
+        <Icon size={16} className="text-muted-foreground" />
+      </span>
+      <span>{label}</span>
+    </button>
+  );
+}
 
 interface HeaderProps {
   selectedPositions?: Set<PositionKey>;
@@ -541,47 +575,38 @@ export function AppHeader({
 
                 {/* User Settings */}
                 <div className="px-1">
-                  <button
-                    {...userSettingsTriggerProps}
-                    role="menuitem"
+                  <HamburgerMenuItem
+                    icon={Settings}
+                    label={user?.role === 'admin' ? 'User Settings' : 'Settings'}
                     onClick={() => {
                       setShowUserSettings(true);
                       closeMenu();
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors"
-                  >
-                    <Settings size={16} className="text-muted-foreground" />
-                    <span>{user?.role === 'admin' ? 'User Settings' : 'Settings'}</span>
-                  </button>
+                    triggerProps={userSettingsTriggerProps}
+                  />
 
                   {/* Storage Manager */}
-                  <button
-                    {...storageManagerTriggerProps}
-                    role="menuitem"
+                  <HamburgerMenuItem
+                    icon={TankIcon}
+                    label="Storage Manager"
                     onClick={() => {
                       setShowStorageManager(true);
                       closeMenu();
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors"
-                  >
-                    <TankIcon size={16} className="text-muted-foreground" />
-                    <span>Storage Manager</span>
-                  </button>
+                    triggerProps={storageManagerTriggerProps}
+                  />
 
                   {/* Admin Settings - Only show to admins */}
                   {user?.role === 'admin' && (
-                    <button
-                      {...adminSettingsTriggerProps}
-                      role="menuitem"
+                    <HamburgerMenuItem
+                      icon={ShieldUser}
+                      label="Admin Settings"
                       onClick={() => {
                         setShowAdminPanel(true);
                         closeMenu();
                       }}
-                      className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors"
-                    >
-                      <ShieldUser size={16} className="text-muted-foreground" />
-                      <span>Admin Settings</span>
-                    </button>
+                      triggerProps={adminSettingsTriggerProps}
+                    />
                   )}
                 </div>
 
@@ -589,17 +614,14 @@ export function AppHeader({
 
                 {/* Logout */}
                 <div className="px-1">
-                  <button
-                    role="menuitem"
+                  <HamburgerMenuItem
+                    icon={LogOut}
+                    label="Logout"
                     onClick={() => {
                       handleLogout();
                       closeMenu();
                     }}
-                    className="w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm text-secondary-foreground hover:bg-accent transition-colors"
-                  >
-                    <LogOut size={16} className="text-muted-foreground" />
-                    <span>Logout</span>
-                  </button>
+                  />
                 </div>
               </div>
             )}

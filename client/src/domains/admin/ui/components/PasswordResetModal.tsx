@@ -148,7 +148,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
           <div className="flex-1 flex flex-col">
             {/* User Info */}
             <p className="text-sm text-secondary-foreground mb-6">
-              User: <span className="font-bold text-action-hover">{username}</span>
+              User: <span className="font-bold text-action">{username}</span>
             </p>
 
             {/* Password Input */}
@@ -202,7 +202,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
             {!resetUrl ? (
               <div className="flex-1 flex flex-col">
                 <p className="text-sm text-secondary-foreground mb-4">
-                  User: <span className="font-bold text-action-hover">{username}</span>
+                  User: <span className="font-bold text-action">{username}</span>
                 </p>
                 <p className="text-sm text-secondary-foreground mb-4">
                   Creates a secure, one-time link that expires in 15 minutes.

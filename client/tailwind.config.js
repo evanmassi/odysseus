@@ -103,8 +103,10 @@ export default {
           bg: 'hsl(var(--color-info-bg) / <alpha-value>)',
           hover: 'hsl(var(--color-info-hover) / <alpha-value>)',
           text: 'hsl(var(--color-info-text) / <alpha-value>)',
+          'text-hover': 'hsl(var(--color-info-text-hover) / <alpha-value>)',
           btnText: 'hsl(var(--color-info-btnText) / <alpha-value>)',
           light: 'hsl(var(--color-info-light) / <alpha-value>)',
+          'light-hover': 'hsl(var(--color-info-light-hover) / <alpha-value>)',
           border: 'hsl(var(--color-info-border) / <alpha-value>)',
         },
         validation: {

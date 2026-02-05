@@ -5,7 +5,6 @@ import {
   type UpdateTubeRequest,
   updateTubeRequestSchema,
   formatConcentrationDisplay,
-  EQUIPMENT_DEFAULTS,
 } from '@odysseus/shared-schemas';
 import { XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
 
@@ -17,6 +16,7 @@ import {
   useStorageData,
   useLocationDisplayNames,
   formatPositionRangesForBox,
+  DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
 import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import { useTubeModalFocusReturn } from '@domains/tubes/hooks/useTubeModalFocusReturn';
@@ -499,11 +499,7 @@ export default function BatchTubeEditorModal({
   const { settings: userSettings } = useUserSettings();
 
   // Format position ranges for display with flexible formatting
-  const gridConfig = boxObj?.gridConfig ?? {
-    rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
-    cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-    template: 'standard' as const,
-  };
+  const gridConfig = boxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
   const positionRanges = formatPositionRangesForBox(
     tubes.map(t => t.location.position),
     tankId,

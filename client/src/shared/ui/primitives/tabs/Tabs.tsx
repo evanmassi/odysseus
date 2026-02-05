@@ -4,7 +4,7 @@
  * Tab navigation with automatic orientation based on tab count.
  * 2 tabs render horizontally, 3+ render vertically.
  */
-import { createContext, useContext, Children, useMemo } from 'react';
+import { createContext, useContext, Children, useMemo, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
 export type TabOrientation = 'horizontal' | 'vertical';
@@ -48,6 +48,16 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
   const { value, onChange, orientation } = useTabsContext();
   const isActive = value === id;
 
+  // Hover animation state for vertical tabs
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  const handleMouseEnter = useCallback(() => {
+    if (orientation === 'vertical') {
+      setIsAnimating(true);
+      setTimeout(() => setIsAnimating(false), 350);
+    }
+  }, [orientation]);
+
   const handleClick = () => {
     if (!disabled) {
       onChange(id);
@@ -72,6 +82,7 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
         data-focus="none"
         onClick={handleClick}
         onKeyDown={handleKeyDown}
+        onMouseEnter={handleMouseEnter}
         disabled={disabled}
         className={`
           w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors
@@ -84,7 +95,9 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
           }
         `}
       >
-        {icon && <span className="flex-shrink-0">{icon}</span>}
+        {icon && (
+          <span className={`flex-shrink-0 ${isAnimating ? 'animate-icon-pop' : ''}`}>{icon}</span>
+        )}
         <span>{children}</span>
       </button>
     );
@@ -107,8 +120,8 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
         disabled:opacity-50 disabled:cursor-not-allowed
         ${
           isActive
-            ? 'border-secondary-foreground text-card-foreground'
-            : 'border-transparent text-muted-foreground hover:text-accent-foreground hover:border-border'
+            ? 'border-secondary-foreground bg-muted text-card-foreground'
+            : 'border-transparent text-secondary-foreground hover:bg-muted hover:text-accent-foreground hover:border-border'
         }
       `}
     >
