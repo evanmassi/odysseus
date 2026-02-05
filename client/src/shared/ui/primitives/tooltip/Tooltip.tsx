@@ -1,13 +1,25 @@
 /**
  * Tooltip Component
  *
- * Accessible tooltip with frosted glass styling
- * Built on Radix UI Tooltip primitive
+ * Accessible tooltip with frosted glass styling built on Radix UI.
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, forwardRef } from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
+
+/**
+ * Stable ref wrapper to prevent Radix composeRefs infinite loops during rapid re-renders.
+ * Uses display:contents to avoid layout side effects.
+ */
+const TooltipTriggerWrapper = forwardRef<HTMLSpanElement, { children: React.ReactNode }>(
+  ({ children, ...props }, ref) => (
+    <span ref={ref} {...props} style={{ display: 'contents' }}>
+      {children}
+    </span>
+  )
+);
+TooltipTriggerWrapper.displayName = 'TooltipTriggerWrapper';
 
 export interface TooltipProps {
   /** The content to show in the tooltip */
@@ -68,7 +80,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
           isPointerInteraction.current = false;
         }}
       >
-        {children}
+        <TooltipTriggerWrapper>{children}</TooltipTriggerWrapper>
       </TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
