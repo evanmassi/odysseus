@@ -87,7 +87,7 @@ export class ErrorBoundary extends Component<{ children: React.ReactNode }, Erro
       return (
         <div className="min-h-screen bg-foreground flex items-center justify-center">
           <div className="bg-card rounded-lg p-8 max-w-md mx-4">
-            <h2 className="text-xl font-bold text-red-400 mb-4">Something went wrong</h2>
+            <h2 className="text-xl font-bold text-danger-text mb-4">Something went wrong</h2>
             <p className="text-muted-foreground mb-4">
               An unexpected error occurred. Please try refreshing the page.
             </p>

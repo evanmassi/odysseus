@@ -174,7 +174,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
           return isMatch ? (
             <span
               key={i}
-              className="border-b-2 border-[#1e90ff] dark:border-[#4da6ff]"
+              className="border-b-2 border-action"
               style={{
                 transition: 'border-color 120ms ease',
                 display: 'inline',

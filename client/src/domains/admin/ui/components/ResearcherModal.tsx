@@ -149,7 +149,7 @@ export function ResearcherModal({
                       }
                     }}
                     id="firstName"
-                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                     placeholder="First name"
                   />
                 </div>
@@ -178,7 +178,7 @@ export function ResearcherModal({
                   <input
                     {...register('lastName')}
                     id="lastName"
-                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                     placeholder="Last name"
                   />
                 </div>
@@ -209,7 +209,7 @@ export function ResearcherModal({
                   {...register('email')}
                   id="email"
                   type="email"
-                  className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                  className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                   placeholder="name@institution.edu"
                 />
               </div>
@@ -237,7 +237,7 @@ export function ResearcherModal({
                   <input
                     {...register('department')}
                     id="department"
-                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                     placeholder="Department name"
                   />
                 </div>
@@ -261,7 +261,7 @@ export function ResearcherModal({
                   <input
                     {...register('position')}
                     id="position"
-                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                    className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                     placeholder="Title or role"
                   />
                 </div>

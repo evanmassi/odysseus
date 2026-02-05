@@ -177,7 +177,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 value={firstName}
                 onChange={e => setFirstName(e.target.value)}
                 onBlur={() => setFirstNameTouched(true)}
-                className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                 placeholder="First name"
                 required
                 disabled={isUpdating}
@@ -207,7 +207,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 value={lastName}
                 onChange={e => setLastName(e.target.value)}
                 onBlur={() => setLastNameTouched(true)}
-                className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                 placeholder="Last name"
                 required
                 disabled={isUpdating}
@@ -241,7 +241,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 setEmail(e.target.value.trim());
                 setEmailTouched(true);
               }}
-              className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+              className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
               placeholder="name@institution.edu"
               required
               disabled={isUpdating}
@@ -270,7 +270,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 id="account-department"
                 value={department}
                 onChange={e => setDepartment(e.target.value)}
-                className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                 placeholder="Department name"
                 disabled={isUpdating}
                 maxLength={100}
@@ -296,7 +296,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 id="account-position"
                 value={position}
                 onChange={e => setPosition(e.target.value)}
-                className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                 placeholder="Title or role"
                 disabled={isUpdating}
                 maxLength={100}
@@ -335,7 +335,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                   value={currentPassword}
                   onChange={e => setCurrentPassword(e.target.value)}
                   onBlur={() => setPasswordTouched(true)}
-                  className="pl-7 text-sm placeholder:text-[#9aa0a6] placeholder:opacity-45"
+                  className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                   placeholder="Enter current password"
                   required
                   disabled={isUpdating}

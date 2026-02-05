@@ -49,13 +49,13 @@ export function ConnectionIndicator({ connected }: ConnectionStatusProps) {
       return {
         icon: <WifiOff size={16} />,
         text: 'Connection Lost',
-        className: 'bg-red-100 text-red-800 border border-red-200',
+        className: 'bg-danger-light text-danger-text border border-danger-border',
       };
     } else if (isReconnecting) {
       return {
         icon: <RotateCw size={16} className="animate-spin" />,
         text: 'Reconnected',
-        className: 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+        className: 'bg-success-light text-success-text border border-success-border',
       };
     }
 
