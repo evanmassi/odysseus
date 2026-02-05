@@ -493,7 +493,7 @@ export interface SessionValidationResult {
  */
 export type SessionValidationOutcome =
   | { success: true; user: User; sessionId: string }
-  | { success: false; code: 'INVALID_TOKEN' | 'SESSION_REVOKED' | 'SESSION_IDLE_TIMEOUT' | 'SESSION_ABSOLUTE_TIMEOUT' };
+  | { success: false; code: 'INVALID_TOKEN' | 'SESSION_REVOKED' | 'SESSION_EXPIRED' | 'SESSION_IDLE_TIMEOUT' | 'SESSION_ABSOLUTE_TIMEOUT' };
 
 export interface SessionService {
   // OAuth 2.0 dual token support (pure implementation)

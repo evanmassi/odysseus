@@ -55,6 +55,10 @@ export class JwtSessionService implements SessionService {
   private securityConfigCacheTime: number = 0;
   private readonly CACHE_TTL_MS = 60000; // 60 seconds
 
+  // Demo session limits (separate from normal security config)
+  private static readonly DEMO_MAX_SESSIONS = 50;
+  private static readonly DEMO_SESSION_EXPIRY_HOURS = 4;
+
   constructor(
     configurationService: ConfigurationService,
     private readonly userRepository: UserRepository,
@@ -116,12 +120,16 @@ export class JwtSessionService implements SessionService {
    * Revokes oldest sessions if user exceeds configured limit
    *
    * @param userId - User ID to check session limit for
+   * @param isDemo - Whether user is a demo user (uses separate session cap)
    * @returns Number of sessions revoked
    */
-  private async enforceSessionLimit(userId: string): Promise<number> {
+  private async enforceSessionLimit(userId: string, isDemo: boolean): Promise<number> {
     try {
-      const securityConfig = await this.configurationRepository.getSecurityConfig();
-      const maxSessions = securityConfig.maxConcurrentSessions;
+      // Demo users have a separate, higher session cap (not configurable via admin)
+      // This prevents demo sessions from affecting real user session limits
+      const maxSessions = isDemo
+        ? JwtSessionService.DEMO_MAX_SESSIONS
+        : (await this.configurationRepository.getSecurityConfig()).maxConcurrentSessions;
 
       // Count current active sessions
       const currentSessionCount = await this.userSessionRepository.countActiveSessions(userId);
@@ -236,24 +244,30 @@ export class JwtSessionService implements SessionService {
       return { success: false, code: 'SESSION_REVOKED' };
     }
 
-    // 3. Get cached security config
+    // 3. Check session's own expiry (enforces demo user shorter expiry)
+    if (session.isExpired()) {
+      await this.userSessionRepository.revokeSession(session.id);
+      return { success: false, code: 'SESSION_EXPIRED' };
+    }
+
+    // 4. Get cached security config
     const config = await this.getCachedSecurityConfig();
 
-    // 4. Check absolute timeout (session age from creation)
+    // 5. Check absolute timeout (session age from creation)
     const absoluteTimeoutMs = config.absoluteSessionTimeoutHours * 60 * 60 * 1000;
     if (Date.now() - session.createdAt.getTime() > absoluteTimeoutMs) {
       await this.userSessionRepository.revokeSession(session.id);
       return { success: false, code: 'SESSION_ABSOLUTE_TIMEOUT' };
     }
 
-    // 5. Check idle timeout (time since last activity)
+    // 6. Check idle timeout (time since last activity)
     const idleTimeoutMs = config.sessionTimeoutMinutes * 60 * 1000;
     if (Date.now() - session.lastUsedAt.getTime() > idleTimeoutMs) {
       await this.userSessionRepository.revokeSession(session.id);
       return { success: false, code: 'SESSION_IDLE_TIMEOUT' };
     }
 
-    // 6. Update lastUsedAt ONLY if this is real activity (not a status check)
+    // 7. Update lastUsedAt ONLY if this is real activity (not a status check)
     if (updateActivity) {
       await this.userSessionRepository.updateLastUsed(session.id, new Date());
     }
@@ -344,11 +358,15 @@ export class JwtSessionService implements SessionService {
     deviceInfo?: string
   ): Promise<EnhancedLoginResponse> {
     // Enforce concurrent session limit (revoke old sessions if needed)
-    await this.enforceSessionLimit(user.id);
+    await this.enforceSessionLimit(user.id, user.isDemo);
 
     // Get configurable token expiry from security settings
     const accessTokenExpiryMs = await this.getAccessTokenExpiryMilliseconds();
-    const refreshTokenExpiry = new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)); // 7 days
+
+    // Demo users get shorter session expiry to prevent accumulation
+    const refreshTokenExpiry = user.isDemo
+      ? new Date(Date.now() + (JwtSessionService.DEMO_SESSION_EXPIRY_HOURS * 60 * 60 * 1000))
+      : new Date(Date.now() + (7 * 24 * 60 * 60 * 1000)); // 7 days for real users
 
     // Create long-lived refresh token (secure random)
     const refreshToken = await this.createRefreshToken(user);
@@ -432,14 +450,19 @@ export class JwtSessionService implements SessionService {
   }
 
   /**
-   * Create long-lived refresh token (secure random)
+   * Create refresh token with demo-aware expiry
    */
   private async createRefreshToken(user: User): Promise<RefreshTokenRecord> {
     const tokenId = randomUUID();
     const secureToken = randomBytes(32).toString('hex'); // 256-bit secure random
-    
+
+    // Demo users get shorter refresh token expiry (hours converted to fractional days)
+    const expiryDays = user.isDemo
+      ? JwtSessionService.DEMO_SESSION_EXPIRY_HOURS / 24
+      : 7;
+
     // Create domain entity
-    const refreshTokenEntity = RefreshToken.create(user.id, 7); // 7 days expiry
+    const refreshTokenEntity = RefreshToken.create(user.id, expiryDays);
     
     // Store in database using repository
     await this.refreshTokenRepository.save(refreshTokenEntity);
