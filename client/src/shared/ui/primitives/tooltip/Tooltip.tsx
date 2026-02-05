@@ -2,14 +2,15 @@
  * Tooltip Component
  *
  * Accessible tooltip with frosted glass styling built on Radix UI.
+ * Uses uncontrolled state to prevent re-render cascades during rapid updates.
  */
 
-import React, { useState, useRef, forwardRef } from 'react';
+import React, { forwardRef } from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
 /**
- * Stable ref wrapper to prevent Radix composeRefs infinite loops during rapid re-renders.
+ * Stable ref wrapper to prevent Radix composeRefs issues during rapid re-renders.
  * Uses display:contents to avoid layout side effects.
  */
 const TooltipTriggerWrapper = forwardRef<HTMLSpanElement, { children: React.ReactNode }>(
@@ -47,39 +48,15 @@ export const Tooltip: React.FC<TooltipProps> = ({
   disabled = false,
   className = '',
 }) => {
-  const [open, setOpen] = useState(false);
-  const isPointerInteraction = useRef(false);
-
   if (disabled || !content) {
     return <>{children}</>;
   }
 
+  // Uncontrolled state - Radix manages open/close internally.
+  // Prevents re-render feedback loops during rapid TanStack Query updates.
   return (
-    <TooltipPrimitive.Root
-      delayDuration={delayDuration}
-      open={open}
-      onOpenChange={newOpen => {
-        // Only allow opening from pointer/hover interactions, not keyboard focus
-        if (newOpen && !isPointerInteraction.current) {
-          return;
-        }
-        setOpen(newOpen);
-      }}
-    >
-      <TooltipPrimitive.Trigger
-        asChild
-        onPointerEnter={() => {
-          isPointerInteraction.current = true;
-          setOpen(true);
-        }}
-        onPointerLeave={() => {
-          isPointerInteraction.current = false;
-          setOpen(false);
-        }}
-        onFocus={() => {
-          isPointerInteraction.current = false;
-        }}
-      >
+    <TooltipPrimitive.Root delayDuration={delayDuration}>
+      <TooltipPrimitive.Trigger asChild>
         <TooltipTriggerWrapper>{children}</TooltipTriggerWrapper>
       </TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
