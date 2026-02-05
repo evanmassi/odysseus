@@ -912,6 +912,18 @@ export class TubeApplicationService {
     const skipped: SkippedTube[] = [];
     const tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }> = [];
 
+    // Validate all share targets exist and have same demo status
+    const targetUsers = await this.userRepository.findByIds(request.userIds);
+
+    if (targetUsers.length !== request.userIds.length) {
+      throw new Error('One or more users not found');
+    }
+
+    const invalidUsers = targetUsers.filter(u => u.isDemo !== authenticatedUser.isDemo);
+    if (invalidUsers.length > 0) {
+      throw new Error('Cannot share tubes with users of different demo status');
+    }
+
     const tubes = await this.tubeRepository.findByIds(request.tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -936,7 +948,7 @@ export class TubeApplicationService {
         continue;
       }
 
-      // Share with all users
+      // Share with all validated users
       const updatedTube = tube.shareWith(request.userIds);
 
       await this.tubeRepository.save(updatedTube);

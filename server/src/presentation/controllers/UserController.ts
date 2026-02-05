@@ -117,11 +117,17 @@ export class UserController extends BaseController {
    * Access: Any authenticated user
    *
    * Returns minimal display info for user selection dropdowns.
+   * Filters by demo status: demo users see only demo users, real users see only real users.
    */
-  async listActiveUsers(_req: Request, res: Response): Promise<void> {
+  async listActiveUsers(req: Request, res: Response): Promise<void> {
     try {
+      const authenticatedUser = this.getAuthenticatedUser(req);
+
       // Get all approved users
-      const users = await this.userRepository.findByStatus('approved');
+      const allUsers = await this.userRepository.findByStatus('approved');
+
+      // Filter by demo status: demo users see demo users, real users see real users
+      const users = allUsers.filter(u => u.isDemo === authenticatedUser.isDemo);
 
       // Collect all personIds for batch lookup
       const personIds = users
