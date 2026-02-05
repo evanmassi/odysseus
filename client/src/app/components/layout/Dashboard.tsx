@@ -51,7 +51,7 @@ import type { PositionKey } from '@shared/types/GridSelection';
 import '@shared/styles/base/layout.css';
 
 export function Dashboard() {
-  useConfigurationSync();
+  const { isSynced } = useConfigurationSync();
 
   const { user } = useAuthStore();
 
@@ -440,6 +440,18 @@ export function Dashboard() {
     isViewOnlySpace,
     hasResearcherProfile,
   });
+
+  // Gate rendering until configuration is loaded to prevent flash of wrong tank
+  // This ensures demo users don't briefly see non-demo tanks before sync completes
+  if (!isSynced) {
+    return (
+      <div className="app-container">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">

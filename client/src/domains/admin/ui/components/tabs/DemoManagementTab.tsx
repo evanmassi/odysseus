@@ -15,7 +15,7 @@ import { RefreshCw, UserRound, Trash2, FlaskConical, ToggleRight } from 'lucide-
 
 import { AnimatedCheckmark, AnimatedXMark } from '@shared/components';
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Table, Tooltip, Chip } from '@shared/ui';
+import { Button, Table, Tooltip, Chip, Select } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -329,27 +329,31 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
           <h4 className="text-base font-medium text-card-foreground">
             Demo Users ({demoUsers.length})
           </h4>
-          {nonDemoUsers.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Add user to demo:</span>
-              <select
-                className="text-sm border border-border rounded px-2 py-1 bg-background"
-                value=""
-                onChange={e => {
-                  if (e.target.value) {
-                    void toggleUserDemoStatus(e.target.value, false);
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Add user to demo:</span>
+            <div className="w-48">
+              <Select
+                options={nonDemoUsers.map(user => ({
+                  value: user.id,
+                  label: user.username,
+                  description:
+                    user.firstName && user.lastName
+                      ? `${user.firstName} ${user.lastName}`
+                      : undefined,
+                }))}
+                placeholder="Select user..."
+                size="sm"
+                disabled={nonDemoUsers.length === 0 || updatingUserId !== null}
+                onChange={value => {
+                  if (value && typeof value === 'string') {
+                    void toggleUserDemoStatus(value, false);
                   }
                 }}
-              >
-                <option value="">Select user...</option>
-                {nonDemoUsers.map(user => (
-                  <option key={user.id} value={user.id}>
-                    {user.username}
-                  </option>
-                ))}
-              </select>
+                value={undefined}
+                aria-label="Select user to add to demo mode"
+              />
             </div>
-          )}
+          </div>
         </div>
 
         {demoUsers.length > 0 ? (
@@ -379,27 +383,28 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
           <h4 className="text-base font-medium text-card-foreground">
             Demo Tanks ({demoTanks.length})
           </h4>
-          {nonDemoTanks.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">Add tank to demo:</span>
-              <select
-                className="text-sm border border-border rounded px-2 py-1 bg-background"
-                value=""
-                onChange={e => {
-                  if (e.target.value) {
-                    void toggleTankDemoStatus(e.target.value, false);
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Add tank to demo:</span>
+            <div className="w-48">
+              <Select
+                options={nonDemoTanks.map(tank => ({
+                  value: tank.id,
+                  label: tank.name,
+                  description: tank.location || undefined,
+                }))}
+                placeholder="Select tank..."
+                size="sm"
+                disabled={nonDemoTanks.length === 0 || updatingTankId !== null}
+                onChange={value => {
+                  if (value && typeof value === 'string') {
+                    void toggleTankDemoStatus(value, false);
                   }
                 }}
-              >
-                <option value="">Select tank...</option>
-                {nonDemoTanks.map(tank => (
-                  <option key={tank.id} value={tank.id}>
-                    {tank.name}
-                  </option>
-                ))}
-              </select>
+                value={undefined}
+                aria-label="Select tank to add to demo mode"
+              />
             </div>
-          )}
+          </div>
         </div>
 
         {demoTanks.length > 0 ? (

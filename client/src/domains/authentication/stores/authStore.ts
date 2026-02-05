@@ -8,6 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+import { clearAllCaches } from '@app/queryClient';
 import { SessionManager, LocalStorageSessionStorage } from '@app/services/SessionManager';
 import { modalStore } from '@app/stores/modalStore';
 import { authHttpClient } from '@infra/api/AuthHttpClient';
@@ -452,6 +453,10 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error) {
           logger.warn('Backend logout failed (clearing local session anyway)', { error });
         }
+
+        // Clear React Query cache to ensure next user gets fresh data
+        // This is critical for demo mode isolation - different users see different data
+        clearAllCaches();
 
         // Always clear local session regardless of backend response
         sessionManager.clearSession();

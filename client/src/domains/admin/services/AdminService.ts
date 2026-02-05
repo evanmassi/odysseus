@@ -855,17 +855,15 @@ export class AdminService {
    */
   async getDemoTanks(): Promise<{ success: boolean; tanks: TankConfiguration[] }> {
     try {
-      // Fetch full configuration and filter for demo tanks
+      // Use admin endpoint to get ALL tanks (unfiltered by demo status)
       const response = await httpClient.get<{
         success: boolean;
         data: {
-          equipment: {
-            tanks: TankConfiguration[];
-          };
+          tanks: TankConfiguration[];
         };
-      }>('/configuration');
+      }>('/admin/tanks');
 
-      const demoTanks = response.data.data.equipment.tanks.filter(tank => tank.isDemo);
+      const demoTanks = response.data.data.tanks.filter(tank => tank.isDemo);
 
       return {
         success: response.data.success,
@@ -879,21 +877,20 @@ export class AdminService {
 
   /**
    * Get all tanks (for selecting which to mark as demo)
+   * Uses admin endpoint that returns unfiltered tanks regardless of demo status
    */
   async getAllTanks(): Promise<{ success: boolean; tanks: TankConfiguration[] }> {
     try {
       const response = await httpClient.get<{
         success: boolean;
         data: {
-          equipment: {
-            tanks: TankConfiguration[];
-          };
+          tanks: TankConfiguration[];
         };
-      }>('/configuration');
+      }>('/admin/tanks');
 
       return {
         success: response.data.success,
-        tanks: response.data.data.equipment.tanks,
+        tanks: response.data.data.tanks,
       };
     } catch (error) {
       logger.error('Failed to get all tanks', { error });

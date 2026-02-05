@@ -1,9 +1,10 @@
 /**
  * Configuration Sync Hook
  *
- * Handles two responsibilities:
+ * Handles three responsibilities:
  * 1. Fresh install detection - initializes default config on server if none exists
  * 2. Multi-tab sync - invalidates React Query cache when config changes in another tab
+ * 3. Tank sync - ensures tubeStore points to an available tank (critical for demo mode isolation)
  */
 import { useEffect, useRef } from 'react';
 
@@ -11,6 +12,7 @@ import { SYSTEM_DEFAULTS } from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
+import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { logger } from '@shared/infrastructure/logger';
 
 import { useInitializeConfigurationMutation } from './useStorageEquipmentMutations';
@@ -99,6 +101,42 @@ export function useConfigurationSync() {
       );
     }
   }, [isSuccess, data?.configuration.systemConfig.version]);
+
+  // Sync tubeStore with available tanks when configuration loads
+  // Critical for demo mode isolation: ensures demo users don't query non-demo tanks
+  useEffect(() => {
+    if (isSuccess && data?.configuration.currentLab.equipment.tanks) {
+      const availableTanks = data.configuration.currentLab.equipment.tanks;
+      if (availableTanks.length > 0) {
+        const currentTank = useTubeStore.getState().currentTank;
+
+        // Check if current tank is available in the user's configuration
+        const tankExists = availableTanks.some(tank => tank.id === currentTank);
+
+        if (!tankExists) {
+          // Current tank not available - switch to first available tank
+          const firstTank = availableTanks[0];
+          const tubeStore = useTubeStore.getState();
+
+          tubeStore.setCurrentTank(firstTank.id);
+
+          // Also reset rack and box to first available in that tank
+          if (firstTank.racks && firstTank.racks.length > 0) {
+            const firstRack = firstTank.racks[0];
+            tubeStore.setCurrentRack(firstRack.id);
+            if (firstRack.boxes && firstRack.boxes.length > 0) {
+              tubeStore.setCurrentBox(firstRack.boxes[0].id);
+            }
+          }
+
+          logger.info('Synced tubeStore to first available tank', {
+            previousTank: currentTank,
+            newTank: firstTank.id,
+          });
+        }
+      }
+    }
+  }, [isSuccess, data?.configuration.currentLab.equipment.tanks]);
 
   return {
     isSyncing: !isSuccess && !isError,

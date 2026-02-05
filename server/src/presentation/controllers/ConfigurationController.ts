@@ -618,6 +618,35 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
+   * GET /api/admin/tanks
+   * Get all tanks (unfiltered by demo status) for admin demo management
+   */
+  async getAllTanksAdmin(req: Request, res: Response): Promise<void> {
+    try {
+      // Use unfiltered configuration query (not filtered by user demo status)
+      const configuration = await this.getCurrentConfigurationHandler.handle({});
+      const configData = configuration.toData();
+
+      // Return all tanks with their demo status
+      const tanks = configData.tanks.map(tank => ({
+        id: tank.id,
+        name: tank.name,
+        location: tank.location,
+        isActive: tank.isActive,
+        isDemo: tank.isDemo,
+        racks: tank.racks
+      }));
+
+      res.json({
+        success: true,
+        data: { tanks }
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to get all tanks');
+    }
+  }
+
+  /**
    * PUT /api/admin/tanks/:tankId/demo-status
    * Set tank demo status (admin only)
    */

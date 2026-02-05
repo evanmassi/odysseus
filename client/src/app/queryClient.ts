@@ -443,3 +443,19 @@ export function setupQueryPersistence(): void {
     },
   });
 }
+
+/**
+ * Clear all cached data on logout.
+ * This ensures the next user gets fresh data filtered for their demo status.
+ * Also clears persisted cache from localStorage.
+ */
+export function clearAllCaches(): void {
+  // Clear React Query in-memory cache
+  queryClient.clear();
+
+  // Clear persisted cache from localStorage
+  localStorage.removeItem('odysseus-query-cache');
+  localStorage.removeItem('odysseus-configuration-version');
+
+  logger.info('Cleared all query caches on logout');
+}

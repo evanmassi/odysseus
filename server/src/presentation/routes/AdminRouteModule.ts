@@ -126,6 +126,10 @@ export class AdminRouteModule implements RouteModule {
       this.authController.setUserDemoStatus.bind(this.authController)
     );
 
+    router.get('/tanks',
+      this.configurationController.getAllTanksAdmin.bind(this.configurationController)
+    );
+
     router.put('/tanks/:tankId/demo-status',
       validateParams(z.object({ tankId: z.string() })),
       validateBody(setTankDemoStatusSchema),
