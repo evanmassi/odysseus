@@ -66,6 +66,11 @@ import { logger } from '@utils/logger';
  * Non-blocking: audit failures are logged but never break main operations.
  */
 export class AuditEventHandler {
+  /** Cache for demo tank IDs to avoid repeated config fetches */
+  private demoTankIdsCache: Set<string> | null = null;
+  private demoTankIdsCacheTime: number = 0;
+  private static readonly DEMO_CACHE_TTL_MS = 30000; // 30 seconds
+
   constructor(
     private auditService: AuditService,
     private eventBus: EventBus,
@@ -75,10 +80,44 @@ export class AuditEventHandler {
     this.subscribeToEvents();
   }
 
-  /** Resolve a user ID to a username, falling back to the raw ID. */
-  private async resolveUsername(userId: string): Promise<string> {
+  /**
+   * Resolve a user ID to username and demo status.
+   * Falls back to raw ID for username if user not found.
+   */
+  private async resolveUser(userId: string): Promise<{ username: string; isDemo: boolean }> {
     const user = await this.userRepository.findById(userId);
-    return user?.username || userId;
+    return {
+      username: user?.username || userId,
+      isDemo: user?.isDemo ?? false
+    };
+  }
+
+  /**
+   * Get cached set of demo tank IDs.
+   * Caches for 30 seconds to reduce DB calls when processing multiple events.
+   */
+  private async getDemoTankIds(): Promise<Set<string>> {
+    const now = Date.now();
+    if (this.demoTankIdsCache && (now - this.demoTankIdsCacheTime) < AuditEventHandler.DEMO_CACHE_TTL_MS) {
+      return this.demoTankIdsCache;
+    }
+
+    const config = await this.configurationRepository.getCurrent();
+    const demoTankIds = new Set(
+      config?.equipment.tanks.filter(t => t.isDemo).map(t => t.id) ?? []
+    );
+
+    this.demoTankIdsCache = demoTankIds;
+    this.demoTankIdsCacheTime = now;
+    return demoTankIds;
+  }
+
+  /**
+   * Check if a tank is marked as demo (uses cached lookup).
+   */
+  private async isTankDemo(tankId: string): Promise<boolean> {
+    const demoTankIds = await this.getDemoTankIds();
+    return demoTankIds.has(tankId);
   }
 
   /** Wrap an audit logging operation with standardized error handling. */
@@ -100,6 +139,9 @@ export class AuditEventHandler {
   /**
    * Shared audit logging scaffold used by most handlers.
    * Resolves the actor's username, appends timestamp, and wraps in safeLogAudit.
+   *
+   * Demo filtering: Skips logging if the actor is a demo user or if the
+   * action is on a demo tank. This keeps audit logs clean of demo activity.
    */
   private async logAuditEvent(params: {
     eventName: string;
@@ -109,10 +151,22 @@ export class AuditEventHandler {
     entityType: string;
     entityId?: string;
     occurredOn: Date;
+    tankId?: string;
     buildDetails: (username: string) => Record<string, unknown> | Promise<Record<string, unknown>>;
   }): Promise<void> {
     await this.safeLogAudit(params.eventName, params.context, async () => {
-      const username = await this.resolveUsername(params.actorId);
+      const { username, isDemo } = await this.resolveUser(params.actorId);
+
+      // Skip audit logging for demo users
+      if (isDemo) {
+        return;
+      }
+
+      // Skip audit logging for actions on demo tanks
+      if (params.tankId && await this.isTankDemo(params.tankId)) {
+        return;
+      }
+
       const details = await params.buildDetails(username);
       await this.auditService.logAction({
         userId: params.actorId,
@@ -227,6 +281,7 @@ export class AuditEventHandler {
       entityType: 'tube',
       entityId: event.tubeId,
       occurredOn: event.occurredOn,
+      tankId: event.location.tankId,
       buildDetails: async (username) => {
         const displayLocation = await this.getDisplayLocation(event.location);
         return {
@@ -253,7 +308,12 @@ export class AuditEventHandler {
 
   private async handleTubeUpdated(event: TubeUpdatedEvent): Promise<void> {
     await this.safeLogAudit('tube updated', { tubeId: event.tubeId }, async () => {
-      const username = await this.resolveUsername(event.updatedBy);
+      const { username, isDemo } = await this.resolveUser(event.updatedBy);
+
+      // Skip audit logging for demo users or demo tanks
+      if (isDemo || await this.isTankDemo(event.newLocation.tankId)) {
+        return;
+      }
 
       const changes: FieldChange[] = [];
 
@@ -297,7 +357,13 @@ export class AuditEventHandler {
 
   private async handleTubeLocationChanged(event: TubeLocationChangedEvent): Promise<void> {
     await this.safeLogAudit('tube location changed', { tubeId: event.tubeId }, async () => {
-      const username = await this.resolveUsername(event.movedBy);
+      const { username, isDemo } = await this.resolveUser(event.movedBy);
+
+      // Skip audit logging for demo users or demo tanks (check both old and new location)
+      if (isDemo || await this.isTankDemo(event.oldLocation.tankId) || await this.isTankDemo(event.newLocation.tankId)) {
+        return;
+      }
+
       const oldDisplayLocation = await this.getDisplayLocation(event.oldLocation);
       const newDisplayLocation = await this.getDisplayLocation(event.newLocation);
 
@@ -328,6 +394,7 @@ export class AuditEventHandler {
       entityType: 'tube',
       entityId: event.tubeId,
       occurredOn: event.occurredOn,
+      tankId: event.location.tankId,
       buildDetails: async (username) => {
         const displayLocation = await this.getDisplayLocation(event.location);
         return {
@@ -370,7 +437,8 @@ export class AuditEventHandler {
   private async resolveUsernames(userIds: string[]): Promise<Array<{ userId: string; username: string }>> {
     const resolved: Array<{ userId: string; username: string }> = [];
     for (const userId of userIds) {
-      resolved.push({ userId, username: await this.resolveUsername(userId) });
+      const { username } = await this.resolveUser(userId);
+      resolved.push({ userId, username });
     }
     return resolved;
   }
@@ -448,7 +516,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'tank updated', context: { tankId: event.tankId },
       actorId: event.userId, action: 'tank_updated', entityType: 'tank',
-      entityId: event.tankId, occurredOn: event.occurredOn,
+      entityId: event.tankId, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, changes: event.changes, username }),
     });
   }
@@ -457,7 +525,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'tank added', context: { tankId: event.tankId },
       actorId: event.userId, action: 'tank_created', entityType: 'tank',
-      entityId: event.tankId, occurredOn: event.occurredOn,
+      entityId: event.tankId, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, username }),
     });
   }
@@ -466,7 +534,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'tank deleted', context: { tankId: event.tankId },
       actorId: event.userId, action: 'tank_deleted', entityType: 'tank',
-      entityId: event.tankId, occurredOn: event.occurredOn,
+      entityId: event.tankId, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, username }),
     });
   }
@@ -475,7 +543,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'rack added', context: { tankId: event.tankId, rackId: event.rackId },
       actorId: event.userId, action: 'rack_created', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, username }),
     });
   }
@@ -484,7 +552,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'rack deleted', context: { tankId: event.tankId, rackId: event.rackId },
       actorId: event.userId, action: 'rack_deleted', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, username }),
     });
   }
@@ -493,7 +561,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'rack updated', context: { tankId: event.tankId, rackId: event.rackId },
       actorId: event.userId, action: 'rack_updated', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, changes: event.changes, username }),
     });
   }
@@ -502,7 +570,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'box added', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
       actorId: event.userId, action: 'box_created', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, boxId: event.boxId, boxName: event.boxName, username }),
     });
   }
@@ -511,7 +579,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'box deleted', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
       actorId: event.userId, action: 'box_deleted', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, boxId: event.boxId, boxName: event.boxName, username }),
     });
   }
@@ -520,7 +588,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'box updated', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
       actorId: event.userId, action: 'box_updated', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({ tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName, boxId: event.boxId, boxName: event.boxName, changes: event.changes, username }),
     });
   }
@@ -540,7 +608,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'rack assigned', context: { tankId: event.tankId, rackId: event.rackId },
       actorId: event.userId, action: 'rack_assigned', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
         previousOwner: null, newOwner: { userId: event.assignedUserId, username: event.assignedUsername }, assignedBy: username,
@@ -552,7 +620,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'rack unassigned', context: { tankId: event.tankId, rackId: event.rackId },
       actorId: event.userId, action: 'rack_unassigned', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
         previousOwner: { userId: event.previousUserId, username: event.previousUsername }, newOwner: null, unassignedBy: username,
@@ -564,7 +632,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'rack reassigned', context: { tankId: event.tankId, rackId: event.rackId },
       actorId: event.userId, action: 'rack_reassigned', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
         previousOwner: { userId: event.previousUserId, username: event.previousUsername },
@@ -577,7 +645,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'box assigned', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
       actorId: event.userId, action: 'box_assigned', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
         boxId: event.boxId, boxName: event.boxName,
@@ -590,7 +658,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'box unassigned', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
       actorId: event.userId, action: 'box_unassigned', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
         boxId: event.boxId, boxName: event.boxName,
@@ -603,7 +671,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'box reassigned', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
       actorId: event.userId, action: 'box_reassigned', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
         boxId: event.boxId, boxName: event.boxName,
@@ -619,7 +687,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'rack label updated', context: { tankId: event.tankId, rackId: event.rackId },
       actorId: event.userId, action: 'rack_label_updated', entityType: 'rack',
-      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
         oldLabel: event.oldLabel || null, newLabel: event.newLabel || null, updatedBy: username,
@@ -631,7 +699,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'box label updated', context: { tankId: event.tankId, rackId: event.rackId, boxId: event.boxId },
       actorId: event.userId, action: 'box_label_updated', entityType: 'box',
-      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn,
+      entityId: `${event.tankId}-${event.rackId}-${event.boxId}`, occurredOn: event.occurredOn, tankId: event.tankId,
       buildDetails: (username) => ({
         tankId: event.tankId, tankName: event.tankName, rackId: event.rackId, rackName: event.rackName,
         boxId: event.boxId, boxName: event.boxName,
