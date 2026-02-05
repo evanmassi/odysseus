@@ -976,10 +976,12 @@ export class ServiceContainer {
     }
 
     if (!this.socketEventHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
       this.socketEventHandler = new SocketEventHandler(
         this.socketIO,
         this.getEventBus(),
-        this.getPresenceService()
+        this.getPresenceService(),
+        repositories.configurations
       );
     }
     return this.socketEventHandler;

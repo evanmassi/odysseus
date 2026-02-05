@@ -12,6 +12,7 @@
 
 import type { EventBus } from '@application/contracts/EventBus';
 import type { Server as SocketIOServer } from 'socket.io';
+import type { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { logger } from '@utils/logger';
 import { PresenceService } from '@application/services/PresenceService';
 import {
@@ -77,13 +78,45 @@ export class SocketEventHandler {
   private pendingConfigEvents: Array<{ type: string; userId: string }> = [];
   private readonly DEBOUNCE_DELAY_MS = 2000; // 2 seconds
 
+  // Demo tank ID caching (30-second TTL)
+  private demoTankIdsCache: Set<string> | null = null;
+  private demoTankIdsCacheTime: number = 0;
+  private static readonly DEMO_CACHE_TTL_MS = 30000;
+
   constructor(
     private io: SocketIOServer,
     private eventBus: EventBus,
-    private presenceService: PresenceService
+    private presenceService: PresenceService,
+    private configurationRepository: ConfigurationRepository
   ) {
     this.subscribeToEvents();
     this.setupPresenceHandlers();
+  }
+
+  /**
+   * Get cached demo tank IDs (30s TTL to reduce DB hits)
+   */
+  private async getDemoTankIds(): Promise<Set<string>> {
+    const now = Date.now();
+    if (this.demoTankIdsCache && (now - this.demoTankIdsCacheTime) < SocketEventHandler.DEMO_CACHE_TTL_MS) {
+      return this.demoTankIdsCache;
+    }
+
+    const config = await this.configurationRepository.getCurrent();
+    const demoTankIds = new Set(
+      config?.equipment.tanks.filter(t => t.isDemo).map(t => t.id) ?? []
+    );
+    this.demoTankIdsCache = demoTankIds;
+    this.demoTankIdsCacheTime = now;
+    return demoTankIds;
+  }
+
+  /**
+   * Get the appropriate room for a tank (demo or real)
+   */
+  private async getRoomForTank(tankId: string): Promise<'demo' | 'real'> {
+    const demoTankIds = await this.getDemoTankIds();
+    return demoTankIds.has(tankId) ? 'demo' : 'real';
   }
 
   /**
@@ -96,6 +129,11 @@ export class SocketEventHandler {
       if (socket.userId && socket.username) {
         try {
           this.presenceService.registerConnection(socket.userId, socket.id, socket.username);
+
+          // Join demo or real room based on user's demo status
+          const room = socket.isDemo ? 'demo' : 'real';
+          socket.join(room);
+          logger.debug('Socket joined room', { socketId: socket.id, room, isDemo: socket.isDemo });
 
           // Broadcast to all clients that user came online
           this.io.emit('user_online', {
@@ -346,13 +384,17 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
+      // Emit to appropriate room based on tank demo status
+      const room = await this.getRoomForTank(event.location.tankId);
+
       logger.debug('Emitting tube_created socket event', {
         tubeId: event.tubeId,
         location: locationData,
+        room,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('tube_created', payload);
+      this.io.to(room).emit('tube_created', payload);
     } catch (error) {
       logger.error('Failed to emit tube_created event', {
         error: error instanceof Error ? error.message : String(error),
@@ -382,12 +424,25 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
+      // Determine which room(s) to emit to
+      // If tube moves between demo/real tanks, emit to both rooms
+      const oldRoom = await this.getRoomForTank(event.oldLocation.tankId);
+      const newRoom = await this.getRoomForTank(event.newLocation.tankId);
+
       logger.debug('Emitting tube_updated socket event', {
         tubeId: event.tubeId,
+        oldRoom,
+        newRoom,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('tube_updated', payload);
+      if (oldRoom === newRoom) {
+        this.io.to(oldRoom).emit('tube_updated', payload);
+      } else {
+        // Tube moved between demo and real - notify both rooms
+        this.io.to(oldRoom).emit('tube_updated', payload);
+        this.io.to(newRoom).emit('tube_updated', payload);
+      }
     } catch (error) {
       logger.error('Failed to emit tube_updated event', {
         error: error instanceof Error ? error.message : String(error),
@@ -408,12 +463,16 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
+      // Emit to appropriate room based on tank demo status
+      const room = await this.getRoomForTank(event.location.tankId);
+
       logger.debug('Emitting tube_deleted socket event', {
         tubeId: event.tubeId,
+        room,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('tube_deleted', payload);
+      this.io.to(room).emit('tube_deleted', payload);
     } catch (error) {
       logger.error('Failed to emit tube_deleted event', {
         error: error instanceof Error ? error.message : String(error),
