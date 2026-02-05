@@ -289,6 +289,28 @@ export class PostgresContext {
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+
+    // Run schema migrations for existing databases
+    await this.runSchemaMigrations();
+  }
+
+  /**
+   * Run schema migrations for existing databases
+   * These add columns that may not exist in older database schemas
+   */
+  private async runSchemaMigrations(): Promise<void> {
+    // Add is_demo column to users table for demo mode isolation
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'is_demo'
+        ) THEN
+          ALTER TABLE users ADD COLUMN is_demo BOOLEAN NOT NULL DEFAULT FALSE;
+        END IF;
+      END $$
+    `);
   }
 
   /**
@@ -402,19 +424,6 @@ export class PostgresContext {
           WHERE table_name = 'tubes' AND column_name = 'version'
         ) THEN
           ALTER TABLE tubes ADD COLUMN version INTEGER NOT NULL DEFAULT 1;
-        END IF;
-      END $$
-    `);
-
-    // Add is_demo column to users table for demo mode isolation
-    await this.pool.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'users' AND column_name = 'is_demo'
-        ) THEN
-          ALTER TABLE users ADD COLUMN is_demo BOOLEAN NOT NULL DEFAULT FALSE;
         END IF;
       END $$
     `);

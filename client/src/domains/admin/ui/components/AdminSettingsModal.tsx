@@ -1,7 +1,16 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
 
 import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
-import { Shield, Activity, AlertTriangle, Save, ShieldUser, Gauge, UsersRound } from 'lucide-react';
+import {
+  Shield,
+  Activity,
+  AlertTriangle,
+  Save,
+  ShieldUser,
+  Gauge,
+  UsersRound,
+  FlaskConical,
+} from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { logger } from '@shared/infrastructure/logger';
@@ -28,6 +37,9 @@ const SystemTab = lazy(() => import('./tabs/SystemTab').then(m => ({ default: m.
 const MonitoringTab = lazy(() =>
   import('./tabs/MonitoringTab').then(m => ({ default: m.MonitoringTab }))
 );
+const DemoManagementTab = lazy(() =>
+  import('./tabs/DemoManagementTab').then(m => ({ default: m.DemoManagementTab }))
+);
 
 interface AdminSettingsModalProps {
   isOpen: boolean;
@@ -36,7 +48,7 @@ interface AdminSettingsModalProps {
 
 export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<
-    'security' | 'users' | 'researchers' | 'system' | 'monitoring'
+    'security' | 'users' | 'researchers' | 'system' | 'monitoring' | 'demo'
   >('system');
   const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
@@ -167,7 +179,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     }
   };
 
-  type TabId = 'security' | 'users' | 'researchers' | 'system' | 'monitoring';
+  type TabId = 'security' | 'users' | 'researchers' | 'system' | 'monitoring' | 'demo';
 
   const tabs = (
     <Tabs value={activeTab} onChange={v => setActiveTab(v as TabId)}>
@@ -185,6 +197,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       </Tab>
       <Tab id="monitoring" icon={<Activity size={18} />}>
         Monitoring
+      </Tab>
+      <Tab id="demo" icon={<FlaskConical size={18} />}>
+        Demo
       </Tab>
     </Tabs>
   );
@@ -254,6 +269,12 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       {activeTab === 'monitoring' && (
         <Suspense fallback={<TabSkeleton />}>
           <MonitoringTab />
+        </Suspense>
+      )}
+
+      {activeTab === 'demo' && (
+        <Suspense fallback={<TabSkeleton />}>
+          <DemoManagementTab onDemoUpdate={loadUsers} />
         </Suspense>
       )}
     </BaseModal>

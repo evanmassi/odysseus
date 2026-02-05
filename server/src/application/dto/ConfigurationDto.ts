@@ -124,6 +124,7 @@ export class ConfigurationDto {
       name: tankData.name,
       location: tankData.location,
       isActive: tankData.isActive,
+      isDemo: tankData.isDemo,
       createdAt: updatedAt,
       updatedAt: updatedAt,
       defaultGridConfig,

@@ -19,6 +19,7 @@ import type {
   AuditLogEntry,
   AuditLogFilters,
   GeneratePasswordResetTokenResponse,
+  TankConfiguration,
 } from '@odysseus/shared-schemas';
 
 export class AdminService {
@@ -789,6 +790,134 @@ export class AdminService {
       return await httpClient.getBlob('/admin/export/system-backup');
     } catch (error) {
       logger.error('Failed to export system backup', { error });
+      throw error;
+    }
+  }
+
+  // ============================================================================
+  // DEMO MANAGEMENT
+  // ============================================================================
+
+  /**
+   * Get all demo users
+   */
+  async getDemoUsers(): Promise<{ success: boolean; users: AdminUser[] }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: { users: AdminUser[] };
+      }>('/admin/demo/users');
+
+      return {
+        success: response.data.success,
+        users: response.data.data.users,
+      };
+    } catch (error) {
+      logger.error('Failed to get demo users', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Set user demo status
+   */
+  async setUserDemoStatus(userId: string, isDemo: boolean): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.put<{ success: boolean }>(
+        `/admin/users/${userId}/demo-status`,
+        { isDemo }
+      );
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to set user demo status', { userId, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Set tank demo status
+   */
+  async setTankDemoStatus(tankId: string, isDemo: boolean): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.put<{ success: boolean }>(
+        `/admin/tanks/${tankId}/demo-status`,
+        { isDemo }
+      );
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to set tank demo status', { tankId, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Get demo tanks from configuration
+   */
+  async getDemoTanks(): Promise<{ success: boolean; tanks: TankConfiguration[] }> {
+    try {
+      // Fetch full configuration and filter for demo tanks
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          equipment: {
+            tanks: TankConfiguration[];
+          };
+        };
+      }>('/configuration');
+
+      const demoTanks = response.data.data.equipment.tanks.filter(tank => tank.isDemo);
+
+      return {
+        success: response.data.success,
+        tanks: demoTanks,
+      };
+    } catch (error) {
+      logger.error('Failed to get demo tanks', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Get all tanks (for selecting which to mark as demo)
+   */
+  async getAllTanks(): Promise<{ success: boolean; tanks: TankConfiguration[] }> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          equipment: {
+            tanks: TankConfiguration[];
+          };
+        };
+      }>('/configuration');
+
+      return {
+        success: response.data.success,
+        tanks: response.data.data.equipment.tanks,
+      };
+    } catch (error) {
+      logger.error('Failed to get all tanks', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Reset demo data - deletes all tubes in demo tanks
+   */
+  async resetDemoData(): Promise<{ success: boolean; message: string; deletedTubes: number }> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        data: { message: string; deletedTubes: number };
+      }>('/admin/demo/reset');
+
+      return {
+        success: response.data.success,
+        message: response.data.data.message,
+        deletedTubes: response.data.data.deletedTubes,
+      };
+    } catch (error) {
+      logger.error('Failed to reset demo data', { error });
       throw error;
     }
   }

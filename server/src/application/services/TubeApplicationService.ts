@@ -342,11 +342,15 @@ export class TubeApplicationService {
 
     if (searchRequest && Object.keys(searchRequest).length > 0) {
       // Merge demo tank filter with search criteria
+      // If user specifies tankId, validate it's in allowed list; otherwise use all allowed
+      const requestedTankId = searchRequest.tankId;
+      const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
+        ? [requestedTankId]
+        : allowedTankIds;
+
       const filteredCriteria: TubeSearchCriteria = {
         ...searchRequest,
-        tankIds: searchRequest.tankIds?.length
-          ? searchRequest.tankIds.filter(id => allowedTankIds.includes(id))
-          : allowedTankIds
+        tankIds: filteredTankIds
       };
       tubes = await this.tubeRepository.search(filteredCriteria);
     } else {
@@ -399,11 +403,15 @@ export class TubeApplicationService {
 
     // Apply demo tank filter
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    // If user specifies tankId, validate it's in allowed list; otherwise use all allowed
+    const requestedTankId = searchRequest.tankId;
+    const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
+      ? [requestedTankId]
+      : allowedTankIds;
+
     const filteredCriteria: TubeSearchCriteria = {
       ...searchRequest,
-      tankIds: searchRequest.tankIds?.length
-        ? searchRequest.tankIds.filter(id => allowedTankIds.includes(id))
-        : allowedTankIds
+      tankIds: filteredTankIds
     };
 
     const tubes = await this.tubeRepository.search(filteredCriteria);
@@ -423,11 +431,15 @@ export class TubeApplicationService {
 
     // Apply demo tank filter
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    // If user specifies tankId, validate it's in allowed list; otherwise use all allowed
+    const requestedTankId = searchRequest.tankId;
+    const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
+      ? [requestedTankId]
+      : allowedTankIds;
+
     const filteredCriteria: TubeSearchCriteria = {
       ...searchRequest,
-      tankIds: searchRequest.tankIds?.length
-        ? searchRequest.tankIds.filter(id => allowedTankIds.includes(id))
-        : allowedTankIds
+      tankIds: filteredTankIds
     };
 
     const result = await this.tubeRepository.searchWithHighlighting(filteredCriteria);
