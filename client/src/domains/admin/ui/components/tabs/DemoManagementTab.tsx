@@ -11,15 +11,9 @@
 
 import { useState, useEffect, useMemo } from 'react';
 
-import {
-  RefreshCw,
-  UserRound,
-  Trash2,
-  FlaskConical,
-  AlertTriangle,
-  ToggleRight,
-} from 'lucide-react';
+import { RefreshCw, UserRound, Trash2, FlaskConical, ToggleRight } from 'lucide-react';
 
+import { AnimatedCheckmark, AnimatedXMark } from '@shared/components';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Table, Tooltip, Chip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
@@ -431,26 +425,33 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
 
       {/* Reset Demo Data Section */}
       <div className="border-t border-border pt-4">
-        <div className="bg-warning-light rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle size={20} className="text-warning-text flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h4 className="text-sm font-medium text-warning-text mb-1">Reset Demo Data</h4>
-              <p className="text-xs text-muted-foreground mb-3">
-                This will permanently delete all tubes in demo tanks. Demo users and tank
-                configurations will be preserved. Use this to clean up demo data after
-                demonstrations.
-              </p>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => setShowResetConfirm(true)}
-                disabled={demoTanks.length === 0}
-                leftIcon={<Trash2 size={14} />}
-              >
-                Reset Demo Data
-              </Button>
-            </div>
+        <div className="px-3 py-3 bg-muted border-l-4 border-l-danger-border rounded-lg shadow-sm">
+          <p className="text-sm font-medium text-danger-text mb-2">Reset Demo Data</p>
+          <div className="flex items-end justify-between gap-4">
+            <ul className="space-y-1 text-card-foreground text-sm">
+              <li className="flex items-center gap-2">
+                <AnimatedXMark size={14} className="text-danger-text flex-shrink-0" />
+                <span>Permanently deletes all tubes in demo tanks</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <AnimatedCheckmark size={14} className="text-success-text flex-shrink-0" />
+                <span>Demo users are preserved</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <AnimatedCheckmark size={14} className="text-success-text flex-shrink-0" />
+                <span>Tank configurations are preserved</span>
+              </li>
+            </ul>
+            <Button
+              variant="danger"
+              size="sm"
+              onClick={() => setShowResetConfirm(true)}
+              disabled={demoTanks.length === 0}
+              leftIcon={<Trash2 size={14} />}
+              className="flex-shrink-0"
+            >
+              Reset Demo Data
+            </Button>
           </div>
         </div>
       </div>
