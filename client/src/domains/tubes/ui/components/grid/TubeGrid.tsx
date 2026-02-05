@@ -1,13 +1,11 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
-import { EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
-
 import {
   useGridDragSelection,
   useGridKeyboardNavigation,
   useGridFontSizing,
 } from '@app/hooks/grid';
-import { useStorageData, getGridTotalPositions } from '@domains/storage';
+import { useStorageData, getGridTotalPositions, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
 import { toPositionKey } from '@shared/types/GridSelection';
@@ -15,6 +13,7 @@ import { toPositionKey } from '@shared/types/GridSelection';
 import { ContextMenu } from '../../../../../shared/ui/primitives/ContextMenu';
 
 import { GridPosition } from './GridPosition';
+import { GridTooltip } from './GridTooltip';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey, GridControllerReturn, LockContext } from '@shared/types/GridSelection';
@@ -56,11 +55,7 @@ export function TubeGrid({
   });
   const { getBox } = useStorageData();
   const boxConfig = getBox(tankId, rackId, boxId);
-  const gridConfig = boxConfig?.gridConfig ?? {
-    rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
-    cols: EQUIPMENT_DEFAULTS.GRID_COLS,
-    template: 'standard',
-  };
+  const gridConfig = boxConfig?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
   // Use grid controller passed from parent (single controller instance)
   const controller = gridController;
@@ -73,6 +68,10 @@ export function TubeGrid({
     null
   );
   const [focusedPosition, setFocusedPosition] = useState<number>(1);
+
+  // Shared tooltip state - singleton pattern avoids Radix composeRefs bug
+  const [hoveredTube, setHoveredTube] = useState<TubeData | null>(null);
+  const [hoverAnchorRect, setHoverAnchorRect] = useState<DOMRect | null>(null);
 
   // Custom hooks for separation of concerns
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
@@ -141,6 +140,16 @@ export function TubeGrid({
     },
     [controller]
   );
+
+  const handleHoverStart = useCallback((tube: TubeData, rect: DOMRect) => {
+    setHoveredTube(tube);
+    setHoverAnchorRect(rect);
+  }, []);
+
+  const handleHoverEnd = useCallback(() => {
+    setHoveredTube(null);
+    setHoverAnchorRect(null);
+  }, []);
 
   // Focus grid once it mounts after data loads
   useEffect(() => {
@@ -258,6 +267,8 @@ export function TubeGrid({
                 onMouseMove={dragSelection.handleMouseMove}
                 onQuickEditSave={() => {}}
                 onQuickEditCancel={() => setQuickEditMode(null)}
+                onHoverStart={handleHoverStart}
+                onHoverEnd={handleHoverEnd}
                 isLockedOut={isLockedOut}
                 isLockedByCurrentUser={isLockedByCurrentUser}
                 hasSharedAccess={hasSharedAccess}
@@ -290,6 +301,8 @@ export function TubeGrid({
         onShare={controller.actions.shareAccess}
         isUnlocking={controller.selection.isUnlocking}
       />
+
+      <GridTooltip tube={hoveredTube} anchorRect={hoverAnchorRect} />
     </div>
   );
 }

@@ -2,25 +2,11 @@
  * Tooltip Component
  *
  * Accessible tooltip with frosted glass styling built on Radix UI.
- * Uses uncontrolled state to prevent re-render cascades during rapid updates.
  */
 
-import React, { forwardRef } from 'react';
+import React from 'react';
 
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-
-/**
- * Stable ref wrapper to prevent Radix composeRefs issues during rapid re-renders.
- * Uses display:contents to avoid layout side effects.
- */
-const TooltipTriggerWrapper = forwardRef<HTMLSpanElement, { children: React.ReactNode }>(
-  ({ children, ...props }, ref) => (
-    <span ref={ref} {...props} style={{ display: 'contents' }}>
-      {children}
-    </span>
-  )
-);
-TooltipTriggerWrapper.displayName = 'TooltipTriggerWrapper';
 
 export interface TooltipProps {
   /** The content to show in the tooltip */
@@ -37,6 +23,10 @@ export interface TooltipProps {
   disabled?: boolean;
   /** Additional class name for the content */
   className?: string;
+  /** Controlled open state */
+  open?: boolean;
+  /** Callback when open state changes */
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -47,18 +37,16 @@ export const Tooltip: React.FC<TooltipProps> = ({
   delayDuration,
   disabled = false,
   className = '',
+  open,
+  onOpenChange,
 }) => {
   if (disabled || !content) {
     return <>{children}</>;
   }
 
-  // Uncontrolled state - Radix manages open/close internally.
-  // Prevents re-render feedback loops during rapid TanStack Query updates.
   return (
-    <TooltipPrimitive.Root delayDuration={delayDuration}>
-      <TooltipPrimitive.Trigger asChild>
-        <TooltipTriggerWrapper>{children}</TooltipTriggerWrapper>
-      </TooltipPrimitive.Trigger>
+    <TooltipPrimitive.Root delayDuration={delayDuration} open={open} onOpenChange={onOpenChange}>
+      <TooltipPrimitive.Trigger asChild>{children}</TooltipPrimitive.Trigger>
       <TooltipPrimitive.Portal>
         <TooltipPrimitive.Content
           side={side}
