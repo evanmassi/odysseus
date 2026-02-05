@@ -86,19 +86,20 @@ function MenuItem({
         w-full flex items-center justify-between py-2 px-3 rounded-md text-sm
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
-        ${danger ? 'text-secondary-foreground hover:bg-danger-light hover:text-danger-text dark:hover:text-danger-text-hover' : 'text-secondary-foreground hover:bg-accent'}
+        ${danger ? 'text-danger-text hover:bg-danger-light' : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'}
       `}
     >
       <div className="flex items-center gap-3">
-        <Icon
-          size={16}
-          className={
-            danger ? 'text-muted-foreground group-hover:text-danger-text' : 'text-muted-foreground'
-          }
-        />
+        <Icon size={16} className={danger ? 'text-danger-text' : 'text-muted-foreground'} />
         <span>{label}</span>
       </div>
-      {shortcut && <span className="text-xs text-muted-foreground font-mono ml-4">{shortcut}</span>}
+      {shortcut && (
+        <span
+          className={`text-xs font-mono ml-4 ${danger ? 'text-danger-text' : 'text-muted-foreground'}`}
+        >
+          {shortcut}
+        </span>
+      )}
     </button>
   );
 }

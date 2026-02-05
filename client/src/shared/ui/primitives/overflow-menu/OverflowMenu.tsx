@@ -48,17 +48,10 @@ function MenuItem({ item, onClose }: { item: OverflowMenuItem; onClose: () => vo
         w-full flex items-center gap-3 py-2 px-3 rounded-md text-sm
         transition-colors duration-150
         disabled:opacity-40 disabled:cursor-not-allowed
-        ${item.danger ? 'text-secondary-foreground hover:bg-danger-light hover:text-danger-text dark:hover:text-danger-text-hover' : 'text-secondary-foreground hover:bg-accent'}
+        ${item.danger ? 'text-danger-text hover:bg-danger-light' : 'text-secondary-foreground hover:bg-accent hover:text-accent-foreground'}
       `}
     >
-      <Icon
-        size={16}
-        className={
-          item.danger
-            ? 'text-muted-foreground group-hover:text-danger-text'
-            : 'text-muted-foreground'
-        }
-      />
+      <Icon size={16} className={item.danger ? 'text-danger-text' : 'text-muted-foreground'} />
       <span>{item.label}</span>
     </button>
   );

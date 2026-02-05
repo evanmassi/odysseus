@@ -107,8 +107,8 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
         disabled:opacity-50 disabled:cursor-not-allowed
         ${
           isActive
-            ? 'border-secondary-foreground text-card-foreground'
-            : 'border-transparent text-muted-foreground hover:text-accent-foreground hover:border-border'
+            ? 'border-secondary-foreground bg-muted text-card-foreground'
+            : 'border-transparent text-secondary-foreground hover:bg-muted hover:text-accent-foreground hover:border-border'
         }
       `}
     >

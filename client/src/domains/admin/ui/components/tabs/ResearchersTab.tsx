@@ -14,12 +14,11 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
-import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Clock } from 'lucide-react';
+import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Clock, Dna } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
-import { ResearcherIcon } from '@shared/ui/components/icons';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../services/AdminService';
@@ -216,7 +215,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
         return (
           <div className="flex items-center whitespace-nowrap">
             <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
-              <ResearcherIcon size={14} className="text-secondary-foreground" />
+              <Dna size={14} className="text-secondary-foreground" />
             </div>
             <div>
               <div className="text-sm font-medium text-card-foreground">
@@ -360,7 +359,7 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
       {/* Header with Add and Refresh Buttons */}
       <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
         <div className="flex items-center space-x-2">
-          <ResearcherIcon size={22} className="text-secondary-foreground" />
+          <Dna size={22} className="text-secondary-foreground" />
           <h3 className="text-xl font-semibold text-card-foreground">Researchers</h3>
         </div>
         <div className="flex items-center space-x-2">

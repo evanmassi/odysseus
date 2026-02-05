@@ -21,28 +21,28 @@ const variantStyles: Record<
   { bg: string; border: string; icon: string; text: string; defaultIcon: LucideIcon | null }
 > = {
   error: {
-    bg: 'bg-muted',
+    bg: 'bg-danger-light',
     border: 'border-l-danger-border',
     icon: 'text-danger-text',
     text: 'text-danger-text',
     defaultIcon: null, // Uses AnimatedXMark instead
   },
   warning: {
-    bg: 'bg-muted',
+    bg: 'bg-warning-light',
     border: 'border-l-warning-border',
     icon: 'text-warning-text',
     text: 'text-warning-text',
     defaultIcon: null, // Uses AnimatedWarningMark instead
   },
   info: {
-    bg: 'bg-muted',
-    border: 'border-l-muted-foreground',
-    icon: 'text-muted-foreground',
-    text: 'text-secondary-foreground',
+    bg: 'bg-info-light',
+    border: 'border-l-info-border',
+    icon: 'text-info-text',
+    text: 'text-info-text',
     defaultIcon: null, // Uses AnimatedInfoMark instead
   },
   success: {
-    bg: 'bg-muted',
+    bg: 'bg-success-light',
     border: 'border-l-success-border',
     icon: 'text-success-text',
     text: 'text-success-text',
@@ -76,21 +76,21 @@ export function AlertBanner({
   const renderIcon = (extraClass = '') => {
     if (!icon) {
       if (variant === 'error') {
-        return <AnimatedXMark size={16} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />;
+        return <AnimatedXMark size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />;
       }
       if (variant === 'warning') {
         return (
-          <AnimatedWarningMark size={16} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
+          <AnimatedWarningMark size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
         );
       }
       if (variant === 'info') {
         return (
-          <AnimatedInfoMark size={16} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
+          <AnimatedInfoMark size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
         );
       }
       if (variant === 'success') {
         return (
-          <AnimatedCheckmark size={16} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
+          <AnimatedCheckmark size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
         );
       }
     }

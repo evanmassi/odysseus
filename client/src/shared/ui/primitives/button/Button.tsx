@@ -99,21 +99,21 @@ const buttonVariants = cva(
         // Ghost - minimal button without background
         ghost: [
           'bg-transparent text-muted-foreground border-transparent',
-          'hover:bg-accent hover:text-accent-foreground',
-          'active:bg-accent',
+          'hover:bg-muted hover:text-accent-foreground',
+          'active:bg-muted',
         ],
 
         // Ghost Danger - ghost button with danger styling (for toolbar delete actions)
         'ghost-danger': [
           'bg-transparent text-danger-text border-transparent',
-          'hover:bg-danger-light hover:text-danger-text dark:hover:text-danger-text-hover',
+          'hover:bg-danger-light',
           'active:bg-danger-light',
         ],
 
         // Ghost Warning - ghost button with warning styling (for toolbar warning actions)
         'ghost-warning': [
           'bg-transparent text-warning-text border-transparent',
-          'hover:bg-warning-light hover:text-warning-text dark:hover:text-warning-text-hover',
+          'hover:bg-warning-light',
           'active:bg-warning-light',
         ],
 
