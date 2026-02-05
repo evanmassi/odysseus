@@ -348,6 +348,15 @@ export class AuthController {
         return next(new Error('User not found in request context'));
       }
 
+      // Demo users cannot change their password
+      if (user.isDemo) {
+        res.status(403).json({
+          success: false,
+          error: 'Password change is not available in demo mode'
+        });
+        return;
+      }
+
       const { currentPassword, newPassword } = req.body;
 
       const command = new ChangeUserPasswordCommand(

@@ -10,6 +10,7 @@ import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound, Save, Shield, MonitorSmartphone } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
+import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useChangePassword } from '@domains/users/hooks/useChangePassword';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
@@ -26,6 +27,8 @@ interface SecurityTabProps {
 }
 
 export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
+  const user = useAuthStore(state => state.user);
+  const isDemo = user?.isDemo ?? false;
   const { changePassword, isChanging, reset } = useChangePassword();
 
   const [currentPassword, setCurrentPassword] = useState('');
@@ -42,6 +45,8 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
+    if (isDemo) return;
+
     const fetchRequirements = async () => {
       try {
         const requirements = await authService.getPasswordRequirements();
@@ -51,7 +56,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
       }
     };
     void fetchRequirements();
-  }, []);
+  }, [isDemo]);
 
   // Convert touched/valid to AuthInput validation state
   const getValidationState = (touched: boolean, isValid: boolean) => {
@@ -147,9 +152,15 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
       </div>
 
       <div className="space-y-4 max-w-2xl">
-        <p className="text-sm text-secondary-foreground">
-          Change your password to keep your account secure
-        </p>
+        {isDemo ? (
+          <AlertBanner variant="info" spacing="sm">
+            Password changes are not available in demo mode
+          </AlertBanner>
+        ) : (
+          <p className="text-sm text-secondary-foreground">
+            Change your password to keep your account secure
+          </p>
+        )}
 
         {/* Current Password */}
         <div className="space-y-1">
@@ -169,7 +180,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
             icon={<KeyRound size={16} />}
             state={currentPasswordError ? 'error' : 'default'}
             required
-            disabled={isChanging}
+            disabled={isChanging || isDemo}
           />
           {currentPasswordError && (
             <p className="text-[10px] text-danger-text ml-1">{currentPasswordError}</p>
@@ -195,9 +206,9 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
               newPasswordMeetsRequirements && newPasswordIsDifferent
             )}
             required
-            disabled={isChanging}
+            disabled={isChanging || isDemo}
           />
-          {passwordRequirements && (
+          {passwordRequirements && !isDemo && (
             <PasswordRequirements
               password={newPassword}
               config={passwordRequirements}
@@ -227,9 +238,9 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
             icon={<KeyRound size={16} />}
             state={getValidationState(confirmPasswordTouched, passwordsMatch)}
             required
-            disabled={isChanging}
+            disabled={isChanging || isDemo}
           />
-          {confirmPasswordTouched && !passwordsMatch && confirmPassword.length > 0 && (
+          {confirmPasswordTouched && !passwordsMatch && confirmPassword.length > 0 && !isDemo && (
             <p className="text-[10px] text-danger-text ml-1">Passwords do not match</p>
           )}
         </div>
@@ -240,7 +251,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
             <Button
               variant="primary"
               onClick={handleSubmit}
-              disabled={!isFormValid}
+              disabled={!isFormValid || isDemo}
               isLoading={isChanging}
               loadingText="Changing Password..."
               leftIcon={<Save size={14} />}
