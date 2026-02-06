@@ -815,6 +815,7 @@ export class TubeApplicationService {
     const skipped: SkippedTube[] = [];
 
     const config = await this.configurationRepository.getCurrent();
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -822,6 +823,11 @@ export class TubeApplicationService {
       const tube = tubeMap.get(tubeId);
 
       if (!tube) {
+        skipped.push({ tubeId, reason: 'Tube not found' });
+        continue;
+      }
+
+      if (!allowedTankIds.has(tube.location.tankId)) {
         skipped.push({ tubeId, reason: 'Tube not found' });
         continue;
       }
@@ -900,6 +906,7 @@ export class TubeApplicationService {
     const unlocked: string[] = [];
     const skipped: SkippedTube[] = [];
 
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -907,6 +914,11 @@ export class TubeApplicationService {
       const tube = tubeMap.get(tubeId);
 
       if (!tube) {
+        skipped.push({ tubeId, reason: 'Tube not found' });
+        continue;
+      }
+
+      if (!allowedTankIds.has(tube.location.tankId)) {
         skipped.push({ tubeId, reason: 'Tube not found' });
         continue;
       }
@@ -975,6 +987,7 @@ export class TubeApplicationService {
       throw new Error('Cannot share tubes with users of different demo status');
     }
 
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -982,6 +995,11 @@ export class TubeApplicationService {
       const tube = tubeMap.get(tubeId);
 
       if (!tube) {
+        skipped.push({ tubeId, reason: 'Tube not found' });
+        continue;
+      }
+
+      if (!allowedTankIds.has(tube.location.tankId)) {
         skipped.push({ tubeId, reason: 'Tube not found' });
         continue;
       }
@@ -1035,6 +1053,7 @@ export class TubeApplicationService {
     const skipped: SkippedTube[] = [];
     const tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }> = [];
 
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -1042,6 +1061,11 @@ export class TubeApplicationService {
       const tube = tubeMap.get(tubeId);
 
       if (!tube) {
+        skipped.push({ tubeId, reason: 'Tube not found' });
+        continue;
+      }
+
+      if (!allowedTankIds.has(tube.location.tankId)) {
         skipped.push({ tubeId, reason: 'Tube not found' });
         continue;
       }
