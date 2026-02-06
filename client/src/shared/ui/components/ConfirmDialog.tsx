@@ -25,9 +25,11 @@
 
 import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 
-import { X, AlertTriangle } from 'lucide-react';
+import { X } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
+import { AnimatedWarningMark } from '@shared/components/AnimatedWarningMark';
+import { AnimatedXMark } from '@shared/components/AnimatedXMark';
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
@@ -68,18 +70,17 @@ function getVariantStyles(variant: 'danger' | 'warning') {
   if (variant === 'danger') {
     return {
       iconColor: 'text-danger-text',
-      border: 'border-danger-border',
       shadowColor: 'hsl(var(--color-danger-bg))',
       buttonVariant: 'danger' as ButtonVariant,
+      Mark: AnimatedXMark,
     };
   }
 
-  // Warning variant
   return {
     iconColor: 'text-warning-text',
-    border: 'border-warning-border',
     shadowColor: 'hsl(var(--color-warning-bg))',
     buttonVariant: 'warning' as ButtonVariant,
+    Mark: AnimatedWarningMark,
   };
 }
 
@@ -100,6 +101,7 @@ export function ConfirmDialog({
   const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
   const styles = getVariantStyles(variant);
+  const MarkComponent = styles.Mark;
 
   // Dialog manages its own visibility and exit animation
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
@@ -191,13 +193,13 @@ export function ConfirmDialog({
           aria-modal="true"
           aria-labelledby="confirm-dialog-title"
           aria-describedby="confirm-dialog-message"
-          className={`bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border ${styles.border} ${modalAnimationClass} ${closingPointerEvents}`}
+          className={`bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border border-border ${modalAnimationClass} ${closingPointerEvents}`}
           style={{ '--tw-shadow-color': styles.shadowColor } as React.CSSProperties}
         >
           {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <AlertTriangle className={`w-6 h-6 ${styles.iconColor}`} />
+              <MarkComponent size={24} className={styles.iconColor} />
               <h2 id="confirm-dialog-title" className="text-xl font-bold text-card-foreground">
                 {title}
               </h2>

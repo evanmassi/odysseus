@@ -5,8 +5,10 @@
  */
 import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 
-import { X, AlertTriangle, Info } from 'lucide-react';
+import { X } from 'lucide-react';
 
+import { AnimatedInfoMark } from '@shared/components/AnimatedInfoMark';
+import { AnimatedWarningMark } from '@shared/components/AnimatedWarningMark';
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 
@@ -27,20 +29,16 @@ export interface InfoDialogProps {
 function getVariantStyles(variant: 'warning' | 'info') {
   if (variant === 'warning') {
     return {
-      iconBg: 'bg-muted',
-      iconColor: 'text-warning-bg',
-      border: 'border-warning-border',
+      iconColor: 'text-warning-text',
       shadowColor: 'hsl(var(--color-warning-bg))',
-      Icon: AlertTriangle,
+      Mark: AnimatedWarningMark,
     };
   }
 
   return {
-    iconBg: 'bg-muted',
-    iconColor: 'text-info-bg',
-    border: 'border-info-border',
+    iconColor: 'text-info-text',
     shadowColor: 'hsl(var(--color-info-bg))',
-    Icon: Info,
+    Mark: AnimatedInfoMark,
   };
 }
 
@@ -57,7 +55,7 @@ export function InfoDialog({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const styles = getVariantStyles(variant);
-  const IconComponent = styles.Icon;
+  const MarkComponent = styles.Mark;
 
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,
@@ -114,14 +112,12 @@ export function InfoDialog({
           aria-modal="true"
           aria-labelledby="info-dialog-title"
           aria-describedby="info-dialog-message"
-          className={`bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border ${styles.border} ${modalAnimationClass} ${closingPointerEvents}`}
+          className={`bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border border-border ${modalAnimationClass} ${closingPointerEvents}`}
           style={{ '--tw-shadow-color': styles.shadowColor } as React.CSSProperties}
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
-              <div className={`p-2 ${styles.iconBg} rounded-full`}>
-                <IconComponent className={`w-6 h-6 ${styles.iconColor}`} />
-              </div>
+              <MarkComponent size={24} className={styles.iconColor} />
               <h2 id="info-dialog-title" className="text-xl font-bold text-card-foreground">
                 {title}
               </h2>
