@@ -476,6 +476,12 @@ export class TubeApplicationService {
   async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Configuration | null; preloadedTube?: Tube }): Promise<TubeResponse> {
     const existingTube = options?.preloadedTube ?? await this.getTubeOrThrow(id);
 
+    // Demo mode isolation: verify tube's tank is accessible to user
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    if (!allowedTankIds.includes(existingTube.location.tankId)) {
+      throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
+    }
+
     // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
       existingTube.location.tankId,
@@ -523,6 +529,11 @@ export class TubeApplicationService {
       );
 
       if (positionChanged) {
+        // Demo mode isolation: verify destination tank is accessible
+        if (!allowedTankIds.includes(newTankId)) {
+          throw new PermissionError('Cannot move tube to inaccessible tank', { tankId: newTankId });
+        }
+
         // Also check destination container access for moves
         const destContainerInfo = await this.getContainerInfo(newTankId, newRackId, newBoxId, options?.config);
         if (destContainerInfo) {
@@ -617,6 +628,12 @@ export class TubeApplicationService {
    */
   async deleteTube(id: string, authenticatedUser: User, options?: { config?: Configuration | null; preloadedTube?: Tube }): Promise<void> {
     const tube = options?.preloadedTube ?? await this.getTubeOrThrow(id);
+
+    // Demo mode isolation: verify tube's tank is accessible to user
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    if (!allowedTankIds.includes(tube.location.tankId)) {
+      throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
+    }
 
     // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
@@ -720,6 +737,10 @@ export class TubeApplicationService {
     const tubes = await this.tubeRepository.findByIds(tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
+    // Demo mode isolation: get allowed tanks once for the batch
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankSet = new Set(allowedTankIds);
+
     // Validate permissions per tube, collect valid IDs
     const validatedIds: string[] = [];
     const validatedTubes: Tube[] = [];
@@ -728,6 +749,11 @@ export class TubeApplicationService {
     for (const id of tubeIds) {
       const tube = tubeMap.get(id);
       if (!tube) {
+        failed.push({ id, error: `Tube not found: ${id}` });
+        continue;
+      }
+
+      if (!allowedTankSet.has(tube.location.tankId)) {
         failed.push({ id, error: `Tube not found: ${id}` });
         continue;
       }

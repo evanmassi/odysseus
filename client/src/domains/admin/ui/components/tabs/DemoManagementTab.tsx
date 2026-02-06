@@ -17,6 +17,7 @@ import { AnimatedCheckmark, AnimatedXMark } from '@shared/components';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Table, Tooltip, Chip, Select } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../services/AdminService';
@@ -47,6 +48,11 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const [updatingTankId, setUpdatingTankId] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [tankToggleConfirm, setTankToggleConfirm] = useState<{
+    tankId: string;
+    tankName: string;
+    currentIsDemo: boolean;
+  } | null>(null);
   const [userSortConfig, setUserSortConfig] = useState<SortConfig | undefined>(undefined);
   const [tankSortConfig, setTankSortConfig] = useState<SortConfig | undefined>(undefined);
 
@@ -81,10 +87,10 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
     }
   };
 
-  // Filter for non-demo users (candidates for marking as demo)
+  // Candidates for marking as demo: exclude existing demo users and admins
   const nonDemoUsers = useMemo(() => {
     const demoUserIds = new Set(demoUsers.map(u => u.id));
-    return allUsers.filter(u => !demoUserIds.has(u.id));
+    return allUsers.filter(u => !demoUserIds.has(u.id) && u.role !== 'admin');
   }, [allUsers, demoUsers]);
 
   // Filter for demo and non-demo tanks
@@ -286,7 +292,9 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
             <Button
               variant="ghost-danger"
               size="xs"
-              onClick={() => toggleTankDemoStatus(tank.id, true)}
+              onClick={() =>
+                setTankToggleConfirm({ tankId: tank.id, tankName: tank.name, currentIsDemo: true })
+              }
               isLoading={updatingTankId === tank.id}
               leftIcon={<ToggleRight size={16} />}
             >
@@ -397,7 +405,14 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
                 disabled={nonDemoTanks.length === 0 || updatingTankId !== null}
                 onChange={value => {
                   if (value && typeof value === 'string') {
-                    void toggleTankDemoStatus(value, false);
+                    const tank = nonDemoTanks.find(t => t.id === value);
+                    if (tank) {
+                      setTankToggleConfirm({
+                        tankId: tank.id,
+                        tankName: tank.name,
+                        currentIsDemo: false,
+                      });
+                    }
                   }
                 }}
                 value={undefined}
@@ -460,6 +475,26 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
           </div>
         </div>
       </div>
+
+      {/* Tank Demo Toggle Info Dialog */}
+      <InfoDialog
+        isOpen={tankToggleConfirm !== null}
+        variant="warning"
+        title={tankToggleConfirm?.currentIsDemo ? 'Remove Tank from Demo' : 'Add Tank to Demo'}
+        message={
+          tankToggleConfirm?.currentIsDemo
+            ? `Removing "${tankToggleConfirm.tankName}" from demo mode. Any existing tubes in this tank will become inaccessible to demo users.`
+            : `Marking "${tankToggleConfirm?.tankName}" as a demo tank. Any existing tubes in this tank will become inaccessible to non-demo users.`
+        }
+        buttonText="Got it"
+        onClose={async () => {
+          if (tankToggleConfirm) {
+            const { tankId, currentIsDemo } = tankToggleConfirm;
+            setTankToggleConfirm(null);
+            await toggleTankDemoStatus(tankId, currentIsDemo);
+          }
+        }}
+      />
 
       {/* Reset Confirmation Dialog */}
       <ConfirmDialog
