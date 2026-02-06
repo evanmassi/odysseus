@@ -18,6 +18,7 @@ import {
   Share2,
   TestTube,
   FlaskConical,
+  CircleHelp,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -54,6 +55,12 @@ const UserSettingsModal = lazy(() =>
   }))
 );
 
+const HelpModal = lazy(() =>
+  import('@domains/help').then(m => ({
+    default: m.HelpModal,
+  }))
+);
+
 // Create preload hooks for anticipatory loading
 const useLazyAdminSettings = PreloadHelpers.createHook(() => import('@domains/admin'));
 
@@ -64,6 +71,8 @@ const useLazyStorageManager = PreloadHelpers.createHook(
 const useLazyUserSettings = PreloadHelpers.createHook(
   () => import('@domains/authentication/ui/components/UserSettingsModal')
 );
+
+const useLazyHelp = PreloadHelpers.createHook(() => import('@domains/help'));
 
 type IconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
 
@@ -142,10 +151,12 @@ export function AppHeader({
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
   const { triggerProps: storageManagerTriggerProps } = useLazyStorageManager();
   const { triggerProps: userSettingsTriggerProps } = useLazyUserSettings();
+  const { triggerProps: helpTriggerProps } = useLazyHelp();
 
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const [showStorageManager, setShowStorageManager] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   const [isClosingMenu, setIsClosingMenu] = useState(false);
 
@@ -551,8 +562,19 @@ export function AppHeader({
 
                 <div className="h-px bg-border my-1" />
 
-                {/* User Settings */}
                 <div className="px-1">
+                  {/* Help */}
+                  <HamburgerMenuItem
+                    icon={CircleHelp}
+                    label="Help"
+                    onClick={() => {
+                      setShowHelp(true);
+                      closeMenu();
+                    }}
+                    triggerProps={helpTriggerProps}
+                  />
+
+                  {/* User Settings */}
                   <HamburgerMenuItem
                     icon={Settings}
                     label={user?.role === 'admin' ? 'User Settings' : 'Settings'}
@@ -623,6 +645,11 @@ export function AppHeader({
       {/* User Settings Modal */}
       <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="UserSettingsModal">
         <UserSettingsModal isOpen={showUserSettings} onClose={() => setShowUserSettings(false)} />
+      </SuspenseBoundary>
+
+      {/* Help Modal */}
+      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="HelpModal">
+        <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
       </SuspenseBoundary>
     </header>
   );

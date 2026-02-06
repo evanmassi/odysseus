@@ -6,7 +6,7 @@ import {
   updateTubeRequestSchema,
   formatConcentrationDisplay,
 } from '@odysseus/shared-schemas';
-import { XCircle, RefreshCw, MapPin, Edit, Save, Trash2 } from 'lucide-react';
+import { XCircle, RefreshCw, Edit, Save, Trash2 } from 'lucide-react';
 
 import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
 import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
@@ -32,6 +32,7 @@ import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
 
+import { LocationDisplay } from '../displays/LocationDisplay';
 import { TubeForm } from '../forms/TubeForm';
 
 import { BulkProgressModal } from './BulkProgressModal';
@@ -541,18 +542,12 @@ export default function BatchTubeEditorModal({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
-            <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            <div className="flex items-center gap-2 text-sm font-medium text-secondary-foreground">
-              <span className="font-semibold">{tankName}</span>
-              <span className="text-muted-foreground">•</span>
-              <span>{rackName}</span>
-              <span className="text-muted-foreground">•</span>
-              <span>{boxName}</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="font-semibold">Positions {positionRanges}</span>
-            </div>
-          </div>
+          <LocationDisplay
+            tankName={tankName}
+            rackName={rackName}
+            boxName={boxName}
+            positionLabel={positionRanges}
+          />
 
           <TubeForm
             control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}

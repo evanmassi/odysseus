@@ -21,7 +21,7 @@ import {
   formatConcentrationDisplay,
   formatResourceDisplayName,
 } from '@odysseus/shared-schemas';
-import { MapPin, Edit, Plus, Save, Trash2 } from 'lucide-react';
+import { Edit, Plus, Save, Trash2 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings } from '@domains/authentication';
@@ -707,18 +707,12 @@ function CreateModeContent({
           />
         )}
         {parsedPositions.length > 1 && batchLocationDisplay && (
-          <div className="flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm">
-            <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-            <div className="flex items-center gap-2 text-sm font-medium text-secondary-foreground">
-              <span className="font-semibold">{batchLocationDisplay.tankName}</span>
-              <span className="text-muted-foreground">•</span>
-              <span>{batchLocationDisplay.rackName}</span>
-              <span className="text-muted-foreground">•</span>
-              <span>{batchLocationDisplay.boxName}</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="font-semibold">Positions {batchLocationDisplay.positionRanges}</span>
-            </div>
-          </div>
+          <LocationDisplay
+            tankName={batchLocationDisplay.tankName}
+            rackName={batchLocationDisplay.rackName}
+            boxName={batchLocationDisplay.boxName}
+            positionLabel={batchLocationDisplay.positionRanges}
+          />
         )}
 
         {/* Mixed Selection Warning */}

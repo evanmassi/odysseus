@@ -1,0 +1,32 @@
+/* Callout line styles for the annotated tube diagram */
+
+.callout-group {
+  cursor: default;
+}
+
+.callout-line {
+  stroke: hsl(var(--muted-foreground));
+  stroke-width: 1;
+  transition: stroke 150ms ease;
+}
+
+.callout-dot {
+  fill: hsl(var(--muted-foreground));
+  transition: fill 150ms ease;
+}
+
+.callout-label {
+  transition: color 150ms ease;
+}
+
+.callout-group:hover .callout-line {
+  stroke: hsl(var(--primary));
+}
+
+.callout-group:hover .callout-dot {
+  fill: hsl(var(--primary));
+}
+
+.callout-group:hover .callout-label {
+  color: hsl(var(--primary));
+}
