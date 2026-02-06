@@ -1071,11 +1071,21 @@ export class TubeRepository implements ITubeRepository {
     }
   }
 
-  async getStats(): Promise<TubeRepositoryStats> {
-    const totalTubes = await this.count();
+  async getStats(tankIds?: string[]): Promise<TubeRepositoryStats> {
+    // Build optional tank filter clause for demo mode isolation
+    const hasFilter = tankIds && tankIds.length > 0;
+    const placeholders = hasFilter ? tankIds.map((_, i) => `$${i + 1}`).join(',') : '';
+    const whereClause = hasFilter ? `WHERE tank_id IN (${placeholders})` : '';
+    const andClause = hasFilter ? `AND tank_id IN (${placeholders})` : '';
+    const params = hasFilter ? tankIds : [];
+
+    const totalResult = await this.context.queryOne<{ count: string }>(
+      `SELECT COUNT(*) as count FROM tubes ${whereClause}`, params
+    );
+    const totalTubes = totalResult ? parseInt(totalResult.count, 10) : 0;
 
     const tankRows = await this.context.queryMany<{ tank_id: string; count: string }>(
-      'SELECT tank_id, COUNT(*) as count FROM tubes GROUP BY tank_id ORDER BY tank_id'
+      `SELECT tank_id, COUNT(*) as count FROM tubes ${whereClause} GROUP BY tank_id ORDER BY tank_id`, params
     );
     const tubesByTank: Record<string, number> = {};
     tankRows.forEach((row: { tank_id: string; count: string }) => {
@@ -1083,7 +1093,7 @@ export class TubeRepository implements ITubeRepository {
     });
 
     const researcherRows = await this.context.queryMany<{ researcher_id: string; count: string }>(
-      'SELECT researcher_id, COUNT(*) as count FROM tubes WHERE researcher_id IS NOT NULL GROUP BY researcher_id ORDER BY researcher_id'
+      `SELECT researcher_id, COUNT(*) as count FROM tubes WHERE researcher_id IS NOT NULL ${andClause} GROUP BY researcher_id ORDER BY researcher_id`, params
     );
     const tubesByResearcher: Record<string, number> = {};
     researcherRows.forEach((row: { researcher_id: string; count: string }) => {
@@ -1091,25 +1101,25 @@ export class TubeRepository implements ITubeRepository {
     });
 
     const boxCount = await this.context.queryOne<{ count: string }>(
-      "SELECT COUNT(DISTINCT tank_id || '-' || rack_id || '-' || box_id) as count FROM tubes"
+      `SELECT COUNT(DISTINCT tank_id || '-' || rack_id || '-' || box_id) as count FROM tubes ${whereClause}`, params
     );
     const boxCountNum = boxCount ? parseInt(boxCount.count, 10) : 0;
     const averageTubesPerBox = boxCountNum > 0 ? totalTubes / boxCountNum : 0;
 
     const oldestRow = await this.context.queryOne<{ id: string; created_at: Date }>(
-      'SELECT id, created_at FROM tubes ORDER BY created_at ASC LIMIT 1'
+      `SELECT id, created_at FROM tubes ${whereClause} ORDER BY created_at ASC LIMIT 1`, params
     );
     const newestRow = await this.context.queryOne<{ id: string; created_at: Date }>(
-      'SELECT id, created_at FROM tubes ORDER BY created_at DESC LIMIT 1'
+      `SELECT id, created_at FROM tubes ${whereClause} ORDER BY created_at DESC LIMIT 1`, params
     );
 
     const completeCount = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM tubes WHERE cell_type IS NOT NULL AND donor_internal_id IS NOT NULL AND researcher_id IS NOT NULL'
+      `SELECT COUNT(*) as count FROM tubes WHERE cell_type IS NOT NULL AND donor_internal_id IS NOT NULL AND researcher_id IS NOT NULL ${andClause}`, params
     );
     const completionRate = totalTubes > 0 ? ((parseInt(completeCount?.count || '0', 10)) / totalTubes) * 100 : 0;
 
     const expiredCount = await this.context.queryOne<{ count: string }>(
-      "SELECT COUNT(*) as count FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text"
+      `SELECT COUNT(*) as count FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text ${andClause}`, params
     );
     const expirationRate = totalTubes > 0 ? ((parseInt(expiredCount?.count || '0', 10)) / totalTubes) * 100 : 0;
 

@@ -496,8 +496,15 @@ export class User {
 
   /**
    * Business method: Set user's demo status (admin operation)
+   *
+   * @throws ValidationError if attempting to mark an admin as demo
    */
   setDemoStatus(isDemo: boolean): void {
+    // Business rule: Admin users cannot be marked as demo to prevent lockout
+    if (isDemo && this.isAdmin()) {
+      throw new ValidationError('Admin users cannot be marked as demo');
+    }
+
     this._isDemo = isDemo;
     this.recordActivity();
   }

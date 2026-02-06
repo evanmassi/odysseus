@@ -193,7 +193,7 @@ export interface TubeRepository {
   isHealthy(): Promise<boolean>;
   
   /**
-   * Get repository statistics
+   * Get repository statistics, optionally filtered to specific tanks (for demo mode isolation)
    */
-  getStats(): Promise<TubeRepositoryStats>;
+  getStats(tankIds?: string[]): Promise<TubeRepositoryStats>;
 }

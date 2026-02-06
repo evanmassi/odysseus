@@ -303,6 +303,12 @@ export class TubeApplicationService {
   async getTubeById(id: string, authenticatedUser: User): Promise<TubeResponse> {
     const tube = await this.getTubeOrThrow(id);
 
+    // Demo mode isolation: verify tube's tank is accessible to user
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    if (!allowedTankIds.includes(tube.location.tankId)) {
+      throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
+    }
+
     // Check view access: container ownership OR shared access
     const containerInfo = await this.getContainerInfo(
       tube.location.tankId,
@@ -361,7 +367,8 @@ export class TubeApplicationService {
   }
 
   /**
-   * Get tubes by location
+   * Get tubes by location.
+   * Applies demo mode isolation: validates tank is accessible to user.
    */
   async getTubesByLocation(
     tankId: string,
@@ -371,13 +378,21 @@ export class TubeApplicationService {
   ): Promise<TubeResponse[]> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
+    // Demo mode isolation: verify tank is accessible to user
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    if (!allowedTankIds.includes(tankId)) {
+      // Return empty array rather than error - tank simply doesn't exist for this user
+      return [];
+    }
+
     const tubes = await this.tubeRepository.findByCompleteLocation(tankId, rackId, boxId);
 
     return TubeDto.toResponseList(tubes);
   }
 
   /**
-   * Get tubes by rack and box (alias for backward compatibility)
+   * Get tubes by rack and box (legacy - prefer getTubesByLocation).
+   * Applies demo mode isolation: filters results to user's accessible tanks.
    */
   async getTubesByRackAndBox(
     rackId: string,
@@ -388,7 +403,11 @@ export class TubeApplicationService {
 
     const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId);
 
-    return TubeDto.toResponseList(tubes);
+    // Demo mode isolation: filter to tubes in allowed tanks
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const filteredTubes = tubes.filter(tube => allowedTankIds.includes(tube.location.tankId));
+
+    return TubeDto.toResponseList(filteredTubes);
   }
 
   /**
@@ -1038,7 +1057,10 @@ export class TubeApplicationService {
     return { revoked, skipped };
   }
 
-  /** Server-side aggregation avoids fetching all tubes over the network. */
+  /**
+   * Server-side aggregation avoids fetching all tubes over the network.
+   * Applies demo mode isolation: filters stats to user's accessible tanks at the SQL level.
+   */
   async getStats(authenticatedUser: User): Promise<{
     totalTubes: number;
     tubesByTank: Record<string, number>;
@@ -1051,9 +1073,9 @@ export class TubeApplicationService {
   }> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const stats = await this.tubeRepository.getStats();
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const stats = await this.tubeRepository.getStats(allowedTankIds);
 
-    // Serialize dates to ISO strings for JSON response
     return {
       totalTubes: stats.totalTubes,
       tubesByTank: stats.tubesByTank,
