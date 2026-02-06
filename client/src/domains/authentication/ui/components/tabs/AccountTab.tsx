@@ -16,9 +16,10 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
+import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
 import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
+import { AlertBanner, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
 import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
@@ -28,6 +29,8 @@ interface AccountTabProps {
 }
 
 export function AccountTab({ onSaveComplete }: AccountTabProps) {
+  const user = useAuthStore(state => state.user);
+  const isDemo = user?.isDemo ?? false;
   const { profile, isLoading } = useUserProfile();
   const { updateProfile, isUpdating } = useUserProfileActions();
 
@@ -154,6 +157,12 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
       </div>
 
       <div className="space-y-4 max-w-2xl">
+        {isDemo && (
+          <AlertBanner variant="info" spacing="sm">
+            Account changes are not available in demo mode
+          </AlertBanner>
+        )}
+
         {/* Name Fields */}
         <div className="grid grid-cols-2 gap-3">
           {/* First Name */}
@@ -180,7 +189,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                 placeholder="First name"
                 required
-                disabled={isUpdating}
+                disabled={isUpdating || isDemo}
                 maxLength={50}
               />
             </div>
@@ -210,7 +219,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                 placeholder="Last name"
                 required
-                disabled={isUpdating}
+                disabled={isUpdating || isDemo}
                 maxLength={50}
               />
             </div>
@@ -244,7 +253,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
               placeholder="name@institution.edu"
               required
-              disabled={isUpdating}
+              disabled={isUpdating || isDemo}
               maxLength={255}
             />
           </div>
@@ -272,7 +281,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 onChange={e => setDepartment(e.target.value)}
                 className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                 placeholder="Department name"
-                disabled={isUpdating}
+                disabled={isUpdating || isDemo}
                 maxLength={100}
               />
             </div>
@@ -298,7 +307,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                 onChange={e => setPosition(e.target.value)}
                 className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                 placeholder="Title or role"
-                disabled={isUpdating}
+                disabled={isUpdating || isDemo}
                 maxLength={100}
               />
             </div>
@@ -338,7 +347,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
                   className="pl-7 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                   placeholder="Enter current password"
                   required
-                  disabled={isUpdating}
+                  disabled={isUpdating || isDemo}
                 />
               </div>
             </div>
@@ -347,7 +356,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             <Button
               variant="primary"
               onClick={handleSave}
-              disabled={!currentPassword.trim()}
+              disabled={!currentPassword.trim() || isDemo}
               isLoading={isUpdating}
               loadingText="Saving..."
               leftIcon={<Save size={14} />}

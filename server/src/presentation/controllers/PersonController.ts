@@ -63,6 +63,15 @@ export class PersonController {
         throw new PermissionError('Authentication required');
       }
 
+      // Demo users cannot modify their profile
+      if (req.user.isDemo) {
+        res.status(403).json({
+          success: false,
+          error: 'Profile changes are not available in demo mode'
+        });
+        return;
+      }
+
       if (!req.user.personId) {
         throw new NotFoundError('User does not have a linked person profile');
       }
