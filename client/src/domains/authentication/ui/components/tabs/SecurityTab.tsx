@@ -7,7 +7,7 @@
 import { useState, useEffect, useMemo } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
-import { KeyRound, Save, Shield, MonitorSmartphone } from 'lucide-react';
+import { KeyRound, Save, Shield } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
@@ -148,19 +148,22 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
     <div className="space-y-4">
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <Shield size={22} className="text-secondary-foreground" />
-        <h3 className="text-xl font-semibold text-card-foreground">Password Management</h3>
+        <h3 className="text-xl font-semibold text-card-foreground">Security</h3>
       </div>
 
       <div className="space-y-4 max-w-2xl">
-        {isDemo ? (
-          <AlertBanner variant="info" spacing="sm">
-            Password changes are not available in demo mode
-          </AlertBanner>
-        ) : (
-          <p className="text-sm text-secondary-foreground">
-            Change your password to keep your account secure
-          </p>
-        )}
+        <div>
+          <h4 className="text-base font-semibold text-card-foreground mb-2">Password Management</h4>
+          {isDemo ? (
+            <AlertBanner variant="info" spacing="sm">
+              Account changes are not available in demo mode
+            </AlertBanner>
+          ) : (
+            <p className="text-xs text-secondary-foreground">
+              Change your password to keep your account secure
+            </p>
+          )}
+        </div>
 
         {/* Current Password */}
         <div className="space-y-1">
@@ -271,12 +274,9 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
 
       {/* Session Management Section */}
       <div className="pt-3 border-t border-border">
-        <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
-          <MonitorSmartphone size={22} className="text-secondary-foreground" />
-          <h3 className="text-xl font-semibold text-card-foreground">Active Sessions</h3>
-        </div>
+        <h4 className="text-base font-semibold text-card-foreground mb-2">Active Sessions</h4>
         <div className="max-w-4xl">
-          <p className="text-sm text-secondary-foreground mb-4">
+          <p className="text-xs text-secondary-foreground mb-4">
             Manage your active sessions across all devices. You can revoke access from any device.
           </p>
           <SessionListSection />

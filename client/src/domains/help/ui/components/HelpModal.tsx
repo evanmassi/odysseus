@@ -1,18 +1,31 @@
 /**
  * Help Modal
  *
- * Read-only reference modal with tab-based navigation.
- * Currently shows tube anatomy; extensible for future help topics.
+ * Read-only reference modal with vertical tab navigation.
  */
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 
-import { CircleHelp, TestTube } from 'lucide-react';
+import { CircleHelp, Dna, Keyboard, Rocket, TestTube } from 'lucide-react';
 
 import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
+import { Tab, Tabs } from '@shared/ui';
+import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 
-const TubeAnatomyTab = lazy(() =>
-  import('./tabs/TubeAnatomyTab').then(m => ({ default: m.TubeAnatomyTab }))
+const GettingStartedTab = lazy(() =>
+  import('./tabs/GettingStartedTab').then(m => ({ default: m.GettingStartedTab }))
+);
+
+const TubesTab = lazy(() => import('./tabs/TubesTab').then(m => ({ default: m.TubesTab })));
+
+const StorageTab = lazy(() => import('./tabs/StorageTab').then(m => ({ default: m.StorageTab })));
+
+const ResearchersTab = lazy(() =>
+  import('./tabs/ResearchersTab').then(m => ({ default: m.ResearchersTab }))
+);
+
+const ShortcutsTab = lazy(() =>
+  import('./tabs/ShortcutsTab').then(m => ({ default: m.ShortcutsTab }))
 );
 
 interface HelpModalProps {
@@ -20,11 +33,32 @@ interface HelpModalProps {
   onClose: () => void;
 }
 
-const tabItems = [{ id: 'tube-anatomy', label: 'Tube Anatomy', icon: TestTube }] as const;
+type HelpTabId = 'getting-started' | 'tubes' | 'storage' | 'researchers' | 'shortcuts';
+
+const tabItems = [
+  { id: 'getting-started' as const, label: 'Getting Started', icon: Rocket },
+  { id: 'tubes' as const, label: 'Tubes', icon: TestTube },
+  { id: 'storage' as const, label: 'Storage', icon: TankIcon },
+  { id: 'researchers' as const, label: 'Researchers', icon: Dna },
+  { id: 'shortcuts' as const, label: 'Shortcuts', icon: Keyboard },
+];
 
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
-  // When only one tab, hide the sidebar — it auto-appears when more are added
-  const tabs = tabItems.length > 1 ? undefined : undefined;
+  const [activeTab, setActiveTab] = useState<HelpTabId>('getting-started');
+
+  const tabs =
+    tabItems.length > 1 ? (
+      <Tabs value={activeTab} onChange={v => setActiveTab(v as HelpTabId)} orientation="vertical">
+        {tabItems.map(tab => {
+          const Icon = tab.icon;
+          return (
+            <Tab key={tab.id} id={tab.id} icon={<Icon size={18} />}>
+              {tab.label}
+            </Tab>
+          );
+        })}
+      </Tabs>
+    ) : undefined;
 
   return (
     <BaseModal
@@ -35,11 +69,35 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
       size="lg"
       animation="slide"
       tabs={tabs}
+      tabOrientation="vertical"
+      className="h-[75vh]"
       onClose={onClose}
     >
-      <Suspense fallback={<TabSkeleton />}>
-        <TubeAnatomyTab />
-      </Suspense>
+      {activeTab === 'getting-started' && (
+        <Suspense fallback={<TabSkeleton />}>
+          <GettingStartedTab />
+        </Suspense>
+      )}
+      {activeTab === 'tubes' && (
+        <Suspense fallback={<TabSkeleton />}>
+          <TubesTab />
+        </Suspense>
+      )}
+      {activeTab === 'storage' && (
+        <Suspense fallback={<TabSkeleton />}>
+          <StorageTab />
+        </Suspense>
+      )}
+      {activeTab === 'researchers' && (
+        <Suspense fallback={<TabSkeleton />}>
+          <ResearchersTab />
+        </Suspense>
+      )}
+      {activeTab === 'shortcuts' && (
+        <Suspense fallback={<TabSkeleton />}>
+          <ShortcutsTab />
+        </Suspense>
+      )}
     </BaseModal>
   );
 }

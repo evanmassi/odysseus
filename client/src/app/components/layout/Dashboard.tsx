@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
-import { ScanEye, UsersRound } from 'lucide-react';
+import { MapPin, Navigation, NotepadText, ScanEye, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { gridNavigationService } from '@domains/grid';
@@ -483,7 +483,8 @@ export function Dashboard() {
         <div className="storage-navigator-panel">
           <div className="h-full flex flex-col bg-card rounded-lg">
             <div className="px-4 pt-4 pb-2">
-              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide">
+              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
+                <Navigation size={16} className="text-secondary-foreground" />
                 Navigator
               </h4>
             </div>
@@ -510,6 +511,7 @@ export function Dashboard() {
           <div className="h-full flex flex-col bg-card rounded-lg">
             <div className="px-4 pt-4 pb-2 flex items-center">
               <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
+                <MapPin size={16} className="flex-shrink-0 text-secondary-foreground" />
                 <span>{tankDisplayName}</span>
                 <span className="text-xs text-muted-foreground">•</span>
                 <span>{rackDisplayName}</span>
@@ -565,7 +567,8 @@ export function Dashboard() {
         <div className="info-panel" ref={infoPanelRef}>
           <div className="h-full flex flex-col bg-card rounded-lg">
             <div className="px-4 pt-4 pb-2">
-              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide">
+              <h4 className="text-sm font-semibold text-muted-foreground tracking-wide inline-flex items-center gap-1.5">
+                <NotepadText size={16} className="text-secondary-foreground" />
                 Tube Information
               </h4>
             </div>

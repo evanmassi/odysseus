@@ -1,14 +1,14 @@
 /**
- * Tube Anatomy Tab
+ * Tubes Tab
  *
  * Annotated diagram showing what each element on a tube cell means,
  * plus legends for lock states and color coding.
  */
-import { Lock, Notebook, ShieldCheck } from 'lucide-react';
+import { Lock, LockKeyhole, Notebook, Palette, ScanEye, ShieldCheck } from 'lucide-react';
 
 import { IndicatorSVG } from '@domains/tubes/ui/components/grid/IndicatorSVG';
 
-import './TubeAnatomyTab.css';
+import './TubesTab.css';
 
 // --- Callout group helper ---
 
@@ -72,12 +72,15 @@ const DONOR_BRIGHTNESS_SWATCHES = [
 
 // --- Main component ---
 
-export function TubeAnatomyTab() {
+export function TubesTab() {
   return (
     <div className="space-y-8">
       {/* Section A: Annotated Tube Diagram */}
       <section>
-        <h3 className="text-sm font-semibold text-card-foreground mb-4">Tube Cell Anatomy</h3>
+        <div className="flex items-center gap-2 mb-4">
+          <ScanEye size={16} className="text-secondary-foreground" />
+          <h3 className="text-sm font-semibold text-card-foreground">Tube Cell Anatomy</h3>
+        </div>
 
         <div className="flex justify-center">
           <svg
@@ -257,7 +260,10 @@ export function TubeAnatomyTab() {
 
       {/* Section B: Lock States Legend */}
       <section>
-        <h3 className="text-sm font-semibold text-card-foreground mb-3">Lock States</h3>
+        <div className="flex items-center gap-2 mb-3">
+          <LockKeyhole size={16} className="text-secondary-foreground" />
+          <h3 className="text-sm font-semibold text-card-foreground">Lock States</h3>
+        </div>
         <div className="grid grid-cols-3 gap-4">
           <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
             <Lock size={20} className="text-secondary-foreground" />
@@ -291,15 +297,15 @@ export function TubeAnatomyTab() {
 
       {/* Section C: Color Coding */}
       <section>
-        <h3 className="text-sm font-semibold text-card-foreground mb-3">Color Coding</h3>
-        <p className="text-xs text-muted-foreground mb-3">
-          Known and commonly used cell lines have fixed, recognizable colors. Donor-based tubes are
-          assigned a color per donor, with brightness shifting by cell type so you can distinguish
-          them at a glance. Text color adjusts automatically for contrast.
-        </p>
-
+        <div className="flex items-center gap-2 mb-3">
+          <Palette size={16} className="text-secondary-foreground" />
+          <h3 className="text-sm font-semibold text-card-foreground">Color Coding</h3>
+        </div>
         {/* Cell line swatches */}
-        <h4 className="text-xs font-medium text-card-foreground mb-2">Cell Lines</h4>
+        <h4 className="text-xs font-medium text-card-foreground mb-1">Cell Lines</h4>
+        <p className="text-xs text-muted-foreground mb-2">
+          Known and commonly used cell lines have fixed, recognizable colors.
+        </p>
         <div className="flex flex-wrap gap-2 mb-4">
           {CELL_LINE_SWATCHES.map(s => (
             <div
@@ -315,10 +321,11 @@ export function TubeAnatomyTab() {
         </div>
 
         {/* Donor brightness example */}
-        <h4 className="text-xs font-medium text-card-foreground mb-2">
-          Donor-Based Brightness (same donor)
-        </h4>
-        <div className="flex flex-wrap gap-2 mb-4">
+        <h4 className="text-xs font-medium text-card-foreground mb-1">Donor-Based Brightness</h4>
+        <p className="text-xs text-muted-foreground mb-2">
+          Each donor gets a unique base color. Cell type shifts the brightness.
+        </p>
+        <div className="flex flex-wrap gap-2 mb-2">
           {DONOR_BRIGHTNESS_SWATCHES.map(s => (
             <div
               key={s.name}
@@ -332,6 +339,10 @@ export function TubeAnatomyTab() {
           ))}
         </div>
 
+        <p className="text-xs text-muted-foreground mb-4">
+          Text color adjusts automatically for contrast.
+        </p>
+
         {/* Indicator examples */}
         <h4 className="text-xs font-medium text-card-foreground mb-2">Indicators</h4>
         <div className="flex items-center gap-2">
@@ -343,7 +354,7 @@ export function TubeAnatomyTab() {
             title="Lot number indicator"
           />
           <span className="text-xs text-muted-foreground">
-            Lot Number — top-left corner, unique pattern and color per lot
+            Lot Number — top-left corner, unique color and pattern per lot
           </span>
         </div>
         <div className="flex items-center gap-2 mt-2">
@@ -355,7 +366,7 @@ export function TubeAnatomyTab() {
             title="Culture condition indicator"
           />
           <span className="text-xs text-muted-foreground">
-            Culture Condition — bottom-right corner, color-coded
+            Culture Condition — bottom-right corner, unique color per condition
           </span>
         </div>
       </section>

@@ -2,10 +2,11 @@
  * Tabs Primitive
  *
  * Tab navigation with automatic orientation based on tab count.
- * 2 tabs render horizontally, 3+ render vertically.
  */
 import { createContext, useContext, Children, useMemo, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
+
+import './tabs.css';
 
 export type TabOrientation = 'horizontal' | 'vertical';
 
@@ -84,16 +85,7 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
         onKeyDown={handleKeyDown}
         onMouseEnter={handleMouseEnter}
         disabled={disabled}
-        className={`
-          w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors
-          border-l-4 focus:outline-none focus:bg-accent
-          disabled:opacity-50 disabled:cursor-not-allowed
-          ${
-            isActive
-              ? 'border-l-secondary-foreground bg-muted text-card-foreground'
-              : 'border-l-transparent text-secondary-foreground hover:bg-muted hover:text-accent-foreground'
-          }
-        `}
+        className="tab-button tab-button--vertical w-full flex items-center space-x-2 px-4 py-2.5 text-left transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {icon && (
           <span className={`flex-shrink-0 ${isAnimating ? 'animate-icon-pop' : ''}`}>{icon}</span>
@@ -114,16 +106,7 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       disabled={disabled}
-      className={`
-        flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors
-        rounded-t focus:outline-none focus:bg-accent border-b-2 -mb-px
-        disabled:opacity-50 disabled:cursor-not-allowed
-        ${
-          isActive
-            ? 'border-secondary-foreground bg-muted text-card-foreground'
-            : 'border-transparent text-secondary-foreground hover:bg-muted hover:text-accent-foreground hover:border-border'
-        }
-      `}
+      className="tab-button tab-button--horizontal flex items-center gap-2 px-2 py-2.5 text-sm font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
     >
       {icon && <span className="flex-shrink-0">{icon}</span>}
       <span>{children}</span>
@@ -131,10 +114,6 @@ export function Tab({ id, icon, children, disabled = false }: TabProps) {
   );
 }
 
-/**
- * Tab container that renders tabs with automatic orientation.
- * Uses horizontal layout for 2 tabs, vertical for 3+.
- */
 export function Tabs({ value, onChange, children, orientation, className = '' }: TabsProps) {
   const tabCount = Children.count(children);
   const resolvedOrientation = orientation ?? (tabCount <= 2 ? 'horizontal' : 'vertical');
