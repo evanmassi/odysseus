@@ -454,10 +454,6 @@ export const useAuthStore = create<AuthStore>()(
           logger.warn('Backend logout failed (clearing local session anyway)', { error });
         }
 
-        // Clear React Query cache to ensure next user gets fresh data
-        // This is critical for demo mode isolation - different users see different data
-        clearAllCaches();
-
         // Always clear local session regardless of backend response
         sessionManager.clearSession();
         get().clearAuth();
@@ -524,11 +520,14 @@ export const useAuthStore = create<AuthStore>()(
        * @param reason - Why the session is being cleared (for UX messaging)
        */
       clearAuth: (reason: 'idle_timeout' | 'token_expired' | 'manual_logout' = 'manual_logout') => {
+        // Clear React Query cache so next user gets fresh data (critical for demo isolation)
+        clearAllCaches();
+
         set({
           user: null,
           tokens: null,
           sessionStatus: 'unauthenticated',
-          isAuthenticated: false, // Clear authentication state
+          isAuthenticated: false,
           isLoading: false,
           error: null,
           logoutReason: reason,

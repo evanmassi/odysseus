@@ -155,8 +155,7 @@ export function DisplayTab({
           Position Display Format
         </h4>
         <p className="text-xs text-secondary-foreground mb-3">
-          Choose how position labels are displayed throughout the application. This is your personal
-          preference and won&apos;t affect other users.
+          Choose how position labels are displayed throughout the application.
         </p>
 
         {/* Segmented Control with Inline Descriptions */}

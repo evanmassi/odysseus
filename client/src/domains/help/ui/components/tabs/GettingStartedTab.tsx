@@ -14,7 +14,12 @@ import {
   UsersRound,
 } from 'lucide-react';
 
+import { useAuthStore } from '@domains/authentication';
+import { AlertBanner } from '@shared/ui';
+
 export function GettingStartedTab() {
+  const { user } = useAuthStore();
+  const isDemo = user?.isDemo ?? false;
   return (
     <div className="space-y-8">
       {/* Section A: Navigating the Grid */}
@@ -83,6 +88,14 @@ export function GettingStartedTab() {
           to that tube in the grid. You can also export your search results to CSV.
         </p>
       </section>
+
+      {isDemo && (
+        <AlertBanner variant="info" spacing="none" className="text-xs">
+          <span className="font-medium">Demo Mode</span> — You&apos;re exploring a sandboxed
+          environment. You can freely add, edit, and delete tubes within the demo tanks, but account
+          and password changes are disabled.
+        </AlertBanner>
+      )}
     </div>
   );
 }
