@@ -469,7 +469,8 @@ export class StorageService {
       );
     } catch (error) {
       logger.error('StorageService initialize configuration failed', { error });
-      throw new InfrastructureError('API_ERROR', 'Failed to initialize configuration', {
+      const message = error instanceof Error ? error.message : 'Failed to initialize configuration';
+      throw new InfrastructureError('API_ERROR', message, {
         originalError: error,
         labName,
         tankCount,
