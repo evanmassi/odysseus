@@ -27,6 +27,8 @@ interface UseTubeAccessControlResult {
   isLockedOutFrom: (tube: TubeData) => boolean;
   /** Check if tube is locked by the current user */
   isLockedByCurrentUser: (tube: TubeData) => boolean;
+  /** Check if current user has explicit shared access (is in sharedWithUserIds) */
+  hasExplicitSharedAccess: (tube: TubeData) => boolean;
 }
 
 /**
@@ -157,6 +159,15 @@ export function useTubeAccessControl(
     [userId]
   );
 
+  /** Check if current user is explicitly listed in sharedWithUserIds */
+  const hasExplicitSharedAccess = useCallback(
+    (tube: TubeData): boolean => {
+      if (!userId || !tube.isLocked) return false;
+      return tube.sharedWithUserIds?.includes(userId) ?? false;
+    },
+    [userId]
+  );
+
   return {
     canLockTube,
     canUnlockTube,
@@ -164,5 +175,6 @@ export function useTubeAccessControl(
     canShareTubeAccess,
     isLockedOutFrom,
     isLockedByCurrentUser,
+    hasExplicitSharedAccess,
   };
 }

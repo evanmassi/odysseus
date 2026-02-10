@@ -186,7 +186,7 @@ const TableCheckbox: React.FC<TableCheckboxProps> = ({
       if (input) input.indeterminate = Boolean(indeterminate);
     }}
     onChange={e => onChange(e.target.checked)}
-    className="rounded border-border text-action focus:ring-action"
+    className="rounded border-border text-action focus:ring-ring"
     aria-label={ariaLabel}
   />
 );

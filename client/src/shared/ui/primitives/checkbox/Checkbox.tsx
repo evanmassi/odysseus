@@ -62,7 +62,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           w-4 h-4
           border-border
           rounded
-          focus:outline-none focus:ring-2 focus:ring-action-focus focus:ring-offset-0
+          focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0
           disabled:cursor-not-allowed disabled:opacity-50
           ${className}
         `}

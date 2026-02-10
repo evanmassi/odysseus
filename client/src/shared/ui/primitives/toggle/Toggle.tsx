@@ -58,7 +58,7 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
           className={`
             ${sizes.track}
             bg-secondary
-            peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-action/30
+            peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-ring/30
             rounded-full peer
             ${sizes.translate}
             peer-checked:after:border-card

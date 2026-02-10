@@ -58,8 +58,8 @@ interface GridPositionProps {
   isLockedOut?: boolean;
   isLockedByCurrentUser?: boolean;
   hasSharedAccess?: boolean;
+  hasAdminOverride?: boolean;
   lockOwnerName?: string;
-  lockNote?: string;
 }
 
 export const GridPosition = memo<GridPositionProps>(
@@ -90,8 +90,8 @@ export const GridPosition = memo<GridPositionProps>(
     isLockedOut,
     isLockedByCurrentUser,
     hasSharedAccess,
+    hasAdminOverride,
     lockOwnerName,
-    lockNote,
   }) => {
     const isQuickEdit = quickEditMode?.position === position;
 
@@ -222,30 +222,30 @@ export const GridPosition = memo<GridPositionProps>(
         )}
 
         {/* Lock indicator - bottom-left */}
-        {/* Icon color adapts to tube background for visibility */}
         {tube && isLockedByCurrentUser && (
           <LockIndicator
-            lockedByName="You"
-            lockNote={lockNote}
-            size={fontSize.positionFont}
+            size={fontSize.positionFont + 2}
             variant="own"
             backgroundColor={colors?.backgroundColor}
           />
         )}
         {tube && hasSharedAccess && lockOwnerName && (
           <LockIndicator
-            lockedByName={lockOwnerName}
-            lockNote={lockNote}
-            size={fontSize.positionFont}
+            size={fontSize.positionFont + 2}
             variant="shared"
+            backgroundColor={colors?.backgroundColor}
+          />
+        )}
+        {tube && hasAdminOverride && lockOwnerName && (
+          <LockIndicator
+            size={fontSize.positionFont + 2}
+            variant="admin-override"
             backgroundColor={colors?.backgroundColor}
           />
         )}
         {tube && isLockedOut && lockOwnerName && (
           <LockIndicator
-            lockedByName={lockOwnerName}
-            lockNote={lockNote}
-            size={fontSize.positionFont}
+            size={fontSize.positionFont + 2}
             variant="other"
             backgroundColor={colors?.backgroundColor}
           />

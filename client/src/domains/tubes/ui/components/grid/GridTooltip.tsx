@@ -6,6 +6,7 @@
  */
 import { useState, useEffect, useRef } from 'react';
 
+import { Lock, ShieldCheck, ShieldUser } from 'lucide-react';
 import { createPortal } from 'react-dom';
 
 import { Tooltip } from '@shared/ui';
@@ -14,14 +15,32 @@ import { parseDonorInfo } from '../../../utils/colorSystem';
 
 import type { TubeData } from '@domains/tubes/types';
 
+export type LockVariant = 'own' | 'shared' | 'admin-override' | 'other';
+
 interface GridTooltipProps {
   tube: TubeData | null;
   anchorRect: DOMRect | null;
+  lockVariant?: LockVariant;
+  lockOwnerName?: string;
 }
 
 const TOOLTIP_DELAY = 400;
 
-export function GridTooltip({ tube, anchorRect }: GridTooltipProps) {
+const lockIcons = {
+  own: Lock,
+  shared: ShieldCheck,
+  'admin-override': ShieldUser,
+  other: Lock,
+} as const;
+
+const lockLabels: Record<LockVariant, (name: string) => string> = {
+  own: () => 'Locked by you',
+  shared: name => `Shared by ${name}`,
+  'admin-override': name => `Locked by ${name} (admin override)`,
+  other: name => `Locked by ${name}`,
+};
+
+export function GridTooltip({ tube, anchorRect, lockVariant, lockOwnerName }: GridTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const timerRef = useRef<number | null>(null);
 
@@ -53,6 +72,10 @@ export function GridTooltip({ tube, anchorRect }: GridTooltipProps) {
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty donorSourceId should fall back to computed source
   const sourceId = tube.sample?.donorSourceId || donorInfo.source;
 
+  const LockIcon = lockVariant ? lockIcons[lockVariant] : null;
+  const lockLabel = lockVariant && lockOwnerName ? lockLabels[lockVariant](lockOwnerName) : null;
+  const isLockedOut = lockVariant === 'other';
+
   const tooltipContent = (
     <div className="flex flex-col gap-1">
       <div className="font-semibold text-white">{cellType}</div>
@@ -75,6 +98,20 @@ export function GridTooltip({ tube, anchorRect }: GridTooltipProps) {
         <div className="text-white">
           <span className="text-tooltip-muted">Cond.:</span> {tube.sample.cultureCondition}
         </div>
+      )}
+      {LockIcon && lockLabel && (
+        <>
+          <div className="border-t border-white/20 my-0.5" />
+          <div
+            className={`flex items-center gap-1.5 ${isLockedOut ? 'text-red-300' : 'text-white'}`}
+          >
+            <LockIcon size={11} strokeWidth={2.5} />
+            <span>{lockLabel}</span>
+          </div>
+          {tube.lockNote && (
+            <div className="text-tooltip-muted italic">&ldquo;{tube.lockNote}&rdquo;</div>
+          )}
+        </>
       )}
     </div>
   );

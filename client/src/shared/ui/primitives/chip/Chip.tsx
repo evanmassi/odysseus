@@ -26,10 +26,10 @@ const chipVariants = cva(
         primary: 'bg-action-light text-action',
         active: 'bg-chip-active text-chip-active-foreground hover:bg-chip-active-hover',
         inverted: 'bg-muted-foreground text-background',
-        success: 'bg-muted text-success-text',
-        warning: 'bg-muted text-warning-text',
-        danger: 'bg-muted text-danger-text',
-        info: 'bg-muted text-info-text',
+        success: 'bg-success-light text-success-text',
+        warning: 'bg-warning-light text-warning-text',
+        danger: 'bg-danger-light text-danger-text',
+        info: 'bg-info-light text-info-text',
       },
       size: {
         xs: 'h-5 px-1.5 text-[10px]',
@@ -43,7 +43,7 @@ const chipVariants = cva(
       behavior: {
         static: '',
         selectable:
-          'cursor-pointer hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-action focus:ring-offset-1',
+          'cursor-pointer hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1',
         removable: 'pr-1',
       },
       selected: {
@@ -104,7 +104,7 @@ function RemoveButton({ onClick, disabled, size }: RemoveButtonProps) {
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="ml-0.5 rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-action"
+      className="ml-0.5 rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10 focus:outline-none focus:ring-1 focus:ring-ring"
       aria-label="Remove"
     >
       <X size={iconSizes[size]} />

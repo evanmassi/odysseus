@@ -47,7 +47,7 @@ const selectVariants = cva(
         lg: 'h-12 px-4 text-base', // 48px
       },
       isOpen: {
-        true: 'ring-2 ring-action border-action',
+        true: 'ring-2 ring-ring border-ring',
         false: '',
       },
       state: {
@@ -567,7 +567,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
                   value={searchQuery}
                   onChange={handleSearchChange}
                   placeholder="Search options..."
-                  className="w-full px-2 py-1 text-sm border border-border rounded bg-background text-foreground placeholder:text-muted-foreground placeholder:opacity-40 focus:outline-none focus:ring-1 focus:ring-action"
+                  className="w-full px-2 py-1 text-sm border border-border rounded bg-background text-foreground placeholder:text-muted-foreground placeholder:opacity-40 focus:outline-none focus:ring-1 focus:ring-ring"
                 />
               </div>
             )}

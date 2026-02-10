@@ -142,7 +142,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             transition-colors
             rounded-l-md
             border-r border-border
-            focus:outline-none focus:ring-2 focus:ring-inset focus:ring-action-focus
+            focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring
           `}
           aria-label="Decrease value"
         >
@@ -189,7 +189,7 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
             transition-colors
             rounded-r-md
             border-l border-border
-            focus:outline-none focus:ring-2 focus:ring-inset focus:ring-action-focus
+            focus:outline-none focus:ring-2 focus:ring-inset focus:ring-ring
           `}
           aria-label="Increase value"
         >

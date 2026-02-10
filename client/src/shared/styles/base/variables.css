@@ -35,7 +35,7 @@
     --popover-foreground: 222.2 47.4% 11.2%;
 
     /* Primary */
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 210 50% 56.7%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary - for interactive secondary elements */
@@ -63,7 +63,7 @@
     /* Application-specific extensions */
 
     /* Action Colors */
-    --color-action-default: 210 50% 56.7%;
+    --color-action-default: var(--primary);
     --color-action-hover: 210 43.1% 50%;
     --color-action-focus: 210 43.1% 50%;
 
@@ -115,14 +115,14 @@
     --color-success-border: 152 35% 50%;
 
     /* Info Theme */
-    --color-info-bg: 220 80% 55%;
-    --color-info-hover: 220 85% 47%;
-    --color-info-text: 220 80% 50%;
-    --color-info-text-hover: 220 85% 42%;
+    --color-info-bg: 210 70% 55%;
+    --color-info-hover: 210 75% 47%;
+    --color-info-text: 210 70% 50%;
+    --color-info-text-hover: 210 75% 42%;
     --color-info-btnText: 0 0% 100%;
-    --color-info-light: 220 55% 97%;
-    --color-info-light-hover: 220 60% 94%;
-    --color-info-border: 220 70% 65%;
+    --color-info-light: 210 50% 97%;
+    --color-info-light-hover: 210 55% 94%;
+    --color-info-border: 210 60% 65%;
 
     /* Validation - Default */
     --color-validation-default-border: 214.3 31.8% 91.4%;
@@ -176,12 +176,13 @@
     --grid-position-label: 0 0% 100%;
     --grid-position-label-foreground: 215.4 19.3% 34.5%;
     --grid-position-label-border: 220 13% 82.7%;
-    --grid-selection: var(--color-action-default);
-    --grid-selection-glow: 221.2 83.2% 53.3% / 0.8;
-    --grid-selection-overlay: 221.2 83.2% 53.3% / 0.18;
-    --grid-selection-empty: 221.2 83.2% 53.3% / 0.08;
+    --grid-selection: var(--focus-ring-color);
+    --grid-selection-glow: var(--focus-ring-color) / 0.8;
+    --grid-selection-inner: 0 0% 100% / 0.5;
+    --grid-selection-overlay: 0 0% 100% / 0.45;
+    --grid-selection-empty: var(--focus-ring-color) / 0.08;
     --grid-preview: 215 20.2% 46.9% / 0.5;
-    --grid-preview-overlay: 215 20.2% 46.9% / 0.12;
+    --grid-preview-overlay: 0 0% 100% / 0.35;
     --grid-cut-opacity: 0.65;
     --grid-copied: 215.4 19.3% 34.5%;
     --grid-copied-alt: 0 0% 100%;
@@ -227,7 +228,7 @@
     --popover-foreground: 210 33% 92%;
 
     /* Primary */
-    --primary: 217.2 91.2% 59.8%;
+    --primary: 213 85% 67.8%;
     --primary-foreground: 0 0% 100%;
 
     /* Secondary */
@@ -249,7 +250,7 @@
     --auth-sketch-border: 215 20.2% 65.1%;
 
     /* Action Colors */
-    --color-action-default: 213 85% 67.8%;
+    --color-action-default: var(--primary);
     --color-action-hover: 217 85% 59.8%;
     --color-action-focus: 217 85% 59.8%;
 
@@ -284,14 +285,14 @@
     --color-success-border: 152 35% 40%;
 
     /* Info Theme */
-    --color-info-bg: 220 80% 60%;
-    --color-info-hover: 220 85% 52%;
-    --color-info-text: 220 80% 70%;
-    --color-info-text-hover: 220 85% 62%;
+    --color-info-bg: 213 75% 60%;
+    --color-info-hover: 213 80% 52%;
+    --color-info-text: 213 75% 70%;
+    --color-info-text-hover: 213 80% 62%;
     --color-info-btnText: 0 0% 100%;
-    --color-info-light: 220 55% 12%;
-    --color-info-light-hover: 220 60% 16%;
-    --color-info-border: 220 65% 40%;
+    --color-info-light: 213 45% 12%;
+    --color-info-light-hover: 213 50% 16%;
+    --color-info-border: 213 55% 40%;
 
     /* Clear Theme */
     --color-clear-bg: 215.4 19.3% 34.5%;
@@ -334,12 +335,13 @@
     --grid-position-label-foreground: 220 10.6% 64.9%;
     --grid-position-label-border: 217.2 19.2% 26.7%;
     --grid-empty-foreground: 220 8.9% 46.1%;
-    --grid-selection: var(--color-action-default);
-    --grid-selection-glow: 213.1 93.9% 67.8% / 0.7;
-    --grid-selection-overlay: 213.1 93.9% 67.8% / 0.25;
-    --grid-selection-empty: 213.1 93.9% 67.8% / 0.15;
+    --grid-selection: var(--focus-ring-color);
+    --grid-selection-glow: var(--focus-ring-color) / 0.7;
+    --grid-selection-inner: 0 0% 100% / 0.5;
+    --grid-selection-overlay: 0 0% 100% / 0.35;
+    --grid-selection-empty: var(--focus-ring-color) / 0.15;
     --grid-preview: 215 20.2% 65.1% / 0.5;
-    --grid-preview-overlay: 215 20.2% 65.1% / 0.15;
+    --grid-preview-overlay: 0 0% 100% / 0.3;
     --grid-cut-opacity: 0.5;
     --grid-copied: 215 20.2% 65.1%;
     --grid-copied-alt: 217.2 32.6% 17.5%;

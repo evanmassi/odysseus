@@ -76,6 +76,7 @@ export interface LockContext {
   canShareTubeAccess: (tube: TubeData) => boolean;
   isLockedByCurrentUser: (tube: TubeData) => boolean;
   isLockedOutFrom: (tube: TubeData) => boolean;
+  hasExplicitSharedAccess: (tube: TubeData) => boolean;
   // Display helpers
   getLockOwnerName: (tube: TubeData) => string | undefined;
   getSharedUserNames: (tube: TubeData) => string[];
@@ -108,6 +109,8 @@ export interface GridControllerProps {
   // When true, 'add' operations are blocked client-side
   // Modify operations check tube-level shared access before proceeding
   isViewOnlySpace?: boolean;
+  // Admin users bypass lock checks on tubes
+  isAdmin?: boolean;
   // Users without a researcher profile can only browse (no edit operations)
   hasResearcherProfile?: boolean;
 }

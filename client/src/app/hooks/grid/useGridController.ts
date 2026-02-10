@@ -49,6 +49,7 @@ export const useGridController = ({
   isUnlocking = false,
   currentUserId,
   isViewOnlySpace = false,
+  isAdmin = false,
   hasResearcherProfile = true,
 }: GridControllerProps): GridControllerReturn => {
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
@@ -105,6 +106,7 @@ export const useGridController = ({
       onSelectionChange,
       currentUserId,
       isViewOnlySpace,
+      isAdmin,
       hasResearcherProfile,
     });
 
@@ -172,7 +174,7 @@ export const useGridController = ({
     const selectedTubes = getSelectedTubes();
     if (selectedTubes.length === 0) return false;
 
-    const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace);
+    const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace, isAdmin);
 
     if (!result.canModifyAll) {
       notifications.warning(getBlockedModificationMessage(result));
@@ -180,7 +182,7 @@ export const useGridController = ({
     }
 
     return false;
-  }, [isViewOnlySpace, getSelectedTubes, currentUserId, guardNoResearcherProfile]);
+  }, [isViewOnlySpace, isAdmin, getSelectedTubes, currentUserId, guardNoResearcherProfile]);
 
   // Unified modal opener
   const openModal = useCallback(() => {
@@ -259,7 +261,7 @@ export const useGridController = ({
       if (tubeId) {
         // Filled position - check modification access
         const tube = tubes.find(t => t.id === tubeId);
-        if (tube && !canModifyTube(tube, currentUserId, isViewOnlySpace)) {
+        if (tube && !canModifyTube(tube, currentUserId, isViewOnlySpace, isAdmin)) {
           notifications.warning('Cannot edit this tube. You do not have access.');
           return;
         }
@@ -287,6 +289,7 @@ export const useGridController = ({
       tubes,
       currentUserId,
       isViewOnlySpace,
+      isAdmin,
       modalService,
       rackId,
       boxId,

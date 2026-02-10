@@ -72,6 +72,10 @@ export function TubeGrid({
   // Shared tooltip state - singleton pattern avoids Radix composeRefs bug
   const [hoveredTube, setHoveredTube] = useState<TubeData | null>(null);
   const [hoverAnchorRect, setHoverAnchorRect] = useState<DOMRect | null>(null);
+  const [hoveredLockVariant, setHoveredLockVariant] = useState<
+    'own' | 'shared' | 'admin-override' | 'other' | undefined
+  >();
+  const [hoveredLockOwnerName, setHoveredLockOwnerName] = useState<string | undefined>();
 
   // Custom hooks for separation of concerns
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
@@ -141,14 +145,41 @@ export function TubeGrid({
     [controller]
   );
 
-  const handleHoverStart = useCallback((tube: TubeData, rect: DOMRect) => {
-    setHoveredTube(tube);
-    setHoverAnchorRect(rect);
-  }, []);
+  const handleHoverStart = useCallback(
+    (tube: TubeData, rect: DOMRect) => {
+      setHoveredTube(tube);
+      setHoverAnchorRect(rect);
+
+      // Compute lock variant for tooltip display
+      if (tube.isLocked && lockContext) {
+        const ownerName = lockContext.getLockOwnerName(tube);
+        const isMine = lockContext.isLockedByCurrentUser(tube);
+        const isShared = lockContext.hasExplicitSharedAccess(tube);
+        const isOut = lockContext.isLockedOutFrom(tube);
+
+        if (isMine) {
+          setHoveredLockVariant('own');
+        } else if (isShared) {
+          setHoveredLockVariant('shared');
+        } else if (isOut) {
+          setHoveredLockVariant('other');
+        } else {
+          setHoveredLockVariant('admin-override');
+        }
+        setHoveredLockOwnerName(ownerName);
+      } else {
+        setHoveredLockVariant(undefined);
+        setHoveredLockOwnerName(undefined);
+      }
+    },
+    [lockContext]
+  );
 
   const handleHoverEnd = useCallback(() => {
     setHoveredTube(null);
     setHoverAnchorRect(null);
+    setHoveredLockVariant(undefined);
+    setHoveredLockOwnerName(undefined);
   }, []);
 
   // Focus grid once it mounts after data loads
@@ -239,8 +270,10 @@ export function TubeGrid({
             const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
             const isLockedByCurrentUser =
               tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
-            // Shared access: tube is locked, not by current user, but user has access (not locked out)
-            const hasSharedAccess = tube?.isLocked && !isLockedByCurrentUser && !isLockedOut;
+            const hasSharedAccess =
+              tube && lockContext ? lockContext.hasExplicitSharedAccess(tube) : false;
+            const hasAdminOverride =
+              tube?.isLocked && !isLockedByCurrentUser && !hasSharedAccess && !isLockedOut;
             const lockOwnerName =
               tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
 
@@ -272,8 +305,8 @@ export function TubeGrid({
                 isLockedOut={isLockedOut}
                 isLockedByCurrentUser={isLockedByCurrentUser}
                 hasSharedAccess={hasSharedAccess}
+                hasAdminOverride={hasAdminOverride}
                 lockOwnerName={lockOwnerName}
-                lockNote={tube?.lockNote}
               />
             );
           })}
@@ -302,7 +335,12 @@ export function TubeGrid({
         isUnlocking={controller.selection.isUnlocking}
       />
 
-      <GridTooltip tube={hoveredTube} anchorRect={hoverAnchorRect} />
+      <GridTooltip
+        tube={hoveredTube}
+        anchorRect={hoverAnchorRect}
+        lockVariant={hoveredLockVariant}
+        lockOwnerName={hoveredLockOwnerName}
+      />
     </div>
   );
 }

@@ -24,9 +24,9 @@ const buttonVariants = cva(
     // Transitions
     'transition-all duration-200 ease-out transform-gpu',
 
-    // Focus - using semantic action color
+    // Focus ring
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-    'focus-visible:ring-action focus-visible:ring-offset-background',
+    'focus-visible:ring-ring focus-visible:ring-offset-background',
 
     // Cursor & interaction
     'cursor-pointer select-none touch-manipulation',

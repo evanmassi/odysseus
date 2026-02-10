@@ -341,6 +341,7 @@ export function Dashboard() {
       canShareTubeAccess: accessControl.canShareTubeAccess,
       isLockedByCurrentUser: accessControl.isLockedByCurrentUser,
       isLockedOutFrom: accessControl.isLockedOutFrom,
+      hasExplicitSharedAccess: accessControl.hasExplicitSharedAccess,
       // Display helpers
       getLockOwnerName,
       getSharedUserNames,
@@ -438,6 +439,7 @@ export function Dashboard() {
     isUnlocking: unlockTubesMutation.isPending,
     currentUserId: user?.id,
     isViewOnlySpace,
+    isAdmin: user?.role === 'admin',
     hasResearcherProfile,
   });
 

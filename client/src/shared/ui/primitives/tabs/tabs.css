@@ -5,21 +5,21 @@
  */
 
 :root {
-  --tab-text: hsl(221 16% 47%);
-  --tab-hover-bg: hsl(221 40% 50% / 0.07);
-  --tab-hover-text: hsl(221 25% 35%);
-  --tab-selected-bg: hsl(221 47% 95%);
-  --tab-selected-text: hsl(221 52% 45%);
-  --tab-selected-border: hsl(221 52% 57%);
+  --tab-text: hsl(var(--muted-foreground));
+  --tab-hover-bg: hsl(var(--primary) / 0.07);
+  --tab-hover-text: hsl(var(--secondary-foreground));
+  --tab-selected-bg: hsl(var(--primary) / 0.1);
+  --tab-selected-text: hsl(var(--primary));
+  --tab-selected-border: hsl(var(--primary));
 }
 
 [data-theme='dark'] {
-  --tab-text: hsl(217 20% 65%);
-  --tab-hover-bg: hsl(217 30% 50% / 0.12);
-  --tab-hover-text: hsl(217 33% 92%);
-  --tab-selected-bg: hsl(217 28% 24%);
-  --tab-selected-text: hsl(217 40% 95%);
-  --tab-selected-border: hsl(217 33% 72%);
+  --tab-text: hsl(var(--muted-foreground));
+  --tab-hover-bg: hsl(var(--primary) / 0.12);
+  --tab-hover-text: hsl(var(--foreground));
+  --tab-selected-bg: hsl(var(--primary) / 0.15);
+  --tab-selected-text: hsl(var(--foreground));
+  --tab-selected-border: hsl(var(--primary));
 }
 
 .tab-button {

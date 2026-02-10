@@ -1,32 +1,21 @@
 /**
  * Tube Access Control Utilities
  *
- * Client-side UX checks for tube modification operations.
- * Server remains the authority - these are purely for UI feedback.
- *
- * Use cases:
- * - Disable context menu items for non-modifiable tubes
- * - Block operations before they reach the server
- * - Provide meaningful error messages to users
+ * Client-side UX checks for tube modification. Server remains the authority.
  */
 
 import type { TubeData } from '@odysseus/shared-schemas';
 
 /**
- * Check if user can modify a specific tube
- *
- * Two-phase check (mirrors server-side canAccessTubeForModification):
- * 1. Base access: container ownership OR shared access to the tube
- * 2. Lock access: if tube is locked, user must be lock owner or shared user
- *
- * @param tube - The tube to check
- * @param currentUserId - The current user's ID
- * @param isViewOnlySpace - Whether the container is assigned to another user
+ * Two-phase check mirroring server-side canAccessTubeForModification:
+ * 1. Base access — container ownership OR shared access
+ * 2. Lock access — lock owner, shared user, or admin bypass
  */
 export function canModifyTube(
   tube: TubeData,
   currentUserId: string | undefined,
-  isViewOnlySpace: boolean
+  isViewOnlySpace: boolean,
+  isAdmin = false
 ): boolean {
   // Phase 1: Check base access (container OR shared)
   const hasContainerAccess = !isViewOnlySpace;
@@ -38,8 +27,8 @@ export function canModifyTube(
     return false;
   }
 
-  // Phase 2: If tube is locked, verify lock access
-  if (tube.isLocked) {
+  // Phase 2: If tube is locked, verify lock access (admins bypass)
+  if (tube.isLocked && !isAdmin) {
     if (!currentUserId) return false;
     const isLockOwner = tube.lockedBy === currentUserId;
     const hasLockSharedAccess = tube.sharedWithUserIds?.includes(currentUserId) ?? false;
@@ -71,10 +60,11 @@ export interface BatchModifyResult {
 function isBlockedByLock(
   tube: TubeData,
   currentUserId: string | undefined,
-  isViewOnlySpace: boolean
+  isViewOnlySpace: boolean,
+  isAdmin = false
 ): boolean {
-  // If tube isn't locked, lock isn't the blocker
   if (!tube.isLocked) return false;
+  if (isAdmin) return false;
 
   // Check if user has base access (would pass phase 1)
   const hasContainerAccess = !isViewOnlySpace;
@@ -100,18 +90,19 @@ function isBlockedByLock(
 export function canModifyAllTubes(
   tubes: TubeData[],
   currentUserId: string | undefined,
-  isViewOnlySpace: boolean
+  isViewOnlySpace: boolean,
+  isAdmin = false
 ): BatchModifyResult {
   const modifiable: TubeData[] = [];
   const blocked: TubeData[] = [];
   let lockedCount = 0;
 
   for (const tube of tubes) {
-    if (canModifyTube(tube, currentUserId, isViewOnlySpace)) {
+    if (canModifyTube(tube, currentUserId, isViewOnlySpace, isAdmin)) {
       modifiable.push(tube);
     } else {
       blocked.push(tube);
-      if (isBlockedByLock(tube, currentUserId, isViewOnlySpace)) {
+      if (isBlockedByLock(tube, currentUserId, isViewOnlySpace, isAdmin)) {
         lockedCount++;
       }
     }

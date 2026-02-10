@@ -38,6 +38,8 @@ export interface UseGridClipboardProps {
   currentUserId?: string;
   /** When true, container is assigned to another user */
   isViewOnlySpace?: boolean;
+  /** Admin users bypass lock checks on tubes */
+  isAdmin?: boolean;
   /** Users without a researcher profile can only browse (no edit operations) */
   hasResearcherProfile?: boolean;
 }
@@ -67,6 +69,7 @@ export const useGridClipboard = ({
   onSelectionChange,
   currentUserId,
   isViewOnlySpace = false,
+  isAdmin = false,
   hasResearcherProfile = true,
 }: UseGridClipboardProps): UseGridClipboardReturn => {
   const clipboard = useGridUiStore(state => state.clipboard);
@@ -113,7 +116,7 @@ export const useGridClipboard = ({
 
     // Check modification access (container AND lock status)
     if (selectedTubes.length > 0) {
-      const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace);
+      const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace, isAdmin);
       if (!result.canModifyAll) {
         notifications.warning(getBlockedModificationMessage(result));
         return;
@@ -139,6 +142,7 @@ export const useGridClipboard = ({
     ctx,
     setClipboard,
     isViewOnlySpace,
+    isAdmin,
     currentUserId,
     hasResearcherProfile,
   ]);
@@ -171,7 +175,7 @@ export const useGridClipboard = ({
     // Check modification access (container AND lock status)
     // Cut requires modify access since it will delete the source tubes
     if (selectedTubes.length > 0) {
-      const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace);
+      const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace, isAdmin);
       if (!result.canModifyAll) {
         notifications.warning(getBlockedModificationMessage(result));
         return;
@@ -201,6 +205,7 @@ export const useGridClipboard = ({
     setClipboard,
     onSelectionChange,
     isViewOnlySpace,
+    isAdmin,
     currentUserId,
     hasResearcherProfile,
   ]);
@@ -399,7 +404,12 @@ export const useGridClipboard = ({
         });
 
         // Check if user can overwrite the conflicting tubes (lock + container access)
-        const overwriteResult = canModifyAllTubes(conflictingTubes, currentUserId, isViewOnlySpace);
+        const overwriteResult = canModifyAllTubes(
+          conflictingTubes,
+          currentUserId,
+          isViewOnlySpace,
+          isAdmin
+        );
         if (!overwriteResult.canModifyAll) {
           notifications.warning(
             `Cannot paste here. ${getBlockedModificationMessage(overwriteResult).replace('Cannot modify selection. ', '')}`
@@ -478,6 +488,7 @@ export const useGridClipboard = ({
       modalService,
       tubes,
       isViewOnlySpace,
+      isAdmin,
       currentUserId,
       hasResearcherProfile,
     ]

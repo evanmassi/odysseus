@@ -5,23 +5,23 @@
  */
 
 :root {
-  --storage-nav-text: hsl(221 16% 47%);
-  --storage-nav-text-muted: hsl(221 16% 65%);
-  --storage-nav-hover-bg: hsl(221 40% 50% / 0.07);
-  --storage-nav-hover-text: hsl(221 25% 27%);
-  --storage-nav-selected-bg: hsl(221 47% 95%);
-  --storage-nav-selected-hover-bg: hsl(221 52% 91%);
-  --storage-nav-selected-text: hsl(221 52% 57%);
+  --storage-nav-text: hsl(var(--muted-foreground));
+  --storage-nav-text-muted: hsl(var(--muted-foreground) / 0.65);
+  --storage-nav-hover-bg: hsl(var(--primary) / 0.07);
+  --storage-nav-hover-text: hsl(var(--secondary-foreground));
+  --storage-nav-selected-bg: hsl(var(--primary) / 0.1);
+  --storage-nav-selected-hover-bg: hsl(var(--primary) / 0.15);
+  --storage-nav-selected-text: hsl(var(--primary));
 }
 
 [data-theme='dark'] {
-  --storage-nav-text: hsl(217 20% 65%);
-  --storage-nav-text-muted: hsl(220 9% 46%);
-  --storage-nav-hover-bg: hsl(217 30% 50% / 0.12);
-  --storage-nav-hover-text: hsl(217 33% 92%);
-  --storage-nav-selected-bg: hsl(217 24% 19%);
-  --storage-nav-selected-hover-bg: hsl(217 28% 23%);
-  --storage-nav-selected-text: hsl(217 33% 92%);
+  --storage-nav-text: hsl(var(--muted-foreground));
+  --storage-nav-text-muted: hsl(var(--muted-foreground) / 0.65);
+  --storage-nav-hover-bg: hsl(var(--primary) / 0.12);
+  --storage-nav-hover-text: hsl(var(--foreground));
+  --storage-nav-selected-bg: hsl(var(--primary) / 0.15);
+  --storage-nav-selected-hover-bg: hsl(var(--primary) / 0.2);
+  --storage-nav-selected-text: hsl(var(--foreground));
 }
 
 .storage-nav-button {
@@ -191,27 +191,4 @@
   justify-content: flex-end;
   gap: 0.5rem;
   padding: 0.25rem 0.5rem;
-}
-
-/* Modal-scoped overrides — adjusted for bg-card background */
-[data-tree-id='modal'],
-[data-view='by-user'] {
-  --storage-nav-text: hsl(221 20% 40%);
-  --storage-nav-text-muted: hsl(221 16% 55%);
-  --storage-nav-hover-bg: hsl(221 40% 50% / 0.07);
-  --storage-nav-hover-text: hsl(221 25% 27%);
-  --storage-nav-selected-bg: hsl(221 47% 95%);
-  --storage-nav-selected-hover-bg: hsl(221 52% 91%);
-  --storage-nav-selected-text: hsl(221 52% 45%);
-}
-
-[data-theme='dark'] [data-tree-id='modal'],
-[data-theme='dark'] [data-view='by-user'] {
-  --storage-nav-text: hsl(217 20% 75%);
-  --storage-nav-text-muted: hsl(220 15% 58%);
-  --storage-nav-hover-bg: hsl(217 30% 50% / 0.18);
-  --storage-nav-hover-text: hsl(217 33% 95%);
-  --storage-nav-selected-bg: hsl(217 28% 24%);
-  --storage-nav-selected-hover-bg: hsl(217 32% 28%);
-  --storage-nav-selected-text: hsl(217 40% 95%);
 }
