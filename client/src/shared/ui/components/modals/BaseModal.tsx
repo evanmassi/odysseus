@@ -11,6 +11,7 @@ import { useModalKeyboardNavigation } from '@shared/hooks/keyboard/useModalKeybo
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
 export type ModalAnimation = 'zoom' | 'slide';
@@ -154,9 +155,9 @@ export function BaseModal({
               <div className="w-48 bg-card border-r border-border py-4 flex-shrink-0">{tabs}</div>
             )}
 
-            <div className={`flex-1 overflow-y-auto min-w-0 ${hasVerticalTabs ? '' : ''}`}>
+            <ScrollArea className={`flex-1 min-w-0 ${hasVerticalTabs ? '' : ''}`} tabIndex={-1}>
               <div className={contentClassName}>{children}</div>
-            </div>
+            </ScrollArea>
           </div>
 
           {footer && (

@@ -22,6 +22,7 @@ import { useStorageData } from '@domains/storage';
 import { useTubes } from '@domains/tubes/hooks';
 import { Chip, Input, Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
 import type { TubeData, Researcher } from '@odysseus/shared-schemas';
@@ -351,7 +352,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
       </div>
 
       {/* Filter Sections - Scrollable */}
-      <div className="flex-1 overflow-y-auto p-1" tabIndex={-1}>
+      <ScrollArea className="flex-1 p-1" tabIndex={-1}>
         {/* LOCATION SECTION */}
         <CollapsibleSection
           title="Location"
@@ -644,7 +645,7 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
             </div>
           </div>
         </CollapsibleSection>
-      </div>
+      </ScrollArea>
 
       {/* Active Filters Summary - Pinned Footer */}
       {hasActiveFilters && (

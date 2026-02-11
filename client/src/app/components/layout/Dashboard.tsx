@@ -33,6 +33,7 @@ import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { UnsavedConfirmDialog } from '@shared/ui/components/UnsavedConfirmDialog';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils/notifications';
 
@@ -491,7 +492,8 @@ export function Dashboard() {
               </h4>
             </div>
             <div
-              className="flex-1 pb-2 overflow-y-auto overflow-x-hidden scrollbar-hidden"
+              className="flex-1 pb-2 overflow-y-auto overflow-x-hidden"
+              style={{ scrollbarWidth: 'none' }}
               ref={storageNavigatorRef}
               onFocus={() => setIsSelectorActive(true)}
               onBlur={() => setIsSelectorActive(false)}
@@ -574,12 +576,12 @@ export function Dashboard() {
                 Tube Information
               </h4>
             </div>
-            <div className="flex-1 p-3 overflow-auto">
+            <ScrollArea className="flex-1 p-3">
               <TubeInfoPanel
                 selectedTubes={selectionAnalysis.selectedTubes}
                 lockContext={lockContext}
               />
-            </div>
+            </ScrollArea>
           </div>
         </div>
       </div>

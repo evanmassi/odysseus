@@ -122,7 +122,7 @@ export function ResearcherModal({
             {/* First Name */}
             <div>
               <div
-                className={`auth-input-container ${errors.firstName ? 'border-danger-border' : 'border-border'}`}
+                className={`auth-input-container ${errors.firstName ? 'border-2 border-danger-border' : 'border-border'}`}
               >
                 <label
                   htmlFor="firstName"
@@ -162,7 +162,7 @@ export function ResearcherModal({
             {/* Last Name */}
             <div>
               <div
-                className={`auth-input-container ${errors.lastName ? 'border-danger-border' : 'border-border'}`}
+                className={`auth-input-container ${errors.lastName ? 'border-2 border-danger-border' : 'border-border'}`}
               >
                 <label
                   htmlFor="lastName"
@@ -192,7 +192,7 @@ export function ResearcherModal({
           {/* Email */}
           <div>
             <div
-              className={`auth-input-container ${errors.email ? 'border-danger-border' : 'border-border'}`}
+              className={`auth-input-container ${errors.email ? 'border-2 border-danger-border' : 'border-border'}`}
             >
               <label
                 htmlFor="email"

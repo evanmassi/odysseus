@@ -1,0 +1,27 @@
+@import 'overlayscrollbars/overlayscrollbars.css';
+
+.os-theme-odysseus {
+  box-sizing: border-box;
+  --os-size: 8px;
+  --os-padding-perpendicular: 2px;
+  --os-padding-axis: 2px;
+  --os-track-border-radius: 10px;
+  --os-handle-border-radius: 10px;
+  --os-handle-interactive-area-offset: 4px;
+
+  --os-handle-bg: hsl(var(--muted-foreground) / 0.25);
+  --os-handle-bg-hover: hsl(var(--muted-foreground) / 0.45);
+  --os-handle-bg-active: hsl(var(--muted-foreground) / 0.6);
+
+  --os-handle-perpendicular-size: 100%;
+  --os-handle-perpendicular-size-hover: 100%;
+  --os-handle-perpendicular-size-active: 100%;
+
+  transition:
+    width 0.2s ease,
+    height 0.2s ease;
+}
+
+.os-theme-odysseus:hover {
+  --os-size: 12px;
+}

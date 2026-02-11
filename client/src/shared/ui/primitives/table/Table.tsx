@@ -493,7 +493,7 @@ export const Table = forwardRef<TableRef, TableProps>(
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR, not null coalescing
     if (needsRoundedWrapper || needsScrollWrapper) {
       return (
-        <div className={wrapperClasses} style={maxHeight ? { maxHeight } : undefined}>
+        <div className={wrapperClasses} style={maxHeight ? { maxHeight } : undefined} tabIndex={-1}>
           {tableContent}
         </div>
       );

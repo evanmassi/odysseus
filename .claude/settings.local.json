@@ -55,7 +55,8 @@
       "Bash(npm run test:client:*)",
       "Bash(npx ts-node:*)",
       "WebFetch(domain:railway.com)",
-      "WebFetch(domain:lucide.dev)"
+      "WebFetch(domain:lucide.dev)",
+      "WebFetch(domain:www.npmjs.com)"
     ]
   }
 }

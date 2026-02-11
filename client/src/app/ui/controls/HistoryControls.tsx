@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Undo2, Redo2, History, Trash2 } from 'lucide-react';
 
 import { Button, Tooltip } from '@shared/ui';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import type { HistoryAction } from '@shared/types/Clipboard';
 
@@ -147,7 +148,7 @@ export function HistoryControls({
           {undoStack.length === 0 && redoStack.length === 0 ? (
             <div className="text-center text-muted-foreground py-4">No operations in history</div>
           ) : (
-            <div className="space-y-2 max-h-64 overflow-y-auto">
+            <ScrollArea className="space-y-2 max-h-64">
               {/* Future operations (redo stack) */}
               {redoStack.map((operation, _index) => (
                 <div
@@ -208,7 +209,7 @@ export function HistoryControls({
                     </div>
                   </div>
                 ))}
-            </div>
+            </ScrollArea>
           )}
 
           {/* History actions */}

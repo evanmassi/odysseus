@@ -8,6 +8,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { ChevronDown, ChevronRight, UserRound, Zap, Box, Calendar } from 'lucide-react';
 
 import { Button, Chip, Input, Tooltip } from '@shared/ui';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 export interface AuditFilterState {
   actions?: string[];
@@ -320,7 +321,7 @@ export function AuditLogFilterPanel({
       </div>
 
       {/* Filter Sections - 2 Column Grid */}
-      <div className="max-h-96 overflow-y-auto p-1" tabIndex={-1}>
+      <ScrollArea className="max-h-96 p-1" tabIndex={-1}>
         <div className="grid grid-cols-2">
           {/* Left Column: User & Action */}
           <div className="border-r border-border">
@@ -683,7 +684,7 @@ export function AuditLogFilterPanel({
             </CollapsibleSection>
           </div>
         </div>
-      </div>
+      </ScrollArea>
 
       {/* Active Filters Summary - Footer */}
       {hasActiveFilters && (

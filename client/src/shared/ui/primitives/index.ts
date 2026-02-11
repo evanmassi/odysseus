@@ -14,6 +14,7 @@ import { AuthInput } from './input/AuthInput';
 import { Input } from './input/Input';
 import { NumberInput } from './input/NumberInput';
 import { OverflowMenu } from './overflow-menu/OverflowMenu';
+import { ScrollArea } from './scroll-area/ScrollArea';
 import { Select } from './select/Select';
 import { Table, TableHeader, TableBody } from './table/Table';
 import { Tabs, Tab } from './tabs/Tabs';
@@ -115,6 +116,10 @@ export type { TooltipProps } from './tooltip/Tooltip';
 // OverflowMenu primitives
 export { OverflowMenu };
 export type { OverflowMenuProps, OverflowMenuItem } from './overflow-menu/types';
+
+// ScrollArea primitives
+export { ScrollArea };
+export type { ScrollAreaProps } from './scroll-area/ScrollArea';
 
 // Tabs primitives
 export { Tabs, Tab };

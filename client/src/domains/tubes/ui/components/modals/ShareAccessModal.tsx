@@ -17,6 +17,7 @@ import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domain
 import { useActiveUsersQuery } from '@domains/users';
 import { AlertBanner, Button, Checkbox } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 
 import type { TubeData } from '@domains/tubes/types';
@@ -203,7 +204,7 @@ export function ShareAccessModal({
           ) : availableUsers.length === 0 ? (
             <p className="text-sm text-muted-foreground py-2">No other users available</p>
           ) : (
-            <div className="max-h-48 overflow-y-auto border border-border rounded-lg divide-y divide-muted">
+            <ScrollArea className="max-h-48 border border-border rounded-lg divide-y divide-muted">
               {availableUsers
                 .filter(u => !currentlySharedUserIds.includes(u.id))
                 .map(user => {
@@ -227,7 +228,7 @@ export function ShareAccessModal({
                     </label>
                   );
                 })}
-            </div>
+            </ScrollArea>
           )}
         </div>
 

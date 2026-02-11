@@ -52,9 +52,9 @@ const selectVariants = cva(
       },
       state: {
         default: '',
-        error: 'border-danger-border',
-        warning: 'border-warning-border',
-        success: 'border-success-border',
+        error: 'border-2 border-danger-border',
+        warning: 'border-2 border-warning-border',
+        success: 'border-2 border-success-border',
       },
     },
     defaultVariants: {

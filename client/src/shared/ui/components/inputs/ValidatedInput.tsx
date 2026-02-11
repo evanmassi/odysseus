@@ -84,7 +84,7 @@ export function ValidatedInput({
     } else if (hasConflict) {
       return 'input-field input-field-conflict w-full';
     } else if (!isUncontrolled && value && !error && !warning) {
-      return 'input-field input-field-normal w-full border-success-border';
+      return 'input-field w-full border-2 border-success-border';
     } else {
       return 'input-field input-field-normal w-full';
     }

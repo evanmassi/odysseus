@@ -17,6 +17,7 @@ import { useTubeStore } from '@domains/tubes';
 import { useUserLookupQuery } from '@domains/users';
 import { Button, Chip, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
+import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { SortDropdown } from './SortDropdown';
 
@@ -501,7 +502,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
       <SortDropdown />
 
       {/* Scrollable Results Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-3">
+      <ScrollArea className="flex-1 p-4 space-y-3">
         {/* Results Header */}
         <div className="flex items-center justify-between border-b pb-2">
           <div className="text-sm text-secondary-foreground font-medium">
@@ -631,7 +632,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
             </p>
           </div>
         )}
-      </div>
+      </ScrollArea>
     </div>
   );
 }

@@ -62,7 +62,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
   // Field border styling
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'border-border';
-    return isValid ? 'border-success-border' : 'input-field-error';
+    return isValid ? 'border-2 border-success-border' : 'input-field-error';
   };
 
   // Label color styling

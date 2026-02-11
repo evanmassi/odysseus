@@ -69,8 +69,8 @@ export const AuthInput = forwardRef<HTMLInputElement, AuthInputProps>(
     // Border classes based on validation state
     const borderClass = {
       default: 'border-border',
-      success: 'border-success-border',
-      warning: 'border-warning-border',
+      success: 'border-2 border-success-border',
+      warning: 'border-2 border-warning-border',
       error: 'input-field-error',
     }[state];
 
