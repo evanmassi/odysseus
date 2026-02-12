@@ -72,6 +72,14 @@ const LAB_SYNONYMS: Record<string, string[]> = {
   'human': ['human', 'homo sapiens', 'h. sapiens'],
   'mouse': ['mouse', 'murine', 'mus musculus', 'm. musculus'],
   'rat': ['rat', 'rattus norvegicus', 'r. norvegicus'],
+
+  // Vendors
+  'atcc': ['atcc', 'american type culture collection'],
+  'sigma aldrich': ['sigma aldrich', 'sigma-aldrich', 'sigmaaldrich', 'millipore sigma'],
+  'thermo fisher': ['thermo fisher', 'thermo-fisher', 'thermofisher', 'thermo fisher scientific', 'gibco', 'invitrogen', 'life technologies'],
+  'corning': ['corning', 'corning life sciences'],
+  'lonza': ['lonza', 'lonza bioscience'],
+  'stemcell technologies': ['stemcell technologies', 'stemcell tech', 'stem cell technologies'],
 };
 
 /**

@@ -60,9 +60,10 @@ export class TubeRepository implements ITubeRepository {
         INSERT INTO tubes (
           id, tank_id, rack_id, box_id, position, cell_type, donor_internal_id,
           donor_source_id, concentration, concentration_unit, date, researcher_id, created_by_name,
-          media, culture_condition, lot_number, notes, created_at, updated_at, version,
+          media, culture_condition, lot_number, species, vendor, catalog_number, passage_number,
+          notes, created_at, updated_at, version,
           is_locked, locked_by, lock_note, locked_at, shared_with_user_ids
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29)
         ON CONFLICT (id) DO UPDATE SET
           tank_id = EXCLUDED.tank_id,
           rack_id = EXCLUDED.rack_id,
@@ -79,6 +80,10 @@ export class TubeRepository implements ITubeRepository {
           media = EXCLUDED.media,
           culture_condition = EXCLUDED.culture_condition,
           lot_number = EXCLUDED.lot_number,
+          species = EXCLUDED.species,
+          vendor = EXCLUDED.vendor,
+          catalog_number = EXCLUDED.catalog_number,
+          passage_number = EXCLUDED.passage_number,
           notes = EXCLUDED.notes,
           updated_at = EXCLUDED.updated_at,
           version = EXCLUDED.version,
@@ -91,7 +96,9 @@ export class TubeRepository implements ITubeRepository {
         row.id, row.tank_id, row.rack_id, row.box_id, row.position,
         row.cell_type, row.donor_internal_id, row.donor_source_id,
         row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
-        row.media, row.culture_condition, row.lot_number, row.notes,
+        row.media, row.culture_condition, row.lot_number,
+        row.species, row.vendor, row.catalog_number, row.passage_number,
+        row.notes,
         row.created_at, row.updated_at, row.version,
         row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids
       ]);
@@ -136,20 +143,26 @@ export class TubeRepository implements ITubeRepository {
           media = $14,
           culture_condition = $15,
           lot_number = $16,
-          notes = $17,
-          updated_at = $18,
-          version = $19,
-          is_locked = $20,
-          locked_by = $21,
-          lock_note = $22,
-          locked_at = $23,
-          shared_with_user_ids = $24
-        WHERE id = $1 AND version = $25
+          species = $17,
+          vendor = $18,
+          catalog_number = $19,
+          passage_number = $20,
+          notes = $21,
+          updated_at = $22,
+          version = $23,
+          is_locked = $24,
+          locked_by = $25,
+          lock_note = $26,
+          locked_at = $27,
+          shared_with_user_ids = $28
+        WHERE id = $1 AND version = $29
       `, [
         row.id, row.tank_id, row.rack_id, row.box_id, row.position,
         row.cell_type, row.donor_internal_id, row.donor_source_id,
         row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
-        row.media, row.culture_condition, row.lot_number, row.notes,
+        row.media, row.culture_condition, row.lot_number,
+        row.species, row.vendor, row.catalog_number, row.passage_number,
+        row.notes,
         row.updated_at, row.version,
         row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
         expectedVersion
@@ -352,6 +365,10 @@ export class TubeRepository implements ITubeRepository {
     tubes.media,
     tubes.culture_condition,
     tubes.lot_number,
+    tubes.species,
+    tubes.vendor,
+    tubes.catalog_number,
+    tubes.passage_number,
     tubes.notes,
     tubes.created_at,
     tubes.updated_at,
@@ -421,11 +438,20 @@ export class TubeRepository implements ITubeRepository {
   ): string {
     let sql = baseSql;
 
-    // Array-based sample filters (multiple selection support)
     if (criteria.cellTypes && criteria.cellTypes.length > 0) {
       const placeholders = criteria.cellTypes.map(() => `$${paramIndex.current++}`).join(',');
       sql += ` AND tubes.cell_type IN (${placeholders})`;
       params.push(...criteria.cellTypes);
+    }
+    if (criteria.species && criteria.species.length > 0) {
+      const placeholders = criteria.species.map(() => `$${paramIndex.current++}`).join(',');
+      sql += ` AND tubes.species IN (${placeholders})`;
+      params.push(...criteria.species);
+    }
+    if (criteria.vendors && criteria.vendors.length > 0) {
+      const placeholders = criteria.vendors.map(() => `$${paramIndex.current++}`).join(',');
+      sql += ` AND tubes.vendor IN (${placeholders})`;
+      params.push(...criteria.vendors);
     }
     if (criteria.lotNumbers && criteria.lotNumbers.length > 0) {
       const placeholders = criteria.lotNumbers.map(() => `$${paramIndex.current++}`).join(',');
@@ -693,7 +719,7 @@ export class TubeRepository implements ITubeRepository {
     ftsSql = await this.addPositionLabelFilter(ftsSql, params, criteria, paramIndex);
 
     // Layer 2: Fuzzy matching with pg_trgm (catches typos)
-    const fuzzyColumns = ['cell_type', 'donor_internal_id', 'donor_source_id', 'lot_number', 'notes', 'media', 'culture_condition'];
+    const fuzzyColumns = ['cell_type', 'species', 'vendor', 'donor_internal_id', 'donor_source_id', 'lot_number', 'notes', 'media', 'culture_condition'];
     const fuzzySearchTerm = normalizedQuery;
 
     // Skip fuzzy for very short or numeric queries
@@ -776,12 +802,15 @@ export class TubeRepository implements ITubeRepository {
       params.push(pattern);
       ilikeConditions.push(`
         cell_type ILIKE ${patternParam}
+        OR species ILIKE ${patternParam}
+        OR vendor ILIKE ${patternParam}
         OR donor_internal_id ILIKE ${patternParam}
         OR donor_source_id ILIKE ${patternParam}
         OR lot_number ILIKE ${patternParam}
         OR notes ILIKE ${patternParam}
         OR media ILIKE ${patternParam}
         OR culture_condition ILIKE ${patternParam}
+        OR catalog_number ILIKE ${patternParam}
         OR concentration::TEXT ILIKE ${patternParam}
         OR date ILIKE ${patternParam}
         OR created_by_name ILIKE ${patternParam}
@@ -864,9 +893,12 @@ export class TubeRepository implements ITubeRepository {
       // Build searchable text from all fields that ILIKE searches
       const searchableText = [
         tube.sample.cellType,
+        tube.sample.species,
+        tube.sample.vendor,
         tube.sample.donorInternalId,
         tube.sample.donorSourceId,
         tube.sample.lotNumber,
+        tube.sample.catalogNumber,
         tube.sample.notes,
         tube.sample.cultureCondition,
         tube.sample.media?.type,
@@ -988,9 +1020,10 @@ export class TubeRepository implements ITubeRepository {
           INSERT INTO tubes (
             id, tank_id, rack_id, box_id, position, cell_type, donor_internal_id,
             donor_source_id, concentration, concentration_unit, date, researcher_id, created_by_name,
-            media, culture_condition, lot_number, notes, created_at, updated_at,
+            media, culture_condition, lot_number, species, vendor, catalog_number, passage_number,
+            notes, created_at, updated_at,
             is_locked, locked_by, lock_note, locked_at, shared_with_user_ids
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
           ON CONFLICT (id) DO UPDATE SET
             tank_id = EXCLUDED.tank_id,
             rack_id = EXCLUDED.rack_id,
@@ -1007,6 +1040,10 @@ export class TubeRepository implements ITubeRepository {
             media = EXCLUDED.media,
             culture_condition = EXCLUDED.culture_condition,
             lot_number = EXCLUDED.lot_number,
+            species = EXCLUDED.species,
+            vendor = EXCLUDED.vendor,
+            catalog_number = EXCLUDED.catalog_number,
+            passage_number = EXCLUDED.passage_number,
             notes = EXCLUDED.notes,
             updated_at = EXCLUDED.updated_at,
             is_locked = EXCLUDED.is_locked,
@@ -1018,7 +1055,9 @@ export class TubeRepository implements ITubeRepository {
           row.id, row.tank_id, row.rack_id, row.box_id, row.position,
           row.cell_type, row.donor_internal_id, row.donor_source_id,
           row.concentration, row.concentration_unit, row.date, row.researcher_id, row.created_by_name,
-          row.media, row.culture_condition, row.lot_number, row.notes,
+          row.media, row.culture_condition, row.lot_number,
+          row.species, row.vendor, row.catalog_number, row.passage_number,
+          row.notes,
           row.created_at, row.updated_at,
           row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids
         ]);

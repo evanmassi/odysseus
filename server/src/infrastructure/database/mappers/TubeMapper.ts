@@ -31,6 +31,10 @@ export interface TubeRow {
   media?: string;
   culture_condition?: string;
   lot_number?: string;
+  species?: string;
+  vendor?: string;
+  catalog_number?: string;
+  passage_number?: number;
   notes?: string;
   created_at: Date | string;
   updated_at: Date | string;
@@ -82,6 +86,10 @@ export class TubeMapper {
       media: mediaJson,
       culture_condition: sampleData.cultureCondition || undefined,
       lot_number: sampleData.lotNumber || undefined,
+      species: sampleData.species || undefined,
+      vendor: sampleData.vendor || undefined,
+      catalog_number: sampleData.catalogNumber || undefined,
+      passage_number: sampleData.passageNumber ?? undefined,
       notes: sampleData.notes || undefined,
       created_at: tube.createdAt,
       updated_at: tube.updatedAt,
@@ -120,6 +128,7 @@ export class TubeMapper {
 
     const sampleData = SampleData.create({
       cellType: nullToUndefined(row.cell_type),
+      species: nullToUndefined(row.species),
       donorInternalId: nullToUndefined(row.donor_internal_id),
       donorSourceId: nullToUndefined(row.donor_source_id),
       concentration,
@@ -128,6 +137,9 @@ export class TubeMapper {
       media: media?.toData(),
       cultureCondition: nullToUndefined(row.culture_condition),
       lotNumber: nullToUndefined(row.lot_number),
+      vendor: nullToUndefined(row.vendor),
+      catalogNumber: nullToUndefined(row.catalog_number),
+      passageNumber: nullToUndefined(row.passage_number),
       notes: nullToUndefined(row.notes)
     });
 
@@ -159,6 +171,7 @@ export class TubeMapper {
       },
       sample: {
         cellType: nullToUndefined(row.cell_type),
+        species: nullToUndefined(row.species),
         donorInternalId: nullToUndefined(row.donor_internal_id),
         donorSourceId: nullToUndefined(row.donor_source_id),
         concentration: concentration,
@@ -167,6 +180,9 @@ export class TubeMapper {
         media: media?.toData(),
         cultureCondition: nullToUndefined(row.culture_condition),
         lotNumber: nullToUndefined(row.lot_number),
+        vendor: nullToUndefined(row.vendor),
+        catalogNumber: nullToUndefined(row.catalog_number),
+        passageNumber: nullToUndefined(row.passage_number),
         notes: nullToUndefined(row.notes)
       },
       researcherId: nullToUndefined(row.researcher_id),

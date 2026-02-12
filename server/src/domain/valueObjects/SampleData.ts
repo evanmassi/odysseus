@@ -9,6 +9,7 @@ import { Media, MediaData } from '@domain/valueObjects/Media';
 export class SampleData {
   private constructor(
     private readonly _cellType?: string,
+    private readonly _species?: string,
     private readonly _donorInternalId?: string,
     private readonly _donorSourceId?: string,
     private readonly _concentration?: number,
@@ -17,6 +18,9 @@ export class SampleData {
     private readonly _media?: Media,
     private readonly _cultureCondition?: string,
     private readonly _lotNumber?: string,
+    private readonly _vendor?: string,
+    private readonly _catalogNumber?: string,
+    private readonly _passageNumber?: number,
     private readonly _notes?: string
   ) {
     this.validate();
@@ -27,6 +31,7 @@ export class SampleData {
    */
   static create(data: {
     cellType?: string;
+    species?: string;
     donorInternalId?: string;
     donorSourceId?: string;
     concentration?: number;
@@ -35,10 +40,14 @@ export class SampleData {
     media?: MediaData | string;
     cultureCondition?: string;
     lotNumber?: string;
+    vendor?: string;
+    catalogNumber?: string;
+    passageNumber?: number;
     notes?: string;
   }): SampleData {
     return new SampleData(
       data.cellType,
+      data.species,
       data.donorInternalId,
       data.donorSourceId,
       data.concentration,
@@ -47,6 +56,9 @@ export class SampleData {
       data.media ? Media.create(data.media) : undefined,
       data.cultureCondition,
       data.lotNumber,
+      data.vendor,
+      data.catalogNumber,
+      data.passageNumber,
       data.notes
     );
   }
@@ -66,6 +78,7 @@ export class SampleData {
     this.validateDate();
     this.validateCellType();
     this.validateDonorIds();
+    this.validatePassageNumber();
     this.validateStringFields();
   }
 
@@ -149,8 +162,19 @@ export class SampleData {
     }
   }
 
+  private validatePassageNumber(): void {
+    if (this._passageNumber !== undefined && this._passageNumber !== null) {
+      if (!Number.isInteger(this._passageNumber) || this._passageNumber < 0 || this._passageNumber > 999) {
+        throw new ValidationError('Passage number must be an integer between 0 and 999');
+      }
+    }
+  }
+
   private validateStringFields(): void {
     const stringFields = [
+      { name: 'species', value: this._species, maxLength: 200 },
+      { name: 'vendor', value: this._vendor, maxLength: 200 },
+      { name: 'catalog number', value: this._catalogNumber, maxLength: 200 },
       { name: 'culture condition', value: this._cultureCondition, maxLength: 300 },
       { name: 'lot number', value: this._lotNumber, maxLength: 100 },
       { name: 'notes', value: this._notes, maxLength: 1000 }
@@ -180,6 +204,7 @@ export class SampleData {
    */
   update(updates: Partial<{
     cellType?: string;
+    species?: string | null;
     donorInternalId?: string | null;
     donorSourceId?: string | null;
     concentration?: number | null;
@@ -188,6 +213,9 @@ export class SampleData {
     media?: MediaData | string | null;
     cultureCondition?: string | null;
     lotNumber?: string | null;
+    vendor?: string | null;
+    catalogNumber?: string | null;
+    passageNumber?: number | null;
     notes?: string | null;
   }>): SampleData {
     // Compute new concentration values with PATCH semantics
@@ -208,22 +236,24 @@ export class SampleData {
 
     return SampleData.create({
       cellType: updates.cellType !== undefined ? updates.cellType : this._cellType,
-      // null = clear (convert to undefined), undefined = preserve, value = set
+      species: updates.species === null ? undefined : (updates.species !== undefined ? updates.species : this._species),
       donorInternalId: updates.donorInternalId === null ? undefined : (updates.donorInternalId !== undefined ? updates.donorInternalId : this._donorInternalId),
       donorSourceId: updates.donorSourceId === null ? undefined : (updates.donorSourceId !== undefined ? updates.donorSourceId : this._donorSourceId),
       concentration: newConcentration,
       concentrationUnit: newConcentrationUnit,
       date: updates.date === null ? undefined : (updates.date !== undefined ? updates.date : this._date),
-      // Deep merge for nested objects: preserve sibling fields when partially updating
       media: updates.media === null
-        ? undefined  // null = clear entire media object
+        ? undefined
         : updates.media !== undefined
           ? (this._media
-              ? this._media.update(updates.media as MediaData).toData()  // Merge partial update with existing
-              : updates.media)  // No existing media, create new
-          : this._media?.toData(),  // undefined = preserve existing
+              ? this._media.update(updates.media as MediaData).toData()
+              : updates.media)
+          : this._media?.toData(),
       cultureCondition: updates.cultureCondition === null ? undefined : (updates.cultureCondition !== undefined ? updates.cultureCondition : this._cultureCondition),
       lotNumber: updates.lotNumber === null ? undefined : (updates.lotNumber !== undefined ? updates.lotNumber : this._lotNumber),
+      vendor: updates.vendor === null ? undefined : (updates.vendor !== undefined ? updates.vendor : this._vendor),
+      catalogNumber: updates.catalogNumber === null ? undefined : (updates.catalogNumber !== undefined ? updates.catalogNumber : this._catalogNumber),
+      passageNumber: updates.passageNumber === null ? undefined : (updates.passageNumber !== undefined ? updates.passageNumber : this._passageNumber),
       notes: updates.notes === null ? undefined : (updates.notes !== undefined ? updates.notes : this._notes)
     });
   }
@@ -261,6 +291,7 @@ export class SampleData {
    */
   toData(): {
     cellType?: string;
+    species?: string;
     donorInternalId?: string;
     donorSourceId?: string;
     concentration?: number;
@@ -269,10 +300,14 @@ export class SampleData {
     media?: MediaData;
     cultureCondition?: string;
     lotNumber?: string;
+    vendor?: string;
+    catalogNumber?: string;
+    passageNumber?: number;
     notes?: string;
   } {
     return {
       cellType: this._cellType,
+      species: this._species,
       donorInternalId: this._donorInternalId,
       donorSourceId: this._donorSourceId,
       concentration: this._concentration,
@@ -281,12 +316,15 @@ export class SampleData {
       media: this._media?.toData(),
       cultureCondition: this._cultureCondition,
       lotNumber: this._lotNumber,
+      vendor: this._vendor,
+      catalogNumber: this._catalogNumber,
+      passageNumber: this._passageNumber,
       notes: this._notes
     };
   }
 
-  // Getters (immutable access)
   get cellType(): string | undefined { return this._cellType; }
+  get species(): string | undefined { return this._species; }
   get donorInternalId(): string | undefined { return this._donorInternalId; }
   get donorSourceId(): string | undefined { return this._donorSourceId; }
   get concentration(): number | undefined { return this._concentration; }
@@ -295,5 +333,8 @@ export class SampleData {
   get media(): MediaData | undefined { return this._media?.toData(); }
   get cultureCondition(): string | undefined { return this._cultureCondition; }
   get lotNumber(): string | undefined { return this._lotNumber; }
+  get vendor(): string | undefined { return this._vendor; }
+  get catalogNumber(): string | undefined { return this._catalogNumber; }
+  get passageNumber(): number | undefined { return this._passageNumber; }
   get notes(): string | undefined { return this._notes; }
 }

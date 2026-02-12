@@ -39,6 +39,7 @@ export class Tube {
     location: { tankId: string; rackId: string; boxId: string; position: number } | Location;
     sample: {
       cellType?: string;
+      species?: string;
       donorInternalId?: string;
       donorSourceId?: string;
       concentration?: number;
@@ -47,6 +48,9 @@ export class Tube {
       media?: MediaData | string;
       cultureCondition?: string;
       lotNumber?: string;
+      vendor?: string;
+      catalogNumber?: string;
+      passageNumber?: number;
       notes?: string;
     } | SampleData;
     researcherId?: string;
@@ -93,6 +97,7 @@ export class Tube {
     location: { tankId: string; rackId: string; boxId: string; position: number };
     sample: {
       cellType?: string;
+      species?: string;
       donorInternalId?: string;
       donorSourceId?: string;
       concentration?: number;
@@ -101,6 +106,9 @@ export class Tube {
       media?: MediaData | string;
       cultureCondition?: string;
       lotNumber?: string;
+      vendor?: string;
+      catalogNumber?: string;
+      passageNumber?: number;
       notes?: string;
     };
     researcherId?: string;
@@ -172,6 +180,7 @@ export class Tube {
    */
   updateSample(updates: {
     cellType?: string;
+    species?: string | null;
     donorInternalId?: string | null;
     donorSourceId?: string | null;
     concentration?: number | null;
@@ -180,6 +189,9 @@ export class Tube {
     media?: string | null;
     cultureCondition?: string | null;
     lotNumber?: string | null;
+    vendor?: string | null;
+    catalogNumber?: string | null;
+    passageNumber?: number | null;
     notes?: string | null;
   }): void {
     this._sample = this._sample.update(updates);
@@ -457,6 +469,7 @@ export class Tube {
     location: { tankId: string; rackId: string; boxId: string; position: number };
     sample: {
       cellType?: string;
+      species?: string;
       donorInternalId?: string;
       donorSourceId?: string;
       concentration?: number;
@@ -465,6 +478,9 @@ export class Tube {
       media?: MediaData;
       cultureCondition?: string;
       lotNumber?: string;
+      vendor?: string;
+      catalogNumber?: string;
+      passageNumber?: number;
       notes?: string;
     };
     researcherId?: string;

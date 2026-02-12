@@ -21,6 +21,8 @@ export const SearchFiltersSchema = z.object({
 
   // Sample filters (multiple selection)
   cellTypes: z.array(z.string()).optional(),
+  species: z.array(z.string()).optional(),
+  vendors: z.array(z.string()).optional(),
   lotNumbers: z.array(z.string()).optional(),
   donorInternalIds: z.array(z.string()).optional(),
   donorSourceIds: z.array(z.string()).optional(),

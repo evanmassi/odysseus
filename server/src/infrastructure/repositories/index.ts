@@ -7,6 +7,7 @@ import { ConfigurationRepository as ConfigurationRepositoryImpl } from '@infrast
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
 import { SessionRepository as SessionRepositoryImpl } from '@infrastructure/repositories/SessionRepository';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
+import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
 
 // Repository interfaces
 import { TubeRepository } from '@domain/repositories/TubeRepository';
@@ -17,6 +18,7 @@ import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepos
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { AuditRepository } from '@domain/repositories/AuditRepository';
+import { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
 
 /**
  * Repository Factory - Dependency injection
@@ -34,6 +36,7 @@ export class RepositoryFactory {
   private refreshTokenRepository?: RefreshTokenRepository;
   private userSessionRepository?: UserSessionRepository;
   private auditRepository?: AuditRepository;
+  private lookupValueRepository?: LookupValueRepository;
 
   constructor() {
     this.postgresContext = new PostgresContext();
@@ -128,9 +131,13 @@ export class RepositoryFactory {
     return this.auditRepository;
   }
 
-  /**
-   * Get all repositories as a single object
-   */
+  getLookupValueRepository(): LookupValueRepository {
+    if (!this.lookupValueRepository) {
+      this.lookupValueRepository = new LookupValueRepositoryImpl(this.postgresContext);
+    }
+    return this.lookupValueRepository;
+  }
+
   getRepositories() {
     return {
       tubes: this.getTubeRepository(),
@@ -140,7 +147,8 @@ export class RepositoryFactory {
       configurations: this.getConfigurationRepository(),
       refreshTokens: this.getRefreshTokenRepository(),
       userSessions: this.getUserSessionRepository(),
-      audit: this.getAuditRepository()
+      audit: this.getAuditRepository(),
+      lookupValues: this.getLookupValueRepository()
     };
   }
 

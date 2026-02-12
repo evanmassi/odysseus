@@ -106,6 +106,20 @@ export {
   type RevokeAccessResult,
 } from './tubes/tubeLockSchemas';
 
+// Lookup Schemas (Admin-managed dropdown values)
+export {
+  LOOKUP_CATEGORIES,
+  lookupValueSchema,
+  lookupValueWithCountSchema,
+  createLookupValueRequestSchema,
+  renameLookupValueRequestSchema,
+  type LookupCategory,
+  type LookupValue,
+  type LookupValueWithCount,
+  type CreateLookupValueRequest,
+  type RenameLookupValueRequest,
+} from './lookups';
+
 // Search Schemas
 export {
   // Schemas

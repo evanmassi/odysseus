@@ -64,6 +64,7 @@ export const tubeMediaSchema = z.object({
  */
 export const tubeSampleSchema = z.object({
   cellType: z.string().optional(),
+  species: z.string().optional(),
   donorInternalId: z.string().optional(),
   donorSourceId: z.string().optional(),
   concentration: z.number().optional(),
@@ -76,6 +77,9 @@ export const tubeSampleSchema = z.object({
   media: tubeMediaSchema.optional(),
   cultureCondition: z.string().optional(),
   lotNumber: z.string().optional(),
+  vendor: z.string().optional(),
+  catalogNumber: z.string().optional(),
+  passageNumber: z.number().int().min(0).max(999).optional(),
   notes: z.string().optional()
 });
 
@@ -122,15 +126,15 @@ export const createTubeRequestSampleSchema = concentrationUnitRefinement(
   z.object({
     cellType: z.preprocess(
       (val) => {
-        // Reject empty strings to trigger validation error
         if (typeof val === 'string') {
           const trimmed = val.trim();
-          return trimmed || ''; // Return empty string to trigger .min(1) error
+          return trimmed || '';
         }
         return val;
       },
       z.string().min(1, 'Cell type is required')
     ),
+    species: optionalFromEmpty(z.string()),
     donorInternalId: optionalFromEmpty(z.string()),
     donorSourceId: optionalFromEmpty(z.string()),
     concentration: concentrationPreprocessor,
@@ -139,6 +143,19 @@ export const createTubeRequestSampleSchema = concentrationUnitRefinement(
     media: tubeMediaSchema.optional(),
     cultureCondition: optionalFromEmpty(z.string()),
     lotNumber: optionalFromEmpty(z.string()),
+    vendor: optionalFromEmpty(z.string()),
+    catalogNumber: optionalFromEmpty(z.string()),
+    passageNumber: z.preprocess(
+      (val) => {
+        if (val === '' || val === undefined || val === null) return undefined;
+        if (typeof val === 'string') {
+          const num = parseInt(val, 10);
+          return isNaN(num) ? val : num;
+        }
+        return val;
+      },
+      z.number().int().min(0).max(999).optional()
+    ),
     notes: optionalFromEmpty(z.string())
   })
 );
@@ -163,12 +180,10 @@ export const tubeUpdateSampleSchema = concentrationUnitRefinement(
   z.object({
     cellType: z.preprocess(
       (val) => {
-        // undefined/null → valid (field not included in PATCH)
         if (val === undefined || val === null) return undefined;
-        // Empty string → keep as empty to fail validation
         if (typeof val === 'string') {
           const trimmed = val.trim();
-          return trimmed || ''; // Return empty string to trigger .min(1) error
+          return trimmed || '';
         }
         return val;
       },
@@ -177,6 +192,7 @@ export const tubeUpdateSampleSchema = concentrationUnitRefinement(
         z.undefined()
       ])
     ),
+    species: nullableOptionalFromEmpty(z.string()),
     donorInternalId: nullableOptionalFromEmpty(z.string()),
     donorSourceId: nullableOptionalFromEmpty(z.string()),
     concentration: concentrationPreprocessorNullable,
@@ -185,6 +201,21 @@ export const tubeUpdateSampleSchema = concentrationUnitRefinement(
     media: tubeMediaSchema.nullable().optional(),
     cultureCondition: nullableOptionalFromEmpty(z.string()),
     lotNumber: nullableOptionalFromEmpty(z.string()),
+    vendor: nullableOptionalFromEmpty(z.string()),
+    catalogNumber: nullableOptionalFromEmpty(z.string()),
+    passageNumber: z.preprocess(
+      (val) => {
+        if (val === undefined) return undefined;
+        if (val === null) return null;
+        if (val === '') return null;
+        if (typeof val === 'string') {
+          const num = parseInt(val, 10);
+          return isNaN(num) ? val : num;
+        }
+        return val;
+      },
+      z.number().int().min(0).max(999).nullable().optional()
+    ),
     notes: nullableOptionalFromEmpty(z.string())
   })
 );
