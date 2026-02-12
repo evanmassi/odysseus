@@ -11,6 +11,7 @@ import {
   UsersRound,
   FlaskConical,
   Dna,
+  BookOpen,
 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
@@ -40,6 +41,7 @@ const MonitoringTab = lazy(() =>
 const DemoManagementTab = lazy(() =>
   import('./tabs/DemoManagementTab').then(m => ({ default: m.DemoManagementTab }))
 );
+const CatalogTab = lazy(() => import('./tabs/CatalogTab').then(m => ({ default: m.CatalogTab })));
 
 interface AdminSettingsModalProps {
   isOpen: boolean;
@@ -48,7 +50,7 @@ interface AdminSettingsModalProps {
 
 export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps) {
   const [activeTab, setActiveTab] = useState<
-    'security' | 'users' | 'researchers' | 'system' | 'monitoring' | 'demo'
+    'security' | 'users' | 'researchers' | 'catalog' | 'system' | 'monitoring' | 'demo'
   >('system');
   const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
@@ -179,7 +181,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     }
   };
 
-  type TabId = 'security' | 'users' | 'researchers' | 'system' | 'monitoring' | 'demo';
+  type TabId = 'security' | 'users' | 'researchers' | 'catalog' | 'system' | 'monitoring' | 'demo';
 
   const tabs = (
     <Tabs value={activeTab} onChange={v => setActiveTab(v as TabId)}>
@@ -194,6 +196,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       </Tab>
       <Tab id="researchers" icon={<Dna size={24} />}>
         Researchers
+      </Tab>
+      <Tab id="catalog" icon={<BookOpen size={18} />}>
+        Catalog
       </Tab>
       <Tab id="monitoring" icon={<Activity size={18} />}>
         Monitoring
@@ -257,6 +262,12 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       {activeTab === 'researchers' && (
         <Suspense fallback={<TabSkeleton />}>
           <ResearchersTab onResearcherUpdate={loadSystemStats} />
+        </Suspense>
+      )}
+
+      {activeTab === 'catalog' && (
+        <Suspense fallback={<TabSkeleton />}>
+          <CatalogTab />
         </Suspense>
       )}
 

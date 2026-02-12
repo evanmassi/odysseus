@@ -40,3 +40,5 @@ export type { SystemTabProps } from './ui/components/tabs/SystemTab';
 
 export { MonitoringTab } from './ui/components/tabs/MonitoringTab';
 export type { MonitoringTabProps } from './ui/components/tabs/MonitoringTab';
+
+export { CatalogTab } from './ui/components/tabs/CatalogTab';

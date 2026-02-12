@@ -9,6 +9,7 @@ import type {
   ResearcherQueryFilters,
   SearchFilters,
   AdvancedSearchOptions,
+  LookupCategory,
 } from '@odysseus/shared-schemas';
 
 export const queryKeys = {
@@ -88,6 +89,12 @@ export const queryKeys = {
     // Legacy key for backward compatibility (used by useTubeQueries)
     results: (query: string, filters?: SearchFilters) =>
       [...queryKeys.search.all, 'results', query, filters] as const,
+  },
+
+  // Lookups (admin-managed dropdown values)
+  lookups: {
+    all: ['lookups'] as const,
+    byCategory: (category: LookupCategory) => ['lookups', category] as const,
   },
 
   // Storage (migrated from distributed storageQueryKeys)

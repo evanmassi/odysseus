@@ -141,15 +141,16 @@ class OdysseusServer {
     const sessionController = this.serviceContainer.getSessionController();
     const auditController = this.serviceContainer.getAuditController();
     const exportController = this.serviceContainer.getExportController();
+    const lookupValueController = this.serviceContainer.getLookupValueController();
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
     const configurationRepository = this.repositoryFactory.getConfigurationRepository();
 
     // Register all route modules with ConfigurationRepository for dynamic rate limiting
     registry.registerModule(new PublicRouteModule(authController, configurationRepository));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, configurationRepository));
-    registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, exportController, configurationController, authMiddleware));
+    registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, exportController, configurationController, lookupValueController, authMiddleware));
     const tubeLockController = this.serviceContainer.getTubeLockController();
-    registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, authMiddleware, configurationRepository));
+    registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, configurationRepository));
     registry.registerModule(new ConfigurationRouteModule(configurationController, authMiddleware));
     registry.registerModule(new SearchRouteModule(searchController, authMiddleware, configurationRepository));
     registry.registerModule(new UserRouteModule(userController, personController, sessionController, authMiddleware));

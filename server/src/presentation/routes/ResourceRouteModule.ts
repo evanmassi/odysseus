@@ -11,6 +11,7 @@ import { RouteModule } from '@presentation/routes/RouteModule';
 import { TubeController } from '@presentation/controllers/TubeController';
 import { TubeLockController } from '@presentation/controllers/TubeLockController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
+import { LookupValueController } from '@presentation/controllers/LookupValueController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { createRateLimitMiddleware } from '@middleware/RateLimiting';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
@@ -35,6 +36,7 @@ export class ResourceRouteModule implements RouteModule {
     private tubeController: TubeController,
     private tubeLockController: TubeLockController,
     private researcherController: ResearcherController,
+    private lookupValueController: LookupValueController,
     private authMiddleware: AuthMiddleware,
     configurationRepository: ConfigurationRepository
   ) {
@@ -186,6 +188,13 @@ export class ResourceRouteModule implements RouteModule {
     router.delete('/researchers/:id',
       validateParams(z.object({ id: z.string() })),
       this.researcherController.deleteResearcher.bind(this.researcherController)
+    );
+
+    // LOOKUP VALUE ROUTES (for form dropdowns)
+
+    router.get('/lookups/:category',
+      validateParams(z.object({ category: z.string() })),
+      this.lookupValueController.getActiveValues.bind(this.lookupValueController)
     );
   }
 }

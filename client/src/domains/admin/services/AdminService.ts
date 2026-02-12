@@ -20,6 +20,9 @@ import type {
   AuditLogFilters,
   GeneratePasswordResetTokenResponse,
   TankConfiguration,
+  LookupCategory,
+  LookupValueWithCount,
+  LookupValue,
 } from '@odysseus/shared-schemas';
 
 export class AdminService {
@@ -794,9 +797,53 @@ export class AdminService {
     }
   }
 
-  // ============================================================================
-  // DEMO MANAGEMENT
-  // ============================================================================
+  async getLookupValues(category: LookupCategory): Promise<LookupValueWithCount[]> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: LookupValueWithCount[];
+      }>(`/admin/lookups/${category}`);
+      return response.data.data;
+    } catch (error) {
+      logger.error('Failed to get lookup values', { category, error });
+      throw error;
+    }
+  }
+
+  async createLookupValue(category: LookupCategory, value: string): Promise<LookupValue> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        data: LookupValue;
+      }>('/admin/lookups', { category, value });
+      return response.data.data;
+    } catch (error) {
+      logger.error('Failed to create lookup value', { category, value, error });
+      throw error;
+    }
+  }
+
+  async renameLookupValue(id: string, newValue: string): Promise<LookupValue> {
+    try {
+      const response = await httpClient.put<{
+        success: boolean;
+        data: LookupValue;
+      }>(`/admin/lookups/${id}/rename`, { newValue });
+      return response.data.data;
+    } catch (error) {
+      logger.error('Failed to rename lookup value', { id, newValue, error });
+      throw error;
+    }
+  }
+
+  async deleteLookupValue(id: string): Promise<void> {
+    try {
+      await httpClient.delete(`/admin/lookups/${id}`);
+    } catch (error) {
+      logger.error('Failed to delete lookup value', { id, error });
+      throw error;
+    }
+  }
 
   /**
    * Get all demo users

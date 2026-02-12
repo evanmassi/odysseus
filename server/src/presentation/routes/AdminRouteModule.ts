@@ -13,6 +13,7 @@ import { ResearcherController } from '@presentation/controllers/ResearcherContro
 import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
+import { LookupValueController } from '@presentation/controllers/LookupValueController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { validateBody, validateParams } from '@middleware/Validation';
 import {
@@ -20,7 +21,9 @@ import {
   createResearcherProfileSchema,
   adminResetPasswordRequestSchema,
   setUserDemoStatusSchema,
-  setTankDemoStatusSchema
+  setTankDemoStatusSchema,
+  createLookupValueRequestSchema,
+  renameLookupValueRequestSchema
 } from '@odysseus/shared-schemas';
 
 export class AdminRouteModule implements RouteModule {
@@ -30,6 +33,7 @@ export class AdminRouteModule implements RouteModule {
     private readonly auditController: AuditController,
     private readonly exportController: ExportController,
     private readonly configurationController: ConfigurationController,
+    private readonly lookupValueController: LookupValueController,
     private readonly authMiddleware: AuthMiddleware
   ) {}
 
@@ -253,6 +257,29 @@ export class AdminRouteModule implements RouteModule {
 
     router.get('/export/system-backup',
       this.exportController.exportSystemBackup.bind(this.exportController)
+    );
+
+    // LOOKUP VALUE MANAGEMENT (admin catalog)
+
+    router.get('/lookups/:category',
+      validateParams(z.object({ category: z.string() })),
+      this.lookupValueController.getAllValues.bind(this.lookupValueController)
+    );
+
+    router.post('/lookups',
+      validateBody(createLookupValueRequestSchema),
+      this.lookupValueController.createValue.bind(this.lookupValueController)
+    );
+
+    router.put('/lookups/:id/rename',
+      validateParams(z.object({ id: z.string() })),
+      validateBody(renameLookupValueRequestSchema),
+      this.lookupValueController.renameValue.bind(this.lookupValueController)
+    );
+
+    router.delete('/lookups/:id',
+      validateParams(z.object({ id: z.string() })),
+      this.lookupValueController.deleteValue.bind(this.lookupValueController)
     );
   }
 

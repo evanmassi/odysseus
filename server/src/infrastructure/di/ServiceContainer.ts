@@ -36,6 +36,7 @@ import { PersonController } from '@presentation/controllers/PersonController';
 import { SessionController } from '@presentation/controllers/SessionController';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
+import { LookupValueController } from '@presentation/controllers/LookupValueController';
 
 // Application services
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
@@ -44,6 +45,7 @@ import { UserApplicationService } from '@application/services/UserApplicationSer
 import { AuditService } from '@application/services/AuditService';
 import { AuditRetentionService } from '@application/services/AuditRetentionService';
 import { ExportService } from '@application/services/ExportService';
+import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
 import { PresenceService } from '@application/services/PresenceService';
 import { TubePositionService, AccessControlService, ValidationService } from '@domain/services';
 import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChangeDetector';
@@ -143,6 +145,7 @@ export class ServiceContainer {
   private sessionController?: SessionController;
   private auditController?: AuditController;
   private exportController?: ExportController;
+  private lookupValueController?: LookupValueController;
 
   // Application services - Export
   private exportService?: ExportService;
@@ -162,6 +165,7 @@ export class ServiceContainer {
   private accessControlService?: AccessControlService;
   private validationService?: ValidationService;
   private presenceService?: PresenceService;
+  private lookupValueApplicationService?: LookupValueApplicationService;
 
   // Infrastructure repositories
   private auditArchiveRepository?: AuditArchiveRepository;
@@ -960,6 +964,25 @@ export class ServiceContainer {
       );
     }
     return this.exportController;
+  }
+
+  getLookupValueApplicationService(): LookupValueApplicationService {
+    if (!this.lookupValueApplicationService) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.lookupValueApplicationService = new LookupValueApplicationService(
+        repositories.lookupValues
+      );
+    }
+    return this.lookupValueApplicationService;
+  }
+
+  getLookupValueController(): LookupValueController {
+    if (!this.lookupValueController) {
+      this.lookupValueController = new LookupValueController(
+        this.getLookupValueApplicationService()
+      );
+    }
+    return this.lookupValueController;
   }
 
   getAuditEventHandler(): AuditEventHandler {
