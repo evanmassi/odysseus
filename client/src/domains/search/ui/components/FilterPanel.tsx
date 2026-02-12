@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback } from 'react';
 
 import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
 import {
+  type LucideIcon,
   UsersRound,
   Calendar,
   X,
@@ -14,6 +15,8 @@ import {
   CircuitBoard,
   MapPin,
   Microscope,
+  Dna,
+  Building2,
 } from 'lucide-react';
 
 import { useActiveResearchersQuery } from '@domains/researchers';
@@ -25,7 +28,67 @@ import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
-import type { TubeData, Researcher } from '@odysseus/shared-schemas';
+import type { TubeData, Researcher, SearchFilters } from '@odysseus/shared-schemas';
+
+interface SampleFilterGroup {
+  filterKey: keyof SearchFilters;
+  tubeField: string;
+  label: string;
+  icon: LucideIcon;
+  ariaLabel: string;
+}
+
+const SAMPLE_FILTER_GROUPS: SampleFilterGroup[] = [
+  {
+    filterKey: 'cellTypes',
+    tubeField: 'cellType',
+    label: 'Cell Types',
+    icon: Microscope,
+    ariaLabel: 'Cell type filters',
+  },
+  {
+    filterKey: 'lotNumbers',
+    tubeField: 'lotNumber',
+    label: 'Lot Numbers',
+    icon: Barcode,
+    ariaLabel: 'Lot number filters',
+  },
+  {
+    filterKey: 'donorInternalIds',
+    tubeField: 'donorInternalId',
+    label: 'Donor Int. IDs',
+    icon: CircleUserRound,
+    ariaLabel: 'Donor internal ID filters',
+  },
+  {
+    filterKey: 'donorSourceIds',
+    tubeField: 'donorSourceId',
+    label: 'Donor Src. IDs',
+    icon: Fingerprint,
+    ariaLabel: 'Donor source ID filters',
+  },
+  {
+    filterKey: 'cultureConditions',
+    tubeField: 'cultureCondition',
+    label: 'Culture Conditions',
+    icon: CircuitBoard,
+    ariaLabel: 'Culture condition filters',
+  },
+  {
+    filterKey: 'species',
+    tubeField: 'species',
+    label: 'Species',
+    icon: Dna,
+    ariaLabel: 'Species filters',
+  },
+  {
+    filterKey: 'vendors',
+    tubeField: 'vendor',
+    label: 'Vendors',
+    icon: Building2,
+    ariaLabel: 'Vendor filters',
+  },
+];
 
 interface CollapsibleSectionProps {
   title: string;
@@ -100,8 +163,17 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
   const tanks = getCurrentTanks();
 
   // Extract unique filter options from tubes
-  const filterOptions = useMemo(
-    () => ({
+  const filterOptions = useMemo(() => {
+    const uniqueSampleValues = (field: string): string[] =>
+      Array.from(
+        new Set(
+          tubes
+            ?.map((t: TubeData) => (t.sample as Record<string, unknown> | undefined)?.[field])
+            .filter((v): v is string => typeof v === 'string' && v.length > 0) ?? []
+        )
+      ).sort();
+
+    return {
       tankIds: Array.from(
         new Set(tubes?.map((tube: TubeData) => tube.location?.tankId).filter(Boolean) || [])
       ).sort(),
@@ -111,45 +183,13 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
       boxIds: Array.from(
         new Set(tubes?.map((tube: TubeData) => tube.location?.boxId).filter(Boolean) || [])
       ).sort(),
-      cellTypes: Array.from(
-        new Set(
-          tubes
-            ?.map((tube: TubeData) => tube.sample?.cellType)
-            .filter((c): c is string => Boolean(c)) || []
-        )
-      ).sort(),
-      lotNumbers: Array.from(
-        new Set(
-          tubes
-            ?.map((tube: TubeData) => tube.sample?.lotNumber)
-            .filter((c): c is string => Boolean(c)) || []
-        )
-      ).sort(),
-      donorInternalIds: Array.from(
-        new Set(
-          tubes
-            ?.map((tube: TubeData) => tube.sample?.donorInternalId)
-            .filter((c): c is string => Boolean(c)) || []
-        )
-      ).sort(),
-      donorSourceIds: Array.from(
-        new Set(
-          tubes
-            ?.map((tube: TubeData) => tube.sample?.donorSourceId)
-            .filter((c): c is string => Boolean(c)) || []
-        )
-      ).sort(),
-      cultureConditions: Array.from(
-        new Set(
-          tubes
-            ?.map((tube: TubeData) => tube.sample?.cultureCondition)
-            .filter((c): c is string => Boolean(c)) || []
-        )
-      ).sort(),
+      sampleGroups: SAMPLE_FILTER_GROUPS.map(group => ({
+        ...group,
+        options: uniqueSampleValues(group.tubeField),
+      })),
       researchers: researchers || [],
-    }),
-    [tubes, researchers]
-  );
+    };
+  }, [tubes, researchers]);
 
   // Get tank name from ID
   const getTankName = useCallback(
@@ -188,12 +228,9 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           (filters.boxIds?.length ?? 0)
         );
       case 'sample':
-        return (
-          (filters.cellTypes?.length ?? 0) +
-          (filters.lotNumbers?.length ?? 0) +
-          (filters.donorInternalIds?.length ?? 0) +
-          (filters.donorSourceIds?.length ?? 0) +
-          (filters.cultureConditions?.length ?? 0)
+        return SAMPLE_FILTER_GROUPS.reduce(
+          (sum, { filterKey }) => sum + ((filters[filterKey] as string[] | undefined)?.length ?? 0),
+          0
         );
       case 'researcher':
         return filters.researcherIds?.length ?? 0;
@@ -244,45 +281,15 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
     });
 
     // Sample filters
-    filters.cellTypes?.forEach(cellType => {
-      result.push({
-        category: 'Sample',
-        label: cellType,
-        onRemove: () => toggleFilterValue('cellTypes', cellType),
+    for (const { filterKey } of SAMPLE_FILTER_GROUPS) {
+      (filters[filterKey] as string[] | undefined)?.forEach(value => {
+        result.push({
+          category: 'Sample',
+          label: value,
+          onRemove: () => toggleFilterValue(filterKey, value),
+        });
       });
-    });
-
-    filters.lotNumbers?.forEach(lotNumber => {
-      result.push({
-        category: 'Sample',
-        label: lotNumber,
-        onRemove: () => toggleFilterValue('lotNumbers', lotNumber),
-      });
-    });
-
-    filters.donorInternalIds?.forEach(donorId => {
-      result.push({
-        category: 'Sample',
-        label: donorId,
-        onRemove: () => toggleFilterValue('donorInternalIds', donorId),
-      });
-    });
-
-    filters.donorSourceIds?.forEach(donorId => {
-      result.push({
-        category: 'Sample',
-        label: donorId,
-        onRemove: () => toggleFilterValue('donorSourceIds', donorId),
-      });
-    });
-
-    filters.cultureConditions?.forEach(condition => {
-      result.push({
-        category: 'Sample',
-        label: condition,
-        onRemove: () => toggleFilterValue('cultureConditions', condition),
-      });
-    });
+    }
 
     // Researcher filters
     filters.researcherIds?.forEach(researcherId => {
@@ -442,137 +449,29 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
           onToggle={() => toggleSection('sample')}
         >
           <div className="space-y-4">
-            {/* Cell Types */}
-            {filterOptions.cellTypes.length > 0 && (
-              <div>
-                <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
-                  <Microscope className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-secondary-foreground">Cell Types</div>
-                </div>
-                <div className="flex flex-wrap gap-2" role="group" aria-label="Cell type filters">
-                  {filterOptions.cellTypes.map(cellType => (
-                    <Chip
-                      key={cellType}
-                      behavior="selectable"
-                      size="sm"
-                      selected={isSelected('cellTypes', cellType)}
-                      onSelect={() => toggleFilterValue('cellTypes', cellType)}
-                    >
-                      {cellType}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Lot Numbers */}
-            {filterOptions.lotNumbers.length > 0 && (
-              <div>
-                <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
-                  <Barcode className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-secondary-foreground">Lot Numbers</div>
-                </div>
-                <div className="flex flex-wrap gap-2" role="group" aria-label="Lot number filters">
-                  {filterOptions.lotNumbers.map(lotNumber => (
-                    <Chip
-                      key={lotNumber}
-                      behavior="selectable"
-                      size="sm"
-                      selected={isSelected('lotNumbers', lotNumber)}
-                      onSelect={() => toggleFilterValue('lotNumbers', lotNumber)}
-                    >
-                      {lotNumber}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Donor Internal IDs */}
-            {filterOptions.donorInternalIds.length > 0 && (
-              <div>
-                <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
-                  <CircleUserRound className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-secondary-foreground">
-                    Donor Int. IDs
+            {filterOptions.sampleGroups.map(
+              ({ filterKey, label, icon: Icon, ariaLabel, options }) =>
+                options.length > 0 && (
+                  <div key={filterKey}>
+                    <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
+                      <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+                      <div className="text-xs font-medium text-secondary-foreground">{label}</div>
+                    </div>
+                    <div className="flex flex-wrap gap-2" role="group" aria-label={ariaLabel}>
+                      {options.map(value => (
+                        <Chip
+                          key={value}
+                          behavior="selectable"
+                          size="sm"
+                          selected={isSelected(filterKey, value)}
+                          onSelect={() => toggleFilterValue(filterKey, value)}
+                        >
+                          {value}
+                        </Chip>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <div
-                  className="flex flex-wrap gap-2"
-                  role="group"
-                  aria-label="Donor internal ID filters"
-                >
-                  {filterOptions.donorInternalIds.map(donorId => (
-                    <Chip
-                      key={donorId}
-                      behavior="selectable"
-                      size="sm"
-                      selected={isSelected('donorInternalIds', donorId)}
-                      onSelect={() => toggleFilterValue('donorInternalIds', donorId)}
-                    >
-                      {donorId}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Donor Source IDs */}
-            {filterOptions.donorSourceIds.length > 0 && (
-              <div>
-                <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
-                  <Fingerprint className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-secondary-foreground">
-                    Donor Src. IDs
-                  </div>
-                </div>
-                <div
-                  className="flex flex-wrap gap-2"
-                  role="group"
-                  aria-label="Donor source ID filters"
-                >
-                  {filterOptions.donorSourceIds.map(donorId => (
-                    <Chip
-                      key={donorId}
-                      behavior="selectable"
-                      size="sm"
-                      selected={isSelected('donorSourceIds', donorId)}
-                      onSelect={() => toggleFilterValue('donorSourceIds', donorId)}
-                    >
-                      {donorId}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Culture Conditions */}
-            {filterOptions.cultureConditions.length > 0 && (
-              <div>
-                <div className="flex items-center space-x-2 mb-2 text-muted-foreground">
-                  <CircuitBoard className="w-3.5 h-3.5" aria-hidden="true" />
-                  <div className="text-xs font-medium text-secondary-foreground">
-                    Culture Conditions
-                  </div>
-                </div>
-                <div
-                  className="flex flex-wrap gap-2"
-                  role="group"
-                  aria-label="Culture condition filters"
-                >
-                  {filterOptions.cultureConditions.map(condition => (
-                    <Chip
-                      key={condition}
-                      behavior="selectable"
-                      size="sm"
-                      selected={isSelected('cultureConditions', condition)}
-                      onSelect={() => toggleFilterValue('cultureConditions', condition)}
-                    >
-                      {condition}
-                    </Chip>
-                  ))}
-                </div>
-              </div>
+                )
             )}
           </div>
         </CollapsibleSection>
