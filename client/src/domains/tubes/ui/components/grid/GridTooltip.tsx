@@ -89,6 +89,11 @@ export function GridTooltip({ tube, anchorRect, lockVariant, lockOwnerName }: Gr
           <span className="text-tooltip-muted">Src. ID:</span> {sourceId}
         </div>
       )}
+      {tube.sample?.species && (
+        <div className="text-white">
+          <span className="text-tooltip-muted">Species:</span> {tube.sample.species}
+        </div>
+      )}
       {tube.sample?.lotNumber && (
         <div className="text-white">
           <span className="text-tooltip-muted">Lot #:</span> {tube.sample.lotNumber}

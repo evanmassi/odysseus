@@ -318,6 +318,10 @@ export const TUBE_FIELD_PATHS = {
   media: 'sample.media',
   cultureCondition: 'sample.cultureCondition',
   lotNumber: 'sample.lotNumber',
+  species: 'sample.species',
+  vendor: 'sample.vendor',
+  catalogNumber: 'sample.catalogNumber',
+  passageNumber: 'sample.passageNumber',
   notes: 'sample.notes',
 
   // Researcher ID (foreign key)

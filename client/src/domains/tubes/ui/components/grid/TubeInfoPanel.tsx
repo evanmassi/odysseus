@@ -34,6 +34,10 @@ const FIELD_PATHS = [
   'sample.donorSourceId',
   'sample.cultureCondition',
   'sample.lotNumber',
+  'sample.species',
+  'sample.vendor',
+  'sample.catalogNumber',
+  'sample.passageNumber',
   'sample.media.type',
   'sample.media.supplements',
   'sample.media.selection',
@@ -48,6 +52,10 @@ const FIELD_PATHS = [
 const SAMPLE_INFO_PATHS = [
   'sample.cultureCondition',
   'sample.lotNumber',
+  'sample.species',
+  'sample.vendor',
+  'sample.catalogNumber',
+  'sample.passageNumber',
   'sample.media.type',
   'sample.media.supplements',
   'sample.media.selection',
@@ -264,6 +272,10 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const mediaType = getDisplayValue('sample.media.type');
   const mediaSupplements = getDisplayValue('sample.media.supplements');
   const mediaSelection = getDisplayValue('sample.media.selection');
+  const species = getDisplayValue('sample.species');
+  const vendor = getDisplayValue('sample.vendor');
+  const catalogNumber = getDisplayValue('sample.catalogNumber');
+  const passageNumber = getDisplayValue('sample.passageNumber');
   const concentration = getDisplayValue('sample.concentration');
   const concentrationUnit = getDisplayValue('sample.concentrationUnit');
   const date = getDisplayValue('sample.date');
@@ -294,6 +306,10 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     'sample.donorSourceId',
     'sample.cultureCondition',
     'sample.lotNumber',
+    'sample.species',
+    'sample.vendor',
+    'sample.catalogNumber',
+    'sample.passageNumber',
     'sample.media.type',
     'sample.media.supplements',
     'sample.media.selection',
@@ -307,6 +323,10 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const hasSampleInfo =
     cultureCondition !== undefined ||
     lotNumber !== undefined ||
+    species !== undefined ||
+    vendor !== undefined ||
+    catalogNumber !== undefined ||
+    passageNumber !== undefined ||
     mediaType !== undefined ||
     mediaSupplements !== undefined ||
     mediaSelection !== undefined ||
@@ -468,6 +488,30 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 value={lotNumber}
                 inline={false}
                 isMixed={isFieldMixed('sample.lotNumber')}
+              />
+              <FieldValue
+                label="Species"
+                value={species}
+                inline={false}
+                isMixed={isFieldMixed('sample.species')}
+              />
+              <FieldValue
+                label="Vendor"
+                value={vendor}
+                inline={false}
+                isMixed={isFieldMixed('sample.vendor')}
+              />
+              <FieldValue
+                label="Catalog #"
+                value={catalogNumber}
+                inline={false}
+                isMixed={isFieldMixed('sample.catalogNumber')}
+              />
+              <FieldValue
+                label="Passage #"
+                value={passageNumber}
+                inline={false}
+                isMixed={isFieldMixed('sample.passageNumber')}
               />
               <FieldValue
                 label="Concentration"

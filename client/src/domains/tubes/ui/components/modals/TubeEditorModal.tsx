@@ -28,6 +28,7 @@ import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubes, useTube } from '@domains/tubes';
+import { useLookupValuesQuery } from '@domains/tubes/hooks/useLookupValuesQuery';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import { useTubeModalFocusReturn } from '@domains/tubes/hooks/useTubeModalFocusReturn';
 import {
@@ -47,6 +48,7 @@ import { formatDateForInput } from '@shared/utils/dateUtils';
 import { LocationDisplay } from '../displays/LocationDisplay';
 import { TubeForm } from '../forms/TubeForm';
 
+import type { SelectOption } from '@shared/ui/primitives/select/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
 /**
@@ -97,7 +99,18 @@ interface EditModeContentProps {
 
 function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
+  const { data: speciesValues = [] } = useLookupValuesQuery('species');
+  const { data: vendorValues = [] } = useLookupValuesQuery('vendor');
   const modalService = useModalStore();
+
+  const speciesOptions = useMemo(
+    () => speciesValues.map(v => ({ value: v.value, label: v.value })),
+    [speciesValues]
+  );
+  const vendorOptions = useMemo(
+    () => vendorValues.map(v => ({ value: v.value, label: v.value })),
+    [vendorValues]
+  );
 
   // Fetch tube data from React Query cache (always fresh)
   const { data: tube, isLoading: isFetchingTube, isError } = useTube(tubeId);
@@ -144,6 +157,8 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
       tube={tube}
       tubeId={tubeId}
       researchers={researchers}
+      speciesOptions={speciesOptions}
+      vendorOptions={vendorOptions}
       onClose={onClose}
       modalService={modalService}
     />
@@ -159,6 +174,8 @@ interface EditModeFormProps {
   tube: TubeData;
   tubeId: string;
   researchers: Researcher[];
+  speciesOptions: SelectOption[];
+  vendorOptions: SelectOption[];
   onClose: () => void;
   modalService: ReturnType<typeof useModalStore>;
 }
@@ -168,6 +185,8 @@ function EditModeForm({
   tube,
   tubeId,
   researchers,
+  speciesOptions,
+  vendorOptions,
   onClose,
   modalService,
 }: EditModeFormProps) {
@@ -191,6 +210,10 @@ function EditModeForm({
         },
         cultureCondition: tube.sample.cultureCondition ?? '',
         lotNumber: tube.sample.lotNumber ?? '',
+        species: tube.sample.species ?? '',
+        vendor: tube.sample.vendor ?? '',
+        catalogNumber: tube.sample.catalogNumber ?? '',
+        passageNumber: tube.sample.passageNumber ?? undefined,
         notes: tube.sample.notes ?? '',
       },
       researcherId: tube.researcherId ?? '',
@@ -352,6 +375,8 @@ function EditModeForm({
             errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
             trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
             researchers={researchers}
+            speciesOptions={speciesOptions}
+            vendorOptions={vendorOptions}
             isLoading={isSubmitting}
           />
         </fieldset>
@@ -403,9 +428,20 @@ function CreateModeContent({
   selectedPositions,
 }: TubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
+  const { data: speciesValues = [] } = useLookupValuesQuery('species');
+  const { data: vendorValues = [] } = useLookupValuesQuery('vendor');
   const { data: allTubes = [] } = useTubes();
   const updateTubeMutation = useUpdateTubeMutation();
   const pasteTubesMutation = usePasteTubesMutation();
+
+  const speciesOptions = useMemo(
+    () => speciesValues.map(v => ({ value: v.value, label: v.value })),
+    [speciesValues]
+  );
+  const vendorOptions = useMemo(
+    () => vendorValues.map(v => ({ value: v.value, label: v.value })),
+    [vendorValues]
+  );
   const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();
 
@@ -516,6 +552,10 @@ function CreateModeContent({
         },
         cultureCondition: '',
         lotNumber: '',
+        species: '',
+        vendor: '',
+        catalogNumber: '',
+        passageNumber: undefined,
         notes: '',
       },
       researcherId: '',
@@ -737,6 +777,8 @@ function CreateModeContent({
           errors={form.formState.errors as FieldErrors<CreateTubeRequest | UpdateTubeRequest>}
           trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
           researchers={researchers}
+          speciesOptions={speciesOptions}
+          vendorOptions={vendorOptions}
           isLoading={isSubmitting}
         />
 

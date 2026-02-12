@@ -36,6 +36,9 @@ export {
 // Lock access control hooks
 export { useTubeAccessControl } from './useTubeAccessControl';
 
+// Lookup hooks
+export { useLookupValuesQuery } from './useLookupValuesQuery';
+
 // Modal utilities
 export { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 

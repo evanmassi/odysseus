@@ -1,19 +1,7 @@
 /**
  * Tube Form Component
  *
- * Uses API schema directly, supports both create and edit modes:
- * - Form fields match CreateTubeRequest/UpdateTubeRequest
- * - No transformation needed
- * - Media uses structured object: { type, supplements, selection }
- * - Concentration handled by ConcentrationInput with Zod preprocessing
- *
- * Compact 4-row layout:
- * - Row 1: Donor Information (Cell Type*, Internal ID, Source ID)
- * - Row 2: Sample Information Part 1 (Concentration + Unit, Media Type, Supplements, Selection)
- * - Row 3: Sample Information Part 2 (Culture Condition, Lot #, Date, Researcher)
- * - Row 4: Notes
- *
- * * = Required field (only Cell Type)
+ * Compact 5-row form layout for tube create/edit with admin-managed dropdowns.
  */
 
 import {
@@ -29,21 +17,25 @@ import { Select, ValidatedInput } from '@shared/ui';
 
 import { ConcentrationInput } from '../../inputs/ConcentrationInput';
 
+import type { SelectOption } from '@shared/ui/primitives/select/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
-// Mapping from conflict field keys to form field paths
 const CONFLICT_FIELD_MAP: Record<string, string> = {
   cellType: 'sample.cellType',
   donorInternalId: 'sample.donorInternalId',
   donorSourceId: 'sample.donorSourceId',
   concentration: 'sample.concentration',
-  concentrationUnit: 'sample.concentration', // Show on concentration field
+  concentrationUnit: 'sample.concentration',
   date: 'sample.date',
   'media.type': 'sample.media.type',
   'media.supplements': 'sample.media.supplements',
   'media.selection': 'sample.media.selection',
   cultureCondition: 'sample.cultureCondition',
   lotNumber: 'sample.lotNumber',
+  species: 'sample.species',
+  vendor: 'sample.vendor',
+  catalogNumber: 'sample.catalogNumber',
+  passageNumber: 'sample.passageNumber',
   notes: 'sample.notes',
   researcherId: 'researcherId',
 };
@@ -62,8 +54,10 @@ export interface TubeFormProps {
   errors: FieldErrors<TubeFormValues>;
   trigger: UseFormTrigger<TubeFormValues>;
   researchers: Researcher[];
+  speciesOptions: SelectOption[];
+  vendorOptions: SelectOption[];
   isLoading: boolean;
-  conflictingFields?: string[]; // Fields with mixed values in batch edit mode
+  conflictingFields?: string[];
 }
 
 export const TubeForm = ({
@@ -72,6 +66,8 @@ export const TubeForm = ({
   errors,
   trigger,
   researchers,
+  speciesOptions,
+  vendorOptions,
   isLoading,
   conflictingFields = [],
 }: TubeFormProps) => {
@@ -140,7 +136,7 @@ export const TubeForm = ({
           <h3 className="text-[10px] font-medium text-muted-foreground">Donor information</h3>
           <div className="flex-1 h-px bg-secondary"></div>
         </div>
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-4 gap-2.5">
           <ValidatedInput
             label="Cell Type"
             type="text"
@@ -152,6 +148,42 @@ export const TubeForm = ({
             required
             badge={getConflictBadge('sample.cellType')}
             hasConflict={hasConflict('sample.cellType')}
+          />
+          <Controller
+            name="sample.species"
+            control={control}
+            render={({ field: { value, onChange } }) => {
+              const error = getFieldError('sample.species', errors);
+              const hasFieldConflict = hasConflict('sample.species');
+              return (
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      Species
+                      {getConflictBadge('sample.species')}
+                    </span>
+                  </label>
+                  <Select
+                    options={[{ value: '', label: 'Select species...' }, ...speciesOptions]}
+                    value={value ?? ''}
+                    onChange={newValue => onChange(newValue ?? '')}
+                    disabled={isLoading}
+                    state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
+                    fullWidth
+                    placeholder="Select species..."
+                  />
+                  {error && (
+                    <div className="flex items-center mt-1 text-xs text-danger-text">
+                      <span>{error}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            }}
           />
           <ValidatedInput
             label="Internal ID"
@@ -336,7 +368,69 @@ export const TubeForm = ({
         />
       </div>
 
-      {/* ROW 4: Notes */}
+      {/* ROW 4: Supply Chain */}
+      <div className="grid grid-cols-3 gap-2.5">
+        <Controller
+          name="sample.vendor"
+          control={control}
+          render={({ field: { value, onChange } }) => {
+            const error = getFieldError('sample.vendor', errors);
+            const hasFieldConflict = hasConflict('sample.vendor');
+            return (
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${
+                    error ? 'text-danger-text' : 'text-secondary-foreground'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    Vendor
+                    {getConflictBadge('sample.vendor')}
+                  </span>
+                </label>
+                <Select
+                  options={[{ value: '', label: 'Select vendor...' }, ...vendorOptions]}
+                  value={value ?? ''}
+                  onChange={newValue => onChange(newValue ?? '')}
+                  disabled={isLoading}
+                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
+                  fullWidth
+                  placeholder="Select vendor..."
+                />
+                {error && (
+                  <div className="flex items-center mt-1 text-xs text-danger-text">
+                    <span>{error}</span>
+                  </div>
+                )}
+              </div>
+            );
+          }}
+        />
+        <ValidatedInput
+          label="Catalog #"
+          type="text"
+          placeholder="e.g., CRL-2522"
+          registration={register('sample.catalogNumber')}
+          error={Boolean(getFieldError('sample.catalogNumber', errors))}
+          helperText={getFieldError('sample.catalogNumber', errors)}
+          disabled={isLoading}
+          badge={getConflictBadge('sample.catalogNumber')}
+          hasConflict={hasConflict('sample.catalogNumber')}
+        />
+        <ValidatedInput
+          label="Passage #"
+          type="number"
+          placeholder="0-999"
+          registration={register('sample.passageNumber')}
+          error={Boolean(getFieldError('sample.passageNumber', errors))}
+          helperText={getFieldError('sample.passageNumber', errors)}
+          disabled={isLoading}
+          badge={getConflictBadge('sample.passageNumber')}
+          hasConflict={hasConflict('sample.passageNumber')}
+        />
+      </div>
+
+      {/* ROW 5: Notes */}
       <div className="space-y-2">
         <div className="flex items-center gap-3">
           <h3 className="text-[10px] font-medium text-muted-foreground">Notes</h3>
