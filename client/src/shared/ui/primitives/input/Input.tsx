@@ -545,7 +545,7 @@ export const Input = forwardRef<InputRef, InputProps>(
                   ? ' has-value text-foreground'
                   : ' text-muted-foreground/40'
                 : ''
-            }`}
+            }${type === 'number' ? ' [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none' : ''}`}
             placeholder={placeholder}
             value={value}
             defaultValue={defaultValue}

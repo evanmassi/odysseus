@@ -551,6 +551,8 @@ export const Select = forwardRef<SelectRef, SelectProps>(
             ref={dropdownRef}
             className={dropdownClasses}
             data-select-dropdown
+            role="presentation"
+            onMouseDown={e => e.stopPropagation()}
             style={{
               top: dropdownPosition.top,
               left: dropdownPosition.left,

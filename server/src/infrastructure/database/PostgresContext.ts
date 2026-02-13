@@ -48,6 +48,7 @@ export class PostgresContext {
 
       // Create schema
       await this.createTables();
+      await this.runSchemaMigrations();
       await this.createIndexes();
       await this.createFullTextSearch();
       await this.insertDefaultConfiguration();
@@ -206,6 +207,20 @@ export class PostgresContext {
       )
     `);
 
+    // Lookup values table (admin-managed dropdown options for species, vendor, etc.)
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS lookup_values (
+        id TEXT PRIMARY KEY,
+        category TEXT NOT NULL CHECK (category IN ('species', 'vendor')),
+        value TEXT NOT NULL,
+        sort_order INTEGER DEFAULT 0,
+        is_active BOOLEAN DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(category, value)
+      )
+    `);
+
     // Audit log archive table
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS audit_log_archive (
@@ -290,13 +305,11 @@ export class PostgresContext {
       )
     `);
 
-    // Run schema migrations for existing databases
-    await this.runSchemaMigrations();
   }
 
   /**
-   * Run schema migrations for existing databases
-   * These add columns that may not exist in older database schemas
+   * Run schema migrations for existing databases.
+   * Called after createTables() so all tables exist before ALTER TABLE runs.
    */
   private async runSchemaMigrations(): Promise<void> {
     // Add is_demo column to users table for demo mode isolation
@@ -308,6 +321,37 @@ export class PostgresContext {
           WHERE table_name = 'users' AND column_name = 'is_demo'
         ) THEN
           ALTER TABLE users ADD COLUMN is_demo BOOLEAN NOT NULL DEFAULT FALSE;
+        END IF;
+      END $$
+    `);
+
+    // Add species, vendor, catalog_number, passage_number columns to tubes
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'species'
+        ) THEN
+          ALTER TABLE tubes ADD COLUMN species TEXT;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'vendor'
+        ) THEN
+          ALTER TABLE tubes ADD COLUMN vendor TEXT;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'catalog_number'
+        ) THEN
+          ALTER TABLE tubes ADD COLUMN catalog_number TEXT;
+        END IF;
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'passage_number'
+        ) THEN
+          ALTER TABLE tubes ADD COLUMN passage_number INTEGER CHECK (passage_number >= 0 AND passage_number <= 999);
         END IF;
       END $$
     `);
@@ -388,6 +432,14 @@ export class PostgresContext {
       'CREATE INDEX IF NOT EXISTS idx_configuration_versions_updated_at ON configuration_versions(updated_at DESC)',
       'CREATE INDEX IF NOT EXISTS idx_configuration_snapshots_created_at ON configuration_snapshots(created_at DESC)',
       'CREATE INDEX IF NOT EXISTS idx_configuration_snapshots_version ON configuration_snapshots(version)',
+
+      // Lookup value indexes
+      'CREATE INDEX IF NOT EXISTS idx_lookup_values_category ON lookup_values(category)',
+      'CREATE INDEX IF NOT EXISTS idx_lookup_values_category_active ON lookup_values(category, is_active)',
+
+      // Tube species/vendor indexes
+      'CREATE INDEX IF NOT EXISTS idx_tubes_species ON tubes(species)',
+      'CREATE INDEX IF NOT EXISTS idx_tubes_vendor ON tubes(vendor)',
     ];
 
     for (const indexSql of indexes) {
@@ -449,9 +501,11 @@ export class PostgresContext {
           setweight(to_tsvector('english', COALESCE(NEW.cell_type, '')), 'A') ||
           setweight(to_tsvector('english', COALESCE(NEW.donor_internal_id, '')), 'A') ||
           setweight(to_tsvector('english', COALESCE(NEW.donor_source_id, '')), 'A') ||
+          setweight(to_tsvector('english', COALESCE(NEW.species, '')), 'A') ||
           setweight(to_tsvector('english', COALESCE(NEW.lot_number, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.media, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.culture_condition, '')), 'B') ||
+          setweight(to_tsvector('english', COALESCE(NEW.vendor, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.notes, '')), 'C') ||
           setweight(to_tsvector('english', COALESCE(NEW.concentration, '')), 'C') ||
           setweight(to_tsvector('english', COALESCE(NEW.created_by_name, '')), 'C');
@@ -476,9 +530,11 @@ export class PostgresContext {
         setweight(to_tsvector('english', COALESCE(cell_type, '')), 'A') ||
         setweight(to_tsvector('english', COALESCE(donor_internal_id, '')), 'A') ||
         setweight(to_tsvector('english', COALESCE(donor_source_id, '')), 'A') ||
+        setweight(to_tsvector('english', COALESCE(species, '')), 'A') ||
         setweight(to_tsvector('english', COALESCE(lot_number, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(media, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(culture_condition, '')), 'B') ||
+        setweight(to_tsvector('english', COALESCE(vendor, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(notes, '')), 'C') ||
         setweight(to_tsvector('english', COALESCE(concentration, '')), 'C') ||
         setweight(to_tsvector('english', COALESCE(created_by_name, '')), 'C')

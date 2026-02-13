@@ -137,7 +137,7 @@ export default function BatchTubeEditorModal({
   );
 
   // Fetch specific tubes by ID - ensures fresh data regardless of cache state
-  const { data: tubes = [] } = useBulkTubes(tubeIds);
+  const { data: tubes = [], isLoading: isTubesLoading } = useBulkTubes(tubeIds);
 
   useTubeModalFocusReturn();
 
@@ -245,8 +245,8 @@ export default function BatchTubeEditorModal({
             : '',
         passageNumber:
           analysis.passageNumber.state !== 'conflict'
-            ? (analysis.passageNumber.commonValue ?? undefined)
-            : undefined,
+            ? (analysis.passageNumber.commonValue ?? '')
+            : '',
         notes: analysis.notes.state !== 'conflict' ? (analysis.notes.commonValue ?? '') : '',
       },
       researcherId:
@@ -266,6 +266,7 @@ export default function BatchTubeEditorModal({
     errors: [],
   });
   const [result, setResult] = useState<BulkUpdateResult | null>(null);
+  const [dataReady, setDataReady] = useState(false);
 
   const { form, isSubmitting: formSubmitting } = useBatchEditTubeForm({
     initialData: resolvedData,
@@ -274,31 +275,28 @@ export default function BatchTubeEditorModal({
   // Destructure in render phase so React Hook Form's proxy triggers re-renders
   const { errors, dirtyFields, isValid, isDirty } = form.formState;
 
-  const canSubmit = isValid && isDirty;
+  const canSubmit = isValid && isDirty && dataReady;
 
-  // Prevents socket updates from overwriting user changes mid-edit
   const userHasEdited = useRef(false);
-  const prevTubeIdsRef = useRef<string[]>([]);
-  const initialResetDone = useRef(false);
 
-  // Reset form only when tubeIds change (user selected different tubes)
   useEffect(() => {
-    const key = tubeIds.join(',');
-    if (key !== prevTubeIdsRef.current.join(',')) {
+    if (!isOpen) {
       userHasEdited.current = false;
-      initialResetDone.current = false;
-      prevTubeIdsRef.current = tubeIds;
+      setDataReady(false);
+      return;
     }
-  }, [tubeIds]);
 
-  // Sync form with server data only once per tube selection, after data is loaded
-  useEffect(() => {
-    if (!userHasEdited.current && !initialResetDone.current && tubes.length > 0) {
+    if (tubes.length === 0) {
+      setDataReady(false);
+      return;
+    }
+
+    if (!userHasEdited.current) {
       form.reset(resolvedData);
-      initialResetDone.current = true;
+      setDataReady(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [resolvedData, tubes.length]);
+  }, [isOpen, resolvedData, tubes.length]);
 
   useEffect(() => {
     if (isDirty) userHasEdited.current = true;
@@ -541,8 +539,8 @@ export default function BatchTubeEditorModal({
     userSettings
   );
 
-  // Handle case where all selected tubes were deleted/moved
-  if (tubes.length === 0) {
+  // Handle case where all selected tubes were deleted/moved (only after loading completes)
+  if (!isTubesLoading && tubes.length === 0) {
     return (
       <InfoDialog
         isOpen={isOpen}
@@ -564,7 +562,7 @@ export default function BatchTubeEditorModal({
         onClose={onClose}
         dataAttribute="data-batch-edit-modal"
       >
-        {conflicts.length > 0 && (
+        {dataReady && conflicts.length > 0 && (
           <AlertBanner variant="warning" spacing="sm">
             {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
             {conflicts.length > 1 ? 'have' : 'has'} been cleared

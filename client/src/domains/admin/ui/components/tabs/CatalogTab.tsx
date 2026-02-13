@@ -6,11 +6,14 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
+import { useQueryClient } from '@tanstack/react-query';
 import { Pencil, Plus, RefreshCw, Trash2, BookOpen } from 'lucide-react';
 
+import { queryKeys } from '@app/queryKeys';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../services/AdminService';
@@ -107,7 +110,7 @@ function CategorySection({
         const item = row as unknown as LookupValueWithCount;
         if (editingId === item.id) {
           return (
-            <input
+            <Input
               ref={editInputRef}
               type="text"
               value={editValue}
@@ -117,7 +120,8 @@ function CategorySection({
                 if (e.key === 'Escape') setEditingId(null);
               }}
               onBlur={() => void handleRenameSave()}
-              className="w-full text-sm bg-transparent border border-border rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-ring"
+              size="xs"
+              fullWidth
             />
           );
         }
@@ -196,7 +200,7 @@ function CategorySection({
       </div>
 
       <div className="flex items-center gap-2">
-        <input
+        <Input
           type="text"
           value={newValue}
           onChange={e => setNewValue(e.target.value)}
@@ -204,7 +208,8 @@ function CategorySection({
             if (e.key === 'Enter') void handleAdd();
           }}
           placeholder={`Add new ${category}...`}
-          className="flex-1 text-sm bg-input border border-border rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground"
+          size="sm"
+          fullWidth
         />
         <Button
           variant="primary"
@@ -238,6 +243,7 @@ function CategorySection({
 }
 
 export function CatalogTab() {
+  const queryClient = useQueryClient();
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
   const [vendorValues, setVendorValues] = useState<LookupValueWithCount[]>([]);
   const [loading, setLoading] = useState(false);
@@ -272,6 +278,7 @@ export function CatalogTab() {
   const handleAdd = async (category: LookupCategory, value: string) => {
     try {
       await adminService.createLookupValue(category, value);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.byCategory(category) });
       notifications.success(`Added "${value}" to ${category}`);
       await loadValues();
     } catch (error: unknown) {
@@ -285,6 +292,7 @@ export function CatalogTab() {
   const handleRename = async (category: LookupCategory, id: string, newValue: string) => {
     try {
       await adminService.renameLookupValue(id, newValue);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.all });
       notifications.success(`Renamed to "${newValue}"`);
       await loadValues();
     } catch (error: unknown) {
@@ -304,6 +312,9 @@ export function CatalogTab() {
     setDeletingId(confirmDialog.id);
     try {
       await adminService.deleteLookupValue(confirmDialog.id);
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.lookups.byCategory(confirmDialog.category),
+      });
       notifications.success(`Deleted "${confirmDialog.value}"`);
       setConfirmDialog(null);
       await loadValues();
@@ -335,7 +346,7 @@ export function CatalogTab() {
         </Button>
       </div>
 
-      <div className="space-y-6">
+      <div className="grid grid-cols-2 gap-6">
         <CategorySection
           category="species"
           title="Species"
@@ -346,8 +357,6 @@ export function CatalogTab() {
           onDelete={(id, value) => handleDeleteRequest('species', id, value)}
           deletingId={deletingId}
         />
-
-        <div className="border-t border-border" />
 
         <CategorySection
           category="vendor"

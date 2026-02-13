@@ -134,9 +134,8 @@ export const GridPosition = memo<GridPositionProps>(
         key={`${position}-${animationKey}`}
         onClick={e => onPositionClick(position, e)}
         onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === ' ' || e.key === 'Enter') {
             e.preventDefault();
-            onPositionClick(position, e);
           }
         }}
         onDoubleClick={e => onPositionDoubleClick?.(position, e)}

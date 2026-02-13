@@ -110,6 +110,10 @@ export class TubeDto {
       media?: MediaData;
       cultureCondition?: string;
       lotNumber?: string;
+      species?: string;
+      vendor?: string;
+      catalogNumber?: string;
+      passageNumber?: number;
       notes?: string;
     };
     researcherId?: string;
@@ -127,6 +131,10 @@ export class TubeDto {
         media: request.sample.media, // Already object from Zod
         cultureCondition: request.sample.cultureCondition,
         lotNumber: request.sample.lotNumber,
+        species: request.sample.species,
+        vendor: request.sample.vendor,
+        catalogNumber: request.sample.catalogNumber,
+        passageNumber: request.sample.passageNumber,
         notes: request.sample.notes
       },
       researcherId: request.researcherId
@@ -152,6 +160,10 @@ export class TubeDto {
       media?: MediaData | null;
       cultureCondition?: string | null;
       lotNumber?: string | null;
+      species?: string | null;
+      vendor?: string | null;
+      catalogNumber?: string | null;
+      passageNumber?: number | null;
       notes?: string | null;
     };
     researcherId?: string | null;
@@ -168,6 +180,10 @@ export class TubeDto {
         media?: MediaData | null;
         cultureCondition?: string | null;
         lotNumber?: string | null;
+        species?: string | null;
+        vendor?: string | null;
+        catalogNumber?: string | null;
+        passageNumber?: number | null;
         notes?: string | null;
       };
       researcherId?: string | null;
@@ -191,6 +207,10 @@ export class TubeDto {
       if (request.sample.media !== undefined) result.sample.media = request.sample.media; // Already object
       if (request.sample.cultureCondition !== undefined) result.sample.cultureCondition = request.sample.cultureCondition;
       if (request.sample.lotNumber !== undefined) result.sample.lotNumber = request.sample.lotNumber;
+      if (request.sample.species !== undefined) result.sample.species = request.sample.species;
+      if (request.sample.vendor !== undefined) result.sample.vendor = request.sample.vendor;
+      if (request.sample.catalogNumber !== undefined) result.sample.catalogNumber = request.sample.catalogNumber;
+      if (request.sample.passageNumber !== undefined) result.sample.passageNumber = request.sample.passageNumber;
       if (request.sample.notes !== undefined) result.sample.notes = request.sample.notes;
     }
 
