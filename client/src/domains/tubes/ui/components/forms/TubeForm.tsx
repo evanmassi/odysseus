@@ -11,7 +11,7 @@ import {
   formatResearcherDropdownDisplay,
 } from '@odysseus/shared-schemas';
 import { AlertTriangle } from 'lucide-react';
-import { Controller } from 'react-hook-form';
+import { Controller, useWatch } from 'react-hook-form';
 
 import { Select, ValidatedInput } from '@shared/ui';
 
@@ -71,6 +71,8 @@ export const TubeForm = ({
   isLoading,
   conflictingFields = [],
 }: TubeFormProps) => {
+  const notesValue = useWatch({ control, name: 'sample.notes' }) as string | undefined;
+
   // Check if a field path has a conflict
   const hasConflict = (fieldPath: string): boolean => {
     return conflictingFields.some(conflictKey => CONFLICT_FIELD_MAP[conflictKey] === fieldPath);
@@ -136,7 +138,7 @@ export const TubeForm = ({
           <h3 className="text-[10px] font-medium text-muted-foreground">Donor information</h3>
           <div className="flex-1 h-px bg-secondary"></div>
         </div>
-        <div className="grid grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-[9fr_7fr_7fr_7fr] gap-2.5">
           <ValidatedInput
             label="Cell Type"
             type="text"
@@ -216,7 +218,7 @@ export const TubeForm = ({
           <h3 className="text-[10px] font-medium text-muted-foreground">Sample information</h3>
           <div className="flex-1 h-px bg-secondary"></div>
         </div>
-        <div className="grid grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-[2fr_2fr_3fr_3fr] gap-2.5">
           <div>
             <Controller
               name="sample.concentration"
@@ -291,7 +293,7 @@ export const TubeForm = ({
       </div>
 
       {/* ROW 3: SAMPLE INFORMATION (PART 2) */}
-      <div className="grid grid-cols-4 gap-2.5">
+      <div className="grid grid-cols-[5fr_4fr_3fr_5fr] gap-2.5">
         <ValidatedInput
           label="Culture Condition"
           type="text"
@@ -369,7 +371,7 @@ export const TubeForm = ({
       </div>
 
       {/* ROW 4: Supply Chain */}
-      <div className="grid grid-cols-3 gap-2.5">
+      <div className="grid grid-cols-[5fr_3fr_2fr] gap-2.5">
         <Controller
           name="sample.source"
           control={control}
@@ -436,18 +438,23 @@ export const TubeForm = ({
           <h3 className="text-[10px] font-medium text-muted-foreground">Notes</h3>
           <div className="flex-1 h-px bg-secondary"></div>
         </div>
-        <ValidatedInput
-          label=""
-          type="textarea"
-          maxLength={500}
-          placeholder="Additional notes and observations..."
-          registration={register('sample.notes')}
-          error={Boolean(getFieldError('sample.notes', errors))}
-          helperText={getFieldError('sample.notes', errors)}
-          disabled={isLoading}
-          badge={getConflictBadge('sample.notes')}
-          hasConflict={hasConflict('sample.notes')}
-        />
+        <div>
+          <ValidatedInput
+            label=""
+            type="textarea"
+            maxLength={500}
+            placeholder="Additional notes and observations..."
+            registration={register('sample.notes')}
+            error={Boolean(getFieldError('sample.notes', errors))}
+            helperText={getFieldError('sample.notes', errors)}
+            disabled={isLoading}
+            badge={getConflictBadge('sample.notes')}
+            hasConflict={hasConflict('sample.notes')}
+          />
+          <div className="text-xs text-muted-foreground mt-1 text-right">
+            {(notesValue ?? '').length}/500
+          </div>
+        </div>
       </div>
     </div>
   );

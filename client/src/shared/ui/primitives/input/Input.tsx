@@ -60,7 +60,7 @@ const inputVariants = cva(
           'rounded-md',
         ],
         md: [
-          'h-9 px-4 text-sm', // 36px height (default) - matches input-field
+          'h-9 px-3 text-sm', // 36px height (default) - matches input-field
           'rounded-lg',
         ],
         lg: [

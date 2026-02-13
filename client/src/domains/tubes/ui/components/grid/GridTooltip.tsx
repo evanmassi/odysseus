@@ -78,7 +78,15 @@ export function GridTooltip({ tube, anchorRect, lockVariant, lockOwnerName }: Gr
 
   const tooltipContent = (
     <div className="flex flex-col gap-1">
-      <div className="font-semibold text-white">{cellType}</div>
+      <div className="flex items-baseline gap-1.5">
+        <span className="font-semibold text-white">{cellType}</span>
+        {tube.sample?.species && (
+          <>
+            <span className="text-white/30">·</span>
+            <span className="text-tooltip-muted">{tube.sample.species}</span>
+          </>
+        )}
+      </div>
       {donorInfo.internal && (
         <div className="text-white">
           <span className="text-tooltip-muted">Int. ID:</span> {donorInfo.internal}
@@ -87,11 +95,6 @@ export function GridTooltip({ tube, anchorRect, lockVariant, lockOwnerName }: Gr
       {donorInfo.source && (
         <div className="text-white">
           <span className="text-tooltip-muted">Src. ID:</span> {sourceId}
-        </div>
-      )}
-      {tube.sample?.species && (
-        <div className="text-white">
-          <span className="text-tooltip-muted">Species:</span> {tube.sample.species}
         </div>
       )}
       {tube.sample?.lotNumber && (

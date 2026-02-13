@@ -346,6 +346,11 @@ export function CatalogTab() {
         </Button>
       </div>
 
+      <AlertBanner variant="info" spacing="none" className="text-xs">
+        Values referenced by tubes cannot be deleted. Renaming a value updates all tubes that use
+        it.
+      </AlertBanner>
+
       <div className="grid grid-cols-2 gap-6">
         <CategorySection
           category="species"
@@ -369,11 +374,6 @@ export function CatalogTab() {
           deletingId={deletingId}
         />
       </div>
-
-      <AlertBanner variant="info" spacing="none" className="text-xs">
-        Values referenced by tubes cannot be deleted. Renaming a value updates all tubes that use
-        it.
-      </AlertBanner>
 
       {confirmDialog && (
         <ConfirmDialog

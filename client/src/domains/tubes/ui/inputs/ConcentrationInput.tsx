@@ -149,7 +149,7 @@ export function ConcentrationInput({
           className="flex-1 min-w-0"
         />
 
-        <div className="w-20 relative z-50 flex-shrink-0">
+        <div className="w-18 relative z-50 flex-shrink-0">
           <Select
             options={unitOptions}
             value={unitValue}

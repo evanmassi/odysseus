@@ -50,18 +50,17 @@ const FIELD_PATHS = [
 ] as const;
 
 const SAMPLE_INFO_PATHS = [
-  'sample.cultureCondition',
-  'sample.lotNumber',
-  'sample.species',
-  'sample.source',
-  'sample.catalogNumber',
-  'sample.passageNumber',
+  'sample.concentration',
   'sample.media.type',
   'sample.media.supplements',
   'sample.media.selection',
-  'sample.concentration',
+  'sample.cultureCondition',
+  'sample.lotNumber',
+  'sample.passageNumber',
   'sample.date',
   'researcherId',
+  'sample.source',
+  'sample.catalogNumber',
 ] as const;
 
 interface TubeInfoPanelProps {
@@ -323,7 +322,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const hasSampleInfo =
     cultureCondition !== undefined ||
     lotNumber !== undefined ||
-    species !== undefined ||
     source !== undefined ||
     catalogNumber !== undefined ||
     passageNumber !== undefined ||
@@ -447,17 +445,30 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         )}
 
         <InfoSection title="Donor Information">
-          {cellType ? (
-            <div className="text-card-foreground font-semibold text-sm mb-1">{cellType}</div>
-          ) : isFieldMixed('sample.cellType') ? (
-            <div className="mb-1">
-              <div className="flex items-center gap-1 text-card-foreground/50 text-xs">
-                Cell Type
+          <div className="flex items-baseline gap-1.5 -mt-0.5 mb-2">
+            {cellType ? (
+              <span className="text-card-foreground font-semibold text-sm">{cellType}</span>
+            ) : isFieldMixed('sample.cellType') ? (
+              <span className="flex items-center gap-1 text-card-foreground/30 text-sm">
+                —
                 <AlertTriangle className="w-3 h-3 text-warning-text" />
-              </div>
-              <div className="text-card-foreground/30 text-sm">—</div>
-            </div>
-          ) : null}
+              </span>
+            ) : null}
+            {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: empty string should fall through to mixed check */}
+            {(cellType || isFieldMixed('sample.cellType')) &&
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: empty string should fall through to mixed check
+              (species || isFieldMixed('sample.species')) && (
+                <span className="text-card-foreground/30">·</span>
+              )}
+            {species ? (
+              <span className="text-card-foreground/60 text-sm">{species}</span>
+            ) : isFieldMixed('sample.species') ? (
+              <span className="flex items-center gap-1 text-card-foreground/30 text-sm">
+                —
+                <AlertTriangle className="w-3 h-3 text-warning-text" />
+              </span>
+            ) : null}
+          </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
             <FieldValue
               label="Internal ID"
@@ -478,52 +489,10 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           <InfoSection title="Sample Information">
             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
               <FieldValue
-                label="Condition"
-                value={cultureCondition}
-                inline={false}
-                isMixed={isFieldMixed('sample.cultureCondition')}
-              />
-              <FieldValue
-                label="Lot #"
-                value={lotNumber}
-                inline={false}
-                isMixed={isFieldMixed('sample.lotNumber')}
-              />
-              <FieldValue
-                label="Species"
-                value={species}
-                inline={false}
-                isMixed={isFieldMixed('sample.species')}
-              />
-              <FieldValue
-                label="Source"
-                value={source}
-                inline={false}
-                isMixed={isFieldMixed('sample.source')}
-              />
-              <FieldValue
-                label="Catalog #"
-                value={catalogNumber}
-                inline={false}
-                isMixed={isFieldMixed('sample.catalogNumber')}
-              />
-              <FieldValue
-                label="Passage #"
-                value={passageNumber}
-                inline={false}
-                isMixed={isFieldMixed('sample.passageNumber')}
-              />
-              <FieldValue
                 label="Concentration"
                 value={formattedConcentration}
                 inline={false}
                 isMixed={isFieldMixed('sample.concentration')}
-              />
-              <FieldValue
-                label="Date"
-                value={formattedDate}
-                inline={false}
-                isMixed={isFieldMixed('sample.date')}
               />
               <FieldValue
                 label="Media"
@@ -544,10 +513,46 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 isMixed={isFieldMixed('sample.media.selection')}
               />
               <FieldValue
+                label="Condition"
+                value={cultureCondition}
+                inline={false}
+                isMixed={isFieldMixed('sample.cultureCondition')}
+              />
+              <FieldValue
+                label="Lot #"
+                value={lotNumber}
+                inline={false}
+                isMixed={isFieldMixed('sample.lotNumber')}
+              />
+              <FieldValue
+                label="Passage #"
+                value={passageNumber}
+                inline={false}
+                isMixed={isFieldMixed('sample.passageNumber')}
+              />
+              <FieldValue
+                label="Date"
+                value={formattedDate}
+                inline={false}
+                isMixed={isFieldMixed('sample.date')}
+              />
+              <FieldValue
                 label="Researcher"
                 value={researcherDisplay}
                 inline={false}
                 isMixed={isFieldMixed('researcherId')}
+              />
+              <FieldValue
+                label="Source"
+                value={source}
+                inline={false}
+                isMixed={isFieldMixed('sample.source')}
+              />
+              <FieldValue
+                label="Catalog #"
+                value={catalogNumber}
+                inline={false}
+                isMixed={isFieldMixed('sample.catalogNumber')}
               />
             </div>
           </InfoSection>
@@ -556,9 +561,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         {(Boolean(notes) || isFieldMixed('sample.notes')) && (
           <InfoSection title="Notes">
             {notes ? (
-              <div className="text-card-foreground/85 text-sm leading-relaxed">{notes}</div>
+              <div className="-mt-0.5 text-card-foreground/85 text-sm leading-relaxed">{notes}</div>
             ) : (
-              <div className="flex items-center gap-1">
+              <div className="-mt-0.5 flex items-center gap-1">
                 <AlertTriangle className="w-3 h-3 text-warning-text" />
                 <span className="text-card-foreground/30 text-sm">—</span>
               </div>
