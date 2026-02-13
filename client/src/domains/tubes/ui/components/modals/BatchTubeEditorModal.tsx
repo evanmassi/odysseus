@@ -63,7 +63,7 @@ interface BatchEditConflictAnalysis {
   cultureCondition: FieldConflictAnalysis<string>;
   lotNumber: FieldConflictAnalysis<string>;
   species: FieldConflictAnalysis<string>;
-  vendor: FieldConflictAnalysis<string>;
+  source: FieldConflictAnalysis<string>;
   catalogNumber: FieldConflictAnalysis<string>;
   passageNumber: FieldConflictAnalysis<number>;
   notes: FieldConflictAnalysis<string>;
@@ -124,16 +124,16 @@ export default function BatchTubeEditorModal({
 }: BatchTubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const { data: vendorValues = [] } = useLookupValuesQuery('vendor');
+  const { data: sourceValues = [] } = useLookupValuesQuery('source');
   const { analyzeFieldConflicts } = useFieldResolverQuery();
 
   const speciesOptions = useMemo(
     () => speciesValues.map(v => ({ value: v.value, label: v.value })),
     [speciesValues]
   );
-  const vendorOptions = useMemo(
-    () => vendorValues.map(v => ({ value: v.value, label: v.value })),
-    [vendorValues]
+  const sourceOptions = useMemo(
+    () => sourceValues.map(v => ({ value: v.value, label: v.value })),
+    [sourceValues]
   );
 
   // Fetch specific tubes by ID - ensures fresh data regardless of cache state
@@ -155,7 +155,7 @@ export default function BatchTubeEditorModal({
       cultureCondition: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.cultureCondition),
       lotNumber: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.lotNumber),
       species: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.species),
-      vendor: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.vendor),
+      source: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.source),
       catalogNumber: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.catalogNumber),
       passageNumber: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.passageNumber),
       notes: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.notes),
@@ -238,7 +238,7 @@ export default function BatchTubeEditorModal({
         lotNumber:
           analysis.lotNumber.state !== 'conflict' ? (analysis.lotNumber.commonValue ?? '') : '',
         species: analysis.species.state !== 'conflict' ? (analysis.species.commonValue ?? '') : '',
-        vendor: analysis.vendor.state !== 'conflict' ? (analysis.vendor.commonValue ?? '') : '',
+        source: analysis.source.state !== 'conflict' ? (analysis.source.commonValue ?? '') : '',
         catalogNumber:
           analysis.catalogNumber.state !== 'conflict'
             ? (analysis.catalogNumber.commonValue ?? '')
@@ -584,7 +584,7 @@ export default function BatchTubeEditorModal({
             trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
             researchers={researchers}
             speciesOptions={speciesOptions}
-            vendorOptions={vendorOptions}
+            sourceOptions={sourceOptions}
             isLoading={isSubmitting}
             conflictingFields={conflicts}
           />

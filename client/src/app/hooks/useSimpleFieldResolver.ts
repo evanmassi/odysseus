@@ -319,7 +319,7 @@ export const TUBE_FIELD_PATHS = {
   cultureCondition: 'sample.cultureCondition',
   lotNumber: 'sample.lotNumber',
   species: 'sample.species',
-  vendor: 'sample.vendor',
+  source: 'sample.source',
   catalogNumber: 'sample.catalogNumber',
   passageNumber: 'sample.passageNumber',
   notes: 'sample.notes',

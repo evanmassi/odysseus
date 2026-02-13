@@ -33,7 +33,7 @@ const CONFLICT_FIELD_MAP: Record<string, string> = {
   cultureCondition: 'sample.cultureCondition',
   lotNumber: 'sample.lotNumber',
   species: 'sample.species',
-  vendor: 'sample.vendor',
+  source: 'sample.source',
   catalogNumber: 'sample.catalogNumber',
   passageNumber: 'sample.passageNumber',
   notes: 'sample.notes',
@@ -55,7 +55,7 @@ export interface TubeFormProps {
   trigger: UseFormTrigger<TubeFormValues>;
   researchers: Researcher[];
   speciesOptions: SelectOption[];
-  vendorOptions: SelectOption[];
+  sourceOptions: SelectOption[];
   isLoading: boolean;
   conflictingFields?: string[];
 }
@@ -67,7 +67,7 @@ export const TubeForm = ({
   trigger,
   researchers,
   speciesOptions,
-  vendorOptions,
+  sourceOptions,
   isLoading,
   conflictingFields = [],
 }: TubeFormProps) => {
@@ -371,11 +371,11 @@ export const TubeForm = ({
       {/* ROW 4: Supply Chain */}
       <div className="grid grid-cols-3 gap-2.5">
         <Controller
-          name="sample.vendor"
+          name="sample.source"
           control={control}
           render={({ field: { value, onChange } }) => {
-            const error = getFieldError('sample.vendor', errors);
-            const hasFieldConflict = hasConflict('sample.vendor');
+            const error = getFieldError('sample.source', errors);
+            const hasFieldConflict = hasConflict('sample.source');
             return (
               <div>
                 <label
@@ -384,18 +384,18 @@ export const TubeForm = ({
                   }`}
                 >
                   <span className="flex items-center gap-1.5">
-                    Vendor
-                    {getConflictBadge('sample.vendor')}
+                    Source
+                    {getConflictBadge('sample.source')}
                   </span>
                 </label>
                 <Select
-                  options={[{ value: '', label: 'Select vendor...' }, ...vendorOptions]}
+                  options={[{ value: '', label: 'Select source...' }, ...sourceOptions]}
                   value={value ?? ''}
                   onChange={newValue => onChange(newValue ?? '')}
                   disabled={isLoading}
                   state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
                   fullWidth
-                  placeholder="Select vendor..."
+                  placeholder="Select source..."
                 />
                 {error && (
                   <div className="flex items-center mt-1 text-xs text-danger-text">

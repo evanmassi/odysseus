@@ -370,7 +370,7 @@ export function useTubeFormTransform() {
         cultureCondition: tubeData.sample.cultureCondition ?? '',
         lotNumber: tubeData.sample.lotNumber ?? '',
         species: tubeData.sample.species ?? '',
-        vendor: tubeData.sample.vendor ?? '',
+        source: tubeData.sample.source ?? '',
         catalogNumber: tubeData.sample.catalogNumber ?? '',
         passageNumber: tubeData.sample.passageNumber ?? '',
         notes: tubeData.sample.notes ?? '',

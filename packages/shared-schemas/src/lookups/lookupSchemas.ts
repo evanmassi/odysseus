@@ -1,12 +1,12 @@
 /**
  * Lookup Value Schemas
  *
- * Validation for admin-managed dropdown values (species, vendor).
+ * Validation for admin-managed dropdown values (species, source).
  */
 
 import { z } from 'zod';
 
-export const LOOKUP_CATEGORIES = ['species', 'vendor'] as const;
+export const LOOKUP_CATEGORIES = ['species', 'source'] as const;
 export type LookupCategory = typeof LOOKUP_CATEGORIES[number];
 
 export const lookupValueSchema = z.object({

@@ -1,7 +1,7 @@
 /**
  * Lookup Values Query Hook
  *
- * Fetches active lookup values for form dropdowns (species, vendor).
+ * Fetches active lookup values for form dropdowns (species, source).
  */
 
 import { useQuery } from '@tanstack/react-query';

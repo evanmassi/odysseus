@@ -77,7 +77,7 @@ export const tubeSampleSchema = z.object({
   media: tubeMediaSchema.optional(),
   cultureCondition: z.string().optional(),
   lotNumber: z.string().optional(),
-  vendor: z.string().optional(),
+  source: z.string().optional(),
   catalogNumber: z.string().optional(),
   passageNumber: z.number().int().min(0).max(999).optional(),
   notes: z.string().optional()
@@ -143,7 +143,7 @@ export const createTubeRequestSampleSchema = concentrationUnitRefinement(
     media: tubeMediaSchema.optional(),
     cultureCondition: optionalFromEmpty(z.string()),
     lotNumber: optionalFromEmpty(z.string()),
-    vendor: optionalFromEmpty(z.string()),
+    source: optionalFromEmpty(z.string()),
     catalogNumber: optionalFromEmpty(z.string()),
     passageNumber: z.preprocess(
       (val) => {
@@ -201,7 +201,7 @@ export const tubeUpdateSampleSchema = concentrationUnitRefinement(
     media: tubeMediaSchema.nullable().optional(),
     cultureCondition: nullableOptionalFromEmpty(z.string()),
     lotNumber: nullableOptionalFromEmpty(z.string()),
-    vendor: nullableOptionalFromEmpty(z.string()),
+    source: nullableOptionalFromEmpty(z.string()),
     catalogNumber: nullableOptionalFromEmpty(z.string()),
     passageNumber: z.preprocess(
       (val) => {

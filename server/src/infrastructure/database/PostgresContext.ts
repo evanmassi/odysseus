@@ -207,11 +207,11 @@ export class PostgresContext {
       )
     `);
 
-    // Lookup values table (admin-managed dropdown options for species, vendor, etc.)
+    // Lookup values table (admin-managed dropdown options for species, source, etc.)
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS lookup_values (
         id TEXT PRIMARY KEY,
-        category TEXT NOT NULL CHECK (category IN ('species', 'vendor')),
+        category TEXT NOT NULL CHECK (category IN ('species', 'source')),
         value TEXT NOT NULL,
         sort_order INTEGER DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
@@ -325,7 +325,66 @@ export class PostgresContext {
       END $$
     `);
 
-    // Add species, vendor, catalog_number, passage_number columns to tubes
+    // Rename vendor → source (column rename for existing databases)
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'vendor'
+        ) AND NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'source'
+        ) THEN
+          ALTER TABLE tubes RENAME COLUMN vendor TO source;
+        ELSIF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'vendor'
+        ) AND EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'source'
+        ) THEN
+          UPDATE tubes SET source = vendor WHERE vendor IS NOT NULL AND source IS NULL;
+          ALTER TABLE tubes DROP COLUMN vendor;
+        END IF;
+      END $$
+    `);
+
+    // Rename vendor index → source index
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM pg_indexes WHERE indexname = 'idx_tubes_vendor'
+        ) THEN
+          ALTER INDEX idx_tubes_vendor RENAME TO idx_tubes_source;
+        END IF;
+      END $$
+    `);
+
+    // Rename vendor → source in lookup_values (drop old constraint, update data, add new)
+    await this.pool.query(`
+      DO $$
+      DECLARE
+        constraint_name TEXT;
+      BEGIN
+        SELECT con.conname INTO constraint_name
+        FROM pg_constraint con
+        JOIN pg_class rel ON rel.oid = con.conrelid
+        WHERE rel.relname = 'lookup_values'
+          AND con.contype = 'c'
+          AND pg_get_constraintdef(con.oid) LIKE '%vendor%';
+
+        IF constraint_name IS NOT NULL THEN
+          EXECUTE 'ALTER TABLE lookup_values DROP CONSTRAINT ' || constraint_name;
+          UPDATE lookup_values SET category = 'source' WHERE category = 'vendor';
+          ALTER TABLE lookup_values ADD CONSTRAINT lookup_values_category_check
+            CHECK (category IN ('species', 'source'));
+        END IF;
+      END $$
+    `);
+
+    // Add species, source, catalog_number, passage_number columns to tubes
     await this.pool.query(`
       DO $$
       BEGIN
@@ -337,9 +396,9 @@ export class PostgresContext {
         END IF;
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'tubes' AND column_name = 'vendor'
+          WHERE table_name = 'tubes' AND column_name = 'source'
         ) THEN
-          ALTER TABLE tubes ADD COLUMN vendor TEXT;
+          ALTER TABLE tubes ADD COLUMN source TEXT;
         END IF;
         IF NOT EXISTS (
           SELECT 1 FROM information_schema.columns
@@ -437,9 +496,9 @@ export class PostgresContext {
       'CREATE INDEX IF NOT EXISTS idx_lookup_values_category ON lookup_values(category)',
       'CREATE INDEX IF NOT EXISTS idx_lookup_values_category_active ON lookup_values(category, is_active)',
 
-      // Tube species/vendor indexes
+      // Tube species/source indexes
       'CREATE INDEX IF NOT EXISTS idx_tubes_species ON tubes(species)',
-      'CREATE INDEX IF NOT EXISTS idx_tubes_vendor ON tubes(vendor)',
+      'CREATE INDEX IF NOT EXISTS idx_tubes_source ON tubes(source)',
     ];
 
     for (const indexSql of indexes) {
@@ -505,7 +564,7 @@ export class PostgresContext {
           setweight(to_tsvector('english', COALESCE(NEW.lot_number, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.media, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.culture_condition, '')), 'B') ||
-          setweight(to_tsvector('english', COALESCE(NEW.vendor, '')), 'B') ||
+          setweight(to_tsvector('english', COALESCE(NEW.source, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.notes, '')), 'C') ||
           setweight(to_tsvector('english', COALESCE(NEW.concentration, '')), 'C') ||
           setweight(to_tsvector('english', COALESCE(NEW.created_by_name, '')), 'C');
@@ -534,7 +593,7 @@ export class PostgresContext {
         setweight(to_tsvector('english', COALESCE(lot_number, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(media, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(culture_condition, '')), 'B') ||
-        setweight(to_tsvector('english', COALESCE(vendor, '')), 'B') ||
+        setweight(to_tsvector('english', COALESCE(source, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(notes, '')), 'C') ||
         setweight(to_tsvector('english', COALESCE(concentration, '')), 'C') ||
         setweight(to_tsvector('english', COALESCE(created_by_name, '')), 'C')

@@ -48,7 +48,7 @@ export class Tube {
       media?: MediaData | string;
       cultureCondition?: string;
       lotNumber?: string;
-      vendor?: string;
+      source?: string;
       catalogNumber?: string;
       passageNumber?: number;
       notes?: string;
@@ -106,7 +106,7 @@ export class Tube {
       media?: MediaData | string;
       cultureCondition?: string;
       lotNumber?: string;
-      vendor?: string;
+      source?: string;
       catalogNumber?: string;
       passageNumber?: number;
       notes?: string;
@@ -189,7 +189,7 @@ export class Tube {
     media?: string | null;
     cultureCondition?: string | null;
     lotNumber?: string | null;
-    vendor?: string | null;
+    source?: string | null;
     catalogNumber?: string | null;
     passageNumber?: number | null;
     notes?: string | null;
@@ -478,7 +478,7 @@ export class Tube {
       media?: MediaData;
       cultureCondition?: string;
       lotNumber?: string;
-      vendor?: string;
+      source?: string;
       catalogNumber?: string;
       passageNumber?: number;
       notes?: string;

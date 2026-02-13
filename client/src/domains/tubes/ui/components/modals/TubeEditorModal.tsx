@@ -100,16 +100,16 @@ interface EditModeContentProps {
 function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const { data: vendorValues = [] } = useLookupValuesQuery('vendor');
+  const { data: sourceValues = [] } = useLookupValuesQuery('source');
   const modalService = useModalStore();
 
   const speciesOptions = useMemo(
     () => speciesValues.map(v => ({ value: v.value, label: v.value })),
     [speciesValues]
   );
-  const vendorOptions = useMemo(
-    () => vendorValues.map(v => ({ value: v.value, label: v.value })),
-    [vendorValues]
+  const sourceOptions = useMemo(
+    () => sourceValues.map(v => ({ value: v.value, label: v.value })),
+    [sourceValues]
   );
 
   // Fetch tube data from React Query cache (always fresh)
@@ -158,7 +158,7 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
       tubeId={tubeId}
       researchers={researchers}
       speciesOptions={speciesOptions}
-      vendorOptions={vendorOptions}
+      sourceOptions={sourceOptions}
       onClose={onClose}
       modalService={modalService}
     />
@@ -175,7 +175,7 @@ interface EditModeFormProps {
   tubeId: string;
   researchers: Researcher[];
   speciesOptions: SelectOption[];
-  vendorOptions: SelectOption[];
+  sourceOptions: SelectOption[];
   onClose: () => void;
   modalService: ReturnType<typeof useModalStore>;
 }
@@ -186,7 +186,7 @@ function EditModeForm({
   tubeId,
   researchers,
   speciesOptions,
-  vendorOptions,
+  sourceOptions,
   onClose,
   modalService,
 }: EditModeFormProps) {
@@ -211,7 +211,7 @@ function EditModeForm({
         cultureCondition: tube.sample.cultureCondition ?? '',
         lotNumber: tube.sample.lotNumber ?? '',
         species: tube.sample.species ?? '',
-        vendor: tube.sample.vendor ?? '',
+        source: tube.sample.source ?? '',
         catalogNumber: tube.sample.catalogNumber ?? '',
         passageNumber: tube.sample.passageNumber ?? '',
         notes: tube.sample.notes ?? '',
@@ -376,7 +376,7 @@ function EditModeForm({
             trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
             researchers={researchers}
             speciesOptions={speciesOptions}
-            vendorOptions={vendorOptions}
+            sourceOptions={sourceOptions}
             isLoading={isSubmitting}
           />
         </fieldset>
@@ -429,7 +429,7 @@ function CreateModeContent({
 }: TubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
-  const { data: vendorValues = [] } = useLookupValuesQuery('vendor');
+  const { data: sourceValues = [] } = useLookupValuesQuery('source');
   const { data: allTubes = [] } = useTubes();
   const updateTubeMutation = useUpdateTubeMutation();
   const pasteTubesMutation = usePasteTubesMutation();
@@ -438,9 +438,9 @@ function CreateModeContent({
     () => speciesValues.map(v => ({ value: v.value, label: v.value })),
     [speciesValues]
   );
-  const vendorOptions = useMemo(
-    () => vendorValues.map(v => ({ value: v.value, label: v.value })),
-    [vendorValues]
+  const sourceOptions = useMemo(
+    () => sourceValues.map(v => ({ value: v.value, label: v.value })),
+    [sourceValues]
   );
   const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();
@@ -553,7 +553,7 @@ function CreateModeContent({
         cultureCondition: '',
         lotNumber: '',
         species: '',
-        vendor: '',
+        source: '',
         catalogNumber: '',
         passageNumber: '',
         notes: '',
@@ -778,7 +778,7 @@ function CreateModeContent({
           trigger={form.trigger as UseFormTrigger<CreateTubeRequest | UpdateTubeRequest>}
           researchers={researchers}
           speciesOptions={speciesOptions}
-          vendorOptions={vendorOptions}
+          sourceOptions={sourceOptions}
           isLoading={isSubmitting}
         />
 

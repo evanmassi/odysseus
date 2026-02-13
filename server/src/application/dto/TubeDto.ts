@@ -111,7 +111,7 @@ export class TubeDto {
       cultureCondition?: string;
       lotNumber?: string;
       species?: string;
-      vendor?: string;
+      source?: string;
       catalogNumber?: string;
       passageNumber?: number;
       notes?: string;
@@ -132,7 +132,7 @@ export class TubeDto {
         cultureCondition: request.sample.cultureCondition,
         lotNumber: request.sample.lotNumber,
         species: request.sample.species,
-        vendor: request.sample.vendor,
+        source: request.sample.source,
         catalogNumber: request.sample.catalogNumber,
         passageNumber: request.sample.passageNumber,
         notes: request.sample.notes
@@ -161,7 +161,7 @@ export class TubeDto {
       cultureCondition?: string | null;
       lotNumber?: string | null;
       species?: string | null;
-      vendor?: string | null;
+      source?: string | null;
       catalogNumber?: string | null;
       passageNumber?: number | null;
       notes?: string | null;
@@ -181,7 +181,7 @@ export class TubeDto {
         cultureCondition?: string | null;
         lotNumber?: string | null;
         species?: string | null;
-        vendor?: string | null;
+        source?: string | null;
         catalogNumber?: string | null;
         passageNumber?: number | null;
         notes?: string | null;
@@ -208,7 +208,7 @@ export class TubeDto {
       if (request.sample.cultureCondition !== undefined) result.sample.cultureCondition = request.sample.cultureCondition;
       if (request.sample.lotNumber !== undefined) result.sample.lotNumber = request.sample.lotNumber;
       if (request.sample.species !== undefined) result.sample.species = request.sample.species;
-      if (request.sample.vendor !== undefined) result.sample.vendor = request.sample.vendor;
+      if (request.sample.source !== undefined) result.sample.source = request.sample.source;
       if (request.sample.catalogNumber !== undefined) result.sample.catalogNumber = request.sample.catalogNumber;
       if (request.sample.passageNumber !== undefined) result.sample.passageNumber = request.sample.passageNumber;
       if (request.sample.notes !== undefined) result.sample.notes = request.sample.notes;

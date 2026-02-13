@@ -38,7 +38,7 @@ export interface TubeSearchCriteria {
   // Sample criteria (array-based for multiple selection support)
   cellTypes?: string[];
   species?: string[];
-  vendors?: string[];
+  sources?: string[];
   lotNumbers?: string[];
   donorInternalIds?: string[];
   donorSourceIds?: string[];

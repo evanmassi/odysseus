@@ -1,13 +1,13 @@
 /**
  * Lookup Value Entity
  *
- * Admin-managed dropdown option for tube metadata (species, vendor).
+ * Admin-managed dropdown option for tube metadata (species, source).
  */
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 
-export type LookupCategory = 'species' | 'vendor';
+export type LookupCategory = 'species' | 'source';
 
 export class LookupValue {
   private constructor(
@@ -78,7 +78,7 @@ export class LookupValue {
     if (this._value.length > 200) {
       throw new ValidationError('Lookup value cannot exceed 200 characters');
     }
-    if (!['species', 'vendor'].includes(this._category)) {
+    if (!['species', 'source'].includes(this._category)) {
       throw new ValidationError('Invalid lookup category');
     }
   }

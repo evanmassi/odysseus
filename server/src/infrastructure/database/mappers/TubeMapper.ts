@@ -32,7 +32,7 @@ export interface TubeRow {
   culture_condition?: string;
   lot_number?: string;
   species?: string;
-  vendor?: string;
+  source?: string;
   catalog_number?: string;
   passage_number?: number;
   notes?: string;
@@ -87,7 +87,7 @@ export class TubeMapper {
       culture_condition: sampleData.cultureCondition || undefined,
       lot_number: sampleData.lotNumber || undefined,
       species: sampleData.species || undefined,
-      vendor: sampleData.vendor || undefined,
+      source: sampleData.source || undefined,
       catalog_number: sampleData.catalogNumber || undefined,
       passage_number: sampleData.passageNumber ?? undefined,
       notes: sampleData.notes || undefined,
@@ -137,7 +137,7 @@ export class TubeMapper {
       media: media?.toData(),
       cultureCondition: nullToUndefined(row.culture_condition),
       lotNumber: nullToUndefined(row.lot_number),
-      vendor: nullToUndefined(row.vendor),
+      source: nullToUndefined(row.source),
       catalogNumber: nullToUndefined(row.catalog_number),
       passageNumber: nullToUndefined(row.passage_number),
       notes: nullToUndefined(row.notes)
@@ -180,7 +180,7 @@ export class TubeMapper {
         media: media?.toData(),
         cultureCondition: nullToUndefined(row.culture_condition),
         lotNumber: nullToUndefined(row.lot_number),
-        vendor: nullToUndefined(row.vendor),
+        source: nullToUndefined(row.source),
         catalogNumber: nullToUndefined(row.catalog_number),
         passageNumber: nullToUndefined(row.passage_number),
         notes: nullToUndefined(row.notes)

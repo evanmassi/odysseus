@@ -44,7 +44,7 @@ export class SearchCriteriaMapper {
       positionLabel: filters?.positionLabel,
       cellTypes: filters?.cellTypes,
       species: filters?.species,
-      vendors: filters?.vendors,
+      sources: filters?.sources,
       lotNumbers: filters?.lotNumbers,
       donorInternalIds: filters?.donorInternalIds,
       donorSourceIds: filters?.donorSourceIds,
@@ -66,7 +66,7 @@ export class SearchCriteriaMapper {
       boxIds: criteria.boxIds,
       cellTypes: criteria.cellTypes,
       species: criteria.species,
-      vendors: criteria.vendors,
+      sources: criteria.sources,
       lotNumbers: criteria.lotNumbers,
       donorInternalIds: criteria.donorInternalIds,
       donorSourceIds: criteria.donorSourceIds,
@@ -88,7 +88,7 @@ export class SearchCriteriaMapper {
     if (criteria.boxIds?.length) count += criteria.boxIds.length;
     if (criteria.cellTypes?.length) count += criteria.cellTypes.length;
     if (criteria.species?.length) count += criteria.species.length;
-    if (criteria.vendors?.length) count += criteria.vendors.length;
+    if (criteria.sources?.length) count += criteria.sources.length;
     if (criteria.lotNumbers?.length) count += criteria.lotNumbers.length;
     if (criteria.donorInternalIds?.length) count += criteria.donorInternalIds.length;
     if (criteria.donorSourceIds?.length) count += criteria.donorSourceIds.length;

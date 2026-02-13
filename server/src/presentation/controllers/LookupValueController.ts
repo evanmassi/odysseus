@@ -1,7 +1,7 @@
 /**
  * Lookup Value Controller
  *
- * HTTP handlers for admin-managed dropdown values (species, vendor).
+ * HTTP handlers for admin-managed dropdown values (species, source).
  */
 
 import { Request, Response } from 'express';

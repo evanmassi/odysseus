@@ -163,7 +163,7 @@ BEGIN
     setweight(to_tsvector('english', COALESCE(NEW.donor_internal_id, '')), 'B') ||
     setweight(to_tsvector('english', COALESCE(NEW.donor_source_id, '')), 'B') ||
     setweight(to_tsvector('english', COALESCE(NEW.lot_number, '')), 'B') ||
-    setweight(to_tsvector('english', COALESCE(NEW.vendor, '')), 'B') ||
+    setweight(to_tsvector('english', COALESCE(NEW.source, '')), 'B') ||
     setweight(to_tsvector('english', COALESCE(NEW.notes, '')), 'C') ||
     setweight(to_tsvector('english', COALESCE(NEW.culture_condition, '')), 'C') ||
     setweight(to_tsvector('english', COALESCE(NEW.created_by_name, '')), 'C');
@@ -179,7 +179,7 @@ CREATE TRIGGER tubes_search_vector_trigger
 -- LOOKUP VALUES TABLE (admin-managed dropdown options)
 CREATE TABLE IF NOT EXISTS lookup_values (
   id TEXT PRIMARY KEY,
-  category TEXT NOT NULL CHECK (category IN ('species', 'vendor')),
+  category TEXT NOT NULL CHECK (category IN ('species', 'source')),
   value TEXT NOT NULL,
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT TRUE,
@@ -193,13 +193,13 @@ CREATE INDEX IF NOT EXISTS idx_lookup_values_category_active ON lookup_values(ca
 
 -- Add new tube metadata columns
 ALTER TABLE tubes ADD COLUMN IF NOT EXISTS species TEXT;
-ALTER TABLE tubes ADD COLUMN IF NOT EXISTS vendor TEXT;
+ALTER TABLE tubes ADD COLUMN IF NOT EXISTS source TEXT;
 ALTER TABLE tubes ADD COLUMN IF NOT EXISTS catalog_number TEXT;
 ALTER TABLE tubes ADD COLUMN IF NOT EXISTS passage_number INTEGER
   CHECK (passage_number >= 0 AND passage_number <= 999);
 
 CREATE INDEX IF NOT EXISTS idx_tubes_species ON tubes(species);
-CREATE INDEX IF NOT EXISTS idx_tubes_vendor ON tubes(vendor);
+CREATE INDEX IF NOT EXISTS idx_tubes_source ON tubes(source);
 
 -- AUDIT LOG TABLE
 CREATE TABLE IF NOT EXISTS audit_log (
@@ -306,5 +306,5 @@ INSERT INTO security_config (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 -- Default configuration is created by PostgresContext.insertDefaultConfiguration()
 -- using Configuration.createDefault() which generates proper default equipment
 
--- Reindex search vectors to pick up new trigger columns (species, vendor)
+-- Reindex search vectors to pick up new trigger columns (species, source)
 UPDATE tubes SET updated_at = updated_at;

@@ -82,11 +82,11 @@ const SAMPLE_FILTER_GROUPS: SampleFilterGroup[] = [
     ariaLabel: 'Species filters',
   },
   {
-    filterKey: 'vendors',
-    tubeField: 'vendor',
-    label: 'Vendors',
+    filterKey: 'sources',
+    tubeField: 'source',
+    label: 'Sources',
     icon: Building2,
-    ariaLabel: 'Vendor filters',
+    ariaLabel: 'Source filters',
   },
 ];
 

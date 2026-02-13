@@ -73,7 +73,7 @@ const LAB_SYNONYMS: Record<string, string[]> = {
   'mouse': ['mouse', 'murine', 'mus musculus', 'm. musculus'],
   'rat': ['rat', 'rattus norvegicus', 'r. norvegicus'],
 
-  // Vendors
+  // Sources
   'atcc': ['atcc', 'american type culture collection'],
   'sigma aldrich': ['sigma aldrich', 'sigma-aldrich', 'sigmaaldrich', 'millipore sigma'],
   'thermo fisher': ['thermo fisher', 'thermo-fisher', 'thermofisher', 'thermo fisher scientific', 'gibco', 'invitrogen', 'life technologies'],

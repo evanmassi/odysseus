@@ -1,7 +1,7 @@
 /**
  * Lookup Value Application Service
  *
- * Orchestrates CRUD for admin-managed dropdown values (species, vendor).
+ * Orchestrates CRUD for admin-managed dropdown values (species, source).
  */
 
 import { LookupValue, LookupCategory } from '@domain/entities/LookupValue';

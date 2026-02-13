@@ -18,7 +18,7 @@ export class SampleData {
     private readonly _media?: Media,
     private readonly _cultureCondition?: string,
     private readonly _lotNumber?: string,
-    private readonly _vendor?: string,
+    private readonly _source?: string,
     private readonly _catalogNumber?: string,
     private readonly _passageNumber?: number,
     private readonly _notes?: string
@@ -40,7 +40,7 @@ export class SampleData {
     media?: MediaData | string;
     cultureCondition?: string;
     lotNumber?: string;
-    vendor?: string;
+    source?: string;
     catalogNumber?: string;
     passageNumber?: number;
     notes?: string;
@@ -56,7 +56,7 @@ export class SampleData {
       data.media ? Media.create(data.media) : undefined,
       data.cultureCondition,
       data.lotNumber,
-      data.vendor,
+      data.source,
       data.catalogNumber,
       data.passageNumber,
       data.notes
@@ -173,7 +173,7 @@ export class SampleData {
   private validateStringFields(): void {
     const stringFields = [
       { name: 'species', value: this._species, maxLength: 200 },
-      { name: 'vendor', value: this._vendor, maxLength: 200 },
+      { name: 'source', value: this._source, maxLength: 200 },
       { name: 'catalog number', value: this._catalogNumber, maxLength: 200 },
       { name: 'culture condition', value: this._cultureCondition, maxLength: 300 },
       { name: 'lot number', value: this._lotNumber, maxLength: 100 },
@@ -213,7 +213,7 @@ export class SampleData {
     media?: MediaData | string | null;
     cultureCondition?: string | null;
     lotNumber?: string | null;
-    vendor?: string | null;
+    source?: string | null;
     catalogNumber?: string | null;
     passageNumber?: number | null;
     notes?: string | null;
@@ -251,7 +251,7 @@ export class SampleData {
           : this._media?.toData(),
       cultureCondition: updates.cultureCondition === null ? undefined : (updates.cultureCondition !== undefined ? updates.cultureCondition : this._cultureCondition),
       lotNumber: updates.lotNumber === null ? undefined : (updates.lotNumber !== undefined ? updates.lotNumber : this._lotNumber),
-      vendor: updates.vendor === null ? undefined : (updates.vendor !== undefined ? updates.vendor : this._vendor),
+      source: updates.source === null ? undefined : (updates.source !== undefined ? updates.source : this._source),
       catalogNumber: updates.catalogNumber === null ? undefined : (updates.catalogNumber !== undefined ? updates.catalogNumber : this._catalogNumber),
       passageNumber: updates.passageNumber === null ? undefined : (updates.passageNumber !== undefined ? updates.passageNumber : this._passageNumber),
       notes: updates.notes === null ? undefined : (updates.notes !== undefined ? updates.notes : this._notes)
@@ -300,7 +300,7 @@ export class SampleData {
     media?: MediaData;
     cultureCondition?: string;
     lotNumber?: string;
-    vendor?: string;
+    source?: string;
     catalogNumber?: string;
     passageNumber?: number;
     notes?: string;
@@ -316,7 +316,7 @@ export class SampleData {
       media: this._media?.toData(),
       cultureCondition: this._cultureCondition,
       lotNumber: this._lotNumber,
-      vendor: this._vendor,
+      source: this._source,
       catalogNumber: this._catalogNumber,
       passageNumber: this._passageNumber,
       notes: this._notes
@@ -333,7 +333,7 @@ export class SampleData {
   get media(): MediaData | undefined { return this._media?.toData(); }
   get cultureCondition(): string | undefined { return this._cultureCondition; }
   get lotNumber(): string | undefined { return this._lotNumber; }
-  get vendor(): string | undefined { return this._vendor; }
+  get source(): string | undefined { return this._source; }
   get catalogNumber(): string | undefined { return this._catalogNumber; }
   get passageNumber(): number | undefined { return this._passageNumber; }
   get notes(): string | undefined { return this._notes; }

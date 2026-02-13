@@ -35,7 +35,7 @@ const FIELD_PATHS = [
   'sample.cultureCondition',
   'sample.lotNumber',
   'sample.species',
-  'sample.vendor',
+  'sample.source',
   'sample.catalogNumber',
   'sample.passageNumber',
   'sample.media.type',
@@ -53,7 +53,7 @@ const SAMPLE_INFO_PATHS = [
   'sample.cultureCondition',
   'sample.lotNumber',
   'sample.species',
-  'sample.vendor',
+  'sample.source',
   'sample.catalogNumber',
   'sample.passageNumber',
   'sample.media.type',
@@ -273,7 +273,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const mediaSupplements = getDisplayValue('sample.media.supplements');
   const mediaSelection = getDisplayValue('sample.media.selection');
   const species = getDisplayValue('sample.species');
-  const vendor = getDisplayValue('sample.vendor');
+  const source = getDisplayValue('sample.source');
   const catalogNumber = getDisplayValue('sample.catalogNumber');
   const passageNumber = getDisplayValue('sample.passageNumber');
   const concentration = getDisplayValue('sample.concentration');
@@ -307,7 +307,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     'sample.cultureCondition',
     'sample.lotNumber',
     'sample.species',
-    'sample.vendor',
+    'sample.source',
     'sample.catalogNumber',
     'sample.passageNumber',
     'sample.media.type',
@@ -324,7 +324,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     cultureCondition !== undefined ||
     lotNumber !== undefined ||
     species !== undefined ||
-    vendor !== undefined ||
+    source !== undefined ||
     catalogNumber !== undefined ||
     passageNumber !== undefined ||
     mediaType !== undefined ||
@@ -496,10 +496,10 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 isMixed={isFieldMixed('sample.species')}
               />
               <FieldValue
-                label="Vendor"
-                value={vendor}
+                label="Source"
+                value={source}
                 inline={false}
-                isMixed={isFieldMixed('sample.vendor')}
+                isMixed={isFieldMixed('sample.source')}
               />
               <FieldValue
                 label="Catalog #"

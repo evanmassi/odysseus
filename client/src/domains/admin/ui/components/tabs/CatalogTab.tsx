@@ -1,7 +1,7 @@
 /**
  * Catalog Tab
  *
- * Admin interface for managing lookup values (species, vendor dropdowns).
+ * Admin interface for managing lookup values (species, source dropdowns).
  */
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
@@ -245,7 +245,7 @@ function CategorySection({
 export function CatalogTab() {
   const queryClient = useQueryClient();
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
-  const [vendorValues, setVendorValues] = useState<LookupValueWithCount[]>([]);
+  const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -257,12 +257,12 @@ export function CatalogTab() {
   const loadValues = useCallback(async () => {
     setLoading(true);
     try {
-      const [species, vendors] = await Promise.all([
+      const [species, sources] = await Promise.all([
         adminService.getLookupValues('species'),
-        adminService.getLookupValues('vendor'),
+        adminService.getLookupValues('source'),
       ]);
       setSpeciesValues(species);
-      setVendorValues(vendors);
+      setSourceValues(sources);
     } catch (error) {
       logger.error('Failed to load lookup values', { error });
       notifications.error('Failed to load catalog values');
@@ -359,13 +359,13 @@ export function CatalogTab() {
         />
 
         <CategorySection
-          category="vendor"
-          title="Vendors"
-          values={vendorValues}
+          category="source"
+          title="Sources"
+          values={sourceValues}
           loading={loading}
-          onAdd={value => handleAdd('vendor', value)}
-          onRename={(id, newValue) => handleRename('vendor', id, newValue)}
-          onDelete={(id, value) => handleDeleteRequest('vendor', id, value)}
+          onAdd={value => handleAdd('source', value)}
+          onRename={(id, newValue) => handleRename('source', id, newValue)}
+          onDelete={(id, value) => handleDeleteRequest('source', id, value)}
           deletingId={deletingId}
         />
       </div>

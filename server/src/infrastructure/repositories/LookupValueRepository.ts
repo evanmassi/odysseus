@@ -11,7 +11,7 @@ import { LookupValueMapper, LookupValueRow } from '@infrastructure/database/mapp
 
 const CATEGORY_COLUMN_MAP: Record<LookupCategory, string> = {
   species: 'species',
-  vendor: 'vendor',
+  source: 'source',
 };
 
 export class LookupValueRepository implements ILookupValueRepository {
