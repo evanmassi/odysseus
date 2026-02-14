@@ -562,20 +562,21 @@ export default function BatchTubeEditorModal({
         onClose={onClose}
         dataAttribute="data-batch-edit-modal"
       >
-        {dataReady && conflicts.length > 0 && (
-          <AlertBanner variant="warning" spacing="sm">
-            {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
-            {conflicts.length > 1 ? 'have' : 'has'} been cleared
-          </AlertBanner>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-4">
-          <LocationDisplay
-            tankName={tankName}
-            rackName={rackName}
-            boxName={boxName}
-            positionLabel={positionRanges}
-          />
+          <div className="flex items-start gap-3">
+            <LocationDisplay
+              tankName={tankName}
+              rackName={rackName}
+              boxName={boxName}
+              positionLabel={positionRanges}
+            />
+            {dataReady && conflicts.length > 0 && (
+              <AlertBanner variant="warning" spacing="none">
+                {conflicts.length} field{conflicts.length > 1 ? 's' : ''} with conflicting values{' '}
+                {conflicts.length > 1 ? 'have' : 'has'} been cleared
+              </AlertBanner>
+            )}
+          </div>
 
           <TubeForm
             control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}

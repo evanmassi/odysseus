@@ -448,6 +448,13 @@ function CreateModeContent({
   // State for overwrite confirmation
   const [allowOverwrite, setAllowOverwrite] = useState(false);
 
+  // Defer conditional banners so they mount after the modal entrance animation (400ms)
+  const [mountReady, setMountReady] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => setMountReady(true), 400);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Focus return management - restore focus when modal unmounts
   useTubeModalFocusReturn();
 
@@ -737,39 +744,36 @@ function CreateModeContent({
       mode="create"
     >
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-        {/* Location Display */}
-        {parsedPositions.length === 1 && parsedPositions[0] && (
-          <LocationDisplay
-            tankId={parsedPositions[0].location.tankId}
-            rackId={parsedPositions[0].location.rackId}
-            boxId={parsedPositions[0].location.boxId}
-            position={parsedPositions[0].location.position}
-          />
-        )}
-        {parsedPositions.length > 1 && batchLocationDisplay && (
-          <LocationDisplay
-            tankName={batchLocationDisplay.tankName}
-            rackName={batchLocationDisplay.rackName}
-            boxName={batchLocationDisplay.boxName}
-            positionLabel={batchLocationDisplay.positionRanges}
-          />
-        )}
+        <div className="flex items-start gap-3">
+          {parsedPositions.length === 1 && parsedPositions[0] && (
+            <LocationDisplay
+              tankId={parsedPositions[0].location.tankId}
+              rackId={parsedPositions[0].location.rackId}
+              boxId={parsedPositions[0].location.boxId}
+              position={parsedPositions[0].location.position}
+            />
+          )}
+          {parsedPositions.length > 1 && batchLocationDisplay && (
+            <LocationDisplay
+              tankName={batchLocationDisplay.tankName}
+              rackName={batchLocationDisplay.rackName}
+              boxName={batchLocationDisplay.boxName}
+              positionLabel={batchLocationDisplay.positionRanges}
+            />
+          )}
 
-        {/* Mixed Selection Warning */}
-        {positionAnalysis.isMixed && (
-          <AlertBanner
-            variant="warning"
-            title={`${positionAnalysis.occupiedPositions.length} position${positionAnalysis.occupiedPositions.length > 1 ? 's are' : ' is'} occupied.`}
-            spacing="none"
-          >
-            <label className="flex items-center gap-2 cursor-pointer">
-              <Checkbox checked={allowOverwrite} onChange={setAllowOverwrite} />
-              <span>
-                Overwrite existing tube{positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}
-              </span>
-            </label>
-          </AlertBanner>
-        )}
+          {mountReady && positionAnalysis.isMixed && (
+            <AlertBanner variant="warning" spacing="none">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <span>
+                  Overwrite {positionAnalysis.occupiedPositions.length} occupied position
+                  {positionAnalysis.occupiedPositions.length > 1 ? 's' : ''}?
+                </span>
+                <Checkbox checked={allowOverwrite} onChange={setAllowOverwrite} />
+              </label>
+            </AlertBanner>
+          )}
+        </div>
 
         <TubeForm
           control={form.control as Control<CreateTubeRequest | UpdateTubeRequest>}

@@ -16,7 +16,6 @@ export function AnimatedInfoMark({ size = 48, className = '' }: AnimatedInfoMark
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Trigger animation on mount
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => clearTimeout(timer);
   }, []);

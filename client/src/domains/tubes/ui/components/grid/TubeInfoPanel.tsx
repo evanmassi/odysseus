@@ -58,9 +58,9 @@ const SAMPLE_INFO_PATHS = [
   'sample.lotNumber',
   'sample.passageNumber',
   'sample.date',
-  'researcherId',
   'sample.source',
   'sample.catalogNumber',
+  'researcherId',
 ] as const;
 
 interface TubeInfoPanelProps {
@@ -370,7 +370,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </div>
           {selectedTubes.length > 1 && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
-              <Chip size="sm" color="default" leftIcon={<TestTube />}>
+              <Chip size="sm" color="info" leftIcon={<TestTube />}>
                 {selectedTubes.length} selected
               </Chip>
               {hasConflicts && (
@@ -405,7 +405,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 <button
                   type="button"
                   onClick={() => setShowEditLockNoteModal(true)}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-secondary-foreground hover:bg-accent transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-secondary-foreground hover:bg-accent transition-colors cursor-pointer"
                 >
                   {lockNoteDisplay?.isMixed ? (
                     <>
@@ -537,12 +537,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 isMixed={isFieldMixed('sample.date')}
               />
               <FieldValue
-                label="Researcher"
-                value={researcherDisplay}
-                inline={false}
-                isMixed={isFieldMixed('researcherId')}
-              />
-              <FieldValue
                 label="Source"
                 value={source}
                 inline={false}
@@ -553,6 +547,12 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 value={catalogNumber}
                 inline={false}
                 isMixed={isFieldMixed('sample.catalogNumber')}
+              />
+              <FieldValue
+                label="Researcher"
+                value={researcherDisplay}
+                inline={false}
+                isMixed={isFieldMixed('researcherId')}
               />
             </div>
           </InfoSection>

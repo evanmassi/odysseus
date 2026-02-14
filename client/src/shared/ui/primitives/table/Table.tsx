@@ -121,7 +121,7 @@ const rowVariants = cva([''], {
       false: '',
     },
     hoverable: {
-      true: 'hover:bg-muted cursor-pointer',
+      true: 'hover:bg-muted/35 cursor-pointer',
       false: '',
     },
     selectable: {
@@ -173,23 +173,39 @@ interface TableCheckboxProps {
   'aria-label'?: string;
 }
 
+const checkmarkSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 5L6.5 10.5L4 8' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`;
+const indeterminateSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8h8' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`;
+
 const TableCheckbox: React.FC<TableCheckboxProps> = ({
   checked,
   indeterminate,
   onChange,
   'aria-label': ariaLabel,
-}) => (
-  <input
-    type="checkbox"
-    checked={checked}
-    ref={input => {
-      if (input) input.indeterminate = Boolean(indeterminate);
-    }}
-    onChange={e => onChange(e.target.checked)}
-    className="rounded border-border text-action focus:ring-ring"
-    aria-label={ariaLabel}
-  />
-);
+}) => {
+  const isActive = checked || Boolean(indeterminate);
+  return (
+    <input
+      type="checkbox"
+      checked={checked}
+      ref={input => {
+        if (input) input.indeterminate = Boolean(indeterminate);
+      }}
+      onChange={e => onChange(e.target.checked)}
+      className="w-4 h-4 appearance-none rounded cursor-pointer border border-border bg-input transition-colors checked:bg-action checked:border-action focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0"
+      aria-label={ariaLabel}
+      style={
+        isActive
+          ? {
+              backgroundImage: indeterminate ? indeterminateSvg : checkmarkSvg,
+              backgroundSize: '100%',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+            }
+          : undefined
+      }
+    />
+  );
+};
 
 // Table Header component
 export const TableHeader = <T,>({

@@ -104,7 +104,7 @@ export function AlertBanner({
   if (title != null || actions != null) {
     return (
       <div
-        className={`px-3 py-2 ${styles.bg} border-l-4 ${styles.border} rounded-lg shadow-sm ${animationClass} ${spacingClass} ${className}`}
+        className={`w-fit px-3 py-2 ${styles.bg} border-l-4 ${styles.border} rounded-lg shadow-sm ${animationClass} ${spacingClass} ${className}`}
         role="alert"
       >
         <div className="flex items-start gap-2">
@@ -122,7 +122,7 @@ export function AlertBanner({
   // Simple layout: just message
   return (
     <div
-      className={`px-3 py-2 ${styles.bg} border-l-4 ${styles.border} rounded-lg shadow-sm flex items-center gap-2 ${animationClass} ${spacingClass} ${className}`}
+      className={`w-fit px-3 py-2 ${styles.bg} border-l-4 ${styles.border} rounded-lg shadow-sm flex items-center gap-2 ${animationClass} ${spacingClass} ${className}`}
       role="alert"
     >
       {renderIcon()}

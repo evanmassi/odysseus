@@ -49,6 +49,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       }
     };
 
+    // Inline SVG data URIs for checked/indeterminate icons (white strokes on transparent)
+    const checkmarkSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 5L6.5 10.5L4 8' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`;
+    const indeterminateSvg = `url("data:image/svg+xml,%3Csvg viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 8h8' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")`;
+
+    const isActive = checked || indeterminate;
+
     return (
       <input
         ref={handleRef}
@@ -59,14 +65,23 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         disabled={disabled}
         aria-label={ariaLabel}
         className={`
-          w-4 h-4
-          border-border
-          rounded
+          w-4 h-4 appearance-none rounded cursor-pointer
+          border border-border bg-input transition-colors
+          checked:bg-action checked:border-action
           focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0
           disabled:cursor-not-allowed disabled:opacity-50
           ${className}
         `}
-        style={{ accentColor: 'hsl(var(--color-action-default))' }}
+        style={
+          isActive
+            ? {
+                backgroundImage: indeterminate ? indeterminateSvg : checkmarkSvg,
+                backgroundSize: '100%',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+              }
+            : undefined
+        }
       />
     );
   }

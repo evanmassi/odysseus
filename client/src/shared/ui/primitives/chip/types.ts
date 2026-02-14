@@ -41,7 +41,7 @@ export type ChipRef = HTMLButtonElement | HTMLSpanElement;
 export const defaultChipProps: Partial<ChipProps> = {
   color: 'default',
   size: 'sm',
-  shape: 'pill',
+  shape: 'rounded',
   behavior: 'static',
   selected: false,
   disabled: false,

@@ -7,7 +7,7 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Pencil, Plus, RefreshCw, Trash2, BookOpen } from 'lucide-react';
+import { Check, Pencil, Plus, RefreshCw, Trash2, X, BookOpen } from 'lucide-react';
 
 import { queryKeys } from '@app/queryKeys';
 import { logger } from '@shared/infrastructure/logger';
@@ -104,7 +104,7 @@ function CategorySection({
   const columns: TableColumn<TableRow>[] = [
     {
       id: 'value',
-      header: 'Value',
+      header: 'Name',
       sortable: true,
       render: (_, row) => {
         const item = row as unknown as LookupValueWithCount;
@@ -119,7 +119,6 @@ function CategorySection({
                 if (e.key === 'Enter') void handleRenameSave();
                 if (e.key === 'Escape') setEditingId(null);
               }}
-              onBlur={() => void handleRenameSave()}
               size="xs"
               fullWidth
             />
@@ -153,6 +152,31 @@ function CategorySection({
       render: (_, row) => {
         const item = row as unknown as LookupValueWithCount;
         const canDelete = item.tubeCount === 0;
+        if (editingId === item.id) {
+          return (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="xs"
+                iconOnly
+                onClick={() => void handleRenameSave()}
+                aria-label="Save"
+                className="text-success-text hover:text-success-text-hover"
+              >
+                <Check size={14} />
+              </Button>
+              <Button
+                variant="ghost"
+                size="xs"
+                iconOnly
+                onClick={() => setEditingId(null)}
+                aria-label="Cancel"
+              >
+                <X size={14} />
+              </Button>
+            </div>
+          );
+        }
         return (
           <div className="flex items-center gap-1">
             <Tooltip content="Rename" side="bottom">
@@ -170,7 +194,7 @@ function CategorySection({
               content={
                 canDelete
                   ? 'Delete'
-                  : `${item.tubeCount} tube${item.tubeCount === 1 ? '' : 's'} reference this value`
+                  : `${item.tubeCount} tube${item.tubeCount === 1 ? '' : 's'} reference this ${category}`
               }
               side="bottom"
             >
@@ -196,7 +220,9 @@ function CategorySection({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-semibold text-card-foreground capitalize">{title}</h4>
-        <span className="text-xs text-muted-foreground">{values.length} values</span>
+        <span className="text-xs text-muted-foreground">
+          {values.length} {category === 'species' ? 'species' : 'sources'}
+        </span>
       </div>
 
       <div className="flex items-center gap-2">
@@ -234,9 +260,9 @@ function CategorySection({
         sortConfig={sortConfig}
         onSort={setSortConfig}
         loading={loading}
-        emptyMessage={`No ${category} values yet`}
-        loadingMessage={`Loading ${category} values...`}
-        aria-label={`${title} values`}
+        emptyMessage={`No ${category === 'species' ? 'species' : 'sources'} yet`}
+        loadingMessage={`Loading ${category === 'species' ? 'species' : 'sources'}...`}
+        aria-label={`${title} list`}
       />
     </div>
   );
@@ -284,7 +310,7 @@ export function CatalogTab() {
     } catch (error: unknown) {
       const msg =
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to add ${category} value`;
+        `Failed to add ${category}`;
       notifications.error(msg);
     }
   };
@@ -293,12 +319,13 @@ export function CatalogTab() {
     try {
       await adminService.renameLookupValue(id, newValue);
       void queryClient.invalidateQueries({ queryKey: queryKeys.lookups.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
       notifications.success(`Renamed to "${newValue}"`);
       await loadValues();
     } catch (error: unknown) {
       const msg =
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        `Failed to rename ${category} value`;
+        `Failed to rename ${category}`;
       notifications.error(msg);
     }
   };
@@ -321,7 +348,7 @@ export function CatalogTab() {
     } catch (error: unknown) {
       const msg =
         (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
-        'Failed to delete value';
+        `Failed to delete ${confirmDialog.category}`;
       notifications.error(msg);
       setConfirmDialog(null);
     } finally {
@@ -347,7 +374,7 @@ export function CatalogTab() {
       </div>
 
       <AlertBanner variant="info" spacing="none" className="text-xs">
-        Values referenced by tubes cannot be deleted. Renaming a value updates all tubes that use
+        Entries referenced by tubes cannot be deleted. Renaming an entry updates all tubes that use
         it.
       </AlertBanner>
 
@@ -379,7 +406,7 @@ export function CatalogTab() {
         <ConfirmDialog
           isOpen={true}
           variant="danger"
-          title="Delete Value"
+          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : 'Source'}`}
           message={`Are you sure you want to delete "${confirmDialog.value}" from ${confirmDialog.category}? This action cannot be undone.`}
           confirmText="Delete"
           onConfirm={() => void executeDelete()}

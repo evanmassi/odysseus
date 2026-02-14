@@ -333,8 +333,8 @@ export function AppHeader({
                 <>
                   {/* Selection count - only show when more than 1 selected */}
                   {selectedPositions.size > 1 && (
-                    <span className="inline-flex items-center gap-1 text-sm font-medium text-secondary-foreground bg-muted px-2.5 py-1 rounded-full mr-2">
-                      <TestTube className="w-3.5 h-3.5" />
+                    <span className="inline-flex items-center gap-1 text-xs font-medium text-secondary-foreground bg-muted px-2 rounded-md h-6 mr-2">
+                      <TestTube className="w-3 h-3" />
                       {selectedPositions.size} selected
                     </span>
                   )}

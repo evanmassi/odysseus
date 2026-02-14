@@ -5,7 +5,7 @@
  * Supports validation, multiple variants, sizes, and full WCAG AA compliance
  */
 
-import React, { forwardRef, useState, useId, useCallback, useEffect } from 'react';
+import React, { forwardRef, useState, useId, useCallback, useEffect, useRef } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -372,11 +372,33 @@ export const Input = forwardRef<InputRef, InputProps>(
     // Internal validation state
     const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
 
+    // Internal ref for reading DOM value (merged with forwarded ref)
+    const internalRef = useRef<HTMLInputElement>(null);
+    const mergedRef = useCallback(
+      (node: HTMLInputElement | null) => {
+        (internalRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
+        if (typeof ref === 'function') ref(node);
+        else if (ref) (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+      },
+      [ref]
+    );
+
     // Track if date input has a value (for placeholder styling)
     const [dateHasValue, setDateHasValue] = useState(() => {
       if (type !== 'date') return false;
       return Boolean(value ?? defaultValue);
     });
+
+    // Read DOM value after mount to handle uncontrolled mode (e.g., React Hook Form)
+    useEffect(() => {
+      if (type !== 'date') return;
+      const frame = requestAnimationFrame(() => {
+        if (internalRef.current) {
+          setDateHasValue(Boolean(internalRef.current.value));
+        }
+      });
+      return () => cancelAnimationFrame(frame);
+    }, [type]);
 
     // Sync dateHasValue when controlled value changes
     useEffect(() => {
@@ -536,7 +558,7 @@ export const Input = forwardRef<InputRef, InputProps>(
 
           {/* Input element */}
           <input
-            ref={ref}
+            ref={mergedRef}
             id={id}
             type={type}
             className={`${inputClasses}${

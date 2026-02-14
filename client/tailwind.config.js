@@ -51,6 +51,8 @@ export default {
           DEFAULT: 'hsl(var(--color-action-default) / <alpha-value>)',
           hover: 'hsl(var(--color-action-hover) / <alpha-value>)',
           focus: 'hsl(var(--color-action-focus) / <alpha-value>)',
+          light: 'hsl(var(--color-action-light) / <alpha-value>)',
+          'light-hover': 'hsl(var(--color-action-light-hover) / <alpha-value>)',
         },
         danger: {
           bg: 'hsl(var(--color-danger-bg) / <alpha-value>)',

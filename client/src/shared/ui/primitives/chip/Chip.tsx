@@ -72,7 +72,7 @@ const chipVariants = cva(
     defaultVariants: {
       color: 'default',
       size: 'sm',
-      shape: 'pill',
+      shape: 'rounded',
       behavior: 'static',
       selected: false,
       disabled: false,
@@ -174,7 +174,7 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
         {leftIcon && <span className={`flex-shrink-0 ${iconSizeClasses[size!]}`}>{leftIcon}</span>}
         <span>{children}</span>
         {count !== undefined && (
-          <span className="ml-1 rounded-full bg-black/10 dark:bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none">
+          <span className="ml-1 rounded bg-black/10 dark:bg-white/20 px-1.5 py-0.5 text-[10px] font-semibold leading-none">
             {count}
           </span>
         )}

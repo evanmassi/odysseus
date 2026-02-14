@@ -293,7 +293,7 @@ export const TubeForm = ({
       </div>
 
       {/* ROW 3: SAMPLE INFORMATION (PART 2) */}
-      <div className="grid grid-cols-[5fr_4fr_3fr_5fr] gap-2.5">
+      <div className="grid grid-cols-[5fr_4fr_2fr_3fr] gap-2.5">
         <ValidatedInput
           label="Culture Condition"
           type="text"
@@ -317,6 +317,17 @@ export const TubeForm = ({
           hasConflict={hasConflict('sample.lotNumber')}
         />
         <ValidatedInput
+          label="Passage #"
+          type="number"
+          placeholder="0-999"
+          registration={register('sample.passageNumber')}
+          error={Boolean(getFieldError('sample.passageNumber', errors))}
+          helperText={getFieldError('sample.passageNumber', errors)}
+          disabled={isLoading}
+          badge={getConflictBadge('sample.passageNumber')}
+          hasConflict={hasConflict('sample.passageNumber')}
+        />
+        <ValidatedInput
           label="Date"
           type="date"
           registration={register('sample.date')}
@@ -326,52 +337,10 @@ export const TubeForm = ({
           badge={getConflictBadge('sample.date')}
           hasConflict={hasConflict('sample.date')}
         />
-        <Controller
-          name="researcherId"
-          control={control}
-          render={({ field: { value, onChange } }) => {
-            const error = getFieldError('researcherId', errors);
-            const hasFieldConflict = hasConflict('researcherId');
-            return (
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${
-                    error ? 'text-danger-text' : 'text-secondary-foreground'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    Researcher
-                    {getConflictBadge('researcherId')}
-                  </span>
-                </label>
-                <Select
-                  options={[
-                    { value: '', label: 'Select researcher...' },
-                    ...researchers.map(r => ({
-                      value: r.id,
-                      label: formatResearcherDropdownDisplay(r),
-                    })),
-                  ]}
-                  value={value ?? ''}
-                  onChange={newValue => onChange(newValue ?? '')}
-                  disabled={isLoading}
-                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
-                  fullWidth
-                  placeholder="Select researcher..."
-                />
-                {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
-                    <span>{error}</span>
-                  </div>
-                )}
-              </div>
-            );
-          }}
-        />
       </div>
 
-      {/* ROW 4: Supply Chain */}
-      <div className="grid grid-cols-[5fr_3fr_2fr] gap-2.5">
+      {/* ROW 4: Provenance */}
+      <div className="grid grid-cols-[5fr_4fr_4fr] gap-2.5">
         <Controller
           name="sample.source"
           control={control}
@@ -419,16 +388,47 @@ export const TubeForm = ({
           badge={getConflictBadge('sample.catalogNumber')}
           hasConflict={hasConflict('sample.catalogNumber')}
         />
-        <ValidatedInput
-          label="Passage #"
-          type="number"
-          placeholder="0-999"
-          registration={register('sample.passageNumber')}
-          error={Boolean(getFieldError('sample.passageNumber', errors))}
-          helperText={getFieldError('sample.passageNumber', errors)}
-          disabled={isLoading}
-          badge={getConflictBadge('sample.passageNumber')}
-          hasConflict={hasConflict('sample.passageNumber')}
+        <Controller
+          name="researcherId"
+          control={control}
+          render={({ field: { value, onChange } }) => {
+            const error = getFieldError('researcherId', errors);
+            const hasFieldConflict = hasConflict('researcherId');
+            return (
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${
+                    error ? 'text-danger-text' : 'text-secondary-foreground'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    Researcher
+                    {getConflictBadge('researcherId')}
+                  </span>
+                </label>
+                <Select
+                  options={[
+                    { value: '', label: 'Select researcher...' },
+                    ...researchers.map(r => ({
+                      value: r.id,
+                      label: formatResearcherDropdownDisplay(r),
+                    })),
+                  ]}
+                  value={value ?? ''}
+                  onChange={newValue => onChange(newValue ?? '')}
+                  disabled={isLoading}
+                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
+                  fullWidth
+                  placeholder="Select researcher..."
+                />
+                {error && (
+                  <div className="flex items-center mt-1 text-xs text-danger-text">
+                    <span>{error}</span>
+                  </div>
+                )}
+              </div>
+            );
+          }}
         />
       </div>
 

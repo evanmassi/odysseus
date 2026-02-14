@@ -66,6 +66,8 @@
     --color-action-default: var(--primary);
     --color-action-hover: 210 43.1% 50%;
     --color-action-focus: 210 43.1% 50%;
+    --color-action-light: 210 50% 97%;
+    --color-action-light-hover: 210 50% 94%;
 
     /* Danger Theme */
     --color-danger-bg: 1 62% 44%;
@@ -253,6 +255,8 @@
     --color-action-default: var(--primary);
     --color-action-hover: 217 85% 59.8%;
     --color-action-focus: 217 85% 59.8%;
+    --color-action-light: 213 45% 12%;
+    --color-action-light-hover: 213 50% 16%;
 
     /* Danger Theme */
     --color-danger-bg: 1 62% 60%;
