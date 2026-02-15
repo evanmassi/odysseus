@@ -40,27 +40,6 @@ export class UserApplicationService {
   ) {}
 
   /**
-   * Verify existing session
-   */
-  async verifySession(apiKey: string): Promise<AuthResponse> {
-    const user = await this.userRepository.findByApiKey(apiKey);
-    
-    if (!user) {
-      throw new PermissionError('Invalid session', { apiKey: '***' });
-    }
-
-    // Check session validity
-    if (!user.hasValidSession(30)) { // 30 minutes timeout
-      throw new PermissionError('Session expired', { userId: user.id });
-    }
-
-    // Note: We don't update lastActivity here because verifySession is called
-    // on every authenticated request. Only update lastActivity on actual login.
-
-    return UserDto.toAuthResponse(user);
-  }
-
-  /**
    * Create new user
    */
   async createUser(request: CreateUserRequest, adminApiKey?: string): Promise<UserResponse> {

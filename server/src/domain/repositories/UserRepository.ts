@@ -56,6 +56,8 @@ export interface UserRepository {
    */
   findAll(): Promise<User[]>;
 
+  findAllWithLastActivity(): Promise<User[]>;
+
   /**
    * Find multiple users by their IDs
    * Returns only found users (no errors for missing IDs)

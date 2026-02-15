@@ -433,15 +433,6 @@ export class User {
   }
 
   /**
-   * Business query: Check if user session is recent (for security)
-   */
-  hasRecentActivity(maxInactiveMinutes: number = 60): boolean {
-    const maxInactiveMs = maxInactiveMinutes * 60 * 1000;
-    const timeSinceLastActivity = Date.now() - this._lastActivity.getTime();
-    return timeSinceLastActivity <= maxInactiveMs;
-  }
-
-  /**
    * Business method: Approve pending user (admin operation)
    */
   approve(approvedBy: User): void {
@@ -645,16 +636,6 @@ export class User {
 
   // Convenience getters
   get roleString(): 'admin' | 'user' { return this._role.role; }
-
-  /**
-   * Check if user session is still valid
-   */
-  hasValidSession(maxInactiveMinutes: number = 30): boolean {
-    const now = new Date();
-    const timeSinceActivity = now.getTime() - this._lastActivity.getTime();
-    const maxInactiveMs = maxInactiveMinutes * 60 * 1000;
-    return timeSinceActivity <= maxInactiveMs;
-  }
 
   /**
    * Generate email verification token

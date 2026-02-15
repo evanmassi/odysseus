@@ -534,11 +534,10 @@ export class AuthController {
   async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
-      const query = new GetAllUsersQuery(false); // Don't include inactive by default
-      const users = await this.getAllUsersHandler.handle(query);
+      const users = await this.userRepository.findAllWithLastActivity();
+      const approvedUsers = users.filter(u => u.isApproved());
 
-      // Batch fetch all related data to avoid N+1 queries
-      const publicDataList = users.map(u => u.toPublicData());
+      const publicDataList = approvedUsers.map(u => u.toPublicData());
 
       // Collect IDs for batch fetching
       const directPersonIds = publicDataList
@@ -1454,7 +1453,8 @@ export class AuthController {
         throw new PermissionError('Authentication required');
       }
 
-      const demoUsers = await this.userApplicationService.getDemoUsers(adminApiKey);
+      const allUsers = await this.userRepository.findAllWithLastActivity();
+      const demoUsers = allUsers.filter(u => u.isDemo);
 
       const publicDataList = demoUsers.map(u => u.toPublicData());
 

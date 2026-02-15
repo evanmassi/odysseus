@@ -24,6 +24,7 @@ export interface UserRow {
   last_password_change?: Date | string;
   is_demo?: boolean;
   settings?: string;
+  last_activity?: Date | string;
 }
 
 /**
@@ -101,7 +102,9 @@ export class UserMapper {
       username: row.username,
       apiKey: row.api_key,
       role: row.role,
-      lastActivity: new Date().toISOString(),
+      lastActivity: row.last_activity
+        ? (row.last_activity instanceof Date ? row.last_activity.toISOString() : row.last_activity)
+        : createdAt.toISOString(),
       createdAt: createdAt.toISOString(),
       passwordHash: row.password_hash,
       salt: row.salt,
