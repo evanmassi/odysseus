@@ -172,10 +172,19 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
     if (!userSortConfig) return demoUsers;
     return [...demoUsers].sort((a, b) => {
       const direction = userSortConfig.direction === 'asc' ? 1 : -1;
-      if (userSortConfig.columnId === 'username') {
-        return a.username.localeCompare(b.username) * direction;
+      switch (userSortConfig.columnId) {
+        case 'username':
+          return a.username.localeCompare(b.username) * direction;
+        case 'tubes':
+          return ((a.tubeCount ?? 0) - (b.tubeCount ?? 0)) * direction;
+        case 'lastActivity': {
+          const dateA = a.lastActivity ? new Date(a.lastActivity).getTime() : 0;
+          const dateB = b.lastActivity ? new Date(b.lastActivity).getTime() : 0;
+          return (dateA - dateB) * direction;
+        }
+        default:
+          return 0;
       }
-      return 0;
     });
   }, [demoUsers, userSortConfig]);
 
@@ -217,14 +226,34 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
       },
     },
     {
-      id: 'role',
-      header: 'Role',
+      id: 'tubes',
+      header: 'Tubes',
+      sortable: true,
+      width: 80,
+      render: (_, row) => {
+        const user = row as unknown as AdminUser;
+        const count = user.tubeCount ?? 0;
+        return (
+          <Chip
+            size="sm"
+            color={count > 0 ? 'primary' : 'default'}
+            className={count > 0 ? 'border border-action' : 'border border-border'}
+          >
+            {count}
+          </Chip>
+        );
+      },
+    },
+    {
+      id: 'lastActivity',
+      header: 'Last Active',
+      sortable: true,
       render: (_, row) => {
         const user = row as unknown as AdminUser;
         return (
-          <Chip size="sm" color={user.role === 'admin' ? 'primary' : 'default'}>
-            {user.role}
-          </Chip>
+          <span className="text-sm text-muted-foreground whitespace-nowrap">
+            {user.lastActivity ? new Date(user.lastActivity).toLocaleDateString() : 'Never'}
+          </span>
         );
       },
     },
@@ -267,19 +296,19 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
       },
     },
     {
-      id: 'location',
-      header: 'Location',
-      render: (_, row) => {
-        const tank = row as unknown as TankConfiguration;
-        return <span className="text-sm text-muted-foreground">{tank.location || 'N/A'}</span>;
-      },
-    },
-    {
       id: 'racks',
       header: 'Racks',
       render: (_, row) => {
         const tank = row as unknown as TankConfiguration;
         return <span className="text-sm text-muted-foreground">{tank.racks?.length ?? 0}</span>;
+      },
+    },
+    {
+      id: 'location',
+      header: 'Location',
+      render: (_, row) => {
+        const tank = row as unknown as TankConfiguration;
+        return <span className="text-sm text-muted-foreground">{tank.location || 'N/A'}</span>;
       },
     },
     {

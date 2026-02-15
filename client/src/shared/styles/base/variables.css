@@ -89,7 +89,7 @@
     --color-warning-hover: 44 80% 44%;
     --color-warning-text: 44 74% 45%;
     --color-warning-text-hover: 44 80% 38%;
-    --color-warning-btnText: 0 0% 0%;
+    --color-warning-btnText: 0 0% 100%;
     --color-warning-light: 44 75% 97%;
     --color-warning-light-hover: 44 78% 94%;
     --color-warning-border: 44 70% 55%;
@@ -247,7 +247,7 @@
 
     /* Utilities */
     --border: 215.3 25% 26.7%;
-    --input: 215.3 25% 26.7%;
+    --input: 217.2 25% 26.7%;
 
     --auth-sketch-border: 215 20.2% 65.1%;
 
@@ -273,7 +273,7 @@
     --color-warning-hover: 44 78% 48%;
     --color-warning-text: 44 78% 65%;
     --color-warning-text-hover: 44 80% 58%;
-    --color-warning-btnText: 0 0% 0%;
+    --color-warning-btnText: 0 0% 100%;
     --color-warning-light: 44 40% 10%;
     --color-warning-light-hover: 44 45% 14%;
     --color-warning-border: 44 65% 45%;
@@ -335,7 +335,7 @@
     /* Tube Grid - Cell and selection styling */
     --grid-border: 217.2 19.2% 26.7%;
     --grid-empty: 215 24% 19%;
-    --grid-position-label: 220 14.3% 15.9%;
+    --grid-position-label: 217.2 32.6% 15.5%;
     --grid-position-label-foreground: 220 10.6% 64.9%;
     --grid-position-label-border: 217.2 19.2% 26.7%;
     --grid-empty-foreground: 220 8.9% 46.1%;

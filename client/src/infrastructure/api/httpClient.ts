@@ -187,7 +187,7 @@ export class HttpClient {
       return transformApiResponse(data, 'TubeData');
     } else if (url.includes('/researchers')) {
       return ResponseTransformers.Researcher(data);
-    } else if (url.includes('/admin/lookups')) {
+    } else if (url.includes('/lookups')) {
       return transformApiResponse(data, 'LookupValue');
     } else if (url.includes('/admin/demo')) {
       return transformApiResponse(data, 'AdminUser');

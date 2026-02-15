@@ -792,11 +792,10 @@ export class UserApplicationService {
    * Returns list of users marked as demo.
    * Used by admin panel "Demo Management" section.
    */
-  async getDemoUsers(adminApiKey: string): Promise<UserResponse[]> {
+  async getDemoUsers(adminApiKey: string): Promise<User[]> {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
 
-    const demoUsers = await this.userRepository.findDemoUsers();
-    return demoUsers.map(user => UserDto.toResponse(user));
+    return this.userRepository.findDemoUsers();
   }
 }

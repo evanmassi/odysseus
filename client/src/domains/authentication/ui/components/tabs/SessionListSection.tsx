@@ -161,7 +161,7 @@ export function SessionListSection() {
                       <div>
                         <p className="text-sm font-medium text-card-foreground">{device}</p>
                         {session.isCurrentSession && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-success-text mt-1">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-light text-success-text mt-1">
                             Current Session
                           </span>
                         )}
@@ -226,7 +226,7 @@ export function SessionListSection() {
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-card-foreground truncate">{device}</p>
                     {session.isCurrentSession && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-muted text-success-text mt-1">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-light text-success-text mt-1">
                         Current Session
                       </span>
                     )}

@@ -47,11 +47,7 @@ export function DisplayTab({
 
       {/* Theme Section */}
       <div>
-        <h4 className="text-base font-semibold text-card-foreground mb-2">Theme</h4>
-        <p className="text-xs text-secondary-foreground mb-3">
-          Choose your preferred color scheme. &quot;System&quot; follows your operating
-          system&apos;s theme preference.
-        </p>
+        <h4 className="text-base font-semibold text-card-foreground mb-3">Theme</h4>
 
         <div className="grid grid-cols-3 gap-2">
           {/* Light Option */}

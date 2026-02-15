@@ -4,7 +4,7 @@ import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
 import {
   Shield,
   Activity,
-  AlertTriangle,
+  Info,
   Save,
   ShieldUser,
   Gauge,
@@ -211,8 +211,8 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   const footer = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center space-x-1.5 text-[11px] text-muted-foreground flex-shrink min-w-0">
-        <AlertTriangle size={12} className="flex-shrink-0" />
+      <div className="flex items-center space-x-1.5 text-xs text-muted-foreground flex-shrink min-w-0">
+        <Info size={14} className="flex-shrink-0" />
         <span className="truncate">Changes apply to all users immediately</span>
       </div>
       <div className="flex space-x-2 flex-shrink-0">

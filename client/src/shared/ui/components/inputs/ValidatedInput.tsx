@@ -146,8 +146,10 @@ export function ValidatedInput({
     <div className={`${className}`}>
       <label className={getLabelClasses()}>
         <span className="flex items-center gap-1.5">
-          {label}
-          {required && <span className="text-danger-bg">*</span>}
+          <span>
+            {label}
+            {required && <span className="text-danger-bg">*</span>}
+          </span>
           {badge}
         </span>
       </label>

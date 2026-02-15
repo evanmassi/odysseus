@@ -6,7 +6,7 @@
  */
 import { useState, useEffect, lazy, Suspense } from 'react';
 
-import { Save, Settings, Table2, UserRound, Shield, AlertTriangle } from 'lucide-react';
+import { Save, Settings, Table2, UserRound, Shield, Info } from 'lucide-react';
 
 import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
@@ -138,8 +138,8 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
 
   const footer = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center space-x-1.5 text-[11px] text-muted-foreground flex-shrink min-w-0">
-        <AlertTriangle size={12} className="flex-shrink-0" />
+      <div className="flex items-center space-x-1.5 text-xs text-muted-foreground flex-shrink min-w-0">
+        <Info size={14} className="flex-shrink-0" />
         <span className="truncate">These settings apply only to your account.</span>
       </div>
       <div className="flex space-x-2 flex-shrink-0">

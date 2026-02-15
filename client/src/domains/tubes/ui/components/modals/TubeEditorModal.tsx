@@ -744,7 +744,7 @@ function CreateModeContent({
       mode="create"
     >
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-        <div className="flex items-start gap-3">
+        <div className="space-y-3">
           {parsedPositions.length === 1 && parsedPositions[0] && (
             <LocationDisplay
               tankId={parsedPositions[0].location.tankId}

@@ -585,7 +585,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const footer = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3 text-[11px] text-muted-foreground flex-shrink min-w-0">
+      <div className="flex items-center gap-3 text-xs text-muted-foreground flex-shrink min-w-0">
         <div className="flex items-center gap-1">
           <div className="w-1 h-3 rounded-sm bg-ownership-user-badge flex-shrink-0" />
           <span>You</span>

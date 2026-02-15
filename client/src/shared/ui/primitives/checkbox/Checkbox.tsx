@@ -67,7 +67,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
         className={`
           w-4 h-4 appearance-none rounded cursor-pointer
           border border-border bg-input transition-colors
-          checked:bg-action checked:border-action
+          hover:border-muted-foreground
+          checked:bg-action checked:border-action checked:hover:border-action
           focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-0
           disabled:cursor-not-allowed disabled:opacity-50
           ${className}

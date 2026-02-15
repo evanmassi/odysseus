@@ -386,7 +386,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           <div className="flex flex-wrap gap-1.5">
             <Chip
               size="sm"
-              color={lockInfo.isOwnLock ? 'default' : lockInfo.isLockedOut ? 'danger' : 'warning'}
+              color={lockInfo.isOwnLock ? 'default' : lockInfo.isLockedOut ? 'danger' : 'info'}
               leftIcon={<Lock />}
             >
               {lockInfo.isOwnLock ? 'Locked by you' : `Locked by ${lockInfo.ownerName}`}
@@ -429,7 +429,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               </Tooltip>
             ) : (
               firstTube.lockNote && (
-                <Chip size="sm" color="default" leftIcon={<Notebook />}>
+                <Chip
+                  size="sm"
+                  color={lockInfo.isLockedOut ? 'danger' : 'info'}
+                  leftIcon={<Notebook />}
+                >
                   {firstTube.lockNote}
                 </Chip>
               )

@@ -93,6 +93,7 @@ export const adminUserSchema = z.object({
   requirePasswordChange: z.boolean().optional().default(false),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
+  tubeCount: z.number().int().min(0).optional(),
 });
 
 export type AdminUser = z.infer<typeof adminUserSchema>;

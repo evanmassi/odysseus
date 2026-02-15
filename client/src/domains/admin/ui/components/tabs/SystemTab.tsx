@@ -7,7 +7,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
-import { Gauge, FlaskConical, Check, X } from 'lucide-react';
+import { Gauge, FlaskConical, FileText, Check, X } from 'lucide-react';
 
 import { queryKeys } from '@app/queryKeys';
 import { useStorageData } from '@domains/storage';
@@ -129,7 +129,7 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
 
       <div>
         <h4 className="text-base font-semibold text-card-foreground mb-2">Laboratory</h4>
-        <div className="bg-muted p-3 rounded-lg">
+        <div className="bg-muted p-3 rounded-lg max-w-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <FlaskConical size={18} className="text-muted-foreground" />
@@ -191,8 +191,10 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-card-foreground">Detailed Logging</h5>
-              <p className="text-xs text-secondary-foreground">Log all system operations</p>
+              <h5 className="text-sm font-medium text-card-foreground flex items-center gap-1.5">
+                <FileText size={18} className="text-muted-foreground" />
+                Detailed System Logging
+              </h5>
             </div>
             <Toggle
               checked={config.enableDetailedLogging}

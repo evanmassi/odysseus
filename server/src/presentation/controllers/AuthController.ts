@@ -1454,11 +1454,51 @@ export class AuthController {
         throw new PermissionError('Authentication required');
       }
 
-      const users = await this.userApplicationService.getDemoUsers(adminApiKey);
+      const demoUsers = await this.userApplicationService.getDemoUsers(adminApiKey);
+
+      const publicDataList = demoUsers.map(u => u.toPublicData());
+
+      const researcherIds = publicDataList
+        .map(u => u.researcherId)
+        .filter((id): id is string => id != null);
+
+      const researchers = await this.researcherRepository.findByIds(researcherIds);
+      const researcherPersonIds = researchers
+        .map(r => r.personId)
+        .filter((id): id is string => id != null);
+      const persons = await this.personRepository.findByIds(researcherPersonIds);
+
+      const researcherMap = new Map(researchers.map(r => [r.id, r]));
+      const personMap = new Map(persons.map(p => [p.id, p]));
+
+      const tubeCounts = await Promise.all(
+        researcherIds.map(id => this.researcherRepository.getTubeCountByResearcher(id))
+      );
+      const tubeCountMap = new Map(researcherIds.map((id, i) => [id, tubeCounts[i]]));
+
+      const enrichedUsers = publicDataList.map(user => {
+        let firstName: string | undefined;
+        let lastName: string | undefined;
+        let tubeCount = 0;
+
+        if (user.researcherId) {
+          tubeCount = tubeCountMap.get(user.researcherId) ?? 0;
+          const researcher = researcherMap.get(user.researcherId);
+          if (researcher) {
+            const person = personMap.get(researcher.personId);
+            if (person) {
+              firstName = person.firstName;
+              lastName = person.lastName;
+            }
+          }
+        }
+
+        return { ...user, firstName, lastName, tubeCount };
+      });
 
       const response = ResponseBuilder.withTiming(startTime, {
         success: true,
-        users
+        users: enrichedUsers
       });
 
       res.status(200).json(response);

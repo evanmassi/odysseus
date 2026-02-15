@@ -563,7 +563,7 @@ export default function BatchTubeEditorModal({
         dataAttribute="data-batch-edit-modal"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex items-start gap-3">
+          <div className="space-y-3">
             <LocationDisplay
               tankName={tankName}
               rackName={rackName}

@@ -62,39 +62,36 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
           Authentication Settings
         </h4>
         <div className="space-y-1.5">
-          {/* Enhanced Authentication Toggle */}
-          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
-            <div>
-              <h5 className="text-sm font-medium text-card-foreground">Enhanced Authentication</h5>
-              <p className="text-xs text-secondary-foreground">
-                Enable stronger password-based authentication
-              </p>
+          <div className="grid grid-cols-2 gap-1.5">
+            {/* Enhanced Authentication Toggle */}
+            <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
+              <div>
+                <h5 className="text-sm font-medium text-card-foreground">
+                  Enhanced Authentication
+                </h5>
+                <p className="text-xs text-secondary-foreground">Stronger password auth</p>
+              </div>
+              <Toggle
+                checked={config.useEnhancedAuth}
+                onChange={checked => onChange('useEnhancedAuth', checked)}
+                aria-label="Enable enhanced authentication"
+              />
             </div>
-            <Toggle
-              checked={config.useEnhancedAuth}
-              onChange={checked => onChange('useEnhancedAuth', checked)}
-              aria-label="Enable enhanced authentication"
-            />
+
+            {/* Strong Password Requirements Toggle */}
+            <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
+              <div>
+                <h5 className="text-sm font-medium text-card-foreground">Strong Passwords</h5>
+                <p className="text-xs text-secondary-foreground">Uppercase, lowercase, numbers</p>
+              </div>
+              <Toggle
+                checked={config.requireStrongPasswords}
+                onChange={checked => onChange('requireStrongPasswords', checked)}
+                aria-label="Require strong password requirements"
+              />
+            </div>
           </div>
 
-          {/* Strong Password Requirements Toggle */}
-          <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
-            <div>
-              <h5 className="text-sm font-medium text-card-foreground">
-                Strong Password Requirements
-              </h5>
-              <p className="text-xs text-secondary-foreground">
-                Enforce complex password policies (uppercase, lowercase, numbers)
-              </p>
-            </div>
-            <Toggle
-              checked={config.requireStrongPasswords}
-              onChange={checked => onChange('requireStrongPasswords', checked)}
-              aria-label="Require strong password requirements"
-            />
-          </div>
-
-          {/* Password Minimum Length & Special Characters - Combined Row */}
           <div className="grid grid-cols-2 gap-1.5">
             <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
               <div>

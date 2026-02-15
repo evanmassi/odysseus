@@ -44,19 +44,15 @@ function LocationBreadcrumb({
   className = '',
 }: PreResolvedProps) {
   return (
-    <div
-      className={`flex items-center gap-2 px-3 py-2 bg-muted border-l-4 border-l-muted-foreground rounded-lg shadow-sm w-fit ${className}`}
-    >
-      <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-      <div className="flex items-center gap-2 text-sm font-medium text-secondary-foreground">
-        <span>{tankName}</span>
-        <span className="text-muted-foreground">›</span>
-        <span>{rackName}</span>
-        <span className="text-muted-foreground">›</span>
-        <span>{boxName}</span>
-        <span className="text-muted-foreground">·</span>
-        <span className="font-semibold">{positionLabel}</span>
-      </div>
+    <div className={`flex items-center gap-1.5 text-sm text-muted-foreground ${className}`}>
+      <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+      <span>{tankName}</span>
+      <span>›</span>
+      <span>{rackName}</span>
+      <span>›</span>
+      <span>{boxName}</span>
+      <span>·</span>
+      <span className="font-semibold text-secondary-foreground">{positionLabel}</span>
     </div>
   );
 }

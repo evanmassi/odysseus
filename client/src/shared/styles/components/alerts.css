@@ -3,12 +3,12 @@
 
   /* Base alert container */
   .alert {
-    @apply p-3 rounded-lg bg-muted border-l-4;
+    @apply p-3 rounded-lg border-l-4;
   }
 
   /* Warning alerts */
   .alert-warning {
-    @apply alert border-l-warning-border;
+    @apply alert bg-warning-light border-l-warning-border;
   }
 
   .alert-warning-icon {
@@ -29,7 +29,7 @@
 
   /* Error alerts - Uses danger colors */
   .alert-error {
-    @apply alert border-l-danger-border;
+    @apply alert bg-danger-light border-l-danger-border;
   }
 
   .alert-error-icon {
@@ -50,7 +50,7 @@
 
   /* Success alerts */
   .alert-success {
-    @apply alert border-l-success-border;
+    @apply alert bg-success-light border-l-success-border;
   }
 
   .alert-success-icon {
@@ -71,7 +71,7 @@
 
   /* Info alerts */
   .alert-info {
-    @apply alert border-l-info-border;
+    @apply alert bg-info-light border-l-info-border;
   }
 
   .alert-info-icon {
