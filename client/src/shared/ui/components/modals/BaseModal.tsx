@@ -31,6 +31,8 @@ export interface BaseModalProps {
   tabs?: React.ReactNode;
   tabOrientation?: TabOrientation;
   footer?: React.ReactNode;
+  /** Footer pinned to the bottom of the tab content area (above the modal footer) */
+  tabFooter?: React.ReactNode;
   contentClassName?: string;
   dataAttribute?: string;
   className?: string;
@@ -65,6 +67,7 @@ export function BaseModal({
   tabs,
   tabOrientation = 'horizontal',
   footer,
+  tabFooter,
   contentClassName = 'p-6',
   dataAttribute,
   className = '',
@@ -155,9 +158,17 @@ export function BaseModal({
               <div className="w-48 bg-card border-r border-border py-4 flex-shrink-0">{tabs}</div>
             )}
 
-            <ScrollArea className={`flex-1 min-w-0 ${hasVerticalTabs ? '' : ''}`} tabIndex={-1}>
-              <div className={contentClassName}>{children}</div>
-            </ScrollArea>
+            <div className="flex-1 min-w-0 flex flex-col">
+              <ScrollArea className="flex-1" tabIndex={-1}>
+                <div className={contentClassName}>{children}</div>
+              </ScrollArea>
+
+              {tabFooter && (
+                <div className="border-t border-border px-6 py-3 bg-card flex-shrink-0">
+                  {tabFooter}
+                </div>
+              )}
+            </div>
           </div>
 
           {footer && (

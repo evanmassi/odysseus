@@ -4,7 +4,7 @@
  * Admin interface for lab settings, audit configuration, data export, and system statistics.
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { Gauge, FlaskConical, FileText, Check, X } from 'lucide-react';
@@ -34,9 +34,10 @@ export interface SystemTabProps {
   config: SecurityConfig;
   stats: SystemMetrics | null;
   onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
+  onTabFooter?: (footer: React.ReactNode) => void;
 }
 
-export function SystemTab({ config, stats, onChange }: SystemTabProps) {
+export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabProps) {
   const { currentLab } = useStorageData();
   const queryClient = useQueryClient();
 
@@ -72,6 +73,38 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
     }
     void fetchVersionInfo();
   }, []);
+
+  useEffect(() => {
+    onTabFooter?.(
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
+          <span>Total Tubes:</span>
+          <span className="font-semibold text-secondary-foreground">{stats?.totalTubes ?? 0}</span>
+          <span className="text-border">•</span>
+          <span>Total Users:</span>
+          <span className="font-semibold text-secondary-foreground">{stats?.totalUsers ?? 0}</span>
+          <span className="text-border">•</span>
+          <span>Researchers:</span>
+          <span className="font-semibold text-secondary-foreground">
+            {stats?.totalResearchers ?? 0}
+          </span>
+          <span className="text-border">•</span>
+          <span>Database:</span>
+          <span className="font-semibold text-secondary-foreground">
+            {stats?.databaseSize ? formatBytes(stats.databaseSize) : '—'}
+          </span>
+          <span className="text-border">•</span>
+          <span>Last Backup:</span>
+          <span className="font-semibold text-secondary-foreground">
+            {stats?.lastBackup ? new Date(stats.lastBackup).toLocaleDateString() : 'Never'}
+          </span>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          Odysseus v{versionInfo?.version ?? '—'} · © 2025 Evan Massi
+        </div>
+      </div>
+    );
+  }, [onTabFooter, stats, versionInfo]);
 
   const handleSaveLabName = useCallback(async () => {
     const trimmedName = labNameInput.trim();
@@ -127,71 +160,71 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
         <h3 className="text-xl font-semibold text-card-foreground">System</h3>
       </div>
 
-      <div>
-        <h4 className="text-base font-semibold text-card-foreground mb-2">Laboratory</h4>
-        <div className="bg-muted p-3 rounded-lg max-w-sm">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <FlaskConical size={18} className="text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Lab:</span>
-              {isEditingLabName ? (
-                <Input
-                  type="text"
-                  value={labNameInput}
-                  onValueChange={setLabNameInput}
-                  onKeyDown={handleLabNameKeyDown}
-                  variant="default"
-                  size="sm"
-                  // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
-                  autoFocus
-                  disabled={isSavingLabName}
-                />
-              ) : (
-                <span className="text-sm font-medium text-card-foreground">
-                  {currentLab?.name ?? ''}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              {isEditingLabName ? (
-                <>
-                  <Button
-                    variant="success"
-                    size="xs"
-                    iconOnly
-                    onClick={handleSaveLabName}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <h4 className="text-base font-semibold text-card-foreground mb-2">Laboratory</h4>
+          <div className="bg-muted p-3 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FlaskConical size={18} className="text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Lab:</span>
+                {isEditingLabName ? (
+                  <Input
+                    type="text"
+                    value={labNameInput}
+                    onValueChange={setLabNameInput}
+                    onKeyDown={handleLabNameKeyDown}
+                    variant="default"
+                    size="sm"
+                    // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
+                    autoFocus
                     disabled={isSavingLabName}
-                    aria-label="Save lab name"
-                  >
-                    <Check size={16} />
+                  />
+                ) : (
+                  <span className="text-sm font-medium text-card-foreground">
+                    {currentLab?.name ?? ''}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-1">
+                {isEditingLabName ? (
+                  <>
+                    <Button
+                      variant="success"
+                      size="xs"
+                      iconOnly
+                      onClick={handleSaveLabName}
+                      disabled={isSavingLabName}
+                      aria-label="Save lab name"
+                    >
+                      <Check size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="xs"
+                      iconOnly
+                      onClick={handleCancelLabNameEdit}
+                      disabled={isSavingLabName}
+                      aria-label="Cancel editing"
+                    >
+                      <X size={16} />
+                    </Button>
+                  </>
+                ) : (
+                  <Button variant="ghost" size="xs" onClick={() => setIsEditingLabName(true)}>
+                    Edit
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="xs"
-                    iconOnly
-                    onClick={handleCancelLabNameEdit}
-                    disabled={isSavingLabName}
-                    aria-label="Cancel editing"
-                  >
-                    <X size={16} />
-                  </Button>
-                </>
-              ) : (
-                <Button variant="ghost" size="xs" onClick={() => setIsEditingLabName(true)}>
-                  Edit
-                </Button>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div>
-        <h4 className="text-base font-semibold text-card-foreground mb-2">Audit & Monitoring</h4>
-        <div className="space-y-1.5">
+        <div>
+          <h4 className="text-base font-semibold text-card-foreground mb-2">Audit & Monitoring</h4>
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
-              <h5 className="text-sm font-medium text-card-foreground flex items-center gap-1.5">
+              <h5 className="text-sm font-medium text-card-foreground flex items-center gap-2">
                 <FileText size={18} className="text-muted-foreground" />
                 Detailed System Logging
               </h5>
@@ -206,35 +239,6 @@ export function SystemTab({ config, stats, onChange }: SystemTabProps) {
       </div>
 
       <DataExportSection />
-
-      <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
-        <span>Total Tubes:</span>
-        <span className="font-semibold text-secondary-foreground">{stats?.totalTubes ?? 0}</span>
-        <span className="text-border">•</span>
-        <span>Total Users:</span>
-        <span className="font-semibold text-secondary-foreground">{stats?.totalUsers ?? 0}</span>
-        <span className="text-border">•</span>
-        <span>Researchers:</span>
-        <span className="font-semibold text-secondary-foreground">
-          {stats?.totalResearchers ?? 0}
-        </span>
-        <span className="text-border">•</span>
-        <span>Database:</span>
-        <span className="font-semibold text-secondary-foreground">
-          {stats?.databaseSize ? formatBytes(stats.databaseSize) : '—'}
-        </span>
-        <span className="text-border">•</span>
-        <span>Last Backup:</span>
-        <span className="font-semibold text-secondary-foreground">
-          {stats?.lastBackup ? new Date(stats.lastBackup).toLocaleDateString() : 'Never'}
-        </span>
-      </div>
-
-      <div className="border-t border-border pt-3">
-        <div className="text-xs text-muted-foreground">
-          Odysseus v{versionInfo?.version ?? '—'} · © 2025 Evan Massi
-        </div>
-      </div>
     </div>
   );
 }

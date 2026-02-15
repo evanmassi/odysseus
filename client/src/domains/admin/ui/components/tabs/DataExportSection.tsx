@@ -134,7 +134,7 @@ export function DataExportSection() {
       <h4 className="text-base font-semibold text-card-foreground mb-2">Data Export</h4>
       <div className="bg-muted p-3 rounded-lg space-y-2">
         {/* Main row: Type, Format, and Export Button */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <Download size={18} className="text-muted-foreground flex-shrink-0" />
 
           {/* Type Selection */}

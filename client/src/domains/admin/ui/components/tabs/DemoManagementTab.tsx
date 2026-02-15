@@ -9,7 +9,7 @@
  * Part of the Admin Settings modal tab system.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { RefreshCw, UserRound, Trash2, FlaskConical, ToggleRight } from 'lucide-react';
 
@@ -29,8 +29,8 @@ import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
  * DemoManagementTab Props Interface
  */
 export interface DemoManagementTabProps {
-  /** Callback invoked when demo data changes (for refreshing parent state) */
   onDemoUpdate?: () => void;
+  onTabFooter?: (footer: React.ReactNode) => void;
 }
 
 /**
@@ -39,7 +39,7 @@ export interface DemoManagementTabProps {
  * Renders demo management interface with sections for demo users, demo tanks,
  * and a reset demo data action.
  */
-export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
+export function DemoManagementTab({ onDemoUpdate, onTabFooter }: DemoManagementTabProps) {
   const [demoUsers, setDemoUsers] = useState<AdminUser[]>([]);
   const [allUsers, setAllUsers] = useState<AdminUser[]>([]);
   const [allTanks, setAllTanks] = useState<TankConfiguration[]>([]);
@@ -56,7 +56,6 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
   const [userSortConfig, setUserSortConfig] = useState<SortConfig | undefined>(undefined);
   const [tankSortConfig, setTankSortConfig] = useState<SortConfig | undefined>(undefined);
 
-  // Load data on mount
   useEffect(() => {
     void loadData();
   }, []);
@@ -97,9 +96,40 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
   const demoTanks = useMemo(() => allTanks.filter(t => t.isDemo), [allTanks]);
   const nonDemoTanks = useMemo(() => allTanks.filter(t => !t.isDemo), [allTanks]);
 
-  /**
-   * Toggle user demo status
-   */
+  useEffect(() => {
+    onTabFooter?.(
+      <div className="px-3 py-3 bg-muted border-l-4 border-l-danger-border rounded-lg shadow-sm">
+        <p className="text-sm font-medium text-danger-text mb-2">Reset Demo Data</p>
+        <div className="flex items-end justify-between gap-4">
+          <ul className="space-y-1 text-card-foreground text-sm">
+            <li className="flex items-center gap-2">
+              <AnimatedXMark size={14} className="text-danger-text flex-shrink-0" />
+              <span>Permanently deletes all tubes in demo tanks</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <AnimatedCheckmark size={14} className="text-success-text flex-shrink-0" />
+              <span>Demo users are preserved</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <AnimatedCheckmark size={14} className="text-success-text flex-shrink-0" />
+              <span>Tank configurations are preserved</span>
+            </li>
+          </ul>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => setShowResetConfirm(true)}
+            disabled={demoTanks.length === 0}
+            leftIcon={<Trash2 size={14} />}
+            className="flex-shrink-0"
+          >
+            Reset Demo Data
+          </Button>
+        </div>
+      </div>
+    );
+  }, [onTabFooter, demoTanks.length]);
+
   const toggleUserDemoStatus = async (userId: string, currentIsDemo: boolean) => {
     setUpdatingUserId(userId);
     try {
@@ -470,39 +500,6 @@ export function DemoManagementTab({ onDemoUpdate }: DemoManagementTabProps) {
             No demo tanks configured. Use the dropdown above to add tanks to demo mode.
           </div>
         )}
-      </div>
-
-      {/* Reset Demo Data Section */}
-      <div className="border-t border-border pt-4">
-        <div className="px-3 py-3 bg-muted border-l-4 border-l-danger-border rounded-lg shadow-sm">
-          <p className="text-sm font-medium text-danger-text mb-2">Reset Demo Data</p>
-          <div className="flex items-end justify-between gap-4">
-            <ul className="space-y-1 text-card-foreground text-sm">
-              <li className="flex items-center gap-2">
-                <AnimatedXMark size={14} className="text-danger-text flex-shrink-0" />
-                <span>Permanently deletes all tubes in demo tanks</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <AnimatedCheckmark size={14} className="text-success-text flex-shrink-0" />
-                <span>Demo users are preserved</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <AnimatedCheckmark size={14} className="text-success-text flex-shrink-0" />
-                <span>Tank configurations are preserved</span>
-              </li>
-            </ul>
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={() => setShowResetConfirm(true)}
-              disabled={demoTanks.length === 0}
-              leftIcon={<Trash2 size={14} />}
-              className="flex-shrink-0"
-            >
-              Reset Demo Data
-            </Button>
-          </div>
-        </div>
       </div>
 
       {/* Tank Demo Toggle Info Dialog */}

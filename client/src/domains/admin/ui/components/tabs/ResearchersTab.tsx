@@ -11,7 +11,7 @@
  * @module admin/ui/components/tabs
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
 import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Clock, Dna } from 'lucide-react';
@@ -33,8 +33,8 @@ import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
  * @interface ResearchersTabProps
  */
 export interface ResearchersTabProps {
-  /** Callback invoked when researcher list should be refreshed (after deletion, etc.) */
   onResearcherUpdate?: () => void;
+  onTabFooter?: (footer: React.ReactNode) => void;
 }
 
 /**
@@ -53,7 +53,7 @@ export interface ResearchersTabProps {
  * />
  * ```
  */
-export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
+export function ResearchersTab({ onResearcherUpdate, onTabFooter }: ResearchersTabProps) {
   const [researchers, setResearchers] = useState<AdminResearcher[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -71,9 +71,39 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
     void loadResearchers();
   }, []);
 
-  /**
-   * Fetch all researchers with metadata
-   */
+  useEffect(() => {
+    onTabFooter?.(
+      <div className="space-y-2">
+        <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
+          <span>Total Researchers:</span>
+          <span className="font-semibold text-secondary-foreground">{researchers.length}</span>
+          <span className="text-border">•</span>
+          <span>With Tubes:</span>
+          <span className="font-semibold text-secondary-foreground">
+            {researchers.filter(r => r.tubeCount > 0).length}
+          </span>
+          <span className="text-border">•</span>
+          <span>Linked to Users:</span>
+          <span className="font-semibold text-secondary-foreground">
+            {researchers.filter(r => r.linkedUserId).length}
+          </span>
+          {researchers.filter(r => r.approvalStatus === 'pending').length > 0 && (
+            <>
+              <span className="text-border">•</span>
+              <span>Pending Approval:</span>
+              <span className="font-semibold text-warning-text">
+                {researchers.filter(r => r.approvalStatus === 'pending').length}
+              </span>
+            </>
+          )}
+        </div>
+        <AlertBanner variant="info" spacing="none" className="text-xs">
+          Researchers can only be deleted with zero tubes and no linked user.
+        </AlertBanner>
+      </div>
+    );
+  }, [onTabFooter, researchers]);
+
   const loadResearchers = async () => {
     setLoading(true);
     try {
@@ -398,36 +428,6 @@ export function ResearchersTab({ onResearcherUpdate }: ResearchersTabProps) {
         loadingMessage="Loading researchers..."
         aria-label="Researchers list"
       />
-
-      {/* Statistics Summary */}
-      <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
-        <span>Total Researchers:</span>
-        <span className="font-semibold text-secondary-foreground">{researchers.length}</span>
-        <span className="text-border">•</span>
-        <span>With Tubes:</span>
-        <span className="font-semibold text-secondary-foreground">
-          {researchers.filter(r => r.tubeCount > 0).length}
-        </span>
-        <span className="text-border">•</span>
-        <span>Linked to Users:</span>
-        <span className="font-semibold text-secondary-foreground">
-          {researchers.filter(r => r.linkedUserId).length}
-        </span>
-        {researchers.filter(r => r.approvalStatus === 'pending').length > 0 && (
-          <>
-            <span className="text-border">•</span>
-            <span>Pending Approval:</span>
-            <span className="font-semibold text-warning-text">
-              {researchers.filter(r => r.approvalStatus === 'pending').length}
-            </span>
-          </>
-        )}
-      </div>
-
-      {/* Safe Deletion Notice - Footnote */}
-      <AlertBanner variant="info" spacing="none" className="text-xs">
-        Researchers can only be deleted with zero tubes and no linked user.
-      </AlertBanner>
 
       {/* Add Researcher Modal */}
       <ResearcherModal

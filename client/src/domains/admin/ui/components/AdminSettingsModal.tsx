@@ -1,4 +1,4 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 
 import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
 import {
@@ -57,6 +57,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const [isSaving, setSaving] = useState(false);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [systemStats, setSystemStats] = useState<SystemMetrics | null>(null);
+  const [tabFooter, setTabFooter] = useState<React.ReactNode>(null);
   const modalService = useModalStore();
 
   // Load current configuration and data
@@ -181,10 +182,18 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     }
   };
 
+  const handleTabFooter = useCallback((footer: React.ReactNode) => setTabFooter(footer), []);
+
   type TabId = 'security' | 'users' | 'researchers' | 'catalog' | 'system' | 'monitoring' | 'demo';
 
   const tabs = (
-    <Tabs value={activeTab} onChange={v => setActiveTab(v as TabId)}>
+    <Tabs
+      value={activeTab}
+      onChange={v => {
+        setActiveTab(v as TabId);
+        setTabFooter(null);
+      }}
+    >
       <Tab id="system" icon={<Gauge size={18} />}>
         System
       </Tab>
@@ -244,6 +253,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       tabs={tabs}
       tabOrientation="vertical"
       footer={footer}
+      tabFooter={tabFooter}
       className="h-[85vh]"
       onClose={handleClose}
     >
@@ -261,19 +271,24 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'researchers' && (
         <Suspense fallback={<TabSkeleton />}>
-          <ResearchersTab onResearcherUpdate={loadSystemStats} />
+          <ResearchersTab onResearcherUpdate={loadSystemStats} onTabFooter={handleTabFooter} />
         </Suspense>
       )}
 
       {activeTab === 'catalog' && (
         <Suspense fallback={<TabSkeleton />}>
-          <CatalogTab />
+          <CatalogTab onTabFooter={handleTabFooter} />
         </Suspense>
       )}
 
       {activeTab === 'system' && (
         <Suspense fallback={<TabSkeleton />}>
-          <SystemTab config={config} stats={systemStats} onChange={handleConfigChange} />
+          <SystemTab
+            config={config}
+            stats={systemStats}
+            onChange={handleConfigChange}
+            onTabFooter={handleTabFooter}
+          />
         </Suspense>
       )}
 
@@ -285,7 +300,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'demo' && (
         <Suspense fallback={<TabSkeleton />}>
-          <DemoManagementTab onDemoUpdate={loadUsers} />
+          <DemoManagementTab onDemoUpdate={loadUsers} onTabFooter={handleTabFooter} />
         </Suspense>
       )}
     </BaseModal>

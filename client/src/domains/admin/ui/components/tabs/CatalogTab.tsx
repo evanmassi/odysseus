@@ -4,7 +4,7 @@
  * Admin interface for managing lookup values (species, source dropdowns).
  */
 
-import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 import { Check, Pencil, Plus, RefreshCw, Trash2, X, BookOpen } from 'lucide-react';
@@ -268,7 +268,11 @@ function CategorySection({
   );
 }
 
-export function CatalogTab() {
+interface CatalogTabProps {
+  onTabFooter?: (footer: React.ReactNode) => void;
+}
+
+export function CatalogTab({ onTabFooter }: CatalogTabProps) {
   const queryClient = useQueryClient();
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
   const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
@@ -300,6 +304,15 @@ export function CatalogTab() {
   useEffect(() => {
     void loadValues();
   }, [loadValues]);
+
+  useEffect(() => {
+    onTabFooter?.(
+      <AlertBanner variant="info" spacing="none" className="text-xs">
+        Entries referenced by tubes cannot be deleted. Renaming an entry updates all tubes that use
+        it.
+      </AlertBanner>
+    );
+  }, [onTabFooter]);
 
   const handleAdd = async (category: LookupCategory, value: string) => {
     try {
@@ -372,11 +385,6 @@ export function CatalogTab() {
           Refresh
         </Button>
       </div>
-
-      <AlertBanner variant="info" spacing="none" className="text-xs">
-        Entries referenced by tubes cannot be deleted. Renaming an entry updates all tubes that use
-        it.
-      </AlertBanner>
 
       <div className="grid grid-cols-2 gap-6">
         <CategorySection
