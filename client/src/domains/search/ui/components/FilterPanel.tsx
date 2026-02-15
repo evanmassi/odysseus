@@ -23,7 +23,7 @@ import { useActiveResearchersQuery } from '@domains/researchers';
 import { useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { useTubes } from '@domains/tubes/hooks';
-import { Chip, Input, Tooltip } from '@shared/ui';
+import { Chip, DatePicker, Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { normalizeDateString } from '@shared/utils/dateUtils';
@@ -511,35 +511,27 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
         >
           <div className="space-y-3">
             <div>
-              <label
-                htmlFor="filter-date-from"
-                className="text-xs font-medium text-secondary-foreground mb-1 block"
-              >
+              <span className="text-xs font-medium text-secondary-foreground mb-1 block">
                 From:
-              </label>
-              <Input
-                type="date"
+              </span>
+              <DatePicker
                 value={filters.dateFrom ?? ''}
-                onChange={e => updateDateFilter('dateFrom', e.target.value)}
+                onChange={val => updateDateFilter('dateFrom', val)}
                 aria-label="Filter start date"
                 size="sm"
                 fullWidth
+                clearable
               />
             </div>
             <div>
-              <label
-                htmlFor="filter-date-to"
-                className="text-xs font-medium text-secondary-foreground mb-1 block"
-              >
-                To:
-              </label>
-              <Input
-                type="date"
+              <span className="text-xs font-medium text-secondary-foreground mb-1 block">To:</span>
+              <DatePicker
                 value={filters.dateTo ?? ''}
-                onChange={e => updateDateFilter('dateTo', e.target.value)}
+                onChange={val => updateDateFilter('dateTo', val)}
                 aria-label="Filter end date"
                 size="sm"
                 fullWidth
+                clearable
               />
             </div>
           </div>

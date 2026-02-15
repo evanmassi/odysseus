@@ -10,7 +10,7 @@ import React from 'react';
 import { type CreateTubeRequest } from '@odysseus/shared-schemas';
 import { Controller, get } from 'react-hook-form';
 
-import { Input, Select, Textarea } from '@shared/ui';
+import { DatePicker, Input, Select, Textarea } from '@shared/ui';
 
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -170,9 +170,6 @@ export const SelectField: React.FC<SelectFieldProps> = ({
   );
 };
 
-/**
- * Standard date input field with validation
- */
 export const DateField: React.FC<DateFieldProps> = ({
   form,
   name,
@@ -181,40 +178,28 @@ export const DateField: React.FC<DateFieldProps> = ({
   disabled = false,
 }) => {
   const error = get(form.formState.errors, name);
-  const registration = form.register(name);
 
   return (
     <div className="space-y-2">
-      <label htmlFor={name} className="block text-sm font-medium text-card-foreground">
+      <label className="block text-sm font-medium text-card-foreground">
         {label}
         {required && <span className="text-danger-bg ml-1">*</span>}
       </label>
-      <div className="relative">
-        <Input
-          ref={registration.ref}
-          name={registration.name}
-          onChange={registration.onChange}
-          onBlur={registration.onBlur}
-          id={name}
-          type="date"
-          disabled={disabled}
-          state={error ? 'error' : 'default'}
-          fullWidth
-        />
-        {error && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <div className="w-5 h-5 rounded-full bg-danger-bg flex items-center justify-center">
-              <span className="text-white text-xs font-bold">!</span>
-            </div>
-          </div>
+      <Controller
+        name={name}
+        control={form.control}
+        render={({ field }) => (
+          <DatePicker
+            value={String(field.value ?? '')}
+            onChange={val => field.onChange(val)}
+            disabled={disabled}
+            state={error ? 'error' : 'default'}
+            fullWidth
+            clearable
+          />
         )}
-      </div>
-      {error && (
-        <p className="text-sm text-danger-text flex items-center mt-1">
-          <span className="mr-1">⚠️</span>
-          {error.message}
-        </p>
-      )}
+      />
+      {error && <p className="text-sm text-danger-text flex items-center mt-1">{error.message}</p>}
     </div>
   );
 };

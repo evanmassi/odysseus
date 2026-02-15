@@ -13,7 +13,7 @@ import {
 import { AlertTriangle } from 'lucide-react';
 import { Controller, useWatch } from 'react-hook-form';
 
-import { Select, ValidatedInput } from '@shared/ui';
+import { DatePicker, Select, ValidatedInput } from '@shared/ui';
 
 import { ConcentrationInput } from '../../inputs/ConcentrationInput';
 
@@ -327,15 +327,40 @@ export const TubeForm = ({
           badge={getConflictBadge('sample.passageNumber')}
           hasConflict={hasConflict('sample.passageNumber')}
         />
-        <ValidatedInput
-          label="Date"
-          type="date"
-          registration={register('sample.date')}
-          error={Boolean(getFieldError('sample.date', errors))}
-          helperText={getFieldError('sample.date', errors)}
-          disabled={isLoading}
-          badge={getConflictBadge('sample.date')}
-          hasConflict={hasConflict('sample.date')}
+        <Controller
+          name="sample.date"
+          control={control}
+          render={({ field: { value, onChange } }) => {
+            const error = getFieldError('sample.date', errors);
+            const hasFieldConflict = hasConflict('sample.date');
+            return (
+              <div>
+                <label
+                  className={`block text-sm font-medium mb-1 ${
+                    error ? 'text-danger-text' : 'text-secondary-foreground'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    Date
+                    {getConflictBadge('sample.date')}
+                  </span>
+                </label>
+                <DatePicker
+                  value={(value as string) ?? ''}
+                  onChange={newValue => onChange(newValue)}
+                  disabled={isLoading}
+                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
+                  fullWidth
+                  clearable
+                />
+                {error && (
+                  <div className="flex items-center mt-1 text-xs text-danger-text">
+                    <span>{error}</span>
+                  </div>
+                )}
+              </div>
+            );
+          }}
         />
       </div>
 

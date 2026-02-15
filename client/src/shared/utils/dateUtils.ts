@@ -79,34 +79,27 @@ export function areDatesEqual(a: string | null | undefined, b: string | null | u
   return dateA === dateB;
 }
 
-/**
- * Format date string for display using locale-aware formatting
- *
- * @param dateString - YYYY-MM-DD format string
- * @param locale - Locale for formatting (default: 'en-US')
- * @param options - Intl.DateTimeFormat options
- * @returns Formatted date string for display
- */
-export function formatDateForDisplay(
-  dateString: string | Date | null | undefined,
-  locale: string = 'en-US',
-  options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'numeric', day: 'numeric' }
-): string {
+const MONTH_ABBR = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+export function formatDateForDisplay(dateString: string | Date | null | undefined): string {
   const normalized = normalizeDateString(dateString);
   if (!normalized) return '';
 
-  try {
-    // Parse YYYY-MM-DD components directly (no Date object conversion to avoid timezone issues)
-    const [year, month, day] = normalized.split('-').map(Number);
-
-    // Create date in UTC to prevent timezone shifting
-    const date = new Date(Date.UTC(year, month - 1, day));
-
-    return new Intl.DateTimeFormat(locale, { ...options, timeZone: 'UTC' }).format(date);
-  } catch (error) {
-    logger.error('Error formatting date for display', { error });
-    return normalized; // Fallback to raw string
-  }
+  const [year, month, day] = normalized.split('-').map(Number);
+  return `${day} ${MONTH_ABBR[month - 1]} ${year}`;
 }
 
 /**

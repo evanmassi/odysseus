@@ -10,6 +10,7 @@ import { AlertBanner } from './alert-banner/AlertBanner';
 import { Button } from './button/Button';
 import { Checkbox } from './checkbox/Checkbox';
 import { Chip } from './chip/Chip';
+import { DatePicker } from './date-picker/DatePicker';
 import { AuthInput } from './input/AuthInput';
 import { Input } from './input/Input';
 import { NumberInput } from './input/NumberInput';
@@ -50,6 +51,10 @@ export type {
   ChipBehavior,
   ChipRef,
 } from './chip/types';
+
+// DatePicker primitives
+export { DatePicker };
+export type { DatePickerProps, DatePickerSize, DatePickerState } from './date-picker/types';
 
 // Toggle primitives
 export { Toggle };
