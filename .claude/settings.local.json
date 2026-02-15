@@ -56,7 +56,8 @@
       "Bash(npx ts-node:*)",
       "WebFetch(domain:railway.com)",
       "WebFetch(domain:lucide.dev)",
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:daypicker.dev)"
     ]
   }
 }

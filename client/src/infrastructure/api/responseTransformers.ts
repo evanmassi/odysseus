@@ -57,6 +57,7 @@ const EXPLICIT_DATE_FIELDS: Record<string, Set<string>> = {
   SecurityConfigResponse: new Set([]), // Security config has no date fields
   AuditStatistics: new Set(['timestamp']), // Nested recentActivity items have timestamps
   AuditRetention: new Set(['nextArchivalDate']), // Retention metrics may have next archival date
+  LookupValue: new Set(['createdAt', 'updatedAt']),
   // Public endpoint responses
   SessionInfo: new Set([]), // Session info has no date fields in data
   UserLookup: new Set([]), // User lookup/list has no date fields
