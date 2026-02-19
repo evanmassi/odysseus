@@ -1,7 +1,6 @@
 import { Tube } from '@domain/entities/Tube';
 import { Location } from '@domain/valueObjects/Location';
 import { SampleData } from '@domain/valueObjects/SampleData';
-import { Media } from '@domain/valueObjects/Media';
 
 /**
  * Database-to-Domain transformation utility
@@ -28,7 +27,9 @@ export interface TubeRow {
   date?: string;
   researcher_id?: string;
   created_by_name?: string;
-  media?: string;
+  media_type?: string;
+  media_supplements?: string;
+  media_selection?: string;
   culture_condition?: string;
   lot_number?: string;
   species?: string;
@@ -54,18 +55,10 @@ export interface TubeRow {
  */
 export class TubeMapper {
 
-  /**
-   * Convert Domain Entity to Database Row
-   */
   static toRow(tube: Tube): TubeRow {
     const location = tube.location;
     const sampleData = tube.sampleData;
 
-    // Serialize media object to JSON string at database boundary
-    const mediaData = sampleData.media;
-    const mediaJson = mediaData ? JSON.stringify(mediaData) : undefined;
-
-    // Serialize sharedWithUserIds array to JSON string
     const sharedWithUserIds = tube.sharedWithUserIds;
     const sharedJson = sharedWithUserIds.length > 0 ? JSON.stringify(sharedWithUserIds) : undefined;
 
@@ -83,7 +76,9 @@ export class TubeMapper {
       date: sampleData.date || undefined,
       researcher_id: tube.researcherId || undefined,
       created_by_name: tube.createdByName || undefined,
-      media: mediaJson,
+      media_type: sampleData.mediaType || undefined,
+      media_supplements: sampleData.mediaSupplements || undefined,
+      media_selection: sampleData.mediaSelection || undefined,
       culture_condition: sampleData.cultureCondition || undefined,
       lot_number: sampleData.lotNumber || undefined,
       species: sampleData.species || undefined,
@@ -102,11 +97,7 @@ export class TubeMapper {
     };
   }
 
-  /**
-   * Convert Database Row to Domain Entity
-   */
   static fromRow(row: TubeRow): Tube {
-    // Create Location value object
     const location = Location.create(
       row.tank_id,
       row.rack_id,
@@ -114,17 +105,9 @@ export class TubeMapper {
       row.position
     );
 
-    // Database-to-Domain Data Transformation Layer
-    // Converts database nulls to TypeScript undefined for proper domain validation
     const concentration = row.concentration ? parseFloat(row.concentration) : undefined;
     const concentrationUnit = nullToUndefined(row.concentration_unit);
-
-    // Ensure data consistency: if unit exists but no concentration, clear unit
     const validConcentrationUnit = (concentration !== undefined && concentrationUnit) ? concentrationUnit : undefined;
-
-    // Deserialize media from JSON string at database boundary
-    const mediaString = nullToUndefined(row.media);
-    const media = mediaString ? Media.fromJsonString(mediaString) : undefined;
 
     const sampleData = SampleData.create({
       cellType: nullToUndefined(row.cell_type),
@@ -134,7 +117,9 @@ export class TubeMapper {
       concentration,
       concentrationUnit: validConcentrationUnit,
       date: nullToUndefined(row.date),
-      media: media?.toData(),
+      mediaType: nullToUndefined(row.media_type),
+      mediaSupplements: nullToUndefined(row.media_supplements),
+      mediaSelection: nullToUndefined(row.media_selection),
       cultureCondition: nullToUndefined(row.culture_condition),
       lotNumber: nullToUndefined(row.lot_number),
       source: nullToUndefined(row.source),
@@ -143,13 +128,11 @@ export class TubeMapper {
       notes: nullToUndefined(row.notes)
     });
 
-    // Parse sharedWithUserIds JSON array
     const sharedWithUserIdsJson = nullToUndefined(row.shared_with_user_ids);
     const sharedWithUserIds: string[] = sharedWithUserIdsJson
       ? JSON.parse(sharedWithUserIdsJson)
       : [];
 
-    // Handle date conversion from database
     const createdAt = row.created_at instanceof Date
       ? row.created_at.toISOString()
       : row.created_at;
@@ -160,7 +143,6 @@ export class TubeMapper {
       ? (row.locked_at instanceof Date ? row.locked_at.toISOString() : row.locked_at)
       : undefined;
 
-    // Reconstruct Tube entity with nested structure
     return Tube.fromData({
       id: row.id,
       location: {
@@ -177,7 +159,9 @@ export class TubeMapper {
         concentration: concentration,
         concentrationUnit: validConcentrationUnit,
         date: nullToUndefined(row.date),
-        media: media?.toData(),
+        mediaType: nullToUndefined(row.media_type),
+        mediaSupplements: nullToUndefined(row.media_supplements),
+        mediaSelection: nullToUndefined(row.media_selection),
         cultureCondition: nullToUndefined(row.culture_condition),
         lotNumber: nullToUndefined(row.lot_number),
         source: nullToUndefined(row.source),
@@ -200,16 +184,10 @@ export class TubeMapper {
     });
   }
 
-  /**
-   * Convert multiple rows to entities
-   */
   static fromRows(rows: TubeRow[]): Tube[] {
     return rows.map(row => this.fromRow(row));
   }
 
-  /**
-   * Convert multiple entities to rows
-   */
   static toRows(tubes: Tube[]): TubeRow[] {
     return tubes.map(tube => this.toRow(tube));
   }

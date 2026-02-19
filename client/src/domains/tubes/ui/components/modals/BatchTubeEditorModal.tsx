@@ -49,7 +49,6 @@ export interface BatchTubeEditorModalProps {
   onClose: () => void;
 }
 
-/** Media fields use dot-notation keys and require bracket notation: analysis['media.type'] */
 interface BatchEditConflictAnalysis {
   cellType: FieldConflictAnalysis<string>;
   donorInternalId: FieldConflictAnalysis<string>;
@@ -57,9 +56,9 @@ interface BatchEditConflictAnalysis {
   concentration: FieldConflictAnalysis<number>;
   concentrationUnit: FieldConflictAnalysis<string>;
   date: FieldConflictAnalysis<string>;
-  'media.type': FieldConflictAnalysis<string>;
-  'media.supplements': FieldConflictAnalysis<string>;
-  'media.selection': FieldConflictAnalysis<string>;
+  mediaType: FieldConflictAnalysis<string>;
+  mediaSupplements: FieldConflictAnalysis<string>;
+  mediaSelection: FieldConflictAnalysis<string>;
   cultureCondition: FieldConflictAnalysis<string>;
   lotNumber: FieldConflictAnalysis<string>;
   species: FieldConflictAnalysis<string>;
@@ -117,7 +116,7 @@ function pickDirtyFields(
   return result;
 }
 
-export default function BatchTubeEditorModal({
+export function BatchTubeEditorModal({
   isOpen = true,
   tubeIds,
   onClose,
@@ -125,6 +124,7 @@ export default function BatchTubeEditorModal({
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
+  const { data: mediaValues = [] } = useLookupValuesQuery('media');
   const { analyzeFieldConflicts } = useFieldResolverQuery();
 
   const speciesOptions = useMemo(
@@ -134,6 +134,10 @@ export default function BatchTubeEditorModal({
   const sourceOptions = useMemo(
     () => sourceValues.map(v => ({ value: v.value, label: v.value })),
     [sourceValues]
+  );
+  const mediaOptions = useMemo(
+    () => mediaValues.map(v => ({ value: v.value, label: v.value })),
+    [mediaValues]
   );
 
   // Fetch specific tubes by ID - ensures fresh data regardless of cache state
@@ -149,9 +153,9 @@ export default function BatchTubeEditorModal({
       concentration: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.concentration),
       concentrationUnit: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.concentrationUnit),
       date: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.date),
-      'media.type': analyzeFieldConflicts(tubes, 'sample.media.type'),
-      'media.supplements': analyzeFieldConflicts(tubes, 'sample.media.supplements'),
-      'media.selection': analyzeFieldConflicts(tubes, 'sample.media.selection'),
+      mediaType: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.mediaType),
+      mediaSupplements: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.mediaSupplements),
+      mediaSelection: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.mediaSelection),
       cultureCondition: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.cultureCondition),
       lotNumber: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.lotNumber),
       species: analyzeFieldConflicts(tubes, TUBE_FIELD_PATHS.species),
@@ -217,20 +221,16 @@ export default function BatchTubeEditorModal({
               ? formatDateForInput(analysis.date.commonValue)
               : ''
             : '',
-        media: {
-          type:
-            analysis['media.type'].state !== 'conflict'
-              ? (analysis['media.type'].commonValue ?? '')
-              : '',
-          supplements:
-            analysis['media.supplements'].state !== 'conflict'
-              ? (analysis['media.supplements'].commonValue ?? '')
-              : '',
-          selection:
-            analysis['media.selection'].state !== 'conflict'
-              ? (analysis['media.selection'].commonValue ?? '')
-              : '',
-        },
+        mediaType:
+          analysis.mediaType.state !== 'conflict' ? (analysis.mediaType.commonValue ?? '') : '',
+        mediaSupplements:
+          analysis.mediaSupplements.state !== 'conflict'
+            ? (analysis.mediaSupplements.commonValue ?? '')
+            : '',
+        mediaSelection:
+          analysis.mediaSelection.state !== 'conflict'
+            ? (analysis.mediaSelection.commonValue ?? '')
+            : '',
         cultureCondition:
           analysis.cultureCondition.state !== 'conflict'
             ? (analysis.cultureCondition.commonValue ?? '')
@@ -459,17 +459,12 @@ export default function BatchTubeEditorModal({
   const boxId = tubes[0]?.location.boxId || '';
 
   // Only show validation errors for fields the user has touched
-  const RELATED_FIELDS: Record<string, string[]> = {
-    concentration: ['concentrationUnit'],
-    concentrationUnit: ['concentration'],
-  };
-
   const isRelatedFieldDirty = (
     fieldKey: string,
     parentDirtyNode: Record<string, unknown> | null | undefined
   ): boolean => {
     if (!parentDirtyNode) return false;
-    const relatedFields = RELATED_FIELDS[fieldKey] || [];
+    const relatedFields = COUPLED_FIELDS[fieldKey] || [];
     return relatedFields.some(relatedKey => parentDirtyNode?.[relatedKey] === true);
   };
 
@@ -586,6 +581,7 @@ export default function BatchTubeEditorModal({
             researchers={researchers}
             speciesOptions={speciesOptions}
             sourceOptions={sourceOptions}
+            mediaOptions={mediaOptions}
             isLoading={isSubmitting}
             conflictingFields={conflicts}
           />
@@ -684,5 +680,3 @@ export default function BatchTubeEditorModal({
     </>
   );
 }
-
-export { BatchTubeEditorModal };

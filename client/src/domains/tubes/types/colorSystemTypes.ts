@@ -78,8 +78,7 @@ export interface ColorSystemTubeData {
 
 // Adapter function for tube data
 export const adaptTubeDataForColorSystem = (tubeData: TubeData): ColorSystemTubeData => {
-  // Handle media object -> string conversion
-  const mediaString = tubeData.sample?.media?.type;
+  const mediaString = tubeData.sample?.mediaType;
 
   // Handle Date -> string conversion
   const dateString = tubeData.sample?.date

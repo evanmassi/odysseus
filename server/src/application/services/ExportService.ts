@@ -125,7 +125,7 @@ export class ExportService {
       concentration: tube.sample.concentration?.toString() ?? '',
       concentrationUnit: tube.sample.concentrationUnit ?? '',
       date: tube.sample.date ?? '',
-      media: tube.sample.media?.type ?? '',
+      media: tube.sample.mediaType ?? '',
       cultureCondition: tube.sample.cultureCondition ?? '',
       lotNumber: tube.sample.lotNumber ?? '',
       notes: tube.sample.notes ?? '',

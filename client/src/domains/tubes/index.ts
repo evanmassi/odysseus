@@ -18,7 +18,6 @@ export type {
   TubeLocation,
   TubeSample,
   TubeTimestamps,
-  TubeMedia,
   CreateTubeRequest,
   UpdateTubeRequest,
 } from './types';

@@ -1,5 +1,4 @@
 import { ValidationError } from '@domain/errors/ValidationError';
-import { Media, MediaData } from '@domain/valueObjects/Media';
 
 /**
  * SampleData Value Object - Encapsulates all sample-related validation and logic
@@ -15,7 +14,9 @@ export class SampleData {
     private readonly _concentration?: number,
     private readonly _concentrationUnit?: 'c/v' | 'c/mL',
     private readonly _date?: string,
-    private readonly _media?: Media,
+    private readonly _mediaType?: string,
+    private readonly _mediaSupplements?: string,
+    private readonly _mediaSelection?: string,
     private readonly _cultureCondition?: string,
     private readonly _lotNumber?: string,
     private readonly _source?: string,
@@ -26,9 +27,6 @@ export class SampleData {
     this.validate();
   }
 
-  /**
-   * Factory method to create SampleData with validation
-   */
   static create(data: {
     cellType?: string;
     species?: string;
@@ -37,7 +35,9 @@ export class SampleData {
     concentration?: number;
     concentrationUnit?: 'c/v' | 'c/mL';
     date?: string;
-    media?: MediaData | string;
+    mediaType?: string;
+    mediaSupplements?: string;
+    mediaSelection?: string;
     cultureCondition?: string;
     lotNumber?: string;
     source?: string;
@@ -53,7 +53,9 @@ export class SampleData {
       data.concentration,
       data.concentrationUnit,
       data.date,
-      data.media ? Media.create(data.media) : undefined,
+      data.mediaType,
+      data.mediaSupplements,
+      data.mediaSelection,
       data.cultureCondition,
       data.lotNumber,
       data.source,
@@ -174,6 +176,9 @@ export class SampleData {
     const stringFields = [
       { name: 'species', value: this._species, maxLength: 200 },
       { name: 'source', value: this._source, maxLength: 200 },
+      { name: 'media type', value: this._mediaType, maxLength: 200 },
+      { name: 'media supplements', value: this._mediaSupplements, maxLength: 300 },
+      { name: 'media selection', value: this._mediaSelection, maxLength: 200 },
       { name: 'catalog number', value: this._catalogNumber, maxLength: 200 },
       { name: 'culture condition', value: this._cultureCondition, maxLength: 300 },
       { name: 'lot number', value: this._lotNumber, maxLength: 100 },
@@ -194,13 +199,10 @@ export class SampleData {
 
   /**
    * Update sample data with new values (returns new instance - immutable)
-   * Implements PATCH tri-state semantics with deep-merge for nested objects:
+   * Implements PATCH tri-state semantics:
    * - Field omitted (undefined): preserve existing value
-   * - Field with value: update to that value (merge if nested object)
+   * - Field with value: update to that value
    * - Field with null: clear (convert to undefined)
-   *
-   * Nested objects (media) are deep-merged, not replaced
-   * Example: { media: { type: 'RPMI' } } preserves supplements & selection
    */
   update(updates: Partial<{
     cellType?: string;
@@ -210,7 +212,9 @@ export class SampleData {
     concentration?: number | null;
     concentrationUnit?: 'c/v' | 'c/mL' | null;
     date?: string | null;
-    media?: MediaData | string | null;
+    mediaType?: string | null;
+    mediaSupplements?: string | null;
+    mediaSelection?: string | null;
     cultureCondition?: string | null;
     lotNumber?: string | null;
     source?: string | null;
@@ -218,8 +222,6 @@ export class SampleData {
     passageNumber?: number | null;
     notes?: string | null;
   }>): SampleData {
-    // Compute new concentration values with PATCH semantics
-    // null = clear, undefined = preserve, value = set
     let newConcentration = updates.concentration === null
       ? undefined
       : (updates.concentration !== undefined ? updates.concentration : this._concentration);
@@ -228,7 +230,6 @@ export class SampleData {
       : (updates.concentrationUnit !== undefined ? updates.concentrationUnit : this._concentrationUnit);
 
     // Business rule: concentration and unit are coupled - clearing one clears both
-    // This ensures the invariant "both present or both absent" is maintained
     if (updates.concentration === null || updates.concentrationUnit === null) {
       newConcentration = undefined;
       newConcentrationUnit = undefined;
@@ -242,13 +243,9 @@ export class SampleData {
       concentration: newConcentration,
       concentrationUnit: newConcentrationUnit,
       date: updates.date === null ? undefined : (updates.date !== undefined ? updates.date : this._date),
-      media: updates.media === null
-        ? undefined
-        : updates.media !== undefined
-          ? (this._media
-              ? this._media.update(updates.media as MediaData).toData()
-              : updates.media)
-          : this._media?.toData(),
+      mediaType: updates.mediaType === null ? undefined : (updates.mediaType !== undefined ? updates.mediaType : this._mediaType),
+      mediaSupplements: updates.mediaSupplements === null ? undefined : (updates.mediaSupplements !== undefined ? updates.mediaSupplements : this._mediaSupplements),
+      mediaSelection: updates.mediaSelection === null ? undefined : (updates.mediaSelection !== undefined ? updates.mediaSelection : this._mediaSelection),
       cultureCondition: updates.cultureCondition === null ? undefined : (updates.cultureCondition !== undefined ? updates.cultureCondition : this._cultureCondition),
       lotNumber: updates.lotNumber === null ? undefined : (updates.lotNumber !== undefined ? updates.lotNumber : this._lotNumber),
       source: updates.source === null ? undefined : (updates.source !== undefined ? updates.source : this._source),
@@ -297,7 +294,9 @@ export class SampleData {
     concentration?: number;
     concentrationUnit?: 'c/v' | 'c/mL';
     date?: string;
-    media?: MediaData;
+    mediaType?: string;
+    mediaSupplements?: string;
+    mediaSelection?: string;
     cultureCondition?: string;
     lotNumber?: string;
     source?: string;
@@ -313,7 +312,9 @@ export class SampleData {
       concentration: this._concentration,
       concentrationUnit: this._concentrationUnit,
       date: this._date,
-      media: this._media?.toData(),
+      mediaType: this._mediaType,
+      mediaSupplements: this._mediaSupplements,
+      mediaSelection: this._mediaSelection,
       cultureCondition: this._cultureCondition,
       lotNumber: this._lotNumber,
       source: this._source,
@@ -330,7 +331,9 @@ export class SampleData {
   get concentration(): number | undefined { return this._concentration; }
   get concentrationUnit(): 'c/v' | 'c/mL' | undefined { return this._concentrationUnit; }
   get date(): string | undefined { return this._date; }
-  get media(): MediaData | undefined { return this._media?.toData(); }
+  get mediaType(): string | undefined { return this._mediaType; }
+  get mediaSupplements(): string | undefined { return this._mediaSupplements; }
+  get mediaSelection(): string | undefined { return this._mediaSelection; }
   get cultureCondition(): string | undefined { return this._cultureCondition; }
   get lotNumber(): string | undefined { return this._lotNumber; }
   get source(): string | undefined { return this._source; }

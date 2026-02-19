@@ -4,7 +4,6 @@ import { Researcher } from '@domain/entities/Researcher';
 import { Configuration } from '@domain/entities/Configuration';
 import { Location } from '@domain/valueObjects/Location';
 import { SampleData } from '@domain/valueObjects/SampleData';
-import { MediaData } from '@domain/valueObjects/Media';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
@@ -85,7 +84,9 @@ export class ValidationService {
         concentration: tubeData.sample.concentration,
         concentrationUnit: tubeData.sample.concentrationUnit,
         date: tubeData.sample.date,
-        media: tubeData.sample.media,
+        mediaType: tubeData.sample.mediaType,
+        mediaSupplements: tubeData.sample.mediaSupplements,
+        mediaSelection: tubeData.sample.mediaSelection,
         cultureCondition: tubeData.sample.cultureCondition,
         lotNumber: tubeData.sample.lotNumber,
         notes: tubeData.sample.notes
@@ -169,7 +170,9 @@ export class ValidationService {
           concentration: newSampleData.concentration,
           concentrationUnit: newSampleData.concentrationUnit,
           date: newSampleData.date,
-          media: newSampleData.media,
+          mediaType: newSampleData.mediaType,
+          mediaSupplements: newSampleData.mediaSupplements,
+          mediaSelection: newSampleData.mediaSelection,
           cultureCondition: newSampleData.cultureCondition,
           lotNumber: newSampleData.lotNumber,
           notes: newSampleData.notes
@@ -436,7 +439,9 @@ export class ValidationService {
             updates.sample.concentration !== undefined ||
             updates.sample.concentrationUnit !== undefined ||
             updates.sample.date !== undefined ||
-            updates.sample.media !== undefined ||
+            updates.sample.mediaType !== undefined ||
+            updates.sample.mediaSupplements !== undefined ||
+            updates.sample.mediaSelection !== undefined ||
             updates.sample.cultureCondition !== undefined ||
             updates.sample.lotNumber !== undefined ||
             updates.sample.notes !== undefined);

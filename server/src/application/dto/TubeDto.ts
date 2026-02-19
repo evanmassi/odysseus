@@ -1,5 +1,4 @@
 import { Tube } from '@domain/entities/Tube';
-import { MediaData } from '@domain/valueObjects/Media';
 
 /**
  * Thin DTOs
@@ -93,10 +92,9 @@ export class TubeDto {
 
   /**
    * Convert create request to data structure for Tube.create()
-   *Direct mapping - no transformation
+   * Direct mapping - no transformation
    * - Concentration already number (Zod preprocessed)
    * - Researcher will get default in domain
-   * - Media is already object
    */
   static fromCreateRequest(request: CreateTubeRequest): {
     location: { tankId: string; rackId: string; boxId: string; position: number };
@@ -107,7 +105,9 @@ export class TubeDto {
       concentration?: number;
       concentrationUnit?: 'c/v' | 'c/mL';
       date?: string;
-      media?: MediaData;
+      mediaType?: string;
+      mediaSupplements?: string;
+      mediaSelection?: string;
       cultureCondition?: string;
       lotNumber?: string;
       species?: string;
@@ -118,17 +118,18 @@ export class TubeDto {
     };
     researcherId?: string;
   } {
-    //Pure structure mapping, no logic
     return {
       location: request.location,
       sample: {
         cellType: request.sample.cellType,
         donorInternalId: request.sample.donorInternalId,
         donorSourceId: request.sample.donorSourceId,
-        concentration: request.sample.concentration, // Already number from Zod
+        concentration: request.sample.concentration,
         concentrationUnit: request.sample.concentrationUnit,
         date: request.sample.date,
-        media: request.sample.media, // Already object from Zod
+        mediaType: request.sample.mediaType,
+        mediaSupplements: request.sample.mediaSupplements,
+        mediaSelection: request.sample.mediaSelection,
         cultureCondition: request.sample.cultureCondition,
         lotNumber: request.sample.lotNumber,
         species: request.sample.species,
@@ -157,7 +158,9 @@ export class TubeDto {
       concentration?: number | null;
       concentrationUnit?: 'c/v' | 'c/mL' | null;
       date?: string | null;
-      media?: MediaData | null;
+      mediaType?: string | null;
+      mediaSupplements?: string | null;
+      mediaSelection?: string | null;
       cultureCondition?: string | null;
       lotNumber?: string | null;
       species?: string | null;
@@ -177,7 +180,9 @@ export class TubeDto {
         concentration?: number | null;
         concentrationUnit?: 'c/v' | 'c/mL' | null;
         date?: string | null;
-        media?: MediaData | null;
+        mediaType?: string | null;
+        mediaSupplements?: string | null;
+        mediaSelection?: string | null;
         cultureCondition?: string | null;
         lotNumber?: string | null;
         species?: string | null;
@@ -189,7 +194,6 @@ export class TubeDto {
       researcherId?: string | null;
     } = {};
 
-    //Direct passthrough - Zod already validated and parsed
     if (request.location) {
       result.location = request.location;
     }
@@ -197,14 +201,15 @@ export class TubeDto {
     if (request.sample) {
       result.sample = {};
 
-      // Direct mapping - no parsing needed
       if (request.sample.cellType !== undefined) result.sample.cellType = request.sample.cellType;
       if (request.sample.donorInternalId !== undefined) result.sample.donorInternalId = request.sample.donorInternalId;
       if (request.sample.donorSourceId !== undefined) result.sample.donorSourceId = request.sample.donorSourceId;
-      if (request.sample.concentration !== undefined) result.sample.concentration = request.sample.concentration; // Already number
+      if (request.sample.concentration !== undefined) result.sample.concentration = request.sample.concentration;
       if (request.sample.concentrationUnit !== undefined) result.sample.concentrationUnit = request.sample.concentrationUnit;
       if (request.sample.date !== undefined) result.sample.date = request.sample.date;
-      if (request.sample.media !== undefined) result.sample.media = request.sample.media; // Already object
+      if (request.sample.mediaType !== undefined) result.sample.mediaType = request.sample.mediaType;
+      if (request.sample.mediaSupplements !== undefined) result.sample.mediaSupplements = request.sample.mediaSupplements;
+      if (request.sample.mediaSelection !== undefined) result.sample.mediaSelection = request.sample.mediaSelection;
       if (request.sample.cultureCondition !== undefined) result.sample.cultureCondition = request.sample.cultureCondition;
       if (request.sample.lotNumber !== undefined) result.sample.lotNumber = request.sample.lotNumber;
       if (request.sample.species !== undefined) result.sample.species = request.sample.species;

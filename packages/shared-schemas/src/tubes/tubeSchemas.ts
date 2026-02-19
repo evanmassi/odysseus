@@ -3,7 +3,7 @@
  * Provides runtime validation and TypeScript type generation
  *
  * Architecture:
- * - Domain schemas (tubeSampleSchema, tubeMediaSchema): Strict types, no preprocessing
+ * - Domain schemas (tubeSampleSchema): Strict types, no preprocessing
  * - Request schemas (createTubeRequestSchema, updateTubeRequestSchema): Preprocessing for HTML forms
  * - Validation utilities in tubeValidation.ts provide centralized parsing
  */
@@ -48,16 +48,6 @@ export const tubeLocationSchema = z.object({
 export const concentrationUnitSchema = z.enum(CONCENTRATION_UNITS);
 
 /**
- * Tube media data schema
- * Domain schema - strict types, no preprocessing
- */
-export const tubeMediaSchema = z.object({
-  type: z.string().optional(),
-  supplements: z.string().optional(),
-  selection: z.string().optional()
-});
-
-/**
  * Tube sample data schema
  * Domain schema with strict types used for API responses and domain entities.
  * No preprocessing - maintains type precision.
@@ -72,9 +62,11 @@ export const tubeSampleSchema = z.object({
   date: z.union([
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be YYYY-MM-DD format'),
     z.string().datetime('Invalid date format'),
-    z.date() // Accept Date objects from server responses
+    z.date()
   ]).optional(),
-  media: tubeMediaSchema.optional(),
+  mediaType: z.string().optional(),
+  mediaSupplements: z.string().optional(),
+  mediaSelection: z.string().optional(),
   cultureCondition: z.string().optional(),
   lotNumber: z.string().optional(),
   source: z.string().optional(),
@@ -140,7 +132,9 @@ export const createTubeRequestSampleSchema = concentrationUnitRefinement(
     concentration: concentrationPreprocessor,
     concentrationUnit: optionalFromEmpty(concentrationUnitSchema),
     date: datePreprocessor,
-    media: tubeMediaSchema.optional(),
+    mediaType: optionalFromEmpty(z.string()),
+    mediaSupplements: optionalFromEmpty(z.string()),
+    mediaSelection: optionalFromEmpty(z.string()),
     cultureCondition: optionalFromEmpty(z.string()),
     lotNumber: optionalFromEmpty(z.string()),
     source: optionalFromEmpty(z.string()),
@@ -198,7 +192,9 @@ export const tubeUpdateSampleSchema = concentrationUnitRefinement(
     concentration: concentrationPreprocessorNullable,
     concentrationUnit: nullableOptionalFromEmpty(concentrationUnitSchema),
     date: datePreprocessorNullable,
-    media: tubeMediaSchema.nullable().optional(),
+    mediaType: nullableOptionalFromEmpty(z.string()),
+    mediaSupplements: nullableOptionalFromEmpty(z.string()),
+    mediaSelection: nullableOptionalFromEmpty(z.string()),
     cultureCondition: nullableOptionalFromEmpty(z.string()),
     lotNumber: nullableOptionalFromEmpty(z.string()),
     source: nullableOptionalFromEmpty(z.string()),
@@ -306,7 +302,6 @@ export type TubeData = z.infer<typeof tubeDataSchema>;
 export type TubeLocation = z.infer<typeof tubeLocationSchema>;
 export type TubeSample = z.infer<typeof tubeSampleSchema>;
 export type TubeUpdateSample = z.infer<typeof tubeUpdateSampleSchema>;
-export type TubeMedia = z.infer<typeof tubeMediaSchema>;
 export type TubeTimestamps = z.infer<typeof tubeTimestampsSchema>;
 export type TubeQueryFilters = z.infer<typeof tubeQueryFiltersSchema>;
 export type TubeValidationResult = z.infer<typeof tubeValidationResultSchema>;

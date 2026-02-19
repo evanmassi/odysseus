@@ -6,7 +6,7 @@
 
 import { z } from 'zod';
 
-export const LOOKUP_CATEGORIES = ['species', 'source'] as const;
+export const LOOKUP_CATEGORIES = ['species', 'source', 'media'] as const;
 export type LookupCategory = typeof LOOKUP_CATEGORIES[number];
 
 export const lookupValueSchema = z.object({

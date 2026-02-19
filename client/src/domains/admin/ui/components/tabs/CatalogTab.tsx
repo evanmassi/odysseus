@@ -218,35 +218,34 @@ function CategorySection({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
         <h4 className="text-sm font-semibold text-card-foreground capitalize">{title}</h4>
-        <span className="text-xs text-muted-foreground">
-          {values.length} {category === 'species' ? 'species' : 'sources'}
-        </span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <Input
-          type="text"
-          value={newValue}
-          onChange={e => setNewValue(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter') void handleAdd();
-          }}
-          placeholder={`Add new ${category}...`}
-          size="sm"
-          fullWidth
-        />
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => void handleAdd()}
-          disabled={!newValue.trim() || adding}
-          isLoading={adding}
-          leftIcon={<Plus size={14} />}
-        >
-          Add
-        </Button>
+        <div className="flex items-center gap-2 ml-auto">
+          <Chip size="sm" color="info">
+            {values.length}{' '}
+            {category === 'species' ? 'species' : category === 'source' ? 'sources' : 'media types'}
+          </Chip>
+          <Input
+            type="text"
+            value={newValue}
+            onChange={e => setNewValue(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') void handleAdd();
+            }}
+            placeholder={`Add new ${category}...`}
+            size="sm"
+          />
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => void handleAdd()}
+            disabled={!newValue.trim() || adding}
+            isLoading={adding}
+            leftIcon={<Plus size={14} />}
+          >
+            Add
+          </Button>
+        </div>
       </div>
 
       <Table
@@ -260,8 +259,9 @@ function CategorySection({
         sortConfig={sortConfig}
         onSort={setSortConfig}
         loading={loading}
-        emptyMessage={`No ${category === 'species' ? 'species' : 'sources'} yet`}
-        loadingMessage={`Loading ${category === 'species' ? 'species' : 'sources'}...`}
+        className="w-auto"
+        emptyMessage={`No ${category === 'species' ? 'species' : category === 'source' ? 'sources' : 'media types'} yet`}
+        loadingMessage={`Loading ${category === 'species' ? 'species' : category === 'source' ? 'sources' : 'media types'}...`}
         aria-label={`${title} list`}
       />
     </div>
@@ -276,6 +276,7 @@ export function CatalogTab({ onTabFooter }: CatalogTabProps) {
   const queryClient = useQueryClient();
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
   const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
+  const [mediaValues, setMediaValues] = useState<LookupValueWithCount[]>([]);
   const [loading, setLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -287,12 +288,14 @@ export function CatalogTab({ onTabFooter }: CatalogTabProps) {
   const loadValues = useCallback(async () => {
     setLoading(true);
     try {
-      const [species, sources] = await Promise.all([
+      const [species, sources, media] = await Promise.all([
         adminService.getLookupValues('species'),
         adminService.getLookupValues('source'),
+        adminService.getLookupValues('media'),
       ]);
       setSpeciesValues(species);
       setSourceValues(sources);
+      setMediaValues(media);
     } catch (error) {
       logger.error('Failed to load lookup values', { error });
       notifications.error('Failed to load catalog values');
@@ -386,7 +389,7 @@ export function CatalogTab({ onTabFooter }: CatalogTabProps) {
         </Button>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
+      <div className="space-y-6">
         <CategorySection
           category="species"
           title="Species"
@@ -408,13 +411,24 @@ export function CatalogTab({ onTabFooter }: CatalogTabProps) {
           onDelete={(id, value) => handleDeleteRequest('source', id, value)}
           deletingId={deletingId}
         />
+
+        <CategorySection
+          category="media"
+          title="Media Types"
+          values={mediaValues}
+          loading={loading}
+          onAdd={value => handleAdd('media', value)}
+          onRename={(id, newValue) => handleRename('media', id, newValue)}
+          onDelete={(id, value) => handleDeleteRequest('media', id, value)}
+          deletingId={deletingId}
+        />
       </div>
 
       {confirmDialog && (
         <ConfirmDialog
           isOpen={true}
           variant="danger"
-          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : 'Source'}`}
+          title={`Delete ${confirmDialog.category === 'species' ? 'Species' : confirmDialog.category === 'source' ? 'Source' : 'Media Type'}`}
           message={`Are you sure you want to delete "${confirmDialog.value}" from ${confirmDialog.category}? This action cannot be undone.`}
           confirmText="Delete"
           onConfirm={() => void executeDelete()}

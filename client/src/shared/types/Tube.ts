@@ -11,7 +11,6 @@ export type {
   TubeLocation,
   TubeSample,
   TubeUpdateSample,
-  TubeMedia,
   TubeTimestamps,
   CreateTubeRequest,
   UpdateTubeRequest,

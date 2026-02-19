@@ -122,7 +122,9 @@ CREATE TABLE IF NOT EXISTS tubes (
   date TEXT,
   researcher_id TEXT REFERENCES researchers(id) ON DELETE SET NULL,
   created_by_name TEXT,
-  media TEXT,
+  media_type TEXT,
+  media_supplements TEXT,
+  media_selection TEXT,
   culture_condition TEXT,
   lot_number TEXT,
   notes TEXT,
@@ -164,6 +166,7 @@ BEGIN
     setweight(to_tsvector('english', COALESCE(NEW.donor_source_id, '')), 'B') ||
     setweight(to_tsvector('english', COALESCE(NEW.lot_number, '')), 'B') ||
     setweight(to_tsvector('english', COALESCE(NEW.source, '')), 'B') ||
+    setweight(to_tsvector('english', COALESCE(NEW.media_type, '')), 'B') ||
     setweight(to_tsvector('english', COALESCE(NEW.notes, '')), 'C') ||
     setweight(to_tsvector('english', COALESCE(NEW.culture_condition, '')), 'C') ||
     setweight(to_tsvector('english', COALESCE(NEW.created_by_name, '')), 'C');
@@ -179,7 +182,7 @@ CREATE TRIGGER tubes_search_vector_trigger
 -- LOOKUP VALUES TABLE (admin-managed dropdown options)
 CREATE TABLE IF NOT EXISTS lookup_values (
   id TEXT PRIMARY KEY,
-  category TEXT NOT NULL CHECK (category IN ('species', 'source')),
+  category TEXT NOT NULL CHECK (category IN ('species', 'source', 'media')),
   value TEXT NOT NULL,
   sort_order INTEGER DEFAULT 0,
   is_active BOOLEAN DEFAULT TRUE,

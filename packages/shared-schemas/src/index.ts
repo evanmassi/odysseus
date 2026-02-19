@@ -11,7 +11,6 @@ export {
 
   // Domain Schemas
   tubeLocationSchema,
-  tubeMediaSchema,
   tubeSampleSchema,
   tubeTimestampsSchema,
   tubeDataSchema,
@@ -29,7 +28,6 @@ export {
   type TubeLocation,
   type TubeSample,
   type TubeUpdateSample,
-  type TubeMedia,
   type TubeTimestamps,
   type CreateTubeRequest,
   type UpdateTubeRequest,

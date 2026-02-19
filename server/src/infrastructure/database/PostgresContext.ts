@@ -139,7 +139,9 @@ export class PostgresContext {
         date TEXT,
         researcher_id TEXT,
         created_by_name TEXT,
-        media TEXT,
+        media_type TEXT,
+        media_supplements TEXT,
+        media_selection TEXT,
         culture_condition TEXT,
         lot_number TEXT,
         notes TEXT,
@@ -211,7 +213,7 @@ export class PostgresContext {
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS lookup_values (
         id TEXT PRIMARY KEY,
-        category TEXT NOT NULL CHECK (category IN ('species', 'source')),
+        category TEXT NOT NULL CHECK (category IN ('species', 'source', 'media')),
         value TEXT NOT NULL,
         sort_order INTEGER DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
@@ -379,7 +381,7 @@ export class PostgresContext {
           EXECUTE 'ALTER TABLE lookup_values DROP CONSTRAINT ' || constraint_name;
           UPDATE lookup_values SET category = 'source' WHERE category = 'vendor';
           ALTER TABLE lookup_values ADD CONSTRAINT lookup_values_category_check
-            CHECK (category IN ('species', 'source'));
+            CHECK (category IN ('species', 'source', 'media'));
         END IF;
       END $$
     `);
@@ -411,6 +413,65 @@ export class PostgresContext {
           WHERE table_name = 'tubes' AND column_name = 'passage_number'
         ) THEN
           ALTER TABLE tubes ADD COLUMN passage_number INTEGER CHECK (passage_number >= 0 AND passage_number <= 999);
+        END IF;
+      END $$
+    `);
+
+    // Flatten media JSON column into media_type, media_supplements, media_selection
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'media'
+        ) THEN
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'tubes' AND column_name = 'media_type'
+          ) THEN
+            ALTER TABLE tubes ADD COLUMN media_type TEXT;
+            ALTER TABLE tubes ADD COLUMN media_supplements TEXT;
+            ALTER TABLE tubes ADD COLUMN media_selection TEXT;
+          END IF;
+
+          UPDATE tubes SET
+            media_type = media::jsonb->>'type',
+            media_supplements = media::jsonb->>'supplements',
+            media_selection = media::jsonb->>'selection'
+          WHERE media IS NOT NULL AND media_type IS NULL;
+
+          ALTER TABLE tubes DROP COLUMN media;
+        ELSE
+          IF NOT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'tubes' AND column_name = 'media_type'
+          ) THEN
+            ALTER TABLE tubes ADD COLUMN media_type TEXT;
+            ALTER TABLE tubes ADD COLUMN media_supplements TEXT;
+            ALTER TABLE tubes ADD COLUMN media_selection TEXT;
+          END IF;
+        END IF;
+      END $$
+    `);
+
+    // Update lookup_values category CHECK constraint to include 'media'
+    await this.pool.query(`
+      DO $$
+      DECLARE
+        constraint_name TEXT;
+      BEGIN
+        SELECT con.conname INTO constraint_name
+        FROM pg_constraint con
+        JOIN pg_class rel ON rel.oid = con.conrelid
+        WHERE rel.relname = 'lookup_values'
+          AND con.contype = 'c'
+          AND pg_get_constraintdef(con.oid) LIKE '%category%'
+          AND pg_get_constraintdef(con.oid) NOT LIKE '%media%';
+
+        IF constraint_name IS NOT NULL THEN
+          EXECUTE 'ALTER TABLE lookup_values DROP CONSTRAINT ' || constraint_name;
+          ALTER TABLE lookup_values ADD CONSTRAINT lookup_values_category_check
+            CHECK (category IN ('species', 'source', 'media'));
         END IF;
       END $$
     `);
@@ -562,7 +623,7 @@ export class PostgresContext {
           setweight(to_tsvector('english', COALESCE(NEW.donor_source_id, '')), 'A') ||
           setweight(to_tsvector('english', COALESCE(NEW.species, '')), 'A') ||
           setweight(to_tsvector('english', COALESCE(NEW.lot_number, '')), 'B') ||
-          setweight(to_tsvector('english', COALESCE(NEW.media, '')), 'B') ||
+          setweight(to_tsvector('english', COALESCE(NEW.media_type, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.culture_condition, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.source, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.notes, '')), 'C') ||
@@ -591,7 +652,7 @@ export class PostgresContext {
         setweight(to_tsvector('english', COALESCE(donor_source_id, '')), 'A') ||
         setweight(to_tsvector('english', COALESCE(species, '')), 'A') ||
         setweight(to_tsvector('english', COALESCE(lot_number, '')), 'B') ||
-        setweight(to_tsvector('english', COALESCE(media, '')), 'B') ||
+        setweight(to_tsvector('english', COALESCE(media_type, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(culture_condition, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(source, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(notes, '')), 'C') ||

@@ -12,6 +12,7 @@ import { LookupValueMapper, LookupValueRow } from '@infrastructure/database/mapp
 const CATEGORY_COLUMN_MAP: Record<LookupCategory, string> = {
   species: 'species',
   source: 'source',
+  media: 'media_type',
 };
 
 export class LookupValueRepository implements ILookupValueRepository {

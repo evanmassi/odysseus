@@ -101,6 +101,7 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
+  const { data: mediaValues = [] } = useLookupValuesQuery('media');
   const modalService = useModalStore();
 
   const speciesOptions = useMemo(
@@ -110,6 +111,10 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
   const sourceOptions = useMemo(
     () => sourceValues.map(v => ({ value: v.value, label: v.value })),
     [sourceValues]
+  );
+  const mediaOptions = useMemo(
+    () => mediaValues.map(v => ({ value: v.value, label: v.value })),
+    [mediaValues]
   );
 
   // Fetch tube data from React Query cache (always fresh)
@@ -159,6 +164,7 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
       researchers={researchers}
       speciesOptions={speciesOptions}
       sourceOptions={sourceOptions}
+      mediaOptions={mediaOptions}
       onClose={onClose}
       modalService={modalService}
     />
@@ -176,6 +182,7 @@ interface EditModeFormProps {
   researchers: Researcher[];
   speciesOptions: SelectOption[];
   sourceOptions: SelectOption[];
+  mediaOptions: SelectOption[];
   onClose: () => void;
   modalService: ReturnType<typeof useModalStore>;
 }
@@ -187,6 +194,7 @@ function EditModeForm({
   researchers,
   speciesOptions,
   sourceOptions,
+  mediaOptions,
   onClose,
   modalService,
 }: EditModeFormProps) {
@@ -203,11 +211,9 @@ function EditModeForm({
         concentration: formatConcentrationDisplay(tube.sample.concentration) || undefined,
         concentrationUnit: tube.sample.concentrationUnit ?? undefined,
         date: tube.sample.date ? formatDateForInput(tube.sample.date) : '',
-        media: {
-          type: tube.sample.media?.type ?? '',
-          supplements: tube.sample.media?.supplements ?? '',
-          selection: tube.sample.media?.selection ?? '',
-        },
+        mediaType: tube.sample.mediaType ?? '',
+        mediaSupplements: tube.sample.mediaSupplements ?? '',
+        mediaSelection: tube.sample.mediaSelection ?? '',
         cultureCondition: tube.sample.cultureCondition ?? '',
         lotNumber: tube.sample.lotNumber ?? '',
         species: tube.sample.species ?? '',
@@ -377,6 +383,7 @@ function EditModeForm({
             researchers={researchers}
             speciesOptions={speciesOptions}
             sourceOptions={sourceOptions}
+            mediaOptions={mediaOptions}
             isLoading={isSubmitting}
           />
         </fieldset>
@@ -430,6 +437,7 @@ function CreateModeContent({
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
+  const { data: mediaValues = [] } = useLookupValuesQuery('media');
   const { data: allTubes = [] } = useTubes();
   const updateTubeMutation = useUpdateTubeMutation();
   const pasteTubesMutation = usePasteTubesMutation();
@@ -441,6 +449,10 @@ function CreateModeContent({
   const sourceOptions = useMemo(
     () => sourceValues.map(v => ({ value: v.value, label: v.value })),
     [sourceValues]
+  );
+  const mediaOptions = useMemo(
+    () => mediaValues.map(v => ({ value: v.value, label: v.value })),
+    [mediaValues]
   );
   const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();
@@ -552,11 +564,9 @@ function CreateModeContent({
         concentration: undefined,
         concentrationUnit: undefined,
         date: '',
-        media: {
-          type: '',
-          supplements: '',
-          selection: '',
-        },
+        mediaType: '',
+        mediaSupplements: '',
+        mediaSelection: '',
         cultureCondition: '',
         lotNumber: '',
         species: '',
@@ -783,6 +793,7 @@ function CreateModeContent({
           researchers={researchers}
           speciesOptions={speciesOptions}
           sourceOptions={sourceOptions}
+          mediaOptions={mediaOptions}
           isLoading={isSubmitting}
         />
 

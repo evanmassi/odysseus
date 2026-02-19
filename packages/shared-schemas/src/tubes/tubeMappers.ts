@@ -29,8 +29,10 @@ export function tubeDataToCreateRequest(
       donorSourceId: tube.sample.donorSourceId,
       concentration: tube.sample.concentration,
       concentrationUnit: tube.sample.concentrationUnit,
-      date: parseDate(tube.sample.date), // Convert Date objects to YYYY-MM-DD strings
-      media: tube.sample.media,
+      date: parseDate(tube.sample.date),
+      mediaType: tube.sample.mediaType,
+      mediaSupplements: tube.sample.mediaSupplements,
+      mediaSelection: tube.sample.mediaSelection,
       cultureCondition: tube.sample.cultureCondition,
       lotNumber: tube.sample.lotNumber,
       notes: tube.sample.notes

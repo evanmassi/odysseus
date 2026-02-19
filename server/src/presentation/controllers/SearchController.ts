@@ -103,7 +103,7 @@ export class SearchController extends BaseController {
         data: result
       });
     } catch (error) {
-      logger.error('❌ [SearchController] Search failed:', error);
+      logger.error('[SearchController] Search failed:', error);
       handleControllerError(error, res, 'Failed to perform advanced search');
     }
   }
@@ -255,9 +255,6 @@ export class SearchController extends BaseController {
         return;
       }
 
-      const { name, searchOptions } = req.body;
-
-      // Placeholder - return success until saved search feature is implemented
       res.json({
         success: true,
         searchId: `search_${Date.now()}`
@@ -273,9 +270,6 @@ export class SearchController extends BaseController {
    */
   async deleteSavedSearch(req: Request, res: Response): Promise<void> {
     try {
-      const { searchId } = req.params;
-      
-      // Placeholder - return success until saved search feature is implemented
       res.json({ success: true });
     } catch (error) {
       handleControllerError(error, res, 'Failed to delete saved search');
@@ -296,7 +290,7 @@ export class SearchController extends BaseController {
       // Extract unique values for filters
       const cellTypes = [...new Set(tubes.map(t => t.sample?.cellType).filter(Boolean))];
       const researchers = [...new Set(tubes.map(t => t.researcherId).filter(Boolean))];
-      const mediaTypes = [...new Set(tubes.map(t => t.sample?.media).filter(Boolean))];
+      const mediaTypes = [...new Set(tubes.map(t => t.sample?.mediaType).filter(Boolean))];
       const cultureConditions = [...new Set(tubes.map(t => t.sample?.cultureCondition).filter(Boolean))];
       const rackIds = [...new Set(tubes.map(t => t.location?.rackId).filter(Boolean))];
       const boxIds = [...new Set(tubes.map(t => t.location?.boxId).filter(Boolean))];
@@ -334,7 +328,7 @@ export class SearchController extends BaseController {
         donorInternalId: tube.sample?.donorInternalId || '',
         donorSourceId: tube.sample?.donorSourceId || '',
         lotNumber: tube.sample?.lotNumber || '',
-        mediaType: tube.sample?.media?.type || '', // Only compare media type, not supplements/selection
+        mediaType: tube.sample?.mediaType || '',
         cultureCondition: tube.sample?.cultureCondition || '',
         concentration: tube.sample?.concentration || '',
         concentrationUnit: tube.sample?.concentrationUnit || '',

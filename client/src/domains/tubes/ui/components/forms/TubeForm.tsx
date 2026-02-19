@@ -27,9 +27,9 @@ const CONFLICT_FIELD_MAP: Record<string, string> = {
   concentration: 'sample.concentration',
   concentrationUnit: 'sample.concentration',
   date: 'sample.date',
-  'media.type': 'sample.media.type',
-  'media.supplements': 'sample.media.supplements',
-  'media.selection': 'sample.media.selection',
+  mediaType: 'sample.mediaType',
+  mediaSupplements: 'sample.mediaSupplements',
+  mediaSelection: 'sample.mediaSelection',
   cultureCondition: 'sample.cultureCondition',
   lotNumber: 'sample.lotNumber',
   species: 'sample.species',
@@ -56,6 +56,7 @@ export interface TubeFormProps {
   researchers: Researcher[];
   speciesOptions: SelectOption[];
   sourceOptions: SelectOption[];
+  mediaOptions: SelectOption[];
   isLoading: boolean;
   conflictingFields?: string[];
 }
@@ -68,6 +69,7 @@ export const TubeForm = ({
   researchers,
   speciesOptions,
   sourceOptions,
+  mediaOptions,
   isLoading,
   conflictingFields = [],
 }: TubeFormProps) => {
@@ -256,38 +258,63 @@ export const TubeForm = ({
               )}
             />
           </div>
-          <ValidatedInput
-            label="Media Type"
-            type="text"
-            placeholder="e.g., RPMI-1640"
-            registration={register('sample.media.type')}
-            error={Boolean(getFieldError('sample.media.type', errors))}
-            helperText={getFieldError('sample.media.type', errors)}
-            disabled={isLoading}
-            badge={getConflictBadge('sample.media.type')}
-            hasConflict={hasConflict('sample.media.type')}
+          <Controller
+            name="sample.mediaType"
+            control={control}
+            render={({ field: { value, onChange } }) => {
+              const error = getFieldError('sample.mediaType', errors);
+              const hasFieldConflict = hasConflict('sample.mediaType');
+              return (
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      Media Type
+                      {getConflictBadge('sample.mediaType')}
+                    </span>
+                  </label>
+                  <Select
+                    options={[{ value: '', label: 'Select media...' }, ...mediaOptions]}
+                    value={value ?? ''}
+                    onChange={newValue => onChange(newValue ?? '')}
+                    disabled={isLoading}
+                    state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
+                    fullWidth
+                    placeholder="Select media..."
+                  />
+                  {error && (
+                    <div className="flex items-center mt-1 text-xs text-danger-text">
+                      <span>{error}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            }}
           />
           <ValidatedInput
             label="Supplements"
             type="text"
             placeholder="e.g., 10% FBS"
-            registration={register('sample.media.supplements')}
-            error={Boolean(getFieldError('sample.media.supplements', errors))}
-            helperText={getFieldError('sample.media.supplements', errors)}
+            registration={register('sample.mediaSupplements')}
+            error={Boolean(getFieldError('sample.mediaSupplements', errors))}
+            helperText={getFieldError('sample.mediaSupplements', errors)}
             disabled={isLoading}
-            badge={getConflictBadge('sample.media.supplements')}
-            hasConflict={hasConflict('sample.media.supplements')}
+            badge={getConflictBadge('sample.mediaSupplements')}
+            hasConflict={hasConflict('sample.mediaSupplements')}
           />
           <ValidatedInput
             label="Selection"
             type="text"
             placeholder="e.g., Puromycin"
-            registration={register('sample.media.selection')}
-            error={Boolean(getFieldError('sample.media.selection', errors))}
-            helperText={getFieldError('sample.media.selection', errors)}
+            registration={register('sample.mediaSelection')}
+            error={Boolean(getFieldError('sample.mediaSelection', errors))}
+            helperText={getFieldError('sample.mediaSelection', errors)}
             disabled={isLoading}
-            badge={getConflictBadge('sample.media.selection')}
-            hasConflict={hasConflict('sample.media.selection')}
+            badge={getConflictBadge('sample.mediaSelection')}
+            hasConflict={hasConflict('sample.mediaSelection')}
           />
         </div>
       </div>

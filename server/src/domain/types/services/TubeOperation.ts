@@ -4,8 +4,6 @@
  * Type definitions for tube validation operations.
  */
 
-import type { MediaData } from '@domain/valueObjects/Media';
-
 /**
  * Tube creation data with nested structure matching shared schemas
  */
@@ -23,7 +21,9 @@ export interface TubeCreationData {
     concentration?: number;
     concentrationUnit?: 'c/v' | 'c/mL';
     date?: string;
-    media?: MediaData | string;
+    mediaType?: string;
+    mediaSupplements?: string;
+    mediaSelection?: string;
     cultureCondition?: string;
     lotNumber?: string;
     notes?: string;
@@ -66,7 +66,9 @@ export interface TubeUpdateData {
     concentration?: number;
     concentrationUnit?: 'c/v' | 'c/mL';
     date?: string;
-    media?: MediaData | string;
+    mediaType?: string;
+    mediaSupplements?: string;
+    mediaSelection?: string;
     cultureCondition?: string;
     lotNumber?: string;
     notes?: string;

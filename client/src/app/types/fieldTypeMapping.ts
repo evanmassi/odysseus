@@ -6,15 +6,13 @@
  * for nested property access.
  */
 
-import type { TubeData } from '@odysseus/shared-schemas';
-
 /**
  * Valid primitive field value types
  */
 export type FieldValue = string | number | boolean | Date | null | undefined;
 
 /**
- * Complex field value types (for objects like media)
+ * Complex field value types (for nested objects)
  */
 export type ComplexFieldValue = Record<string, FieldValue>;
 
@@ -50,10 +48,9 @@ export type TubeFieldTypeMap = {
   'sample.concentration': number | undefined;
   'sample.concentrationUnit': 'c/v' | 'c/mL' | undefined;
   'sample.date': string | undefined;
-  'sample.media': TubeData['sample']['media'];
-  'sample.media.type': string | undefined;
-  'sample.media.supplements': string | undefined;
-  'sample.media.selection': string | undefined;
+  'sample.mediaType': string | undefined;
+  'sample.mediaSupplements': string | undefined;
+  'sample.mediaSelection': string | undefined;
   'sample.cultureCondition': string | undefined;
   'sample.lotNumber': string | undefined;
   'sample.notes': string | undefined;
@@ -94,10 +91,9 @@ export function isValidFieldPath(path: string): path is ValidFieldPath {
     'sample.concentration',
     'sample.concentrationUnit',
     'sample.date',
-    'sample.media',
-    'sample.media.type',
-    'sample.media.supplements',
-    'sample.media.selection',
+    'sample.mediaType',
+    'sample.mediaSupplements',
+    'sample.mediaSelection',
     'sample.cultureCondition',
     'sample.lotNumber',
     'sample.notes',

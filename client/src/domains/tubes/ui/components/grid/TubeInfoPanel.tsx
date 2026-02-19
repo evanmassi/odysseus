@@ -38,9 +38,9 @@ const FIELD_PATHS = [
   'sample.source',
   'sample.catalogNumber',
   'sample.passageNumber',
-  'sample.media.type',
-  'sample.media.supplements',
-  'sample.media.selection',
+  'sample.mediaType',
+  'sample.mediaSupplements',
+  'sample.mediaSelection',
   'sample.concentration',
   'sample.concentrationUnit',
   'sample.date',
@@ -51,9 +51,9 @@ const FIELD_PATHS = [
 
 const SAMPLE_INFO_PATHS = [
   'sample.concentration',
-  'sample.media.type',
-  'sample.media.supplements',
-  'sample.media.selection',
+  'sample.mediaType',
+  'sample.mediaSupplements',
+  'sample.mediaSelection',
   'sample.cultureCondition',
   'sample.lotNumber',
   'sample.passageNumber',
@@ -268,9 +268,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   const donorSourceId = getDisplayValue('sample.donorSourceId');
   const cultureCondition = getDisplayValue('sample.cultureCondition');
   const lotNumber = getDisplayValue('sample.lotNumber');
-  const mediaType = getDisplayValue('sample.media.type');
-  const mediaSupplements = getDisplayValue('sample.media.supplements');
-  const mediaSelection = getDisplayValue('sample.media.selection');
+  const mediaType = getDisplayValue('sample.mediaType');
+  const mediaSupplements = getDisplayValue('sample.mediaSupplements');
+  const mediaSelection = getDisplayValue('sample.mediaSelection');
   const species = getDisplayValue('sample.species');
   const source = getDisplayValue('sample.source');
   const catalogNumber = getDisplayValue('sample.catalogNumber');
@@ -309,9 +309,9 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     'sample.source',
     'sample.catalogNumber',
     'sample.passageNumber',
-    'sample.media.type',
-    'sample.media.supplements',
-    'sample.media.selection',
+    'sample.mediaType',
+    'sample.mediaSupplements',
+    'sample.mediaSelection',
     'sample.concentration',
     'sample.concentrationUnit',
     'sample.date',
@@ -502,19 +502,19 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 label="Media"
                 value={mediaType}
                 inline={false}
-                isMixed={isFieldMixed('sample.media.type')}
+                isMixed={isFieldMixed('sample.mediaType')}
               />
               <FieldValue
                 label="Supplements"
                 value={mediaSupplements}
                 inline={false}
-                isMixed={isFieldMixed('sample.media.supplements')}
+                isMixed={isFieldMixed('sample.mediaSupplements')}
               />
               <FieldValue
                 label="Selection"
                 value={mediaSelection}
                 inline={false}
-                isMixed={isFieldMixed('sample.media.selection')}
+                isMixed={isFieldMixed('sample.mediaSelection')}
               />
               <FieldValue
                 label="Condition"

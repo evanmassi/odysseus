@@ -1,16 +1,12 @@
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 
-import type { TubeData, TubeMedia } from '@domains/tubes/types';
+import type { TubeData } from '@domains/tubes/types';
 import type { GroupedResult } from '@odysseus/shared-schemas';
 
-/**
- * Convert media object to string for searching
- */
-const getMediaString = (media: TubeMedia | undefined): string => {
-  if (!media) return '';
-
-  // Combine all fields for searching
-  return [media.type, media.supplements, media.selection].filter(Boolean).join(' ');
+const getMediaString = (sample: TubeData['sample']): string => {
+  return [sample.mediaType, sample.mediaSupplements, sample.mediaSelection]
+    .filter(Boolean)
+    .join(' ');
 };
 
 /**
@@ -64,10 +60,7 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
       groupType = 'researcher';
     } else if (tube.sample.lotNumber?.toLowerCase().includes(query.toLowerCase())) {
       groupType = 'lotNumber';
-    } else if (
-      tube.sample.media &&
-      getMediaString(tube.sample.media).toLowerCase().includes(query.toLowerCase())
-    ) {
+    } else if (getMediaString(tube.sample).toLowerCase().includes(query.toLowerCase())) {
       groupType = 'media';
     } else {
       groupType = 'cellType';

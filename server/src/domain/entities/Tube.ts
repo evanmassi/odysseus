@@ -1,6 +1,5 @@
 import { Location } from '@domain/valueObjects/Location';
 import { SampleData } from '@domain/valueObjects/SampleData';
-import { MediaData } from '@domain/valueObjects/Media';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 
@@ -45,7 +44,9 @@ export class Tube {
       concentration?: number;
       concentrationUnit?: 'c/v' | 'c/mL';
       date?: string;
-      media?: MediaData | string;
+      mediaType?: string;
+      mediaSupplements?: string;
+      mediaSelection?: string;
       cultureCondition?: string;
       lotNumber?: string;
       source?: string;
@@ -103,7 +104,9 @@ export class Tube {
       concentration?: number;
       concentrationUnit?: 'c/v' | 'c/mL';
       date?: string;
-      media?: MediaData | string;
+      mediaType?: string;
+      mediaSupplements?: string;
+      mediaSelection?: string;
       cultureCondition?: string;
       lotNumber?: string;
       source?: string;
@@ -186,7 +189,9 @@ export class Tube {
     concentration?: number | null;
     concentrationUnit?: 'c/v' | 'c/mL' | null;
     date?: string | null;
-    media?: string | null;
+    mediaType?: string | null;
+    mediaSupplements?: string | null;
+    mediaSelection?: string | null;
     cultureCondition?: string | null;
     lotNumber?: string | null;
     source?: string | null;
@@ -370,7 +375,9 @@ export class Tube {
       concentration?: number | null;
       concentrationUnit?: 'c/v' | 'c/mL' | null;
       date?: string | null;
-      media?: MediaData | string | null;
+      mediaType?: string | null;
+      mediaSupplements?: string | null;
+      mediaSelection?: string | null;
       cultureCondition?: string | null;
       lotNumber?: string | null;
       notes?: string | null;
@@ -475,7 +482,9 @@ export class Tube {
       concentration?: number;
       concentrationUnit?: 'c/v' | 'c/mL';
       date?: string;
-      media?: MediaData;
+      mediaType?: string;
+      mediaSupplements?: string;
+      mediaSelection?: string;
       cultureCondition?: string;
       lotNumber?: string;
       source?: string;
@@ -706,12 +715,7 @@ export class Tube {
     return this._sample.date; 
   }
 
-  /**
-   * @deprecated Use tube.sample.media instead
-   */
-  get media(): MediaData | undefined { 
-    return this._sample.media; 
-  }
+
 
   /**
    * @deprecated Use tube.sample.cultureCondition instead

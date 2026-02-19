@@ -13,7 +13,6 @@ export type {
   TubeSample,
   TubeUpdateSample,
   TubeTimestamps,
-  TubeMedia,
   CreateTubeRequest,
   UpdateTubeRequest,
   ConcentrationUnit,

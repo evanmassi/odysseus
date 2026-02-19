@@ -10,13 +10,6 @@ import { type TubeData as SharedTubeData } from '@odysseus/shared-schemas';
 // Re-export for backward compatibility
 export type TubeData = SharedTubeData;
 
-// Legacy MediaData type - kept for sync services (to be migrated)
-export type MediaData = {
-  type?: string;
-  supplements?: string;
-  selection?: string;
-};
-
 export type UserData = {
   id: string;
   username: string;
