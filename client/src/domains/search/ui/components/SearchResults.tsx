@@ -271,11 +271,15 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
       'Position',
       'Position Label',
       'Cell Type',
+      'Species',
       'Donor Internal ID',
       'Donor Source ID',
       'Concentration',
       'Date',
       'Lot Number',
+      'Source',
+      'Catalog Number',
+      'Passage Number',
       'Researcher',
       'Media Type',
       'Media Supplements',
@@ -322,11 +326,15 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
           tube.location.position.toString(),
           positionLabel,
           tube.sample.cellType ?? '',
+          tube.sample.species ?? '',
           tube.sample.donorInternalId ?? '',
           tube.sample.donorSourceId ?? '',
           formatConcentrationDisplay(tube.sample.concentration, tube.sample.concentrationUnit),
           formatDate(tube.sample.date),
           tube.sample.lotNumber ?? '',
+          tube.sample.source ?? '',
+          tube.sample.catalogNumber ?? '',
+          tube.sample.passageNumber?.toString() ?? '',
           getResearcherName(tube.researcherId),
           tube.sample.mediaType ?? '',
           tube.sample.mediaSupplements ?? '',
@@ -530,6 +538,7 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
               const firstTube = group.tubes[0];
               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- cellType is required; empty string indicates missing data, display as 'Unknown'
               const cellType = firstTube.sample?.cellType || 'Unknown';
+              const species = firstTube.sample?.species ?? '';
               const donorInternal = firstTube.sample?.donorInternalId ?? '';
               const donorSource = firstTube.sample?.donorSourceId ?? '';
               const cultureCondition = firstTube.sample?.cultureCondition ?? '';
@@ -561,6 +570,14 @@ export function SearchResults({ results, isSearching = false, onClose }: SearchR
                       <span className="text-xs font-semibold text-card-foreground">
                         {highlightText(cellType, query)}
                       </span>
+                      {species && (
+                        <>
+                          <span className="text-muted-foreground">·</span>
+                          <span className="text-xs text-secondary-foreground">
+                            {highlightText(species, query)}
+                          </span>
+                        </>
+                      )}
                     </div>
                     <Chip size="sm" color="inverted" className="flex-shrink-0">
                       {group.totalCount} tube{group.totalCount !== 1 ? 's' : ''}

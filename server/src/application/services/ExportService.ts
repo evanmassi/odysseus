@@ -30,6 +30,10 @@ interface TubeExportRow {
   date: string;
   media: string;
   cultureCondition: string;
+  species: string;
+  source: string;
+  catalogNumber: string;
+  passageNumber: string;
   lotNumber: string;
   notes: string;
   isLocked: string;
@@ -127,6 +131,10 @@ export class ExportService {
       date: tube.sample.date ?? '',
       media: tube.sample.mediaType ?? '',
       cultureCondition: tube.sample.cultureCondition ?? '',
+      species: tube.sample.species ?? '',
+      source: tube.sample.source ?? '',
+      catalogNumber: tube.sample.catalogNumber ?? '',
+      passageNumber: tube.sample.passageNumber?.toString() ?? '',
       lotNumber: tube.sample.lotNumber ?? '',
       notes: tube.sample.notes ?? '',
       isLocked: tube.isLocked ? 'Yes' : 'No',
@@ -155,6 +163,10 @@ export class ExportService {
       { key: 'date', header: 'Date' },
       { key: 'media', header: 'Media' },
       { key: 'cultureCondition', header: 'Culture Condition' },
+      { key: 'species', header: 'Species' },
+      { key: 'source', header: 'Source' },
+      { key: 'catalogNumber', header: 'Catalog Number' },
+      { key: 'passageNumber', header: 'Passage Number' },
       { key: 'lotNumber', header: 'Lot Number' },
       { key: 'notes', header: 'Notes' },
       { key: 'isLocked', header: 'Locked' },

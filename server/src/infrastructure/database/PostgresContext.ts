@@ -624,11 +624,15 @@ export class PostgresContext {
           setweight(to_tsvector('english', COALESCE(NEW.species, '')), 'A') ||
           setweight(to_tsvector('english', COALESCE(NEW.lot_number, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.media_type, '')), 'B') ||
+          setweight(to_tsvector('english', COALESCE(NEW.catalog_number, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.culture_condition, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.source, '')), 'B') ||
           setweight(to_tsvector('english', COALESCE(NEW.notes, '')), 'C') ||
           setweight(to_tsvector('english', COALESCE(NEW.concentration, '')), 'C') ||
-          setweight(to_tsvector('english', COALESCE(NEW.created_by_name, '')), 'C');
+          setweight(to_tsvector('english', COALESCE(NEW.created_by_name, '')), 'C') ||
+          setweight(to_tsvector('english', COALESCE(NEW.media_supplements, '')), 'C') ||
+          setweight(to_tsvector('english', COALESCE(NEW.media_selection, '')), 'C') ||
+          setweight(to_tsvector('english', COALESCE(NEW.passage_number::TEXT, '')), 'C');
         RETURN NEW;
       END
       $$ LANGUAGE plpgsql
@@ -644,7 +648,7 @@ export class PostgresContext {
       FOR EACH ROW EXECUTE FUNCTION tubes_search_vector_update()
     `);
 
-    // Populate search_vector for existing data
+    // Populate/rebuild search_vector for all data (trigger definition may have changed)
     await this.pool.query(`
       UPDATE tubes SET search_vector =
         setweight(to_tsvector('english', COALESCE(cell_type, '')), 'A') ||
@@ -653,12 +657,15 @@ export class PostgresContext {
         setweight(to_tsvector('english', COALESCE(species, '')), 'A') ||
         setweight(to_tsvector('english', COALESCE(lot_number, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(media_type, '')), 'B') ||
+        setweight(to_tsvector('english', COALESCE(catalog_number, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(culture_condition, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(source, '')), 'B') ||
         setweight(to_tsvector('english', COALESCE(notes, '')), 'C') ||
         setweight(to_tsvector('english', COALESCE(concentration, '')), 'C') ||
-        setweight(to_tsvector('english', COALESCE(created_by_name, '')), 'C')
-      WHERE search_vector IS NULL
+        setweight(to_tsvector('english', COALESCE(created_by_name, '')), 'C') ||
+        setweight(to_tsvector('english', COALESCE(media_supplements, '')), 'C') ||
+        setweight(to_tsvector('english', COALESCE(media_selection, '')), 'C') ||
+        setweight(to_tsvector('english', COALESCE(passage_number::TEXT, '')), 'C')
     `);
   }
 

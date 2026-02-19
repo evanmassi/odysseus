@@ -108,14 +108,10 @@ for (const [canonical, synonyms] of Object.entries(LAB_SYNONYMS)) {
  */
 export function normalizeSearchQuery(query: string): string {
   return query
-    // Normalize various dash types to spaces
     .replace(/[-–—−]/g, ' ')
-    // Normalize smart quotes to standard
     .replace(/['']/g, "'")
     .replace(/[""]/g, '"')
-    // Remove characters that break tsquery (but keep alphanumeric and basic punctuation)
-    .replace(/[^\w\s'".,+]/g, ' ')
-    // Collapse multiple spaces to single
+    .replace(/[^\w\s'".,+#]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .toLowerCase();
@@ -226,11 +222,35 @@ export function parseQueryIntoConcepts(query: string): string[][] {
   const normalized = normalizeSearchQuery(query);
   if (!normalized) return [];
 
-  const words = normalized.split(/\s+/).filter(w => w.length > 0);
   const concepts: string[][] = [];
+
+  // Extract quoted phrases as exact concepts (no synonym expansion)
+  const quotedPhrases: string[] = [];
+  const withoutQuotes = normalized.replace(/"([^"]+)"/g, (_, phrase: string) => {
+    const trimmed = phrase.trim();
+    if (trimmed.length > 0) quotedPhrases.push(trimmed);
+    return ' ';
+  });
+
+  for (const phrase of quotedPhrases) {
+    concepts.push([phrase]);
+  }
+
+  const words = withoutQuotes.split(/\s+/).filter(w => w.length > 0);
   const usedIndices: Set<number> = new Set();
 
-  // First pass: find multi-word concepts (like "t cell", "nk cell")
+  // Detect identifier patterns: word followed by #number (e.g., "lp #4", "lot #123")
+  for (let i = 0; i < words.length - 1; i++) {
+    if (usedIndices.has(i)) continue;
+
+    if (/^[a-z]+$/i.test(words[i]) && /^#\d+$/.test(words[i + 1])) {
+      concepts.push([`${words[i]} ${words[i + 1]}`]);
+      usedIndices.add(i);
+      usedIndices.add(i + 1);
+    }
+  }
+
+  // Find multi-word synonym concepts (like "t cell", "nk cell")
   for (let i = 0; i < words.length - 1; i++) {
     if (usedIndices.has(i)) continue;
 
@@ -238,7 +258,6 @@ export function parseQueryIntoConcepts(query: string): string[][] {
     const canonical = SYNONYM_REVERSE_LOOKUP.get(twoWords);
 
     if (canonical) {
-      // This is a known multi-word concept
       const expanded = expandSingleTerm(twoWords);
       concepts.push(expanded);
       usedIndices.add(i);
@@ -246,11 +265,13 @@ export function parseQueryIntoConcepts(query: string): string[][] {
     }
   }
 
-  // Second pass: remaining single words become individual concepts
+  // Remaining single words become individual concepts
   for (let i = 0; i < words.length; i++) {
     if (usedIndices.has(i)) continue;
 
     const word = words[i];
+    if (word === '#') continue;
+
     const expanded = expandSingleTerm(word);
     concepts.push(expanded);
   }
@@ -301,24 +322,22 @@ export function buildTsQueryFromConcepts(concepts: string[][]): string {
     for (const term of synonymGroup) {
       const words = term.split(/\s+/).filter(w => w.length > 0);
       const escapedWords = words.map(word => {
-        const escaped = word.replace(/['"\\:&|!()]/g, '');
+        const escaped = word.replace(/['"\\:&|!()#]/g, '');
         if (!escaped) return null;
+        if (/^\d+$/.test(escaped)) return escaped;
         return `${escaped}:*`;
       }).filter(Boolean);
 
       if (escapedWords.length > 0) {
-        // Words within a term are ANDed (phrase-like)
         termQueries.push(`(${escapedWords.join(' & ')})`);
       }
     }
 
     if (termQueries.length > 0) {
-      // Synonyms within a concept are ORed
       conceptQueries.push(`(${termQueries.join(' | ')})`);
     }
   }
 
-  // Concepts are ANDed together (must match all)
   return conceptQueries.join(' & ');
 }
 
@@ -346,36 +365,6 @@ export function buildTsQueryString(terms: string[]): string {
   }
 
   return processedTerms.join(' | ');
-}
-
-/**
- * Build ILIKE patterns for fuzzy fallback search
- *
- * Creates patterns that catch partial matches, variations,
- * and cases where tsvector tokenization fails.
- *
- * @param query - Original search query
- * @returns Array of ILIKE patterns to try
- */
-export function buildIlikePatterns(query: string): string[] {
-  const patterns: Set<string> = new Set();
-  const normalized = normalizeSearchQuery(query);
-
-  // Original query as pattern
-  patterns.add(`%${query}%`);
-
-  // Normalized (hyphen-split) as pattern
-  if (normalized !== query.toLowerCase()) {
-    patterns.add(`%${normalized}%`);
-  }
-
-  // Individual words for partial matching
-  const words = normalized.split(/\s+/).filter(w => w.length >= 2);
-  for (const word of words) {
-    patterns.add(`%${word}%`);
-  }
-
-  return Array.from(patterns);
 }
 
 /**

@@ -698,14 +698,8 @@ export class TubeRepository implements ITubeRepository {
     // Result: (human:* | homo:* & sapiens:*) & (t:* & cell:* | t:* & lymphocyte:*)
     const tsqueryTerms = buildTsQueryFromConcepts(concepts);
 
-    // Flat list for highlighting (used by searchWithHighlighting)
-    const expandedTerms = expandWithSynonyms(normalizedQuery);
-
     // Step 4: Calculate fuzzy threshold based on query length
     const fuzzyThreshold = calculateQueryFuzzyThreshold(normalizedQuery);
-
-    // Individual terms for ILIKE and fuzzy matching
-    const searchTerms = normalizedQuery.split(/\s+/).filter(t => t.length > 0);
 
     const params: unknown[] = [];
     const paramIndex = { current: 1 };
@@ -758,73 +752,56 @@ export class TubeRepository implements ITubeRepository {
       fuzzySql = await this.addPositionLabelFilter(fuzzySql, params, criteria, paramIndex);
     }
 
-    // Layer 3: Researcher name search
+    // Layer 3: Researcher name search — AND between concepts, OR within variants
+    const researcherConceptConditions: string[] = [];
+    for (const conceptVariants of concepts) {
+      const variantConditions: string[] = [];
+      for (const variant of conceptVariants) {
+        const paramNum = paramIndex.current++;
+        params.push(`%${variant}%`);
+        variantConditions.push(`p.first_name ILIKE $${paramNum} OR p.last_name ILIKE $${paramNum}`);
+      }
+      researcherConceptConditions.push(`(${variantConditions.join(' OR ')})`);
+    }
+
     let researcherSql = `
       SELECT ${this.TUBE_COLUMNS}, ${SearchRankTier.RESEARCHER_NAME} as rank
       FROM tubes
       LEFT JOIN researchers ON tubes.researcher_id = researchers.id
       INNER JOIN persons p ON researchers.person_id = p.id
       WHERE researchers.id IS NOT NULL
-        AND (
+        AND ${researcherConceptConditions.join(' AND ')}
     `;
-
-    const researcherConditions: string[] = [];
-    for (const term of searchTerms) {
-      researcherConditions.push(`(p.first_name ILIKE $${paramIndex.current++} OR p.last_name ILIKE $${paramIndex.current++})`);
-      params.push(`%${term}%`, `%${term}%`);
-    }
-
-    researcherSql += researcherConditions.join(' OR ') + ')';
     researcherSql = this.addLocationFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = this.addSampleFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = this.addResearcherFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = this.addDateRangeFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = await this.addPositionLabelFilter(researcherSql, params, criteria, paramIndex);
 
-    // Layer 4: ILIKE fallback (catches edge cases)
-    const ilikePatterns = [
-      `%${rawQuery}%`,      // Original query
-      `%${normalizedQuery}%` // Normalized (hyphen-split)
+    // Layer 4: ILIKE fallback — AND between concepts, OR within variants/columns
+    const ilikeSearchColumns = [
+      'cell_type', 'species', 'source', 'donor_internal_id', 'donor_source_id',
+      'lot_number', 'notes', 'media_type', 'media_supplements', 'media_selection',
+      'culture_condition', 'catalog_number', 'passage_number::TEXT',
+      'concentration::TEXT', 'date', 'created_by_name',
     ];
 
-    // Also add individual word patterns for partial matching
-    for (const term of searchTerms) {
-      if (term.length >= 2) {
-        ilikePatterns.push(`%${term}%`);
+    const ilikeConceptConditions: string[] = [];
+    for (const conceptVariants of concepts) {
+      const variantConditions: string[] = [];
+      for (const variant of conceptVariants) {
+        const paramNum = paramIndex.current++;
+        params.push(`%${variant}%`);
+        variantConditions.push(`(${ilikeSearchColumns.map(col => `${col} ILIKE $${paramNum}`).join(' OR ')})`);
       }
+      ilikeConceptConditions.push(`(${variantConditions.join(' OR ')})`);
     }
-
-    // Deduplicate patterns
-    const uniquePatterns = [...new Set(ilikePatterns)];
 
     let ilikeSql = `
       SELECT ${this.TUBE_COLUMNS}, ${SearchRankTier.ILIKE_FALLBACK} as rank
       FROM tubes
-      WHERE (
+      WHERE ${ilikeConceptConditions.join(' AND ')}
     `;
-
-    const ilikeConditions: string[] = [];
-    for (const pattern of uniquePatterns) {
-      const patternParam = `$${paramIndex.current++}`;
-      params.push(pattern);
-      ilikeConditions.push(`
-        cell_type ILIKE ${patternParam}
-        OR species ILIKE ${patternParam}
-        OR source ILIKE ${patternParam}
-        OR donor_internal_id ILIKE ${patternParam}
-        OR donor_source_id ILIKE ${patternParam}
-        OR lot_number ILIKE ${patternParam}
-        OR notes ILIKE ${patternParam}
-        OR media_type ILIKE ${patternParam}
-        OR culture_condition ILIKE ${patternParam}
-        OR catalog_number ILIKE ${patternParam}
-        OR concentration::TEXT ILIKE ${patternParam}
-        OR date ILIKE ${patternParam}
-        OR created_by_name ILIKE ${patternParam}
-      `);
-    }
-
-    ilikeSql += ilikeConditions.join(' OR ') + ')';
 
     ilikeSql = this.addLocationFilters(ilikeSql, params, criteria, paramIndex);
     ilikeSql = this.addSampleFilters(ilikeSql, params, criteria, paramIndex);
@@ -876,54 +853,11 @@ export class TubeRepository implements ITubeRepository {
 
     try {
       const rows = await this.context.queryMany<TubeRow>(finalSql, params);
-      const tubes = TubeMapper.fromRows(rows);
-
-      // Post-filter: ensure ALL concepts are present
-      // Even single concepts need filtering because ILIKE fallback matches individual words
-      if (concepts.length > 0) {
-        return this.filterByAllConcepts(tubes, concepts);
-      }
-
-      return tubes;
+      return TubeMapper.fromRows(rows);
     } catch (error) {
       logger.error('Full-text search error:', { query: tsqueryTerms, normalizedQuery, error });
       return [];
     }
-  }
-
-  /**
-   * Filter tubes to ensure ALL search concepts are present.
-   * Must check same fields as ILIKE fallback to avoid false negatives.
-   */
-  private filterByAllConcepts(tubes: Tube[], concepts: string[][]): Tube[] {
-    return tubes.filter(tube => {
-      // Build searchable text from all fields that ILIKE searches
-      const searchableText = [
-        tube.sample.cellType,
-        tube.sample.species,
-        tube.sample.source,
-        tube.sample.donorInternalId,
-        tube.sample.donorSourceId,
-        tube.sample.lotNumber,
-        tube.sample.catalogNumber,
-        tube.sample.notes,
-        tube.sample.cultureCondition,
-        tube.sample.mediaType,
-        tube.sample.mediaSupplements,
-        tube.sample.mediaSelection,
-        tube.sample.concentration?.toString(),
-        tube.sample.date,
-        tube.createdByName,
-      ]
-        .filter(Boolean)
-        .join(' ')
-        .toLowerCase();
-
-      // Every concept must have at least one variant present
-      return concepts.every(conceptVariants =>
-        conceptVariants.some(variant => searchableText.includes(variant.toLowerCase()))
-      );
-    });
   }
 
   /**

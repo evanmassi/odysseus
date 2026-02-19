@@ -41,11 +41,14 @@ export class SearchController extends BaseController {
       const { query, filters, limit, offset, sortBy, sortOrder, groupBy } = req.body;
       const authenticatedUser = this.getAuthenticatedUser(req);
 
-      // Map request filters to domain criteria using mapper
+      const shouldGroup = groupBy !== 'none';
+
+      // When grouping, fetch all matches so groups are complete — LIMIT on individual
+      // tubes randomly breaks apart groups that should be whole. Cap groups instead.
       const searchCriteria = SearchCriteriaMapper.toTubeSearchCriteria(filters, {
         query: query || '',
-        limit: limit || 50,
-        offset: offset || 0,
+        limit: shouldGroup ? undefined : (limit || 50),
+        offset: shouldGroup ? undefined : (offset || 0),
         sortBy,
         sortOrder
       });
@@ -67,22 +70,21 @@ export class SearchController extends BaseController {
 
       logger.info(`[SearchController] Found ${tubes.length} tubes, ${matchedTerms.length} matched terms`);
 
-      // Determine if we should group results (progressive enhancement)
-      const shouldGroup = groupBy !== 'none';
-      const grouped = shouldGroup ? this.autoGroupTubes(tubes, groupBy) : undefined;
+      const maxGroups = limit || 50;
+      const grouped = shouldGroup ? this.autoGroupTubes(tubes, groupBy).slice(0, maxGroups) : undefined;
 
       logger.debug(`[SearchController] Grouping: ${shouldGroup ? `enabled (${grouped?.length} groups)` : 'disabled'}`);
 
       // Transform to SearchResultSchema format (with optional grouped field and matchedTerms)
       const result = {
         data: tubes,
-        grouped: grouped, // Optional - progressive enhancement for server-side grouping
-        matchedTerms: matchedTerms, // Terms for client-side highlighting
+        grouped,
+        matchedTerms,
         pagination: {
           total: tubes.length,
-          limit: limit || 50,
-          offset: offset || 0,
-          hasMore: tubes.length >= (limit || 50)
+          limit: shouldGroup ? tubes.length : (limit || 50),
+          offset: shouldGroup ? 0 : (offset || 0),
+          hasMore: shouldGroup ? false : tubes.length >= (limit || 50),
         },
         metadata: {
           query: query || '',
