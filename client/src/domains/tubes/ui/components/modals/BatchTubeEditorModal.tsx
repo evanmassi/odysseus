@@ -555,6 +555,8 @@ export function BatchTubeEditorModal({
         title={`Edit ${tubes.length} Tubes`}
         icon={<Edit className="w-5 h-5" />}
         onClose={onClose}
+        size="md-lg"
+        fixedHeight
         dataAttribute="data-batch-edit-modal"
       >
         <form onSubmit={handleSubmit} className="space-y-4">

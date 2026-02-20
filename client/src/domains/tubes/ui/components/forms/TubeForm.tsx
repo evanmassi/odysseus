@@ -1,7 +1,7 @@
 /**
  * Tube Form Component
  *
- * Compact 5-row form layout for tube create/edit with admin-managed dropdowns.
+ * 7-row form layout for tube create/edit with admin-managed dropdowns.
  */
 
 import {
@@ -133,14 +133,17 @@ export const TubeForm = ({
   };
 
   return (
-    <div className="space-y-3">
-      {/* ROW 1: Donor Information */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <h3 className="text-[10px] font-medium text-muted-foreground">Donor information</h3>
-          <div className="flex-1 h-px bg-secondary"></div>
-        </div>
-        <div className="grid grid-cols-[9fr_7fr_7fr_7fr] gap-2.5">
+    <div className="space-y-2.5">
+      <div className="flex items-center gap-3">
+        <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
+          Donor information
+        </h3>
+        <div className="flex-1 h-px bg-muted-foreground/60"></div>
+      </div>
+
+      {/* ROW 1: Cell Type + Species */}
+      <div className="flex gap-2.5">
+        <div className="w-64">
           <ValidatedInput
             label="Cell Type"
             type="text"
@@ -153,6 +156,8 @@ export const TubeForm = ({
             badge={getConflictBadge('sample.cellType')}
             hasConflict={hasConflict('sample.cellType')}
           />
+        </div>
+        <div className="w-48">
           <Controller
             name="sample.species"
             control={control}
@@ -189,6 +194,12 @@ export const TubeForm = ({
               );
             }}
           />
+        </div>
+      </div>
+
+      {/* ROW 2: Donor IDs */}
+      <div className="flex gap-2.5">
+        <div className="w-56">
           <ValidatedInput
             label="Internal ID"
             type="text"
@@ -200,6 +211,8 @@ export const TubeForm = ({
             badge={getConflictBadge('sample.donorInternalId')}
             hasConflict={hasConflict('sample.donorInternalId')}
           />
+        </div>
+        <div className="w-56">
           <ValidatedInput
             label="Source ID"
             type="text"
@@ -214,50 +227,83 @@ export const TubeForm = ({
         </div>
       </div>
 
-      {/* ROW 2: Sample Information (Part 1) - Media Fields */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <h3 className="text-[10px] font-medium text-muted-foreground">Sample information</h3>
-          <div className="flex-1 h-px bg-secondary"></div>
+      <div className="flex items-center gap-3 !mt-5">
+        <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
+          Sample information
+        </h3>
+        <div className="flex-1 h-px bg-muted-foreground/60"></div>
+      </div>
+
+      {/* ROW 3: Concentration, Culture Condition, Passage # */}
+      <div className="flex gap-2.5">
+        <div className="w-48">
+          <Controller
+            name="sample.concentration"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <Controller
+                name="sample.concentrationUnit"
+                control={control}
+                render={({ field: { value: unitValue, onChange: onUnitChange } }) => (
+                  <ConcentrationInput
+                    label="Concentration"
+                    value={String(value ?? '')}
+                    unitValue={unitValue ?? ''}
+                    onChange={async newValue => {
+                      onChange(newValue);
+                      await trigger('sample');
+                    }}
+                    onUnitChange={async newUnit => {
+                      onUnitChange(newUnit);
+                      await trigger('sample');
+                    }}
+                    placeholder="e.g., 5e6"
+                    disabled={isLoading}
+                    validation={{
+                      error: Boolean(getConcentrationError()),
+                      warning: false,
+                      helperText: getConcentrationError(),
+                      onBlur: () => {},
+                    }}
+                    badge={getConflictBadge('sample.concentration')}
+                    hasConflict={hasConflict('sample.concentration')}
+                  />
+                )}
+              />
+            )}
+          />
         </div>
-        <div className="grid grid-cols-[2fr_2fr_3fr_3fr] gap-2.5">
-          <div>
-            <Controller
-              name="sample.concentration"
-              control={control}
-              render={({ field: { value, onChange } }) => (
-                <Controller
-                  name="sample.concentrationUnit"
-                  control={control}
-                  render={({ field: { value: unitValue, onChange: onUnitChange } }) => (
-                    <ConcentrationInput
-                      label="Concentration"
-                      value={String(value ?? '')}
-                      unitValue={unitValue ?? ''}
-                      onChange={async newValue => {
-                        onChange(newValue);
-                        await trigger('sample');
-                      }}
-                      onUnitChange={async newUnit => {
-                        onUnitChange(newUnit);
-                        await trigger('sample');
-                      }}
-                      placeholder="e.g., 5e6"
-                      disabled={isLoading}
-                      validation={{
-                        error: Boolean(getConcentrationError()),
-                        warning: false,
-                        helperText: getConcentrationError(),
-                        onBlur: () => {},
-                      }}
-                      badge={getConflictBadge('sample.concentration')}
-                      hasConflict={hasConflict('sample.concentration')}
-                    />
-                  )}
-                />
-              )}
-            />
-          </div>
+        <div className="w-56">
+          <ValidatedInput
+            label="Culture Condition"
+            type="text"
+            placeholder="e.g., 5% O₂, 37°C"
+            registration={register('sample.cultureCondition')}
+            error={Boolean(getFieldError('sample.cultureCondition', errors))}
+            helperText={getFieldError('sample.cultureCondition', errors)}
+            disabled={isLoading}
+            badge={getConflictBadge('sample.cultureCondition')}
+            hasConflict={hasConflict('sample.cultureCondition')}
+          />
+        </div>
+        <div className="w-20">
+          <ValidatedInput
+            label="Passage #"
+            type="number"
+            placeholder="0-999"
+            registration={register('sample.passageNumber')}
+            error={Boolean(getFieldError('sample.passageNumber', errors))}
+            helperText={getFieldError('sample.passageNumber', errors)}
+            disabled={isLoading}
+            badge={getConflictBadge('sample.passageNumber')}
+            hasConflict={hasConflict('sample.passageNumber')}
+          />
+        </div>
+      </div>
+
+      {/* ROW 4: Media */}
+      <div className="flex gap-2.5">
+        <div className="w-44">
           <Controller
             name="sample.mediaType"
             control={control}
@@ -294,6 +340,8 @@ export const TubeForm = ({
               );
             }}
           />
+        </div>
+        <div className="w-64">
           <ValidatedInput
             label="Supplements"
             type="text"
@@ -305,6 +353,8 @@ export const TubeForm = ({
             badge={getConflictBadge('sample.mediaSupplements')}
             hasConflict={hasConflict('sample.mediaSupplements')}
           />
+        </div>
+        <div className="w-44">
           <ValidatedInput
             label="Selection"
             type="text"
@@ -319,193 +369,180 @@ export const TubeForm = ({
         </div>
       </div>
 
-      {/* ROW 3: SAMPLE INFORMATION (PART 2) */}
-      <div className="grid grid-cols-[5fr_4fr_2fr_3fr] gap-2.5">
-        <ValidatedInput
-          label="Culture Condition"
-          type="text"
-          placeholder="e.g., 5% O₂, 37°C"
-          registration={register('sample.cultureCondition')}
-          error={Boolean(getFieldError('sample.cultureCondition', errors))}
-          helperText={getFieldError('sample.cultureCondition', errors)}
-          disabled={isLoading}
-          badge={getConflictBadge('sample.cultureCondition')}
-          hasConflict={hasConflict('sample.cultureCondition')}
-        />
-        <ValidatedInput
-          label="Lot #"
-          type="text"
-          placeholder="LOT001"
-          registration={register('sample.lotNumber')}
-          error={Boolean(getFieldError('sample.lotNumber', errors))}
-          helperText={getFieldError('sample.lotNumber', errors)}
-          disabled={isLoading}
-          badge={getConflictBadge('sample.lotNumber')}
-          hasConflict={hasConflict('sample.lotNumber')}
-        />
-        <ValidatedInput
-          label="Passage #"
-          type="number"
-          placeholder="0-999"
-          registration={register('sample.passageNumber')}
-          error={Boolean(getFieldError('sample.passageNumber', errors))}
-          helperText={getFieldError('sample.passageNumber', errors)}
-          disabled={isLoading}
-          badge={getConflictBadge('sample.passageNumber')}
-          hasConflict={hasConflict('sample.passageNumber')}
-        />
-        <Controller
-          name="sample.date"
-          control={control}
-          render={({ field: { value, onChange } }) => {
-            const error = getFieldError('sample.date', errors);
-            const hasFieldConflict = hasConflict('sample.date');
-            return (
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${
-                    error ? 'text-danger-text' : 'text-secondary-foreground'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    Date
-                    {getConflictBadge('sample.date')}
-                  </span>
-                </label>
-                <DatePicker
-                  value={(value as string) ?? ''}
-                  onChange={newValue => onChange(newValue)}
-                  disabled={isLoading}
-                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
-                  fullWidth
-                  clearable
-                />
-                {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
-                    <span>{error}</span>
-                  </div>
-                )}
-              </div>
-            );
-          }}
-        />
-      </div>
-
-      {/* ROW 4: Provenance */}
-      <div className="grid grid-cols-[5fr_4fr_4fr] gap-2.5">
-        <Controller
-          name="sample.source"
-          control={control}
-          render={({ field: { value, onChange } }) => {
-            const error = getFieldError('sample.source', errors);
-            const hasFieldConflict = hasConflict('sample.source');
-            return (
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${
-                    error ? 'text-danger-text' : 'text-secondary-foreground'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    Source
-                    {getConflictBadge('sample.source')}
-                  </span>
-                </label>
-                <Select
-                  options={[{ value: '', label: 'Select source...' }, ...sourceOptions]}
-                  value={value ?? ''}
-                  onChange={newValue => onChange(newValue ?? '')}
-                  disabled={isLoading}
-                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
-                  fullWidth
-                  placeholder="Select source..."
-                />
-                {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
-                    <span>{error}</span>
-                  </div>
-                )}
-              </div>
-            );
-          }}
-        />
-        <ValidatedInput
-          label="Catalog #"
-          type="text"
-          placeholder="e.g., CRL-2522"
-          registration={register('sample.catalogNumber')}
-          error={Boolean(getFieldError('sample.catalogNumber', errors))}
-          helperText={getFieldError('sample.catalogNumber', errors)}
-          disabled={isLoading}
-          badge={getConflictBadge('sample.catalogNumber')}
-          hasConflict={hasConflict('sample.catalogNumber')}
-        />
-        <Controller
-          name="researcherId"
-          control={control}
-          render={({ field: { value, onChange } }) => {
-            const error = getFieldError('researcherId', errors);
-            const hasFieldConflict = hasConflict('researcherId');
-            return (
-              <div>
-                <label
-                  className={`block text-sm font-medium mb-1 ${
-                    error ? 'text-danger-text' : 'text-secondary-foreground'
-                  }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    Researcher
-                    {getConflictBadge('researcherId')}
-                  </span>
-                </label>
-                <Select
-                  options={[
-                    { value: '', label: 'Select researcher...' },
-                    ...researchers.map(r => ({
-                      value: r.id,
-                      label: formatResearcherDropdownDisplay(r),
-                    })),
-                  ]}
-                  value={value ?? ''}
-                  onChange={newValue => onChange(newValue ?? '')}
-                  disabled={isLoading}
-                  state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
-                  fullWidth
-                  placeholder="Select researcher..."
-                />
-                {error && (
-                  <div className="flex items-center mt-1 text-xs text-danger-text">
-                    <span>{error}</span>
-                  </div>
-                )}
-              </div>
-            );
-          }}
-        />
-      </div>
-
-      {/* ROW 5: Notes */}
-      <div className="space-y-2">
-        <div className="flex items-center gap-3">
-          <h3 className="text-[10px] font-medium text-muted-foreground">Notes</h3>
-          <div className="flex-1 h-px bg-secondary"></div>
-        </div>
-        <div>
-          <ValidatedInput
-            label=""
-            type="textarea"
-            maxLength={500}
-            placeholder="Additional notes and observations..."
-            registration={register('sample.notes')}
-            error={Boolean(getFieldError('sample.notes', errors))}
-            helperText={getFieldError('sample.notes', errors)}
-            disabled={isLoading}
-            badge={getConflictBadge('sample.notes')}
-            hasConflict={hasConflict('sample.notes')}
+      {/* ROW 5: Source, Catalog #, Lot # */}
+      <div className="flex gap-2.5">
+        <div className="w-64">
+          <Controller
+            name="sample.source"
+            control={control}
+            render={({ field: { value, onChange } }) => {
+              const error = getFieldError('sample.source', errors);
+              const hasFieldConflict = hasConflict('sample.source');
+              return (
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      Source
+                      {getConflictBadge('sample.source')}
+                    </span>
+                  </label>
+                  <Select
+                    options={[{ value: '', label: 'Select source...' }, ...sourceOptions]}
+                    value={value ?? ''}
+                    onChange={newValue => onChange(newValue ?? '')}
+                    disabled={isLoading}
+                    state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
+                    fullWidth
+                    placeholder="Select source..."
+                  />
+                  {error && (
+                    <div className="flex items-center mt-1 text-xs text-danger-text">
+                      <span>{error}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            }}
           />
-          <div className="text-xs text-muted-foreground mt-1 text-right">
-            {(notesValue ?? '').length}/500
-          </div>
+        </div>
+        <div className="w-44">
+          <ValidatedInput
+            label="Catalog #"
+            type="text"
+            placeholder="e.g., CRL-2522"
+            registration={register('sample.catalogNumber')}
+            error={Boolean(getFieldError('sample.catalogNumber', errors))}
+            helperText={getFieldError('sample.catalogNumber', errors)}
+            disabled={isLoading}
+            badge={getConflictBadge('sample.catalogNumber')}
+            hasConflict={hasConflict('sample.catalogNumber')}
+          />
+        </div>
+        <div className="w-44">
+          <ValidatedInput
+            label="Lot #"
+            type="text"
+            placeholder="e.g., LOT001"
+            registration={register('sample.lotNumber')}
+            error={Boolean(getFieldError('sample.lotNumber', errors))}
+            helperText={getFieldError('sample.lotNumber', errors)}
+            disabled={isLoading}
+            badge={getConflictBadge('sample.lotNumber')}
+            hasConflict={hasConflict('sample.lotNumber')}
+          />
+        </div>
+      </div>
+
+      {/* ROW 6: Date + Researcher */}
+      <div className="flex gap-2.5">
+        <div className="w-40">
+          <Controller
+            name="sample.date"
+            control={control}
+            render={({ field: { value, onChange } }) => {
+              const error = getFieldError('sample.date', errors);
+              const hasFieldConflict = hasConflict('sample.date');
+              return (
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      Date
+                      {getConflictBadge('sample.date')}
+                    </span>
+                  </label>
+                  <DatePicker
+                    value={(value as string) ?? ''}
+                    onChange={newValue => onChange(newValue)}
+                    disabled={isLoading}
+                    state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
+                    fullWidth
+                    clearable
+                  />
+                  {error && (
+                    <div className="flex items-center mt-1 text-xs text-danger-text">
+                      <span>{error}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            }}
+          />
+        </div>
+        <div className="w-56">
+          <Controller
+            name="researcherId"
+            control={control}
+            render={({ field: { value, onChange } }) => {
+              const error = getFieldError('researcherId', errors);
+              const hasFieldConflict = hasConflict('researcherId');
+              return (
+                <div>
+                  <label
+                    className={`block text-sm font-medium mb-1 ${
+                      error ? 'text-danger-text' : 'text-secondary-foreground'
+                    }`}
+                  >
+                    <span className="flex items-center gap-1.5">
+                      Researcher
+                      {getConflictBadge('researcherId')}
+                    </span>
+                  </label>
+                  <Select
+                    options={[
+                      { value: '', label: 'Select researcher...' },
+                      ...researchers.map(r => ({
+                        value: r.id,
+                        label: formatResearcherDropdownDisplay(r),
+                      })),
+                    ]}
+                    value={value ?? ''}
+                    onChange={newValue => onChange(newValue ?? '')}
+                    disabled={isLoading}
+                    state={error ? 'error' : hasFieldConflict ? 'warning' : 'default'}
+                    fullWidth
+                    placeholder="Select researcher..."
+                  />
+                  {error && (
+                    <div className="flex items-center mt-1 text-xs text-danger-text">
+                      <span>{error}</span>
+                    </div>
+                  )}
+                </div>
+              );
+            }}
+          />
+        </div>
+      </div>
+
+      {/* ROW 7: Notes */}
+      <div className="flex items-center gap-3 !mt-5">
+        <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">Notes</h3>
+        <div className="flex-1 h-px bg-muted-foreground/60"></div>
+      </div>
+
+      <div>
+        <ValidatedInput
+          label=""
+          type="textarea"
+          maxLength={500}
+          placeholder="Additional notes and observations..."
+          registration={register('sample.notes')}
+          error={Boolean(getFieldError('sample.notes', errors))}
+          helperText={getFieldError('sample.notes', errors)}
+          disabled={isLoading}
+          badge={getConflictBadge('sample.notes')}
+          hasConflict={hasConflict('sample.notes')}
+        />
+        <div className="text-xs text-muted-foreground mt-1 text-right">
+          {(notesValue ?? '').length}/500
         </div>
       </div>
     </div>

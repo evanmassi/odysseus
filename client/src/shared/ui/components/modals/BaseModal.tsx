@@ -13,7 +13,7 @@ import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
-export type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | 'full';
+export type ModalSize = 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
 export type ModalAnimation = 'zoom' | 'slide';
 export type TabOrientation = 'horizontal' | 'vertical';
 
@@ -42,6 +42,7 @@ export interface BaseModalProps {
 const SIZE_CLASSES: Record<ModalSize, string> = {
   sm: 'max-w-md',
   md: 'max-w-lg',
+  'md-lg': 'max-w-2xl',
   lg: 'max-w-4xl',
   xl: 'max-w-5xl',
   full: 'max-w-[90vw]',
@@ -158,7 +159,7 @@ export function BaseModal({
               <div className="w-48 bg-card border-r border-border py-4 flex-shrink-0">{tabs}</div>
             )}
 
-            <div className="flex-1 min-w-0 flex flex-col">
+            <div className="flex-1 min-w-0 min-h-0 flex flex-col">
               <ScrollArea className="flex-1" tabIndex={-1}>
                 <div className={contentClassName}>{children}</div>
               </ScrollArea>

@@ -145,6 +145,7 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
         title="Loading..."
         icon={<Edit className="w-5 h-5" />}
         onClose={onClose}
+        size="md-lg"
         dataAttribute="data-tube-modal"
         mode="edit"
       >
@@ -332,6 +333,8 @@ function EditModeForm({
       title="Edit Tube"
       icon={<Edit className="w-5 h-5" />}
       onClose={onClose}
+      size="md-lg"
+      fixedHeight
       dataAttribute="data-tube-modal"
       mode="edit"
     >
@@ -750,6 +753,8 @@ function CreateModeContent({
       title={`Add ${parsedPositions.length > 1 ? parsedPositions.length : ''} Tube${parsedPositions.length > 1 ? 's' : ''}`}
       icon={<Plus className="w-5 h-5" />}
       onClose={onClose}
+      size="md-lg"
+      fixedHeight
       dataAttribute="data-tube-modal"
       mode="create"
     >

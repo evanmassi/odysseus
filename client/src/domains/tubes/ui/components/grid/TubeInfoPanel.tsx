@@ -499,6 +499,18 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 isMixed={isFieldMixed('sample.concentration')}
               />
               <FieldValue
+                label="Condition"
+                value={cultureCondition}
+                inline={false}
+                isMixed={isFieldMixed('sample.cultureCondition')}
+              />
+              <FieldValue
+                label="Passage #"
+                value={passageNumber}
+                inline={false}
+                isMixed={isFieldMixed('sample.passageNumber')}
+              />
+              <FieldValue
                 label="Media"
                 value={mediaType}
                 inline={false}
@@ -517,30 +529,6 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 isMixed={isFieldMixed('sample.mediaSelection')}
               />
               <FieldValue
-                label="Condition"
-                value={cultureCondition}
-                inline={false}
-                isMixed={isFieldMixed('sample.cultureCondition')}
-              />
-              <FieldValue
-                label="Lot #"
-                value={lotNumber}
-                inline={false}
-                isMixed={isFieldMixed('sample.lotNumber')}
-              />
-              <FieldValue
-                label="Passage #"
-                value={passageNumber}
-                inline={false}
-                isMixed={isFieldMixed('sample.passageNumber')}
-              />
-              <FieldValue
-                label="Date"
-                value={formattedDate}
-                inline={false}
-                isMixed={isFieldMixed('sample.date')}
-              />
-              <FieldValue
                 label="Source"
                 value={source}
                 inline={false}
@@ -551,6 +539,18 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 value={catalogNumber}
                 inline={false}
                 isMixed={isFieldMixed('sample.catalogNumber')}
+              />
+              <FieldValue
+                label="Lot #"
+                value={lotNumber}
+                inline={false}
+                isMixed={isFieldMixed('sample.lotNumber')}
+              />
+              <FieldValue
+                label="Date"
+                value={formattedDate}
+                inline={false}
+                isMixed={isFieldMixed('sample.date')}
               />
               <FieldValue
                 label="Researcher"
