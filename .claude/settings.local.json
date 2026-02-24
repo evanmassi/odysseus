@@ -57,7 +57,8 @@
       "WebFetch(domain:railway.com)",
       "WebFetch(domain:lucide.dev)",
       "WebFetch(domain:www.npmjs.com)",
-      "WebFetch(domain:daypicker.dev)"
+      "WebFetch(domain:daypicker.dev)",
+      "Bash(git log:*)"
     ]
   }
 }

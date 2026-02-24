@@ -556,10 +556,36 @@ export function BatchTubeEditorModal({
         icon={<Edit className="w-5 h-5" />}
         onClose={onClose}
         size="md-lg"
-        fixedHeight
         dataAttribute="data-batch-edit-modal"
+        contentClassName="p-5"
+        footer={
+          <div className="flex justify-end space-x-4">
+            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              disabled={isSubmitting}
+              leftIcon={<Trash2 className="w-4 h-4" />}
+              onClick={() => setShowDeleteConfirm(true)}
+            >
+              Remove {tubes.length} Tubes
+            </Button>
+            <Button
+              type="submit"
+              form="tube-batch-edit-form"
+              variant="primary"
+              disabled={!canSubmit}
+              isLoading={isSubmitting}
+              loadingText="Updating..."
+              leftIcon={<Save className="w-4 h-4" />}
+            >
+              Update {tubes.length} Tubes
+            </Button>
+          </div>
+        }
       >
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form id="tube-batch-edit-form" onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-3">
             <LocationDisplay
               tankName={tankName}
@@ -587,30 +613,6 @@ export function BatchTubeEditorModal({
             isLoading={isSubmitting}
             conflictingFields={conflicts}
           />
-
-          <div className="flex justify-end space-x-4 pt-4 border-t border-border">
-            <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              disabled={isSubmitting}
-              leftIcon={<Trash2 className="w-4 h-4" />}
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              Remove {tubes.length} Tubes
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={!canSubmit}
-              isLoading={isSubmitting}
-              loadingText="Updating..."
-              leftIcon={<Save className="w-4 h-4" />}
-            >
-              Update {tubes.length} Tubes
-            </Button>
-          </div>
         </form>
 
         {result && !result.success && result.errors.length > 0 && !showProgress && (

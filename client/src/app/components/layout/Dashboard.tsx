@@ -657,7 +657,6 @@ export function Dashboard() {
         isOpen={modalService.lockTubesModal.isOpen}
         tubeIds={modalService.lockTubesModal.tubeIds}
         onClose={modalService.hideLockTubesModal}
-        onSuccess={handleClearSelection}
       />
 
       {/* Share Access Modal */}

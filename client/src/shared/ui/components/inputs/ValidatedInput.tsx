@@ -195,9 +195,10 @@ export function ValidatedInput({
           state={getInputState()}
           disabled={disabled}
           maxLength={maxLength}
-          rows={2}
+          rows={1}
           resize="none"
           fullWidth
+          className="pr-12"
           {...ariaProps}
         />
       ) : (

@@ -334,11 +334,48 @@ function EditModeForm({
       icon={<Edit className="w-5 h-5" />}
       onClose={onClose}
       size="md-lg"
-      fixedHeight
       dataAttribute="data-tube-modal"
       mode="edit"
+      contentClassName="p-5"
+      footer={
+        <div className="flex justify-end space-x-4">
+          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            disabled={isSubmitting}
+            leftIcon={<Trash2 className="w-4 h-4" />}
+            onClick={() => {
+              modalService.showDeleteConfirm({
+                title: 'Remove Tube',
+                message: `Are you sure you want to remove this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
+                confirmText: 'Remove',
+                onConfirm: handleDelete,
+              });
+            }}
+          >
+            Remove Tube
+          </Button>
+          <Button
+            type="submit"
+            form="tube-edit-form"
+            variant="primary"
+            disabled={!canSubmit}
+            isLoading={isSubmitting}
+            loadingText="Updating..."
+            leftIcon={<Save className="w-4 h-4" />}
+          >
+            Update Tube
+          </Button>
+        </div>
+      }
     >
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+      <form
+        id="tube-edit-form"
+        onSubmit={form.handleSubmit(handleFormSubmit)}
+        className="space-y-3"
+      >
         <LocationDisplay
           tankId={tube.location.tankId}
           rackId={tube.location.rackId}
@@ -390,37 +427,6 @@ function EditModeForm({
             isLoading={isSubmitting}
           />
         </fieldset>
-
-        <div className="flex justify-end space-x-4 pt-4 border-t border-border">
-          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            variant="danger"
-            disabled={isSubmitting}
-            leftIcon={<Trash2 className="w-4 h-4" />}
-            onClick={() => {
-              modalService.showDeleteConfirm({
-                title: 'Remove Tube',
-                message: `Are you sure you want to remove this tube from Rack ${tube.location.rackId}, Box ${tube.location.boxId}, Position ${tube.location.position}? This action cannot be undone.`,
-                confirmText: 'Remove',
-                onConfirm: handleDelete,
-              });
-            }}
-          >
-            Remove Tube
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={!canSubmit}
-            isLoading={isSubmitting}
-            loadingText="Updating..."
-            leftIcon={<Save className="w-4 h-4" />}
-          >
-            Update Tube
-          </Button>
-        </div>
       </form>
     </BaseModal>
   );
@@ -754,11 +760,33 @@ function CreateModeContent({
       icon={<Plus className="w-5 h-5" />}
       onClose={onClose}
       size="md-lg"
-      fixedHeight
       dataAttribute="data-tube-modal"
       mode="create"
+      contentClassName="p-5"
+      footer={
+        <div className="flex justify-end space-x-4">
+          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            form="tube-create-form"
+            variant="primary"
+            disabled={!isFormValid}
+            isLoading={isSubmitting}
+            loadingText="Adding..."
+            leftIcon={<Plus className="w-4 h-4" />}
+          >
+            {parsedPositions.length === 1 ? 'Add Tube' : `Add ${parsedPositions.length} Tubes`}
+          </Button>
+        </div>
+      }
     >
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+      <form
+        id="tube-create-form"
+        onSubmit={form.handleSubmit(handleFormSubmit)}
+        className="space-y-3"
+      >
         <div className="space-y-3">
           {parsedPositions.length === 1 && parsedPositions[0] && (
             <LocationDisplay
@@ -801,23 +829,6 @@ function CreateModeContent({
           mediaOptions={mediaOptions}
           isLoading={isSubmitting}
         />
-
-        {/* Form Actions */}
-        <div className="flex justify-end space-x-4 pt-4 border-t border-border">
-          <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            disabled={!isFormValid}
-            isLoading={isSubmitting}
-            loadingText="Adding..."
-            leftIcon={<Plus className="w-4 h-4" />}
-          >
-            {parsedPositions.length === 1 ? 'Add Tube' : `Add ${parsedPositions.length} Tubes`}
-          </Button>
-        </div>
       </form>
     </BaseModal>
   );

@@ -133,7 +133,7 @@ export const TubeForm = ({
   };
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-2">
       <div className="flex items-center gap-3">
         <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
           Donor information
@@ -143,7 +143,7 @@ export const TubeForm = ({
 
       {/* ROW 1: Cell Type + Species */}
       <div className="flex gap-2.5">
-        <div className="w-64">
+        <div className="w-72">
           <ValidatedInput
             label="Cell Type"
             type="text"
@@ -199,7 +199,7 @@ export const TubeForm = ({
 
       {/* ROW 2: Donor IDs */}
       <div className="flex gap-2.5">
-        <div className="w-56">
+        <div className="w-64">
           <ValidatedInput
             label="Internal ID"
             type="text"
@@ -212,7 +212,7 @@ export const TubeForm = ({
             hasConflict={hasConflict('sample.donorInternalId')}
           />
         </div>
-        <div className="w-56">
+        <div className="w-64">
           <ValidatedInput
             label="Source ID"
             type="text"
@@ -227,7 +227,7 @@ export const TubeForm = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 !mt-5">
+      <div className="flex items-center gap-3 !mt-3.5">
         <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">
           Sample information
         </h3>
@@ -523,12 +523,15 @@ export const TubeForm = ({
       </div>
 
       {/* ROW 7: Notes */}
-      <div className="flex items-center gap-3 !mt-5">
-        <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap">Notes</h3>
+      <div className="flex items-center gap-3 !mt-3.5">
+        <h3 className="text-xs font-medium text-muted-foreground/60 whitespace-nowrap flex items-center gap-1.5">
+          Notes
+          {getConflictBadge('sample.notes')}
+        </h3>
         <div className="flex-1 h-px bg-muted-foreground/60"></div>
       </div>
 
-      <div>
+      <div className="relative">
         <ValidatedInput
           label=""
           type="textarea"
@@ -538,12 +541,11 @@ export const TubeForm = ({
           error={Boolean(getFieldError('sample.notes', errors))}
           helperText={getFieldError('sample.notes', errors)}
           disabled={isLoading}
-          badge={getConflictBadge('sample.notes')}
           hasConflict={hasConflict('sample.notes')}
         />
-        <div className="text-xs text-muted-foreground mt-1 text-right">
+        <span className="absolute bottom-1.5 right-2.5 text-[10px] text-muted-foreground/50 pointer-events-none">
           {(notesValue ?? '').length}/500
-        </div>
+        </span>
       </div>
     </div>
   );

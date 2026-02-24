@@ -405,6 +405,11 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 <button
                   type="button"
                   onClick={() => setShowEditLockNoteModal(true)}
+                  onFocus={e => {
+                    if (!e.currentTarget.matches(':focus-visible')) {
+                      e.currentTarget.blur();
+                    }
+                  }}
                   className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-muted text-secondary-foreground hover:bg-accent transition-colors cursor-pointer"
                 >
                   {lockNoteDisplay?.isMixed ? (
@@ -465,7 +470,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 <span className="text-card-foreground/30">·</span>
               )}
             {species ? (
-              <span className="text-card-foreground/60 text-sm">{species}</span>
+              <Chip size="sm">{species}</Chip>
             ) : isFieldMixed('sample.species') ? (
               <span className="flex items-center gap-1 text-card-foreground/30 text-sm">
                 —

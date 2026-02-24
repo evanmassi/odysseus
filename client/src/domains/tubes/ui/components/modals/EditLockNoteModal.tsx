@@ -139,22 +139,25 @@ export function EditLockNoteModal({
             <Notebook className="w-4 h-4" />
             Lock Note (optional)
           </label>
-          <Input
-            id="lockNote"
-            type="text"
-            value={lockNote}
-            onValueChange={setLockNote}
-            onKeyDown={handleKeyDown}
-            placeholder={
-              hasMixedNotes ? 'Enter new note for all tubes...' : 'e.g., Project X - Donor 123'
-            }
-            maxLength={100}
-            fullWidth
-          />
-          <div className="flex justify-between mt-1">
-            <p className="text-xs text-muted-foreground">Provides context for the lock.</p>
-            <p className="text-xs text-muted-foreground">{lockNote.length}/100</p>
+          <div className="relative">
+            <Input
+              id="lockNote"
+              type="text"
+              value={lockNote}
+              onValueChange={setLockNote}
+              onKeyDown={handleKeyDown}
+              placeholder={
+                hasMixedNotes ? 'Enter new note for all tubes...' : 'e.g., Project X - Donor 123'
+              }
+              maxLength={100}
+              fullWidth
+              inputClassName="pr-12"
+            />
+            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 pointer-events-none">
+              {lockNote.length}/100
+            </span>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">Provides context for the lock.</p>
         </div>
 
         {/* Actions */}
