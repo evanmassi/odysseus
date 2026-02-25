@@ -10,6 +10,8 @@ import { User } from '@domain/entities/User';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import { LabRepository } from '@domain/repositories/LabRepository';
 import { PasswordService } from '@application/contracts/PasswordService';
 import { logger } from '@utils/logger';
 import { EventBus } from '@application/contracts/EventBus';
@@ -22,6 +24,7 @@ import {
   UserLoggedOutEvent
 } from '@domain/events/UserEvents';
 import { BulkResourcesUnassignedEvent } from '@domain/events/ConfigurationEvents';
+import { InviteCodeUsedEvent } from '@domain/events/LabEvents';
 import { UserAlreadyExistsError, InvalidCredentialsError, UserNotFoundError } from '@domain/errors/UserErrors';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { ConflictError } from '@domain/errors/ConflictError';
@@ -36,7 +39,8 @@ export class CreateUserCommand extends BaseCommand {
     public readonly username: string,
     public readonly password: string,
     public readonly role: UserRole,
-    initiatedBy: string
+    initiatedBy: string,
+    public readonly inviteCode?: string
   ) {
     super(initiatedBy);
   }
@@ -47,35 +51,140 @@ export class CreateUserCommandHandler implements CommandHandler<CreateUserComman
     private userRepository: UserRepository,
     private passwordService: PasswordService,
     private eventBus: EventBus,
-    private configurationRepository: ConfigurationRepository
+    private configurationRepository: ConfigurationRepository,
+    private inviteCodeRepository?: InviteCodeRepository
   ) {}
 
   async handle(command: CreateUserCommand): Promise<User> {
-    // Validate business rules
     const existingUser = await this.userRepository.findByUsername(command.username);
     if (existingUser) {
       throw new UserAlreadyExistsError(command.username);
     }
 
-    // Validate password against security policy
     await this.validatePasswordPolicy(command.password);
 
-    // Create domain entity with password
-    const user = User.createWithPassword(command.username, command.password, command.role);
+    let labId: string | undefined;
+    let resolvedRole = command.role;
+    let autoApprove = false;
 
-    // Persist
+    if (command.inviteCode && this.inviteCodeRepository) {
+      const inviteCode = await this.inviteCodeRepository.findByCode(command.inviteCode);
+      if (!inviteCode || !inviteCode.isValid()) {
+        throw new ValidationError('Invalid or expired invite code');
+      }
+
+      labId = inviteCode.labId;
+      resolvedRole = UserRole.create(inviteCode.role);
+
+      // Lab admins designated by invite code are auto-approved
+      if (inviteCode.role === 'lab_admin') {
+        autoApprove = true;
+      }
+
+      inviteCode.recordUse();
+      await this.inviteCodeRepository.save(inviteCode);
+
+      await this.eventBus.publish(new InviteCodeUsedEvent(
+        inviteCode.id,
+        inviteCode.labId,
+        command.initiatedBy
+      ));
+    }
+
+    const status = autoApprove ? 'approved' : 'pending';
+    const user = User.createWithPassword(
+      command.username,
+      command.password,
+      resolvedRole,
+      undefined,
+      undefined,
+      status,
+      labId
+    );
+
     await this.userRepository.save(user);
 
-    // Publish domain event
     const event = new UserCreatedEvent(user.id, user.username, user.role);
     await this.eventBus.publish(event);
 
     return user;
   }
 
-  /**
-   * Validate password against configured security policy
-   */
+  private async validatePasswordPolicy(password: string): Promise<void> {
+    const securityConfig = await this.configurationRepository.getSecurityConfig();
+    try {
+      PasswordValidator.enforce(password, securityConfig);
+    } catch (error) {
+      throw new ValidationError((error as Error).message);
+    }
+  }
+}
+
+// Create System Admin Command
+
+export class CreateSystemAdminCommand extends BaseCommand {
+  constructor(
+    public readonly username: string,
+    public readonly password: string,
+    public readonly email: string,
+    public readonly setupKey?: string,
+    initiatedBy: string = 'system'
+  ) {
+    super(initiatedBy);
+  }
+}
+
+export class CreateSystemAdminCommandHandler implements CommandHandler<CreateSystemAdminCommand, User> {
+  constructor(
+    private userRepository: UserRepository,
+    private configurationRepository: ConfigurationRepository,
+    private eventBus: EventBus
+  ) {}
+
+  async handle(command: CreateSystemAdminCommand): Promise<User> {
+    // Only works when no system admin exists
+    const existingAdmins = await this.userRepository.countByRole('system_admin');
+    if (existingAdmins > 0) {
+      throw new ValidationError('System admin already exists');
+    }
+
+    // In production, validate setup key
+    const requiredKey = process.env.SYSTEM_ADMIN_SETUP_KEY;
+    if (requiredKey) {
+      if (!command.setupKey || command.setupKey !== requiredKey) {
+        throw new PermissionError('Invalid setup key');
+      }
+    }
+
+    const existingUser = await this.userRepository.findByUsername(command.username);
+    if (existingUser) {
+      throw new UserAlreadyExistsError(command.username);
+    }
+
+    const existingEmail = await this.userRepository.findByEmail(command.email);
+    if (existingEmail) {
+      throw new ValidationError('Email address already in use');
+    }
+
+    await this.validatePasswordPolicy(command.password);
+
+    const user = User.createWithPassword(
+      command.username,
+      command.password,
+      UserRole.systemAdmin(),
+      undefined,
+      undefined,
+      'approved'
+    );
+
+    await this.userRepository.save(user);
+
+    const event = new UserCreatedEvent(user.id, user.username, user.role);
+    await this.eventBus.publish(event);
+
+    return user;
+  }
+
   private async validatePasswordPolicy(password: string): Promise<void> {
     const securityConfig = await this.configurationRepository.getSecurityConfig();
     try {
@@ -251,7 +360,9 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
     let boxesAffected = 0;
 
     for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
-      const configuration = await this.configurationRepository.getCurrent();
+      const configuration = user.labId
+        ? await this.configurationRepository.getForLab(user.labId)
+        : await this.configurationRepository.getCurrent();
       if (!configuration) {
         break; // No configuration to update
       }

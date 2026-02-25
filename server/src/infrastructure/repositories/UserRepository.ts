@@ -481,6 +481,14 @@ export class UserRepository implements IUserRepository {
     return UserMapper.fromRows(rows);
   }
 
+  async findByStatusInLab(status: 'pending' | 'approved' | 'rejected', labId: string): Promise<User[]> {
+    const rows = await this.context.queryMany<UserRow>(
+      `SELECT ${USER_COLUMNS} FROM users WHERE status = $1 AND lab_id = $2 ORDER BY created_at DESC`,
+      [status, labId]
+    );
+    return UserMapper.fromRows(rows);
+  }
+
   async countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM users WHERE role = $1 AND lab_id = $2',

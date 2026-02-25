@@ -29,6 +29,15 @@ export abstract class BaseController {
     return user.id;
   }
 
+  /** Extract the lab ID from the authenticated user (required — throws if missing) */
+  protected extractLabId(req: Request): string {
+    const user = req.user;
+    if (!user?.labId) {
+      throw new Error('Lab context required - user has no lab association');
+    }
+    return user.labId;
+  }
+
   /** Extract the API key from the request (required — throws if missing) */
   protected extractApiKey(req: Request): string {
     const user = req.user;

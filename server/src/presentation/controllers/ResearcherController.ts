@@ -28,22 +28,24 @@ export class ResearcherController extends BaseController {
       const includeAdminData = req.query.admin === 'true';
       const visibleOnly = req.query.visible === 'true';
 
+      const labId = this.extractLabId(req);
+
       if (includeAdminData) {
         // Admin data requires authentication
         const userApiKey = this.extractApiKey(req);
         // Returns AdminResearcher[] with metadata
-        const researchers = await this.researcherApplicationService.getResearchersWithMetadata(userApiKey);
+        const researchers = await this.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
         res.json(ErrorDto.success({ researchers }));
       } else if (visibleOnly) {
         // Only approved+active researchers (for dropdowns)
         const userApiKey = this.extractOptionalApiKey(req);
-        const researchers = await this.researcherApplicationService.getVisibleResearchers(userApiKey);
+        const researchers = await this.researcherApplicationService.getVisibleResearchers(labId, userApiKey);
         res.json(ErrorDto.success(researchers));
       } else {
         // Basic data can be accessed with optional auth
         const userApiKey = this.extractOptionalApiKey(req);
         // Returns Researcher[] without metadata
-        const researchers = await this.researcherApplicationService.getAllResearchers(userApiKey);
+        const researchers = await this.researcherApplicationService.getAllResearchers(labId, userApiKey);
         res.json(ErrorDto.success(researchers));
       }
     } catch (error) {
@@ -58,9 +60,10 @@ export class ResearcherController extends BaseController {
    */
   async getResearchersWithMetadata(req: Request, res: Response): Promise<void> {
     try {
+      const labId = this.extractLabId(req);
       const userApiKey = this.extractApiKey(req);
 
-      const researchers = await this.researcherApplicationService.getResearchersWithMetadata(userApiKey);
+      const researchers = await this.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
 
       logger.debug('Retrieved researchers with metadata', {
         count: researchers.length,
@@ -81,9 +84,10 @@ export class ResearcherController extends BaseController {
    */
   async getUnlinkedResearchers(req: Request, res: Response): Promise<void> {
     try {
+      const labId = this.extractLabId(req);
       const userApiKey = this.extractApiKey(req);
 
-      const researchers = await this.researcherApplicationService.getUnlinkedResearchers(userApiKey);
+      const researchers = await this.researcherApplicationService.getUnlinkedResearchers(labId, userApiKey);
 
       logger.debug('Retrieved unlinked researchers', {
         count: researchers.length,
@@ -103,10 +107,11 @@ export class ResearcherController extends BaseController {
    */
   async getResearcherById(req: Request, res: Response): Promise<void> {
     try {
+      const labId = this.extractLabId(req);
       const { id } = req.params;
       const userApiKey = this.extractOptionalApiKey(req);
 
-      const researcher = await this.researcherApplicationService.getResearcherById(id, userApiKey);
+      const researcher = await this.researcherApplicationService.getResearcherById(labId, id, userApiKey);
 
       res.json(ErrorDto.success(researcher));
     } catch (error) {
@@ -120,10 +125,11 @@ export class ResearcherController extends BaseController {
    */
   async createResearcher(req: Request, res: Response): Promise<void> {
     try {
+      const labId = this.extractLabId(req);
       const createRequest: CreateResearcherRequest = req.body;
       const userApiKey = this.extractApiKey(req);
 
-      const researcher = await this.researcherApplicationService.createResearcher(createRequest, userApiKey);
+      const researcher = await this.researcherApplicationService.createResearcher(labId, createRequest, userApiKey);
 
       logger.debug('Researcher created', {
         researcherId: researcher.id,
@@ -241,9 +247,10 @@ export class ResearcherController extends BaseController {
    */
   async getResearcherStats(req: Request, res: Response): Promise<void> {
     try {
+      const labId = this.extractLabId(req);
       const userApiKey = this.extractApiKey(req);
-      
-      const stats = await this.researcherApplicationService.getResearcherStats(userApiKey);
+
+      const stats = await this.researcherApplicationService.getResearcherStats(labId, userApiKey);
       
       res.json(ErrorDto.success(stats));
     } catch (error) {
@@ -266,7 +273,8 @@ export class ResearcherController extends BaseController {
         return;
       }
 
-      const researchers = await this.researcherApplicationService.searchResearchers(query, userApiKey);
+      const labId = this.extractLabId(req);
+      const researchers = await this.researcherApplicationService.searchResearchers(labId, query, userApiKey);
 
       res.json(ErrorDto.success(researchers));
     } catch (error) {
@@ -280,10 +288,11 @@ export class ResearcherController extends BaseController {
    */
   async getResearcherTubeCount(req: Request, res: Response): Promise<void> {
     try {
+      const labId = this.extractLabId(req);
       const { id } = req.params;
       const userApiKey = this.extractOptionalApiKey(req);
 
-      const result = await this.researcherApplicationService.getResearcherTubeCount(id, userApiKey);
+      const result = await this.researcherApplicationService.getResearcherTubeCount(labId, id, userApiKey);
 
       res.json(ErrorDto.success(result));
     } catch (error) {

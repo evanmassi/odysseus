@@ -11,11 +11,13 @@ export abstract class DomainEvent {
   public readonly eventId: string;
   public readonly occurredOn: Date;
   public readonly version: number;
+  public labId?: string;
 
-  constructor(version: number = 1) {
+  constructor(version: number = 1, labId?: string) {
     this.eventId = randomUUID();
     this.occurredOn = new Date();
     this.version = version;
+    this.labId = labId;
   }
 
   /**
@@ -39,6 +41,7 @@ export abstract class DomainEvent {
       aggregateId: this.getAggregateId(),
       occurredOn: this.occurredOn.toISOString(),
       version: this.version,
+      labId: this.labId,
       data: this.getEventData()
     };
   }
@@ -58,5 +61,6 @@ export interface DomainEventData {
   aggregateId: string;
   occurredOn: string;
   version: number;
+  labId?: string;
   data: Record<string, any>;
 }

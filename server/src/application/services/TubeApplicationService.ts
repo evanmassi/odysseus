@@ -64,11 +64,11 @@ export class TubeApplicationService {
    * Helper: Get container info (rack + box) for a tube location
    * Used for container assignment permission checks
    */
-  private async getContainerInfo(tankId: string, rackId: string, boxId: string, preloadedConfig?: Configuration | null): Promise<{
+  private async getContainerInfo(labId: string, tankId: string, rackId: string, boxId: string, preloadedConfig?: Configuration | null): Promise<{
     rack: { assignedUserId?: string | null };
     box: { assignedUserId?: string | null };
   } | null> {
-    const config = preloadedConfig !== undefined ? preloadedConfig : await this.configurationRepository.getCurrent();
+    const config = preloadedConfig !== undefined ? preloadedConfig : await this.configurationRepository.getForLab(labId);
     if (!config) return null;
 
     const result = config.getBox(tankId, rackId, boxId);
@@ -84,8 +84,8 @@ export class TubeApplicationService {
    * Get tank IDs accessible to user based on demo status.
    * Demo users see only demo tanks; real users see only real tanks.
    */
-  private async getAllowedTankIds(user: User): Promise<string[]> {
-    const config = await this.configurationRepository.getCurrent();
+  private async getAllowedTankIds(labId: string, user: User): Promise<string[]> {
+    const config = await this.configurationRepository.getForLab(labId);
     if (!config) return [];
 
     return config.getTankIdsForUserDemoStatus(user.isDemo);
@@ -111,7 +111,7 @@ export class TubeApplicationService {
     const tubeData = TubeDto.fromCreateRequest(request);
 
     // 2.1 Demo mode isolation: verify tank is accessible to user
-    const config = options?.config !== undefined ? options.config : await this.configurationRepository.getCurrent();
+    const config = options?.config !== undefined ? options.config : await this.configurationRepository.getForLab(authenticatedUser.labId!);
     if (config) {
       const tank = config.tanks.find(t => t.id === tubeData.location.tankId);
       if (tank && tank.isDemo !== authenticatedUser.isDemo) {
@@ -126,6 +126,7 @@ export class TubeApplicationService {
 
     // 2.5. Check container access (assignment protects the container)
     const containerInfo = await this.getContainerInfo(
+      authenticatedUser.labId!,
       tubeData.location.tankId,
       tubeData.location.rackId,
       tubeData.location.boxId,
@@ -191,19 +192,22 @@ export class TubeApplicationService {
     // 5. Create entity (domain applies defaults & validation)
     const tube = Tube.create({
       ...tubeData,
-      createdByName
+      createdByName,
+      labId: authenticatedUser.labId
     });
 
     // 6. Save
     await this.tubeRepository.save(tube);
 
     // 7. Publish domain event
-    await this.eventBus.publish(new TubeCreatedEvent(
+    const createdEvent = new TubeCreatedEvent(
       tube.id,
       tube.location,
       tube.sampleData,
       authenticatedUser.id
-    ));
+    );
+    createdEvent.labId = authenticatedUser.labId;
+    await this.eventBus.publish(createdEvent);
 
     return TubeDto.toResponse(tube);
   }
@@ -220,7 +224,7 @@ export class TubeApplicationService {
     created: TubeResponse[];
     failed: Array<{ index: number; request: CreateTubeRequest; error: string }>;
   }> {
-    const config = await this.configurationRepository.getCurrent();
+    const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
 
     // Pre-fetch researcher names in bulk (2 queries total instead of 2 per tube)
     const researcherNameCache = new Map<string, string>();
@@ -304,13 +308,14 @@ export class TubeApplicationService {
     const tube = await this.getTubeOrThrow(id);
 
     // Demo mode isolation: verify tube's tank is accessible to user
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(tube.location.tankId)) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
     // Check view access: container ownership OR shared access
     const containerInfo = await this.getContainerInfo(
+      authenticatedUser.labId!,
       tube.location.tankId,
       tube.location.rackId,
       tube.location.boxId
@@ -342,7 +347,7 @@ export class TubeApplicationService {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     // Get allowed tank IDs based on user's demo status
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
 
     let tubes: Tube[];
 
@@ -379,7 +384,7 @@ export class TubeApplicationService {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     // Demo mode isolation: verify tank is accessible to user
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(tankId)) {
       // Return empty array rather than error - tank simply doesn't exist for this user
       return [];
@@ -404,7 +409,7 @@ export class TubeApplicationService {
     const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId);
 
     // Demo mode isolation: filter to tubes in allowed tanks
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     const filteredTubes = tubes.filter(tube => allowedTankIds.includes(tube.location.tankId));
 
     return TubeDto.toResponseList(filteredTubes);
@@ -421,7 +426,7 @@ export class TubeApplicationService {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     // Apply demo tank filter
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     // If user specifies tankId, validate it's in allowed list; otherwise use all allowed
     const requestedTankId = searchRequest.tankId;
     const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
@@ -449,7 +454,7 @@ export class TubeApplicationService {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     // Apply demo tank filter
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     // If user specifies tankId, validate it's in allowed list; otherwise use all allowed
     const requestedTankId = searchRequest.tankId;
     const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
@@ -477,13 +482,14 @@ export class TubeApplicationService {
     const existingTube = options?.preloadedTube ?? await this.getTubeOrThrow(id);
 
     // Demo mode isolation: verify tube's tank is accessible to user
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(existingTube.location.tankId)) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
     // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
+      authenticatedUser.labId!,
       existingTube.location.tankId,
       existingTube.location.rackId,
       existingTube.location.boxId,
@@ -535,7 +541,7 @@ export class TubeApplicationService {
         }
 
         // Also check destination container access for moves
-        const destContainerInfo = await this.getContainerInfo(newTankId, newRackId, newBoxId, options?.config);
+        const destContainerInfo = await this.getContainerInfo(authenticatedUser.labId!, newTankId, newRackId, newBoxId, options?.config);
         if (destContainerInfo) {
           const destAccess = this.accessControlService.canAccessContainer(
             authenticatedUser,
@@ -601,24 +607,26 @@ export class TubeApplicationService {
     const locationChanged = !oldLocation.equals(updatedTube.location);
 
     if (locationChanged) {
-      // Publish location change event
-      await this.eventBus.publish(new TubeLocationChangedEvent(
+      const locationEvent = new TubeLocationChangedEvent(
         updatedTube.id,
         oldLocation,
         updatedTube.location,
         authenticatedUser.id
-      ));
+      );
+      locationEvent.labId = authenticatedUser.labId;
+      await this.eventBus.publish(locationEvent);
     }
 
-    // Always publish general update event
-    await this.eventBus.publish(new TubeUpdatedEvent(
+    const updateEvent = new TubeUpdatedEvent(
       updatedTube.id,
       oldLocation,
       updatedTube.location,
       oldSampleData,
       updatedTube.sampleData,
       authenticatedUser.id
-    ));
+    );
+    updateEvent.labId = authenticatedUser.labId;
+    await this.eventBus.publish(updateEvent);
 
     return TubeDto.toResponse(updatedTube);
   }
@@ -630,13 +638,14 @@ export class TubeApplicationService {
     const tube = options?.preloadedTube ?? await this.getTubeOrThrow(id);
 
     // Demo mode isolation: verify tube's tank is accessible to user
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(tube.location.tankId)) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
     // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
+      authenticatedUser.labId!,
       tube.location.tankId,
       tube.location.rackId,
       tube.location.boxId,
@@ -663,13 +672,14 @@ export class TubeApplicationService {
 
     await this.tubeRepository.delete(id);
 
-    // Publish domain event
-    await this.eventBus.publish(new TubeDeletedEvent(
+    const deletedEvent = new TubeDeletedEvent(
       tube.id,
       tube.location,
       authenticatedUser.id,
       tube.sampleData
-    ));
+    );
+    deletedEvent.labId = authenticatedUser.labId;
+    await this.eventBus.publish(deletedEvent);
   }
 
   /**
@@ -686,7 +696,7 @@ export class TubeApplicationService {
   }> {
     // No upfront permission check — each tube is authorized individually
     // This allows users to batch edit tubes they have access to (own space or shared access)
-    const config = await this.configurationRepository.getCurrent();
+    const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
 
     // Pre-fetch all tubes in one query
     const tubeIds = request.updates.map(u => u.id);
@@ -703,15 +713,16 @@ export class TubeApplicationService {
       (item, _index, error) => ({ id: item.id, error })
     );
 
-    // Publish bulk update event (only if some succeeded)
     if (updated.length > 0) {
       const tankIds = [...new Set(updated.map(id => tubeMap.get(id)!.location.tankId))];
-      await this.eventBus.publish(new BulkTubesUpdatedEvent(
+      const bulkUpdateEvent = new BulkTubesUpdatedEvent(
         updated,
         tankIds,
         authenticatedUser.id,
         { updated: updated.length, failed: failed.length }
-      ));
+      );
+      bulkUpdateEvent.labId = authenticatedUser.labId;
+      await this.eventBus.publish(bulkUpdateEvent);
     }
 
     return { success: failed.length === 0, updated, failed };
@@ -731,14 +742,14 @@ export class TubeApplicationService {
     // No upfront permission check — each tube is authorized individually
     // This allows users to delete tubes they have access to (own space or shared access)
     // Consistent with bulkUpdateTubes which uses the same per-tube authorization pattern
-    const config = await this.configurationRepository.getCurrent();
+    const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
 
     // Pre-fetch all tubes in one query
     const tubes = await this.tubeRepository.findByIds(tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
     // Demo mode isolation: get allowed tanks once for the batch
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     const allowedTankSet = new Set(allowedTankIds);
 
     // Validate permissions per tube, collect valid IDs
@@ -761,6 +772,7 @@ export class TubeApplicationService {
       try {
         // Check access: container ownership OR shared access
         const containerInfo = await this.getContainerInfo(
+          authenticatedUser.labId!,
           tube.location.tankId,
           tube.location.rackId,
           tube.location.boxId,
@@ -789,14 +801,15 @@ export class TubeApplicationService {
     if (validatedIds.length > 0) {
       await this.tubeRepository.deleteMany(validatedIds);
 
-      // Publish per-tube events (same events as individual deleteTube)
       for (const tube of validatedTubes) {
-        await this.eventBus.publish(new TubeDeletedEvent(
+        const tubeDeletedEvent = new TubeDeletedEvent(
           tube.id,
           tube.location,
           authenticatedUser.id,
           tube.sampleData
-        ));
+        );
+        tubeDeletedEvent.labId = authenticatedUser.labId;
+        await this.eventBus.publish(tubeDeletedEvent);
       }
     }
 
@@ -814,8 +827,8 @@ export class TubeApplicationService {
     const locked: string[] = [];
     const skipped: SkippedTube[] = [];
 
-    const config = await this.configurationRepository.getCurrent();
-    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser));
+    const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -834,6 +847,7 @@ export class TubeApplicationService {
 
       // Check container access first (assignment protects the container)
       const containerInfo = await this.getContainerInfo(
+        authenticatedUser.labId!,
         tube.location.tankId,
         tube.location.rackId,
         tube.location.boxId,
@@ -884,12 +898,14 @@ export class TubeApplicationService {
       logger.debug('[TubeService] Publishing TubesLockedEvent', {
         lockedCount: locked.length,
       });
-      await this.eventBus.publish(new TubesLockedEvent(
+      const lockedEvent = new TubesLockedEvent(
         locked,
         tankIds,
         authenticatedUser.id,
         request.lockNote
-      ));
+      );
+      lockedEvent.labId = authenticatedUser.labId;
+      await this.eventBus.publish(lockedEvent);
     }
 
     return { locked, skipped };
@@ -906,7 +922,7 @@ export class TubeApplicationService {
     const unlocked: string[] = [];
     const skipped: SkippedTube[] = [];
 
-    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser));
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -953,11 +969,13 @@ export class TubeApplicationService {
       logger.debug('[TubeService] Publishing TubesUnlockedEvent', {
         unlockedCount: unlocked.length,
       });
-      await this.eventBus.publish(new TubesUnlockedEvent(
+      const unlockedEvent = new TubesUnlockedEvent(
         unlocked,
         tankIds,
         authenticatedUser.id
-      ));
+      );
+      unlockedEvent.labId = authenticatedUser.labId;
+      await this.eventBus.publish(unlockedEvent);
     }
 
     return { unlocked, skipped };
@@ -987,7 +1005,7 @@ export class TubeApplicationService {
       throw new Error('Cannot share tubes with users of different demo status');
     }
 
-    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser));
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -1029,13 +1047,15 @@ export class TubeApplicationService {
     // Publish single batch event after all tubes processed
     if (shared.length > 0) {
       const tankIds = [...new Set(shared.map(id => tubeMap.get(id)!.location.tankId))];
-      await this.eventBus.publish(new TubeAccessSharedEvent(
+      const sharedEvent = new TubeAccessSharedEvent(
         shared,
         tankIds,
         request.userIds,
         tubeSharedUsers,
         authenticatedUser.id
-      ));
+      );
+      sharedEvent.labId = authenticatedUser.labId;
+      await this.eventBus.publish(sharedEvent);
     }
 
     return { shared, skipped };
@@ -1053,7 +1073,7 @@ export class TubeApplicationService {
     const skipped: SkippedTube[] = [];
     const tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }> = [];
 
-    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser));
+    const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
     const tubes = await this.tubeRepository.findByIds(request.tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
@@ -1095,13 +1115,15 @@ export class TubeApplicationService {
     // Publish single batch event after all tubes processed
     if (revoked.length > 0) {
       const tankIds = [...new Set(revoked.map(id => tubeMap.get(id)!.location.tankId))];
-      await this.eventBus.publish(new TubeAccessRevokedEvent(
+      const revokedEvent = new TubeAccessRevokedEvent(
         revoked,
         tankIds,
         request.userIds,
         tubeSharedUsers,
         authenticatedUser.id
-      ));
+      );
+      revokedEvent.labId = authenticatedUser.labId;
+      await this.eventBus.publish(revokedEvent);
     }
 
     return { revoked, skipped };
@@ -1123,7 +1145,7 @@ export class TubeApplicationService {
   }> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser);
+    const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     const stats = await this.tubeRepository.getStats(allowedTankIds);
 
     return {

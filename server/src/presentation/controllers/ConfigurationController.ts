@@ -129,11 +129,10 @@ export class ConfigurationController extends BaseController {
 
       let configuration;
       if (user) {
-        // Filter configuration by user's demo status
-        configuration = await this.getConfigurationForUserHandler.handle({ user });
+        const labId = user.labId!;
+        configuration = await this.getConfigurationForUserHandler.handle({ labId, user });
       } else {
-        // Fallback for unauthenticated requests (shouldn't happen with auth middleware)
-        configuration = await this.getCurrentConfigurationHandler.handle({});
+        throw new Error('Authentication required');
       }
 
       // Use DTO to transform domain entity to API response format
@@ -158,7 +157,9 @@ export class ConfigurationController extends BaseController {
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
       
+      const labId = this.extractLabId(req);
       const history = await this.getConfigurationHistoryHandler.handle({
+        labId,
         limit,
         offset
       });
@@ -198,7 +199,9 @@ export class ConfigurationController extends BaseController {
         return;
       }
       
+      const labId = this.extractLabId(req);
       const configuration = await this.getConfigurationByVersionHandler.handle({
+        labId,
         version
       });
       
@@ -222,7 +225,8 @@ export class ConfigurationController extends BaseController {
    */
   async getConfigurationVersion(req: Request, res: Response): Promise<void> {
     try {
-      const configuration = await this.getCurrentConfigurationHandler.handle({});
+      const labId = this.extractLabId(req);
+      const configuration = await this.getCurrentConfigurationHandler.handle({ labId });
 
       res.json({
         success: true,
@@ -243,7 +247,8 @@ export class ConfigurationController extends BaseController {
    */
   async checkConfigurationHealth(req: Request, res: Response): Promise<void> {
     try {
-      const health = await this.checkConfigurationHealthHandler.handle({});
+      const labId = this.extractLabId(req);
+      const health = await this.checkConfigurationHealthHandler.handle({ labId });
       
       res.json({
         status: health.isHealthy ? 'healthy' : 'unhealthy',
@@ -266,9 +271,11 @@ export class ConfigurationController extends BaseController {
   async updateSystemConfiguration(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
-      
+      const labId = this.extractLabId(req);
+
       const updatedConfiguration = await this.updateSystemConfigurationHandler.handle({
         userId,
+        labId,
         systemSettings: req.body
       });
       
@@ -290,9 +297,11 @@ export class ConfigurationController extends BaseController {
   async updateEquipmentConfiguration(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
-      
+      const labId = this.extractLabId(req);
+
       const updatedConfiguration = await this.updateEquipmentConfigurationHandler.handle({
         userId,
+        labId,
         tanks: req.body.tanks,
         racks: req.body.racks,
         boxes: req.body.boxes
@@ -316,17 +325,19 @@ export class ConfigurationController extends BaseController {
   async resetConfigurationToDefault(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
+      const labId = this.extractLabId(req);
       const confirmationToken = req.body.confirmationToken;
-      
+
       if (!confirmationToken) {
         res.status(400).json({
           error: 'Confirmation token required for configuration reset'
         });
         return;
       }
-      
+
       const defaultConfiguration = await this.resetConfigurationHandler.handle({
         userId,
+        labId,
         confirmationToken
       });
       
@@ -348,10 +359,12 @@ export class ConfigurationController extends BaseController {
   async importConfiguration(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
+      const labId = this.extractLabId(req);
       const validateOnly = req.query.validateOnly === 'true';
-      
+
       const result = await this.importConfigurationHandler.handle({
         userId,
+        labId,
         configurationData: req.body,
         validateOnly
       });
@@ -406,8 +419,11 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
+      const labId = this.extractLabId(req);
+
       const updatedConfiguration = await this.updateBoxPositionDisplayHandler.handle({
         userId,
+        labId,
         tankId,
         rackId,
         boxId,
@@ -433,10 +449,12 @@ export class ConfigurationController extends BaseController {
   async updateLabDefaultPositionDisplay(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
+      const labId = this.extractLabId(req);
       const { positionDisplay } = req.body;
 
       const updatedConfiguration = await this.updateLabDefaultPositionDisplayHandler.handle({
         userId,
+        labId,
         positionDisplay: positionDisplay || null
       });
 
@@ -497,8 +515,11 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
+      const labId = this.extractLabId(req);
+
       const updatedConfiguration = await this.updateResourceLabelHandler.handle({
         userId,
+        labId,
         resourceType,
         tankId,
         rackId,
@@ -562,7 +583,9 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
-      const result = await this.addTankHandler.handle({ userId, name, location });
+      const labId = this.extractLabId(req);
+
+      const result = await this.addTankHandler.handle({ userId, labId, name, location });
 
       res.status(201).json({
         success: true,
@@ -584,7 +607,9 @@ export class ConfigurationController extends BaseController {
       const tankId = req.params.tankId;
       const { name, location, isActive } = req.body;
 
-      await this.updateTankHandler.handle({ userId, tankId, name, location, isActive });
+      const labId = this.extractLabId(req);
+
+      await this.updateTankHandler.handle({ userId, labId, tankId, name, location, isActive });
 
       res.json({
         success: true,
@@ -603,9 +628,10 @@ export class ConfigurationController extends BaseController {
   async deleteTank(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
+      const labId = this.extractLabId(req);
       const tankId = req.params.tankId;
 
-      await this.deleteTankHandler.handle({ userId, tankId });
+      await this.deleteTankHandler.handle({ userId, labId, tankId });
 
       res.json({
         success: true,
@@ -623,8 +649,8 @@ export class ConfigurationController extends BaseController {
    */
   async getAllTanksAdmin(req: Request, res: Response): Promise<void> {
     try {
-      // Use unfiltered configuration query (not filtered by user demo status)
-      const configuration = await this.getCurrentConfigurationHandler.handle({});
+      const labId = this.extractLabId(req);
+      const configuration = await this.getCurrentConfigurationHandler.handle({ labId });
       const configData = configuration.toData();
 
       // Return all tanks with their demo status
@@ -663,7 +689,9 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
-      await this.setTankDemoStatusHandler.handle({ userId, tankId, isDemo });
+      const labId = this.extractLabId(req);
+
+      await this.setTankDemoStatusHandler.handle({ userId, labId, tankId, isDemo });
 
       res.json({
         success: true,
@@ -683,7 +711,9 @@ export class ConfigurationController extends BaseController {
     try {
       const userId = this.extractUserId(req);
 
-      const result = await this.resetDemoDataHandler.handle({ userId });
+      const labId = this.extractLabId(req);
+
+      const result = await this.resetDemoDataHandler.handle({ userId, labId });
 
       res.json({
         success: true,
@@ -709,7 +739,9 @@ export class ConfigurationController extends BaseController {
       const tankId = req.params.tankId;
       const { count = 1 } = req.body;
 
-      const result = await this.addRacksHandler.handle({ userId, tankId, count });
+      const labId = this.extractLabId(req);
+
+      const result = await this.addRacksHandler.handle({ userId, labId, tankId, count });
 
       res.status(201).json({
         success: true,
@@ -731,7 +763,9 @@ export class ConfigurationController extends BaseController {
       const { tankId, rackId } = req.params;
       const { name, capacity, isActive } = req.body;
 
-      await this.updateRackHandler.handle({ userId, tankId, rackId, name, capacity, isActive });
+      const labId = this.extractLabId(req);
+
+      await this.updateRackHandler.handle({ userId, labId, tankId, rackId, name, capacity, isActive });
 
       res.json({
         success: true,
@@ -750,9 +784,10 @@ export class ConfigurationController extends BaseController {
   async deleteRack(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
+      const labId = this.extractLabId(req);
       const { tankId, rackId } = req.params;
 
-      await this.deleteRackHandler.handle({ userId, tankId, rackId });
+      await this.deleteRackHandler.handle({ userId, labId, tankId, rackId });
 
       res.json({
         success: true,
@@ -774,8 +809,11 @@ export class ConfigurationController extends BaseController {
       const { tankId, rackId } = req.params;
       const { assignedUserId } = req.body;
 
+      const labId = this.extractLabId(req);
+
       await this.assignRackHandler.handle({
         userId,
+        labId,
         tankId,
         rackId,
         assignedUserId: assignedUserId ?? null
@@ -805,7 +843,9 @@ export class ConfigurationController extends BaseController {
       const { tankId, rackId } = req.params;
       const { count = 1 } = req.body;
 
-      const result = await this.addBoxesHandler.handle({ userId, tankId, rackId, count });
+      const labId = this.extractLabId(req);
+
+      const result = await this.addBoxesHandler.handle({ userId, labId, tankId, rackId, count });
 
       res.status(201).json({
         success: true,
@@ -827,8 +867,11 @@ export class ConfigurationController extends BaseController {
       const { tankId, rackId, boxId } = req.params;
       const { name, gridConfig, positionDisplay, isActive } = req.body;
 
+      const labId = this.extractLabId(req);
+
       await this.updateBoxHandler.handle({
         userId,
+        labId,
         tankId,
         rackId,
         boxId,
@@ -855,9 +898,10 @@ export class ConfigurationController extends BaseController {
   async deleteBox(req: Request, res: Response): Promise<void> {
     try {
       const userId = this.extractUserId(req);
+      const labId = this.extractLabId(req);
       const { tankId, rackId, boxId } = req.params;
 
-      await this.deleteBoxHandler.handle({ userId, tankId, rackId, boxId });
+      await this.deleteBoxHandler.handle({ userId, labId, tankId, rackId, boxId });
 
       res.json({
         success: true,
@@ -879,8 +923,11 @@ export class ConfigurationController extends BaseController {
       const { tankId, rackId, boxId } = req.params;
       const { assignedUserId } = req.body;
 
+      const labId = this.extractLabId(req);
+
       await this.assignBoxHandler.handle({
         userId,
+        labId,
         tankId,
         rackId,
         boxId,
@@ -917,7 +964,9 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
-      const result = await this.bulkUnassignHandler.handle({ userId, fromUserId });
+      const labId = this.extractLabId(req);
+
+      const result = await this.bulkUnassignHandler.handle({ userId, labId, fromUserId });
 
       res.json({
         success: true,
@@ -948,7 +997,9 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
-      const result = await this.bulkReassignHandler.handle({ userId, fromUserId, toUserId });
+      const labId = this.extractLabId(req);
+
+      const result = await this.bulkReassignHandler.handle({ userId, labId, fromUserId, toUserId });
 
       res.json({
         success: true,
@@ -981,8 +1032,11 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
+      const labId = this.extractLabId(req);
+
       await this.initializeConfigHandler.handle({
         userId,
+        labId,
         labName,
         tankCount,
         racksPerTank,

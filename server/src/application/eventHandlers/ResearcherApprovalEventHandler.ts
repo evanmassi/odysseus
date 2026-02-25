@@ -54,13 +54,15 @@ export class ResearcherApprovalEventHandler {
 
         const person = await this.personRepository.findById(researcher.personId);
 
-        await this.eventBus.publish(new ResearcherApprovedEvent(
+        const approvedEvent = new ResearcherApprovedEvent(
           researcher.id,
           person?.firstName || 'Unknown',
           person?.lastName || 'Unknown',
           event.userId,
           event.approvedBy
-        ));
+        );
+        approvedEvent.labId = event.labId;
+        await this.eventBus.publish(approvedEvent);
 
         logger.info('Researcher approved via user approval cascade', {
           researcherId: researcher.id,

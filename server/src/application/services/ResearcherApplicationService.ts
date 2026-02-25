@@ -50,8 +50,8 @@ export class ResearcherApplicationService {
    *
    * @param users - Optional pre-fetched users to avoid redundant database calls
    */
-  private async buildResearcherDemoMap(users?: User[]): Promise<Map<string, boolean>> {
-    const allUsers = users ?? await this.userRepository.findAll();
+  private async buildResearcherDemoMap(labId: string, users?: User[]): Promise<Map<string, boolean>> {
+    const allUsers = users ?? await this.userRepository.findByLabId(labId);
     const researcherDemoMap = new Map<string, boolean>();
 
     for (const user of allUsers) {
@@ -93,15 +93,14 @@ export class ResearcherApplicationService {
    * Demo users see only demo-linked researchers.
    * Real users see only non-demo researchers (including unlinked).
    */
-  async getAllResearchers(userApiKey?: string): Promise<ResearcherResponse[]> {
-    const researchers = await this.researcherRepository.findAll();
+  async getAllResearchers(labId: string, userApiKey?: string): Promise<ResearcherResponse[]> {
+    const researchers = await this.researcherRepository.findByLabId(labId);
 
-    // Apply demo filtering if user is authenticated
     let filteredResearchers = researchers;
     if (userApiKey) {
       const user = await this.userRepository.findByApiKey(userApiKey);
       if (user) {
-        const demoMap = await this.buildResearcherDemoMap();
+        const demoMap = await this.buildResearcherDemoMap(labId);
         filteredResearchers = this.filterResearchersByDemoStatus(
           researchers,
           user.isDemo,
@@ -126,15 +125,14 @@ export class ResearcherApplicationService {
    * Demo users see only demo-linked researchers.
    * Real users see only non-demo researchers (including unlinked).
    */
-  async getVisibleResearchers(userApiKey?: string): Promise<ResearcherResponse[]> {
-    const researchers = await this.researcherRepository.findApprovedAndActive();
+  async getVisibleResearchers(labId: string, userApiKey?: string): Promise<ResearcherResponse[]> {
+    const researchers = await this.researcherRepository.findActiveByLabId(labId);
 
-    // Apply demo filtering if user is authenticated
     let filteredResearchers = researchers;
     if (userApiKey) {
       const user = await this.userRepository.findByApiKey(userApiKey);
       if (user) {
-        const demoMap = await this.buildResearcherDemoMap();
+        const demoMap = await this.buildResearcherDemoMap(labId);
         filteredResearchers = this.filterResearchersByDemoStatus(
           researchers,
           user.isDemo,
@@ -159,7 +157,7 @@ export class ResearcherApplicationService {
    * Excludes demo-linked researchers from regular admin management.
    * Demo-linked researchers are managed separately in Demo Management section.
    */
-  async getResearchersWithMetadata(userApiKey: string): Promise<Array<{
+  async getResearchersWithMetadata(labId: string, userApiKey: string): Promise<Array<{
     id: string;
     firstName: string;
     lastName: string;
@@ -177,11 +175,10 @@ export class ResearcherApplicationService {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireAdminAccess(user);
 
-    const researchers = await this.researcherRepository.findAll();
-    const users = await this.userRepository.findAll();
+    const researchers = await this.researcherRepository.findByLabId(labId);
+    const users = await this.userRepository.findByLabId(labId);
 
-    // Build demo map for filtering (pass users to avoid redundant fetch)
-    const demoMap = await this.buildResearcherDemoMap(users);
+    const demoMap = await this.buildResearcherDemoMap(labId, users);
 
     // Filter out demo-linked researchers from admin management view
     const nonDemoResearchers = researchers.filter(r => !this.isResearcherDemo(r.id, demoMap));
@@ -220,12 +217,12 @@ export class ResearcherApplicationService {
    * Admin-only: used for user-researcher linking interface.
    * Returns all unlinked researchers - they have no demo status until linked.
    */
-  async getUnlinkedResearchers(userApiKey: string): Promise<ResearcherResponse[]> {
+  async getUnlinkedResearchers(labId: string, userApiKey: string): Promise<ResearcherResponse[]> {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireAdminAccess(user);
 
-    const researchers = await this.researcherRepository.findAll();
-    const users = await this.userRepository.findAll();
+    const researchers = await this.researcherRepository.findByLabId(labId);
+    const users = await this.userRepository.findByLabId(labId);
 
     // Filter to researchers without user links
     const linkedResearcherIds = new Set(
@@ -248,14 +245,13 @@ export class ResearcherApplicationService {
    * Demo users can only access demo-linked researchers.
    * Real users can only access non-demo researchers.
    */
-  async getResearcherById(id: string, userApiKey?: string): Promise<ResearcherResponse> {
+  async getResearcherById(labId: string, id: string, userApiKey?: string): Promise<ResearcherResponse> {
     const researcher = await this.getResearcherOrThrow(id);
 
-    // Validate demo access if user is authenticated
     if (userApiKey) {
       const user = await this.userRepository.findByApiKey(userApiKey);
       if (user) {
-        const demoMap = await this.buildResearcherDemoMap();
+        const demoMap = await this.buildResearcherDemoMap(labId);
         const isResearcherDemo = this.isResearcherDemo(id, demoMap);
 
         // Demo user trying to access non-demo researcher, or vice versa
@@ -277,7 +273,7 @@ export class ResearcherApplicationService {
    * 2. If orphaned Person exists → reuse it (safety net, shouldn't happen with cleanup)
    * 3. Otherwise → create fresh Person + Researcher
    */
-  async createResearcher(request: CreateResearcherRequest, userApiKey: string): Promise<ResearcherResponse> {
+  async createResearcher(labId: string, request: CreateResearcherRequest, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
     this.accessControlService.requireCanManageResearchers(user);
 
@@ -302,8 +298,7 @@ export class ResearcherApplicationService {
           });
         }
 
-        // Create Researcher linked to existing User's Person
-        const researcher = Researcher.create(existingPerson.id);
+        const researcher = Researcher.create(existingPerson.id, { labId });
         await this.researcherRepository.save(researcher);
 
         await this.eventBus.publish(new ResearcherCreatedEvent(
@@ -340,7 +335,7 @@ export class ResearcherApplicationService {
       );
       await this.personRepository.save(orphanedPerson);
 
-      const researcher = Researcher.create(orphanedPerson.id);
+      const researcher = Researcher.create(orphanedPerson.id, { labId });
       await this.researcherRepository.save(researcher);
 
       await this.eventBus.publish(new ResearcherCreatedEvent(
@@ -364,7 +359,7 @@ export class ResearcherApplicationService {
       request.department?.trim()
     );
 
-    const researcher = Researcher.create(person.id);
+    const researcher = Researcher.create(person.id, { labId });
 
     await this.personRepository.save(person);
     await this.researcherRepository.save(researcher);
@@ -598,7 +593,7 @@ export class ResearcherApplicationService {
    * Demo users see only demo-linked researchers.
    * Real users see only non-demo researchers (including unlinked).
    */
-  async getResearcherStats(userApiKey: string): Promise<Array<{
+  async getResearcherStats(labId: string, userApiKey: string): Promise<Array<{
     researcher: ResearcherResponse;
     tubeCount: number;
   }>> {
@@ -607,8 +602,7 @@ export class ResearcherApplicationService {
 
     const activeResearchers = await this.researcherRepository.getMostActiveResearchers(10);
 
-    // Apply demo filtering
-    const demoMap = await this.buildResearcherDemoMap();
+    const demoMap = await this.buildResearcherDemoMap(labId);
     const filteredResearchers = activeResearchers.filter(item => {
       const isDemo = this.isResearcherDemo(item.researcher.id, demoMap);
       return user.isDemo ? isDemo : !isDemo;
@@ -628,15 +622,14 @@ export class ResearcherApplicationService {
    * Demo users see only demo-linked researchers.
    * Real users see only non-demo researchers (including unlinked).
    */
-  async searchResearchers(namePattern: string, userApiKey?: string): Promise<ResearcherResponse[]> {
+  async searchResearchers(labId: string, namePattern: string, userApiKey?: string): Promise<ResearcherResponse[]> {
     const researchers = await this.researcherRepository.searchByName(namePattern);
 
-    // Apply demo filtering if user is authenticated
     let filteredResearchers = researchers;
     if (userApiKey) {
       const user = await this.userRepository.findByApiKey(userApiKey);
       if (user) {
-        const demoMap = await this.buildResearcherDemoMap();
+        const demoMap = await this.buildResearcherDemoMap(labId);
         filteredResearchers = this.filterResearchersByDemoStatus(
           researchers,
           user.isDemo,
@@ -660,14 +653,13 @@ export class ResearcherApplicationService {
    * Demo users can only access demo-linked researchers.
    * Real users can only access non-demo researchers.
    */
-  async getResearcherTubeCount(id: string, userApiKey?: string): Promise<{ tubeCount: number }> {
+  async getResearcherTubeCount(labId: string, id: string, userApiKey?: string): Promise<{ tubeCount: number }> {
     const researcher = await this.getResearcherOrThrow(id);
 
-    // Validate demo access if user is authenticated
     if (userApiKey) {
       const user = await this.userRepository.findByApiKey(userApiKey);
       if (user) {
-        const demoMap = await this.buildResearcherDemoMap();
+        const demoMap = await this.buildResearcherDemoMap(labId);
         const isResearcherDemo = this.isResearcherDemo(id, demoMap);
 
         // Demo user trying to access non-demo researcher, or vice versa

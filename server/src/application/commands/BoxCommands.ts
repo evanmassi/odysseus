@@ -29,6 +29,7 @@ import type { FieldChange } from '@domain/types/FieldChange';
 
 export interface AddBoxesCommand {
   userId: string;
+  labId: string;
   tankId: string;
   rackId: string;
   count: number;
@@ -36,6 +37,7 @@ export interface AddBoxesCommand {
 
 export interface UpdateBoxCommand {
   userId: string;
+  labId: string;
   tankId: string;
   rackId: string;
   boxId: string;
@@ -47,6 +49,7 @@ export interface UpdateBoxCommand {
 
 export interface DeleteBoxCommand {
   userId: string;
+  labId: string;
   tankId: string;
   rackId: string;
   boxId: string;
@@ -54,10 +57,11 @@ export interface DeleteBoxCommand {
 
 export interface AssignBoxCommand {
   userId: string;
+  labId: string;
   tankId: string;
   rackId: string;
   boxId: string;
-  assignedUserId: string | null; // null = unassign
+  assignedUserId: string | null;
 }
 
 // COMMAND HANDLERS
@@ -75,7 +79,7 @@ export class AddBoxesCommandHandler {
       throw new ValidationError('Count must be between 1 and 26 (A-Z)');
     }
 
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -143,6 +147,7 @@ export class AddBoxesCommandHandler {
     currentConfig.applyPersistedVersion(newVersion);
 
     for (const event of events) {
+      event.labId = command.labId;
       await this.eventBus.publish(event);
     }
 
@@ -167,7 +172,7 @@ export class UpdateBoxCommandHandler {
   ) {}
 
   async handle(command: UpdateBoxCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -246,7 +251,7 @@ export class UpdateBoxCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    await this.eventBus.publish(new BoxUpdatedEvent(
+    const event = new BoxUpdatedEvent(
       command.userId,
       command.tankId,
       tank.name,
@@ -255,7 +260,9 @@ export class UpdateBoxCommandHandler {
       boxIdUpper,
       boxData.name,
       changes
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
   }
 
   private async getUserById(userId: string): Promise<User> {
@@ -287,13 +294,14 @@ export class DeleteBoxCommandHandler {
 
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
     const { tankName, rackName, boxName } = await this.configurationRepository.deleteEmptyBox(
+      command.labId,
       command.tankId,
       command.rackId,
       command.boxId,
       command.userId
     );
 
-    await this.eventBus.publish(new BoxDeletedEvent(
+    const event = new BoxDeletedEvent(
       command.userId,
       command.tankId,
       tankName,
@@ -301,7 +309,9 @@ export class DeleteBoxCommandHandler {
       rackName,
       command.boxId.toUpperCase(),
       boxName
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
   }
 
   private async getUserById(userId: string): Promise<User> {
@@ -322,7 +332,7 @@ export class AssignBoxCommandHandler {
   ) {}
 
   async handle(command: AssignBoxCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -392,7 +402,7 @@ export class AssignBoxCommandHandler {
     currentConfig.applyPersistedVersion(newVersion);
 
     if (command.assignedUserId && previousUserId) {
-      await this.eventBus.publish(new BoxReassignedEvent(
+      const event = new BoxReassignedEvent(
         command.userId,
         command.tankId,
         tank.name,
@@ -404,9 +414,11 @@ export class AssignBoxCommandHandler {
         previousUsername,
         command.assignedUserId,
         assignedUser!.username
-      ));
+      );
+      event.labId = command.labId;
+      await this.eventBus.publish(event);
     } else if (command.assignedUserId) {
-      await this.eventBus.publish(new BoxAssignedEvent(
+      const event = new BoxAssignedEvent(
         command.userId,
         command.tankId,
         tank.name,
@@ -416,9 +428,11 @@ export class AssignBoxCommandHandler {
         box.name,
         command.assignedUserId,
         assignedUser!.username
-      ));
+      );
+      event.labId = command.labId;
+      await this.eventBus.publish(event);
     } else {
-      await this.eventBus.publish(new BoxUnassignedEvent(
+      const event = new BoxUnassignedEvent(
         command.userId,
         command.tankId,
         tank.name,
@@ -428,7 +442,9 @@ export class AssignBoxCommandHandler {
         box.name,
         previousUserId!,
         previousUsername
-      ));
+      );
+      event.labId = command.labId;
+      await this.eventBus.publish(event);
     }
   }
 

@@ -16,6 +16,7 @@ export interface LogActionParams {
   details: Record<string, any>;
   ipAddress?: string;
   userAgent?: string;
+  labId?: string;
 }
 
 /**
@@ -48,8 +49,7 @@ export class AuditService {
         throw new Error('Missing required audit log fields');
       }
 
-      // Create audit log entry
-      const entry: AuditLogEntry = {
+      const entry: AuditLogEntry & { labId?: string } = {
         id: uuidv4(),
         userId: params.userId,
         username: params.username,
@@ -60,6 +60,7 @@ export class AuditService {
         timestamp: new Date(),
         ipAddress: params.ipAddress,
         userAgent: params.userAgent,
+        labId: params.labId,
       };
 
       // Persist to database
@@ -92,7 +93,7 @@ export class AuditService {
     try {
       if (actions.length === 0) return;
 
-      const entries: AuditLogEntry[] = actions.map(params => ({
+      const entries: Array<AuditLogEntry & { labId?: string }> = actions.map(params => ({
         id: uuidv4(),
         userId: params.userId,
         username: params.username,
@@ -103,6 +104,7 @@ export class AuditService {
         timestamp: new Date(),
         ipAddress: params.ipAddress,
         userAgent: params.userAgent,
+        labId: params.labId,
       }));
 
       await this.auditRepository.saveMany(entries);

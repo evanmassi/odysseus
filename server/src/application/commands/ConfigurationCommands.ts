@@ -34,6 +34,7 @@ import {
  */
 export interface UpdateSystemConfigurationCommand {
   userId: string;
+  labId: string;
   systemSettings: {
     labName?: string;
     timezone?: string;
@@ -50,6 +51,7 @@ export interface UpdateSystemConfigurationCommand {
  */
 export interface UpdateEquipmentConfigurationCommand {
   userId: string;
+  labId: string;
   tanks?: Array<{
     id: string;
     name: string;
@@ -77,7 +79,8 @@ export interface UpdateEquipmentConfigurationCommand {
  */
 export interface ResetConfigurationToDefaultCommand {
   userId: string;
-  confirmationToken: string; // Safety mechanism for destructive operation
+  labId: string;
+  confirmationToken: string;
 }
 
 /**
@@ -85,6 +88,7 @@ export interface ResetConfigurationToDefaultCommand {
  */
 export interface ImportConfigurationCommand {
   userId: string;
+  labId: string;
   configurationData: ConfigurationImportData;
   validateOnly?: boolean;
 }
@@ -112,8 +116,7 @@ export class UpdateSystemConfigurationCommandHandler {
   ) {}
 
   async handle(command: UpdateSystemConfigurationCommand): Promise<Configuration> {
-    // Get current configuration
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -180,8 +183,7 @@ export class UpdateEquipmentConfigurationCommandHandler {
   ) {}
 
   async handle(command: UpdateEquipmentConfigurationCommand): Promise<Configuration> {
-    // Get current configuration
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -278,7 +280,7 @@ export class ResetConfigurationToDefaultCommandHandler {
       );
     }
 
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     const expectedVersion = currentConfig?.version ?? 0;
 
     const defaultConfig = Configuration.createDefault();
@@ -341,8 +343,7 @@ export class ImportConfigurationCommandHandler {
         };
       }
 
-      // Get current configuration for comparison
-      const currentConfig = await this.configurationRepository.getCurrent();
+      const currentConfig = await this.configurationRepository.getForLab(command.labId);
       
       if (currentConfig) {
         // Validate the configuration update
@@ -399,6 +400,7 @@ export class ImportConfigurationCommandHandler {
  */
 export interface UpdateBoxPositionDisplayCommand {
   userId: string;
+  labId: string;
   tankId: string;
   rackId: string;
   boxId: string;
@@ -431,8 +433,7 @@ export class UpdateBoxPositionDisplayCommandHandler {
   ) {}
 
   async handle(command: UpdateBoxPositionDisplayCommand): Promise<Configuration> {
-    // Get current configuration
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -504,6 +505,7 @@ export class UpdateBoxPositionDisplayCommandHandler {
  */
 export interface UpdateLabDefaultPositionDisplayCommand {
   userId: string;
+  labId: string;
   positionDisplay: PositionDisplayConfig | null;
 }
 
@@ -521,8 +523,7 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
   ) {}
 
   async handle(command: UpdateLabDefaultPositionDisplayCommand): Promise<Configuration> {
-    // Get current configuration
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
 
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize configuration first.');
@@ -611,6 +612,7 @@ export interface ImportResult {
  */
 export interface UpdateResourceLabelCommand {
   userId: string;
+  labId: string;
   resourceType: 'rack' | 'box';
   tankId: string;
   rackId: string;
@@ -654,13 +656,11 @@ export class UpdateResourceLabelCommandHandler {
       throw new ValidationError(`Custom label cannot exceed ${MAX_LABEL_LENGTH} characters`);
     }
 
-    // Get current configuration
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
 
-    // Get user for permission validation
     const user = await this.getUserById(command.userId);
 
     // Get resource and parent for permission check
@@ -733,7 +733,7 @@ export class UpdateResourceLabelCommandHandler {
     const newLabel = command.customLabel?.trim() || undefined;
     if (oldLabel !== newLabel) {
       if (command.resourceType === 'rack') {
-        await this.eventBus.publish(new RackLabelUpdatedEvent(
+        const event = new RackLabelUpdatedEvent(
           command.userId,
           command.tankId,
           tankName,
@@ -741,9 +741,11 @@ export class UpdateResourceLabelCommandHandler {
           rackName,
           oldLabel,
           newLabel
-        ));
+        );
+        event.labId = command.labId;
+        await this.eventBus.publish(event);
       } else {
-        await this.eventBus.publish(new BoxLabelUpdatedEvent(
+        const event = new BoxLabelUpdatedEvent(
           command.userId,
           command.tankId,
           tankName,
@@ -753,7 +755,9 @@ export class UpdateResourceLabelCommandHandler {
           boxName,
           oldLabel,
           newLabel
-        ));
+        );
+        event.labId = command.labId;
+        await this.eventBus.publish(event);
       }
     }
 

@@ -9,13 +9,14 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
  * Get Current Configuration Query
  */
 export interface GetCurrentConfigurationQuery {
-  // No parameters needed - gets active configuration
+  labId: string;
 }
 
 /**
  * Get Configuration History Query
  */
 export interface GetConfigurationHistoryQuery {
+  labId: string;
   limit?: number;
   offset?: number;
 }
@@ -24,6 +25,7 @@ export interface GetConfigurationHistoryQuery {
  * Get Configuration by Version Query
  */
 export interface GetConfigurationByVersionQuery {
+  labId: string;
   version: number;
 }
 
@@ -43,14 +45,12 @@ export class GetCurrentConfigurationQueryHandler {
   constructor(private configurationRepository: ConfigurationRepository) {}
 
   async handle(query: GetCurrentConfigurationQuery): Promise<Configuration> {
-    // Get current configuration or create default if none exists
-    let configuration = await this.configurationRepository.getCurrent();
-    
+    let configuration = await this.configurationRepository.getForLab(query.labId);
+
     if (!configuration) {
-      // First-time setup: create and save default configuration
-      configuration = await this.configurationRepository.ensureDefault();
+      configuration = await this.configurationRepository.ensureDefaultForLab(query.labId);
     }
-    
+
     return configuration;
   }
 }
@@ -62,6 +62,7 @@ export class GetCurrentConfigurationQueryHandler {
  * Demo users see only demo tanks; real users see only real tanks.
  */
 export interface GetConfigurationForUserQuery {
+  labId: string;
   user: User;
 }
 
@@ -75,10 +76,10 @@ export class GetConfigurationForUserQueryHandler {
   constructor(private configurationRepository: ConfigurationRepository) {}
 
   async handle(query: GetConfigurationForUserQuery): Promise<Configuration> {
-    let configuration = await this.configurationRepository.getCurrent();
+    let configuration = await this.configurationRepository.getForLab(query.labId);
 
     if (!configuration) {
-      configuration = await this.configurationRepository.ensureDefault();
+      configuration = await this.configurationRepository.ensureDefaultForLab(query.labId);
     }
 
     // Return configuration with tanks filtered by user's demo status
@@ -144,9 +145,9 @@ export class GetConfigurationByVersionQueryHandler {
 export class CheckConfigurationHealthQueryHandler {
   constructor(private configurationRepository: ConfigurationRepository) {}
 
-  async handle(query: {}): Promise<ConfigurationHealthReport> {
+  async handle(query: { labId: string }): Promise<ConfigurationHealthReport> {
     try {
-      const configuration = await this.configurationRepository.getCurrent();
+      const configuration = await this.configurationRepository.getForLab(query.labId);
       
       if (!configuration) {
         return {

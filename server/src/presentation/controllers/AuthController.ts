@@ -93,13 +93,16 @@ export class AuthController {
     try {
       const startTime = Date.now();
       const query = new CheckFirstTimeSetupQuery();
-      const isFirstTime = await this.checkFirstTimeHandler.handle(query);
+      const result = await this.checkFirstTimeHandler.handle(query);
 
-      logger.info('First-time setup check completed', { isFirstTime });
+      logger.info('First-time setup check completed', { isFirstTime: result.isFirstTime });
 
       res.status(200).json({
         success: true,
-        data: { isFirstTime }
+        data: {
+          isFirstTime: result.isFirstTime,
+          needsSystemAdmin: result.needsSystemAdmin
+        }
       });
     } catch (error) {
       next(error);
@@ -1018,6 +1021,7 @@ export class AuthController {
       // If newResearcher provided, create it first
       if (newResearcher) {
         const created = await this.researcherApplicationService.createResearcher(
+          req.user!.labId!,
           newResearcher,
           adminApiKey
         );

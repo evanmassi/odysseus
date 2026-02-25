@@ -109,6 +109,7 @@ export interface UserRepository {
   // LAB-SCOPED OPERATIONS
 
   findByLabId(labId: string): Promise<User[]>;
+  findByStatusInLab(status: 'pending' | 'approved' | 'rejected', labId: string): Promise<User[]>;
   countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number>;
   isLabEmpty(labId: string): Promise<boolean>;
 

@@ -19,6 +19,7 @@ import { ConfigurationUpdatedEvent } from '@domain/events/ConfigurationEvents';
 
 export interface InitializeConfigurationCommand {
   userId: string;
+  labId: string;
   labName: string;
   tankCount?: number;
   racksPerTank?: number;
@@ -36,7 +37,7 @@ export class InitializeConfigurationCommandHandler {
   ) {}
 
   async handle(command: InitializeConfigurationCommand): Promise<void> {
-    const existingConfig = await this.configurationRepository.getCurrent();
+    const existingConfig = await this.configurationRepository.getForLab(command.labId);
     if (existingConfig) {
       throw new ValidationError('Configuration already exists. Cannot reinitialize.');
     }

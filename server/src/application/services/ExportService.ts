@@ -91,10 +91,10 @@ export class ExportService {
   /**
    * Export all tubes with researcher names resolved
    */
-  async exportTubes(format: 'csv' | 'json'): Promise<string | object[]> {
-    logger.info('[ExportService] Exporting tubes', { format });
+  async exportTubes(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
+    logger.info('[ExportService] Exporting tubes', { format, labId });
 
-    const tubes = await this.tubeRepository.findAll();
+    const tubes = await this.tubeRepository.findAllByLabId(labId);
 
     // Build researcher lookup map
     const researcherIds = [...new Set(tubes.map(t => t.researcherId).filter(Boolean))] as string[];
@@ -178,10 +178,10 @@ export class ExportService {
   /**
    * Export all users (excludes sensitive data like passwords)
    */
-  async exportUsers(format: 'csv' | 'json'): Promise<string | object[]> {
-    logger.info('[ExportService] Exporting users', { format });
+  async exportUsers(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
+    logger.info('[ExportService] Exporting users', { format, labId });
 
-    const users = await this.userRepository.findAll();
+    const users = await this.userRepository.findByLabId(labId);
 
     // Get person data for names and emails
     const personIds = users.map(u => u.personId).filter(Boolean) as string[];
@@ -226,18 +226,17 @@ export class ExportService {
   /**
    * Export all researchers with tube counts
    */
-  async exportResearchers(format: 'csv' | 'json'): Promise<string | object[]> {
-    logger.info('[ExportService] Exporting researchers', { format });
+  async exportResearchers(labId: string, format: 'csv' | 'json'): Promise<string | object[]> {
+    logger.info('[ExportService] Exporting researchers', { format, labId });
 
-    const researchers = await this.researcherRepository.findAll();
+    const researchers = await this.researcherRepository.findByLabId(labId);
 
     // Get person data
     const personIds = researchers.map(r => r.personId);
     const persons = await this.personRepository.findByIds(personIds);
     const personMap = new Map(persons.map(p => [p.id, p]));
 
-    // Get linked users
-    const users = await this.userRepository.findAll();
+    const users = await this.userRepository.findByLabId(labId);
     const userByResearcherId = new Map<string, string>();
     for (const user of users) {
       if (user.researcherId) {
@@ -293,10 +292,10 @@ export class ExportService {
    * Export system configuration and settings for backup
    * Always returns JSON (structure too complex for CSV)
    */
-  async exportSystemBackup(): Promise<SystemBackup> {
-    logger.info('[ExportService] Exporting system backup');
+  async exportSystemBackup(labId: string): Promise<SystemBackup> {
+    logger.info('[ExportService] Exporting system backup', { labId });
 
-    const configuration = await this.configurationRepository.getCurrent();
+    const configuration = await this.configurationRepository.getForLab(labId);
     const securityConfig = await this.configurationRepository.getSecurityConfig();
 
     return {

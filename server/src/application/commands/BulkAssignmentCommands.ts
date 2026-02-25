@@ -20,11 +20,13 @@ import {
 
 export interface BulkUnassignResourcesCommand {
   userId: string;
+  labId: string;
   fromUserId: string;
 }
 
 export interface BulkReassignResourcesCommand {
   userId: string;
+  labId: string;
   fromUserId: string;
   toUserId: string;
 }
@@ -40,7 +42,7 @@ export class BulkUnassignResourcesCommandHandler {
   ) {}
 
   async handle(command: BulkUnassignResourcesCommand): Promise<{ racksAffected: number; boxesAffected: number }> {
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -86,13 +88,15 @@ export class BulkUnassignResourcesCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    await this.eventBus.publish(new BulkResourcesUnassignedEvent(
+    const event = new BulkResourcesUnassignedEvent(
       command.userId,
       command.fromUserId,
       fromUser.username,
       racksAffected,
       boxesAffected
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
 
     return { racksAffected, boxesAffected };
   }
@@ -119,7 +123,7 @@ export class BulkReassignResourcesCommandHandler {
       throw new ValidationError('Cannot reassign resources to the same user');
     }
 
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -176,7 +180,7 @@ export class BulkReassignResourcesCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    await this.eventBus.publish(new BulkResourcesReassignedEvent(
+    const event = new BulkResourcesReassignedEvent(
       command.userId,
       command.fromUserId,
       fromUser.username,
@@ -184,7 +188,9 @@ export class BulkReassignResourcesCommandHandler {
       toUser.username,
       racksAffected,
       boxesAffected
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
 
     return { racksAffected, boxesAffected };
   }

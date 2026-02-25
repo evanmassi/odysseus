@@ -23,12 +23,14 @@ import type { FieldChange } from '@domain/types/FieldChange';
 
 export interface AddTankCommand {
   userId: string;
+  labId: string;
   name: string;
   location?: string;
 }
 
 export interface UpdateTankCommand {
   userId: string;
+  labId: string;
   tankId: string;
   name?: string;
   location?: string;
@@ -37,17 +39,20 @@ export interface UpdateTankCommand {
 
 export interface DeleteTankCommand {
   userId: string;
+  labId: string;
   tankId: string;
 }
 
 export interface SetTankDemoStatusCommand {
   userId: string;
+  labId: string;
   tankId: string;
   isDemo: boolean;
 }
 
 export interface ResetDemoDataCommand {
   userId: string;
+  labId: string;
 }
 
 // COMMAND HANDLERS
@@ -61,7 +66,7 @@ export class AddTankCommandHandler {
   ) {}
 
   async handle(command: AddTankCommand): Promise<{ tankId: string }> {
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -84,11 +89,13 @@ export class AddTankCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    await this.eventBus.publish(new TankAddedEvent(
+    const event = new TankAddedEvent(
       command.userId,
       tankId,
       command.name
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
 
     return { tankId };
   }
@@ -123,7 +130,7 @@ export class UpdateTankCommandHandler {
   ) {}
 
   async handle(command: UpdateTankCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -175,12 +182,14 @@ export class UpdateTankCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    await this.eventBus.publish(new TankUpdatedEvent(
+    const event = new TankUpdatedEvent(
       command.userId,
       command.tankId,
       configData.tanks[tankIndex].name,
       changes
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
   }
 
   private async getUserById(userId: string): Promise<User> {
@@ -214,15 +223,18 @@ export class DeleteTankCommandHandler {
 
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
     const { tankName } = await this.configurationRepository.deleteEmptyTank(
+      command.labId,
       command.tankId,
       command.userId
     );
 
-    await this.eventBus.publish(new TankDeletedEvent(
+    const event = new TankDeletedEvent(
       command.userId,
       command.tankId,
       tankName
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
   }
 
   private async getUserById(userId: string): Promise<User> {
@@ -243,7 +255,7 @@ export class SetTankDemoStatusCommandHandler {
   ) {}
 
   async handle(command: SetTankDemoStatusCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -287,12 +299,14 @@ export class SetTankDemoStatusCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    await this.eventBus.publish(new TankUpdatedEvent(
+    const event = new TankUpdatedEvent(
       command.userId,
       command.tankId,
       tank.name,
       changes
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
   }
 
   private async getUserById(userId: string): Promise<User> {
@@ -318,7 +332,7 @@ export class ResetDemoDataCommandHandler {
       throw PermissionError.configurationManagement('reset demo data', command.userId);
     }
 
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found.');
     }

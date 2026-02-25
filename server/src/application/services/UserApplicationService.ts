@@ -160,8 +160,10 @@ export class UserApplicationService {
   /**
    * Check if this is first-time setup
    */
-  async isFirstTimeSetup(): Promise<boolean> {
-    return await this.userRepository.isEmpty();
+  async isFirstTimeSetup(): Promise<{ isEmpty: boolean; needsSystemAdmin: boolean }> {
+    const isEmpty = await this.userRepository.isEmpty();
+    const systemAdminCount = await this.userRepository.countByRole('system_admin');
+    return { isEmpty, needsSystemAdmin: systemAdminCount === 0 };
   }
 
   /**
@@ -171,8 +173,12 @@ export class UserApplicationService {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
 
-    const users = await this.userRepository.findAll();
-    // Filter out pending users - they should only appear in the Pending Approvals section
+    const users = admin.isSystemAdmin()
+      ? await this.userRepository.findAll()
+      : admin.labId
+        ? await this.userRepository.findByLabId(admin.labId)
+        : await this.userRepository.findAll();
+
     const approvedOrRejectedUsers = users.filter(user => user.status !== 'pending');
     return approvedOrRejectedUsers.map(user => UserDto.toResponse(user));
   }
@@ -247,9 +253,17 @@ export class UserApplicationService {
       }
     }
 
-    // Check if user has assigned resources (racks/boxes)
+    if (admin.isLabAdmin() && !admin.isSystemAdmin() && admin.labId !== targetUser.labId) {
+      throw new PermissionError('Cannot manage users outside your lab', {
+        adminLabId: admin.labId,
+        targetLabId: targetUser.labId
+      });
+    }
+
     if (this.configurationRepository) {
-      const config = await this.configurationRepository.getCurrent();
+      const config = admin.labId
+        ? await this.configurationRepository.getForLab(admin.labId)
+        : await this.configurationRepository.getCurrent();
       if (config) {
         const configData = config.toData();
         let assignedResourceCount = 0;
@@ -602,7 +616,12 @@ export class UserApplicationService {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
 
-    const pendingUsers = await this.userRepository.findByStatus('pending');
+    const pendingUsers = admin.isSystemAdmin()
+      ? await this.userRepository.findByStatus('pending')
+      : admin.labId
+        ? await this.userRepository.findByStatusInLab('pending', admin.labId)
+        : await this.userRepository.findByStatus('pending');
+
     return pendingUsers.map(user => UserDto.toResponse(user));
   }
 

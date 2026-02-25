@@ -190,11 +190,18 @@ export class CheckFirstTimeSetupQuery extends BaseQuery {
   }
 }
 
-export class CheckFirstTimeSetupQueryHandler implements QueryHandler<CheckFirstTimeSetupQuery, boolean> {
+export interface FirstTimeSetupResult {
+  isFirstTime: boolean;
+  needsSystemAdmin: boolean;
+}
+
+export class CheckFirstTimeSetupQueryHandler implements QueryHandler<CheckFirstTimeSetupQuery, FirstTimeSetupResult> {
   constructor(private userRepository: UserRepository) {}
 
-  async handle(query: CheckFirstTimeSetupQuery): Promise<boolean> {
-    return this.userRepository.isEmpty();
+  async handle(query: CheckFirstTimeSetupQuery): Promise<FirstTimeSetupResult> {
+    const isEmpty = await this.userRepository.isEmpty();
+    const systemAdminCount = await this.userRepository.countByRole('system_admin');
+    return { isFirstTime: isEmpty, needsSystemAdmin: systemAdminCount === 0 };
   }
 }
 

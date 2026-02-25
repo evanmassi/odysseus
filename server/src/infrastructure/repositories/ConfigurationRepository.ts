@@ -1265,6 +1265,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
   // Uses SERIALIZABLE isolation to prevent TOCTOU race conditions
 
   async deleteEmptyTank(
+    labId: string,
     tankId: string,
     changedBy: string
   ): Promise<{ tankName: string }> {
@@ -1289,7 +1290,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
           // Load and validate configuration
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
-            'SELECT config_json, version FROM configuration_current WHERE id = 1'
+            'SELECT config_json, version FROM configuration_current WHERE lab_id = $1',
+            [labId]
           );
           if (configRow.rows.length === 0) {
             throw new ValidationError('No configuration found');
@@ -1311,10 +1313,10 @@ export class ConfigurationRepository implements IConfigurationRepository {
           const configJson = JSON.stringify(configData);
 
           const versionResult = await client.query<{ version: number }>(
-            `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
-             VALUES ($1, $2, $3, $4)
+            `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+             VALUES ($1, $2, $3, $4, $5)
              RETURNING version`,
-            [now, `Deleted tank '${tankName}'`, changedBy, configJson]
+            [labId, now, `Deleted tank '${tankName}'`, changedBy, configJson]
           );
 
           const newVersion = versionResult.rows[0].version;
@@ -1322,8 +1324,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
           const updateResult = await client.query(
             `UPDATE configuration_current
              SET version = $1, updated_at = $2, config_json = $3
-             WHERE id = 1 AND version = $4`,
-            [newVersion, now, configJson, currentVersion]
+             WHERE lab_id = $4 AND version = $5`,
+            [newVersion, now, configJson, labId, currentVersion]
           );
 
           if (updateResult.rowCount === 0) {
@@ -1353,6 +1355,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
   }
 
   async deleteEmptyRack(
+    labId: string,
     tankId: string,
     rackId: string,
     changedBy: string
@@ -1378,7 +1381,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
           // Load and validate configuration
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
-            'SELECT config_json, version FROM configuration_current WHERE id = 1'
+            'SELECT config_json, version FROM configuration_current WHERE lab_id = $1',
+            [labId]
           );
           if (configRow.rows.length === 0) {
             throw new ValidationError('No configuration found');
@@ -1408,10 +1412,10 @@ export class ConfigurationRepository implements IConfigurationRepository {
           const configJson = JSON.stringify(configData);
 
           const versionResult = await client.query<{ version: number }>(
-            `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
-             VALUES ($1, $2, $3, $4)
+            `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+             VALUES ($1, $2, $3, $4, $5)
              RETURNING version`,
-            [now, `Deleted rack '${rackName}' from tank '${tankName}'`, changedBy, configJson]
+            [labId, now, `Deleted rack '${rackName}' from tank '${tankName}'`, changedBy, configJson]
           );
 
           const newVersion = versionResult.rows[0].version;
@@ -1419,8 +1423,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
           const updateResult = await client.query(
             `UPDATE configuration_current
              SET version = $1, updated_at = $2, config_json = $3
-             WHERE id = 1 AND version = $4`,
-            [newVersion, now, configJson, currentVersion]
+             WHERE lab_id = $4 AND version = $5`,
+            [newVersion, now, configJson, labId, currentVersion]
           );
 
           if (updateResult.rowCount === 0) {
@@ -1449,6 +1453,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
   }
 
   async deleteEmptyBox(
+    labId: string,
     tankId: string,
     rackId: string,
     boxId: string,
@@ -1476,7 +1481,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
           // Load and validate configuration
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
-            'SELECT config_json, version FROM configuration_current WHERE id = 1'
+            'SELECT config_json, version FROM configuration_current WHERE lab_id = $1',
+            [labId]
           );
           if (configRow.rows.length === 0) {
             throw new ValidationError('No configuration found');
@@ -1514,10 +1520,10 @@ export class ConfigurationRepository implements IConfigurationRepository {
           const configJson = JSON.stringify(configData);
 
           const versionResult = await client.query<{ version: number }>(
-            `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
-             VALUES ($1, $2, $3, $4)
+            `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+             VALUES ($1, $2, $3, $4, $5)
              RETURNING version`,
-            [now, `Deleted box '${boxName}' from rack '${rackName}'`, changedBy, configJson]
+            [labId, now, `Deleted box '${boxName}' from rack '${rackName}'`, changedBy, configJson]
           );
 
           const newVersion = versionResult.rows[0].version;
@@ -1525,8 +1531,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
           const updateResult = await client.query(
             `UPDATE configuration_current
              SET version = $1, updated_at = $2, config_json = $3
-             WHERE id = 1 AND version = $4`,
-            [newVersion, now, configJson, currentVersion]
+             WHERE lab_id = $4 AND version = $5`,
+            [newVersion, now, configJson, labId, currentVersion]
           );
 
           if (updateResult.rowCount === 0) {

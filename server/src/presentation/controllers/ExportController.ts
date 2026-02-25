@@ -18,8 +18,9 @@ export class ExportController {
    */
   async exportTubes(req: Request, res: Response): Promise<void> {
     try {
+      const labId = req.user!.labId!;
       const format = this.parseFormat(req.query.format);
-      const data = await this.exportService.exportTubes(format);
+      const data = await this.exportService.exportTubes(labId, format);
 
       if (format === 'json') {
         this.sendJsonExport(res, data as object[], 'tubes');
@@ -37,8 +38,9 @@ export class ExportController {
    */
   async exportUsers(req: Request, res: Response): Promise<void> {
     try {
+      const labId = req.user!.labId!;
       const format = this.parseFormat(req.query.format);
-      const data = await this.exportService.exportUsers(format);
+      const data = await this.exportService.exportUsers(labId, format);
 
       if (format === 'json') {
         this.sendJsonExport(res, data as object[], 'users');
@@ -56,8 +58,9 @@ export class ExportController {
    */
   async exportResearchers(req: Request, res: Response): Promise<void> {
     try {
+      const labId = req.user!.labId!;
       const format = this.parseFormat(req.query.format);
-      const data = await this.exportService.exportResearchers(format);
+      const data = await this.exportService.exportResearchers(labId, format);
 
       if (format === 'json') {
         this.sendJsonExport(res, data as object[], 'researchers');
@@ -75,7 +78,8 @@ export class ExportController {
    */
   async exportSystemBackup(req: Request, res: Response): Promise<void> {
     try {
-      const data = await this.exportService.exportSystemBackup();
+      const labId = req.user!.labId!;
+      const data = await this.exportService.exportSystemBackup(labId);
       this.sendJsonExport(res, data, 'system-backup');
     } catch (error) {
       this.handleError(res, error, 'Failed to export system backup');

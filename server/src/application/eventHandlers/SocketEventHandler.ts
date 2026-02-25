@@ -395,7 +395,7 @@ export class SocketEventHandler {
       };
 
       // Emit to appropriate room based on tank demo status
-      const room = await this.getRoomForTank(event.location.tankId);
+      const room = await this.getRoomForTank(event.location.tankId, event.labId);
 
       logger.debug('Emitting tube_created socket event', {
         tubeId: event.tubeId,
@@ -436,8 +436,8 @@ export class SocketEventHandler {
 
       // Determine which room(s) to emit to
       // If tube moves between demo/real tanks, emit to both rooms
-      const oldRoom = await this.getRoomForTank(event.oldLocation.tankId);
-      const newRoom = await this.getRoomForTank(event.newLocation.tankId);
+      const oldRoom = await this.getRoomForTank(event.oldLocation.tankId, event.labId);
+      const newRoom = await this.getRoomForTank(event.newLocation.tankId, event.labId);
 
       logger.debug('Emitting tube_updated socket event', {
         tubeId: event.tubeId,
@@ -474,7 +474,7 @@ export class SocketEventHandler {
       };
 
       // Emit to appropriate room based on tank demo status
-      const room = await this.getRoomForTank(event.location.tankId);
+      const room = await this.getRoomForTank(event.location.tankId, event.labId);
 
       logger.debug('Emitting tube_deleted socket event', {
         tubeId: event.tubeId,
@@ -505,7 +505,7 @@ export class SocketEventHandler {
       // Determine which rooms to emit to based on tank demo status
       const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId));
+        rooms.add(await this.getRoomForTank(tankId, event.labId));
       }
 
       logger.debug('Emitting tubes_bulk_updated socket event', {
@@ -787,7 +787,7 @@ export class SocketEventHandler {
       // Determine which rooms to emit to based on tank demo status
       const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId));
+        rooms.add(await this.getRoomForTank(tankId, event.labId));
       }
 
       logger.debug('Emitting tubes_locked socket event', {
@@ -819,7 +819,7 @@ export class SocketEventHandler {
       // Determine which rooms to emit to based on tank demo status
       const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId));
+        rooms.add(await this.getRoomForTank(tankId, event.labId));
       }
 
       logger.debug('Emitting tubes_unlocked socket event', {
@@ -852,7 +852,7 @@ export class SocketEventHandler {
       // Determine which rooms to emit to based on tank demo status
       const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId));
+        rooms.add(await this.getRoomForTank(tankId, event.labId));
       }
 
       logger.debug('Emitting tube_access_shared Socket event', {
@@ -886,7 +886,7 @@ export class SocketEventHandler {
       // Determine which rooms to emit to based on tank demo status
       const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId));
+        rooms.add(await this.getRoomForTank(tankId, event.labId));
       }
 
       logger.debug('Emitting tube_access_revoked Socket event', {

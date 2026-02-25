@@ -29,12 +29,14 @@ import type { FieldChange } from '@domain/types/FieldChange';
 
 export interface AddRacksCommand {
   userId: string;
+  labId: string;
   tankId: string;
   count: number;
 }
 
 export interface UpdateRackCommand {
   userId: string;
+  labId: string;
   tankId: string;
   rackId: string;
   name?: string;
@@ -44,15 +46,17 @@ export interface UpdateRackCommand {
 
 export interface DeleteRackCommand {
   userId: string;
+  labId: string;
   tankId: string;
   rackId: string;
 }
 
 export interface AssignRackCommand {
   userId: string;
+  labId: string;
   tankId: string;
   rackId: string;
-  assignedUserId: string | null; // null = unassign
+  assignedUserId: string | null;
 }
 
 // COMMAND HANDLERS
@@ -70,7 +74,7 @@ export class AddRacksCommandHandler {
       throw new ValidationError('Count must be between 1 and 100');
     }
 
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -130,6 +134,7 @@ export class AddRacksCommandHandler {
     currentConfig.applyPersistedVersion(newVersion);
 
     for (const event of events) {
+      event.labId = command.labId;
       await this.eventBus.publish(event);
     }
 
@@ -154,7 +159,7 @@ export class UpdateRackCommandHandler {
   ) {}
 
   async handle(command: UpdateRackCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -213,14 +218,16 @@ export class UpdateRackCommandHandler {
     );
     currentConfig.applyPersistedVersion(newVersion);
 
-    await this.eventBus.publish(new RackUpdatedEvent(
+    const event = new RackUpdatedEvent(
       command.userId,
       command.tankId,
       tank.name,
       command.rackId,
       configData.tanks[tankIndex].racks[rackIndex].name,
       changes
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
   }
 
   private async getUserById(userId: string): Promise<User> {
@@ -252,18 +259,21 @@ export class DeleteRackCommandHandler {
 
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
     const { tankName, rackName } = await this.configurationRepository.deleteEmptyRack(
+      command.labId,
       command.tankId,
       command.rackId,
       command.userId
     );
 
-    await this.eventBus.publish(new RackDeletedEvent(
+    const event = new RackDeletedEvent(
       command.userId,
       command.tankId,
       tankName,
       command.rackId,
       rackName
-    ));
+    );
+    event.labId = command.labId;
+    await this.eventBus.publish(event);
   }
 
   private async getUserById(userId: string): Promise<User> {
@@ -284,7 +294,7 @@ export class AssignRackCommandHandler {
   ) {}
 
   async handle(command: AssignRackCommand): Promise<void> {
-    const currentConfig = await this.configurationRepository.getCurrent();
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
     if (!currentConfig) {
       throw new ValidationError('No configuration found. Initialize system first.');
     }
@@ -350,7 +360,7 @@ export class AssignRackCommandHandler {
     currentConfig.applyPersistedVersion(newVersion);
 
     if (command.assignedUserId && previousUserId) {
-      await this.eventBus.publish(new RackReassignedEvent(
+      const event = new RackReassignedEvent(
         command.userId,
         command.tankId,
         tank.name,
@@ -360,9 +370,11 @@ export class AssignRackCommandHandler {
         previousUsername,
         command.assignedUserId,
         assignedUser!.username
-      ));
+      );
+      event.labId = command.labId;
+      await this.eventBus.publish(event);
     } else if (command.assignedUserId) {
-      await this.eventBus.publish(new RackAssignedEvent(
+      const event = new RackAssignedEvent(
         command.userId,
         command.tankId,
         tank.name,
@@ -370,9 +382,11 @@ export class AssignRackCommandHandler {
         rack.name,
         command.assignedUserId,
         assignedUser!.username
-      ));
+      );
+      event.labId = command.labId;
+      await this.eventBus.publish(event);
     } else {
-      await this.eventBus.publish(new RackUnassignedEvent(
+      const event = new RackUnassignedEvent(
         command.userId,
         command.tankId,
         tank.name,
@@ -380,7 +394,9 @@ export class AssignRackCommandHandler {
         rack.name,
         previousUserId!,
         previousUsername
-      ));
+      );
+      event.labId = command.labId;
+      await this.eventBus.publish(event);
     }
   }
 

@@ -62,6 +62,7 @@ export interface ConfigurationRepository {
    * @throws NotFoundError if tank doesn't exist
    */
   deleteEmptyTank(
+    labId: string,
     tankId: string,
     changedBy: string
   ): Promise<{ tankName: string }>;
@@ -72,6 +73,7 @@ export interface ConfigurationRepository {
    * @throws NotFoundError if rack doesn't exist
    */
   deleteEmptyRack(
+    labId: string,
     tankId: string,
     rackId: string,
     changedBy: string
@@ -83,6 +85,7 @@ export interface ConfigurationRepository {
    * @throws NotFoundError if box doesn't exist
    */
   deleteEmptyBox(
+    labId: string,
     tankId: string,
     rackId: string,
     boxId: string,
