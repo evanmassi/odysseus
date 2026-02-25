@@ -15,31 +15,11 @@ import { ValidationError } from '@domain/errors/ValidationError';
  */
 export class RolePermissionService {
   
-  // ROLE DEFINITIONS
-  
-  /**
-   * Available user roles in the system
-   */
-  static readonly ROLES = ['admin', 'user'] as const;
-  
-  // ROLE-PERMISSION MATRIX
-  
-  /**
-   * Complete role-permission mapping
-   */
+  static readonly ROLES = ['system_admin', 'lab_admin', 'user'] as const;
+
   private static readonly ROLE_PERMISSION_MATRIX: Record<UserRole, readonly Permission[]> = {
-    /**
-     * Administrator Role
-     * - Full system access
-     * - All permissions granted
-     */
-    admin: Permission.ADMIN_PERMISSIONS,
-    
-    /**
-     * Regular User Role  
-     * - Basic tube management
-     * - Limited system access
-     */
+    system_admin: Permission.SYSTEM_ADMIN_PERMISSIONS,
+    lab_admin: Permission.LAB_ADMIN_PERMISSIONS,
     user: Permission.USER_PERMISSIONS,
   } as const;
 

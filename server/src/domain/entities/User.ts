@@ -44,7 +44,8 @@ export class User {
     requirePasswordChange?: boolean,
     lastPasswordChange?: Date | string,
     isDemo?: boolean,
-    settings?: UserSettings
+    settings?: UserSettings,
+    private readonly _labId?: string
   ) {
     this._emailVerified = emailVerified ?? false;
     this._emailVerificationToken = emailVerificationToken;
@@ -73,46 +74,47 @@ export class User {
   static create(
     username: string,
     apiKey: string,
-    isFirstUser: boolean = false,
+    isFirstInLab: boolean = false,
     researcherId?: string,
-    personId?: string
+    personId?: string,
+    labId?: string
   ): User {
-    // Generate unique ID
     const id = generateId('user');
-
-    // First user becomes admin automatically
-    const role = UserRole.defaultRole(isFirstUser);
-
+    const role = UserRole.defaultRoleForLab(isFirstInLab);
     const now = new Date();
 
     return new User(
-      id,
-      username,
-      apiKey,
-      role,
-      now,
-      now,
-      researcherId,
-      personId
+      id, username, apiKey, role, now, now,
+      researcherId, personId, 'pending',
+      undefined, undefined, undefined, undefined,
+      undefined, undefined, undefined, undefined,
+      undefined, undefined, labId
     );
   }
 
-  /**
-   * Factory method to create admin user explicitly
-   */
-  static createAdmin(username: string, apiKey: string, researcherId?: string, personId?: string): User {
+  static createLabAdmin(username: string, apiKey: string, labId: string, researcherId?: string, personId?: string): User {
     const id = generateId('user');
     const now = new Date();
 
     return new User(
-      id,
-      username,
-      apiKey,
-      UserRole.admin(),
-      now,
-      now,
-      researcherId,
-      personId
+      id, username, apiKey, UserRole.labAdmin(), now, now,
+      researcherId, personId, 'pending',
+      undefined, undefined, undefined, undefined,
+      undefined, undefined, undefined, undefined,
+      undefined, undefined, labId
+    );
+  }
+
+  static createSystemAdmin(username: string, apiKey: string, personId?: string): User {
+    const id = generateId('user');
+    const now = new Date();
+
+    return new User(
+      id, username, apiKey, UserRole.systemAdmin(), now, now,
+      undefined, personId, 'approved',
+      undefined, undefined, undefined, undefined,
+      undefined, undefined, undefined, undefined,
+      undefined, undefined, undefined
     );
   }
 
@@ -125,30 +127,19 @@ export class User {
     role: UserRole,
     researcherId?: string,
     personId?: string,
-    status: 'pending' | 'approved' | 'rejected' = 'pending'
+    status: 'pending' | 'approved' | 'rejected' = 'pending',
+    labId?: string
   ): User {
     const id = generateId('user');
     const apiKey = User.generateApiKey();
     const now = new Date();
 
     const user = new User(
-      id,
-      username,
-      apiKey,
-      role,
-      now,
-      now,
-      researcherId,
-      personId,
-      status,
-      false, // emailVerified
-      undefined, // emailVerificationToken
-      undefined, // emailVerificationExpiry
-      undefined, // lastVerificationEmailSent
-      undefined, // passwordResetToken
-      undefined, // passwordResetExpiry
-      false, // requirePasswordChange
-      now // lastPasswordChange - set to creation time
+      id, username, apiKey, role, now, now,
+      researcherId, personId, status,
+      false, undefined, undefined, undefined,
+      undefined, undefined, false, now,
+      undefined, undefined, labId
     );
 
     user.setPassword(password);
@@ -162,7 +153,7 @@ export class User {
     id: string;
     username: string;
     apiKey: string;
-    role: 'admin' | 'user';
+    role: 'system_admin' | 'lab_admin' | 'admin' | 'user';
     createdAt: string;
     lastActivity: string;
     passwordHash?: string;
@@ -180,15 +171,14 @@ export class User {
     lastPasswordChange?: string;
     isDemo?: boolean | number;
     settings?: UserSettings | string;
+    labId?: string;
   }): User {
-    // Parse settings from JSON string if needed
     let parsedSettings: UserSettings | undefined;
     if (data.settings) {
       if (typeof data.settings === 'string') {
         try {
           parsedSettings = JSON.parse(data.settings);
         } catch {
-          // Malformed settings JSON - fall back to defaults
           parsedSettings = DEFAULT_USER_SETTINGS;
         }
       } else {
@@ -198,11 +188,14 @@ export class User {
       parsedSettings = DEFAULT_USER_SETTINGS;
     }
 
+    // Normalize legacy 'admin' role to 'lab_admin'
+    const normalizedRole = data.role === 'admin' ? 'lab_admin' : data.role;
+
     const user = new User(
       data.id,
       data.username,
       data.apiKey,
-      UserRole.create(data.role),
+      UserRole.create(normalizedRole),
       new Date(data.createdAt),
       new Date(data.lastActivity),
       data.researcherId,
@@ -217,10 +210,10 @@ export class User {
       data.requirePasswordChange === 1,
       data.lastPasswordChange,
       data.isDemo === true || data.isDemo === 1,
-      parsedSettings
+      parsedSettings,
+      data.labId
     );
 
-    // Restore password data if present
     if (data.passwordHash && data.salt) {
       user._passwordHash = data.passwordHash;
       user._salt = data.salt;
@@ -342,15 +335,23 @@ export class User {
   /**
    * Business method: Change user role (admin operation)
    */
-  changeRole(newRole: 'admin' | 'user', performedBy: User): void {
-    // Business rule: Only admins can change roles
+  changeRole(newRole: 'system_admin' | 'lab_admin' | 'user', performedBy: User): void {
     if (!performedBy.isAdmin()) {
       throw new PermissionError('Only administrators can change user roles');
     }
 
-    // Business rule: Can't change your own role to prevent lockout
     if (this.equals(performedBy)) {
       throw new PermissionError('Users cannot change their own role');
+    }
+
+    // Lab admins can only toggle between lab_admin and user within their lab
+    if (performedBy.isLabAdmin() && !performedBy.isSystemAdmin()) {
+      if (newRole === 'system_admin') {
+        throw new PermissionError('Lab administrators cannot assign system admin role');
+      }
+      if (this._labId !== performedBy._labId) {
+        throw new PermissionError('Lab administrators can only change roles within their own lab');
+      }
     }
 
     const role = UserRole.create(newRole);
@@ -385,13 +386,26 @@ export class User {
    * Business method: Check if user can manage another user
    */
   canManage(other: User): boolean {
-    // Only admins can manage users
     if (!this.isAdmin()) {
       return false;
     }
 
-    // Can't manage yourself (prevents lockout)
     if (this.equals(other)) {
+      return false;
+    }
+
+    // System admin can manage anyone
+    if (this.isSystemAdmin()) {
+      return true;
+    }
+
+    // Lab admin can only manage users in their own lab
+    if (this._labId !== other._labId) {
+      return false;
+    }
+
+    // Lab admin cannot manage system admins
+    if (other.isSystemAdmin()) {
       return false;
     }
 
@@ -411,16 +425,19 @@ export class User {
     }
   }
 
-  /**
-   * Business query: Check if user is admin
-   */
+  isSystemAdmin(): boolean {
+    return this._role.isSystemAdmin();
+  }
+
+  isLabAdmin(): boolean {
+    return this._role.isLabAdmin();
+  }
+
+  /** Returns true for both system_admin and lab_admin */
   isAdmin(): boolean {
     return this._role.isAdmin();
   }
 
-  /**
-   * Business query: Check if user is regular user
-   */
   isUser(): boolean {
     return this._role.isUser();
   }
@@ -440,6 +457,11 @@ export class User {
       throw new PermissionError('Only administrators can approve users');
     }
 
+    // Lab admins can only approve users in their own lab
+    if (approvedBy.isLabAdmin() && !approvedBy.isSystemAdmin() && this._labId !== approvedBy._labId) {
+      throw new PermissionError('Lab administrators can only approve users within their own lab');
+    }
+
     if (this._status !== 'pending') {
       throw new ValidationError(`Cannot approve user with status ${this._status}`);
     }
@@ -448,12 +470,14 @@ export class User {
     this.recordActivity();
   }
 
-  /**
-   * Business method: Reject pending user (admin operation)
-   */
   reject(rejectedBy: User): void {
     if (!rejectedBy.isAdmin()) {
       throw new PermissionError('Only administrators can reject users');
+    }
+
+    // Lab admins can only reject users in their own lab
+    if (rejectedBy.isLabAdmin() && !rejectedBy.isSystemAdmin() && this._labId !== rejectedBy._labId) {
+      throw new PermissionError('Lab administrators can only reject users within their own lab');
     }
 
     if (this._status !== 'pending') {
@@ -491,7 +515,6 @@ export class User {
    * @throws ValidationError if attempting to mark an admin as demo
    */
   setDemoStatus(isDemo: boolean): void {
-    // Business rule: Admin users cannot be marked as demo to prevent lockout
     if (isDemo && this.isAdmin()) {
       throw new ValidationError('Admin users cannot be marked as demo');
     }
@@ -540,7 +563,7 @@ export class User {
     id: string;
     username: string;
     apiKey: string;
-    role: 'admin' | 'user';
+    role: 'system_admin' | 'lab_admin' | 'user';
     createdAt: string;
     lastActivity: string;
     researcherId?: string;
@@ -548,6 +571,7 @@ export class User {
     status: 'pending' | 'approved' | 'rejected';
     isDemo: boolean;
     settings: UserSettings;
+    labId?: string;
   } {
     return {
       id: this._id,
@@ -560,23 +584,22 @@ export class User {
       personId: this._personId,
       status: this._status,
       isDemo: this._isDemo,
-      settings: this._settings
+      settings: this._settings,
+      labId: this._labId,
     };
   }
 
-  /**
-   * Convert to safe data object for API responses (no sensitive data)
-   */
   toPublicData(): {
     id: string;
     username: string;
-    role: 'admin' | 'user';
+    role: 'system_admin' | 'lab_admin' | 'user';
     createdAt: string;
     lastActivity: string;
     status: 'pending' | 'approved' | 'rejected';
     isDemo: boolean;
     researcherId?: string;
     personId?: string;
+    labId?: string;
   } {
     return {
       id: this._id,
@@ -587,7 +610,8 @@ export class User {
       status: this._status,
       isDemo: this._isDemo,
       researcherId: this._researcherId,
-      personId: this._personId
+      personId: this._personId,
+      labId: this._labId,
     };
   }
 
@@ -634,8 +658,9 @@ export class User {
   get lastPasswordChange(): Date | undefined { return this._lastPasswordChange; }
   get isDemo(): boolean { return this._isDemo; }
 
-  // Convenience getters
-  get roleString(): 'admin' | 'user' { return this._role.role; }
+  get labId(): string | undefined { return this._labId; }
+
+  get roleString(): 'system_admin' | 'lab_admin' | 'user' { return this._role.role; }
 
   /**
    * Generate email verification token
@@ -874,10 +899,10 @@ export class User {
       this._requirePasswordChange,
       this._lastPasswordChange,
       this._isDemo,
-      newSettings
+      newSettings,
+      this._labId
     );
 
-    // Restore password data
     user._passwordHash = this._passwordHash;
     user._salt = this._salt;
 

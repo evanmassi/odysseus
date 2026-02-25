@@ -45,6 +45,7 @@ export interface TubeRow {
   lock_note?: string;
   locked_at?: Date | string;
   shared_with_user_ids?: string; // JSON array string
+  lab_id?: string;
 }
 
 /**
@@ -93,7 +94,8 @@ export class TubeMapper {
       locked_by: tube.lockedBy,
       lock_note: tube.lockNote,
       locked_at: tube.lockedAt,
-      shared_with_user_ids: sharedJson
+      shared_with_user_ids: sharedJson,
+      lab_id: tube.labId
     };
   }
 
@@ -180,7 +182,8 @@ export class TubeMapper {
       lockedBy: nullToUndefined(row.locked_by),
       lockNote: nullToUndefined(row.lock_note),
       lockedAt,
-      sharedWithUserIds
+      sharedWithUserIds,
+      labId: row.lab_id
     });
   }
 

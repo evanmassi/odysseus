@@ -8,6 +8,8 @@ import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastru
 import { SessionRepository as SessionRepositoryImpl } from '@infrastructure/repositories/SessionRepository';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
 import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
+import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
+import { InviteCodeRepository as InviteCodeRepositoryImpl } from '@infrastructure/repositories/InviteCodeRepository';
 
 // Repository interfaces
 import { TubeRepository } from '@domain/repositories/TubeRepository';
@@ -19,6 +21,8 @@ import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenReposit
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { AuditRepository } from '@domain/repositories/AuditRepository';
 import { LookupValueRepository } from '@domain/repositories/LookupValueRepository';
+import { LabRepository } from '@domain/repositories/LabRepository';
+import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 
 /**
  * Repository Factory - Dependency injection
@@ -37,6 +41,8 @@ export class RepositoryFactory {
   private userSessionRepository?: UserSessionRepository;
   private auditRepository?: AuditRepository;
   private lookupValueRepository?: LookupValueRepository;
+  private labRepository?: LabRepository;
+  private inviteCodeRepository?: InviteCodeRepository;
 
   constructor() {
     this.postgresContext = new PostgresContext();
@@ -138,6 +144,20 @@ export class RepositoryFactory {
     return this.lookupValueRepository;
   }
 
+  getLabRepository(): LabRepository {
+    if (!this.labRepository) {
+      this.labRepository = new LabRepositoryImpl(this.postgresContext);
+    }
+    return this.labRepository;
+  }
+
+  getInviteCodeRepository(): InviteCodeRepository {
+    if (!this.inviteCodeRepository) {
+      this.inviteCodeRepository = new InviteCodeRepositoryImpl(this.postgresContext);
+    }
+    return this.inviteCodeRepository;
+  }
+
   getRepositories() {
     return {
       tubes: this.getTubeRepository(),
@@ -148,7 +168,9 @@ export class RepositoryFactory {
       refreshTokens: this.getRefreshTokenRepository(),
       userSessions: this.getUserSessionRepository(),
       audit: this.getAuditRepository(),
-      lookupValues: this.getLookupValueRepository()
+      lookupValues: this.getLookupValueRepository(),
+      labs: this.getLabRepository(),
+      inviteCodes: this.getInviteCodeRepository()
     };
   }
 

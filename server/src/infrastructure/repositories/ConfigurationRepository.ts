@@ -75,6 +75,89 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return defaultConfig;
   }
 
+  // LAB-SCOPED CONFIGURATION
+
+  async getForLab(labId: string): Promise<Configuration | null> {
+    try {
+      const row = await this.context.queryOne<{ config_json: ConfigurationJson; version: number; updated_at: Date | string }>(`
+        SELECT config_json, version, updated_at
+        FROM configuration_current
+        WHERE lab_id = $1
+      `, [labId]);
+
+      if (!row) {
+        return null;
+      }
+
+      return Configuration.fromData({ ...row.config_json, version: row.version });
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error('Failed to get configuration for lab:', { labId, message: errorMessage });
+      throw new ValidationError(`Database error retrieving configuration for lab: ${errorMessage}`);
+    }
+  }
+
+  async saveForLab(labId: string, configuration: Configuration): Promise<number> {
+    try {
+      let newVersion = 0;
+      await this.context.transaction(async (client) => {
+        const now = new Date();
+        const configJson = JSON.stringify(configuration.toData());
+
+        const versionResult = await client.query<{ version: number }>(
+          `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING version`,
+          [labId, now, 'Configuration updated', 'system', configJson]
+        );
+
+        newVersion = versionResult.rows[0].version;
+
+        await client.query(
+          `UPDATE configuration_current
+           SET version = $1, updated_at = $2, config_json = $3
+           WHERE lab_id = $4`,
+          [newVersion, now, configJson, labId]
+        );
+      });
+
+      return newVersion;
+    } catch (error) {
+      logger.error('Failed to save configuration for lab:', { labId, error });
+      throw new ValidationError(`Database error saving configuration for lab: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async ensureDefaultForLab(labId: string): Promise<Configuration> {
+    const existing = await this.getForLab(labId);
+    if (existing) {
+      return existing;
+    }
+
+    const defaultConfig = Configuration.createDefault();
+    const configJson = JSON.stringify(defaultConfig.toData());
+    const now = new Date();
+
+    await this.context.transaction(async (client) => {
+      const versionResult = await client.query<{ version: number }>(
+        `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING version`,
+        [labId, now, 'Default configuration created', 'system', configJson]
+      );
+
+      const version = versionResult.rows[0].version;
+
+      await client.query(
+        `INSERT INTO configuration_current (lab_id, version, updated_at, config_json)
+         VALUES ($1, $2, $3, $4)`,
+        [labId, version, now, configJson]
+      );
+    });
+
+    return defaultConfig;
+  }
+
   // VERSIONING & HISTORY
 
   async getByVersion(version: number): Promise<Configuration | null> {

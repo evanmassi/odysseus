@@ -21,6 +21,7 @@ declare module 'socket.io' {
     userId?: string;
     username?: string;
     isDemo?: boolean;
+    labId?: string;
   }
 }
 
@@ -49,11 +50,13 @@ export function createSocketAuthMiddleware(
         socket.userId = validation.user.id;
         socket.username = validation.user.username;
         socket.isDemo = validation.user.isDemo;
+        socket.labId = validation.user.labId;
         logger.debug('Socket authenticated', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
-          isDemo: socket.isDemo
+          isDemo: socket.isDemo,
+          labId: socket.labId
         });
       } else {
         logger.debug('Socket auth token invalid or expired', { socketId: socket.id });

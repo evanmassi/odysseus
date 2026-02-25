@@ -24,7 +24,8 @@ export class Tube {
     private _lockedBy?: string,
     private _lockNote?: string,
     private _lockedAt?: Date,
-    private _sharedWithUserIds: string[] = []
+    private _sharedWithUserIds: string[] = [],
+    private readonly _labId?: string
   ) {
     this.validate();
   }
@@ -56,6 +57,7 @@ export class Tube {
     } | SampleData;
     researcherId?: string;
     createdByName?: string;
+    labId?: string;
   }): Tube {
     // Generate unique ID if not provided
     const id = data.id || generateId('tube');
@@ -85,7 +87,8 @@ export class Tube {
       undefined, // lockedBy
       undefined, // lockNote
       undefined, // lockedAt
-      [] // sharedWithUserIds
+      [], // sharedWithUserIds
+      data.labId
     );
   }
 
@@ -127,6 +130,7 @@ export class Tube {
     lockNote?: string;
     lockedAt?: string;
     sharedWithUserIds?: string[];
+    labId?: string;
   }): Tube {
     const location = Location.create(data.location);
     const sample = SampleData.create(data.sample);
@@ -148,7 +152,8 @@ export class Tube {
       data.lockedBy,
       data.lockNote,
       data.lockedAt ? new Date(data.lockedAt) : undefined,
-      data.sharedWithUserIds ?? []
+      data.sharedWithUserIds ?? [],
+      data.labId
     );
   }
 
@@ -235,7 +240,8 @@ export class Tube {
       userId, // lockedBy
       note, // lockNote
       new Date(), // lockedAt
-      [] // sharedWithUserIds - starts empty
+      [], // sharedWithUserIds - starts empty
+      this._labId
     );
   }
 
@@ -261,7 +267,8 @@ export class Tube {
       undefined, // lockedBy - cleared
       undefined, // lockNote - cleared
       undefined, // lockedAt - cleared
-      [] // sharedWithUserIds - cleared on unlock
+      [], // sharedWithUserIds - cleared on unlock
+      this._labId
     );
   }
 
@@ -288,7 +295,8 @@ export class Tube {
       this._lockedBy,
       note, // Updated lock note
       this._lockedAt,
-      this._sharedWithUserIds
+      this._sharedWithUserIds,
+      this._labId
     );
   }
 
@@ -312,7 +320,8 @@ export class Tube {
       this._lockedBy,
       this._lockNote,
       this._lockedAt,
-      newSharedIds
+      newSharedIds,
+      this._labId
     );
   }
 
@@ -336,7 +345,8 @@ export class Tube {
       this._lockedBy,
       this._lockNote,
       this._lockedAt,
-      newSharedIds
+      newSharedIds,
+      this._labId
     );
   }
 
@@ -413,7 +423,8 @@ export class Tube {
       this._lockedBy,
       this._lockNote,
       this._lockedAt,
-      this._sharedWithUserIds
+      this._sharedWithUserIds,
+      this._labId
     );
   }
 
@@ -504,6 +515,7 @@ export class Tube {
     lockNote?: string;
     lockedAt?: string;
     sharedWithUserIds?: string[];
+    labId?: string;
   } {
     return {
       id: this._id,
@@ -520,7 +532,8 @@ export class Tube {
       lockedBy: this._lockedBy,
       lockNote: this._lockNote,
       lockedAt: this._lockedAt?.toISOString(),
-      sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined
+      sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined,
+      labId: this._labId
     };
   }
 
@@ -544,8 +557,12 @@ export class Tube {
   /**
    * Get tube ID
    */
-  get id(): string { 
-    return this._id; 
+  get id(): string {
+    return this._id;
+  }
+
+  get labId(): string | undefined {
+    return this._labId;
   }
 
   /**

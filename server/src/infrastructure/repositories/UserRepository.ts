@@ -13,7 +13,7 @@ import * as crypto from 'crypto';
 const USER_COLUMNS = `
   id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
   email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
-  password_reset_token, password_reset_expiry, require_password_change, last_password_change, is_demo, settings
+  password_reset_token, password_reset_expiry, require_password_change, last_password_change, is_demo, settings, lab_id
 `.trim();
 
 /**
@@ -56,7 +56,7 @@ export class UserRepository implements IUserRepository {
     const row = await this.context.queryOne<UserRow>(
       `SELECT u.id, u.username, u.api_key, u.role, u.password_hash, u.salt, u.created_at, u.researcher_id, u.person_id, u.status,
               u.email_verified, u.email_verification_token, u.email_verification_expiry, u.last_verification_email_sent,
-              u.password_reset_token, u.password_reset_expiry, u.require_password_change, u.last_password_change, u.is_demo, u.settings
+              u.password_reset_token, u.password_reset_expiry, u.require_password_change, u.last_password_change, u.is_demo, u.settings, u.lab_id
        FROM users u INNER JOIN persons p ON u.person_id = p.id WHERE LOWER(p.email) = $1`,
       [normalizedEmail]
     );
@@ -156,8 +156,8 @@ export class UserRepository implements IUserRepository {
         INSERT INTO users (
           id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
           email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
-          password_reset_token, password_reset_expiry, require_password_change, last_password_change, is_demo, settings
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+          password_reset_token, password_reset_expiry, require_password_change, last_password_change, is_demo, settings, lab_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
         ON CONFLICT (id) DO UPDATE SET
           username = EXCLUDED.username,
           api_key = EXCLUDED.api_key,
@@ -177,12 +177,14 @@ export class UserRepository implements IUserRepository {
           require_password_change = EXCLUDED.require_password_change,
           last_password_change = EXCLUDED.last_password_change,
           is_demo = EXCLUDED.is_demo,
-          settings = EXCLUDED.settings
+          settings = EXCLUDED.settings,
+          lab_id = EXCLUDED.lab_id
       `, [
         row.id, row.username, row.api_key, row.role, row.password_hash, row.salt, row.created_at,
         row.researcher_id, row.person_id, row.status, row.email_verified, row.email_verification_token,
         row.email_verification_expiry, row.last_verification_email_sent, row.password_reset_token,
-        row.password_reset_expiry, row.require_password_change, row.last_password_change, row.is_demo, row.settings
+        row.password_reset_expiry, row.require_password_change, row.last_password_change, row.is_demo, row.settings,
+        row.lab_id
       ]);
     } catch (error) {
       // Translate database-specific errors to domain errors
@@ -229,7 +231,7 @@ export class UserRepository implements IUserRepository {
 
   async findAdmins(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE role = 'admin' ORDER BY created_at`
+      `SELECT ${USER_COLUMNS} FROM users WHERE role IN ('system_admin', 'lab_admin') ORDER BY created_at`
     );
     return UserMapper.fromRows(rows);
   }
@@ -241,7 +243,7 @@ export class UserRepository implements IUserRepository {
     return UserMapper.fromRows(rows);
   }
 
-  async findByRole(role: 'admin' | 'user'): Promise<User[]> {
+  async findByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
       `SELECT ${USER_COLUMNS} FROM users WHERE role = $1 ORDER BY created_at`,
       [role]
@@ -254,10 +256,10 @@ export class UserRepository implements IUserRepository {
       'SELECT role FROM users WHERE api_key = $1',
       [apiKey]
     );
-    return result?.role === 'admin';
+    return result?.role === 'system_admin' || result?.role === 'lab_admin';
   }
 
-  async countByRole(role: 'admin' | 'user'): Promise<number> {
+  async countByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM users WHERE role = $1',
       [role]
@@ -312,7 +314,7 @@ export class UserRepository implements IUserRepository {
 
   // USER MANAGEMENT OPERATIONS
 
-  async updateRole(userId: string, newRole: 'admin' | 'user'): Promise<boolean> {
+  async updateRole(userId: string, newRole: 'system_admin' | 'lab_admin' | 'user'): Promise<boolean> {
     const result = await this.context.execute(
       'UPDATE users SET role = $1 WHERE id = $2',
       [newRole, userId]
@@ -426,7 +428,7 @@ export class UserRepository implements IUserRepository {
 
   async getStats(): Promise<UserRepositoryStats> {
     const totalUsers = await this.count();
-    const adminCount = await this.countByRole('admin');
+    const adminCount = await this.count() - await this.countByRole('user');
     const regularUserCount = await this.countByRole('user');
 
     // Activity stats - using total count as fallback since activity is session-based
@@ -467,6 +469,32 @@ export class UserRepository implements IUserRepository {
       } : undefined,
       mostActiveUser: undefined
     };
+  }
+
+  // LAB-SCOPED OPERATIONS
+
+  async findByLabId(labId: string): Promise<User[]> {
+    const rows = await this.context.queryMany<UserRow>(
+      `SELECT ${USER_COLUMNS} FROM users WHERE lab_id = $1 ORDER BY created_at`,
+      [labId]
+    );
+    return UserMapper.fromRows(rows);
+  }
+
+  async countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number> {
+    const result = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM users WHERE role = $1 AND lab_id = $2',
+      [role, labId]
+    );
+    return parseInt(result?.count || '0', 10);
+  }
+
+  async isLabEmpty(labId: string): Promise<boolean> {
+    const result = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM users WHERE lab_id = $1',
+      [labId]
+    );
+    return parseInt(result?.count || '0', 10) === 0;
   }
 
   // MAINTENANCE OPERATIONS

@@ -17,7 +17,8 @@ export class LookupValue {
     private _sortOrder: number,
     private _isActive: boolean,
     private readonly _createdAt: Date,
-    private _updatedAt: Date
+    private _updatedAt: Date,
+    private readonly _labId?: string
   ) {
     this.validate();
   }
@@ -26,6 +27,7 @@ export class LookupValue {
     category: LookupCategory;
     value: string;
     sortOrder?: number;
+    labId?: string;
   }): LookupValue {
     const now = new Date();
     return new LookupValue(
@@ -35,7 +37,8 @@ export class LookupValue {
       data.sortOrder ?? 0,
       true,
       now,
-      now
+      now,
+      data.labId
     );
   }
 
@@ -47,6 +50,7 @@ export class LookupValue {
     isActive: boolean;
     createdAt: Date | string;
     updatedAt: Date | string;
+    labId?: string;
   }): LookupValue {
     return new LookupValue(
       data.id,
@@ -55,7 +59,8 @@ export class LookupValue {
       data.sortOrder,
       data.isActive,
       typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt,
-      typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : data.updatedAt
+      typeof data.updatedAt === 'string' ? new Date(data.updatedAt) : data.updatedAt,
+      data.labId
     );
   }
 
@@ -92,10 +97,12 @@ export class LookupValue {
       isActive: this._isActive,
       createdAt: this._createdAt.toISOString(),
       updatedAt: this._updatedAt.toISOString(),
+      labId: this._labId,
     };
   }
 
   get id(): string { return this._id; }
+  get labId(): string | undefined { return this._labId; }
   get category(): LookupCategory { return this._category; }
   get value(): string { return this._value; }
   get sortOrder(): number { return this._sortOrder; }

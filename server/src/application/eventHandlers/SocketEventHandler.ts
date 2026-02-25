@@ -111,12 +111,17 @@ export class SocketEventHandler {
     return demoTankIds;
   }
 
-  /**
-   * Get the appropriate room for a tank (demo or real)
-   */
-  private async getRoomForTank(tankId: string): Promise<'demo' | 'real'> {
+  private getLabRoomName(labId: string, mode: 'demo' | 'real'): string {
+    return `lab:${labId}:${mode}`;
+  }
+
+  private async getRoomForTank(tankId: string, labId?: string): Promise<string> {
     const demoTankIds = await this.getDemoTankIds();
-    return demoTankIds.has(tankId) ? 'demo' : 'real';
+    const mode = demoTankIds.has(tankId) ? 'demo' : 'real';
+    if (labId) {
+      return this.getLabRoomName(labId, mode);
+    }
+    return mode;
   }
 
   /**
@@ -128,12 +133,17 @@ export class SocketEventHandler {
       // Only register authenticated users for presence
       if (socket.userId && socket.username) {
         try {
-          this.presenceService.registerConnection(socket.userId, socket.id, socket.username);
+          this.presenceService.registerConnection(socket.userId, socket.id, socket.username, socket.labId);
 
-          // Join demo or real room based on user's demo status
-          const room = socket.isDemo ? 'demo' : 'real';
-          socket.join(room);
-          logger.debug('Socket joined room', { socketId: socket.id, room, isDemo: socket.isDemo });
+          const mode = socket.isDemo ? 'demo' : 'real';
+          socket.join(mode);
+          if (socket.labId) {
+            const labRoom = this.getLabRoomName(socket.labId, mode);
+            socket.join(labRoom);
+            logger.debug('Socket joined rooms', { socketId: socket.id, rooms: [mode, labRoom], labId: socket.labId, isDemo: socket.isDemo });
+          } else {
+            logger.debug('Socket joined room', { socketId: socket.id, room: mode, isDemo: socket.isDemo });
+          }
 
           // Broadcast to all clients that user came online
           this.io.emit('user_online', {
@@ -493,7 +503,7 @@ export class SocketEventHandler {
       };
 
       // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<'demo' | 'real'>();
+      const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
         rooms.add(await this.getRoomForTank(tankId));
       }
@@ -775,7 +785,7 @@ export class SocketEventHandler {
       };
 
       // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<'demo' | 'real'>();
+      const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
         rooms.add(await this.getRoomForTank(tankId));
       }
@@ -807,7 +817,7 @@ export class SocketEventHandler {
       };
 
       // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<'demo' | 'real'>();
+      const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
         rooms.add(await this.getRoomForTank(tankId));
       }
@@ -840,7 +850,7 @@ export class SocketEventHandler {
       };
 
       // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<'demo' | 'real'>();
+      const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
         rooms.add(await this.getRoomForTank(tankId));
       }
@@ -874,7 +884,7 @@ export class SocketEventHandler {
       };
 
       // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<'demo' | 'real'>();
+      const rooms = new Set<string>();
       for (const tankId of event.tankIds) {
         rooms.add(await this.getRoomForTank(tankId));
       }

@@ -16,6 +16,7 @@ interface ConnectedUser {
   userId: string;
   socketId: string;
   username: string;
+  labId?: string;
   connectedAt: Date;
 }
 
@@ -30,7 +31,7 @@ export class PresenceService {
    * Register user connection
    * If user already connected (multi-tab), overwrites with new socket
    */
-  registerConnection(userId: string, socketId: string, username: string): void {
+  registerConnection(userId: string, socketId: string, username: string, labId?: string): void {
     // Remove old socket mapping if user was already connected
     const existing = this.connectedUsers.get(userId);
     if (existing) {
@@ -46,6 +47,7 @@ export class PresenceService {
       userId,
       socketId,
       username,
+      labId,
       connectedAt: new Date(),
     });
     this.socketToUser.set(socketId, userId);
@@ -105,6 +107,12 @@ export class PresenceService {
   /**
    * Get count of online users
    */
+  getOnlineUserIdsForLab(labId: string): string[] {
+    return Array.from(this.connectedUsers.values())
+      .filter(u => u.labId === labId)
+      .map(u => u.userId);
+  }
+
   getOnlineCount(): number {
     return this.connectedUsers.size;
   }

@@ -14,6 +14,7 @@ export interface LookupValueRow {
   is_active: boolean;
   created_at: Date | string;
   updated_at: Date | string;
+  lab_id?: string;
 }
 
 export class LookupValueMapper {
@@ -26,6 +27,7 @@ export class LookupValueMapper {
       is_active: entity.isActive,
       created_at: entity.createdAt,
       updated_at: entity.updatedAt,
+      lab_id: entity.labId,
     };
   }
 
@@ -38,6 +40,7 @@ export class LookupValueMapper {
       isActive: row.is_active,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+      labId: row.lab_id,
     });
   }
 

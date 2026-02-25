@@ -26,10 +26,9 @@ export interface ResearcherRepository {
    */
   findByPersonId(personId: string): Promise<Researcher | null>;
   
-  /**
-   * Find all researchers in the system
-   */
   findAll(): Promise<Researcher[]>;
+  findByLabId(labId: string): Promise<Researcher[]>;
+  findActiveByLabId(labId: string): Promise<Researcher[]>;
 
   /**
    * Find multiple researchers by their IDs

@@ -32,37 +32,11 @@ export interface AuditRepository {
 
   // READ OPERATIONS
 
-  /**
-   * Find all audit entries for a specific user
-   *
-   * @param userId - User ID to filter by
-   * @param options - Optional query parameters (limit, offset, date range)
-   */
   findByUserId(userId: string, options?: QueryOptions): Promise<AuditLogEntry[]>;
-
-  /**
-   * Find all audit entries for a specific entity
-   *
-   * @param entityId - Entity ID to filter by
-   * @param entityType - Entity type (tube, user, config, etc.)
-   */
   findByEntityId(entityId: string, entityType: string): Promise<AuditLogEntry[]>;
-
-  /**
-   * Find all audit entries for a specific action type
-   *
-   * @param action - Action to filter by (tube_created, login_success, etc.)
-   * @param options - Optional query parameters
-   */
   findByAction(action: string, options?: QueryOptions): Promise<AuditLogEntry[]>;
-
-  /**
-   * Find all audit entries with advanced filtering and pagination
-   *
-   * @param filters - Complex filters (user, action, entity type, date range)
-   * @returns Paginated result with total count
-   */
   findAll(filters: AuditLogFilters): Promise<PaginatedResult<AuditLogEntry>>;
+  findAllForLab(filters: AuditLogFilters, labId: string): Promise<PaginatedResult<AuditLogEntry>>;
 
   // MAINTENANCE OPERATIONS
 

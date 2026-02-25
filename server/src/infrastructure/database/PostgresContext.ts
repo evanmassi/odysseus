@@ -65,6 +65,18 @@ export class PostgresContext {
    * Create database tables
    */
   private async createTables(): Promise<void> {
+    // Labs table (root tenant — must be created before all FK references)
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS labs (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        slug TEXT NOT NULL UNIQUE,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
     // Configuration tables
     await this.createConfigurationTables();
 
@@ -87,6 +99,7 @@ export class PostgresContext {
       CREATE TABLE IF NOT EXISTS researchers (
         id TEXT PRIMARY KEY,
         person_id TEXT NOT NULL,
+        lab_id TEXT NOT NULL REFERENCES labs(id),
         active BOOLEAN NOT NULL DEFAULT TRUE,
         created_at TIMESTAMPTZ NOT NULL,
         approval_status TEXT NOT NULL DEFAULT 'approved' CHECK (approval_status IN ('pending', 'approved')),
@@ -101,12 +114,13 @@ export class PostgresContext {
         id TEXT PRIMARY KEY,
         username TEXT NOT NULL UNIQUE,
         api_key TEXT NOT NULL UNIQUE,
-        role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
+        role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('system_admin', 'lab_admin', 'user')),
         password_hash TEXT,
         salt TEXT,
         created_at TIMESTAMPTZ NOT NULL,
         researcher_id TEXT,
         person_id TEXT,
+        lab_id TEXT REFERENCES labs(id),
         status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
         email_verified BOOLEAN NOT NULL DEFAULT FALSE,
         email_verification_token TEXT,
@@ -127,6 +141,7 @@ export class PostgresContext {
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS tubes (
         id TEXT PRIMARY KEY,
+        lab_id TEXT NOT NULL REFERENCES labs(id),
         tank_id TEXT NOT NULL,
         rack_id TEXT NOT NULL,
         box_id TEXT NOT NULL,
@@ -201,6 +216,7 @@ export class PostgresContext {
         action TEXT NOT NULL,
         entity_type TEXT NOT NULL,
         entity_id TEXT,
+        lab_id TEXT,
         details JSONB NOT NULL,
         timestamp TIMESTAMPTZ NOT NULL,
         ip_address TEXT,
@@ -214,12 +230,13 @@ export class PostgresContext {
       CREATE TABLE IF NOT EXISTS lookup_values (
         id TEXT PRIMARY KEY,
         category TEXT NOT NULL CHECK (category IN ('species', 'source', 'media')),
+        lab_id TEXT REFERENCES labs(id),
         value TEXT NOT NULL,
         sort_order INTEGER DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        UNIQUE(category, value)
+        UNIQUE(lab_id, category, value)
       )
     `);
 
@@ -232,12 +249,29 @@ export class PostgresContext {
         action TEXT NOT NULL,
         entity_type TEXT NOT NULL,
         entity_id TEXT,
+        lab_id TEXT,
         details JSONB NOT NULL,
         timestamp TIMESTAMPTZ NOT NULL,
         ip_address TEXT,
         user_agent TEXT,
         archived_at TIMESTAMPTZ NOT NULL,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Invite codes table (registration invite codes)
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS invite_codes (
+        id TEXT PRIMARY KEY,
+        lab_id TEXT NOT NULL REFERENCES labs(id),
+        code TEXT NOT NULL UNIQUE,
+        role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('lab_admin', 'user')),
+        created_by TEXT NOT NULL REFERENCES users(id),
+        max_uses INTEGER DEFAULT 1,
+        use_count INTEGER NOT NULL DEFAULT 0,
+        expires_at TIMESTAMPTZ,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
 
@@ -251,6 +285,7 @@ export class PostgresContext {
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS configuration_versions (
         version SERIAL PRIMARY KEY,
+        lab_id TEXT NOT NULL REFERENCES labs(id),
         updated_at TIMESTAMPTZ NOT NULL,
         change_description TEXT,
         changed_by TEXT,
@@ -259,10 +294,11 @@ export class PostgresContext {
       )
     `);
 
-    // Configuration current (single row for fast reads)
+    // Configuration current (one row per lab for fast reads)
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS configuration_current (
-        id INTEGER PRIMARY KEY CHECK (id = 1),
+        id INTEGER PRIMARY KEY,
+        lab_id TEXT NOT NULL REFERENCES labs(id) UNIQUE,
         version INTEGER NOT NULL,
         updated_at TIMESTAMPTZ NOT NULL,
         config_json JSONB NOT NULL,
@@ -274,6 +310,7 @@ export class PostgresContext {
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS configuration_snapshots (
         id TEXT PRIMARY KEY,
+        lab_id TEXT NOT NULL REFERENCES labs(id),
         version INTEGER NOT NULL,
         created_at TIMESTAMPTZ NOT NULL,
         description TEXT,
@@ -475,6 +512,317 @@ export class PostgresContext {
         END IF;
       END $$
     `);
+
+    await this.migrateMultiTenancy();
+  }
+
+  private async migrateMultiTenancy(): Promise<void> {
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS labs (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        slug TEXT NOT NULL UNIQUE,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await this.pool.query(`
+      INSERT INTO labs (id, name, slug)
+      VALUES ('lab_default', 'Lab 1', 'lab-1')
+      ON CONFLICT DO NOTHING
+    `);
+
+    // Add lab_id columns (nullable initially for backfill)
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'lab_id'
+        ) THEN
+          ALTER TABLE users ADD COLUMN lab_id TEXT REFERENCES labs(id);
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'researchers' AND column_name = 'lab_id'
+        ) THEN
+          ALTER TABLE researchers ADD COLUMN lab_id TEXT REFERENCES labs(id);
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'lab_id'
+        ) THEN
+          ALTER TABLE tubes ADD COLUMN lab_id TEXT REFERENCES labs(id);
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'lookup_values' AND column_name = 'lab_id'
+        ) THEN
+          ALTER TABLE lookup_values ADD COLUMN lab_id TEXT REFERENCES labs(id);
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'audit_log' AND column_name = 'lab_id'
+        ) THEN
+          ALTER TABLE audit_log ADD COLUMN lab_id TEXT;
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'audit_log_archive' AND column_name = 'lab_id'
+        ) THEN
+          ALTER TABLE audit_log_archive ADD COLUMN lab_id TEXT;
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'configuration_current' AND column_name = 'lab_id'
+        ) THEN
+          ALTER TABLE configuration_current ADD COLUMN lab_id TEXT REFERENCES labs(id);
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'configuration_versions' AND column_name = 'lab_id'
+        ) THEN
+          ALTER TABLE configuration_versions ADD COLUMN lab_id TEXT REFERENCES labs(id);
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'configuration_snapshots' AND column_name = 'lab_id'
+        ) THEN
+          ALTER TABLE configuration_snapshots ADD COLUMN lab_id TEXT REFERENCES labs(id);
+        END IF;
+      END $$
+    `);
+
+    // Backfill existing rows with default lab
+    await this.pool.query(`UPDATE users SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+    await this.pool.query(`UPDATE researchers SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+    await this.pool.query(`UPDATE tubes SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+    await this.pool.query(`UPDATE lookup_values SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+    await this.pool.query(`UPDATE audit_log SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+    await this.pool.query(`UPDATE audit_log_archive SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+    await this.pool.query(`UPDATE configuration_current SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+    await this.pool.query(`UPDATE configuration_versions SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+    await this.pool.query(`UPDATE configuration_snapshots SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+
+    // configuration_current: singleton → per-lab
+    await this.pool.query(`
+      DO $$
+      DECLARE
+        constraint_name TEXT;
+      BEGIN
+        SELECT con.conname INTO constraint_name
+        FROM pg_constraint con
+        JOIN pg_class rel ON rel.oid = con.conrelid
+        WHERE rel.relname = 'configuration_current'
+          AND con.contype = 'c'
+          AND pg_get_constraintdef(con.oid) LIKE '%id = 1%';
+
+        IF constraint_name IS NOT NULL THEN
+          EXECUTE 'ALTER TABLE configuration_current DROP CONSTRAINT ' || constraint_name;
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint con
+          JOIN pg_class rel ON rel.oid = con.conrelid
+          WHERE rel.relname = 'configuration_current'
+            AND con.contype = 'u'
+            AND pg_get_constraintdef(con.oid) LIKE '%lab_id%'
+        ) THEN
+          ALTER TABLE configuration_current ADD CONSTRAINT configuration_current_lab_id_unique UNIQUE (lab_id);
+        END IF;
+      END $$
+    `);
+
+    // lookup_values: uniqueness now per-lab
+    await this.pool.query(`
+      DO $$
+      DECLARE
+        constraint_name TEXT;
+      BEGIN
+        SELECT con.conname INTO constraint_name
+        FROM pg_constraint con
+        JOIN pg_class rel ON rel.oid = con.conrelid
+        WHERE rel.relname = 'lookup_values'
+          AND con.contype = 'u'
+          AND pg_get_constraintdef(con.oid) LIKE '%category%'
+          AND pg_get_constraintdef(con.oid) LIKE '%value%'
+          AND pg_get_constraintdef(con.oid) NOT LIKE '%lab_id%';
+
+        IF constraint_name IS NOT NULL THEN
+          EXECUTE 'ALTER TABLE lookup_values DROP CONSTRAINT ' || constraint_name;
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM pg_constraint con
+          JOIN pg_class rel ON rel.oid = con.conrelid
+          WHERE rel.relname = 'lookup_values'
+            AND con.contype = 'u'
+            AND pg_get_constraintdef(con.oid) LIKE '%lab_id%'
+        ) THEN
+          ALTER TABLE lookup_values ADD CONSTRAINT lookup_values_lab_category_value_unique UNIQUE (lab_id, category, value);
+        END IF;
+      END $$
+    `);
+
+    // Migrate role values and constraint
+    await this.pool.query(`UPDATE users SET role = 'lab_admin' WHERE role = 'admin'`);
+
+    await this.pool.query(`
+      DO $$
+      DECLARE
+        constraint_name TEXT;
+      BEGIN
+        SELECT con.conname INTO constraint_name
+        FROM pg_constraint con
+        JOIN pg_class rel ON rel.oid = con.conrelid
+        WHERE rel.relname = 'users'
+          AND con.contype = 'c'
+          AND pg_get_constraintdef(con.oid) LIKE '%role%'
+          AND pg_get_constraintdef(con.oid) NOT LIKE '%system_admin%';
+
+        IF constraint_name IS NOT NULL THEN
+          EXECUTE 'ALTER TABLE users DROP CONSTRAINT ' || constraint_name;
+          ALTER TABLE users ADD CONSTRAINT users_role_check
+            CHECK (role IN ('system_admin', 'lab_admin', 'user'));
+        END IF;
+      END $$
+    `);
+
+    // Tighten NOT NULL after backfill
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'researchers' AND column_name = 'lab_id' AND is_nullable = 'YES'
+        ) THEN
+          ALTER TABLE researchers ALTER COLUMN lab_id SET NOT NULL;
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'tubes' AND column_name = 'lab_id' AND is_nullable = 'YES'
+        ) THEN
+          ALTER TABLE tubes ALTER COLUMN lab_id SET NOT NULL;
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'configuration_current' AND column_name = 'lab_id' AND is_nullable = 'YES'
+        ) THEN
+          ALTER TABLE configuration_current ALTER COLUMN lab_id SET NOT NULL;
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'configuration_versions' AND column_name = 'lab_id' AND is_nullable = 'YES'
+        ) THEN
+          ALTER TABLE configuration_versions ALTER COLUMN lab_id SET NOT NULL;
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'configuration_snapshots' AND column_name = 'lab_id' AND is_nullable = 'YES'
+        ) THEN
+          ALTER TABLE configuration_snapshots ALTER COLUMN lab_id SET NOT NULL;
+        END IF;
+      END $$
+    `);
+
+    await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS invite_codes (
+        id TEXT PRIMARY KEY,
+        lab_id TEXT NOT NULL REFERENCES labs(id),
+        code TEXT NOT NULL UNIQUE,
+        role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('lab_admin', 'user')),
+        created_by TEXT NOT NULL REFERENCES users(id),
+        max_uses INTEGER DEFAULT 1,
+        use_count INTEGER NOT NULL DEFAULT 0,
+        expires_at TIMESTAMPTZ,
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
   }
 
   /**
@@ -560,6 +908,18 @@ export class PostgresContext {
       // Tube species/source indexes
       'CREATE INDEX IF NOT EXISTS idx_tubes_species ON tubes(species)',
       'CREATE INDEX IF NOT EXISTS idx_tubes_source ON tubes(source)',
+
+      // Multi-tenancy indexes
+      'CREATE INDEX IF NOT EXISTS idx_labs_slug ON labs(slug)',
+      'CREATE INDEX IF NOT EXISTS idx_labs_is_active ON labs(is_active)',
+      'CREATE INDEX IF NOT EXISTS idx_users_lab_id ON users(lab_id)',
+      'CREATE INDEX IF NOT EXISTS idx_researchers_lab_id ON researchers(lab_id)',
+      'CREATE INDEX IF NOT EXISTS idx_tubes_lab_id ON tubes(lab_id)',
+      'CREATE INDEX IF NOT EXISTS idx_tubes_lab_location ON tubes(lab_id, tank_id, rack_id, box_id)',
+      'CREATE INDEX IF NOT EXISTS idx_lookup_values_lab_id ON lookup_values(lab_id)',
+      'CREATE INDEX IF NOT EXISTS idx_audit_log_lab_id ON audit_log(lab_id)',
+      'CREATE INDEX IF NOT EXISTS idx_invite_codes_lab_id ON invite_codes(lab_id)',
+      'CREATE INDEX IF NOT EXISTS idx_invite_codes_code ON invite_codes(code)',
     ];
 
     for (const indexSql of indexes) {
@@ -686,21 +1046,19 @@ export class PostgresContext {
         const configJson = JSON.stringify(defaultConfig.toData());
         const now = new Date().toISOString();
 
-        // Insert into versions table
         const versionResult = await this.pool.query(
-          `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
-           VALUES ($1, $2, $3, $4)
+          `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+           VALUES ($1, $2, $3, $4, $5)
            RETURNING version`,
-          [now, 'Initial system configuration', 'system', configJson]
+          ['lab_default', now, 'Initial system configuration', 'system', configJson]
         );
 
         const version = versionResult.rows[0].version;
 
-        // Insert into current table
         await this.pool.query(
-          `INSERT INTO configuration_current (id, version, updated_at, config_json)
-           VALUES (1, $1, $2, $3)`,
-          [version, now, configJson]
+          `INSERT INTO configuration_current (id, lab_id, version, updated_at, config_json)
+           VALUES (1, $1, $2, $3, $4)`,
+          ['lab_default', version, now, configJson]
         );
       }
     } catch (error) {

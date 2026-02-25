@@ -435,16 +435,25 @@ export class AccessControlService {
       return manageCheck;
     }
 
-    // Business rule: Cannot manage yourself (prevents lockout)
     if (user.equals(targetUser)) {
       return this.createDeniedResult('Cannot manage your own user account');
     }
 
-    // Business rule: Check if this would leave no admins
-    if (targetUser.isAdmin()) {
-      const adminCount = await this.userRepository.countByRole('admin');
-      if (adminCount <= 1) {
-        return this.createDeniedResult('Cannot modify the last administrator account');
+    // Lab admins can only manage users in their own lab
+    if (user.isLabAdmin() && !user.isSystemAdmin()) {
+      if (user.labId !== targetUser.labId) {
+        return this.createDeniedResult('Lab administrators can only manage users within their own lab');
+      }
+      if (targetUser.isSystemAdmin()) {
+        return this.createDeniedResult('Lab administrators cannot manage system admin accounts');
+      }
+    }
+
+    // Prevent removing the last lab_admin from a lab
+    if (targetUser.isLabAdmin() && !targetUser.isSystemAdmin() && targetUser.labId) {
+      const labAdminCount = await this.userRepository.countByRoleInLab('lab_admin', targetUser.labId);
+      if (labAdminCount <= 1) {
+        return this.createDeniedResult('Cannot modify the last lab administrator account');
       }
     }
 
@@ -665,9 +674,8 @@ export class AccessControlService {
       return adminCheck;
     }
 
-    // Additional business rule: Verify admin count
-    const adminCount = await this.userRepository.countByRole('admin');
-    if (adminCount < 2) {
+    const labAdminCount = await this.userRepository.countByRole('lab_admin');
+    if (labAdminCount < 2) {
       return this.createDeniedResult('System maintenance requires at least 2 active administrators');
     }
 

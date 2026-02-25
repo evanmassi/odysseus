@@ -18,6 +18,8 @@ export { TubeRepository } from './TubeRepository';
 export { UserRepository } from './UserRepository';
 export { ResearcherRepository, ResearcherValidationResult, DuplicateCheckResult } from './ResearcherRepository';
 export { ConfigurationRepository, ConfigurationHistory, ConfigurationExport, ConfigurationSnapshot, ApiConfigurationResponse, FrontendConfiguration, ConfigurationValidationResult, MaintenanceResult } from './ConfigurationRepository';
+export { LabRepository } from './LabRepository';
+export { InviteCodeRepository } from './InviteCodeRepository';
 
 // Repository Types (re-exported from centralized locations)
 export type { TubeSearchCriteria, ResearcherSearchCriteria, UserSearchCriteria } from '@domain/types/repository/SearchCriteria';
@@ -30,6 +32,8 @@ import { UserRepository } from './UserRepository';
 import { ResearcherRepository } from './ResearcherRepository';
 import { ConfigurationRepository } from './ConfigurationRepository';
 import { RefreshTokenRepository } from './RefreshTokenRepository';
+import { LabRepository } from './LabRepository';
+import { InviteCodeRepository } from './InviteCodeRepository';
 
 /**
  * Repository Factory Interface
@@ -59,14 +63,10 @@ export interface RepositoryFactory {
    */
   createConfigurationRepository(): ConfigurationRepository;
   
-  /**
-   * Create refresh token repository instance
-   */
   createRefreshTokenRepository(): RefreshTokenRepository;
-  
-  /**
-   * Initialize all repositories (setup connections, migrations, etc.)
-   */
+  createLabRepository(): LabRepository;
+  createInviteCodeRepository(): InviteCodeRepository;
+
   initialize(): Promise<void>;
   
   /**
@@ -87,12 +87,13 @@ export interface RepositoryFactory {
  * and handling cross-repository operations like transactions.
  */
 export interface RepositoryManager {
-  // Repository access
   tubes: TubeRepository;
   users: UserRepository;
   researchers: ResearcherRepository;
   configuration: ConfigurationRepository;
   refreshTokens: RefreshTokenRepository;
+  labs: LabRepository;
+  inviteCodes: InviteCodeRepository;
   
   /**
    * Execute operations within a transaction
@@ -126,6 +127,8 @@ export interface RepositoryHealthReport {
     researchers: 'healthy' | 'unhealthy';
     configuration: 'healthy' | 'unhealthy';
     refreshTokens: 'healthy' | 'unhealthy';
+    labs: 'healthy' | 'unhealthy';
+    inviteCodes: 'healthy' | 'unhealthy';
   };
   details: {
     [key: string]: string; // Error messages or status details

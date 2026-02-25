@@ -171,6 +171,71 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
     };
   }
 
+  get requireSystemAdmin(): RequestHandler {
+    return (req: Request, res: Response, next: NextFunction): void => {
+      try {
+        if (!req.user) {
+          res.status(401).json({
+            success: false,
+            error: {
+              code: 'UNAUTHORIZED',
+              message: 'Authentication required'
+            },
+            meta: {
+              timestamp: new Date().toISOString(),
+              requestId: req.headers['x-request-id'] || 'unknown'
+            }
+          });
+          return;
+        }
+
+        if (!req.user.isSystemAdmin()) {
+          logger.warn('Non-system-admin user attempted system admin access', {
+            userId: req.user.id,
+            username: req.user.username,
+            role: req.user.role.value,
+            path: req.path,
+            method: req.method
+          });
+
+          res.status(403).json({
+            success: false,
+            error: {
+              code: 'FORBIDDEN',
+              message: 'System admin access required'
+            },
+            meta: {
+              timestamp: new Date().toISOString(),
+              requestId: req.headers['x-request-id'] || 'unknown'
+            }
+          });
+          return;
+        }
+
+        next();
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        logger.error('System admin authorization middleware error', {
+          error: errorMessage,
+          path: req.path,
+          method: req.method
+        });
+
+        res.status(500).json({
+          success: false,
+          error: {
+            code: 'AUTHORIZATION_ERROR',
+            message: 'Authorization service error'
+          },
+          meta: {
+            timestamp: new Date().toISOString(),
+            requestId: req.headers['x-request-id'] || 'unknown'
+          }
+        });
+      }
+    };
+  }
+
   get optionalAuthenticate(): RequestHandler {
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
       try {

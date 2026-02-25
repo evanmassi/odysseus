@@ -53,6 +53,14 @@ export class TubeRepository implements ITubeRepository {
     return TubeMapper.fromRows(rows);
   }
 
+  async findAllByLabId(labId: string): Promise<Tube[]> {
+    const rows = await this.context.queryMany<TubeRow>(
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE lab_id = $1 ORDER BY created_at DESC`,
+      [labId]
+    );
+    return TubeMapper.fromRows(rows);
+  }
+
   async save(tube: Tube): Promise<void> {
     const row = TubeMapper.toRow(tube);
     try {
@@ -63,8 +71,8 @@ export class TubeRepository implements ITubeRepository {
           media_type, media_supplements, media_selection, culture_condition, lot_number,
           species, source, catalog_number, passage_number,
           notes, created_at, updated_at, version,
-          is_locked, locked_by, lock_note, locked_at, shared_with_user_ids
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
+          is_locked, locked_by, lock_note, locked_at, shared_with_user_ids, lab_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32)
         ON CONFLICT (id) DO UPDATE SET
           tank_id = EXCLUDED.tank_id,
           rack_id = EXCLUDED.rack_id,
@@ -94,7 +102,8 @@ export class TubeRepository implements ITubeRepository {
           locked_by = EXCLUDED.locked_by,
           lock_note = EXCLUDED.lock_note,
           locked_at = EXCLUDED.locked_at,
-          shared_with_user_ids = EXCLUDED.shared_with_user_ids
+          shared_with_user_ids = EXCLUDED.shared_with_user_ids,
+          lab_id = EXCLUDED.lab_id
       `, [
         row.id, row.tank_id, row.rack_id, row.box_id, row.position,
         row.cell_type, row.donor_internal_id, row.donor_source_id,
@@ -103,7 +112,8 @@ export class TubeRepository implements ITubeRepository {
         row.species, row.source, row.catalog_number, row.passage_number,
         row.notes,
         row.created_at, row.updated_at, row.version,
-        row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids
+        row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
+        row.lab_id
       ]);
     } catch (error) {
       if (isPositionConstraintError(error)) {
@@ -302,6 +312,14 @@ export class TubeRepository implements ITubeRepository {
     return result ? parseInt(result.count, 10) : 0;
   }
 
+  async countByLabId(labId: string): Promise<number> {
+    const result = await this.context.queryOne<{ count: string }>(
+      'SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1',
+      [labId]
+    );
+    return result ? parseInt(result.count, 10) : 0;
+  }
+
   async countByResearcher(researcher: string): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
       'SELECT COUNT(*) as count FROM tubes WHERE researcher_id = $1',
@@ -384,7 +402,8 @@ export class TubeRepository implements ITubeRepository {
     tubes.locked_by,
     tubes.lock_note,
     tubes.locked_at,
-    tubes.shared_with_user_ids
+    tubes.shared_with_user_ids,
+    tubes.lab_id
   `.trim();
 
   /**
@@ -964,8 +983,8 @@ export class TubeRepository implements ITubeRepository {
             media_type, media_supplements, media_selection, culture_condition, lot_number,
             species, source, catalog_number, passage_number,
             notes, created_at, updated_at,
-            is_locked, locked_by, lock_note, locked_at, shared_with_user_ids
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)
+            is_locked, locked_by, lock_note, locked_at, shared_with_user_ids, lab_id
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31)
           ON CONFLICT (id) DO UPDATE SET
             tank_id = EXCLUDED.tank_id,
             rack_id = EXCLUDED.rack_id,
@@ -994,7 +1013,8 @@ export class TubeRepository implements ITubeRepository {
             locked_by = EXCLUDED.locked_by,
             lock_note = EXCLUDED.lock_note,
             locked_at = EXCLUDED.locked_at,
-            shared_with_user_ids = EXCLUDED.shared_with_user_ids
+            shared_with_user_ids = EXCLUDED.shared_with_user_ids,
+            lab_id = EXCLUDED.lab_id
         `, [
           row.id, row.tank_id, row.rack_id, row.box_id, row.position,
           row.cell_type, row.donor_internal_id, row.donor_source_id,
@@ -1003,7 +1023,8 @@ export class TubeRepository implements ITubeRepository {
           row.species, row.source, row.catalog_number, row.passage_number,
           row.notes,
           row.created_at, row.updated_at,
-          row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids
+          row.is_locked, row.locked_by, row.lock_note, row.locked_at, row.shared_with_user_ids,
+          row.lab_id
         ]);
       }
     });

@@ -45,11 +45,10 @@ export class UserApplicationService {
   async createUser(request: CreateUserRequest, adminApiKey?: string): Promise<UserResponse> {
     // Check if this is the first user (auto-admin)
     const isFirstUser = await this.userRepository.isEmpty();
-    let targetRole: 'admin' | 'user' = 'user';
+    let targetRole: 'system_admin' | 'lab_admin' | 'user' = 'user';
 
     if (isFirstUser) {
-      // First user becomes admin automatically
-      targetRole = 'admin';
+      targetRole = 'lab_admin';
     } else {
       // Subsequent users need admin authorization
       if (!adminApiKey) {
@@ -207,16 +206,13 @@ export class UserApplicationService {
       throw new PermissionError('Cannot change your own role', { userId: admin.id });
     }
 
-    // Prevent deletion of last admin
-    if (targetUser.isAdmin() && request.role === 'user') {
-      const adminCount = await this.userRepository.countByRole('admin');
+    if (targetUser.isAdmin() && request.role === 'user' && targetUser.labId) {
+      const adminCount = await this.userRepository.countByRoleInLab('lab_admin', targetUser.labId);
       if (adminCount <= 1) {
         throw new ValidationError('Cannot remove the last admin user', { adminCount });
       }
     }
 
-    // Update role (using repository-level update for now)
-    // TODO: Add proper domain method for role changes
     targetUser.changeRole(request.role, admin);
 
     await this.userRepository.save(targetUser);
@@ -244,9 +240,8 @@ export class UserApplicationService {
       throw new PermissionError('Cannot delete yourself', { userId: admin.id });
     }
 
-    // Prevent deletion of last admin
-    if (targetUser.isAdmin()) {
-      const adminCount = await this.userRepository.countByRole('admin');
+    if (targetUser.isAdmin() && targetUser.labId) {
+      const adminCount = await this.userRepository.countByRoleInLab('lab_admin', targetUser.labId);
       if (adminCount <= 1) {
         throw new ValidationError('Cannot delete the last admin user', { adminCount });
       }
@@ -423,7 +418,7 @@ export class UserApplicationService {
     }
 
     // 3. Determine role and status based on first-user detection
-    const role = isFirstUser ? UserRole.admin() : UserRole.user();
+    const role = isFirstUser ? UserRole.labAdmin() : UserRole.user();
     const status = isFirstUser ? 'approved' : 'pending';
 
     // 4. Create User entity (links Person to authentication)

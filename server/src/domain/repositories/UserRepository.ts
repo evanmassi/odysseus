@@ -98,40 +98,19 @@ export interface UserRepository {
   
   // ROLE-BASED OPERATIONS
 
-  /**
-   * Find all admin users
-   */
   findAdmins(): Promise<User[]>;
-  
-  /**
-   * Find all regular users (non-admin)
-   */
   findRegularUsers(): Promise<User[]>;
-  
-  /**
-   * Find users by role
-   */
-  findByRole(role: 'admin' | 'user'): Promise<User[]>;
-  
-  /**
-   * Check if user has admin role (by API key)
-   */
+  findByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<User[]>;
   isAdmin(apiKey: string): Promise<boolean>;
-  
-  /**
-   * Count users by role
-   */
-  countByRole(role: 'admin' | 'user'): Promise<number>;
-  
-  /**
-   * Check if this would be the first user (for auto-admin assignment)
-   */
+  countByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<number>;
   isEmpty(): Promise<boolean>;
-
-  /**
-   * Find users by approval status
-   */
   findByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<User[]>;
+
+  // LAB-SCOPED OPERATIONS
+
+  findByLabId(labId: string): Promise<User[]>;
+  countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number>;
+  isLabEmpty(labId: string): Promise<boolean>;
 
   // DEMO MODE OPERATIONS
 
@@ -160,7 +139,7 @@ export interface UserRepository {
   /**
    * Update user role (admin operation)
    */
-  updateRole(userId: string, newRole: 'admin' | 'user'): Promise<boolean>;
+  updateRole(userId: string, newRole: 'system_admin' | 'lab_admin' | 'user'): Promise<boolean>;
   
   /**
    * Find users created within date range

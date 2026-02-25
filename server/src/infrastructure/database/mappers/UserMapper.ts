@@ -7,7 +7,7 @@ export interface UserRow {
   id: string;
   username: string;
   api_key: string;
-  role: 'admin' | 'user';
+  role: 'system_admin' | 'lab_admin' | 'user';
   password_hash?: string;
   salt?: string;
   created_at: Date | string;
@@ -25,6 +25,7 @@ export interface UserRow {
   is_demo?: boolean;
   settings?: string;
   last_activity?: Date | string;
+  lab_id?: string;
 }
 
 /**
@@ -38,14 +39,13 @@ export class UserMapper {
    * Convert domain entity to database row
    */
   static toRow(user: User): UserRow {
-    const role = user.role;
     const settingsJson = JSON.stringify(user.settings);
 
     return {
       id: user.id,
       username: user.username,
       api_key: user.apiKey,
-      role: role.isAdmin() ? 'admin' : 'user',
+      role: user.roleString as 'system_admin' | 'lab_admin' | 'user',
       password_hash: user.passwordHash || undefined,
       salt: user.salt || undefined,
       created_at: user.createdAt,
@@ -61,7 +61,8 @@ export class UserMapper {
       require_password_change: user.requirePasswordChange,
       last_password_change: user.lastPasswordChange || undefined,
       is_demo: user.isDemo,
-      settings: settingsJson
+      settings: settingsJson,
+      lab_id: user.labId
     };
   }
 
@@ -120,7 +121,8 @@ export class UserMapper {
       requirePasswordChange: row.require_password_change ? 1 : 0,
       lastPasswordChange: lastPasswordChange,
       isDemo: row.is_demo,
-      settings: row.settings
+      settings: row.settings,
+      labId: row.lab_id
     });
   }
 

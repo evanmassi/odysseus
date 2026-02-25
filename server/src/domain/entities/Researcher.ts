@@ -18,7 +18,8 @@ export class Researcher {
     private _active: boolean,
     private readonly _createdAt: Date,
     private _approvalStatus: ResearcherApprovalStatus,
-    private readonly _source: ResearcherSource
+    private readonly _source: ResearcherSource,
+    private readonly _labId?: string
   ) {
     this.validate();
   }
@@ -33,6 +34,7 @@ export class Researcher {
     options?: {
       isUserApproved?: boolean;
       source?: ResearcherSource;
+      labId?: string;
     }
   ): Researcher {
     const id = generateId('researcher');
@@ -43,7 +45,7 @@ export class Researcher {
     const approvalStatus: ResearcherApprovalStatus =
       source === 'admin' ? 'approved' : (isUserApproved ? 'approved' : 'pending');
 
-    return new Researcher(id, personId, true, now, approvalStatus, source);
+    return new Researcher(id, personId, true, now, approvalStatus, source, options?.labId);
   }
 
   static fromData(data: {
@@ -53,6 +55,7 @@ export class Researcher {
     createdAt: string | Date;
     approvalStatus?: ResearcherApprovalStatus;
     source?: ResearcherSource;
+    labId?: string;
   }): Researcher {
     return new Researcher(
       data.id,
@@ -60,7 +63,8 @@ export class Researcher {
       data.active,
       typeof data.createdAt === 'string' ? new Date(data.createdAt) : data.createdAt,
       data.approvalStatus ?? 'approved',
-      data.source ?? 'admin'
+      data.source ?? 'admin',
+      data.labId
     );
   }
 
@@ -110,6 +114,7 @@ export class Researcher {
     createdAt: string;
     approvalStatus: ResearcherApprovalStatus;
     source: ResearcherSource;
+    labId?: string;
   } {
     return {
       id: this._id,
@@ -117,7 +122,8 @@ export class Researcher {
       active: this._active,
       createdAt: this._createdAt.toISOString(),
       approvalStatus: this._approvalStatus,
-      source: this._source
+      source: this._source,
+      labId: this._labId
     };
   }
 
@@ -135,6 +141,7 @@ export class Researcher {
   }
 
   get id(): string { return this._id; }
+  get labId(): string | undefined { return this._labId; }
   get personId(): string { return this._personId; }
   get active(): boolean { return this._active; }
   get createdAt(): Date { return new Date(this._createdAt); }

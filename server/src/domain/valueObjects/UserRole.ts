@@ -7,51 +7,43 @@ import { RolePermissionService, UserRole as UserRoleType } from '@domain/service
  *
  * Represents user roles with permission checking.
  * All permission logic centralized in RolePermissionService.
- *
- * @example
- * const role = UserRole.admin();
- * const canView = role.hasPermission(Permission.VIEW_TUBES);
  */
 export class UserRole {
-  private static readonly VALID_ROLES = ['admin', 'user'] as const;
-  
+  private static readonly VALID_ROLES = ['system_admin', 'lab_admin', 'user'] as const;
+
+  private static readonly PRIVILEGE_RANK: Record<string, number> = {
+    system_admin: 3,
+    lab_admin: 2,
+    user: 1,
+  };
+
   private constructor(
-    private readonly _role: 'admin' | 'user'
+    private readonly _role: 'system_admin' | 'lab_admin' | 'user'
   ) {
     this.validate();
   }
 
-  /**
-   * Factory method to create UserRole with validation
-   */
   static create(role: string): UserRole {
-    return new UserRole(role as 'admin' | 'user');
+    return new UserRole(role as 'system_admin' | 'lab_admin' | 'user');
   }
 
-  /**
-   * Factory method for admin role
-   */
-  static admin(): UserRole {
-    return new UserRole('admin');
+  static systemAdmin(): UserRole {
+    return new UserRole('system_admin');
   }
 
-  /**
-   * Factory method for user role
-   */
+  static labAdmin(): UserRole {
+    return new UserRole('lab_admin');
+  }
+
   static user(): UserRole {
     return new UserRole('user');
   }
 
-  /**
-   * Factory method for default role (first user becomes admin)
-   */
-  static defaultRole(isFirstUser: boolean = false): UserRole {
-    return isFirstUser ? UserRole.admin() : UserRole.user();
+  /** First user in a lab becomes lab_admin */
+  static defaultRoleForLab(isFirstInLab: boolean = false): UserRole {
+    return isFirstInLab ? UserRole.labAdmin() : UserRole.user();
   }
 
-  /**
-   * Validates role value
-   */
   private validate(): void {
     if (!this._role) {
       throw new ValidationError('User role is required');
@@ -62,22 +54,7 @@ export class UserRole {
     }
   }
 
-  // Permission Checking - Centralized & Clean
-
-  /**
-   * Check if role has a specific permission
-   * Delegates to centralized RolePermissionService
-   * 
-   * @param permission - Permission object to check
-   * @returns true if role has permission
-   */
   hasPermission(permission: Permission): boolean;
-  /**
-   * Check if role has a specific permission by key (legacy compatibility)
-   * 
-   * @param permissionKey - Permission key string
-   * @returns true if role has permission
-   */
   hasPermission(permissionKey: string): boolean;
   hasPermission(permissionOrKey: Permission | string): boolean {
     if (typeof permissionOrKey === 'string') {
@@ -87,93 +64,61 @@ export class UserRole {
     }
   }
 
-  /**
-   * Get all permissions for this role
-   * 
-   * @returns Array of all permissions assigned to this role
-   */
   getPermissions(): readonly Permission[] {
     return RolePermissionService.getPermissionsForRole(this._role as UserRoleType);
   }
 
-  /**
-   * Get all permission keys for this role
-   * 
-   * @returns Array of permission key strings
-   */
   getPermissionKeys(): readonly string[] {
     return RolePermissionService.getPermissionKeysForRole(this._role as UserRoleType);
   }
 
-  /**
-   * Check if this role is admin
-   */
-  isAdmin(): boolean {
-    return this._role === 'admin';
+  isSystemAdmin(): boolean {
+    return this._role === 'system_admin';
   }
 
-  /**
-   * Check if this role is user
-   */
+  isLabAdmin(): boolean {
+    return this._role === 'lab_admin';
+  }
+
+  /** Returns true for both system_admin and lab_admin */
+  isAdmin(): boolean {
+    return this._role === 'system_admin' || this._role === 'lab_admin';
+  }
+
   isUser(): boolean {
     return this._role === 'user';
   }
 
-  /**
-   * Check if this role has higher privileges than another role
-   */
   hasHigherPrivilegesThan(other: UserRole): boolean {
-    if (this.isAdmin() && other.isUser()) {
-      return true;
-    }
-    return false;
+    return (UserRole.PRIVILEGE_RANK[this._role] ?? 0) > (UserRole.PRIVILEGE_RANK[other._role] ?? 0);
   }
 
-  /**
-   * Equality check
-   */
   equals(other: UserRole): boolean {
     if (!other) return false;
     return this._role === other._role;
   }
 
-  /**
-   * String representation
-   */
   toString(): string {
     return this._role;
   }
 
-  /**
-   * Convert to data for persistence/serialization
-   */
-  toData(): { role: 'admin' | 'user' } {
-    return {
-      role: this._role
-    };
+  toData(): { role: 'system_admin' | 'lab_admin' | 'user' } {
+    return { role: this._role };
   }
 
-  // Getter (immutable access)
-  get role(): 'admin' | 'user' {
+  get role(): 'system_admin' | 'lab_admin' | 'user' {
     return this._role;
   }
 
-  // Alias for compatibility with event serialization
-  get value(): 'admin' | 'user' {
+  get value(): 'system_admin' | 'lab_admin' | 'user' {
     return this._role;
   }
 
-  /**
-   * Get all valid roles (for validation/UI purposes)
-   */
   static getValidRoles(): readonly string[] {
     return UserRole.VALID_ROLES;
   }
 
-  /**
-   * Check if a string is a valid role
-   */
-  static isValidRole(role: string): role is 'admin' | 'user' {
+  static isValidRole(role: string): role is 'system_admin' | 'lab_admin' | 'user' {
     return (UserRole.VALID_ROLES as readonly string[]).includes(role);
   }
 }

@@ -10,6 +10,7 @@ export interface ResearcherRow {
   created_at: Date | string;
   approval_status: ResearcherApprovalStatus;
   source: ResearcherSource;
+  lab_id?: string;
 }
 
 /**
@@ -27,7 +28,8 @@ export class ResearcherMapper {
       active: researcher.active,
       created_at: researcher.createdAt,
       approval_status: researcher.approvalStatus,
-      source: researcher.source
+      source: researcher.source,
+      lab_id: researcher.labId
     };
   }
 
@@ -45,7 +47,8 @@ export class ResearcherMapper {
       active: row.active,
       createdAt,
       approvalStatus: row.approval_status,
-      source: row.source
+      source: row.source,
+      labId: row.lab_id
     });
   }
 

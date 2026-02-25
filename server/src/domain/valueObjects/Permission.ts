@@ -38,11 +38,16 @@ export class Permission {
   static readonly ADMIN_SETTINGS = new Permission('admin_settings', 'Access admin settings', 'SYSTEM_ADMIN');
   static readonly MANAGE_CONFIGURATION = new Permission('manage_configuration', 'Manage system configuration', 'SYSTEM_ADMIN');
 
-  // Permission Collections
-  
   /**
-   * All system permissions - Complete registry
+   * Multi-Tenancy Permissions
    */
+  static readonly MANAGE_LABS = new Permission('manage_labs', 'Create and manage labs', 'MULTI_TENANCY');
+  static readonly VIEW_ALL_LABS = new Permission('view_all_labs', 'View all labs and cross-lab data', 'MULTI_TENANCY');
+  static readonly MANAGE_INVITE_CODES = new Permission('manage_invite_codes', 'Create and manage invite codes', 'MULTI_TENANCY');
+  static readonly MANAGE_GLOBAL_SETTINGS = new Permission('manage_global_settings', 'Manage global security and system settings', 'MULTI_TENANCY');
+
+  // Permission Collections
+
   static readonly ALL_PERMISSIONS = [
     Permission.VIEW_TUBES,
     Permission.CREATE_TUBES,
@@ -53,11 +58,12 @@ export class Permission {
     Permission.MANAGE_RESEARCHERS,
     Permission.ADMIN_SETTINGS,
     Permission.MANAGE_CONFIGURATION,
+    Permission.MANAGE_LABS,
+    Permission.VIEW_ALL_LABS,
+    Permission.MANAGE_INVITE_CODES,
+    Permission.MANAGE_GLOBAL_SETTINGS,
   ] as const;
 
-  /**
-   * Basic permissions for regular users
-   */
   static readonly USER_PERMISSIONS = [
     Permission.VIEW_TUBES,
     Permission.CREATE_TUBES,
@@ -65,10 +71,20 @@ export class Permission {
     Permission.DELETE_TUBES,
   ] as const;
 
-  /**
-   * Administrative permissions for admin users
-   */
-  static readonly ADMIN_PERMISSIONS = Permission.ALL_PERMISSIONS;
+  static readonly LAB_ADMIN_PERMISSIONS = [
+    Permission.VIEW_TUBES,
+    Permission.CREATE_TUBES,
+    Permission.EDIT_TUBES,
+    Permission.DELETE_TUBES,
+    Permission.BULK_EDIT,
+    Permission.MANAGE_USERS,
+    Permission.MANAGE_RESEARCHERS,
+    Permission.ADMIN_SETTINGS,
+    Permission.MANAGE_CONFIGURATION,
+    Permission.MANAGE_INVITE_CODES,
+  ] as const;
+
+  static readonly SYSTEM_ADMIN_PERMISSIONS = Permission.ALL_PERMISSIONS;
 
   // Value Object Implementation
 
@@ -196,7 +212,7 @@ export type PermissionKey = typeof Permission.ALL_PERMISSIONS[number]['key'];
 /**
  * Permission category enumeration
  */
-export type PermissionCategory = 'TUBE_MANAGEMENT' | 'USER_MANAGEMENT' | 'RESEARCHER_MANAGEMENT' | 'SYSTEM_ADMIN';
+export type PermissionCategory = 'TUBE_MANAGEMENT' | 'USER_MANAGEMENT' | 'RESEARCHER_MANAGEMENT' | 'SYSTEM_ADMIN' | 'MULTI_TENANCY';
 
 /**
  * Type guard for permission validation

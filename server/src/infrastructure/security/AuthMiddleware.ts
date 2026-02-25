@@ -23,11 +23,7 @@ export interface AuthMiddleware {
    */
   requireAdmin: RequestHandler;
 
-  /**
-   * Optional authentication middleware.
-   * Adds user to request context if valid token provided, but doesn't reject if missing.
-   * 
-   * @returns Express middleware function
-   */
+  requireSystemAdmin: RequestHandler;
+
   optionalAuthenticate: RequestHandler;
 }

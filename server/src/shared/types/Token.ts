@@ -48,6 +48,7 @@ export interface AccessTokenPayload {
   sessionId: string;        // Session identifier
   username: string;         // User name
   role: string;             // User role
+  labId?: string;           // Lab membership (undefined for system_admin)
   permissions?: string[];   // Optional fine-grained permissions
 }
 
@@ -57,12 +58,13 @@ export interface AccessTokenPayload {
 export interface UserPublicData {
   id: string;
   username: string;
-  role: 'admin' | 'user';
+  role: 'system_admin' | 'lab_admin' | 'user';
   createdAt: string;
   lastActivity: string;
   status: 'pending' | 'approved' | 'rejected';
   researcherId?: string;
   personId?: string;
+  labId?: string;
 }
 
 /**

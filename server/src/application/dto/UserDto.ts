@@ -13,17 +13,17 @@ export interface LoginRequest {
 export interface CreateUserRequest {
   username: string;
   apiKey: string;
-  role?: 'admin' | 'user';
+  role?: 'system_admin' | 'lab_admin' | 'user';
 }
 
 export interface UpdateUserRoleRequest {
-  role: 'admin' | 'user';
+  role: 'system_admin' | 'lab_admin' | 'user';
 }
 
 export interface RegisterRequest {
   username: string;
   password: string;
-  role?: 'admin' | 'user';
+  role?: 'system_admin' | 'lab_admin' | 'user';
 }
 
 export interface PasswordLoginRequest {
@@ -34,7 +34,7 @@ export interface PasswordLoginRequest {
 export interface UserResponse {
   id: string;
   username: string;
-  role: 'admin' | 'user';
+  role: 'system_admin' | 'lab_admin' | 'user';
   createdAt: string;
   lastActivity: string;
 }
@@ -94,7 +94,7 @@ export class UserDto {
   static fromCreateRequest(request: CreateUserRequest): {
     username: string;
     apiKey: string;
-    role: 'admin' | 'user';
+    role: 'system_admin' | 'lab_admin' | 'user';
   } {
     return {
       username: request.username,

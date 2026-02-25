@@ -441,7 +441,8 @@ export class JwtSessionService implements SessionService {
       // Custom claims
       sessionId,
       username: user.username,
-      role: user.role.value
+      role: user.role.value,
+      labId: user.labId
     };
 
     return jwt.sign(payload, this.config.secret, {

@@ -22,10 +22,8 @@ export interface TubeRepository {
    */
   findByIds(ids: string[]): Promise<Tube[]>;
 
-  /**
-   * Find all tubes in the system
-   */
   findAll(): Promise<Tube[]>;
+  findAllByLabId(labId: string): Promise<Tube[]>;
   
   /**
    * Save a tube (create or update).
@@ -114,10 +112,8 @@ export interface TubeRepository {
    */
   findIncomplete(): Promise<Tube[]>;
   
-  /**
-   * Count total number of tubes
-   */
   count(): Promise<number>;
+  countByLabId(labId: string): Promise<number>;
   
   /**
    * Count tubes by researcher

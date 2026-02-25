@@ -11,3 +11,4 @@ export * from './ConfigurationEvents';
 export * from './ResearcherEvents';
 export * from './EmailVerificationEvents';
 export * from './PasswordResetEvents';
+export * from './LabEvents';

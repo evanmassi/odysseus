@@ -12,26 +12,13 @@ export interface ConfigurationRepository {
   
   // CONFIGURATION MANAGEMENT
 
-  /**
-   * Get the current system configuration
-   * Returns null if no configuration exists (first run)
-   */
   getCurrent(): Promise<Configuration | null>;
-  
-  /**
-   * Save configuration (create or update)
-   */
+  getForLab(labId: string): Promise<Configuration | null>;
   save(configuration: Configuration): Promise<number>;
-  
-  /**
-   * Check if configuration exists
-   */
+  saveForLab(labId: string, configuration: Configuration): Promise<number>;
   exists(): Promise<boolean>;
-  
-  /**
-   * Create default configuration if none exists
-   */
   ensureDefault(): Promise<Configuration>;
+  ensureDefaultForLab(labId: string): Promise<Configuration>;
   
   // VERSIONING AND HISTORY
 

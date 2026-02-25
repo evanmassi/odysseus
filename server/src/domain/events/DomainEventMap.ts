@@ -66,6 +66,11 @@ import type {
   PasswordResetTokenGeneratedEvent,
   PasswordResetCompletedEvent
 } from './PasswordResetEvents';
+import type {
+  LabCreatedEvent,
+  InviteCodeCreatedEvent,
+  InviteCodeUsedEvent
+} from './LabEvents';
 
 /**
  * Maps event name strings to their corresponding event class types.
@@ -149,6 +154,11 @@ export interface DomainEventMap {
   'PasswordResetByAdmin': PasswordResetByAdminEvent;
   'PasswordResetTokenGenerated': PasswordResetTokenGeneratedEvent;
   'PasswordResetCompleted': PasswordResetCompletedEvent;
+
+  // Lab events
+  'LabCreated': LabCreatedEvent;
+  'InviteCodeCreated': InviteCodeCreatedEvent;
+  'InviteCodeUsed': InviteCodeUsedEvent;
 }
 
 /**
