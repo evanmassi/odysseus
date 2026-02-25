@@ -14,6 +14,7 @@ import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
+import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { validateBody, validateParams } from '@middleware/Validation';
 import {
@@ -34,6 +35,7 @@ export class AdminRouteModule implements RouteModule {
     private readonly exportController: ExportController,
     private readonly configurationController: ConfigurationController,
     private readonly lookupValueController: LookupValueController,
+    private readonly inviteCodeController: InviteCodeController,
     private readonly authMiddleware: AuthMiddleware
   ) {}
 
@@ -280,6 +282,26 @@ export class AdminRouteModule implements RouteModule {
     router.delete('/lookups/:id',
       validateParams(z.object({ id: z.string() })),
       this.lookupValueController.deleteValue.bind(this.lookupValueController)
+    );
+
+    // INVITE CODE MANAGEMENT (lab admin — scoped to their own lab)
+
+    router.get('/invite-codes',
+      this.inviteCodeController.listForCurrentLab.bind(this.inviteCodeController)
+    );
+
+    router.post('/invite-codes',
+      validateBody(z.object({
+        role: z.enum(['lab_admin', 'user']).optional(),
+        maxUses: z.number().int().positive().optional(),
+        expiresAt: z.string().optional(),
+      })),
+      this.inviteCodeController.createForCurrentLab.bind(this.inviteCodeController)
+    );
+
+    router.delete('/invite-codes/:id',
+      validateParams(z.object({ id: z.string() })),
+      this.inviteCodeController.deactivate.bind(this.inviteCodeController)
     );
   }
 

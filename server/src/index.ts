@@ -128,7 +128,7 @@ class OdysseusServer {
 
   private setupRoutes(): void {
     // Initialize modular route system
-    const { RouteRegistry, PublicRouteModule, AuthRouteModule, AdminRouteModule, ResourceRouteModule, ConfigurationRouteModule, SearchRouteModule, UserRouteModule } = require('./presentation/routes');
+    const { RouteRegistry, PublicRouteModule, AuthRouteModule, AdminRouteModule, ResourceRouteModule, ConfigurationRouteModule, SearchRouteModule, UserRouteModule, SystemAdminRouteModule } = require('./presentation/routes');
 
     const registry = new RouteRegistry(this.app);
     const authController = this.serviceContainer.getAuthController();
@@ -142,13 +142,16 @@ class OdysseusServer {
     const auditController = this.serviceContainer.getAuditController();
     const exportController = this.serviceContainer.getExportController();
     const lookupValueController = this.serviceContainer.getLookupValueController();
+    const labController = this.serviceContainer.getLabController();
+    const inviteCodeController = this.serviceContainer.getInviteCodeController();
     const authMiddleware = this.serviceContainer.getAuthMiddleware();
     const configurationRepository = this.repositoryFactory.getConfigurationRepository();
 
-    // Register all route modules with ConfigurationRepository for dynamic rate limiting
-    registry.registerModule(new PublicRouteModule(authController, configurationRepository));
+    // Register all route modules
+    registry.registerModule(new PublicRouteModule(authController, inviteCodeController, configurationRepository));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, configurationRepository));
-    registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, exportController, configurationController, lookupValueController, authMiddleware));
+    registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, exportController, configurationController, lookupValueController, inviteCodeController, authMiddleware));
+    registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, authController, authMiddleware));
     const tubeLockController = this.serviceContainer.getTubeLockController();
     registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, configurationRepository));
     registry.registerModule(new ConfigurationRouteModule(configurationController, authMiddleware));

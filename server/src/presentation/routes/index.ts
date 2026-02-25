@@ -11,3 +11,4 @@ export * from './ResourceRouteModule';
 export * from './ConfigurationRouteModule';
 export * from './SearchRouteModule';
 export * from './UserRouteModule';
+export * from './SystemAdminRouteModule';

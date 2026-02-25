@@ -12,6 +12,9 @@ import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHand
 import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
 import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
 import { InitializeConfigurationCommandHandler } from '@application/commands/InitializeConfigurationCommand';
+import { CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
+import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler } from '@application/commands/LabCommands';
+import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler, ValidateInviteCodeQueryHandler } from '@application/commands/InviteCodeCommands';
 
 // CQRS Query Handlers
 import { CheckFirstTimeSetupQueryHandler, GetUserByIdQueryHandler, GetAllUsersQueryHandler, GetUserStatisticsQueryHandler } from '@application/queries/UserQueries';
@@ -37,6 +40,8 @@ import { SessionController } from '@presentation/controllers/SessionController';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
+import { LabController } from '@presentation/controllers/LabController';
+import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 
 // Application services
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
@@ -118,6 +123,15 @@ export class ServiceContainer {
   private bulkReassignHandler?: BulkReassignResourcesCommandHandler;
   private initializeConfigHandler?: InitializeConfigurationCommandHandler;
 
+  // CQRS Command Handlers - Multi-Tenancy
+  private createSystemAdminHandler?: CreateSystemAdminCommandHandler;
+  private createLabHandler?: CreateLabCommandHandler;
+  private updateLabHandler?: UpdateLabCommandHandler;
+  private deactivateLabHandler?: DeactivateLabCommandHandler;
+  private createInviteCodeHandler?: CreateInviteCodeCommandHandler;
+  private deactivateInviteCodeHandler?: DeactivateInviteCodeCommandHandler;
+  private validateInviteCodeHandler?: ValidateInviteCodeQueryHandler;
+
   // CQRS Query Handlers - User Domain
   private checkFirstTimeHandler?: CheckFirstTimeSetupQueryHandler;
   private getUserByIdHandler?: GetUserByIdQueryHandler;
@@ -146,6 +160,8 @@ export class ServiceContainer {
   private auditController?: AuditController;
   private exportController?: ExportController;
   private lookupValueController?: LookupValueController;
+  private labController?: LabController;
+  private inviteCodeController?: InviteCodeController;
 
   // Application services - Export
   private exportService?: ExportService;
@@ -678,6 +694,91 @@ export class ServiceContainer {
     return this.initializeConfigHandler;
   }
 
+  // MULTI-TENANCY COMMAND HANDLERS
+
+  getCreateSystemAdminHandler(): CreateSystemAdminCommandHandler {
+    if (!this.createSystemAdminHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.createSystemAdminHandler = new CreateSystemAdminCommandHandler(
+        repositories.users,
+        repositories.configurations,
+        this.getEventBus()
+      );
+    }
+    return this.createSystemAdminHandler;
+  }
+
+  getCreateLabHandler(): CreateLabCommandHandler {
+    if (!this.createLabHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.createLabHandler = new CreateLabCommandHandler(
+        repositories.labs,
+        repositories.configurations,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.createLabHandler;
+  }
+
+  getUpdateLabHandler(): UpdateLabCommandHandler {
+    if (!this.updateLabHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.updateLabHandler = new UpdateLabCommandHandler(
+        repositories.labs,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.updateLabHandler;
+  }
+
+  getDeactivateLabHandler(): DeactivateLabCommandHandler {
+    if (!this.deactivateLabHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.deactivateLabHandler = new DeactivateLabCommandHandler(
+        repositories.labs,
+        repositories.users
+      );
+    }
+    return this.deactivateLabHandler;
+  }
+
+  getCreateInviteCodeHandler(): CreateInviteCodeCommandHandler {
+    if (!this.createInviteCodeHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.createInviteCodeHandler = new CreateInviteCodeCommandHandler(
+        repositories.inviteCodes,
+        repositories.labs,
+        repositories.users,
+        this.getEventBus()
+      );
+    }
+    return this.createInviteCodeHandler;
+  }
+
+  getDeactivateInviteCodeHandler(): DeactivateInviteCodeCommandHandler {
+    if (!this.deactivateInviteCodeHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.deactivateInviteCodeHandler = new DeactivateInviteCodeCommandHandler(
+        repositories.inviteCodes,
+        repositories.users
+      );
+    }
+    return this.deactivateInviteCodeHandler;
+  }
+
+  getValidateInviteCodeHandler(): ValidateInviteCodeQueryHandler {
+    if (!this.validateInviteCodeHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.validateInviteCodeHandler = new ValidateInviteCodeQueryHandler(
+        repositories.inviteCodes,
+        repositories.labs
+      );
+    }
+    return this.validateInviteCodeHandler;
+  }
+
   // CQRS QUERY HANDLERS
 
   getCheckFirstTimeHandler(): CheckFirstTimeSetupQueryHandler {
@@ -813,10 +914,38 @@ export class ServiceContainer {
         this.repositoryFactory.getUserRepository(),
 
         // Event Bus
-        this.getEventBus()
+        this.getEventBus(),
+
+        // System admin setup
+        this.getCreateSystemAdminHandler()
       );
     }
     return this.authController;
+  }
+
+  getLabController(): LabController {
+    if (!this.labController) {
+      this.labController = new LabController(
+        this.getCreateLabHandler(),
+        this.getUpdateLabHandler(),
+        this.getDeactivateLabHandler(),
+        this.repositoryFactory.getLabRepository(),
+        this.repositoryFactory.getUserRepository()
+      );
+    }
+    return this.labController;
+  }
+
+  getInviteCodeController(): InviteCodeController {
+    if (!this.inviteCodeController) {
+      this.inviteCodeController = new InviteCodeController(
+        this.getCreateInviteCodeHandler(),
+        this.getDeactivateInviteCodeHandler(),
+        this.getValidateInviteCodeHandler(),
+        this.repositoryFactory.getInviteCodeRepository()
+      );
+    }
+    return this.inviteCodeController;
   }
 
   getConfigurationController(): ConfigurationController {
@@ -1116,7 +1245,9 @@ export class ServiceContainer {
         repositories.persons,
         repositories.researchers,
         repositories.configurations,
-        this.getEventBus()
+        this.getEventBus(),
+        repositories.inviteCodes,
+        repositories.labs
       );
     }
     return this.userApplicationService;

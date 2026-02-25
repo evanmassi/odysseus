@@ -15,6 +15,7 @@ import { UserLoggedOutEvent } from '@domain/events/UserEvents';
 
 // CQRS Commands
 import { SessionService, CreateUserCommand, CreateUserCommandHandler } from '@application/commands/UserCommands';
+import { CreateSystemAdminCommand, CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
 import { LoginCommand, LoginCommandHandler } from '@application/commands/UserCommands';
 import { ChangeUserPasswordCommand, ChangeUserPasswordCommandHandler } from '@application/commands/UserCommands';
 import { ChangeUserRoleCommand, ChangeUserRoleCommandHandler } from '@application/commands/UserCommands';
@@ -80,7 +81,10 @@ export class AuthController {
     private userRepository: UserRepository,
 
     // Event bus
-    private eventBus: EventBus
+    private eventBus: EventBus,
+
+    // System admin setup
+    private createSystemAdminHandler: CreateSystemAdminCommandHandler
   ) {}
 
   // PUBLIC ENDPOINTS (No auth required)
@@ -104,6 +108,26 @@ export class AuthController {
           needsSystemAdmin: result.needsSystemAdmin
         }
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /** One-time system admin creation. POST /api/public/auth/setup-system-admin */
+  async setupSystemAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { username, password, email, setupKey } = req.body;
+
+      const command = new CreateSystemAdminCommand(username, password, email, setupKey);
+      const user = await this.createSystemAdminHandler.handle(command);
+
+      logger.info('System admin created', { userId: user.id, username: user.username });
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        user: user.toPublicData(),
+      });
+      res.status(201).json(response);
     } catch (error) {
       next(error);
     }
@@ -826,13 +850,11 @@ export class AuthController {
     try {
       const startTime = Date.now();
 
-      // Validate request body against shared schema
       const validatedData = registerWithResearcherSchema.parse(req.body);
+      const inviteCode = req.body.inviteCode as string | undefined;
 
-      // Create user + optional researcher via application service
-      // createResearcher flag determines whether to create researcher profile
       const user = await this.userApplicationService.registerWithResearcher(
-        validatedData,
+        { ...validatedData, inviteCode },
         validatedData.createResearcher
       );
 

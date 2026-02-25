@@ -78,9 +78,8 @@ export class SocketEventHandler {
   private pendingConfigEvents: Array<{ type: string; userId: string }> = [];
   private readonly DEBOUNCE_DELAY_MS = 2000; // 2 seconds
 
-  // Demo tank ID caching (30-second TTL)
-  private demoTankIdsCache: Set<string> | null = null;
-  private demoTankIdsCacheTime: number = 0;
+  // Per-lab demo tank ID caching (30-second TTL)
+  private demoTankIdsCacheByLab = new Map<string, { ids: Set<string>; time: number }>();
   private static readonly DEMO_CACHE_TTL_MS = 30000;
 
   constructor(
@@ -93,21 +92,21 @@ export class SocketEventHandler {
     this.setupPresenceHandlers();
   }
 
-  /**
-   * Get cached demo tank IDs (30s TTL to reduce DB hits)
-   */
-  private async getDemoTankIds(): Promise<Set<string>> {
+  private async getDemoTankIds(labId?: string): Promise<Set<string>> {
+    const cacheKey = labId ?? '__default__';
     const now = Date.now();
-    if (this.demoTankIdsCache && (now - this.demoTankIdsCacheTime) < SocketEventHandler.DEMO_CACHE_TTL_MS) {
-      return this.demoTankIdsCache;
+    const cached = this.demoTankIdsCacheByLab.get(cacheKey);
+    if (cached && (now - cached.time) < SocketEventHandler.DEMO_CACHE_TTL_MS) {
+      return cached.ids;
     }
 
-    const config = await this.configurationRepository.getCurrent();
+    const config = labId
+      ? await this.configurationRepository.getForLab(labId)
+      : await this.configurationRepository.getCurrent();
     const demoTankIds = new Set(
       config?.equipment.tanks.filter(t => t.isDemo).map(t => t.id) ?? []
     );
-    this.demoTankIdsCache = demoTankIds;
-    this.demoTankIdsCacheTime = now;
+    this.demoTankIdsCacheByLab.set(cacheKey, { ids: demoTankIds, time: now });
     return demoTankIds;
   }
 
@@ -116,7 +115,7 @@ export class SocketEventHandler {
   }
 
   private async getRoomForTank(tankId: string, labId?: string): Promise<string> {
-    const demoTankIds = await this.getDemoTankIds();
+    const demoTankIds = await this.getDemoTankIds(labId);
     const mode = demoTankIds.has(tankId) ? 'demo' : 'real';
     if (labId) {
       return this.getLabRoomName(labId, mode);

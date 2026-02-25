@@ -9,6 +9,7 @@ import { Router, RequestHandler } from 'express';
 import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
+import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import { createRateLimitMiddleware } from '@middleware/RateLimiting';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { validateBody } from '@middleware/Validation';
@@ -23,6 +24,7 @@ export class PublicRouteModule implements RouteModule {
 
   constructor(
     private readonly authController: AuthController,
+    private readonly inviteCodeController: InviteCodeController,
     configurationRepository: ConfigurationRepository
   ) {
     // Create rate limit middleware with injected repository
@@ -118,6 +120,23 @@ export class PublicRouteModule implements RouteModule {
     // This prevents polling from extending the session (which would defeat idle timeout)
     router.get('/auth/session-info',
       this.authController.getSessionInfo.bind(this.authController)
+    );
+
+    // Invite code validation (for registration flow)
+    router.post('/invite-codes/validate',
+      validateBody(z.object({ code: z.string().min(1) })),
+      this.inviteCodeController.validate.bind(this.inviteCodeController)
+    );
+
+    // One-time system admin setup
+    router.post('/auth/setup-system-admin',
+      validateBody(z.object({
+        username: z.string().min(1).max(50),
+        password: z.string().min(8).max(128),
+        email: z.string().email(),
+        setupKey: z.string().optional(),
+      })),
+      this.authController.setupSystemAdmin.bind(this.authController)
     );
 
     // Health check (moved from main routes)

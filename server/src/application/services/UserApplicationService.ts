@@ -2,6 +2,8 @@ import { UserRepository } from '@domain/repositories/UserRepository';
 import { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
+import { LabRepository } from '@domain/repositories/LabRepository';
 import { User } from '@domain/entities/User';
 import { Researcher } from '@domain/entities/Researcher';
 import { Person } from '@domain/entities/Person';
@@ -36,7 +38,9 @@ export class UserApplicationService {
     private personRepository?: PersonRepository,
     private researcherRepository?: ResearcherRepository,
     private configurationRepository?: ConfigurationRepository,
-    private eventBus?: EventBus
+    private eventBus?: EventBus,
+    private inviteCodeRepository?: InviteCodeRepository,
+    private labRepository?: LabRepository
   ) {}
 
   /**
@@ -364,15 +368,36 @@ export class UserApplicationService {
    * @returns Created user with linked researcher
    * @throws ValidationError if researcher name exists or password invalid
    */
-  async registerWithResearcher(request: RegisterWithResearcherRequest, createResearcher: boolean = true): Promise<User> {
+  async registerWithResearcher(request: RegisterWithResearcherRequest & { inviteCode?: string }, createResearcher: boolean = true): Promise<User> {
     if (!this.researcherRepository || !this.configurationRepository) {
       throw new Error('ResearcherRepository and ConfigurationRepository are required for this operation');
     }
 
-    // Check if this is the first user (auto-admin setup)
     const isFirstUser = await this.userRepository.isEmpty();
 
-    // Validate researcher name uniqueness only if creating researcher profile
+    // Resolve lab context from invite code (required for non-first-user registration)
+    let labId: string | undefined;
+    let resolvedRole: 'lab_admin' | 'user' | undefined;
+    let autoApprove = false;
+
+    if (request.inviteCode && this.inviteCodeRepository && this.labRepository) {
+      const inviteCode = await this.inviteCodeRepository.findByCode(request.inviteCode.trim().toUpperCase());
+      if (!inviteCode || !inviteCode.isValid()) {
+        throw new ValidationError('Invalid or expired invite code');
+      }
+      const lab = await this.labRepository.findById(inviteCode.labId);
+      if (!lab || !lab.isActive) {
+        throw new ValidationError('The lab associated with this invite code is no longer active');
+      }
+      labId = inviteCode.labId;
+      resolvedRole = inviteCode.role as 'lab_admin' | 'user';
+      autoApprove = resolvedRole === 'lab_admin';
+      inviteCode.recordUse();
+      await this.inviteCodeRepository.save(inviteCode);
+    } else if (!isFirstUser) {
+      throw new ValidationError('An invite code is required for registration');
+    }
+
     if (createResearcher) {
       const nameExists = await this.researcherRepository.nameExists(
         request.firstName,
@@ -385,18 +410,15 @@ export class UserApplicationService {
       }
     }
 
-    // Validate email is provided (required field)
     if (!request.email || request.email.trim().length === 0) {
       throw new ValidationError('Email address is required for registration', {});
     }
 
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(request.email)) {
       throw new ValidationError('Invalid email format', {});
     }
 
-    // Validate email uniqueness (prevent duplicates)
     const emailExists = await this.userRepository.emailExists(request.email);
     if (emailExists) {
       throw new ValidationError(
@@ -404,13 +426,10 @@ export class UserApplicationService {
       );
     }
 
-    // Validate password against security policy
     await this.validatePasswordPolicy(request.password);
 
-    // Generate unique username from provided name
     const username = await this.generateUsername(request.firstName, request.lastName);
 
-    // 1. Create Person entity
     const person = Person.create(
       request.firstName,
       request.lastName,
@@ -419,58 +438,51 @@ export class UserApplicationService {
       request.department
     );
 
-    // 2. Conditionally create Researcher entity (links Person to research activities)
     let researcherId: string | undefined = undefined;
     let researcher: Researcher | undefined = undefined;
 
     if (createResearcher) {
       researcher = Researcher.create(person.id, {
-        isUserApproved: isFirstUser,
-        source: 'registration'
+        isUserApproved: isFirstUser || autoApprove,
+        source: 'registration',
+        labId
       });
       researcherId = researcher.id;
     }
 
-    // 3. Determine role and status based on first-user detection
-    const role = isFirstUser ? UserRole.labAdmin() : UserRole.user();
-    const status = isFirstUser ? 'approved' : 'pending';
+    const role = isFirstUser
+      ? UserRole.labAdmin()
+      : resolvedRole === 'lab_admin' ? UserRole.labAdmin() : UserRole.user();
+    const status = (isFirstUser || autoApprove) ? 'approved' : 'pending';
 
-    // 4. Create User entity (links Person to authentication)
     const user = User.createWithPassword(
       username,
       request.password,
       role,
       researcherId,
-      person.id,  // Link to Person entity
-      status
+      person.id,
+      status,
+      labId
     );
 
-    // First user (admin): Auto-verify email to allow immediate login
-    if (isFirstUser) {
+    if (isFirstUser || autoApprove) {
       user.markEmailVerified();
     }
 
-    // 5. Save Person, Researcher (if created), and User sequentially
-
-    // Save Person first (must exist before Researcher/User can reference it)
     await this.personRepository!.save(person);
 
-    // Save Researcher if created (references Person via foreign key)
     if (researcher) {
       await this.researcherRepository!.save(researcher);
     }
 
-    // Save User (references Person via foreign key, optionally Researcher)
     try {
       await this.userRepository.save(user);
     } catch (error) {
-      // Handle race condition: Another user registered with same email between our check and save
       if (error instanceof EmailAlreadyExistsError) {
         throw new ValidationError(
           'Email already in use. Try another or contact your administrator.'
         );
       }
-      // Re-throw any other errors
       throw error;
     }
 
