@@ -6,6 +6,29 @@ import { type UserSettings, DEFAULT_USER_SETTINGS } from '@odysseus/shared-schem
 import { generateId } from '@domain/utils/generateId';
 import * as crypto from 'crypto';
 
+interface UserConstructorProps {
+  id: string;
+  username: string;
+  apiKey: string;
+  role: UserRole;
+  createdAt: Date;
+  lastActivity: Date;
+  researcherId?: string;
+  personId?: string;
+  status?: 'pending' | 'approved' | 'rejected';
+  emailVerified?: boolean;
+  emailVerificationToken?: string;
+  emailVerificationExpiry?: Date | string;
+  lastVerificationEmailSent?: Date | string;
+  passwordResetToken?: string;
+  passwordResetExpiry?: Date | string;
+  requirePasswordChange?: boolean;
+  lastPasswordChange?: Date | string;
+  isDemo?: boolean;
+  settings?: UserSettings;
+  labId?: string;
+}
+
 /**
  * User Entity (Authentication Aggregate Root)
  * Represents a user in the system with authentication and authorization
@@ -25,46 +48,47 @@ export class User {
   private _isDemo: boolean = false;
   private _settings: UserSettings;
 
-  private constructor(
-    private readonly _id: string,
-    private readonly _username: string,
-    private readonly _apiKey: string,
-    private _role: UserRole,
-    private readonly _createdAt: Date,
-    private _lastActivity: Date,
-    private _researcherId?: string,
-    private _personId?: string,
-    private _status: 'pending' | 'approved' | 'rejected' = 'pending',
-    emailVerified?: boolean,
-    emailVerificationToken?: string,
-    emailVerificationExpiry?: Date | string,
-    lastVerificationEmailSent?: Date | string,
-    passwordResetToken?: string,
-    passwordResetExpiry?: Date | string,
-    requirePasswordChange?: boolean,
-    lastPasswordChange?: Date | string,
-    isDemo?: boolean,
-    settings?: UserSettings,
-    private readonly _labId?: string
-  ) {
-    this._emailVerified = emailVerified ?? false;
-    this._emailVerificationToken = emailVerificationToken;
-    this._emailVerificationExpiry = emailVerificationExpiry
-      ? (typeof emailVerificationExpiry === 'string' ? new Date(emailVerificationExpiry) : emailVerificationExpiry)
+  private readonly _id: string;
+  private readonly _username: string;
+  private readonly _apiKey: string;
+  private _role: UserRole;
+  private readonly _createdAt: Date;
+  private _lastActivity: Date;
+  private _researcherId?: string;
+  private _personId?: string;
+  private _status: 'pending' | 'approved' | 'rejected';
+  private readonly _labId?: string;
+
+  private constructor(props: UserConstructorProps) {
+    this._id = props.id;
+    this._username = props.username;
+    this._apiKey = props.apiKey;
+    this._role = props.role;
+    this._createdAt = props.createdAt;
+    this._lastActivity = props.lastActivity;
+    this._researcherId = props.researcherId;
+    this._personId = props.personId;
+    this._status = props.status ?? 'pending';
+    this._labId = props.labId;
+
+    this._emailVerified = props.emailVerified ?? false;
+    this._emailVerificationToken = props.emailVerificationToken;
+    this._emailVerificationExpiry = props.emailVerificationExpiry
+      ? (typeof props.emailVerificationExpiry === 'string' ? new Date(props.emailVerificationExpiry) : props.emailVerificationExpiry)
       : undefined;
-    this._lastVerificationEmailSent = lastVerificationEmailSent
-      ? (typeof lastVerificationEmailSent === 'string' ? new Date(lastVerificationEmailSent) : lastVerificationEmailSent)
+    this._lastVerificationEmailSent = props.lastVerificationEmailSent
+      ? (typeof props.lastVerificationEmailSent === 'string' ? new Date(props.lastVerificationEmailSent) : props.lastVerificationEmailSent)
       : undefined;
-    this._passwordResetToken = passwordResetToken;
-    this._passwordResetExpiry = passwordResetExpiry
-      ? (typeof passwordResetExpiry === 'string' ? new Date(passwordResetExpiry) : passwordResetExpiry)
+    this._passwordResetToken = props.passwordResetToken;
+    this._passwordResetExpiry = props.passwordResetExpiry
+      ? (typeof props.passwordResetExpiry === 'string' ? new Date(props.passwordResetExpiry) : props.passwordResetExpiry)
       : undefined;
-    this._requirePasswordChange = requirePasswordChange ?? false;
-    this._lastPasswordChange = lastPasswordChange
-      ? (typeof lastPasswordChange === 'string' ? new Date(lastPasswordChange) : lastPasswordChange)
+    this._requirePasswordChange = props.requirePasswordChange ?? false;
+    this._lastPasswordChange = props.lastPasswordChange
+      ? (typeof props.lastPasswordChange === 'string' ? new Date(props.lastPasswordChange) : props.lastPasswordChange)
       : undefined;
-    this._isDemo = isDemo ?? false;
-    this._settings = settings ?? DEFAULT_USER_SETTINGS;
+    this._isDemo = props.isDemo ?? false;
+    this._settings = props.settings ?? DEFAULT_USER_SETTINGS;
     this.validate();
   }
 
@@ -79,43 +103,49 @@ export class User {
     personId?: string,
     labId?: string
   ): User {
-    const id = generateId('user');
-    const role = UserRole.defaultRoleForLab(isFirstInLab);
     const now = new Date();
-
-    return new User(
-      id, username, apiKey, role, now, now,
-      researcherId, personId, 'pending',
-      undefined, undefined, undefined, undefined,
-      undefined, undefined, undefined, undefined,
-      undefined, undefined, labId
-    );
+    return new User({
+      id: generateId('user'),
+      username,
+      apiKey,
+      role: UserRole.defaultRoleForLab(isFirstInLab),
+      createdAt: now,
+      lastActivity: now,
+      researcherId,
+      personId,
+      status: 'pending',
+      labId,
+    });
   }
 
   static createLabAdmin(username: string, apiKey: string, labId: string, researcherId?: string, personId?: string): User {
-    const id = generateId('user');
     const now = new Date();
-
-    return new User(
-      id, username, apiKey, UserRole.labAdmin(), now, now,
-      researcherId, personId, 'pending',
-      undefined, undefined, undefined, undefined,
-      undefined, undefined, undefined, undefined,
-      undefined, undefined, labId
-    );
+    return new User({
+      id: generateId('user'),
+      username,
+      apiKey,
+      role: UserRole.labAdmin(),
+      createdAt: now,
+      lastActivity: now,
+      researcherId,
+      personId,
+      status: 'pending',
+      labId,
+    });
   }
 
   static createSystemAdmin(username: string, apiKey: string, personId?: string): User {
-    const id = generateId('user');
     const now = new Date();
-
-    return new User(
-      id, username, apiKey, UserRole.systemAdmin(), now, now,
-      undefined, personId, 'approved',
-      undefined, undefined, undefined, undefined,
-      undefined, undefined, undefined, undefined,
-      undefined, undefined, undefined
-    );
+    return new User({
+      id: generateId('user'),
+      username,
+      apiKey,
+      role: UserRole.systemAdmin(),
+      createdAt: now,
+      lastActivity: now,
+      personId,
+      status: 'approved',
+    });
   }
 
   /**
@@ -130,17 +160,22 @@ export class User {
     status: 'pending' | 'approved' | 'rejected' = 'pending',
     labId?: string
   ): User {
-    const id = generateId('user');
-    const apiKey = User.generateApiKey();
     const now = new Date();
-
-    const user = new User(
-      id, username, apiKey, role, now, now,
-      researcherId, personId, status,
-      false, undefined, undefined, undefined,
-      undefined, undefined, false, now,
-      undefined, undefined, labId
-    );
+    const user = new User({
+      id: generateId('user'),
+      username,
+      apiKey: User.generateApiKey(),
+      role,
+      createdAt: now,
+      lastActivity: now,
+      researcherId,
+      personId,
+      status,
+      emailVerified: false,
+      requirePasswordChange: false,
+      lastPasswordChange: now,
+      labId,
+    });
 
     user.setPassword(password);
     return user;
@@ -191,28 +226,28 @@ export class User {
     // Normalize legacy 'admin' role to 'lab_admin'
     const normalizedRole = data.role === 'admin' ? 'lab_admin' : data.role;
 
-    const user = new User(
-      data.id,
-      data.username,
-      data.apiKey,
-      UserRole.create(normalizedRole),
-      new Date(data.createdAt),
-      new Date(data.lastActivity),
-      data.researcherId,
-      data.personId,
-      data.status || 'pending',
-      data.emailVerified === 1,
-      data.emailVerificationToken,
-      data.emailVerificationExpiry,
-      data.lastVerificationEmailSent,
-      data.passwordResetToken,
-      data.passwordResetExpiry,
-      data.requirePasswordChange === 1,
-      data.lastPasswordChange,
-      data.isDemo === true || data.isDemo === 1,
-      parsedSettings,
-      data.labId
-    );
+    const user = new User({
+      id: data.id,
+      username: data.username,
+      apiKey: data.apiKey,
+      role: UserRole.create(normalizedRole),
+      createdAt: new Date(data.createdAt),
+      lastActivity: new Date(data.lastActivity),
+      researcherId: data.researcherId,
+      personId: data.personId,
+      status: data.status || 'pending',
+      emailVerified: data.emailVerified === 1,
+      emailVerificationToken: data.emailVerificationToken,
+      emailVerificationExpiry: data.emailVerificationExpiry,
+      lastVerificationEmailSent: data.lastVerificationEmailSent,
+      passwordResetToken: data.passwordResetToken,
+      passwordResetExpiry: data.passwordResetExpiry,
+      requirePasswordChange: data.requirePasswordChange === 1,
+      lastPasswordChange: data.lastPasswordChange,
+      isDemo: data.isDemo === true || data.isDemo === 1,
+      settings: parsedSettings,
+      labId: data.labId,
+    });
 
     if (data.passwordHash && data.salt) {
       user._passwordHash = data.passwordHash;
@@ -880,28 +915,28 @@ export class User {
    * @returns New User instance with updated settings
    */
   updateSettings(newSettings: UserSettings): User {
-    const user = new User(
-      this._id,
-      this._username,
-      this._apiKey,
-      this._role,
-      this._createdAt,
-      this._lastActivity,
-      this._researcherId,
-      this._personId,
-      this._status,
-      this._emailVerified,
-      this._emailVerificationToken,
-      this._emailVerificationExpiry,
-      this._lastVerificationEmailSent,
-      this._passwordResetToken,
-      this._passwordResetExpiry,
-      this._requirePasswordChange,
-      this._lastPasswordChange,
-      this._isDemo,
-      newSettings,
-      this._labId
-    );
+    const user = new User({
+      id: this._id,
+      username: this._username,
+      apiKey: this._apiKey,
+      role: this._role,
+      createdAt: this._createdAt,
+      lastActivity: this._lastActivity,
+      researcherId: this._researcherId,
+      personId: this._personId,
+      status: this._status,
+      emailVerified: this._emailVerified,
+      emailVerificationToken: this._emailVerificationToken,
+      emailVerificationExpiry: this._emailVerificationExpiry,
+      lastVerificationEmailSent: this._lastVerificationEmailSent,
+      passwordResetToken: this._passwordResetToken,
+      passwordResetExpiry: this._passwordResetExpiry,
+      requirePasswordChange: this._requirePasswordChange,
+      lastPasswordChange: this._lastPasswordChange,
+      isDemo: this._isDemo,
+      settings: newSettings,
+      labId: this._labId,
+    });
 
     user._passwordHash = this._passwordHash;
     user._salt = this._salt;
