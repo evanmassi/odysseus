@@ -1,0 +1,78 @@
+import { User } from '@domain/entities/User';
+import { Lab } from '@domain/entities/Lab';
+import { InviteCode } from '@domain/entities/InviteCode';
+import { Tube } from '@domain/entities/Tube';
+import { UserRole } from '@domain/valueObjects/UserRole';
+
+export function createTestUser(overrides: {
+  username?: string;
+  password?: string;
+  role?: UserRole;
+  status?: 'pending' | 'approved' | 'rejected';
+  labId?: string;
+  researcherId?: string;
+} = {}): User {
+  return User.createWithPassword(
+    overrides.username ?? 'testuser',
+    overrides.password ?? 'testpass1234',
+    overrides.role ?? UserRole.user(),
+    overrides.researcherId,
+    undefined,
+    overrides.status ?? 'approved',
+    overrides.labId
+  );
+}
+
+export function createTestAdmin(overrides: {
+  username?: string;
+  labId?: string;
+} = {}): User {
+  return createTestUser({
+    username: overrides.username ?? 'admin',
+    role: UserRole.labAdmin(),
+    labId: overrides.labId,
+  });
+}
+
+export function createTestSystemAdmin(overrides: {
+  username?: string;
+} = {}): User {
+  return User.createSystemAdmin(
+    overrides.username ?? 'sysadmin',
+    'api_' + 'x'.repeat(32)
+  );
+}
+
+export function createTestLab(name: string = 'Test Lab'): Lab {
+  return Lab.create(name);
+}
+
+export function createTestInviteCode(overrides: {
+  labId?: string;
+  createdBy?: string;
+  role?: 'lab_admin' | 'user';
+  maxUses?: number;
+  expiresAt?: Date;
+} = {}): InviteCode {
+  return InviteCode.create(
+    overrides.labId ?? 'lab_test123',
+    overrides.createdBy ?? 'user_admin123',
+    overrides.role ?? 'user',
+    overrides.maxUses,
+    overrides.expiresAt
+  );
+}
+
+export function createTestTube(overrides: {
+  location?: { tankId: string; rackId: string; boxId: string; position: number };
+  sample?: Record<string, unknown>;
+  researcherId?: string;
+  labId?: string;
+} = {}): Tube {
+  return Tube.create({
+    location: overrides.location ?? { tankId: 'T1', rackId: 'R1', boxId: 'A', position: 1 },
+    sample: { cellType: 'HeLa', ...overrides.sample },
+    researcherId: overrides.researcherId,
+    labId: overrides.labId,
+  });
+}
