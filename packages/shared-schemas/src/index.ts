@@ -356,13 +356,36 @@ export {
   verifyEmailRequestSchema,
   resendVerificationRequestSchema,
   verificationStatusResponseSchema,
+  systemAdminSetupSchema,
+  validateInviteCodeRequestSchema,
+  validateInviteCodeResponseSchema,
 
   // Types
   type RegisterWithResearcherRequest,
   type VerifyEmailRequest,
   type ResendVerificationRequest,
-  type VerificationStatusResponse
+  type VerificationStatusResponse,
+  type SystemAdminSetupRequest,
+  type ValidateInviteCodeRequest,
+  type ValidateInviteCodeResponse
 } from './auth/authSchemas';
+
+// Lab & Invite Code Schemas (Multi-tenancy)
+export {
+  // Schemas
+  labDataSchema,
+  labPublicDataSchema,
+  inviteCodeDataSchema,
+  createLabRequestSchema,
+  createInviteCodeRequestSchema,
+
+  // Types
+  type LabData,
+  type LabPublicData,
+  type InviteCodeData,
+  type CreateLabRequest,
+  type CreateInviteCodeRequest
+} from './labs/labSchemas';
 
 // Password Validation
 export {

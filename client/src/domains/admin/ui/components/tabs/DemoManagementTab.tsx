@@ -89,7 +89,9 @@ export function DemoManagementTab({ onDemoUpdate, onTabFooter }: DemoManagementT
   // Candidates for marking as demo: exclude existing demo users and admins
   const nonDemoUsers = useMemo(() => {
     const demoUserIds = new Set(demoUsers.map(u => u.id));
-    return allUsers.filter(u => !demoUserIds.has(u.id) && u.role !== 'admin');
+    return allUsers.filter(
+      u => !demoUserIds.has(u.id) && u.role !== 'lab_admin' && u.role !== 'system_admin'
+    );
   }, [allUsers, demoUsers]);
 
   // Filter for demo and non-demo tanks

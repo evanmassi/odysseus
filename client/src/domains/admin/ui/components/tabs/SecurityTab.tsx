@@ -28,6 +28,9 @@ export interface SecurityTabProps {
 
   /** Callback invoked when any security setting is changed */
   onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
+
+  /** When true, all controls are disabled (lab admins can view but not edit) */
+  readOnly?: boolean;
 }
 
 /**
@@ -47,13 +50,18 @@ export interface SecurityTabProps {
  * />
  * ```
  */
-export function SecurityTab({ config, onChange }: SecurityTabProps) {
+export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabProps) {
   return (
     <div className="space-y-2">
       {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <Shield size={22} className="text-secondary-foreground" />
         <h3 className="text-xl font-semibold text-card-foreground">Security</h3>
+        {readOnly && (
+          <span className="text-xs text-muted-foreground ml-auto">
+            Read-only — only system admins can modify security settings
+          </span>
+        )}
       </div>
 
       {/* Authentication Settings Section */}
@@ -74,6 +82,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
               <Toggle
                 checked={config.useEnhancedAuth}
                 onChange={checked => onChange('useEnhancedAuth', checked)}
+                disabled={readOnly}
                 aria-label="Enable enhanced authentication"
               />
             </div>
@@ -87,6 +96,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
               <Toggle
                 checked={config.requireStrongPasswords}
                 onChange={checked => onChange('requireStrongPasswords', checked)}
+                disabled={readOnly}
                 aria-label="Require strong password requirements"
               />
             </div>
@@ -107,6 +117,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                   min={4}
                   max={128}
                   size="sm"
+                  disabled={readOnly}
                   aria-label="Minimum password length"
                 />
                 <p className="text-[10px] text-muted-foreground mt-0.5">(4-128 characters)</p>
@@ -123,6 +134,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
               <Toggle
                 checked={config.passwordRequireSpecialChars}
                 onChange={checked => onChange('passwordRequireSpecialChars', checked)}
+                disabled={readOnly}
                 aria-label="Require special characters in passwords"
               />
             </div>
@@ -147,6 +159,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 min={5}
                 max={10080}
                 size="sm"
+                disabled={readOnly}
                 aria-label="Session timeout in minutes"
               />
               <p className="text-[10px] text-muted-foreground mt-0.5">(5-10080 min)</p>
@@ -166,6 +179,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 min={1}
                 max={60}
                 size="sm"
+                disabled={readOnly}
                 aria-label="Idle warning in minutes"
               />
               <p className="text-[10px] text-muted-foreground mt-0.5">(1-60 min)</p>
@@ -185,6 +199,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 min={1}
                 max={720}
                 size="sm"
+                disabled={readOnly}
                 aria-label="Absolute session timeout in hours"
               />
               <p className="text-[10px] text-muted-foreground mt-0.5">(1-720 hrs)</p>
@@ -204,6 +219,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                 min={5}
                 max={60}
                 size="sm"
+                disabled={readOnly}
                 aria-label="Access token expiry in minutes"
               />
               <p className="text-[10px] text-muted-foreground mt-0.5">(5-60 min)</p>
@@ -225,6 +241,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
             <Toggle
               checked={config.enableRateLimiting}
               onChange={checked => onChange('enableRateLimiting', checked)}
+              disabled={readOnly}
               aria-label="Enable rate limiting to prevent brute force attacks"
             />
           </div>
@@ -245,6 +262,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                     min={1}
                     max={50}
                     size="sm"
+                    disabled={readOnly}
                     aria-label="Login attempts per minute"
                   />
                   <p className="text-[10px] text-muted-foreground mt-0.5">(1-50 attempts)</p>
@@ -264,6 +282,7 @@ export function SecurityTab({ config, onChange }: SecurityTabProps) {
                     min={1}
                     max={1440}
                     size="sm"
+                    disabled={readOnly}
                     aria-label="Lockout duration in minutes"
                   />
                   <p className="text-[10px] text-muted-foreground mt-0.5">(1-1440 minutes)</p>

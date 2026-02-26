@@ -23,6 +23,8 @@ import type {
   LookupCategory,
   LookupValueWithCount,
   LookupValue,
+  InviteCodeData,
+  CreateInviteCodeRequest,
 } from '@odysseus/shared-schemas';
 
 export class AdminService {
@@ -51,7 +53,10 @@ export class AdminService {
   /**
    * Update user role (admin only)
    */
-  async updateUserRole(userId: string, newRole: 'admin' | 'user'): Promise<{ success: boolean }> {
+  async updateUserRole(
+    userId: string,
+    newRole: 'lab_admin' | 'user'
+  ): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.put<{ success: boolean }>(`/admin/users/${userId}/role`, {
         role: newRole,
@@ -962,6 +967,59 @@ export class AdminService {
       };
     } catch (error) {
       logger.error('Failed to reset demo data', { error });
+      throw error;
+    }
+  }
+
+  async getInviteCodes(): Promise<InviteCodeData[]> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: { inviteCodes: InviteCodeData[] };
+      }>('/admin/invite-codes');
+      return response.data.data.inviteCodes;
+    } catch (error) {
+      logger.error('Failed to get invite codes', { error });
+      throw error;
+    }
+  }
+
+  async createInviteCode(data: CreateInviteCodeRequest): Promise<InviteCodeData> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        data: { inviteCode: InviteCodeData };
+      }>('/admin/invite-codes', data);
+      return response.data.data.inviteCode;
+    } catch (error) {
+      logger.error('Failed to create invite code', { error });
+      throw error;
+    }
+  }
+
+  async deactivateInviteCode(id: string): Promise<void> {
+    try {
+      await httpClient.delete(`/admin/invite-codes/${id}`);
+    } catch (error) {
+      logger.error('Failed to deactivate invite code', { id, error });
+      throw error;
+    }
+  }
+
+  /**
+   * Update security config — routes to system admin endpoint for system admins
+   */
+  async updateSecurityConfigAsSystemAdmin(
+    config: UpdateSecurityConfig
+  ): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.put<{
+        success: boolean;
+        data: { config: SecurityConfig };
+      }>('/system/security-config', config);
+      return { success: response.data.success };
+    } catch (error) {
+      logger.error('Failed to update security config (system)', { error });
       throw error;
     }
   }

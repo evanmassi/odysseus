@@ -120,7 +120,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
         {/* Admin: Assignment dropdown + Overflow menu */}
         {canManageStorage && (
           <div className="flex items-center gap-1 flex-shrink-0">
-            {currentUser?.role === 'admin' && (
+            {(currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin') && (
               <AssignmentDropdown
                 value={box.assignedUserId}
                 users={users}

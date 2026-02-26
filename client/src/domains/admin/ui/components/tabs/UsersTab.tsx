@@ -43,10 +43,10 @@ import { ResearcherModal } from '../ResearcherModal';
 import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
 import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
 
-// Role dropdown options
+// Role dropdown options (lab_admin can only assign user/lab_admin within their lab)
 const ROLE_OPTIONS = [
   { value: 'user', label: 'User' },
-  { value: 'admin', label: 'Admin' },
+  { value: 'lab_admin', label: 'Lab Admin' },
 ];
 
 /**
@@ -139,7 +139,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
    * Update user role (admin/user)
    * Shows loading state during update and refreshes list on success
    */
-  const updateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
+  const updateUserRole = async (userId: string, newRole: 'lab_admin' | 'user') => {
     setUpdating(userId);
     try {
       const response = await adminService.updateUserRole(userId, newRole);
@@ -376,9 +376,14 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                     ? `${user.lastName ?? ''}${user.lastName && user.firstName ? ', ' : ''}${user.firstName ?? ''}`
                     : user.username}
                 </span>
-                {user.role === 'admin' && (
+                {user.role === 'system_admin' && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-action/10 text-action">
+                    System Admin
+                  </span>
+                )}
+                {user.role === 'lab_admin' && (
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-secondary-foreground">
-                    Admin
+                    Lab Admin
                   </span>
                 )}
                 {user.requirePasswordChange && (
@@ -406,11 +411,11 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                 value={user.role ?? 'user'}
                 onChange={newValue => {
                   if (newValue && typeof newValue === 'string') {
-                    void updateUserRole(user.id, newValue as 'admin' | 'user');
+                    void updateUserRole(user.id, newValue as 'lab_admin' | 'user');
                   }
                 }}
                 options={ROLE_OPTIONS}
-                disabled={updating === user.id}
+                disabled={updating === user.id || user.role === 'system_admin'}
                 size="sm"
                 fullWidth
               />

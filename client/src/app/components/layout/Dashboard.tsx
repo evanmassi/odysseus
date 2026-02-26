@@ -167,7 +167,7 @@ export function Dashboard() {
   // This determines if tube operations should be disabled and what indicator to show
   const { isViewOnlySpace, spaceOwnerId, isCommonSpace } = useMemo(() => {
     if (!user) return { isViewOnlySpace: true, spaceOwnerId: undefined, isCommonSpace: false };
-    if (user.role === 'admin')
+    if (user.role === 'lab_admin' || user.role === 'system_admin')
       return { isViewOnlySpace: false, spaceOwnerId: undefined, isCommonSpace: false };
 
     // Box-level assignment takes precedence
@@ -413,7 +413,8 @@ export function Dashboard() {
   })();
 
   // Users without a researcher profile can only browse (admins always have full access)
-  const hasResearcherProfile = user?.role === 'admin' || !!user?.researcherId;
+  const hasResearcherProfile =
+    user?.role === 'lab_admin' || user?.role === 'system_admin' || !!user?.researcherId;
 
   const gridController = useGridController({
     tankId: currentTank,
@@ -440,7 +441,7 @@ export function Dashboard() {
     isUnlocking: unlockTubesMutation.isPending,
     currentUserId: user?.id,
     isViewOnlySpace,
-    isAdmin: user?.role === 'admin',
+    isAdmin: user?.role === 'lab_admin' || user?.role === 'system_admin',
     hasResearcherProfile,
   });
 

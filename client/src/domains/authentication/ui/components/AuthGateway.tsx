@@ -8,9 +8,11 @@ import React, { useState } from 'react';
 
 import { useBootstrapContext } from '@app/contexts/BootstrapContext';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { isAdminRole } from '@domains/authentication/types';
 
 import { LoginModal } from './LoginModal';
 import { RegisterModal } from './RegisterModal';
+import { SystemAdminSetup } from './SystemAdminSetup';
 
 interface AuthGatewayProps {
   children?: React.ReactNode;
@@ -24,27 +26,30 @@ export function AuthGateway({ children }: AuthGatewayProps) {
   const { sessionStatus } = useAuthStore();
   const { isReady } = useBootstrapContext();
 
-  // Wait for bootstrap to complete - no duplicate initialization
   if (!isReady) {
-    return null; // AppBootstrapService/AppLoader handles loading UI
+    return null;
   }
 
-  // Route based on auth state determined by AppBootstrapService
   if (sessionStatus === 'authenticated') {
     return <>{children}</>;
   }
 
-  // For unauthenticated users, determine UI based on bootstrap result
   return <AuthUnauthenticatedRouter />;
 }
 
 /**
  * Router for unauthenticated users
- * Uses explicit flag from Bootstrap instead of parsing errors
+ * Shows system admin setup banner when needed, plus login/register
  */
 function AuthUnauthenticatedRouter() {
   const { flags } = useBootstrapContext();
   const [showRegister, setShowRegister] = useState(flags.firstTimeSetupRequired);
+
+  // System admin setup auto-logs in on completion, so AuthGateway
+  // naturally transitions to authenticated state via sessionStatus
+  if (flags.needsSystemAdmin) {
+    return <SystemAdminSetup />;
+  }
 
   if (showRegister) {
     return <RegisterModal onSwitchToLogin={() => setShowRegister(false)} />;
@@ -62,7 +67,7 @@ export function useAuthGateway() {
   return {
     isAuthenticated,
     user,
-    isAdmin: user?.role === 'admin',
+    isAdmin: isAdminRole(user?.role),
     isUser: user?.role === 'user',
   };
 }

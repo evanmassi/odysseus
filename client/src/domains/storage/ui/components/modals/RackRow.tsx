@@ -136,7 +136,7 @@ export function RackRow({
           {/* Admin: Assignment dropdown + Overflow menu */}
           {canManageStorage && (
             <div className="flex items-center gap-1 flex-shrink-0">
-              {currentUser?.role === 'admin' && (
+              {(currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin') && (
                 <AssignmentDropdown
                   value={rack.assignedUserId}
                   users={users}

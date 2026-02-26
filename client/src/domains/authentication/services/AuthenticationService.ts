@@ -13,6 +13,7 @@ import { queryClient } from '@app/queryClient';
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 
+import type { UserRole } from '../types';
 import type {
   AuthResponse,
   RegisterWithResearcherResponse,
@@ -25,7 +26,8 @@ export { isPasswordChangeRequired } from '../types/api';
 export interface User {
   id: string;
   username: string;
-  role: 'admin' | 'user';
+  role: UserRole;
+  labId?: string;
   createdAt: string;
   lastActivity: string;
   status?: 'pending' | 'approved' | 'rejected';
@@ -37,7 +39,7 @@ export type { AuthResponse, RegisterWithResearcherResponse };
 export interface RegisterRequest {
   username: string;
   password: string;
-  role?: 'admin' | 'user';
+  role?: UserRole;
 }
 
 export interface LoginRequest {
@@ -202,20 +204,73 @@ export class AuthService {
   /**
    * Check if this is first-time setup
    */
-  async checkFirstTime(): Promise<boolean> {
+  async checkFirstTime(): Promise<{ isFirstTime: boolean; needsSystemAdmin: boolean }> {
     try {
-      const response = await httpClient.get<{ success: boolean; data: { isFirstTime: boolean } }>(
-        '/public/auth/first-time'
+      const response = await httpClient.get<{
+        success: boolean;
+        data: { isFirstTime: boolean; needsSystemAdmin: boolean };
+      }>('/public/auth/first-time');
+
+      if (response.data.success && response.data.data) {
+        return {
+          isFirstTime: response.data.data.isFirstTime,
+          needsSystemAdmin: response.data.data.needsSystemAdmin ?? false,
+        };
+      }
+
+      return { isFirstTime: false, needsSystemAdmin: false };
+    } catch (error) {
+      logger.error('Failed to check first-time setup', { error });
+      return { isFirstTime: false, needsSystemAdmin: false };
+    }
+  }
+
+  /**
+   * Validate an invite code (public endpoint for registration flow)
+   */
+  async validateInviteCode(code: string): Promise<{ valid: boolean; labName?: string }> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        data: { valid: boolean; labName?: string };
+      }>('/public/invite-codes/validate', { code });
+
+      if (response.data.success && response.data.data) {
+        return response.data.data;
+      }
+
+      return { valid: false };
+    } catch (error) {
+      logger.error('Failed to validate invite code', { error });
+      return { valid: false };
+    }
+  }
+
+  /**
+   * One-time system admin account creation
+   */
+  async setupSystemAdmin(data: {
+    username: string;
+    password: string;
+    email: string;
+    setupKey?: string;
+  }): Promise<AuthResponse> {
+    try {
+      const response = await httpClient.post<{ success: boolean; data: AuthResponse }>(
+        '/public/auth/setup-system-admin',
+        data
       );
 
       if (response.data.success && response.data.data) {
-        return response.data.data.isFirstTime;
+        return response.data.data;
       }
 
-      return false;
+      throw new Error('System admin setup failed');
     } catch (error) {
-      logger.error('Failed to check first-time setup', { error });
-      return false;
+      if (error && typeof error === 'object' && 'message' in error) {
+        throw new Error((error as Error).message);
+      }
+      throw new Error('System admin setup failed');
     }
   }
 

@@ -12,9 +12,11 @@ import {
   FlaskConical,
   Dna,
   BookOpen,
+  TicketCheck,
 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
+import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Tab, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
@@ -42,6 +44,9 @@ const DemoManagementTab = lazy(() =>
   import('./tabs/DemoManagementTab').then(m => ({ default: m.DemoManagementTab }))
 );
 const CatalogTab = lazy(() => import('./tabs/CatalogTab').then(m => ({ default: m.CatalogTab })));
+const InviteCodesTab = lazy(() =>
+  import('./tabs/InviteCodesTab').then(m => ({ default: m.InviteCodesTab }))
+);
 
 interface AdminSettingsModalProps {
   isOpen: boolean;
@@ -49,8 +54,19 @@ interface AdminSettingsModalProps {
 }
 
 export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps) {
+  const user = useAuthStore(s => s.user);
+  const isSystemAdmin = user?.role === 'system_admin';
+  const securityReadOnly = !isSystemAdmin;
+
   const [activeTab, setActiveTab] = useState<
-    'security' | 'users' | 'researchers' | 'catalog' | 'system' | 'monitoring' | 'demo'
+    | 'security'
+    | 'users'
+    | 'researchers'
+    | 'catalog'
+    | 'system'
+    | 'monitoring'
+    | 'demo'
+    | 'invite-codes'
   >('system');
   const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
@@ -140,7 +156,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
     setSaving(true);
     try {
-      const response = await adminService.updateSecurityConfig(changes);
+      const response = isSystemAdmin
+        ? await adminService.updateSecurityConfigAsSystemAdmin(changes)
+        : await adminService.updateSecurityConfig(changes);
 
       if (response.success) {
         notifications.success('Security configuration updated successfully');
@@ -184,7 +202,15 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   const handleTabFooter = useCallback((footer: React.ReactNode) => setTabFooter(footer), []);
 
-  type TabId = 'security' | 'users' | 'researchers' | 'catalog' | 'system' | 'monitoring' | 'demo';
+  type TabId =
+    | 'security'
+    | 'users'
+    | 'researchers'
+    | 'catalog'
+    | 'system'
+    | 'monitoring'
+    | 'demo'
+    | 'invite-codes';
 
   const tabs = (
     <Tabs
@@ -205,6 +231,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       </Tab>
       <Tab id="researchers" icon={<Dna size={24} />}>
         Researchers
+      </Tab>
+      <Tab id="invite-codes" icon={<TicketCheck size={18} />}>
+        Invite Codes
       </Tab>
       <Tab id="catalog" icon={<BookOpen size={18} />}>
         Catalog
@@ -231,7 +260,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         <Button
           variant="primary"
           onClick={saveConfiguration}
-          disabled={!hasChanges}
+          disabled={!hasChanges || securityReadOnly}
           isLoading={isSaving}
           loadingText="Saving..."
           leftIcon={<Save size={14} />}
@@ -259,7 +288,13 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     >
       {activeTab === 'security' && (
         <Suspense fallback={<TabSkeleton />}>
-          <SecurityTab config={config} onChange={handleConfigChange} />
+          <SecurityTab config={config} onChange={handleConfigChange} readOnly={securityReadOnly} />
+        </Suspense>
+      )}
+
+      {activeTab === 'invite-codes' && (
+        <Suspense fallback={<TabSkeleton />}>
+          <InviteCodesTab />
         </Suspense>
       )}
 

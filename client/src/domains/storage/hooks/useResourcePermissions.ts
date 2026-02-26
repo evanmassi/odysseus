@@ -24,7 +24,7 @@ export function useResourcePermissions(
         if (!currentUser) return false;
 
         // Admins can edit anything
-        if (currentUser.role === 'admin') return true;
+        if (currentUser.role === 'lab_admin' || currentUser.role === 'system_admin') return true;
 
         // null = explicitly unassigned/common - anyone can edit
         if (resource.assignedUserId === null) return true;
@@ -47,7 +47,10 @@ export function useResourcePermissions(
   );
 
   // Only admins can manage storage structure (add/edit/delete tanks, racks, boxes)
-  const canManageStorage = useMemo(() => currentUser?.role === 'admin', [currentUser?.role]);
+  const canManageStorage = useMemo(
+    () => currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin',
+    [currentUser?.role]
+  );
 
   return {
     canEditResource,

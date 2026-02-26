@@ -24,7 +24,9 @@ const createTestQueryClient = () =>
   });
 
 // Mock bootstrap state for testing
-const createMockBootstrapState = (overrides: Partial<UseAppBootstrapResult> = {}): UseAppBootstrapResult => ({
+const createMockBootstrapState = (
+  overrides: Partial<UseAppBootstrapResult> = {}
+): UseAppBootstrapResult => ({
   isReady: true,
   isLoading: false,
   isError: false,
@@ -39,11 +41,12 @@ const createMockBootstrapState = (overrides: Partial<UseAppBootstrapResult> = {}
     completedSteps: ['initialization', 'auth-check', 'socket-connection', 'data-loading'],
     errors: [],
     isComplete: true,
-    timestamp: new Date()
+    timestamp: new Date(),
   },
   retry: vi.fn(),
   flags: {
-    firstTimeSetupRequired: false
+    firstTimeSetupRequired: false,
+    needsSystemAdmin: false,
   },
   ...overrides,
 });
@@ -69,9 +72,7 @@ export function renderWithProviders(
   function Wrapper({ children }: { children: React.ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <BootstrapProvider value={mockBootstrapState}>
-          {children}
-        </BootstrapProvider>
+        <BootstrapProvider value={mockBootstrapState}>{children}</BootstrapProvider>
       </QueryClientProvider>
     );
   }

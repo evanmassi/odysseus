@@ -97,6 +97,20 @@ export const queryKeys = {
     byCategory: (category: LookupCategory) => ['lookups', category] as const,
   },
 
+  // Labs (multi-tenancy)
+  labs: {
+    all: ['labs'] as const,
+    list: () => [...queryKeys.labs.all, 'list'] as const,
+    detail: (id: string) => [...queryKeys.labs.all, 'detail', id] as const,
+  },
+
+  // Invite Codes
+  inviteCodes: {
+    all: ['inviteCodes'] as const,
+    currentLab: () => [...queryKeys.inviteCodes.all, 'currentLab'] as const,
+    byLab: (labId: string) => [...queryKeys.inviteCodes.all, 'byLab', labId] as const,
+  },
+
   // Storage (migrated from distributed storageQueryKeys)
   storage: {
     all: ['storage'] as const,

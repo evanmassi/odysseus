@@ -434,7 +434,7 @@ export const useAuthStore = create<AuthStore>()(
       checkFirstTime: async () => {
         try {
           const result = await authService.checkFirstTime();
-          return result; // AuthService returns boolean directly
+          return result.isFirstTime;
         } catch (error) {
           logger.error('Auth store first time check failed', { error });
           return false;

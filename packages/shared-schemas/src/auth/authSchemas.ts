@@ -55,10 +55,60 @@ export const registerWithResearcherSchema = z.object({
   // Optional flag to create researcher profile (defaults to true for backward compatibility)
   createResearcher: z.boolean()
     .optional()
-    .default(true)
+    .default(true),
+
+  // Invite code for lab assignment (required for non-first-user registration)
+  inviteCode: z.string()
+    .min(1, 'Invite code is required')
+    .max(20, 'Invite code too long')
+    .transform(val => val.trim().toUpperCase())
+    .optional(),
 });
 
 export type RegisterWithResearcherRequest = z.infer<typeof registerWithResearcherSchema>;
+
+/**
+ * System admin one-time setup
+ *
+ * Creates the initial system admin account. Only works when no system admin exists.
+ * In production, requires a setup key from environment variable.
+ */
+export const systemAdminSetupSchema = z.object({
+  username: z.string()
+    .min(1, 'Username is required')
+    .max(50, 'Username cannot exceed 50 characters')
+    .transform(val => val.trim()),
+
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password cannot exceed 128 characters'),
+
+  email: z.string()
+    .min(1, 'Email is required')
+    .email('Invalid email format')
+    .max(255, 'Email cannot exceed 255 characters')
+    .transform(val => val.trim()),
+
+  setupKey: z.string().optional(),
+});
+
+export type SystemAdminSetupRequest = z.infer<typeof systemAdminSetupSchema>;
+
+/**
+ * Invite code validation (public endpoint for registration flow)
+ */
+export const validateInviteCodeRequestSchema = z.object({
+  code: z.string().min(1, 'Code is required'),
+});
+
+export type ValidateInviteCodeRequest = z.infer<typeof validateInviteCodeRequestSchema>;
+
+export const validateInviteCodeResponseSchema = z.object({
+  valid: z.boolean(),
+  labName: z.string().optional(),
+});
+
+export type ValidateInviteCodeResponse = z.infer<typeof validateInviteCodeResponseSchema>;
 
 /**
  * Email verification token validation

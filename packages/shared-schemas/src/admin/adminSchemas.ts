@@ -82,7 +82,8 @@ export const adminUserSchema = z.object({
   username: z.string(),
   email: z.string().email().optional(),
   emailVerified: z.boolean().optional(),
-  role: z.enum(['admin', 'user']),
+  role: z.enum(['system_admin', 'lab_admin', 'user']),
+  labId: z.string().optional(),
   personId: z.string().nullable(),
   researcherId: z.string().nullable(),
   createdAt: z.union([z.string().datetime(), z.date()]),
@@ -135,6 +136,7 @@ export type SyncStatus = z.infer<typeof syncStatusSchema>;
  */
 export const auditLogEntrySchema = z.object({
   id: z.string(),
+  labId: z.string().optional(),
   userId: z.string(),
   username: z.string(),
   action: z.string(),

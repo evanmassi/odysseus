@@ -30,6 +30,7 @@ export class AppBootstrapService {
     steps: [...BOOTSTRAP_STEPS],
     flags: {
       firstTimeSetupRequired: false,
+      needsSystemAdmin: false,
     },
   };
 
@@ -88,16 +89,13 @@ export class AppBootstrapService {
       await new Promise(resolve => setTimeout(resolve, 500));
       this.updateStep('initialization', true);
 
-      // Check auth - detect first-time setup
+      // Check auth - detect first-time setup and system admin status
       this.updateStep('auth-check', false);
       try {
-        const isFirstTime = await authService.checkFirstTime();
+        const firstTimeResult = await authService.checkFirstTime();
 
-        if (isFirstTime) {
-          this.state.flags.firstTimeSetupRequired = true;
-        } else {
-          this.state.flags.firstTimeSetupRequired = false;
-        }
+        this.state.flags.firstTimeSetupRequired = firstTimeResult.isFirstTime;
+        this.state.flags.needsSystemAdmin = firstTimeResult.needsSystemAdmin;
 
         this.updateStep('auth-check', true);
       } catch (error) {
