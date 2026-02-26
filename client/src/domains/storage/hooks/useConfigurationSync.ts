@@ -12,6 +12,7 @@ import { SYSTEM_DEFAULTS } from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
+import { useAuthStore } from '@domains/authentication';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { logger } from '@shared/infrastructure/logger';
 
@@ -19,7 +20,10 @@ import { useInitializeConfigurationMutation } from './useStorageEquipmentMutatio
 import { useLoadStorageQuery } from './useStorageQuery';
 
 export function useConfigurationSync() {
-  const { data, isSuccess, isError } = useLoadStorageQuery();
+  const { user } = useAuthStore();
+  const hasLab = !!user?.labId;
+
+  const { data, isSuccess, isError } = useLoadStorageQuery({ enabled: hasLab });
   const initializeMutation = useInitializeConfigurationMutation();
   const queryClient = useQueryClient();
 
@@ -138,9 +142,14 @@ export function useConfigurationSync() {
     }
   }, [isSuccess, data?.configuration.currentLab.equipment.tanks]);
 
+  if (!hasLab) {
+    return { isSyncing: false, isError: false, isSynced: false, hasNoLab: true };
+  }
+
   return {
     isSyncing: !isSuccess && !isError,
     isError: isError && !hasInitialized.current,
     isSynced: isSuccess,
+    hasNoLab: false,
   };
 }

@@ -52,7 +52,7 @@ import type { PositionKey } from '@shared/types/GridSelection';
 import '@shared/styles/base/layout.css';
 
 export function Dashboard() {
-  const { isSynced } = useConfigurationSync();
+  const { isSynced, hasNoLab } = useConfigurationSync();
 
   const { user } = useAuthStore();
 
@@ -447,6 +447,24 @@ export function Dashboard() {
 
   // Gate rendering until configuration is loaded to prevent flash of wrong tank
   // This ensures demo users don't briefly see non-demo tanks before sync completes
+  if (hasNoLab) {
+    return (
+      <div className="app-container">
+        <div className="app-header">
+          <AppHeader />
+        </div>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center space-y-2">
+            <div className="text-lg font-medium">System Administration</div>
+            <div className="text-muted-foreground">
+              Use the System Admin panel in the menu to manage labs and invite codes.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!isSynced) {
     return (
       <div className="app-container">

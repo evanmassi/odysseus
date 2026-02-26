@@ -124,16 +124,23 @@ export class ConfigurationController extends BaseController {
    */
   async getCurrentConfiguration(req: Request, res: Response): Promise<void> {
     try {
-      // Get user from request for demo filtering
       const user = req.user;
 
-      let configuration;
-      if (user) {
-        const labId = user.labId!;
-        configuration = await this.getConfigurationForUserHandler.handle({ labId, user });
-      } else {
+      if (!user) {
         throw new Error('Authentication required');
       }
+
+      if (!user.labId) {
+        res.status(400).json({
+          success: false,
+          error: 'No lab context',
+          code: 'NO_LAB_CONTEXT',
+          message: 'User is not associated with a lab. System admins must select a lab first.',
+        });
+        return;
+      }
+
+      const configuration = await this.getConfigurationForUserHandler.handle({ labId: user.labId, user });
 
       // Use DTO to transform domain entity to API response format
       const configurationResponse = ConfigurationDto.toResponse(configuration);
@@ -1032,7 +1039,17 @@ export class ConfigurationController extends BaseController {
         return;
       }
 
-      const labId = this.extractLabId(req);
+      if (!req.user?.labId) {
+        res.status(400).json({
+          success: false,
+          error: 'No lab context',
+          code: 'NO_LAB_CONTEXT',
+          message: 'User is not associated with a lab.',
+        });
+        return;
+      }
+
+      const labId = req.user.labId;
 
       await this.initializeConfigHandler.handle({
         userId,
