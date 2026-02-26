@@ -63,7 +63,7 @@ export class InviteCodeController extends BaseController {
         expiresAt,
       });
 
-      res.status(201).json(ResponseBuilder.success(result));
+      res.status(201).json(ResponseBuilder.success({ inviteCode: result }));
 
       logger.info('Invite code created', { codeId: result.id, labId, createdBy: userId });
     } catch (error) {
@@ -86,7 +86,7 @@ export class InviteCodeController extends BaseController {
         expiresAt,
       });
 
-      res.status(201).json(ResponseBuilder.success(result));
+      res.status(201).json(ResponseBuilder.success({ inviteCode: result }));
 
       logger.info('Invite code created', { codeId: result.id, labId, createdBy: userId });
     } catch (error) {

@@ -142,7 +142,8 @@ export class AddBoxesCommandHandler {
       currentConfig,
       expectedVersion,
       `Added ${command.count} box(es) to rack '${rack.name}' in tank '${tank.name}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -247,7 +248,8 @@ export class UpdateBoxCommandHandler {
       currentConfig,
       expectedVersion,
       `Updated box '${boxData.name}' in rack '${rack.name}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -397,7 +399,8 @@ export class AssignBoxCommandHandler {
       currentConfig,
       expectedVersion,
       `${action} box '${box.name}' in rack '${rack.name}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 

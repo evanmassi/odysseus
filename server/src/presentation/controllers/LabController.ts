@@ -41,8 +41,9 @@ export class LabController extends BaseController {
       const { name } = req.body;
 
       const result = await this.createLabHandler.handle({ userId, name });
+      const lab = await this.labRepository.findById(result.labId);
 
-      res.status(201).json(ResponseBuilder.success(result));
+      res.status(201).json(ResponseBuilder.success({ lab: lab?.toData() }));
 
       logger.info('Lab created', { labId: result.labId, createdBy: userId });
     } catch (error) {
@@ -57,8 +58,9 @@ export class LabController extends BaseController {
       const { name } = req.body;
 
       await this.updateLabHandler.handle({ userId, labId, name });
+      const lab = await this.labRepository.findById(labId);
 
-      res.status(200).json(ResponseBuilder.success({ labId }));
+      res.status(200).json(ResponseBuilder.success({ lab: lab?.toData() }));
 
       logger.info('Lab updated', { labId, updatedBy: userId });
     } catch (error) {
@@ -95,12 +97,19 @@ export class LabController extends BaseController {
         }
       }
 
-      const overview = labs.map(lab => ({
-        ...lab.toData(),
+      const labStats = labs.map(lab => ({
+        labId: lab.id,
+        labName: lab.name,
         userCount: userCountsByLab.get(lab.id) ?? 0,
+        tubeCount: 0,
       }));
 
-      res.status(200).json(ResponseBuilder.success({ labs: overview }));
+      res.status(200).json(ResponseBuilder.success({
+        totalLabs: labs.length,
+        totalUsers: allUsers.length,
+        totalTubes: 0,
+        labStats,
+      }));
     } catch (error) {
       next(error);
     }

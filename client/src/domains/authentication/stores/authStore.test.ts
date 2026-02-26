@@ -409,8 +409,10 @@ describe('Enhanced AuthStore', () => {
 
   describe('First Time Setup', () => {
     it('should check first time setup correctly', async () => {
-      // AuthService.checkFirstTime returns boolean directly
-      mockAuthService.checkFirstTime.mockResolvedValue(true);
+      mockAuthService.checkFirstTime.mockResolvedValue({
+        isFirstTime: true,
+        needsSystemAdmin: true,
+      });
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -421,7 +423,10 @@ describe('Enhanced AuthStore', () => {
     });
 
     it('should return false when not first time', async () => {
-      mockAuthService.checkFirstTime.mockResolvedValue(false);
+      mockAuthService.checkFirstTime.mockResolvedValue({
+        isFirstTime: false,
+        needsSystemAdmin: false,
+      });
 
       const { result } = renderHook(() => useAuthStore());
 

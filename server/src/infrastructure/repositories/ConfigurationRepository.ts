@@ -221,30 +221,44 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async saveWithVersioning(configuration: Configuration, changeDescription: string = 'Configuration updated', changedBy: string = 'system'): Promise<number> {
+  async saveWithVersioning(configuration: Configuration, changeDescription: string = 'Configuration updated', changedBy: string = 'system', labId?: string): Promise<number> {
     try {
       let newVersion = 0;
       await this.context.transaction(async (client) => {
         const now = new Date();
         const configJson = JSON.stringify(configuration.toData());
 
-        // Insert new version and get the new version number
-        const versionResult = await client.query<{ version: number }>(
-          `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
-           VALUES ($1, $2, $3, $4)
-           RETURNING version`,
-          [now, changeDescription, changedBy, configJson]
-        );
+        const versionResult = labId
+          ? await client.query<{ version: number }>(
+              `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+               VALUES ($1, $2, $3, $4, $5)
+               RETURNING version`,
+              [labId, now, changeDescription, changedBy, configJson]
+            )
+          : await client.query<{ version: number }>(
+              `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
+               VALUES ($1, $2, $3, $4)
+               RETURNING version`,
+              [now, changeDescription, changedBy, configJson]
+            );
 
         newVersion = versionResult.rows[0].version;
 
-        // Update current configuration
-        await client.query(
-          `UPDATE configuration_current
-           SET version = $1, updated_at = $2, config_json = $3
-           WHERE id = 1`,
-          [newVersion, now, configJson]
-        );
+        if (labId) {
+          await client.query(
+            `UPDATE configuration_current
+             SET version = $1, updated_at = $2, config_json = $3
+             WHERE lab_id = $4`,
+            [newVersion, now, configJson, labId]
+          );
+        } else {
+          await client.query(
+            `UPDATE configuration_current
+             SET version = $1, updated_at = $2, config_json = $3
+             WHERE id = 1`,
+            [newVersion, now, configJson]
+          );
+        }
 
         logger.info(`Configuration saved with version ${newVersion}: ${changeDescription}`);
       });
@@ -261,7 +275,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
     configuration: Configuration,
     expectedVersion: number,
     changeDescription: string = 'Configuration updated',
-    changedBy: string = 'system'
+    changedBy: string = 'system',
+    labId?: string
   ): Promise<number> {
     try {
       let newVersion = 0;
@@ -269,32 +284,43 @@ export class ConfigurationRepository implements IConfigurationRepository {
         const now = new Date();
         const configJson = JSON.stringify(configuration.toData());
 
-        // Insert new version record first
-        const versionResult = await client.query<{ version: number }>(
-          `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
-           VALUES ($1, $2, $3, $4)
-           RETURNING version`,
-          [now, changeDescription, changedBy, configJson]
-        );
+        const versionResult = labId
+          ? await client.query<{ version: number }>(
+              `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+               VALUES ($1, $2, $3, $4, $5)
+               RETURNING version`,
+              [labId, now, changeDescription, changedBy, configJson]
+            )
+          : await client.query<{ version: number }>(
+              `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
+               VALUES ($1, $2, $3, $4)
+               RETURNING version`,
+              [now, changeDescription, changedBy, configJson]
+            );
 
         newVersion = versionResult.rows[0].version;
 
-        // Optimistic lock: only update if version matches expected
+        const whereClause = labId ? 'lab_id = $4 AND version = $5' : 'id = 1 AND version = $4';
+        const updateParams = labId
+          ? [newVersion, now, configJson, labId, expectedVersion]
+          : [newVersion, now, configJson, expectedVersion];
+
         const updateResult = await client.query(
           `UPDATE configuration_current
            SET version = $1, updated_at = $2, config_json = $3
-           WHERE id = 1 AND version = $4`,
-          [newVersion, now, configJson, expectedVersion]
+           WHERE ${whereClause}`,
+          updateParams
         );
 
         if (updateResult.rowCount === 0) {
-          // Version mismatch - fetch current version for error message
+          const versionWhereClause = labId ? 'lab_id = $1' : 'id = 1';
+          const versionParams = labId ? [labId] : [];
           const currentRow = await client.query<{ version: number }>(
-            'SELECT version FROM configuration_current WHERE id = 1'
+            `SELECT version FROM configuration_current WHERE ${versionWhereClause}`,
+            versionParams
           );
           const currentVersion = currentRow.rows[0]?.version ?? 0;
 
-          // Rollback the version insert by throwing
           throw ConflictError.configuration(expectedVersion, currentVersion);
         }
 

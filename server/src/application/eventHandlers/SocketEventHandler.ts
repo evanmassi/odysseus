@@ -75,7 +75,7 @@ import {
 export class SocketEventHandler {
   // Debouncing for configuration changes
   private configUpdateTimer: NodeJS.Timeout | null = null;
-  private pendingConfigEvents: Array<{ type: string; userId: string }> = [];
+  private pendingConfigEvents: Array<{ type: string; userId: string; labId?: string }> = [];
   private readonly DEBOUNCE_DELAY_MS = 2000; // 2 seconds
 
   // Per-lab demo tank ID caching (30-second TTL)
@@ -123,6 +123,14 @@ export class SocketEventHandler {
     return mode;
   }
 
+  private emitToLabRooms(labId: string | undefined, eventName: string, payload: unknown): void {
+    if (labId) {
+      this.io.to(this.getLabRoomName(labId, 'demo')).to(this.getLabRoomName(labId, 'real')).emit(eventName, payload);
+    } else {
+      this.io.emit(eventName, payload);
+    }
+  }
+
   /**
    * Setup socket connection/disconnection handlers for presence tracking
    * Registers authenticated users and broadcasts online status changes
@@ -144,12 +152,14 @@ export class SocketEventHandler {
             logger.debug('Socket joined room', { socketId: socket.id, room: mode, isDemo: socket.isDemo });
           }
 
-          // Broadcast to all clients that user came online
-          this.io.emit('user_online', {
+          const onlinePayload = {
             userId: socket.userId,
-            onlineUserIds: this.presenceService.getOnlineUserIds(),
+            onlineUserIds: socket.labId
+              ? this.presenceService.getOnlineUserIdsForLab(socket.labId)
+              : this.presenceService.getOnlineUserIds(),
             timestamp: new Date().toISOString()
-          });
+          };
+          this.emitToLabRooms(socket.labId, 'user_online', onlinePayload);
 
           logger.debug('Emitting user_online socket event', {
             userId: socket.userId,
@@ -169,7 +179,9 @@ export class SocketEventHandler {
       // Used after socket connects to get authoritative state (avoids race conditions)
       socket.on('request_presence', () => {
         try {
-          const onlineUserIds = this.presenceService.getOnlineUserIds();
+          const onlineUserIds = socket.labId
+            ? this.presenceService.getOnlineUserIdsForLab(socket.labId)
+            : this.presenceService.getOnlineUserIds();
           socket.emit('presence_state', {
             onlineUserIds,
             timestamp: new Date().toISOString()
@@ -197,11 +209,14 @@ export class SocketEventHandler {
           // Only emit user_offline if user is actually offline now
           // (user may still be connected on another tab)
           if (userId && !this.presenceService.isUserOnline(userId)) {
-            this.io.emit('user_offline', {
+            const offlinePayload = {
               userId,
-              onlineUserIds: this.presenceService.getOnlineUserIds(),
+              onlineUserIds: socket.labId
+                ? this.presenceService.getOnlineUserIdsForLab(socket.labId)
+                : this.presenceService.getOnlineUserIds(),
               timestamp: new Date().toISOString()
-            });
+            };
+            this.emitToLabRooms(socket.labId, 'user_offline', offlinePayload);
 
             logger.debug('Emitting user_offline socket event', {
               userId,
@@ -314,6 +329,7 @@ export class SocketEventHandler {
       this.pendingConfigEvents.push({
         type: event.eventName(),
         userId: event.userId,
+        labId: event.labId,
       });
 
       logger.debug('Configuration event queued for debounced emission', {
@@ -364,7 +380,8 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size,
       });
 
-      this.io.emit('configuration_updated', payload);
+      const labId = this.pendingConfigEvents[0]?.labId;
+      this.emitToLabRooms(labId, 'configuration_updated', payload);
 
       // Clear pending events
       this.pendingConfigEvents = [];
@@ -545,7 +562,7 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('researcher_created', payload);
+      this.emitToLabRooms(event.labId, 'researcher_created', payload);
     } catch (error) {
       logger.error('Failed to emit researcher_created event', {
         error: error instanceof Error ? error.message : String(error),
@@ -588,7 +605,7 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit(socketEvent, payload);
+      this.emitToLabRooms(event.labId, socketEvent, payload);
     } catch (error) {
       logger.error('Failed to emit researcher event', {
         error: error instanceof Error ? error.message : String(error),
@@ -614,7 +631,7 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('researcher_deleted', payload);
+      this.emitToLabRooms(event.labId, 'researcher_deleted', payload);
     } catch (error) {
       logger.error('Failed to emit researcher_deleted event', {
         error: error instanceof Error ? error.message : String(error),
@@ -639,7 +656,7 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('user_approved', payload);
+      this.emitToLabRooms(event.labId, 'user_approved', payload);
     } catch (error) {
       logger.error('Failed to emit user_approved event', {
         error: error instanceof Error ? error.message : String(error),
@@ -662,7 +679,7 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('user_deleted', payload);
+      this.emitToLabRooms(event.labId, 'user_deleted', payload);
     } catch (error) {
       logger.error('Failed to emit user_deleted event', {
         error: error instanceof Error ? error.message : String(error),
@@ -687,7 +704,7 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('user_role_changed', payload);
+      this.emitToLabRooms(event.labId, 'user_role_changed', payload);
     } catch (error) {
       logger.error('Failed to emit user_role_changed event', {
         error: error instanceof Error ? error.message : String(error),
@@ -710,7 +727,7 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('user_created', payload);
+      this.emitToLabRooms(event.labId, 'user_created', payload);
     } catch (error) {
       logger.error('Failed to emit user_created event', {
         error: error instanceof Error ? error.message : String(error),
@@ -736,7 +753,7 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('user_linked_to_researcher', payload);
+      this.emitToLabRooms(event.labId, 'user_linked_to_researcher', payload);
     } catch (error) {
       logger.error('Failed to emit user_linked_to_researcher event', {
         error: error instanceof Error ? error.message : String(error),
@@ -762,7 +779,7 @@ export class SocketEventHandler {
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.emit('user_unlinked_from_researcher', payload);
+      this.emitToLabRooms(event.labId, 'user_unlinked_from_researcher', payload);
     } catch (error) {
       logger.error('Failed to emit user_unlinked_from_researcher event', {
         error: error instanceof Error ? error.message : String(error),

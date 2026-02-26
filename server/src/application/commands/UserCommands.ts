@@ -382,7 +382,8 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
           configuration,
           expectedVersion,
           `Cleared assignments for deleted user '${username}'`,
-          command.initiatedBy
+          command.initiatedBy,
+          user.labId
         );
 
         racksAffected = counts.racks;

@@ -121,7 +121,8 @@ export class InitializeConfigurationCommandHandler {
       config,
       0,
       `Initialized configuration with ${tankCount} tank(s)`,
-      command.userId
+      command.userId,
+      command.labId
     );
 
     await this.eventBus.publish(new ConfigurationUpdatedEvent(

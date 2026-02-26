@@ -147,7 +147,8 @@ export class UpdateSystemConfigurationCommandHandler {
       updatedConfig,
       expectedVersion,
       'Updated system configuration',
-      command.userId
+      command.userId,
+      command.labId
     );
     updatedConfig.applyPersistedVersion(newVersion);
 
@@ -233,7 +234,8 @@ export class UpdateEquipmentConfigurationCommandHandler {
       updatedConfig,
       expectedVersion,
       'Updated equipment configuration',
-      command.userId
+      command.userId,
+      command.labId
     );
     updatedConfig.applyPersistedVersion(newVersion);
 
@@ -289,7 +291,8 @@ export class ResetConfigurationToDefaultCommandHandler {
       defaultConfig,
       expectedVersion,
       'Reset configuration to defaults',
-      command.userId
+      command.userId,
+      command.labId
     );
     defaultConfig.applyPersistedVersion(newVersion);
 
@@ -369,7 +372,8 @@ export class ImportConfigurationCommandHandler {
         importedConfig,
         expectedVersion,
         'Imported configuration',
-        command.userId
+        command.userId,
+        command.labId
       );
       importedConfig.applyPersistedVersion(newVersion);
 
@@ -481,7 +485,8 @@ export class UpdateBoxPositionDisplayCommandHandler {
       updatedConfig,
       expectedVersion,
       `Updated position display for box ${command.boxId} in tank ${command.tankId}, rack ${command.rackId}`,
-      command.userId
+      command.userId,
+      command.labId
     );
     updatedConfig.applyPersistedVersion(newVersion);
 
@@ -558,7 +563,8 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
       command.positionDisplay
         ? `Updated lab default position display to ${command.positionDisplay.format}`
         : 'Cleared lab default position display',
-      command.userId
+      command.userId,
+      command.labId
     );
     updatedConfig.applyPersistedVersion(newVersion);
 
@@ -725,7 +731,8 @@ export class UpdateResourceLabelCommandHandler {
       currentConfig,
       expectedVersion,
       `Updated ${command.resourceType} label`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 

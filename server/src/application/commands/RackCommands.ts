@@ -129,7 +129,8 @@ export class AddRacksCommandHandler {
       currentConfig,
       expectedVersion,
       `Added ${command.count} rack(s) to tank '${tank.name}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -214,7 +215,8 @@ export class UpdateRackCommandHandler {
       currentConfig,
       expectedVersion,
       `Updated rack '${configData.tanks[tankIndex].racks[rackIndex].name}' in tank '${tank.name}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -355,7 +357,8 @@ export class AssignRackCommandHandler {
       currentConfig,
       expectedVersion,
       `${action} rack '${rack.name}' in tank '${tank.name}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 

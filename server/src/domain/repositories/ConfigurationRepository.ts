@@ -40,7 +40,7 @@ export interface ConfigurationRepository {
   /**
    * Save configuration with version increment
    */
-  saveWithVersioning(configuration: Configuration, changeDescription?: string): Promise<number>;
+  saveWithVersioning(configuration: Configuration, changeDescription?: string, changedBy?: string, labId?: string): Promise<number>;
 
   /**
    * Save with optimistic locking. @throws ConflictError if version mismatch.
@@ -49,7 +49,8 @@ export interface ConfigurationRepository {
     configuration: Configuration,
     expectedVersion: number,
     changeDescription?: string,
-    changedBy?: string
+    changedBy?: string,
+    labId?: string
   ): Promise<number>;
 
   // ATOMIC EQUIPMENT DELETION

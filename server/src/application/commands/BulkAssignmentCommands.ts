@@ -84,7 +84,8 @@ export class BulkUnassignResourcesCommandHandler {
       currentConfig,
       expectedVersion,
       `Bulk unassigned all resources from user '${fromUser.username}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -176,7 +177,8 @@ export class BulkReassignResourcesCommandHandler {
       currentConfig,
       expectedVersion,
       `Bulk reassigned resources from '${fromUser.username}' to '${toUser.username}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 

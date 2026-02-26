@@ -85,7 +85,8 @@ export class AddTankCommandHandler {
       currentConfig,
       expectedVersion,
       `Added tank '${command.name}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -178,7 +179,8 @@ export class UpdateTankCommandHandler {
       currentConfig,
       expectedVersion,
       `Updated tank '${configData.tanks[tankIndex].name}'`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -295,7 +297,8 @@ export class SetTankDemoStatusCommandHandler {
       currentConfig,
       expectedVersion,
       `Set tank '${tank.name}' demo status to ${command.isDemo}`,
-      command.userId
+      command.userId,
+      command.labId
     );
     currentConfig.applyPersistedVersion(newVersion);
 

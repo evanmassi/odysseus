@@ -124,8 +124,13 @@ export class AuthController {
 
       logger.info('System admin created', { userId: user.id, username: user.username });
 
+      const userAgent = req.headers['user-agent'];
+      const ipAddress = req.ip || req.socket.remoteAddress;
+      const authResult = await this.sessionService.createTokenPair(user, userAgent, ipAddress);
+
       const response = ResponseBuilder.withTiming(startTime, {
         user: user.toPublicData(),
+        tokens: authResult.tokens,
       });
       res.status(201).json(response);
     } catch (error) {

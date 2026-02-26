@@ -58,7 +58,7 @@ export interface ResearcherRepositoryStats {
 export interface UserActivitySummary {
   userId: string;
   username: string;
-  role: 'admin' | 'user';
+  role: 'system_admin' | 'lab_admin' | 'user';
   createdAt: Date;
   lastActivity: Date;
   totalSessions: number;

@@ -60,7 +60,8 @@
       "WebFetch(domain:daypicker.dev)",
       "Bash(git log:*)",
       "Bash(cd /c/Users/evan/Desktop/Odysseus/odysseus-app && npm run typecheck:server 2>&1)",
-      "Bash(cd /c/Users/evan/Desktop/Odysseus/odysseus-app && npm run typecheck:client 2>&1)"
+      "Bash(cd /c/Users/evan/Desktop/Odysseus/odysseus-app && npm run typecheck:client 2>&1)",
+      "Bash(find:*)"
     ]
   }
 }
