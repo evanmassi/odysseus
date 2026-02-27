@@ -151,7 +151,7 @@ class OdysseusServer {
     registry.registerModule(new PublicRouteModule(authController, inviteCodeController, configurationRepository));
     registry.registerModule(new AuthRouteModule(authController, authMiddleware, configurationRepository));
     registry.registerModule(new AdminRouteModule(authController, researcherController, auditController, exportController, configurationController, lookupValueController, inviteCodeController, authMiddleware));
-    registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, authController, authMiddleware));
+    registry.registerModule(new SystemAdminRouteModule(labController, inviteCodeController, authController, configurationController, authMiddleware));
     const tubeLockController = this.serviceContainer.getTubeLockController();
     registry.registerModule(new ResourceRouteModule(tubeController, tubeLockController, researcherController, lookupValueController, authMiddleware, configurationRepository));
     registry.registerModule(new ConfigurationRouteModule(configurationController, authMiddleware));

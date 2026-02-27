@@ -33,6 +33,11 @@ export interface DeactivateLabCommand {
   labId: string;
 }
 
+export interface ActivateLabCommand {
+  userId: string;
+  labId: string;
+}
+
 // COMMAND HANDLERS
 
 export class CreateLabCommandHandler {
@@ -141,6 +146,40 @@ export class DeactivateLabCommandHandler {
     }
 
     lab.deactivate();
+    await this.labRepository.save(lab);
+  }
+
+  private async requireSystemAdmin(userId: string): Promise<User> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new ValidationError(`User not found: ${userId}`);
+    }
+    if (!user.isSystemAdmin()) {
+      throw new PermissionError('Only system admins can manage labs', { userId });
+    }
+    return user;
+  }
+}
+
+export class ActivateLabCommandHandler {
+  constructor(
+    private labRepository: LabRepository,
+    private userRepository: UserRepository
+  ) {}
+
+  async handle(command: ActivateLabCommand): Promise<void> {
+    await this.requireSystemAdmin(command.userId);
+
+    const lab = await this.labRepository.findById(command.labId);
+    if (!lab) {
+      throw NotFoundError.forEntity('Lab', command.labId);
+    }
+
+    if (lab.isActive) {
+      return;
+    }
+
+    lab.activate();
     await this.labRepository.save(lab);
   }
 

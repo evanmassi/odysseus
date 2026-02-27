@@ -13,7 +13,7 @@ import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandle
 import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
 import { InitializeConfigurationCommandHandler } from '@application/commands/InitializeConfigurationCommand';
 import { CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
-import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler } from '@application/commands/LabCommands';
+import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
 import { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler, ValidateInviteCodeQueryHandler } from '@application/commands/InviteCodeCommands';
 
 // CQRS Query Handlers
@@ -128,6 +128,7 @@ export class ServiceContainer {
   private createLabHandler?: CreateLabCommandHandler;
   private updateLabHandler?: UpdateLabCommandHandler;
   private deactivateLabHandler?: DeactivateLabCommandHandler;
+  private activateLabHandler?: ActivateLabCommandHandler;
   private createInviteCodeHandler?: CreateInviteCodeCommandHandler;
   private deactivateInviteCodeHandler?: DeactivateInviteCodeCommandHandler;
   private validateInviteCodeHandler?: ValidateInviteCodeQueryHandler;
@@ -702,7 +703,8 @@ export class ServiceContainer {
       this.createSystemAdminHandler = new CreateSystemAdminCommandHandler(
         repositories.users,
         repositories.configurations,
-        this.getEventBus()
+        this.getEventBus(),
+        repositories.persons
       );
     }
     return this.createSystemAdminHandler;
@@ -742,6 +744,17 @@ export class ServiceContainer {
       );
     }
     return this.deactivateLabHandler;
+  }
+
+  getActivateLabHandler(): ActivateLabCommandHandler {
+    if (!this.activateLabHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.activateLabHandler = new ActivateLabCommandHandler(
+        repositories.labs,
+        repositories.users
+      );
+    }
+    return this.activateLabHandler;
   }
 
   getCreateInviteCodeHandler(): CreateInviteCodeCommandHandler {
@@ -929,8 +942,12 @@ export class ServiceContainer {
         this.getCreateLabHandler(),
         this.getUpdateLabHandler(),
         this.getDeactivateLabHandler(),
+        this.getActivateLabHandler(),
         this.repositoryFactory.getLabRepository(),
-        this.repositoryFactory.getUserRepository()
+        this.repositoryFactory.getUserRepository(),
+        this.repositoryFactory.getTubeRepository(),
+        this.repositoryFactory.getConfigurationRepository(),
+        this.repositoryFactory.getResearcherRepository()
       );
     }
     return this.labController;

@@ -26,6 +26,7 @@ export { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 
 // UI Components
 export { AdminSettingsModal } from './ui/components/AdminSettingsModal';
+export { SystemAdminContent } from './ui/components/SystemAdminContent';
 export { TabSkeleton } from './ui/components/TabSkeleton';
 
 // Tab Components

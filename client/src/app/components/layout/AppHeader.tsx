@@ -19,7 +19,6 @@ import {
   TestTube,
   FlaskConical,
   CircleHelp,
-  Building2,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -62,12 +61,6 @@ const HelpModal = lazy(() =>
   }))
 );
 
-const SystemAdminDashboard = lazy(() =>
-  import('@domains/admin/ui/components/SystemAdminDashboard').then(m => ({
-    default: m.SystemAdminDashboard,
-  }))
-);
-
 // Create preload hooks for anticipatory loading
 const useLazyAdminSettings = PreloadHelpers.createHook(() => import('@domains/admin'));
 
@@ -80,10 +73,6 @@ const useLazyUserSettings = PreloadHelpers.createHook(
 );
 
 const useLazyHelp = PreloadHelpers.createHook(() => import('@domains/help'));
-
-const useLazySystemAdminDashboard = PreloadHelpers.createHook(
-  () => import('@domains/admin/ui/components/SystemAdminDashboard')
-);
 
 type IconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
 
@@ -156,17 +145,15 @@ export function AppHeader({
   isViewOnlySpace = false,
 }: HeaderProps) {
   const { isAuthenticated, user, logout } = useAuthStore();
-  const { currentLab } = useStorageData();
+  const hasLab = !!user?.labId;
+  const { currentLab } = useStorageData({ enabled: hasLab });
 
   // Lazy loading hooks for modal preloading
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
   const { triggerProps: storageManagerTriggerProps } = useLazyStorageManager();
   const { triggerProps: userSettingsTriggerProps } = useLazyUserSettings();
   const { triggerProps: helpTriggerProps } = useLazyHelp();
-  const { triggerProps: systemAdminDashboardTriggerProps } = useLazySystemAdminDashboard();
-
   const [showAdminPanel, setShowAdminPanel] = useState(false);
-  const [showSystemAdminDashboard, setShowSystemAdminDashboard] = useState(false);
   const [showStorageManager, setShowStorageManager] = useState(false);
   const [showUserSettings, setShowUserSettings] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -520,9 +507,11 @@ export function AppHeader({
           <OnlineUsersBadges />
 
           {/* Search Container */}
-          <div className="flex-shrink-0">
-            <SearchContainer />
-          </div>
+          {hasLab && (
+            <div className="flex-shrink-0">
+              <SearchContainer />
+            </div>
+          )}
 
           {/* Hamburger Menu */}
           <div className="relative" ref={hamburgerMenuRef}>
@@ -602,16 +591,18 @@ export function AppHeader({
                     triggerProps={userSettingsTriggerProps}
                   />
 
-                  {/* Storage Manager */}
-                  <HamburgerMenuItem
-                    icon={TankIcon}
-                    label="Storage Manager"
-                    onClick={() => {
-                      setShowStorageManager(true);
-                      closeMenu();
-                    }}
-                    triggerProps={storageManagerTriggerProps}
-                  />
+                  {/* Storage Manager - requires lab context */}
+                  {hasLab && (
+                    <HamburgerMenuItem
+                      icon={TankIcon}
+                      label="Storage Manager"
+                      onClick={() => {
+                        setShowStorageManager(true);
+                        closeMenu();
+                      }}
+                      triggerProps={storageManagerTriggerProps}
+                    />
+                  )}
 
                   {/* Admin Settings - Only show to lab_admin and system_admin */}
                   {(user?.role === 'lab_admin' || user?.role === 'system_admin') && (
@@ -623,19 +614,6 @@ export function AppHeader({
                         closeMenu();
                       }}
                       triggerProps={adminSettingsTriggerProps}
-                    />
-                  )}
-
-                  {/* System Admin Dashboard - Only show to system_admin */}
-                  {user?.role === 'system_admin' && (
-                    <HamburgerMenuItem
-                      icon={Building2}
-                      label="System Admin"
-                      onClick={() => {
-                        setShowSystemAdminDashboard(true);
-                        closeMenu();
-                      }}
-                      triggerProps={systemAdminDashboardTriggerProps}
                     />
                   )}
                 </div>
@@ -680,14 +658,6 @@ export function AppHeader({
       {/* Help Modal */}
       <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="HelpModal">
         <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
-      </SuspenseBoundary>
-
-      {/* System Admin Dashboard */}
-      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="SystemAdminDashboard">
-        <SystemAdminDashboard
-          isOpen={showSystemAdminDashboard}
-          onClose={() => setShowSystemAdminDashboard(false)}
-        />
       </SuspenseBoundary>
     </header>
   );

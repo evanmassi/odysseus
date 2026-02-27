@@ -1,14 +1,12 @@
-/**
- * System Admin Dashboard
- *
- * Cross-lab management panel visible only to system_admin users.
- * Provides lab CRUD, lab admin invite code generation, and overview stats.
- */
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 
 import {
+  Activity,
   Building2,
+  CircleAlert,
+  Clock,
+  FlaskConical,
+  LayoutDashboard,
   Plus,
   Users,
   TestTubes,
@@ -18,108 +16,88 @@ import {
   RefreshCw,
 } from 'lucide-react';
 
-import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
-import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
-import { labService } from '../../services/LabService';
+import {
+  useLabsQuery,
+  useSystemOverviewQuery,
+  useCreateLabMutation,
+  useDeactivateLabMutation,
+  useActivateLabMutation,
+  useCreateLabInviteCodeMutation,
+} from '../../hooks/useSystemAdminQueries';
 
-import type { LabData, InviteCodeData } from '@odysseus/shared-schemas';
+import { LabDetailView } from './LabDetailView';
 
-interface SystemAdminDashboardProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import type { InviteCodeData } from '@odysseus/shared-schemas';
 
-export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardProps) {
-  const [labs, setLabs] = useState<LabData[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [overview, setOverview] = useState<{
-    totalLabs: number;
-    totalUsers: number;
-    totalTubes: number;
-    labStats: Array<{ labId: string; labName: string; userCount: number; tubeCount: number }>;
-  } | null>(null);
+export function SystemAdminContent() {
+  const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
+  const { data: labs = [], isLoading: isLabsLoading, refetch } = useLabsQuery();
+  const { data: overview, refetch: refetchOverview } = useSystemOverviewQuery();
+  const createLabMutation = useCreateLabMutation();
+  const deactivateLabMutation = useDeactivateLabMutation();
+  const activateLabMutation = useActivateLabMutation();
+  const createInviteCodeMutation = useCreateLabInviteCodeMutation();
 
-  // Create lab form
   const [showCreateLab, setShowCreateLab] = useState(false);
   const [newLabName, setNewLabName] = useState('');
-  const [isCreatingLab, setIsCreatingLab] = useState(false);
-
-  // Deactivate lab
   const [deactivateTarget, setDeactivateTarget] = useState<string | null>(null);
-
-  // Invite code generation
   const [generatingCodeForLab, setGeneratingCodeForLab] = useState<string | null>(null);
   const [labInviteCodes, setLabInviteCodes] = useState<Record<string, InviteCodeData[]>>({});
 
-  const loadData = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const [labsResult, overviewResult] = await Promise.all([
-        labService.getLabs(),
-        labService.getSystemOverview(),
-      ]);
-      setLabs(labsResult);
-      setOverview(overviewResult);
-    } catch (error) {
-      logger.error('Failed to load system admin data', { error });
-      notifications.error('Failed to load data');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const isLoading = isLabsLoading;
 
-  useEffect(() => {
-    if (isOpen) {
-      void loadData();
-    }
-  }, [isOpen, loadData]);
+  const handleRefresh = () => {
+    void refetch();
+    void refetchOverview();
+  };
 
   const handleCreateLab = async () => {
     if (!newLabName.trim()) return;
 
-    setIsCreatingLab(true);
     try {
-      await labService.createLab(newLabName.trim());
+      await createLabMutation.mutateAsync(newLabName.trim());
       notifications.success(`Lab "${newLabName.trim()}" created`);
       setNewLabName('');
       setShowCreateLab(false);
-      await loadData();
-    } catch (error) {
-      logger.error('Failed to create lab', { error });
+    } catch {
       notifications.error('Failed to create lab');
-    } finally {
-      setIsCreatingLab(false);
     }
   };
 
   const handleDeactivateLab = async (labId: string) => {
     try {
-      await labService.deactivateLab(labId);
+      await deactivateLabMutation.mutateAsync(labId);
       notifications.success('Lab deactivated');
       setDeactivateTarget(null);
-      await loadData();
-    } catch (error) {
-      logger.error('Failed to deactivate lab', { error });
+    } catch {
       notifications.error('Failed to deactivate lab');
+    }
+  };
+
+  const handleActivateLab = async (labId: string) => {
+    try {
+      await activateLabMutation.mutateAsync(labId);
+      notifications.success('Lab activated');
+    } catch {
+      notifications.error('Failed to activate lab');
     }
   };
 
   const handleGenerateLabAdminCode = async (labId: string) => {
     setGeneratingCodeForLab(labId);
     try {
-      const code = await labService.createLabInviteCode(labId, { role: 'lab_admin' });
+      const code = await createInviteCodeMutation.mutateAsync({ labId, role: 'lab_admin' });
       setLabInviteCodes(prev => ({
         ...prev,
         [labId]: [...(prev[labId] ?? []), code],
       }));
       await navigator.clipboard.writeText(code.code);
       notifications.success('Lab admin invite code created and copied to clipboard');
-    } catch (error) {
-      logger.error('Failed to generate lab admin code', { error });
+    } catch {
       notifications.error('Failed to generate invite code');
     } finally {
       setGeneratingCodeForLab(null);
@@ -130,44 +108,49 @@ export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardPr
     return overview?.labStats.find(s => s.labId === labId);
   };
 
+  if (selectedLabId) {
+    return <LabDetailView labId={selectedLabId} onBack={() => setSelectedLabId(null)} />;
+  }
+
   return (
-    <BaseModal
-      isOpen={isOpen}
-      icon={<Building2 size={24} />}
-      title="System Administration"
-      subtitle="Lab Management & Global Settings"
-      size="xl"
-      animation="slide"
-      className="h-[80vh]"
-      onClose={onClose}
-    >
-      <div className="space-y-6">
-        {/* Overview Stats */}
+    <div className="h-full overflow-y-auto">
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+        <div className="flex items-center gap-2">
+          <LayoutDashboard size={18} className="text-muted-foreground" />
+          <h2 className="text-lg font-semibold text-card-foreground">Overview</h2>
+        </div>
+
         {overview && (
-          <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 bg-muted rounded-lg text-center">
-              <div className="text-2xl font-bold text-foreground">{overview.totalLabs}</div>
-              <div className="text-xs text-muted-foreground">Labs</div>
-            </div>
-            <div className="p-3 bg-muted rounded-lg text-center">
-              <div className="text-2xl font-bold text-foreground">{overview.totalUsers}</div>
-              <div className="text-xs text-muted-foreground">Users</div>
-            </div>
-            <div className="p-3 bg-muted rounded-lg text-center">
-              <div className="text-2xl font-bold text-foreground">{overview.totalTubes}</div>
-              <div className="text-xs text-muted-foreground">Tubes</div>
-            </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip color="info" size="sm" leftIcon={<FlaskConical />}>
+              {overview.activeLabs} {overview.activeLabs === 1 ? 'lab' : 'labs'} active
+              {overview.inactiveLabs > 0 && ` · ${overview.inactiveLabs} inactive`}
+            </Chip>
+            <Chip color="info" size="sm" leftIcon={<Activity />}>
+              {overview.activeUsersLast24h} {overview.activeUsersLast24h === 1 ? 'user' : 'users'}{' '}
+              active today
+            </Chip>
+            <Chip
+              color={overview.pendingApprovals > 0 ? 'warning' : 'success'}
+              size="sm"
+              leftIcon={overview.pendingApprovals > 0 ? <CircleAlert /> : <Clock />}
+            >
+              {overview.pendingApprovals} {overview.pendingApprovals === 1 ? 'user' : 'users'}{' '}
+              pending
+            </Chip>
           </div>
         )}
 
-        {/* Labs Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-card-foreground">Labs</h3>
+          <div className="flex items-center gap-2">
+            <FlaskConical size={18} className="text-muted-foreground" />
+            <h3 className="text-lg font-semibold text-card-foreground">Labs</h3>
+          </div>
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              onClick={loadData}
+              onClick={handleRefresh}
               disabled={isLoading}
               leftIcon={<RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />}
             >
@@ -184,7 +167,6 @@ export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardPr
           </div>
         </div>
 
-        {/* Create Lab Form */}
         {showCreateLab && (
           <div className="p-3 bg-muted rounded-lg space-y-3">
             <h4 className="text-sm font-medium text-card-foreground">New Lab</h4>
@@ -209,7 +191,7 @@ export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardPr
                   variant="primary"
                   size="sm"
                   onClick={handleCreateLab}
-                  isLoading={isCreatingLab}
+                  isLoading={createLabMutation.isPending}
                 >
                   Create
                 </Button>
@@ -228,7 +210,6 @@ export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardPr
           </div>
         )}
 
-        {/* Labs List */}
         {isLoading && labs.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm">Loading labs...</div>
         ) : (
@@ -240,7 +221,10 @@ export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardPr
               return (
                 <div key={lab.id} className="p-4 bg-muted rounded-lg space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                    <button
+                      className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity"
+                      onClick={() => setSelectedLabId(lab.id)}
+                    >
                       <Building2 size={18} className="text-secondary-foreground" />
                       <div>
                         <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
@@ -249,7 +233,7 @@ export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardPr
                       <Chip color={lab.isActive ? 'success' : 'default'} size="sm">
                         {lab.isActive ? 'Active' : 'Inactive'}
                       </Chip>
-                    </div>
+                    </button>
                     <div className="flex items-center gap-2">
                       {stats && (
                         <div className="flex items-center gap-3 text-xs text-muted-foreground mr-3">
@@ -271,7 +255,7 @@ export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardPr
                       >
                         Lab Admin Code
                       </Button>
-                      {lab.isActive && (
+                      {lab.isActive ? (
                         <Button
                           variant="ghost"
                           size="sm"
@@ -280,11 +264,19 @@ export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardPr
                         >
                           <Power size={14} />
                         </Button>
+                      ) : (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleActivateLab(lab.id)}
+                          isLoading={activateLabMutation.isPending}
+                        >
+                          Activate
+                        </Button>
                       )}
                     </div>
                   </div>
 
-                  {/* Recently generated codes for this lab */}
                   {codes.length > 0 && (
                     <div className="pl-7 space-y-1">
                       {codes.map(code => (
@@ -314,17 +306,17 @@ export function SystemAdminDashboard({ isOpen, onClose }: SystemAdminDashboardPr
             })}
           </div>
         )}
-      </div>
 
-      <ConfirmDialog
-        isOpen={deactivateTarget !== null}
-        title="Deactivate Lab"
-        message="Deactivating a lab prevents all its users from logging in. Lab data is preserved. This can be reversed."
-        confirmText="Deactivate"
-        variant="danger"
-        onConfirm={() => deactivateTarget && handleDeactivateLab(deactivateTarget)}
-        onCancel={() => setDeactivateTarget(null)}
-      />
-    </BaseModal>
+        <ConfirmDialog
+          isOpen={deactivateTarget !== null}
+          title="Deactivate Lab"
+          message="Deactivating a lab prevents all its users from logging in. Lab data is preserved. This can be reversed."
+          confirmText="Deactivate"
+          variant="danger"
+          onConfirm={() => deactivateTarget && handleDeactivateLab(deactivateTarget)}
+          onCancel={() => setDeactivateTarget(null)}
+        />
+      </div>
+    </div>
   );
 }

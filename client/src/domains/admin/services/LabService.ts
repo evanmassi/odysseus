@@ -7,7 +7,12 @@
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 
-import type { LabData, InviteCodeData, CreateInviteCodeRequest } from '@odysseus/shared-schemas';
+import type {
+  LabData,
+  InviteCodeData,
+  CreateInviteCodeRequest,
+  LabDetails,
+} from '@odysseus/shared-schemas';
 
 export class LabService {
   async getLabs(): Promise<LabData[]> {
@@ -58,6 +63,28 @@ export class LabService {
     }
   }
 
+  async getLabDetails(labId: string): Promise<LabDetails> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: LabDetails;
+      }>(`/system/labs/${labId}/details`);
+      return response.data.data;
+    } catch (error) {
+      logger.error('Failed to get lab details', { labId, error });
+      throw error;
+    }
+  }
+
+  async activateLab(id: string): Promise<void> {
+    try {
+      await httpClient.post(`/system/labs/${id}/activate`);
+    } catch (error) {
+      logger.error('Failed to activate lab', { id, error });
+      throw error;
+    }
+  }
+
   async getLabInviteCodes(labId: string): Promise<InviteCodeData[]> {
     try {
       const response = await httpClient.get<{
@@ -84,9 +111,58 @@ export class LabService {
     }
   }
 
+  async setTankDemoStatus(labId: string, tankId: string, isDemo: boolean): Promise<void> {
+    try {
+      await httpClient.put(`/system/labs/${labId}/tanks/${tankId}/demo-status`, { isDemo });
+    } catch (error) {
+      logger.error('Failed to set tank demo status', { labId, tankId, error });
+      throw error;
+    }
+  }
+
+  async resetDemoData(labId: string): Promise<void> {
+    try {
+      await httpClient.post(`/system/labs/${labId}/demo/reset`);
+    } catch (error) {
+      logger.error('Failed to reset demo data', { labId, error });
+      throw error;
+    }
+  }
+
+  async setUserDemoStatus(labId: string, userId: string, isDemo: boolean): Promise<void> {
+    try {
+      await httpClient.put(`/system/labs/${labId}/users/${userId}/demo-status`, { isDemo });
+    } catch (error) {
+      logger.error('Failed to set user demo status', { labId, userId, error });
+      throw error;
+    }
+  }
+
+  async activateUser(labId: string, userId: string): Promise<void> {
+    try {
+      await httpClient.post(`/system/labs/${labId}/users/${userId}/activate`);
+    } catch (error) {
+      logger.error('Failed to activate user', { labId, userId, error });
+      throw error;
+    }
+  }
+
+  async deactivateUser(labId: string, userId: string): Promise<void> {
+    try {
+      await httpClient.post(`/system/labs/${labId}/users/${userId}/deactivate`);
+    } catch (error) {
+      logger.error('Failed to deactivate user', { labId, userId, error });
+      throw error;
+    }
+  }
+
   async getSystemOverview(): Promise<{
     totalLabs: number;
+    activeLabs: number;
+    inactiveLabs: number;
     totalUsers: number;
+    pendingApprovals: number;
+    activeUsersLast24h: number;
     totalTubes: number;
     labStats: Array<{ labId: string; labName: string; userCount: number; tubeCount: number }>;
   }> {
@@ -95,7 +171,11 @@ export class LabService {
         success: boolean;
         data: {
           totalLabs: number;
+          activeLabs: number;
+          inactiveLabs: number;
           totalUsers: number;
+          pendingApprovals: number;
+          activeUsersLast24h: number;
           totalTubes: number;
           labStats: Array<{ labId: string; labName: string; userCount: number; tubeCount: number }>;
         };

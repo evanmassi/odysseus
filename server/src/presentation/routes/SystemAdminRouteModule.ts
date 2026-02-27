@@ -11,6 +11,7 @@ import { RouteModule } from '@presentation/routes/RouteModule';
 import { LabController } from '@presentation/controllers/LabController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import { AuthController } from '@presentation/controllers/AuthController';
+import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { validateBody, validateParams } from '@middleware/Validation';
 import { updateSecurityConfigSchema } from '@odysseus/shared-schemas';
@@ -20,6 +21,7 @@ export class SystemAdminRouteModule implements RouteModule {
     private readonly labController: LabController,
     private readonly inviteCodeController: InviteCodeController,
     private readonly authController: AuthController,
+    private readonly configurationController: ConfigurationController,
     private readonly authMiddleware: AuthMiddleware
   ) {}
 
@@ -57,6 +59,18 @@ export class SystemAdminRouteModule implements RouteModule {
       this.labController.deactivateLab.bind(this.labController)
     );
 
+    router.post('/labs/:id/activate',
+      validateParams(z.object({ id: z.string() })),
+      this.labController.activateLab.bind(this.labController)
+    );
+
+    // LAB DETAILS
+
+    router.get('/labs/:labId/details',
+      validateParams(z.object({ labId: z.string() })),
+      this.labController.getLabDetails.bind(this.labController)
+    );
+
     // INVITE CODES (system admin can manage any lab's codes)
 
     router.get('/labs/:labId/invite-codes',
@@ -89,6 +103,37 @@ export class SystemAdminRouteModule implements RouteModule {
 
     router.get('/overview',
       this.labController.getOverview.bind(this.labController)
+    );
+
+    // DEMO MANAGEMENT (system admin, explicit labId)
+
+    router.put('/labs/:labId/tanks/:tankId/demo-status',
+      validateParams(z.object({ labId: z.string(), tankId: z.string() })),
+      validateBody(z.object({ isDemo: z.boolean() })),
+      this.configurationController.setTankDemoStatusForLab.bind(this.configurationController)
+    );
+
+    router.post('/labs/:labId/demo/reset',
+      validateParams(z.object({ labId: z.string() })),
+      this.configurationController.resetDemoDataForLab.bind(this.configurationController)
+    );
+
+    router.put('/labs/:labId/users/:userId/demo-status',
+      validateParams(z.object({ labId: z.string(), userId: z.string() })),
+      validateBody(z.object({ isDemo: z.boolean() })),
+      this.authController.setUserDemoStatusForLab.bind(this.authController)
+    );
+
+    // CROSS-LAB USER MANAGEMENT
+
+    router.post('/labs/:labId/users/:userId/activate',
+      validateParams(z.object({ labId: z.string(), userId: z.string() })),
+      this.authController.activateUserForLab.bind(this.authController)
+    );
+
+    router.post('/labs/:labId/users/:userId/deactivate',
+      validateParams(z.object({ labId: z.string(), userId: z.string() })),
+      this.authController.deactivateUserForLab.bind(this.authController)
     );
   }
 }

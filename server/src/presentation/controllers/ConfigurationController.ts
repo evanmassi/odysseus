@@ -1139,4 +1139,45 @@ export class ConfigurationController extends BaseController {
       }
     });
   }
+
+  // SYSTEM ADMIN WRAPPERS (labId from URL params)
+
+  async setTankDemoStatusForLab(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { labId, tankId } = req.params;
+      const { isDemo } = req.body;
+
+      if (typeof isDemo !== 'boolean') {
+        res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'isDemo must be a boolean' } });
+        return;
+      }
+
+      await this.setTankDemoStatusHandler.handle({ userId, labId, tankId, isDemo });
+
+      res.json({
+        success: true,
+        data: { success: true },
+        message: `Tank '${tankId}' demo status set to ${isDemo}`
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to set tank demo status');
+    }
+  }
+
+  async resetDemoDataForLab(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { labId } = req.params;
+
+      const result = await this.resetDemoDataHandler.handle({ userId, labId });
+
+      res.json({
+        success: true,
+        data: { message: 'Demo data reset successfully', deletedTubes: result.deletedTubes }
+      });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to reset demo data');
+    }
+  }
 }

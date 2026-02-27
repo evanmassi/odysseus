@@ -62,7 +62,19 @@
       "Bash(cd /c/Users/evan/Desktop/Odysseus/odysseus-app && npm run typecheck:server 2>&1)",
       "Bash(cd /c/Users/evan/Desktop/Odysseus/odysseus-app && npm run typecheck:client 2>&1)",
       "Bash(find:*)",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "Bash(PGPASSWORD=devpassword psql:*)",
+      "Bash(npm run:*)",
+      "Bash(npx kill-port:*)",
+      "Bash(npx jest:*)",
+      "Bash(npx vitest:*)",
+      "Bash(tasklist:*)",
+      "Bash(curl:*)",
+      "Bash(netstat:*)",
+      "Bash(PGPASSWORD=postgres psql:*)",
+      "Bash(taskkill:*)",
+      "Bash(ls:*)",
+      "Bash(npx vite:*)"
     ]
   }
 }

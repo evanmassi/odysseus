@@ -10,6 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Gauge, FlaskConical, FileText, Check, X } from 'lucide-react';
 
 import { queryKeys } from '@app/queryKeys';
+import { useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
@@ -38,7 +39,8 @@ export interface SystemTabProps {
 }
 
 export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabProps) {
-  const { currentLab } = useStorageData();
+  const hasLab = !!useAuthStore(s => s.user?.labId);
+  const { currentLab } = useStorageData({ enabled: hasLab });
   const queryClient = useQueryClient();
 
   // Lab name editing state
@@ -161,64 +163,66 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <div>
-          <h4 className="text-base font-semibold text-card-foreground mb-2">Laboratory</h4>
-          <div className="bg-muted p-3 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FlaskConical size={18} className="text-muted-foreground" />
-                <span className="text-sm text-muted-foreground">Lab:</span>
-                {isEditingLabName ? (
-                  <Input
-                    type="text"
-                    value={labNameInput}
-                    onValueChange={setLabNameInput}
-                    onKeyDown={handleLabNameKeyDown}
-                    variant="default"
-                    size="sm"
-                    // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
-                    autoFocus
-                    disabled={isSavingLabName}
-                  />
-                ) : (
-                  <span className="text-sm font-medium text-card-foreground">
-                    {currentLab?.name ?? ''}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-1">
-                {isEditingLabName ? (
-                  <>
-                    <Button
-                      variant="success"
-                      size="xs"
-                      iconOnly
-                      onClick={handleSaveLabName}
+        {hasLab && (
+          <div>
+            <h4 className="text-base font-semibold text-card-foreground mb-2">Laboratory</h4>
+            <div className="bg-muted p-3 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FlaskConical size={18} className="text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Lab:</span>
+                  {isEditingLabName ? (
+                    <Input
+                      type="text"
+                      value={labNameInput}
+                      onValueChange={setLabNameInput}
+                      onKeyDown={handleLabNameKeyDown}
+                      variant="default"
+                      size="sm"
+                      // eslint-disable-next-line jsx-a11y/no-autofocus -- Intentional for inline edit UX
+                      autoFocus
                       disabled={isSavingLabName}
-                      aria-label="Save lab name"
-                    >
-                      <Check size={16} />
+                    />
+                  ) : (
+                    <span className="text-sm font-medium text-card-foreground">
+                      {currentLab?.name ?? ''}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center gap-1">
+                  {isEditingLabName ? (
+                    <>
+                      <Button
+                        variant="success"
+                        size="xs"
+                        iconOnly
+                        onClick={handleSaveLabName}
+                        disabled={isSavingLabName}
+                        aria-label="Save lab name"
+                      >
+                        <Check size={16} />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="xs"
+                        iconOnly
+                        onClick={handleCancelLabNameEdit}
+                        disabled={isSavingLabName}
+                        aria-label="Cancel editing"
+                      >
+                        <X size={16} />
+                      </Button>
+                    </>
+                  ) : (
+                    <Button variant="ghost" size="xs" onClick={() => setIsEditingLabName(true)}>
+                      Edit
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="xs"
-                      iconOnly
-                      onClick={handleCancelLabNameEdit}
-                      disabled={isSavingLabName}
-                      aria-label="Cancel editing"
-                    >
-                      <X size={16} />
-                    </Button>
-                  </>
-                ) : (
-                  <Button variant="ghost" size="xs" onClick={() => setIsEditingLabName(true)}>
-                    Edit
-                  </Button>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div>
           <h4 className="text-base font-semibold text-card-foreground mb-2">Audit & Monitoring</h4>

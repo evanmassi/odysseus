@@ -50,6 +50,31 @@ export const createLabRequestSchema = z.object({
 
 export type CreateLabRequest = z.infer<typeof createLabRequestSchema>;
 
+export const labDetailsUserSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  role: z.enum(['system_admin', 'lab_admin', 'user']),
+  status: z.enum(['pending', 'approved', 'rejected']),
+  isDemo: z.boolean(),
+  lastActivity: z.string(),
+});
+
+export type LabDetailsUser = z.infer<typeof labDetailsUserSchema>;
+
+export const labDetailsSchema = z.object({
+  lab: labDataSchema,
+  users: z.array(labDetailsUserSchema),
+  researcherCount: z.number(),
+  tubeCount: z.number(),
+  storageSummary: z.object({
+    tankCount: z.number(),
+    rackCount: z.number(),
+    boxCount: z.number(),
+  }),
+});
+
+export type LabDetails = z.infer<typeof labDetailsSchema>;
+
 export const createInviteCodeRequestSchema = z.object({
   role: z.enum(['lab_admin', 'user']).optional(),
   maxUses: z.number().int().positive().optional(),

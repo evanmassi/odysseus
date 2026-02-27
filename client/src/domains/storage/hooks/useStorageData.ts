@@ -52,8 +52,8 @@ interface StorageDataResult {
  * Replaces direct Zustand store access for server state.
  * Data comes directly from React Query cache.
  */
-export function useStorageData(): StorageDataResult {
-  const { data, isLoading, isError, isFetched } = useLoadStorageQuery();
+export function useStorageData(config?: { enabled?: boolean }): StorageDataResult {
+  const { data, isLoading, isError, isFetched } = useLoadStorageQuery({ enabled: config?.enabled });
 
   const currentLab = data?.configuration.currentLab ?? null;
   const systemConfig = data?.configuration.systemConfig ?? null;

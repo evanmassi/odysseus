@@ -76,15 +76,15 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const [tabFooter, setTabFooter] = useState<React.ReactNode>(null);
   const modalService = useModalStore();
 
-  // Load current configuration and data
   useEffect(() => {
     if (isOpen) {
-      // SessionManager handles authentication automatically
       void loadConfiguration();
-      void loadUsers();
-      void loadSystemStats();
+      if (!isSystemAdmin) {
+        void loadUsers();
+        void loadSystemStats();
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, isSystemAdmin]);
 
   const loadConfiguration = async () => {
     try {
@@ -226,24 +226,36 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       <Tab id="security" icon={<Shield size={18} />}>
         Security
       </Tab>
-      <Tab id="users" icon={<UsersRound size={18} />}>
-        Users
-      </Tab>
-      <Tab id="researchers" icon={<Dna size={24} />}>
-        Researchers
-      </Tab>
-      <Tab id="invite-codes" icon={<TicketCheck size={18} />}>
-        Invite Codes
-      </Tab>
-      <Tab id="catalog" icon={<BookOpen size={18} />}>
-        Catalog
-      </Tab>
-      <Tab id="monitoring" icon={<Activity size={18} />}>
-        Monitoring
-      </Tab>
-      <Tab id="demo" icon={<FlaskConical size={18} />}>
-        Demo
-      </Tab>
+      {!isSystemAdmin && (
+        <Tab id="users" icon={<UsersRound size={18} />}>
+          Users
+        </Tab>
+      )}
+      {!isSystemAdmin && (
+        <Tab id="researchers" icon={<Dna size={24} />}>
+          Researchers
+        </Tab>
+      )}
+      {!isSystemAdmin && (
+        <Tab id="invite-codes" icon={<TicketCheck size={18} />}>
+          Invite Codes
+        </Tab>
+      )}
+      {!isSystemAdmin && (
+        <Tab id="catalog" icon={<BookOpen size={18} />}>
+          Catalog
+        </Tab>
+      )}
+      {!isSystemAdmin && (
+        <Tab id="monitoring" icon={<Activity size={18} />}>
+          Monitoring
+        </Tab>
+      )}
+      {!isSystemAdmin && (
+        <Tab id="demo" icon={<FlaskConical size={18} />}>
+          Demo
+        </Tab>
+      )}
     </Tabs>
   );
 
@@ -292,25 +304,25 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         </Suspense>
       )}
 
-      {activeTab === 'invite-codes' && (
+      {activeTab === 'invite-codes' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
           <InviteCodesTab />
         </Suspense>
       )}
 
-      {activeTab === 'users' && (
+      {activeTab === 'users' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
           <UsersTab users={users} onUserUpdate={loadUsers} />
         </Suspense>
       )}
 
-      {activeTab === 'researchers' && (
+      {activeTab === 'researchers' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
           <ResearchersTab onResearcherUpdate={loadSystemStats} onTabFooter={handleTabFooter} />
         </Suspense>
       )}
 
-      {activeTab === 'catalog' && (
+      {activeTab === 'catalog' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
           <CatalogTab onTabFooter={handleTabFooter} />
         </Suspense>
@@ -327,13 +339,13 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         </Suspense>
       )}
 
-      {activeTab === 'monitoring' && (
+      {activeTab === 'monitoring' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
           <MonitoringTab />
         </Suspense>
       )}
 
-      {activeTab === 'demo' && (
+      {activeTab === 'demo' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
           <DemoManagementTab onDemoUpdate={loadUsers} onTabFooter={handleTabFooter} />
         </Suspense>

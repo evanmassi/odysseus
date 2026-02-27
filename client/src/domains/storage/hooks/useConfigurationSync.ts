@@ -33,7 +33,10 @@ export function useConfigurationSync() {
   // Initialize server with defaults if no config exists (fresh install)
   // Note: Only runs when server is reachable but returns 404/error for config
   // Does NOT run when offline (query uses cached data or pauses)
+  // Skip entirely for users without a lab (system admins)
   useEffect(() => {
+    if (!hasLab) return;
+
     if (isError && !hasInitialized.current && !initializeMutation.isPending) {
       hasInitialized.current = true;
 
@@ -73,7 +76,17 @@ export function useConfigurationSync() {
         }
       );
     }
-  }, [isError, initializeMutation]);
+  }, [hasLab, isError, initializeMutation]);
+
+  // Remove stale lab-specific queries from cache for users without a lab (system admins)
+  // These may persist from a previous user's session via localStorage cache
+  useEffect(() => {
+    if (!hasLab) {
+      queryClient.removeQueries({ queryKey: queryKeys.storage.all });
+      queryClient.removeQueries({ queryKey: queryKeys.tubes.all });
+      queryClient.removeQueries({ queryKey: queryKeys.researchers.all });
+    }
+  }, [hasLab, queryClient]);
 
   // Multi-tab synchronization via storage events
   useEffect(() => {

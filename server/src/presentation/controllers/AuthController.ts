@@ -1579,4 +1579,81 @@ export class AuthController {
       next(error);
     }
   }
+
+  // SYSTEM ADMIN WRAPPERS (labId from URL params)
+
+  async setUserDemoStatusForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { userId } = req.params;
+      const { isDemo } = req.body;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      if (typeof isDemo !== 'boolean') {
+        res.status(400).json({ success: false, error: 'isDemo must be a boolean' });
+        return;
+      }
+
+      await this.userApplicationService.setUserDemoStatus(userId, isDemo, adminApiKey);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: `User demo status set to ${isDemo}`
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async activateUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.userApplicationService.approveUser(userId, adminApiKey);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User activated successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deactivateUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.userApplicationService.rejectUser(userId, adminApiKey);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User deactivated successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
 }

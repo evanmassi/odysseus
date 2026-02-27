@@ -12,6 +12,8 @@ import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepos
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
+import { PersonRepository } from '@domain/repositories/PersonRepository';
+import { Person } from '@domain/entities/Person';
 import { PasswordService } from '@application/contracts/PasswordService';
 import { logger } from '@utils/logger';
 import { EventBus } from '@application/contracts/EventBus';
@@ -138,17 +140,16 @@ export class CreateSystemAdminCommandHandler implements CommandHandler<CreateSys
   constructor(
     private userRepository: UserRepository,
     private configurationRepository: ConfigurationRepository,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private personRepository: PersonRepository
   ) {}
 
   async handle(command: CreateSystemAdminCommand): Promise<User> {
-    // Only works when no system admin exists
     const existingAdmins = await this.userRepository.countByRole('system_admin');
     if (existingAdmins > 0) {
       throw new ValidationError('System admin already exists');
     }
 
-    // In production, validate setup key
     const requiredKey = process.env.SYSTEM_ADMIN_SETUP_KEY;
     if (requiredKey) {
       if (!command.setupKey || command.setupKey !== requiredKey) {
@@ -168,12 +169,15 @@ export class CreateSystemAdminCommandHandler implements CommandHandler<CreateSys
 
     await this.validatePasswordPolicy(command.password);
 
+    const person = Person.create(command.username, 'Admin', command.email);
+    await this.personRepository.save(person);
+
     const user = User.createWithPassword(
       command.username,
       command.password,
       UserRole.systemAdmin(),
       undefined,
-      undefined,
+      person.id,
       'approved'
     );
 

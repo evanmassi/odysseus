@@ -1,5 +1,6 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { logger } from '@utils/logger';
+import { generateId } from '@domain/utils/generateId';
 
 /**
  * PostgresContext - Database Access Layer
@@ -528,11 +529,17 @@ export class PostgresContext {
       )
     `);
 
-    await this.pool.query(`
-      INSERT INTO labs (id, name, slug)
-      VALUES ('lab_default', 'Lab 1', 'lab-1')
-      ON CONFLICT DO NOTHING
-    `);
+    const existingLabs = await this.pool.query('SELECT id FROM labs LIMIT 1');
+    if (existingLabs.rows.length === 0) {
+      const defaultLabId = generateId('lab');
+      await this.pool.query(
+        `INSERT INTO labs (id, name, slug) VALUES ($1, 'Lab 1', 'lab-1')`,
+        [defaultLabId]
+      );
+    }
+
+    const firstLab = await this.pool.query('SELECT id FROM labs ORDER BY created_at LIMIT 1');
+    const backfillLabId = firstLab.rows[0]?.id;
 
     // Add lab_id columns (nullable initially for backfill)
     await this.pool.query(`
@@ -644,15 +651,17 @@ export class PostgresContext {
     `);
 
     // Backfill existing rows with default lab
-    await this.pool.query(`UPDATE users SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
-    await this.pool.query(`UPDATE researchers SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
-    await this.pool.query(`UPDATE tubes SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
-    await this.pool.query(`UPDATE lookup_values SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
-    await this.pool.query(`UPDATE audit_log SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
-    await this.pool.query(`UPDATE audit_log_archive SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
-    await this.pool.query(`UPDATE configuration_current SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
-    await this.pool.query(`UPDATE configuration_versions SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
-    await this.pool.query(`UPDATE configuration_snapshots SET lab_id = 'lab_default' WHERE lab_id IS NULL`);
+    if (backfillLabId) {
+      await this.pool.query(`UPDATE users SET lab_id = $1 WHERE lab_id IS NULL AND role != 'system_admin'`, [backfillLabId]);
+      await this.pool.query(`UPDATE researchers SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE tubes SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE lookup_values SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE audit_log SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE audit_log_archive SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE configuration_current SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE configuration_versions SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE configuration_snapshots SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+    }
 
     // configuration_current: singleton → per-lab
     await this.pool.query(`
@@ -838,6 +847,75 @@ export class PostgresContext {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `);
+
+    await this.normalizeLabIds();
+    await this.ensureSystemAdminPerson();
+  }
+
+  private async normalizeLabIds(): Promise<void> {
+    const result = await this.pool.query(`SELECT id, slug FROM labs WHERE id = 'lab_default'`);
+    if (result.rows.length === 0) return;
+
+    const originalSlug = result.rows[0].slug as string;
+    const newId = generateId('lab');
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Temporarily change the old row's slug so the new row can use it
+      await client.query(
+        `UPDATE labs SET slug = $1 WHERE id = 'lab_default'`,
+        [`__migrating_${originalSlug}`]
+      );
+
+      await client.query(
+        `INSERT INTO labs (id, name, slug, is_active, created_at, updated_at)
+         SELECT $1, name, $2, is_active, created_at, updated_at FROM labs WHERE id = 'lab_default'`,
+        [newId, originalSlug]
+      );
+
+      const childTables = [
+        'users', 'researchers', 'tubes', 'lookup_values',
+        'configuration_current', 'configuration_versions', 'configuration_snapshots',
+        'audit_log', 'audit_log_archive', 'invite_codes',
+      ];
+      for (const table of childTables) {
+        await client.query(`UPDATE ${table} SET lab_id = $1 WHERE lab_id = 'lab_default'`, [newId]);
+      }
+
+      await client.query(`DELETE FROM labs WHERE id = 'lab_default'`);
+
+      await client.query('COMMIT');
+      logger.info(`Normalized lab_default to ${newId}`);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  private async ensureSystemAdminPerson(): Promise<void> {
+    const result = await this.pool.query(
+      `SELECT u.id, u.username FROM users u WHERE u.role = 'system_admin' AND u.person_id IS NULL`
+    );
+    if (result.rows.length === 0) return;
+
+    for (const row of result.rows) {
+      const personId = generateId('person');
+      const now = new Date().toISOString();
+
+      await this.pool.query(
+        `INSERT INTO persons (id, first_name, last_name, email, created_at, updated_at)
+         VALUES ($1, $2, 'Admin', $3, $4, $4)`,
+        [personId, row.username, `${row.username}@system.local`, now]
+      );
+      await this.pool.query(
+        `UPDATE users SET person_id = $1 WHERE id = $2`,
+        [personId, row.id]
+      );
+      logger.info(`Created Person record for system admin ${row.username}`);
+    }
   }
 
   /**
@@ -1054,7 +1132,10 @@ export class PostgresContext {
       );
 
       if (result.rows.length === 0) {
-        // Import Configuration entity for default creation
+        const firstLab = await this.pool.query('SELECT id FROM labs ORDER BY created_at LIMIT 1');
+        const labId = firstLab.rows[0]?.id;
+        if (!labId) return;
+
         const { Configuration } = await import('../../domain/entities/Configuration');
 
         const defaultConfig = Configuration.createDefault();
@@ -1065,7 +1146,7 @@ export class PostgresContext {
           `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
            VALUES ($1, $2, $3, $4, $5)
            RETURNING version`,
-          ['lab_default', now, 'Initial system configuration', 'system', configJson]
+          [labId, now, 'Initial system configuration', 'system', configJson]
         );
 
         const version = versionResult.rows[0].version;
@@ -1073,7 +1154,7 @@ export class PostgresContext {
         await this.pool.query(
           `INSERT INTO configuration_current (id, lab_id, version, updated_at, config_json)
            VALUES (1, $1, $2, $3, $4)`,
-          ['lab_default', version, now, configJson]
+          [labId, version, now, configJson]
         );
       }
     } catch (error) {

@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { MapPin, Navigation, NotepadText, ScanEye, UsersRound } from 'lucide-react';
@@ -51,9 +51,47 @@ import type { PositionKey } from '@shared/types/GridSelection';
 
 import '@shared/styles/base/layout.css';
 
+const SystemAdminContent = lazy(() =>
+  import('@domains/admin').then(m => ({ default: m.SystemAdminContent }))
+);
+
 export function Dashboard() {
   const { isSynced, hasNoLab } = useConfigurationSync();
 
+  if (hasNoLab) {
+    return (
+      <div className="app-container">
+        <div className="app-header">
+          <AppHeader />
+        </div>
+        <SuspenseBoundary
+          fallback={
+            <div className="flex items-center justify-center h-full">
+              <div className="text-muted-foreground">Loading...</div>
+            </div>
+          }
+          name="SystemAdminContent"
+        >
+          <SystemAdminContent />
+        </SuspenseBoundary>
+      </div>
+    );
+  }
+
+  if (!isSynced) {
+    return (
+      <div className="app-container">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-muted-foreground">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
+  return <LabDashboard />;
+}
+
+function LabDashboard() {
   const { user } = useAuthStore();
 
   const { currentTank, currentRack, currentBox, selectedPositions, setSelection, clearSelection } =
@@ -444,36 +482,6 @@ export function Dashboard() {
     isAdmin: user?.role === 'lab_admin' || user?.role === 'system_admin',
     hasResearcherProfile,
   });
-
-  // Gate rendering until configuration is loaded to prevent flash of wrong tank
-  // This ensures demo users don't briefly see non-demo tanks before sync completes
-  if (hasNoLab) {
-    return (
-      <div className="app-container">
-        <div className="app-header">
-          <AppHeader />
-        </div>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center space-y-2">
-            <div className="text-lg font-medium">System Administration</div>
-            <div className="text-muted-foreground">
-              Use the System Admin panel in the menu to manage labs and invite codes.
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isSynced) {
-    return (
-      <div className="app-container">
-        <div className="flex items-center justify-center h-full">
-          <div className="text-muted-foreground">Loading...</div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="app-container">
