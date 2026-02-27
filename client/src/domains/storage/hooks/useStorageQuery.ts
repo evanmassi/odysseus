@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/queryKeys';
+import { useAuthStore } from '@domains/authentication';
 import { isConflictError } from '@shared/errors';
 import { notifications } from '@shared/utils/notifications';
 
@@ -9,13 +10,17 @@ import { StorageService } from '../services/StorageService';
 /**
  * Load Storage Configuration Hook
  *
- * Loads the complete lab configuration from the server
+ * Loads the complete lab configuration from the server.
+ * Automatically disabled for users without a lab (system admins).
  */
 export const useLoadStorageQuery = (config?: { enabled?: boolean; staleTime?: number }) => {
+  const { user } = useAuthStore();
+  const hasLab = !!user?.labId;
+
   return useQuery({
     queryKey: queryKeys.storage.storage(),
     queryFn: () => StorageService.loadConfiguration(),
-    enabled: config?.enabled ?? true,
+    enabled: hasLab && (config?.enabled ?? true),
     staleTime: config?.staleTime ?? 10 * 60 * 1000, // 10 minutes
     gcTime: 30 * 60 * 1000, // 30 minutes
     retry: 2,
