@@ -40,8 +40,8 @@ function getLabInitials(name: string): string {
 }
 
 const sizeClasses = {
-  sm: { badge: 'w-7 h-7', text: 'text-xs' },
-  md: { badge: 'w-9 h-9', text: 'text-sm' },
+  sm: { badge: 'w-5 h-5', text: 'text-[9px]' },
+  md: { badge: 'w-6 h-6', text: 'text-xs' },
 };
 
 export function LabBadge({ labId, labName, size = 'sm' }: LabBadgeProps) {

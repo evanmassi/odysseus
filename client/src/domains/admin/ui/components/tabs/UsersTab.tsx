@@ -32,6 +32,7 @@ import {
 import { queryKeys } from '@app/queryKeys';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
+import { OwnershipIndicatorBadge } from '@shared/ui/components/badges/OwnershipIndicatorBadge';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -363,11 +364,19 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
       sortable: true,
       render: (_, row) => {
         const user = row as unknown as AdminUser;
+        const initials =
+          user.firstName && user.lastName
+            ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
+            : user.username.slice(0, 2).toUpperCase();
+
         return (
-          <div className="flex items-center whitespace-nowrap">
-            <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
-              <UserRound size={14} className="text-secondary-foreground" />
-            </div>
+          <div className="flex items-center whitespace-nowrap gap-2">
+            <OwnershipIndicatorBadge
+              type="otherUser"
+              initials={initials}
+              username={user.username}
+              size="md"
+            />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-medium text-card-foreground">

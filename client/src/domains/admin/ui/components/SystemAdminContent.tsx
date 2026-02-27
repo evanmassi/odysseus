@@ -237,7 +237,7 @@ export function SystemAdminContent() {
                   tabIndex={0}
                 >
                   <div className="flex items-center gap-2">
-                    <LabBadge labId={lab.id} labName={lab.name} />
+                    <LabBadge labId={lab.id} labName={lab.name} size="md" />
                     <h4 className="text-sm font-semibold text-card-foreground mr-2">{lab.name}</h4>
                     {stats && (
                       <>

@@ -475,7 +475,9 @@ export class UserRepository implements IUserRepository {
 
   async findByLabId(labId: string): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE lab_id = $1 ORDER BY created_at`,
+      `SELECT ${USER_COLUMNS},
+        (SELECT MAX(last_used_at) FROM user_sessions WHERE user_id = users.id AND is_active = true) as last_activity
+      FROM users WHERE lab_id = $1 ORDER BY created_at`,
       [labId]
     );
     return UserMapper.fromRows(rows);

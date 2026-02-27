@@ -52,11 +52,18 @@ export type CreateLabRequest = z.infer<typeof createLabRequestSchema>;
 
 export const labDetailsUserSchema = z.object({
   id: z.string(),
+  firstName: z.string().nullable(),
+  lastName: z.string().nullable(),
   username: z.string(),
+  email: z.string().nullable(),
   role: z.enum(['system_admin', 'lab_admin', 'user']),
   status: z.enum(['pending', 'approved', 'rejected']),
   isDemo: z.boolean(),
   lastActivity: z.string(),
+  researcher: z.object({
+    name: z.string(),
+    tubeCount: z.number(),
+  }).nullable(),
 });
 
 export type LabDetailsUser = z.infer<typeof labDetailsUserSchema>;

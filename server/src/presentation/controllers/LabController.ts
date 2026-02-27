@@ -13,6 +13,7 @@ import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
+import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import { logger } from '@utils/logger';
 
 export class LabController extends BaseController {
@@ -25,7 +26,8 @@ export class LabController extends BaseController {
     private userRepository: UserRepository,
     private tubeRepository: TubeRepository,
     private configurationRepository: ConfigurationRepository,
-    private researcherRepository: ResearcherRepository
+    private researcherRepository: ResearcherRepository,
+    private personRepository: PersonRepository
   ) {
     super();
   }
@@ -106,6 +108,23 @@ export class LabController extends BaseController {
         this.configurationRepository.getForLab(labId),
       ]);
 
+      const personIds = users.map(u => u.personId).filter((id): id is string => !!id);
+      const persons = personIds.length > 0 ? await this.personRepository.findByIds(personIds) : [];
+      const personMap = new Map(persons.map(p => [p.id, p]));
+
+      const researcherMap = new Map(researchers.map(r => [r.id, r]));
+      const researcherPersonMap = new Map(researchers.map(r => [r.personId, r]));
+
+      const tubeCounts = await Promise.all(
+        users
+          .filter(u => u.researcherId)
+          .map(async u => ({
+            researcherId: u.researcherId!,
+            count: await this.researcherRepository.getTubeCountByResearcher(u.researcherId!),
+          }))
+      );
+      const tubeCountMap = new Map(tubeCounts.map(tc => [tc.researcherId, tc.count]));
+
       let tankCount = 0, rackCount = 0, boxCount = 0;
       if (config) {
         const configData = config.toData();
@@ -120,14 +139,27 @@ export class LabController extends BaseController {
 
       res.status(200).json(ResponseBuilder.success({
         lab: lab.toData(),
-        users: users.map(u => ({
-          id: u.id,
-          username: u.username,
-          role: u.roleString,
-          status: u.status,
-          isDemo: u.isDemo,
-          lastActivity: u.lastActivity.toISOString(),
-        })),
+        users: users.map(u => {
+          const person = u.personId ? personMap.get(u.personId) : undefined;
+          const researcher = u.researcherId ? researcherMap.get(u.researcherId) : undefined;
+          const researcherPerson = researcher?.personId ? personMap.get(researcher.personId) : undefined;
+
+          return {
+            id: u.id,
+            firstName: person?.firstName ?? null,
+            lastName: person?.lastName ?? null,
+            username: u.username,
+            email: person?.email ?? null,
+            role: u.roleString,
+            status: u.status,
+            isDemo: u.isDemo,
+            lastActivity: u.lastActivity.toISOString(),
+            researcher: u.researcherId ? {
+              name: researcherPerson ? `${researcherPerson.firstName} ${researcherPerson.lastName}` : 'Unknown',
+              tubeCount: tubeCountMap.get(u.researcherId) ?? 0,
+            } : null,
+          };
+        }),
         researcherCount: researchers.length,
         tubeCount,
         storageSummary: { tankCount, rackCount, boxCount },

@@ -12,14 +12,15 @@ import {
   Rows3,
   ShieldUser,
   TestTube,
-  UserCheck,
-  UserX,
+  UserRoundCheck,
+  UserRoundX,
   UsersRound,
   RotateCcw,
 } from 'lucide-react';
 
-import { Button, Chip, Table } from '@shared/ui';
+import { Button, Chip, Table, Tooltip } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges/LabBadge';
+import { OwnershipIndicatorBadge } from '@shared/ui/components/badges/OwnershipIndicatorBadge';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -30,7 +31,6 @@ import {
   useDeactivateLabMutation,
   useActivateUserMutation,
   useDeactivateUserMutation,
-  useSetUserDemoStatusMutation,
   useResetDemoDataMutation,
 } from '../../hooks/useSystemAdminQueries';
 
@@ -98,7 +98,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
   if (isLoading || !details) {
     return (
       <div className="h-full overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-6 py-8">
+        <div className="max-w-7xl mx-auto px-6 py-8">
           <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
             Back
           </Button>
@@ -123,7 +123,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
 
   return (
     <div className="h-full overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" onClick={onBack} leftIcon={<ArrowLeft size={14} />}>
             Back
@@ -185,12 +185,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
               Reset Demo
             </Button>
             {lab.isActive ? (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setDeactivateTarget(labId)}
-                className="text-danger-text"
-              >
+              <Button variant="danger" size="sm" onClick={() => setDeactivateTarget(labId)}>
                 Deactivate
               </Button>
             ) : (
@@ -292,36 +287,6 @@ function getStatusColor(status: string): 'success' | 'warning' | 'danger' {
   return 'danger';
 }
 
-function DemoCell({ user, labId }: { user: LabDetailsUser; labId: string }) {
-  const setDemoMutation = useSetUserDemoStatusMutation();
-
-  const handleToggle = async () => {
-    try {
-      await setDemoMutation.mutateAsync({ labId, userId: user.id, isDemo: !user.isDemo });
-      notifications.success(`Demo status updated for ${user.username}`);
-    } catch {
-      notifications.error('Failed to update demo status');
-    }
-  };
-
-  return (
-    <button
-      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-      onClick={handleToggle}
-      disabled={user.role !== 'user'}
-      title={user.role !== 'user' ? 'Admins cannot be demo users' : 'Toggle demo status'}
-    >
-      {user.isDemo ? (
-        <Chip color="warning" size="sm">
-          Demo
-        </Chip>
-      ) : (
-        <span className="text-muted-foreground">-</span>
-      )}
-    </button>
-  );
-}
-
 function ActionsCell({ user, labId }: { user: LabDetailsUser; labId: string }) {
   const activateUserMutation = useActivateUserMutation();
   const deactivateUserMutation = useDeactivateUserMutation();
@@ -348,38 +313,93 @@ function ActionsCell({ user, labId }: { user: LabDetailsUser; labId: string }) {
   return (
     <div className="flex items-center justify-end gap-1">
       {user.status !== 'approved' && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleActivate}
-          disabled={isPending}
-          title="Approve user"
-        >
-          <UserCheck size={14} className="text-success-text" />
-        </Button>
+        <Tooltip content="Approve user">
+          <Button
+            variant="ghost"
+            size="xs"
+            iconOnly
+            onClick={handleActivate}
+            disabled={isPending}
+            aria-label="Approve user"
+          >
+            <UserRoundCheck size={16} className="text-success-text" />
+          </Button>
+        </Tooltip>
       )}
       {user.status === 'approved' && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleDeactivate}
-          disabled={isPending}
-          title="Reject user"
-        >
-          <UserX size={14} className="text-danger-text" />
-        </Button>
+        <Tooltip content="Deactivate user">
+          <Button
+            variant="ghost-danger"
+            size="xs"
+            iconOnly
+            onClick={handleDeactivate}
+            disabled={isPending}
+            aria-label="Deactivate user"
+          >
+            <UserRoundX size={16} />
+          </Button>
+        </Tooltip>
       )}
     </div>
   );
 }
 
+function formatLastActivity(iso: string): string {
+  const date = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Today';
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString();
+}
+
 function getUserColumns(labId: string): TableColumn[] {
   return [
     {
-      id: 'username',
-      header: 'Username',
-      accessor: 'username',
+      id: 'lastName',
+      header: 'User',
       sortable: true,
+      render: (_value, row) => {
+        const firstName = row['firstName'] as string | null;
+        const lastName = row['lastName'] as string | null;
+        const username = String(row['username']);
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy
+        const hasName = lastName || firstName;
+        const displayName = hasName
+          ? `${lastName ?? ''}${lastName && firstName ? ', ' : ''}${firstName ?? ''}`
+          : username;
+
+        const initials =
+          firstName && lastName
+            ? `${firstName[0]}${lastName[0]}`.toUpperCase()
+            : username.slice(0, 2).toUpperCase();
+
+        return (
+          <div className="flex items-center whitespace-nowrap gap-2">
+            <OwnershipIndicatorBadge
+              type="otherUser"
+              initials={initials}
+              username={username}
+              size="md"
+            />
+            <div>
+              <div className="text-sm font-medium text-card-foreground">{displayName}</div>
+              <div className="text-xs text-muted-foreground">{username}</div>
+            </div>
+          </div>
+        );
+      },
+    },
+    {
+      id: 'email',
+      header: 'Email',
+      sortable: true,
+      render: (_value, row) => (
+        <span className="text-muted-foreground">{String(row['email'] ?? '-')}</span>
+      ),
     },
     {
       id: 'role',
@@ -389,6 +409,42 @@ function getUserColumns(labId: string): TableColumn[] {
         <Chip color="default" size="sm">
           {getRoleLabel(String(row['role']))}
         </Chip>
+      ),
+    },
+    {
+      id: 'researcher',
+      header: 'Researcher',
+      render: (_value, row) => {
+        const researcher = row['researcher'] as { name: string; tubeCount: number } | null;
+        if (!researcher) return <span className="text-muted-foreground">-</span>;
+        return <span>{researcher.name}</span>;
+      },
+    },
+    {
+      id: 'tubeCount',
+      header: 'Tubes',
+      render: (_value, row) => {
+        const researcher = row['researcher'] as { name: string; tubeCount: number } | null;
+        if (!researcher) return <span className="text-muted-foreground">-</span>;
+        return (
+          <Chip
+            size="sm"
+            color={researcher.tubeCount > 0 ? 'primary' : 'default'}
+            className={researcher.tubeCount > 0 ? 'border border-action' : 'border border-border'}
+          >
+            {researcher.tubeCount}
+          </Chip>
+        );
+      },
+    },
+    {
+      id: 'lastActivity',
+      header: 'Last Active',
+      sortable: true,
+      render: (_value, row) => (
+        <span className="text-muted-foreground">
+          {formatLastActivity(String(row['lastActivity']))}
+        </span>
       ),
     },
     {
@@ -402,13 +458,8 @@ function getUserColumns(labId: string): TableColumn[] {
       ),
     },
     {
-      id: 'demo',
-      header: 'Demo',
-      render: (_value, row) => <DemoCell user={row as unknown as LabDetailsUser} labId={labId} />,
-    },
-    {
       id: 'actions',
-      header: 'Actions',
+      header: '',
       align: 'right',
       render: (_value, row) => (
         <ActionsCell user={row as unknown as LabDetailsUser} labId={labId} />

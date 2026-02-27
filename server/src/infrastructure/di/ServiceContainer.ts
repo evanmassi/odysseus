@@ -947,7 +947,8 @@ export class ServiceContainer {
         this.repositoryFactory.getUserRepository(),
         this.repositoryFactory.getTubeRepository(),
         this.repositoryFactory.getConfigurationRepository(),
-        this.repositoryFactory.getResearcherRepository()
+        this.repositoryFactory.getResearcherRepository(),
+        this.repositoryFactory.getPersonRepository()
       );
     }
     return this.labController;
