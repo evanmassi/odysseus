@@ -232,7 +232,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         </Tab>
       )}
       {!isSystemAdmin && (
-        <Tab id="researchers" icon={<Dna size={24} />}>
+        <Tab id="researchers" icon={<Dna size={18} />}>
           Researchers
         </Tab>
       )}

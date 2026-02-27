@@ -566,7 +566,12 @@ export class AuthController {
   async getAllUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
-      const users = await this.userRepository.findAllWithLastActivity();
+      const labId = req.user?.labId;
+      if (!labId) {
+        res.status(403).json(ResponseBuilder.error('LAB_REQUIRED', 'Lab context required'));
+        return;
+      }
+      const users = await this.userRepository.findByLabId(labId);
       const approvedUsers = users.filter(u => u.isApproved());
 
       const publicDataList = approvedUsers.map(u => u.toPublicData());
