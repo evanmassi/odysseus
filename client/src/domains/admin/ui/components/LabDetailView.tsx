@@ -1,21 +1,25 @@
 import { useState } from 'react';
 
+import { refrigeratorFreezer } from '@lucide/lab';
 import {
   ArrowLeft,
-  Building2,
-  Users,
-  TestTubes,
+  Box as BoxIcon,
   Dna,
-  Database,
+  Icon,
   Pencil,
   Check,
   X,
+  Rows3,
+  ShieldUser,
+  TestTube,
   UserCheck,
   UserX,
+  UsersRound,
   RotateCcw,
 } from 'lucide-react';
 
-import { Button, Chip } from '@shared/ui';
+import { Button, Chip, Table } from '@shared/ui';
+import { LabBadge } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -31,6 +35,7 @@ import {
 } from '../../hooks/useSystemAdminQueries';
 
 import type { LabDetailsUser } from '@odysseus/shared-schemas';
+import type { TableColumn, SortConfig } from '@shared/ui';
 
 interface LabDetailViewProps {
   labId: string;
@@ -48,6 +53,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
   const [newName, setNewName] = useState('');
   const [deactivateTarget, setDeactivateTarget] = useState<string | null>(null);
   const [resetDemoConfirm, setResetDemoConfirm] = useState(false);
+  const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
 
   const handleRename = async () => {
     if (!newName.trim() || !details) return;
@@ -104,7 +110,16 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
     );
   }
 
-  const { lab, users, researcherCount, tubeCount, storageSummary } = details;
+  const { lab, users: unsortedUsers, researcherCount, tubeCount, storageSummary } = details;
+
+  const users = [...unsortedUsers].sort((a, b) => {
+    if (!sortConfig) return 0;
+    const { columnId, direction } = sortConfig;
+    const aVal = String(a[columnId as keyof LabDetailsUser] ?? '');
+    const bVal = String(b[columnId as keyof LabDetailsUser] ?? '');
+    const cmp = aVal.localeCompare(bVal);
+    return direction === 'asc' ? cmp : -cmp;
+  });
 
   return (
     <div className="h-full overflow-y-auto">
@@ -118,7 +133,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Building2 size={24} className="text-secondary-foreground" />
+            <LabBadge labId={labId} labName={lab.name} size="md" />
             {isRenaming ? (
               <div className="flex items-center gap-2">
                 <input
@@ -191,63 +206,54 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
           </div>
         </div>
 
-        <div className="text-xs text-muted-foreground">Slug: {lab.slug}</div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-4 gap-3">
-          <div className="p-3 bg-muted rounded-lg text-center">
-            <Users size={16} className="mx-auto mb-1 text-muted-foreground" />
-            <div className="text-xl font-bold text-foreground">{users.length}</div>
-            <div className="text-xs text-muted-foreground">Users</div>
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
+              {users.filter(u => u.role === 'lab_admin').length}{' '}
+              {users.filter(u => u.role === 'lab_admin').length === 1 ? 'admin' : 'admins'}
+            </Chip>
+            <Chip color="info" size="sm" leftIcon={<UsersRound />}>
+              {users.length} {users.length === 1 ? 'user' : 'users'}
+            </Chip>
+            <Chip color="info" size="sm" leftIcon={<Dna />}>
+              {researcherCount} {researcherCount === 1 ? 'researcher' : 'researchers'}
+            </Chip>
           </div>
-          <div className="p-3 bg-muted rounded-lg text-center">
-            <Dna size={16} className="mx-auto mb-1 text-muted-foreground" />
-            <div className="text-xl font-bold text-foreground">{researcherCount}</div>
-            <div className="text-xs text-muted-foreground">Researchers</div>
-          </div>
-          <div className="p-3 bg-muted rounded-lg text-center">
-            <TestTubes size={16} className="mx-auto mb-1 text-muted-foreground" />
-            <div className="text-xl font-bold text-foreground">{tubeCount}</div>
-            <div className="text-xs text-muted-foreground">Tubes</div>
-          </div>
-          <div className="p-3 bg-muted rounded-lg text-center">
-            <Database size={16} className="mx-auto mb-1 text-muted-foreground" />
-            <div className="text-xl font-bold text-foreground">
-              {storageSummary.tankCount}T / {storageSummary.rackCount}R / {storageSummary.boxCount}B
-            </div>
-            <div className="text-xs text-muted-foreground">Storage</div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Chip
+              color="info"
+              size="sm"
+              leftIcon={<Icon iconNode={refrigeratorFreezer} size={12} />}
+            >
+              {storageSummary.tankCount} {storageSummary.tankCount === 1 ? 'tank' : 'tanks'}
+            </Chip>
+            <Chip color="info" size="sm" leftIcon={<Rows3 />}>
+              {storageSummary.rackCount} {storageSummary.rackCount === 1 ? 'rack' : 'racks'}
+            </Chip>
+            <Chip color="info" size="sm" leftIcon={<BoxIcon />}>
+              {storageSummary.boxCount} {storageSummary.boxCount === 1 ? 'box' : 'boxes'}
+            </Chip>
+            <Chip color="info" size="sm" leftIcon={<TestTube />}>
+              {tubeCount} {tubeCount === 1 ? 'tube' : 'tubes'}
+            </Chip>
           </div>
         </div>
 
         {/* Users Table */}
         <div>
           <h3 className="text-sm font-semibold text-card-foreground mb-3">Users</h3>
-          {users.length === 0 ? (
-            <div className="text-sm text-muted-foreground py-4 text-center">
-              No users in this lab
-            </div>
-          ) : (
-            <div className="border border-border rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-muted text-left">
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Username</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Role</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Status</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground">Demo</th>
-                    <th className="px-3 py-2 font-medium text-muted-foreground text-right">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {users.map(user => (
-                    <UserRow key={user.id} user={user} labId={labId} />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+          <Table
+            columns={getUserColumns(labId)}
+            data={users}
+            size="sm"
+            rounded="lg"
+            sortable
+            sortConfig={sortConfig}
+            onSort={setSortConfig}
+            hoverable={false}
+            emptyMessage="No users in this lab"
+            aria-label="Lab users"
+          />
         </div>
 
         <ConfirmDialog
@@ -274,19 +280,52 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
   );
 }
 
-function UserRow({ user, labId }: { user: LabDetailsUser; labId: string }) {
-  const activateUserMutation = useActivateUserMutation();
-  const deactivateUserMutation = useDeactivateUserMutation();
+function getRoleLabel(role: string) {
+  if (role === 'lab_admin') return 'Lab Admin';
+  if (role === 'system_admin') return 'System Admin';
+  return 'User';
+}
+
+function getStatusColor(status: string): 'success' | 'warning' | 'danger' {
+  if (status === 'approved') return 'success';
+  if (status === 'pending') return 'warning';
+  return 'danger';
+}
+
+function DemoCell({ user, labId }: { user: LabDetailsUser; labId: string }) {
   const setDemoMutation = useSetUserDemoStatusMutation();
 
-  const roleLabel =
-    user.role === 'lab_admin'
-      ? 'Lab Admin'
-      : user.role === 'system_admin'
-        ? 'System Admin'
-        : 'User';
-  const statusColor =
-    user.status === 'approved' ? 'success' : user.status === 'pending' ? 'warning' : 'danger';
+  const handleToggle = async () => {
+    try {
+      await setDemoMutation.mutateAsync({ labId, userId: user.id, isDemo: !user.isDemo });
+      notifications.success(`Demo status updated for ${user.username}`);
+    } catch {
+      notifications.error('Failed to update demo status');
+    }
+  };
+
+  return (
+    <button
+      className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+      onClick={handleToggle}
+      disabled={user.role !== 'user'}
+      title={user.role !== 'user' ? 'Admins cannot be demo users' : 'Toggle demo status'}
+    >
+      {user.isDemo ? (
+        <Chip color="warning" size="sm">
+          Demo
+        </Chip>
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      )}
+    </button>
+  );
+}
+
+function ActionsCell({ user, labId }: { user: LabDetailsUser; labId: string }) {
+  const activateUserMutation = useActivateUserMutation();
+  const deactivateUserMutation = useDeactivateUserMutation();
+  const isPending = activateUserMutation.isPending || deactivateUserMutation.isPending;
 
   const handleActivate = async () => {
     try {
@@ -306,72 +345,74 @@ function UserRow({ user, labId }: { user: LabDetailsUser; labId: string }) {
     }
   };
 
-  const handleToggleDemo = async () => {
-    try {
-      await setDemoMutation.mutateAsync({ labId, userId: user.id, isDemo: !user.isDemo });
-      notifications.success(`Demo status updated for ${user.username}`);
-    } catch {
-      notifications.error('Failed to update demo status');
-    }
-  };
-
-  const isPending = activateUserMutation.isPending || deactivateUserMutation.isPending;
-
   return (
-    <tr>
-      <td className="px-3 py-2 text-foreground">{user.username}</td>
-      <td className="px-3 py-2">
-        <Chip color="default" size="sm">
-          {roleLabel}
-        </Chip>
-      </td>
-      <td className="px-3 py-2">
-        <Chip color={statusColor} size="sm">
-          {user.status}
-        </Chip>
-      </td>
-      <td className="px-3 py-2">
-        <button
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          onClick={handleToggleDemo}
-          disabled={user.role !== 'user'}
-          title={user.role !== 'user' ? 'Admins cannot be demo users' : `Toggle demo status`}
+    <div className="flex items-center justify-end gap-1">
+      {user.status !== 'approved' && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleActivate}
+          disabled={isPending}
+          title="Approve user"
         >
-          {user.isDemo ? (
-            <Chip color="warning" size="sm">
-              Demo
-            </Chip>
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )}
-        </button>
-      </td>
-      <td className="px-3 py-2 text-right">
-        <div className="flex items-center justify-end gap-1">
-          {user.status !== 'approved' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleActivate}
-              disabled={isPending}
-              title="Approve user"
-            >
-              <UserCheck size={14} className="text-success-text" />
-            </Button>
-          )}
-          {user.status === 'approved' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDeactivate}
-              disabled={isPending}
-              title="Reject user"
-            >
-              <UserX size={14} className="text-danger-text" />
-            </Button>
-          )}
-        </div>
-      </td>
-    </tr>
+          <UserCheck size={14} className="text-success-text" />
+        </Button>
+      )}
+      {user.status === 'approved' && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleDeactivate}
+          disabled={isPending}
+          title="Reject user"
+        >
+          <UserX size={14} className="text-danger-text" />
+        </Button>
+      )}
+    </div>
   );
+}
+
+function getUserColumns(labId: string): TableColumn[] {
+  return [
+    {
+      id: 'username',
+      header: 'Username',
+      accessor: 'username',
+      sortable: true,
+    },
+    {
+      id: 'role',
+      header: 'Role',
+      sortable: true,
+      render: (_value, row) => (
+        <Chip color="default" size="sm">
+          {getRoleLabel(String(row['role']))}
+        </Chip>
+      ),
+    },
+    {
+      id: 'status',
+      header: 'Status',
+      sortable: true,
+      render: (_value, row) => (
+        <Chip color={getStatusColor(String(row['status']))} size="sm">
+          {String(row['status'])}
+        </Chip>
+      ),
+    },
+    {
+      id: 'demo',
+      header: 'Demo',
+      render: (_value, row) => <DemoCell user={row as unknown as LabDetailsUser} labId={labId} />,
+    },
+    {
+      id: 'actions',
+      header: 'Actions',
+      align: 'right',
+      render: (_value, row) => (
+        <ActionsCell user={row as unknown as LabDetailsUser} labId={labId} />
+      ),
+    },
+  ];
 }

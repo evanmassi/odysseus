@@ -159,23 +159,45 @@ export class LabController extends BaseController {
         this.userRepository.findAllWithLastActivity(),
       ]);
 
-      const userCountsByLab = new Map<string, number>();
+      const usersByLab = new Map<string, { total: number; admins: number }>();
       for (const user of allUsers) {
         if (user.labId) {
-          userCountsByLab.set(user.labId, (userCountsByLab.get(user.labId) ?? 0) + 1);
+          const entry = usersByLab.get(user.labId) ?? { total: 0, admins: 0 };
+          entry.total++;
+          if (user.roleString === 'lab_admin') entry.admins++;
+          usersByLab.set(user.labId, entry);
         }
       }
 
-      const tubeCounts = await Promise.all(
-        labs.map(lab => this.tubeRepository.countByLabId(lab.id))
-      );
+      const [tubeCounts, configs] = await Promise.all([
+        Promise.all(labs.map(lab => this.tubeRepository.countByLabId(lab.id))),
+        Promise.all(labs.map(lab => this.configurationRepository.getForLab(lab.id))),
+      ]);
 
-      const labStats = labs.map((lab, i) => ({
-        labId: lab.id,
-        labName: lab.name,
-        userCount: userCountsByLab.get(lab.id) ?? 0,
-        tubeCount: tubeCounts[i],
-      }));
+      const labStats = labs.map((lab, i) => {
+        const userEntry = usersByLab.get(lab.id) ?? { total: 0, admins: 0 };
+        let tankCount = 0, rackCount = 0, boxCount = 0;
+        if (configs[i]) {
+          const configData = configs[i].toData();
+          tankCount = configData.tanks.length;
+          for (const tank of configData.tanks) {
+            rackCount += tank.racks.length;
+            for (const rack of tank.racks) {
+              boxCount += rack.boxes.length;
+            }
+          }
+        }
+        return {
+          labId: lab.id,
+          labName: lab.name,
+          adminCount: userEntry.admins,
+          userCount: userEntry.total,
+          tubeCount: tubeCounts[i],
+          tankCount,
+          rackCount,
+          boxCount,
+        };
+      });
 
       const totalTubes = tubeCounts.reduce((sum, count) => sum + count, 0);
       const activeLabs = labs.filter(l => l.isActive).length;

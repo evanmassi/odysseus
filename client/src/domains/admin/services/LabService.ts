@@ -164,7 +164,16 @@ export class LabService {
     pendingApprovals: number;
     activeUsersLast24h: number;
     totalTubes: number;
-    labStats: Array<{ labId: string; labName: string; userCount: number; tubeCount: number }>;
+    labStats: Array<{
+      labId: string;
+      labName: string;
+      adminCount: number;
+      userCount: number;
+      tubeCount: number;
+      tankCount: number;
+      rackCount: number;
+      boxCount: number;
+    }>;
   }> {
     try {
       const response = await httpClient.get<{
@@ -177,7 +186,16 @@ export class LabService {
           pendingApprovals: number;
           activeUsersLast24h: number;
           totalTubes: number;
-          labStats: Array<{ labId: string; labName: string; userCount: number; tubeCount: number }>;
+          labStats: Array<{
+            labId: string;
+            labName: string;
+            adminCount: number;
+            userCount: number;
+            tubeCount: number;
+            tankCount: number;
+            rackCount: number;
+            boxCount: number;
+          }>;
         };
       }>('/system/overview');
       return response.data.data;

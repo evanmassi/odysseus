@@ -2,14 +2,13 @@ import { useState } from 'react';
 
 import {
   Activity,
-  Building2,
   CircleAlert,
   Clock,
   FlaskConical,
   LayoutDashboard,
   Plus,
-  Users,
-  TestTubes,
+  ShieldUser,
+  UsersRound,
   TicketCheck,
   Copy,
   Power,
@@ -17,7 +16,9 @@ import {
 } from 'lucide-react';
 
 import { Button, Chip } from '@shared/ui';
+import { LabBadge } from '@shared/ui/components/badges/LabBadge';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils';
 
 import {
@@ -90,7 +91,13 @@ export function SystemAdminContent() {
   const handleGenerateLabAdminCode = async (labId: string) => {
     setGeneratingCodeForLab(labId);
     try {
-      const code = await createInviteCodeMutation.mutateAsync({ labId, role: 'lab_admin' });
+      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+      const code = await createInviteCodeMutation.mutateAsync({
+        labId,
+        role: 'lab_admin',
+        maxUses: 1,
+        expiresAt,
+      });
       setLabInviteCodes(prev => ({
         ...prev,
         [labId]: [...(prev[labId] ?? []), code],
@@ -219,32 +226,38 @@ export function SystemAdminContent() {
               const codes = labInviteCodes[lab.id] ?? [];
 
               return (
-                <div key={lab.id} className="p-4 bg-muted rounded-lg space-y-3">
-                  <div className="flex items-center justify-between">
-                    <button
-                      className="flex items-center gap-3 text-left hover:opacity-80 transition-opacity"
-                      onClick={() => setSelectedLabId(lab.id)}
+                <div
+                  key={lab.id}
+                  className="p-4 bg-muted rounded-lg space-y-3 cursor-pointer hover:bg-muted/80 transition-colors"
+                  onClick={() => setSelectedLabId(lab.id)}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') setSelectedLabId(lab.id);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="flex items-center gap-2">
+                    <LabBadge labId={lab.id} labName={lab.name} />
+                    <h4 className="text-sm font-semibold text-card-foreground mr-2">{lab.name}</h4>
+                    {stats && (
+                      <>
+                        <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
+                          {stats.adminCount} {stats.adminCount === 1 ? 'admin' : 'admins'}
+                        </Chip>
+                        <Chip color="info" size="sm" leftIcon={<UsersRound />}>
+                          {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
+                        </Chip>
+                      </>
+                    )}
+                    <Chip color={lab.isActive ? 'success' : 'default'} size="sm">
+                      {lab.isActive ? 'Active' : 'Inactive'}
+                    </Chip>
+                    <div
+                      className="flex items-center gap-2 ml-auto"
+                      role="presentation"
+                      onClick={e => e.stopPropagation()}
+                      onKeyDown={e => e.stopPropagation()}
                     >
-                      <Building2 size={18} className="text-secondary-foreground" />
-                      <div>
-                        <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
-                        <span className="text-xs text-muted-foreground">{lab.slug}</span>
-                      </div>
-                      <Chip color={lab.isActive ? 'success' : 'default'} size="sm">
-                        {lab.isActive ? 'Active' : 'Inactive'}
-                      </Chip>
-                    </button>
-                    <div className="flex items-center gap-2">
-                      {stats && (
-                        <div className="flex items-center gap-3 text-xs text-muted-foreground mr-3">
-                          <span className="flex items-center gap-1">
-                            <Users size={12} /> {stats.userCount}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            <TestTubes size={12} /> {stats.tubeCount}
-                          </span>
-                        </div>
-                      )}
                       <Button
                         variant="secondary"
                         size="sm"
@@ -256,14 +269,16 @@ export function SystemAdminContent() {
                         Lab Admin Code
                       </Button>
                       {lab.isActive ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeactivateTarget(lab.id)}
-                          className="text-danger-text hover:text-danger-text"
-                        >
-                          <Power size={14} />
-                        </Button>
+                        <Tooltip content="Deactivate lab">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDeactivateTarget(lab.id)}
+                            className="text-danger-text hover:text-danger-text"
+                          >
+                            <Power size={14} />
+                          </Button>
+                        </Tooltip>
                       ) : (
                         <Button
                           variant="secondary"
@@ -278,27 +293,33 @@ export function SystemAdminContent() {
                   </div>
 
                   {codes.length > 0 && (
-                    <div className="pl-7 space-y-1">
-                      {codes.map(code => (
-                        <div key={code.id} className="flex items-center gap-2 text-xs">
-                          <code className="font-mono font-semibold bg-background px-2 py-0.5 rounded border border-border">
-                            {code.code}
-                          </code>
-                          <Chip color="default" size="sm">
-                            {code.role === 'lab_admin' ? 'Lab Admin' : 'User'}
-                          </Chip>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={async () => {
-                              await navigator.clipboard.writeText(code.code);
-                              notifications.success('Copied');
-                            }}
-                          >
-                            <Copy size={12} />
-                          </Button>
-                        </div>
-                      ))}
+                    <div
+                      className="flex justify-end"
+                      role="presentation"
+                      onClick={e => e.stopPropagation()}
+                      onKeyDown={e => e.stopPropagation()}
+                    >
+                      <div className="space-y-1">
+                        {codes.map(code => (
+                          <div key={code.id} className="flex items-center gap-2 text-xs">
+                            <code className="font-mono font-semibold bg-background px-2 py-0.5 rounded border border-border">
+                              {code.code}
+                            </code>
+                            <Tooltip content="Copy to clipboard">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={async () => {
+                                  await navigator.clipboard.writeText(code.code);
+                                  notifications.success('Copied');
+                                }}
+                              >
+                                <Copy size={12} />
+                              </Button>
+                            </Tooltip>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>

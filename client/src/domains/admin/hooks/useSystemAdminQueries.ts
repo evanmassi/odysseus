@@ -20,7 +20,16 @@ interface SystemOverview {
   pendingApprovals: number;
   activeUsersLast24h: number;
   totalTubes: number;
-  labStats: Array<{ labId: string; labName: string; userCount: number; tubeCount: number }>;
+  labStats: Array<{
+    labId: string;
+    labName: string;
+    adminCount: number;
+    userCount: number;
+    tubeCount: number;
+    tankCount: number;
+    rackCount: number;
+    boxCount: number;
+  }>;
 }
 
 export function useLabsQuery() {
