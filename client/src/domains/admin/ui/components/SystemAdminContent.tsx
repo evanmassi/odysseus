@@ -56,11 +56,13 @@ export function SystemAdminContent() {
     void refetchOverview();
   };
 
+  const demoLabExists = labs.some(lab => lab.isDemo);
+
   const handleCreateLab = async () => {
     if (!newLabName.trim()) return;
 
     try {
-      await createLabMutation.mutateAsync(newLabName.trim());
+      await createLabMutation.mutateAsync({ name: newLabName.trim() });
       notifications.success(`Lab "${newLabName.trim()}" created`);
       setNewLabName('');
       setShowCreateLab(false);
@@ -163,6 +165,24 @@ export function SystemAdminContent() {
             >
               Refresh
             </Button>
+            {!demoLabExists && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={async () => {
+                  try {
+                    await createLabMutation.mutateAsync({ name: 'Demo Lab', isDemo: true });
+                    notifications.success('Demo lab created');
+                  } catch {
+                    notifications.error('Failed to create demo lab');
+                  }
+                }}
+                isLoading={createLabMutation.isPending}
+                leftIcon={<Plus size={14} />}
+              >
+                Create Demo Lab
+              </Button>
+            )}
             <Button
               variant="primary"
               size="sm"
@@ -197,7 +217,7 @@ export function SystemAdminContent() {
                 <Button
                   variant="primary"
                   size="sm"
-                  onClick={handleCreateLab}
+                  onClick={() => handleCreateLab()}
                   isLoading={createLabMutation.isPending}
                 >
                   Create
@@ -248,6 +268,11 @@ export function SystemAdminContent() {
                           {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
                         </Chip>
                       </>
+                    )}
+                    {lab.isDemo && (
+                      <Chip color="warning" size="sm">
+                        Demo
+                      </Chip>
                     )}
                     <Chip color={lab.isActive ? 'success' : 'default'} size="sm">
                       {lab.isActive ? 'Active' : 'Inactive'}

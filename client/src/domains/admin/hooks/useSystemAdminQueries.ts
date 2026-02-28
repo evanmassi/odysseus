@@ -52,7 +52,8 @@ export function useCreateLabMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (name: string) => labService.createLab(name),
+    mutationFn: ({ name, isDemo }: { name: string; isDemo?: boolean }) =>
+      labService.createLab(name, isDemo),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.all });
     },
@@ -139,21 +140,6 @@ export function useDeactivateUserMutation() {
     },
     onError: error => {
       logger.error('Failed to deactivate user', { error });
-    },
-  });
-}
-
-export function useSetUserDemoStatusMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ labId, userId, isDemo }: { labId: string; userId: string; isDemo: boolean }) =>
-      labService.setUserDemoStatus(labId, userId, isDemo),
-    onSuccess: (_data, { labId }) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
-    },
-    onError: error => {
-      logger.error('Failed to set user demo status', { error });
     },
   });
 }

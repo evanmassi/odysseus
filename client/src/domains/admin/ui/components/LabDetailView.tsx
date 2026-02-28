@@ -171,19 +171,26 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
                 </Button>
               </div>
             )}
+            {lab.isDemo && (
+              <Chip color="warning" size="sm">
+                Demo
+              </Chip>
+            )}
             <Chip color={lab.isActive ? 'success' : 'default'} size="sm">
               {lab.isActive ? 'Active' : 'Inactive'}
             </Chip>
           </div>
           <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={() => setResetDemoConfirm(true)}
-              leftIcon={<RotateCcw size={14} />}
-            >
-              Reset Demo
-            </Button>
+            {lab.isDemo && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setResetDemoConfirm(true)}
+                leftIcon={<RotateCcw size={14} />}
+              >
+                Reset Demo
+              </Button>
+            )}
             {lab.isActive ? (
               <Button variant="danger" size="sm" onClick={() => setDeactivateTarget(labId)}>
                 Deactivate
@@ -264,7 +271,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
         <ConfirmDialog
           isOpen={resetDemoConfirm}
           title="Reset Demo Data"
-          message="This will delete all tubes in demo tanks for this lab. This cannot be undone."
+          message="This will delete all demo tubes in this lab. This cannot be undone."
           confirmText="Reset"
           variant="danger"
           onConfirm={handleResetDemo}

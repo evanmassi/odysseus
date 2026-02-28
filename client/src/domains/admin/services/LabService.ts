@@ -28,12 +28,12 @@ export class LabService {
     }
   }
 
-  async createLab(name: string): Promise<LabData> {
+  async createLab(name: string, isDemo?: boolean): Promise<LabData> {
     try {
       const response = await httpClient.post<{
         success: boolean;
         data: { lab: LabData };
-      }>('/system/labs', { name });
+      }>('/system/labs', { name, ...(isDemo && { isDemo }) });
       return response.data.data.lab;
     } catch (error) {
       logger.error('Failed to create lab', { error });
@@ -111,29 +111,11 @@ export class LabService {
     }
   }
 
-  async setTankDemoStatus(labId: string, tankId: string, isDemo: boolean): Promise<void> {
-    try {
-      await httpClient.put(`/system/labs/${labId}/tanks/${tankId}/demo-status`, { isDemo });
-    } catch (error) {
-      logger.error('Failed to set tank demo status', { labId, tankId, error });
-      throw error;
-    }
-  }
-
   async resetDemoData(labId: string): Promise<void> {
     try {
       await httpClient.post(`/system/labs/${labId}/demo/reset`);
     } catch (error) {
       logger.error('Failed to reset demo data', { labId, error });
-      throw error;
-    }
-  }
-
-  async setUserDemoStatus(labId: string, userId: string, isDemo: boolean): Promise<void> {
-    try {
-      await httpClient.put(`/system/labs/${labId}/users/${userId}/demo-status`, { isDemo });
-    } catch (error) {
-      logger.error('Failed to set user demo status', { labId, userId, error });
       throw error;
     }
   }
