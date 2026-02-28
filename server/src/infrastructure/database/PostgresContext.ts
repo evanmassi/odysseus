@@ -1038,7 +1038,7 @@ export class PostgresContext {
         );
 
         const versions = await client.query(
-          'SELECT id, config_json FROM configuration_versions WHERE lab_id = $1',
+          'SELECT version, config_json FROM configuration_versions WHERE lab_id = $1',
           [labId]
         );
         for (const ver of versions.rows) {
@@ -1056,8 +1056,8 @@ export class PostgresContext {
             if (newTankId) tank.id = newTankId;
           }
           await client.query(
-            'UPDATE configuration_versions SET config_json = $1 WHERE id = $2',
-            [JSON.stringify(verConfig), ver.id]
+            'UPDATE configuration_versions SET config_json = $1 WHERE version = $2',
+            [JSON.stringify(verConfig), ver.version]
           );
         }
 

@@ -124,7 +124,7 @@ export class Configuration {
         );
 
         return Rack.create(
-          typeof rackData.id === 'string' ? parseInt(rackData.id) : rackData.id,
+          rackData.id,
           rackData.name,
           boxes,
           effectiveCapacity,
@@ -1008,7 +1008,7 @@ export class Configuration {
         );
 
         return Rack.create(
-          typeof rackData.id === 'string' ? parseInt(rackData.id) : rackData.id,
+          rackData.id,
           rackData.name,
           boxes,
           effectiveCapacity,
