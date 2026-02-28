@@ -1,9 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Read(path:C:\\Users\\evan\\.claude/**)",
-      "Edit(path:C:\\Users\\evan\\.claude/**)",
-      "Write(path:C:\\Users\\evan\\.claude/**)",
+      "Read",
+      "Edit",
+      "Write",
       "Bash(git mv:*)",
       "Bash(git rm:*)",
       "Bash(git -C:*)",

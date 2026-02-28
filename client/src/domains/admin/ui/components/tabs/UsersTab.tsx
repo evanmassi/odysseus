@@ -320,21 +320,10 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
     await onUserUpdate(); // Make sure to await the update
   };
 
-  /**
-   * Filter out demo users from the regular user list
-   * Demo users are managed in the Demo Management tab
-   */
-  const nonDemoUsers = useMemo(() => {
-    return users.filter(user => !user.isDemo);
-  }, [users]);
-
-  /**
-   * Sort users based on current sort configuration
-   */
   const sortedUsers = useMemo(() => {
-    if (!sortConfig) return nonDemoUsers;
+    if (!sortConfig) return users;
 
-    return [...nonDemoUsers].sort((a, b) => {
+    return [...users].sort((a, b) => {
       const direction = sortConfig.direction === 'asc' ? 1 : -1;
 
       switch (sortConfig.columnId) {
@@ -354,7 +343,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
           return 0;
       }
     });
-  }, [nonDemoUsers, sortConfig]);
+  }, [users, sortConfig]);
 
   // Define table columns
   const userColumns: TableColumn<TableRow>[] = [

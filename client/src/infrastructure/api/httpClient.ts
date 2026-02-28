@@ -189,10 +189,6 @@ export class HttpClient {
       return ResponseTransformers.Researcher(data);
     } else if (url.includes('/lookups')) {
       return transformApiResponse(data, 'LookupValue');
-    } else if (url.includes('/admin/demo')) {
-      return transformApiResponse(data, 'AdminUser');
-    } else if (url.includes('/admin/tanks')) {
-      return transformApiResponse(data, 'TankConfiguration');
     } else if (url.includes('/admin/users')) {
       if (Array.isArray(data)) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation

@@ -9,7 +9,6 @@ import {
   ShieldUser,
   Gauge,
   UsersRound,
-  FlaskConical,
   Dna,
   BookOpen,
   TicketCheck,
@@ -40,9 +39,6 @@ const SystemTab = lazy(() => import('./tabs/SystemTab').then(m => ({ default: m.
 const MonitoringTab = lazy(() =>
   import('./tabs/MonitoringTab').then(m => ({ default: m.MonitoringTab }))
 );
-const DemoManagementTab = lazy(() =>
-  import('./tabs/DemoManagementTab').then(m => ({ default: m.DemoManagementTab }))
-);
 const CatalogTab = lazy(() => import('./tabs/CatalogTab').then(m => ({ default: m.CatalogTab })));
 const InviteCodesTab = lazy(() =>
   import('./tabs/InviteCodesTab').then(m => ({ default: m.InviteCodesTab }))
@@ -60,14 +56,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const securityReadOnly = !isSystemAdmin || isDemo;
 
   const [activeTab, setActiveTab] = useState<
-    | 'security'
-    | 'users'
-    | 'researchers'
-    | 'catalog'
-    | 'system'
-    | 'monitoring'
-    | 'demo'
-    | 'invite-codes'
+    'security' | 'users' | 'researchers' | 'catalog' | 'system' | 'monitoring' | 'invite-codes'
   >('system');
   const [config, setConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
   const [originalConfig, setOriginalConfig] = useState<SecurityConfig>(DEFAULT_SECURITY_CONFIG);
@@ -210,7 +199,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     | 'catalog'
     | 'system'
     | 'monitoring'
-    | 'demo'
     | 'invite-codes';
 
   const tabs = (
@@ -252,11 +240,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       {!isSystemAdmin && (
         <Tab id="monitoring" icon={<Activity size={18} />}>
           Monitoring
-        </Tab>
-      )}
-      {!isSystemAdmin && (
-        <Tab id="demo" icon={<FlaskConical size={18} />}>
-          Demo
         </Tab>
       )}
     </Tabs>
@@ -351,12 +334,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       {activeTab === 'monitoring' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
           <MonitoringTab />
-        </Suspense>
-      )}
-
-      {activeTab === 'demo' && !isSystemAdmin && (
-        <Suspense fallback={<TabSkeleton />}>
-          <DemoManagementTab onDemoUpdate={loadUsers} onTabFooter={handleTabFooter} />
         </Suspense>
       )}
     </BaseModal>
