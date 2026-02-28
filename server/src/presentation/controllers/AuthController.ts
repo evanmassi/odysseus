@@ -778,15 +778,18 @@ export class AuthController {
         return next(new Error('Admin user not found in request context'));
       }
 
+      if (adminUser.isDemo) {
+        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Security configuration changes are restricted in the demo environment'));
+        return;
+      }
+
       const updates: Partial<SecurityConfig> = req.body;
 
-      // Validate that updates is an object
       if (!updates || typeof updates !== 'object') {
         res.status(400).json(ResponseBuilder.error('INVALID_REQUEST', 'Request body must be an object'));
         return;
       }
 
-      // Update security configuration using repository
       const updatedConfig = await this.configRepository.updateSecurityConfig(updates);
 
       logger.info('Security configuration updated', {

@@ -18,7 +18,7 @@ import {
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Tab, Tabs } from '@shared/ui';
+import { AlertBanner, Button, Tab, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
@@ -56,7 +56,8 @@ interface AdminSettingsModalProps {
 export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps) {
   const user = useAuthStore(s => s.user);
   const isSystemAdmin = user?.role === 'system_admin';
-  const securityReadOnly = !isSystemAdmin;
+  const isDemo = user?.isDemo ?? false;
+  const securityReadOnly = !isSystemAdmin || isDemo;
 
   const [activeTab, setActiveTab] = useState<
     | 'security'
@@ -223,15 +224,17 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       <Tab id="system" icon={<Gauge size={18} />}>
         System
       </Tab>
-      <Tab id="security" icon={<Shield size={18} />}>
-        Security
-      </Tab>
-      {!isSystemAdmin && (
+      {!isDemo && (
+        <Tab id="security" icon={<Shield size={18} />}>
+          Security
+        </Tab>
+      )}
+      {!isSystemAdmin && !isDemo && (
         <Tab id="users" icon={<UsersRound size={18} />}>
           Users
         </Tab>
       )}
-      {!isSystemAdmin && (
+      {!isSystemAdmin && !isDemo && (
         <Tab id="researchers" icon={<Dna size={18} />}>
           Researchers
         </Tab>
@@ -298,7 +301,13 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       className="h-[85vh]"
       onClose={handleClose}
     >
-      {activeTab === 'security' && (
+      {isDemo && (
+        <AlertBanner variant="info" spacing="sm">
+          Demo Environment — Some management features are restricted
+        </AlertBanner>
+      )}
+
+      {activeTab === 'security' && !isDemo && (
         <Suspense fallback={<TabSkeleton />}>
           <SecurityTab config={config} onChange={handleConfigChange} readOnly={securityReadOnly} />
         </Suspense>
@@ -310,13 +319,13 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         </Suspense>
       )}
 
-      {activeTab === 'users' && !isSystemAdmin && (
+      {activeTab === 'users' && !isSystemAdmin && !isDemo && (
         <Suspense fallback={<TabSkeleton />}>
           <UsersTab users={users} onUserUpdate={loadUsers} />
         </Suspense>
       )}
 
-      {activeTab === 'researchers' && !isSystemAdmin && (
+      {activeTab === 'researchers' && !isSystemAdmin && !isDemo && (
         <Suspense fallback={<TabSkeleton />}>
           <ResearchersTab onResearcherUpdate={loadSystemStats} onTabFooter={handleTabFooter} />
         </Suspense>

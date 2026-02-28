@@ -210,6 +210,7 @@ export class UserApplicationService {
     const targetUser = await this.getUserOrThrow(userId);
 
     this.accessControlService.requireCanManageUsers(admin);
+    this.rejectIfDemoLab(admin);
 
     // Prevent admin from changing their own role (lockout protection)
     if (admin.id === targetUser.id) {
@@ -244,6 +245,7 @@ export class UserApplicationService {
     const targetUser = await this.getUserOrThrow(userId);
 
     this.accessControlService.requireCanManageUsers(admin);
+    this.rejectIfDemoLab(admin);
 
     // Prevent admin from deleting themselves
     if (admin.id === targetUser.id) {
@@ -338,6 +340,12 @@ export class UserApplicationService {
   /**
    * Helper: Get authenticated user
    */
+  private rejectIfDemoLab(admin: User): void {
+    if (admin.isDemo) {
+      throw new PermissionError('User management is restricted in the demo environment');
+    }
+  }
+
   private async getUserByApiKey(apiKey: string): Promise<User> {
     const user = await this.userRepository.findByApiKey(apiKey);
     if (!user) {
@@ -563,6 +571,7 @@ export class UserApplicationService {
   async approveUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
+    this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
 
@@ -595,6 +604,7 @@ export class UserApplicationService {
   async rejectUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
+    this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
 
@@ -658,6 +668,7 @@ export class UserApplicationService {
 
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
+    this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
 
@@ -712,6 +723,7 @@ export class UserApplicationService {
   async unlinkResearcherFromUser(userId: string, adminApiKey: string): Promise<void> {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
+    this.rejectIfDemoLab(admin);
 
     const user = await this.getUserOrThrow(userId);
 

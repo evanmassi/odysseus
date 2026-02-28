@@ -162,6 +162,7 @@ export class ResearcherApplicationService {
   async createResearcher(labId: string, request: CreateResearcherRequest, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
     this.accessControlService.requireCanManageResearchers(user);
+    this.rejectIfDemoLab(user);
 
     // Validate email is provided
     if (!request.email?.trim()) {
@@ -269,6 +270,7 @@ export class ResearcherApplicationService {
   async updateResearcher(id: string, updates: { firstName?: string; lastName?: string; position?: string; department?: string; email?: string; active?: boolean }, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
     this.accessControlService.requireCanManageResearchers(user);
+    this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
     const person = await this.getPersonForResearcher(researcher);
@@ -350,6 +352,7 @@ export class ResearcherApplicationService {
   async deleteResearcher(id: string, userApiKey: string): Promise<void> {
     const user = await this.getUserByApiKey(userApiKey);
     await this.accessControlService.requireAdminAccess(user);
+    this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
 
@@ -407,6 +410,7 @@ export class ResearcherApplicationService {
   async deactivateResearcher(id: string, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
     this.accessControlService.requireCanManageResearchers(user);
+    this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
 
@@ -445,6 +449,7 @@ export class ResearcherApplicationService {
   async activateResearcher(id: string, userApiKey: string): Promise<ResearcherResponse> {
     const user = await this.getUserByApiKey(userApiKey);
     this.accessControlService.requireCanManageResearchers(user);
+    this.rejectIfDemoLab(user);
 
     const researcher = await this.getResearcherOrThrow(id);
 
@@ -517,6 +522,12 @@ export class ResearcherApplicationService {
       throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
     }
     return researcher;
+  }
+
+  private rejectIfDemoLab(user: User): void {
+    if (user.isDemo) {
+      throw new PermissionError('Researcher management is restricted in the demo environment');
+    }
   }
 
   private async getUserByApiKey(apiKey: string): Promise<User> {
