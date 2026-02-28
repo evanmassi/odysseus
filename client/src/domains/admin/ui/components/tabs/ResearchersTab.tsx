@@ -14,7 +14,17 @@
 import React, { useState, useEffect, useMemo } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
-import { RefreshCw, Trash2, Plus, BadgeCheck, BadgeX, Clock, Dna } from 'lucide-react';
+import {
+  RefreshCw,
+  Trash2,
+  Plus,
+  BadgeCheck,
+  BadgeX,
+  Clock,
+  Dna,
+  TestTube,
+  Link,
+} from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
@@ -35,6 +45,7 @@ import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
 export interface ResearchersTabProps {
   onResearcherUpdate?: () => void;
   onTabFooter?: (footer: React.ReactNode) => void;
+  readOnly?: boolean;
 }
 
 /**
@@ -53,7 +64,11 @@ export interface ResearchersTabProps {
  * />
  * ```
  */
-export function ResearchersTab({ onResearcherUpdate, onTabFooter }: ResearchersTabProps) {
+export function ResearchersTab({
+  onResearcherUpdate,
+  onTabFooter,
+  readOnly = false,
+}: ResearchersTabProps) {
   const [researchers, setResearchers] = useState<AdminResearcher[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
@@ -74,27 +89,20 @@ export function ResearchersTab({ onResearcherUpdate, onTabFooter }: ResearchersT
   useEffect(() => {
     onTabFooter?.(
       <div className="space-y-2">
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground flex-wrap">
-          <span>Total Researchers:</span>
-          <span className="font-semibold text-secondary-foreground">{researchers.length}</span>
-          <span className="text-border">•</span>
-          <span>With Tubes:</span>
-          <span className="font-semibold text-secondary-foreground">
-            {researchers.filter(r => r.tubeCount > 0).length}
-          </span>
-          <span className="text-border">•</span>
-          <span>Linked to Users:</span>
-          <span className="font-semibold text-secondary-foreground">
-            {researchers.filter(r => r.linkedUserId).length}
-          </span>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Chip color="info" size="sm" leftIcon={<Dna />}>
+            {researchers.length} {researchers.length === 1 ? 'researcher' : 'researchers'}
+          </Chip>
+          <Chip color="info" size="sm" leftIcon={<TestTube />}>
+            {researchers.filter(r => r.tubeCount > 0).length} with tubes
+          </Chip>
+          <Chip color="info" size="sm" leftIcon={<Link />}>
+            {researchers.filter(r => r.linkedUserId).length} linked to users
+          </Chip>
           {researchers.filter(r => r.approvalStatus === 'pending').length > 0 && (
-            <>
-              <span className="text-border">•</span>
-              <span>Pending Approval:</span>
-              <span className="font-semibold text-warning-text">
-                {researchers.filter(r => r.approvalStatus === 'pending').length}
-              </span>
-            </>
+            <Chip color="warning" size="sm" leftIcon={<Clock />}>
+              {researchers.filter(r => r.approvalStatus === 'pending').length} pending approval
+            </Chip>
           )}
         </div>
         <AlertBanner variant="info" spacing="none" className="text-xs">
@@ -392,29 +400,31 @@ export function ResearchersTab({ onResearcherUpdate, onTabFooter }: ResearchersT
           <Dna size={22} className="text-secondary-foreground" />
           <h3 className="text-xl font-semibold text-card-foreground">Researchers</h3>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowAddModal(true)}
-            leftIcon={<Plus size={14} />}
-          >
-            Add Researcher
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={loadResearchers}
-            isLoading={loading}
-            leftIcon={<RefreshCw size={14} />}
-          >
-            Refresh
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setShowAddModal(true)}
+              leftIcon={<Plus size={14} />}
+            >
+              Add Researcher
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={loadResearchers}
+              isLoading={loading}
+              leftIcon={<RefreshCw size={14} />}
+            >
+              Refresh
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Researchers Table */}
       <Table
-        columns={researcherColumns}
+        columns={readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns}
         data={sortedResearchers as TableRow[]}
         size="sm"
         variant="default"

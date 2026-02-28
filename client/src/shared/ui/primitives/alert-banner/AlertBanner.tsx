@@ -18,35 +18,31 @@ import type { LucideIcon } from 'lucide-react';
 
 const variantStyles: Record<
   AlertBannerVariant,
-  { bg: string; border: string; icon: string; text: string; defaultIcon: LucideIcon | null }
+  { bg: string; icon: string; text: string; defaultIcon: LucideIcon | null }
 > = {
   error: {
     bg: 'bg-danger-light',
-    border: 'border-l-danger-border',
     icon: 'text-danger-text',
     text: 'text-danger-text',
-    defaultIcon: null, // Uses AnimatedXMark instead
+    defaultIcon: null,
   },
   warning: {
     bg: 'bg-warning-light',
-    border: 'border-l-warning-border',
     icon: 'text-warning-text',
     text: 'text-warning-text',
-    defaultIcon: null, // Uses AnimatedWarningMark instead
+    defaultIcon: null,
   },
   info: {
     bg: 'bg-info-light',
-    border: 'border-l-info-border',
     icon: 'text-info-text',
     text: 'text-info-text',
-    defaultIcon: null, // Uses AnimatedInfoMark instead
+    defaultIcon: null,
   },
   success: {
     bg: 'bg-success-light',
-    border: 'border-l-success-border',
     icon: 'text-success-text',
     text: 'text-success-text',
-    defaultIcon: null, // Uses AnimatedCheckmark instead
+    defaultIcon: null,
   },
 };
 
@@ -104,7 +100,7 @@ export function AlertBanner({
   if (title != null || actions != null) {
     return (
       <div
-        className={`w-fit px-3 py-2 ${styles.bg} border-l-4 ${styles.border} rounded-lg shadow-sm ${animationClass} ${spacingClass} ${className}`}
+        className={`w-fit px-3 py-1 ${styles.bg} rounded-lg ${animationClass} ${spacingClass} ${className}`}
         role="alert"
       >
         <div className="flex items-start gap-2">
@@ -122,7 +118,7 @@ export function AlertBanner({
   // Simple layout: just message
   return (
     <div
-      className={`w-fit px-3 py-2 ${styles.bg} border-l-4 ${styles.border} rounded-lg shadow-sm flex items-center gap-2 ${animationClass} ${spacingClass} ${className}`}
+      className={`w-fit h-7 px-2 ${styles.bg} rounded-lg flex items-center gap-2 ${animationClass} ${spacingClass} ${className}`}
       role="alert"
     >
       {renderIcon()}

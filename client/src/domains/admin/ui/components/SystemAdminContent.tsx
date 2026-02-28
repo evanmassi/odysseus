@@ -248,10 +248,10 @@ export function SystemAdminContent() {
               return (
                 <div
                   key={lab.id}
-                  className={`p-4 rounded-lg space-y-3 cursor-pointer transition-colors ${
+                  className={`p-4 rounded-lg space-y-3 cursor-pointer transition-colors outline outline-1 outline-offset-4 ${
                     lab.isDemo
-                      ? 'bg-fuchsia-500/5 ring-1 ring-fuchsia-500/30 ring-offset-4 ring-offset-background hover:bg-fuchsia-500/10'
-                      : 'bg-muted hover:bg-muted/80'
+                      ? 'bg-demo-light outline-demo-border/50 hover:bg-demo-light/80'
+                      : 'bg-muted outline-border/50 hover:bg-muted/80'
                   }`}
                   onClick={() => setSelectedLabId(lab.id)}
                   onKeyDown={e => {

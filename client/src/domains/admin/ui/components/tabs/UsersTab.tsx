@@ -56,11 +56,9 @@ const ROLE_OPTIONS = [
  * @interface UsersTabProps
  */
 export interface UsersTabProps {
-  /** Array of users to display in the table */
   users: AdminUser[];
-
-  /** Callback invoked when user list should be refreshed (after role change, deletion, etc.) */
   onUserUpdate: () => void;
+  readOnly?: boolean;
 }
 
 /**
@@ -81,7 +79,7 @@ export interface UsersTabProps {
  * />
  * ```
  */
-export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
+export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTabProps) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [pendingUsers, setPendingUsers] = useState<AdminUser[]>([]);
   const [_loadingPending, setLoadingPending] = useState(false);
@@ -408,7 +406,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
                   }
                 }}
                 options={ROLE_OPTIONS}
-                disabled={updating === user.id || user.role === 'system_admin'}
+                disabled={readOnly || updating === user.id || user.role === 'system_admin'}
                 size="sm"
                 fullWidth
               />
@@ -525,20 +523,22 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
           <UsersRound size={22} className="text-secondary-foreground" />
           <h3 className="text-xl font-semibold text-card-foreground">Users</h3>
         </div>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            onUserUpdate();
-            void loadPendingUsers();
-          }}
-          leftIcon={<RefreshCw size={14} />}
-        >
-          Refresh
-        </Button>
+        {!readOnly && (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              onUserUpdate();
+              void loadPendingUsers();
+            }}
+            leftIcon={<RefreshCw size={14} />}
+          >
+            Refresh
+          </Button>
+        )}
       </div>
 
       {/* Pending Approvals Section */}
-      {pendingUsers.length > 0 && (
+      {!readOnly && pendingUsers.length > 0 && (
         <div className="bg-muted border-l-4 border-l-warning-border rounded-lg shadow-sm p-3">
           <div className="flex items-center gap-2 mb-3">
             <Clock className="w-4 h-4 text-warning-text flex-shrink-0" />
@@ -593,7 +593,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
 
       {/* All Users Table */}
       <Table
-        columns={userColumns}
+        columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
         data={(sortedUsers ?? []) as TableRow[]}
         size="sm"
         variant="default"

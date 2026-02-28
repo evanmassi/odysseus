@@ -101,6 +101,12 @@ export default {
           'light-hover': 'hsl(var(--color-success-light-hover) / <alpha-value>)',
           border: 'hsl(var(--color-success-border) / <alpha-value>)',
         },
+        demo: {
+          bg: 'hsl(var(--color-demo-bg) / <alpha-value>)',
+          text: 'hsl(var(--color-demo-text) / <alpha-value>)',
+          light: 'hsl(var(--color-demo-light) / <alpha-value>)',
+          border: 'hsl(var(--color-demo-border) / <alpha-value>)',
+        },
         info: {
           bg: 'hsl(var(--color-info-bg) / <alpha-value>)',
           hover: 'hsl(var(--color-info-hover) / <alpha-value>)',

@@ -217,12 +217,12 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
           Security
         </Tab>
       )}
-      {!isSystemAdmin && !isDemo && (
+      {!isSystemAdmin && (
         <Tab id="users" icon={<UsersRound size={18} />}>
           Users
         </Tab>
       )}
-      {!isSystemAdmin && !isDemo && (
+      {!isSystemAdmin && (
         <Tab id="researchers" icon={<Dna size={18} />}>
           Researchers
         </Tab>
@@ -302,15 +302,19 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         </Suspense>
       )}
 
-      {activeTab === 'users' && !isSystemAdmin && !isDemo && (
+      {activeTab === 'users' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
-          <UsersTab users={users} onUserUpdate={loadUsers} />
+          <UsersTab users={users} onUserUpdate={loadUsers} readOnly={isDemo} />
         </Suspense>
       )}
 
-      {activeTab === 'researchers' && !isSystemAdmin && !isDemo && (
+      {activeTab === 'researchers' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
-          <ResearchersTab onResearcherUpdate={loadSystemStats} onTabFooter={handleTabFooter} />
+          <ResearchersTab
+            onResearcherUpdate={loadSystemStats}
+            onTabFooter={handleTabFooter}
+            readOnly={isDemo}
+          />
         </Suspense>
       )}
 

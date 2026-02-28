@@ -171,11 +171,6 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
                 </Button>
               </div>
             )}
-            {lab.isDemo && (
-              <Chip color="warning" size="sm">
-                Demo
-              </Chip>
-            )}
             <Chip color={lab.isActive ? 'success' : 'default'} size="sm">
               {lab.isActive ? 'Active' : 'Inactive'}
             </Chip>

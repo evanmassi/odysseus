@@ -45,7 +45,7 @@ const sizeClasses = {
   md: { badge: 'w-6 h-6', text: 'text-xs' },
 };
 
-const DEMO_COLOR = { bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-700 dark:text-fuchsia-300' };
+const DEMO_COLOR = { bg: 'bg-demo-bg/20', text: 'text-demo-text' };
 
 export function LabBadge({ labId, labName, size = 'sm', isDemo }: LabBadgeProps) {
   const color = isDemo ? DEMO_COLOR : BADGE_COLORS[hashToIndex(labId)];
