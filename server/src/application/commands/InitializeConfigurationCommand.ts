@@ -14,6 +14,7 @@ import { EventBus } from '@application/contracts/EventBus';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { ConfigurationUpdatedEvent } from '@domain/events/ConfigurationEvents';
+import { generateId } from '@domain/utils/generateId';
 
 // COMMAND INTERFACE
 
@@ -64,14 +65,14 @@ export class InitializeConfigurationCommandHandler {
     const tanks: Tank[] = [];
 
     for (let t = 0; t < tankCount; t++) {
-      const tankId = NAMING_PATTERNS.TANK.ID_PATTERN(t + 1);
+      const tankId = generateId('tank');
       const tankName = NAMING_PATTERNS.TANK.DEFAULT_NAME(t + 1);
 
       const racks: Rack[] = [];
 
       for (let r = 0; r < racksPerTank; r++) {
-        const rackId = r + 1;
-        const rackName = NAMING_PATTERNS.RACK.DEFAULT_NAME(rackId);
+        const rackId = generateId('rack');
+        const rackName = NAMING_PATTERNS.RACK.DEFAULT_NAME(r + 1);
 
         const boxes: Box[] = [];
 

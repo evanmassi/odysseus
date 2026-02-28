@@ -2,6 +2,7 @@ import { EquipmentConfiguration, Tank, Rack, Box } from '@domain/valueObjects/Eq
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { Location } from '@domain/valueObjects/Location';
+import { generateId } from '@domain/utils/generateId';
 import {
   EQUIPMENT_DEFAULTS,
   NAMING_PATTERNS,
@@ -41,16 +42,14 @@ export class Configuration {
       ));
     }
 
-    // Create default racks with nested boxes
     const defaultRacks = [
-      Rack.create(1, NAMING_PATTERNS.RACK.DEFAULT_NAME(1), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true),
-      Rack.create(2, NAMING_PATTERNS.RACK.DEFAULT_NAME(2), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true),
-      Rack.create(3, NAMING_PATTERNS.RACK.DEFAULT_NAME(3), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true)
+      Rack.create(generateId('rack'), NAMING_PATTERNS.RACK.DEFAULT_NAME(1), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true),
+      Rack.create(generateId('rack'), NAMING_PATTERNS.RACK.DEFAULT_NAME(2), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true),
+      Rack.create(generateId('rack'), NAMING_PATTERNS.RACK.DEFAULT_NAME(3), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true)
     ];
 
-    // Create default tank with nested racks
     const defaultTanks = [
-      Tank.create(NAMING_PATTERNS.TANK.ID_PATTERN(1), NAMING_PATTERNS.TANK.DEFAULT_NAME(1), defaultRacks, EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK, true, 'Main Lab')
+      Tank.create(generateId('tank'), NAMING_PATTERNS.TANK.DEFAULT_NAME(1), defaultRacks, EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK, true, 'Main Lab')
     ];
 
     const equipment = EquipmentConfiguration.create(defaultTanks);

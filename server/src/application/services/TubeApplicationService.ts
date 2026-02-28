@@ -87,8 +87,8 @@ export class TubeApplicationService {
     return config.tanks.map(t => t.id);
   }
 
-  private async getTubeOrThrow(id: string): Promise<Tube> {
-    const tube = await this.tubeRepository.findById(id);
+  private async getTubeOrThrow(id: string, labId: string): Promise<Tube> {
+    const tube = await this.tubeRepository.findById(id, labId);
     if (!tube) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
@@ -144,7 +144,8 @@ export class TubeApplicationService {
         tubeData.location.rackId,
         tubeData.location.boxId,
         tubeData.location.position,
-        this.tubeRepository
+        undefined,
+        authenticatedUser.labId!
       );
 
       if (!positionResult.isValid) {
@@ -246,8 +247,8 @@ export class TubeApplicationService {
       for (const [, group] of boxGroups) {
         const { tankId, rackId, boxId } = group[0].req.location;
         const [occupiedArr, tubesInBox] = await Promise.all([
-          this.tubeRepository.getOccupiedPositions(tankId, rackId, boxId),
-          this.tubeRepository.findByCompleteLocation(tankId, rackId, boxId),
+          this.tubeRepository.getOccupiedPositions(tankId, rackId, boxId, authenticatedUser.labId!),
+          this.tubeRepository.findByCompleteLocation(tankId, rackId, boxId, authenticatedUser.labId!),
         ]);
         const occupiedPositions = new Set(occupiedArr);
         const boxInfo = config.getBox(tankId, rackId, boxId);
@@ -289,7 +290,7 @@ export class TubeApplicationService {
    * Get tube by ID
    */
   async getTubeById(id: string, authenticatedUser: User): Promise<TubeResponse> {
-    const tube = await this.getTubeOrThrow(id);
+    const tube = await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(tube.location.tankId)) {
@@ -341,9 +342,9 @@ export class TubeApplicationService {
         ...searchRequest,
         tankIds: filteredTankIds
       };
-      tubes = await this.tubeRepository.search(filteredCriteria);
+      tubes = await this.tubeRepository.search(filteredCriteria, authenticatedUser.labId!);
     } else {
-      tubes = await this.tubeRepository.findByTankIds(allowedTankIds);
+      tubes = await this.tubeRepository.findByTankIds(allowedTankIds, authenticatedUser.labId!);
     }
 
     return TubeDto.toResponseList(tubes);
@@ -365,7 +366,7 @@ export class TubeApplicationService {
       return [];
     }
 
-    const tubes = await this.tubeRepository.findByCompleteLocation(tankId, rackId, boxId);
+    const tubes = await this.tubeRepository.findByCompleteLocation(tankId, rackId, boxId, authenticatedUser.labId!);
 
     return TubeDto.toResponseList(tubes);
   }
@@ -380,7 +381,7 @@ export class TubeApplicationService {
   ): Promise<TubeResponse[]> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId);
+    const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId, authenticatedUser.labId!);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     const filteredTubes = tubes.filter(tube => allowedTankIds.includes(tube.location.tankId));
@@ -408,14 +409,11 @@ export class TubeApplicationService {
       tankIds: filteredTankIds
     };
 
-    const tubes = await this.tubeRepository.search(filteredCriteria);
+    const tubes = await this.tubeRepository.search(filteredCriteria, authenticatedUser.labId!);
 
     return TubeDto.toResponseList(tubes);
   }
 
-  /**
-   * Search tubes with highlighting.
-   */
   async searchTubesWithHighlighting(
     searchRequest: TubeSearchRequest,
     authenticatedUser: User
@@ -433,7 +431,7 @@ export class TubeApplicationService {
       tankIds: filteredTankIds
     };
 
-    const result = await this.tubeRepository.searchWithHighlighting(filteredCriteria);
+    const result = await this.tubeRepository.searchWithHighlighting(filteredCriteria, authenticatedUser.labId!);
 
     return {
       tubes: TubeDto.toResponseList(result.tubes),
@@ -446,7 +444,7 @@ export class TubeApplicationService {
    * Trust Zod-validated input, check business rules only
    */
   async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Configuration | null; preloadedTube?: Tube }): Promise<TubeResponse> {
-    const existingTube = options?.preloadedTube ?? await this.getTubeOrThrow(id);
+    const existingTube = options?.preloadedTube ?? await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(existingTube.location.tankId)) {
@@ -527,8 +525,8 @@ export class TubeApplicationService {
           newRackId,
           newBoxId,
           newPosition,
-          this.tubeRepository,
-          id // Exclude current tube from conflict check
+          id,
+          authenticatedUser.labId!
         );
 
         if (!positionResult.isValid) {
@@ -600,7 +598,7 @@ export class TubeApplicationService {
    * Delete tube
    */
   async deleteTube(id: string, authenticatedUser: User, options?: { config?: Configuration | null; preloadedTube?: Tube }): Promise<void> {
-    const tube = options?.preloadedTube ?? await this.getTubeOrThrow(id);
+    const tube = options?.preloadedTube ?? await this.getTubeOrThrow(id, authenticatedUser.labId!);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(tube.location.tankId)) {
@@ -633,7 +631,7 @@ export class TubeApplicationService {
     // Note: Authorization is handled by canAccessTubeForModification above
     // which checks container access OR shared access to the tube
 
-    await this.tubeRepository.delete(id);
+    await this.tubeRepository.delete(id, authenticatedUser.labId!);
 
     const deletedEvent = new TubeDeletedEvent(
       tube.id,
@@ -663,7 +661,7 @@ export class TubeApplicationService {
 
     // Pre-fetch all tubes in one query
     const tubeIds = request.updates.map(u => u.id);
-    const tubes = await this.tubeRepository.findByIds(tubeIds);
+    const tubes = await this.tubeRepository.findByIds(tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
     const { succeeded: updated, failed } = await this.executeBatch(
@@ -707,8 +705,7 @@ export class TubeApplicationService {
     // Consistent with bulkUpdateTubes which uses the same per-tube authorization pattern
     const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
 
-    // Pre-fetch all tubes in one query
-    const tubes = await this.tubeRepository.findByIds(tubeIds);
+    const tubes = await this.tubeRepository.findByIds(tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
@@ -759,9 +756,8 @@ export class TubeApplicationService {
       }
     }
 
-    // Bulk delete all validated tubes in one query
     if (validatedIds.length > 0) {
-      await this.tubeRepository.deleteMany(validatedIds);
+      await this.tubeRepository.deleteMany(validatedIds, authenticatedUser.labId!);
 
       for (const tube of validatedTubes) {
         const tubeDeletedEvent = new TubeDeletedEvent(
@@ -791,7 +787,7 @@ export class TubeApplicationService {
 
     const config = await this.configurationRepository.getForLab(authenticatedUser.labId!);
     const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
-    const tubes = await this.tubeRepository.findByIds(request.tubeIds);
+    const tubes = await this.tubeRepository.findByIds(request.tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
     for (const tubeId of request.tubeIds) {
@@ -807,7 +803,6 @@ export class TubeApplicationService {
         continue;
       }
 
-      // Check container access first (assignment protects the container)
       const containerInfo = await this.getContainerInfo(
         authenticatedUser.labId!,
         tube.location.tankId,
@@ -885,7 +880,7 @@ export class TubeApplicationService {
     const skipped: SkippedTube[] = [];
 
     const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
-    const tubes = await this.tubeRepository.findByIds(request.tubeIds);
+    const tubes = await this.tubeRepository.findByIds(request.tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
     for (const tubeId of request.tubeIds) {
@@ -962,7 +957,7 @@ export class TubeApplicationService {
     }
 
     const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
-    const tubes = await this.tubeRepository.findByIds(request.tubeIds);
+    const tubes = await this.tubeRepository.findByIds(request.tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
     for (const tubeId of request.tubeIds) {
@@ -1030,7 +1025,7 @@ export class TubeApplicationService {
     const tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }> = [];
 
     const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
-    const tubes = await this.tubeRepository.findByIds(request.tubeIds);
+    const tubes = await this.tubeRepository.findByIds(request.tubeIds, authenticatedUser.labId!);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
     for (const tubeId of request.tubeIds) {
@@ -1101,7 +1096,7 @@ export class TubeApplicationService {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
-    const stats = await this.tubeRepository.getStats(allowedTankIds);
+    const stats = await this.tubeRepository.getStats(allowedTankIds, authenticatedUser.labId!);
 
     return {
       totalTubes: stats.totalTubes,

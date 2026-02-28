@@ -12,6 +12,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
+import { generateId } from '@domain/utils/generateId';
 import {
   TankAddedEvent,
   TankUpdatedEvent,
@@ -69,8 +70,7 @@ export class AddTankCommandHandler {
       throw PermissionError.configurationManagement('add tank', command.userId);
     }
 
-    const existingTankIds = currentConfig.tanks.map(t => t.id);
-    const tankId = this.generateTankId(existingTankIds);
+    const tankId = generateId('tank');
 
     const expectedVersion = currentConfig.version;
     currentConfig.addTank(tankId, command.name);
@@ -102,17 +102,6 @@ export class AddTankCommandHandler {
     return user;
   }
 
-  private generateTankId(existingIds: string[]): string {
-    let maxNum = 0;
-    for (const id of existingIds) {
-      const match = id.match(/tank-(\d+)/);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        if (num > maxNum) maxNum = num;
-      }
-    }
-    return `tank-${maxNum + 1}`;
-  }
 }
 
 /** Updates an existing tank's properties. */
@@ -266,7 +255,7 @@ export class ResetDemoDataCommandHandler {
       return { deletedTubes: 0 };
     }
 
-    const deletedTubes = await this.tubeRepository.deleteByTankIds(allTankIds);
+    const deletedTubes = await this.tubeRepository.deleteByTankIds(allTankIds, command.labId);
     return { deletedTubes };
   }
 

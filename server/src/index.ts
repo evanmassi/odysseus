@@ -161,9 +161,6 @@ class OdysseusServer {
     // Apply all routes
     registry.applyRoutes();
 
-    // Legacy tank delete - force-deletes all tubes in tank first
-    // DDD route at /api/configuration/tanks/:tankId blocks if tubes exist
-    this.app.delete('/api/tanks/:tankId', this.deleteTank.bind(this));
   }
 
   private setupErrorHandling(): void {
@@ -178,48 +175,6 @@ class OdysseusServer {
 
     process.on('SIGTERM', this.shutdown.bind(this));
     process.on('SIGINT', this.shutdown.bind(this));
-  }
-
-  private async deleteTank(req: express.Request, res: express.Response): Promise<void> {
-    try {
-      const { tankId } = req.params;
-      
-      if (!tankId) {
-        res.status(400).json({ error: 'Tank ID is required' });
-        return;
-      }
-      
-      logger.info(`Attempting to delete tank: ${tankId}`);
-
-      // Delete all tubes associated with this tank first
-      const repositories = this.repositoryFactory.getRepositories();
-      const allTubes = await repositories.tubes.findAll();
-      const tankTubes = allTubes.filter(tube => tube.location.tankId === tankId);
-      
-      for (const tube of tankTubes) {
-        await repositories.tubes.delete(tube.id);
-      }
-
-      // Manual Socket.IO emissions - this endpoint bypasses domain layer
-      if (this.io) {
-        this.io.emit('tubeUpdate', {
-          type: 'bulk-delete',
-          data: { deletedTubes: tankTubes, tankId }
-        });
-        this.io.emit('tankDeleted', { tankId });
-      }
-      
-      logger.info(`Tank ${tankId} deleted with ${tankTubes.length} tubes`);
-      res.json({ 
-        success: true, 
-        message: `Tank deleted successfully`,
-        deletedTubes: tankTubes.length,
-        tankId
-      });
-    } catch (error) {
-      logger.error('Error deleting tank:', error);
-      res.status(500).json({ error: 'Failed to delete tank' });
-    }
   }
 
   public async start(): Promise<void> {

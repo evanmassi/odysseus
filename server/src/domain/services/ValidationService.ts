@@ -64,8 +64,8 @@ export class ValidationService {
 
     // 2. Location validation (via TubePositionService)
     const location = Location.create(tubeData.location.tankId, String(tubeData.location.rackId), tubeData.location.boxId, tubeData.location.position);
-    const positionValidation = await this.tubePositionService.canPlaceTubeAt(location);
-    
+    const positionValidation = await this.tubePositionService.canPlaceTubeAt(location, user.labId ?? '');
+
     if (!positionValidation.isValid) {
       result.isValid = false;
       result.errors.push(...positionValidation.errors);
@@ -105,7 +105,7 @@ export class ValidationService {
     }
 
     // 5. Business rules validation
-    const businessRules = await this.validateTubeBusinessRules(tubeData, 'create');
+    const businessRules = await this.validateTubeBusinessRules(tubeData, 'create', user.labId ?? '');
     if (!businessRules.isValid) {
       result.isValid = false;
       result.errors.push(...businessRules.errors);
@@ -147,7 +147,7 @@ export class ValidationService {
         updates.location?.position ?? tube.position
       );
       
-      const positionValidation = await this.tubePositionService.canPlaceTubeAt(newLocation, tube.id);
+      const positionValidation = await this.tubePositionService.canPlaceTubeAt(newLocation, user.labId ?? '', tube.id);
       if (!positionValidation.isValid) {
         result.isValid = false;
         result.errors.push(...positionValidation.errors);
@@ -197,7 +197,7 @@ export class ValidationService {
 
     // 5. Business rules validation
     const mergedData = { ...tube.toData(), ...updates };
-    const businessRules = await this.validateTubeBusinessRules(mergedData, 'update');
+    const businessRules = await this.validateTubeBusinessRules(mergedData, 'update', user.labId ?? '');
     if (!businessRules.isValid) {
       result.isValid = false;
       result.errors.push(...businessRules.errors);
@@ -249,7 +249,8 @@ export class ValidationService {
     operation: 'update' | 'delete',
     tubeIds: string[],
     updates: Partial<TubeUpdateData> | null,
-    user: User
+    user: User,
+    labId: string = ''
   ): Promise<BulkValidationResult> {
     const result: BulkValidationResult = {
       isValid: true,
@@ -277,7 +278,7 @@ export class ValidationService {
     // 2. Validate each tube individually
     for (const tubeId of accessResult.allowedTubes) {
       try {
-        const tube = await this.tubeRepository.findById(tubeId);
+        const tube = await this.tubeRepository.findById(tubeId, labId);
         if (!tube) {
           result.invalidItems.push({
             id: tubeId,
@@ -287,7 +288,7 @@ export class ValidationService {
         }
 
         let validation: DomainValidationResult;
-        
+
         if (operation === 'update' && updates) {
           validation = await this.validateTubeUpdate(tube, updates, user);
         } else {
@@ -378,7 +379,8 @@ export class ValidationService {
   async validateConfigurationUpdate(
     currentConfig: Configuration,
     updatedConfig: Configuration,
-    user: User
+    user: User,
+    labId: string = ''
   ): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
@@ -402,7 +404,7 @@ export class ValidationService {
 
     // 2. Validate configuration changes don't break existing tubes
     if (this.isEquipmentBeingRemovedInConfig(currentConfig, updatedConfig)) {
-      const equipmentValidation = await this.validateEquipmentRemovalInConfig(currentConfig, updatedConfig);
+      const equipmentValidation = await this.validateEquipmentRemovalInConfig(currentConfig, updatedConfig, labId);
       if (!equipmentValidation.isValid) {
         result.isValid = false;
         result.errors.push(...equipmentValidation.errors);
@@ -449,7 +451,8 @@ export class ValidationService {
 
   private async validateTubeBusinessRules(
     tubeData: TubeBusinessRuleInput,
-    operation: 'create' | 'update'
+    operation: 'create' | 'update',
+    labId: string = ''
   ): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
@@ -482,7 +485,7 @@ export class ValidationService {
         const existingTubes = await this.tubeRepository.search({
           donorInternalId: sample.donorInternalId,
           limit: 5
-        });
+        }, labId);
         
         if (existingTubes.length > 0) {
           result.warnings.push(`${existingTubes.length} other tube(s) found with the same donor internal ID`);
@@ -537,7 +540,7 @@ export class ValidationService {
     return false;
   }
 
-  private async validateEquipmentRemovalInConfig(currentConfig: Configuration, updatedConfig: Configuration): Promise<DomainValidationResult> {
+  private async validateEquipmentRemovalInConfig(currentConfig: Configuration, updatedConfig: Configuration, labId: string = ''): Promise<DomainValidationResult> {
     const result: DomainValidationResult = {
       isValid: true,
       errors: [],
@@ -553,7 +556,7 @@ export class ValidationService {
 
       // Check if tank is completely removed
       if (!updatedTankIds.has(currentTank.id)) {
-        const tubeCount = await this.tubeRepository.countByTank(currentTank.id);
+        const tubeCount = await this.tubeRepository.countByTank(currentTank.id, labId);
         if (tubeCount > 0) {
           result.isValid = false;
           result.errors.push(
@@ -566,7 +569,7 @@ export class ValidationService {
 
       // Check if tank is being deactivated
       if (updatedTank && currentTank.isActive && !updatedTank.isActive) {
-        const tubeCount = await this.tubeRepository.countByTank(currentTank.id);
+        const tubeCount = await this.tubeRepository.countByTank(currentTank.id, labId);
         if (tubeCount > 0) {
           result.isValid = false;
           result.errors.push(
@@ -584,7 +587,7 @@ export class ValidationService {
         for (const currentRack of currentTank.racks) {
           // Check if rack is completely removed
           if (!updatedRackIds.has(currentRack.id)) {
-            const tubeCount = await this.tubeRepository.countByRack(currentTank.id, currentRack.id);
+            const tubeCount = await this.tubeRepository.countByRack(currentTank.id, currentRack.id, labId);
             if (tubeCount > 0) {
               result.isValid = false;
               result.errors.push(
@@ -605,7 +608,8 @@ export class ValidationService {
                 const tubeCount = await this.tubeRepository.countByBox(
                   currentTank.id,
                   currentRack.id,
-                  currentBox.name
+                  currentBox.name,
+                  labId
                 );
                 if (tubeCount > 0) {
                   result.isValid = false;

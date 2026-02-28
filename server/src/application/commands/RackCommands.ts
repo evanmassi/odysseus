@@ -15,6 +15,7 @@ import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
+import { generateId } from '@domain/utils/generateId';
 import {
   RackAddedEvent,
   RackUpdatedEvent,
@@ -89,16 +90,12 @@ export class AddRacksCommandHandler {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
 
-    const existingRackIds = tank.racks.map(r => parseInt(r.id, 10)).filter(n => !isNaN(n));
-    const maxRackId = existingRackIds.length > 0 ? Math.max(...existingRackIds) : 0;
-
     const rackIds: string[] = [];
     const events: RackAddedEvent[] = [];
 
     for (let i = 0; i < command.count; i++) {
-      const newRackId = maxRackId + i + 1;
-      const rackIdStr = String(newRackId);
-      const rackName = NAMING_PATTERNS.RACK.DEFAULT_NAME(newRackId);
+      const rackIdStr = generateId('rack');
+      const rackName = NAMING_PATTERNS.RACK.DEFAULT_NAME(tank.racks.length + i + 1);
 
       const defaultBoxes: Box[] = [];
       for (let j = 0; j < EQUIPMENT_DEFAULTS.BOXES_PER_RACK; j++) {
@@ -112,7 +109,7 @@ export class AddRacksCommandHandler {
         ));
       }
 
-      currentConfig.addRack(command.tankId, newRackId, rackName, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, defaultBoxes);
+      currentConfig.addRack(command.tankId, rackIdStr, rackName, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, defaultBoxes);
 
       rackIds.push(rackIdStr);
       events.push(new RackAddedEvent(

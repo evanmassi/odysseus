@@ -29,27 +29,22 @@ export class TubeRepository implements ITubeRepository {
     private configurationRepository: ConfigurationRepository
   ) {}
 
-  async findById(id: string): Promise<Tube | null> {
+  async findById(id: string, labId: string): Promise<Tube | null> {
     const row = await this.context.queryOne<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE id = $1`,
-      [id]
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE id = $1 AND lab_id = $2`,
+      [id, labId]
     );
     return row ? TubeMapper.fromRow(row) : null;
   }
 
-  async findByIds(ids: string[]): Promise<Tube[]> {
+  async findByIds(ids: string[], labId: string): Promise<Tube[]> {
     if (ids.length === 0) return [];
 
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE id IN (${placeholders})`,
-      ids
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE id IN (${placeholders}) AND lab_id = $${ids.length + 1}`,
+      [...ids, labId]
     );
-    return TubeMapper.fromRows(rows);
-  }
-
-  async findAll(): Promise<Tube[]> {
-    const rows = await this.context.queryMany<TubeRow>(`SELECT ${this.TUBE_COLUMNS} FROM tubes ORDER BY created_at DESC`);
     return TubeMapper.fromRows(rows);
   }
 
@@ -197,119 +192,117 @@ export class TubeRepository implements ITubeRepository {
 
     if (result.rowCount === 0) {
       // Version mismatch - fetch current version for error message
-      const currentTube = await this.findById(tube.id);
+      const currentTube = await this.findById(tube.id, tube.labId ?? '');
       const currentVersion = currentTube?.version ?? 0;
       throw ConflictError.tube(tube.id, expectedVersion, currentVersion);
     }
   }
 
-  async delete(id: string): Promise<boolean> {
-    const result = await this.context.execute('DELETE FROM tubes WHERE id = $1', [id]);
+  async delete(id: string, labId: string): Promise<boolean> {
+    const result = await this.context.execute('DELETE FROM tubes WHERE id = $1 AND lab_id = $2', [id, labId]);
     return (result.rowCount ?? 0) > 0;
   }
 
   // LOCATION-BASED QUERIES
 
-  async findByLocation(location: Location): Promise<Tube | null> {
+  async findByLocation(location: Location, labId: string): Promise<Tube | null> {
     const row = await this.context.queryOne<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND position = $4`,
-      [location.tankId, location.rackId, location.boxId, location.position]
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND position = $4 AND lab_id = $5`,
+      [location.tankId, location.rackId, location.boxId, location.position, labId]
     );
     return row ? TubeMapper.fromRow(row) : null;
   }
 
-  async findByCompleteLocation(tankId: string, rackId: string, boxId: string): Promise<Tube[]> {
+  async findByCompleteLocation(tankId: string, rackId: string, boxId: string, labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 ORDER BY position`,
-      [tankId, rackId, boxId]
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND lab_id = $4 ORDER BY position`,
+      [tankId, rackId, boxId, labId]
     );
     return TubeMapper.fromRows(rows);
   }
 
-  async findByRackAndBox(rackId: string, boxId: string): Promise<Tube[]> {
+  async findByRackAndBox(rackId: string, boxId: string, labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE rack_id = $1 AND box_id = $2 ORDER BY tank_id, position`,
-      [rackId, boxId]
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE rack_id = $1 AND box_id = $2 AND lab_id = $3 ORDER BY tank_id, position`,
+      [rackId, boxId, labId]
     );
     return TubeMapper.fromRows(rows);
   }
 
-  async findByTank(tankId: string): Promise<Tube[]> {
+  async findByTank(tankId: string, labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 ORDER BY rack_id, box_id, position`,
-      [tankId]
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND lab_id = $2 ORDER BY rack_id, box_id, position`,
+      [tankId, labId]
     );
     return TubeMapper.fromRows(rows);
   }
 
-  async findByTankIds(tankIds: string[]): Promise<Tube[]> {
+  async findByTankIds(tankIds: string[], labId: string): Promise<Tube[]> {
     if (tankIds.length === 0) return [];
 
     const placeholders = tankIds.map((_, i) => `$${i + 1}`).join(',');
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id IN (${placeholders}) ORDER BY tank_id, rack_id, box_id, position`,
-      tankIds
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id IN (${placeholders}) AND lab_id = $${tankIds.length + 1} ORDER BY tank_id, rack_id, box_id, position`,
+      [...tankIds, labId]
     );
     return TubeMapper.fromRows(rows);
   }
 
-  async findByTankAndRack(tankId: string, rackId: string): Promise<Tube[]> {
+  async findByTankAndRack(tankId: string, rackId: string, labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 ORDER BY box_id, position`,
-      [tankId, rackId]
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND lab_id = $3 ORDER BY box_id, position`,
+      [tankId, rackId, labId]
     );
     return TubeMapper.fromRows(rows);
   }
 
-  async isPositionAvailable(location: Location): Promise<boolean> {
-    const tube = await this.findByLocation(location);
+  async isPositionAvailable(location: Location, labId: string): Promise<boolean> {
+    const tube = await this.findByLocation(location, labId);
     return tube === null;
   }
 
-  async getOccupiedPositions(tankId: string, rackId: string, boxId: string): Promise<number[]> {
+  async getOccupiedPositions(tankId: string, rackId: string, boxId: string, labId: string): Promise<number[]> {
     const rows = await this.context.queryMany<{ position: number }>(
-      'SELECT position FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 ORDER BY position',
-      [tankId, rackId, boxId]
+      'SELECT position FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND lab_id = $4 ORDER BY position',
+      [tankId, rackId, boxId, labId]
     );
     return rows.map((row: { position: number }) => row.position);
   }
 
   // RESEARCHER-BASED QUERIES
 
-  async findByResearcher(researcher: string): Promise<Tube[]> {
+  async findByResearcher(researcher: string, labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE researcher_id ILIKE $1 ORDER BY created_at DESC`,
-      [`%${researcher}%`]
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE researcher_id ILIKE $1 AND lab_id = $2 ORDER BY created_at DESC`,
+      [`%${researcher}%`, labId]
     );
     return TubeMapper.fromRows(rows);
   }
 
-  async getActiveResearchers(): Promise<string[]> {
+  async getActiveResearchers(labId: string): Promise<string[]> {
     const rows = await this.context.queryMany<{ researcher_id: string }>(
-      'SELECT DISTINCT researcher_id FROM tubes WHERE researcher_id IS NOT NULL ORDER BY researcher_id'
+      'SELECT DISTINCT researcher_id FROM tubes WHERE researcher_id IS NOT NULL AND lab_id = $1 ORDER BY researcher_id',
+      [labId]
     );
     return rows.map((row: { researcher_id: string }) => row.researcher_id);
   }
 
   // BUSINESS QUERIES
 
-  async findExpired(): Promise<Tube[]> {
+  async findExpired(labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text ORDER BY date`
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE date < (CURRENT_DATE - INTERVAL '30 days')::text AND lab_id = $1 ORDER BY date`,
+      [labId]
     );
     return TubeMapper.fromRows(rows);
   }
 
-  async findIncomplete(): Promise<Tube[]> {
+  async findIncomplete(labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE cell_type IS NULL OR donor_internal_id IS NULL OR researcher_id IS NULL`
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE (cell_type IS NULL OR donor_internal_id IS NULL OR researcher_id IS NULL) AND lab_id = $1`,
+      [labId]
     );
     return TubeMapper.fromRows(rows);
-  }
-
-  async count(): Promise<number> {
-    const result = await this.context.queryOne<{ count: string }>('SELECT COUNT(*) as count FROM tubes');
-    return result ? parseInt(result.count, 10) : 0;
   }
 
   async countByLabId(labId: string): Promise<number> {
@@ -320,34 +313,34 @@ export class TubeRepository implements ITubeRepository {
     return result ? parseInt(result.count, 10) : 0;
   }
 
-  async countByResearcher(researcher: string): Promise<number> {
+  async countByResearcher(researcher: string, labId: string): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM tubes WHERE researcher_id = $1',
-      [researcher]
+      'SELECT COUNT(*) as count FROM tubes WHERE researcher_id = $1 AND lab_id = $2',
+      [researcher, labId]
     );
     return result ? parseInt(result.count, 10) : 0;
   }
 
-  async countByTank(tankId: string): Promise<number> {
+  async countByTank(tankId: string, labId: string): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1',
-      [tankId]
+      'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND lab_id = $2',
+      [tankId, labId]
     );
     return result ? parseInt(result.count, 10) : 0;
   }
 
-  async countByRack(tankId: string, rackId: string): Promise<number> {
+  async countByRack(tankId: string, rackId: string, labId: string): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2',
-      [tankId, rackId]
+      'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND lab_id = $3',
+      [tankId, rackId, labId]
     );
     return result ? parseInt(result.count, 10) : 0;
   }
 
-  async countByBox(tankId: string, rackId: string, boxId: string): Promise<number> {
+  async countByBox(tankId: string, rackId: string, boxId: string, labId: string): Promise<number> {
     const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3',
-      [tankId, rackId, boxId]
+      'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3 AND lab_id = $4',
+      [tankId, rackId, boxId, labId]
     );
     return result ? parseInt(result.count, 10) : 0;
   }
@@ -582,7 +575,8 @@ export class TubeRepository implements ITubeRepository {
     baseSql: string,
     params: unknown[],
     criteria: TubeSearchCriteria,
-    paramIndex: { current: number }
+    paramIndex: { current: number },
+    labId?: string
   ): Promise<string> {
     let sql = baseSql;
 
@@ -607,8 +601,9 @@ export class TubeRepository implements ITubeRepository {
         return sql;
       }
 
-      // Get configuration to access box position display config
-      const configuration = await this.configurationRepository.getCurrent();
+      const configuration = labId
+        ? await this.configurationRepository.getForLab(labId)
+        : await this.configurationRepository.getCurrent();
       if (!configuration) {
         logger.warn('[TubeRepository] No configuration found for position label parsing');
         return sql;
@@ -646,18 +641,16 @@ export class TubeRepository implements ITubeRepository {
    * - Includes researcher name search via JOIN
    * - Supports structured criteria for specific field filtering
    */
-  async search(criteria: TubeSearchCriteria): Promise<Tube[]> {
-    // If a generic query is provided, search across ALL fields
+  async search(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]> {
     if (criteria.query && criteria.query.trim()) {
-      return this.comprehensiveSearch(criteria);
+      return this.comprehensiveSearch(criteria, labId);
     }
 
-    // Otherwise, use structured field-specific search
-    return this.structuredSearch(criteria);
+    return this.structuredSearch(criteria, labId);
   }
 
-  async searchWithHighlighting(criteria: TubeSearchCriteria): Promise<TubeSearchResult> {
-    const tubes = await this.search(criteria);
+  async searchWithHighlighting(criteria: TubeSearchCriteria, labId: string): Promise<TubeSearchResult> {
+    const tubes = await this.search(criteria, labId);
 
     // Gather all matched terms for highlighting
     const matchedTerms: string[] = [];
@@ -703,7 +696,7 @@ export class TubeRepository implements ITubeRepository {
    * 3. Researcher name ILIKE
    * 4. ILIKE fallback for edge cases
    */
-  private async comprehensiveSearch(criteria: TubeSearchCriteria): Promise<Tube[]> {
+  private async comprehensiveSearch(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]> {
     const rawQuery = criteria.query!.trim();
 
     // Step 1: Normalize query (split hyphens, clean punctuation)
@@ -723,20 +716,21 @@ export class TubeRepository implements ITubeRepository {
     const params: unknown[] = [];
     const paramIndex = { current: 1 };
 
-    // Layer 1: tsvector full-text search (highest rank)
     let ftsSql = `
       SELECT ${this.TUBE_COLUMNS},
              ts_rank(tubes.search_vector, to_tsquery('english', $${paramIndex.current})) * ${SearchRankTier.TSVECTOR_HIGH} as rank
       FROM tubes
       WHERE tubes.search_vector @@ to_tsquery('english', $${paramIndex.current++})
+        AND tubes.lab_id = $${paramIndex.current}
     `;
-    params.push(tsqueryTerms);
+    params.push(tsqueryTerms, labId);
+    paramIndex.current++;
 
     ftsSql = this.addLocationFilters(ftsSql, params, criteria, paramIndex);
     ftsSql = this.addSampleFilters(ftsSql, params, criteria, paramIndex);
     ftsSql = this.addResearcherFilters(ftsSql, params, criteria, paramIndex);
     ftsSql = this.addDateRangeFilters(ftsSql, params, criteria, paramIndex);
-    ftsSql = await this.addPositionLabelFilter(ftsSql, params, criteria, paramIndex);
+    ftsSql = await this.addPositionLabelFilter(ftsSql, params, criteria, paramIndex, labId);
 
     // Layer 2: Fuzzy matching with pg_trgm (catches typos)
     const fuzzyColumns = ['cell_type', 'species', 'source', 'donor_internal_id', 'donor_source_id', 'lot_number', 'notes', 'media_type', 'culture_condition'];
@@ -760,15 +754,16 @@ export class TubeRepository implements ITubeRepository {
         SELECT ${this.TUBE_COLUMNS}, ${fuzzyRankExpr} as rank
         FROM tubes
         WHERE (${fuzzyConditions})
+          AND tubes.lab_id = $${paramIndex.current}
       `;
-      params.push(fuzzySearchTerm);
-      paramIndex.current++;
+      params.push(fuzzySearchTerm, labId);
+      paramIndex.current += 2;
 
       fuzzySql = this.addLocationFilters(fuzzySql, params, criteria, paramIndex);
       fuzzySql = this.addSampleFilters(fuzzySql, params, criteria, paramIndex);
       fuzzySql = this.addResearcherFilters(fuzzySql, params, criteria, paramIndex);
       fuzzySql = this.addDateRangeFilters(fuzzySql, params, criteria, paramIndex);
-      fuzzySql = await this.addPositionLabelFilter(fuzzySql, params, criteria, paramIndex);
+      fuzzySql = await this.addPositionLabelFilter(fuzzySql, params, criteria, paramIndex, labId);
     }
 
     // Layer 3: Researcher name search — AND between concepts, OR within variants
@@ -789,13 +784,16 @@ export class TubeRepository implements ITubeRepository {
       LEFT JOIN researchers ON tubes.researcher_id = researchers.id
       INNER JOIN persons p ON researchers.person_id = p.id
       WHERE researchers.id IS NOT NULL
+        AND tubes.lab_id = $${paramIndex.current}
         AND ${researcherConceptConditions.join(' AND ')}
     `;
+    params.push(labId);
+    paramIndex.current++;
     researcherSql = this.addLocationFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = this.addSampleFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = this.addResearcherFilters(researcherSql, params, criteria, paramIndex);
     researcherSql = this.addDateRangeFilters(researcherSql, params, criteria, paramIndex);
-    researcherSql = await this.addPositionLabelFilter(researcherSql, params, criteria, paramIndex);
+    researcherSql = await this.addPositionLabelFilter(researcherSql, params, criteria, paramIndex, labId);
 
     // Layer 4: ILIKE fallback — AND between concepts, OR within variants/columns
     const ilikeSearchColumns = [
@@ -819,14 +817,17 @@ export class TubeRepository implements ITubeRepository {
     let ilikeSql = `
       SELECT ${this.TUBE_COLUMNS}, ${SearchRankTier.ILIKE_FALLBACK} as rank
       FROM tubes
-      WHERE ${ilikeConceptConditions.join(' AND ')}
+      WHERE tubes.lab_id = $${paramIndex.current}
+        AND ${ilikeConceptConditions.join(' AND ')}
     `;
+    params.push(labId);
+    paramIndex.current++;
 
     ilikeSql = this.addLocationFilters(ilikeSql, params, criteria, paramIndex);
     ilikeSql = this.addSampleFilters(ilikeSql, params, criteria, paramIndex);
     ilikeSql = this.addResearcherFilters(ilikeSql, params, criteria, paramIndex);
     ilikeSql = this.addDateRangeFilters(ilikeSql, params, criteria, paramIndex);
-    ilikeSql = await this.addPositionLabelFilter(ilikeSql, params, criteria, paramIndex);
+    ilikeSql = await this.addPositionLabelFilter(ilikeSql, params, criteria, paramIndex, labId);
 
     // Combine all layers with UNION
     const unionParts = [ftsSql, researcherSql, ilikeSql];
@@ -883,17 +884,16 @@ export class TubeRepository implements ITubeRepository {
    * Structured search using specific field criteria
    * Used when no generic query is provided
    */
-  private async structuredSearch(criteria: TubeSearchCriteria): Promise<Tube[]> {
-    let sql = `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE 1=1`;
-    const params: unknown[] = [];
-    const paramIndex = { current: 1 };
+  private async structuredSearch(criteria: TubeSearchCriteria, labId: string): Promise<Tube[]> {
+    let sql = `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE lab_id = $1`;
+    const params: unknown[] = [labId];
+    const paramIndex = { current: 2 };
 
-    // Apply all filters using helper methods
     sql = this.addLocationFilters(sql, params, criteria, paramIndex);
     sql = this.addSampleFilters(sql, params, criteria, paramIndex);
     sql = this.addResearcherFilters(sql, params, criteria, paramIndex);
     sql = this.addDateRangeFilters(sql, params, criteria, paramIndex);
-    sql = await this.addPositionLabelFilter(sql, params, criteria, paramIndex);
+    sql = await this.addPositionLabelFilter(sql, params, criteria, paramIndex, labId);
 
     if (criteria.createdAfter) {
       sql += ` AND created_at >= $${paramIndex.current++}`;
@@ -943,25 +943,26 @@ export class TubeRepository implements ITubeRepository {
     return TubeMapper.fromRows(rows);
   }
 
-  async findByCellType(cellType: string): Promise<Tube[]> {
+  async findByCellType(cellType: string, labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE cell_type ILIKE $1 ORDER BY created_at DESC`,
-      [`%${cellType}%`]
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE cell_type ILIKE $1 AND lab_id = $2 ORDER BY created_at DESC`,
+      [`%${cellType}%`, labId]
     );
     return TubeMapper.fromRows(rows);
   }
 
-  async findByDateRange(startDate: string, endDate: string): Promise<Tube[]> {
+  async findByDateRange(startDate: string, endDate: string, labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE date BETWEEN $1 AND $2 ORDER BY date`,
-      [startDate, endDate]
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE date BETWEEN $1 AND $2 AND lab_id = $3 ORDER BY date`,
+      [startDate, endDate, labId]
     );
     return TubeMapper.fromRows(rows);
   }
 
-  async findWithConcentration(): Promise<Tube[]> {
+  async findWithConcentration(labId: string): Promise<Tube[]> {
     const rows = await this.context.queryMany<TubeRow>(
-      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE concentration IS NOT NULL ORDER BY concentration DESC`
+      `SELECT ${this.TUBE_COLUMNS} FROM tubes WHERE concentration IS NOT NULL AND lab_id = $1 ORDER BY concentration DESC`,
+      [labId]
     );
     return TubeMapper.fromRows(rows);
   }
@@ -1030,24 +1031,24 @@ export class TubeRepository implements ITubeRepository {
     });
   }
 
-  async deleteMany(ids: string[]): Promise<number> {
+  async deleteMany(ids: string[], labId: string): Promise<number> {
     if (ids.length === 0) return 0;
 
     const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
     const result = await this.context.execute(
-      `DELETE FROM tubes WHERE id IN (${placeholders})`,
-      ids
+      `DELETE FROM tubes WHERE id IN (${placeholders}) AND lab_id = $${ids.length + 1}`,
+      [...ids, labId]
     );
     return result.rowCount ?? 0;
   }
 
-  async deleteByTankIds(tankIds: string[]): Promise<number> {
+  async deleteByTankIds(tankIds: string[], labId: string): Promise<number> {
     if (tankIds.length === 0) return 0;
 
     const placeholders = tankIds.map((_, i) => `$${i + 1}`).join(',');
     const result = await this.context.execute(
-      `DELETE FROM tubes WHERE tank_id IN (${placeholders})`,
-      tankIds
+      `DELETE FROM tubes WHERE tank_id IN (${placeholders}) AND lab_id = $${tankIds.length + 1}`,
+      [...tankIds, labId]
     );
     return result.rowCount ?? 0;
   }
@@ -1075,13 +1076,23 @@ export class TubeRepository implements ITubeRepository {
     }
   }
 
-  async getStats(tankIds?: string[]): Promise<TubeRepositoryStats> {
-    // Build optional tank filter clause for demo mode isolation
-    const hasFilter = tankIds && tankIds.length > 0;
-    const placeholders = hasFilter ? tankIds.map((_, i) => `$${i + 1}`).join(',') : '';
-    const whereClause = hasFilter ? `WHERE tank_id IN (${placeholders})` : '';
-    const andClause = hasFilter ? `AND tank_id IN (${placeholders})` : '';
-    const params = hasFilter ? tankIds : [];
+  async getStats(tankIds?: string[], labId?: string): Promise<TubeRepositoryStats> {
+    const params: unknown[] = [];
+    let paramIdx = 1;
+
+    const conditions: string[] = [];
+    if (tankIds && tankIds.length > 0) {
+      const placeholders = tankIds.map(() => `$${paramIdx++}`).join(',');
+      conditions.push(`tank_id IN (${placeholders})`);
+      params.push(...tankIds);
+    }
+    if (labId) {
+      conditions.push(`lab_id = $${paramIdx++}`);
+      params.push(labId);
+    }
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const andClause = conditions.length > 0 ? `AND ${conditions.join(' AND ')}` : '';
 
     const totalResult = await this.context.queryOne<{ count: string }>(
       `SELECT COUNT(*) as count FROM tubes ${whereClause}`, params

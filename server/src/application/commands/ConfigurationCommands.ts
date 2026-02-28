@@ -132,7 +132,8 @@ export class UpdateSystemConfigurationCommandHandler {
     const validationResult = await this.validationService.validateConfigurationUpdate(
       currentConfig,
       updatedConfig,
-      user
+      user,
+      command.labId
     );
 
     if (!validationResult.isValid) {
@@ -219,7 +220,8 @@ export class UpdateEquipmentConfigurationCommandHandler {
     const validationResult = await this.validationService.validateConfigurationUpdate(
       currentConfig,
       updatedConfig,
-      user
+      user,
+      command.labId
     );
 
     if (!validationResult.isValid) {
@@ -274,7 +276,7 @@ export class ResetConfigurationToDefaultCommandHandler {
     }
 
     // Prevent orphaning tubes - check if any exist before resetting
-    const tubeCount = await this.tubeRepository.count();
+    const tubeCount = await this.tubeRepository.countByLabId(command.labId);
     if (tubeCount > 0) {
       throw new ValidationError(
         `Cannot reset configuration: ${tubeCount} tube(s) exist in the system. ` +
@@ -353,7 +355,8 @@ export class ImportConfigurationCommandHandler {
         const validationResult = await this.validationService.validateConfigurationUpdate(
           currentConfig,
           importedConfig,
-          user
+          user,
+          command.labId
         );
 
         if (!validationResult.isValid) {
@@ -470,7 +473,8 @@ export class UpdateBoxPositionDisplayCommandHandler {
     const validationResult = await this.validationService.validateConfigurationUpdate(
       currentConfig,
       updatedConfig,
-      user
+      user,
+      command.labId
     );
 
     if (!validationResult.isValid) {
@@ -546,7 +550,8 @@ export class UpdateLabDefaultPositionDisplayCommandHandler {
     const validationResult = await this.validationService.validateConfigurationUpdate(
       currentConfig,
       updatedConfig,
-      user
+      user,
+      command.labId
     );
 
     if (!validationResult.isValid) {

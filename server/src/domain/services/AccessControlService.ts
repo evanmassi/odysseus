@@ -321,7 +321,7 @@ export class AccessControlService {
     // Check each tube individually
     for (const tubeId of tubeIds) {
       try {
-        const tube = await this.tubeRepository.findById(tubeId);
+        const tube = await this.tubeRepository.findById(tubeId, user.labId ?? '');
         if (!tube) {
           results.deniedTubes.push(tubeId);
           results.errors.push(`Tube ${tubeId} not found`);
@@ -329,7 +329,7 @@ export class AccessControlService {
         }
 
         let accessResult: AccessResult;
-        
+
         switch (operation) {
           case 'edit':
             accessResult = await this.canEditTube(user, tube);
@@ -384,9 +384,7 @@ export class AccessControlService {
       return manageCheck;
     }
 
-    // Business rule: Check if researcher has active tubes
-    // TODO: After TubeRepository refactor, use researcher.id instead of name
-    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id);
+    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id, user.labId ?? '');
     if (tubeCount > 0) {
       return this.createAllowedResult(`Researcher has ${tubeCount} tubes`, { tubeCount });
     }
@@ -403,9 +401,7 @@ export class AccessControlService {
       return manageCheck;
     }
 
-    // Business rule: Cannot delete researchers with active tubes
-    // TODO: After TubeRepository refactor, use researcher.id instead of name
-    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id);
+    const tubeCount = await this.tubeRepository.countByResearcher(researcher.id, user.labId ?? '');
     if (tubeCount > 0) {
       return this.createDeniedResult(`Cannot delete researcher with ${tubeCount} active tubes. Reassign or delete tubes first.`);
     }
@@ -487,7 +483,7 @@ export class AccessControlService {
     
     try {
       if (equipmentType === 'tank') {
-        tubeCount = await this.tubeRepository.countByTank(equipmentId);
+        tubeCount = await this.tubeRepository.countByTank(equipmentId, user.labId ?? '');
       }
       // Add similar checks for rack and box if needed
       
