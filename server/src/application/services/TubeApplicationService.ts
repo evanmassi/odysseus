@@ -291,13 +291,11 @@ export class TubeApplicationService {
   async getTubeById(id: string, authenticatedUser: User): Promise<TubeResponse> {
     const tube = await this.getTubeOrThrow(id);
 
-    // Demo mode isolation: verify tube's tank is accessible to user
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(tube.location.tankId)) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
-    // Check view access: container ownership OR shared access
     const containerInfo = await this.getContainerInfo(
       authenticatedUser.labId!,
       tube.location.tankId,
@@ -325,19 +323,15 @@ export class TubeApplicationService {
 
   /**
    * Get all tubes with filtering.
-   * Applies demo mode isolation: demo users see only demo tanks, real users see only real tanks.
    */
   async getAllTubes(authenticatedUser: User, searchRequest?: TubeSearchRequest): Promise<TubeResponse[]> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    // Get allowed tank IDs based on user's demo status
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
 
     let tubes: Tube[];
 
     if (searchRequest && Object.keys(searchRequest).length > 0) {
-      // Merge demo tank filter with search criteria
-      // If user specifies tankId, validate it's in allowed list; otherwise use all allowed
       const requestedTankId = searchRequest.tankId;
       const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
         ? [requestedTankId]
@@ -357,7 +351,6 @@ export class TubeApplicationService {
 
   /**
    * Get tubes by location.
-   * Applies demo mode isolation: validates tank is accessible to user.
    */
   async getTubesByLocation(
     tankId: string,
@@ -367,10 +360,8 @@ export class TubeApplicationService {
   ): Promise<TubeResponse[]> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    // Demo mode isolation: verify tank is accessible to user
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(tankId)) {
-      // Return empty array rather than error - tank simply doesn't exist for this user
       return [];
     }
 
@@ -381,7 +372,6 @@ export class TubeApplicationService {
 
   /**
    * Get tubes by rack and box (legacy - prefer getTubesByLocation).
-   * Applies demo mode isolation: filters results to user's accessible tanks.
    */
   async getTubesByRackAndBox(
     rackId: string,
@@ -392,7 +382,6 @@ export class TubeApplicationService {
 
     const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId);
 
-    // Demo mode isolation: filter to tubes in allowed tanks
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     const filteredTubes = tubes.filter(tube => allowedTankIds.includes(tube.location.tankId));
 
@@ -401,7 +390,6 @@ export class TubeApplicationService {
 
   /**
    * Search tubes with advanced criteria.
-   * Applies demo mode isolation.
    */
   async searchTubes(
     searchRequest: TubeSearchRequest,
@@ -409,9 +397,7 @@ export class TubeApplicationService {
   ): Promise<TubeResponse[]> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    // Apply demo tank filter
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
-    // If user specifies tankId, validate it's in allowed list; otherwise use all allowed
     const requestedTankId = searchRequest.tankId;
     const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
       ? [requestedTankId]
@@ -429,7 +415,6 @@ export class TubeApplicationService {
 
   /**
    * Search tubes with highlighting.
-   * Applies demo mode isolation.
    */
   async searchTubesWithHighlighting(
     searchRequest: TubeSearchRequest,
@@ -437,9 +422,7 @@ export class TubeApplicationService {
   ): Promise<TubeSearchResponse> {
     this.accessControlService.requireCanViewTubes(authenticatedUser);
 
-    // Apply demo tank filter
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
-    // If user specifies tankId, validate it's in allowed list; otherwise use all allowed
     const requestedTankId = searchRequest.tankId;
     const filteredTankIds = requestedTankId && allowedTankIds.includes(requestedTankId)
       ? [requestedTankId]
@@ -465,7 +448,6 @@ export class TubeApplicationService {
   async updateTube(id: string, request: UpdateTubeRequest, authenticatedUser: User, options?: { config?: Configuration | null; preloadedTube?: Tube }): Promise<TubeResponse> {
     const existingTube = options?.preloadedTube ?? await this.getTubeOrThrow(id);
 
-    // Demo mode isolation: verify tube's tank is accessible to user
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(existingTube.location.tankId)) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
@@ -519,7 +501,6 @@ export class TubeApplicationService {
       );
 
       if (positionChanged) {
-        // Demo mode isolation: verify destination tank is accessible
         if (!allowedTankIds.includes(newTankId)) {
           throw new PermissionError('Cannot move tube to inaccessible tank', { tankId: newTankId });
         }
@@ -621,13 +602,11 @@ export class TubeApplicationService {
   async deleteTube(id: string, authenticatedUser: User, options?: { config?: Configuration | null; preloadedTube?: Tube }): Promise<void> {
     const tube = options?.preloadedTube ?? await this.getTubeOrThrow(id);
 
-    // Demo mode isolation: verify tube's tank is accessible to user
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     if (!allowedTankIds.includes(tube.location.tankId)) {
       throw new NotFoundError(`Tube not found: ${id}`, { tubeId: id });
     }
 
-    // Check access: container ownership OR shared access to this tube
     const containerInfo = await this.getContainerInfo(
       authenticatedUser.labId!,
       tube.location.tankId,
@@ -732,7 +711,6 @@ export class TubeApplicationService {
     const tubes = await this.tubeRepository.findByIds(tubeIds);
     const tubeMap = new Map(tubes.map(t => [t.id, t]));
 
-    // Demo mode isolation: get allowed tanks once for the batch
     const allowedTankIds = await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser);
     const allowedTankSet = new Set(allowedTankIds);
 
@@ -977,16 +955,10 @@ export class TubeApplicationService {
     const skipped: SkippedTube[] = [];
     const tubeSharedUsers: Array<{ tubeId: string; sharedWithUserIds: string[] }> = [];
 
-    // Validate all share targets exist and have same demo status
     const targetUsers = await this.userRepository.findByIds(request.userIds);
 
     if (targetUsers.length !== request.userIds.length) {
       throw new Error('One or more users not found');
-    }
-
-    const invalidUsers = targetUsers.filter(u => u.isDemo !== authenticatedUser.isDemo);
-    if (invalidUsers.length > 0) {
-      throw new Error('Cannot share tubes with users of different demo status');
     }
 
     const allowedTankIds = new Set(await this.getAllowedTankIds(authenticatedUser.labId!, authenticatedUser));
@@ -1115,7 +1087,6 @@ export class TubeApplicationService {
 
   /**
    * Server-side aggregation avoids fetching all tubes over the network.
-   * Applies demo mode isolation: filters stats to user's accessible tanks at the SQL level.
    */
   async getStats(authenticatedUser: User): Promise<{
     totalTubes: number;

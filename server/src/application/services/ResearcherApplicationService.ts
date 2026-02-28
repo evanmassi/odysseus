@@ -27,11 +27,6 @@ import {
  *
  * Note: Researcher entity only stores research linkage (personId, active, etc.)
  * Profile data (name, email, position, department) lives in Person entity
- *
- * Demo Mode: Researchers inherit demo status from their linked user.
- * - Demo users see only researchers linked to demo users
- * - Real users see only researchers NOT linked to demo users
- * - Admin views exclude demo-linked researchers from regular management
  */
 export class ResearcherApplicationService {
   constructor(
@@ -42,75 +37,11 @@ export class ResearcherApplicationService {
     private eventBus: EventBus
   ) {}
 
-  /**
-   * Build a map of researcherId → isDemo status based on linked users
-   *
-   * A researcher is considered "demo" if they are linked to a demo user.
-   * Unlinked researchers are considered "non-demo" (real).
-   *
-   * @param users - Optional pre-fetched users to avoid redundant database calls
-   */
-  private async buildResearcherDemoMap(labId: string, users?: User[]): Promise<Map<string, boolean>> {
-    const allUsers = users ?? await this.userRepository.findByLabId(labId);
-    const researcherDemoMap = new Map<string, boolean>();
-
-    for (const user of allUsers) {
-      if (user.researcherId) {
-        researcherDemoMap.set(user.researcherId, user.isDemo);
-      }
-    }
-
-    return researcherDemoMap;
-  }
-
-  /**
-   * Check if a researcher is linked to a demo user
-   */
-  private isResearcherDemo(researcherId: string, demoMap: Map<string, boolean>): boolean {
-    return demoMap.get(researcherId) ?? false;
-  }
-
-  /**
-   * Filter researchers based on requesting user's demo status
-   *
-   * - Demo user: sees only researchers linked to demo users
-   * - Real user: sees only researchers NOT linked to demo users (including unlinked)
-   */
-  private filterResearchersByDemoStatus<T extends { id: string }>(
-    researchers: T[],
-    requestingUserIsDemo: boolean,
-    demoMap: Map<string, boolean>
-  ): T[] {
-    return researchers.filter(r => {
-      const isDemo = this.isResearcherDemo(r.id, demoMap);
-      return requestingUserIsDemo ? isDemo : !isDemo;
-    });
-  }
-
-  /**
-   * Get all researchers filtered by demo status
-   *
-   * Demo users see only demo-linked researchers.
-   * Real users see only non-demo researchers (including unlinked).
-   */
-  async getAllResearchers(labId: string, userApiKey?: string): Promise<ResearcherResponse[]> {
+  async getAllResearchers(labId: string): Promise<ResearcherResponse[]> {
     const researchers = await this.researcherRepository.findByLabId(labId);
 
-    let filteredResearchers = researchers;
-    if (userApiKey) {
-      const user = await this.userRepository.findByApiKey(userApiKey);
-      if (user) {
-        const demoMap = await this.buildResearcherDemoMap(labId);
-        filteredResearchers = this.filterResearchersByDemoStatus(
-          researchers,
-          user.isDemo,
-          demoMap
-        );
-      }
-    }
-
     const researchersWithPersons = await Promise.all(
-      filteredResearchers.map(async (researcher) => ({
+      researchers.map(async (researcher) => ({
         researcher,
         person: await this.getPersonForResearcher(researcher)
       }))
@@ -119,30 +50,14 @@ export class ResearcherApplicationService {
   }
 
   /**
-   * Get only visible researchers (approved AND active) filtered by demo status
-   *
+   * Get only visible researchers (approved AND active).
    * Used for dropdowns where only vetted, working researchers should appear.
-   * Demo users see only demo-linked researchers.
-   * Real users see only non-demo researchers (including unlinked).
    */
-  async getVisibleResearchers(labId: string, userApiKey?: string): Promise<ResearcherResponse[]> {
+  async getVisibleResearchers(labId: string): Promise<ResearcherResponse[]> {
     const researchers = await this.researcherRepository.findActiveByLabId(labId);
 
-    let filteredResearchers = researchers;
-    if (userApiKey) {
-      const user = await this.userRepository.findByApiKey(userApiKey);
-      if (user) {
-        const demoMap = await this.buildResearcherDemoMap(labId);
-        filteredResearchers = this.filterResearchersByDemoStatus(
-          researchers,
-          user.isDemo,
-          demoMap
-        );
-      }
-    }
-
     const researchersWithPersons = await Promise.all(
-      filteredResearchers.map(async (researcher) => ({
+      researchers.map(async (researcher) => ({
         researcher,
         person: await this.getPersonForResearcher(researcher)
       }))
@@ -152,10 +67,7 @@ export class ResearcherApplicationService {
 
   /**
    * Get all researchers with admin metadata (tube counts, linked users)
-   *
    * Admin-only: includes sensitive relationship data for management purposes.
-   * Excludes demo-linked researchers from regular admin management.
-   * Demo-linked researchers are managed separately in Demo Management section.
    */
   async getResearchersWithMetadata(labId: string, userApiKey: string): Promise<Array<{
     id: string;
@@ -178,14 +90,8 @@ export class ResearcherApplicationService {
     const researchers = await this.researcherRepository.findByLabId(labId);
     const users = await this.userRepository.findByLabId(labId);
 
-    const demoMap = await this.buildResearcherDemoMap(labId, users);
-
-    // Filter out demo-linked researchers from admin management view
-    const nonDemoResearchers = researchers.filter(r => !this.isResearcherDemo(r.id, demoMap));
-
-    // Build metadata for each non-demo researcher
     const enrichedResearchers = await Promise.all(
-      nonDemoResearchers.map(async (researcher) => {
+      researchers.map(async (researcher) => {
         const person = await this.getPersonForResearcher(researcher);
         const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
         const linkedUser = users.find(u => u.researcherId === researcher.id);
@@ -239,28 +145,8 @@ export class ResearcherApplicationService {
     return unlinkedWithPersons.map(item => ResearcherDto.toResponse(item.researcher, item.person));
   }
 
-  /**
-   * Get researcher by ID with demo access validation
-   *
-   * Demo users can only access demo-linked researchers.
-   * Real users can only access non-demo researchers.
-   */
-  async getResearcherById(labId: string, id: string, userApiKey?: string): Promise<ResearcherResponse> {
+  async getResearcherById(id: string): Promise<ResearcherResponse> {
     const researcher = await this.getResearcherOrThrow(id);
-
-    if (userApiKey) {
-      const user = await this.userRepository.findByApiKey(userApiKey);
-      if (user) {
-        const demoMap = await this.buildResearcherDemoMap(labId);
-        const isResearcherDemo = this.isResearcherDemo(id, demoMap);
-
-        // Demo user trying to access non-demo researcher, or vice versa
-        if (user.isDemo !== isResearcherDemo) {
-          throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
-        }
-      }
-    }
-
     const person = await this.getPersonForResearcher(researcher);
     return ResearcherDto.toResponse(researcher, person);
   }
@@ -587,13 +473,7 @@ export class ResearcherApplicationService {
     return ResearcherDto.toResponse(researcher, person);
   }
 
-  /**
-   * Get researchers with tube counts filtered by demo status
-   *
-   * Demo users see only demo-linked researchers.
-   * Real users see only non-demo researchers (including unlinked).
-   */
-  async getResearcherStats(labId: string, userApiKey: string): Promise<Array<{
+  async getResearcherStats(userApiKey: string): Promise<Array<{
     researcher: ResearcherResponse;
     tubeCount: number;
   }>> {
@@ -602,44 +482,19 @@ export class ResearcherApplicationService {
 
     const activeResearchers = await this.researcherRepository.getMostActiveResearchers(10);
 
-    const demoMap = await this.buildResearcherDemoMap(labId);
-    const filteredResearchers = activeResearchers.filter(item => {
-      const isDemo = this.isResearcherDemo(item.researcher.id, demoMap);
-      return user.isDemo ? isDemo : !isDemo;
-    });
-
     return await Promise.all(
-      filteredResearchers.map(async item => ({
+      activeResearchers.map(async item => ({
         researcher: ResearcherDto.toResponse(item.researcher, await this.getPersonForResearcher(item.researcher)),
         tubeCount: item.tubeCount
       }))
     );
   }
 
-  /**
-   * Search researchers by name filtered by demo status
-   *
-   * Demo users see only demo-linked researchers.
-   * Real users see only non-demo researchers (including unlinked).
-   */
-  async searchResearchers(labId: string, namePattern: string, userApiKey?: string): Promise<ResearcherResponse[]> {
+  async searchResearchers(namePattern: string): Promise<ResearcherResponse[]> {
     const researchers = await this.researcherRepository.searchByName(namePattern);
 
-    let filteredResearchers = researchers;
-    if (userApiKey) {
-      const user = await this.userRepository.findByApiKey(userApiKey);
-      if (user) {
-        const demoMap = await this.buildResearcherDemoMap(labId);
-        filteredResearchers = this.filterResearchersByDemoStatus(
-          researchers,
-          user.isDemo,
-          demoMap
-        );
-      }
-    }
-
     const researchersWithPersons = await Promise.all(
-      filteredResearchers.map(async (researcher) => ({
+      researchers.map(async (researcher) => ({
         researcher,
         person: await this.getPersonForResearcher(researcher)
       }))
@@ -647,30 +502,9 @@ export class ResearcherApplicationService {
     return researchersWithPersons.map(item => ResearcherDto.toResponse(item.researcher, item.person));
   }
 
-  /**
-   * Get tube count for a specific researcher with demo access validation
-   *
-   * Demo users can only access demo-linked researchers.
-   * Real users can only access non-demo researchers.
-   */
-  async getResearcherTubeCount(labId: string, id: string, userApiKey?: string): Promise<{ tubeCount: number }> {
+  async getResearcherTubeCount(id: string): Promise<{ tubeCount: number }> {
     const researcher = await this.getResearcherOrThrow(id);
-
-    if (userApiKey) {
-      const user = await this.userRepository.findByApiKey(userApiKey);
-      if (user) {
-        const demoMap = await this.buildResearcherDemoMap(labId);
-        const isResearcherDemo = this.isResearcherDemo(id, demoMap);
-
-        // Demo user trying to access non-demo researcher, or vice versa
-        if (user.isDemo !== isResearcherDemo) {
-          throw new NotFoundError(`Researcher not found: ${id}`, { researcherId: id });
-        }
-      }
-    }
-
     const tubeCount = await this.researcherRepository.getTubeCountByResearcher(researcher.id);
-
     return { tubeCount };
   }
 

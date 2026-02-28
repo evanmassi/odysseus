@@ -37,15 +37,10 @@ export class ResearcherController extends BaseController {
         const researchers = await this.researcherApplicationService.getResearchersWithMetadata(labId, userApiKey);
         res.json(ErrorDto.success({ researchers }));
       } else if (visibleOnly) {
-        // Only approved+active researchers (for dropdowns)
-        const userApiKey = this.extractOptionalApiKey(req);
-        const researchers = await this.researcherApplicationService.getVisibleResearchers(labId, userApiKey);
+        const researchers = await this.researcherApplicationService.getVisibleResearchers(labId);
         res.json(ErrorDto.success(researchers));
       } else {
-        // Basic data can be accessed with optional auth
-        const userApiKey = this.extractOptionalApiKey(req);
-        // Returns Researcher[] without metadata
-        const researchers = await this.researcherApplicationService.getAllResearchers(labId, userApiKey);
+        const researchers = await this.researcherApplicationService.getAllResearchers(labId);
         res.json(ErrorDto.success(researchers));
       }
     } catch (error) {
@@ -107,11 +102,9 @@ export class ResearcherController extends BaseController {
    */
   async getResearcherById(req: Request, res: Response): Promise<void> {
     try {
-      const labId = this.extractLabId(req);
       const { id } = req.params;
-      const userApiKey = this.extractOptionalApiKey(req);
 
-      const researcher = await this.researcherApplicationService.getResearcherById(labId, id, userApiKey);
+      const researcher = await this.researcherApplicationService.getResearcherById(id);
 
       res.json(ErrorDto.success(researcher));
     } catch (error) {
@@ -247,10 +240,9 @@ export class ResearcherController extends BaseController {
    */
   async getResearcherStats(req: Request, res: Response): Promise<void> {
     try {
-      const labId = this.extractLabId(req);
       const userApiKey = this.extractApiKey(req);
 
-      const stats = await this.researcherApplicationService.getResearcherStats(labId, userApiKey);
+      const stats = await this.researcherApplicationService.getResearcherStats(userApiKey);
       
       res.json(ErrorDto.success(stats));
     } catch (error) {
@@ -265,7 +257,6 @@ export class ResearcherController extends BaseController {
   async searchResearchers(req: Request, res: Response): Promise<void> {
     try {
       const { query } = req.query;
-      const userApiKey = this.extractOptionalApiKey(req);
 
       if (!query || typeof query !== 'string') {
         const errorResponse = ErrorDto.customError('Search query is required', 400, 'MISSING_QUERY');
@@ -273,8 +264,7 @@ export class ResearcherController extends BaseController {
         return;
       }
 
-      const labId = this.extractLabId(req);
-      const researchers = await this.researcherApplicationService.searchResearchers(labId, query, userApiKey);
+      const researchers = await this.researcherApplicationService.searchResearchers(query);
 
       res.json(ErrorDto.success(researchers));
     } catch (error) {
@@ -288,11 +278,9 @@ export class ResearcherController extends BaseController {
    */
   async getResearcherTubeCount(req: Request, res: Response): Promise<void> {
     try {
-      const labId = this.extractLabId(req);
       const { id } = req.params;
-      const userApiKey = this.extractOptionalApiKey(req);
 
-      const result = await this.researcherApplicationService.getResearcherTubeCount(labId, id, userApiKey);
+      const result = await this.researcherApplicationService.getResearcherTubeCount(id);
 
       res.json(ErrorDto.success(result));
     } catch (error) {
