@@ -50,7 +50,6 @@ export const TankConfigurationSchema = z.object({
   name: z.string(),
   location: z.string(),
   isActive: z.boolean().default(true),
-  isDemo: z.boolean().default(false),
   createdAt: z.union([z.string().datetime('Invalid created date'), z.date()]),
   updatedAt: z.union([z.string().datetime('Invalid updated date'), z.date()]),
   defaultGridConfig: GridConfigurationSchema,

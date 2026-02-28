@@ -21,7 +21,6 @@ import {
   updateSecurityConfigSchema,
   createResearcherProfileSchema,
   adminResetPasswordRequestSchema,
-  setTankDemoStatusSchema,
   createLookupValueRequestSchema,
   renameLookupValueRequestSchema
 } from '@odysseus/shared-schemas';
@@ -120,16 +119,6 @@ export class AdminRouteModule implements RouteModule {
     );
 
     // DEMO MANAGEMENT ENDPOINTS
-
-    router.get('/tanks',
-      this.configurationController.getAllTanksAdmin.bind(this.configurationController)
-    );
-
-    router.put('/tanks/:tankId/demo-status',
-      validateParams(z.object({ tankId: z.string() })),
-      validateBody(setTankDemoStatusSchema),
-      this.configurationController.setTankDemoStatus.bind(this.configurationController)
-    );
 
     router.post('/demo/reset',
       this.configurationController.resetDemoData.bind(this.configurationController)

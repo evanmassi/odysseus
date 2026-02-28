@@ -67,10 +67,6 @@ import { logger } from '@utils/logger';
  */
 export class AuditEventHandler {
   /** Cache for demo tank IDs to avoid repeated config fetches */
-  private demoTankIdsCache: Set<string> | null = null;
-  private demoTankIdsCacheTime: number = 0;
-  private static readonly DEMO_CACHE_TTL_MS = 30000; // 30 seconds
-
   constructor(
     private auditService: AuditService,
     private eventBus: EventBus,
@@ -92,43 +88,6 @@ export class AuditEventHandler {
     };
   }
 
-  /**
-   * Get cached set of demo tank IDs.
-   * Caches for 30 seconds to reduce DB calls when processing multiple events.
-   */
-  private async getDemoTankIds(): Promise<Set<string>> {
-    const now = Date.now();
-    if (this.demoTankIdsCache && (now - this.demoTankIdsCacheTime) < AuditEventHandler.DEMO_CACHE_TTL_MS) {
-      return this.demoTankIdsCache;
-    }
-
-    const config = await this.configurationRepository.getCurrent();
-    const demoTankIds = new Set(
-      config?.equipment.tanks.filter(t => t.isDemo).map(t => t.id) ?? []
-    );
-
-    this.demoTankIdsCache = demoTankIds;
-    this.demoTankIdsCacheTime = now;
-    return demoTankIds;
-  }
-
-  /**
-   * Check if a tank is marked as demo (uses cached lookup).
-   */
-  private async isTankDemo(tankId: string): Promise<boolean> {
-    const demoTankIds = await this.getDemoTankIds();
-    return demoTankIds.has(tankId);
-  }
-
-  /**
-   * Check if any of the provided tanks are demo tanks.
-   * Used for bulk operations that may span multiple tanks.
-   */
-  private async anyTankIsDemo(tankIds: string[]): Promise<boolean> {
-    const demoTankIds = await this.getDemoTankIds();
-    return tankIds.some(id => demoTankIds.has(id));
-  }
-
   /** Wrap an audit logging operation with standardized error handling. */
   private async safeLogAudit(
     eventName: string,
@@ -148,9 +107,7 @@ export class AuditEventHandler {
   /**
    * Shared audit logging scaffold used by most handlers.
    * Resolves the actor's username, appends timestamp, and wraps in safeLogAudit.
-   *
-   * Demo filtering: Skips logging if the actor is a demo user or if the
-   * action is on a demo tank. This keeps audit logs clean of demo activity.
+   * Skips logging for demo lab users to keep audit logs clean.
    */
   private async logAuditEvent(params: {
     eventName: string;
@@ -168,18 +125,7 @@ export class AuditEventHandler {
     await this.safeLogAudit(params.eventName, params.context, async () => {
       const { username, isDemo } = await this.resolveUser(params.actorId);
 
-      // Skip audit logging for demo users
       if (isDemo) {
-        return;
-      }
-
-      // Skip audit logging for actions on demo tanks (single tank)
-      if (params.tankId && await this.isTankDemo(params.tankId)) {
-        return;
-      }
-
-      // Skip audit logging for bulk actions if any tank is demo
-      if (params.tankIds && params.tankIds.length > 0 && await this.anyTankIsDemo(params.tankIds)) {
         return;
       }
 
@@ -330,8 +276,7 @@ export class AuditEventHandler {
     await this.safeLogAudit('tube updated', { tubeId: event.tubeId }, async () => {
       const { username, isDemo } = await this.resolveUser(event.updatedBy);
 
-      // Skip audit logging for demo users or demo tanks
-      if (isDemo || await this.isTankDemo(event.newLocation.tankId)) {
+      if (isDemo) {
         return;
       }
 
@@ -380,8 +325,7 @@ export class AuditEventHandler {
     await this.safeLogAudit('tube location changed', { tubeId: event.tubeId }, async () => {
       const { username, isDemo } = await this.resolveUser(event.movedBy);
 
-      // Skip audit logging for demo users or demo tanks (check both old and new location)
-      if (isDemo || await this.isTankDemo(event.oldLocation.tankId) || await this.isTankDemo(event.newLocation.tankId)) {
+      if (isDemo) {
         return;
       }
 

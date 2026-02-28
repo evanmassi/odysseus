@@ -915,11 +915,9 @@ export class AdminService {
         };
       }>('/admin/tanks');
 
-      const demoTanks = response.data.data.tanks.filter(tank => tank.isDemo);
-
       return {
         success: response.data.success,
-        tanks: demoTanks,
+        tanks: response.data.data.tanks,
       };
     } catch (error) {
       logger.error('Failed to get demo tanks', { error });

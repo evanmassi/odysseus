@@ -20,7 +20,6 @@ import {
   AddTankCommandHandler,
   UpdateTankCommandHandler,
   DeleteTankCommandHandler,
-  SetTankDemoStatusCommandHandler,
   ResetDemoDataCommandHandler
 } from '@application/commands/TankCommands';
 import {
@@ -98,7 +97,6 @@ export class ConfigurationController extends BaseController {
     private addTankHandler: AddTankCommandHandler,
     private updateTankHandler: UpdateTankCommandHandler,
     private deleteTankHandler: DeleteTankCommandHandler,
-    private setTankDemoStatusHandler: SetTankDemoStatusCommandHandler,
     private resetDemoDataHandler: ResetDemoDataCommandHandler,
     private addRacksHandler: AddRacksCommandHandler,
     private updateRackHandler: UpdateRackCommandHandler,
@@ -651,68 +649,8 @@ export class ConfigurationController extends BaseController {
   }
 
   /**
-   * GET /api/admin/tanks
-   * Get all tanks (unfiltered by demo status) for admin demo management
-   */
-  async getAllTanksAdmin(req: Request, res: Response): Promise<void> {
-    try {
-      const labId = this.extractLabId(req);
-      const configuration = await this.getCurrentConfigurationHandler.handle({ labId });
-      const configData = configuration.toData();
-
-      // Return all tanks with their demo status
-      const tanks = configData.tanks.map(tank => ({
-        id: tank.id,
-        name: tank.name,
-        location: tank.location,
-        isActive: tank.isActive,
-        isDemo: tank.isDemo,
-        racks: tank.racks
-      }));
-
-      res.json({
-        success: true,
-        data: { tanks }
-      });
-    } catch (error) {
-      this.handleError(error, res, 'Failed to get all tanks');
-    }
-  }
-
-  /**
-   * PUT /api/admin/tanks/:tankId/demo-status
-   * Set tank demo status (admin only)
-   */
-  async setTankDemoStatus(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = this.extractUserId(req);
-      const tankId = req.params.tankId;
-      const { isDemo } = req.body;
-
-      if (typeof isDemo !== 'boolean') {
-        res.status(400).json({
-          error: { code: 'INVALID_REQUEST', message: 'isDemo must be a boolean' }
-        });
-        return;
-      }
-
-      const labId = this.extractLabId(req);
-
-      await this.setTankDemoStatusHandler.handle({ userId, labId, tankId, isDemo });
-
-      res.json({
-        success: true,
-        data: { success: true },
-        message: `Tank '${tankId}' demo status set to ${isDemo}`
-      });
-    } catch (error) {
-      this.handleError(error, res, 'Failed to set tank demo status');
-    }
-  }
-
-  /**
    * POST /api/admin/demo/reset
-   * Delete all tubes in demo tanks (admin only)
+   * Delete all tubes in the lab (used for demo lab reset)
    */
   async resetDemoData(req: Request, res: Response): Promise<void> {
     try {
@@ -1141,29 +1079,6 @@ export class ConfigurationController extends BaseController {
   }
 
   // SYSTEM ADMIN WRAPPERS (labId from URL params)
-
-  async setTankDemoStatusForLab(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = this.extractUserId(req);
-      const { labId, tankId } = req.params;
-      const { isDemo } = req.body;
-
-      if (typeof isDemo !== 'boolean') {
-        res.status(400).json({ error: { code: 'INVALID_REQUEST', message: 'isDemo must be a boolean' } });
-        return;
-      }
-
-      await this.setTankDemoStatusHandler.handle({ userId, labId, tankId, isDemo });
-
-      res.json({
-        success: true,
-        data: { success: true },
-        message: `Tank '${tankId}' demo status set to ${isDemo}`
-      });
-    } catch (error) {
-      this.handleError(error, res, 'Failed to set tank demo status');
-    }
-  }
 
   async resetDemoDataForLab(req: Request, res: Response): Promise<void> {
     try {

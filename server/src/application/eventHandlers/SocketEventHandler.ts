@@ -78,10 +78,6 @@ export class SocketEventHandler {
   private pendingConfigEvents: Array<{ type: string; userId: string; labId?: string }> = [];
   private readonly DEBOUNCE_DELAY_MS = 2000; // 2 seconds
 
-  // Per-lab demo tank ID caching (30-second TTL)
-  private demoTankIdsCacheByLab = new Map<string, { ids: Set<string>; time: number }>();
-  private static readonly DEMO_CACHE_TTL_MS = 30000;
-
   constructor(
     private io: SocketIOServer,
     private eventBus: EventBus,
@@ -92,40 +88,13 @@ export class SocketEventHandler {
     this.setupPresenceHandlers();
   }
 
-  private async getDemoTankIds(labId?: string): Promise<Set<string>> {
-    const cacheKey = labId ?? '__default__';
-    const now = Date.now();
-    const cached = this.demoTankIdsCacheByLab.get(cacheKey);
-    if (cached && (now - cached.time) < SocketEventHandler.DEMO_CACHE_TTL_MS) {
-      return cached.ids;
-    }
-
-    const config = labId
-      ? await this.configurationRepository.getForLab(labId)
-      : await this.configurationRepository.getCurrent();
-    const demoTankIds = new Set(
-      config?.equipment.tanks.filter(t => t.isDemo).map(t => t.id) ?? []
-    );
-    this.demoTankIdsCacheByLab.set(cacheKey, { ids: demoTankIds, time: now });
-    return demoTankIds;
-  }
-
-  private getLabRoomName(labId: string, mode: 'demo' | 'real'): string {
-    return `lab:${labId}:${mode}`;
-  }
-
-  private async getRoomForTank(tankId: string, labId?: string): Promise<string> {
-    const demoTankIds = await this.getDemoTankIds(labId);
-    const mode = demoTankIds.has(tankId) ? 'demo' : 'real';
-    if (labId) {
-      return this.getLabRoomName(labId, mode);
-    }
-    return mode;
+  private getLabRoomName(labId: string): string {
+    return `lab:${labId}`;
   }
 
   private emitToLabRooms(labId: string | undefined, eventName: string, payload: unknown): void {
     if (labId) {
-      this.io.to(this.getLabRoomName(labId, 'demo')).to(this.getLabRoomName(labId, 'real')).emit(eventName, payload);
+      this.io.to(this.getLabRoomName(labId)).emit(eventName, payload);
     } else {
       this.io.emit(eventName, payload);
     }
@@ -142,14 +111,10 @@ export class SocketEventHandler {
         try {
           this.presenceService.registerConnection(socket.userId, socket.id, socket.username, socket.labId);
 
-          const mode = socket.isDemo ? 'demo' : 'real';
-          socket.join(mode);
           if (socket.labId) {
-            const labRoom = this.getLabRoomName(socket.labId, mode);
+            const labRoom = this.getLabRoomName(socket.labId);
             socket.join(labRoom);
-            logger.debug('Socket joined rooms', { socketId: socket.id, rooms: [mode, labRoom], labId: socket.labId, isDemo: socket.isDemo });
-          } else {
-            logger.debug('Socket joined room', { socketId: socket.id, room: mode, isDemo: socket.isDemo });
+            logger.debug('Socket joined lab room', { socketId: socket.id, room: labRoom, labId: socket.labId });
           }
 
           const onlinePayload = {
@@ -411,16 +376,14 @@ export class SocketEventHandler {
       };
 
       // Emit to appropriate room based on tank demo status
-      const room = await this.getRoomForTank(event.location.tankId, event.labId);
-
       logger.debug('Emitting tube_created socket event', {
         tubeId: event.tubeId,
         location: locationData,
-        room,
+        labId: event.labId,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.to(room).emit('tube_created', payload);
+      this.emitToLabRooms(event.labId, 'tube_created', payload);
     } catch (error) {
       logger.error('Failed to emit tube_created event', {
         error: error instanceof Error ? error.message : String(error),
@@ -450,25 +413,13 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      // Determine which room(s) to emit to
-      // If tube moves between demo/real tanks, emit to both rooms
-      const oldRoom = await this.getRoomForTank(event.oldLocation.tankId, event.labId);
-      const newRoom = await this.getRoomForTank(event.newLocation.tankId, event.labId);
-
       logger.debug('Emitting tube_updated socket event', {
         tubeId: event.tubeId,
-        oldRoom,
-        newRoom,
+        labId: event.labId,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      if (oldRoom === newRoom) {
-        this.io.to(oldRoom).emit('tube_updated', payload);
-      } else {
-        // Tube moved between demo and real - notify both rooms
-        this.io.to(oldRoom).emit('tube_updated', payload);
-        this.io.to(newRoom).emit('tube_updated', payload);
-      }
+      this.emitToLabRooms(event.labId, 'tube_updated', payload);
     } catch (error) {
       logger.error('Failed to emit tube_updated event', {
         error: error instanceof Error ? error.message : String(error),
@@ -489,16 +440,13 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      // Emit to appropriate room based on tank demo status
-      const room = await this.getRoomForTank(event.location.tankId, event.labId);
-
       logger.debug('Emitting tube_deleted socket event', {
         tubeId: event.tubeId,
-        room,
+        labId: event.labId,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      this.io.to(room).emit('tube_deleted', payload);
+      this.emitToLabRooms(event.labId, 'tube_deleted', payload);
     } catch (error) {
       logger.error('Failed to emit tube_deleted event', {
         error: error instanceof Error ? error.message : String(error),
@@ -518,21 +466,13 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<string>();
-      for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId, event.labId));
-      }
-
       logger.debug('Emitting tubes_bulk_updated socket event', {
         count: event.tubeIds.length,
-        rooms: [...rooms],
+        labId: event.labId,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      for (const room of rooms) {
-        this.io.to(room).emit('tubes_bulk_updated', payload);
-      }
+      this.emitToLabRooms(event.labId, 'tubes_bulk_updated', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_bulk_updated event', {
         error: error instanceof Error ? error.message : String(error),
@@ -800,21 +740,13 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<string>();
-      for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId, event.labId));
-      }
-
       logger.debug('Emitting tubes_locked socket event', {
         count: event.tubeIds.length,
-        rooms: [...rooms],
+        labId: event.labId,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      for (const room of rooms) {
-        this.io.to(room).emit('tubes_locked', payload);
-      }
+      this.emitToLabRooms(event.labId, 'tubes_locked', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_locked event', {
         error: error instanceof Error ? error.message : String(error),
@@ -832,21 +764,13 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<string>();
-      for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId, event.labId));
-      }
-
       logger.debug('Emitting tubes_unlocked socket event', {
         count: event.tubeIds.length,
-        rooms: [...rooms],
+        labId: event.labId,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      for (const room of rooms) {
-        this.io.to(room).emit('tubes_unlocked', payload);
-      }
+      this.emitToLabRooms(event.labId, 'tubes_unlocked', payload);
     } catch (error) {
       logger.error('Failed to emit tubes_unlocked event', {
         error: error instanceof Error ? error.message : String(error),
@@ -865,22 +789,14 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<string>();
-      for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId, event.labId));
-      }
-
       logger.debug('Emitting tube_access_shared Socket event', {
         tubeCount: event.tubeIds.length,
         userCount: event.addedUserIds.length,
-        rooms: [...rooms],
+        labId: event.labId,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      for (const room of rooms) {
-        this.io.to(room).emit('tube_access_shared', payload);
-      }
+      this.emitToLabRooms(event.labId, 'tube_access_shared', payload);
     } catch (error) {
       logger.error('Failed to emit tube_access_shared event', {
         error: error instanceof Error ? error.message : String(error),
@@ -899,22 +815,14 @@ export class SocketEventHandler {
         updatedAt: new Date().toISOString()
       };
 
-      // Determine which rooms to emit to based on tank demo status
-      const rooms = new Set<string>();
-      for (const tankId of event.tankIds) {
-        rooms.add(await this.getRoomForTank(tankId, event.labId));
-      }
-
       logger.debug('Emitting tube_access_revoked Socket event', {
         tubeCount: event.tubeIds.length,
         userCount: event.revokedUserIds.length,
-        rooms: [...rooms],
+        labId: event.labId,
         connectedClients: this.io.sockets.sockets.size
       });
 
-      for (const room of rooms) {
-        this.io.to(room).emit('tube_access_revoked', payload);
-      }
+      this.emitToLabRooms(event.labId, 'tube_access_revoked', payload);
     } catch (error) {
       logger.error('Failed to emit tube_access_revoked event', {
         error: error instanceof Error ? error.message : String(error),

@@ -107,12 +107,6 @@ export class SystemAdminRouteModule implements RouteModule {
 
     // DEMO MANAGEMENT (system admin, explicit labId)
 
-    router.put('/labs/:labId/tanks/:tankId/demo-status',
-      validateParams(z.object({ labId: z.string(), tankId: z.string() })),
-      validateBody(z.object({ isDemo: z.boolean() })),
-      this.configurationController.setTankDemoStatusForLab.bind(this.configurationController)
-    );
-
     router.post('/labs/:labId/demo/reset',
       validateParams(z.object({ labId: z.string() })),
       this.configurationController.resetDemoDataForLab.bind(this.configurationController)

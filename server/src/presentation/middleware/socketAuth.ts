@@ -20,7 +20,6 @@ declare module 'socket.io' {
   interface Socket {
     userId?: string;
     username?: string;
-    isDemo?: boolean;
     labId?: string;
   }
 }
@@ -49,13 +48,11 @@ export function createSocketAuthMiddleware(
       if (validation?.user) {
         socket.userId = validation.user.id;
         socket.username = validation.user.username;
-        socket.isDemo = validation.user.isDemo;
         socket.labId = validation.user.labId;
         logger.debug('Socket authenticated', {
           socketId: socket.id,
           userId: socket.userId,
           username: socket.username,
-          isDemo: socket.isDemo,
           labId: socket.labId
         });
       } else {

@@ -57,9 +57,6 @@ export class GetCurrentConfigurationQueryHandler {
 
 /**
  * Get Configuration for User Query
- *
- * Returns configuration filtered by user's demo status.
- * Demo users see only demo tanks; real users see only real tanks.
  */
 export interface GetConfigurationForUserQuery {
   labId: string;
@@ -69,8 +66,8 @@ export interface GetConfigurationForUserQuery {
 /**
  * Get Configuration for User Query Handler
  *
- * Returns the current configuration with tanks filtered by user's demo status.
- * Used by API endpoints to enforce demo mode isolation.
+ * Returns the current configuration for the user's lab.
+ * Each lab has its own configuration — no cross-lab filtering needed.
  */
 export class GetConfigurationForUserQueryHandler {
   constructor(private configurationRepository: ConfigurationRepository) {}
@@ -82,11 +79,7 @@ export class GetConfigurationForUserQueryHandler {
       configuration = await this.configurationRepository.ensureDefaultForLab(query.labId);
     }
 
-    // Return configuration with tanks filtered by user's demo status
-    // The Configuration entity provides helper methods for this
-    return configuration.withFilteredTanks(
-      configuration.getTanksForUserDemoStatus(query.user.isDemo)
-    );
+    return configuration;
   }
 }
 

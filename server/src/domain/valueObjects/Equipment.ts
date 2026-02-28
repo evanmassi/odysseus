@@ -27,8 +27,7 @@ export class Tank {
     private readonly _racks: Rack[],
     private readonly _maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
     private readonly _isActive: boolean = true,
-    private readonly _location: string = 'Main Lab',
-    private readonly _isDemo: boolean = false
+    private readonly _location: string = 'Main Lab'
   ) {
     this.validate();
   }
@@ -39,10 +38,9 @@ export class Tank {
     racks: Rack[] = [],
     maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
     isActive: boolean = true,
-    location: string = 'Main Lab',
-    isDemo: boolean = false
+    location: string = 'Main Lab'
   ): Tank {
-    return new Tank(id, name, racks, maxRacks, isActive, location, isDemo);
+    return new Tank(id, name, racks, maxRacks, isActive, location);
   }
 
   private validate(): void {
@@ -91,7 +89,6 @@ export class Tank {
     maxRacks: number;
     isActive: boolean;
     location: string;
-    isDemo: boolean;
   } {
     return {
       id: this._id,
@@ -99,8 +96,7 @@ export class Tank {
       racks: this._racks.map(r => r.toData()),
       maxRacks: this._maxRacks,
       isActive: this._isActive,
-      location: this._location,
-      isDemo: this._isDemo
+      location: this._location
     };
   }
 
@@ -111,7 +107,6 @@ export class Tank {
   get maxRacks(): number { return this._maxRacks; }
   get isActive(): boolean { return this._isActive; }
   get location(): string { return this._location; }
-  get isDemo(): boolean { return this._isDemo; }
 }
 
 /**

@@ -7,7 +7,7 @@ import { UpdateSystemConfigurationCommandHandler, UpdateEquipmentConfigurationCo
 import { SendVerificationEmailCommandHandler, VerifyEmailCommandHandler, ResendVerificationEmailCommandHandler } from '@application/commands/EmailVerificationCommands';
 import { AdminResetPasswordCommandHandler, GeneratePasswordResetTokenCommandHandler, ResetPasswordWithTokenCommandHandler } from '@application/commands/PasswordResetCommands';
 // CQRS CQRS Command Handlers - Storage Management
-import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, SetTankDemoStatusCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
+import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandler, ResetDemoDataCommandHandler } from '@application/commands/TankCommands';
 import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
 import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
 import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
@@ -145,7 +145,6 @@ export class ServiceContainer {
   private getConfigurationHistoryHandler?: GetConfigurationHistoryQueryHandler;
   private getConfigurationByVersionHandler?: GetConfigurationByVersionQueryHandler;
   private checkConfigurationHealthHandler?: CheckConfigurationHealthQueryHandler;
-  private setTankDemoStatusHandler?: SetTankDemoStatusCommandHandler;
   private resetDemoDataHandler?: ResetDemoDataCommandHandler;
 
   // Controllers
@@ -535,18 +534,6 @@ export class ServiceContainer {
       );
     }
     return this.deleteTankHandler;
-  }
-
-  getSetTankDemoStatusHandler(): SetTankDemoStatusCommandHandler {
-    if (!this.setTankDemoStatusHandler) {
-      const repositories = this.repositoryFactory.getRepositories();
-      this.setTankDemoStatusHandler = new SetTankDemoStatusCommandHandler(
-        repositories.configurations,
-        repositories.users,
-        this.getEventBus()
-      );
-    }
-    return this.setTankDemoStatusHandler;
   }
 
   getResetDemoDataHandler(): ResetDemoDataCommandHandler {
@@ -989,7 +976,6 @@ export class ServiceContainer {
         this.getAddTankHandler(),
         this.getUpdateTankHandler(),
         this.getDeleteTankHandler(),
-        this.getSetTankDemoStatusHandler(),
         this.getResetDemoDataHandler(),
         this.getAddRacksHandler(),
         this.getUpdateRackHandler(),

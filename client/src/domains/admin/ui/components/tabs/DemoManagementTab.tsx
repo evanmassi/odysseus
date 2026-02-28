@@ -95,8 +95,8 @@ export function DemoManagementTab({ onDemoUpdate, onTabFooter }: DemoManagementT
   }, [allUsers, demoUsers]);
 
   // Filter for demo and non-demo tanks
-  const demoTanks = useMemo(() => allTanks.filter(t => t.isDemo), [allTanks]);
-  const nonDemoTanks = useMemo(() => allTanks.filter(t => !t.isDemo), [allTanks]);
+  const demoTanks = useMemo(() => allTanks, [allTanks]);
+  const nonDemoTanks = useMemo(() => [] as typeof allTanks, []);
 
   useEffect(() => {
     onTabFooter?.(

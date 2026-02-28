@@ -80,15 +80,11 @@ export class TubeApplicationService {
     };
   }
 
-  /**
-   * Get tank IDs accessible to user based on demo status.
-   * Demo users see only demo tanks; real users see only real tanks.
-   */
-  private async getAllowedTankIds(labId: string, user: User): Promise<string[]> {
+  private async getAllowedTankIds(labId: string, _user: User): Promise<string[]> {
     const config = await this.configurationRepository.getForLab(labId);
     if (!config) return [];
 
-    return config.getTankIdsForUserDemoStatus(user.isDemo);
+    return config.tanks.map(t => t.id);
   }
 
   private async getTubeOrThrow(id: string): Promise<Tube> {
@@ -110,19 +106,7 @@ export class TubeApplicationService {
     // 2. Map DTO to domain (thin, no logic)
     const tubeData = TubeDto.fromCreateRequest(request);
 
-    // 2.1 Demo mode isolation: verify tank is accessible to user
     const config = options?.config !== undefined ? options.config : await this.configurationRepository.getForLab(authenticatedUser.labId!);
-    if (config) {
-      const tank = config.tanks.find(t => t.id === tubeData.location.tankId);
-      if (tank && tank.isDemo !== authenticatedUser.isDemo) {
-        throw new PermissionError(
-          authenticatedUser.isDemo
-            ? 'Demo users can only create tubes in demo tanks'
-            : 'Cannot create tubes in demo tanks',
-          { tankId: tubeData.location.tankId }
-        );
-      }
-    }
 
     // 2.5. Check container access (assignment protects the container)
     const containerInfo = await this.getContainerInfo(
