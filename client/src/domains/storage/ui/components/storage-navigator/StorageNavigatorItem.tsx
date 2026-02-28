@@ -6,7 +6,7 @@ import { ChevronDown, Icon, Rows3, Box as BoxIcon } from 'lucide-react';
 
 import { useTextTruncation } from '@shared/hooks';
 import { Tooltip } from '@shared/ui';
-import { OwnershipIndicatorBadge } from '@shared/ui/components';
+import { UserBadge } from '@shared/ui/components';
 
 import type { StorageNavigatorItemProps } from './types';
 import './storage-navigator.css';
@@ -70,7 +70,7 @@ export const StorageNavigatorItem: React.FC<StorageNavigatorItemProps> = ({
             </span>
           </Tooltip>
           {ownershipType && ownershipType !== 'otherUser' && (
-            <OwnershipIndicatorBadge
+            <UserBadge
               type={ownershipType}
               initials={ownershipInitials}
               size="sm"

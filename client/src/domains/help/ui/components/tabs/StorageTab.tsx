@@ -15,7 +15,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 
-import { OwnershipIndicatorBadge } from '@shared/ui/components/badges/OwnershipIndicatorBadge';
+import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { BoxIcon } from '@shared/ui/components/icons/BoxIcon';
 import { RackIcon } from '@shared/ui/components/icons/RackIcon';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
@@ -97,19 +97,19 @@ export function StorageTab() {
         {/* Ownership badges */}
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
-            <OwnershipIndicatorBadge type="currentUser" initials="ME" size="md" />
+            <UserBadge type="currentUser" initials="ME" size="md" />
             <span className="text-xs font-medium text-card-foreground">Yours</span>
             <span className="text-[11px] text-muted-foreground text-center">Assigned to you</span>
           </div>
           <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
-            <OwnershipIndicatorBadge type="otherUser" initials="JD" username="jdoe" size="md" />
+            <UserBadge type="otherUser" initials="JD" username="jdoe" size="md" />
             <span className="text-xs font-medium text-card-foreground">Other User</span>
             <span className="text-[11px] text-muted-foreground text-center">
               Assigned to someone else
             </span>
           </div>
           <div className="flex flex-col items-center gap-2 p-3 rounded-lg bg-muted/50">
-            <OwnershipIndicatorBadge type="unassigned" size="md" />
+            <UserBadge type="unassigned" size="md" />
             <span className="text-xs font-medium text-card-foreground">Common</span>
             <span className="text-[11px] text-muted-foreground text-center">
               Unassigned, shared by all

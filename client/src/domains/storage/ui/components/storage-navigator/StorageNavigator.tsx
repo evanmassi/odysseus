@@ -7,7 +7,7 @@ import { useStorageNavigation } from './useStorageNavigation';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
 
 import type { StorageNavigatorProps, VisibleTreeNode } from './types';
-import type { OwnershipType } from '@shared/ui/components';
+import type { UserBadgeType } from '@shared/ui/components';
 
 // Helper to compute effective owner (handles inheritance cascade)
 function getEffectiveOwner(
@@ -22,7 +22,7 @@ function getEffectiveOwner(
 function computeOwnershipType(
   effectiveOwner: string | null | undefined,
   currentUserId?: string
-): OwnershipType | undefined {
+): UserBadgeType | undefined {
   // null or undefined = unassigned/common
   if (effectiveOwner === null || effectiveOwner === undefined) {
     return 'unassigned';

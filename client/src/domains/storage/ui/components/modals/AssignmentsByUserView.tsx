@@ -5,7 +5,7 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { UsersRound, ChevronDown, UserRoundX, UserRoundPen } from 'lucide-react';
 
 import { Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
-import { OwnershipIndicatorBadge } from '@shared/ui/components';
+import { UserBadge } from '@shared/ui/components';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
@@ -291,7 +291,7 @@ export function AssignmentsByUserView({
                       className={`storage-nav-button__chevron transition-transform duration-200 ${!isExpanded ? '-rotate-90' : ''}`}
                       aria-hidden="true"
                     />
-                    <OwnershipIndicatorBadge
+                    <UserBadge
                       type={
                         isUnassigned ? 'unassigned' : isCurrentUser ? 'currentUser' : 'otherUser'
                       }
@@ -447,7 +447,7 @@ export function AssignmentsByUserView({
                                 className="storage-nav-button storage-nav-button--rack"
                                 aria-label={`${rackGroup.tankName} / ${rackGroup.rackName}`}
                               >
-                                <OwnershipIndicatorBadge
+                                <UserBadge
                                   type={
                                     isUnassigned
                                       ? 'unassigned'
@@ -497,7 +497,7 @@ export function AssignmentsByUserView({
                                       role="listitem"
                                     >
                                       <div className="storage-nav-button storage-nav-button--box">
-                                        <OwnershipIndicatorBadge
+                                        <UserBadge
                                           type={
                                             isUnassigned
                                               ? 'unassigned'

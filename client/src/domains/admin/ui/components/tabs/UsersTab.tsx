@@ -32,7 +32,7 @@ import {
 import { queryKeys } from '@app/queryKeys';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
-import { OwnershipIndicatorBadge } from '@shared/ui/components/badges/OwnershipIndicatorBadge';
+import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -371,12 +371,7 @@ export function UsersTab({ users = [], onUserUpdate }: UsersTabProps) {
 
         return (
           <div className="flex items-center whitespace-nowrap gap-2">
-            <OwnershipIndicatorBadge
-              type="otherUser"
-              initials={initials}
-              username={user.username}
-              size="md"
-            />
+            <UserBadge type="otherUser" initials={initials} username={user.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-medium text-card-foreground">

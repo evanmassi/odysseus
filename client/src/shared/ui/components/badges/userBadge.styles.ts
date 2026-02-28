@@ -1,18 +1,18 @@
 /**
- * Ownership Indicator
+ * User Badge Styles
  *
- * Provides Tailwind class strings for ownership-based visual styling (borders, backgrounds).
+ * Provides Tailwind class strings for user badge visual styling (borders, backgrounds).
  */
 
-import type { OwnershipType } from './OwnershipIndicatorBadge';
+import type { UserBadgeType } from './UserBadge';
 
-export interface OwnershipIndicatorStyles {
+export interface UserBadgeStyles {
   border: string;
   background: string;
   text: string;
 }
 
-const styleMap: Record<OwnershipType, OwnershipIndicatorStyles> = {
+const styleMap: Record<UserBadgeType, UserBadgeStyles> = {
   currentUser: {
     border: 'border-l-ownership-user-badge',
     background: 'bg-ownership-user-badge',
@@ -30,6 +30,6 @@ const styleMap: Record<OwnershipType, OwnershipIndicatorStyles> = {
   },
 };
 
-export function getOwnershipIndicatorStyles(type: OwnershipType): OwnershipIndicatorStyles {
+export function getUserBadgeStyles(type: UserBadgeType): UserBadgeStyles {
   return styleMap[type];
 }

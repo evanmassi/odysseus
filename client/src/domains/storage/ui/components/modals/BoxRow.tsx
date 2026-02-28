@@ -6,9 +6,9 @@ import { Edit3, Tag, Trash2 } from 'lucide-react';
 import { OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 
+import { AssignedUserBadge } from './AssignedUserBadge';
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { CustomLabelButton } from './CustomLabelButton';
-import { OwnershipBadge } from './OwnershipBadge';
 import { useStorageManagerContext } from './StorageManagerContext';
 import '../storage-navigator/storage-navigator.css';
 
@@ -101,7 +101,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
           className="storage-nav-button storage-nav-button--box"
           aria-label={`Box ${box.name}`}
         >
-          <OwnershipBadge
+          <AssignedUserBadge
             userId={effectiveOwnerId}
             size="sm"
             isOwnedByCurrentUser={isBoxOwnedByUser}

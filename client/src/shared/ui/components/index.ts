@@ -10,7 +10,7 @@ export type { ConfirmDialogProps } from './ConfirmDialog';
 export { BaseModal } from './modals';
 export type { BaseModalProps } from './modals';
 
-export { OwnershipIndicatorBadge, type OwnershipType } from './badges';
+export { UserBadge, type UserBadgeType } from './badges';
 
 export { OnlineUsersBadges, UserPresenceBadge } from './presence';
 

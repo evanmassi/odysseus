@@ -1,2 +1,2 @@
-export { OwnershipIndicatorBadge, type OwnershipType } from './OwnershipIndicatorBadge';
-export { getOwnershipIndicatorStyles, type OwnershipIndicatorStyles } from './ownershipIndicator';
+export { UserBadge, type UserBadgeType } from './UserBadge';
+export { getUserBadgeStyles, type UserBadgeStyles } from './userBadge.styles';

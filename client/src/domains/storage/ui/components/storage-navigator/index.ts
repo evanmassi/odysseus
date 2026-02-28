@@ -5,7 +5,7 @@ export type {
   Box,
   SelectedLocation,
   CurrentUserInfo,
-  OwnershipType,
+  UserBadgeType,
   StorageNavigatorProps,
   StorageNavigatorItemProps,
   VisibleTreeNode,

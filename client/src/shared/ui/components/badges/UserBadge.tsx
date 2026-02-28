@@ -2,29 +2,25 @@ import { UsersRound } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
 
-import { getOwnershipIndicatorStyles } from './ownershipIndicator';
+import { getUserBadgeStyles } from './userBadge.styles';
 
-export type OwnershipType = 'unassigned' | 'currentUser' | 'otherUser';
+export type UserBadgeType = 'unassigned' | 'currentUser' | 'otherUser';
 
-interface OwnershipIndicatorBadgeProps {
-  type: OwnershipType;
+interface UserBadgeProps {
+  type: UserBadgeType;
   initials?: string;
   username?: string;
   size?: 'sm' | 'md';
   variant?: 'default' | 'navigator';
 }
 
-/**
- * Shared ownership indicator badge primitive
- * Displays ownership status as a badge with initials or an icon
- */
-export function OwnershipIndicatorBadge({
+export function UserBadge({
   type,
   initials,
   username,
   size = 'sm',
   variant = 'default',
-}: OwnershipIndicatorBadgeProps) {
+}: UserBadgeProps) {
   const sizeClasses = {
     sm: {
       badge: 'w-5 h-5',
@@ -39,7 +35,7 @@ export function OwnershipIndicatorBadge({
   };
 
   const { badge: badgeSize, icon: iconSize, text: textSize } = sizeClasses[size];
-  const ownershipStyles = getOwnershipIndicatorStyles(type);
+  const ownershipStyles = getUserBadgeStyles(type);
 
   // Navigator variant doesn't use ownership colors - inherits from parent for selected/hover states
   const colorClass =

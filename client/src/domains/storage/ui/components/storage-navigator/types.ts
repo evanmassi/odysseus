@@ -1,6 +1,6 @@
-import type { OwnershipType } from '@shared/ui/components';
+import type { UserBadgeType } from '@shared/ui/components';
 
-export type { OwnershipType };
+export type { UserBadgeType };
 
 export interface StorageHierarchy {
   tanks: Tank[];
@@ -60,7 +60,7 @@ export interface StorageNavigatorItemProps {
   ariaLevel?: number;
   ariaPosinset?: number;
   ariaSetsize?: number;
-  ownershipType?: OwnershipType;
+  ownershipType?: UserBadgeType;
   ownershipInitials?: string;
 }
 

@@ -20,7 +20,7 @@ import {
 
 import { Button, Chip, Table, Tooltip } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges/LabBadge';
-import { OwnershipIndicatorBadge } from '@shared/ui/components/badges/OwnershipIndicatorBadge';
+import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
@@ -386,12 +386,7 @@ function getUserColumns(labId: string): TableColumn[] {
 
         return (
           <div className="flex items-center whitespace-nowrap gap-2">
-            <OwnershipIndicatorBadge
-              type="otherUser"
-              initials={initials}
-              username={username}
-              size="md"
-            />
+            <UserBadge type="otherUser" initials={initials} username={username} size="md" />
             <div>
               <div className="text-sm font-medium text-card-foreground">{displayName}</div>
               <div className="text-xs text-muted-foreground">{username}</div>

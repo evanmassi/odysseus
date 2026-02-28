@@ -1,30 +1,26 @@
-import { OwnershipIndicatorBadge, type OwnershipType } from '@shared/ui/components';
+import { UserBadge, type UserBadgeType } from '@shared/ui/components';
 
 import { useStorageManagerContext } from './StorageManagerContext';
 
-interface OwnershipBadgeProps {
+interface AssignedUserBadgeProps {
   userId: string | undefined;
   size: 'sm' | 'md';
   isOwnedByCurrentUser: boolean;
 }
 
-/**
- * Ownership badge for storage management modal
- * Thin wrapper around shared OwnershipIndicatorBadge that uses context for user lookup
- */
-export function OwnershipBadge({ userId, size, isOwnedByCurrentUser }: OwnershipBadgeProps) {
+export function AssignedUserBadge({ userId, size, isOwnedByCurrentUser }: AssignedUserBadgeProps) {
   const { getUserInfo } = useStorageManagerContext();
 
   const userInfo = userId ? getUserInfo(userId) : null;
 
-  const type: OwnershipType = !userInfo
+  const type: UserBadgeType = !userInfo
     ? 'unassigned'
     : isOwnedByCurrentUser
       ? 'currentUser'
       : 'otherUser';
 
   return (
-    <OwnershipIndicatorBadge
+    <UserBadge
       type={type}
       initials={userInfo?.initials}
       username={userInfo?.username}
