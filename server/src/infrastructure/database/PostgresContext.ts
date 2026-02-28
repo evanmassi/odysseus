@@ -132,7 +132,6 @@ export class PostgresContext {
         password_reset_expiry TIMESTAMPTZ,
         require_password_change BOOLEAN NOT NULL DEFAULT FALSE,
         last_password_change TIMESTAMPTZ,
-        is_demo BOOLEAN NOT NULL DEFAULT FALSE,
         settings JSONB DEFAULT '{}',
         FOREIGN KEY (researcher_id) REFERENCES researchers(id) ON DELETE CASCADE,
         FOREIGN KEY (person_id) REFERENCES persons(id)
@@ -353,17 +352,12 @@ export class PostgresContext {
    * Called after createTables() so all tables exist before ALTER TABLE runs.
    */
   private async runSchemaMigrations(): Promise<void> {
-    // Add is_demo column to users table for demo mode isolation
+    // Drop is_demo from users — demo status now derived from lab
     await this.pool.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (
-          SELECT 1 FROM information_schema.columns
-          WHERE table_name = 'users' AND column_name = 'is_demo'
-        ) THEN
-          ALTER TABLE users ADD COLUMN is_demo BOOLEAN NOT NULL DEFAULT FALSE;
-        END IF;
-      END $$
+      ALTER TABLE users DROP COLUMN IF EXISTS is_demo
+    `);
+    await this.pool.query(`
+      DROP INDEX IF EXISTS idx_users_is_demo
     `);
 
     // Rename vendor → source (column rename for existing databases)
@@ -966,7 +960,6 @@ export class PostgresContext {
       'CREATE INDEX IF NOT EXISTS idx_users_researcher_id ON users(researcher_id)',
       'CREATE INDEX IF NOT EXISTS idx_users_person_id ON users(person_id)',
       'CREATE INDEX IF NOT EXISTS idx_users_status ON users(status)',
-      'CREATE INDEX IF NOT EXISTS idx_users_is_demo ON users(is_demo)',
       'CREATE INDEX IF NOT EXISTS idx_users_email_verification_token ON users(email_verification_token)',
       'CREATE INDEX IF NOT EXISTS idx_users_password_reset_token ON users(password_reset_token)',
 
