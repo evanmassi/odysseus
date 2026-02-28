@@ -33,6 +33,8 @@ export interface BaseModalProps {
   footer?: React.ReactNode;
   /** Footer pinned to the bottom of the tab content area (above the modal footer) */
   tabFooter?: React.ReactNode;
+  /** Content pinned to the bottom of the vertical tab sidebar */
+  tabSidebarFooter?: React.ReactNode;
   contentClassName?: string;
   dataAttribute?: string;
   className?: string;
@@ -69,6 +71,7 @@ export function BaseModal({
   tabOrientation = 'horizontal',
   footer,
   tabFooter,
+  tabSidebarFooter,
   contentClassName = 'p-6',
   dataAttribute,
   className = '',
@@ -156,7 +159,10 @@ export function BaseModal({
 
           <div className={`flex-1 min-h-0 flex ${hasVerticalTabs ? 'flex-row' : 'flex-col'}`}>
             {hasVerticalTabs && (
-              <div className="w-48 bg-card border-r border-border py-4 flex-shrink-0">{tabs}</div>
+              <div className="w-48 bg-card border-r border-border py-4 flex-shrink-0 flex flex-col">
+                <div className="flex-1">{tabs}</div>
+                {tabSidebarFooter && <div className="px-3 pb-2">{tabSidebarFooter}</div>}
+              </div>
             )}
 
             <div className="flex-1 min-w-0 min-h-0 flex flex-col">

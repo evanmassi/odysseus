@@ -131,6 +131,9 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
       icon: CheckCircle,
       text: 'Healthy',
       alertClass: 'alert-success',
+      lightClass: 'bg-success-light',
+      outlineClass: 'outline-success-border/50',
+      hoverClass: 'hover:bg-success-light-hover',
       iconClass: 'alert-success-icon',
       headingClass: 'alert-success-heading',
       textClass: 'alert-success-text',
@@ -139,6 +142,9 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
       icon: AlertTriangle,
       text: 'Warning',
       alertClass: 'alert-warning',
+      lightClass: 'bg-warning-light',
+      outlineClass: 'outline-warning-border/50',
+      hoverClass: 'hover:bg-warning-light-hover',
       iconClass: 'alert-warning-icon',
       headingClass: 'alert-warning-heading',
       textClass: 'alert-warning-text',
@@ -147,6 +153,9 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
       icon: AlertTriangle,
       text: 'Critical',
       alertClass: 'alert-error',
+      lightClass: 'bg-danger-light',
+      outlineClass: 'outline-danger-border/50',
+      hoverClass: 'hover:bg-danger-light-hover',
       iconClass: 'alert-error-icon',
       headingClass: 'alert-error-heading',
       textClass: 'alert-error-text',
@@ -171,7 +180,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
     return (
       <button
         type="button"
-        className={`${currentStatus.alertClass} rounded-lg p-3 cursor-pointer w-full text-left`}
+        className={`${currentStatus.lightClass} rounded-lg p-3 cursor-pointer w-full text-left transition-colors outline outline-1 outline-offset-4 ${currentStatus.outlineClass} ${currentStatus.hoverClass}`}
         onClick={() => setIsCollapsed(false)}
         aria-expanded="false"
         aria-label="Expand audit retention settings"

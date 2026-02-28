@@ -44,6 +44,7 @@
 
     /* Muted - for subdued backgrounds */
     --muted: 210 40% 96.1%;
+    --muted-hover: 210 35% 93%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
     /* Accent */
@@ -129,6 +130,7 @@
     --color-demo-bg: 270 74% 52%;
     --color-demo-text: 270 74% 45%;
     --color-demo-light: 270 75% 97%;
+    --color-demo-light-hover: 270 65% 94%;
     --color-demo-border: 270 70% 55%;
 
     /* Validation - Default */
@@ -244,6 +246,7 @@
 
     /* Muted */
     --muted: 215 24% 19%;
+    --muted-hover: 215 24% 23%;
     --muted-foreground: 215 20.2% 65.1%;
 
     /* Accent */
@@ -306,6 +309,7 @@
     --color-demo-bg: 270 74% 55%;
     --color-demo-text: 270 78% 65%;
     --color-demo-light: 270 40% 10%;
+    --color-demo-light-hover: 270 40% 14%;
     --color-demo-border: 270 65% 45%;
 
     /* Clear Theme */

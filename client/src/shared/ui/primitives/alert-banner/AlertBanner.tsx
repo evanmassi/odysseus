@@ -7,6 +7,7 @@
 import {
   AnimatedCheckmark,
   AnimatedInfoMark,
+  AnimatedSparkles,
   AnimatedWarningMark,
   AnimatedXMark,
 } from '@shared/components';
@@ -42,6 +43,12 @@ const variantStyles: Record<
     bg: 'bg-success-light',
     icon: 'text-success-text',
     text: 'text-success-text',
+    defaultIcon: null,
+  },
+  demo: {
+    bg: 'bg-demo-light',
+    icon: 'text-demo-text',
+    text: 'text-demo-text',
     defaultIcon: null,
   },
 };
@@ -89,6 +96,11 @@ export function AlertBanner({
           <AnimatedCheckmark size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
         );
       }
+      if (variant === 'demo') {
+        return (
+          <AnimatedSparkles size={24} className={`${styles.icon} flex-shrink-0 ${extraClass}`} />
+        );
+      }
     }
     if (Icon) {
       return <Icon className={`w-4 h-4 ${styles.icon} flex-shrink-0 ${extraClass}`} />;
@@ -118,7 +130,7 @@ export function AlertBanner({
   // Simple layout: just message
   return (
     <div
-      className={`w-fit h-7 px-2 ${styles.bg} rounded-lg flex items-center gap-2 ${animationClass} ${spacingClass} ${className}`}
+      className={`w-fit min-h-7 px-2 py-1 ${styles.bg} rounded-lg flex items-center gap-2 ${animationClass} ${spacingClass} ${className}`}
       role="alert"
     >
       {renderIcon()}

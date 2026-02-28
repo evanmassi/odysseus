@@ -8,7 +8,7 @@ import type { ReactNode } from 'react';
 
 import type { LucideIcon } from 'lucide-react';
 
-export type AlertBannerVariant = 'error' | 'warning' | 'info' | 'success';
+export type AlertBannerVariant = 'error' | 'warning' | 'info' | 'success' | 'demo';
 
 export interface AlertBannerProps {
   /** Visual variant determining colors */

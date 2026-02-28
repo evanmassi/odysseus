@@ -17,7 +17,7 @@ import {
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
-import { AlertBanner, Button, Tab, Tabs } from '@shared/ui';
+import { AlertBanner, Button, Tab, Tabs, Tooltip } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
@@ -247,9 +247,20 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   const footer = (
     <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center space-x-1.5 text-xs text-muted-foreground flex-shrink min-w-0">
-        <Info size={14} className="flex-shrink-0" />
-        <span className="truncate">Changes apply to all users immediately</span>
+      <div className="flex items-center gap-3 flex-shrink min-w-0">
+        <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
+          <Info size={14} className="flex-shrink-0" />
+          <span className="truncate">Changes apply to all users immediately</span>
+        </div>
+        {isDemo && (
+          <Tooltip content="Some management features are restricted" side="top">
+            <div>
+              <AlertBanner variant="demo" spacing="none">
+                Demo Environment
+              </AlertBanner>
+            </div>
+          </Tooltip>
+        )}
       </div>
       <div className="flex space-x-2 flex-shrink-0">
         <Button variant="secondary" onClick={handleClose}>
@@ -281,15 +292,10 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       tabOrientation="vertical"
       footer={footer}
       tabFooter={tabFooter}
+      tabSidebarFooter={undefined}
       className="h-[85vh]"
       onClose={handleClose}
     >
-      {isDemo && (
-        <AlertBanner variant="info" spacing="sm">
-          Demo Environment — Some management features are restricted
-        </AlertBanner>
-      )}
-
       {activeTab === 'security' && !isDemo && (
         <Suspense fallback={<TabSkeleton />}>
           <SecurityTab config={config} onChange={handleConfigChange} readOnly={securityReadOnly} />

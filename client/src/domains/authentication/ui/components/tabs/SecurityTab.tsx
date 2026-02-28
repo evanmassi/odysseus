@@ -155,7 +155,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
         <div>
           <h4 className="text-base font-semibold text-card-foreground mb-3">Password Management</h4>
           {isDemo && (
-            <AlertBanner variant="info" spacing="sm">
+            <AlertBanner variant="demo" spacing="sm">
               Account changes are not available in demo mode
             </AlertBanner>
           )}

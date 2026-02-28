@@ -34,6 +34,7 @@ export default {
         },
         muted: {
           DEFAULT: 'hsl(var(--muted) / <alpha-value>)',
+          hover: 'hsl(var(--muted-hover) / <alpha-value>)',
           foreground: 'hsl(var(--muted-foreground) / <alpha-value>)',
         },
         accent: {
@@ -105,6 +106,7 @@ export default {
           bg: 'hsl(var(--color-demo-bg) / <alpha-value>)',
           text: 'hsl(var(--color-demo-text) / <alpha-value>)',
           light: 'hsl(var(--color-demo-light) / <alpha-value>)',
+          'light-hover': 'hsl(var(--color-demo-light-hover) / <alpha-value>)',
           border: 'hsl(var(--color-demo-border) / <alpha-value>)',
         },
         info: {

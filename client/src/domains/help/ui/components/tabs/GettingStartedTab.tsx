@@ -90,7 +90,7 @@ export function GettingStartedTab() {
       </section>
 
       {isDemo && (
-        <AlertBanner variant="info" spacing="none" className="text-xs">
+        <AlertBanner variant="demo" spacing="none" className="text-xs">
           <span className="font-medium">Demo Mode</span> — You&apos;re exploring a sandboxed
           environment. You can freely add, edit, and delete tubes within the demo tanks, but account
           and password changes are disabled.

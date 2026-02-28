@@ -250,8 +250,8 @@ export function SystemAdminContent() {
                   key={lab.id}
                   className={`p-4 rounded-lg space-y-3 cursor-pointer transition-colors outline outline-1 outline-offset-4 ${
                     lab.isDemo
-                      ? 'bg-demo-light outline-demo-border/50 hover:bg-demo-light/80'
-                      : 'bg-muted outline-border/50 hover:bg-muted/80'
+                      ? 'bg-demo-light outline-demo-border/50 hover:bg-demo-light-hover'
+                      : 'bg-muted outline-border/50 hover:bg-muted-hover'
                   }`}
                   onClick={() => setSelectedLabId(lab.id)}
                   onKeyDown={e => {

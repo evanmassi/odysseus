@@ -158,7 +158,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
 
       <div className="space-y-4 max-w-2xl">
         {isDemo && (
-          <AlertBanner variant="info" spacing="sm">
+          <AlertBanner variant="demo" spacing="sm">
             Account changes are not available in demo mode
           </AlertBanner>
         )}
