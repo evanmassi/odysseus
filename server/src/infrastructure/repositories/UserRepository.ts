@@ -11,10 +11,13 @@ import * as crypto from 'crypto';
  * Explicit column list for users table queries
  */
 const USER_COLUMNS = `
-  id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
-  email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
-  password_reset_token, password_reset_expiry, require_password_change, last_password_change, is_demo, settings, lab_id
+  u.id, u.username, u.api_key, u.role, u.password_hash, u.salt, u.created_at, u.researcher_id, u.person_id, u.status,
+  u.email_verified, u.email_verification_token, u.email_verification_expiry, u.last_verification_email_sent,
+  u.password_reset_token, u.password_reset_expiry, u.require_password_change, u.last_password_change, u.settings, u.lab_id,
+  l.is_demo AS lab_is_demo
 `.trim();
+
+const USER_FROM = `users u LEFT JOIN labs l ON u.lab_id = l.id`;
 
 /**
  * UserRepository - User authentication data access
@@ -29,7 +32,7 @@ export class UserRepository implements IUserRepository {
 
   async findById(id: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE id = $1`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id = $1`,
       [id]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -37,7 +40,7 @@ export class UserRepository implements IUserRepository {
 
   async findByApiKey(apiKey: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE api_key = $1`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.api_key = $1`,
       [apiKey]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -45,7 +48,7 @@ export class UserRepository implements IUserRepository {
 
   async findByUsername(username: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE username = $1`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.username = $1`,
       [username]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -54,10 +57,8 @@ export class UserRepository implements IUserRepository {
   async findByEmail(email: string): Promise<User | null> {
     const normalizedEmail = email.toLowerCase().trim();
     const row = await this.context.queryOne<UserRow>(
-      `SELECT u.id, u.username, u.api_key, u.role, u.password_hash, u.salt, u.created_at, u.researcher_id, u.person_id, u.status,
-              u.email_verified, u.email_verification_token, u.email_verification_expiry, u.last_verification_email_sent,
-              u.password_reset_token, u.password_reset_expiry, u.require_password_change, u.last_password_change, u.is_demo, u.settings, u.lab_id
-       FROM users u INNER JOIN persons p ON u.person_id = p.id WHERE LOWER(p.email) = $1`,
+      `SELECT ${USER_COLUMNS}
+       FROM ${USER_FROM} INNER JOIN persons p ON u.person_id = p.id WHERE LOWER(p.email) = $1`,
       [normalizedEmail]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -65,7 +66,7 @@ export class UserRepository implements IUserRepository {
 
   async findByResearcherId(researcherId: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE researcher_id = $1`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.researcher_id = $1`,
       [researcherId]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -73,7 +74,7 @@ export class UserRepository implements IUserRepository {
 
   async findByPersonId(personId: string): Promise<User | null> {
     const row = await this.context.queryOne<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE person_id = $1`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.person_id = $1`,
       [personId]
     );
     return row ? UserMapper.fromRow(row) : null;
@@ -82,7 +83,7 @@ export class UserRepository implements IUserRepository {
   async findByVerificationToken(token: string): Promise<User | null> {
     const now = new Date();
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE email_verification_token IS NOT NULL AND email_verification_expiry > $1`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.email_verification_token IS NOT NULL AND u.email_verification_expiry > $1`,
       [now]
     );
 
@@ -106,7 +107,7 @@ export class UserRepository implements IUserRepository {
   async findByPasswordResetToken(token: string): Promise<User | null> {
     const now = new Date();
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE password_reset_token IS NOT NULL AND password_reset_expiry > $1`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.password_reset_token IS NOT NULL AND u.password_reset_expiry > $1`,
       [now]
     );
 
@@ -129,7 +130,7 @@ export class UserRepository implements IUserRepository {
 
   async findAll(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users ORDER BY created_at`
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} ORDER BY u.created_at`
     );
     return UserMapper.fromRows(rows);
   }
@@ -137,14 +138,19 @@ export class UserRepository implements IUserRepository {
   async findAllWithLastActivity(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
       `SELECT ${USER_COLUMNS},
-        (SELECT MAX(last_used_at) FROM user_sessions WHERE user_id = users.id AND is_active = true) as last_activity
-      FROM users ORDER BY created_at`
+        (SELECT MAX(last_used_at) FROM user_sessions WHERE user_id = u.id AND is_active = true) as last_activity
+      FROM ${USER_FROM} ORDER BY u.created_at`
     );
     return UserMapper.fromRows(rows);
   }
 
   async findByIds(ids: string[]): Promise<User[]> {
-    const rows = await this.context.queryByIds<UserRow>('users', USER_COLUMNS, ids);
+    if (ids.length === 0) return [];
+    const placeholders = ids.map((_, i) => `$${i + 1}`).join(',');
+    const rows = await this.context.queryMany<UserRow>(
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.id IN (${placeholders})`,
+      ids
+    );
     return UserMapper.fromRows(rows);
   }
 
@@ -156,8 +162,8 @@ export class UserRepository implements IUserRepository {
         INSERT INTO users (
           id, username, api_key, role, password_hash, salt, created_at, researcher_id, person_id, status,
           email_verified, email_verification_token, email_verification_expiry, last_verification_email_sent,
-          password_reset_token, password_reset_expiry, require_password_change, last_password_change, is_demo, settings, lab_id
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+          password_reset_token, password_reset_expiry, require_password_change, last_password_change, settings, lab_id
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
         ON CONFLICT (id) DO UPDATE SET
           username = EXCLUDED.username,
           api_key = EXCLUDED.api_key,
@@ -176,14 +182,13 @@ export class UserRepository implements IUserRepository {
           password_reset_expiry = EXCLUDED.password_reset_expiry,
           require_password_change = EXCLUDED.require_password_change,
           last_password_change = EXCLUDED.last_password_change,
-          is_demo = EXCLUDED.is_demo,
           settings = EXCLUDED.settings,
           lab_id = EXCLUDED.lab_id
       `, [
         row.id, row.username, row.api_key, row.role, row.password_hash, row.salt, row.created_at,
         row.researcher_id, row.person_id, row.status, row.email_verified, row.email_verification_token,
         row.email_verification_expiry, row.last_verification_email_sent, row.password_reset_token,
-        row.password_reset_expiry, row.require_password_change, row.last_password_change, row.is_demo, row.settings,
+        row.password_reset_expiry, row.require_password_change, row.last_password_change, row.settings,
         row.lab_id
       ]);
     } catch (error) {
@@ -231,21 +236,21 @@ export class UserRepository implements IUserRepository {
 
   async findAdmins(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE role IN ('system_admin', 'lab_admin') ORDER BY created_at`
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.role IN ('system_admin', 'lab_admin') ORDER BY u.created_at`
     );
     return UserMapper.fromRows(rows);
   }
 
   async findRegularUsers(): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE role = 'user' ORDER BY created_at`
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.role = 'user' ORDER BY u.created_at`
     );
     return UserMapper.fromRows(rows);
   }
 
   async findByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE role = $1 ORDER BY created_at`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.role = $1 ORDER BY u.created_at`,
       [role]
     );
     return UserMapper.fromRows(rows);
@@ -276,40 +281,10 @@ export class UserRepository implements IUserRepository {
 
   async findByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE status = $1 ORDER BY created_at DESC`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.status = $1 ORDER BY u.created_at DESC`,
       [status]
     );
     return UserMapper.fromRows(rows);
-  }
-
-  // DEMO MODE OPERATIONS
-
-  async findDemoUsers(): Promise<User[]> {
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE is_demo = true ORDER BY created_at DESC`
-    );
-    return UserMapper.fromRows(rows);
-  }
-
-  async findDemoUserIds(): Promise<string[]> {
-    const rows = await this.context.queryMany<{ id: string }>(
-      'SELECT id FROM users WHERE is_demo = true'
-    );
-    return rows.map(row => row.id);
-  }
-
-  async findNonDemoUsers(): Promise<User[]> {
-    const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE is_demo = false ORDER BY created_at DESC`
-    );
-    return UserMapper.fromRows(rows);
-  }
-
-  async countDemoUsers(): Promise<number> {
-    const result = await this.context.queryOne<{ count: string }>(
-      'SELECT COUNT(*) as count FROM users WHERE is_demo = true'
-    );
-    return parseInt(result?.count || '0', 10);
   }
 
   // USER MANAGEMENT OPERATIONS
@@ -324,7 +299,7 @@ export class UserRepository implements IUserRepository {
 
   async findByCreationDateRange(startDate: Date, endDate: Date): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE created_at >= $1 AND created_at <= $2 ORDER BY created_at`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.created_at >= $1 AND u.created_at <= $2 ORDER BY u.created_at`,
       [startDate, endDate]
     );
     return UserMapper.fromRows(rows);
@@ -371,33 +346,33 @@ export class UserRepository implements IUserRepository {
     let paramIndex = 1;
 
     if (criteria.username) {
-      whereClauses.push(`username ILIKE $${paramIndex++}`);
+      whereClauses.push(`u.username ILIKE $${paramIndex++}`);
       params.push(`%${criteria.username}%`);
     }
 
     if (criteria.role) {
-      whereClauses.push(`role = $${paramIndex++}`);
+      whereClauses.push(`u.role = $${paramIndex++}`);
       params.push(criteria.role);
     }
 
     if (criteria.createdAfter) {
-      whereClauses.push(`created_at >= $${paramIndex++}`);
+      whereClauses.push(`u.created_at >= $${paramIndex++}`);
       params.push(criteria.createdAfter);
     }
 
     if (criteria.createdBefore) {
-      whereClauses.push(`created_at <= $${paramIndex++}`);
+      whereClauses.push(`u.created_at <= $${paramIndex++}`);
       params.push(criteria.createdBefore);
     }
 
-    let query = `SELECT ${USER_COLUMNS} FROM users WHERE ${whereClauses.join(' AND ')}`;
+    let query = `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE ${whereClauses.join(' AND ')}`;
 
     if (criteria.sortBy) {
       const sortColumn = this.mapSortColumn(criteria.sortBy);
       const sortOrder = criteria.sortOrder || 'asc';
-      query += ` ORDER BY ${sortColumn} ${sortOrder.toUpperCase()}`;
+      query += ` ORDER BY u.${sortColumn} ${sortOrder.toUpperCase()}`;
     } else {
-      query += ' ORDER BY created_at ASC';
+      query += ' ORDER BY u.created_at ASC';
     }
 
     if (criteria.limit) {
@@ -476,8 +451,8 @@ export class UserRepository implements IUserRepository {
   async findByLabId(labId: string): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
       `SELECT ${USER_COLUMNS},
-        (SELECT MAX(last_used_at) FROM user_sessions WHERE user_id = users.id AND is_active = true) as last_activity
-      FROM users WHERE lab_id = $1 ORDER BY created_at`,
+        (SELECT MAX(last_used_at) FROM user_sessions WHERE user_id = u.id AND is_active = true) as last_activity
+      FROM ${USER_FROM} WHERE u.lab_id = $1 ORDER BY u.created_at`,
       [labId]
     );
     return UserMapper.fromRows(rows);
@@ -485,7 +460,7 @@ export class UserRepository implements IUserRepository {
 
   async findByStatusInLab(status: 'pending' | 'approved' | 'rejected', labId: string): Promise<User[]> {
     const rows = await this.context.queryMany<UserRow>(
-      `SELECT ${USER_COLUMNS} FROM users WHERE status = $1 AND lab_id = $2 ORDER BY created_at DESC`,
+      `SELECT ${USER_COLUMNS} FROM ${USER_FROM} WHERE u.status = $1 AND u.lab_id = $2 ORDER BY u.created_at DESC`,
       [status, labId]
     );
     return UserMapper.fromRows(rows);

@@ -21,7 +21,6 @@ import {
   updateSecurityConfigSchema,
   createResearcherProfileSchema,
   adminResetPasswordRequestSchema,
-  setUserDemoStatusSchema,
   setTankDemoStatusSchema,
   createLookupValueRequestSchema,
   renameLookupValueRequestSchema
@@ -121,16 +120,6 @@ export class AdminRouteModule implements RouteModule {
     );
 
     // DEMO MANAGEMENT ENDPOINTS
-
-    router.get('/demo/users',
-      this.authController.getDemoUsers.bind(this.authController)
-    );
-
-    router.put('/users/:userId/demo-status',
-      validateParams(z.object({ userId: z.string() })),
-      validateBody(setUserDemoStatusSchema),
-      this.authController.setUserDemoStatus.bind(this.authController)
-    );
 
     router.get('/tanks',
       this.configurationController.getAllTanksAdmin.bind(this.configurationController)

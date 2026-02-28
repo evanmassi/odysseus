@@ -118,12 +118,6 @@ export class SystemAdminRouteModule implements RouteModule {
       this.configurationController.resetDemoDataForLab.bind(this.configurationController)
     );
 
-    router.put('/labs/:labId/users/:userId/demo-status',
-      validateParams(z.object({ labId: z.string(), userId: z.string() })),
-      validateBody(z.object({ isDemo: z.boolean() })),
-      this.authController.setUserDemoStatusForLab.bind(this.authController)
-    );
-
     // CROSS-LAB USER MANAGEMENT
 
     router.post('/labs/:labId/users/:userId/activate',

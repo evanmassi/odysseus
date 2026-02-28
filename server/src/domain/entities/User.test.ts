@@ -434,23 +434,53 @@ describe('User', () => {
     });
   });
 
-  describe('demo status', () => {
-    it('should set demo status for regular user', () => {
-      const user = createTestUser();
-      user.setDemoStatus(true);
+  describe('demo status (lab-derived)', () => {
+    it('should derive isDemo from labIsDemo when hydrating', () => {
+      const user = User.fromData({
+        id: 'user_test1',
+        username: 'demouser',
+        apiKey: 'api_' + 'x'.repeat(32),
+        role: 'user',
+        createdAt: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        labIsDemo: true,
+        labId: 'lab_demo',
+      });
       expect(user.isDemo).toBe(true);
     });
 
-    it('should not allow admin to be marked as demo', () => {
-      const admin = createTestAdmin();
-      expect(() => admin.setDemoStatus(true)).toThrow('Admin users cannot be marked as demo');
+    it('should default isDemo to false when labIsDemo not provided', () => {
+      const user = createTestUser();
+      expect(user.isDemo).toBe(false);
     });
 
-    it('should allow clearing demo status', () => {
-      const user = createTestUser();
-      user.setDemoStatus(true);
-      user.setDemoStatus(false);
-      expect(user.isDemo).toBe(false);
+    it('should expose isDemo in public data', () => {
+      const user = User.fromData({
+        id: 'user_test2',
+        username: 'demouser2',
+        apiKey: 'api_' + 'y'.repeat(32),
+        role: 'user',
+        createdAt: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        labIsDemo: true,
+        labId: 'lab_demo',
+      });
+      expect(user.toPublicData().isDemo).toBe(true);
+    });
+
+    it('should preserve labIsDemo through updateSettings', () => {
+      const user = User.fromData({
+        id: 'user_test3',
+        username: 'demouser3',
+        apiKey: 'api_' + 'z'.repeat(32),
+        role: 'user',
+        createdAt: new Date().toISOString(),
+        lastActivity: new Date().toISOString(),
+        labIsDemo: true,
+        labId: 'lab_demo',
+      });
+      const updated = user.updateSettings({ positionDisplayFormat: 'alphanumeric' } as any);
+      expect(updated.isDemo).toBe(true);
     });
   });
 

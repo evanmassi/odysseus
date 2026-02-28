@@ -760,47 +760,4 @@ export class UserApplicationService {
     return await this.userRepository.findByEmail(email);
   }
 
-  /**
-   * Set user demo status (admin only)
-   *
-   * Marks a user as demo or non-demo. Demo users can only access demo tanks.
-   *
-   * @param userId - ID of user to update
-   * @param isDemo - New demo status
-   * @param adminApiKey - Admin's API key for authorization
-   * @throws PermissionError if requester is not admin
-   * @throws NotFoundError if user not found
-   */
-  async setUserDemoStatus(userId: string, isDemo: boolean, adminApiKey: string): Promise<void> {
-    const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
-
-    const user = await this.getUserOrThrow(userId);
-
-    // Prevent admin from changing their own demo status
-    if (admin.id === user.id) {
-      throw new PermissionError('Cannot change your own demo status', { userId: admin.id });
-    }
-
-    // Skip if no change
-    if (user.isDemo === isDemo) {
-      return;
-    }
-
-    user.setDemoStatus(isDemo);
-    await this.userRepository.save(user);
-  }
-
-  /**
-   * Get all demo users (admin only)
-   *
-   * Returns list of users marked as demo.
-   * Used by admin panel "Demo Management" section.
-   */
-  async getDemoUsers(adminApiKey: string): Promise<User[]> {
-    const admin = await this.getUserByApiKey(adminApiKey);
-    this.accessControlService.requireCanManageUsers(admin);
-
-    return this.userRepository.findDemoUsers();
-  }
 }

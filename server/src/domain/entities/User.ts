@@ -24,7 +24,7 @@ interface UserConstructorProps {
   passwordResetExpiry?: Date | string;
   requirePasswordChange?: boolean;
   lastPasswordChange?: Date | string;
-  isDemo?: boolean;
+  labIsDemo?: boolean;
   settings?: UserSettings;
   labId?: string;
 }
@@ -45,7 +45,7 @@ export class User {
   private _passwordResetExpiry?: Date;
   private _requirePasswordChange: boolean = false;
   private _lastPasswordChange?: Date;
-  private _isDemo: boolean = false;
+  private _labIsDemo: boolean = false;
   private _settings: UserSettings;
 
   private readonly _id: string;
@@ -87,7 +87,7 @@ export class User {
     this._lastPasswordChange = props.lastPasswordChange
       ? (typeof props.lastPasswordChange === 'string' ? new Date(props.lastPasswordChange) : props.lastPasswordChange)
       : undefined;
-    this._isDemo = props.isDemo ?? false;
+    this._labIsDemo = props.labIsDemo ?? false;
     this._settings = props.settings ?? DEFAULT_USER_SETTINGS;
     this.validate();
   }
@@ -204,7 +204,7 @@ export class User {
     passwordResetExpiry?: string;
     requirePasswordChange?: number;
     lastPasswordChange?: string;
-    isDemo?: boolean | number;
+    labIsDemo?: boolean;
     settings?: UserSettings | string;
     labId?: string;
   }): User {
@@ -244,7 +244,7 @@ export class User {
       passwordResetExpiry: data.passwordResetExpiry,
       requirePasswordChange: data.requirePasswordChange === 1,
       lastPasswordChange: data.lastPasswordChange,
-      isDemo: data.isDemo === true || data.isDemo === 1,
+      labIsDemo: data.labIsDemo ?? false,
       settings: parsedSettings,
       labId: data.labId,
     });
@@ -545,20 +545,6 @@ export class User {
   }
 
   /**
-   * Business method: Set user's demo status (admin operation)
-   *
-   * @throws ValidationError if attempting to mark an admin as demo
-   */
-  setDemoStatus(isDemo: boolean): void {
-    if (isDemo && this.isAdmin()) {
-      throw new ValidationError('Admin users cannot be marked as demo');
-    }
-
-    this._isDemo = isDemo;
-    this.recordActivity();
-  }
-
-  /**
    * Business method: Unlink researcher profile from user
    * Used when deleting users to preserve researcher records for tube history
    */
@@ -604,7 +590,6 @@ export class User {
     researcherId?: string;
     personId?: string;
     status: 'pending' | 'approved' | 'rejected';
-    isDemo: boolean;
     settings: UserSettings;
     labId?: string;
   } {
@@ -618,7 +603,6 @@ export class User {
       researcherId: this._researcherId,
       personId: this._personId,
       status: this._status,
-      isDemo: this._isDemo,
       settings: this._settings,
       labId: this._labId,
     };
@@ -643,7 +627,7 @@ export class User {
       createdAt: this._createdAt.toISOString(),
       lastActivity: this._lastActivity.toISOString(),
       status: this._status,
-      isDemo: this._isDemo,
+      isDemo: this._labIsDemo,
       researcherId: this._researcherId,
       personId: this._personId,
       labId: this._labId,
@@ -691,7 +675,7 @@ export class User {
   get passwordResetExpiry(): Date | undefined { return this._passwordResetExpiry; }
   get requirePasswordChange(): boolean { return this._requirePasswordChange; }
   get lastPasswordChange(): Date | undefined { return this._lastPasswordChange; }
-  get isDemo(): boolean { return this._isDemo; }
+  get isDemo(): boolean { return this._labIsDemo; }
 
   get labId(): string | undefined { return this._labId; }
 
@@ -933,7 +917,7 @@ export class User {
       passwordResetExpiry: this._passwordResetExpiry,
       requirePasswordChange: this._requirePasswordChange,
       lastPasswordChange: this._lastPasswordChange,
-      isDemo: this._isDemo,
+      labIsDemo: this._labIsDemo,
       settings: newSettings,
       labId: this._labId,
     });
