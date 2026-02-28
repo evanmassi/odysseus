@@ -44,7 +44,7 @@ export class SystemAdminRouteModule implements RouteModule {
     );
 
     router.post('/labs',
-      validateBody(z.object({ name: z.string().min(1).max(200) })),
+      validateBody(z.object({ name: z.string().min(1).max(200), isDemo: z.boolean().optional() })),
       this.labController.createLab.bind(this.labController)
     );
 

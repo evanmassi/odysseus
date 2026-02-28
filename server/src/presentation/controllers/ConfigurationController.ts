@@ -648,30 +648,6 @@ export class ConfigurationController extends BaseController {
     }
   }
 
-  /**
-   * POST /api/admin/demo/reset
-   * Delete all tubes in the lab (used for demo lab reset)
-   */
-  async resetDemoData(req: Request, res: Response): Promise<void> {
-    try {
-      const userId = this.extractUserId(req);
-
-      const labId = this.extractLabId(req);
-
-      const result = await this.resetDemoDataHandler.handle({ userId, labId });
-
-      res.json({
-        success: true,
-        data: {
-          message: 'Demo data reset successfully',
-          deletedTubes: result.deletedTubes
-        }
-      });
-    } catch (error) {
-      this.handleError(error, res, 'Failed to reset demo data');
-    }
-  }
-
   // CQRS RACK ENDPOINTS
 
   /**

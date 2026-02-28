@@ -232,48 +232,6 @@ export const auditLogResponseSchema = z.object({
 
 export type AuditLogResponse = z.infer<typeof auditLogResponseSchema>;
 
-/**
- * Demo Management Schemas
- *
- * Schemas for managing demo users and demo tanks in the admin panel
- */
-
-// Request to set a user's demo status
-export const setUserDemoStatusSchema = z.object({
-  isDemo: z.boolean(),
-});
-
-export type SetUserDemoStatus = z.infer<typeof setUserDemoStatusSchema>;
-
-// Request to set a tank's demo status
-export const setTankDemoStatusSchema = z.object({
-  isDemo: z.boolean(),
-});
-
-export type SetTankDemoStatus = z.infer<typeof setTankDemoStatusSchema>;
-
-// Response for demo users list
-export const demoUsersResponseSchema = z.object({
-  success: z.boolean(),
-  users: z.array(adminUserSchema),
-});
-
-export type DemoUsersResponse = z.infer<typeof demoUsersResponseSchema>;
-
-// Response for demo tanks list (using TankConfiguration from storage schemas)
-export const demoTanksResponseSchema = z.object({
-  success: z.boolean(),
-  tanks: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    location: z.string(),
-    isDemo: z.boolean(),
-    tubeCount: z.number().int().min(0),
-  })),
-});
-
-export type DemoTanksResponse = z.infer<typeof demoTanksResponseSchema>;
-
 // Response for demo reset operation
 export const demoResetResponseSchema = z.object({
   success: z.boolean(),

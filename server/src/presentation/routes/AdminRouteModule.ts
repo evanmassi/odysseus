@@ -12,7 +12,6 @@ import { AuthController } from '@presentation/controllers/AuthController';
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { ExportController } from '@presentation/controllers/ExportController';
-import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
@@ -31,7 +30,6 @@ export class AdminRouteModule implements RouteModule {
     private readonly researcherController: ResearcherController,
     private readonly auditController: AuditController,
     private readonly exportController: ExportController,
-    private readonly configurationController: ConfigurationController,
     private readonly lookupValueController: LookupValueController,
     private readonly inviteCodeController: InviteCodeController,
     private readonly authMiddleware: AuthMiddleware
@@ -116,12 +114,6 @@ export class AdminRouteModule implements RouteModule {
     router.post('/users/:userId/generate-reset-token',
       validateParams(z.object({ userId: z.string() })),
       this.authController.generatePasswordResetToken.bind(this.authController)
-    );
-
-    // DEMO MANAGEMENT ENDPOINTS
-
-    router.post('/demo/reset',
-      this.configurationController.resetDemoData.bind(this.configurationController)
     );
 
     // RESEARCHER MANAGEMENT ENDPOINTS

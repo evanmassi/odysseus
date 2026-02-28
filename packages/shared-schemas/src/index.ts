@@ -316,11 +316,6 @@ export {
   syncStatusResponseSchema,
   auditLogResponseSchema,
 
-  // Demo Management Schemas
-  setUserDemoStatusSchema,
-  setTankDemoStatusSchema,
-  demoUsersResponseSchema,
-  demoTanksResponseSchema,
   demoResetResponseSchema,
 
   // Constants
@@ -341,11 +336,6 @@ export {
   type SyncStatusResponse,
   type AuditLogResponse,
 
-  // Demo Management Types
-  type SetUserDemoStatus,
-  type SetTankDemoStatus,
-  type DemoUsersResponse,
-  type DemoTanksResponse,
   type DemoResetResponse
 } from './admin/adminSchemas';
 
