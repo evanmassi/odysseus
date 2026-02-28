@@ -20,6 +20,7 @@ import { LabCreatedEvent } from '@domain/events/LabEvents';
 export interface CreateLabCommand {
   userId: string;
   name: string;
+  isDemo?: boolean;
 }
 
 export interface UpdateLabCommand {
@@ -55,7 +56,7 @@ export class CreateLabCommandHandler {
       throw new ValidationError('Lab name is required');
     }
 
-    const lab = Lab.create(command.name);
+    const lab = command.isDemo ? Lab.createDemo(command.name) : Lab.create(command.name);
 
     const existingBySlug = await this.labRepository.findBySlug(lab.slug);
     if (existingBySlug) {

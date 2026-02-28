@@ -3,7 +3,7 @@ import { LabRepository as ILabRepository } from '@domain/repositories/LabReposit
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { LabMapper, LabRow } from '@infrastructure/database/mappers/LabMapper';
 
-const LAB_COLUMNS = 'id, name, slug, is_active, created_at, updated_at';
+const LAB_COLUMNS = 'id, name, slug, is_active, is_demo, created_at, updated_at';
 
 export class LabRepository implements ILabRepository {
 
@@ -42,14 +42,15 @@ export class LabRepository implements ILabRepository {
   async save(lab: Lab): Promise<void> {
     const row = LabMapper.toRow(lab);
     await this.context.execute(
-      `INSERT INTO labs (id, name, slug, is_active, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO labs (id, name, slug, is_active, is_demo, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        ON CONFLICT (id) DO UPDATE SET
          name = $2,
          slug = $3,
          is_active = $4,
-         updated_at = $6`,
-      [row.id, row.name, row.slug, row.is_active, row.created_at, row.updated_at]
+         is_demo = $5,
+         updated_at = $7`,
+      [row.id, row.name, row.slug, row.is_active, row.is_demo, row.created_at, row.updated_at]
     );
   }
 

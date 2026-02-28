@@ -11,6 +11,7 @@ export const labDataSchema = z.object({
   name: z.string(),
   slug: z.string(),
   isActive: z.boolean(),
+  isDemo: z.boolean(),
   createdAt: z.union([z.string().datetime(), z.date()]),
   updatedAt: z.union([z.string().datetime(), z.date()]),
 });
@@ -22,6 +23,7 @@ export const labPublicDataSchema = z.object({
   name: z.string(),
   slug: z.string(),
   isActive: z.boolean(),
+  isDemo: z.boolean(),
 });
 
 export type LabPublicData = z.infer<typeof labPublicDataSchema>;
@@ -46,6 +48,7 @@ export const createLabRequestSchema = z.object({
     .min(1, 'Lab name is required')
     .max(200, 'Lab name cannot exceed 200 characters')
     .transform(val => val.trim()),
+  isDemo: z.boolean().optional().default(false),
 });
 
 export type CreateLabRequest = z.infer<typeof createLabRequestSchema>;

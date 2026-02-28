@@ -14,6 +14,7 @@ export class Lab {
     private _name: string,
     private _slug: string,
     private _isActive: boolean,
+    private readonly _isDemo: boolean,
     private readonly _createdAt: Date,
     private _updatedAt: Date
   ) {
@@ -24,7 +25,14 @@ export class Lab {
     const id = generateId('lab');
     const slug = Lab.generateSlug(name);
     const now = new Date();
-    return new Lab(id, name, slug, true, now, now);
+    return new Lab(id, name, slug, true, false, now, now);
+  }
+
+  static createDemo(name: string): Lab {
+    const id = generateId('lab');
+    const slug = Lab.generateSlug(name);
+    const now = new Date();
+    return new Lab(id, name, slug, true, true, now, now);
   }
 
   static fromData(data: {
@@ -32,6 +40,7 @@ export class Lab {
     name: string;
     slug: string;
     isActive: boolean;
+    isDemo: boolean;
     createdAt: string;
     updatedAt: string;
   }): Lab {
@@ -40,6 +49,7 @@ export class Lab {
       data.name,
       data.slug,
       data.isActive,
+      data.isDemo,
       new Date(data.createdAt),
       new Date(data.updatedAt)
     );
@@ -98,6 +108,7 @@ export class Lab {
     name: string;
     slug: string;
     isActive: boolean;
+    isDemo: boolean;
     createdAt: string;
     updatedAt: string;
   } {
@@ -106,6 +117,7 @@ export class Lab {
       name: this._name,
       slug: this._slug,
       isActive: this._isActive,
+      isDemo: this._isDemo,
       createdAt: this._createdAt.toISOString(),
       updatedAt: this._updatedAt.toISOString(),
     };
@@ -116,12 +128,14 @@ export class Lab {
     name: string;
     slug: string;
     isActive: boolean;
+    isDemo: boolean;
   } {
     return {
       id: this._id,
       name: this._name,
       slug: this._slug,
       isActive: this._isActive,
+      isDemo: this._isDemo,
     };
   }
 
@@ -134,6 +148,7 @@ export class Lab {
   get name(): string { return this._name; }
   get slug(): string { return this._slug; }
   get isActive(): boolean { return this._isActive; }
+  get isDemo(): boolean { return this._isDemo; }
   get createdAt(): Date { return new Date(this._createdAt); }
   get updatedAt(): Date { return new Date(this._updatedAt); }
 }

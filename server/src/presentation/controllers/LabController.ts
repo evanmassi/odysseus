@@ -47,9 +47,9 @@ export class LabController extends BaseController {
   async createLab(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const userId = this.extractUserId(req);
-      const { name } = req.body;
+      const { name, isDemo } = req.body;
 
-      const result = await this.createLabHandler.handle({ userId, name });
+      const result = await this.createLabHandler.handle({ userId, name, isDemo });
       const lab = await this.labRepository.findById(result.labId);
 
       res.status(201).json(ResponseBuilder.success({ lab: lab?.toData() }));

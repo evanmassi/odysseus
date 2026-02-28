@@ -73,6 +73,7 @@ export class PostgresContext {
         name TEXT NOT NULL,
         slug TEXT NOT NULL UNIQUE,
         is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        is_demo BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
@@ -524,9 +525,23 @@ export class PostgresContext {
         name TEXT NOT NULL,
         slug TEXT NOT NULL UNIQUE,
         is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        is_demo BOOLEAN NOT NULL DEFAULT FALSE,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
+    `);
+
+    // Add is_demo column to labs table for demo-as-lab migration
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'labs' AND column_name = 'is_demo'
+        ) THEN
+          ALTER TABLE labs ADD COLUMN is_demo BOOLEAN NOT NULL DEFAULT FALSE;
+        END IF;
+      END $$
     `);
 
     const existingLabs = await this.pool.query('SELECT id FROM labs LIMIT 1');

@@ -5,6 +5,7 @@ export interface LabRow {
   name: string;
   slug: string;
   is_active: boolean;
+  is_demo: boolean;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -17,6 +18,7 @@ export class LabMapper {
       name: lab.name,
       slug: lab.slug,
       is_active: lab.isActive,
+      is_demo: lab.isDemo,
       created_at: lab.createdAt.toISOString(),
       updated_at: lab.updatedAt.toISOString()
     };
@@ -35,6 +37,7 @@ export class LabMapper {
       name: row.name,
       slug: row.slug,
       isActive: row.is_active,
+      isDemo: row.is_demo,
       createdAt,
       updatedAt
     });
