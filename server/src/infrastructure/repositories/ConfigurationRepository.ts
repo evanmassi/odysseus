@@ -52,29 +52,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return this.saveWithVersioning(configuration, 'Configuration updated');
   }
 
-  async exists(): Promise<boolean> {
-    try {
-      const row = await this.context.queryOne<{ id: number }>(`
-        SELECT id FROM configuration_current WHERE id = 1
-      `);
-      return row !== undefined && row !== null;
-    } catch (error) {
-      logger.error('Failed to check configuration existence:', { error });
-      return false;
-    }
-  }
-
-  async ensureDefault(): Promise<Configuration> {
-    const existing = await this.getCurrent();
-    if (existing) {
-      return existing;
-    }
-
-    const defaultConfig = Configuration.createDefault();
-    await this.save(defaultConfig);
-    return defaultConfig;
-  }
-
   // LAB-SCOPED CONFIGURATION
 
   async getForLab(labId: string): Promise<Configuration | null> {
@@ -206,18 +183,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     } catch (error) {
       logger.error('Failed to get configuration history:', { error });
       throw new ValidationError(`Database error retrieving configuration history: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-  }
-
-  async getCurrentVersion(): Promise<number> {
-    try {
-      const row = await this.context.queryOne<{ version: number }>(`
-        SELECT version FROM configuration_current WHERE id = 1
-      `);
-      return row ? row.version : 0;
-    } catch (error) {
-      logger.error('Failed to get current version:', { error });
-      return 0;
     }
   }
 

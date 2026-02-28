@@ -298,7 +298,7 @@ export class PostgresContext {
     // Configuration current (one row per lab for fast reads)
     await this.pool.query(`
       CREATE TABLE IF NOT EXISTS configuration_current (
-        id INTEGER PRIMARY KEY,
+        id INTEGER PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
         lab_id TEXT NOT NULL REFERENCES labs(id) UNIQUE,
         version INTEGER NOT NULL,
         updated_at TIMESTAMPTZ NOT NULL,
@@ -702,6 +702,25 @@ export class PostgresContext {
             AND pg_get_constraintdef(con.oid) LIKE '%lab_id%'
         ) THEN
           ALTER TABLE configuration_current ADD CONSTRAINT configuration_current_lab_id_unique UNIQUE (lab_id);
+        END IF;
+      END $$
+    `);
+
+    // configuration_current.id: convert to auto-generated identity for multi-lab support
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'configuration_current'
+            AND column_name = 'id'
+            AND identity_generation IS NOT NULL
+        ) THEN
+          ALTER TABLE configuration_current
+            ALTER COLUMN id DROP DEFAULT,
+            ALTER COLUMN id ADD GENERATED ALWAYS AS IDENTITY;
+          PERFORM setval(pg_get_serial_sequence('configuration_current', 'id'),
+            COALESCE((SELECT MAX(id) FROM configuration_current), 0) + 1, false);
         END IF;
       END $$
     `);
@@ -1135,15 +1154,16 @@ export class PostgresContext {
    */
   private async insertDefaultConfiguration(): Promise<void> {
     try {
-      const result = await this.pool.query(
-        'SELECT id FROM configuration_current WHERE id = 1'
+      const firstLab = await this.pool.query('SELECT id FROM labs ORDER BY created_at LIMIT 1');
+      const labId = firstLab.rows[0]?.id;
+      if (!labId) return;
+
+      const existing = await this.pool.query(
+        'SELECT lab_id FROM configuration_current WHERE lab_id = $1',
+        [labId]
       );
 
-      if (result.rows.length === 0) {
-        const firstLab = await this.pool.query('SELECT id FROM labs ORDER BY created_at LIMIT 1');
-        const labId = firstLab.rows[0]?.id;
-        if (!labId) return;
-
+      if (existing.rows.length === 0) {
         const { Configuration } = await import('../../domain/entities/Configuration');
 
         const defaultConfig = Configuration.createDefault();
@@ -1160,8 +1180,8 @@ export class PostgresContext {
         const version = versionResult.rows[0].version;
 
         await this.pool.query(
-          `INSERT INTO configuration_current (id, lab_id, version, updated_at, config_json)
-           VALUES (1, $1, $2, $3, $4)`,
+          `INSERT INTO configuration_current (lab_id, version, updated_at, config_json)
+           VALUES ($1, $2, $3, $4)`,
           [labId, version, now, configJson]
         );
       }

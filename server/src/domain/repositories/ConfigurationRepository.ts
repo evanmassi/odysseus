@@ -16,8 +16,6 @@ export interface ConfigurationRepository {
   getForLab(labId: string): Promise<Configuration | null>;
   save(configuration: Configuration): Promise<number>;
   saveForLab(labId: string, configuration: Configuration): Promise<number>;
-  exists(): Promise<boolean>;
-  ensureDefault(): Promise<Configuration>;
   ensureDefaultForLab(labId: string): Promise<Configuration>;
   
   // VERSIONING AND HISTORY
@@ -34,11 +32,6 @@ export interface ConfigurationRepository {
   
   /**
    * Get current version number
-   */
-  getCurrentVersion(): Promise<number>;
-  
-  /**
-   * Save configuration with version increment
    */
   saveWithVersioning(configuration: Configuration, changeDescription?: string, changedBy?: string, labId?: string): Promise<number>;
 

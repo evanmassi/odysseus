@@ -248,7 +248,11 @@ export function SystemAdminContent() {
               return (
                 <div
                   key={lab.id}
-                  className="p-4 bg-muted rounded-lg space-y-3 cursor-pointer hover:bg-muted/80 transition-colors"
+                  className={`p-4 rounded-lg space-y-3 cursor-pointer transition-colors ${
+                    lab.isDemo
+                      ? 'bg-fuchsia-500/5 ring-1 ring-fuchsia-500/30 ring-offset-4 ring-offset-background hover:bg-fuchsia-500/10'
+                      : 'bg-muted hover:bg-muted/80'
+                  }`}
                   onClick={() => setSelectedLabId(lab.id)}
                   onKeyDown={e => {
                     if (e.key === 'Enter') setSelectedLabId(lab.id);
@@ -257,7 +261,7 @@ export function SystemAdminContent() {
                   tabIndex={0}
                 >
                   <div className="flex items-center gap-2">
-                    <LabBadge labId={lab.id} labName={lab.name} size="md" />
+                    <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
                     <h4 className="text-sm font-semibold text-card-foreground mr-2">{lab.name}</h4>
                     {stats && (
                       <>
@@ -268,11 +272,6 @@ export function SystemAdminContent() {
                           {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
                         </Chip>
                       </>
-                    )}
-                    {lab.isDemo && (
-                      <Chip color="warning" size="sm">
-                        Demo
-                      </Chip>
                     )}
                     <Chip color={lab.isActive ? 'success' : 'default'} size="sm">
                       {lab.isActive ? 'Active' : 'Inactive'}

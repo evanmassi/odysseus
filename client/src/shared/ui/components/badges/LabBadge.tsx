@@ -10,6 +10,7 @@ interface LabBadgeProps {
   labId: string;
   labName: string;
   size?: 'sm' | 'md';
+  isDemo?: boolean;
 }
 
 const BADGE_COLORS = [
@@ -44,8 +45,10 @@ const sizeClasses = {
   md: { badge: 'w-6 h-6', text: 'text-xs' },
 };
 
-export function LabBadge({ labId, labName, size = 'sm' }: LabBadgeProps) {
-  const color = BADGE_COLORS[hashToIndex(labId)];
+const DEMO_COLOR = { bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-700 dark:text-fuchsia-300' };
+
+export function LabBadge({ labId, labName, size = 'sm', isDemo }: LabBadgeProps) {
+  const color = isDemo ? DEMO_COLOR : BADGE_COLORS[hashToIndex(labId)];
   const initials = getLabInitials(labName);
   const { badge, text } = sizeClasses[size];
 

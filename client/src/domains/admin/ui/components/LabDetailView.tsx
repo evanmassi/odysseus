@@ -133,7 +133,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <LabBadge labId={labId} labName={lab.name} size="md" />
+            <LabBadge labId={labId} labName={lab.name} size="md" isDemo={lab.isDemo} />
             {isRenaming ? (
               <div className="flex items-center gap-2">
                 <input
