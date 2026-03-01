@@ -443,6 +443,24 @@ export {
   type ActiveUsersListResponse
 } from './users/userLookupSchemas';
 
+// Demo Infrastructure Schemas (Seeding, Limits)
+export {
+  // Schemas
+  DemoLimitsSchema,
+  UpdateDemoLimitsSchema,
+  SeedDemoResponseSchema,
+  UnseedDemoResponseSchema,
+
+  // Constants
+  DEMO_LIMITS_DEFAULTS,
+
+  // Types
+  type DemoLimits,
+  type UpdateDemoLimits,
+  type SeedDemoResponse,
+  type UnseedDemoResponse,
+} from './demo/demoSchemas';
+
 // Person Schemas (Core profile entity)
 export {
   // Schemas

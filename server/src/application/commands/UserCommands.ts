@@ -129,7 +129,11 @@ export class CreateSystemAdminCommand extends BaseCommand {
     public readonly username: string,
     public readonly password: string,
     public readonly email: string,
+    public readonly firstName: string,
+    public readonly lastName: string,
     public readonly setupKey?: string,
+    public readonly department?: string,
+    public readonly position?: string,
     initiatedBy: string = 'system'
   ) {
     super(initiatedBy);
@@ -169,7 +173,7 @@ export class CreateSystemAdminCommandHandler implements CommandHandler<CreateSys
 
     await this.validatePasswordPolicy(command.password);
 
-    const person = Person.create(command.username, 'Admin', command.email);
+    const person = Person.create(command.firstName, command.lastName, command.email, command.position, command.department);
     await this.personRepository.save(person);
 
     const user = User.createWithPassword(

@@ -117,9 +117,9 @@ export class AuthController {
   async setupSystemAdmin(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
-      const { username, password, email, setupKey } = req.body;
+      const { username, password, email, firstName, lastName, setupKey, department, position } = req.body;
 
-      const command = new CreateSystemAdminCommand(username, password, email, setupKey);
+      const command = new CreateSystemAdminCommand(username, password, email, firstName, lastName, setupKey, department, position);
       const user = await this.createSystemAdminHandler.handle(command);
 
       logger.info('System admin created', { userId: user.id, username: user.username });

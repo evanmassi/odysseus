@@ -253,7 +253,11 @@ export class AuthService {
     username: string;
     password: string;
     email: string;
+    firstName: string;
+    lastName: string;
     setupKey?: string;
+    department?: string;
+    position?: string;
   }): Promise<AuthResponse> {
     try {
       const response = await httpClient.post<{ success: boolean; data: AuthResponse }>(

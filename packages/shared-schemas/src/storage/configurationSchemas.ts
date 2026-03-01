@@ -25,6 +25,7 @@ export const BoxConfigurationSchema = z.object({
   // Users who can access tubes in this box (in addition to assignee)
   sharedWithUserIds: z.array(z.string()).optional(),
   customLabel: z.string().max(50).optional(),
+  isSeeded: z.boolean().optional(),
 }).strict();
 
 /**
@@ -40,6 +41,7 @@ export const RackConfigurationSchema = z.object({
   // Users who can access tubes in this rack (in addition to assignee)
   sharedWithUserIds: z.array(z.string()).optional(),
   customLabel: z.string().max(50).optional(),
+  isSeeded: z.boolean().optional(),
 }).strict();
 
 /**
@@ -54,6 +56,7 @@ export const TankConfigurationSchema = z.object({
   updatedAt: z.union([z.string().datetime('Invalid updated date'), z.date()]),
   defaultGridConfig: GridConfigurationSchema,
   racks: z.array(RackConfigurationSchema),
+  isSeeded: z.boolean().optional(),
 }).strict();
 
 /**

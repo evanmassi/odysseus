@@ -178,7 +178,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   });
 
   const handleClose = () => {
-    if (hasChanges) {
+    if (hasChanges && activeTab === 'security') {
       modalService.showUnsavedConfirm({
         onConfirm: () => {
           modalService.hideUnsavedConfirm();
@@ -245,40 +245,58 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     </Tabs>
   );
 
-  const footer = (
-    <div className="flex items-center justify-between gap-4">
-      <div className="flex items-center gap-3 flex-shrink min-w-0">
-        <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
-          <Info size={14} className="flex-shrink-0" />
-          <span className="truncate">Changes apply to all users immediately</span>
+  const footer =
+    activeTab === 'security' ? (
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 flex-shrink min-w-0">
+          <div className="flex items-center space-x-1.5 text-xs text-muted-foreground">
+            <Info size={14} className="flex-shrink-0" />
+            <span className="truncate">Changes apply to all users immediately</span>
+          </div>
+          {isDemo && (
+            <Tooltip content="Some management features are restricted" side="top">
+              <div>
+                <AlertBanner variant="demo" spacing="none">
+                  Demo Environment
+                </AlertBanner>
+              </div>
+            </Tooltip>
+          )}
         </div>
-        {isDemo && (
-          <Tooltip content="Some management features are restricted" side="top">
-            <div>
-              <AlertBanner variant="demo" spacing="none">
-                Demo Environment
-              </AlertBanner>
-            </div>
-          </Tooltip>
-        )}
+        <div className="flex space-x-2 flex-shrink-0">
+          <Button variant="secondary" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={saveConfiguration}
+            disabled={!hasChanges || securityReadOnly}
+            isLoading={isSaving}
+            loadingText="Saving..."
+            leftIcon={<Save size={14} />}
+          >
+            Save Changes
+          </Button>
+        </div>
       </div>
-      <div className="flex space-x-2 flex-shrink-0">
-        <Button variant="secondary" onClick={handleClose}>
-          Cancel
-        </Button>
-        <Button
-          variant="primary"
-          onClick={saveConfiguration}
-          disabled={!hasChanges || securityReadOnly}
-          isLoading={isSaving}
-          loadingText="Saving..."
-          leftIcon={<Save size={14} />}
-        >
-          Save Changes
+    ) : (
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3 flex-shrink min-w-0">
+          {isDemo && (
+            <Tooltip content="Some management features are restricted" side="top">
+              <div>
+                <AlertBanner variant="demo" spacing="none">
+                  Demo Environment
+                </AlertBanner>
+              </div>
+            </Tooltip>
+          )}
+        </div>
+        <Button variant="secondary" onClick={onClose}>
+          Done
         </Button>
       </div>
-    </div>
-  );
+    );
 
   return (
     <BaseModal

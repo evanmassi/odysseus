@@ -17,8 +17,8 @@ export const personSchema = z.object({
   firstName: z.string(),
   lastName: z.string(),
   email: z.string().email(),
-  position: z.string().optional(),
-  department: z.string().optional(),
+  position: z.string().nullable().optional(),
+  department: z.string().nullable().optional(),
   createdAt: z.union([z.string().datetime(), z.date()]),
   updatedAt: z.union([z.string().datetime(), z.date()])
 });

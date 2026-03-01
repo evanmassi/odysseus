@@ -134,7 +134,11 @@ export class PublicRouteModule implements RouteModule {
         username: z.string().min(1).max(50),
         password: z.string().min(8).max(128),
         email: z.string().email(),
+        firstName: z.string().min(1).max(50),
+        lastName: z.string().min(1).max(50),
         setupKey: z.string().optional(),
+        department: z.string().max(100).optional(),
+        position: z.string().max(100).optional(),
       })),
       this.authController.setupSystemAdmin.bind(this.authController)
     );

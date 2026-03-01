@@ -27,7 +27,8 @@ export class Tank {
     private readonly _racks: Rack[],
     private readonly _maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
     private readonly _isActive: boolean = true,
-    private readonly _location: string = 'Main Lab'
+    private readonly _location: string = 'Main Lab',
+    private readonly _isSeeded: boolean = false
   ) {
     this.validate();
   }
@@ -38,9 +39,10 @@ export class Tank {
     racks: Rack[] = [],
     maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
     isActive: boolean = true,
-    location: string = 'Main Lab'
+    location: string = 'Main Lab',
+    isSeeded: boolean = false
   ): Tank {
-    return new Tank(id, name, racks, maxRacks, isActive, location);
+    return new Tank(id, name, racks, maxRacks, isActive, location, isSeeded);
   }
 
   private validate(): void {
@@ -89,6 +91,7 @@ export class Tank {
     maxRacks: number;
     isActive: boolean;
     location: string;
+    isSeeded?: boolean;
   } {
     return {
       id: this._id,
@@ -96,7 +99,8 @@ export class Tank {
       racks: this._racks.map(r => r.toData()),
       maxRacks: this._maxRacks,
       isActive: this._isActive,
-      location: this._location
+      location: this._location,
+      ...(this._isSeeded && { isSeeded: true }),
     };
   }
 
@@ -107,6 +111,7 @@ export class Tank {
   get maxRacks(): number { return this._maxRacks; }
   get isActive(): boolean { return this._isActive; }
   get location(): string { return this._location; }
+  get isSeeded(): boolean { return this._isSeeded; }
 }
 
 /**
@@ -123,7 +128,8 @@ export class Rack {
     private readonly _isActive: boolean = true,
     private readonly _assignedUserId?: string,
     private readonly _customLabel?: string,
-    private readonly _sharedWithUserIds: string[] = []
+    private readonly _sharedWithUserIds: string[] = [],
+    private readonly _isSeeded: boolean = false
   ) {
     this.validate();
   }
@@ -137,9 +143,10 @@ export class Rack {
     isActive: boolean = true,
     assignedUserId?: string,
     customLabel?: string,
-    sharedWithUserIds: string[] = []
+    sharedWithUserIds: string[] = [],
+    isSeeded: boolean = false
   ): Rack {
-    return new Rack(String(id), name, boxes, maxBoxes, capacity, isActive, assignedUserId, customLabel, sharedWithUserIds);
+    return new Rack(String(id), name, boxes, maxBoxes, capacity, isActive, assignedUserId, customLabel, sharedWithUserIds, isSeeded);
   }
 
   private validate(): void {
@@ -193,6 +200,7 @@ export class Rack {
     assignedUserId?: string;
     customLabel?: string;
     sharedWithUserIds?: string[];
+    isSeeded?: boolean;
   } {
     return {
       id: this._id,
@@ -203,7 +211,8 @@ export class Rack {
       isActive: this._isActive,
       assignedUserId: this._assignedUserId,
       customLabel: this._customLabel,
-      sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined
+      sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined,
+      ...(this._isSeeded && { isSeeded: true }),
     };
   }
 
@@ -218,6 +227,7 @@ export class Rack {
   get customLabel(): string | undefined { return this._customLabel; }
   get sharedWithUserIds(): string[] { return [...this._sharedWithUserIds]; }
   get validBoxNames(): string[] { return this.getValidBoxNames(); }
+  get isSeeded(): boolean { return this._isSeeded; }
 }
 
 /**
@@ -235,7 +245,8 @@ export class Box {
     private readonly _isActive: boolean = true,
     private readonly _assignedUserId?: string | null,
     private readonly _customLabel?: string,
-    private readonly _sharedWithUserIds: string[] = []
+    private readonly _sharedWithUserIds: string[] = [],
+    private readonly _isSeeded: boolean = false
   ) {
     this.validate();
   }
@@ -251,10 +262,11 @@ export class Box {
     isActive: boolean = true,
     assignedUserId?: string | null,
     customLabel?: string,
-    sharedWithUserIds: string[] = []
+    sharedWithUserIds: string[] = [],
+    isSeeded: boolean = false
   ): Box {
     const positions = maxPositions || (gridConfig.rows * gridConfig.cols);
-    return new Box(name, gridConfig, positions, positionDisplay, isActive, assignedUserId, customLabel, sharedWithUserIds);
+    return new Box(name, gridConfig, positions, positionDisplay, isActive, assignedUserId, customLabel, sharedWithUserIds, isSeeded);
   }
 
   private validate(): void {
@@ -371,6 +383,7 @@ export class Box {
     assignedUserId?: string | null;
     customLabel?: string;
     sharedWithUserIds?: string[];
+    isSeeded?: boolean;
   } {
     return {
       name: this._name.toUpperCase(),
@@ -380,7 +393,8 @@ export class Box {
       isActive: this._isActive,
       assignedUserId: this._assignedUserId,
       customLabel: this._customLabel,
-      sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined
+      sharedWithUserIds: this._sharedWithUserIds.length > 0 ? this._sharedWithUserIds : undefined,
+      ...(this._isSeeded && { isSeeded: true }),
     };
   }
 
@@ -394,6 +408,7 @@ export class Box {
   get customLabel(): string | undefined { return this._customLabel; }
   get sharedWithUserIds(): string[] { return [...this._sharedWithUserIds]; }
   get gridSize(): number { return Math.sqrt(this._maxPositions); }
+  get isSeeded(): boolean { return this._isSeeded; }
 }
 
 /**

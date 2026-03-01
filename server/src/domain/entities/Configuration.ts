@@ -78,15 +78,20 @@ export class Configuration {
           isActive?: boolean;
           assignedUserId?: string | null;
           customLabel?: string;
+          sharedWithUserIds?: string[];
+          isSeeded?: boolean;
         }>;
         maxBoxes?: number;
         capacity?: number;
         isActive?: boolean;
         assignedUserId?: string;
         customLabel?: string;
+        sharedWithUserIds?: string[];
+        isSeeded?: boolean;
       }>;
       maxRacks?: number;
       isActive?: boolean;
+      isSeeded?: boolean;
     }>;
     systemSettings: {
       labName: string;
@@ -110,7 +115,9 @@ export class Configuration {
             boxData.positionDisplay,
             boxData.isActive ?? true,
             boxData.assignedUserId,
-            boxData.customLabel
+            boxData.customLabel,
+            boxData.sharedWithUserIds || [],
+            boxData.isSeeded ?? false
           )
         );
 
@@ -131,7 +138,9 @@ export class Configuration {
           effectiveCapacity,
           rackData.isActive ?? true,
           rackData.assignedUserId,
-          rackData.customLabel
+          rackData.customLabel,
+          rackData.sharedWithUserIds || [],
+          rackData.isSeeded ?? false
         );
       });
 
@@ -141,7 +150,8 @@ export class Configuration {
         racks,
         tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
         tankData.isActive ?? true,
-        tankData.location || 'Main Lab'
+        tankData.location || 'Main Lab',
+        tankData.isSeeded ?? false
       );
     });
 
@@ -224,7 +234,8 @@ export class Configuration {
       [...tank.racks, newRack] as Rack[],
       tank.maxRacks,
       tank.isActive,
-      tank.location
+      tank.location,
+      tank.isSeeded
     );
 
     // Recreate equipment with updated tank
@@ -272,7 +283,11 @@ export class Configuration {
       [...rack.boxes, newBox] as Box[],
       rack.maxBoxes,
       rack.capacity,
-      rack.isActive
+      rack.isActive,
+      rack.assignedUserId,
+      rack.customLabel,
+      rack.sharedWithUserIds,
+      rack.isSeeded
     );
 
     // Recreate tank with updated rack
@@ -284,7 +299,8 @@ export class Configuration {
       newRacks as Rack[],
       tank.maxRacks,
       tank.isActive,
-      tank.location
+      tank.location,
+      tank.isSeeded
     );
 
     // Recreate equipment with updated tank
@@ -361,7 +377,8 @@ export class Configuration {
       racks,
       tank.maxRacks,
       tank.isActive,
-      tank.location
+      tank.location,
+      tank.isSeeded
     );
 
     const newTanks = [...this._equipment.tanks];
@@ -399,7 +416,11 @@ export class Configuration {
       boxes,
       rack.maxBoxes,
       rack.capacity,
-      rack.isActive
+      rack.isActive,
+      rack.assignedUserId,
+      rack.customLabel,
+      rack.sharedWithUserIds,
+      rack.isSeeded
     );
 
     const newRacks = [...tank.racks];
@@ -411,7 +432,8 @@ export class Configuration {
       newRacks as Rack[],
       tank.maxRacks,
       tank.isActive,
-      tank.location
+      tank.location,
+      tank.isSeeded
     );
 
     const newTanks = [...this._equipment.tanks];
@@ -473,7 +495,9 @@ export class Configuration {
       positionDisplay === null ? undefined : positionDisplay,
       oldBox.isActive,
       oldBox.assignedUserId,
-      oldBox.customLabel
+      oldBox.customLabel,
+      oldBox.sharedWithUserIds,
+      oldBox.isSeeded
     );
 
     // Create new boxes array with updated box
@@ -490,7 +514,9 @@ export class Configuration {
       rack.capacity,
       rack.isActive,
       rack.assignedUserId,
-      rack.customLabel
+      rack.customLabel,
+      rack.sharedWithUserIds,
+      rack.isSeeded
     );
 
     // Create new racks array with updated rack
@@ -504,7 +530,8 @@ export class Configuration {
       newRacks as Rack[],
       tank.maxRacks,
       tank.isActive,
-      tank.location
+      tank.location,
+      tank.isSeeded
     );
 
     // Create new tanks array with updated tank
@@ -561,7 +588,9 @@ export class Configuration {
           box.positionDisplay,
           box.isActive,
           box.assignedUserId,
-          undefined // Clear the label
+          undefined, // Clear the label
+          box.sharedWithUserIds,
+          box.isSeeded
         );
       }
       return box; // Keep boxes with explicit assignments unchanged
@@ -576,7 +605,9 @@ export class Configuration {
       rack.capacity,
       rack.isActive,
       rack.assignedUserId,
-      rack.customLabel
+      rack.customLabel,
+      rack.sharedWithUserIds,
+      rack.isSeeded
     );
 
     // Rebuild tank with updated rack
@@ -589,7 +620,8 @@ export class Configuration {
       updatedRacks as Rack[],
       tank.maxRacks,
       tank.isActive,
-      tank.location
+      tank.location,
+      tank.isSeeded
     );
 
     // Rebuild equipment with updated tank
@@ -651,7 +683,9 @@ export class Configuration {
               box.positionDisplay,
               box.isActive,
               undefined, // Clear assignment
-              undefined  // Clear custom label
+              undefined, // Clear custom label
+              box.sharedWithUserIds,
+              box.isSeeded
             );
           }
           // Also clear inherited box labels if rack is being unassigned
@@ -664,7 +698,9 @@ export class Configuration {
               box.positionDisplay,
               box.isActive,
               box.assignedUserId,
-              undefined // Clear inherited label
+              undefined, // Clear inherited label
+              box.sharedWithUserIds,
+              box.isSeeded
             );
           }
           return box;
@@ -680,7 +716,9 @@ export class Configuration {
             rack.capacity,
             rack.isActive,
             undefined, // Clear assignment
-            undefined  // Clear custom label
+            undefined, // Clear custom label
+            rack.sharedWithUserIds,
+            rack.isSeeded
           );
         }
 
@@ -694,7 +732,9 @@ export class Configuration {
             rack.capacity,
             rack.isActive,
             rack.assignedUserId,
-            rack.customLabel
+            rack.customLabel,
+            rack.sharedWithUserIds,
+            rack.isSeeded
           );
         }
 
@@ -709,7 +749,8 @@ export class Configuration {
           updatedRacks as Rack[],
           tank.maxRacks,
           tank.isActive,
-          tank.location
+          tank.location,
+          tank.isSeeded
         );
       }
 
@@ -768,7 +809,9 @@ export class Configuration {
         rack.capacity,
         rack.isActive,
         rack.assignedUserId,
-        normalizedLabel
+        normalizedLabel,
+        rack.sharedWithUserIds,
+        rack.isSeeded
       );
 
       const updatedRacks = [...tank.racks];
@@ -780,7 +823,8 @@ export class Configuration {
         updatedRacks as Rack[],
         tank.maxRacks,
         tank.isActive,
-        tank.location
+        tank.location,
+        tank.isSeeded
       );
 
       const updatedTanks = [...this._equipment.tanks];
@@ -806,7 +850,9 @@ export class Configuration {
         box.positionDisplay,
         box.isActive,
         box.assignedUserId,
-        normalizedLabel
+        normalizedLabel,
+        box.sharedWithUserIds,
+        box.isSeeded
       );
 
       const updatedBoxes = [...rack.boxes];
@@ -820,7 +866,9 @@ export class Configuration {
         rack.capacity,
         rack.isActive,
         rack.assignedUserId,
-        rack.customLabel
+        rack.customLabel,
+        rack.sharedWithUserIds,
+        rack.isSeeded
       );
 
       const updatedRacks = [...tank.racks];
@@ -832,7 +880,8 @@ export class Configuration {
         updatedRacks as Rack[],
         tank.maxRacks,
         tank.isActive,
-        tank.location
+        tank.location,
+        tank.isSeeded
       );
 
       const updatedTanks = [...this._equipment.tanks];
@@ -966,15 +1015,20 @@ export class Configuration {
           isActive?: boolean;
           assignedUserId?: string | null;
           customLabel?: string;
+          sharedWithUserIds?: string[];
+          isSeeded?: boolean;
         }>;
         maxBoxes?: number;
         capacity?: number;
         isActive?: boolean;
         assignedUserId?: string;
         customLabel?: string;
+        sharedWithUserIds?: string[];
+        isSeeded?: boolean;
       }>;
       maxRacks?: number;
       isActive?: boolean;
+      isSeeded?: boolean;
     }>;
     systemSettings: {
       labName: string;
@@ -996,7 +1050,9 @@ export class Configuration {
             boxData.positionDisplay,
             boxData.isActive ?? true,
             boxData.assignedUserId,
-            boxData.customLabel
+            boxData.customLabel,
+            boxData.sharedWithUserIds || [],
+            boxData.isSeeded ?? false
           )
         );
 
@@ -1015,7 +1071,9 @@ export class Configuration {
           effectiveCapacity,
           rackData.isActive ?? true,
           rackData.assignedUserId,
-          rackData.customLabel
+          rackData.customLabel,
+          rackData.sharedWithUserIds || [],
+          rackData.isSeeded ?? false
         );
       });
 
@@ -1025,7 +1083,8 @@ export class Configuration {
         racks,
         tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
         tankData.isActive ?? true,
-        tankData.location || 'Main Lab'
+        tankData.location || 'Main Lab',
+        tankData.isSeeded ?? false
       );
     });
 
@@ -1036,9 +1095,86 @@ export class Configuration {
     this.touch();
   }
 
-  /**
-   * Update timestamp and increment version
-   */
+  seedAll(): void {
+    const seededTanks = this._equipment.tanks.map(tank => {
+      const seededRacks = tank.racks.map(rack => {
+        const seededBoxes = rack.boxes.map(box =>
+          Box.create(box.name, box.gridConfig, box.maxPositions, box.positionDisplay, box.isActive, box.assignedUserId, box.customLabel, box.sharedWithUserIds, true)
+        );
+        return Rack.create(rack.id, rack.name, seededBoxes, rack.maxBoxes, rack.capacity, rack.isActive, rack.assignedUserId, rack.customLabel, rack.sharedWithUserIds, true);
+      });
+      return Tank.create(tank.id, tank.name, seededRacks as Rack[], tank.maxRacks, tank.isActive, tank.location, true);
+    });
+    this._equipment = EquipmentConfiguration.create(seededTanks);
+    this.touch();
+  }
+
+  unseedAll(): void {
+    const unseededTanks = this._equipment.tanks.map(tank => {
+      const unseededRacks = tank.racks.map(rack => {
+        const unseededBoxes = rack.boxes.map(box =>
+          Box.create(box.name, box.gridConfig, box.maxPositions, box.positionDisplay, box.isActive, box.assignedUserId, box.customLabel, box.sharedWithUserIds, false)
+        );
+        return Rack.create(rack.id, rack.name, unseededBoxes, rack.maxBoxes, rack.capacity, rack.isActive, rack.assignedUserId, rack.customLabel, rack.sharedWithUserIds, false);
+      });
+      return Tank.create(tank.id, tank.name, unseededRacks as Rack[], tank.maxRacks, tank.isActive, tank.location, false);
+    });
+    this._equipment = EquipmentConfiguration.create(unseededTanks);
+    this.touch();
+  }
+
+  removeNonSeededEquipment(): void {
+    const seededTanks = this._equipment.tanks
+      .filter(tank => tank.isSeeded)
+      .map(tank => {
+        const seededRacks = tank.racks
+          .filter(rack => rack.isSeeded)
+          .map(rack => {
+            const seededBoxes = rack.boxes.filter(box => box.isSeeded);
+            return Rack.create(rack.id, rack.name, seededBoxes as Box[], rack.maxBoxes, rack.capacity, rack.isActive, rack.assignedUserId, rack.customLabel, rack.sharedWithUserIds, rack.isSeeded);
+          });
+        return Tank.create(tank.id, tank.name, seededRacks as Rack[], tank.maxRacks, tank.isActive, tank.location, tank.isSeeded);
+      });
+    this._equipment = EquipmentConfiguration.create(seededTanks);
+    this.touch();
+  }
+
+  countNonSeededTanks(): number {
+    return this._equipment.tanks.filter(t => !t.isSeeded).length;
+  }
+
+  countNonSeededRacksInTank(tankId: string): number {
+    const tank = this._equipment.tanks.find(t => t.id === tankId);
+    if (!tank) return 0;
+    return tank.racks.filter(r => !r.isSeeded).length;
+  }
+
+  countNonSeededBoxesInRack(tankId: string, rackId: string): number {
+    const tank = this._equipment.tanks.find(t => t.id === tankId);
+    if (!tank) return 0;
+    const rack = tank.racks.find(r => r.id === rackId);
+    if (!rack) return 0;
+    return rack.boxes.filter(b => !b.isSeeded).length;
+  }
+
+  isResourceSeeded(tankId: string, rackId?: string, boxId?: string): boolean {
+    const tank = this._equipment.tanks.find(t => t.id === tankId);
+    if (!tank) return false;
+    if (!rackId) return tank.isSeeded;
+
+    const rack = tank.racks.find(r => r.id === rackId);
+    if (!rack) return false;
+    if (!boxId) return rack.isSeeded;
+
+    const box = rack.boxes.find(b => b.name === boxId.toUpperCase());
+    if (!box) return false;
+    return box.isSeeded;
+  }
+
+  hasAnySeededResources(): boolean {
+    return this._equipment.tanks.some(t => t.isSeeded);
+  }
+
   private touch(): void {
     this._updatedAt = new Date();
   }
@@ -1071,15 +1207,20 @@ export class Configuration {
           isActive: boolean;
           assignedUserId?: string | null;
           customLabel?: string;
+          sharedWithUserIds?: string[];
+          isSeeded?: boolean;
         }>;
         maxBoxes: number;
         capacity: number;
         isActive: boolean;
         assignedUserId?: string;
         customLabel?: string;
+        sharedWithUserIds?: string[];
+        isSeeded?: boolean;
       }>;
       maxRacks: number;
       isActive: boolean;
+      isSeeded?: boolean;
     }>;
     systemSettings: {
       labName: string;
