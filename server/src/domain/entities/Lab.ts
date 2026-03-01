@@ -7,6 +7,7 @@
 
 import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
+import { DEMO_LIMITS_DEFAULTS, type DemoLimits } from '@odysseus/shared-schemas';
 
 export class Lab {
   private constructor(
@@ -16,7 +17,8 @@ export class Lab {
     private _isActive: boolean,
     private readonly _isDemo: boolean,
     private readonly _createdAt: Date,
-    private _updatedAt: Date
+    private _updatedAt: Date,
+    private _demoLimits?: DemoLimits
   ) {
     this.validate();
   }
@@ -32,7 +34,7 @@ export class Lab {
     const id = generateId('lab');
     const slug = Lab.generateSlug(name);
     const now = new Date();
-    return new Lab(id, name, slug, true, true, now, now);
+    return new Lab(id, name, slug, true, true, now, now, { ...DEMO_LIMITS_DEFAULTS });
   }
 
   static fromData(data: {
@@ -43,6 +45,7 @@ export class Lab {
     isDemo: boolean;
     createdAt: string;
     updatedAt: string;
+    demoLimits?: DemoLimits;
   }): Lab {
     return new Lab(
       data.id,
@@ -51,7 +54,8 @@ export class Lab {
       data.isActive,
       data.isDemo,
       new Date(data.createdAt),
-      new Date(data.updatedAt)
+      new Date(data.updatedAt),
+      data.demoLimits
     );
   }
 
@@ -91,6 +95,17 @@ export class Lab {
     this._updatedAt = new Date();
   }
 
+  updateDemoLimits(limits: Partial<DemoLimits>): void {
+    if (!this._isDemo) {
+      throw new ValidationError('Demo limits can only be set on demo labs');
+    }
+    this._demoLimits = {
+      ...(this._demoLimits ?? { ...DEMO_LIMITS_DEFAULTS }),
+      ...limits,
+    };
+    this._updatedAt = new Date();
+  }
+
   updateName(name: string): void {
     if (!name || name.trim().length === 0) {
       throw new ValidationError('Lab name is required');
@@ -111,6 +126,7 @@ export class Lab {
     isDemo: boolean;
     createdAt: string;
     updatedAt: string;
+    demoLimits?: DemoLimits;
   } {
     return {
       id: this._id,
@@ -120,6 +136,7 @@ export class Lab {
       isDemo: this._isDemo,
       createdAt: this._createdAt.toISOString(),
       updatedAt: this._updatedAt.toISOString(),
+      ...(this._demoLimits && { demoLimits: this._demoLimits }),
     };
   }
 
@@ -129,6 +146,7 @@ export class Lab {
     slug: string;
     isActive: boolean;
     isDemo: boolean;
+    demoLimits?: DemoLimits;
   } {
     return {
       id: this._id,
@@ -136,6 +154,7 @@ export class Lab {
       slug: this._slug,
       isActive: this._isActive,
       isDemo: this._isDemo,
+      ...(this._demoLimits && { demoLimits: this._demoLimits }),
     };
   }
 
@@ -151,4 +170,5 @@ export class Lab {
   get isDemo(): boolean { return this._isDemo; }
   get createdAt(): Date { return new Date(this._createdAt); }
   get updatedAt(): Date { return new Date(this._updatedAt); }
+  get demoLimits(): DemoLimits | undefined { return this._demoLimits; }
 }

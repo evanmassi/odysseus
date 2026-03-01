@@ -896,6 +896,18 @@ export class PostgresContext {
       END $$
     `);
 
+    await this.pool.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_name = 'labs' AND column_name = 'demo_limits'
+        ) THEN
+          ALTER TABLE labs ADD COLUMN demo_limits JSONB;
+        END IF;
+      END $$
+    `);
+
     await this.migrateEquipmentIds();
     await this.normalizeLabIds();
     await this.ensureSystemAdminPerson();

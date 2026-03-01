@@ -5,6 +5,7 @@
  */
 
 import { z } from 'zod';
+import { DemoLimitsSchema } from '../demo/demoSchemas';
 
 export const labDataSchema = z.object({
   id: z.string(),
@@ -14,6 +15,7 @@ export const labDataSchema = z.object({
   isDemo: z.boolean(),
   createdAt: z.union([z.string().datetime(), z.date()]),
   updatedAt: z.union([z.string().datetime(), z.date()]),
+  demoLimits: DemoLimitsSchema.optional(),
 });
 
 export type LabData = z.infer<typeof labDataSchema>;
@@ -24,6 +26,7 @@ export const labPublicDataSchema = z.object({
   slug: z.string(),
   isActive: z.boolean(),
   isDemo: z.boolean(),
+  demoLimits: DemoLimitsSchema.optional(),
 });
 
 export type LabPublicData = z.infer<typeof labPublicDataSchema>;
