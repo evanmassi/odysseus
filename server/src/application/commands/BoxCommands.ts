@@ -6,6 +6,7 @@
  */
 
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { LabRepository } from '@domain/repositories/LabRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { User } from '@domain/entities/User';
@@ -13,6 +14,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
+import { rejectIfSeeded, enforceAddBoxesLimit } from '@application/guards/DemoGuards';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import {
@@ -70,6 +72,7 @@ export interface AssignBoxCommand {
 export class AddBoxesCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
+    private labRepository: LabRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
@@ -98,6 +101,9 @@ export class AddBoxesCommandHandler {
     if (!rack) {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
+
+    const lab = await this.labRepository.findById(command.labId);
+    if (lab) enforceAddBoxesLimit(user, currentConfig, lab, command.tankId, command.rackId, command.count);
 
     const existingBoxNames = new Set(rack.boxes.map(b => b.name.toUpperCase()));
     const boxIds: string[] = [];
@@ -182,6 +188,8 @@ export class UpdateBoxCommandHandler {
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('update box', command.userId);
     }
+
+    rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
@@ -294,6 +302,9 @@ export class DeleteBoxCommandHandler {
       throw PermissionError.configurationManagement('delete box', command.userId);
     }
 
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    if (currentConfig) rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
+
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
     const { tankName, rackName, boxName } = await this.configurationRepository.deleteEmptyBox(
       command.labId,
@@ -343,6 +354,8 @@ export class AssignBoxCommandHandler {
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('assign box', command.userId);
     }
+
+    rejectIfSeeded(user, currentConfig, command.tankId, command.rackId, command.boxId);
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {

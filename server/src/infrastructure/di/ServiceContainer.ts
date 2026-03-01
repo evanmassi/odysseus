@@ -504,6 +504,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.addTankHandler = new AddTankCommandHandler(
         repositories.configurations,
+        repositories.labs,
         repositories.users,
         this.getEventBus()
       );
@@ -553,6 +554,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.addRacksHandler = new AddRacksCommandHandler(
         repositories.configurations,
+        repositories.labs,
         repositories.users,
         this.getEventBus()
       );
@@ -602,6 +604,7 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.addBoxesHandler = new AddBoxesCommandHandler(
         repositories.configurations,
+        repositories.labs,
         repositories.users,
         this.getEventBus()
       );

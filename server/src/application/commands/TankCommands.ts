@@ -5,6 +5,7 @@
  */
 
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { LabRepository } from '@domain/repositories/LabRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { User } from '@domain/entities/User';
@@ -12,6 +13,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
+import { rejectIfSeeded, enforceAddTankLimit } from '@application/guards/DemoGuards';
 import { generateId } from '@domain/utils/generateId';
 import {
   TankAddedEvent,
@@ -55,6 +57,7 @@ export interface ResetDemoDataCommand {
 export class AddTankCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
+    private labRepository: LabRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
@@ -69,6 +72,9 @@ export class AddTankCommandHandler {
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('add tank', command.userId);
     }
+
+    const lab = await this.labRepository.findById(command.labId);
+    if (lab) enforceAddTankLimit(user, currentConfig, lab);
 
     const tankId = generateId('tank');
 
@@ -122,6 +128,8 @@ export class UpdateTankCommandHandler {
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('update tank', command.userId);
     }
+
+    rejectIfSeeded(user, currentConfig, command.tankId);
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
@@ -205,6 +213,9 @@ export class DeleteTankCommandHandler {
       throw PermissionError.configurationManagement('delete tank', command.userId);
     }
 
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    if (currentConfig) rejectIfSeeded(user, currentConfig, command.tankId);
+
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
     const { tankName } = await this.configurationRepository.deleteEmptyTank(
       command.labId,
@@ -256,6 +267,19 @@ export class ResetDemoDataCommandHandler {
     }
 
     const deletedTubes = await this.tubeRepository.deleteByTankIds(allTankIds, command.labId);
+
+    if (currentConfig.hasAnySeededResources()) {
+      const expectedVersion = currentConfig.version;
+      currentConfig.removeNonSeededEquipment();
+      await this.configurationRepository.saveWithOptimisticLock(
+        currentConfig,
+        expectedVersion,
+        'Removed non-seeded equipment during demo reset',
+        command.userId,
+        command.labId
+      );
+    }
+
     return { deletedTubes };
   }
 

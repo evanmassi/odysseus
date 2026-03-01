@@ -63,11 +63,13 @@ export class BulkUnassignResourcesCommandHandler {
 
     for (const tank of configData.tanks) {
       for (const rack of tank.racks) {
-        if (rack.assignedUserId === command.fromUserId) {
+        if (rack.assignedUserId === command.fromUserId && !(user.isDemo && rack.isSeeded)) {
+          rack.assignedUserId = undefined;
           racksAffected++;
         }
         for (const box of rack.boxes) {
-          if (box.assignedUserId === command.fromUserId) {
+          if (box.assignedUserId === command.fromUserId && !(user.isDemo && box.isSeeded)) {
+            box.assignedUserId = undefined;
             boxesAffected++;
           }
         }
@@ -79,7 +81,10 @@ export class BulkUnassignResourcesCommandHandler {
     }
 
     const expectedVersion = currentConfig.version;
-    currentConfig.clearAllAssignmentsForUser(command.fromUserId);
+    currentConfig.updateFromData({
+      tanks: configData.tanks,
+      systemSettings: configData.systemSettings
+    });
     const newVersion = await this.configurationRepository.saveWithOptimisticLock(
       currentConfig,
       expectedVersion,
@@ -150,12 +155,12 @@ export class BulkReassignResourcesCommandHandler {
 
     for (const tank of configData.tanks) {
       for (const rack of tank.racks) {
-        if (rack.assignedUserId === command.fromUserId) {
+        if (rack.assignedUserId === command.fromUserId && !(user.isDemo && rack.isSeeded)) {
           rack.assignedUserId = command.toUserId;
           racksAffected++;
         }
         for (const box of rack.boxes) {
-          if (box.assignedUserId === command.fromUserId) {
+          if (box.assignedUserId === command.fromUserId && !(user.isDemo && box.isSeeded)) {
             box.assignedUserId = command.toUserId;
             boxesAffected++;
           }

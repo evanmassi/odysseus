@@ -10,6 +10,7 @@ import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';
+import { rejectDemoConfigOperation } from '@application/guards/DemoGuards';
 import { logger } from '@utils/logger';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
@@ -274,6 +275,7 @@ export class ResetConfigurationToDefaultCommandHandler {
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('reset configuration', command.userId);
     }
+    rejectDemoConfigOperation(user, 'Reset to default');
 
     // Prevent orphaning tubes - check if any exist before resetting
     const tubeCount = await this.tubeRepository.countByLabId(command.labId);
@@ -334,6 +336,7 @@ export class ImportConfigurationCommandHandler {
     try {
       // Get user for permission validation
       const user = await this.getUserById(command.userId);
+      rejectDemoConfigOperation(user, 'Import configuration');
 
       // Parse and validate imported configuration
       const importedConfig = Configuration.fromData(command.configurationData);

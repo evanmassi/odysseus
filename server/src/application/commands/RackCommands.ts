@@ -6,6 +6,7 @@
  */
 
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
+import { LabRepository } from '@domain/repositories/LabRepository';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { User } from '@domain/entities/User';
@@ -14,6 +15,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { EventBus } from '@application/contracts/EventBus';
+import { rejectIfSeeded, enforceAddRacksLimit } from '@application/guards/DemoGuards';
 import { EQUIPMENT_DEFAULTS, NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { generateId } from '@domain/utils/generateId';
 import {
@@ -66,6 +68,7 @@ export interface AssignRackCommand {
 export class AddRacksCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
+    private labRepository: LabRepository,
     private userRepository: UserRepository,
     private eventBus: EventBus
   ) {}
@@ -89,6 +92,9 @@ export class AddRacksCommandHandler {
     if (!tank) {
       throw new NotFoundError(`Tank '${command.tankId}' not found`);
     }
+
+    const lab = await this.labRepository.findById(command.labId);
+    if (lab) enforceAddRacksLimit(user, currentConfig, lab, command.tankId, command.count);
 
     const rackIds: string[] = [];
     const events: RackAddedEvent[] = [];
@@ -166,6 +172,8 @@ export class UpdateRackCommandHandler {
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('update rack', command.userId);
     }
+
+    rejectIfSeeded(user, currentConfig, command.tankId, command.rackId);
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
@@ -256,6 +264,9 @@ export class DeleteRackCommandHandler {
       throw PermissionError.configurationManagement('delete rack', command.userId);
     }
 
+    const currentConfig = await this.configurationRepository.getForLab(command.labId);
+    if (currentConfig) rejectIfSeeded(user, currentConfig, command.tankId, command.rackId);
+
     // Atomic delete: tube check and configuration update in same SERIALIZABLE transaction
     const { tankName, rackName } = await this.configurationRepository.deleteEmptyRack(
       command.labId,
@@ -302,6 +313,8 @@ export class AssignRackCommandHandler {
     if (!user.role.isAdmin()) {
       throw PermissionError.configurationManagement('assign rack', command.userId);
     }
+
+    rejectIfSeeded(user, currentConfig, command.tankId, command.rackId);
 
     const tank = currentConfig.tanks.find(t => t.id === command.tankId);
     if (!tank) {
