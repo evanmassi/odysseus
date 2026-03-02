@@ -78,32 +78,27 @@ export class InitializeConfigurationCommandHandler {
 
         for (let b = 0; b < boxesPerRack; b++) {
           const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(b);
-          boxes.push(Box.create(
-            boxName,
-            { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
-            EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
-            undefined,
-            true
-          ));
+          boxes.push(Box.create({
+            name: boxName,
+            gridConfig: { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
+            maxPositions: EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
+          }));
         }
 
-        racks.push(Rack.create(
-          rackId,
-          rackName,
+        racks.push(Rack.create({
+          id: rackId,
+          name: rackName,
           boxes,
-          boxesPerRack,
-          boxesPerRack,
-          true
-        ));
+          maxBoxes: boxesPerRack,
+          capacity: boxesPerRack,
+        }));
       }
 
-      tanks.push(Tank.create(
-        tankId,
-        tankName,
+      tanks.push(Tank.create({
+        id: tankId,
+        name: tankName,
         racks,
-        EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
-        true
-      ));
+      }));
     }
 
     const config = Configuration.fromData({

@@ -16,6 +16,16 @@ import {
  * Immutable and self-validating
  */
 
+export interface CreateTankOptions {
+  id: string;
+  name: string;
+  racks?: Rack[];
+  maxRacks?: number;
+  isActive?: boolean;
+  location?: string;
+  isSeeded?: boolean;
+}
+
 /**
  * Tank Value Object - Represents a liquid nitrogen tank
  * Contains nested racks (composition relationship)
@@ -25,24 +35,24 @@ export class Tank {
     private readonly _id: string,
     private readonly _name: string,
     private readonly _racks: Rack[],
-    private readonly _maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
-    private readonly _isActive: boolean = true,
-    private readonly _location: string = 'Main Lab',
-    private readonly _isSeeded: boolean = false
+    private readonly _maxRacks: number,
+    private readonly _isActive: boolean,
+    private readonly _location: string,
+    private readonly _isSeeded: boolean
   ) {
     this.validate();
   }
 
-  static create(
-    id: string,
-    name: string,
-    racks: Rack[] = [],
-    maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
-    isActive: boolean = true,
-    location: string = 'Main Lab',
-    isSeeded: boolean = false
-  ): Tank {
-    return new Tank(id, name, racks, maxRacks, isActive, location, isSeeded);
+  static create(options: CreateTankOptions): Tank {
+    return new Tank(
+      options.id,
+      options.name,
+      options.racks ?? [],
+      options.maxRacks ?? EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
+      options.isActive ?? true,
+      options.location ?? 'Main Lab',
+      options.isSeeded ?? false
+    );
   }
 
   private validate(): void {
@@ -74,9 +84,8 @@ export class Tank {
     }
   }
 
-  canAccommodateRack(rackId: string | number): boolean {
-    const numericId = typeof rackId === 'string' ? parseInt(rackId, 10) : rackId;
-    return !isNaN(numericId) && numericId >= 1 && numericId <= this._maxRacks;
+  canAccommodateRack(): boolean {
+    return this._racks.length < this._maxRacks;
   }
 
   equals(other: Tank): boolean {
@@ -114,6 +123,19 @@ export class Tank {
   get isSeeded(): boolean { return this._isSeeded; }
 }
 
+export interface CreateRackOptions {
+  id: string | number;
+  name: string;
+  boxes?: Box[];
+  maxBoxes?: number;
+  capacity?: number;
+  isActive?: boolean;
+  assignedUserId?: string;
+  customLabel?: string;
+  sharedWithUserIds?: string[];
+  isSeeded?: boolean;
+}
+
 /**
  * Rack Value Object - Represents a rack within a tank
  * Contains nested boxes (composition relationship)
@@ -123,9 +145,9 @@ export class Rack {
     private readonly _id: string,
     private readonly _name: string,
     private readonly _boxes: Box[],
-    private readonly _maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
-    private readonly _capacity: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
-    private readonly _isActive: boolean = true,
+    private readonly _maxBoxes: number,
+    private readonly _capacity: number,
+    private readonly _isActive: boolean,
     private readonly _assignedUserId?: string,
     private readonly _customLabel?: string,
     private readonly _sharedWithUserIds: string[] = [],
@@ -134,19 +156,19 @@ export class Rack {
     this.validate();
   }
 
-  static create(
-    id: string | number,
-    name: string,
-    boxes: Box[] = [],
-    maxBoxes: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
-    capacity: number = EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
-    isActive: boolean = true,
-    assignedUserId?: string,
-    customLabel?: string,
-    sharedWithUserIds: string[] = [],
-    isSeeded: boolean = false
-  ): Rack {
-    return new Rack(String(id), name, boxes, maxBoxes, capacity, isActive, assignedUserId, customLabel, sharedWithUserIds, isSeeded);
+  static create(options: CreateRackOptions): Rack {
+    return new Rack(
+      String(options.id),
+      options.name,
+      options.boxes ?? [],
+      options.maxBoxes ?? EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
+      options.capacity ?? EQUIPMENT_DEFAULTS.BOXES_PER_RACK,
+      options.isActive ?? true,
+      options.assignedUserId,
+      options.customLabel,
+      options.sharedWithUserIds ?? [],
+      options.isSeeded ?? false
+    );
   }
 
   private validate(): void {
@@ -173,14 +195,16 @@ export class Rack {
   }
 
   canAccommodateBox(boxId: string): boolean {
-    const validBoxes = this.getValidBoxNames();
-    return validBoxes.includes(boxId.toUpperCase());
+    const letter = boxId.toUpperCase();
+    if (!/^[A-Z]$/.test(letter)) return false;
+    return this._boxes.length < VALIDATION_LIMITS.RACK.MAX_BOXES;
   }
 
   private getValidBoxNames(): string[] {
+    const limit = Math.max(this._maxBoxes, VALIDATION_LIMITS.RACK.MAX_BOXES);
     const boxes = [];
-    for (let i = 0; i < this._maxBoxes; i++) {
-      boxes.push(NAMING_PATTERNS.BOX.LETTER_NAME(i)); // A, B, C, ...
+    for (let i = 0; i < limit; i++) {
+      boxes.push(NAMING_PATTERNS.BOX.LETTER_NAME(i));
     }
     return boxes;
   }
@@ -230,6 +254,18 @@ export class Rack {
   get isSeeded(): boolean { return this._isSeeded; }
 }
 
+export interface CreateBoxOptions {
+  name: string;
+  gridConfig?: { rows: number; cols: number };
+  maxPositions?: number;
+  positionDisplay?: PositionDisplayConfig;
+  isActive?: boolean;
+  assignedUserId?: string | null;
+  customLabel?: string;
+  sharedWithUserIds?: string[];
+  isSeeded?: boolean;
+}
+
 /**
  * Box Value Object - Represents a storage box within a rack
  * No longer stores parent references (tankId/rackId) - composition handles hierarchy
@@ -240,9 +276,9 @@ export class Box {
   private constructor(
     private readonly _name: string,
     private readonly _gridConfig: { rows: number; cols: number },
-    private readonly _maxPositions: number = Box.POSITIONS_PER_BOX,
+    private readonly _maxPositions: number,
     private readonly _positionDisplay: PositionDisplayConfig | undefined,
-    private readonly _isActive: boolean = true,
+    private readonly _isActive: boolean,
     private readonly _assignedUserId?: string | null,
     private readonly _customLabel?: string,
     private readonly _sharedWithUserIds: string[] = [],
@@ -251,22 +287,23 @@ export class Box {
     this.validate();
   }
 
-  static create(
-    name: string,
-    gridConfig: { rows: number; cols: number } = {
+  static create(options: CreateBoxOptions): Box {
+    const gridConfig = options.gridConfig ?? {
       rows: EQUIPMENT_DEFAULTS.GRID_ROWS,
-      cols: EQUIPMENT_DEFAULTS.GRID_COLS
-    },
-    maxPositions?: number,
-    positionDisplay?: PositionDisplayConfig,
-    isActive: boolean = true,
-    assignedUserId?: string | null,
-    customLabel?: string,
-    sharedWithUserIds: string[] = [],
-    isSeeded: boolean = false
-  ): Box {
-    const positions = maxPositions || (gridConfig.rows * gridConfig.cols);
-    return new Box(name, gridConfig, positions, positionDisplay, isActive, assignedUserId, customLabel, sharedWithUserIds, isSeeded);
+      cols: EQUIPMENT_DEFAULTS.GRID_COLS,
+    };
+    const positions = options.maxPositions || (gridConfig.rows * gridConfig.cols);
+    return new Box(
+      options.name,
+      gridConfig,
+      positions,
+      options.positionDisplay,
+      options.isActive ?? true,
+      options.assignedUserId,
+      options.customLabel,
+      options.sharedWithUserIds ?? [],
+      options.isSeeded ?? false
+    );
   }
 
   private validate(): void {
@@ -445,7 +482,7 @@ export class EquipmentConfiguration {
    */
   isLocationValid(tankId: string, rackId: string, boxId: string, position: number): boolean {
     const tank = this._tanks.find(t => t.id === tankId && t.isActive);
-    if (!tank || !tank.canAccommodateRack(Number(rackId))) {
+    if (!tank) {
       return false;
     }
 

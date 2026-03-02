@@ -31,6 +31,7 @@ export function enforceAddTankLimit(
   lab: Lab
 ): void {
   if (!user.isDemo) return;
+  if (!config.hasAnySeededResources()) return;
   const limits = lab.demoLimits ?? DEMO_LIMITS_DEFAULTS;
   const nonSeededCount = config.countNonSeededTanks();
   if (nonSeededCount >= limits.maxTanks) {
@@ -46,6 +47,7 @@ export function enforceAddRacksLimit(
   count: number
 ): void {
   if (!user.isDemo) return;
+  if (!config.hasAnySeededResources()) return;
   const limits = lab.demoLimits ?? DEMO_LIMITS_DEFAULTS;
   const nonSeededCount = config.countNonSeededRacksInTank(tankId);
   if (nonSeededCount + count > limits.maxRacksPerTank) {
@@ -62,6 +64,7 @@ export function enforceAddBoxesLimit(
   count: number
 ): void {
   if (!user.isDemo) return;
+  if (!config.hasAnySeededResources()) return;
   const limits = lab.demoLimits ?? DEMO_LIMITS_DEFAULTS;
   const nonSeededCount = config.countNonSeededBoxesInRack(tankId, rackId);
   if (nonSeededCount + count > limits.maxBoxesPerRack) {

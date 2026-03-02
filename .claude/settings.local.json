@@ -76,7 +76,8 @@
       "Bash(ls:*)",
       "Bash(npx vite:*)",
       "Bash(python3:*)",
-      "WebFetch(domain:unpkg.com)"
+      "WebFetch(domain:unpkg.com)",
+      "Bash(docker ps:*)"
     ]
   }
 }

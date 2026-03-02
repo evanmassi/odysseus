@@ -204,7 +204,7 @@ export class UpdateEquipmentConfigurationCommandHandler {
     if (command.tanks) {
       // Convert flat tank data to nested structure (tanks with empty racks for now)
       const tanks = command.tanks.map(t =>
-        Tank.create(t.id, t.name, [], t.capacity, t.isActive)
+        Tank.create({ id: t.id, name: t.name, maxRacks: t.capacity, isActive: t.isActive })
       );
       updatedConfig = updatedConfig.updateTanks(tanks);
     }

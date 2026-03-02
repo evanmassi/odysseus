@@ -32,24 +32,22 @@ export class Configuration {
     // Create default boxes A-J for each rack
     const defaultBoxes: Box[] = [];
     for (let i = 0; i < EQUIPMENT_DEFAULTS.BOXES_PER_RACK; i++) {
-      const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(i); // A, B, C, ..., J
-      defaultBoxes.push(Box.create(
-        boxName,
-        { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
-        EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
-        undefined, // positionDisplay - use default
-        true
-      ));
+      const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(i);
+      defaultBoxes.push(Box.create({
+        name: boxName,
+        gridConfig: { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
+        maxPositions: EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
+      }));
     }
 
     const defaultRacks = [
-      Rack.create(generateId('rack'), NAMING_PATTERNS.RACK.DEFAULT_NAME(1), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true),
-      Rack.create(generateId('rack'), NAMING_PATTERNS.RACK.DEFAULT_NAME(2), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true),
-      Rack.create(generateId('rack'), NAMING_PATTERNS.RACK.DEFAULT_NAME(3), [...defaultBoxes], EQUIPMENT_DEFAULTS.BOXES_PER_RACK, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, true)
+      Rack.create({ id: generateId('rack'), name: NAMING_PATTERNS.RACK.DEFAULT_NAME(1), boxes: [...defaultBoxes] }),
+      Rack.create({ id: generateId('rack'), name: NAMING_PATTERNS.RACK.DEFAULT_NAME(2), boxes: [...defaultBoxes] }),
+      Rack.create({ id: generateId('rack'), name: NAMING_PATTERNS.RACK.DEFAULT_NAME(3), boxes: [...defaultBoxes] }),
     ];
 
     const defaultTanks = [
-      Tank.create(generateId('tank'), NAMING_PATTERNS.TANK.DEFAULT_NAME(1), defaultRacks, EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK, true, 'Main Lab')
+      Tank.create({ id: generateId('tank'), name: NAMING_PATTERNS.TANK.DEFAULT_NAME(1), racks: defaultRacks }),
     ];
 
     const equipment = EquipmentConfiguration.create(defaultTanks);
@@ -108,17 +106,17 @@ export class Configuration {
     const tanks = data.tanks.map(tankData => {
       const racks = tankData.racks.map(rackData => {
         const boxes = rackData.boxes.map(boxData =>
-          Box.create(
-            boxData.name,
-            boxData.gridConfig || { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
-            boxData.maxPositions,
-            boxData.positionDisplay,
-            boxData.isActive ?? true,
-            boxData.assignedUserId,
-            boxData.customLabel,
-            boxData.sharedWithUserIds || [],
-            boxData.isSeeded ?? false
-          )
+          Box.create({
+            name: boxData.name,
+            gridConfig: boxData.gridConfig,
+            maxPositions: boxData.maxPositions,
+            positionDisplay: boxData.positionDisplay,
+            isActive: boxData.isActive,
+            assignedUserId: boxData.assignedUserId,
+            customLabel: boxData.customLabel,
+            sharedWithUserIds: boxData.sharedWithUserIds,
+            isSeeded: boxData.isSeeded,
+          })
         );
 
         // Use the maximum of: actual box count, requested capacity, or default
@@ -130,29 +128,29 @@ export class Configuration {
           EQUIPMENT_DEFAULTS.BOXES_PER_RACK
         );
 
-        return Rack.create(
-          rackData.id,
-          rackData.name,
+        return Rack.create({
+          id: rackData.id,
+          name: rackData.name,
           boxes,
-          effectiveCapacity,
-          effectiveCapacity,
-          rackData.isActive ?? true,
-          rackData.assignedUserId,
-          rackData.customLabel,
-          rackData.sharedWithUserIds || [],
-          rackData.isSeeded ?? false
-        );
+          maxBoxes: effectiveCapacity,
+          capacity: effectiveCapacity,
+          isActive: rackData.isActive,
+          assignedUserId: rackData.assignedUserId,
+          customLabel: rackData.customLabel,
+          sharedWithUserIds: rackData.sharedWithUserIds,
+          isSeeded: rackData.isSeeded,
+        });
       });
 
-      return Tank.create(
-        tankData.id,
-        tankData.name,
+      return Tank.create({
+        id: tankData.id,
+        name: tankData.name,
         racks,
-        tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
-        tankData.isActive ?? true,
-        tankData.location || 'Main Lab',
-        tankData.isSeeded ?? false
-      );
+        maxRacks: tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
+        isActive: tankData.isActive,
+        location: tankData.location,
+        isSeeded: tankData.isSeeded,
+      });
     });
 
     const equipment = EquipmentConfiguration.create(tanks);
@@ -182,7 +180,7 @@ export class Configuration {
    * Business method: Add new tank
    */
   addTank(id: string, name: string, maxRacks: number = EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK): Tank {
-    const newTank = Tank.create(id, name, [], maxRacks, true);
+    const newTank = Tank.create({ id, name, maxRacks });
 
     // Business rule: Tank IDs must be unique
     if (this._equipment.tanks.some(t => t.id === id)) {
@@ -216,8 +214,8 @@ export class Configuration {
     const tank = this._equipment.tanks[tankIndex];
     const rackIdStr = String(rackId);
 
-    if (!tank.canAccommodateRack(rackId)) {
-      throw new ValidationError(`Tank '${tankId}' cannot accommodate rack ${rackId}`);
+    if (!tank.canAccommodateRack()) {
+      throw new ValidationError(`Tank '${tankId}' is at maximum rack capacity (${tank.maxRacks})`);
     }
 
     // Business rule: Rack IDs must be unique within a tank
@@ -225,18 +223,21 @@ export class Configuration {
       throw new ValidationError(`Rack ${rackId} already exists in tank '${tankId}'`);
     }
 
-    const newRack = Rack.create(rackIdStr, rackName, initialBoxes, maxBoxes, maxBoxes, true);
+    const newRack = Rack.create({ id: rackIdStr, name: rackName, boxes: initialBoxes, maxBoxes, capacity: maxBoxes });
+
+    const newRacks = [...tank.racks, newRack] as Rack[];
+    const newMaxRacks = Math.max(tank.maxRacks, newRacks.length);
 
     // Recreate tank with new rack
-    const updatedTank = Tank.create(
-      tank.id,
-      tank.name,
-      [...tank.racks, newRack] as Rack[],
-      tank.maxRacks,
-      tank.isActive,
-      tank.location,
-      tank.isSeeded
-    );
+    const updatedTank = Tank.create({
+      id: tank.id,
+      name: tank.name,
+      racks: newRacks,
+      maxRacks: newMaxRacks,
+      isActive: tank.isActive,
+      location: tank.location,
+      isSeeded: tank.isSeeded,
+    });
 
     // Recreate equipment with updated tank
     const newTanks = [...this._equipment.tanks];
@@ -274,34 +275,37 @@ export class Configuration {
       throw new ValidationError(`Box '${boxId}' already exists in rack ${rackId} of tank '${tankId}'`);
     }
 
-    const newBox = Box.create(boxId, gridConfig, gridConfig.rows * gridConfig.cols, undefined, true);
+    const newBox = Box.create({ name: boxId, gridConfig, maxPositions: gridConfig.rows * gridConfig.cols });
+
+    const newBoxes = [...rack.boxes, newBox] as Box[];
+    const newCapacity = Math.max(rack.maxBoxes, newBoxes.length);
 
     // Recreate rack with new box
-    const updatedRack = Rack.create(
-      rack.id,
-      rack.name,
-      [...rack.boxes, newBox] as Box[],
-      rack.maxBoxes,
-      rack.capacity,
-      rack.isActive,
-      rack.assignedUserId,
-      rack.customLabel,
-      rack.sharedWithUserIds,
-      rack.isSeeded
-    );
+    const updatedRack = Rack.create({
+      id: rack.id,
+      name: rack.name,
+      boxes: newBoxes,
+      maxBoxes: newCapacity,
+      capacity: newCapacity,
+      isActive: rack.isActive,
+      assignedUserId: rack.assignedUserId,
+      customLabel: rack.customLabel,
+      sharedWithUserIds: rack.sharedWithUserIds,
+      isSeeded: rack.isSeeded,
+    });
 
     // Recreate tank with updated rack
     const newRacks = [...tank.racks];
     newRacks[rackIndex] = updatedRack;
-    const updatedTank = Tank.create(
-      tank.id,
-      tank.name,
-      newRacks as Rack[],
-      tank.maxRacks,
-      tank.isActive,
-      tank.location,
-      tank.isSeeded
-    );
+    const updatedTank = Tank.create({
+      id: tank.id,
+      name: tank.name,
+      racks: newRacks as Rack[],
+      maxRacks: tank.maxRacks,
+      isActive: tank.isActive,
+      location: tank.location,
+      isSeeded: tank.isSeeded,
+    });
 
     // Recreate equipment with updated tank
     const newTanks = [...this._equipment.tanks];
@@ -371,15 +375,15 @@ export class Configuration {
     }
 
     const tank = this._equipment.tanks[tankIndex];
-    const updatedTank = Tank.create(
-      tank.id,
-      tank.name,
+    const updatedTank = Tank.create({
+      id: tank.id,
+      name: tank.name,
       racks,
-      tank.maxRacks,
-      tank.isActive,
-      tank.location,
-      tank.isSeeded
-    );
+      maxRacks: tank.maxRacks,
+      isActive: tank.isActive,
+      location: tank.location,
+      isSeeded: tank.isSeeded,
+    });
 
     const newTanks = [...this._equipment.tanks];
     newTanks[tankIndex] = updatedTank;
@@ -410,31 +414,31 @@ export class Configuration {
     }
 
     const rack = tank.racks[rackIndex];
-    const updatedRack = Rack.create(
-      rack.id,
-      rack.name,
+    const updatedRack = Rack.create({
+      id: rack.id,
+      name: rack.name,
       boxes,
-      rack.maxBoxes,
-      rack.capacity,
-      rack.isActive,
-      rack.assignedUserId,
-      rack.customLabel,
-      rack.sharedWithUserIds,
-      rack.isSeeded
-    );
+      maxBoxes: rack.maxBoxes,
+      capacity: rack.capacity,
+      isActive: rack.isActive,
+      assignedUserId: rack.assignedUserId,
+      customLabel: rack.customLabel,
+      sharedWithUserIds: rack.sharedWithUserIds,
+      isSeeded: rack.isSeeded,
+    });
 
     const newRacks = [...tank.racks];
     newRacks[rackIndex] = updatedRack;
 
-    const updatedTank = Tank.create(
-      tank.id,
-      tank.name,
-      newRacks as Rack[],
-      tank.maxRacks,
-      tank.isActive,
-      tank.location,
-      tank.isSeeded
-    );
+    const updatedTank = Tank.create({
+      id: tank.id,
+      name: tank.name,
+      racks: newRacks as Rack[],
+      maxRacks: tank.maxRacks,
+      isActive: tank.isActive,
+      location: tank.location,
+      isSeeded: tank.isSeeded,
+    });
 
     const newTanks = [...this._equipment.tanks];
     newTanks[tankIndex] = updatedTank;
@@ -485,54 +489,47 @@ export class Configuration {
       );
     }
 
-    // Create updated box with new position display config
-    // Preserve all existing properties including assignedUserId and customLabel
     const oldBox = rack.boxes[boxIndex];
-    const updatedBox = Box.create(
-      oldBox.name,
-      oldBox.gridConfig,
-      oldBox.maxPositions,
-      positionDisplay === null ? undefined : positionDisplay,
-      oldBox.isActive,
-      oldBox.assignedUserId,
-      oldBox.customLabel,
-      oldBox.sharedWithUserIds,
-      oldBox.isSeeded
-    );
+    const updatedBox = Box.create({
+      name: oldBox.name,
+      gridConfig: oldBox.gridConfig,
+      maxPositions: oldBox.maxPositions,
+      positionDisplay: positionDisplay === null ? undefined : positionDisplay,
+      isActive: oldBox.isActive,
+      assignedUserId: oldBox.assignedUserId,
+      customLabel: oldBox.customLabel,
+      sharedWithUserIds: oldBox.sharedWithUserIds,
+      isSeeded: oldBox.isSeeded,
+    });
 
-    // Create new boxes array with updated box
     const newBoxes = [...rack.boxes];
     newBoxes[boxIndex] = updatedBox;
 
-    // Create new rack with updated boxes
-    // Preserve all existing properties including assignedUserId and customLabel
-    const updatedRack = Rack.create(
-      rack.id,
-      rack.name,
-      newBoxes,
-      rack.maxBoxes,
-      rack.capacity,
-      rack.isActive,
-      rack.assignedUserId,
-      rack.customLabel,
-      rack.sharedWithUserIds,
-      rack.isSeeded
-    );
+    const updatedRack = Rack.create({
+      id: rack.id,
+      name: rack.name,
+      boxes: newBoxes,
+      maxBoxes: rack.maxBoxes,
+      capacity: rack.capacity,
+      isActive: rack.isActive,
+      assignedUserId: rack.assignedUserId,
+      customLabel: rack.customLabel,
+      sharedWithUserIds: rack.sharedWithUserIds,
+      isSeeded: rack.isSeeded,
+    });
 
-    // Create new racks array with updated rack
     const newRacks = [...tank.racks];
     newRacks[rackIndex] = updatedRack;
 
-    // Create new tank with updated racks
-    const updatedTank = Tank.create(
-      tank.id,
-      tank.name,
-      newRacks as Rack[],
-      tank.maxRacks,
-      tank.isActive,
-      tank.location,
-      tank.isSeeded
-    );
+    const updatedTank = Tank.create({
+      id: tank.id,
+      name: tank.name,
+      racks: newRacks as Rack[],
+      maxRacks: tank.maxRacks,
+      isActive: tank.isActive,
+      location: tank.location,
+      isSeeded: tank.isSeeded,
+    });
 
     // Create new tanks array with updated tank
     const newTanks = [...this._equipment.tanks];
@@ -577,52 +574,48 @@ export class Configuration {
 
     if (!hasInheritingBoxesWithLabels) return; // No changes needed
 
-    // Create new boxes, clearing labels on those without explicit assignments
     const updatedBoxes = rack.boxes.map(box => {
       if (!box.assignedUserId && box.customLabel) {
-        // This box was inheriting from rack - clear its label
-        return Box.create(
-          box.name,
-          box.gridConfig,
-          box.maxPositions,
-          box.positionDisplay,
-          box.isActive,
-          box.assignedUserId,
-          undefined, // Clear the label
-          box.sharedWithUserIds,
-          box.isSeeded
-        );
+        return Box.create({
+          name: box.name,
+          gridConfig: box.gridConfig,
+          maxPositions: box.maxPositions,
+          positionDisplay: box.positionDisplay,
+          isActive: box.isActive,
+          assignedUserId: box.assignedUserId,
+          customLabel: undefined,
+          sharedWithUserIds: box.sharedWithUserIds,
+          isSeeded: box.isSeeded,
+        });
       }
-      return box; // Keep boxes with explicit assignments unchanged
+      return box;
     });
 
-    // Rebuild rack with updated boxes
-    const updatedRack = Rack.create(
-      rack.id,
-      rack.name,
-      updatedBoxes,
-      rack.maxBoxes,
-      rack.capacity,
-      rack.isActive,
-      rack.assignedUserId,
-      rack.customLabel,
-      rack.sharedWithUserIds,
-      rack.isSeeded
-    );
+    const updatedRack = Rack.create({
+      id: rack.id,
+      name: rack.name,
+      boxes: updatedBoxes,
+      maxBoxes: rack.maxBoxes,
+      capacity: rack.capacity,
+      isActive: rack.isActive,
+      assignedUserId: rack.assignedUserId,
+      customLabel: rack.customLabel,
+      sharedWithUserIds: rack.sharedWithUserIds,
+      isSeeded: rack.isSeeded,
+    });
 
-    // Rebuild tank with updated rack
     const updatedRacks = [...tank.racks];
     updatedRacks[rackIndex] = updatedRack;
 
-    const updatedTank = Tank.create(
-      tank.id,
-      tank.name,
-      updatedRacks as Rack[],
-      tank.maxRacks,
-      tank.isActive,
-      tank.location,
-      tank.isSeeded
-    );
+    const updatedTank = Tank.create({
+      id: tank.id,
+      name: tank.name,
+      racks: updatedRacks as Rack[],
+      maxRacks: tank.maxRacks,
+      isActive: tank.isActive,
+      location: tank.location,
+      isSeeded: tank.isSeeded,
+    });
 
     // Rebuild equipment with updated tank
     const updatedTanks = [...this._equipment.tanks];
@@ -672,86 +665,77 @@ export class Configuration {
       const updatedRacks = tank.racks.map(rack => {
         const rackNeedsUpdate = rack.assignedUserId === userId;
 
-        // Update boxes - clear if explicitly assigned to this user
         const updatedBoxes = rack.boxes.map(box => {
           if (box.assignedUserId === userId) {
             hasChanges = true;
-            return Box.create(
-              box.name,
-              box.gridConfig,
-              box.maxPositions,
-              box.positionDisplay,
-              box.isActive,
-              undefined, // Clear assignment
-              undefined, // Clear custom label
-              box.sharedWithUserIds,
-              box.isSeeded
-            );
+            return Box.create({
+              name: box.name,
+              gridConfig: box.gridConfig,
+              maxPositions: box.maxPositions,
+              positionDisplay: box.positionDisplay,
+              isActive: box.isActive,
+              sharedWithUserIds: box.sharedWithUserIds,
+              isSeeded: box.isSeeded,
+            });
           }
-          // Also clear inherited box labels if rack is being unassigned
           if (rackNeedsUpdate && !box.assignedUserId && box.customLabel) {
             hasChanges = true;
-            return Box.create(
-              box.name,
-              box.gridConfig,
-              box.maxPositions,
-              box.positionDisplay,
-              box.isActive,
-              box.assignedUserId,
-              undefined, // Clear inherited label
-              box.sharedWithUserIds,
-              box.isSeeded
-            );
+            return Box.create({
+              name: box.name,
+              gridConfig: box.gridConfig,
+              maxPositions: box.maxPositions,
+              positionDisplay: box.positionDisplay,
+              isActive: box.isActive,
+              assignedUserId: box.assignedUserId,
+              sharedWithUserIds: box.sharedWithUserIds,
+              isSeeded: box.isSeeded,
+            });
           }
           return box;
         });
 
         if (rackNeedsUpdate) {
           hasChanges = true;
-          return Rack.create(
-            rack.id,
-            rack.name,
-            updatedBoxes,
-            rack.maxBoxes,
-            rack.capacity,
-            rack.isActive,
-            undefined, // Clear assignment
-            undefined, // Clear custom label
-            rack.sharedWithUserIds,
-            rack.isSeeded
-          );
+          return Rack.create({
+            id: rack.id,
+            name: rack.name,
+            boxes: updatedBoxes,
+            maxBoxes: rack.maxBoxes,
+            capacity: rack.capacity,
+            isActive: rack.isActive,
+            sharedWithUserIds: rack.sharedWithUserIds,
+            isSeeded: rack.isSeeded,
+          });
         }
 
-        // Return rack with potentially updated boxes
         if (updatedBoxes !== rack.boxes) {
-          return Rack.create(
-            rack.id,
-            rack.name,
-            updatedBoxes,
-            rack.maxBoxes,
-            rack.capacity,
-            rack.isActive,
-            rack.assignedUserId,
-            rack.customLabel,
-            rack.sharedWithUserIds,
-            rack.isSeeded
-          );
+          return Rack.create({
+            id: rack.id,
+            name: rack.name,
+            boxes: updatedBoxes,
+            maxBoxes: rack.maxBoxes,
+            capacity: rack.capacity,
+            isActive: rack.isActive,
+            assignedUserId: rack.assignedUserId,
+            customLabel: rack.customLabel,
+            sharedWithUserIds: rack.sharedWithUserIds,
+            isSeeded: rack.isSeeded,
+          });
         }
 
         return rack;
       });
 
-      // Return tank with updated racks if any changed
       if (updatedRacks.some((r, i) => r !== tank.racks[i])) {
-        return Tank.create(
-          tank.id,
-          tank.name,
-          updatedRacks as Rack[],
-          tank.maxRacks,
-          tank.isActive,
-          tank.location,
-          tank.isSeeded
-        );
+        return Tank.create({
+          id: tank.id,
+          name: tank.name,
+          racks: updatedRacks as Rack[],
+          maxRacks: tank.maxRacks,
+          isActive: tank.isActive,
+          location: tank.location,
+          isSeeded: tank.isSeeded,
+        });
       }
 
       return tank;
@@ -800,39 +784,37 @@ export class Configuration {
     const normalizedLabel = customLabel?.trim() || undefined;
 
     if (resourceType === 'rack') {
-      // Update rack label
-      const updatedRack = Rack.create(
-        rack.id,
-        rack.name,
-        [...rack.boxes] as Box[],
-        rack.maxBoxes,
-        rack.capacity,
-        rack.isActive,
-        rack.assignedUserId,
-        normalizedLabel,
-        rack.sharedWithUserIds,
-        rack.isSeeded
-      );
+      const updatedRack = Rack.create({
+        id: rack.id,
+        name: rack.name,
+        boxes: [...rack.boxes] as Box[],
+        maxBoxes: rack.maxBoxes,
+        capacity: rack.capacity,
+        isActive: rack.isActive,
+        assignedUserId: rack.assignedUserId,
+        customLabel: normalizedLabel,
+        sharedWithUserIds: rack.sharedWithUserIds,
+        isSeeded: rack.isSeeded,
+      });
 
       const updatedRacks = [...tank.racks];
       updatedRacks[rackIndex] = updatedRack;
 
-      const updatedTank = Tank.create(
-        tank.id,
-        tank.name,
-        updatedRacks as Rack[],
-        tank.maxRacks,
-        tank.isActive,
-        tank.location,
-        tank.isSeeded
-      );
+      const updatedTank = Tank.create({
+        id: tank.id,
+        name: tank.name,
+        racks: updatedRacks as Rack[],
+        maxRacks: tank.maxRacks,
+        isActive: tank.isActive,
+        location: tank.location,
+        isSeeded: tank.isSeeded,
+      });
 
       const updatedTanks = [...this._equipment.tanks];
       updatedTanks[tankIndex] = updatedTank;
 
       this._equipment = EquipmentConfiguration.create(updatedTanks);
     } else {
-      // Update box label
       if (!boxId) {
         throw new ValidationError('boxId is required for box label update');
       }
@@ -843,46 +825,46 @@ export class Configuration {
       }
 
       const box = rack.boxes[boxIndex];
-      const updatedBox = Box.create(
-        box.name,
-        box.gridConfig,
-        box.maxPositions,
-        box.positionDisplay,
-        box.isActive,
-        box.assignedUserId,
-        normalizedLabel,
-        box.sharedWithUserIds,
-        box.isSeeded
-      );
+      const updatedBox = Box.create({
+        name: box.name,
+        gridConfig: box.gridConfig,
+        maxPositions: box.maxPositions,
+        positionDisplay: box.positionDisplay,
+        isActive: box.isActive,
+        assignedUserId: box.assignedUserId,
+        customLabel: normalizedLabel,
+        sharedWithUserIds: box.sharedWithUserIds,
+        isSeeded: box.isSeeded,
+      });
 
       const updatedBoxes = [...rack.boxes];
       updatedBoxes[boxIndex] = updatedBox;
 
-      const updatedRack = Rack.create(
-        rack.id,
-        rack.name,
-        updatedBoxes,
-        rack.maxBoxes,
-        rack.capacity,
-        rack.isActive,
-        rack.assignedUserId,
-        rack.customLabel,
-        rack.sharedWithUserIds,
-        rack.isSeeded
-      );
+      const updatedRack = Rack.create({
+        id: rack.id,
+        name: rack.name,
+        boxes: updatedBoxes,
+        maxBoxes: rack.maxBoxes,
+        capacity: rack.capacity,
+        isActive: rack.isActive,
+        assignedUserId: rack.assignedUserId,
+        customLabel: rack.customLabel,
+        sharedWithUserIds: rack.sharedWithUserIds,
+        isSeeded: rack.isSeeded,
+      });
 
       const updatedRacks = [...tank.racks];
       updatedRacks[rackIndex] = updatedRack;
 
-      const updatedTank = Tank.create(
-        tank.id,
-        tank.name,
-        updatedRacks as Rack[],
-        tank.maxRacks,
-        tank.isActive,
-        tank.location,
-        tank.isSeeded
-      );
+      const updatedTank = Tank.create({
+        id: tank.id,
+        name: tank.name,
+        racks: updatedRacks as Rack[],
+        maxRacks: tank.maxRacks,
+        isActive: tank.isActive,
+        location: tank.location,
+        isSeeded: tank.isSeeded,
+      });
 
       const updatedTanks = [...this._equipment.tanks];
       updatedTanks[tankIndex] = updatedTank;
@@ -1039,21 +1021,20 @@ export class Configuration {
       defaultPositionDisplay?: PositionDisplayConfig;
     };
   }): void {
-    // Update equipment configuration
     const tanks = data.tanks.map(tankData => {
       const racks = tankData.racks.map(rackData => {
         const boxes = rackData.boxes.map(boxData =>
-          Box.create(
-            boxData.name,
-            boxData.gridConfig || { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
-            boxData.maxPositions,
-            boxData.positionDisplay,
-            boxData.isActive ?? true,
-            boxData.assignedUserId,
-            boxData.customLabel,
-            boxData.sharedWithUserIds || [],
-            boxData.isSeeded ?? false
-          )
+          Box.create({
+            name: boxData.name,
+            gridConfig: boxData.gridConfig,
+            maxPositions: boxData.maxPositions,
+            positionDisplay: boxData.positionDisplay,
+            isActive: boxData.isActive,
+            assignedUserId: boxData.assignedUserId,
+            customLabel: boxData.customLabel,
+            sharedWithUserIds: boxData.sharedWithUserIds,
+            isSeeded: boxData.isSeeded,
+          })
         );
 
         const effectiveCapacity = Math.max(
@@ -1063,29 +1044,29 @@ export class Configuration {
           EQUIPMENT_DEFAULTS.BOXES_PER_RACK
         );
 
-        return Rack.create(
-          rackData.id,
-          rackData.name,
+        return Rack.create({
+          id: rackData.id,
+          name: rackData.name,
           boxes,
-          effectiveCapacity,
-          effectiveCapacity,
-          rackData.isActive ?? true,
-          rackData.assignedUserId,
-          rackData.customLabel,
-          rackData.sharedWithUserIds || [],
-          rackData.isSeeded ?? false
-        );
+          maxBoxes: effectiveCapacity,
+          capacity: effectiveCapacity,
+          isActive: rackData.isActive,
+          assignedUserId: rackData.assignedUserId,
+          customLabel: rackData.customLabel,
+          sharedWithUserIds: rackData.sharedWithUserIds,
+          isSeeded: rackData.isSeeded,
+        });
       });
 
-      return Tank.create(
-        tankData.id,
-        tankData.name,
+      return Tank.create({
+        id: tankData.id,
+        name: tankData.name,
         racks,
-        tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
-        tankData.isActive ?? true,
-        tankData.location || 'Main Lab',
-        tankData.isSeeded ?? false
-      );
+        maxRacks: tankData.maxRacks || tankData.racks.length || EQUIPMENT_DEFAULTS.MAX_RACKS_PER_TANK,
+        isActive: tankData.isActive,
+        location: tankData.location,
+        isSeeded: tankData.isSeeded,
+      });
     });
 
     this._equipment = EquipmentConfiguration.create(tanks);
@@ -1099,11 +1080,11 @@ export class Configuration {
     const seededTanks = this._equipment.tanks.map(tank => {
       const seededRacks = tank.racks.map(rack => {
         const seededBoxes = rack.boxes.map(box =>
-          Box.create(box.name, box.gridConfig, box.maxPositions, box.positionDisplay, box.isActive, box.assignedUserId, box.customLabel, box.sharedWithUserIds, true)
+          Box.create({ name: box.name, gridConfig: box.gridConfig, maxPositions: box.maxPositions, positionDisplay: box.positionDisplay, isActive: box.isActive, assignedUserId: box.assignedUserId, customLabel: box.customLabel, sharedWithUserIds: box.sharedWithUserIds, isSeeded: true })
         );
-        return Rack.create(rack.id, rack.name, seededBoxes, rack.maxBoxes, rack.capacity, rack.isActive, rack.assignedUserId, rack.customLabel, rack.sharedWithUserIds, true);
+        return Rack.create({ id: rack.id, name: rack.name, boxes: seededBoxes, maxBoxes: rack.maxBoxes, capacity: rack.capacity, isActive: rack.isActive, assignedUserId: rack.assignedUserId, customLabel: rack.customLabel, sharedWithUserIds: rack.sharedWithUserIds, isSeeded: true });
       });
-      return Tank.create(tank.id, tank.name, seededRacks as Rack[], tank.maxRacks, tank.isActive, tank.location, true);
+      return Tank.create({ id: tank.id, name: tank.name, racks: seededRacks as Rack[], maxRacks: tank.maxRacks, isActive: tank.isActive, location: tank.location, isSeeded: true });
     });
     this._equipment = EquipmentConfiguration.create(seededTanks);
     this.touch();
@@ -1113,11 +1094,11 @@ export class Configuration {
     const unseededTanks = this._equipment.tanks.map(tank => {
       const unseededRacks = tank.racks.map(rack => {
         const unseededBoxes = rack.boxes.map(box =>
-          Box.create(box.name, box.gridConfig, box.maxPositions, box.positionDisplay, box.isActive, box.assignedUserId, box.customLabel, box.sharedWithUserIds, false)
+          Box.create({ name: box.name, gridConfig: box.gridConfig, maxPositions: box.maxPositions, positionDisplay: box.positionDisplay, isActive: box.isActive, assignedUserId: box.assignedUserId, customLabel: box.customLabel, sharedWithUserIds: box.sharedWithUserIds, isSeeded: false })
         );
-        return Rack.create(rack.id, rack.name, unseededBoxes, rack.maxBoxes, rack.capacity, rack.isActive, rack.assignedUserId, rack.customLabel, rack.sharedWithUserIds, false);
+        return Rack.create({ id: rack.id, name: rack.name, boxes: unseededBoxes, maxBoxes: rack.maxBoxes, capacity: rack.capacity, isActive: rack.isActive, assignedUserId: rack.assignedUserId, customLabel: rack.customLabel, sharedWithUserIds: rack.sharedWithUserIds, isSeeded: false });
       });
-      return Tank.create(tank.id, tank.name, unseededRacks as Rack[], tank.maxRacks, tank.isActive, tank.location, false);
+      return Tank.create({ id: tank.id, name: tank.name, racks: unseededRacks as Rack[], maxRacks: tank.maxRacks, isActive: tank.isActive, location: tank.location, isSeeded: false });
     });
     this._equipment = EquipmentConfiguration.create(unseededTanks);
     this.touch();
@@ -1131,9 +1112,9 @@ export class Configuration {
           .filter(rack => rack.isSeeded)
           .map(rack => {
             const seededBoxes = rack.boxes.filter(box => box.isSeeded);
-            return Rack.create(rack.id, rack.name, seededBoxes as Box[], rack.maxBoxes, rack.capacity, rack.isActive, rack.assignedUserId, rack.customLabel, rack.sharedWithUserIds, rack.isSeeded);
+            return Rack.create({ id: rack.id, name: rack.name, boxes: seededBoxes as Box[], maxBoxes: rack.maxBoxes, capacity: rack.capacity, isActive: rack.isActive, assignedUserId: rack.assignedUserId, customLabel: rack.customLabel, sharedWithUserIds: rack.sharedWithUserIds, isSeeded: rack.isSeeded });
           });
-        return Tank.create(tank.id, tank.name, seededRacks as Rack[], tank.maxRacks, tank.isActive, tank.location, tank.isSeeded);
+        return Tank.create({ id: tank.id, name: tank.name, racks: seededRacks as Rack[], maxRacks: tank.maxRacks, isActive: tank.isActive, location: tank.location, isSeeded: tank.isSeeded });
       });
     this._equipment = EquipmentConfiguration.create(seededTanks);
     this.touch();

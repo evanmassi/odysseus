@@ -106,13 +106,11 @@ export class AddRacksCommandHandler {
       const defaultBoxes: Box[] = [];
       for (let j = 0; j < EQUIPMENT_DEFAULTS.BOXES_PER_RACK; j++) {
         const boxName = NAMING_PATTERNS.BOX.LETTER_NAME(j);
-        defaultBoxes.push(Box.create(
-          boxName,
-          { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
-          EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
-          undefined,
-          true
-        ));
+        defaultBoxes.push(Box.create({
+          name: boxName,
+          gridConfig: { rows: EQUIPMENT_DEFAULTS.GRID_ROWS, cols: EQUIPMENT_DEFAULTS.GRID_COLS },
+          maxPositions: EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX,
+        }));
       }
 
       currentConfig.addRack(command.tankId, rackIdStr, rackName, EQUIPMENT_DEFAULTS.BOXES_PER_RACK, defaultBoxes);
