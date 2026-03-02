@@ -10,7 +10,7 @@ import { Lab } from '@domain/entities/Lab';
 import { Configuration } from '@domain/entities/Configuration';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
+import { DEMO_LIMITS_DEFAULTS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 
 export function rejectIfSeeded(
   user: User,
@@ -49,8 +49,11 @@ export function enforceAddRacksLimit(
   if (!user.isDemo) return;
   if (!config.hasAnySeededResources()) return;
   const limits = lab.demoLimits ?? DEMO_LIMITS_DEFAULTS;
+  const tank = config.tanks.find(t => t.id === tankId);
   const nonSeededCount = config.countNonSeededRacksInTank(tankId);
-  if (nonSeededCount + count > limits.maxRacksPerTank) {
+  const baseline = tank && !tank.isSeeded ? 1 : 0;
+  const extras = Math.max(0, nonSeededCount - baseline);
+  if (extras + count > limits.maxRacksPerTank) {
     throw new ValidationError(`Demo limit reached: maximum ${limits.maxRacksPerTank} additional racks per tank allowed`);
   }
 }
@@ -66,8 +69,12 @@ export function enforceAddBoxesLimit(
   if (!user.isDemo) return;
   if (!config.hasAnySeededResources()) return;
   const limits = lab.demoLimits ?? DEMO_LIMITS_DEFAULTS;
+  const tank = config.tanks.find(t => t.id === tankId);
+  const rack = tank?.racks.find(r => r.id === rackId);
   const nonSeededCount = config.countNonSeededBoxesInRack(tankId, rackId);
-  if (nonSeededCount + count > limits.maxBoxesPerRack) {
+  const baseline = rack && !rack.isSeeded ? EQUIPMENT_DEFAULTS.BOXES_PER_RACK : 0;
+  const extras = Math.max(0, nonSeededCount - baseline);
+  if (extras + count > limits.maxBoxesPerRack) {
     throw new ValidationError(`Demo limit reached: maximum ${limits.maxBoxesPerRack} additional boxes per rack allowed`);
   }
 }

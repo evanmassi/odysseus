@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import { formatResourceDisplayName } from '@odysseus/shared-schemas';
+import { EQUIPMENT_DEFAULTS, formatResourceDisplayName } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Edit3, Lock, Plus, Tag, Trash2 } from 'lucide-react';
 
@@ -56,7 +56,9 @@ export function RackRow({
   const locked = isResourceLocked(rack);
   const demoLimitsActive = isDemo && demoLimits && hasSeededResources;
   const nonSeededBoxCount = rack.boxes.filter(b => !b.isSeeded).length;
-  const boxLimitReached = demoLimitsActive && nonSeededBoxCount >= demoLimits.maxBoxesPerRack;
+  const boxBaseline = !rack.isSeeded ? EQUIPMENT_DEFAULTS.BOXES_PER_RACK : 0;
+  const extraBoxCount = Math.max(0, nonSeededBoxCount - boxBaseline);
+  const boxLimitReached = demoLimitsActive && extraBoxCount >= demoLimits.maxBoxesPerRack;
 
   // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(rack);
@@ -188,11 +190,11 @@ export function RackRow({
               <BoxRow key={box.id} box={box} rack={rack} tankId={tankId} rackId={rack.id} />
             ))}
 
-            {canManageStorage && (
+            {canManageStorage && !locked && (
               <div className="storage-nav-add-controls storage-nav-item--box">
                 {demoLimitsActive && (
                   <span className="text-xs text-muted-foreground mr-1">
-                    {nonSeededBoxCount}/{demoLimits.maxBoxesPerRack}
+                    {extraBoxCount}/{demoLimits.maxBoxesPerRack}
                   </span>
                 )}
                 <Tooltip content="Number of boxes to add" side="bottom">
@@ -202,7 +204,7 @@ export function RackRow({
                     min={1}
                     max={
                       demoLimitsActive
-                        ? Math.max(1, demoLimits.maxBoxesPerRack - nonSeededBoxCount)
+                        ? Math.max(1, demoLimits.maxBoxesPerRack - extraBoxCount)
                         : 26
                     }
                     size="xs"

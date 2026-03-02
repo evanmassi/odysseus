@@ -102,6 +102,8 @@ export class AddBoxesCommandHandler {
       throw new NotFoundError(`Rack '${command.rackId}' not found in tank '${command.tankId}'`);
     }
 
+    rejectIfSeeded(user, currentConfig, command.tankId, command.rackId);
+
     const lab = await this.labRepository.findById(command.labId);
     if (lab) enforceAddBoxesLimit(user, currentConfig, lab, command.tankId, command.rackId, command.count);
 
