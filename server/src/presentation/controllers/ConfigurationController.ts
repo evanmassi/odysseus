@@ -38,6 +38,10 @@ import {
   BulkUnassignResourcesCommandHandler,
   BulkReassignResourcesCommandHandler
 } from '@application/commands/BulkAssignmentCommands';
+import {
+  SeedDemoCommandHandler,
+  UnseedDemoCommandHandler
+} from '@application/commands/DemoSeedCommands';
 import { InitializeConfigurationCommandHandler } from '@application/commands/InitializeConfigurationCommand';
 import { POSITION_DISPLAY_PRESETS } from '@odysseus/shared-schemas';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -108,6 +112,8 @@ export class ConfigurationController extends BaseController {
     private assignBoxHandler: AssignBoxCommandHandler,
     private bulkUnassignHandler: BulkUnassignResourcesCommandHandler,
     private bulkReassignHandler: BulkReassignResourcesCommandHandler,
+    private seedDemoHandler: SeedDemoCommandHandler,
+    private unseedDemoHandler: UnseedDemoCommandHandler,
     private initializeConfigHandler: InitializeConfigurationCommandHandler
   ) {
     super();
@@ -1069,6 +1075,32 @@ export class ConfigurationController extends BaseController {
       });
     } catch (error) {
       this.handleError(error, res, 'Failed to reset demo data');
+    }
+  }
+
+  async seedDemoLab(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { labId } = req.params;
+
+      const result = await this.seedDemoHandler.handle({ userId, labId });
+
+      res.json({ success: true, data: result });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to seed demo lab');
+    }
+  }
+
+  async unseedDemoLab(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const { labId } = req.params;
+
+      const result = await this.unseedDemoHandler.handle({ userId, labId });
+
+      res.json({ success: true, data: result });
+    } catch (error) {
+      this.handleError(error, res, 'Failed to unseed demo lab');
     }
   }
 }

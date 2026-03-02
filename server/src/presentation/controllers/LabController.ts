@@ -8,12 +8,14 @@ import { Request, Response, NextFunction } from 'express';
 import { BaseController } from './BaseController';
 import { ResponseBuilder } from '@presentation/utilities/ResponseBuilder';
 import type { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
+import type { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
 import type { LabRepository } from '@domain/repositories/LabRepository';
 import type { UserRepository } from '@domain/repositories/UserRepository';
 import type { TubeRepository } from '@domain/repositories/TubeRepository';
 import type { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
+import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
 import { logger } from '@utils/logger';
 
 export class LabController extends BaseController {
@@ -22,6 +24,7 @@ export class LabController extends BaseController {
     private updateLabHandler: UpdateLabCommandHandler,
     private deactivateLabHandler: DeactivateLabCommandHandler,
     private activateLabHandler: ActivateLabCommandHandler,
+    private updateDemoLimitsHandler: UpdateDemoLimitsCommandHandler,
     private labRepository: LabRepository,
     private userRepository: UserRepository,
     private tubeRepository: TubeRepository,
@@ -163,6 +166,7 @@ export class LabController extends BaseController {
         researcherCount: researchers.length,
         tubeCount,
         storageSummary: { tankCount, rackCount, boxCount },
+        isSeeded: config?.hasAnySeededResources() ?? false,
       }));
     } catch (error) {
       next(error);
@@ -252,6 +256,42 @@ export class LabController extends BaseController {
         totalTubes,
         labStats,
       }));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getDemoLimits(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const labId = req.params.labId;
+      const lab = await this.labRepository.findById(labId);
+      if (!lab) {
+        res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Lab not found' } });
+        return;
+      }
+
+      res.status(200).json(ResponseBuilder.success({
+        limits: lab.demoLimits ?? DEMO_LIMITS_DEFAULTS,
+      }));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async updateDemoLimits(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const userId = this.extractUserId(req);
+      const labId = req.params.labId;
+
+      const limits = await this.updateDemoLimitsHandler.handle({
+        userId,
+        labId,
+        limits: req.body,
+      });
+
+      res.status(200).json(ResponseBuilder.success({ limits }));
+
+      logger.info('Demo limits updated', { labId, updatedBy: userId });
     } catch (error) {
       next(error);
     }

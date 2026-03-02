@@ -11,6 +11,7 @@ import { AddTankCommandHandler, UpdateTankCommandHandler, DeleteTankCommandHandl
 import { AddRacksCommandHandler, UpdateRackCommandHandler, DeleteRackCommandHandler, AssignRackCommandHandler } from '@application/commands/RackCommands';
 import { AddBoxesCommandHandler, UpdateBoxCommandHandler, DeleteBoxCommandHandler, AssignBoxCommandHandler } from '@application/commands/BoxCommands';
 import { BulkUnassignResourcesCommandHandler, BulkReassignResourcesCommandHandler } from '@application/commands/BulkAssignmentCommands';
+import { SeedDemoCommandHandler, UnseedDemoCommandHandler, UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
 import { InitializeConfigurationCommandHandler } from '@application/commands/InitializeConfigurationCommand';
 import { CreateSystemAdminCommandHandler } from '@application/commands/UserCommands';
 import { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
@@ -122,6 +123,9 @@ export class ServiceContainer {
   private bulkUnassignHandler?: BulkUnassignResourcesCommandHandler;
   private bulkReassignHandler?: BulkReassignResourcesCommandHandler;
   private initializeConfigHandler?: InitializeConfigurationCommandHandler;
+  private seedDemoHandler?: SeedDemoCommandHandler;
+  private unseedDemoHandler?: UnseedDemoCommandHandler;
+  private updateDemoLimitsHandler?: UpdateDemoLimitsCommandHandler;
 
   // CQRS Command Handlers - Multi-Tenancy
   private createSystemAdminHandler?: CreateSystemAdminCommandHandler;
@@ -685,6 +689,41 @@ export class ServiceContainer {
     return this.initializeConfigHandler;
   }
 
+  getSeedDemoHandler(): SeedDemoCommandHandler {
+    if (!this.seedDemoHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.seedDemoHandler = new SeedDemoCommandHandler(
+        repositories.configurations,
+        repositories.labs,
+        repositories.users
+      );
+    }
+    return this.seedDemoHandler;
+  }
+
+  getUnseedDemoHandler(): UnseedDemoCommandHandler {
+    if (!this.unseedDemoHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.unseedDemoHandler = new UnseedDemoCommandHandler(
+        repositories.configurations,
+        repositories.labs,
+        repositories.users
+      );
+    }
+    return this.unseedDemoHandler;
+  }
+
+  getUpdateDemoLimitsHandler(): UpdateDemoLimitsCommandHandler {
+    if (!this.updateDemoLimitsHandler) {
+      const repositories = this.repositoryFactory.getRepositories();
+      this.updateDemoLimitsHandler = new UpdateDemoLimitsCommandHandler(
+        repositories.labs,
+        repositories.users
+      );
+    }
+    return this.updateDemoLimitsHandler;
+  }
+
   // MULTI-TENANCY COMMAND HANDLERS
 
   getCreateSystemAdminHandler(): CreateSystemAdminCommandHandler {
@@ -933,6 +972,7 @@ export class ServiceContainer {
         this.getUpdateLabHandler(),
         this.getDeactivateLabHandler(),
         this.getActivateLabHandler(),
+        this.getUpdateDemoLimitsHandler(),
         this.repositoryFactory.getLabRepository(),
         this.repositoryFactory.getUserRepository(),
         this.repositoryFactory.getTubeRepository(),
@@ -990,6 +1030,8 @@ export class ServiceContainer {
         this.getAssignBoxHandler(),
         this.getBulkUnassignHandler(),
         this.getBulkReassignHandler(),
+        this.getSeedDemoHandler(),
+        this.getUnseedDemoHandler(),
         this.getInitializeConfigHandler()
       );
     }

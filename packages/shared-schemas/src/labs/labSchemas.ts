@@ -84,6 +84,7 @@ export const labDetailsSchema = z.object({
     rackCount: z.number(),
     boxCount: z.number(),
   }),
+  isSeeded: z.boolean(),
 });
 
 export type LabDetails = z.infer<typeof labDetailsSchema>;

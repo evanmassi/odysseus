@@ -14,7 +14,7 @@ import { AuthController } from '@presentation/controllers/AuthController';
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { validateBody, validateParams } from '@middleware/Validation';
-import { updateSecurityConfigSchema } from '@odysseus/shared-schemas';
+import { updateSecurityConfigSchema, UpdateDemoLimitsSchema } from '@odysseus/shared-schemas';
 
 export class SystemAdminRouteModule implements RouteModule {
   constructor(
@@ -110,6 +110,27 @@ export class SystemAdminRouteModule implements RouteModule {
     router.post('/labs/:labId/demo/reset',
       validateParams(z.object({ labId: z.string() })),
       this.configurationController.resetDemoDataForLab.bind(this.configurationController)
+    );
+
+    router.post('/labs/:labId/demo/seed',
+      validateParams(z.object({ labId: z.string() })),
+      this.configurationController.seedDemoLab.bind(this.configurationController)
+    );
+
+    router.post('/labs/:labId/demo/unseed',
+      validateParams(z.object({ labId: z.string() })),
+      this.configurationController.unseedDemoLab.bind(this.configurationController)
+    );
+
+    router.get('/labs/:labId/demo/limits',
+      validateParams(z.object({ labId: z.string() })),
+      this.labController.getDemoLimits.bind(this.labController)
+    );
+
+    router.put('/labs/:labId/demo/limits',
+      validateParams(z.object({ labId: z.string() })),
+      validateBody(UpdateDemoLimitsSchema),
+      this.labController.updateDemoLimits.bind(this.labController)
     );
 
     // CROSS-LAB USER MANAGEMENT
