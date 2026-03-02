@@ -30,6 +30,7 @@ interface CategorySectionProps {
   onRename: (id: string, newValue: string) => Promise<void>;
   onDelete: (id: string, value: string) => void;
   deletingId: string | null;
+  readOnly?: boolean;
 }
 
 function CategorySection({
@@ -41,6 +42,7 @@ function CategorySection({
   onRename,
   onDelete,
   deletingId,
+  readOnly = false,
 }: CategorySectionProps) {
   const [newValue, setNewValue] = useState('');
   const [adding, setAdding] = useState(false);
@@ -185,6 +187,7 @@ function CategorySection({
                 size="xs"
                 iconOnly
                 onClick={() => handleRenameStart(item.id, item.value)}
+                disabled={readOnly}
                 aria-label={`Rename ${item.value}`}
               >
                 <Pencil size={14} />
@@ -203,7 +206,7 @@ function CategorySection({
                 size="xs"
                 iconOnly
                 onClick={() => onDelete(item.id, item.value)}
-                disabled={!canDelete}
+                disabled={readOnly || !canDelete}
                 isLoading={deletingId === item.id}
                 aria-label={`Delete ${item.value}`}
               >
@@ -230,16 +233,17 @@ function CategorySection({
             value={newValue}
             onChange={e => setNewValue(e.target.value)}
             onKeyDown={e => {
-              if (e.key === 'Enter') void handleAdd();
+              if (e.key === 'Enter' && !readOnly) void handleAdd();
             }}
             placeholder={`Add new ${category}...`}
             size="sm"
+            disabled={readOnly}
           />
           <Button
             variant="primary"
             size="sm"
             onClick={() => void handleAdd()}
-            disabled={!newValue.trim() || adding}
+            disabled={readOnly || !newValue.trim() || adding}
             isLoading={adding}
             leftIcon={<Plus size={14} />}
           >
@@ -270,9 +274,10 @@ function CategorySection({
 
 interface CatalogTabProps {
   onTabFooter?: (footer: React.ReactNode) => void;
+  readOnly?: boolean;
 }
 
-export function CatalogTab({ onTabFooter }: CatalogTabProps) {
+export function CatalogTab({ onTabFooter, readOnly = false }: CatalogTabProps) {
   const queryClient = useQueryClient();
   const [speciesValues, setSpeciesValues] = useState<LookupValueWithCount[]>([]);
   const [sourceValues, setSourceValues] = useState<LookupValueWithCount[]>([]);
@@ -399,6 +404,7 @@ export function CatalogTab({ onTabFooter }: CatalogTabProps) {
           onRename={(id, newValue) => handleRename('species', id, newValue)}
           onDelete={(id, value) => handleDeleteRequest('species', id, value)}
           deletingId={deletingId}
+          readOnly={readOnly}
         />
 
         <CategorySection
@@ -410,6 +416,7 @@ export function CatalogTab({ onTabFooter }: CatalogTabProps) {
           onRename={(id, newValue) => handleRename('source', id, newValue)}
           onDelete={(id, value) => handleDeleteRequest('source', id, value)}
           deletingId={deletingId}
+          readOnly={readOnly}
         />
 
         <CategorySection
@@ -421,6 +428,7 @@ export function CatalogTab({ onTabFooter }: CatalogTabProps) {
           onRename={(id, newValue) => handleRename('media', id, newValue)}
           onDelete={(id, value) => handleDeleteRequest('media', id, value)}
           deletingId={deletingId}
+          readOnly={readOnly}
         />
       </div>
 

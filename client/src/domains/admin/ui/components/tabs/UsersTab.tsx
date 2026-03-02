@@ -397,7 +397,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         const user = row as unknown as AdminUser;
         return (
           <div className="flex items-center gap-2 whitespace-nowrap">
-            <div className="w-24">
+            <div className="w-28">
               <Select
                 value={user.role ?? 'user'}
                 onChange={newValue => {

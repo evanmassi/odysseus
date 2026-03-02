@@ -7,13 +7,29 @@
 import { Request, Response } from 'express';
 import { BaseController } from '@presentation/controllers/BaseController';
 import { LookupValueApplicationService } from '@application/services/LookupValueApplicationService';
+import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { ErrorDto } from '@application/dto/ErrorDto';
+import { ValidationError } from '@domain/errors/ValidationError';
 import { handleControllerError } from '@presentation/utilities/ErrorHandler';
 import type { LookupCategory } from '@domain/entities/LookupValue';
 
 export class LookupValueController extends BaseController {
-  constructor(private lookupValueService: LookupValueApplicationService) {
+  constructor(
+    private lookupValueService: LookupValueApplicationService,
+    private configurationRepository: ConfigurationRepository
+  ) {
     super();
+  }
+
+  private async rejectIfSeededDemo(req: Request): Promise<void> {
+    const user = this.getAuthenticatedUser(req);
+    if (user.isSystemAdmin()) return;
+    if (!user.isDemo) return;
+
+    const config = await this.configurationRepository.getForLab(this.extractLabId(req));
+    if (config?.hasAnySeededResources()) {
+      throw new ValidationError('Catalog is locked in seeded demo mode');
+    }
   }
 
   /** GET /api/lookups/:category — active values for form dropdowns */
@@ -43,6 +59,7 @@ export class LookupValueController extends BaseController {
   /** POST /api/admin/lookups — create new value */
   async createValue(req: Request, res: Response): Promise<void> {
     try {
+      await this.rejectIfSeededDemo(req);
       const labId = this.extractLabId(req);
       const { category, value } = req.body;
       const created = await this.lookupValueService.create(labId, category, value);
@@ -55,6 +72,7 @@ export class LookupValueController extends BaseController {
   /** PUT /api/admin/lookups/:id/rename — rename value (cascades to tubes) */
   async renameValue(req: Request, res: Response): Promise<void> {
     try {
+      await this.rejectIfSeededDemo(req);
       const labId = this.extractLabId(req);
       const { id } = req.params;
       const { newValue } = req.body;
@@ -68,6 +86,7 @@ export class LookupValueController extends BaseController {
   /** DELETE /api/admin/lookups/:id — delete value (blocked if tubes reference it) */
   async deleteValue(req: Request, res: Response): Promise<void> {
     try {
+      await this.rejectIfSeededDemo(req);
       const labId = this.extractLabId(req);
       const { id } = req.params;
       await this.lookupValueService.delete(labId, id);

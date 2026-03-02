@@ -42,6 +42,7 @@ export const inviteCodeDataSchema = z.object({
   expiresAt: z.union([z.string().datetime(), z.date()]).optional(),
   isActive: z.boolean(),
   createdAt: z.union([z.string().datetime(), z.date()]),
+  deactivationReason: z.enum(['used', 'expired', 'manual']).optional(),
 });
 
 export type InviteCodeData = z.infer<typeof inviteCodeDataSchema>;

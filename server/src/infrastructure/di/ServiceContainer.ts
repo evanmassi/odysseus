@@ -793,6 +793,7 @@ export class ServiceContainer {
         repositories.inviteCodes,
         repositories.labs,
         repositories.users,
+        repositories.configurations,
         this.getEventBus()
       );
     }
@@ -1137,8 +1138,10 @@ export class ServiceContainer {
 
   getLookupValueController(): LookupValueController {
     if (!this.lookupValueController) {
+      const repositories = this.repositoryFactory.getRepositories();
       this.lookupValueController = new LookupValueController(
-        this.getLookupValueApplicationService()
+        this.getLookupValueApplicationService(),
+        repositories.configurations
       );
     }
     return this.lookupValueController;

@@ -16,6 +16,7 @@ import {
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { useStorageData } from '@domains/storage';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button, Tab, Tabs, Tooltip } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
@@ -53,6 +54,13 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   const user = useAuthStore(s => s.user);
   const isSystemAdmin = user?.role === 'system_admin';
   const isDemo = user?.isDemo ?? false;
+  const { currentLab } = useStorageData();
+  const demoSeeded =
+    isDemo &&
+    (currentLab?.equipment.tanks.some(
+      t => t.isSeeded ?? t.racks.some(r => r.isSeeded ?? r.boxes.some(b => b.isSeeded))
+    ) ??
+      false);
   const securityReadOnly = !isSystemAdmin || isDemo;
 
   const [activeTab, setActiveTab] = useState<
@@ -322,7 +330,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'invite-codes' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
-          <InviteCodesTab />
+          <InviteCodesTab readOnly={demoSeeded} />
         </Suspense>
       )}
 
@@ -344,7 +352,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'catalog' && !isSystemAdmin && (
         <Suspense fallback={<TabSkeleton />}>
-          <CatalogTab onTabFooter={handleTabFooter} />
+          <CatalogTab onTabFooter={handleTabFooter} readOnly={demoSeeded} />
         </Suspense>
       )}
 

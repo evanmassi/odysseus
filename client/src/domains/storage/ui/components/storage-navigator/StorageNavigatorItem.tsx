@@ -69,7 +69,7 @@ export const StorageNavigatorItem: React.FC<StorageNavigatorItemProps> = ({
               {name}
             </span>
           </Tooltip>
-          {ownershipType && ownershipType !== 'otherUser' && (
+          {ownershipType && (
             <UserBadge
               type={ownershipType}
               initials={ownershipInitials}

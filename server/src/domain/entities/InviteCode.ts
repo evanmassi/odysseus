@@ -9,6 +9,8 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { generateId } from '@domain/utils/generateId';
 import * as crypto from 'crypto';
 
+export type DeactivationReason = 'used' | 'expired' | 'manual';
+
 export class InviteCode {
   private constructor(
     private readonly _id: string,
@@ -20,7 +22,8 @@ export class InviteCode {
     private _useCount: number,
     private readonly _expiresAt: Date | undefined,
     private _isActive: boolean,
-    private readonly _createdAt: Date
+    private readonly _createdAt: Date,
+    private _deactivationReason: DeactivationReason | undefined
   ) {
     this.validate();
   }
@@ -34,7 +37,7 @@ export class InviteCode {
   ): InviteCode {
     const id = generateId('invite');
     const code = InviteCode.generateCode();
-    return new InviteCode(id, labId, code, role, createdBy, maxUses, 0, expiresAt, true, new Date());
+    return new InviteCode(id, labId, code, role, createdBy, maxUses, 0, expiresAt, true, new Date(), undefined);
   }
 
   static fromData(data: {
@@ -48,6 +51,7 @@ export class InviteCode {
     expiresAt?: string;
     isActive: boolean;
     createdAt: string;
+    deactivationReason?: DeactivationReason;
   }): InviteCode {
     return new InviteCode(
       data.id,
@@ -59,7 +63,8 @@ export class InviteCode {
       data.useCount,
       data.expiresAt ? new Date(data.expiresAt) : undefined,
       data.isActive,
-      new Date(data.createdAt)
+      new Date(data.createdAt),
+      data.deactivationReason
     );
   }
 
@@ -96,7 +101,11 @@ export class InviteCode {
 
   isValid(): boolean {
     if (!this._isActive) return false;
-    if (this._expiresAt && new Date() > this._expiresAt) return false;
+    if (this._expiresAt && new Date() > this._expiresAt) {
+      this._isActive = false;
+      this._deactivationReason = 'expired';
+      return false;
+    }
     if (this._maxUses !== undefined && this._useCount >= this._maxUses) return false;
     return true;
   }
@@ -106,10 +115,15 @@ export class InviteCode {
       throw new ValidationError('Invite code is no longer valid');
     }
     this._useCount++;
+    if (this._maxUses !== undefined && this._useCount >= this._maxUses) {
+      this._isActive = false;
+      this._deactivationReason = 'used';
+    }
   }
 
   deactivate(): void {
     this._isActive = false;
+    this._deactivationReason ??= 'manual';
   }
 
   toData(): {
@@ -123,6 +137,7 @@ export class InviteCode {
     expiresAt?: string;
     isActive: boolean;
     createdAt: string;
+    deactivationReason?: DeactivationReason;
   } {
     return {
       id: this._id,
@@ -135,6 +150,7 @@ export class InviteCode {
       expiresAt: this._expiresAt?.toISOString(),
       isActive: this._isActive,
       createdAt: this._createdAt.toISOString(),
+      deactivationReason: this._deactivationReason,
     };
   }
 
@@ -153,4 +169,5 @@ export class InviteCode {
   get expiresAt(): Date | undefined { return this._expiresAt ? new Date(this._expiresAt) : undefined; }
   get isActive(): boolean { return this._isActive; }
   get createdAt(): Date { return new Date(this._createdAt); }
+  get deactivationReason(): DeactivationReason | undefined { return this._deactivationReason; }
 }

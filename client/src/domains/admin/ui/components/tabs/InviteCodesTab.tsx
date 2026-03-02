@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import { TicketCheck, Plus, Copy, Trash2, RefreshCw } from 'lucide-react';
+import { TicketCheck, Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip } from '@shared/ui';
@@ -18,7 +18,11 @@ import { adminService } from '../../../services/AdminService';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
 
-export function InviteCodesTab() {
+interface InviteCodesTabProps {
+  readOnly?: boolean;
+}
+
+export function InviteCodesTab({ readOnly = false }: InviteCodesTabProps) {
   const [codes, setCodes] = useState<InviteCodeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -27,6 +31,7 @@ export function InviteCodesTab() {
   // New code form
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newCodeMaxUses, setNewCodeMaxUses] = useState<number | undefined>(undefined);
+  const [showInactive, setShowInactive] = useState(false);
 
   const loadCodes = useCallback(async () => {
     setIsLoading(true);
@@ -84,8 +89,13 @@ export function InviteCodesTab() {
     }
   };
 
-  const activeCodes = codes.filter(c => c.isActive);
-  const inactiveCodes = codes.filter(c => !c.isActive);
+  const now = new Date();
+  const activeCodes = codes.filter(
+    c => c.isActive && !(c.expiresAt && new Date(c.expiresAt) < now)
+  );
+  const inactiveCodes = codes.filter(
+    c => !c.isActive || (c.expiresAt && new Date(c.expiresAt) < now)
+  );
 
   return (
     <div className="space-y-4">
@@ -109,6 +119,7 @@ export function InviteCodesTab() {
             size="sm"
             onClick={() => setShowCreateForm(true)}
             leftIcon={<Plus size={14} />}
+            disabled={readOnly}
           >
             New Code
           </Button>
@@ -200,15 +211,17 @@ export function InviteCodesTab() {
                 >
                   <Copy size={14} />
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeleteTarget(code.id)}
-                  aria-label="Deactivate code"
-                  className="text-danger-text hover:text-danger-text"
-                >
-                  <Trash2 size={14} />
-                </Button>
+                {!readOnly && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setDeleteTarget(code.id)}
+                    aria-label="Deactivate code"
+                    className="text-danger-text hover:text-danger-text"
+                  >
+                    <Trash2 size={14} />
+                  </Button>
+                )}
               </div>
             </div>
           ))}
@@ -217,22 +230,54 @@ export function InviteCodesTab() {
 
       {inactiveCodes.length > 0 && (
         <div className="pt-3 border-t border-border">
-          <h4 className="text-sm font-medium text-muted-foreground mb-2">
+          <button
+            onClick={() => setShowInactive(prev => !prev)}
+            className="flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ChevronDown
+              size={14}
+              className={`transition-transform ${showInactive ? 'rotate-0' : '-rotate-90'}`}
+            />
             Inactive Codes ({inactiveCodes.length})
-          </h4>
-          <div className="space-y-1">
-            {inactiveCodes.map(code => (
-              <div
-                key={code.id}
-                className="flex items-center justify-between p-2 bg-muted/50 rounded opacity-60"
-              >
-                <div className="flex items-center gap-3">
-                  <code className="text-xs font-mono text-muted-foreground">{code.code}</code>
-                  <span className="text-xs text-muted-foreground">{code.useCount} uses</span>
-                </div>
-              </div>
-            ))}
-          </div>
+          </button>
+          {showInactive && (
+            <div className="space-y-1 mt-2">
+              {inactiveCodes.map(code => {
+                const reason =
+                  code.deactivationReason ??
+                  (code.expiresAt && new Date(code.expiresAt) < now ? 'expired' : undefined);
+
+                return (
+                  <div
+                    key={code.id}
+                    className="flex items-center justify-between p-2 bg-muted/50 rounded opacity-60"
+                  >
+                    <div className="flex items-center gap-3">
+                      <code className="text-xs font-mono text-muted-foreground">{code.code}</code>
+                      {reason === 'used' && (
+                        <Chip color="default" size="xs">
+                          Used
+                        </Chip>
+                      )}
+                      {reason === 'expired' && (
+                        <Chip color="warning" size="xs">
+                          Expired
+                        </Chip>
+                      )}
+                      {reason === 'manual' && (
+                        <Chip color="default" size="xs">
+                          Deactivated
+                        </Chip>
+                      )}
+                      {!reason && (
+                        <span className="text-xs text-muted-foreground">{code.useCount} uses</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 

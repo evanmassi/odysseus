@@ -21,17 +21,16 @@ function getEffectiveOwner(
 // Helper to compute ownership type for display
 function computeOwnershipType(
   effectiveOwner: string | null | undefined,
-  currentUserId?: string
+  currentUserId?: string,
+  isAdmin?: boolean
 ): UserBadgeType | undefined {
-  // null or undefined = unassigned/common
   if (effectiveOwner === null || effectiveOwner === undefined) {
     return 'unassigned';
   }
-  // Owned by current user
   if (currentUserId && effectiveOwner === currentUserId) {
     return 'currentUser';
   }
-  // Owned by someone else - return undefined to not show badge
+  if (isAdmin) return 'otherUser';
   return undefined;
 }
 
@@ -41,6 +40,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
   onSelect,
   className = '',
   currentUser,
+  getUserInitials: getUserInitialsFn,
 }) => {
   const {
     expandedTanks,
@@ -196,6 +196,15 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     [toggleTank, toggleRack, selectTank, selectRack, selectBox]
   );
 
+  const resolveInitials = useCallback(
+    (ownerId: string | null | undefined): string | undefined => {
+      if (!ownerId) return undefined;
+      if (ownerId === currentUser?.id) return currentUser.initials;
+      return getUserInitialsFn?.(ownerId);
+    },
+    [currentUser, getUserInitialsFn]
+  );
+
   // Keyboard navigation
   const { handleKeyDown } = useTreeKeyboardNavigation({
     visibleNodes,
@@ -279,14 +288,22 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                     ariaLevel={rackNode?.ariaLevel}
                     ariaPosinset={rackNode?.ariaPosinset}
                     ariaSetsize={rackNode?.ariaSetsize}
-                    ownershipType={computeOwnershipType(rack.assignedUserId, currentUser?.id)}
-                    ownershipInitials={currentUser?.initials}
+                    ownershipType={computeOwnershipType(
+                      rack.assignedUserId,
+                      currentUser?.id,
+                      currentUser?.isAdmin
+                    )}
+                    ownershipInitials={resolveInitials(rack.assignedUserId)}
                   >
                     {rack.boxes.map((box, _boxIndex) => {
                       const boxSelected = isBoxSelected(tank.id, rack.id, box.id);
                       const boxKey = getNodeKey('box', tank.id, rack.id, box.id);
                       const boxNodeIndex = nodeKeyToIndex.get(boxKey) ?? -1;
                       const boxNode = visibleNodes[boxNodeIndex];
+                      const effectiveBoxOwner = getEffectiveOwner(
+                        box.assignedUserId,
+                        rack.assignedUserId
+                      );
 
                       return (
                         <StorageNavigatorItem
@@ -305,10 +322,11 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                           ariaPosinset={boxNode?.ariaPosinset}
                           ariaSetsize={boxNode?.ariaSetsize}
                           ownershipType={computeOwnershipType(
-                            getEffectiveOwner(box.assignedUserId, rack.assignedUserId),
-                            currentUser?.id
+                            effectiveBoxOwner,
+                            currentUser?.id,
+                            currentUser?.isAdmin
                           )}
-                          ownershipInitials={currentUser?.initials}
+                          ownershipInitials={resolveInitials(effectiveBoxOwner)}
                         />
                       );
                     })}

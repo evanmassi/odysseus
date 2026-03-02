@@ -4,6 +4,7 @@
  * Manages invite code lifecycle for lab registration.
  */
 
+import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
@@ -41,6 +42,7 @@ export class CreateInviteCodeCommandHandler {
     private inviteCodeRepository: InviteCodeRepository,
     private labRepository: LabRepository,
     private userRepository: UserRepository,
+    private configurationRepository: ConfigurationRepository,
     private eventBus: EventBus
   ) {}
 
@@ -68,6 +70,14 @@ export class CreateInviteCodeCommandHandler {
     }
     if (!lab.isActive) {
       throw new ValidationError('Cannot create invite codes for an inactive lab');
+    }
+
+    // Seeded demo labs are locked — only system admins can create codes
+    if (lab.isDemo && !user.isSystemAdmin()) {
+      const config = await this.configurationRepository.getForLab(command.labId);
+      if (config?.hasAnySeededResources()) {
+        throw new ValidationError('Cannot create invite codes for a seeded demo lab');
+      }
     }
 
     const expiresAt = command.expiresAt ? new Date(command.expiresAt) : undefined;

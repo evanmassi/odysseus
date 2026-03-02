@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
-import { MapPin, Navigation, NotepadText, ScanEye, UsersRound } from 'lucide-react';
+import { MapPin, Navigation, NotepadText, ScanEye, UserRound, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
 import { gridNavigationService } from '@domains/grid';
@@ -26,7 +26,7 @@ import { LockTubesModal } from '@domains/tubes/ui/components/modals/LockTubesMod
 import { OverwriteConfirmDialog } from '@domains/tubes/ui/components/modals/OverwriteConfirmDialog';
 import { ShareAccessModal } from '@domains/tubes/ui/components/modals/ShareAccessModal';
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
-import { useUserLookupQuery } from '@domains/users';
+import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey } from '@shared/types/GridSelection';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
@@ -201,44 +201,49 @@ function LabDashboard() {
     [modalService.tubeEditorModal.positions]
   );
 
-  // Compute if current container is view-only (assigned to another user) or common space
-  // This determines if tube operations should be disabled and what indicator to show
-  const { isViewOnlySpace, spaceOwnerId, isCommonSpace } = useMemo(() => {
-    if (!user) return { isViewOnlySpace: true, spaceOwnerId: undefined, isCommonSpace: false };
-    if (user.role === 'lab_admin' || user.role === 'system_admin')
-      return { isViewOnlySpace: false, spaceOwnerId: undefined, isCommonSpace: false };
+  const isAdmin = user?.role === 'lab_admin' || user?.role === 'system_admin';
 
-    // Box-level assignment takes precedence
-    if (currentBoxObj?.assignedUserId !== undefined && currentBoxObj.assignedUserId !== null) {
-      const isViewOnly = currentBoxObj.assignedUserId !== user.id;
+  // Compute effective owner and space type for the current box/rack
+  const { isViewOnlySpace, spaceOwnerId, isCommonSpace, isOwnSpace } = useMemo(() => {
+    if (!user)
       return {
-        isViewOnlySpace: isViewOnly,
-        spaceOwnerId: isViewOnly ? currentBoxObj.assignedUserId : undefined,
+        isViewOnlySpace: true,
+        spaceOwnerId: undefined,
         isCommonSpace: false,
+        isOwnSpace: false,
+      };
+
+    // Resolve effective owner through inheritance cascade
+    let effectiveOwnerId: string | null | undefined;
+    if (currentBoxObj?.assignedUserId !== undefined) {
+      effectiveOwnerId = currentBoxObj.assignedUserId;
+    } else {
+      effectiveOwnerId = currentRackObj?.assignedUserId;
+    }
+
+    // null or undefined = common/unassigned
+    if (effectiveOwnerId === null || effectiveOwnerId === undefined) {
+      return {
+        isViewOnlySpace: false,
+        spaceOwnerId: undefined,
+        isCommonSpace: true,
+        isOwnSpace: false,
       };
     }
 
-    // null box assignment = common space (box explicitly unassigned)
-    if (currentBoxObj?.assignedUserId === null) {
-      return { isViewOnlySpace: false, spaceOwnerId: undefined, isCommonSpace: true };
-    }
+    const isOwn = effectiveOwnerId === user.id;
+    // Admins always have full access — never view-only
+    const isViewOnly = !isOwn && !isAdmin;
 
-    // Box assignment is undefined (inherit from rack)
-    // Check rack-level assignment
-    if (currentRackObj?.assignedUserId !== undefined && currentRackObj.assignedUserId !== null) {
-      const isViewOnly = currentRackObj.assignedUserId !== user.id;
-      return {
-        isViewOnlySpace: isViewOnly,
-        spaceOwnerId: isViewOnly ? currentRackObj.assignedUserId : undefined,
-        isCommonSpace: false,
-      };
-    }
+    return {
+      isViewOnlySpace: isViewOnly,
+      spaceOwnerId: effectiveOwnerId,
+      isCommonSpace: false,
+      isOwnSpace: isOwn,
+    };
+  }, [user, currentBoxObj?.assignedUserId, currentRackObj?.assignedUserId, isAdmin]);
 
-    // No assignment = common space
-    return { isViewOnlySpace: false, spaceOwnerId: undefined, isCommonSpace: true };
-  }, [user, currentBoxObj?.assignedUserId, currentRackObj?.assignedUserId]);
-
-  // Fetch display name for space owner (if in view-only mode)
+  // Fetch display name for space owner
   const spaceOwnerIds = useMemo(() => (spaceOwnerId ? [spaceOwnerId] : []), [spaceOwnerId]);
   const { data: spaceOwnerUsers = [] } = useUserLookupQuery(spaceOwnerIds);
   const spaceOwnerName = useMemo(() => {
@@ -274,16 +279,27 @@ function LabDashboard() {
     [tanks]
   );
 
-  const { getUserInfo: getOwnershipUserInfo } = useResourceOwnership(
-    currentUserDisplayInfo,
-    user?.id
-  );
+  // Fetch active users for admin badge resolution in navigator
+  const { data: activeUsers = [] } = useActiveUsersQuery();
+
+  const allDisplayUsers = useMemo(() => {
+    const map = new Map(activeUsers.map(u => [u.id, u]));
+    currentUserDisplayInfo.forEach(u => map.set(u.id, u));
+    return Array.from(map.values());
+  }, [activeUsers, currentUserDisplayInfo]);
+
+  const { getUserInfo: getOwnershipUserInfo } = useResourceOwnership(allDisplayUsers, user?.id);
 
   const currentUserInfo = useMemo(() => {
     if (!user) return undefined;
     const ownershipInfo = getOwnershipUserInfo(user.id);
-    return ownershipInfo ? { id: user.id, initials: ownershipInfo.initials } : undefined;
-  }, [user, getOwnershipUserInfo]);
+    return ownershipInfo ? { id: user.id, initials: ownershipInfo.initials, isAdmin } : undefined;
+  }, [user, getOwnershipUserInfo, isAdmin]);
+
+  const getNavigatorUserInitials = useCallback(
+    (userId: string): string | undefined => getOwnershipUserInfo(userId)?.initials,
+    [getOwnershipUserInfo]
+  );
 
   const selectedLocation: SelectedLocation = useMemo(
     () => ({
@@ -531,6 +547,7 @@ function LabDashboard() {
                   selected={selectedLocation}
                   onSelect={handleStorageNavigationSelect}
                   currentUser={currentUserInfo}
+                  getUserInitials={isAdmin ? getNavigatorUserInitials : undefined}
                 />
               </ErrorBoundary>
             </div>
@@ -549,18 +566,38 @@ function LabDashboard() {
                 <span className="text-xs text-muted-foreground">•</span>
                 <span>{boxDisplayName}</span>
               </h4>
-              {isViewOnlySpace && (
-                <div className="flex-1 flex justify-end">
+              <div className="flex-1 flex justify-end">
+                {isOwnSpace && (
+                  <Tooltip content="This space is assigned to you.">
+                    <Chip
+                      color="success"
+                      size="sm"
+                      leftIcon={<UserRound />}
+                      className="cursor-help"
+                    >
+                      Assigned to You
+                    </Chip>
+                  </Tooltip>
+                )}
+                {isViewOnlySpace && (
                   <Tooltip content="You can view, but not modify, tubes here.">
                     <Chip color="warning" size="sm" leftIcon={<ScanEye />} className="cursor-help">
                       View Only - Assigned to{' '}
                       <span className="font-semibold">{spaceOwnerName ?? 'another user'}</span>
                     </Chip>
                   </Tooltip>
-                </div>
-              )}
-              {isCommonSpace && (
-                <div className="flex-1 flex justify-end">
+                )}
+                {!isViewOnlySpace && !isOwnSpace && !isCommonSpace && spaceOwnerId && (
+                  <Tooltip
+                    content={`This space is assigned to ${spaceOwnerName ?? 'another user'}.`}
+                  >
+                    <Chip color="info" size="sm" leftIcon={<UserRound />} className="cursor-help">
+                      Assigned to{' '}
+                      <span className="font-semibold">{spaceOwnerName ?? 'another user'}</span>
+                    </Chip>
+                  </Tooltip>
+                )}
+                {isCommonSpace && (
                   <Tooltip content="This space is available to all users.">
                     <Chip
                       color="default"
@@ -571,8 +608,8 @@ function LabDashboard() {
                       Unassigned/Common
                     </Chip>
                   </Tooltip>
-                </div>
-              )}
+                )}
+              </div>
             </div>
             <div className="grid-container flex-1" ref={gridContainerRef}>
               <ErrorBoundary>

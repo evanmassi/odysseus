@@ -35,6 +35,7 @@ export interface SelectedLocation {
 export interface CurrentUserInfo {
   id: string;
   initials: string;
+  isAdmin?: boolean;
 }
 
 export interface StorageNavigatorProps {
@@ -43,6 +44,7 @@ export interface StorageNavigatorProps {
   onSelect: (location: SelectedLocation) => void;
   className?: string;
   currentUser?: CurrentUserInfo;
+  getUserInitials?: (userId: string) => string | undefined;
 }
 
 export interface StorageNavigatorItemProps {
