@@ -47,8 +47,12 @@ export class AuditController {
         dateTo: req.query.dateTo as string | undefined,
       };
 
-      // Get paginated results
-      const result = await this.auditService.getAuditLog(filters);
+      const user = req.user;
+      const isLabScoped = user && !user.isSystemAdmin() && user.labId;
+
+      const result = isLabScoped
+        ? await this.auditService.getAuditLogForLab(filters, user.labId!)
+        : await this.auditService.getAuditLog(filters);
 
       const response = ResponseBuilder.withTiming(startTime, {
         entries: result.items,
@@ -58,8 +62,9 @@ export class AuditController {
       res.status(200).json(response);
 
       logger.debug('Audit log retrieved', {
-        requestedBy: req.user?.username,
+        requestedBy: user?.username,
         filters,
+        labScoped: !!isLabScoped,
         resultCount: result.items.length,
       });
     } catch (error) {
@@ -179,6 +184,11 @@ export class AuditController {
    */
   async getRetentionMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      if (!req.user?.isSystemAdmin()) {
+        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Retention metrics require system admin access'));
+        return;
+      }
+
       const startTime = Date.now();
 
       const metrics = await this.retentionService.getRetentionMetrics();
@@ -205,6 +215,11 @@ export class AuditController {
    */
   async getRetentionPolicy(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      if (!req.user?.isSystemAdmin()) {
+        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Retention policy requires system admin access'));
+        return;
+      }
+
       const startTime = Date.now();
 
       const policy = this.retentionService.getRetentionPolicy();
@@ -231,6 +246,11 @@ export class AuditController {
    */
   async runManualArchival(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      if (!req.user?.isSystemAdmin()) {
+        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Manual archival requires system admin access'));
+        return;
+      }
+
       const startTime = Date.now();
 
       logger.info('Manual archival triggered', {
@@ -273,6 +293,11 @@ export class AuditController {
    */
   async exportArchivedLogs(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
+      if (!req.user?.isSystemAdmin()) {
+        res.status(403).json(ResponseBuilder.error('FORBIDDEN', 'Export requires system admin access'));
+        return;
+      }
+
       const dateFrom = req.query.dateFrom ? new Date(req.query.dateFrom as string) : undefined;
       const dateTo = req.query.dateTo ? new Date(req.query.dateTo as string) : undefined;
 
@@ -292,6 +317,45 @@ export class AuditController {
         error: error instanceof Error ? error.message : String(error),
         requestedBy: req.user?.username,
       });
+      next(error);
+    }
+  }
+
+  async getLabAuditLog(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { labId } = req.params;
+
+      const filters: AuditLogFilters = {
+        limit: req.query.limit ? parseInt(req.query.limit as string) : 50,
+        offset: req.query.offset ? parseInt(req.query.offset as string) : 0,
+        username: req.query.username as string | undefined,
+        action: req.query.action as string | undefined,
+        entityType: req.query.entityType as string | undefined,
+        dateFrom: req.query.dateFrom as string | undefined,
+        dateTo: req.query.dateTo as string | undefined,
+      };
+
+      const includeArchive = req.query.includeArchive === 'true';
+
+      const result = includeArchive
+        ? await this.retentionService.queryAllLogsForLab(filters, labId, true)
+        : await this.auditService.getAuditLogForLab(filters, labId);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        entries: result.items,
+        pagination: result.pagination,
+        includeArchive,
+      });
+
+      res.status(200).json(response);
+
+      logger.debug('Lab audit log retrieved', {
+        requestedBy: req.user?.username,
+        labId,
+        resultCount: result.items.length,
+      });
+    } catch (error) {
       next(error);
     }
   }
@@ -320,8 +384,12 @@ export class AuditController {
 
       const includeArchive = req.query.includeArchive === 'true';
 
-      // Get results (with or without archive)
-      const result = await this.retentionService.queryAllLogs(filters, includeArchive);
+      const user = req.user;
+      const isLabScoped = user && !user.isSystemAdmin() && user.labId;
+
+      const result = isLabScoped
+        ? await this.retentionService.queryAllLogsForLab(filters, user.labId!, includeArchive)
+        : await this.retentionService.queryAllLogs(filters, includeArchive);
 
       const response = ResponseBuilder.withTiming(startTime, {
         entries: result.items,
@@ -332,9 +400,10 @@ export class AuditController {
       res.status(200).json(response);
 
       logger.debug('Audit search completed', {
-        requestedBy: req.user?.username,
+        requestedBy: user?.username,
         filters,
         includeArchive,
+        labScoped: !!isLabScoped,
         resultCount: result.items.length,
       });
     } catch (error) {

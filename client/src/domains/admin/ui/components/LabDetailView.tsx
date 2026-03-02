@@ -4,6 +4,7 @@ import { refrigeratorFreezer } from '@lucide/lab';
 import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
 import {
+  Activity,
   ArrowLeft,
   Box as BoxIcon,
   ChevronDown,
@@ -43,6 +44,8 @@ import {
   useDemoLimitsQuery,
   useUpdateDemoLimitsMutation,
 } from '../../hooks/useSystemAdminQueries';
+
+import { AuditLogViewer } from './AuditLogViewer';
 
 import type { DemoLimits, LabDetailsUser } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
@@ -472,6 +475,24 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
             />
           </div>
         </div>
+
+        <Collapsible.Root defaultOpen={false} className="rounded-lg border border-border bg-card">
+          <Collapsible.Trigger className="flex w-full items-center justify-between p-3 cursor-pointer group">
+            <div className="flex items-center gap-2">
+              <ChevronDown
+                size={14}
+                className="text-secondary-foreground transition-transform duration-200 group-data-[state=closed]:-rotate-90"
+              />
+              <Activity size={16} className="text-secondary-foreground" />
+              <h3 className="text-sm font-semibold text-card-foreground">Audit Log</h3>
+            </div>
+          </Collapsible.Trigger>
+          <Collapsible.Content className="overflow-hidden data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
+            <div className="px-3 pb-3">
+              <AuditLogViewer labId={labId} readOnly />
+            </div>
+          </Collapsible.Content>
+        </Collapsible.Root>
 
         <ConfirmDialog
           isOpen={deactivateTarget !== null}

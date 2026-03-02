@@ -245,11 +245,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
           Catalog
         </Tab>
       )}
-      {!isSystemAdmin && (
-        <Tab id="monitoring" icon={<Activity size={18} />}>
-          Monitoring
-        </Tab>
-      )}
+      <Tab id="monitoring" icon={<Activity size={18} />}>
+        Monitoring
+      </Tab>
     </Tabs>
   );
 
@@ -367,9 +365,9 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         </Suspense>
       )}
 
-      {activeTab === 'monitoring' && !isSystemAdmin && (
+      {activeTab === 'monitoring' && (
         <Suspense fallback={<TabSkeleton />}>
-          <MonitoringTab />
+          <MonitoringTab isSystemAdmin={isSystemAdmin} />
         </Suspense>
       )}
     </BaseModal>

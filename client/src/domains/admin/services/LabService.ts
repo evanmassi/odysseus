@@ -15,6 +15,8 @@ import type {
   DemoLimits,
   SeedDemoResponse,
   UnseedDemoResponse,
+  AuditLogEntry,
+  AuditLogFilters,
 } from '@odysseus/shared-schemas';
 
 export class LabService {
@@ -189,6 +191,40 @@ export class LabService {
       await httpClient.post(`/system/labs/${labId}/users/${userId}/deactivate`);
     } catch (error) {
       logger.error('Failed to deactivate user', { labId, userId, error });
+      throw error;
+    }
+  }
+
+  async getLabAuditLog(
+    labId: string,
+    filters: AuditLogFilters = {},
+    includeArchive: boolean = false
+  ): Promise<{
+    entries: AuditLogEntry[];
+    pagination: { total: number; limit: number; offset: number; hasMore: boolean };
+  }> {
+    try {
+      const params = new URLSearchParams();
+      if (filters.limit) params.append('limit', filters.limit.toString());
+      if (filters.offset) params.append('offset', filters.offset.toString());
+      if (filters.username) params.append('username', filters.username);
+      if (filters.action) params.append('action', filters.action);
+      if (filters.entityType) params.append('entityType', filters.entityType);
+      if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
+      if (filters.dateTo) params.append('dateTo', filters.dateTo);
+      params.append('includeArchive', includeArchive.toString());
+
+      const query = params.toString() ? `?${params.toString()}` : '';
+      const response = await httpClient.get<{
+        success: boolean;
+        data: {
+          entries: AuditLogEntry[];
+          pagination: { total: number; limit: number; offset: number; hasMore: boolean };
+        };
+      }>(`/system/labs/${labId}/audit${query}`);
+      return response.data.data;
+    } catch (error) {
+      logger.error('Failed to get lab audit log', { labId, error });
       throw error;
     }
   }

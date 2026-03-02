@@ -105,6 +105,7 @@ export const queryKeys = {
     labDetails: (labId: string) => [...queryKeys.labs.all, 'labDetails', labId] as const,
     overview: () => [...queryKeys.labs.all, 'overview'] as const,
     demoLimits: (labId: string) => [...queryKeys.labs.all, 'demoLimits', labId] as const,
+    audit: (labId: string) => [...queryKeys.labs.all, 'audit', labId] as const,
   },
 
   // Invite Codes

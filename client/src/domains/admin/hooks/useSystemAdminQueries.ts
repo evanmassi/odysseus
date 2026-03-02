@@ -13,6 +13,8 @@ import type {
   DemoLimits,
   SeedDemoResponse,
   UnseedDemoResponse,
+  AuditLogEntry,
+  AuditLogFilters,
 } from '@odysseus/shared-schemas';
 
 interface SystemOverview {
@@ -206,6 +208,22 @@ export function useUnseedDemoMutation() {
     onError: error => {
       logger.error('Failed to unseed demo lab', { error });
     },
+  });
+}
+
+export function useLabAuditLogsQuery(
+  labId: string | null,
+  filters: AuditLogFilters = {},
+  includeArchive: boolean = false
+) {
+  return useQuery<{
+    entries: AuditLogEntry[];
+    pagination: { total: number; limit: number; offset: number; hasMore: boolean };
+  }>({
+    queryKey: [...queryKeys.labs.audit(labId ?? ''), filters, includeArchive],
+    queryFn: () => labService.getLabAuditLog(labId!, filters, includeArchive),
+    enabled: !!labId,
+    staleTime: 30 * 1000,
   });
 }
 

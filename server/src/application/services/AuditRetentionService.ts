@@ -213,6 +213,41 @@ export class AuditRetentionService {
     };
   }
 
+  async queryAllLogsForLab(
+    filters: AuditLogFilters,
+    labId: string,
+    includeArchive: boolean = false
+  ): Promise<PaginatedResult<AuditLogEntry>> {
+    const activeResult = await this.auditRepository.findAllForLab(filters, labId);
+
+    if (!includeArchive) {
+      return activeResult;
+    }
+
+    const archiveResult = await this.archiveRepository.findArchived(filters);
+
+    const mergedItems = [...activeResult.items, ...archiveResult.items]
+      .sort((a, b) => {
+        const aTime = typeof a.timestamp === 'string' ? new Date(a.timestamp).getTime() : a.timestamp.getTime();
+        const bTime = typeof b.timestamp === 'string' ? new Date(b.timestamp).getTime() : b.timestamp.getTime();
+        return bTime - aTime;
+      });
+
+    const limit = filters.limit || 50;
+    const offset = filters.offset || 0;
+    const paginatedItems = mergedItems.slice(offset, offset + limit);
+
+    return {
+      items: paginatedItems,
+      pagination: {
+        total: activeResult.pagination.total + archiveResult.pagination.total,
+        limit,
+        offset,
+        hasMore: offset + paginatedItems.length < mergedItems.length,
+      },
+    };
+  }
+
   /**
    * Export archived logs to JSON
    */

@@ -24,11 +24,14 @@ import { Button } from '@shared/ui';
 import type { RetentionMetrics, RetentionPolicy } from '@domains/admin/types/metrics';
 
 interface AuditRetentionSettingsProps {
-  /** Start in collapsed mode */
   defaultCollapsed?: boolean;
+  isDemo?: boolean;
 }
 
-export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetentionSettingsProps) {
+export function AuditRetentionSettings({
+  defaultCollapsed = true,
+  isDemo,
+}: AuditRetentionSettingsProps) {
   const [metrics, setMetrics] = useState<RetentionMetrics | null>(null);
   const [policy, setPolicy] = useState<RetentionPolicy | null>(null);
   const [loading, setLoading] = useState(true);
@@ -211,28 +214,31 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
   return (
     <div className="space-y-3">
       {/* Header */}
-      <div className="bg-card border border-border rounded-lg p-3">
+      <button
+        type="button"
+        className="bg-card border border-border rounded-lg p-3 w-full text-left cursor-pointer hover:bg-accent/50 transition-colors"
+        onClick={() => setIsCollapsed(true)}
+      >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <ChevronUp className="w-4 h-4 text-secondary-foreground" />
             <FileClock className="w-4 h-4 text-secondary-foreground" />
             <h4 className="text-sm font-semibold text-card-foreground">Audit Log Retention</h4>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="secondary"
-              size="xs"
-              onClick={loadData}
-              isLoading={loading}
-              leftIcon={<RefreshCw size={12} />}
-            >
-              Refresh
-            </Button>
-            <button onClick={() => setIsCollapsed(true)} className="p-1 hover:bg-accent rounded">
-              <ChevronUp className="w-4 h-4 text-secondary-foreground" />
-            </button>
-          </div>
+          <Button
+            variant="secondary"
+            size="xs"
+            onClick={e => {
+              e.stopPropagation();
+              void loadData();
+            }}
+            isLoading={loading}
+            leftIcon={<RefreshCw size={12} />}
+          >
+            Refresh
+          </Button>
         </div>
-      </div>
+      </button>
 
       {/* Performance Warning */}
       {metrics?.performanceWarning && (
@@ -385,6 +391,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
             size="xs"
             onClick={runArchival}
             isLoading={archiving}
+            disabled={isDemo}
             loadingText="Running Archival..."
             leftIcon={<Archive size={12} />}
           >
@@ -394,6 +401,7 @@ export function AuditRetentionSettings({ defaultCollapsed = true }: AuditRetenti
             variant="cancel"
             size="xs"
             onClick={exportArchive}
+            disabled={isDemo}
             leftIcon={<Download size={12} />}
           >
             Export Archive

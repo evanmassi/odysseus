@@ -5,9 +5,11 @@
  * and managing demo resource limits.
  */
 
+import { v4 as uuidv4 } from 'uuid';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
+import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
@@ -38,7 +40,8 @@ export class SeedDemoCommandHandler {
   constructor(
     private configurationRepository: ConfigurationRepository,
     private labRepository: LabRepository,
-    private userRepository: UserRepository
+    private userRepository: UserRepository,
+    private auditRepository?: AuditRepository
   ) {}
 
   async handle(command: SeedDemoCommand): Promise<SeedDemoResponse> {
@@ -78,11 +81,44 @@ export class SeedDemoCommandHandler {
       command.labId
     );
 
+    if (this.auditRepository) {
+      await this.seedAuditLogEntries(command.labId);
+    }
+
     return {
       success: true,
       message: `Seeded ${tanks} tanks, ${racks} racks, ${boxes} boxes`,
       seededCount: { tanks, racks, boxes },
     };
+  }
+
+  private async seedAuditLogEntries(labId: string): Promise<void> {
+    const now = new Date();
+    const entries = [
+      { action: 'tube_created', entityType: 'tube', username: 'demo_admin', details: { name: 'Sample Tube A-01', location: 'Tank 1 / Rack 1 / Box A' }, hoursAgo: 48 },
+      { action: 'tube_created', entityType: 'tube', username: 'demo_admin', details: { name: 'Sample Tube A-02', location: 'Tank 1 / Rack 1 / Box A' }, hoursAgo: 47 },
+      { action: 'researcher_created', entityType: 'researcher', username: 'demo_admin', details: { name: 'Dr. Jane Smith' }, hoursAgo: 36 },
+      { action: 'tube_updated', entityType: 'tube', username: 'demo_admin', details: { name: 'Sample Tube A-01', changes: 'Updated concentration' }, hoursAgo: 24 },
+      { action: 'user_logged_in', entityType: 'user', username: 'demo_admin', details: { method: 'password' }, hoursAgo: 12 },
+      { action: 'tube_moved', entityType: 'tube', username: 'demo_admin', details: { name: 'Sample Tube A-02', from: 'Box A / A1', to: 'Box B / B3' }, hoursAgo: 6 },
+      { action: 'configuration_updated', entityType: 'configuration', username: 'demo_admin', details: { change: 'Updated lab display settings' }, hoursAgo: 2 },
+    ];
+
+    const auditEntries = entries.map(e => ({
+      id: uuidv4(),
+      userId: uuidv4(),
+      username: e.username,
+      action: e.action,
+      entityType: e.entityType,
+      entityId: uuidv4(),
+      details: JSON.stringify(e.details),
+      timestamp: new Date(now.getTime() - e.hoursAgo * 60 * 60 * 1000),
+      ipAddress: undefined,
+      userAgent: undefined,
+      labId,
+    }));
+
+    await this.auditRepository!.saveMany(auditEntries);
   }
 
   private async requireSystemAdmin(userId: string): Promise<User> {

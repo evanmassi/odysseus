@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import { adminService } from '@domains/admin/services/AdminService';
+import { labService } from '@domains/admin/services/LabService';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Table, Tooltip } from '@shared/ui';
@@ -34,9 +35,16 @@ import type { TableColumn, TableRow } from '@shared/ui';
 interface AuditLogViewerProps {
   initialFilters?: Partial<AuditLogFilters>;
   onFiltersChange?: (filters: AuditLogFilters) => void;
+  labId?: string;
+  readOnly?: boolean;
 }
 
-export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLogViewerProps) {
+export function AuditLogViewer({
+  initialFilters = {},
+  onFiltersChange,
+  labId,
+  readOnly,
+}: AuditLogViewerProps) {
   const [entries, setEntries] = useState<AuditLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,7 +70,9 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     try {
       setLoading(true);
       setError(null);
-      const result = await adminService.searchAuditLogs(filters, includeArchive);
+      const result = labId
+        ? await labService.getLabAuditLog(labId, filters, includeArchive)
+        : await adminService.searchAuditLogs(filters, includeArchive);
       setEntries(result.entries);
       setPagination(result.pagination);
     } catch (err) {
@@ -71,7 +81,7 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
     } finally {
       setLoading(false);
     }
-  }, [filters, includeArchive]);
+  }, [filters, includeArchive, labId]);
 
   useEffect(() => {
     void loadAuditLog();
@@ -313,23 +323,25 @@ export function AuditLogViewer({ initialFilters = {}, onFiltersChange }: AuditLo
         </div>
 
         <div className="flex items-center gap-2">
-          <Tooltip
-            content={
-              includeArchive
-                ? 'Currently showing active + archived logs'
-                : 'Currently showing active logs only'
-            }
-            side="bottom"
-          >
-            <Button
-              variant={includeArchive ? 'primary' : 'secondary'}
-              size="xs"
-              onClick={() => setIncludeArchive(!includeArchive)}
-              leftIcon={<Archive size={12} />}
+          {!readOnly && (
+            <Tooltip
+              content={
+                includeArchive
+                  ? 'Currently showing active + archived logs'
+                  : 'Currently showing active logs only'
+              }
+              side="bottom"
             >
-              {includeArchive ? 'With Archive' : 'Active Only'}
-            </Button>
-          </Tooltip>
+              <Button
+                variant={includeArchive ? 'primary' : 'secondary'}
+                size="xs"
+                onClick={() => setIncludeArchive(!includeArchive)}
+                leftIcon={<Archive size={12} />}
+              >
+                {includeArchive ? 'With Archive' : 'Active Only'}
+              </Button>
+            </Tooltip>
+          )}
 
           {hasActiveFilters && (
             <Button

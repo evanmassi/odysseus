@@ -695,7 +695,8 @@ export class ServiceContainer {
       this.seedDemoHandler = new SeedDemoCommandHandler(
         repositories.configurations,
         repositories.labs,
-        repositories.users
+        repositories.users,
+        this.repositoryFactory.getAuditRepository()
       );
     }
     return this.seedDemoHandler;

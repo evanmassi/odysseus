@@ -12,6 +12,7 @@ import { LabController } from '@presentation/controllers/LabController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
 import { AuthController } from '@presentation/controllers/AuthController';
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
+import { AuditController } from '@presentation/controllers/AuditController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { validateBody, validateParams } from '@middleware/Validation';
 import { updateSecurityConfigSchema, UpdateDemoLimitsSchema } from '@odysseus/shared-schemas';
@@ -22,6 +23,7 @@ export class SystemAdminRouteModule implements RouteModule {
     private readonly inviteCodeController: InviteCodeController,
     private readonly authController: AuthController,
     private readonly configurationController: ConfigurationController,
+    private readonly auditController: AuditController,
     private readonly authMiddleware: AuthMiddleware
   ) {}
 
@@ -131,6 +133,13 @@ export class SystemAdminRouteModule implements RouteModule {
       validateParams(z.object({ labId: z.string() })),
       validateBody(UpdateDemoLimitsSchema),
       this.labController.updateDemoLimits.bind(this.labController)
+    );
+
+    // LAB AUDIT LOG
+
+    router.get('/labs/:labId/audit',
+      validateParams(z.object({ labId: z.string() })),
+      this.auditController.getLabAuditLog.bind(this.auditController)
     );
 
     // CROSS-LAB USER MANAGEMENT
