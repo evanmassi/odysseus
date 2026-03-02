@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 
 import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
-import type { UserDisplayInfo } from '@odysseus/shared-schemas';
+import type { DemoLimits, UserDisplayInfo } from '@odysseus/shared-schemas';
 
 interface UserInfo {
   initials: string;
@@ -12,6 +12,8 @@ interface StorageManagerContextValue {
   // Data
   users: UserDisplayInfo[];
   currentUser: { id: string; role?: string } | null;
+  isDemo: boolean;
+  demoLimits: DemoLimits | undefined;
 
   // Business logic functions
   getUserInfo: (userId: string) => UserInfo | null;
@@ -24,6 +26,7 @@ interface StorageManagerContextValue {
     parentRack?: RackConfiguration
   ) => boolean;
   canManageStorage: boolean;
+  isResourceLocked: (resource: TankConfiguration | RackConfiguration | BoxConfiguration) => boolean;
 
   // Tank handlers
   onEditTank: (tank: TankConfiguration) => void;

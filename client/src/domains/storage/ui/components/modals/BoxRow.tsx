@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
-import { Edit3, Tag, Trash2 } from 'lucide-react';
+import { Edit3, Lock, Tag, Trash2 } from 'lucide-react';
 
-import { OverflowMenu, type OverflowMenuItem } from '@shared/ui';
+import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignedUserBadge } from './AssignedUserBadge';
@@ -28,6 +28,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
     isOwnedByCurrentUser,
     canEditResource,
     canManageStorage,
+    isResourceLocked,
     onAssignBox,
     onEditBoxLabel,
     onEditBox,
@@ -38,6 +39,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
   const effectiveOwnerId =
     box.assignedUserId === null ? undefined : (box.assignedUserId ?? rack.assignedUserId);
   const isBoxOwnedByUser = isOwnedByCurrentUser(box, rack);
+  const locked = isResourceLocked(box);
 
   // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(box, rack);
@@ -47,11 +49,10 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
 
   // Build overflow menu items for admin
   const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
-    if (!canManageStorage) return [];
+    if (!canManageStorage || locked) return [];
 
     const items: OverflowMenuItem[] = [];
 
-    // Custom label - only if user can edit this resource
     if (canEditResource(box, rack)) {
       items.push({
         icon: Tag,
@@ -78,6 +79,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
     return items;
   }, [
     canManageStorage,
+    locked,
     canEditResource,
     canDeleteBox,
     box,
@@ -118,7 +120,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
         </button>
 
         {/* Admin: Assignment dropdown + Overflow menu */}
-        {canManageStorage && (
+        {canManageStorage && !locked && (
           <div className="flex items-center gap-1 flex-shrink-0">
             {(currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin') && (
               <AssignmentDropdown
@@ -138,6 +140,13 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
                 aria-label={`Actions for box ${box.name}`}
               />
             )}
+          </div>
+        )}
+        {locked && (
+          <div className="flex items-center px-1.5">
+            <Tooltip content="Protected — part of demo setup" side="left">
+              <Lock size={12} className="text-muted-foreground" />
+            </Tooltip>
           </div>
         )}
 

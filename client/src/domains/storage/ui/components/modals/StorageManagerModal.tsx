@@ -26,7 +26,7 @@ import {
 import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
 import { useResourcePermissions } from '@domains/storage/hooks/useResourcePermissions';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
-import { Button, Tabs, Tab } from '@shared/ui';
+import { AlertBanner, Button, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils/notifications';
@@ -121,7 +121,14 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   const [viewMode, setViewMode] = useState<'tree' | 'byUser'>('tree');
 
   const { getUserInfo, isOwnedByCurrentUser } = useResourceOwnership(displayUsers, currentUser?.id);
-  const { canEditResource, canManageStorage } = useResourcePermissions(currentUser);
+  const isDemo = currentUser?.isDemo ?? false;
+  const { canEditResource, canManageStorage, isResourceLocked } = useResourcePermissions(
+    currentUser,
+    isDemo
+  );
+  const demoLimits = currentLab?.demoLimits;
+  const nonSeededTankCount = currentLab?.equipment.tanks.filter(t => !t.isSeeded).length ?? 0;
+  const tankLimitReached = isDemo && demoLimits && nonSeededTankCount >= demoLimits.maxTanks;
 
   // Modal state: separate data from visibility for exit animations
   // Data persists during close animation, isOpen controls visibility
@@ -531,10 +538,13 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     () => ({
       users: dropdownUsers,
       currentUser,
+      isDemo,
+      demoLimits,
       getUserInfo,
       isOwnedByCurrentUser,
       canEditResource,
       canManageStorage,
+      isResourceLocked,
       onEditTank,
       onDeleteTank: handleDeleteTank,
       onAddRack: handleCreateRack,
@@ -551,10 +561,13 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     [
       dropdownUsers,
       currentUser,
+      isDemo,
+      demoLimits,
       getUserInfo,
       isOwnedByCurrentUser,
       canEditResource,
       canManageStorage,
+      isResourceLocked,
       onEditTank,
       handleDeleteTank,
       handleCreateRack,
@@ -625,8 +638,19 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       >
         {viewMode === 'tree' ? (
           <div className="space-y-2">
+            {isDemo && (
+              <AlertBanner variant="demo" spacing="none">
+                Seeded infrastructure is locked. You can add your own resources within the allowed
+                limits.
+              </AlertBanner>
+            )}
             {canManageStorage && (
-              <div className="flex justify-end">
+              <div className="flex items-center justify-end gap-2">
+                {isDemo && demoLimits && (
+                  <span className="text-xs text-muted-foreground">
+                    {nonSeededTankCount}/{demoLimits.maxTanks} tanks
+                  </span>
+                )}
                 <Button
                   variant="primary"
                   size="sm"
@@ -634,6 +658,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
                   isLoading={addTankMutation.isPending}
                   loadingText="Adding..."
                   leftIcon={<Plus size={16} />}
+                  disabled={!!tankLimitReached}
                 >
                   Add Tank
                 </Button>

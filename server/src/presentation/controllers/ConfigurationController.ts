@@ -50,6 +50,7 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { ConfigurationDto } from '@application/dto/ConfigurationDto';
 import { BaseController } from '@presentation/controllers/BaseController';
+import type { LabRepository } from '@domain/repositories/LabRepository';
 
 /** Response shape for configuration import endpoint */
 interface ImportConfigurationResponse {
@@ -114,7 +115,8 @@ export class ConfigurationController extends BaseController {
     private bulkReassignHandler: BulkReassignResourcesCommandHandler,
     private seedDemoHandler: SeedDemoCommandHandler,
     private unseedDemoHandler: UnseedDemoCommandHandler,
-    private initializeConfigHandler: InitializeConfigurationCommandHandler
+    private initializeConfigHandler: InitializeConfigurationCommandHandler,
+    private labRepository: LabRepository
   ) {
     super();
   }
@@ -148,6 +150,13 @@ export class ConfigurationController extends BaseController {
 
       // Use DTO to transform domain entity to API response format
       const configurationResponse = ConfigurationDto.toResponse(configuration);
+
+      if (user.isDemo) {
+        const lab = await this.labRepository.findById(user.labId);
+        if (lab?.demoLimits) {
+          configurationResponse.configuration.currentLab.demoLimits = lab.demoLimits;
+        }
+      }
 
       res.json({
         success: true,

@@ -1032,7 +1032,8 @@ export class ServiceContainer {
         this.getBulkReassignHandler(),
         this.getSeedDemoHandler(),
         this.getUnseedDemoHandler(),
-        this.getInitializeConfigHandler()
+        this.getInitializeConfigHandler(),
+        this.repositoryFactory.getLabRepository()
       );
     }
     return this.configurationController;

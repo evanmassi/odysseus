@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
+import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
 
 interface UseResourcePermissionsResult {
   canEditResource: (
@@ -8,20 +8,26 @@ interface UseResourcePermissionsResult {
     parentRack?: RackConfiguration
   ) => boolean;
   canManageStorage: boolean;
+  isResourceLocked: (resource: TankConfiguration | RackConfiguration | BoxConfiguration) => boolean;
 }
 
-/**
- * Hook for resource permission checks
- * Encapsulates permission logic: admins can do anything, owners can edit their resources
- * Accepts any user object with id and role properties (duck typing)
- */
 export function useResourcePermissions(
-  currentUser: { id: string; role?: string } | null | undefined
+  currentUser: { id: string; role?: string } | null | undefined,
+  isDemo = false
 ): UseResourcePermissionsResult {
+  const isResourceLocked = useMemo(
+    () =>
+      (resource: TankConfiguration | RackConfiguration | BoxConfiguration): boolean =>
+        isDemo && resource.isSeeded === true,
+    [isDemo]
+  );
+
   const canEditResource = useMemo(
     () =>
       (resource: RackConfiguration | BoxConfiguration, parentRack?: RackConfiguration): boolean => {
         if (!currentUser) return false;
+
+        if (isDemo && resource.isSeeded) return false;
 
         // Admins can edit anything
         if (currentUser.role === 'lab_admin' || currentUser.role === 'system_admin') return true;
@@ -43,7 +49,7 @@ export function useResourcePermissions(
 
         return false;
       },
-    [currentUser]
+    [currentUser, isDemo]
   );
 
   // Only admins can manage storage structure (add/edit/delete tanks, racks, boxes)
@@ -55,5 +61,6 @@ export function useResourcePermissions(
   return {
     canEditResource,
     canManageStorage,
+    isResourceLocked,
   };
 }

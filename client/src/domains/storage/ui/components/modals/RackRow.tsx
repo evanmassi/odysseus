@@ -2,9 +2,9 @@ import { useMemo } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Edit3, Plus, Tag, Trash2 } from 'lucide-react';
+import { ChevronDown, Edit3, Lock, Plus, Tag, Trash2 } from 'lucide-react';
 
-import { Button, NumberInput, Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
+import { Button, NumberInput, OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 
 import { AssignedUserBadge } from './AssignedUserBadge';
@@ -41,26 +41,30 @@ export function RackRow({
     isOwnedByCurrentUser,
     canEditResource,
     canManageStorage,
+    isResourceLocked,
+    isDemo,
+    demoLimits,
     onAssignRack,
     onEditRackLabel,
     onEditRack,
     onDeleteRack,
     onAddBox,
   } = useStorageManagerContext();
-
   const rackKey = `${tankId}-rack-${rack.id}`;
   const isRackOwnedByUser = isOwnedByCurrentUser(rack);
+  const locked = isResourceLocked(rack);
+  const nonSeededBoxCount = rack.boxes.filter(b => !b.isSeeded).length;
+  const boxLimitReached = isDemo && demoLimits && nonSeededBoxCount >= demoLimits.maxBoxesPerRack;
 
   // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(rack);
 
   // Build overflow menu items for admin
   const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
-    if (!canManageStorage) return [];
+    if (!canManageStorage || locked) return [];
 
     const items: OverflowMenuItem[] = [];
 
-    // Custom label - only if user can edit this resource (admin owner or admin for unassigned)
     if (canEditResource(rack)) {
       items.push({
         icon: Tag,
@@ -87,6 +91,7 @@ export function RackRow({
     return items;
   }, [
     canManageStorage,
+    locked,
     canEditResource,
     canDeleteRack,
     rack,
@@ -134,7 +139,7 @@ export function RackRow({
           </button>
 
           {/* Admin: Assignment dropdown + Overflow menu */}
-          {canManageStorage && (
+          {canManageStorage && !locked && (
             <div className="flex items-center gap-1 flex-shrink-0">
               {(currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin') && (
                 <AssignmentDropdown
@@ -152,6 +157,13 @@ export function RackRow({
                   aria-label={`Actions for rack ${rack.name}`}
                 />
               )}
+            </div>
+          )}
+          {locked && (
+            <div className="flex items-center px-1.5">
+              <Tooltip content="Protected — part of demo setup" side="left">
+                <Lock size={12} className="text-muted-foreground" />
+              </Tooltip>
             </div>
           )}
 
@@ -174,9 +186,13 @@ export function RackRow({
               <BoxRow key={box.id} box={box} rack={rack} tankId={tankId} rackId={rack.id} />
             ))}
 
-            {/* Add Box Button with Bulk Input (Admin Only) */}
             {canManageStorage && (
               <div className="storage-nav-add-controls storage-nav-item--box">
+                {isDemo && demoLimits && (
+                  <span className="text-xs text-muted-foreground mr-1">
+                    {nonSeededBoxCount}/{demoLimits.maxBoxesPerRack}
+                  </span>
+                )}
                 <Tooltip content="Number of boxes to add" side="bottom">
                   <NumberInput
                     value={boxCountToAdd}
@@ -192,6 +208,7 @@ export function RackRow({
                   size="xs"
                   onClick={() => onAddBox(tankId, rack.id)}
                   leftIcon={<Plus size={12} />}
+                  disabled={!!boxLimitReached}
                 >
                   Add {boxCountToAdd > 1 ? 'Boxes' : 'Box'}
                 </Button>

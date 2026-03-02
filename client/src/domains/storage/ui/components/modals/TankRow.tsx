@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import * as Collapsible from '@radix-ui/react-collapsible';
-import { ChevronDown, Edit3, Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, Edit3, Lock, Plus, Trash2 } from 'lucide-react';
 
 import { Button, NumberInput, Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
@@ -37,10 +37,24 @@ export function TankRow({
   collapsedRacks,
   canDeleteTank,
 }: TankRowProps) {
-  const { onEditTank, onDeleteTank, onAddRack, canManageStorage } = useStorageManagerContext();
+  const {
+    onEditTank,
+    onDeleteTank,
+    onAddRack,
+    canManageStorage,
+    isResourceLocked,
+    isDemo,
+    demoLimits,
+  } = useStorageManagerContext();
+
+  const locked = isResourceLocked(tank);
+  const nonSeededRackCount = tank.racks.filter(r => !r.isSeeded).length;
+  const rackLimitReached = isDemo && demoLimits && nonSeededRackCount >= demoLimits.maxRacksPerTank;
 
   // Build overflow menu items
   const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
+    if (locked) return [];
+
     const items: OverflowMenuItem[] = [
       {
         icon: Edit3,
@@ -59,7 +73,7 @@ export function TankRow({
     }
 
     return items;
-  }, [tank, canDeleteTank, onEditTank, onDeleteTank]);
+  }, [tank, locked, canDeleteTank, onEditTank, onDeleteTank]);
 
   // Divider before Delete Tank
   const dividerBefore = canDeleteTank ? ['Delete Tank'] : [];
@@ -94,7 +108,7 @@ export function TankRow({
               </span>
             </span>
           </button>
-          {canManageStorage && (
+          {canManageStorage && !locked && overflowMenuItems.length > 0 && (
             <div className="flex items-center gap-1 flex-shrink-0">
               <OverflowMenu
                 items={overflowMenuItems}
@@ -102,6 +116,13 @@ export function TankRow({
                 size="sm"
                 aria-label={`Actions for tank ${tank.name}`}
               />
+            </div>
+          )}
+          {locked && (
+            <div className="flex items-center px-1.5">
+              <Tooltip content="Protected — part of demo setup" side="left">
+                <Lock size={14} className="text-muted-foreground" />
+              </Tooltip>
             </div>
           )}
         </div>
@@ -125,9 +146,13 @@ export function TankRow({
               );
             })}
 
-            {/* Add Rack Button with Bulk Input (Admin Only) */}
             {canManageStorage && (
               <div className="storage-nav-add-controls storage-nav-item--rack">
+                {isDemo && demoLimits && (
+                  <span className="text-xs text-muted-foreground mr-1">
+                    {nonSeededRackCount}/{demoLimits.maxRacksPerTank}
+                  </span>
+                )}
                 <Tooltip content="Number of racks to add" side="bottom">
                   <NumberInput
                     value={rackCountToAdd}
@@ -143,6 +168,7 @@ export function TankRow({
                   size="xs"
                   onClick={() => onAddRack(tank.id)}
                   leftIcon={<Plus size={12} />}
+                  disabled={!!rackLimitReached}
                 >
                   Add {rackCountToAdd > 1 ? 'Racks' : 'Rack'}
                 </Button>

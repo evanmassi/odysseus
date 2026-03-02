@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DemoLimitsSchema } from '../demo/demoSchemas';
 import { positionDisplayConfigSchema, POSITION_DISPLAY_PRESETS } from './positionSchemas';
 
 /**
@@ -100,6 +101,7 @@ export const LabConfigurationSchema = z.object({
     enableRealTimeSync: z.boolean(),
     defaultPositionDisplay: positionDisplayConfigSchema.optional(),
   }).optional(),
+  demoLimits: DemoLimitsSchema.optional(),
 }).strict();
 
 /**

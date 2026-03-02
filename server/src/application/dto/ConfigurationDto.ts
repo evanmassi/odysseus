@@ -127,6 +127,7 @@ export class ConfigurationDto {
       createdAt: updatedAt,
       updatedAt: updatedAt,
       defaultGridConfig,
+      ...(tankData.isSeeded && { isSeeded: true }),
       racks: tankData.racks.map(rack => this.transformRack(rack))
     };
   }
@@ -142,6 +143,7 @@ export class ConfigurationDto {
       isActive: rackData.isActive,
       assignedUserId: rackData.assignedUserId,
       customLabel: rackData.customLabel,
+      ...(rackData.isSeeded && { isSeeded: true }),
       boxes: rackData.boxes.map((box, index) => this.transformBox(box, index))
     };
   }
@@ -169,7 +171,8 @@ export class ConfigurationDto {
       },
       position: index + 1,
       assignedUserId: boxData.assignedUserId,
-      customLabel: boxData.customLabel
+      customLabel: boxData.customLabel,
+      ...(boxData.isSeeded && { isSeeded: true })
     };
   }
 
