@@ -1,6 +1,7 @@
 import { useState } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
+import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
 import {
   ArrowLeft,
   Box as BoxIcon,
@@ -10,15 +11,18 @@ import {
   Check,
   X,
   Rows3,
+  Save,
   ShieldUser,
+  Sprout,
   TestTube,
   UserRoundCheck,
   UserRoundX,
   UsersRound,
   RotateCcw,
+  TreeDeciduous,
 } from 'lucide-react';
 
-import { Button, Chip, Table, Tooltip } from '@shared/ui';
+import { Button, Chip, NumberInput, Table, Tooltip } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges/LabBadge';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
@@ -32,9 +36,13 @@ import {
   useActivateUserMutation,
   useDeactivateUserMutation,
   useResetDemoDataMutation,
+  useSeedDemoMutation,
+  useUnseedDemoMutation,
+  useDemoLimitsQuery,
+  useUpdateDemoLimitsMutation,
 } from '../../hooks/useSystemAdminQueries';
 
-import type { LabDetailsUser } from '@odysseus/shared-schemas';
+import type { DemoLimits, LabDetailsUser } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
 interface LabDetailViewProps {
@@ -48,11 +56,18 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
   const activateLabMutation = useActivateLabMutation();
   const deactivateLabMutation = useDeactivateLabMutation();
   const resetDemoMutation = useResetDemoDataMutation();
+  const seedDemoMutation = useSeedDemoMutation();
+  const unseedDemoMutation = useUnseedDemoMutation();
+  const { data: demoLimits } = useDemoLimitsQuery(details?.lab.isDemo ? labId : null);
+  const updateDemoLimitsMutation = useUpdateDemoLimitsMutation();
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState('');
   const [deactivateTarget, setDeactivateTarget] = useState<string | null>(null);
   const [resetDemoConfirm, setResetDemoConfirm] = useState(false);
+  const [seedConfirm, setSeedConfirm] = useState(false);
+  const [unseedConfirm, setUnseedConfirm] = useState(false);
+  const [editedLimits, setEditedLimits] = useState<Partial<DemoLimits> | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
 
   const handleRename = async () => {
@@ -92,6 +107,37 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
       setResetDemoConfirm(false);
     } catch {
       notifications.error('Failed to reset demo data');
+    }
+  };
+
+  const handleSeedDemo = async () => {
+    try {
+      await seedDemoMutation.mutateAsync(labId);
+      notifications.success('Demo infrastructure seeded');
+      setSeedConfirm(false);
+    } catch {
+      notifications.error('Failed to seed demo');
+    }
+  };
+
+  const handleUnseedDemo = async () => {
+    try {
+      await unseedDemoMutation.mutateAsync(labId);
+      notifications.success('Demo infrastructure unseeded');
+      setUnseedConfirm(false);
+    } catch {
+      notifications.error('Failed to unseed demo');
+    }
+  };
+
+  const handleSaveLimits = async () => {
+    if (!editedLimits) return;
+    try {
+      await updateDemoLimitsMutation.mutateAsync({ labId, limits: editedLimits });
+      notifications.success('Demo limits updated');
+      setEditedLimits(null);
+    } catch {
+      notifications.error('Failed to update demo limits');
     }
   };
 
@@ -177,14 +223,37 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
           </div>
           <div className="flex items-center gap-2">
             {lab.isDemo && (
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setResetDemoConfirm(true)}
-                leftIcon={<RotateCcw size={14} />}
-              >
-                Reset Demo
-              </Button>
+              <>
+                {details.isSeeded ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setUnseedConfirm(true)}
+                    leftIcon={<TreeDeciduous size={14} />}
+                    isLoading={unseedDemoMutation.isPending}
+                  >
+                    Unseed
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setSeedConfirm(true)}
+                    leftIcon={<Sprout size={14} />}
+                    isLoading={seedDemoMutation.isPending}
+                  >
+                    Seed Demo
+                  </Button>
+                )}
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setResetDemoConfirm(true)}
+                  leftIcon={<RotateCcw size={14} />}
+                >
+                  Reset Demo
+                </Button>
+              </>
             )}
             {lab.isActive ? (
               <Button variant="danger" size="sm" onClick={() => setDeactivateTarget(labId)}>
@@ -236,6 +305,89 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
           </div>
         </div>
 
+        {/* Demo Configuration */}
+        {lab.isDemo && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-card-foreground">Demo Configuration</h3>
+            <div className="flex items-center gap-2">
+              <Chip color={details.isSeeded ? 'success' : 'default'} size="sm">
+                {details.isSeeded ? 'Seeded' : 'Not Seeded'}
+              </Chip>
+            </div>
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground">Additional tanks</span>
+                <NumberInput
+                  value={
+                    editedLimits?.maxTanks ?? demoLimits?.maxTanks ?? DEMO_LIMITS_DEFAULTS.maxTanks
+                  }
+                  onChange={v =>
+                    setEditedLimits(prev => ({
+                      ...prev,
+                      maxTanks: v,
+                    }))
+                  }
+                  min={0}
+                  max={50}
+                  size="sm"
+                  aria-label="Max additional tanks"
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground">Additional racks per tank</span>
+                <NumberInput
+                  value={
+                    editedLimits?.maxRacksPerTank ??
+                    demoLimits?.maxRacksPerTank ??
+                    DEMO_LIMITS_DEFAULTS.maxRacksPerTank
+                  }
+                  onChange={v =>
+                    setEditedLimits(prev => ({
+                      ...prev,
+                      maxRacksPerTank: v,
+                    }))
+                  }
+                  min={0}
+                  max={50}
+                  size="sm"
+                  aria-label="Max racks per tank"
+                />
+              </div>
+              <div className="space-y-1">
+                <span className="text-xs text-muted-foreground">Additional boxes per rack</span>
+                <NumberInput
+                  value={
+                    editedLimits?.maxBoxesPerRack ??
+                    demoLimits?.maxBoxesPerRack ??
+                    DEMO_LIMITS_DEFAULTS.maxBoxesPerRack
+                  }
+                  onChange={v =>
+                    setEditedLimits(prev => ({
+                      ...prev,
+                      maxBoxesPerRack: v,
+                    }))
+                  }
+                  min={0}
+                  max={26}
+                  size="sm"
+                  aria-label="Max boxes per rack"
+                />
+              </div>
+              {editedLimits && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={handleSaveLimits}
+                  isLoading={updateDemoLimitsMutation.isPending}
+                  leftIcon={<Save size={14} />}
+                >
+                  Save Limits
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Users Table */}
         <div>
           <h3 className="text-sm font-semibold text-card-foreground mb-3">Users</h3>
@@ -266,11 +418,34 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
         <ConfirmDialog
           isOpen={resetDemoConfirm}
           title="Reset Demo Data"
-          message="This will delete all demo tubes in this lab. This cannot be undone."
+          message="This will delete all tubes and remove all non-seeded infrastructure, returning to the clean seeded state. This cannot be undone."
           confirmText="Reset"
           variant="danger"
+          isLoading={resetDemoMutation.isPending}
           onConfirm={handleResetDemo}
           onCancel={() => setResetDemoConfirm(false)}
+        />
+
+        <ConfirmDialog
+          isOpen={seedConfirm}
+          title="Seed Demo Infrastructure"
+          message="This will mark all current tanks, racks, and boxes as protected. Demo lab admins will not be able to edit or delete seeded resources."
+          confirmText="Seed"
+          variant="warning"
+          isLoading={seedDemoMutation.isPending}
+          onConfirm={handleSeedDemo}
+          onCancel={() => setSeedConfirm(false)}
+        />
+
+        <ConfirmDialog
+          isOpen={unseedConfirm}
+          title="Unseed Demo Infrastructure"
+          message="This will remove protection from all resources, allowing demo lab admins to modify them. You can re-seed after making changes."
+          confirmText="Unseed"
+          variant="warning"
+          isLoading={unseedDemoMutation.isPending}
+          onConfirm={handleUnseedDemo}
+          onCancel={() => setUnseedConfirm(false)}
         />
       </div>
     </div>
