@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 
-import { NAMING_PATTERNS, sortByName } from '@odysseus/shared-schemas';
+import { sortByName } from '@odysseus/shared-schemas';
 import { Plus, ListTree, UsersRound } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
@@ -49,14 +49,12 @@ import type {
   GridConfiguration,
 } from '@domains/storage';
 
-/** Get next available tank number from existing tanks */
-function getNextTankNumber(existingTanks: TankConfiguration[]): number {
-  const tankNumbers = existingTanks
-    .map(tank => tank.id.replace(NAMING_PATTERNS.TANK.PREFIX, ''))
-    .filter(num => num !== undefined && num !== '')
-    .map(num => parseInt(num!))
-    .filter(num => !isNaN(num));
-  return tankNumbers.length > 0 ? Math.max(...tankNumbers) + 1 : 1;
+function getNextTankName(existingTanks: TankConfiguration[]): string {
+  const existingNames = new Set(existingTanks.map(t => t.name));
+  if (!existingNames.has('New Tank')) return 'New Tank';
+  let n = 2;
+  while (existingNames.has(`New Tank ${n}`)) n++;
+  return `New Tank ${n}`;
 }
 
 interface StorageManagerModalProps {
@@ -106,7 +104,10 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   const assignedUserIds = useMemo(() => extractAssignedUserIds(currentLab), [currentLab]);
   const { data: assignedUsers = [] } = useUserLookupQuery(assignedUserIds);
 
-  const dropdownUsers = useMemo(() => sortByName(activeUsers), [activeUsers]);
+  const dropdownUsers = useMemo(
+    () => sortByName(activeUsers.filter(u => u.hasResearcher)),
+    [activeUsers]
+  );
 
   const displayUsers = useMemo(() => {
     const userMap = new Map(activeUsers.map(u => [u.id, u]));
@@ -355,8 +356,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const handleAddNewTank = () => {
     if (!currentLab) return;
-    const newTankNumber = getNextTankNumber(currentLab.equipment.tanks);
-    const tankName = NAMING_PATTERNS.TANK.DEFAULT_NAME(newTankNumber);
+    const tankName = getNextTankName(currentLab.equipment.tanks);
 
     // Create tank, then add a default rack, then collapse it
     addTankMutation.mutate(

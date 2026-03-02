@@ -381,6 +381,9 @@ export class AssignBoxCommandHandler {
       if (!assignedUser) {
         throw new ValidationError(`User '${command.assignedUserId}' not found`);
       }
+      if (!assignedUser.hasResearcherProfile()) {
+        throw new ValidationError('Cannot assign box to a user without a linked researcher profile');
+      }
     }
 
     const previousUserId = box.assignedUserId;

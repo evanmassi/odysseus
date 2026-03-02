@@ -20,6 +20,7 @@ export const userDisplayInfoSchema = z.object({
   username: z.string(),
   firstName: z.string().optional(),
   lastName: z.string().optional(),
+  hasResearcher: z.boolean().optional(),
 });
 
 export type UserDisplayInfo = z.infer<typeof userDisplayInfoSchema>;

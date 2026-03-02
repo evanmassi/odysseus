@@ -102,6 +102,7 @@ export class UserController extends BaseController {
           username: publicData.username,
           firstName: person?.firstName,
           lastName: person?.lastName,
+          hasResearcher: user.hasResearcherProfile(),
         };
       });
 
@@ -145,6 +146,7 @@ export class UserController extends BaseController {
           username: publicData.username,
           firstName: person?.firstName,
           lastName: person?.lastName,
+          hasResearcher: user.hasResearcherProfile(),
         };
       });
 

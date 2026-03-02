@@ -330,6 +330,9 @@ export class AssignRackCommandHandler {
       if (!assignedUser) {
         throw new ValidationError(`User '${command.assignedUserId}' not found`);
       }
+      if (!assignedUser.hasResearcherProfile()) {
+        throw new ValidationError('Cannot assign rack to a user without a linked researcher profile');
+      }
     }
 
     const previousUserId = rack.assignedUserId;
