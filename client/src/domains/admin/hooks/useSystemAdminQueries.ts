@@ -10,6 +10,9 @@ import type {
   LabDetails,
   InviteCodeData,
   CreateInviteCodeRequest,
+  DemoLimits,
+  SeedDemoResponse,
+  UnseedDemoResponse,
 } from '@odysseus/shared-schemas';
 
 interface SystemOverview {
@@ -163,6 +166,58 @@ export function useCreateLabInviteCodeMutation() {
     mutationFn: ({ labId, ...data }) => labService.createLabInviteCode(labId, data),
     onError: error => {
       logger.error('Failed to generate lab admin code', { error });
+    },
+  });
+}
+
+export function useDemoLimitsQuery(labId: string | null) {
+  return useQuery<DemoLimits>({
+    queryKey: queryKeys.labs.demoLimits(labId ?? ''),
+    queryFn: () => labService.getDemoLimits(labId!),
+    enabled: !!labId,
+    staleTime: 60 * 1000,
+  });
+}
+
+export function useSeedDemoMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<SeedDemoResponse, Error, string>({
+    mutationFn: (labId: string) => labService.seedDemo(labId),
+    onSuccess: (_data, labId) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+    },
+    onError: error => {
+      logger.error('Failed to seed demo lab', { error });
+    },
+  });
+}
+
+export function useUnseedDemoMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<UnseedDemoResponse, Error, string>({
+    mutationFn: (labId: string) => labService.unseedDemo(labId),
+    onSuccess: (_data, labId) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+    },
+    onError: error => {
+      logger.error('Failed to unseed demo lab', { error });
+    },
+  });
+}
+
+export function useUpdateDemoLimitsMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation<DemoLimits, Error, { labId: string; limits: Partial<DemoLimits> }>({
+    mutationFn: ({ labId, limits }) => labService.updateDemoLimits(labId, limits),
+    onSuccess: (_data, { labId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.demoLimits(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+    },
+    onError: error => {
+      logger.error('Failed to update demo limits', { error });
     },
   });
 }

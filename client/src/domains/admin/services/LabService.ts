@@ -12,6 +12,9 @@ import type {
   InviteCodeData,
   CreateInviteCodeRequest,
   LabDetails,
+  DemoLimits,
+  SeedDemoResponse,
+  UnseedDemoResponse,
 } from '@odysseus/shared-schemas';
 
 export class LabService {
@@ -116,6 +119,58 @@ export class LabService {
       await httpClient.post(`/system/labs/${labId}/demo/reset`);
     } catch (error) {
       logger.error('Failed to reset demo data', { labId, error });
+      throw error;
+    }
+  }
+
+  async seedDemo(labId: string): Promise<SeedDemoResponse> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        data: SeedDemoResponse;
+      }>(`/system/labs/${labId}/demo/seed`);
+      return response.data.data;
+    } catch (error) {
+      logger.error('Failed to seed demo lab', { labId, error });
+      throw error;
+    }
+  }
+
+  async unseedDemo(labId: string): Promise<UnseedDemoResponse> {
+    try {
+      const response = await httpClient.post<{
+        success: boolean;
+        data: UnseedDemoResponse;
+      }>(`/system/labs/${labId}/demo/unseed`);
+      return response.data.data;
+    } catch (error) {
+      logger.error('Failed to unseed demo lab', { labId, error });
+      throw error;
+    }
+  }
+
+  async getDemoLimits(labId: string): Promise<DemoLimits> {
+    try {
+      const response = await httpClient.get<{
+        success: boolean;
+        data: { limits: DemoLimits };
+      }>(`/system/labs/${labId}/demo/limits`);
+      return response.data.data.limits;
+    } catch (error) {
+      logger.error('Failed to get demo limits', { labId, error });
+      throw error;
+    }
+  }
+
+  async updateDemoLimits(labId: string, limits: Partial<DemoLimits>): Promise<DemoLimits> {
+    try {
+      const response = await httpClient.put<{
+        success: boolean;
+        data: { limits: DemoLimits };
+      }>(`/system/labs/${labId}/demo/limits`, limits);
+      return response.data.data.limits;
+    } catch (error) {
+      logger.error('Failed to update demo limits', { labId, error });
       throw error;
     }
   }
