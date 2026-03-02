@@ -1153,7 +1153,9 @@ export class Configuration {
   }
 
   hasAnySeededResources(): boolean {
-    return this._equipment.tanks.some(t => t.isSeeded);
+    return this._equipment.tanks.some(t =>
+      t.isSeeded || t.racks.some(r => r.isSeeded || r.boxes.some(b => b.isSeeded))
+    );
   }
 
   private touch(): void {

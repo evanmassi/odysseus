@@ -4,39 +4,7 @@ import { NAMING_PATTERNS, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import type {
   ConfigurationResponse,
   SystemConfiguration,
-  LabConfiguration
 } from '@odysseus/shared-schemas';
-
-/** Return type for fromRequest transformation (LabConfiguration with transformed equipment) */
-interface TransformedLabConfiguration extends Omit<LabConfiguration, 'equipment'> {
-  equipment: {
-    tanks: Array<{
-      id: string;
-      name: string;
-      location?: string;
-      isActive: boolean;
-      maxRacks: number;
-      racks: Array<{
-        id: number;
-        name: string;
-        capacity: number;
-        maxBoxes: number;
-        isActive: boolean;
-        assignedUserId?: string;
-        customLabel?: string;
-        boxes: Array<{
-          name: string;
-          gridConfig: { rows: number; cols: number };
-          maxPositions: number;
-          isActive: boolean;
-          // Tri-state: string = assigned, null = explicitly common, undefined = inherit from rack
-          assignedUserId?: string | null;
-          customLabel?: string;
-        }>;
-      }>;
-    }>;
-  };
-}
 
 /**
  * ConfigurationDto - Application Layer DTO
@@ -173,48 +141,6 @@ export class ConfigurationDto {
       assignedUserId: boxData.assignedUserId,
       customLabel: boxData.customLabel,
       ...(boxData.isSeeded && { isSeeded: true })
-    };
-  }
-
-  /**
-   * Transform incoming save request from client format to domain format
-   *
-   * KEY TRANSFORMATION (SAVE direction):
-   * Client sends API schema (with extra fields like location, createdAt, etc.)
-   * Server needs only domain fields that Configuration.fromData() expects
-   */
-  static fromRequest(currentLab: LabConfiguration): TransformedLabConfiguration {
-    return {
-      ...currentLab,
-      equipment: {
-        tanks: currentLab.equipment.tanks.map(tank => ({
-          id: tank.id,
-          name: tank.name,
-          location: tank.location,
-          isActive: tank.isActive,
-          maxRacks: tank.racks.length,
-          racks: tank.racks.map(rack => ({
-            id: typeof rack.id === 'string' ? parseInt(rack.id) : rack.id,
-            name: rack.name,
-            capacity: rack.capacity,
-            maxBoxes: rack.boxes.length,
-            isActive: rack.isActive,
-            assignedUserId: rack.assignedUserId,
-            customLabel: rack.customLabel,
-            boxes: rack.boxes.map(box => ({
-              name: box.id,  // Client id:"A" → Server name:"A"
-              gridConfig: {
-                rows: box.gridConfig.rows,
-                cols: box.gridConfig.cols
-              },
-              maxPositions: box.gridConfig.rows * box.gridConfig.cols,
-              isActive: true,
-              assignedUserId: box.assignedUserId,
-              customLabel: box.customLabel
-            }))
-          }))
-        }))
-      }
     };
   }
 }

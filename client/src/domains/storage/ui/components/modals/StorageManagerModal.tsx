@@ -127,8 +127,13 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     isDemo
   );
   const demoLimits = currentLab?.demoLimits;
+  const hasSeededResources =
+    currentLab?.equipment.tanks.some(
+      t => t.isSeeded ?? t.racks.some(r => r.isSeeded ?? r.boxes.some(b => b.isSeeded))
+    ) ?? false;
+  const demoLimitsActive = isDemo && demoLimits && hasSeededResources;
   const nonSeededTankCount = currentLab?.equipment.tanks.filter(t => !t.isSeeded).length ?? 0;
-  const tankLimitReached = isDemo && demoLimits && nonSeededTankCount >= demoLimits.maxTanks;
+  const tankLimitReached = demoLimitsActive && nonSeededTankCount >= demoLimits.maxTanks;
 
   // Modal state: separate data from visibility for exit animations
   // Data persists during close animation, isOpen controls visibility
@@ -540,6 +545,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       currentUser,
       isDemo,
       demoLimits,
+      hasSeededResources,
       getUserInfo,
       isOwnedByCurrentUser,
       canEditResource,
@@ -563,6 +569,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       currentUser,
       isDemo,
       demoLimits,
+      hasSeededResources,
       getUserInfo,
       isOwnedByCurrentUser,
       canEditResource,
@@ -638,15 +645,14 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
       >
         {viewMode === 'tree' ? (
           <div className="space-y-2">
-            {isDemo && (
+            {isDemo && hasSeededResources && (
               <AlertBanner variant="demo" spacing="none">
-                Seeded infrastructure is locked. You can add your own resources within the allowed
-                limits.
+                Demo mode — locked resources cannot be edited or deleted.
               </AlertBanner>
             )}
             {canManageStorage && (
               <div className="flex items-center justify-end gap-2">
-                {isDemo && demoLimits && (
+                {demoLimitsActive && (
                   <span className="text-xs text-muted-foreground">
                     {nonSeededTankCount}/{demoLimits.maxTanks} tanks
                   </span>

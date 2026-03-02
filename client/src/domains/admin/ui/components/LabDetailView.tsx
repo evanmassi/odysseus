@@ -2,9 +2,11 @@ import { useState } from 'react';
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
+import * as Collapsible from '@radix-ui/react-collapsible';
 import {
   ArrowLeft,
   Box as BoxIcon,
+  ChevronDown,
   Dna,
   Icon,
   Pencil,
@@ -68,7 +70,10 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
   const [seedConfirm, setSeedConfirm] = useState(false);
   const [unseedConfirm, setUnseedConfirm] = useState(false);
   const [editedLimits, setEditedLimits] = useState<Partial<DemoLimits> | null>(null);
-  const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
+  const [userSortConfig, setUserSortConfig] = useState<SortConfig | undefined>(undefined);
+  const [researcherSortConfig, setResearcherSortConfig] = useState<SortConfig | undefined>(
+    undefined
+  );
 
   const handleRename = async () => {
     if (!newName.trim() || !details) return;
@@ -159,13 +164,37 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
   const { lab, users: unsortedUsers, researcherCount, tubeCount, storageSummary } = details;
 
   const users = [...unsortedUsers].sort((a, b) => {
-    if (!sortConfig) return 0;
-    const { columnId, direction } = sortConfig;
+    if (!userSortConfig) return 0;
+    const { columnId, direction } = userSortConfig;
     const aVal = String(a[columnId as keyof LabDetailsUser] ?? '');
     const bVal = String(b[columnId as keyof LabDetailsUser] ?? '');
     const cmp = aVal.localeCompare(bVal);
     return direction === 'asc' ? cmp : -cmp;
   });
+
+  const sortedResearchers = unsortedUsers
+    .filter(u => u.researcher !== null)
+    .sort((a, b) => {
+      if (!researcherSortConfig) return 0;
+      const { columnId, direction } = researcherSortConfig;
+      let aVal: string;
+      let bVal: string;
+      if (columnId === 'researcherName') {
+        aVal = a.researcher?.name ?? '';
+        bVal = b.researcher?.name ?? '';
+      } else if (columnId === 'tubeCount') {
+        const diff = (a.researcher?.tubeCount ?? 0) - (b.researcher?.tubeCount ?? 0);
+        return direction === 'asc' ? diff : -diff;
+      } else if (columnId === 'lastActivity') {
+        aVal = a.lastActivity;
+        bVal = b.lastActivity;
+      } else {
+        aVal = String(a[columnId as keyof LabDetailsUser] ?? '');
+        bVal = String(b[columnId as keyof LabDetailsUser] ?? '');
+      }
+      const cmp = aVal.localeCompare(bVal);
+      return direction === 'asc' ? cmp : -cmp;
+    });
 
   return (
     <div className="h-full overflow-y-auto">
@@ -222,39 +251,6 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
             </Chip>
           </div>
           <div className="flex items-center gap-2">
-            {lab.isDemo && (
-              <>
-                {details.isSeeded ? (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setUnseedConfirm(true)}
-                    leftIcon={<TreeDeciduous size={14} />}
-                    isLoading={unseedDemoMutation.isPending}
-                  >
-                    Unseed
-                  </Button>
-                ) : (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => setSeedConfirm(true)}
-                    leftIcon={<Sprout size={14} />}
-                    isLoading={seedDemoMutation.isPending}
-                  >
-                    Seed Demo
-                  </Button>
-                )}
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setResetDemoConfirm(true)}
-                  leftIcon={<RotateCcw size={14} />}
-                >
-                  Reset Demo
-                </Button>
-              </>
-            )}
             {lab.isActive ? (
               <Button variant="danger" size="sm" onClick={() => setDeactivateTarget(labId)}>
                 Deactivate
@@ -307,102 +303,174 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
 
         {/* Demo Configuration */}
         {lab.isDemo && (
-          <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-card-foreground">Demo Configuration</h3>
-            <div className="flex items-center gap-2">
+          <Collapsible.Root
+            defaultOpen={false}
+            className="rounded-lg border border-border bg-card max-w-md"
+          >
+            <Collapsible.Trigger className="flex w-full items-center justify-between p-3 cursor-pointer group">
+              <div className="flex items-center gap-2">
+                <ChevronDown
+                  size={14}
+                  className="text-secondary-foreground transition-transform duration-200 group-data-[state=closed]:-rotate-90"
+                />
+                <h3 className="text-sm font-semibold text-card-foreground">Demo Configuration</h3>
+              </div>
               <Chip color={details.isSeeded ? 'success' : 'default'} size="sm">
                 {details.isSeeded ? 'Seeded' : 'Not Seeded'}
               </Chip>
-            </div>
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">Additional tanks</span>
-                <NumberInput
-                  value={
-                    editedLimits?.maxTanks ?? demoLimits?.maxTanks ?? DEMO_LIMITS_DEFAULTS.maxTanks
-                  }
-                  onChange={v =>
-                    setEditedLimits(prev => ({
-                      ...prev,
-                      maxTanks: v,
-                    }))
-                  }
-                  min={0}
-                  max={50}
-                  size="sm"
-                  aria-label="Max additional tanks"
-                />
+            </Collapsible.Trigger>
+            <Collapsible.Content className="overflow-hidden data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
+              <div className="px-3 pb-3 space-y-3">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
+                    <div>
+                      <h5 className="text-sm font-medium text-card-foreground">Additional Tanks</h5>
+                      <p className="text-xs text-secondary-foreground">
+                        Max tanks beyond seeded baseline
+                      </p>
+                    </div>
+                    <NumberInput
+                      value={
+                        editedLimits?.maxTanks ??
+                        demoLimits?.maxTanks ??
+                        DEMO_LIMITS_DEFAULTS.maxTanks
+                      }
+                      onChange={v => setEditedLimits(prev => ({ ...prev, maxTanks: v }))}
+                      min={0}
+                      max={50}
+                      size="sm"
+                      aria-label="Max additional tanks"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
+                    <div>
+                      <h5 className="text-sm font-medium text-card-foreground">
+                        Additional Racks per Tank
+                      </h5>
+                      <p className="text-xs text-secondary-foreground">
+                        Max racks beyond seeded baseline
+                      </p>
+                    </div>
+                    <NumberInput
+                      value={
+                        editedLimits?.maxRacksPerTank ??
+                        demoLimits?.maxRacksPerTank ??
+                        DEMO_LIMITS_DEFAULTS.maxRacksPerTank
+                      }
+                      onChange={v => setEditedLimits(prev => ({ ...prev, maxRacksPerTank: v }))}
+                      min={0}
+                      max={50}
+                      size="sm"
+                      aria-label="Max racks per tank"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
+                    <div>
+                      <h5 className="text-sm font-medium text-card-foreground">
+                        Additional Boxes per Rack
+                      </h5>
+                      <p className="text-xs text-secondary-foreground">
+                        Max boxes beyond seeded baseline
+                      </p>
+                    </div>
+                    <NumberInput
+                      value={
+                        editedLimits?.maxBoxesPerRack ??
+                        demoLimits?.maxBoxesPerRack ??
+                        DEMO_LIMITS_DEFAULTS.maxBoxesPerRack
+                      }
+                      onChange={v => setEditedLimits(prev => ({ ...prev, maxBoxesPerRack: v }))}
+                      min={0}
+                      max={26}
+                      size="sm"
+                      aria-label="Max boxes per rack"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2 pt-1">
+                  {editedLimits && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={handleSaveLimits}
+                      isLoading={updateDemoLimitsMutation.isPending}
+                      leftIcon={<Save size={14} />}
+                    >
+                      Save Limits
+                    </Button>
+                  )}
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setResetDemoConfirm(true)}
+                    leftIcon={<RotateCcw size={14} />}
+                  >
+                    Reset Demo
+                  </Button>
+                  {details.isSeeded ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setUnseedConfirm(true)}
+                      leftIcon={<TreeDeciduous size={14} />}
+                      isLoading={unseedDemoMutation.isPending}
+                    >
+                      Unseed
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => setSeedConfirm(true)}
+                      leftIcon={<Sprout size={14} />}
+                      isLoading={seedDemoMutation.isPending}
+                    >
+                      Seed Demo
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">Additional racks per tank</span>
-                <NumberInput
-                  value={
-                    editedLimits?.maxRacksPerTank ??
-                    demoLimits?.maxRacksPerTank ??
-                    DEMO_LIMITS_DEFAULTS.maxRacksPerTank
-                  }
-                  onChange={v =>
-                    setEditedLimits(prev => ({
-                      ...prev,
-                      maxRacksPerTank: v,
-                    }))
-                  }
-                  min={0}
-                  max={50}
-                  size="sm"
-                  aria-label="Max racks per tank"
-                />
-              </div>
-              <div className="space-y-1">
-                <span className="text-xs text-muted-foreground">Additional boxes per rack</span>
-                <NumberInput
-                  value={
-                    editedLimits?.maxBoxesPerRack ??
-                    demoLimits?.maxBoxesPerRack ??
-                    DEMO_LIMITS_DEFAULTS.maxBoxesPerRack
-                  }
-                  onChange={v =>
-                    setEditedLimits(prev => ({
-                      ...prev,
-                      maxBoxesPerRack: v,
-                    }))
-                  }
-                  min={0}
-                  max={26}
-                  size="sm"
-                  aria-label="Max boxes per rack"
-                />
-              </div>
-              {editedLimits && (
-                <Button
-                  variant="primary"
-                  size="sm"
-                  onClick={handleSaveLimits}
-                  isLoading={updateDemoLimitsMutation.isPending}
-                  leftIcon={<Save size={14} />}
-                >
-                  Save Limits
-                </Button>
-              )}
-            </div>
-          </div>
+            </Collapsible.Content>
+          </Collapsible.Root>
         )}
 
-        {/* Users Table */}
-        <div>
-          <h3 className="text-sm font-semibold text-card-foreground mb-3">Users</h3>
-          <Table
-            columns={getUserColumns(labId)}
-            data={users}
-            size="sm"
-            rounded="lg"
-            sortable
-            sortConfig={sortConfig}
-            onSort={setSortConfig}
-            hoverable={false}
-            emptyMessage="No users in this lab"
-            aria-label="Lab users"
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+          <div className="lg:col-span-3">
+            <div className="flex items-center gap-2 mb-3">
+              <UsersRound size={16} className="text-secondary-foreground" />
+              <h3 className="text-sm font-semibold text-card-foreground">Users</h3>
+            </div>
+            <Table
+              columns={getUserColumns(labId)}
+              data={users}
+              size="sm"
+              rounded="lg"
+              sortable
+              sortConfig={userSortConfig}
+              onSort={setUserSortConfig}
+              hoverable={false}
+              emptyMessage="No users in this lab"
+              aria-label="Lab users"
+            />
+          </div>
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-2 mb-3">
+              <Dna size={16} className="text-secondary-foreground" />
+              <h3 className="text-sm font-semibold text-card-foreground">Researchers</h3>
+            </div>
+            <Table
+              columns={getResearcherColumns()}
+              data={sortedResearchers}
+              size="sm"
+              rounded="lg"
+              sortable
+              sortConfig={researcherSortConfig}
+              onSort={setResearcherSortConfig}
+              hoverable={false}
+              emptyMessage="No researchers in this lab"
+              aria-label="Lab researchers"
+            />
+          </div>
         </div>
 
         <ConfirmDialog
@@ -584,17 +652,49 @@ function getUserColumns(labId: string): TableColumn[] {
       ),
     },
     {
-      id: 'researcher',
+      id: 'status',
+      header: 'Status',
+      sortable: true,
+      render: (_value, row) => (
+        <Chip color={getStatusColor(String(row['status']))} size="sm">
+          {String(row['status'])}
+        </Chip>
+      ),
+    },
+    {
+      id: 'actions',
+      header: '',
+      align: 'right',
+      render: (_value, row) => (
+        <ActionsCell user={row as unknown as LabDetailsUser} labId={labId} />
+      ),
+    },
+  ];
+}
+
+function getResearcherColumns(): TableColumn[] {
+  return [
+    {
+      id: 'researcherName',
       header: 'Researcher',
+      sortable: true,
       render: (_value, row) => {
         const researcher = row['researcher'] as { name: string; tubeCount: number } | null;
-        if (!researcher) return <span className="text-muted-foreground">-</span>;
-        return <span>{researcher.name}</span>;
+        return <span>{researcher?.name ?? '-'}</span>;
       },
+    },
+    {
+      id: 'username',
+      header: 'User',
+      sortable: true,
+      render: (_value, row) => (
+        <span className="text-muted-foreground">{String(row['username'])}</span>
+      ),
     },
     {
       id: 'tubeCount',
       header: 'Tubes',
+      sortable: true,
       render: (_value, row) => {
         const researcher = row['researcher'] as { name: string; tubeCount: number } | null;
         if (!researcher) return <span className="text-muted-foreground">-</span>;
@@ -617,24 +717,6 @@ function getUserColumns(labId: string): TableColumn[] {
         <span className="text-muted-foreground">
           {formatLastActivity(String(row['lastActivity']))}
         </span>
-      ),
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      sortable: true,
-      render: (_value, row) => (
-        <Chip color={getStatusColor(String(row['status']))} size="sm">
-          {String(row['status'])}
-        </Chip>
-      ),
-    },
-    {
-      id: 'actions',
-      header: '',
-      align: 'right',
-      render: (_value, row) => (
-        <ActionsCell user={row as unknown as LabDetailsUser} labId={labId} />
       ),
     },
   ];

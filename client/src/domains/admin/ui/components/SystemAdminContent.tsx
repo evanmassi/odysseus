@@ -260,24 +260,30 @@ export function SystemAdminContent() {
                   role="button"
                   tabIndex={0}
                 >
-                  <div className="flex items-center gap-2">
-                    <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
-                    <h4 className="text-sm font-semibold text-card-foreground mr-2">{lab.name}</h4>
-                    {stats && (
-                      <>
-                        <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
-                          {stats.adminCount} {stats.adminCount === 1 ? 'admin' : 'admins'}
-                        </Chip>
-                        <Chip color="info" size="sm" leftIcon={<UsersRound />}>
-                          {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
-                        </Chip>
-                      </>
-                    )}
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
+                      <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
+                    </div>
                     <Chip color={lab.isActive ? 'success' : 'default'} size="sm">
                       {lab.isActive ? 'Active' : 'Inactive'}
                     </Chip>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      {stats && (
+                        <>
+                          <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
+                            {stats.adminCount} {stats.adminCount === 1 ? 'admin' : 'admins'}
+                          </Chip>
+                          <Chip color="info" size="sm" leftIcon={<UsersRound />}>
+                            {stats.userCount} {stats.userCount === 1 ? 'user' : 'users'}
+                          </Chip>
+                        </>
+                      )}
+                    </div>
                     <div
-                      className="flex items-center gap-2 ml-auto"
+                      className="flex items-center gap-2"
                       role="presentation"
                       onClick={e => e.stopPropagation()}
                       onKeyDown={e => e.stopPropagation()}

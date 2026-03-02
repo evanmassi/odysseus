@@ -14,6 +14,7 @@ interface StorageManagerContextValue {
   currentUser: { id: string; role?: string } | null;
   isDemo: boolean;
   demoLimits: DemoLimits | undefined;
+  hasSeededResources: boolean;
 
   // Business logic functions
   getUserInfo: (userId: string) => UserInfo | null;

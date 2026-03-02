@@ -125,6 +125,7 @@ export function useActivateUserMutation() {
       labService.activateUser(labId, userId),
     onSuccess: (_data, { labId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
     },
     onError: error => {
       logger.error('Failed to activate user', { error });
@@ -140,6 +141,7 @@ export function useDeactivateUserMutation() {
       labService.deactivateUser(labId, userId),
     onSuccess: (_data, { labId }) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
     },
     onError: error => {
       logger.error('Failed to deactivate user', { error });

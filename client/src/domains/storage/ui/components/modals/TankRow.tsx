@@ -45,11 +45,13 @@ export function TankRow({
     isResourceLocked,
     isDemo,
     demoLimits,
+    hasSeededResources,
   } = useStorageManagerContext();
 
   const locked = isResourceLocked(tank);
+  const demoLimitsActive = isDemo && demoLimits && hasSeededResources;
   const nonSeededRackCount = tank.racks.filter(r => !r.isSeeded).length;
-  const rackLimitReached = isDemo && demoLimits && nonSeededRackCount >= demoLimits.maxRacksPerTank;
+  const rackLimitReached = demoLimitsActive && nonSeededRackCount >= demoLimits.maxRacksPerTank;
 
   // Build overflow menu items
   const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
@@ -148,7 +150,7 @@ export function TankRow({
 
             {canManageStorage && (
               <div className="storage-nav-add-controls storage-nav-item--rack">
-                {isDemo && demoLimits && (
+                {demoLimitsActive && (
                   <span className="text-xs text-muted-foreground mr-1">
                     {nonSeededRackCount}/{demoLimits.maxRacksPerTank}
                   </span>
@@ -158,7 +160,11 @@ export function TankRow({
                     value={rackCountToAdd}
                     onChange={onRackCountChange}
                     min={1}
-                    max={50}
+                    max={
+                      demoLimitsActive
+                        ? Math.max(1, demoLimits.maxRacksPerTank - nonSeededRackCount)
+                        : 50
+                    }
                     size="xs"
                     aria-label="Number of racks to add"
                   />

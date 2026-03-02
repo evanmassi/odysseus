@@ -44,6 +44,7 @@ export function RackRow({
     isResourceLocked,
     isDemo,
     demoLimits,
+    hasSeededResources,
     onAssignRack,
     onEditRackLabel,
     onEditRack,
@@ -53,8 +54,9 @@ export function RackRow({
   const rackKey = `${tankId}-rack-${rack.id}`;
   const isRackOwnedByUser = isOwnedByCurrentUser(rack);
   const locked = isResourceLocked(rack);
+  const demoLimitsActive = isDemo && demoLimits && hasSeededResources;
   const nonSeededBoxCount = rack.boxes.filter(b => !b.isSeeded).length;
-  const boxLimitReached = isDemo && demoLimits && nonSeededBoxCount >= demoLimits.maxBoxesPerRack;
+  const boxLimitReached = demoLimitsActive && nonSeededBoxCount >= demoLimits.maxBoxesPerRack;
 
   // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(rack);
@@ -188,7 +190,7 @@ export function RackRow({
 
             {canManageStorage && (
               <div className="storage-nav-add-controls storage-nav-item--box">
-                {isDemo && demoLimits && (
+                {demoLimitsActive && (
                   <span className="text-xs text-muted-foreground mr-1">
                     {nonSeededBoxCount}/{demoLimits.maxBoxesPerRack}
                   </span>
@@ -198,7 +200,11 @@ export function RackRow({
                     value={boxCountToAdd}
                     onChange={onBoxCountChange}
                     min={1}
-                    max={26}
+                    max={
+                      demoLimitsActive
+                        ? Math.max(1, demoLimits.maxBoxesPerRack - nonSeededBoxCount)
+                        : 26
+                    }
                     size="xs"
                     aria-label="Number of boxes to add"
                   />
