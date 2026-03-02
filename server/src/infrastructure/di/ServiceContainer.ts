@@ -919,48 +919,33 @@ export class ServiceContainer {
 
   getAuthController(): AuthController {
     if (!this.authController) {
-      this.authController = new AuthController(
-        // Command handlers
-        this.getCreateUserHandler(),
-        this.getLoginHandler(),
-        this.getChangePasswordHandler(),
-        this.getChangeRoleHandler(),
-        this.getDeleteUserHandler(),
-
-        // Email verification handlers
-        this.getSendVerificationEmailHandler(),
-        this.getVerifyEmailHandler(),
-        this.getResendVerificationHandler(),
-
-        // Password reset handlers
-        this.getAdminResetPasswordHandler(),
-        this.getGeneratePasswordResetTokenHandler(),
-        this.getResetPasswordWithTokenHandler(),
-
-        // Query handlers
-        this.getCheckFirstTimeHandler(),
-        this.getGetUserByIdHandler(),
-        this.getGetAllUsersHandler(),
-        this.getGetUserStatsHandler(),
-
-        // Services
-        this.getSessionService(),
-        this.getUserApplicationService(),
-        this.getResearcherApplicationService(),
-
-        // Repositories (for admin endpoints)
-        this.repositoryFactory.getConfigurationRepository(),
-        this.repositoryFactory.getResearcherRepository(),
-        this.repositoryFactory.getPersonRepository(),
-        this.repositoryFactory.getUserSessionRepository(),
-        this.repositoryFactory.getUserRepository(),
-
-        // Event Bus
-        this.getEventBus(),
-
-        // System admin setup
-        this.getCreateSystemAdminHandler()
-      );
+      this.authController = new AuthController({
+        createUserHandler: this.getCreateUserHandler(),
+        loginHandler: this.getLoginHandler(),
+        changePasswordHandler: this.getChangePasswordHandler(),
+        changeRoleHandler: this.getChangeRoleHandler(),
+        deleteUserHandler: this.getDeleteUserHandler(),
+        sendVerificationEmailHandler: this.getSendVerificationEmailHandler(),
+        verifyEmailHandler: this.getVerifyEmailHandler(),
+        resendVerificationHandler: this.getResendVerificationHandler(),
+        adminResetPasswordHandler: this.getAdminResetPasswordHandler(),
+        generatePasswordResetTokenHandler: this.getGeneratePasswordResetTokenHandler(),
+        resetPasswordWithTokenHandler: this.getResetPasswordWithTokenHandler(),
+        checkFirstTimeHandler: this.getCheckFirstTimeHandler(),
+        getUserByIdHandler: this.getGetUserByIdHandler(),
+        getAllUsersHandler: this.getGetAllUsersHandler(),
+        getUserStatsHandler: this.getGetUserStatsHandler(),
+        sessionService: this.getSessionService(),
+        userApplicationService: this.getUserApplicationService(),
+        researcherApplicationService: this.getResearcherApplicationService(),
+        configRepository: this.repositoryFactory.getConfigurationRepository(),
+        researcherRepository: this.repositoryFactory.getResearcherRepository(),
+        personRepository: this.repositoryFactory.getPersonRepository(),
+        userSessionRepository: this.repositoryFactory.getUserSessionRepository(),
+        userRepository: this.repositoryFactory.getUserRepository(),
+        eventBus: this.getEventBus(),
+        createSystemAdminHandler: this.getCreateSystemAdminHandler(),
+      });
     }
     return this.authController;
   }
@@ -998,43 +983,38 @@ export class ServiceContainer {
 
   getConfigurationController(): ConfigurationController {
     if (!this.configurationController) {
-      this.configurationController = new ConfigurationController(
-        // Query handlers (first per constructor)
-        this.getGetCurrentConfigurationHandler(),
-        this.getGetConfigurationForUserHandler(),
-        this.getGetConfigurationHistoryHandler(),
-        this.getGetConfigurationByVersionHandler(),
-        this.getGetCheckConfigurationHealthHandler(),
-
-        // System-wide configuration handlers
-        this.getUpdateSystemConfigurationHandler(),
-        this.getUpdateEquipmentConfigurationHandler(),
-        this.getResetConfigurationToDefaultHandler(),
-        this.getImportConfigurationHandler(),
-        this.getUpdateBoxPositionDisplayHandler(),
-        this.getUpdateLabDefaultPositionDisplayHandler(),
-        this.getUpdateResourceLabelHandler(),
-
-        // Atomic resource handlers
-        this.getAddTankHandler(),
-        this.getUpdateTankHandler(),
-        this.getDeleteTankHandler(),
-        this.getResetDemoDataHandler(),
-        this.getAddRacksHandler(),
-        this.getUpdateRackHandler(),
-        this.getDeleteRackHandler(),
-        this.getAssignRackHandler(),
-        this.getAddBoxesHandler(),
-        this.getUpdateBoxHandler(),
-        this.getDeleteBoxHandler(),
-        this.getAssignBoxHandler(),
-        this.getBulkUnassignHandler(),
-        this.getBulkReassignHandler(),
-        this.getSeedDemoHandler(),
-        this.getUnseedDemoHandler(),
-        this.getInitializeConfigHandler(),
-        this.repositoryFactory.getLabRepository()
-      );
+      this.configurationController = new ConfigurationController({
+        getCurrentConfigurationHandler: this.getGetCurrentConfigurationHandler(),
+        getConfigurationForUserHandler: this.getGetConfigurationForUserHandler(),
+        getConfigurationHistoryHandler: this.getGetConfigurationHistoryHandler(),
+        getConfigurationByVersionHandler: this.getGetConfigurationByVersionHandler(),
+        checkConfigurationHealthHandler: this.getGetCheckConfigurationHealthHandler(),
+        updateSystemConfigurationHandler: this.getUpdateSystemConfigurationHandler(),
+        updateEquipmentConfigurationHandler: this.getUpdateEquipmentConfigurationHandler(),
+        resetConfigurationHandler: this.getResetConfigurationToDefaultHandler(),
+        importConfigurationHandler: this.getImportConfigurationHandler(),
+        updateBoxPositionDisplayHandler: this.getUpdateBoxPositionDisplayHandler(),
+        updateLabDefaultPositionDisplayHandler: this.getUpdateLabDefaultPositionDisplayHandler(),
+        updateResourceLabelHandler: this.getUpdateResourceLabelHandler(),
+        addTankHandler: this.getAddTankHandler(),
+        updateTankHandler: this.getUpdateTankHandler(),
+        deleteTankHandler: this.getDeleteTankHandler(),
+        resetDemoDataHandler: this.getResetDemoDataHandler(),
+        addRacksHandler: this.getAddRacksHandler(),
+        updateRackHandler: this.getUpdateRackHandler(),
+        deleteRackHandler: this.getDeleteRackHandler(),
+        assignRackHandler: this.getAssignRackHandler(),
+        addBoxesHandler: this.getAddBoxesHandler(),
+        updateBoxHandler: this.getUpdateBoxHandler(),
+        deleteBoxHandler: this.getDeleteBoxHandler(),
+        assignBoxHandler: this.getAssignBoxHandler(),
+        bulkUnassignHandler: this.getBulkUnassignHandler(),
+        bulkReassignHandler: this.getBulkReassignHandler(),
+        seedDemoHandler: this.getSeedDemoHandler(),
+        unseedDemoHandler: this.getUnseedDemoHandler(),
+        initializeConfigHandler: this.getInitializeConfigHandler(),
+        labRepository: this.repositoryFactory.getLabRepository(),
+      });
     }
     return this.configurationController;
   }

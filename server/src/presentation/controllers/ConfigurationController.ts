@@ -79,46 +79,108 @@ interface ImportConfigurationResponse {
  * - POST /api/configuration/import - Import configuration
  * - GET /api/configuration/health - Configuration health check
  */
+export interface ConfigurationControllerDeps {
+  // Query handlers
+  getCurrentConfigurationHandler: GetCurrentConfigurationQueryHandler;
+  getConfigurationForUserHandler: GetConfigurationForUserQueryHandler;
+  getConfigurationHistoryHandler: GetConfigurationHistoryQueryHandler;
+  getConfigurationByVersionHandler: GetConfigurationByVersionQueryHandler;
+  checkConfigurationHealthHandler: CheckConfigurationHealthQueryHandler;
+
+  // System-wide configuration handlers
+  updateSystemConfigurationHandler: UpdateSystemConfigurationCommandHandler;
+  updateEquipmentConfigurationHandler: UpdateEquipmentConfigurationCommandHandler;
+  resetConfigurationHandler: ResetConfigurationToDefaultCommandHandler;
+  importConfigurationHandler: ImportConfigurationCommandHandler;
+  updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler;
+  updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler;
+  updateResourceLabelHandler: UpdateResourceLabelCommandHandler;
+
+  // Atomic resource handlers
+  addTankHandler: AddTankCommandHandler;
+  updateTankHandler: UpdateTankCommandHandler;
+  deleteTankHandler: DeleteTankCommandHandler;
+  resetDemoDataHandler: ResetDemoDataCommandHandler;
+  addRacksHandler: AddRacksCommandHandler;
+  updateRackHandler: UpdateRackCommandHandler;
+  deleteRackHandler: DeleteRackCommandHandler;
+  assignRackHandler: AssignRackCommandHandler;
+  addBoxesHandler: AddBoxesCommandHandler;
+  updateBoxHandler: UpdateBoxCommandHandler;
+  deleteBoxHandler: DeleteBoxCommandHandler;
+  assignBoxHandler: AssignBoxCommandHandler;
+  bulkUnassignHandler: BulkUnassignResourcesCommandHandler;
+  bulkReassignHandler: BulkReassignResourcesCommandHandler;
+  seedDemoHandler: SeedDemoCommandHandler;
+  unseedDemoHandler: UnseedDemoCommandHandler;
+  initializeConfigHandler: InitializeConfigurationCommandHandler;
+  labRepository: LabRepository;
+}
+
 export class ConfigurationController extends BaseController {
+  private getCurrentConfigurationHandler: GetCurrentConfigurationQueryHandler;
+  private getConfigurationForUserHandler: GetConfigurationForUserQueryHandler;
+  private getConfigurationHistoryHandler: GetConfigurationHistoryQueryHandler;
+  private getConfigurationByVersionHandler: GetConfigurationByVersionQueryHandler;
+  private checkConfigurationHealthHandler: CheckConfigurationHealthQueryHandler;
+  private updateSystemConfigurationHandler: UpdateSystemConfigurationCommandHandler;
+  private updateEquipmentConfigurationHandler: UpdateEquipmentConfigurationCommandHandler;
+  private resetConfigurationHandler: ResetConfigurationToDefaultCommandHandler;
+  private importConfigurationHandler: ImportConfigurationCommandHandler;
+  private updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler;
+  private updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler;
+  private updateResourceLabelHandler: UpdateResourceLabelCommandHandler;
+  private addTankHandler: AddTankCommandHandler;
+  private updateTankHandler: UpdateTankCommandHandler;
+  private deleteTankHandler: DeleteTankCommandHandler;
+  private resetDemoDataHandler: ResetDemoDataCommandHandler;
+  private addRacksHandler: AddRacksCommandHandler;
+  private updateRackHandler: UpdateRackCommandHandler;
+  private deleteRackHandler: DeleteRackCommandHandler;
+  private assignRackHandler: AssignRackCommandHandler;
+  private addBoxesHandler: AddBoxesCommandHandler;
+  private updateBoxHandler: UpdateBoxCommandHandler;
+  private deleteBoxHandler: DeleteBoxCommandHandler;
+  private assignBoxHandler: AssignBoxCommandHandler;
+  private bulkUnassignHandler: BulkUnassignResourcesCommandHandler;
+  private bulkReassignHandler: BulkReassignResourcesCommandHandler;
+  private seedDemoHandler: SeedDemoCommandHandler;
+  private unseedDemoHandler: UnseedDemoCommandHandler;
+  private initializeConfigHandler: InitializeConfigurationCommandHandler;
+  private labRepository: LabRepository;
 
-  constructor(
-    // Query handlers
-    private getCurrentConfigurationHandler: GetCurrentConfigurationQueryHandler,
-    private getConfigurationForUserHandler: GetConfigurationForUserQueryHandler,
-    private getConfigurationHistoryHandler: GetConfigurationHistoryQueryHandler,
-    private getConfigurationByVersionHandler: GetConfigurationByVersionQueryHandler,
-    private checkConfigurationHealthHandler: CheckConfigurationHealthQueryHandler,
-
-    // System-wide configuration handlers
-    private updateSystemConfigurationHandler: UpdateSystemConfigurationCommandHandler,
-    private updateEquipmentConfigurationHandler: UpdateEquipmentConfigurationCommandHandler,
-    private resetConfigurationHandler: ResetConfigurationToDefaultCommandHandler,
-    private importConfigurationHandler: ImportConfigurationCommandHandler,
-    private updateBoxPositionDisplayHandler: UpdateBoxPositionDisplayCommandHandler,
-    private updateLabDefaultPositionDisplayHandler: UpdateLabDefaultPositionDisplayCommandHandler,
-    private updateResourceLabelHandler: UpdateResourceLabelCommandHandler,
-
-    // Atomic resource handlers
-    private addTankHandler: AddTankCommandHandler,
-    private updateTankHandler: UpdateTankCommandHandler,
-    private deleteTankHandler: DeleteTankCommandHandler,
-    private resetDemoDataHandler: ResetDemoDataCommandHandler,
-    private addRacksHandler: AddRacksCommandHandler,
-    private updateRackHandler: UpdateRackCommandHandler,
-    private deleteRackHandler: DeleteRackCommandHandler,
-    private assignRackHandler: AssignRackCommandHandler,
-    private addBoxesHandler: AddBoxesCommandHandler,
-    private updateBoxHandler: UpdateBoxCommandHandler,
-    private deleteBoxHandler: DeleteBoxCommandHandler,
-    private assignBoxHandler: AssignBoxCommandHandler,
-    private bulkUnassignHandler: BulkUnassignResourcesCommandHandler,
-    private bulkReassignHandler: BulkReassignResourcesCommandHandler,
-    private seedDemoHandler: SeedDemoCommandHandler,
-    private unseedDemoHandler: UnseedDemoCommandHandler,
-    private initializeConfigHandler: InitializeConfigurationCommandHandler,
-    private labRepository: LabRepository
-  ) {
+  constructor(deps: ConfigurationControllerDeps) {
     super();
+    this.getCurrentConfigurationHandler = deps.getCurrentConfigurationHandler;
+    this.getConfigurationForUserHandler = deps.getConfigurationForUserHandler;
+    this.getConfigurationHistoryHandler = deps.getConfigurationHistoryHandler;
+    this.getConfigurationByVersionHandler = deps.getConfigurationByVersionHandler;
+    this.checkConfigurationHealthHandler = deps.checkConfigurationHealthHandler;
+    this.updateSystemConfigurationHandler = deps.updateSystemConfigurationHandler;
+    this.updateEquipmentConfigurationHandler = deps.updateEquipmentConfigurationHandler;
+    this.resetConfigurationHandler = deps.resetConfigurationHandler;
+    this.importConfigurationHandler = deps.importConfigurationHandler;
+    this.updateBoxPositionDisplayHandler = deps.updateBoxPositionDisplayHandler;
+    this.updateLabDefaultPositionDisplayHandler = deps.updateLabDefaultPositionDisplayHandler;
+    this.updateResourceLabelHandler = deps.updateResourceLabelHandler;
+    this.addTankHandler = deps.addTankHandler;
+    this.updateTankHandler = deps.updateTankHandler;
+    this.deleteTankHandler = deps.deleteTankHandler;
+    this.resetDemoDataHandler = deps.resetDemoDataHandler;
+    this.addRacksHandler = deps.addRacksHandler;
+    this.updateRackHandler = deps.updateRackHandler;
+    this.deleteRackHandler = deps.deleteRackHandler;
+    this.assignRackHandler = deps.assignRackHandler;
+    this.addBoxesHandler = deps.addBoxesHandler;
+    this.updateBoxHandler = deps.updateBoxHandler;
+    this.deleteBoxHandler = deps.deleteBoxHandler;
+    this.assignBoxHandler = deps.assignBoxHandler;
+    this.bulkUnassignHandler = deps.bulkUnassignHandler;
+    this.bulkReassignHandler = deps.bulkReassignHandler;
+    this.seedDemoHandler = deps.seedDemoHandler;
+    this.unseedDemoHandler = deps.unseedDemoHandler;
+    this.initializeConfigHandler = deps.initializeConfigHandler;
+    this.labRepository = deps.labRepository;
   }
 
   // QUERY ENDPOINTS

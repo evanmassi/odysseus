@@ -47,45 +47,99 @@ import {
   PasswordValidator
 } from '@odysseus/shared-schemas';
 
+export interface AuthControllerDeps {
+  // Command handlers
+  createUserHandler: CreateUserCommandHandler;
+  loginHandler: LoginCommandHandler;
+  changePasswordHandler: ChangeUserPasswordCommandHandler;
+  changeRoleHandler: ChangeUserRoleCommandHandler;
+  deleteUserHandler: DeleteUserCommandHandler;
+  sendVerificationEmailHandler: SendVerificationEmailCommandHandler;
+  verifyEmailHandler: VerifyEmailCommandHandler;
+  resendVerificationHandler: ResendVerificationEmailCommandHandler;
+  adminResetPasswordHandler: AdminResetPasswordCommandHandler;
+  generatePasswordResetTokenHandler: GeneratePasswordResetTokenCommandHandler;
+  resetPasswordWithTokenHandler: ResetPasswordWithTokenCommandHandler;
+
+  // Query handlers
+  checkFirstTimeHandler: CheckFirstTimeSetupQueryHandler;
+  getUserByIdHandler: GetUserByIdQueryHandler;
+  getAllUsersHandler: GetAllUsersQueryHandler;
+  getUserStatsHandler: GetUserStatisticsQueryHandler;
+
+  // Services
+  sessionService: SessionService;
+  userApplicationService: UserApplicationService;
+  researcherApplicationService: ResearcherApplicationService;
+
+  // Repositories
+  configRepository: ConfigurationRepository;
+  researcherRepository: ResearcherRepository;
+  personRepository: PersonRepository;
+  userSessionRepository: UserSessionRepository;
+  userRepository: UserRepository;
+
+  // Event bus
+  eventBus: EventBus;
+
+  // System admin setup
+  createSystemAdminHandler: CreateSystemAdminCommandHandler;
+}
+
 export class AuthController {
-  constructor(
-    // Command handlers
-    private createUserHandler: CreateUserCommandHandler,
-    private loginHandler: LoginCommandHandler,
-    private changePasswordHandler: ChangeUserPasswordCommandHandler,
-    private changeRoleHandler: ChangeUserRoleCommandHandler,
-    private deleteUserHandler: DeleteUserCommandHandler,
-    private sendVerificationEmailHandler: SendVerificationEmailCommandHandler,
-    private verifyEmailHandler: VerifyEmailCommandHandler,
-    private resendVerificationHandler: ResendVerificationEmailCommandHandler,
-    private adminResetPasswordHandler: AdminResetPasswordCommandHandler,
-    private generatePasswordResetTokenHandler: GeneratePasswordResetTokenCommandHandler,
-    private resetPasswordWithTokenHandler: ResetPasswordWithTokenCommandHandler,
+  private createUserHandler: CreateUserCommandHandler;
+  private loginHandler: LoginCommandHandler;
+  private changePasswordHandler: ChangeUserPasswordCommandHandler;
+  private changeRoleHandler: ChangeUserRoleCommandHandler;
+  private deleteUserHandler: DeleteUserCommandHandler;
+  private sendVerificationEmailHandler: SendVerificationEmailCommandHandler;
+  private verifyEmailHandler: VerifyEmailCommandHandler;
+  private resendVerificationHandler: ResendVerificationEmailCommandHandler;
+  private adminResetPasswordHandler: AdminResetPasswordCommandHandler;
+  private generatePasswordResetTokenHandler: GeneratePasswordResetTokenCommandHandler;
+  private resetPasswordWithTokenHandler: ResetPasswordWithTokenCommandHandler;
+  private checkFirstTimeHandler: CheckFirstTimeSetupQueryHandler;
+  private getUserByIdHandler: GetUserByIdQueryHandler;
+  private getAllUsersHandler: GetAllUsersQueryHandler;
+  private getUserStatsHandler: GetUserStatisticsQueryHandler;
+  private sessionService: SessionService;
+  private userApplicationService: UserApplicationService;
+  private researcherApplicationService: ResearcherApplicationService;
+  private configRepository: ConfigurationRepository;
+  private researcherRepository: ResearcherRepository;
+  private personRepository: PersonRepository;
+  private userSessionRepository: UserSessionRepository;
+  private userRepository: UserRepository;
+  private eventBus: EventBus;
+  private createSystemAdminHandler: CreateSystemAdminCommandHandler;
 
-    // Query handlers
-    private checkFirstTimeHandler: CheckFirstTimeSetupQueryHandler,
-    private getUserByIdHandler: GetUserByIdQueryHandler,
-    private getAllUsersHandler: GetAllUsersQueryHandler,
-    private getUserStatsHandler: GetUserStatisticsQueryHandler,
-
-    // Services
-    private sessionService: SessionService,
-    private userApplicationService: UserApplicationService,
-    private researcherApplicationService: ResearcherApplicationService,
-
-    // Repositories (for admin endpoints)
-    private configRepository: ConfigurationRepository,
-    private researcherRepository: ResearcherRepository,
-    private personRepository: PersonRepository,
-    private userSessionRepository: UserSessionRepository,
-    private userRepository: UserRepository,
-
-    // Event bus
-    private eventBus: EventBus,
-
-    // System admin setup
-    private createSystemAdminHandler: CreateSystemAdminCommandHandler
-  ) {}
+  constructor(deps: AuthControllerDeps) {
+    this.createUserHandler = deps.createUserHandler;
+    this.loginHandler = deps.loginHandler;
+    this.changePasswordHandler = deps.changePasswordHandler;
+    this.changeRoleHandler = deps.changeRoleHandler;
+    this.deleteUserHandler = deps.deleteUserHandler;
+    this.sendVerificationEmailHandler = deps.sendVerificationEmailHandler;
+    this.verifyEmailHandler = deps.verifyEmailHandler;
+    this.resendVerificationHandler = deps.resendVerificationHandler;
+    this.adminResetPasswordHandler = deps.adminResetPasswordHandler;
+    this.generatePasswordResetTokenHandler = deps.generatePasswordResetTokenHandler;
+    this.resetPasswordWithTokenHandler = deps.resetPasswordWithTokenHandler;
+    this.checkFirstTimeHandler = deps.checkFirstTimeHandler;
+    this.getUserByIdHandler = deps.getUserByIdHandler;
+    this.getAllUsersHandler = deps.getAllUsersHandler;
+    this.getUserStatsHandler = deps.getUserStatsHandler;
+    this.sessionService = deps.sessionService;
+    this.userApplicationService = deps.userApplicationService;
+    this.researcherApplicationService = deps.researcherApplicationService;
+    this.configRepository = deps.configRepository;
+    this.researcherRepository = deps.researcherRepository;
+    this.personRepository = deps.personRepository;
+    this.userSessionRepository = deps.userSessionRepository;
+    this.userRepository = deps.userRepository;
+    this.eventBus = deps.eventBus;
+    this.createSystemAdminHandler = deps.createSystemAdminHandler;
+  }
 
   // PUBLIC ENDPOINTS (No auth required)
 
