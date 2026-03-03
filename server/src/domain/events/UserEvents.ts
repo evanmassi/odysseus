@@ -1,6 +1,6 @@
 /**
  * User Domain Events
- * 
+ *
  * Events that occur within the User aggregate.
  */
 
@@ -11,9 +11,10 @@ export class UserCreatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly username: string,
-    public readonly role: UserRole
+    public readonly role: UserRole,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -37,9 +38,10 @@ export class UserPasswordChangedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly username: string,
-    public readonly changedBy: string
+    public readonly changedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -65,9 +67,10 @@ export class UserRoleChangedEvent extends DomainEvent {
     public readonly username: string,
     public readonly oldRole: UserRole,
     public readonly newRole: UserRole,
-    public readonly changedBy: string
+    public readonly changedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -93,9 +96,10 @@ export class UserDeletedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly username: string,
-    public readonly deletedBy: string
+    public readonly deletedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -118,9 +122,10 @@ export class UserDeletedEvent extends DomainEvent {
 export class UserLoggedInEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
-    public readonly username: string
+    public readonly username: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -142,9 +147,10 @@ export class UserLoggedInEvent extends DomainEvent {
 export class UserLoggedOutEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
-    public readonly username: string
+    public readonly username: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -169,9 +175,10 @@ export class UserLinkedToResearcherEvent extends DomainEvent {
     public readonly username: string,
     public readonly researcherId: string,
     public readonly researcherName: string,
-    public readonly linkedBy: string
+    public readonly linkedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -199,9 +206,10 @@ export class UserUnlinkedFromResearcherEvent extends DomainEvent {
     public readonly username: string,
     public readonly researcherId: string,
     public readonly researcherName: string,
-    public readonly unlinkedBy: string
+    public readonly unlinkedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -227,9 +235,10 @@ export class UserApprovedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly username: string,
-    public readonly approvedBy: string
+    public readonly approvedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -253,9 +262,10 @@ export class UserRejectedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly username: string,
-    public readonly rejectedBy: string
+    public readonly rejectedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -279,9 +289,10 @@ export class UserDeactivatedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly username: string,
-    public readonly deactivatedBy: string
+    public readonly deactivatedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -305,9 +316,10 @@ export class UserSuspendedEvent extends DomainEvent {
   constructor(
     public readonly userId: string,
     public readonly username: string,
-    public readonly suspendedBy: string
+    public readonly suspendedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -332,9 +344,10 @@ export class UserReactivatedEvent extends DomainEvent {
     public readonly userId: string,
     public readonly username: string,
     public readonly previousStatus: 'deactivated' | 'suspended',
-    public readonly reactivatedBy: string
+    public readonly reactivatedBy: string,
+    labId?: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {

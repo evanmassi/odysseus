@@ -106,7 +106,7 @@ export class CreateUserCommandHandler implements CommandHandler<CreateUserComman
 
     await this.userRepository.save(user);
 
-    const event = new UserCreatedEvent(user.id, user.username, user.role);
+    const event = new UserCreatedEvent(user.id, user.username, user.role, user.labId);
     await this.eventBus.publish(event);
 
     return user;
@@ -187,7 +187,7 @@ export class CreateSystemAdminCommandHandler implements CommandHandler<CreateSys
 
     await this.userRepository.save(user);
 
-    const event = new UserCreatedEvent(user.id, user.username, user.role);
+    const event = new UserCreatedEvent(user.id, user.username, user.role, user.labId);
     await this.eventBus.publish(event);
 
     return user;
@@ -263,7 +263,7 @@ export class ChangeUserPasswordCommandHandler implements CommandHandler<ChangeUs
     }
 
     // Publish domain event
-    const event = new UserPasswordChangedEvent(user.id, user.username, command.initiatedBy);
+    const event = new UserPasswordChangedEvent(user.id, user.username, command.initiatedBy, user.labId);
     await this.eventBus.publish(event);
   }
 
@@ -326,7 +326,8 @@ export class ChangeUserRoleCommandHandler implements CommandHandler<ChangeUserRo
       user.username,
       oldRole,
       command.newRole,
-      command.initiatedBy
+      command.initiatedBy,
+      user.labId
     );
     await this.eventBus.publish(event);
   }
@@ -429,7 +430,7 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
     await this.userRepository.delete(command.userId);
 
     // Publish domain events
-    const deleteEvent = new UserDeletedEvent(command.userId, username, command.initiatedBy);
+    const deleteEvent = new UserDeletedEvent(command.userId, username, command.initiatedBy, user.labId);
     await this.eventBus.publish(deleteEvent);
 
     // Emit configuration change event if assignments were cleared
@@ -523,7 +524,8 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
     if (!requirePasswordChange) {
       await this.eventBus.publish(new UserLoggedInEvent(
         user.id,
-        user.username
+        user.username,
+        user.labId
       ));
     }
 

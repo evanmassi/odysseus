@@ -598,13 +598,15 @@ export class UserApplicationService {
           user.id,
           user.username,
           previousStatus,
-          admin.username
+          admin.username,
+          user.labId
         ));
       } else {
         await this.eventBus.publish(new UserApprovedEvent(
           user.id,
           user.username,
-          admin.username
+          admin.username,
+          user.labId
         ));
       }
     }
@@ -640,7 +642,8 @@ export class UserApplicationService {
       await this.eventBus.publish(new UserRejectedEvent(
         userId,
         username,
-        admin.username
+        admin.username,
+        user.labId
       ));
     }
   }
@@ -667,7 +670,8 @@ export class UserApplicationService {
       await this.eventBus.publish(new UserDeactivatedEvent(
         user.id,
         user.username,
-        admin.username
+        admin.username,
+        user.labId
       ));
     }
   }
@@ -694,7 +698,8 @@ export class UserApplicationService {
       await this.eventBus.publish(new UserSuspendedEvent(
         user.id,
         user.username,
-        admin.username
+        admin.username,
+        user.labId
       ));
     }
   }
@@ -778,7 +783,8 @@ export class UserApplicationService {
         user.username,
         researcherId,
         researcherName,
-        admin.id
+        admin.id,
+        user.labId
       ));
     }
   }
@@ -828,7 +834,8 @@ export class UserApplicationService {
         user.username,
         oldResearcherId,
         researcherName,
-        admin.id
+        admin.id,
+        user.labId
       ));
     }
   }

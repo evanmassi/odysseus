@@ -488,7 +488,8 @@ export class AuthController {
       // Publish logout event
       await this.eventBus.publish(new UserLoggedOutEvent(
         user.id,
-        user.username
+        user.username,
+        user.labId
       ));
 
       logger.info('User logged out', {
