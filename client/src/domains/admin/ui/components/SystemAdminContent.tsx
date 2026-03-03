@@ -3,11 +3,15 @@ import { useState } from 'react';
 import {
   Activity,
   CircleAlert,
+  CircleCheckBig,
+  OctagonX,
   Clock,
   FlaskConical,
   LayoutDashboard,
   Plus,
   ShieldUser,
+  BeanOff,
+  Sprout,
   UsersRound,
   TicketCheck,
   Copy,
@@ -262,20 +266,27 @@ export function SystemAdminContent() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <LabBadge
-                        labId={lab.id}
-                        labName={lab.name}
-                        size="md"
-                        isDemo={lab.isDemo}
-                        isActive={lab.isActive}
-                      />
+                      <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
                       <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
                     </div>
-                    {lab.isDemo && (
-                      <Chip color="default" size="sm">
-                        Demo
+                    <div className="flex items-center gap-1.5">
+                      {lab.isDemo && (
+                        <Chip
+                          color={lab.isSeeded ? 'success' : 'warning'}
+                          size="sm"
+                          leftIcon={lab.isSeeded ? <Sprout /> : <BeanOff />}
+                        >
+                          {lab.isSeeded ? 'Seeded' : 'Not Seeded'}
+                        </Chip>
+                      )}
+                      <Chip
+                        color={lab.isActive ? 'success' : 'danger'}
+                        size="sm"
+                        leftIcon={lab.isActive ? <CircleCheckBig /> : <OctagonX />}
+                      >
+                        {lab.isActive ? 'Active' : 'Deactivated'}
                       </Chip>
-                    )}
+                    </div>
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">

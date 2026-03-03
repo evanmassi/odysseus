@@ -16,6 +16,7 @@ export const labDataSchema = z.object({
   createdAt: z.union([z.string().datetime(), z.date()]),
   updatedAt: z.union([z.string().datetime(), z.date()]),
   demoLimits: DemoLimitsSchema.optional(),
+  isSeeded: z.boolean().optional(),
 });
 
 export type LabData = z.infer<typeof labDataSchema>;
@@ -75,9 +76,23 @@ export const labDetailsUserSchema = z.object({
 
 export type LabDetailsUser = z.infer<typeof labDetailsUserSchema>;
 
+export const labDetailsResearcherSchema = z.object({
+  id: z.string(),
+  firstName: z.string(),
+  lastName: z.string(),
+  tubeCount: z.number(),
+  linkedUser: z.object({
+    id: z.string(),
+    username: z.string(),
+  }).nullable(),
+});
+
+export type LabDetailsResearcher = z.infer<typeof labDetailsResearcherSchema>;
+
 export const labDetailsSchema = z.object({
   lab: labDataSchema,
   users: z.array(labDetailsUserSchema),
+  researchers: z.array(labDetailsResearcherSchema),
   researcherCount: z.number(),
   tubeCount: z.number(),
   storageSummary: z.object({

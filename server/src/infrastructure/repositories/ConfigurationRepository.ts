@@ -1178,47 +1178,39 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async getSystemMetrics(): Promise<SystemMetrics> {
+  async getSystemMetrics(labId: string): Promise<SystemMetrics> {
     try {
       const tubesRow = await this.context.queryOne<{ count: string }>(`
-        SELECT COUNT(*) as count FROM tubes
-      `);
+        SELECT COUNT(*) as count FROM tubes WHERE lab_id = $1
+      `, [labId]);
       const totalTubes = parseInt(tubesRow?.count || '0', 10);
 
       const usersRow = await this.context.queryOne<{ count: string }>(`
-        SELECT COUNT(*) as count FROM users
-      `);
+        SELECT COUNT(*) as count FROM users WHERE lab_id = $1
+      `, [labId]);
       const totalUsers = parseInt(usersRow?.count || '0', 10);
 
       const researchersRow = await this.context.queryOne<{ count: string }>(`
         SELECT COUNT(*) as count
         FROM researchers
-        WHERE active = TRUE
-      `);
+        WHERE active = TRUE AND lab_id = $1
+      `, [labId]);
       const totalResearchers = parseInt(researchersRow?.count || '0', 10);
 
       const backupRow = await this.context.queryOne<{ updated_at: Date | string }>(`
-        SELECT updated_at
-        FROM configuration_versions
-        ORDER BY version DESC
-        LIMIT 1
-      `);
+        SELECT cc.updated_at
+        FROM configuration_current cc
+        WHERE cc.lab_id = $1
+      `, [labId]);
       const lastBackup = backupRow?.updated_at
         ? (backupRow.updated_at instanceof Date ? backupRow.updated_at.toISOString() : backupRow.updated_at)
         : new Date().toISOString();
-
-      // Get database size in bytes
-      const sizeRow = await this.context.queryOne<{ size: string }>(`
-        SELECT pg_database_size(current_database()) as size
-      `);
-      const databaseSize = parseInt(sizeRow?.size || '0', 10);
 
       return {
         totalTubes,
         totalUsers,
         totalResearchers,
         lastBackup,
-        databaseSize
       };
 
     } catch (error) {

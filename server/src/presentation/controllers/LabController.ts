@@ -39,8 +39,18 @@ export class LabController extends BaseController {
     try {
       const labs = await this.labRepository.findAll();
 
+      const demoLab = labs.find(lab => lab.isDemo);
+      let demoIsSeeded = false;
+      if (demoLab) {
+        const config = await this.configurationRepository.getForLab(demoLab.id);
+        demoIsSeeded = config?.hasAnySeededResources() ?? false;
+      }
+
       res.status(200).json(ResponseBuilder.success({
-        labs: labs.map(lab => lab.toData()),
+        labs: labs.map(lab => ({
+          ...lab.toData(),
+          ...(lab.isDemo && { isSeeded: demoIsSeeded }),
+        })),
       }));
     } catch (error) {
       next(error);
@@ -111,22 +121,25 @@ export class LabController extends BaseController {
         this.configurationRepository.getForLab(labId),
       ]);
 
-      const personIds = users.map(u => u.personId).filter((id): id is string => !!id);
-      const persons = personIds.length > 0 ? await this.personRepository.findByIds(personIds) : [];
+      const userPersonIds = users.map(u => u.personId).filter((id): id is string => !!id);
+      const researcherPersonIds = researchers.map(r => r.personId);
+      const allPersonIds = [...new Set([...userPersonIds, ...researcherPersonIds])];
+      const persons = allPersonIds.length > 0 ? await this.personRepository.findByIds(allPersonIds) : [];
       const personMap = new Map(persons.map(p => [p.id, p]));
 
       const researcherMap = new Map(researchers.map(r => [r.id, r]));
-      const researcherPersonMap = new Map(researchers.map(r => [r.personId, r]));
 
       const tubeCounts = await Promise.all(
-        users
-          .filter(u => u.researcherId)
-          .map(async u => ({
-            researcherId: u.researcherId!,
-            count: await this.researcherRepository.getTubeCountByResearcher(u.researcherId!),
-          }))
+        researchers.map(async r => ({
+          researcherId: r.id,
+          count: await this.researcherRepository.getTubeCountByResearcher(r.id),
+        }))
       );
       const tubeCountMap = new Map(tubeCounts.map(tc => [tc.researcherId, tc.count]));
+
+      const userByResearcherId = new Map(
+        users.filter(u => u.researcherId).map(u => [u.researcherId!, u])
+      );
 
       let tankCount = 0, rackCount = 0, boxCount = 0;
       if (config) {
@@ -161,6 +174,17 @@ export class LabController extends BaseController {
               name: researcherPerson ? `${researcherPerson.firstName} ${researcherPerson.lastName}` : 'Unknown',
               tubeCount: tubeCountMap.get(u.researcherId) ?? 0,
             } : null,
+          };
+        }),
+        researchers: researchers.map(r => {
+          const person = personMap.get(r.personId);
+          const linkedUser = userByResearcherId.get(r.id);
+          return {
+            id: r.id,
+            firstName: person?.firstName ?? 'Unknown',
+            lastName: person?.lastName ?? '',
+            tubeCount: tubeCountMap.get(r.id) ?? 0,
+            linkedUser: linkedUser ? { id: linkedUser.id, username: linkedUser.username } : null,
           };
         }),
         researcherCount: researchers.length,

@@ -541,20 +541,26 @@ export function AppHeader({
                 }`}
               >
                 {/* Lab Name */}
-                <div className="px-3 py-2">
-                  <div className="flex items-center gap-3">
-                    <FlaskConical size={16} className="text-muted-foreground" />
-                    <span className="text-sm text-secondary-foreground font-medium">
-                      {currentLab?.name ?? 'Loading...'}
-                    </span>
+                {currentLab && (
+                  <div className="px-3 py-2">
+                    <div className="flex items-center gap-3">
+                      <FlaskConical size={16} className="text-muted-foreground" />
+                      <span className="text-sm text-secondary-foreground font-medium">
+                        {currentLab.name}
+                      </span>
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* User Info */}
                 {isAuthenticated && user && (
                   <div className="px-3 py-2">
                     <div className="flex items-center gap-3">
-                      <UserRound size={16} className="text-muted-foreground" />
+                      {user.role === 'user' ? (
+                        <UserRound size={16} className="text-muted-foreground" />
+                      ) : (
+                        <ShieldUser size={16} className="text-muted-foreground" />
+                      )}
                       <span className="text-sm text-secondary-foreground font-medium">
                         {user.username}
                       </span>

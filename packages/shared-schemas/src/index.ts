@@ -379,7 +379,8 @@ export {
   type CreateLabRequest,
   type CreateInviteCodeRequest,
   type LabDetails,
-  type LabDetailsUser
+  type LabDetailsUser,
+  type LabDetailsResearcher
 } from './labs/labSchemas';
 
 // Password Validation

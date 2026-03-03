@@ -8,9 +8,11 @@ import {
   ArrowLeft,
   Box as BoxIcon,
   ChevronDown,
+  CircleCheckBig,
   Clock,
   Dna,
   Icon,
+  OctagonX,
   Pencil,
   Power,
   Check,
@@ -19,6 +21,7 @@ import {
   Save,
   ShieldBan,
   ShieldUser,
+  BeanOff,
   Sprout,
   TestTube,
   Trash2,
@@ -28,6 +31,7 @@ import {
   TreeDeciduous,
 } from 'lucide-react';
 
+import { useAuthStore } from '@domains/authentication';
 import { Button, Chip, NumberInput, Table, Tooltip } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges/LabBadge';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
@@ -61,6 +65,7 @@ interface LabDetailViewProps {
 }
 
 export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
+  const currentUserId = useAuthStore(s => s.user?.id);
   const { data: details, isLoading } = useLabDetailsQuery(labId);
   const updateLabMutation = useUpdateLabMutation();
   const activateLabMutation = useActivateLabMutation();
@@ -175,7 +180,14 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
     );
   }
 
-  const { lab, users: unsortedUsers, researcherCount, tubeCount, storageSummary } = details;
+  const {
+    lab,
+    users: unsortedUsers,
+    researchers: unsortedResearchers = [],
+    researcherCount,
+    tubeCount,
+    storageSummary,
+  } = details;
 
   const users = [...unsortedUsers].sort((a, b) => {
     if (!userSortConfig) return 0;
@@ -186,29 +198,18 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
     return direction === 'asc' ? cmp : -cmp;
   });
 
-  const sortedResearchers = unsortedUsers
-    .filter(u => u.researcher !== null)
-    .sort((a, b) => {
-      if (!researcherSortConfig) return 0;
-      const { columnId, direction } = researcherSortConfig;
-      let aVal: string;
-      let bVal: string;
-      if (columnId === 'researcherName') {
-        aVal = a.researcher?.name ?? '';
-        bVal = b.researcher?.name ?? '';
-      } else if (columnId === 'tubeCount') {
-        const diff = (a.researcher?.tubeCount ?? 0) - (b.researcher?.tubeCount ?? 0);
-        return direction === 'asc' ? diff : -diff;
-      } else if (columnId === 'lastActivity') {
-        aVal = a.lastActivity;
-        bVal = b.lastActivity;
-      } else {
-        aVal = String(a[columnId as keyof LabDetailsUser] ?? '');
-        bVal = String(b[columnId as keyof LabDetailsUser] ?? '');
-      }
-      const cmp = aVal.localeCompare(bVal);
-      return direction === 'asc' ? cmp : -cmp;
-    });
+  const sortedResearchers = [...unsortedResearchers].sort((a, b) => {
+    if (!researcherSortConfig) return 0;
+    const { columnId, direction } = researcherSortConfig;
+    if (columnId === 'tubeCount') {
+      const diff = a.tubeCount - b.tubeCount;
+      return direction === 'asc' ? diff : -diff;
+    }
+    const aVal = columnId === 'name' ? a.lastName : '';
+    const bVal = columnId === 'name' ? b.lastName : '';
+    const cmp = aVal.localeCompare(bVal);
+    return direction === 'asc' ? cmp : -cmp;
+  });
 
   return (
     <div className="h-full overflow-y-auto">
@@ -222,13 +223,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
         <div className="space-y-2 max-w-md">
           <div className="rounded-lg border border-border bg-card p-3 space-y-2">
             <div className="flex items-center gap-3">
-              <LabBadge
-                labId={labId}
-                labName={lab.name}
-                size="md"
-                isDemo={lab.isDemo}
-                isActive={lab.isActive}
-              />
+              <LabBadge labId={labId} labName={lab.name} size="md" isDemo={lab.isDemo} />
               {isRenaming ? (
                 <div className="flex items-center gap-2">
                   <input
@@ -283,21 +278,33 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
                   className="ml-auto"
                   onClick={handleActivate}
                   isLoading={activateLabMutation.isPending}
+                  leftIcon={<Power size={14} />}
                 >
                   Activate
                 </Button>
               )}
             </div>
-            {lab.isDemo && (
-              <div className="flex items-center gap-2">
-                <Chip color="default" size="sm">
-                  Demo
-                </Chip>
-              </div>
-            )}
           </div>
 
           <div className="rounded-lg border border-border bg-card p-3 space-y-2">
+            <div className="flex flex-wrap items-center gap-2">
+              <Chip
+                color={lab.isActive ? 'success' : 'danger'}
+                size="sm"
+                leftIcon={lab.isActive ? <CircleCheckBig /> : <OctagonX />}
+              >
+                {lab.isActive ? 'Active' : 'Deactivated'}
+              </Chip>
+              {lab.isDemo && (
+                <Chip
+                  color={details.isSeeded ? 'success' : 'warning'}
+                  size="sm"
+                  leftIcon={details.isSeeded ? <Sprout /> : <BeanOff />}
+                >
+                  {details.isSeeded ? 'Seeded' : 'Not Seeded'}
+                </Chip>
+              )}
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <Chip color="info" size="sm" leftIcon={<ShieldUser />}>
                 {users.filter(u => u.role === 'lab_admin').length}{' '}
@@ -345,9 +352,6 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
                 />
                 <h3 className="text-sm font-semibold text-card-foreground">Demo Configuration</h3>
               </div>
-              <Chip color={details.isSeeded ? 'success' : 'default'} size="sm">
-                {details.isSeeded ? 'Seeded' : 'Not Seeded'}
-              </Chip>
             </Collapsible.Trigger>
             <Collapsible.Content className="overflow-hidden data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
               <div className="px-3 pb-3 space-y-3">
@@ -475,7 +479,8 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
                 labId,
                 setDeleteUserTarget,
                 setDeactivateUserTarget,
-                setSuspendUserTarget
+                setSuspendUserTarget,
+                currentUserId
               )}
               data={users}
               size="sm"
@@ -648,14 +653,17 @@ function ActionsCell({
   onDeleteUser,
   onDeactivateUser,
   onSuspendUser,
+  currentUserId,
 }: {
   user: LabDetailsUser;
   labId: string;
   onDeleteUser: (user: LabDetailsUser) => void;
   onDeactivateUser: (user: LabDetailsUser) => void;
   onSuspendUser: (user: LabDetailsUser) => void;
+  currentUserId?: string;
 }) {
   const activateUserMutation = useActivateUserMutation();
+  const isSelf = user.id === currentUserId;
 
   const handleActivate = async () => {
     try {
@@ -684,23 +692,25 @@ function ActionsCell({
       )}
       {user.status === 'approved' && (
         <>
-          <Tooltip content="Deactivate user">
+          <Tooltip content={isSelf ? 'Cannot deactivate yourself' : 'Deactivate user'}>
             <Button
               variant="ghost-danger"
               size="xs"
               iconOnly
               onClick={() => onDeactivateUser(user)}
+              disabled={isSelf}
               aria-label="Deactivate user"
             >
               <Power size={16} />
             </Button>
           </Tooltip>
-          <Tooltip content="Suspend user">
+          <Tooltip content={isSelf ? 'Cannot suspend yourself' : 'Suspend user'}>
             <Button
               variant="ghost-danger"
               size="xs"
               iconOnly
               onClick={() => onSuspendUser(user)}
+              disabled={isSelf}
               aria-label="Suspend user"
             >
               <ShieldBan size={16} />
@@ -715,7 +725,7 @@ function ActionsCell({
             size="xs"
             iconOnly
             onClick={handleActivate}
-            disabled={isPending}
+            disabled={activateUserMutation.isPending}
             aria-label="Reactivate user"
           >
             <UserRoundCheck size={16} className="text-success-text" />
@@ -729,20 +739,20 @@ function ActionsCell({
             size="xs"
             iconOnly
             onClick={handleActivate}
-            disabled={isPending}
+            disabled={activateUserMutation.isPending}
             aria-label="Unsuspend user"
           >
             <UserRoundCheck size={16} className="text-success-text" />
           </Button>
         </Tooltip>
       )}
-      <Tooltip content="Delete user">
+      <Tooltip content={isSelf ? 'Cannot delete yourself' : 'Delete user'}>
         <Button
           variant="ghost-danger"
           size="xs"
           iconOnly
           onClick={() => onDeleteUser(user)}
-          disabled={isPending}
+          disabled={isSelf || activateUserMutation.isPending}
           aria-label="Delete user"
         >
           <Trash2 size={16} />
@@ -768,7 +778,8 @@ function getUserColumns(
   labId: string,
   onDeleteUser: (user: LabDetailsUser) => void,
   onDeactivateUser: (user: LabDetailsUser) => void,
-  onSuspendUser: (user: LabDetailsUser) => void
+  onSuspendUser: (user: LabDetailsUser) => void,
+  currentUserId?: string
 ): TableColumn[] {
   return [
     {
@@ -860,6 +871,7 @@ function getUserColumns(
           onDeleteUser={onDeleteUser}
           onDeactivateUser={onDeactivateUser}
           onSuspendUser={onSuspendUser}
+          currentUserId={currentUserId}
         />
       ),
     },
@@ -869,49 +881,39 @@ function getUserColumns(
 function getResearcherColumns(): TableColumn[] {
   return [
     {
-      id: 'researcherName',
+      id: 'name',
       header: 'Researcher',
       sortable: true,
-      render: (_value, row) => {
-        const researcher = row['researcher'] as { name: string; tubeCount: number } | null;
-        return <span>{researcher?.name ?? '-'}</span>;
-      },
+      render: (_value, row) => (
+        <span>
+          {String(row['firstName'])} {String(row['lastName'])}
+        </span>
+      ),
     },
     {
-      id: 'username',
-      header: 'User',
-      sortable: true,
-      render: (_value, row) => (
-        <span className="text-muted-foreground">{String(row['username'])}</span>
-      ),
+      id: 'linkedUser',
+      header: 'Linked User',
+      render: (_value, row) => {
+        const linkedUser = row['linkedUser'] as { id: string; username: string } | null;
+        return <span className="text-muted-foreground">{linkedUser?.username ?? '—'}</span>;
+      },
     },
     {
       id: 'tubeCount',
       header: 'Tubes',
       sortable: true,
       render: (_value, row) => {
-        const researcher = row['researcher'] as { name: string; tubeCount: number } | null;
-        if (!researcher) return <span className="text-muted-foreground">-</span>;
+        const tubeCount = row['tubeCount'] as number;
         return (
           <Chip
             size="sm"
-            color={researcher.tubeCount > 0 ? 'primary' : 'default'}
-            className={researcher.tubeCount > 0 ? 'border border-action' : 'border border-border'}
+            color={tubeCount > 0 ? 'primary' : 'default'}
+            className={tubeCount > 0 ? 'border border-action' : 'border border-border'}
           >
-            {researcher.tubeCount}
+            {tubeCount}
           </Chip>
         );
       },
-    },
-    {
-      id: 'lastActivity',
-      header: 'Last Active',
-      sortable: true,
-      render: (_value, row) => (
-        <span className="text-muted-foreground">
-          {formatLastActivity(String(row['lastActivity']))}
-        </span>
-      ),
     },
   ];
 }

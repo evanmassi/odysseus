@@ -47,7 +47,8 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
             INVALID_TOKEN: 'Invalid or expired token',
             SESSION_REVOKED: 'Session has been revoked',
             SESSION_IDLE_TIMEOUT: 'Session timed out due to inactivity',
-            SESSION_ABSOLUTE_TIMEOUT: 'Session expired - please log in again'
+            SESSION_ABSOLUTE_TIMEOUT: 'Session expired - please log in again',
+            LAB_DEACTIVATED: 'Your lab has been deactivated. Contact your system administrator'
           };
 
           res.status(401).json({

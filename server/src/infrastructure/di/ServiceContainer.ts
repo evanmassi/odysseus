@@ -239,7 +239,8 @@ export class ServiceContainer {
         repositories.users,
         repositories.refreshTokens,
         repositories.configurations,
-        repositories.userSessions
+        repositories.userSessions,
+        repositories.labs
       );
     }
     return this.sessionService;
@@ -274,7 +275,8 @@ export class ServiceContainer {
       this.loginHandler = new LoginCommandHandler(
         repositories.users,
         this.getSessionService(),
-        this.getEventBus()
+        this.getEventBus(),
+        repositories.labs
       );
     }
     return this.loginHandler;
@@ -770,7 +772,8 @@ export class ServiceContainer {
       const repositories = this.repositoryFactory.getRepositories();
       this.deactivateLabHandler = new DeactivateLabCommandHandler(
         repositories.labs,
-        repositories.users
+        repositories.users,
+        repositories.userSessions
       );
     }
     return this.deactivateLabHandler;

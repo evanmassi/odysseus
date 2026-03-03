@@ -17,6 +17,7 @@ import { UserRepository } from '@domain/repositories/UserRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
+import { LabRepository } from '@domain/repositories/LabRepository';
 import {
   TokenPair,
   RefreshTokenRecord,
@@ -64,7 +65,8 @@ export class JwtSessionService implements SessionService {
     private readonly userRepository: UserRepository,
     private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly configurationRepository: ConfigurationRepository,
-    private readonly userSessionRepository: UserSessionRepository
+    private readonly userSessionRepository: UserSessionRepository,
+    private readonly labRepository?: LabRepository
   ) {
     this.instanceId = Math.random().toString(36).substring(2, 8);
     const jwtConfig = configurationService.get('jwt');
@@ -267,7 +269,16 @@ export class JwtSessionService implements SessionService {
       return { success: false, code: 'SESSION_IDLE_TIMEOUT' };
     }
 
-    // 7. Update lastUsedAt ONLY if this is real activity (not a status check)
+    // 7. Check lab status — block if user's lab has been deactivated
+    if (this.labRepository && jwtResult.user.labId) {
+      const lab = await this.labRepository.findById(jwtResult.user.labId);
+      if (lab && !lab.isActive) {
+        await this.userSessionRepository.revokeSession(session.id);
+        return { success: false, code: 'LAB_DEACTIVATED' };
+      }
+    }
+
+    // 8. Update lastUsedAt ONLY if this is real activity (not a status check)
     if (updateActivity) {
       await this.userSessionRepository.updateLastUsed(session.id, new Date());
     }

@@ -286,7 +286,7 @@ export interface ConfigurationRepository {
   /**
    * Get system metrics for admin dashboard
    */
-  getSystemMetrics(): Promise<SystemMetrics>;
+  getSystemMetrics(labId: string): Promise<SystemMetrics>;
 
   /**
    * Get synchronization status

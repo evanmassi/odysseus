@@ -875,7 +875,12 @@ export class AuthController {
   async getMetrics(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
-      const metrics = await this.configRepository.getSystemMetrics();
+      const labId = req.user?.labId;
+      if (!labId) {
+        res.status(400).json(ResponseBuilder.error('LAB_REQUIRED', 'Lab context required for metrics'));
+        return;
+      }
+      const metrics = await this.configRepository.getSystemMetrics(labId);
 
       const response = ResponseBuilder.withTiming(startTime, metrics);
       res.status(200).json(response);

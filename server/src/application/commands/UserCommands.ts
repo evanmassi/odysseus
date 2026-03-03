@@ -470,7 +470,8 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
   constructor(
     private userRepository: UserRepository,
     private sessionService: SessionService,
-    private eventBus: EventBus
+    private eventBus: EventBus,
+    private labRepository?: LabRepository
   ) {}
 
   async handle(command: LoginCommand): Promise<LoginResult> {
@@ -507,6 +508,14 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
 
     if (user.status === 'suspended') {
       throw new InvalidCredentialsError('Account has been suspended. Contact your system administrator.');
+    }
+
+    // Check lab status — block login if lab is deactivated
+    if (this.labRepository && user.labId) {
+      const lab = await this.labRepository.findById(user.labId);
+      if (lab && !lab.isActive) {
+        throw new InvalidCredentialsError('Your lab has been deactivated. Contact your system administrator.');
+      }
     }
 
     // Check email verification if not admin-approved
@@ -622,7 +631,7 @@ export interface SessionValidationResult {
  */
 export type SessionValidationOutcome =
   | { success: true; user: User; sessionId: string }
-  | { success: false; code: 'INVALID_TOKEN' | 'SESSION_REVOKED' | 'SESSION_EXPIRED' | 'SESSION_IDLE_TIMEOUT' | 'SESSION_ABSOLUTE_TIMEOUT' };
+  | { success: false; code: 'INVALID_TOKEN' | 'SESSION_REVOKED' | 'SESSION_EXPIRED' | 'SESSION_IDLE_TIMEOUT' | 'SESSION_ABSOLUTE_TIMEOUT' | 'LAB_DEACTIVATED' };
 
 export interface SessionService {
   // OAuth 2.0 dual token support (pure implementation)

@@ -23,14 +23,6 @@ import { DataExportSection } from './DataExportSection';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
-
 export interface SystemTabProps {
   config: SecurityConfig;
   stats: SystemMetrics | null;
@@ -89,11 +81,6 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
           <span>Researchers:</span>
           <span className="font-semibold text-secondary-foreground">
             {stats?.totalResearchers ?? 0}
-          </span>
-          <span className="text-border">•</span>
-          <span>Database:</span>
-          <span className="font-semibold text-secondary-foreground">
-            {stats?.databaseSize ? formatBytes(stats.databaseSize) : '—'}
           </span>
           <span className="text-border">•</span>
           <span>Last Backup:</span>

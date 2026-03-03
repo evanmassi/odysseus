@@ -653,6 +653,10 @@ export class UserApplicationService {
     this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
 
+    if (admin.id === userId) {
+      throw new PermissionError('Cannot deactivate yourself', { userId: admin.id });
+    }
+
     const user = await this.getUserOrThrow(userId);
 
     if (expectedLabId && user.labId !== expectedLabId) {
@@ -680,6 +684,10 @@ export class UserApplicationService {
     const admin = await this.getUserByApiKey(adminApiKey);
     this.accessControlService.requireCanManageUsers(admin);
     this.rejectIfDemoLab(admin);
+
+    if (admin.id === userId) {
+      throw new PermissionError('Cannot suspend yourself', { userId: admin.id });
+    }
 
     const user = await this.getUserOrThrow(userId);
 

@@ -104,7 +104,7 @@ export class AdminRouteModule implements RouteModule {
 
     router.put('/users/:id/role',
       validateParams(z.object({ id: z.string() })),
-      validateBody(z.object({ role: z.enum(['admin', 'user']) })),
+      validateBody(z.object({ role: z.enum(['lab_admin', 'user']) })),
       this.authController.updateUserRole.bind(this.authController)
     );
 

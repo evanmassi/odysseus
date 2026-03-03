@@ -7,6 +7,7 @@
 import { LabRepository } from '@domain/repositories/LabRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
+import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { Lab } from '@domain/entities/Lab';
 import { User } from '@domain/entities/User';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -131,7 +132,8 @@ export class UpdateLabCommandHandler {
 export class DeactivateLabCommandHandler {
   constructor(
     private labRepository: LabRepository,
-    private userRepository: UserRepository
+    private userRepository: UserRepository,
+    private userSessionRepository: UserSessionRepository
   ) {}
 
   async handle(command: DeactivateLabCommand): Promise<void> {
@@ -148,6 +150,11 @@ export class DeactivateLabCommandHandler {
 
     lab.deactivate();
     await this.labRepository.save(lab);
+
+    const labUsers = await this.userRepository.findByLabId(command.labId);
+    await Promise.all(
+      labUsers.map(user => this.userSessionRepository.revokeAllSessions(user.id))
+    );
   }
 
   private async requireSystemAdmin(userId: string): Promise<User> {

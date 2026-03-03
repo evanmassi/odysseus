@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 
 import { queryKeys } from '@app/queryKeys';
+import { useAuthStore } from '@domains/authentication';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
@@ -110,6 +111,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   } | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
 
+  const currentUserId = useAuthStore(s => s.user?.id);
   const deleteUserMutation = useDeleteUserMutation();
   const deactivateUserMutation = useDeactivateUserMutation();
   const activateUserMutation = useActivateUserMutation();
@@ -156,9 +158,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         notifications.error('Failed to update user role');
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to update user role', { error });
-      notifications.error('Failed to update user role');
+      const message = error instanceof Error ? error.message : 'Failed to update user role';
+      notifications.error(message);
     } finally {
       setUpdating(null);
     }
@@ -439,8 +441,15 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       sortable: true,
       render: (_, row) => {
         const user = row as unknown as AdminUser;
+        const isDisabled =
+          readOnly ||
+          updating === user.id ||
+          user.role === 'system_admin' ||
+          user.id === currentUserId;
         return (
-          <div className="flex items-center gap-2 whitespace-nowrap">
+          <div
+            className={`flex items-center gap-2 whitespace-nowrap ${isDisabled ? 'opacity-50' : ''}`}
+          >
             <div className="w-28">
               <Select
                 value={user.role ?? 'user'}
@@ -450,7 +459,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                   }
                 }}
                 options={ROLE_OPTIONS}
-                disabled={readOnly || updating === user.id || user.role === 'system_admin'}
+                disabled={isDisabled}
                 size="sm"
                 fullWidth
               />
@@ -500,6 +509,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       header: 'Actions',
       render: (_, row) => {
         const user = row as unknown as AdminUser;
+        const isSelf = user.id === currentUserId;
         return (
           <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
             <Tooltip content="Reset password" side="bottom">
@@ -542,13 +552,16 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
               </Tooltip>
             )}
             {user.status === 'approved' && (
-              <Tooltip content="Deactivate user" side="bottom">
+              <Tooltip
+                content={isSelf ? 'Cannot deactivate yourself' : 'Deactivate user'}
+                side="bottom"
+              >
                 <Button
                   variant="ghost-danger"
                   size="xs"
                   iconOnly
                   onClick={() => void handleDeactivateUser(user.id, user.username)}
-                  disabled={deactivateUserMutation.isPending}
+                  disabled={isSelf || deactivateUserMutation.isPending}
                   aria-label="Deactivate user"
                 >
                   <Power size={16} />
@@ -574,12 +587,13 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                 <ShieldBan size={16} className="text-danger-text" />
               </Tooltip>
             )}
-            <Tooltip content="Delete user" side="bottom">
+            <Tooltip content={isSelf ? 'Cannot delete yourself' : 'Delete user'} side="bottom">
               <Button
                 variant="ghost-danger"
                 size="xs"
                 iconOnly
                 onClick={() => handleDeleteUser(user.id, user.username)}
+                disabled={isSelf}
                 isLoading={deleteUserMutation.isPending}
                 aria-label="Delete user"
               >
