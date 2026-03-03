@@ -240,7 +240,7 @@ export function SystemAdminContent() {
         {isLoading && labs.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground text-sm">Loading labs...</div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-5">
             {labs.map(lab => {
               const stats = getLabStats(lab.id);
               const codes = labInviteCodes[lab.id] ?? [];
@@ -248,10 +248,10 @@ export function SystemAdminContent() {
               return (
                 <div
                   key={lab.id}
-                  className={`p-4 rounded-lg space-y-3 cursor-pointer transition-colors outline outline-1 outline-offset-4 ${
+                  className={`px-4 py-3 rounded-lg space-y-2 cursor-pointer transition-colors outline outline-1 outline-offset-4 ${
                     lab.isDemo
-                      ? 'bg-demo-light outline-demo-border/50 hover:bg-demo-light-hover'
-                      : 'bg-muted outline-border/50 hover:bg-muted-hover'
+                      ? 'bg-demo-light outline-demo-text/50 hover:bg-demo-light-hover'
+                      : 'bg-muted outline-secondary-foreground/50 hover:bg-muted-hover'
                   }`}
                   onClick={() => setSelectedLabId(lab.id)}
                   onKeyDown={e => {
@@ -262,12 +262,20 @@ export function SystemAdminContent() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                      <LabBadge labId={lab.id} labName={lab.name} size="md" isDemo={lab.isDemo} />
+                      <LabBadge
+                        labId={lab.id}
+                        labName={lab.name}
+                        size="md"
+                        isDemo={lab.isDemo}
+                        isActive={lab.isActive}
+                      />
                       <h4 className="text-sm font-semibold text-card-foreground">{lab.name}</h4>
                     </div>
-                    <Chip color={lab.isActive ? 'success' : 'default'} size="sm">
-                      {lab.isActive ? 'Active' : 'Inactive'}
-                    </Chip>
+                    {lab.isDemo && (
+                      <Chip color="default" size="sm">
+                        Demo
+                      </Chip>
+                    )}
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">

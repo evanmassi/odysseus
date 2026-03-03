@@ -278,13 +278,20 @@ export class AuthController {
       const command = new LoginCommand(username, password);
       const result = await this.loginHandler.handle(command);
 
-      // Check approval status before issuing tokens
       if (result.user.isPending()) {
         throw new PermissionError('Account is awaiting administrator approval');
       }
 
       if (result.user.isRejected()) {
         throw new PermissionError('Account access has been denied');
+      }
+
+      if (result.user.isDeactivated()) {
+        throw new PermissionError('Account has been deactivated. Contact your lab administrator');
+      }
+
+      if (result.user.isSuspended()) {
+        throw new PermissionError('Account has been suspended. Contact your system administrator');
       }
 
       if (!result.user.isApproved()) {
@@ -1084,6 +1091,52 @@ export class AuthController {
     }
   }
 
+  async deactivateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.userApplicationService.deactivateUser(userId, adminApiKey);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User deactivated successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async activateUser(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.userApplicationService.approveUser(userId, adminApiKey);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User activated successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   /**
    * Link researcher to user (admin only)
    * POST /api/admin/users/:userId/link-researcher
@@ -1557,6 +1610,52 @@ export class AuthController {
   async deactivateUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const startTime = Date.now();
+      const { labId, userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.userApplicationService.deactivateUser(userId, adminApiKey, labId);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User deactivated successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async suspendUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
+      const { labId, userId } = req.params;
+      const adminApiKey = req.user?.apiKey;
+
+      if (!adminApiKey) {
+        throw new PermissionError('Authentication required');
+      }
+
+      await this.userApplicationService.suspendUser(userId, adminApiKey, labId);
+
+      const response = ResponseBuilder.withTiming(startTime, {
+        success: true,
+        message: 'User suspended successfully'
+      });
+
+      res.status(200).json(response);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteUserForLab(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const startTime = Date.now();
       const { userId } = req.params;
       const adminApiKey = req.user?.apiKey;
 
@@ -1564,11 +1663,11 @@ export class AuthController {
         throw new PermissionError('Authentication required');
       }
 
-      await this.userApplicationService.rejectUser(userId, adminApiKey);
+      await this.userApplicationService.deleteUser(userId, adminApiKey);
 
       const response = ResponseBuilder.withTiming(startTime, {
         success: true,
-        message: 'User deactivated successfully'
+        message: 'User deleted successfully'
       });
 
       res.status(200).json(response);

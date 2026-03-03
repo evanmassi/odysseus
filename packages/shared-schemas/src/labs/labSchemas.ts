@@ -64,7 +64,7 @@ export const labDetailsUserSchema = z.object({
   username: z.string(),
   email: z.string().nullable(),
   role: z.enum(['system_admin', 'lab_admin', 'user']),
-  status: z.enum(['pending', 'approved', 'rejected']),
+  status: z.enum(['pending', 'approved', 'rejected', 'deactivated', 'suspended']),
   isDemo: z.boolean(),
   lastActivity: z.string(),
   researcher: z.object({

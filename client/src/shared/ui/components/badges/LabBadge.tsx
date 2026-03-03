@@ -11,6 +11,7 @@ interface LabBadgeProps {
   labName: string;
   size?: 'sm' | 'md';
   isDemo?: boolean;
+  isActive?: boolean;
 }
 
 const BADGE_COLORS = [
@@ -47,17 +48,32 @@ const sizeClasses = {
 
 const DEMO_COLOR = { bg: 'bg-demo-bg/20', text: 'text-demo-text' };
 
-export function LabBadge({ labId, labName, size = 'sm', isDemo }: LabBadgeProps) {
+export function LabBadge({ labId, labName, size = 'sm', isDemo, isActive }: LabBadgeProps) {
   const color = isDemo ? DEMO_COLOR : BADGE_COLORS[hashToIndex(labId)];
   const initials = getLabInitials(labName);
   const { badge, text } = sizeClasses[size];
+  const inactiveClass = isActive === false ? 'opacity-40' : '';
+  const tooltipText =
+    isActive === true
+      ? `${labName} — Active`
+      : isActive === false
+        ? `${labName} — Inactive`
+        : labName;
 
   return (
-    <Tooltip content={labName} side="bottom">
-      <div
-        className={`${badge} ${color.bg} ${color.text} rounded-full flex items-center justify-center ${text} font-bold flex-shrink-0`}
-      >
-        {initials}
+    <Tooltip content={tooltipText} side="bottom">
+      <div className={`relative flex-shrink-0 ${badge} ${inactiveClass} ${isActive ? 'mx-1' : ''}`}>
+        {isActive && (
+          <div
+            className={`absolute inset-0 rounded-full ${color.text} badge-glow`}
+            aria-hidden="true"
+          />
+        )}
+        <div
+          className={`relative ${badge} ${color.bg} ${color.text} rounded-full flex items-center justify-center ${text} font-bold`}
+        >
+          {initials}
+        </div>
       </div>
     </Tooltip>
   );

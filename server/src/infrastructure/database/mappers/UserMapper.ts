@@ -13,7 +13,7 @@ export interface UserRow {
   created_at: Date | string;
   researcher_id?: string;
   person_id?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
   email_verified?: boolean;
   email_verification_token?: string;
   email_verification_expiry?: Date | string;

@@ -27,6 +27,8 @@ import {
   Link2,
   UsersRound,
   KeyRound,
+  Power,
+  ShieldBan,
 } from 'lucide-react';
 
 import { queryKeys } from '@app/queryKeys';
@@ -36,7 +38,11 @@ import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
-import { useDeleteUserMutation } from '../../../hooks/useUserMutations';
+import {
+  useDeleteUserMutation,
+  useDeactivateUserMutation,
+  useActivateUserMutation,
+} from '../../../hooks/useUserMutations';
 import { adminService } from '../../../services/AdminService';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
@@ -104,9 +110,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   } | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
 
-  // Mutation hook for user deletion
-  // Handles cache invalidation for users list and storage configuration
   const deleteUserMutation = useDeleteUserMutation();
+  const deactivateUserMutation = useDeactivateUserMutation();
+  const activateUserMutation = useActivateUserMutation();
   const queryClient = useQueryClient();
 
   /**
@@ -242,6 +248,26 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       setConfirmDialog(null);
     } finally {
       setProcessingApproval(null);
+    }
+  };
+
+  const handleDeactivateUser = async (userId: string, username: string) => {
+    try {
+      await deactivateUserMutation.mutateAsync(userId);
+      notifications.success(`User "${username}" deactivated`);
+      onUserUpdate();
+    } catch {
+      notifications.error('Failed to deactivate user');
+    }
+  };
+
+  const handleActivateUser = async (userId: string, username: string) => {
+    try {
+      await activateUserMutation.mutateAsync(userId);
+      notifications.success(`User "${username}" activated`);
+      onUserUpdate();
+    } catch {
+      notifications.error('Failed to activate user');
     }
   };
 
@@ -472,6 +498,39 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                 <KeyRound size={16} />
               </Button>
             </Tooltip>
+            {user.status === 'approved' && (
+              <Tooltip content="Deactivate user" side="bottom">
+                <Button
+                  variant="ghost-danger"
+                  size="xs"
+                  iconOnly
+                  onClick={() => void handleDeactivateUser(user.id, user.username)}
+                  disabled={deactivateUserMutation.isPending}
+                  aria-label="Deactivate user"
+                >
+                  <Power size={16} />
+                </Button>
+              </Tooltip>
+            )}
+            {user.status === 'deactivated' && (
+              <Tooltip content="Reactivate user" side="bottom">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  iconOnly
+                  onClick={() => void handleActivateUser(user.id, user.username)}
+                  disabled={activateUserMutation.isPending}
+                  aria-label="Reactivate user"
+                >
+                  <UserRoundCheck size={16} className="text-success-text" />
+                </Button>
+              </Tooltip>
+            )}
+            {user.status === 'suspended' && (
+              <Tooltip content="Suspended by system admin" side="bottom">
+                <ShieldBan size={16} className="text-danger-text" />
+              </Tooltip>
+            )}
             {user.researcherId ? (
               <Tooltip content="Unlink researcher" side="bottom">
                 <Button

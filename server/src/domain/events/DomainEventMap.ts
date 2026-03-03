@@ -46,7 +46,10 @@ import type {
   UserLinkedToResearcherEvent,
   UserUnlinkedFromResearcherEvent,
   UserApprovedEvent,
-  UserRejectedEvent
+  UserRejectedEvent,
+  UserDeactivatedEvent,
+  UserSuspendedEvent,
+  UserReactivatedEvent
 } from './UserEvents';
 import type {
   ResearcherCreatedEvent,
@@ -136,6 +139,9 @@ export interface DomainEventMap {
   'UserUnlinkedFromResearcher': UserUnlinkedFromResearcherEvent;
   'UserApproved': UserApprovedEvent;
   'UserRejected': UserRejectedEvent;
+  'UserDeactivated': UserDeactivatedEvent;
+  'UserSuspended': UserSuspendedEvent;
+  'UserReactivated': UserReactivatedEvent;
 
   // Researcher events
   'ResearcherCreated': ResearcherCreatedEvent;

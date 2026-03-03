@@ -61,7 +61,7 @@ export interface UserPublicData {
   role: 'system_admin' | 'lab_admin' | 'user';
   createdAt: string;
   lastActivity: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
   researcherId?: string;
   personId?: string;
   labId?: string;

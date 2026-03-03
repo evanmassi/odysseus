@@ -8,7 +8,7 @@ export function createTestUser(overrides: {
   username?: string;
   password?: string;
   role?: UserRole;
-  status?: 'pending' | 'approved' | 'rejected';
+  status?: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
   labId?: string;
   researcherId?: string;
 } = {}): User {

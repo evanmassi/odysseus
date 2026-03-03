@@ -134,6 +134,30 @@ export class AdminService {
     }
   }
 
+  async deactivateUser(userId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.post<{ success: boolean }>(
+        `/admin/users/${userId}/deactivate`
+      );
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to deactivate user', { userId, error });
+      throw error;
+    }
+  }
+
+  async activateUser(userId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.post<{ success: boolean }>(
+        `/admin/users/${userId}/activate`
+      );
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to activate user', { userId, error });
+      throw error;
+    }
+  }
+
   /**
    * Link researcher profile to user (admin only)
    */

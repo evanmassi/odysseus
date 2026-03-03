@@ -64,7 +64,30 @@ export class ExpressAuthMiddleware implements AuthMiddleware {
           return;
         }
 
-        // Add user and sessionId to request context
+        // Block non-approved users immediately (catches deactivated/suspended mid-session)
+        if (!result.user.isApproved()) {
+          const statusMessages: Record<string, string> = {
+            deactivated: 'Account has been deactivated. Contact your lab administrator',
+            suspended: 'Account has been suspended. Contact your system administrator',
+            pending: 'Account is awaiting administrator approval',
+            rejected: 'Account access has been denied'
+          };
+          const message = statusMessages[result.user.status] || 'Account is not approved for access';
+
+          res.status(403).json({
+            success: false,
+            error: {
+              code: 'ACCOUNT_INACTIVE',
+              message
+            },
+            meta: {
+              timestamp: new Date().toISOString(),
+              requestId: req.headers['x-request-id'] || 'unknown'
+            }
+          });
+          return;
+        }
+
         req.user = result.user;
         req.sessionId = result.sessionId;
 

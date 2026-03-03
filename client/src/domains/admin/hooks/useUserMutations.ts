@@ -33,6 +33,42 @@ import { logger } from '@shared/infrastructure/logger';
  * };
  * ```
  */
+export const useDeactivateUserMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await adminService.deactivateUser(userId);
+      if (!response.success) throw new Error('Failed to deactivate user');
+      return response;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
+    },
+    onError: (error, userId) => {
+      logger.error(`Failed to deactivate user ${userId}`, { error });
+    },
+  });
+};
+
+export const useActivateUserMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      const response = await adminService.activateUser(userId);
+      if (!response.success) throw new Error('Failed to activate user');
+      return response;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
+    },
+    onError: (error, userId) => {
+      logger.error(`Failed to activate user ${userId}`, { error });
+    },
+  });
+};
+
 export const useDeleteUserMutation = () => {
   const queryClient = useQueryClient();
 

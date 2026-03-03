@@ -151,6 +151,38 @@ export function useDeactivateUserMutation() {
   });
 }
 
+export function useSuspendUserMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ labId, userId }: { labId: string; userId: string }) =>
+      labService.suspendUser(labId, userId),
+    onSuccess: (_data, { labId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
+    },
+    onError: error => {
+      logger.error('Failed to suspend user', { error });
+    },
+  });
+}
+
+export function useDeleteUserForLabMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ labId, userId }: { labId: string; userId: string }) =>
+      labService.deleteUser(labId, userId),
+    onSuccess: (_data, { labId }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.overview() });
+    },
+    onError: error => {
+      logger.error('Failed to delete user', { error });
+    },
+  });
+}
+
 export function useResetDemoDataMutation() {
   const queryClient = useQueryClient();
 

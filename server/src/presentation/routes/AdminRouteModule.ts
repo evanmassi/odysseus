@@ -69,6 +69,16 @@ export class AdminRouteModule implements RouteModule {
       this.authController.rejectUser.bind(this.authController)
     );
 
+    router.post('/users/:userId/deactivate',
+      validateParams(z.object({ userId: z.string() })),
+      this.authController.deactivateUser.bind(this.authController)
+    );
+
+    router.post('/users/:userId/activate',
+      validateParams(z.object({ userId: z.string() })),
+      this.authController.activateUser.bind(this.authController)
+    );
+
     router.post('/users/:userId/link-researcher',
       validateParams(z.object({ userId: z.string() })),
       validateBody(z.object({

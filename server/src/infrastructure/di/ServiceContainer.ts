@@ -1281,7 +1281,8 @@ export class ServiceContainer {
         repositories.configurations,
         this.getEventBus(),
         repositories.inviteCodes,
-        repositories.labs
+        repositories.labs,
+        repositories.userSessions
       );
     }
     return this.userApplicationService;

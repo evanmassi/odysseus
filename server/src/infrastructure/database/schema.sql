@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   researcher_id TEXT REFERENCES researchers(id) ON DELETE SET NULL,
   person_id TEXT REFERENCES persons(id) ON DELETE SET NULL,
-  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'deactivated', 'suspended')),
   email_verified BOOLEAN DEFAULT FALSE,
   email_verification_token TEXT,
   email_verification_expiry TIMESTAMPTZ,

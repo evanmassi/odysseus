@@ -15,7 +15,7 @@ interface UserConstructorProps {
   lastActivity: Date;
   researcherId?: string;
   personId?: string;
-  status?: 'pending' | 'approved' | 'rejected';
+  status?: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
   emailVerified?: boolean;
   emailVerificationToken?: string;
   emailVerificationExpiry?: Date | string;
@@ -56,7 +56,7 @@ export class User {
   private _lastActivity: Date;
   private _researcherId?: string;
   private _personId?: string;
-  private _status: 'pending' | 'approved' | 'rejected';
+  private _status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
   private readonly _labId?: string;
 
   private constructor(props: UserConstructorProps) {
@@ -157,7 +157,7 @@ export class User {
     role: UserRole,
     researcherId?: string,
     personId?: string,
-    status: 'pending' | 'approved' | 'rejected' = 'pending',
+    status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended' = 'pending',
     labId?: string
   ): User {
     const now = new Date();
@@ -195,7 +195,7 @@ export class User {
     salt?: string;
     researcherId?: string;
     personId?: string;
-    status?: 'pending' | 'approved' | 'rejected';
+    status?: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
     emailVerified?: number;
     emailVerificationToken?: string;
     emailVerificationExpiry?: string;
@@ -492,13 +492,20 @@ export class User {
       throw new PermissionError('Only administrators can approve users');
     }
 
-    // Lab admins can only approve users in their own lab
     if (approvedBy.isLabAdmin() && !approvedBy.isSystemAdmin() && this._labId !== approvedBy._labId) {
       throw new PermissionError('Lab administrators can only approve users within their own lab');
     }
 
-    if (this._status !== 'pending') {
-      throw new ValidationError(`Cannot approve user with status ${this._status}`);
+    if (this._status === 'approved') {
+      throw new ValidationError('User is already approved');
+    }
+
+    if (this._status === 'rejected') {
+      throw new ValidationError('Rejected users cannot be approved');
+    }
+
+    if (this._status === 'suspended' && !approvedBy.isSystemAdmin()) {
+      throw new PermissionError('Only system administrators can unsuspend users');
     }
 
     this._status = 'approved';
@@ -510,16 +517,45 @@ export class User {
       throw new PermissionError('Only administrators can reject users');
     }
 
-    // Lab admins can only reject users in their own lab
     if (rejectedBy.isLabAdmin() && !rejectedBy.isSystemAdmin() && this._labId !== rejectedBy._labId) {
       throw new PermissionError('Lab administrators can only reject users within their own lab');
     }
 
     if (this._status !== 'pending') {
-      throw new ValidationError(`Cannot reject user with status ${this._status}`);
+      throw new ValidationError('Only pending users can be rejected');
     }
 
     this._status = 'rejected';
+    this.recordActivity();
+  }
+
+  deactivate(deactivatedBy: User): void {
+    if (!deactivatedBy.isAdmin()) {
+      throw new PermissionError('Only administrators can deactivate users');
+    }
+
+    if (deactivatedBy.isLabAdmin() && !deactivatedBy.isSystemAdmin() && this._labId !== deactivatedBy._labId) {
+      throw new PermissionError('Lab administrators can only deactivate users within their own lab');
+    }
+
+    if (this._status !== 'approved') {
+      throw new ValidationError('Only approved users can be deactivated');
+    }
+
+    this._status = 'deactivated';
+    this.recordActivity();
+  }
+
+  suspend(suspendedBy: User): void {
+    if (!suspendedBy.isSystemAdmin()) {
+      throw new PermissionError('Only system administrators can suspend users');
+    }
+
+    if (this._status !== 'approved') {
+      throw new ValidationError('Only approved users can be suspended');
+    }
+
+    this._status = 'suspended';
     this.recordActivity();
   }
 
@@ -542,6 +578,14 @@ export class User {
    */
   isRejected(): boolean {
     return this._status === 'rejected';
+  }
+
+  isDeactivated(): boolean {
+    return this._status === 'deactivated';
+  }
+
+  isSuspended(): boolean {
+    return this._status === 'suspended';
   }
 
   /**
@@ -589,7 +633,7 @@ export class User {
     lastActivity: string;
     researcherId?: string;
     personId?: string;
-    status: 'pending' | 'approved' | 'rejected';
+    status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
     settings: UserSettings;
     labId?: string;
   } {
@@ -614,7 +658,7 @@ export class User {
     role: 'system_admin' | 'lab_admin' | 'user';
     createdAt: string;
     lastActivity: string;
-    status: 'pending' | 'approved' | 'rejected';
+    status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended';
     isDemo: boolean;
     researcherId?: string;
     personId?: string;
@@ -658,7 +702,7 @@ export class User {
   get lastActivity(): Date { return new Date(this._lastActivity); } // Return copy
   get researcherId(): string | undefined { return this._researcherId; }
   get personId(): string | undefined { return this._personId; }
-  get status(): 'pending' | 'approved' | 'rejected' { return this._status; }
+  get status(): 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended' { return this._status; }
 
   // Password getters (for persistence layer)
   get passwordHash(): string | undefined { return this._passwordHash; }

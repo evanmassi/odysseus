@@ -104,12 +104,12 @@ export interface UserRepository {
   isAdmin(apiKey: string): Promise<boolean>;
   countByRole(role: 'system_admin' | 'lab_admin' | 'user'): Promise<number>;
   isEmpty(): Promise<boolean>;
-  findByStatus(status: 'pending' | 'approved' | 'rejected'): Promise<User[]>;
+  findByStatus(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended'): Promise<User[]>;
 
   // LAB-SCOPED OPERATIONS
 
   findByLabId(labId: string): Promise<User[]>;
-  findByStatusInLab(status: 'pending' | 'approved' | 'rejected', labId: string): Promise<User[]>;
+  findByStatusInLab(status: 'pending' | 'approved' | 'rejected' | 'deactivated' | 'suspended', labId: string): Promise<User[]>;
   countByRoleInLab(role: 'system_admin' | 'lab_admin' | 'user', labId: string): Promise<number>;
   isLabEmpty(labId: string): Promise<boolean>;
 

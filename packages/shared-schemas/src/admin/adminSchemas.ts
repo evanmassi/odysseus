@@ -90,7 +90,7 @@ export const adminUserSchema = z.object({
   lastActivity: z.union([z.string().datetime(), z.date()]).optional(),
   isActive: z.boolean().default(true),
   isDemo: z.boolean().default(false),
-  status: z.enum(['pending', 'approved', 'rejected']).default('approved'),
+  status: z.enum(['pending', 'approved', 'rejected', 'deactivated', 'suspended']).default('approved'),
   requirePasswordChange: z.boolean().optional().default(false),
   firstName: z.string().optional(),
   lastName: z.string().optional(),

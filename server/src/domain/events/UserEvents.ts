@@ -274,3 +274,83 @@ export class UserRejectedEvent extends DomainEvent {
     };
   }
 }
+
+export class UserDeactivatedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly username: string,
+    public readonly deactivatedBy: string
+  ) {
+    super(1);
+  }
+
+  eventName(): string {
+    return 'UserDeactivated';
+  }
+
+  getAggregateId(): string {
+    return this.userId;
+  }
+
+  protected getEventData(): Record<string, any> {
+    return {
+      userId: this.userId,
+      username: this.username,
+      deactivatedBy: this.deactivatedBy
+    };
+  }
+}
+
+export class UserSuspendedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly username: string,
+    public readonly suspendedBy: string
+  ) {
+    super(1);
+  }
+
+  eventName(): string {
+    return 'UserSuspended';
+  }
+
+  getAggregateId(): string {
+    return this.userId;
+  }
+
+  protected getEventData(): Record<string, any> {
+    return {
+      userId: this.userId,
+      username: this.username,
+      suspendedBy: this.suspendedBy
+    };
+  }
+}
+
+export class UserReactivatedEvent extends DomainEvent {
+  constructor(
+    public readonly userId: string,
+    public readonly username: string,
+    public readonly previousStatus: 'deactivated' | 'suspended',
+    public readonly reactivatedBy: string
+  ) {
+    super(1);
+  }
+
+  eventName(): string {
+    return 'UserReactivated';
+  }
+
+  getAggregateId(): string {
+    return this.userId;
+  }
+
+  protected getEventData(): Record<string, any> {
+    return {
+      userId: this.userId,
+      username: this.username,
+      previousStatus: this.previousStatus,
+      reactivatedBy: this.reactivatedBy
+    };
+  }
+}

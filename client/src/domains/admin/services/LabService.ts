@@ -195,6 +195,24 @@ export class LabService {
     }
   }
 
+  async suspendUser(labId: string, userId: string): Promise<void> {
+    try {
+      await httpClient.post(`/system/labs/${labId}/users/${userId}/suspend`);
+    } catch (error) {
+      logger.error('Failed to suspend user', { labId, userId, error });
+      throw error;
+    }
+  }
+
+  async deleteUser(labId: string, userId: string): Promise<void> {
+    try {
+      await httpClient.delete(`/system/labs/${labId}/users/${userId}`);
+    } catch (error) {
+      logger.error('Failed to delete user', { labId, userId, error });
+      throw error;
+    }
+  }
+
   async getLabAuditLog(
     labId: string,
     filters: AuditLogFilters = {},

@@ -153,5 +153,15 @@ export class SystemAdminRouteModule implements RouteModule {
       validateParams(z.object({ labId: z.string(), userId: z.string() })),
       this.authController.deactivateUserForLab.bind(this.authController)
     );
+
+    router.post('/labs/:labId/users/:userId/suspend',
+      validateParams(z.object({ labId: z.string(), userId: z.string() })),
+      this.authController.suspendUserForLab.bind(this.authController)
+    );
+
+    router.delete('/labs/:labId/users/:userId',
+      validateParams(z.object({ labId: z.string(), userId: z.string() })),
+      this.authController.deleteUserForLab.bind(this.authController)
+    );
   }
 }

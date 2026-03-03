@@ -4,6 +4,7 @@ import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
 import { LabRepository } from '@domain/repositories/LabRepository';
+import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { User } from '@domain/entities/User';
 import { Researcher } from '@domain/entities/Researcher';
 import { Person } from '@domain/entities/Person';
@@ -22,7 +23,10 @@ import {
   UserUnlinkedFromResearcherEvent,
   UserLoggedOutEvent,
   UserApprovedEvent,
-  UserRejectedEvent
+  UserRejectedEvent,
+  UserDeactivatedEvent,
+  UserSuspendedEvent,
+  UserReactivatedEvent
 } from '@domain/events/UserEvents';
 
 /**
@@ -40,7 +44,8 @@ export class UserApplicationService {
     private configurationRepository?: ConfigurationRepository,
     private eventBus?: EventBus,
     private inviteCodeRepository?: InviteCodeRepository,
-    private labRepository?: LabRepository
+    private labRepository?: LabRepository,
+    private userSessionRepository?: UserSessionRepository
   ) {}
 
   /**
@@ -141,13 +146,20 @@ export class UserApplicationService {
       throw new PermissionError('Invalid credentials');
     }
 
-    // Check approval status before issuing tokens
     if (user.isPending()) {
       throw new PermissionError('Account is awaiting administrator approval');
     }
 
     if (user.isRejected()) {
       throw new PermissionError('Account access has been denied');
+    }
+
+    if (user.isDeactivated()) {
+      throw new PermissionError('Account has been deactivated. Contact your lab administrator');
+    }
+
+    if (user.isSuspended()) {
+      throw new PermissionError('Account has been suspended. Contact your system administrator');
     }
 
     if (!user.isApproved()) {
@@ -575,17 +587,26 @@ export class UserApplicationService {
 
     const user = await this.getUserOrThrow(userId);
 
-    // Approve user (domain method enforces business rules)
+    const previousStatus = user.status;
+
     user.approve(admin);
     await this.userRepository.save(user);
 
-    // Publish event for real-time sync
     if (this.eventBus) {
-      await this.eventBus.publish(new UserApprovedEvent(
-        user.id,
-        user.username,
-        admin.username
-      ));
+      if (previousStatus === 'deactivated' || previousStatus === 'suspended') {
+        await this.eventBus.publish(new UserReactivatedEvent(
+          user.id,
+          user.username,
+          previousStatus,
+          admin.username
+        ));
+      } else {
+        await this.eventBus.publish(new UserApprovedEvent(
+          user.id,
+          user.username,
+          admin.username
+        ));
+      }
     }
   }
 
@@ -619,6 +640,60 @@ export class UserApplicationService {
       await this.eventBus.publish(new UserRejectedEvent(
         userId,
         username,
+        admin.username
+      ));
+    }
+  }
+
+  async deactivateUser(userId: string, adminApiKey: string, expectedLabId?: string): Promise<void> {
+    const admin = await this.getUserByApiKey(adminApiKey);
+    this.accessControlService.requireCanManageUsers(admin);
+    this.rejectIfDemoLab(admin);
+
+    const user = await this.getUserOrThrow(userId);
+
+    if (expectedLabId && user.labId !== expectedLabId) {
+      throw new ValidationError('User does not belong to the specified lab');
+    }
+
+    user.deactivate(admin);
+    await this.userRepository.save(user);
+
+    if (this.userSessionRepository) {
+      await this.userSessionRepository.revokeAllSessions(user.id);
+    }
+
+    if (this.eventBus) {
+      await this.eventBus.publish(new UserDeactivatedEvent(
+        user.id,
+        user.username,
+        admin.username
+      ));
+    }
+  }
+
+  async suspendUser(userId: string, adminApiKey: string, expectedLabId?: string): Promise<void> {
+    const admin = await this.getUserByApiKey(adminApiKey);
+    this.accessControlService.requireCanManageUsers(admin);
+    this.rejectIfDemoLab(admin);
+
+    const user = await this.getUserOrThrow(userId);
+
+    if (expectedLabId && user.labId !== expectedLabId) {
+      throw new ValidationError('User does not belong to the specified lab');
+    }
+
+    user.suspend(admin);
+    await this.userRepository.save(user);
+
+    if (this.userSessionRepository) {
+      await this.userSessionRepository.revokeAllSessions(user.id);
+    }
+
+    if (this.eventBus) {
+      await this.eventBus.publish(new UserSuspendedEvent(
+        user.id,
+        user.username,
         admin.username
       ));
     }
