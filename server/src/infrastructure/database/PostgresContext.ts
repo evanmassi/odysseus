@@ -665,8 +665,8 @@ export class PostgresContext {
       await this.pool.query(`UPDATE researchers SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
       await this.pool.query(`UPDATE tubes SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
       await this.pool.query(`UPDATE lookup_values SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
-      await this.pool.query(`UPDATE audit_log SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
-      await this.pool.query(`UPDATE audit_log_archive SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
+      await this.pool.query(`UPDATE audit_log a SET lab_id = u.lab_id FROM users u WHERE a.user_id = u.id AND a.lab_id IS NULL AND u.lab_id IS NOT NULL`);
+      await this.pool.query(`UPDATE audit_log_archive a SET lab_id = u.lab_id FROM users u WHERE a.user_id = u.id AND a.lab_id IS NULL AND u.lab_id IS NOT NULL`);
       await this.pool.query(`UPDATE configuration_current SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
       await this.pool.query(`UPDATE configuration_versions SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
       await this.pool.query(`UPDATE configuration_snapshots SET lab_id = $1 WHERE lab_id IS NULL`, [backfillLabId]);
