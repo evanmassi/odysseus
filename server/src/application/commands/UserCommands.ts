@@ -500,10 +500,17 @@ export class LoginCommandHandler implements CommandHandler<LoginCommand, LoginRe
       throw new InvalidCredentialsError('Account access has been denied. Contact administrator for more information.');
     }
 
+    if (user.status === 'deactivated') {
+      throw new InvalidCredentialsError('Account has been deactivated. Contact your lab administrator.');
+    }
+
+    if (user.status === 'suspended') {
+      throw new InvalidCredentialsError('Account has been suspended. Contact your system administrator.');
+    }
+
     // Check email verification if not admin-approved
     // Admin approval bypasses email verification requirement (admin manually vets users)
     // This allows system to work without email service - admin approval is primary security gate
-    // Note: All users now have email via Person entity
     if (!user.isEmailVerified() && user.status !== 'approved') {
       throw new InvalidCredentialsError('Email not verified. Check your inbox for verification link.');
     }

@@ -633,9 +633,9 @@ export class AuthController {
         return;
       }
       const users = await this.userRepository.findByLabId(labId);
-      const approvedUsers = users.filter(u => u.isApproved());
+      const nonPendingUsers = users.filter(u => !u.isPending());
 
-      const publicDataList = approvedUsers.map(u => u.toPublicData());
+      const publicDataList = nonPendingUsers.map(u => u.toPublicData());
 
       // Collect IDs for batch fetching
       const directPersonIds = publicDataList

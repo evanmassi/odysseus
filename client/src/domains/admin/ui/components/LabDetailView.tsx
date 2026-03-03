@@ -66,6 +66,8 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
   const activateLabMutation = useActivateLabMutation();
   const deactivateLabMutation = useDeactivateLabMutation();
   const deleteUserMutation = useDeleteUserForLabMutation();
+  const deactivateUserMutation = useDeactivateUserMutation();
+  const suspendUserMutation = useSuspendUserMutation();
   const resetDemoMutation = useResetDemoDataMutation();
   const seedDemoMutation = useSeedDemoMutation();
   const unseedDemoMutation = useUnseedDemoMutation();
@@ -76,6 +78,8 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
   const [newName, setNewName] = useState('');
   const [deactivateTarget, setDeactivateTarget] = useState<string | null>(null);
   const [deleteUserTarget, setDeleteUserTarget] = useState<LabDetailsUser | null>(null);
+  const [deactivateUserTarget, setDeactivateUserTarget] = useState<LabDetailsUser | null>(null);
+  const [suspendUserTarget, setSuspendUserTarget] = useState<LabDetailsUser | null>(null);
   const [resetDemoConfirm, setResetDemoConfirm] = useState(false);
   const [seedConfirm, setSeedConfirm] = useState(false);
   const [unseedConfirm, setUnseedConfirm] = useState(false);
@@ -467,7 +471,12 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
               <h3 className="text-sm font-semibold text-card-foreground">Users</h3>
             </div>
             <Table
-              columns={getUserColumns(labId, setDeleteUserTarget)}
+              columns={getUserColumns(
+                labId,
+                setDeleteUserTarget,
+                setDeactivateUserTarget,
+                setSuspendUserTarget
+              )}
               data={users}
               size="sm"
               rounded="lg"
@@ -516,6 +525,48 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
             </div>
           </Collapsible.Content>
         </Collapsible.Root>
+
+        <ConfirmDialog
+          isOpen={deactivateUserTarget !== null}
+          title="Deactivate User"
+          message={`Are you sure you want to deactivate "${deactivateUserTarget?.username}"? They will no longer be able to log in. This can be reversed.`}
+          confirmText="Deactivate"
+          variant="danger"
+          isLoading={deactivateUserMutation.isPending}
+          onConfirm={async () => {
+            if (!deactivateUserTarget) return;
+            try {
+              await deactivateUserMutation.mutateAsync({ labId, userId: deactivateUserTarget.id });
+              notifications.success(`${deactivateUserTarget.username} deactivated`);
+              setDeactivateUserTarget(null);
+            } catch {
+              notifications.error('Failed to deactivate user');
+              setDeactivateUserTarget(null);
+            }
+          }}
+          onCancel={() => setDeactivateUserTarget(null)}
+        />
+
+        <ConfirmDialog
+          isOpen={suspendUserTarget !== null}
+          title="Suspend User"
+          message={`Are you sure you want to suspend "${suspendUserTarget?.username}"? They will no longer be able to log in. Only a system administrator can reverse this.`}
+          confirmText="Suspend"
+          variant="danger"
+          isLoading={suspendUserMutation.isPending}
+          onConfirm={async () => {
+            if (!suspendUserTarget) return;
+            try {
+              await suspendUserMutation.mutateAsync({ labId, userId: suspendUserTarget.id });
+              notifications.success(`${suspendUserTarget.username} suspended`);
+              setSuspendUserTarget(null);
+            } catch {
+              notifications.error('Failed to suspend user');
+              setSuspendUserTarget(null);
+            }
+          }}
+          onCancel={() => setSuspendUserTarget(null)}
+        />
 
         <ConfirmDialog
           isOpen={deleteUserTarget !== null}
@@ -595,18 +646,16 @@ function ActionsCell({
   user,
   labId,
   onDeleteUser,
+  onDeactivateUser,
+  onSuspendUser,
 }: {
   user: LabDetailsUser;
   labId: string;
   onDeleteUser: (user: LabDetailsUser) => void;
+  onDeactivateUser: (user: LabDetailsUser) => void;
+  onSuspendUser: (user: LabDetailsUser) => void;
 }) {
   const activateUserMutation = useActivateUserMutation();
-  const deactivateUserMutation = useDeactivateUserMutation();
-  const suspendUserMutation = useSuspendUserMutation();
-  const isPending =
-    activateUserMutation.isPending ||
-    deactivateUserMutation.isPending ||
-    suspendUserMutation.isPending;
 
   const handleActivate = async () => {
     try {
@@ -614,24 +663,6 @@ function ActionsCell({
       notifications.success(`${user.username} activated`);
     } catch {
       notifications.error('Failed to activate user');
-    }
-  };
-
-  const handleDeactivate = async () => {
-    try {
-      await deactivateUserMutation.mutateAsync({ labId, userId: user.id });
-      notifications.success(`${user.username} deactivated`);
-    } catch {
-      notifications.error('Failed to deactivate user');
-    }
-  };
-
-  const handleSuspend = async () => {
-    try {
-      await suspendUserMutation.mutateAsync({ labId, userId: user.id });
-      notifications.success(`${user.username} suspended`);
-    } catch {
-      notifications.error('Failed to suspend user');
     }
   };
 
@@ -644,7 +675,7 @@ function ActionsCell({
             size="xs"
             iconOnly
             onClick={handleActivate}
-            disabled={isPending}
+            disabled={activateUserMutation.isPending}
             aria-label="Approve user"
           >
             <UserRoundCheck size={16} className="text-success-text" />
@@ -658,8 +689,7 @@ function ActionsCell({
               variant="ghost-danger"
               size="xs"
               iconOnly
-              onClick={handleDeactivate}
-              disabled={isPending}
+              onClick={() => onDeactivateUser(user)}
               aria-label="Deactivate user"
             >
               <Power size={16} />
@@ -670,8 +700,7 @@ function ActionsCell({
               variant="ghost-danger"
               size="xs"
               iconOnly
-              onClick={handleSuspend}
-              disabled={isPending}
+              onClick={() => onSuspendUser(user)}
               aria-label="Suspend user"
             >
               <ShieldBan size={16} />
@@ -737,7 +766,9 @@ function formatLastActivity(iso: string): string {
 
 function getUserColumns(
   labId: string,
-  onDeleteUser: (user: LabDetailsUser) => void
+  onDeleteUser: (user: LabDetailsUser) => void,
+  onDeactivateUser: (user: LabDetailsUser) => void,
+  onSuspendUser: (user: LabDetailsUser) => void
 ): TableColumn[] {
   return [
     {
@@ -827,6 +858,8 @@ function getUserColumns(
           user={row as unknown as LabDetailsUser}
           labId={labId}
           onDeleteUser={onDeleteUser}
+          onDeactivateUser={onDeactivateUser}
+          onSuspendUser={onSuspendUser}
         />
       ),
     },

@@ -314,10 +314,17 @@ describe('User', () => {
       expect(() => user.suspend(labAdmin)).toThrow('Only system administrators can suspend users');
     });
 
-    it('should not suspend non-approved user', () => {
+    it('should escalate deactivated to suspended', () => {
+      const sysAdmin = createTestSystemAdmin();
+      const user = createTestUser({ status: 'deactivated' });
+      user.suspend(sysAdmin);
+      expect(user.isSuspended()).toBe(true);
+    });
+
+    it('should not suspend pending user', () => {
       const sysAdmin = createTestSystemAdmin();
       const user = createTestUser({ status: 'pending' });
-      expect(() => user.suspend(sysAdmin)).toThrow('Only approved users can be suspended');
+      expect(() => user.suspend(sysAdmin)).toThrow('Only approved or deactivated users can be suspended');
     });
 
     it('should unsuspend user (system admin only)', () => {

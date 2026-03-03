@@ -104,7 +104,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   } | null>(null);
   const [isPasswordResetModalOpen, setIsPasswordResetModalOpen] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
-    type: 'delete' | 'reject' | 'unlink';
+    type: 'delete' | 'reject' | 'unlink' | 'deactivate';
     userId: string;
     username: string;
   } | null>(null);
@@ -251,13 +251,19 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     }
   };
 
-  const handleDeactivateUser = async (userId: string, username: string) => {
+  const handleDeactivateUser = (userId: string, username: string) => {
+    setConfirmDialog({ type: 'deactivate', userId, username });
+  };
+
+  const executeDeactivateUser = async (userId: string, username: string) => {
     try {
       await deactivateUserMutation.mutateAsync(userId);
       notifications.success(`User "${username}" deactivated`);
+      setConfirmDialog(null);
       onUserUpdate();
     } catch {
       notifications.error('Failed to deactivate user');
+      setConfirmDialog(null);
     }
   };
 
@@ -383,7 +389,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
             : user.username.slice(0, 2).toUpperCase();
 
         return (
-          <div className="flex items-center whitespace-nowrap gap-2">
+          <div
+            className={`flex items-center whitespace-nowrap gap-2 ${user.status !== 'approved' ? 'opacity-60' : ''}`}
+          >
             <UserBadge type="otherUser" initials={initials} username={user.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
@@ -402,6 +410,16 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-secondary-foreground">
                     Lab Admin
                   </span>
+                )}
+                {user.status === 'deactivated' && (
+                  <Tooltip content="Deactivated" side="bottom">
+                    <Power size={12} className="text-danger-text" />
+                  </Tooltip>
+                )}
+                {user.status === 'suspended' && (
+                  <Tooltip content="Suspended by system admin" side="bottom">
+                    <ShieldBan size={12} className="text-danger-text" />
+                  </Tooltip>
                 )}
                 {user.requirePasswordChange && (
                   <Tooltip content="Password change required on next login" side="bottom">
@@ -498,6 +516,31 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
                 <KeyRound size={16} />
               </Button>
             </Tooltip>
+            {user.researcherId ? (
+              <Tooltip content="Unlink researcher" side="bottom">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  iconOnly
+                  onClick={() => unlinkResearcher(user.id, user.username)}
+                  aria-label="Unlink researcher"
+                >
+                  <Unlink2 size={16} />
+                </Button>
+              </Tooltip>
+            ) : (
+              <Tooltip content="Link researcher" side="bottom">
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  iconOnly
+                  onClick={() => openLinkModal({ id: user.id, username: user.username })}
+                  aria-label="Link researcher"
+                >
+                  <Link2 size={16} />
+                </Button>
+              </Tooltip>
+            )}
             {user.status === 'approved' && (
               <Tooltip content="Deactivate user" side="bottom">
                 <Button
@@ -529,31 +572,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
             {user.status === 'suspended' && (
               <Tooltip content="Suspended by system admin" side="bottom">
                 <ShieldBan size={16} className="text-danger-text" />
-              </Tooltip>
-            )}
-            {user.researcherId ? (
-              <Tooltip content="Unlink researcher" side="bottom">
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  iconOnly
-                  onClick={() => unlinkResearcher(user.id, user.username)}
-                  aria-label="Unlink researcher"
-                >
-                  <Unlink2 size={16} />
-                </Button>
-              </Tooltip>
-            ) : (
-              <Tooltip content="Link researcher" side="bottom">
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  iconOnly
-                  onClick={() => openLinkModal({ id: user.id, username: user.username })}
-                  aria-label="Link researcher"
-                >
-                  <Link2 size={16} />
-                </Button>
               </Tooltip>
             )}
             <Tooltip content="Delete user" side="bottom">
@@ -706,27 +724,35 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
               ? 'Delete User'
               : confirmDialog.type === 'reject'
                 ? 'Reject User'
-                : 'Unlink Researcher'
+                : confirmDialog.type === 'deactivate'
+                  ? 'Deactivate User'
+                  : 'Unlink Researcher'
           }
           message={
             confirmDialog.type === 'delete'
               ? `Are you sure you want to delete user "${confirmDialog.username}"? This action cannot be undone.`
               : confirmDialog.type === 'reject'
                 ? `Are you sure you want to reject user "${confirmDialog.username}"? They will not be able to access the system.`
-                : `Unlink researcher profile from "${confirmDialog.username}"? The researcher record will be preserved for tube history.`
+                : confirmDialog.type === 'deactivate'
+                  ? `Are you sure you want to deactivate "${confirmDialog.username}"? They will no longer be able to log in. This can be reversed.`
+                  : `Unlink researcher profile from "${confirmDialog.username}"? The researcher record will be preserved for tube history.`
           }
           confirmText={
             confirmDialog.type === 'delete'
               ? 'Delete'
               : confirmDialog.type === 'reject'
                 ? 'Reject'
-                : 'Unlink'
+                : confirmDialog.type === 'deactivate'
+                  ? 'Deactivate'
+                  : 'Unlink'
           }
           onConfirm={() => {
             if (confirmDialog.type === 'delete') {
               executeDeleteUser(confirmDialog.userId, confirmDialog.username);
             } else if (confirmDialog.type === 'reject') {
               void executeRejectUser(confirmDialog.userId, confirmDialog.username);
+            } else if (confirmDialog.type === 'deactivate') {
+              void executeDeactivateUser(confirmDialog.userId, confirmDialog.username);
             } else {
               void executeUnlinkResearcher(confirmDialog.userId, confirmDialog.username);
             }
@@ -737,7 +763,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
               ? deleteUserMutation.isPending
               : confirmDialog.type === 'reject'
                 ? processingApproval === confirmDialog.userId
-                : updating === confirmDialog.userId
+                : confirmDialog.type === 'deactivate'
+                  ? deactivateUserMutation.isPending
+                  : updating === confirmDialog.userId
           }
         />
       )}

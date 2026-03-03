@@ -551,8 +551,8 @@ export class User {
       throw new PermissionError('Only system administrators can suspend users');
     }
 
-    if (this._status !== 'approved') {
-      throw new ValidationError('Only approved users can be suspended');
+    if (this._status !== 'approved' && this._status !== 'deactivated') {
+      throw new ValidationError('Only approved or deactivated users can be suspended');
     }
 
     this._status = 'suspended';
