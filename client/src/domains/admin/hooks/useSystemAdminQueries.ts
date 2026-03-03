@@ -222,6 +222,7 @@ export function useSeedDemoMutation() {
     mutationFn: (labId: string) => labService.seedDemo(labId),
     onSuccess: (_data, labId) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.list() });
     },
     onError: error => {
       logger.error('Failed to seed demo lab', { error });
@@ -236,6 +237,7 @@ export function useUnseedDemoMutation() {
     mutationFn: (labId: string) => labService.unseedDemo(labId),
     onSuccess: (_data, labId) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.labs.labDetails(labId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.labs.list() });
     },
     onError: error => {
       logger.error('Failed to unseed demo lab', { error });

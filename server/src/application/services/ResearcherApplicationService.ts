@@ -414,6 +414,10 @@ export class ResearcherApplicationService {
 
     const researcher = await this.getResearcherOrThrow(id);
 
+    if (user.researcherId === id) {
+      throw new PermissionError('Cannot deactivate your own researcher profile');
+    }
+
     // Can only toggle active status on approved researchers
     if (researcher.isPending()) {
       throw new ValidationError('Cannot change active status of pending researcher', {

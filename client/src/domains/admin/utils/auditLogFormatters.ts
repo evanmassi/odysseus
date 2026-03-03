@@ -126,6 +126,16 @@ function getFieldLabel(field: string): string {
   return FIELD_LABELS[field] ?? field;
 }
 
+const ROLE_LABELS: Record<string, string> = {
+  system_admin: 'System Admin',
+  lab_admin: 'Lab Admin',
+  user: 'User',
+};
+
+function getRoleLabel(role: string): string {
+  return ROLE_LABELS[role] ?? role;
+}
+
 /**
  * Normalize location separators for display.
  * Converts legacy " / " separators to " · " for consistency.
@@ -324,6 +334,14 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         if (activeChange) {
           return plain(`${tankName} ${activeChange.newValue ? 'activated' : 'deactivated'}`);
         }
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const fields = formatChangedFields(changes);
+          return {
+            text: `${tankName} — ${fields.text} changed`,
+            fullText: fields.full ? `${tankName} — ${fields.full} changed` : undefined,
+          };
+        }
       }
 
       return plain(tankName);
@@ -348,6 +366,14 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         const activeChange = findChangeByField(details, 'isActive');
         if (activeChange) {
           return plain(`${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`);
+        }
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const fields = formatChangedFields(changes);
+          return {
+            text: `${path} — ${fields.text} changed`,
+            fullText: fields.full ? `${path} — ${fields.full} changed` : undefined,
+          };
         }
       }
 
@@ -410,6 +436,14 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
         if (activeChange) {
           return plain(`${path} ${activeChange.newValue ? 'activated' : 'deactivated'}`);
         }
+        const changes = getAllChanges(details);
+        if (changes.length > 0) {
+          const fields = formatChangedFields(changes);
+          return {
+            text: `${path} — ${fields.text} changed`,
+            fullText: fields.full ? `${path} — ${fields.full} changed` : undefined,
+          };
+        }
       }
 
       if (action === 'box_label_updated') {
@@ -447,6 +481,15 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
     // ── LAB EVENTS ──
 
     if (entityType === 'lab') {
+      if (action === 'lab_created') {
+        return plain(getStringProperty(details, 'labName') || '-');
+      }
+      if (action === 'invite_code_created') {
+        return plain('Invite code created');
+      }
+      if (action === 'invite_code_used') {
+        return plain('Invite code redeemed');
+      }
       const oldName = getStringProperty(details, 'oldName');
       const newName = getStringProperty(details, 'newName');
       if (action === 'lab_name_changed' && oldName && newName) {
@@ -486,9 +529,13 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       }
 
       if (action === 'researcher_deactivated') {
-        const tubeCount = getNumberProperty(details, 'tubesReassignedCount');
-        const tubeText = tubeCount > 0 ? ` (${tubeCount} tubes reassigned to Unknown)` : '';
+        const tubeCount = getNumberProperty(details, 'tubeCount');
+        const tubeText = tubeCount > 0 ? ` (${tubeCount} tubes in stock)` : '';
         return plain(`${researcherName}${tubeText}`);
+      }
+
+      if (action === 'researcher_approved') {
+        return plain(researcherName);
       }
 
       return plain(researcherName);
@@ -502,9 +549,12 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
 
       if (action === 'user_created') {
         const role = getStringProperty(details, 'role') || 'user';
+        const roleLabel = getRoleLabel(role);
         const isFirstUser = username !== '-' && !changedBy;
         return plain(
-          isFirstUser ? `${username} (${role}) — first user setup` : `${username} (${role})`
+          isFirstUser
+            ? `${username} (${roleLabel}) — first user setup`
+            : `${username} (${roleLabel})`
         );
       }
       if (action === 'user_logged_in' || action === 'user_logged_out') {
@@ -513,10 +563,14 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       if (action === 'user_role_changed') {
         const oldRole = getStringProperty(details, 'oldRole');
         const newRole = getStringProperty(details, 'newRole');
-        return plain(oldRole ? `${oldRole} → ${newRole}` : `Role → ${newRole}`);
+        return plain(
+          oldRole
+            ? `${username} — ${getRoleLabel(oldRole)} → ${getRoleLabel(newRole)}`
+            : `${username} — Role → ${getRoleLabel(newRole)}`
+        );
       }
       if (action === 'user_password_changed') {
-        return plain('Password changed');
+        return plain(`${username} — Password changed`);
       }
       if (action === 'user_approved') {
         return plain(`${username} approved`);
@@ -528,6 +582,16 @@ export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
       if (action === 'user_unlinked_from_researcher') {
         const researcherName = getStringProperty(details, 'researcherName');
         return plain(`${username} unlinked from ${researcherName}`);
+      }
+      if (action === 'user_deactivated' || action === 'user_suspended') {
+        return plain(username);
+      }
+      if (action === 'user_reactivated') {
+        const previousStatus = getStringProperty(details, 'previousStatus');
+        return plain(previousStatus ? `${username} (was ${previousStatus})` : username);
+      }
+      if (action === 'user_rejected') {
+        return plain(`${username} rejected`);
       }
 
       return plain(username);

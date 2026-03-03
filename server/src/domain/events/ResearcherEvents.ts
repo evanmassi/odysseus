@@ -74,7 +74,7 @@ export class ResearcherDeactivatedEvent extends DomainEvent {
     public readonly researcherId: string,
     public readonly firstName: string,
     public readonly lastName: string,
-    public readonly tubesReassignedCount: number,
+    public readonly tubeCount: number,
     public readonly deactivatedBy: string
   ) {
     super(1);
@@ -93,7 +93,7 @@ export class ResearcherDeactivatedEvent extends DomainEvent {
       researcherId: this.researcherId,
       firstName: this.firstName,
       lastName: this.lastName,
-      tubesReassignedCount: this.tubesReassignedCount,
+      tubeCount: this.tubeCount,
       deactivatedBy: this.deactivatedBy
     };
   }

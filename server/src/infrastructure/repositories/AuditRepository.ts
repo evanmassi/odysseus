@@ -297,6 +297,14 @@ export class AuditRepository implements IAuditRepository {
     return result.rowCount ?? 0;
   }
 
+  async deleteByLabId(labId: string): Promise<number> {
+    const result = await this.context.execute(
+      'DELETE FROM audit_log WHERE lab_id = $1',
+      [labId]
+    );
+    return result.rowCount ?? 0;
+  }
+
   async count(): Promise<number> {
     const row = await this.context.queryOne<{ total: string }>(
       'SELECT COUNT(*) as total FROM audit_log'

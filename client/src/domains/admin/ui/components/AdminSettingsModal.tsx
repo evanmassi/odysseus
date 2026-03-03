@@ -367,7 +367,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       {activeTab === 'monitoring' && (
         <Suspense fallback={<TabSkeleton />}>
-          <MonitoringTab isSystemAdmin={isSystemAdmin} />
+          <MonitoringTab isSystemAdmin={isSystemAdmin} isDemo={isDemo} />
         </Suspense>
       )}
     </BaseModal>

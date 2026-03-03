@@ -18,14 +18,16 @@ import {
   RefreshCw,
   Trash2,
   Plus,
-  BadgeCheck,
-  BadgeX,
+  CircleCheckBig,
+  OctagonX,
   Clock,
   Dna,
   TestTube,
   Link,
+  Power,
 } from 'lucide-react';
 
+import { useAuthStore } from '@domains/authentication';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
@@ -72,12 +74,15 @@ export function ResearchersTab({
   const [researchers, setResearchers] = useState<AdminResearcher[]>([]);
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [togglingStatus, setTogglingStatus] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [confirmDialog, setConfirmDialog] = useState<{
+    type: 'delete' | 'deactivate';
     researcherId: string;
     researcherName: string;
   } | null>(null);
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
+  const currentUserId = useAuthStore(s => s.user?.id);
 
   /**
    * Load researchers on component mount
@@ -151,12 +156,56 @@ export function ResearchersTab({
       return;
     }
 
-    setConfirmDialog({ researcherId, researcherName });
+    setConfirmDialog({ type: 'delete', researcherId, researcherName });
   };
 
-  /**
-   * Execute researcher deletion after confirmation
-   */
+  const handleToggleStatus = async (researcher: AdminResearcher) => {
+    if (researcher.active) {
+      setConfirmDialog({
+        type: 'deactivate',
+        researcherId: researcher.id,
+        researcherName: `${researcher.lastName}, ${researcher.firstName}`,
+      });
+      return;
+    }
+
+    setTogglingStatus(researcher.id);
+    try {
+      await adminService.activateResearcher(researcher.id);
+      notifications.success(
+        `Researcher "${researcher.lastName}, ${researcher.firstName}" reactivated`
+      );
+      await loadResearchers();
+      onResearcherUpdate?.();
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Failed to activate researcher';
+      notifications.error(errorMessage);
+    } finally {
+      setTogglingStatus(null);
+    }
+  };
+
+  const executeDeactivateResearcher = async (researcherId: string, researcherName: string) => {
+    setTogglingStatus(researcherId);
+    try {
+      await adminService.deactivateResearcher(researcherId);
+      notifications.success(`Researcher "${researcherName}" deactivated`);
+      setConfirmDialog(null);
+      await loadResearchers();
+      onResearcherUpdate?.();
+    } catch (error: unknown) {
+      const errorMessage =
+        (error as { response?: { data?: { error?: string } } })?.response?.data?.error ??
+        'Failed to deactivate researcher';
+      notifications.error(errorMessage);
+      setConfirmDialog(null);
+    } finally {
+      setTogglingStatus(null);
+    }
+  };
+
   const executeDeleteResearcher = async (researcherId: string, researcherName: string) => {
     setDeleting(researcherId);
     try {
@@ -347,15 +396,15 @@ export function ResearchersTab({
           return (
             <Tooltip content="Active" side="bottom">
               <span className="whitespace-nowrap">
-                <BadgeCheck size={18} className="text-success-text" />
+                <CircleCheckBig size={18} className="text-success-text" />
               </span>
             </Tooltip>
           );
         }
         return (
-          <Tooltip content="Inactive" side="bottom">
+          <Tooltip content="Deactivated" side="bottom">
             <span className="whitespace-nowrap">
-              <BadgeX size={18} className="text-muted-foreground" />
+              <OctagonX size={18} className="text-danger-text" />
             </span>
           </Tooltip>
         );
@@ -366,8 +415,37 @@ export function ResearchersTab({
       header: 'Actions',
       render: (_, row) => {
         const researcher = row as unknown as AdminResearcher;
+        const isSelfResearcher = researcher.linkedUserId === currentUserId;
         return (
-          <div className="whitespace-nowrap text-sm font-medium">
+          <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
+            <Tooltip
+              content={
+                researcher.approvalStatus === 'pending'
+                  ? 'Cannot toggle pending researcher'
+                  : isSelfResearcher
+                    ? 'Cannot deactivate your own researcher profile'
+                    : researcher.active
+                      ? 'Deactivate researcher'
+                      : 'Reactivate researcher'
+              }
+              side="bottom"
+            >
+              <Button
+                variant="ghost-danger"
+                size="xs"
+                iconOnly
+                onClick={() => void handleToggleStatus(researcher)}
+                disabled={
+                  researcher.approvalStatus === 'pending' ||
+                  isSelfResearcher ||
+                  togglingStatus === researcher.id
+                }
+                isLoading={togglingStatus === researcher.id}
+                aria-label={researcher.active ? 'Deactivate researcher' : 'Reactivate researcher'}
+              >
+                <Power size={16} />
+              </Button>
+            </Tooltip>
             <Tooltip
               content={!canDelete(researcher) ? getDeletionStatus(researcher) : 'Delete researcher'}
               side="bottom"
@@ -454,14 +532,32 @@ export function ResearchersTab({
         <ConfirmDialog
           isOpen={true}
           variant="danger"
-          title="Delete Researcher"
-          message={`Are you sure you want to delete researcher "${confirmDialog.researcherName}"? This action cannot be undone.`}
-          confirmText="Delete"
+          title={confirmDialog.type === 'delete' ? 'Delete Researcher' : 'Deactivate Researcher'}
+          message={
+            confirmDialog.type === 'delete'
+              ? `Are you sure you want to delete researcher "${confirmDialog.researcherName}"? This action cannot be undone.`
+              : `Are you sure you want to deactivate researcher "${confirmDialog.researcherName}"? They will no longer appear in researcher dropdowns. This can be reversed.`
+          }
+          confirmText={confirmDialog.type === 'delete' ? 'Delete' : 'Deactivate'}
           onConfirm={() => {
-            void executeDeleteResearcher(confirmDialog.researcherId, confirmDialog.researcherName);
+            if (confirmDialog.type === 'delete') {
+              void executeDeleteResearcher(
+                confirmDialog.researcherId,
+                confirmDialog.researcherName
+              );
+            } else {
+              void executeDeactivateResearcher(
+                confirmDialog.researcherId,
+                confirmDialog.researcherName
+              );
+            }
           }}
           onCancel={() => setConfirmDialog(null)}
-          isLoading={deleting === confirmDialog.researcherId}
+          isLoading={
+            confirmDialog.type === 'delete'
+              ? deleting === confirmDialog.researcherId
+              : togglingStatus === confirmDialog.researcherId
+          }
         />
       )}
     </div>

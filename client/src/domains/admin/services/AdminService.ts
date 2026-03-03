@@ -268,6 +268,30 @@ export class AdminService {
    * Delete researcher (admin only)
    * Safe deletion only - requires zero tubes AND no linked user
    */
+  async deactivateResearcher(researcherId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.put<{ success: boolean }>(
+        `/researchers/${researcherId}/deactivate`
+      );
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to deactivate researcher', { researcherId, error });
+      throw error;
+    }
+  }
+
+  async activateResearcher(researcherId: string): Promise<{ success: boolean }> {
+    try {
+      const response = await httpClient.put<{ success: boolean }>(
+        `/researchers/${researcherId}/activate`
+      );
+      return response.data;
+    } catch (error) {
+      logger.error('Failed to activate researcher', { researcherId, error });
+      throw error;
+    }
+  }
+
   async deleteResearcher(researcherId: string): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.delete<{ success: boolean }>(

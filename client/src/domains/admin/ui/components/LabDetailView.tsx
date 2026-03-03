@@ -28,7 +28,6 @@ import {
   UserRoundCheck,
   UsersRound,
   RotateCcw,
-  TreeDeciduous,
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
@@ -338,7 +337,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
           </div>
         </div>
 
-        {/* Demo Configuration */}
+        {/* Demo Settings */}
         {lab.isDemo && (
           <Collapsible.Root
             defaultOpen={false}
@@ -350,7 +349,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
                   size={14}
                   className="text-secondary-foreground transition-transform duration-200 group-data-[state=closed]:-rotate-90"
                 />
-                <h3 className="text-sm font-semibold text-card-foreground">Demo Configuration</h3>
+                <h3 className="text-sm font-semibold text-card-foreground">Demo Settings</h3>
               </div>
             </Collapsible.Trigger>
             <Collapsible.Content className="overflow-hidden data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
@@ -446,7 +445,7 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
                       variant="secondary"
                       size="sm"
                       onClick={() => setUnseedConfirm(true)}
-                      leftIcon={<TreeDeciduous size={14} />}
+                      leftIcon={<BeanOff size={14} />}
                       isLoading={unseedDemoMutation.isPending}
                     >
                       Unseed
@@ -675,7 +674,7 @@ function ActionsCell({
   };
 
   return (
-    <div className="flex items-center justify-end gap-1">
+    <div className="flex items-center gap-1">
       {user.status === 'pending' && (
         <Tooltip content="Approve user">
           <Button
@@ -862,8 +861,7 @@ function getUserColumns(
     },
     {
       id: 'actions',
-      header: '',
-      align: 'right',
+      header: 'Actions',
       render: (_value, row) => (
         <ActionsCell
           user={row as unknown as LabDetailsUser}

@@ -144,7 +144,6 @@ export function AuditLogViewer({
   };
 
   const formatAction = (action: string) => {
-    // Special cases for clearer display
     if (action === 'user_logged_in') return 'Login';
     if (action === 'user_logged_out') return 'Logout';
     if (action === 'user_linked_to_researcher') return 'Linked';
@@ -152,17 +151,27 @@ export function AuditLogViewer({
     if (action === 'user_password_changed') return 'Updated';
     if (action === 'user_role_changed') return 'Updated';
     if (action === 'tube_bulk_updated') return 'Bulk Updated';
+    if (action === 'user_deactivated') return 'Deactivated';
+    if (action === 'user_suspended') return 'Suspended';
+    if (action === 'user_reactivated') return 'Reactivated';
+    if (action === 'user_rejected') return 'Rejected';
+    if (action === 'invite_code_created') return 'Created';
+    if (action === 'invite_code_used') return 'Used';
+    if (action === 'researcher_approved') return 'Approved';
+    if (action === 'lab_created') return 'Created';
 
-    // Remove entity type prefix and capitalize (e.g., "tube_created" → "Created")
     const parts = action.split('_');
     if (parts.length > 1) {
-      // Take the action part (after entity type)
       return parts[parts.length - 1].charAt(0).toUpperCase() + parts[parts.length - 1].slice(1);
     }
     return action.charAt(0).toUpperCase() + action.slice(1);
   };
 
   const getActionBadgeClass = (action: string) => {
+    if (action.includes('suspended')) return 'badge-audit-action-deleted';
+    if (action.includes('rejected')) return 'badge-audit-action-deleted';
+    if (action === 'invite_code_created') return 'badge-audit-action-created';
+    if (action === 'invite_code_used') return 'badge-audit-action-linked';
     if (action.includes('created')) return 'badge-audit-action-created';
     if (action.includes('updated')) return 'badge-audit-action-updated';
     if (action.includes('password_changed')) return 'badge-audit-action-updated';
@@ -269,7 +278,7 @@ export function AuditLogViewer({
     {
       id: 'entityType',
       header: 'Item',
-      width: '5rem',
+      width: '7rem',
       render: (_, row) => {
         const entry = row as unknown as AuditLogEntry;
         if (!entry.entityType) {

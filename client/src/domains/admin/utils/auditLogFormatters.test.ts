@@ -345,10 +345,10 @@ describe('researcher events', () => {
     const result = formatAuditDetails(
       entry('researcher_deactivated', 'researcher', {
         researcherName: 'Jane Doe',
-        tubesReassignedCount: 15,
+        tubeCount: 15,
       })
     );
-    expect(result.text).toBe('Jane Doe (15 tubes reassigned to Unknown)');
+    expect(result.text).toBe('Jane Doe (15 tubes in stock)');
   });
 
   it('researcher_reactivated shows name', () => {

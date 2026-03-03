@@ -50,6 +50,8 @@ export interface AuditRepository {
    */
   deleteOlderThan(date: Date): Promise<number>;
 
+  deleteByLabId(labId: string): Promise<number>;
+
   /**
    * Get total count of audit entries (for statistics)
    */

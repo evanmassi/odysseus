@@ -9,7 +9,7 @@ import { logger } from '@utils/logger';
  */
 const AUDIT_ARCHIVE_COLUMNS = `
   id, user_id, username, action, entity_type, entity_id,
-  details, timestamp, ip_address, user_agent, archived_at
+  lab_id, details, timestamp, ip_address, user_agent, archived_at
 `.trim();
 
 /**
@@ -22,6 +22,7 @@ interface AuditArchiveRow {
   action: string;
   entity_type: string;
   entity_id: string | null;
+  lab_id: string | null;
   details: string;
   timestamp: Date | string;
   ip_address: string | null;
@@ -51,8 +52,8 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
         await client.query(
           `INSERT INTO audit_log_archive (
             id, user_id, username, action, entity_type, entity_id,
-            details, timestamp, ip_address, user_agent, archived_at
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+            lab_id, details, timestamp, ip_address, user_agent, archived_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
           [
             entry.id,
             entry.userId,
@@ -60,6 +61,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
             entry.action,
             entry.entityType,
             entry.entityId || null,
+            entry.labId || null,
             entry.details,
             entry.timestamp instanceof Date ? entry.timestamp : new Date(entry.timestamp),
             entry.ipAddress || null,
@@ -207,6 +209,7 @@ export class AuditArchiveRepository implements IAuditArchiveRepository {
   private rowToEntry(row: AuditArchiveRow): AuditLogEntry {
     return {
       id: row.id,
+      labId: row.lab_id || undefined,
       userId: row.user_id,
       username: row.username,
       action: row.action,
