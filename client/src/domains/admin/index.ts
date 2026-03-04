@@ -9,6 +9,10 @@
 
 // Services
 export { adminService, AdminService } from './services/AdminService';
+export { adminUserService, AdminUserService } from './services/AdminUserService';
+export { adminResearcherService, AdminResearcherService } from './services/AdminResearcherService';
+export { auditService, AuditService } from './services/AuditService';
+export { exportService, ExportService } from './services/ExportService';
 
 // Hooks
 export { useUsersQuery } from './hooks/useUsersQuery';

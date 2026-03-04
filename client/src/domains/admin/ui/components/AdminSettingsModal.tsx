@@ -23,6 +23,7 @@ import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../services/AdminService';
+import { adminUserService } from '../../services/AdminUserService';
 
 import { TabSkeleton } from './TabSkeleton';
 
@@ -104,7 +105,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
   const loadUsers = async () => {
     try {
-      const response = await adminService.getUsers();
+      const response = await adminUserService.getUsers();
 
       if (response.success && Array.isArray(response.users)) {
         setUsers(sortByName(response.users));

@@ -33,7 +33,7 @@ import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
-import { adminService } from '../../../services/AdminService';
+import { adminResearcherService } from '../../../services/AdminResearcherService';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
@@ -54,7 +54,7 @@ export interface ResearchersTabProps {
  * Researchers Tab Component
  *
  * Renders researcher management interface with table of researchers and deletion controls.
- * All researcher modifications (deletions) are performed via adminService.
+ * All researcher modifications (deletions) are performed via adminResearcherService.
  *
  * @param {ResearchersTabProps} props - Component props
  * @returns {JSX.Element} Researcher management interface
@@ -120,7 +120,7 @@ export function ResearchersTab({
   const loadResearchers = async () => {
     setLoading(true);
     try {
-      const response = await adminService.getResearchers();
+      const response = await adminResearcherService.getResearchers();
       if (response.success) {
         setResearchers(sortByName(response.researchers));
       }
@@ -171,7 +171,7 @@ export function ResearchersTab({
 
     setTogglingStatus(researcher.id);
     try {
-      await adminService.activateResearcher(researcher.id);
+      await adminResearcherService.activateResearcher(researcher.id);
       notifications.success(
         `Researcher "${researcher.lastName}, ${researcher.firstName}" reactivated`
       );
@@ -190,7 +190,7 @@ export function ResearchersTab({
   const executeDeactivateResearcher = async (researcherId: string, researcherName: string) => {
     setTogglingStatus(researcherId);
     try {
-      await adminService.deactivateResearcher(researcherId);
+      await adminResearcherService.deactivateResearcher(researcherId);
       notifications.success(`Researcher "${researcherName}" deactivated`);
       setConfirmDialog(null);
       await loadResearchers();
@@ -209,7 +209,7 @@ export function ResearchersTab({
   const executeDeleteResearcher = async (researcherId: string, researcherName: string) => {
     setDeleting(researcherId);
     try {
-      const response = await adminService.deleteResearcher(researcherId);
+      const response = await adminResearcherService.deleteResearcher(researcherId);
 
       if (response.success) {
         notifications.success(`Researcher "${researcherName}" deleted successfully`);
@@ -261,7 +261,7 @@ export function ResearchersTab({
    * Create new researcher
    */
   const handleCreateResearcher = async (data: CreateResearcherProfile) => {
-    await adminService.createResearcher(data);
+    await adminResearcherService.createResearcher(data);
     await loadResearchers();
     onResearcherUpdate?.();
   };

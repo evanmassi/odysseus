@@ -7,7 +7,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { adminService } from '@domains/admin/services/AdminService';
+import { adminUserService } from '@domains/admin/services/AdminUserService';
 import { logger } from '@shared/infrastructure/logger';
 
 export function useDeactivateUserMutation() {
@@ -15,7 +15,7 @@ export function useDeactivateUserMutation() {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const response = await adminService.deactivateUser(userId);
+      const response = await adminUserService.deactivateUser(userId);
       if (!response.success) throw new Error('Failed to deactivate user');
       return response;
     },
@@ -33,7 +33,7 @@ export function useActivateUserMutation() {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const response = await adminService.activateUser(userId);
+      const response = await adminUserService.activateUser(userId);
       if (!response.success) throw new Error('Failed to activate user');
       return response;
     },
@@ -51,7 +51,7 @@ export function useDeleteUserMutation() {
 
   return useMutation({
     mutationFn: async (userId: string) => {
-      const response = await adminService.deleteUser(userId);
+      const response = await adminUserService.deleteUser(userId);
 
       if (!response.success) {
         throw new Error('Failed to delete user');

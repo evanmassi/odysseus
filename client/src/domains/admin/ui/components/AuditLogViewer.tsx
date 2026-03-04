@@ -21,7 +21,7 @@ import {
   Dna,
 } from 'lucide-react';
 
-import { adminService } from '@domains/admin/services/AdminService';
+import { auditService } from '@domains/admin/services/AuditService';
 import { labService } from '@domains/admin/services/LabService';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
 import { logger } from '@shared/infrastructure/logger';
@@ -72,7 +72,7 @@ export function AuditLogViewer({
       setError(null);
       const result = labId
         ? await labService.getLabAuditLog(labId, filters, includeArchive)
-        : await adminService.searchAuditLogs(filters, includeArchive);
+        : await auditService.searchAuditLogs(filters, includeArchive);
       setEntries(result.entries);
       setPagination(result.pagination);
     } catch (err) {

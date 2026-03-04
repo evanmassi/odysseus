@@ -44,7 +44,8 @@ import {
   useDeactivateUserMutation,
   useActivateUserMutation,
 } from '../../../hooks/useUserMutations';
-import { adminService } from '../../../services/AdminService';
+import { adminResearcherService } from '../../../services/AdminResearcherService';
+import { adminUserService } from '../../../services/AdminUserService';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
@@ -130,7 +131,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const loadPendingUsers = async () => {
     setLoadingPending(true);
     try {
-      const response = await adminService.getPendingUsers();
+      const response = await adminUserService.getPendingUsers();
       if (response.success) {
         setPendingUsers(response.users);
       }
@@ -149,7 +150,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const updateUserRole = async (userId: string, newRole: 'lab_admin' | 'user') => {
     setUpdating(userId);
     try {
-      const response = await adminService.updateUserRole(userId, newRole);
+      const response = await adminUserService.updateUserRole(userId, newRole);
 
       if (response.success) {
         notifications.success(`User role updated to ${newRole}`);
@@ -198,7 +199,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const approveUser = async (userId: string, username: string) => {
     setProcessingApproval(userId);
     try {
-      const response = await adminService.approveUser(userId);
+      const response = await adminUserService.approveUser(userId);
 
       if (response.success) {
         notifications.success(`User "${username}" approved successfully`);
@@ -232,7 +233,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const executeRejectUser = async (userId: string, username: string) => {
     setProcessingApproval(userId);
     try {
-      const response = await adminService.rejectUser(userId);
+      const response = await adminUserService.rejectUser(userId);
 
       if (response.success) {
         notifications.success(`User "${username}" rejected`);
@@ -293,7 +294,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const executeUnlinkResearcher = async (userId: string, username: string) => {
     setUpdating(userId);
     try {
-      const response = await adminService.unlinkResearcherFromUser(userId);
+      const response = await adminUserService.unlinkResearcherFromUser(userId);
 
       if (response.success) {
         notifications.success(`Researcher unlinked from "${username}"`);
@@ -321,7 +322,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     setIsResearcherModalOpen(true);
     // Load unlinked researchers
     try {
-      const response = await adminService.getUnlinkedResearchers();
+      const response = await adminResearcherService.getUnlinkedResearchers();
       if (response.success) {
         setUnlinkedResearchers(response.researchers);
       }
@@ -338,7 +339,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const handleLinkExisting = async (researcherId: string) => {
     if (!researcherModalData) return;
 
-    await adminService.linkResearcherToUser(researcherModalData.id, researcherId);
+    await adminUserService.linkResearcherToUser(researcherModalData.id, researcherId);
     await onUserUpdate(); // Make sure to await the update
   };
 
@@ -348,7 +349,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const handleCreateAndLink = async (data: CreateResearcherProfile) => {
     if (!researcherModalData) return;
 
-    await adminService.createAndLinkResearcher(researcherModalData.id, data);
+    await adminResearcherService.createAndLinkResearcher(researcherModalData.id, data);
     await onUserUpdate(); // Make sure to await the update
   };
 

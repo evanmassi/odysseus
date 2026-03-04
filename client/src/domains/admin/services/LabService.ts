@@ -7,6 +7,8 @@
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 
+import { buildAuditFilterParams } from './buildAuditFilterParams';
+
 import type {
   LabData,
   InviteCodeData,
@@ -223,14 +225,7 @@ export class LabService {
     pagination: { total: number; limit: number; offset: number; hasMore: boolean };
   }> {
     try {
-      const params = new URLSearchParams();
-      if (filters.limit !== undefined) params.append('limit', filters.limit.toString());
-      if (filters.offset !== undefined) params.append('offset', filters.offset.toString());
-      if (filters.username) params.append('username', filters.username);
-      if (filters.action) params.append('action', filters.action);
-      if (filters.entityType) params.append('entityType', filters.entityType);
-      if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
-      if (filters.dateTo) params.append('dateTo', filters.dateTo);
+      const params = buildAuditFilterParams(filters);
       params.append('includeArchive', includeArchive.toString());
 
       const query = params.toString() ? `?${params.toString()}` : '';

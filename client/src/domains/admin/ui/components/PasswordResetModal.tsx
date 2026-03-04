@@ -14,7 +14,7 @@ import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 import { notifications } from '@shared/utils/notifications';
 
-import { adminService } from '../../services/AdminService';
+import { adminUserService } from '../../services/AdminUserService';
 
 interface PasswordResetModalProps {
   isOpen: boolean;
@@ -59,7 +59,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
 
     await withAsyncHandler(
       async () => {
-        await adminService.resetUserPassword(userId, newPassword, requirePasswordChange);
+        await adminUserService.resetUserPassword(userId, newPassword, requirePasswordChange);
       },
       {
         setLoading: setIsLoading,
@@ -76,7 +76,7 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
   const handleGenerateToken = async () => {
     await withAsyncHandler(
       async () => {
-        const response = await adminService.generatePasswordResetToken(userId);
+        const response = await adminUserService.generatePasswordResetToken(userId);
         setResetUrl(response.resetUrl);
         setExpiresAt(response.expiresAt);
       },

@@ -17,7 +17,7 @@ import {
   ChevronUp,
 } from 'lucide-react';
 
-import { adminService } from '@domains/admin/services/AdminService';
+import { auditService } from '@domains/admin/services/AuditService';
 import { logger } from '@shared/infrastructure/logger';
 import { Button } from '@shared/ui';
 
@@ -48,8 +48,8 @@ export function AuditRetentionSettings({
       setError(null);
 
       const [metricsResult, policyResult] = await Promise.all([
-        adminService.getRetentionMetrics(),
-        adminService.getRetentionPolicy(),
+        auditService.getRetentionMetrics(),
+        auditService.getRetentionPolicy(),
       ]);
 
       setMetrics(metricsResult.data);
@@ -73,7 +73,7 @@ export function AuditRetentionSettings({
       setArchiveResult(null);
       setError(null);
 
-      const result = await adminService.runManualArchival();
+      const result = await auditService.runManualArchival();
       setArchiveResult({
         archived: result.data.archived,
         deleted: result.data.deleted,
@@ -91,7 +91,7 @@ export function AuditRetentionSettings({
 
   const exportArchive = async () => {
     try {
-      const blob = await adminService.exportArchivedLogs();
+      const blob = await auditService.exportArchivedLogs();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

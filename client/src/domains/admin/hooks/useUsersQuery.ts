@@ -9,7 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CACHE_TIMES } from '@app/cache/queryClient';
 import { queryKeys } from '@app/cache/queryKeys';
 
-import { adminService } from '../services/AdminService';
+import { adminUserService } from '../services/AdminUserService';
 
 import type { AdminUser } from '@odysseus/shared-schemas';
 import type { UseQueryOptions } from '@tanstack/react-query';
@@ -20,7 +20,7 @@ export function useUsersQuery(options?: {
   return useQuery({
     queryKey: queryKeys.admin.users(),
     queryFn: async (): Promise<AdminUser[]> => {
-      const result = await adminService.getUsers();
+      const result = await adminUserService.getUsers();
       return result.users;
     },
     staleTime: CACHE_TIMES.STABLE.staleTime,

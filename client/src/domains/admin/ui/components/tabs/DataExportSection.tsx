@@ -13,7 +13,7 @@ import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip, Select } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
-import { adminService } from '../../../services/AdminService';
+import { exportService } from '../../../services/ExportService';
 
 type ExportType = 'tubes' | 'users' | 'researchers' | 'system-backup';
 type ExportFormat = 'csv' | 'json';
@@ -104,16 +104,16 @@ export function DataExportSection() {
 
       switch (selectedType) {
         case 'tubes':
-          blob = await adminService.exportTubes(format);
+          blob = await exportService.exportTubes(format);
           break;
         case 'users':
-          blob = await adminService.exportUsers(format);
+          blob = await exportService.exportUsers(format);
           break;
         case 'researchers':
-          blob = await adminService.exportResearchers(format);
+          blob = await exportService.exportResearchers(format);
           break;
         case 'system-backup':
-          blob = await adminService.exportSystemBackup();
+          blob = await exportService.exportSystemBackup();
           break;
       }
 
