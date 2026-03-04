@@ -1,3 +1,9 @@
+/**
+ * App Header
+ *
+ * Top navigation bar with contextual tube action toolbar, search, and hamburger menu.
+ */
+
 import { useState, lazy, useEffect, useRef, useCallback } from 'react';
 
 import {
@@ -34,7 +40,6 @@ import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { LucideIcon } from 'lucide-react';
-// Assets - using ES6 imports for proper module resolution
 
 // Lazy load modals for code splitting
 const AdminSettingsModal = lazy(() =>
@@ -61,7 +66,6 @@ const HelpModal = lazy(() =>
   }))
 );
 
-// Create preload hooks for anticipatory loading
 const useLazyAdminSettings = PreloadHelpers.createHook(() => import('@domains/admin'));
 
 const useLazyStorageManager = PreloadHelpers.createHook(
@@ -111,7 +115,6 @@ interface HeaderProps {
   selectedPositions?: Set<PositionKey>;
   onClearSelection?: () => void;
   tubes?: TubeData[];
-  // Grid controller actions passed from parent
   gridController?: {
     openModal: () => void;
     copy: () => void;
@@ -122,18 +125,15 @@ interface HeaderProps {
     selection: {
       hasFilledSelection: boolean;
       isMixed: boolean;
-      // Lock-related counts
       lockableCount?: number;
       unlockableCount?: number;
       sharableCount?: number;
       isUnlocking?: boolean;
     };
-    // Lock actions (optional)
     lock?: () => void;
     unlock?: () => Promise<void>;
     shareAccess?: () => void;
   };
-  // View-only mode (container assigned to another user)
   isViewOnlySpace?: boolean;
 }
 
@@ -148,7 +148,6 @@ export function AppHeader({
   const hasLab = !!user?.labId;
   const { currentLab } = useStorageData({ enabled: hasLab });
 
-  // Lazy loading hooks for modal preloading
   const { triggerProps: adminSettingsTriggerProps } = useLazyAdminSettings();
   const { triggerProps: storageManagerTriggerProps } = useLazyStorageManager();
   const { triggerProps: userSettingsTriggerProps } = useLazyUserSettings();
@@ -160,7 +159,6 @@ export function AppHeader({
   const [showHamburgerMenu, setShowHamburgerMenu] = useState(false);
   const [isClosingMenu, setIsClosingMenu] = useState(false);
 
-  // Refs for hamburger menu
   const hamburgerMenuRef = useRef<HTMLDivElement>(null);
   const hamburgerButtonRef = useRef<HTMLButtonElement>(null);
   const menuCloseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -253,7 +251,6 @@ export function AppHeader({
     void logout();
   };
 
-  // Selection analysis for contextual controls
   const selectionAnalysis = (() => {
     if (!selectedPositions || selectedPositions.size === 0 || !tubes) {
       return {
@@ -267,7 +264,7 @@ export function AppHeader({
       };
     }
 
-    const selectedTubes = Array.from(selectedPositions || [])
+    const selectedTubes = Array.from(selectedPositions)
       .map(key => {
         const { tankId, rackId, boxId, position } = parsePositionKey(key);
         return tubes.find(
@@ -281,7 +278,7 @@ export function AppHeader({
       .filter((tube): tube is TubeData => tube !== undefined);
 
     const emptyPositions = new Set(
-      Array.from(selectedPositions || []).filter(key => {
+      Array.from(selectedPositions).filter(key => {
         const { tankId, rackId, boxId, position } = parsePositionKey(key);
         return !tubes.find(
           t =>
@@ -294,7 +291,7 @@ export function AppHeader({
     );
 
     const filledPositions = new Set(
-      Array.from(selectedPositions || []).filter(key => !emptyPositions.has(key))
+      Array.from(selectedPositions).filter(key => !emptyPositions.has(key))
     );
 
     const hasEmpty = emptyPositions.size > 0;

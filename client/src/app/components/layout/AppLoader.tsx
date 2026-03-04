@@ -34,13 +34,10 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
   return (
     <div className="fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center z-50">
       <div className="bg-card rounded-2xl shadow-2xl p-8 w-full max-w-md mx-4">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="mb-4 flex justify-center">
             {state === 'error' ? (
               <AlertCircle className="w-14 h-14 text-danger-bg" />
-            ) : state === 'retrying' ? (
-              <RefreshCw className="w-14 h-14 text-warning-bg animate-spin" />
             ) : (
               <Spinner size="xl" />
             )}
@@ -52,18 +49,12 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
           />
 
           <p className="text-muted-foreground">
-            {state === 'error'
-              ? 'Initialization Failed'
-              : state === 'retrying'
-                ? 'Retrying Connection...'
-                : 'Starting Application...'}
+            {state === 'error' ? 'Initialization Failed' : 'Starting Application...'}
           </p>
         </div>
 
-        {/* Progress Section */}
         {state !== 'error' && (
           <div className="mb-6">
-            {/* Progress Bar */}
             <div className="bg-border rounded-full h-2 mb-4 overflow-hidden">
               <div
                 className="bg-muted-foreground h-full rounded-full transition-all duration-300 ease-out progress-bar-shimmer"
@@ -71,25 +62,19 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
               />
             </div>
 
-            {/* Progress Text */}
             <div className="flex justify-between items-center text-sm text-muted-foreground mb-4">
               <span>{progress}% Complete</span>
               <span>{completedSteps.length} steps done</span>
             </div>
 
-            {/* Current Step */}
             {currentStep && (
               <div className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
                 <div className="flex-shrink-0">
-                  {state === 'retrying' ? (
-                    <RefreshCw className="w-4 h-4 text-warning-bg animate-spin" />
-                  ) : (
-                    <Spinner size="sm" />
-                  )}
+                  <Spinner size="sm" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-card-foreground truncate">
-                    {LOADING_MESSAGES[currentStep as keyof typeof LOADING_MESSAGES] ||
+                    {LOADING_MESSAGES[currentStep as keyof typeof LOADING_MESSAGES] ??
                       'Processing...'}
                   </p>
                 </div>
@@ -98,7 +83,6 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
           </div>
         )}
 
-        {/* Completed Steps */}
         {completedSteps.length > 0 && state !== 'error' && (
           <div className="mb-6">
             <h3 className="text-sm font-medium text-muted-foreground mb-3">Completed:</h3>
@@ -118,45 +102,30 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
           </div>
         )}
 
-        {/* Error State */}
         {state === 'error' && error && (
           <div className="mb-6">
             <div className="bg-muted border border-danger-border rounded-lg p-4 mb-4">
               <div className="flex items-start space-x-3">
                 <AlertCircle className="w-5 h-5 text-danger-text flex-shrink-0 mt-0.5" />
                 <div className="flex-1">
-                  <h4 className="text-sm font-medium text-danger-text mb-1">
-                    {typeof error === 'string' ? error : error.message}
-                  </h4>
-                  {typeof error === 'object' && (
-                    <p className="text-sm text-danger-text">
-                      Step: {error.step} ({error.code})
-                    </p>
-                  )}
-                  {typeof error === 'object' && error.retryable && (
-                    <p className="text-xs text-danger-text mt-2">
-                      This error can be retried. Check your internet connection and try again.
-                    </p>
-                  )}
+                  <h4 className="text-sm font-medium text-danger-text mb-1">{error}</h4>
                 </div>
               </div>
             </div>
 
-            {/* Debug info - development only */}
-            {env.isDev() && typeof error === 'object' && error.details && (
+            {env.isDev() && (
               <details className="mb-4">
                 <summary className="text-xs text-muted-foreground cursor-pointer hover:text-accent-foreground">
                   Debug Information
                 </summary>
                 <pre className="text-xs text-muted-foreground mt-2 p-2 bg-muted rounded overflow-auto">
-                  {JSON.stringify(error.details, null, 2)}
+                  {error}
                 </pre>
               </details>
             )}
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex space-x-3">
           {state === 'error' && canRetry && onRetry && (
             <Button
@@ -176,7 +145,6 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
           )}
         </div>
 
-        {/* Loading Timeout Warning */}
         {state === 'initializing' && progress === 0 && (
           <AlertBanner variant="warning" icon={Clock} spacing="none" className="mt-6">
             Taking longer than expected? Check your internet connection.

@@ -13,15 +13,11 @@ import { Button, Spinner } from '@shared/ui';
 
 interface OfflineInitializationPageProps {
   onRetry: () => void;
-  lastConnected?: Date;
 }
 
 const AUTO_RETRY_SECONDS = 10;
 
-export function OfflineInitializationPage({
-  onRetry,
-  lastConnected,
-}: OfflineInitializationPageProps) {
+export function OfflineInitializationPage({ onRetry }: OfflineInitializationPageProps) {
   const [countdown, setCountdown] = useState(AUTO_RETRY_SECONDS);
   const [isRetrying, setIsRetrying] = useState(false);
 
@@ -36,7 +32,6 @@ export function OfflineInitializationPage({
     }, 300);
   }, [onRetry]);
 
-  // Auto-retry countdown
   useEffect(() => {
     if (isRetrying) return;
 
@@ -66,7 +61,6 @@ export function OfflineInitializationPage({
   return (
     <div className="fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center z-50">
       <div className="bg-card rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
-        {/* Status Icon */}
         <div className="text-center mb-6">
           <div className="mb-4 flex justify-center">
             {isRetrying ? <Spinner size="xl" /> : <WifiOff className="w-14 h-14 text-danger-bg" />}
@@ -83,7 +77,6 @@ export function OfflineInitializationPage({
           </p>
         </div>
 
-        {/* Retry Section */}
         <div className="space-y-4">
           {!isRetrying && (
             <div className="text-center">
@@ -103,12 +96,6 @@ export function OfflineInitializationPage({
           >
             Try Now
           </Button>
-
-          {lastConnected && (
-            <div className="text-center text-xs text-muted-foreground pt-2">
-              Last connected: {lastConnected.toLocaleTimeString()}
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -1,8 +1,7 @@
 /**
  * Application Error Boundary
  *
- * Error recovery component for graceful failure handling.
- * Catches React errors and provides recovery options.
+ * Catches React render errors and presents recovery options rather than a blank screen.
  */
 
 import type { ErrorInfo, ReactNode } from 'react';
@@ -13,8 +12,6 @@ import { AlertTriangle, RefreshCw, Home, Bug, ExternalLink } from 'lucide-react'
 import { env } from '@shared/config/environment';
 import { logger } from '@shared/infrastructure/logger';
 import { Button } from '@shared/ui';
-
-import type { AppInitializationError } from '@shared/errors/AppError';
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
@@ -38,7 +35,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: this.generateErrorId(),
+      errorId: AppErrorBoundary.generateErrorId(),
     };
   }
 
@@ -46,7 +43,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     return {
       hasError: true,
       error,
-      errorId: Date.now().toString(36) + Math.random().toString(36).substring(2),
+      errorId: AppErrorBoundary.generateErrorId(),
     };
   }
 
@@ -56,7 +53,6 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       errorInfo,
     });
 
-    // Log error for debugging
     logger.error('Error boundary caught React error', {
       error: error.message,
       stack: error.stack,
@@ -64,23 +60,21 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       errorId: this.state.errorId,
     });
 
-    // Call custom error handler if provided
     if (this.props.onError) {
       this.props.onError(error, errorInfo);
     }
 
-    // In production, you might want to send this to an error reporting service
     if (env.isProd()) {
       this.reportError(error, errorInfo);
     }
   }
 
-  private generateErrorId(): string {
+  private static generateErrorId(): string {
     return Date.now().toString(36) + Math.random().toString(36).substring(2);
   }
 
   private reportError(error: Error, errorInfo: ErrorInfo): void {
-    // TODO: Send to error reporting service (Sentry, LogRocket, etc.)
+    // TODO: Wire up to error reporting service (Sentry, etc.) when monitoring is configured
     logger.info('Error would be reported to monitoring service', {
       message: error.message,
       stack: error.stack,
@@ -96,12 +90,11 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
       this.props.onRetry();
     }
 
-    // Reset error boundary state
     this.setState({
       hasError: false,
       error: null,
       errorInfo: null,
-      errorId: this.generateErrorId(),
+      errorId: AppErrorBoundary.generateErrorId(),
     });
   };
 
@@ -135,12 +128,10 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
 
   override render() {
     if (this.state.hasError) {
-      // Custom fallback component if provided
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
-      // Default error UI
       return (
         <div className="min-h-screen bg-gradient-to-br from-muted to-muted flex items-center justify-center p-4">
           <div className="bg-card rounded-xl shadow-2xl p-8 w-full max-w-lg">
@@ -259,42 +250,3 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     return this.props.children;
   }
 }
-
-/**
- * Bootstrap-specific error component for initialization failures
- */
-interface BootstrapErrorProps {
-  error: AppInitializationError;
-  onRetry?: () => void;
-  canRetry?: boolean;
-}
-
-export function BootstrapError({ error, onRetry, canRetry }: BootstrapErrorProps) {
-  return (
-    <div className="bg-muted border border-danger-border rounded-lg p-6">
-      <div className="flex items-start space-x-4">
-        <AlertTriangle className="w-6 h-6 text-danger-text flex-shrink-0" />
-        <div className="flex-1">
-          <h3 className="text-lg font-medium text-danger-text mb-2">Initialization Failed</h3>
-          <p className="text-danger-text mb-3">{error.message}</p>
-          <div className="text-sm text-danger-text mb-4">
-            <p>
-              Phase: <span className="font-mono">{error.phase}</span>
-            </p>
-            <p>
-              Code: <span className="font-mono">{error.code}</span>
-            </p>
-          </div>
-
-          {canRetry && error.retryable && onRetry && (
-            <Button variant="danger" onClick={onRetry} leftIcon={<RefreshCw className="w-4 h-4" />}>
-              Retry Initialization
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Named exports only - no default export needed

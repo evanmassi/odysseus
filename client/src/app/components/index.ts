@@ -1,9 +1,8 @@
 /**
  * Application Components
+ *
+ * Top-level layout and error boundary components for the app shell.
  */
 
-// Layout components
 export * from './layout';
-
-// Boundary components  
 export * from './boundaries';

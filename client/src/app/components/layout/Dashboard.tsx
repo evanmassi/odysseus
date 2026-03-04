@@ -1,3 +1,9 @@
+/**
+ * Dashboard
+ *
+ * Main lab workspace: storage navigator, tube grid, and info panel.
+ */
+
 import { useState, useRef, useMemo, useCallback, useEffect, lazy } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
@@ -138,7 +144,6 @@ function LabDashboard() {
   const gridContainerRef = useRef<HTMLDivElement>(null);
   const infoPanelRef = useRef<HTMLDivElement>(null);
 
-  // State to track when selector area is active/focused
   const [isSelectorActive, setIsSelectorActive] = useState(false);
 
   // Clear selection when clicking outside the grid and panels
@@ -203,7 +208,6 @@ function LabDashboard() {
 
   const isAdmin = user?.role === 'lab_admin' || user?.role === 'system_admin';
 
-  // Compute effective owner and space type for the current box/rack
   const { isViewOnlySpace, spaceOwnerId, isCommonSpace, isOwnSpace } = useMemo(() => {
     if (!user)
       return {
@@ -243,7 +247,6 @@ function LabDashboard() {
     };
   }, [user, currentBoxObj?.assignedUserId, currentRackObj?.assignedUserId, isAdmin]);
 
-  // Fetch display name for space owner
   const spaceOwnerIds = useMemo(() => (spaceOwnerId ? [spaceOwnerId] : []), [spaceOwnerId]);
   const { data: spaceOwnerUsers = [] } = useUserLookupQuery(spaceOwnerIds);
   const spaceOwnerName = useMemo(() => {
@@ -255,7 +258,6 @@ function LabDashboard() {
       : ownerUser.username;
   }, [spaceOwnerId, spaceOwnerUsers]);
 
-  // Build storage hierarchy for navigator
   const storageHierarchy: StorageHierarchy = useMemo(
     () => ({
       tanks: tanks.map(tank => ({
@@ -279,7 +281,6 @@ function LabDashboard() {
     [tanks]
   );
 
-  // Fetch active users for admin badge resolution in navigator
   const { data: activeUsers = [] } = useActiveUsersQuery();
 
   const allDisplayUsers = useMemo(() => {
@@ -340,7 +341,6 @@ function LabDashboard() {
     clearSelection();
   };
 
-  // Lock operation handlers
   const handleLockTubes = useCallback(
     (tubeIds: string[]) => {
       modalService.showLockTubesModal(tubeIds);
@@ -390,14 +390,12 @@ function LabDashboard() {
     };
 
     return {
-      // Permission checks
       canLockTube: accessControl.canLockTube,
       canUnlockTube: accessControl.canUnlockTube,
       canShareTubeAccess: accessControl.canShareTubeAccess,
       isLockedByCurrentUser: accessControl.isLockedByCurrentUser,
       isLockedOutFrom: accessControl.isLockedOutFrom,
       hasExplicitSharedAccess: accessControl.hasExplicitSharedAccess,
-      // Display helpers
       getLockOwnerName,
       getSharedUserNames,
     };
@@ -416,7 +414,7 @@ function LabDashboard() {
       };
     }
 
-    const selectedTubes = Array.from(selectedPositions || [])
+    const selectedTubes = Array.from(selectedPositions)
       .map(key => {
         const { tankId, rackId, boxId, position } = parsePositionKey(key);
         return tubes.find(
@@ -430,7 +428,7 @@ function LabDashboard() {
       .filter((tube): tube is TubeData => tube !== undefined);
 
     const emptyPositions = new Set(
-      Array.from(selectedPositions || []).filter(key => {
+      Array.from(selectedPositions).filter(key => {
         const { tankId, rackId, boxId, position } = parsePositionKey(key);
         return !tubes.find(
           t =>
@@ -443,7 +441,7 @@ function LabDashboard() {
     );
 
     const filledPositions = new Set(
-      Array.from(selectedPositions || []).filter(key => {
+      Array.from(selectedPositions).filter(key => {
         const { tankId, rackId, boxId, position } = parsePositionKey(key);
         return tubes.find(
           t =>
@@ -495,13 +493,12 @@ function LabDashboard() {
     isUnlocking: unlockTubesMutation.isPending,
     currentUserId: user?.id,
     isViewOnlySpace,
-    isAdmin: user?.role === 'lab_admin' || user?.role === 'system_admin',
+    isAdmin,
     hasResearcherProfile,
   });
 
   return (
     <div className="app-container">
-      {/* Application Header */}
       <div className="app-header">
         <AppHeader
           selectedPositions={selectedPositions}
@@ -523,9 +520,7 @@ function LabDashboard() {
         />
       </div>
 
-      {/* Height-Driven Main Layout */}
       <div className="main-layout">
-        {/* Storage Navigator - Tank/Rack/Box */}
         <div className="storage-navigator-panel">
           <div className="h-full flex flex-col bg-card rounded-lg">
             <div className="px-4 pt-4 pb-2">
@@ -554,7 +549,6 @@ function LabDashboard() {
           </div>
         </div>
 
-        {/* Main Grid - Square Constraint */}
         <div className="grid-section">
           <div className="h-full flex flex-col bg-card rounded-lg">
             <div className="px-4 pt-4 pb-2 flex items-center">
@@ -631,7 +625,6 @@ function LabDashboard() {
           </div>
         </div>
 
-        {/* Info Panel - Flexible Width */}
         <div className="info-panel" ref={infoPanelRef}>
           <div className="h-full flex flex-col bg-card rounded-lg">
             <div className="px-4 pt-4 pb-2">
@@ -650,7 +643,6 @@ function LabDashboard() {
         </div>
       </div>
 
-      {/* Unified Tube Modal - Rendered based on modalStore state */}
       <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeEditorModal-Add">
         <TubeEditorModal
           isOpen={
@@ -687,7 +679,6 @@ function LabDashboard() {
         />
       </SuspenseBoundary>
 
-      {/* Unified System Delete Confirmation Dialog */}
       <DeleteConfirmDialog
         isOpen={modalService.deleteConfirm.isOpen}
         title={modalService.deleteConfirm.title}
@@ -697,7 +688,6 @@ function LabDashboard() {
         onCancel={modalService.deleteConfirm.onCancel}
       />
 
-      {/* Unified System Overwrite Confirmation Dialog */}
       <OverwriteConfirmDialog
         isOpen={modalService.overwriteConfirm.isOpen}
         title={modalService.overwriteConfirm.title}
@@ -707,7 +697,6 @@ function LabDashboard() {
         onCancel={modalService.overwriteConfirm.onCancel}
       />
 
-      {/* Unified System Unsaved Changes Confirmation Dialog */}
       <UnsavedConfirmDialog
         isOpen={modalService.unsavedConfirm.isOpen}
         title={modalService.unsavedConfirm.title}
@@ -716,14 +705,12 @@ function LabDashboard() {
         onCancel={modalService.unsavedConfirm.onCancel}
       />
 
-      {/* Lock Tubes Modal */}
       <LockTubesModal
         isOpen={modalService.lockTubesModal.isOpen}
         tubeIds={modalService.lockTubesModal.tubeIds}
         onClose={modalService.hideLockTubesModal}
       />
 
-      {/* Share Access Modal */}
       <ShareAccessModal
         isOpen={modalService.shareAccessModal.isOpen && !!user}
         tubes={modalService.shareAccessModal.tubeIds
