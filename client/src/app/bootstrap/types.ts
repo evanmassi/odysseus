@@ -1,5 +1,7 @@
 /**
- * Application bootstrap types
+ * Application Bootstrap Types
+ *
+ * State shape and contracts for the multi-step initialization sequence.
  */
 
 export interface AppBootstrapState {
@@ -50,14 +52,14 @@ export interface UseAppBootstrapResult {
   isReady: boolean;
   isLoading: boolean;
   isError: boolean;
-  error: string | BootstrapError | null;
+  error: string | null;
   currentStep: BootstrapStep;
   context: string;
-  state: 'initializing' | 'loading' | 'error' | 'retrying' | 'complete';
+  state: 'initializing' | 'loading' | 'error' | 'complete';
   progress: number;
   canRetry: boolean;
   completedSteps: BootstrapStep[];
-  initializationResult: BootstrapInitializationResult | null;
+  initializationResult: BootstrapInitializationResult;
   retry: () => void;
   flags: {
     firstTimeSetupRequired: boolean;

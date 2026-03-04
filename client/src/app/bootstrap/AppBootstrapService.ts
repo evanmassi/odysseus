@@ -1,5 +1,8 @@
 /**
- * Application bootstrap service
+ * Application Bootstrap Service
+ *
+ * Manages the ordered initialization sequence: auth check, session restore,
+ * cache validation, network setup, and socket connection.
  */
 
 import { authService } from '@domains/authentication/services/AuthenticationService';
@@ -36,6 +39,11 @@ export class AppBootstrapService {
 
   private listeners: Array<(state: AppBootstrapState) => void> = [];
   private isInitialized = false;
+  private authUnsubscribe: (() => void) | null = null;
+
+  constructor() {
+    this.authUnsubscribe = this.setupAuthSubscription();
+  }
 
   subscribe(listener: (state: AppBootstrapState) => void): () => void {
     this.listeners.push(listener);
@@ -72,6 +80,41 @@ export class AppBootstrapService {
     this.notify();
   }
 
+  private setOfflineError() {
+    this.state.currentStep = 'error';
+    this.state.error = 'OFFLINE_DURING_INIT';
+    this.state.isLoading = false;
+    this.isInitialized = false;
+    this.notify();
+  }
+
+  /**
+   * Session Cleanup Subscription
+   *
+   * Resets domain UI stores on logout. Socket reconnection on login handled by useAuthSocketSync.
+   */
+  private setupAuthSubscription(): () => void {
+    let wasAuthenticated = useAuthStore.getState().isAuthenticated;
+    return useAuthStore.subscribe(state => {
+      const isAuthenticated = state.isAuthenticated;
+
+      if (wasAuthenticated && !isAuthenticated) {
+        useTubeStore.getState().resetStore();
+        useSearchStore.getState().clearSearch();
+
+        // Clear presence cache to ensure fresh state on next login
+        // This prevents stale online user badges from appearing
+        queryClient.setQueryData(queryKeys.users.presence(), []);
+
+        // Disconnect socket to trigger user_offline event on server
+        // This notifies other clients that this user is no longer online
+        cleanupSocket();
+      }
+
+      wasAuthenticated = isAuthenticated;
+    });
+  }
+
   async bootstrap(queryClient: QueryClient): Promise<void> {
     // GUARD: Prevent duplicate bootstrap in React StrictMode
     if (this.isInitialized) {
@@ -84,8 +127,8 @@ export class AppBootstrapService {
       this.state.error = null;
       this.notify();
 
-      // Initialize
       this.updateStep('initialization', false);
+      // Brief delay to let the loading screen render before heavier initialization work begins.
       await new Promise(resolve => setTimeout(resolve, 500));
       this.updateStep('initialization', true);
 
@@ -139,18 +182,13 @@ export class AppBootstrapService {
         this.updateStep('cache-validation', true);
       }
 
-      // Initialize advanced real-time systems
       this.updateStep('socket-connection', false);
 
       // Early offline detection - check before attempting network operations
       if (!navigator.onLine) {
         logger.warn('Browser reports offline state during bootstrap');
-        this.state.currentStep = 'error';
-        this.state.error = 'OFFLINE_DURING_INIT';
-        this.state.isLoading = false;
-        this.isInitialized = false;
-        this.notify();
-        return; // Exit bootstrap early, don't throw error
+        this.setOfflineError();
+        return;
       }
 
       try {
@@ -159,21 +197,14 @@ export class AppBootstrapService {
         const networkMonitor = initializeNetworkMonitor(queryClient);
         await networkMonitor.waitForInitialization();
 
-        // Check if network monitor detected offline state (uses shared networkState)
         if (isOffline()) {
           logger.warn('Network monitor detected offline state during bootstrap');
-          this.state.currentStep = 'error';
-          this.state.error = 'OFFLINE_DURING_INIT';
-          this.state.isLoading = false;
-          this.isInitialized = false;
-          this.notify();
-          return; // Exit bootstrap early, don't throw error
+          this.setOfflineError();
+          return;
         }
 
-        // Initialize optimistic updates service
         initializeOptimisticUpdates(queryClient);
 
-        // Initialize socket with React Query integration
         // Socket will notify NetworkMonitor of connection state changes
         await initializeSocket(queryClient);
 
@@ -190,12 +221,8 @@ export class AppBootstrapService {
 
         if (isOfflineError) {
           logger.warn('Offline-related error during bootstrap', { socketError });
-          this.state.currentStep = 'error';
-          this.state.error = 'OFFLINE_DURING_INIT';
-          this.state.isLoading = false;
-          this.isInitialized = false;
-          this.notify();
-          return; // Exit bootstrap early with offline state
+          this.setOfflineError();
+          return;
         }
 
         logger.error('Bootstrap real-time systems initialization failed', { socketError });
@@ -206,10 +233,8 @@ export class AppBootstrapService {
       // Data loading handled by React Query (on-demand, component-driven)
       // Components call hooks (useTubesQuery, useResearchersQuery, etc.)
       // Socket.IO keeps cache fresh via real-time invalidation
-      this.updateStep('data-loading', false);
       this.updateStep('data-loading', true);
 
-      // Complete
       this.updateStep('complete', true);
       this.state.isLoading = false;
       this.isInitialized = true;
@@ -227,13 +252,12 @@ export class AppBootstrapService {
     }
   }
 
-  /**
-   * Cleanup resources on app shutdown
-   */
   public cleanup(): void {
     cleanupSocket();
     cleanupNetworkMonitor();
-    this.isInitialized = false; // Allow re-initialization after cleanup
+    this.authUnsubscribe?.();
+    this.authUnsubscribe = null;
+    this.isInitialized = false;
   }
 
   retry(queryClient: QueryClient): void {
@@ -247,35 +271,9 @@ export class AppBootstrapService {
     resetNetworkState();
     cleanupNetworkMonitor();
 
-    this.isInitialized = false; // Reset flag to allow retry
+    this.isInitialized = false;
     void this.bootstrap(queryClient);
   }
 }
 
 export const appBootstrapService = new AppBootstrapService();
-
-/**
- * Session Cleanup Subscription
- *
- * Resets domain UI stores on logout. Socket reconnection on login handled by useAuthSocketSync.
- */
-let wasAuthenticated = useAuthStore.getState().isAuthenticated;
-useAuthStore.subscribe(state => {
-  const isAuthenticated = state.isAuthenticated;
-
-  if (wasAuthenticated && !isAuthenticated) {
-    // User logged out - reset all domain UI state
-    useTubeStore.getState().resetStore();
-    useSearchStore.getState().clearSearch();
-
-    // Clear presence cache to ensure fresh state on next login
-    // This prevents stale online user badges from appearing
-    queryClient.setQueryData(queryKeys.users.presence(), []);
-
-    // Disconnect socket to trigger user_offline event on server
-    // This notifies other clients that this user is no longer online
-    cleanupSocket();
-  }
-
-  wasAuthenticated = isAuthenticated;
-});

@@ -1,15 +1,15 @@
 /**
  * App Bootstrap Hook
  *
- * React hook for managing application initialization state.
- * Provides clean integration between bootstrap service and React components.
+ * Bridges the bootstrap service to React component state.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import { useQueryClient } from '@tanstack/react-query';
 
 import { appBootstrapService } from './AppBootstrapService';
+import { LOADING_MESSAGES } from './constants';
 
 import type {
   AppBootstrapState,
@@ -19,9 +19,14 @@ import type {
   BootstrapError,
 } from './types';
 
-/**
- * Main bootstrap hook for application initialization
- */
+const STEP_ORDER: BootstrapStep[] = [
+  'initialization',
+  'auth-check',
+  'socket-connection',
+  'data-loading',
+  'complete',
+];
+
 export function useAppBootstrap(): UseAppBootstrapResult {
   const queryClient = useQueryClient();
   const [bootstrapState, setBootstrapState] = useState<AppBootstrapState>(
@@ -29,67 +34,49 @@ export function useAppBootstrap(): UseAppBootstrapResult {
   );
 
   useEffect(() => {
-    const unsubscribe = appBootstrapService.subscribe(setBootstrapState);
+    return appBootstrapService.subscribe(setBootstrapState);
+  }, []);
 
+  useEffect(() => {
     if (bootstrapState.currentStep === 'initialization' && bootstrapState.isLoading) {
       void appBootstrapService.bootstrap(queryClient);
     }
-
-    return unsubscribe;
   }, [queryClient, bootstrapState.currentStep, bootstrapState.isLoading]);
 
   const getContextMessage = (step: BootstrapStep): string => {
-    switch (step) {
-      case 'initialization':
-        return 'Initializing application...';
-      case 'auth-check':
-        return 'Checking authentication...';
-      case 'socket-connection':
-        return 'Establishing real-time connection...';
-      case 'data-loading':
-        return 'Loading workspace data...';
-      case 'complete':
-        return 'Ready!';
-      case 'error':
-        return bootstrapState.error ?? 'Initialization failed';
-      default:
-        return 'Starting up...';
-    }
+    if (step === 'error') return bootstrapState.error ?? 'Initialization failed';
+    return LOADING_MESSAGES[step] ?? 'Starting up...';
   };
 
-  const stepOrder: BootstrapStep[] = [
-    'initialization',
-    'auth-check',
-    'socket-connection',
-    'data-loading',
-    'complete',
-  ];
-  const currentStepIndex = stepOrder.indexOf(bootstrapState.currentStep);
+  const currentStepIndex = STEP_ORDER.indexOf(bootstrapState.currentStep);
   const progress =
-    currentStepIndex >= 0 ? Math.round((currentStepIndex / (stepOrder.length - 1)) * 100) : 0;
+    currentStepIndex >= 0 ? Math.round((currentStepIndex / (STEP_ORDER.length - 1)) * 100) : 0;
 
   const completedSteps = bootstrapState.steps.filter(step => step.completed).map(step => step.step);
 
-  const getOverallState = (): 'initializing' | 'loading' | 'error' | 'retrying' | 'complete' => {
+  const getOverallState = (): 'initializing' | 'loading' | 'error' | 'complete' => {
     if (bootstrapState.currentStep === 'error') return 'error';
     if (bootstrapState.currentStep === 'complete') return 'complete';
     if (bootstrapState.isLoading) return 'loading';
     return 'initializing';
   };
 
-  const initializationResult: BootstrapInitializationResult | null = {
-    completedSteps,
-    errors: bootstrapState.steps
-      .filter(step => step.error)
-      .map(step => ({
-        message: step.error!,
-        step: step.step,
-        code: 'BOOTSTRAP_ERROR',
-        retryable: true,
-      })) as BootstrapError[],
-    isComplete: bootstrapState.currentStep === 'complete',
-    timestamp: new Date(),
-  };
+  const initializationResult: BootstrapInitializationResult = useMemo(
+    () => ({
+      completedSteps,
+      errors: bootstrapState.steps
+        .filter(step => step.error)
+        .map(step => ({
+          message: step.error!,
+          step: step.step,
+          retryable: true,
+        })) as BootstrapError[],
+      isComplete: bootstrapState.currentStep === 'complete',
+      timestamp: new Date(),
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [bootstrapState.steps, bootstrapState.currentStep]
+  );
 
   return {
     isReady: !bootstrapState.isLoading && bootstrapState.currentStep === 'complete',

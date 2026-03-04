@@ -1,7 +1,9 @@
 /**
- * Application bootstrap constants
+ * Bootstrap Step Definitions
+ *
+ * Ordered initialization sequence with display labels used across the loading UI.
  */
-import type { BootstrapStepInfo } from './types';
+import type { BootstrapStep, BootstrapStepInfo } from './types';
 
 export const BOOTSTRAP_STEPS: BootstrapStepInfo[] = [
   {
@@ -41,15 +43,6 @@ export const BOOTSTRAP_STEPS: BootstrapStepInfo[] = [
   },
 ];
 
-/**
- * Loading messages for each bootstrap step
- */
-export const LOADING_MESSAGES = {
-  initialization: 'Initializing Application',
-  'auth-check': 'Checking Authentication',
-  'session-restore': 'Restoring Session',
-  'cache-validation': 'Validating Cache',
-  'socket-connection': 'Connecting to Server',
-  'data-loading': 'Loading Data',
-  complete: 'Ready',
-} as const;
+export const LOADING_MESSAGES: Partial<Record<BootstrapStep, string>> = Object.fromEntries(
+  BOOTSTRAP_STEPS.map(s => [s.step, s.label])
+);
