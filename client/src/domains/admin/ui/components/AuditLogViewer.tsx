@@ -143,22 +143,27 @@ export function AuditLogViewer({
     });
   };
 
+  const ACTION_LABEL_OVERRIDES: Record<string, string> = {
+    user_logged_in: 'Login',
+    user_logged_out: 'Logout',
+    user_linked_to_researcher: 'Linked',
+    user_unlinked_from_researcher: 'Unlinked',
+    user_password_changed: 'Updated',
+    user_role_changed: 'Updated',
+    tube_bulk_updated: 'Bulk Updated',
+    user_deactivated: 'Deactivated',
+    user_suspended: 'Suspended',
+    user_reactivated: 'Reactivated',
+    user_rejected: 'Rejected',
+    invite_code_created: 'Created',
+    invite_code_used: 'Used',
+    researcher_approved: 'Approved',
+    lab_created: 'Created',
+  };
+
   const formatAction = (action: string) => {
-    if (action === 'user_logged_in') return 'Login';
-    if (action === 'user_logged_out') return 'Logout';
-    if (action === 'user_linked_to_researcher') return 'Linked';
-    if (action === 'user_unlinked_from_researcher') return 'Unlinked';
-    if (action === 'user_password_changed') return 'Updated';
-    if (action === 'user_role_changed') return 'Updated';
-    if (action === 'tube_bulk_updated') return 'Bulk Updated';
-    if (action === 'user_deactivated') return 'Deactivated';
-    if (action === 'user_suspended') return 'Suspended';
-    if (action === 'user_reactivated') return 'Reactivated';
-    if (action === 'user_rejected') return 'Rejected';
-    if (action === 'invite_code_created') return 'Created';
-    if (action === 'invite_code_used') return 'Used';
-    if (action === 'researcher_approved') return 'Approved';
-    if (action === 'lab_created') return 'Created';
+    const override = ACTION_LABEL_OVERRIDES[action];
+    if (override) return override;
 
     const parts = action.split('_');
     if (parts.length > 1) {
@@ -167,32 +172,44 @@ export function AuditLogViewer({
     return action.charAt(0).toUpperCase() + action.slice(1);
   };
 
+  const BADGE_CLASS_OVERRIDES: Record<string, string> = {
+    invite_code_created: 'created',
+    invite_code_used: 'linked',
+    user_password_changed: 'updated',
+    user_role_changed: 'updated',
+    tube_bulk_updated: 'updated',
+    user_logged_in: 'login',
+    user_logged_out: 'logout',
+  };
+
+  const SUFFIX_BADGE_MAP: Record<string, string> = {
+    created: 'created',
+    approved: 'created',
+    reactivated: 'created',
+    unlocked: 'created',
+    updated: 'updated',
+    moved: 'moved',
+    reassigned: 'moved',
+    locked: 'moved',
+    deleted: 'deleted',
+    deactivated: 'deleted',
+    suspended: 'deleted',
+    rejected: 'deleted',
+    assigned: 'linked',
+    shared: 'linked',
+    linked: 'linked',
+    unassigned: 'unlinked',
+    unlinked: 'unlinked',
+    revoked: 'unlinked',
+  };
+
   const getActionBadgeClass = (action: string) => {
-    if (action.includes('suspended')) return 'badge-audit-action-deleted';
-    if (action.includes('rejected')) return 'badge-audit-action-deleted';
-    if (action === 'invite_code_created') return 'badge-audit-action-created';
-    if (action === 'invite_code_used') return 'badge-audit-action-linked';
-    if (action.includes('created')) return 'badge-audit-action-created';
-    if (action.includes('updated')) return 'badge-audit-action-updated';
-    if (action.includes('password_changed')) return 'badge-audit-action-updated';
-    if (action.includes('role_changed')) return 'badge-audit-action-updated';
-    if (action.includes('moved')) return 'badge-audit-action-moved';
-    if (action.includes('deleted')) return 'badge-audit-action-deleted';
-    if (action.includes('deactivated')) return 'badge-audit-action-deleted';
-    if (action.includes('unlinked')) return 'badge-audit-action-unlinked';
-    if (action.includes('logged_in')) return 'badge-audit-action-login';
-    if (action.includes('logged_out')) return 'badge-audit-action-logout';
-    if (action.includes('linked')) return 'badge-audit-action-linked';
-    if (action.includes('reactivated')) return 'badge-audit-action-created';
-    if (action.includes('approved')) return 'badge-audit-action-created';
-    if (action.includes('assigned')) return 'badge-audit-action-linked';
-    if (action.includes('unassigned')) return 'badge-audit-action-unlinked';
-    if (action.includes('reassigned')) return 'badge-audit-action-moved';
-    if (action.includes('locked')) return 'badge-audit-action-moved';
-    if (action.includes('unlocked')) return 'badge-audit-action-created';
-    if (action.includes('shared')) return 'badge-audit-action-linked';
-    if (action.includes('revoked')) return 'badge-audit-action-unlinked';
-    return 'badge-audit-action-default';
+    const override = BADGE_CLASS_OVERRIDES[action];
+    if (override) return `badge-audit-action-${override}`;
+
+    const suffix = action.split('_').pop() ?? '';
+    const badge = SUFFIX_BADGE_MAP[suffix];
+    return badge ? `badge-audit-action-${badge}` : 'badge-audit-action-default';
   };
 
   const formatEntityType = (entityType: string) => {

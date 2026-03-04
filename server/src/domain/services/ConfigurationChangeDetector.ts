@@ -15,10 +15,6 @@ import {
   BoxDeletedEvent,
   BoxUpdatedEvent,
   LabNameChangedEvent,
-  RackAccessSharedEvent,
-  RackAccessRevokedEvent,
-  BoxAccessSharedEvent,
-  BoxAccessRevokedEvent,
   RackAssignedEvent,
   RackUnassignedEvent,
   RackReassignedEvent,
@@ -231,12 +227,6 @@ export class ConfigurationChangeDetector {
           summary.racksUpdated++;
         }
 
-        // Detect sharedWithUserIds changes
-        const sharingEvents = this.detectRackSharingChanges(
-          oldRack, newRack, tankId, tankName, userId
-        );
-        events.push(...sharingEvents);
-
         // Detect assignedUserId changes
         const assignmentEvents = this.detectRackAssignmentChanges(
           oldRack, newRack, tankId, tankName, userId
@@ -291,39 +281,6 @@ export class ConfigurationChangeDetector {
         userId, tankId, tankName, newRack.id, newRack.name,
         oldAssigned, '', // Previous username
         newAssigned, ''  // New username
-      ));
-    }
-
-    return events;
-  }
-
-  /**
-   * Detect sharing changes for a rack
-   */
-  private detectRackSharingChanges(
-    oldRack: Rack,
-    newRack: Rack,
-    tankId: string,
-    tankName: string,
-    userId: string
-  ): DomainEvent[] {
-    const events: DomainEvent[] = [];
-    const oldShared = new Set(oldRack.sharedWithUserIds);
-    const newShared = new Set(newRack.sharedWithUserIds);
-
-    // Find newly shared users
-    const addedUsers = newRack.sharedWithUserIds.filter(id => !oldShared.has(id));
-    if (addedUsers.length > 0) {
-      events.push(new RackAccessSharedEvent(
-        userId, tankId, tankName, newRack.id, newRack.name, addedUsers
-      ));
-    }
-
-    // Find revoked users
-    const revokedUsers = oldRack.sharedWithUserIds.filter(id => !newShared.has(id));
-    if (revokedUsers.length > 0) {
-      events.push(new RackAccessRevokedEvent(
-        userId, tankId, tankName, newRack.id, newRack.name, revokedUsers
       ));
     }
 
@@ -400,12 +357,6 @@ export class ConfigurationChangeDetector {
           summary.boxesUpdated++;
         }
 
-        // Detect sharedWithUserIds changes
-        const sharingEvents = this.detectBoxSharingChanges(
-          oldBox, newBox, tankId, tankName, rackId, rackName, userId
-        );
-        events.push(...sharingEvents);
-
         // Detect assignedUserId changes
         const assignmentEvents = this.detectBoxAssignmentChanges(
           oldBox, newBox, tankId, tankName, rackId, rackName, userId
@@ -464,38 +415,4 @@ export class ConfigurationChangeDetector {
     return events;
   }
 
-  /**
-   * Detect sharing changes for a box
-   */
-  private detectBoxSharingChanges(
-    oldBox: Box,
-    newBox: Box,
-    tankId: string,
-    tankName: string,
-    rackId: string,
-    rackName: string,
-    userId: string
-  ): DomainEvent[] {
-    const events: DomainEvent[] = [];
-    const oldShared = new Set(oldBox.sharedWithUserIds);
-    const newShared = new Set(newBox.sharedWithUserIds);
-
-    // Find newly shared users
-    const addedUsers = newBox.sharedWithUserIds.filter(id => !oldShared.has(id));
-    if (addedUsers.length > 0) {
-      events.push(new BoxAccessSharedEvent(
-        userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name, addedUsers
-      ));
-    }
-
-    // Find revoked users
-    const revokedUsers = oldBox.sharedWithUserIds.filter(id => !newShared.has(id));
-    if (revokedUsers.length > 0) {
-      events.push(new BoxAccessRevokedEvent(
-        userId, tankId, tankName, rackId, rackName, newBox.name, newBox.name, revokedUsers
-      ));
-    }
-
-    return events;
-  }
 }

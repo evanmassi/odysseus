@@ -293,81 +293,61 @@ export class AuditEventHandler {
   }
 
   private async handleTubeUpdated(event: TubeUpdatedEvent): Promise<void> {
-    await this.safeLogAudit('tube updated', { tubeId: event.tubeId }, async () => {
-      const { username, isDemo } = await this.resolveUser(event.updatedBy);
+    await this.logAuditEvent({
+      eventName: 'tube updated', context: { tubeId: event.tubeId },
+      actorId: event.updatedBy, action: 'tube_updated', entityType: 'tube',
+      entityId: event.tubeId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: async (username) => {
+        const changes: FieldChange[] = [];
 
-      if (isDemo) {
-        return;
-      }
-
-      const changes: FieldChange[] = [];
-
-      if (event.oldLocation.toString() !== event.newLocation.toString()) {
-        changes.push({
-          field: 'location',
-          oldValue: event.oldLocation.toString(),
-          newValue: event.newLocation.toString(),
-        });
-      }
-
-      const oldData = event.oldSampleData.toData();
-      const newData = event.newSampleData.toData();
-      const sampleDataKeys = Object.keys(newData) as Array<keyof typeof newData>;
-      sampleDataKeys.forEach(key => {
-        const oldValue = oldData[key];
-        const newValue = newData[key];
-        if (oldValue !== newValue) {
-          changes.push({ field: key, oldValue, newValue });
+        if (event.oldLocation.toString() !== event.newLocation.toString()) {
+          changes.push({
+            field: 'location',
+            oldValue: event.oldLocation.toString(),
+            newValue: event.newLocation.toString(),
+          });
         }
-      });
 
-      const displayLocation = await this.getDisplayLocation(event.newLocation);
+        const oldData = event.oldSampleData.toData();
+        const newData = event.newSampleData.toData();
+        const sampleDataKeys = Object.keys(newData) as Array<keyof typeof newData>;
+        sampleDataKeys.forEach(key => {
+          const oldValue = oldData[key];
+          const newValue = newData[key];
+          if (oldValue !== newValue) {
+            changes.push({ field: key, oldValue, newValue });
+          }
+        });
 
-      await this.auditService.logAction({
-        userId: event.updatedBy,
-        username,
-        action: 'tube_updated',
-        entityType: 'tube',
-        entityId: event.tubeId,
-        labId: event.labId,
-        details: {
+        const displayLocation = await this.getDisplayLocation(event.newLocation);
+
+        return {
           changes,
           location: event.newLocation.toString(),
           displayLocation,
           updatedBy: username,
-          timestamp: event.occurredOn.toISOString(),
-        },
-      });
+        };
+      },
     });
   }
 
   private async handleTubeLocationChanged(event: TubeLocationChangedEvent): Promise<void> {
-    await this.safeLogAudit('tube location changed', { tubeId: event.tubeId }, async () => {
-      const { username, isDemo } = await this.resolveUser(event.movedBy);
+    await this.logAuditEvent({
+      eventName: 'tube location changed', context: { tubeId: event.tubeId },
+      actorId: event.movedBy, action: 'tube_moved', entityType: 'tube',
+      entityId: event.tubeId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: async (username) => {
+        const oldDisplayLocation = await this.getDisplayLocation(event.oldLocation);
+        const newDisplayLocation = await this.getDisplayLocation(event.newLocation);
 
-      if (isDemo) {
-        return;
-      }
-
-      const oldDisplayLocation = await this.getDisplayLocation(event.oldLocation);
-      const newDisplayLocation = await this.getDisplayLocation(event.newLocation);
-
-      await this.auditService.logAction({
-        userId: event.movedBy,
-        username,
-        action: 'tube_moved',
-        entityType: 'tube',
-        entityId: event.tubeId,
-        labId: event.labId,
-        details: {
+        return {
           oldLocation: event.oldLocation.toString(),
           newLocation: event.newLocation.toString(),
           oldDisplayLocation,
           displayLocation: newDisplayLocation,
           movedBy: username,
-          timestamp: event.occurredOn.toISOString(),
-        },
-      });
+        };
+      },
     });
   }
 
@@ -795,20 +775,11 @@ export class AuditEventHandler {
   // USER EVENT HANDLERS
 
   private async handleUserCreated(event: UserCreatedEvent): Promise<void> {
-    await this.safeLogAudit('user created', { userId: event.userId }, async () => {
-      await this.auditService.logAction({
-        userId: event.userId,
-        username: event.username,
-        action: 'user_created',
-        entityType: 'user',
-        entityId: event.userId,
-        labId: event.labId,
-        details: {
-          username: event.username,
-          role: event.role.value,
-          timestamp: event.occurredOn.toISOString(),
-        },
-      });
+    await this.logAuditEvent({
+      eventName: 'user created', context: { userId: event.userId },
+      actorId: event.userId, action: 'user_created', entityType: 'user',
+      entityId: event.userId, occurredOn: event.occurredOn, labId: event.labId,
+      buildDetails: (username) => ({ username, role: event.role.value }),
     });
   }
 
@@ -930,7 +901,7 @@ export class AuditEventHandler {
     await this.logAuditEvent({
       eventName: 'researcher approved', context: { researcherId: event.researcherId },
       actorId: event.approvedBy, action: 'researcher_approved', entityType: 'researcher',
-      entityId: event.researcherId, occurredOn: event.occurredOn,
+      entityId: event.researcherId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: (username) => ({ researcherName: `${event.firstName} ${event.lastName}`, linkedUserId: event.linkedUserId, approvedBy: username }),
     });
   }

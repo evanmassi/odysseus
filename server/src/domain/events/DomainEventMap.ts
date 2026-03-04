@@ -30,11 +30,7 @@ import type {
   RackLabelUpdatedEvent,
   BoxLabelUpdatedEvent,
   BulkResourcesUnassignedEvent,
-  BulkResourcesReassignedEvent,
-  RackAccessSharedEvent,
-  RackAccessRevokedEvent,
-  BoxAccessSharedEvent,
-  BoxAccessRevokedEvent
+  BulkResourcesReassignedEvent
 } from './ConfigurationEvents';
 import type {
   UserCreatedEvent,
@@ -121,12 +117,6 @@ export interface DomainEventMap {
   // Bulk resource events
   'BulkResourcesUnassigned': BulkResourcesUnassignedEvent;
   'BulkResourcesReassigned': BulkResourcesReassignedEvent;
-
-  // Resource access sharing events
-  'RackAccessShared': RackAccessSharedEvent;
-  'RackAccessRevoked': RackAccessRevokedEvent;
-  'BoxAccessShared': BoxAccessSharedEvent;
-  'BoxAccessRevoked': BoxAccessRevokedEvent;
 
   // User events
   'UserCreated': UserCreatedEvent;
