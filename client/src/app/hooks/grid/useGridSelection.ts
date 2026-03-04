@@ -21,7 +21,7 @@ export interface UseGridSelectionProps {
   lockContext?: LockContext;
 }
 
-export interface SelectionAnalysis {
+export interface SelectionCounts {
   filledCount: number;
   emptyCount: number;
   hasFilledSelection: boolean;
@@ -43,7 +43,7 @@ export interface UseGridSelectionReturn {
   handleBulkSelection: (positions: number[]) => void;
   isPositionSelected: (position: number) => boolean;
   selectedPositionsInThisBox: () => number[];
-  selectionAnalysis: SelectionAnalysis;
+  selectionAnalysis: SelectionCounts;
   clickTimerRef: React.MutableRefObject<NodeJS.Timeout | null>;
   actions: {
     setSelection: (position: number) => void;

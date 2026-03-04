@@ -12,7 +12,7 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useStorageData } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey, parsePositionKey } from '@shared/types/GridSelection';
+import { toPositionKey } from '@shared/types/GridSelection';
 import { writeClipboardOS, readClipboardOS } from '@shared/utils/gridClipboard';
 import { notifications } from '@shared/utils/notifications';
 import { validatePasteOperation } from '@shared/utils/pasteValidation';
@@ -25,7 +25,7 @@ import type { PositionKey, PositionContext, TubeClipboardItem } from '@shared/ty
 export interface UseGridClipboardProps {
   ctx: PositionContext;
   tubes: TubeData[];
-  selectedPositions: Set<PositionKey>;
+  selectedPositionsInThisBox: () => number[];
   resolveTubeIdAtPosition: (position: number) => string | null;
   onDeleteTubes?: (tubeIds: string[], silent?: boolean) => Promise<void>;
   onPasteTubes?: (tubes: ReturnType<typeof tubeDataToCreateRequest>[]) => Promise<void>;
@@ -54,7 +54,7 @@ export interface UseGridClipboardReturn {
 export const useGridClipboard = ({
   ctx,
   tubes,
-  selectedPositions,
+  selectedPositionsInThisBox,
   resolveTubeIdAtPosition,
   onDeleteTubes,
   onPasteTubes,
@@ -69,127 +69,71 @@ export const useGridClipboard = ({
   const modalService = useModalStore();
   const { getBox } = useStorageData();
 
-  const selectedPositionsInThisBox = useCallback((): number[] => {
-    const positions: number[] = [];
-    selectedPositions.forEach(key => {
-      const { tankId: t, rackId: r, boxId: b, position } = parsePositionKey(key);
-      if (t === ctx.tankId && r === ctx.rackId && b === ctx.boxId) {
-        positions.push(position);
-      }
-    });
-    return positions.sort((a, b) => a - b);
-  }, [selectedPositions, ctx.tankId, ctx.rackId, ctx.boxId]);
-
-  const copy = useCallback(async () => {
-    if (!hasResearcherProfile) {
-      notifications.warning('Researcher profile required to copy tubes.');
-      return;
-    }
-
-    const positions = selectedPositionsInThisBox();
-    if (positions.length === 0) return;
-
-    const items: TubeClipboardItem[] = positions
-      .map(position => {
-        const tubeId = resolveTubeIdAtPosition(position);
-        return tubeId ? { tubeId, fromPosition: position } : null;
-      })
-      .filter((item): item is TubeClipboardItem => item !== null);
-
-    if (items.length === 0) return;
-
-    const selectedTubes = items
-      .map(item => tubes.find(t => t.id === item.tubeId))
-      .filter((tube): tube is TubeData => tube !== undefined);
-
-    if (selectedTubes.length > 0) {
-      const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace, isAdmin);
-      if (!result.canModifyAll) {
-        notifications.warning(getBlockedModificationMessage(result));
+  const copyOrCut = useCallback(
+    async (operation: 'copy' | 'cut') => {
+      if (!hasResearcherProfile) {
+        notifications.warning(`Researcher profile required to ${operation} tubes.`);
         return;
       }
-    }
 
-    const clipboardData: ClipboardData = {
-      tubes: selectedTubes,
-      operation: 'copy',
-      timestamp: new Date(),
-      selectionMode: useTubeStore.getState().lastSelectionMethod,
-      sourceLocation: ctx,
-    };
+      const positions = selectedPositionsInThisBox();
+      if (positions.length === 0) return;
 
-    setClipboard(clipboardData);
-    await writeClipboardOS(clipboardData);
+      const items: TubeClipboardItem[] = positions
+        .map(position => {
+          const tubeId = resolveTubeIdAtPosition(position);
+          return tubeId ? { tubeId, fromPosition: position } : null;
+        })
+        .filter((item): item is TubeClipboardItem => item !== null);
 
-    notifications.success(`Copied ${items.length} tube${items.length > 1 ? 's' : ''}`);
-  }, [
-    selectedPositionsInThisBox,
-    resolveTubeIdAtPosition,
-    tubes,
-    ctx,
-    setClipboard,
-    isViewOnlySpace,
-    isAdmin,
-    currentUserId,
-    hasResearcherProfile,
-  ]);
+      if (items.length === 0) return;
 
-  const cut = useCallback(async () => {
-    if (!hasResearcherProfile) {
-      notifications.warning('Researcher profile required to cut tubes.');
-      return;
-    }
+      const selectedTubes = items
+        .map(item => tubes.find(t => t.id === item.tubeId))
+        .filter((tube): tube is TubeData => tube !== undefined);
 
-    const positions = selectedPositionsInThisBox();
-    if (positions.length === 0) return;
-
-    const items: TubeClipboardItem[] = positions
-      .map(position => {
-        const tubeId = resolveTubeIdAtPosition(position);
-        return tubeId ? { tubeId, fromPosition: position } : null;
-      })
-      .filter((item): item is TubeClipboardItem => item !== null);
-
-    if (items.length === 0) return;
-
-    const selectedTubes = items
-      .map(item => tubes.find(t => t.id === item.tubeId))
-      .filter((tube): tube is TubeData => tube !== undefined);
-
-    if (selectedTubes.length > 0) {
-      const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace, isAdmin);
-      if (!result.canModifyAll) {
-        notifications.warning(getBlockedModificationMessage(result));
-        return;
+      if (selectedTubes.length > 0) {
+        const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace, isAdmin);
+        if (!result.canModifyAll) {
+          notifications.warning(getBlockedModificationMessage(result));
+          return;
+        }
       }
-    }
 
-    const clipboardData: ClipboardData = {
-      tubes: selectedTubes,
-      operation: 'cut',
-      timestamp: new Date(),
-      selectionMode: useTubeStore.getState().lastSelectionMethod,
-      sourceLocation: ctx,
-    };
+      const clipboardData: ClipboardData = {
+        tubes: selectedTubes,
+        operation,
+        timestamp: new Date(),
+        selectionMode: useTubeStore.getState().lastSelectionMethod,
+        sourceLocation: ctx,
+      };
 
-    setClipboard(clipboardData);
-    await writeClipboardOS(clipboardData);
+      setClipboard(clipboardData);
+      await writeClipboardOS(clipboardData);
 
-    notifications.success(`Cut ${items.length} tube${items.length > 1 ? 's' : ''}`);
+      const label = operation === 'copy' ? 'Copied' : 'Cut';
+      notifications.success(`${label} ${items.length} tube${items.length > 1 ? 's' : ''}`);
 
-    onSelectionChange(new Set());
-  }, [
-    selectedPositionsInThisBox,
-    resolveTubeIdAtPosition,
-    tubes,
-    ctx,
-    setClipboard,
-    onSelectionChange,
-    isViewOnlySpace,
-    isAdmin,
-    currentUserId,
-    hasResearcherProfile,
-  ]);
+      if (operation === 'cut') {
+        onSelectionChange(new Set());
+      }
+    },
+    [
+      selectedPositionsInThisBox,
+      resolveTubeIdAtPosition,
+      tubes,
+      ctx,
+      setClipboard,
+      onSelectionChange,
+      isViewOnlySpace,
+      isAdmin,
+      currentUserId,
+      hasResearcherProfile,
+    ]
+  );
+
+  const copy = useCallback(() => copyOrCut('copy'), [copyOrCut]);
+  const cut = useCallback(() => copyOrCut('cut'), [copyOrCut]);
 
   const paste = useCallback(
     async (options?: { targetStart?: number }) => {

@@ -20,6 +20,7 @@ import {
 import { useGridClipboard } from './useGridClipboard';
 import { useGridSelection } from './useGridSelection';
 
+import type { TubeData } from '@odysseus/shared-schemas';
 import type { GridControllerProps, GridControllerReturn } from '@shared/types/GridSelection';
 
 export const useGridController = ({
@@ -83,7 +84,7 @@ export const useGridController = ({
     useGridClipboard({
       ctx,
       tubes,
-      selectedPositions,
+      selectedPositionsInThisBox,
       resolveTubeIdAtPosition: resolveTube,
       onDeleteTubes,
       onPasteTubes,
@@ -129,6 +130,14 @@ export const useGridController = ({
       })
       .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
   }, [selectedPositionsInThisBox, resolveTube, tubes]);
+
+  const getFilteredTubeIds = useCallback(
+    (predicate: (tube: TubeData) => boolean): string[] =>
+      getSelectedTubes()
+        .filter(predicate)
+        .map(t => t.id),
+    [getSelectedTubes]
+  );
 
   // Returns true if blocked — checks both container access AND lock status
   const guardModifyOperation = useCallback((): boolean => {
@@ -293,16 +302,7 @@ export const useGridController = ({
     if (guardNoResearcherProfile()) return;
     if (guardModifyOperation()) return;
 
-    const positions = selectedPositionsInThisBox();
-    if (positions.length === 0) return;
-
-    const selectedTubes = positions
-      .map(position => {
-        const tubeId = resolveTube(position);
-        return tubeId ? tubes.find(t => t.id === tubeId) : null;
-      })
-      .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
-
+    const selectedTubes = getSelectedTubes();
     if (selectedTubes.length === 0) return;
 
     const lockable = selectedTubes.filter(t => lockContext.canLockTube(t));
@@ -317,9 +317,7 @@ export const useGridController = ({
     }
   }, [
     lockContext,
-    selectedPositionsInThisBox,
-    resolveTube,
-    tubes,
+    getSelectedTubes,
     onLockTubes,
     onUnlockTubes,
     isUnlocking,
@@ -332,18 +330,7 @@ export const useGridController = ({
     if (guardNoResearcherProfile()) return;
     if (guardModifyOperation()) return;
 
-    const positions = selectedPositionsInThisBox();
-    if (positions.length === 0) return;
-
-    const lockableTubeIds = positions
-      .map(position => {
-        const tubeId = resolveTube(position);
-        if (!tubeId) return null;
-        const tube = tubes.find(t => t.id === tubeId);
-        if (!tube || !lockContext.canLockTube(tube)) return null;
-        return tubeId;
-      })
-      .filter((id): id is string => id !== null);
+    const lockableTubeIds = getFilteredTubeIds(t => lockContext.canLockTube(t));
 
     if (lockableTubeIds.length === 0) {
       notifications.warning('No tubes can be locked');
@@ -353,9 +340,7 @@ export const useGridController = ({
     onLockTubes(lockableTubeIds);
   }, [
     lockContext,
-    selectedPositionsInThisBox,
-    resolveTube,
-    tubes,
+    getFilteredTubeIds,
     onLockTubes,
     guardModifyOperation,
     guardNoResearcherProfile,
@@ -365,18 +350,7 @@ export const useGridController = ({
     if (!lockContext || !onUnlockTubes || isUnlocking) return;
     if (guardNoResearcherProfile()) return;
 
-    const positions = selectedPositionsInThisBox();
-    if (positions.length === 0) return;
-
-    const unlockableTubeIds = positions
-      .map(position => {
-        const tubeId = resolveTube(position);
-        if (!tubeId) return null;
-        const tube = tubes.find(t => t.id === tubeId);
-        if (!tube || !lockContext.canUnlockTube(tube)) return null;
-        return tubeId;
-      })
-      .filter((id): id is string => id !== null);
+    const unlockableTubeIds = getFilteredTubeIds(t => lockContext.canUnlockTube(t));
 
     if (unlockableTubeIds.length === 0) {
       notifications.warning('No tubes can be unlocked');
@@ -384,32 +358,13 @@ export const useGridController = ({
     }
 
     await onUnlockTubes(unlockableTubeIds);
-  }, [
-    lockContext,
-    selectedPositionsInThisBox,
-    resolveTube,
-    tubes,
-    onUnlockTubes,
-    isUnlocking,
-    guardNoResearcherProfile,
-  ]);
+  }, [lockContext, getFilteredTubeIds, onUnlockTubes, isUnlocking, guardNoResearcherProfile]);
 
   const shareAccess = useCallback(() => {
     if (!lockContext || !onShareAccess) return;
     if (guardNoResearcherProfile()) return;
 
-    const positions = selectedPositionsInThisBox();
-    if (positions.length === 0) return;
-
-    const sharableTubeIds = positions
-      .map(position => {
-        const tubeId = resolveTube(position);
-        if (!tubeId) return null;
-        const tube = tubes.find(t => t.id === tubeId);
-        if (!tube || !lockContext.canShareTubeAccess(tube)) return null;
-        return tubeId;
-      })
-      .filter((id): id is string => id !== null);
+    const sharableTubeIds = getFilteredTubeIds(t => lockContext.canShareTubeAccess(t));
 
     if (sharableTubeIds.length === 0) {
       notifications.warning('No tubes available for sharing');
@@ -417,14 +372,7 @@ export const useGridController = ({
     }
 
     onShareAccess(sharableTubeIds);
-  }, [
-    lockContext,
-    selectedPositionsInThisBox,
-    resolveTube,
-    tubes,
-    onShareAccess,
-    guardNoResearcherProfile,
-  ]);
+  }, [lockContext, getFilteredTubeIds, onShareAccess, guardNoResearcherProfile]);
 
   const setMousePosition = useCallback(
     (position: { x: number; y: number } | null) => {

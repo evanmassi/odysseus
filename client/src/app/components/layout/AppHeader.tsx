@@ -37,7 +37,7 @@ import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
 
-import { useSelectionAnalysis } from '../../hooks/grid';
+import { useGridSelectionAnalysis } from '../../hooks/grid';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey } from '@shared/types/GridSelection';
@@ -253,7 +253,7 @@ export function AppHeader({
     void logout();
   };
 
-  const selectionAnalysis = useSelectionAnalysis(selectedPositions, tubes);
+  const selectionAnalysis = useGridSelectionAnalysis(selectedPositions, tubes);
 
   return (
     <header className="bg-background px-4 h-full flex items-center">

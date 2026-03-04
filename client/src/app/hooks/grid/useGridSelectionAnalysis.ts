@@ -1,5 +1,5 @@
 /**
- * Selection Analysis Hook
+ * Grid Selection Analysis
  *
  * Partitions selected grid positions into filled (has tube) and empty sets,
  * avoiding duplicate position-key parsing across Dashboard and AppHeader.
@@ -34,7 +34,7 @@ const EMPTY_ANALYSIS: SelectionAnalysis = {
   totalSelected: 0,
 };
 
-export function useSelectionAnalysis(
+export function useGridSelectionAnalysis(
   selectedPositions: Set<PositionKey> | undefined,
   tubes: TubeData[] | undefined
 ): SelectionAnalysis {

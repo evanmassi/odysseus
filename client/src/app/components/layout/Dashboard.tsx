@@ -42,7 +42,7 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils/notifications';
 
-import { useGridController, useSelectionAnalysis } from '../../hooks/grid';
+import { useGridController, useGridSelectionAnalysis } from '../../hooks/grid';
 import { useModalStore } from '../../stores/modalStore';
 
 import { AppHeader } from './AppHeader';
@@ -400,7 +400,7 @@ function LabDashboard() {
     };
   }, [user, accessControl, userDisplayMap]);
 
-  const selectionAnalysis = useSelectionAnalysis(selectedPositions, tubes);
+  const selectionAnalysis = useGridSelectionAnalysis(selectedPositions, tubes);
 
   // Users without a researcher profile can only browse (admins always have full access)
   const hasResearcherProfile =
