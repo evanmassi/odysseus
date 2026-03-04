@@ -1,7 +1,7 @@
 /**
  * Lab Management Service
  *
- * API calls for system admin lab CRUD and cross-lab invite code management.
+ * System admin lab management and cross-lab invite code operations.
  */
 
 import { httpClient } from '@infra/api/httpClient';
@@ -224,8 +224,8 @@ export class LabService {
   }> {
     try {
       const params = new URLSearchParams();
-      if (filters.limit) params.append('limit', filters.limit.toString());
-      if (filters.offset) params.append('offset', filters.offset.toString());
+      if (filters.limit !== undefined) params.append('limit', filters.limit.toString());
+      if (filters.offset !== undefined) params.append('offset', filters.offset.toString());
       if (filters.username) params.append('username', filters.username);
       if (filters.action) params.append('action', filters.action);
       if (filters.entityType) params.append('entityType', filters.entityType);
