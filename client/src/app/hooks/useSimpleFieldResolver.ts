@@ -7,7 +7,7 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { hasValue as hasValueGuard, isObject } from '@app/types/fieldTypeMapping';
+import { hasValue, isObject } from '@app/types/fieldTypeMapping';
 import { logger } from '@shared/infrastructure/logger';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
@@ -80,10 +80,6 @@ function getNestedValue(obj: unknown, path: string): unknown {
     }
     return undefined;
   }, obj);
-}
-
-function hasValue(value: unknown): boolean {
-  return hasValueGuard(value);
 }
 
 export function useSimpleFieldResolver(): SimpleFieldResolver {
