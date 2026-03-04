@@ -4,7 +4,6 @@
  * Barrel export for grid-related custom hooks.
  */
 
-export { useGridPosition } from './useGridPosition';
 export { useGridController } from './useGridController';
 export { useGridClipboard } from './useGridClipboard';
 export { useGridSelection } from './useGridSelection';

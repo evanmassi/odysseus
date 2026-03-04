@@ -28,6 +28,15 @@ export interface UseGridFontSizingReturn {
   gridNode: HTMLDivElement | null;
 }
 
+const MIN_GRID_SCALE = 0.7;
+const MAX_GRID_SCALE = 1.0;
+const REFERENCE_GRID_DIMENSION = 9;
+const FONT_SIZE_RATIO = 0.14;
+const MIN_FONT_SIZE = 9;
+const MAX_FONT_SIZE = 16;
+const DONOR_FONT_RATIO = 0.8;
+const POSITION_FONT_RATIO = 0.85;
+
 function calculateFontSizes(
   container: HTMLDivElement,
   gridConfig: GridConfiguration
@@ -38,13 +47,19 @@ function calculateFontSizes(
   const containerSize = Math.min(cellWidth, cellHeight);
 
   // Larger grids get proportionally smaller text
-  const gridScale = Math.max(0.7, Math.min(1.0, 9 / Math.max(gridConfig.rows, gridConfig.cols)));
-  const baseFontSize = Math.max(9, Math.min(16, containerSize * 0.14 * gridScale));
+  const gridScale = Math.max(
+    MIN_GRID_SCALE,
+    Math.min(MAX_GRID_SCALE, REFERENCE_GRID_DIMENSION / Math.max(gridConfig.rows, gridConfig.cols))
+  );
+  const baseFontSize = Math.max(
+    MIN_FONT_SIZE,
+    Math.min(MAX_FONT_SIZE, containerSize * FONT_SIZE_RATIO * gridScale)
+  );
 
   return {
     cellFont: Math.round(baseFontSize),
-    donorFont: Math.round(baseFontSize * 0.8),
-    positionFont: Math.round(baseFontSize * 0.85),
+    donorFont: Math.round(baseFontSize * DONOR_FONT_RATIO),
+    positionFont: Math.round(baseFontSize * POSITION_FONT_RATIO),
   };
 }
 

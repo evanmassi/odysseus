@@ -160,6 +160,7 @@ export const useGridClipboard = ({
       const shouldFillTargets = currentSelectedPositions.length > clipData.tubes.length;
 
       let tubesToPaste: ReturnType<typeof tubeDataToCreateRequest>[];
+      let pastedSourceTubeIds: string[] = [];
 
       if (shouldFillTargets) {
         tubesToPaste = currentSelectedPositions.map((targetPos, i) => {
@@ -218,12 +219,13 @@ export const useGridClipboard = ({
           }
         }
 
+        // 9×9 = 81 is the default grid size when config is unavailable
+        const DEFAULT_GRID_TOTAL = 81;
         const targetTotalPositions = targetGridConfig
           ? targetGridConfig.rows * targetGridConfig.cols
-          : 81;
+          : DEFAULT_GRID_TOTAL;
 
-        // Track which source tube IDs were successfully mapped (for cut operation)
-        const pastedSourceTubeIds: string[] = [];
+        pastedSourceTubeIds = [];
 
         if (clipData.selectionMode === 'drag') {
           const sourceCols = sourceGridConfig?.cols ?? 9;
@@ -290,9 +292,6 @@ export const useGridClipboard = ({
             })
             .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
         }
-
-        (clipData as { _pastedSourceTubeIds?: string[] })._pastedSourceTubeIds =
-          pastedSourceTubeIds;
       }
 
       const conflictingPositions = tubesToPaste.filter(tubeData => {
@@ -359,12 +358,12 @@ export const useGridClipboard = ({
       }
 
       if (clipData.operation === 'cut' && tubesToPaste.length > 0) {
-        // For spatial mode, use tracked IDs (some tubes may be skipped)
-        // For fill mode, delete all source tubes (they're all used/duplicated)
-        const pastedIds = (clipData as { _pastedSourceTubeIds?: string[] })._pastedSourceTubeIds;
-        const tubeIdsToDelete = pastedIds?.length
-          ? pastedIds.filter(Boolean)
-          : clipData.tubes.map(t => t.id).filter(Boolean);
+        // Spatial mode: only delete tubes that were actually pasted (some may be skipped due to bounds)
+        // Fill mode: delete all source tubes (they're all used/duplicated)
+        const tubeIdsToDelete =
+          pastedSourceTubeIds.length > 0
+            ? pastedSourceTubeIds
+            : clipData.tubes.map(t => t.id).filter(Boolean);
 
         if (onDeleteTubes && tubeIdsToDelete.length > 0) {
           await onDeleteTubes(tubeIdsToDelete, true);

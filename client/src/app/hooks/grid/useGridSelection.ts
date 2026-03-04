@@ -12,6 +12,9 @@ import { getSelectionRange } from '@shared/utils/coordinates';
 import type { TubeData } from '@odysseus/shared-schemas';
 import type { PositionKey, PositionContext, LockContext } from '@shared/types/GridSelection';
 
+// Delay to distinguish single-click from double-click on multi-selection
+const DOUBLE_CLICK_DELAY_MS = 200;
+
 export interface UseGridSelectionProps {
   ctx: PositionContext;
   tubes: TubeData[];
@@ -127,8 +130,7 @@ export const useGridSelection = ({
       };
 
       if (shouldDelay) {
-        // Delay to distinguish single-click from double-click on multi-selection
-        clickTimerRef.current = setTimeout(executeSelection, 200);
+        clickTimerRef.current = setTimeout(executeSelection, DOUBLE_CLICK_DELAY_MS);
       } else {
         executeSelection();
       }
