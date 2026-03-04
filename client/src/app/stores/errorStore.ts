@@ -1,3 +1,9 @@
+/**
+ * Global Error Store
+ *
+ * Captures unhandled errors and promise rejections for display in the error overlay.
+ */
+
 import { create } from 'zustand';
 
 import { logger } from '@shared/infrastructure/logger';
@@ -13,17 +19,17 @@ interface ErrorActions {
 
 interface ErrorStore extends ErrorState, ErrorActions {}
 
+const MAX_STORED_ERRORS = 10;
+
 export const useErrorStore = create<ErrorStore>((set, get) => ({
-  // State
   errors: [],
 
-  // Actions
   addError: error => {
     const timestamp = new Date().toLocaleTimeString();
     const formattedError = `[${timestamp}] ${error}`;
 
     const { errors } = get();
-    set({ errors: [...errors, formattedError].slice(-10) }); // Keep last 10 errors
+    set({ errors: [...errors, formattedError].slice(-MAX_STORED_ERRORS) });
 
     logger.error('Odysseus Error', { error });
   },

@@ -10,17 +10,7 @@ import { create } from 'zustand';
 
 import { type PositionKey } from '@shared/types/GridSelection';
 
-interface DeleteConfirmState {
-  isOpen: boolean;
-  title: string;
-  message: ReactNode;
-  confirmText?: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-  previousFocusElement?: HTMLElement | null;
-}
-
-interface OverwriteConfirmState {
+interface ConfirmDialogState {
   isOpen: boolean;
   title: string;
   message: ReactNode;
@@ -71,8 +61,8 @@ interface SessionTimeoutWarningState {
 }
 
 interface LocalModalState {
-  deleteConfirm: DeleteConfirmState;
-  overwriteConfirm: OverwriteConfirmState;
+  deleteConfirm: ConfirmDialogState;
+  overwriteConfirm: ConfirmDialogState;
   unsavedConfirm: UnsavedConfirmState;
   tubeEditorModal: TubeEditorModalState;
   lockTubesModal: LockTubesModalState;
@@ -80,23 +70,19 @@ interface LocalModalState {
   sessionTimeoutWarning: SessionTimeoutWarningState;
 }
 
+interface ConfirmDialogConfig {
+  title: string;
+  message: ReactNode;
+  confirmText?: string;
+  onConfirm: () => void;
+  onCancel?: () => void;
+}
+
 interface ModalActions {
-  showDeleteConfirm: (config: {
-    title: string;
-    message: ReactNode;
-    confirmText?: string;
-    onConfirm: () => void;
-    onCancel?: () => void;
-  }) => void;
+  showDeleteConfirm: (config: ConfirmDialogConfig) => void;
   hideDeleteConfirm: () => void;
 
-  showOverwriteConfirm: (config: {
-    title: string;
-    message: ReactNode;
-    confirmText?: string;
-    onConfirm: () => void;
-    onCancel?: () => void;
-  }) => void;
+  showOverwriteConfirm: (config: ConfirmDialogConfig) => void;
   hideOverwriteConfirm: () => void;
 
   showUnsavedConfirm: (config: {
@@ -135,15 +121,7 @@ interface ModalActions {
   hideAllModals: () => void;
 }
 
-const initialDeleteConfirm: DeleteConfirmState = {
-  isOpen: false,
-  title: '',
-  message: '',
-  onConfirm: () => {},
-  onCancel: () => {},
-};
-
-const initialOverwriteConfirm: OverwriteConfirmState = {
+const initialConfirmDialog: ConfirmDialogState = {
   isOpen: false,
   title: '',
   message: '',
@@ -181,15 +159,24 @@ const initialSessionTimeoutWarning: SessionTimeoutWarningState = {
   onLogout: (_reason: 'manual' | 'timeout') => {},
 };
 
-/**
- * Global modal store
- *
- * Export the raw store for direct access (e.g., getState() from non-React code)
- */
+const buildConfirmState = (
+  config: ConfirmDialogConfig,
+  defaultCancel: () => void
+): ConfirmDialogState => ({
+  isOpen: true,
+  title: config.title,
+  message: config.message,
+  confirmText: config.confirmText,
+  onConfirm: config.onConfirm,
+  onCancel: config.onCancel ?? defaultCancel,
+  previousFocusElement: document.activeElement as HTMLElement,
+});
+
+// Exported raw for direct .getState() access from non-React code (e.g., authStore)
 export const modalStore = create<LocalModalState & ModalActions>((set, get) => ({
   // Initial state
-  deleteConfirm: initialDeleteConfirm,
-  overwriteConfirm: initialOverwriteConfirm,
+  deleteConfirm: initialConfirmDialog,
+  overwriteConfirm: initialConfirmDialog,
   unsavedConfirm: initialUnsavedConfirm,
   tubeEditorModal: initialTubeEditorModal,
   lockTubesModal: initialLockTubesModal,
@@ -198,24 +185,11 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
 
   // Delete confirmation actions
   showDeleteConfirm: config => {
-    // Capture focus BEFORE modal opens (before React renders)
-    const previousFocusElement = document.activeElement as HTMLElement;
-
-    set({
-      deleteConfirm: {
-        isOpen: true,
-        title: config.title,
-        message: config.message,
-        confirmText: config.confirmText,
-        onConfirm: config.onConfirm,
-        onCancel: config.onCancel ?? (() => get().hideDeleteConfirm()),
-        previousFocusElement,
-      },
-    });
+    set({ deleteConfirm: buildConfirmState(config, () => get().hideDeleteConfirm()) });
   },
 
+  // hide* methods only set isOpen to false — keeps other data stable for exit animation
   hideDeleteConfirm: () => {
-    // Only set isOpen to false - keep other data stable for exit animation
     set(state => ({
       deleteConfirm: { ...state.deleteConfirm, isOpen: false },
     }));
@@ -223,24 +197,10 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
 
   // Overwrite confirmation actions
   showOverwriteConfirm: config => {
-    // Capture focus BEFORE modal opens (before React renders)
-    const previousFocusElement = document.activeElement as HTMLElement;
-
-    set({
-      overwriteConfirm: {
-        isOpen: true,
-        title: config.title,
-        message: config.message,
-        confirmText: config.confirmText,
-        onConfirm: config.onConfirm,
-        onCancel: config.onCancel ?? (() => get().hideOverwriteConfirm()),
-        previousFocusElement,
-      },
-    });
+    set({ overwriteConfirm: buildConfirmState(config, () => get().hideOverwriteConfirm()) });
   },
 
   hideOverwriteConfirm: () => {
-    // Only set isOpen to false - keep other data stable for exit animation
     set(state => ({
       overwriteConfirm: { ...state.overwriteConfirm, isOpen: false },
     }));
@@ -263,7 +223,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideUnsavedConfirm: () => {
-    // Only set isOpen to false - keep other data stable for exit animation
     set(state => ({
       unsavedConfirm: { ...state.unsavedConfirm, isOpen: false },
     }));
@@ -293,8 +252,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideTubeEditorModal: () => {
-    // Only set isOpen to false - keep other data stable for exit animation
-    // State will be overwritten when modal next opens
     set(state => ({
       tubeEditorModal: { ...state.tubeEditorModal, isOpen: false },
     }));
@@ -313,7 +270,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideLockTubesModal: () => {
-    // Only set isOpen to false - keep other data stable for exit animation
     set(state => ({
       lockTubesModal: { ...state.lockTubesModal, isOpen: false },
     }));
@@ -332,7 +288,6 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 
   hideShareAccessModal: () => {
-    // Only set isOpen to false - keep other data stable for exit animation
     set(state => ({
       shareAccessModal: { ...state.shareAccessModal, isOpen: false },
     }));
@@ -369,8 +324,8 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   // Utility to hide all modals
   hideAllModals: () => {
     set({
-      deleteConfirm: initialDeleteConfirm,
-      overwriteConfirm: initialOverwriteConfirm,
+      deleteConfirm: initialConfirmDialog,
+      overwriteConfirm: initialConfirmDialog,
       unsavedConfirm: initialUnsavedConfirm,
       tubeEditorModal: initialTubeEditorModal,
       lockTubesModal: initialLockTubesModal,
@@ -380,38 +335,4 @@ export const modalStore = create<LocalModalState & ModalActions>((set, get) => (
   },
 }));
 
-/**
- * Hook for accessing modal store
- */
-export const useModalStore = () => {
-  const state = modalStore();
-
-  return {
-    // State
-    deleteConfirm: state.deleteConfirm,
-    overwriteConfirm: state.overwriteConfirm,
-    unsavedConfirm: state.unsavedConfirm,
-    tubeEditorModal: state.tubeEditorModal,
-    lockTubesModal: state.lockTubesModal,
-    shareAccessModal: state.shareAccessModal,
-    sessionTimeoutWarning: state.sessionTimeoutWarning,
-
-    // Actions
-    showDeleteConfirm: state.showDeleteConfirm,
-    hideDeleteConfirm: state.hideDeleteConfirm,
-    showOverwriteConfirm: state.showOverwriteConfirm,
-    hideOverwriteConfirm: state.hideOverwriteConfirm,
-    showUnsavedConfirm: state.showUnsavedConfirm,
-    hideUnsavedConfirm: state.hideUnsavedConfirm,
-    showTubeEditorModal: state.showTubeEditorModal,
-    hideTubeEditorModal: state.hideTubeEditorModal,
-    showLockTubesModal: state.showLockTubesModal,
-    hideLockTubesModal: state.hideLockTubesModal,
-    showShareAccessModal: state.showShareAccessModal,
-    hideShareAccessModal: state.hideShareAccessModal,
-    showSessionTimeoutWarning: state.showSessionTimeoutWarning,
-    updateSessionTimeoutWarning: state.updateSessionTimeoutWarning,
-    hideSessionTimeoutWarning: state.hideSessionTimeoutWarning,
-    hideAllModals: state.hideAllModals,
-  };
-};
+export const useModalStore = modalStore;
