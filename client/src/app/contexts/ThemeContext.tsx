@@ -18,17 +18,10 @@ import type { ThemePreference } from '@odysseus/shared-schemas';
  */
 export type ResolvedTheme = 'light' | 'dark';
 
-/**
- * Theme context value
- */
 export interface ThemeContextValue {
-  /** The actual theme being displayed (resolved from preference + system) */
   theme: ResolvedTheme;
-  /** The user's preference setting ('light' | 'dark' | 'auto') */
   preference: ThemePreference;
-  /** Update the user's theme preference */
   setPreference: (preference: ThemePreference) => void;
-  /** The current system/OS theme preference */
   systemPreference: ResolvedTheme;
 }
 
@@ -68,24 +61,16 @@ function applyTheme(theme: ResolvedTheme): void {
 
 interface ThemeProviderProps {
   children: ReactNode;
-  /** Initial preference from server settings (optional) */
   initialPreference?: ThemePreference;
   /** Callback when preference changes (for syncing to server) */
   onPreferenceChange?: (preference: ThemePreference) => void;
 }
 
-/**
- * Theme Provider Component
- *
- * Manages theme state and provides it to the application.
- * Handles system preference detection and changes.
- */
 export function ThemeProvider({
   children,
   initialPreference,
   onPreferenceChange,
 }: ThemeProviderProps) {
-  // Get initial preference from cookie or prop
   const getInitialPreference = (): ThemePreference => {
     if (initialPreference) {
       return initialPreference;
@@ -100,10 +85,8 @@ export function ThemeProvider({
   const [preference, setPreferenceState] = useState<ThemePreference>(getInitialPreference);
   const [systemPreference, setSystemPreference] = useState<ResolvedTheme>(getSystemPreference);
 
-  // Resolve the actual theme
   const theme = resolveTheme(preference, systemPreference);
 
-  // Apply theme to document whenever it changes
   useEffect(() => {
     applyTheme(theme);
   }, [theme]);
@@ -139,7 +122,6 @@ export function ThemeProvider({
     }
   }, [initialPreference]);
 
-  // Set preference handler
   const setPreference = useCallback(
     (newPreference: ThemePreference) => {
       setPreferenceState(newPreference);
@@ -178,14 +160,4 @@ export function useTheme(): ThemeContextValue {
   }
 
   return context;
-}
-
-export function useResolvedTheme(): ResolvedTheme {
-  const { theme } = useTheme();
-  return theme;
-}
-
-export function useIsDarkMode(): boolean {
-  const { theme } = useTheme();
-  return theme === 'dark';
 }

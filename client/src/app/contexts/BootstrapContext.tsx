@@ -9,7 +9,7 @@ import React, { createContext, useContext } from 'react';
 
 import type { UseAppBootstrapResult } from '@app/bootstrap';
 
-interface BootstrapContextValue extends UseAppBootstrapResult {}
+type BootstrapContextValue = UseAppBootstrapResult;
 
 const BootstrapContext = createContext<BootstrapContextValue | null>(null);
 
