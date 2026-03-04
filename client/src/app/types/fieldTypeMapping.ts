@@ -6,34 +6,15 @@
  * for nested property access.
  */
 
-/**
- * Valid primitive field value types
- */
 export type FieldValue = string | number | boolean | Date | null | undefined;
 
-/**
- * Complex field value types (for nested objects)
- */
 export type ComplexFieldValue = Record<string, FieldValue>;
 
-/**
- * Union of all valid field values
- */
 export type ValidFieldValue = FieldValue | ComplexFieldValue;
 
-/**
- * Normalized field value - Date objects are converted to ISO strings
- * Used by field resolver return types to reflect runtime normalization
- */
+// Date objects are converted to ISO strings at runtime
 export type NormalizedFieldValue = Exclude<FieldValue, Date> | ComplexFieldValue;
 
-/**
- * Explicit mapping of known field paths to their TypeScript types
- *
- * This mapping ensures type-safe field access throughout the application.
- * When accessing fields through the field resolver, TypeScript will know
- * the exact return type based on the field path.
- */
 export type TubeFieldTypeMap = {
   // Location fields (always defined)
   'location.tankId': string;
@@ -62,53 +43,13 @@ export type TubeFieldTypeMap = {
   'timestamps.updatedAt': string;
 };
 
-/**
- * Union of all valid field paths
- */
 export type ValidFieldPath = keyof TubeFieldTypeMap;
 
-/**
- * Type guard to check if a value is a valid non-null field value
- *
- * Used throughout field resolvers to safely narrow unknown types.
- */
 export function hasValue(value: unknown): value is NonNullable<ValidFieldValue> {
   return value !== undefined && value !== null && value !== '';
 }
 
-/**
- * Type guard to validate if a string is a known field path
- */
-export function isValidFieldPath(path: string): path is ValidFieldPath {
-  const validPaths: Set<string> = new Set([
-    'location.tankId',
-    'location.rackId',
-    'location.boxId',
-    'location.position',
-    'sample.cellType',
-    'sample.donorInternalId',
-    'sample.donorSourceId',
-    'sample.concentration',
-    'sample.concentrationUnit',
-    'sample.date',
-    'sample.mediaType',
-    'sample.mediaSupplements',
-    'sample.mediaSelection',
-    'sample.cultureCondition',
-    'sample.lotNumber',
-    'sample.notes',
-    'researcherId',
-    'createdByName',
-    'timestamps.createdAt',
-    'timestamps.updatedAt',
-  ]);
-
-  return validPaths.has(path);
-}
-
-/**
- * Type guard to check if value is an object (not null, not array)
- */
+// Checks not-null and not-array since typeof null === 'object'
 export function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
