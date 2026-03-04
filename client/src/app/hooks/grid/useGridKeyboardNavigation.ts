@@ -1,8 +1,7 @@
 /**
- * useGridKeyboardNavigation Hook
+ * Grid Keyboard Navigation
  *
- * Keyboard navigation and shortcuts for grid components
- * Extracted from TubeGrid for reusability and testability
+ * Keyboard navigation and shortcuts for grid components.
  */
 
 import { useCallback } from 'react';
@@ -21,9 +20,6 @@ import type {
   PositionKey,
 } from '@shared/types/GridSelection';
 
-/**
- * Hook Props Interface
- */
 export interface UseGridKeyboardNavigationProps {
   gridConfig: GridConfiguration;
   focusedPosition: number;
@@ -35,9 +31,6 @@ export interface UseGridKeyboardNavigationProps {
   setClipboard: (data: ClipboardData | null) => void;
 }
 
-/**
- * Hook Return Interface
- */
 export interface UseGridKeyboardNavigationReturn {
   handleGridKeyDown: (event: React.KeyboardEvent) => void;
 }
@@ -71,22 +64,16 @@ export function useGridKeyboardNavigation(
     setClipboard,
   } = props;
 
-  /**
-   * Handle keyboard shortcuts for grid navigation
-   */
   const handleGridKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       const { key, shiftKey, ctrlKey, metaKey } = event;
 
-      // Arrow key navigation with wrapping (1D index pattern)
       if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(key)) {
         event.preventDefault();
 
-        // Convert current position to 0-based index
         const currentIndex = focusedPosition - 1;
         let newIndex = currentIndex;
 
-        // Apply movement based on arrow key
         switch (key) {
           case 'ArrowUp':
             newIndex = currentIndex - gridConfig.cols;
@@ -102,17 +89,14 @@ export function useGridKeyboardNavigation(
             break;
         }
 
-        // Apply wrapping using modulo (handles negative indices correctly)
+        // Wrapping via modulo handles negative indices correctly
         const totalPositions = getGridTotalPositions(gridConfig);
         newIndex = ((newIndex % totalPositions) + totalPositions) % totalPositions;
-
-        // Convert back to 1-based position
         const newPosition = newIndex + 1;
 
         if (newPosition >= 1 && newPosition <= totalPositions) {
           setFocusedPosition(newPosition);
 
-          // Shift+Arrow: Extend selection
           if (shiftKey) {
             const currentAnchor = useTubeStore.getState().selectionAnchor ?? focusedPosition;
             const rangePositions = getSelectionRange(currentAnchor, newPosition);
@@ -123,7 +107,6 @@ export function useGridKeyboardNavigation(
             onSelectionChange(newSelection);
             // Don't update anchor during range selection - keeps extending from original position
           } else {
-            // Arrow without Shift: Move selection to new position
             const positionKey = toPositionKey(ctx, newPosition);
             onSelectionChange(new Set([positionKey]));
             useTubeStore.getState().setSelectionAnchor(newPosition);
@@ -132,20 +115,17 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      // Space bar - toggle selection on focused position
       if (key === ' ') {
         event.preventDefault();
         controller.actions.toggleInSelection(focusedPosition);
         return;
       }
 
-      // Enter key - open appropriate modal
       if (key === 'Enter') {
         event.preventDefault();
         if (selectedPositions.size > 0) {
           controller.openModal();
         } else {
-          // If nothing selected, select focused position and open modal
           const positionKey = toPositionKey(ctx, focusedPosition);
           onSelectionChange(new Set([positionKey]));
           setTimeout(() => controller.openModal(), 0);
@@ -153,7 +133,6 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      // Delete key - delete selected tubes with confirmation
       if (key === 'Delete') {
         event.preventDefault();
         if (selectedPositions.size > 0) {
@@ -162,7 +141,6 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      // Ctrl+A / Cmd+A - select all
       if (key === 'a' && (ctrlKey || metaKey)) {
         event.preventDefault();
         const allPositions = new Set<PositionKey>();
@@ -174,7 +152,6 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      // Escape - clear selection and clipboard
       if (key === 'Escape') {
         event.preventDefault();
         controller.actions.clearSelection();
@@ -182,21 +159,18 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      // Ctrl+C - Copy
       if (key === 'c' && (ctrlKey || metaKey)) {
         event.preventDefault();
         void controller.actions.copy();
         return;
       }
 
-      // Ctrl+X - Cut
       if (key === 'x' && (ctrlKey || metaKey)) {
         event.preventDefault();
         void controller.actions.cut();
         return;
       }
 
-      // Ctrl+V - Paste
       if (key === 'v' && (ctrlKey || metaKey)) {
         event.preventDefault();
         void (async () => {
@@ -210,7 +184,6 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      // Shift+L - Toggle lock/unlock
       if (key === 'L' && shiftKey && !ctrlKey && !metaKey) {
         event.preventDefault();
         if (controller.actions.toggleLock) {
@@ -219,7 +192,6 @@ export function useGridKeyboardNavigation(
         return;
       }
 
-      // Shift+S - Share access (for owned locked tubes)
       if (key === 'S' && shiftKey && !ctrlKey && !metaKey) {
         event.preventDefault();
         if (controller.actions.shareAccess) {

@@ -1,11 +1,7 @@
 /**
  * Grid Clipboard Hook
- * Handles copy/cut/paste operations with OS clipboard integration
  *
- * Authorization:
- * - Copy: Blocked in view-only spaces without shared access
- * - Cut: Blocked in view-only spaces without shared access (modifies source)
- * - Paste: Blocked in view-only spaces (creates new tubes)
+ * Copy/cut/paste operations with OS clipboard integration.
  */
 
 import { useCallback, useMemo } from 'react';
@@ -34,13 +30,9 @@ export interface UseGridClipboardProps {
   onDeleteTubes?: (tubeIds: string[], silent?: boolean) => Promise<void>;
   onPasteTubes?: (tubes: ReturnType<typeof tubeDataToCreateRequest>[]) => Promise<void>;
   onSelectionChange: (selection: Set<PositionKey>) => void;
-  /** Current user ID for shared access checks */
   currentUserId?: string;
-  /** When true, container is assigned to another user */
   isViewOnlySpace?: boolean;
-  /** Admin users bypass lock checks on tubes */
   isAdmin?: boolean;
-  /** Users without a researcher profile can only browse (no edit operations) */
   hasResearcherProfile?: boolean;
 }
 
@@ -77,7 +69,6 @@ export const useGridClipboard = ({
   const modalService = useModalStore();
   const { getBox } = useStorageData();
 
-  // Helper: Get selected positions in current box
   const selectedPositionsInThisBox = useCallback((): number[] => {
     const positions: number[] = [];
     selectedPositions.forEach(key => {
@@ -89,9 +80,7 @@ export const useGridClipboard = ({
     return positions.sort((a, b) => a - b);
   }, [selectedPositions, ctx.tankId, ctx.rackId, ctx.boxId]);
 
-  // Copy operation
   const copy = useCallback(async () => {
-    // Users without researcher profile cannot perform clipboard operations
     if (!hasResearcherProfile) {
       notifications.warning('Researcher profile required to copy tubes.');
       return;
@@ -109,12 +98,10 @@ export const useGridClipboard = ({
 
     if (items.length === 0) return;
 
-    // Get selected tubes for access check
     const selectedTubes = items
       .map(item => tubes.find(t => t.id === item.tubeId))
       .filter((tube): tube is TubeData => tube !== undefined);
 
-    // Check modification access (container AND lock status)
     if (selectedTubes.length > 0) {
       const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace, isAdmin);
       if (!result.canModifyAll) {
@@ -147,9 +134,7 @@ export const useGridClipboard = ({
     hasResearcherProfile,
   ]);
 
-  // Cut operation
   const cut = useCallback(async () => {
-    // Users without researcher profile cannot perform clipboard operations
     if (!hasResearcherProfile) {
       notifications.warning('Researcher profile required to cut tubes.');
       return;
@@ -167,13 +152,10 @@ export const useGridClipboard = ({
 
     if (items.length === 0) return;
 
-    // Get selected tubes for access check
     const selectedTubes = items
       .map(item => tubes.find(t => t.id === item.tubeId))
       .filter((tube): tube is TubeData => tube !== undefined);
 
-    // Check modification access (container AND lock status)
-    // Cut requires modify access since it will delete the source tubes
     if (selectedTubes.length > 0) {
       const result = canModifyAllTubes(selectedTubes, currentUserId, isViewOnlySpace, isAdmin);
       if (!result.canModifyAll) {
@@ -195,7 +177,6 @@ export const useGridClipboard = ({
 
     notifications.success(`Cut ${items.length} tube${items.length > 1 ? 's' : ''}`);
 
-    // Clear selection after cut
     onSelectionChange(new Set());
   }, [
     selectedPositionsInThisBox,
@@ -210,16 +191,13 @@ export const useGridClipboard = ({
     hasResearcherProfile,
   ]);
 
-  // Paste operation
   const paste = useCallback(
     async (options?: { targetStart?: number }) => {
-      // Users without researcher profile cannot perform clipboard operations
       if (!hasResearcherProfile) {
         notifications.warning('Researcher profile required to paste tubes.');
         return;
       }
 
-      // Block paste in view-only spaces (creates new tubes)
       if (isViewOnlySpace) {
         notifications.warning('Cannot add tubes to a space assigned to another user.');
         return;
@@ -227,7 +205,6 @@ export const useGridClipboard = ({
 
       let clipData = clipboard;
 
-      // Try OS clipboard if no in-app clipboard
       if (!clipData) {
         clipData = await readClipboardOS();
         if (clipData) setClipboard(clipData);
@@ -241,7 +218,6 @@ export const useGridClipboard = ({
       let tubesToPaste: ReturnType<typeof tubeDataToCreateRequest>[];
 
       if (shouldFillTargets) {
-        // Fill Mode: Repeat clipboard pattern across all selected positions
         tubesToPaste = currentSelectedPositions.map((targetPos, i) => {
           const sourceTube = clipData.tubes[i % clipData.tubes.length];
           return tubeDataToCreateRequest(sourceTube, {
@@ -252,7 +228,6 @@ export const useGridClipboard = ({
           });
         });
       } else {
-        // Spatial Pattern Mode: Preserve relative positioning
         const anchorPosition =
           currentSelectedPositions.length > 0
             ? Math.min(...currentSelectedPositions)
@@ -260,7 +235,6 @@ export const useGridClipboard = ({
 
         if (anchorPosition === undefined) return;
 
-        // Validate paste operation across different grid configurations
         const sourceGridConfig = getBox(
           (clipData.sourceLocation ?? ctx).tankId,
           (clipData.sourceLocation ?? ctx).rackId,
@@ -308,7 +282,6 @@ export const useGridClipboard = ({
         const pastedSourceTubeIds: string[] = [];
 
         if (clipData.selectionMode === 'drag') {
-          // Rectangular paste: preserve 2D spatial layout
           const sourceCols = sourceGridConfig?.cols ?? 9;
           const targetCols = targetGridConfig?.cols ?? 5;
           const targetRows = targetGridConfig?.rows ?? 5;
@@ -354,7 +327,6 @@ export const useGridClipboard = ({
             })
             .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
         } else {
-          // Sequential paste: place tubes one after another from anchor
           tubesToPaste = clipData.tubes
             .map((tube, index) => {
               const targetPosition = anchorPosition + index;
@@ -375,12 +347,10 @@ export const useGridClipboard = ({
             .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
         }
 
-        // Store for cut operation
         (clipData as { _pastedSourceTubeIds?: string[] })._pastedSourceTubeIds =
           pastedSourceTubeIds;
       }
 
-      // Detect position conflicts
       const conflictingPositions = tubesToPaste.filter(tubeData => {
         const existingTube = tubes.find(
           t =>
@@ -403,7 +373,6 @@ export const useGridClipboard = ({
           )!;
         });
 
-        // Check if user can overwrite the conflicting tubes (lock + container access)
         const overwriteResult = canModifyAllTubes(
           conflictingTubes,
           currentUserId,
@@ -445,8 +414,6 @@ export const useGridClipboard = ({
         await onPasteTubes(tubesToPaste);
       }
 
-      // Delete source tubes after successful paste (cut operation only)
-      // Only delete tubes that were actually pasted (not skipped due to bounds)
       if (clipData.operation === 'cut' && tubesToPaste.length > 0) {
         // For spatial mode, use tracked IDs (some tubes may be skipped)
         // For fill mode, delete all source tubes (they're all used/duplicated)
@@ -460,7 +427,6 @@ export const useGridClipboard = ({
         }
       }
 
-      // Show notification with skipped count if any
       const skippedCount = clipData.tubes.length - tubesToPaste.length;
       const action = clipData.operation === 'cut' ? 'Moved' : 'Pasted';
 
@@ -494,7 +460,6 @@ export const useGridClipboard = ({
     ]
   );
 
-  // Clipboard state for UI
   const clipboardState = useMemo(
     () => ({
       hasData: Boolean(clipboard?.tubes?.length),
@@ -519,7 +484,6 @@ export const useGridClipboard = ({
     [clipboard, ctx]
   );
 
-  // Label methods
   const getCopyLabel = useCallback(() => {
     const count = selectedPositionsInThisBox().length;
     if (count === 0) return 'Copy';

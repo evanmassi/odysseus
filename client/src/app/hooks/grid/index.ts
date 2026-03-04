@@ -1,6 +1,7 @@
 /**
  * Grid Hooks
- * Reusable custom hooks for grid functionality
+ *
+ * Barrel export for grid-related custom hooks.
  */
 
 export { useGridPosition } from './useGridPosition';

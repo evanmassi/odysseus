@@ -63,7 +63,6 @@ export function useGridFontSizing(props: UseGridFontSizingProps): UseGridFontSiz
   // Callback ref — React calls this with the DOM node on mount and null on unmount
   const gridRef = useCallback(
     (node: HTMLDivElement | null) => {
-      // Clean up previous observer
       if (observerRef.current) {
         observerRef.current.disconnect();
         observerRef.current = null;
@@ -73,7 +72,6 @@ export function useGridFontSizing(props: UseGridFontSizingProps): UseGridFontSiz
 
       if (!node) return;
 
-      // Recalculate immediately with current dimensions
       setFontSize(calculateFontSizes(node, gridConfig));
 
       // Observe for any future size changes (window resize, sidebar toggle, etc.)

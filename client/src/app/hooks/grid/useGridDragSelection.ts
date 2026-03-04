@@ -1,8 +1,7 @@
 /**
- * useGridDragSelection Hook
+ * Grid Drag Selection
  *
  * Rectangular drag selection with RAF throttling for performance.
- * Extracted from TubeGrid for reusability and testability.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -14,9 +13,6 @@ import { getPositionsInRectangle, positionToCoordinates } from '@shared/utils/co
 
 import type { GridConfiguration } from '@odysseus/shared-schemas';
 
-/**
- * Hook Props Interface
- */
 export interface UseGridDragSelectionProps {
   gridConfig: GridConfiguration;
   selectedPositions: Set<PositionKey>;
@@ -24,9 +20,6 @@ export interface UseGridDragSelectionProps {
   ctx: PositionContext;
 }
 
-/**
- * Hook Return Interface
- */
 export interface UseGridDragSelectionReturn {
   isDragging: boolean;
   dragPreview: Set<PositionKey>;
@@ -34,12 +27,6 @@ export interface UseGridDragSelectionReturn {
   handleMouseMove: (position: number) => void;
 }
 
-/**
- * Custom hook for RAF-throttled rectangular drag selection
- *
- * @param props - Grid configuration and selection handlers
- * @returns Drag selection state and handlers
- */
 export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridDragSelectionReturn {
   const { gridConfig, selectedPositions, onSelectionChange, ctx } = props;
 
@@ -52,22 +39,15 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
   const isDragWithCtrlRef = useRef<boolean>(false);
   const isDraggingRef = useRef<boolean>(false);
 
-  // UI-related state only
   const [isDragging, setIsDragging] = useState(false);
-  const [dragPreview, setDragPreview] = useState<Set<PositionKey>>(new Set()); // CSS-only preview
+  const [dragPreview, setDragPreview] = useState<Set<PositionKey>>(new Set());
 
-  /**
-   * Dynamic drag selection based on grid configuration
-   */
   const handleMouseDown = useCallback((position: number, event: React.MouseEvent) => {
     if (event.button !== 0) return;
     dragStartPositionRef.current = position;
     isDragWithCtrlRef.current = event.ctrlKey;
   }, []);
 
-  /**
-   * Process selection preview (called by RAF throttle) - NO React state updates, just preview
-   */
   const processSelectionUpdate = useCallback(
     (position: number) => {
       // Read from ref (always latest) instead of captured state (stale in closures)
@@ -80,7 +60,6 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
           setIsDragging(true);
         }
 
-        // Calculate rectangular selection using coordinate utilities
         const newSelection = new Set<PositionKey>();
         const startCoords = positionToCoordinates(dragStart, gridConfig.cols);
         const endCoords = positionToCoordinates(position, gridConfig.cols);
@@ -96,25 +75,18 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
           }
         });
 
-        // Ctrl extends selection, otherwise replace
         if (withCtrl) {
-          // Extend: Add drag selection to existing selection
           selectedPositions.forEach(key => newSelection.add(key));
         }
-        // No Ctrl: newSelection already contains only drag rectangle (replaces existing)
 
-        // PERFORMANCE: Only update preview state, NOT actual selection
+        // Preview only — actual selection committed on mouseup
         setDragPreview(newSelection);
-        // Actual selection updated on mouseup
       }
       rafIdRef.current = null;
     },
     [gridConfig, selectedPositions, ctx]
   );
 
-  /**
-   * RAF-throttled mouse move handler
-   */
   const handleMouseMove = useCallback(
     (position: number) => {
       pendingPositionRef.current = position;
@@ -131,9 +103,6 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
     [processSelectionUpdate]
   );
 
-  /**
-   * Cleanup RAF on unmount
-   */
   useEffect(() => {
     return () => {
       if (rafIdRef.current !== null) {
@@ -142,9 +111,6 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
     };
   }, []);
 
-  /**
-   * Handle mouse up to end drag and commit selection
-   */
   useEffect(() => {
     const handleMouseUp = () => {
       // Cancel any pending RAF to prevent stale callbacks from firing
@@ -154,7 +120,6 @@ export function useGridDragSelection(props: UseGridDragSelectionProps): UseGridD
       }
       pendingPositionRef.current = null;
 
-      // Commit drag preview to actual selection
       if (isDragging && dragPreview.size > 0) {
         onSelectionChange(dragPreview);
         setDragPreview(new Set()); // Clear preview

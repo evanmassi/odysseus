@@ -1,18 +1,7 @@
 /**
  * Grid Controller Hook
- * Thin orchestrator that composes focused hooks for grid operations
  *
- * Responsibilities:
- * - Compose useGridSelection and useGridClipboard
- * - Handle tube-specific actions (modals, delete, lock/unlock/share)
- * - Manage context menu state
- * - Provide unified API for TubeGrid component
- *
- * Authorization:
- * - Server is the authority for all access control decisions
- * - Client blocks 'add' operations in view-only spaces
- * - Client blocks modify operations on tubes without shared access (UX optimization)
- * - All blocked operations show user-friendly messages
+ * Thin orchestrator that composes selection, clipboard, and action hooks into a unified grid API.
  */
 
 import { useMemo, useState, useCallback } from 'react';
@@ -54,10 +43,8 @@ export const useGridController = ({
 }: GridControllerProps): GridControllerReturn => {
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
 
-  // Get tube data
   const { data: tubes = [] } = useTubesByLocation(tankId, rackId, boxId);
 
-  // Create position lookup map
   const positionToTubeMap = useMemo(() => {
     const map = new Map<number, string>();
     tubes.forEach(tube => {
@@ -68,7 +55,6 @@ export const useGridController = ({
     return map;
   }, [tubes]);
 
-  // Default tube resolution if not provided
   const resolveTube = useMemo(
     () =>
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Function fallback
@@ -76,7 +62,6 @@ export const useGridController = ({
     [resolveTubeIdAtPosition, positionToTubeMap]
   );
 
-  // Compose selection hook
   const {
     handlePositionClick,
     handleBulkSelection,
@@ -94,7 +79,6 @@ export const useGridController = ({
     lockContext,
   });
 
-  // Compose clipboard hook
   const { copy, cut, paste, clipboard, getCopyLabel, getCutLabel, getPasteLabel } =
     useGridClipboard({
       ctx,
@@ -110,22 +94,15 @@ export const useGridController = ({
       hasResearcherProfile,
     });
 
-  // Modal service
   const modalService = useModalStore();
-
-  // Mouse position (for context menu positioning)
   const setMousePositionStore = useGridUiStore(state => state.setMousePosition);
 
-  // Context menu state
   const [contextMenu, setContextMenu] = useState({
     isOpen: false,
     x: 0,
     y: 0,
   });
 
-  /**
-   * Guard for users without researcher profile - blocks all editing operations
-   */
   const guardNoResearcherProfile = useCallback((): boolean => {
     if (!hasResearcherProfile) {
       notifications.warning('Researcher profile required to perform this action.');
@@ -134,9 +111,6 @@ export const useGridController = ({
     return false;
   }, [hasResearcherProfile]);
 
-  /**
-   * Simple view-only guard for 'add' operations only
-   */
   const guardAddInViewOnly = useCallback((): boolean => {
     if (guardNoResearcherProfile()) return true;
     if (isViewOnlySpace) {
@@ -146,10 +120,6 @@ export const useGridController = ({
     return false;
   }, [isViewOnlySpace, guardNoResearcherProfile]);
 
-  /**
-   * Get selected tubes for modification check
-   * Returns the actual tube objects for the current selection
-   */
   const getSelectedTubes = useCallback(() => {
     const positions = selectedPositionsInThisBox();
     return positions
@@ -160,15 +130,8 @@ export const useGridController = ({
       .filter((tube): tube is NonNullable<typeof tube> => tube !== null);
   }, [selectedPositionsInThisBox, resolveTube, tubes]);
 
-  /**
-   * Guard for modify operations (edit, delete, copy, cut)
-   * Checks if ALL selected tubes can be modified by the current user
-   * Returns true if blocked (operation should not proceed)
-   *
-   * Checks both container access AND lock status - locks can exist in any space
-   */
+  // Returns true if blocked — checks both container access AND lock status
   const guardModifyOperation = useCallback((): boolean => {
-    // Users without researcher profile cannot modify anything
     if (guardNoResearcherProfile()) return true;
 
     const selectedTubes = getSelectedTubes();
@@ -184,12 +147,10 @@ export const useGridController = ({
     return false;
   }, [isViewOnlySpace, isAdmin, getSelectedTubes, currentUserId, guardNoResearcherProfile]);
 
-  // Unified modal opener
   const openModal = useCallback(() => {
     const positions = Array.from(selectedPositions);
 
     if (selectionAnalysis.isMixed || selectionAnalysis.allEmpty) {
-      // Mixed or all empty - open create modal (ADD operation)
       if (guardAddInViewOnly()) return;
 
       modalService.showTubeEditorModal({
@@ -199,8 +160,6 @@ export const useGridController = ({
         boxId,
       });
     } else if (selectionAnalysis.allFilled) {
-      // All filled - open edit modal (MODIFY operation)
-      // Check if user can modify all selected tubes
       if (guardModifyOperation()) return;
 
       const selectedTubeIds = Array.from(selectedPositions)
@@ -236,30 +195,24 @@ export const useGridController = ({
     guardModifyOperation,
   ]);
 
-  // Double-click handler
   const handlePositionDoubleClick = useCallback(
     (position: number) => {
-      // Clear pending click timer
       if (clickTimerRef.current) {
         clearTimeout(clickTimerRef.current);
         clickTimerRef.current = null;
       }
 
-      // Users without researcher profile cannot edit
       if (guardNoResearcherProfile()) return;
 
       const positionKey = toPositionKey(ctx, position);
 
-      // Double-click on multi-selection opens batch mode
       if (selectedPositions.has(positionKey) && selectedPositions.size > 1) {
         openModal();
         return;
       }
 
-      // Single position double-click
       const tubeId = resolveTube(position);
       if (tubeId) {
-        // Filled position - check modification access
         const tube = tubes.find(t => t.id === tubeId);
         if (tube && !canModifyTube(tube, currentUserId, isViewOnlySpace, isAdmin)) {
           notifications.warning('Cannot edit this tube. You do not have access.');
@@ -271,7 +224,6 @@ export const useGridController = ({
           tubeId,
         });
       } else {
-        // Empty position - open add modal
         if (guardAddInViewOnly()) return;
 
         modalService.showTubeEditorModal({
@@ -300,9 +252,7 @@ export const useGridController = ({
     ]
   );
 
-  // Delete operation with confirmation modal
   const deleteSelectedTubes = useCallback(async () => {
-    // Check modification access before showing delete dialog
     if (guardModifyOperation()) return;
 
     const positions = selectedPositionsInThisBox();
@@ -338,14 +288,9 @@ export const useGridController = ({
     modalService,
   ]);
 
-  // Lock toggle operation (Shift+L behavior)
   const toggleLock = useCallback(async () => {
     if (!lockContext || isUnlocking) return;
-
-    // Users without researcher profile cannot perform lock operations
     if (guardNoResearcherProfile()) return;
-
-    // Check modification access before lock operations
     if (guardModifyOperation()) return;
 
     const positions = selectedPositionsInThisBox();
@@ -382,14 +327,9 @@ export const useGridController = ({
     guardNoResearcherProfile,
   ]);
 
-  // Lock operation (opens modal)
   const lockTubes = useCallback(() => {
     if (!lockContext || !onLockTubes) return;
-
-    // Users without researcher profile cannot perform lock operations
     if (guardNoResearcherProfile()) return;
-
-    // Check modification access before opening lock modal
     if (guardModifyOperation()) return;
 
     const positions = selectedPositionsInThisBox();
@@ -421,11 +361,8 @@ export const useGridController = ({
     guardNoResearcherProfile,
   ]);
 
-  // Unlock operation
   const unlockTubes = useCallback(async () => {
     if (!lockContext || !onUnlockTubes || isUnlocking) return;
-
-    // Users without researcher profile cannot perform unlock operations
     if (guardNoResearcherProfile()) return;
 
     const positions = selectedPositionsInThisBox();
@@ -457,11 +394,8 @@ export const useGridController = ({
     guardNoResearcherProfile,
   ]);
 
-  // Share access operation
   const shareAccess = useCallback(() => {
     if (!lockContext || !onShareAccess) return;
-
-    // Users without researcher profile cannot share access
     if (guardNoResearcherProfile()) return;
 
     const positions = selectedPositionsInThisBox();
@@ -492,7 +426,6 @@ export const useGridController = ({
     guardNoResearcherProfile,
   ]);
 
-  // Mouse position handler
   const setMousePosition = useCallback(
     (position: { x: number; y: number } | null) => {
       setMousePositionStore(position);
@@ -500,7 +433,6 @@ export const useGridController = ({
     [setMousePositionStore]
   );
 
-  // Context menu methods
   const showContextMenu = useCallback((x: number, y: number) => {
     setContextMenu({ isOpen: true, x, y });
   }, []);
@@ -509,7 +441,6 @@ export const useGridController = ({
     setContextMenu({ isOpen: false, x: 0, y: 0 });
   }, []);
 
-  // Compose actions object
   const actions = useMemo(
     () => ({
       ...selectionActions,
