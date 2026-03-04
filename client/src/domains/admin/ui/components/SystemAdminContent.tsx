@@ -32,7 +32,7 @@ import {
   useDeactivateLabMutation,
   useActivateLabMutation,
   useCreateLabInviteCodeMutation,
-} from '../../hooks/useSystemAdminQueries';
+} from '../../hooks/useLabQueries';
 
 import { LabDetailView } from './LabDetailView';
 

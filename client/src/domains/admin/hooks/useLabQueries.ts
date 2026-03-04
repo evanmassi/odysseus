@@ -1,3 +1,9 @@
+/**
+ * Lab Management Hooks
+ *
+ * React Query hooks for system admin operations on labs and their users.
+ */
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
@@ -15,27 +21,8 @@ import type {
   UnseedDemoResponse,
   AuditLogEntry,
   AuditLogFilters,
+  SystemOverview,
 } from '@odysseus/shared-schemas';
-
-interface SystemOverview {
-  totalLabs: number;
-  activeLabs: number;
-  inactiveLabs: number;
-  totalUsers: number;
-  pendingApprovals: number;
-  activeUsersLast24h: number;
-  totalTubes: number;
-  labStats: Array<{
-    labId: string;
-    labName: string;
-    adminCount: number;
-    userCount: number;
-    tubeCount: number;
-    tankCount: number;
-    rackCount: number;
-    boxCount: number;
-  }>;
-}
 
 export function useLabsQuery() {
   return useQuery<LabData[]>({
@@ -119,7 +106,7 @@ export function useUpdateLabMutation() {
   });
 }
 
-export function useActivateUserMutation() {
+export function useActivateLabUserMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -135,7 +122,7 @@ export function useActivateUserMutation() {
   });
 }
 
-export function useDeactivateUserMutation() {
+export function useDeactivateLabUserMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -151,7 +138,7 @@ export function useDeactivateUserMutation() {
   });
 }
 
-export function useSuspendUserMutation() {
+export function useSuspendLabUserMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -167,7 +154,7 @@ export function useSuspendUserMutation() {
   });
 }
 
-export function useDeleteUserForLabMutation() {
+export function useDeleteLabUserMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({

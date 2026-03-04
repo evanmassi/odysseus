@@ -42,16 +42,16 @@ import {
   useUpdateLabMutation,
   useActivateLabMutation,
   useDeactivateLabMutation,
-  useActivateUserMutation,
-  useDeactivateUserMutation,
-  useSuspendUserMutation,
-  useDeleteUserForLabMutation,
+  useActivateLabUserMutation,
+  useDeactivateLabUserMutation,
+  useSuspendLabUserMutation,
+  useDeleteLabUserMutation,
   useResetDemoDataMutation,
   useSeedDemoMutation,
   useUnseedDemoMutation,
   useDemoLimitsQuery,
   useUpdateDemoLimitsMutation,
-} from '../../hooks/useSystemAdminQueries';
+} from '../../hooks/useLabQueries';
 
 import { AuditLogViewer } from './AuditLogViewer';
 
@@ -69,9 +69,9 @@ export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
   const updateLabMutation = useUpdateLabMutation();
   const activateLabMutation = useActivateLabMutation();
   const deactivateLabMutation = useDeactivateLabMutation();
-  const deleteUserMutation = useDeleteUserForLabMutation();
-  const deactivateUserMutation = useDeactivateUserMutation();
-  const suspendUserMutation = useSuspendUserMutation();
+  const deleteUserMutation = useDeleteLabUserMutation();
+  const deactivateUserMutation = useDeactivateLabUserMutation();
+  const suspendUserMutation = useSuspendLabUserMutation();
   const resetDemoMutation = useResetDemoDataMutation();
   const seedDemoMutation = useSeedDemoMutation();
   const unseedDemoMutation = useUnseedDemoMutation();
@@ -661,7 +661,7 @@ function ActionsCell({
   onSuspendUser: (user: LabDetailsUser) => void;
   currentUserId?: string;
 }) {
-  const activateUserMutation = useActivateUserMutation();
+  const activateUserMutation = useActivateLabUserMutation();
   const isSelf = user.id === currentUserId;
 
   const handleActivate = async () => {

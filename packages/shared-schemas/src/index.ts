@@ -380,7 +380,10 @@ export {
   type CreateInviteCodeRequest,
   type LabDetails,
   type LabDetailsUser,
-  type LabDetailsResearcher
+  type LabDetailsResearcher,
+
+  systemOverviewSchema,
+  type SystemOverview,
 } from './labs/labSchemas';
 
 // Password Validation

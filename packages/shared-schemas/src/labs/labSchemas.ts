@@ -105,6 +105,30 @@ export const labDetailsSchema = z.object({
 
 export type LabDetails = z.infer<typeof labDetailsSchema>;
 
+export const systemOverviewLabStatSchema = z.object({
+  labId: z.string(),
+  labName: z.string(),
+  adminCount: z.number(),
+  userCount: z.number(),
+  tubeCount: z.number(),
+  tankCount: z.number(),
+  rackCount: z.number(),
+  boxCount: z.number(),
+});
+
+export const systemOverviewSchema = z.object({
+  totalLabs: z.number(),
+  activeLabs: z.number(),
+  inactiveLabs: z.number(),
+  totalUsers: z.number(),
+  pendingApprovals: z.number(),
+  activeUsersLast24h: z.number(),
+  totalTubes: z.number(),
+  labStats: z.array(systemOverviewLabStatSchema),
+});
+
+export type SystemOverview = z.infer<typeof systemOverviewSchema>;
+
 export const createInviteCodeRequestSchema = z.object({
   role: z.enum(['lab_admin', 'user']).optional(),
   maxUses: z.number().int().positive().optional(),

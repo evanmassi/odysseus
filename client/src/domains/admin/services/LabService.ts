@@ -17,6 +17,7 @@ import type {
   UnseedDemoResponse,
   AuditLogEntry,
   AuditLogFilters,
+  SystemOverview,
 } from '@odysseus/shared-schemas';
 
 export class LabService {
@@ -247,48 +248,11 @@ export class LabService {
     }
   }
 
-  async getSystemOverview(): Promise<{
-    totalLabs: number;
-    activeLabs: number;
-    inactiveLabs: number;
-    totalUsers: number;
-    pendingApprovals: number;
-    activeUsersLast24h: number;
-    totalTubes: number;
-    labStats: Array<{
-      labId: string;
-      labName: string;
-      adminCount: number;
-      userCount: number;
-      tubeCount: number;
-      tankCount: number;
-      rackCount: number;
-      boxCount: number;
-    }>;
-  }> {
+  async getSystemOverview(): Promise<SystemOverview> {
     try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: {
-          totalLabs: number;
-          activeLabs: number;
-          inactiveLabs: number;
-          totalUsers: number;
-          pendingApprovals: number;
-          activeUsersLast24h: number;
-          totalTubes: number;
-          labStats: Array<{
-            labId: string;
-            labName: string;
-            adminCount: number;
-            userCount: number;
-            tubeCount: number;
-            tankCount: number;
-            rackCount: number;
-            boxCount: number;
-          }>;
-        };
-      }>('/system/overview');
+      const response = await httpClient.get<{ success: boolean; data: SystemOverview }>(
+        '/system/overview'
+      );
       return response.data.data;
     } catch (error) {
       logger.error('Failed to get system overview', { error });
