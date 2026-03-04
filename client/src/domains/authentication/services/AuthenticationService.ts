@@ -197,7 +197,7 @@ export class AuthService {
       return response.data.data;
     }
 
-    // SessionManager will handle token cleanup on error
+    // SessionService will handle token cleanup on error
     throw new Error('Session verification failed');
   }
 
@@ -388,10 +388,10 @@ export class AuthService {
   }
 
   /**
-   * Logout user (SessionManager handles cleanup)
+   * Logout user (SessionService handles cleanup)
    */
   async logout(): Promise<void> {
-    // SessionManager will handle token cleanup and HTTP client state
+    // SessionService will handle token cleanup and HTTP client state
     queryClient.clear(); // Clear all React Query cache on logout
   }
 }

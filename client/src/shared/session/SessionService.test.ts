@@ -1,10 +1,10 @@
 /**
- * SessionManager Tests
+ * SessionService Tests
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
-import { SessionManager } from '@app/services/SessionManager';
+import { SessionService } from '@app/services/SessionService';
 
 import type { TokenPair, SessionConfig } from './types';
 import type { AuthHttpClient } from '@infra/api/AuthHttpClient';
@@ -55,8 +55,8 @@ const testConfig: SessionConfig = {
   retryDelayMs: 100, // Fast retries for testing
 };
 
-describe('SessionManager', () => {
-  let sessionManager: SessionManager;
+describe('SessionService', () => {
+  let sessionManager: SessionService;
   let mockStorage: ReturnType<typeof createMockStorage>;
   let mockHttpClient: ReturnType<typeof createMockHttpClient>;
 
@@ -69,7 +69,7 @@ describe('SessionManager', () => {
     // Default: no existing tokens
     mockStorage.getTokens.mockReturnValue(null);
 
-    sessionManager = new SessionManager(
+    sessionManager = new SessionService(
       mockHttpClient as unknown as AuthHttpClient,
       mockStorage,
       undefined,

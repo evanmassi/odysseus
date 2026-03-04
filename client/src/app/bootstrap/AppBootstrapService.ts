@@ -147,8 +147,8 @@ export class AppBootstrapService {
         throw error;
       }
 
-      // Restore session from SessionManager
-      // SessionManager already loaded tokens in constructor, now sync with auth store
+      // Restore session from SessionService
+      // SessionService already loaded tokens in constructor, now sync with auth store
       this.updateStep('session-restore', false);
       try {
         const authStore = useAuthStore.getState();

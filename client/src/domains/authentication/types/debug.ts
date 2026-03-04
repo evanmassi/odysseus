@@ -8,7 +8,7 @@
 import type { SessionStatus } from '@shared/session/types';
 
 /**
- * SessionManager debug information
+ * SessionService debug information
  */
 export interface SessionDebugInfo {
   sessionStatus: SessionStatus;

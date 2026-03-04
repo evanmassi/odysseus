@@ -23,7 +23,7 @@ const mockAuthService = vi.hoisted(() => ({
   forceChangePassword: vi.fn(),
 }));
 
-const mockSessionManager = vi.hoisted(() => ({
+const mockSessionService = vi.hoisted(() => ({
   getValidAccessToken: vi.fn(),
   isAuthenticated: vi.fn(),
   getSessionStatus: vi.fn().mockReturnValue('unauthenticated'),
@@ -44,11 +44,11 @@ vi.mock('../../../infrastructure/api/httpClient', () => ({
     setAuthToken: vi.fn(),
     clearAuthToken: vi.fn(),
   },
-  configureHttpClientWithSessionManager: vi.fn(),
+  configureHttpClientWithSessionService: vi.fn(),
 }));
 
-vi.mock('@app/services/SessionManager', () => ({
-  SessionManager: vi.fn(() => mockSessionManager),
+vi.mock('@app/services/SessionService', () => ({
+  SessionService: vi.fn(() => mockSessionService),
   LocalStorageSessionStorage: vi.fn(),
 }));
 
@@ -109,8 +109,8 @@ describe('Enhanced AuthStore', () => {
 
     it('should restore session from storage on initialization', () => {
       // Set up mocks FIRST
-      mockSessionManager.getTokens.mockReturnValue(mockTokens);
-      mockSessionManager.getSessionStatus.mockReturnValue('authenticated');
+      mockSessionService.getTokens.mockReturnValue(mockTokens);
+      mockSessionService.getSessionStatus.mockReturnValue('authenticated');
 
       // Use renderHook to properly observe reactive state changes
       const { result } = renderHook(() => useAuthStore());
@@ -149,7 +149,7 @@ describe('Enhanced AuthStore', () => {
       expect(result.current.sessionStatus).toBe('authenticated');
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBeNull();
-      expect(mockSessionManager.setTokens).toHaveBeenCalledWith(mockTokens);
+      expect(mockSessionService.setTokens).toHaveBeenCalledWith(mockTokens);
     });
 
     it('should handle login failure', async () => {
@@ -244,8 +244,8 @@ describe('Enhanced AuthStore', () => {
   describe('Session Verification', () => {
     it('should verify valid session', async () => {
       // verify() first checks sessionManager.getTokens(), then getValidAccessToken()
-      mockSessionManager.getTokens.mockReturnValue(mockTokens);
-      mockSessionManager.getValidAccessToken.mockResolvedValue('valid-token');
+      mockSessionService.getTokens.mockReturnValue(mockTokens);
+      mockSessionService.getValidAccessToken.mockResolvedValue('valid-token');
       // verifySession returns { user, tokens }
       mockAuthService.verifySession.mockResolvedValue({ user: mockUser, tokens: mockTokens });
 
@@ -263,7 +263,7 @@ describe('Enhanced AuthStore', () => {
 
     it('should handle invalid session when no tokens', async () => {
       // No tokens in session manager
-      mockSessionManager.getTokens.mockReturnValue(null);
+      mockSessionService.getTokens.mockReturnValue(null);
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -276,8 +276,8 @@ describe('Enhanced AuthStore', () => {
     });
 
     it('should handle invalid session when token refresh fails', async () => {
-      mockSessionManager.getTokens.mockReturnValue(mockTokens);
-      mockSessionManager.getValidAccessToken.mockResolvedValue(null);
+      mockSessionService.getTokens.mockReturnValue(mockTokens);
+      mockSessionService.getValidAccessToken.mockResolvedValue(null);
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -308,7 +308,7 @@ describe('Enhanced AuthStore', () => {
       expect(store.user).toBeNull();
       expect(store.tokens).toBeNull();
       expect(store.sessionStatus).toBe('unauthenticated');
-      expect(mockSessionManager.clearSession).toHaveBeenCalled();
+      expect(mockSessionService.clearSession).toHaveBeenCalled();
     });
 
     it('should clear session even if logout API call fails', async () => {
@@ -326,13 +326,13 @@ describe('Enhanced AuthStore', () => {
       // Should still clear local session
       expect(store.user).toBeNull();
       expect(store.tokens).toBeNull();
-      expect(mockSessionManager.clearSession).toHaveBeenCalled();
+      expect(mockSessionService.clearSession).toHaveBeenCalled();
     });
   });
 
   describe('Session Status Management', () => {
-    it('should update session status based on SessionManager', () => {
-      mockSessionManager.getSessionStatus.mockReturnValue('refreshing');
+    it('should update session status based on SessionService', () => {
+      mockSessionService.getSessionStatus.mockReturnValue('refreshing');
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -391,7 +391,7 @@ describe('Enhanced AuthStore', () => {
         accessTokenExpiresIn: '25 minutes',
         nextRefreshIn: '20 minutes',
       };
-      mockSessionManager.getDebugInfo.mockReturnValue(sessionManagerDebug);
+      mockSessionService.getDebugInfo.mockReturnValue(sessionManagerDebug);
 
       const { result } = renderHook(() => useAuthStore());
 
@@ -440,8 +440,8 @@ describe('Enhanced AuthStore', () => {
   describe('State Persistence', () => {
     it('should restore authenticated state when tokens and user exist', () => {
       // Set up mocks FIRST
-      mockSessionManager.getTokens.mockReturnValue(mockTokens);
-      mockSessionManager.getSessionStatus.mockReturnValue('authenticated');
+      mockSessionService.getTokens.mockReturnValue(mockTokens);
+      mockSessionService.getSessionStatus.mockReturnValue('authenticated');
 
       // Use renderHook to properly observe reactive state changes
       const { result } = renderHook(() => useAuthStore());
@@ -463,7 +463,7 @@ describe('Enhanced AuthStore', () => {
 
     it('should remain unauthenticated when tokens missing', () => {
       // Mock sessionManager to return no tokens
-      mockSessionManager.getTokens.mockReturnValue(null);
+      mockSessionService.getTokens.mockReturnValue(null);
 
       const { result } = renderHook(() => useAuthStore());
 

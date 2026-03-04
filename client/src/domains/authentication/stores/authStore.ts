@@ -9,10 +9,10 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 import { clearAllCaches } from '@app/cache/queryClient';
-import { SessionManager, LocalStorageSessionStorage } from '@app/services/SessionManager';
+import { SessionService, LocalStorageSessionStorage } from '@app/services/SessionService';
 import { modalStore } from '@app/stores/modalStore';
 import { authHttpClient } from '@infra/api/AuthHttpClient';
-import { configureHttpClientWithSessionManager } from '@infra/api/httpClient';
+import { configureHttpClientWithSessionService } from '@infra/api/httpClient';
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
 
@@ -94,8 +94,8 @@ interface AuthStore extends AuthState, AuthActions {}
 const sessionStorage = new LocalStorageSessionStorage();
 
 // Create session manager with callback for session expiration
-// Callback pattern: SessionManager notifies auth store when session expires
-const sessionManager = new SessionManager(
+// Callback pattern: SessionService notifies auth store when session expires
+const sessionManager = new SessionService(
   authHttpClient,
   sessionStorage,
   reason => {
@@ -117,8 +117,8 @@ const sessionManager = new SessionManager(
   }
 );
 
-// Configure httpClient to use SessionManager for automatic token handling
-configureHttpClientWithSessionManager(sessionManager);
+// Configure httpClient to use SessionService for automatic token handling
+configureHttpClientWithSessionService(sessionManager);
 
 /**
  * Enhanced authentication store with OAuth 2.0 dual-token architecture
@@ -399,7 +399,7 @@ export const useAuthStore = create<AuthStore>()(
         }
 
         try {
-          // Use SessionManager to get valid token (auto-refreshes if needed)
+          // Use SessionService to get valid token (auto-refreshes if needed)
           const validToken = await sessionManager.getValidAccessToken();
 
           if (!validToken) {
@@ -462,7 +462,7 @@ export const useAuthStore = create<AuthStore>()(
       // SESSION MANAGEMENT
 
       /**
-       * Update session status from SessionManager
+       * Update session status from SessionService
        */
       updateSessionStatus: () => {
         const newStatus = sessionManager.getSessionStatus();
@@ -476,7 +476,7 @@ export const useAuthStore = create<AuthStore>()(
       /**
        * Initialize store from persistent storage
        *
-       * Tokens loaded from SessionManager, user already rehydrated by Zustand persist.
+       * Tokens loaded from SessionService, user already rehydrated by Zustand persist.
        */
       initializeFromStorage: () => {
         const tokens = sessionManager.getTokens();
@@ -582,7 +582,7 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: 'odysseus-auth-enhanced',
 
-      // Only persist user data, tokens handled by SessionManager
+      // Only persist user data, tokens handled by SessionService
       partialize: state => ({
         user: state.user,
       }),

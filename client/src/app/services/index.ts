@@ -4,4 +4,4 @@
  * Barrel export for app-level service classes.
  */
 
-export * from './SessionManager';
+export * from './SessionService';

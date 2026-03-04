@@ -438,8 +438,8 @@ export const httpClient = new HttpClient({
   baseURL: API_BASE_URL,
 });
 
-// Session Manager Integration
-export function configureHttpClientWithSessionManager(sessionManager: TokenProvider) {
+// Session Service Integration
+export function configureHttpClientWithSessionService(sessionManager: TokenProvider) {
   // Configure the HTTP client to work with the session manager
   // This allows automatic token injection and refresh handling
   const originalGet = httpClient.get.bind(httpClient);
@@ -476,7 +476,7 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
         // Check for terminal session errors - do NOT retry, session is invalidated
         if (error.code && SESSION_TERMINAL_ERRORS.has(error.code)) {
           // Session is terminated server-side - let error propagate
-          // SessionManager will handle clearing state via polling
+          // SessionService will handle clearing state via polling
           throw error;
         }
 
@@ -530,7 +530,7 @@ export function configureHttpClientWithSessionManager(sessionManager: TokenProvi
         // Check for terminal session errors - do NOT retry, session is invalidated
         if (error.code && SESSION_TERMINAL_ERRORS.has(error.code)) {
           // Session is terminated server-side - let error propagate
-          // SessionManager will handle clearing state via polling
+          // SessionService will handle clearing state via polling
           throw error;
         }
 

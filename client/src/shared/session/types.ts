@@ -6,7 +6,7 @@
  *
  * Architecture:
  * - TokenPair: Persistent state (survives app restart, stored in localStorage)
- * - SessionManager: Ephemeral state (resets on app restart, in-memory only)
+ * - SessionService: Ephemeral state (resets on app restart, in-memory only)
  *   - Activity tracking is session-scoped
  *   - Token expiry is persistent
  *
@@ -74,7 +74,7 @@ export interface SessionConfig {
 /**
  * Session manager state
  */
-export interface SessionManagerState {
+export interface SessionServiceState {
   isRefreshing: boolean;
   lastRefreshTime: Date | null;
   nextRefreshTime: Date | null;

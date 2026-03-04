@@ -140,7 +140,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   };
 
   const saveConfiguration = async () => {
-    // SessionManager handles authentication automatically
+    // SessionService handles authentication automatically
 
     // Calculate only the fields that actually changed
     const changes: Partial<SecurityConfig> = {};

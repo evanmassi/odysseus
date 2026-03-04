@@ -2,7 +2,7 @@
  * Authentication HTTP Client
  *
  * Dedicated HTTP client for authentication endpoints only.
- * Prevents circular dependency with SessionManager by providing
+ * Prevents circular dependency with SessionService by providing
  * a pure HTTP transport layer without token injection.
  *
  * Purpose:
@@ -41,7 +41,7 @@ export class AuthApiError extends Error implements AuthApiErrorData {
  * This client intentionally does NOT:
  * - Inject authentication tokens (prevents circular dependency)
  * - Handle 401 retries (auth endpoints handle their own errors)
- * - Use SessionManager (would create infinite loop)
+ * - Use SessionService (would create infinite loop)
  * - Apply complex transformations (keeps it simple)
  */
 export class AuthHttpClient {

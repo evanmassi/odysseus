@@ -1,5 +1,5 @@
 /**
- * Session Manager
+ * Session Service
  *
  * OAuth 2.0 session lifecycle with automatic token refresh and idle timeout monitoring.
  */
@@ -13,7 +13,7 @@ import type {
   TokenPair,
   SessionStatus,
   SessionConfig,
-  SessionManagerState,
+  SessionServiceState,
   TokenValidation,
   SessionStorage,
   RefreshResponse,
@@ -68,8 +68,8 @@ const ACTIVITY_EVENTS: (keyof WindowEventMap)[] = [
   'touchstart',
 ];
 
-export class SessionManager implements TokenProvider {
-  private state: SessionManagerState = {
+export class SessionService implements TokenProvider {
+  private state: SessionServiceState = {
     isRefreshing: false,
     lastRefreshTime: null,
     nextRefreshTime: null,
@@ -341,7 +341,7 @@ export class SessionManager implements TokenProvider {
     this.onSessionExpired?.(reason);
   }
 
-  getState(): SessionManagerState {
+  getState(): SessionServiceState {
     return { ...this.state };
   }
 
@@ -630,7 +630,7 @@ export class SessionManager implements TokenProvider {
  * Session storage implementation using localStorage
  *
  * Stores only token state. User data is persisted by Zustand auth store.
- * Activity tracking is not persisted (handled in-memory by SessionManager).
+ * Activity tracking is not persisted (handled in-memory by SessionService).
  */
 export class LocalStorageSessionStorage implements SessionStorage {
   private readonly TOKENS_KEY = 'odysseus-tokens';
