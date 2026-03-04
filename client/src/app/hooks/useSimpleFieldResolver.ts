@@ -15,7 +15,6 @@ import type {
   NormalizedFieldValue,
   TubeFieldTypeMap,
   ValidFieldPath,
-  ValidFieldValue,
 } from '@app/types/fieldTypeMapping';
 import type { TubeData } from '@shared/types/Tube';
 
@@ -276,36 +275,3 @@ export const TUBE_FIELD_PATHS = {
   createdAt: 'timestamps.createdAt',
   updatedAt: 'timestamps.updatedAt',
 } as const;
-
-export type TubeFieldPath = (typeof TUBE_FIELD_PATHS)[keyof typeof TUBE_FIELD_PATHS];
-
-export interface TypeSafeTubeResolver {
-  getValue<K extends keyof typeof TUBE_FIELD_PATHS>(
-    tube: TubeData,
-    field: K
-  ): ValidFieldValue | undefined;
-  getValues<K extends keyof typeof TUBE_FIELD_PATHS>(
-    tubes: TubeData[],
-    field: K
-  ): (ValidFieldValue | undefined)[];
-  hasValue<K extends keyof typeof TUBE_FIELD_PATHS>(tube: TubeData, field: K): boolean;
-}
-
-export function useTypeSafeTubeResolver(): TypeSafeTubeResolver {
-  const { getTubeValue, getTubeValues, tubeHasValue } = useSimpleFieldResolver();
-
-  return useMemo(
-    () => ({
-      getValue: <K extends keyof typeof TUBE_FIELD_PATHS>(tube: TubeData, field: K) => {
-        return getTubeValue(tube, TUBE_FIELD_PATHS[field]);
-      },
-      getValues: <K extends keyof typeof TUBE_FIELD_PATHS>(tubes: TubeData[], field: K) => {
-        return getTubeValues(tubes, TUBE_FIELD_PATHS[field]);
-      },
-      hasValue: <K extends keyof typeof TUBE_FIELD_PATHS>(tube: TubeData, field: K) => {
-        return tubeHasValue(tube, TUBE_FIELD_PATHS[field]);
-      },
-    }),
-    [getTubeValue, getTubeValues, tubeHasValue]
-  );
-}
