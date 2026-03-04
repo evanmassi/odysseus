@@ -50,3 +50,12 @@ export {
   type TubeFormSubmissionResult,
   type SubmitContext,
 } from './useTubeForm';
+
+// Field resolver hooks
+export { useFieldResolverQuery } from './useFieldResolverQuery';
+export {
+  useSimpleFieldResolver,
+  TUBE_FIELD_PATHS,
+  type FieldConflictAnalysis,
+  type SimpleFieldResolver,
+} from './useSimpleFieldResolver';

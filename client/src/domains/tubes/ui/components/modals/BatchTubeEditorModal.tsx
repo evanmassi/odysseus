@@ -8,8 +8,6 @@ import {
 } from '@odysseus/shared-schemas';
 import { XCircle, RefreshCw, Edit, Save, Trash2 } from 'lucide-react';
 
-import { useFieldResolverQuery } from '@app/hooks/useFieldResolverQuery';
-import { TUBE_FIELD_PATHS } from '@app/hooks/useSimpleFieldResolver';
 import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import {
@@ -18,7 +16,9 @@ import {
   formatPositionRangesForBox,
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
+import { useFieldResolverQuery } from '@domains/tubes/hooks/useFieldResolverQuery';
 import { useLookupValuesQuery } from '@domains/tubes/hooks/useLookupValuesQuery';
+import { TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useSimpleFieldResolver';
 import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import { useTubeModalFocusReturn } from '@domains/tubes/hooks/useTubeModalFocusReturn';
 import {
@@ -39,7 +39,7 @@ import { TubeForm } from '../forms/TubeForm';
 import { BulkProgressModal } from './BulkProgressModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 
-import type { FieldConflictAnalysis } from '@app/hooks/useSimpleFieldResolver';
+import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useSimpleFieldResolver';
 import type { BulkUpdateProgress, BulkUpdateResult } from '@domains/tubes/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
