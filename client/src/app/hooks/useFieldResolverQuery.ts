@@ -1,8 +1,8 @@
 /**
- * React Query + Field Resolver Integration Hook
+ * Field Resolver Query Hook
  *
- * Combines React Query server state management with simple field resolver
- * for unified, type-safe data access patterns.
+ * Combines React Query server state with field resolver for type-safe
+ * tube and researcher data access.
  */
 
 import { useMemo } from 'react';
@@ -18,30 +18,22 @@ import type { NormalizedFieldValue } from '@app/types/fieldTypeMapping';
 import type { Researcher } from '@odysseus/shared-schemas';
 import type { TubeData } from '@shared/types/Tube';
 
-/**
- * Enhanced data access interface combining React Query with field resolution
- */
 export interface UseFieldResolverQueryResult extends SimpleFieldResolver {
-  /** React Query tubes data with field resolver integration */
   tubes: {
     data: TubeData[] | undefined;
     isLoading: boolean;
     error: Error | null;
     refetch: () => void;
-    /** Get field values from all tubes */
     getFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
       fieldPath: string
     ) => T[];
-    /** Find tubes where field has specific value */
     findByFieldValue: <T extends NormalizedFieldValue = NormalizedFieldValue>(
       fieldPath: string,
       value: T
     ) => TubeData[];
-    /** Get unique values for a field across all tubes */
     getUniqueFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
       fieldPath: string
     ) => T[];
-    /** Analyze conflicts in selected tubes */
     analyzeConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
       selectedTubes: TubeData[],
       fieldPath: string
@@ -52,54 +44,24 @@ export interface UseFieldResolverQueryResult extends SimpleFieldResolver {
       totalSelected: number;
       withValue: number;
     };
-    /** Check if any of the specified fields have conflicts across selected tubes */
     hasAnyConflicts: (selectedTubes: TubeData[], fieldPaths: string[]) => boolean;
   };
 
-  /** React Query researchers data */
   researchers: {
     data: Researcher[] | undefined;
     isLoading: boolean;
     error: Error | null;
     refetch: () => void;
-    /** Get active researchers only */
     activeResearchers: Researcher[];
-    /** Find researcher by name (case insensitive) */
     findByName: (name: string) => Researcher | undefined;
-    /** Get all researcher names sorted */
     getNames: () => string[];
   };
 
-  /** Combined loading state */
   isLoading: boolean;
-
-  /** Combined error state */
   hasErrors: boolean;
   errors: (Error | null)[];
 }
 
-/**
- * Hook that combines React Query data fetching with field resolver capabilities
- *
- * Usage:
- * ```tsx
- * function TubeAnalysisPanel() {
- *   const { tubes, getTubeValue, researchers } = useFieldResolverQuery();
- *
- *   if (tubes.isLoading) return <LoadingSpinner />;
- *
- *   const cellTypes = tubes.getUniqueFieldValues('sample.cellType');
- *   const tcells = tubes.findByFieldValue('sample.cellType', 'T-cells');
- *
- *   return (
- *     <div>
- *       <h3>Cell Types: {cellTypes.join(', ')}</h3>
- *       <p>T-cells count: {tcells.length}</p>
- *     </div>
- *   );
- * }
- * ```
- */
 export function useFieldResolverQuery(): UseFieldResolverQueryResult {
   const tubesQuery = useTubes();
   const researchersQuery = useActiveResearchersQuery();
@@ -158,7 +120,7 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
       error: researchersQuery.error,
       refetch: researchersQuery.refetch,
 
-      activeResearchers: researchers, // Already filtered to active only
+      activeResearchers: researchers,
 
       findByName: (name: string) => {
         return researchers.find(r => {
@@ -193,9 +155,6 @@ export function useFieldResolverQuery(): UseFieldResolverQueryResult {
   );
 }
 
-/**
- * Lightweight version focused only on tubes with field resolution
- */
 export function useFieldResolverTubes() {
   const tubesQuery = useTubes();
   const fieldResolver = useSimpleFieldResolver();
