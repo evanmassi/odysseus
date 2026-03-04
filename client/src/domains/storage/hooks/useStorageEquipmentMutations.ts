@@ -25,7 +25,7 @@ function handleConflictError(
   notifications.error(
     `${operation} failed: Configuration was modified by another user. Please review the latest changes and try again.`
   );
-  void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
 }
 
 // Tank Mutations
@@ -40,7 +40,7 @@ export const useAddTankMutation = () => {
       StorageService.addTank(name, location),
 
     onSuccess: (data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       notifications.success(`Tank "${variables.name}" added successfully`);
     },
 
@@ -72,7 +72,7 @@ export const useUpdateTankMutation = () => {
     }) => StorageService.updateTank(tankId, updates),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       notifications.success('Tank updated successfully');
     },
 
@@ -98,7 +98,7 @@ export const useDeleteTankMutation = () => {
     mutationFn: ({ tankId }: { tankId: string }) => StorageService.deleteTank(tankId),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       notifications.success('Tank deleted successfully');
     },
 
@@ -127,7 +127,7 @@ export const useAddRacksMutation = () => {
       StorageService.addRacks(tankId, count),
 
     onSuccess: (data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       const message =
         variables.count === 1
           ? 'Rack added successfully'
@@ -165,7 +165,7 @@ export const useUpdateRackMutation = () => {
     }) => StorageService.updateRack(tankId, rackId, updates),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       notifications.success('Rack updated successfully');
     },
 
@@ -192,7 +192,7 @@ export const useDeleteRackMutation = () => {
       StorageService.deleteRack(tankId, rackId),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       notifications.success('Rack deleted successfully');
     },
 
@@ -226,7 +226,7 @@ export const useAssignRackMutation = () => {
     }) => StorageService.assignRack(tankId, rackId, assignedUserId),
 
     onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       notifications.success(
         variables.assignedUserId ? 'Rack assigned successfully' : 'Rack unassigned successfully'
       );
@@ -257,7 +257,7 @@ export const useAddBoxesMutation = () => {
       StorageService.addBoxes(tankId, rackId, count),
 
     onSuccess: (data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       const message =
         variables.count === 1
           ? 'Box added successfully'
@@ -302,7 +302,7 @@ export const useUpdateBoxMutation = () => {
     }) => StorageService.updateBox(tankId, rackId, boxId, updates),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       notifications.success('Box updated successfully');
     },
 
@@ -329,7 +329,7 @@ export const useDeleteBoxMutation = () => {
       StorageService.deleteBox(tankId, rackId, boxId),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       notifications.success('Box deleted successfully');
     },
 
@@ -365,7 +365,7 @@ export const useAssignBoxMutation = () => {
     }) => StorageService.assignBox(tankId, rackId, boxId, assignedUserId),
 
     onSuccess: (_, variables) => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       notifications.success(
         variables.assignedUserId ? 'Box assigned successfully' : 'Box unassigned successfully'
       );
@@ -396,7 +396,7 @@ export const useBulkUnassignMutation = () => {
       StorageService.bulkUnassignResources(fromUserId),
 
     onSuccess: data => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       const total = data.racksAffected + data.boxesAffected;
       if (total > 0) {
         notifications.success(
@@ -430,7 +430,7 @@ export const useBulkReassignMutation = () => {
       StorageService.bulkReassignResources(fromUserId, toUserId),
 
     onSuccess: data => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       const total = data.racksAffected + data.boxesAffected;
       if (total > 0) {
         notifications.success(
@@ -471,7 +471,7 @@ export const useInitializeConfigurationMutation = () => {
     }) => StorageService.initializeConfiguration(labName, tankCount, racksPerTank),
 
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.exists() });
       notifications.success('Lab configuration initialized successfully');
     },

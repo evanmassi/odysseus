@@ -139,7 +139,7 @@ export function getStorageDataFromCache(queryClient: ReturnType<typeof useQueryC
 } {
   const data = queryClient.getQueryData<{
     configuration: { systemConfig: SystemConfiguration; currentLab: LabConfiguration };
-  }>(queryKeys.storage.storage());
+  }>(queryKeys.storage.data());
 
   return {
     currentLab: data?.configuration.currentLab ?? null,

@@ -302,7 +302,7 @@ export class SocketQueryBridge {
       // Initialize version tracking from current cache (if not already set)
       if (this.lastKnownConfigVersion === null) {
         const currentConfig = this.queryClient.getQueryData(
-          queryKeys.storage.storage()
+          queryKeys.storage.data()
           // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query cache data with unknown structure before validation
         ) as any;
         const currentVersion = currentConfig?.configuration?.systemConfig?.version;
@@ -822,7 +822,7 @@ export class SocketQueryBridge {
         // Graceful degradation: invalidate cache anyway to ensure data consistency
         try {
           await this.queryClient.invalidateQueries({
-            queryKey: queryKeys.storage.storage(),
+            queryKey: queryKeys.storage.data(),
           });
         } catch (fallbackError) {
           logger.error('Critical: Failed to invalidate cache in error handler', { fallbackError });
@@ -844,12 +844,12 @@ export class SocketQueryBridge {
 
       // Invalidate cache first
       await this.queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.storage(),
+        queryKey: queryKeys.storage.data(),
       });
 
       // Fetch fresh data from server (this waits for the network request to complete)
       const freshData = (await this.queryClient.fetchQuery({
-        queryKey: queryKeys.storage.storage(),
+        queryKey: queryKeys.storage.data(),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Query result with unknown structure before validation
       })) as any;
 

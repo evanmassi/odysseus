@@ -113,7 +113,7 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
       await httpClient.put('/configuration/system', { labName: trimmedName });
 
       // Invalidate React Query cache to refetch updated data
-      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
 
       notifications.success('Lab name updated successfully');
       setIsEditingLabName(false);

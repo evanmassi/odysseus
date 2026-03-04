@@ -22,7 +22,7 @@ interface VersionCheckResult {
 }
 
 function getCachedConfigVersion(qc: QueryClient): number | null {
-  const cachedData = qc.getQueryData(queryKeys.storage.storage());
+  const cachedData = qc.getQueryData(queryKeys.storage.data());
 
   if (!cachedData || typeof cachedData !== 'object') {
     return null;

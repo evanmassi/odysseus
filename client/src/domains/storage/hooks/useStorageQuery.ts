@@ -18,7 +18,7 @@ export const useLoadStorageQuery = (config?: { enabled?: boolean; staleTime?: nu
   const hasLab = !!user?.labId;
 
   return useQuery({
-    queryKey: queryKeys.storage.storage(),
+    queryKey: queryKeys.storage.data(),
     queryFn: () => StorageService.loadConfiguration(),
     enabled: hasLab && (config?.enabled ?? true),
     staleTime: config?.staleTime ?? 10 * 60 * 1000, // 10 minutes
@@ -74,7 +74,7 @@ export const useUpdateResourceLabelMutation = () => {
     onSuccess: () => {
       // Invalidate storage cache to reflect updated labels
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.storage(),
+        queryKey: queryKeys.storage.data(),
       });
     },
 
@@ -83,7 +83,7 @@ export const useUpdateResourceLabelMutation = () => {
         notifications.error(
           'Update label failed: Configuration was modified by another user. Please review the latest changes and try again.'
         );
-        void queryClient.invalidateQueries({ queryKey: queryKeys.storage.storage() });
+        void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
         return;
       }
       const message = error instanceof Error ? error.message : 'Unknown error';

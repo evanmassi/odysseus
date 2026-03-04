@@ -95,7 +95,7 @@ export function useConfigurationSync() {
       if (e.key === 'odysseus-configuration-version') {
         // Invalidate React Query cache to refetch from server
         void queryClient.invalidateQueries({
-          queryKey: queryKeys.storage.storage(),
+          queryKey: queryKeys.storage.data(),
         });
       }
     };
