@@ -188,14 +188,16 @@ export class ResearcherApplicationService {
         const researcher = Researcher.create(existingPerson.id, { labId });
         await this.researcherRepository.save(researcher);
 
-        await this.eventBus.publish(new ResearcherCreatedEvent(
+        const createdEvent = new ResearcherCreatedEvent(
           researcher.id,
           existingPerson.firstName,
           existingPerson.lastName,
           existingPerson.email,
           existingPerson.position,
           user.id
-        ));
+        );
+        createdEvent.labId = labId;
+        await this.eventBus.publish(createdEvent);
 
         return ResearcherDto.toResponse(researcher, existingPerson);
       }
@@ -225,14 +227,16 @@ export class ResearcherApplicationService {
       const researcher = Researcher.create(orphanedPerson.id, { labId });
       await this.researcherRepository.save(researcher);
 
-      await this.eventBus.publish(new ResearcherCreatedEvent(
+      const createdEvent = new ResearcherCreatedEvent(
         researcher.id,
         orphanedPerson.firstName,
         orphanedPerson.lastName,
         orphanedPerson.email,
         orphanedPerson.position,
         user.id
-      ));
+      );
+      createdEvent.labId = labId;
+      await this.eventBus.publish(createdEvent);
 
       return ResearcherDto.toResponse(researcher, orphanedPerson);
     }
@@ -251,14 +255,16 @@ export class ResearcherApplicationService {
     await this.personRepository.save(person);
     await this.researcherRepository.save(researcher);
 
-    await this.eventBus.publish(new ResearcherCreatedEvent(
+    const createdEvent = new ResearcherCreatedEvent(
       researcher.id,
       person.firstName,
       person.lastName,
       person.email,
       person.position,
       user.id
-    ));
+    );
+    createdEvent.labId = labId;
+    await this.eventBus.publish(createdEvent);
 
     return ResearcherDto.toResponse(researcher, person);
   }
@@ -330,13 +336,15 @@ export class ResearcherApplicationService {
 
     // Publish event if there were changes
     if (changes.length > 0) {
-      await this.eventBus.publish(new ResearcherUpdatedEvent(
+      const updatedEvent = new ResearcherUpdatedEvent(
         researcher.id,
         person.firstName,
         person.lastName,
         changes,
         user.id
-      ));
+      );
+      updatedEvent.labId = researcher.labId;
+      await this.eventBus.publish(updatedEvent);
     }
 
     return ResearcherDto.toResponse(researcher, person);
@@ -395,13 +403,14 @@ export class ResearcherApplicationService {
       await this.personRepository.delete(personId);
     }
 
-    // Publish event for real-time sync
-    await this.eventBus.publish(new ResearcherDeletedEvent(
+    const deletedEvent = new ResearcherDeletedEvent(
       researcher.id,
       person.firstName,
       person.lastName,
       user.username
-    ));
+    );
+    deletedEvent.labId = researcher.labId;
+    await this.eventBus.publish(deletedEvent);
   }
 
   /**
@@ -435,14 +444,15 @@ export class ResearcherApplicationService {
     researcher.deactivate();
     await this.researcherRepository.save(researcher);
 
-    // Publish event
-    await this.eventBus.publish(new ResearcherDeactivatedEvent(
+    const deactivatedEvent = new ResearcherDeactivatedEvent(
       researcher.id,
       person.firstName,
       person.lastName,
       tubeCount,
       user.id
-    ));
+    );
+    deactivatedEvent.labId = researcher.labId;
+    await this.eventBus.publish(deactivatedEvent);
 
     return ResearcherDto.toResponse(researcher, person);
   }
@@ -471,13 +481,14 @@ export class ResearcherApplicationService {
     researcher.activate();
     await this.researcherRepository.save(researcher);
 
-    // Publish event
-    await this.eventBus.publish(new ResearcherReactivatedEvent(
+    const reactivatedEvent = new ResearcherReactivatedEvent(
       researcher.id,
       person.firstName,
       person.lastName,
       user.id
-    ));
+    );
+    reactivatedEvent.labId = researcher.labId;
+    await this.eventBus.publish(reactivatedEvent);
 
     return ResearcherDto.toResponse(researcher, person);
   }

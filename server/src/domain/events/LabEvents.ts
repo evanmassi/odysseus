@@ -11,7 +11,7 @@ export class LabCreatedEvent extends DomainEvent {
     public readonly labId: string,
     public readonly name: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -36,7 +36,7 @@ export class InviteCodeCreatedEvent extends DomainEvent {
     public readonly labId: string,
     public readonly createdBy: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {
@@ -62,7 +62,7 @@ export class InviteCodeUsedEvent extends DomainEvent {
     public readonly labId: string,
     public readonly userId: string
   ) {
-    super(1);
+    super(1, labId);
   }
 
   eventName(): string {

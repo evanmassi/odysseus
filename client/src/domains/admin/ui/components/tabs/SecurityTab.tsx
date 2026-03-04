@@ -13,7 +13,7 @@
 
 import { Shield } from 'lucide-react';
 
-import { NumberInput, Toggle } from '@shared/ui';
+import { AlertBanner, NumberInput, Toggle } from '@shared/ui';
 
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
@@ -57,12 +57,13 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <Shield size={22} className="text-secondary-foreground" />
         <h3 className="text-xl font-semibold text-card-foreground">Security</h3>
-        {readOnly && (
-          <span className="text-xs text-muted-foreground ml-auto">
-            Read-only — only system admins can modify security settings
-          </span>
-        )}
       </div>
+
+      {readOnly && (
+        <AlertBanner variant="info" spacing="none">
+          Only system admins can modify security settings.
+        </AlertBanner>
+      )}
 
       {/* Authentication Settings Section */}
       <div>
