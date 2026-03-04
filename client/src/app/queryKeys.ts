@@ -31,13 +31,13 @@ export const queryKeys = {
     presence: () => [...queryKeys.users.all, 'presence'] as const,
   },
 
-  // Admin (admin-only operations)
+  // Admin
   admin: {
     all: ['admin'] as const,
     users: () => [...queryKeys.admin.all, 'users'] as const,
   },
 
-  // Tubes (unified)
+  // Tubes
   tubes: {
     all: ['tubes'] as const,
     list: (filters?: TubeQueryFilters) =>
@@ -55,14 +55,13 @@ export const queryKeys = {
       [...queryKeys.tubes.all, 'paginated', filters] as const,
   },
 
-  // Researchers (unified with socket bridge)
+  // Researchers
   researchers: {
     all: ['researchers'] as const,
     list: (filters?: ResearcherQueryFilters) =>
       filters
         ? ([...queryKeys.researchers.all, 'list', filters] as const)
         : ([...queryKeys.researchers.all, 'list'] as const),
-    lists: () => [...queryKeys.researchers.all, 'list'] as const, // Canonical base query
     visible: () => [...queryKeys.researchers.all, 'visible'] as const, // Approved + active only
     admin: (filters?: ResearcherQueryFilters) =>
       filters
@@ -72,7 +71,7 @@ export const queryKeys = {
     stats: () => [...queryKeys.researchers.all, 'stats'] as const,
   },
 
-  // Search (expanded from distributed searchQueryKeys)
+  // Search
   search: {
     all: ['search'] as const,
     tubes: () => [...queryKeys.search.all, 'tubes'] as const,
@@ -86,22 +85,20 @@ export const queryKeys = {
       [...queryKeys.search.all, 'suggestions', query, field] as const,
     savedSearches: () => [...queryKeys.search.all, 'saved'] as const,
     filterOptions: () => [...queryKeys.search.all, 'filter-options'] as const,
-    // Legacy key for backward compatibility (used by useTubeQueries)
     results: (query: string, filters?: SearchFilters) =>
       [...queryKeys.search.all, 'results', query, filters] as const,
   },
 
-  // Lookups (admin-managed dropdown values)
+  // Lookups
   lookups: {
     all: ['lookups'] as const,
     byCategory: (category: LookupCategory) => ['lookups', category] as const,
   },
 
-  // Labs (multi-tenancy)
+  // Labs
   labs: {
     all: ['labs'] as const,
     list: () => [...queryKeys.labs.all, 'list'] as const,
-    detail: (id: string) => [...queryKeys.labs.all, 'detail', id] as const,
     labDetails: (labId: string) => [...queryKeys.labs.all, 'labDetails', labId] as const,
     overview: () => [...queryKeys.labs.all, 'overview'] as const,
     demoLimits: (labId: string) => [...queryKeys.labs.all, 'demoLimits', labId] as const,
@@ -115,7 +112,7 @@ export const queryKeys = {
     byLab: (labId: string) => [...queryKeys.inviteCodes.all, 'byLab', labId] as const,
   },
 
-  // Storage (migrated from distributed storageQueryKeys)
+  // Storage
   storage: {
     all: ['storage'] as const,
     storage: () => [...queryKeys.storage.all, 'data'] as const,

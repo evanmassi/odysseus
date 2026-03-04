@@ -33,7 +33,6 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   const persistenceInitialized = useRef(false);
 
-  // Initialize query cache persistence once on mount
   useEffect(() => {
     if (!persistenceInitialized.current) {
       setupQueryPersistence();
@@ -48,7 +47,6 @@ export function Providers({ children }: ProvidersProps) {
           <RealtimeSyncIndicator />
           <ConnectionStatusIndicator />
 
-          {/* Toast notifications - custom Toast component handles styling */}
           <Toaster
             position="bottom-right"
             toastOptions={{
