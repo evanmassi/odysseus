@@ -15,7 +15,6 @@ export interface SessionDebugInfo {
   accessTokenExpiresIn: string;
   nextRefreshIn: string;
   isRefreshing: boolean;
-  refreshAttempts: number;
   lastRefresh: string;
 }
 

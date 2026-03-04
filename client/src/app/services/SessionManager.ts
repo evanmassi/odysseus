@@ -1,15 +1,7 @@
 /**
  * Session Manager
  *
- * Session management with automatic token refresh and server-side session monitoring.
- *
- * Responsibilities:
- * - Automatic access token refresh before expiry
- * - Session state management and validation
- * - Token storage and retrieval
- * - Server-side session info polling (idle timeout warning)
- * - Graceful error handling and retry logic
- * - Session cleanup and logout
+ * OAuth 2.0 session lifecycle with automatic token refresh and idle timeout monitoring.
  */
 
 import { env } from '@shared/config';
@@ -28,9 +20,6 @@ import type {
   TokenProvider,
 } from '@shared/session/types';
 
-/**
- * Session info response data from server
- */
 interface SessionInfoData {
   isAuthenticated: boolean;
   reason?: string;
@@ -39,17 +28,11 @@ interface SessionInfoData {
   idleWarningMinutes?: number;
 }
 
-/**
- * API response envelope for session info
- */
 interface SessionInfoApiResponse {
   success: boolean;
   data: SessionInfoData;
 }
 
-/**
- * API response envelope for heartbeat
- */
 interface HeartbeatApiResponse {
   success: boolean;
   data: {
@@ -58,9 +41,6 @@ interface HeartbeatApiResponse {
   };
 }
 
-/**
- * Callback interface for session warning UI
- */
 interface SessionWarningCallbacks {
   showWarning: (config: {
     timeRemainingMs: number;
@@ -71,24 +51,6 @@ interface SessionWarningCallbacks {
   hideWarning: () => void;
 }
 
-/**
- * Session Manager - OAuth 2.0 Session Lifecycle Management
- *
- * ARCHITECTURE:
- * - Persistent State: Tokens stored via SessionStorage (localStorage)
- * - Ephemeral State: Refresh timers, polling intervals (in-memory only)
- *
- * Session Monitoring:
- * - Server-side idle timeout enforcement (server tracks lastUsedAt)
- * - Client polls /session-info to detect warning threshold
- * - Warning modal shown when timeUntilIdleTimeoutMs <= idleWarningMinutes
- * - Heartbeat endpoint extends session when user clicks "Stay Logged In"
- *
- * Token Management:
- * - Access token: Short-lived, auto-refreshes
- * - Refresh token: Long-lived, persists across restarts
- */
-// Polling intervals for adaptive session monitoring
 const POLLING_INTERVAL_NORMAL_MS = 30000; // 30 seconds when far from warning
 const POLLING_INTERVAL_APPROACHING_MS = 10000; // 10 seconds when approaching warning
 const POLLING_INTERVAL_WARNING_MS = 5000; // 5 seconds when warning is shown
@@ -110,7 +72,6 @@ export class SessionManager implements TokenProvider {
   private state: SessionManagerState = {
     isRefreshing: false,
     lastRefreshTime: null,
-    refreshAttempts: 0,
     nextRefreshTime: null,
   };
 
@@ -160,22 +121,14 @@ export class SessionManager implements TokenProvider {
     }
   }
 
-  /**
-   * Set warning callbacks for session timeout UI
-   * Called after modalStore is initialized
-   */
+  // Called after modalStore is initialized
   setWarningCallbacks(callbacks: SessionWarningCallbacks): void {
     this.warningCallbacks = callbacks;
   }
 
   /**
-   * Get valid access token with automatic refresh
-   *
-   * Single point of token management.
-   * Automatically refreshes expired tokens, eliminating the need for HTTP 401 handlers.
-   *
-   * NOTE: Idle timeout is now enforced server-side. The server checks lastUsedAt
-   * on each request and returns appropriate error codes.
+   * Single point of token access. Automatically refreshes expired tokens,
+   * eliminating the need for HTTP 401 retry handlers.
    */
   async getValidAccessToken(): Promise<string | null> {
     const tokens = this.storage.getTokens();
@@ -201,17 +154,11 @@ export class SessionManager implements TokenProvider {
     return null;
   }
 
-  /**
-   * Check if user is authenticated
-   */
   isAuthenticated(): boolean {
     const status = this.getSessionStatus();
     return status === 'authenticated' || status === 'refreshing';
   }
 
-  /**
-   * Get current session status
-   */
   getSessionStatus(): SessionStatus {
     if (this.state.isRefreshing) {
       return 'refreshing';
@@ -222,25 +169,14 @@ export class SessionManager implements TokenProvider {
       return 'unauthenticated';
     }
 
-    const validation = this.validateTokens(tokens);
-
-    // Check if refresh token is expired
     if (tokens.refreshTokenExpiry <= new Date()) {
       return 'expired';
     }
 
-    // Check if access token is valid
-    if (validation.isValid) {
-      return 'authenticated';
-    } else {
-      // Access token expired but refresh token valid
-      return 'authenticated'; // We can refresh it
-    }
+    // Access token expired but refresh token valid — we can still refresh
+    return 'authenticated';
   }
 
-  /**
-   * Validate token pair - Fixed validation logic
-   */
   validateTokens(tokens: TokenPair): TokenValidation {
     const now = Date.now();
     const expiresIn = tokens.accessTokenExpiry.getTime() - now;
@@ -253,9 +189,6 @@ export class SessionManager implements TokenProvider {
     };
   }
 
-  /**
-   * Refresh access token using refresh token
-   */
   async refreshTokens(): Promise<boolean> {
     // Prevent concurrent refresh attempts
     if (this.refreshPromise) {
@@ -274,9 +207,6 @@ export class SessionManager implements TokenProvider {
     }
   }
 
-  /**
-   * Perform the actual token refresh with retry logic
-   */
   private async performTokenRefresh(): Promise<boolean> {
     const tokens = this.storage.getTokens();
     if (!tokens) {
@@ -306,8 +236,7 @@ export class SessionManager implements TokenProvider {
             throw new Error('Invalid refresh response format');
           }
 
-          // Update tokens with new access token
-          // HttpClient now automatically transforms dates, so refreshData.accessTokenExpiry is already a Date
+          // HttpClient automatically transforms date strings, so accessTokenExpiry is already a Date
           const updatedTokens: TokenPair = {
             ...tokens,
             accessToken: refreshData.accessToken,
@@ -316,7 +245,6 @@ export class SessionManager implements TokenProvider {
 
           this.setTokens(updatedTokens);
           this.state.lastRefreshTime = new Date();
-          this.state.refreshAttempts = 0;
 
           return true;
         } else {
@@ -340,16 +268,10 @@ export class SessionManager implements TokenProvider {
     return false;
   }
 
-  /**
-   * Get current token pair from storage
-   */
   getTokens(): TokenPair | null {
     return this.storage.getTokens();
   }
 
-  /**
-   * Set new token pair and schedule refresh
-   */
   setTokens(tokens: TokenPair): void {
     this.storage.setTokens(tokens);
     this.scheduleTokenRefresh(tokens.accessTokenExpiry);
@@ -403,6 +325,31 @@ export class SessionManager implements TokenProvider {
    * @param reason - Why the session is being cleared (for UX messaging)
    */
   clearSession(reason: 'idle_timeout' | 'token_expired' | 'manual_logout' = 'manual_logout'): void {
+    this.stopTimersAndTracking();
+
+    // Token storage only - user data cleared by Zustand auth store
+    this.storage.clearTokens();
+
+    this.state = {
+      isRefreshing: false,
+      lastRefreshTime: null,
+      nextRefreshTime: null,
+    };
+
+    this.hasConfirmedAuth = false;
+
+    this.onSessionExpired?.(reason);
+  }
+
+  getState(): SessionManagerState {
+    return { ...this.state };
+  }
+
+  getNextRefreshTime(): Date | null {
+    return this.state.nextRefreshTime;
+  }
+
+  private stopTimersAndTracking(): void {
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
@@ -420,35 +367,8 @@ export class SessionManager implements TokenProvider {
       this.isWarningShown = false;
     }
 
-    // Token storage only - user data cleared by Zustand auth store
-    this.storage.clearTokens();
-
-    this.state = {
-      isRefreshing: false,
-      lastRefreshTime: null,
-      refreshAttempts: 0,
-      nextRefreshTime: null,
-    };
-
     this.refreshPromise = null;
     this.lastKnownTimeUntilTimeout = null;
-    this.hasConfirmedAuth = false;
-
-    this.onSessionExpired?.(reason);
-  }
-
-  /**
-   * Get session manager state (for debugging)
-   */
-  getState(): SessionManagerState {
-    return { ...this.state };
-  }
-
-  /**
-   * Get next refresh time (for debugging)
-   */
-  getNextRefreshTime(): Date | null {
-    return this.state.nextRefreshTime;
   }
 
   /**
@@ -492,9 +412,6 @@ export class SessionManager implements TokenProvider {
     return POLLING_INTERVAL_NORMAL_MS;
   }
 
-  /**
-   * Schedule the next session info poll
-   */
   private scheduleNextPoll(): void {
     if (this.sessionInfoPollingTimer) {
       clearTimeout(this.sessionInfoPollingTimer);
@@ -507,9 +424,6 @@ export class SessionManager implements TokenProvider {
     }, interval);
   }
 
-  /**
-   * Poll server for session status
-   */
   private async pollSessionInfo(): Promise<void> {
     const tokens = this.storage.getTokens();
     if (!tokens) {
@@ -638,9 +552,6 @@ export class SessionManager implements TokenProvider {
     this.isTrackingActivity = true;
   }
 
-  /**
-   * Stop tracking user activity
-   */
   private stopActivityTracking(): void {
     if (!this.isTrackingActivity || !this.boundActivityHandler) {
       return;
@@ -685,34 +596,10 @@ export class SessionManager implements TokenProvider {
     });
   }
 
-  /**
-   * Cleanup resources
-   */
   destroy(): void {
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-      this.refreshTimer = null;
-    }
-
-    if (this.sessionInfoPollingTimer) {
-      clearTimeout(this.sessionInfoPollingTimer);
-      this.sessionInfoPollingTimer = null;
-    }
-
-    this.stopActivityTracking();
-
-    if (this.isWarningShown) {
-      this.warningCallbacks?.hideWarning();
-      this.isWarningShown = false;
-    }
-
-    this.refreshPromise = null;
-    this.lastKnownTimeUntilTimeout = null;
+    this.stopTimersAndTracking();
   }
 
-  /**
-   * Development-only debugging information
-   */
   getDebugInfo(): SessionDebugInfo | { status: string } {
     if (!env.isDev()) {
       return { status: 'Production mode - debug info disabled' };
@@ -734,7 +621,6 @@ export class SessionManager implements TokenProvider {
       accessTokenExpiresIn: `${timeUntilExpiry} minutes`,
       nextRefreshIn: timeUntilRefresh ? `${timeUntilRefresh} minutes` : 'Not scheduled',
       isRefreshing: this.state.isRefreshing,
-      refreshAttempts: this.state.refreshAttempts,
       lastRefresh: this.state.lastRefreshTime?.toLocaleTimeString() ?? 'Never',
     };
   }

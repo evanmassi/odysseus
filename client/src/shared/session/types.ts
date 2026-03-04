@@ -77,7 +77,6 @@ export interface SessionConfig {
 export interface SessionManagerState {
   isRefreshing: boolean;
   lastRefreshTime: Date | null;
-  refreshAttempts: number;
   nextRefreshTime: Date | null;
 }
 
