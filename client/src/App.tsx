@@ -8,7 +8,7 @@ import { AppLoader } from '@app/components/layout/AppLoader';
 import { Dashboard } from '@app/components/layout/Dashboard';
 import { BootstrapProvider } from '@app/contexts/BootstrapContext';
 import { useAuthSocketSync } from '@app/hooks';
-import { AppProviders } from '@app/providers/providers';
+import { AppProviders } from '@app/providers/AppProviders';
 import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
 import { useUserSettingsQuery } from '@domains/authentication/hooks/useUserSettings';
