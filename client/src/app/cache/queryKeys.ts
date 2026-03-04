@@ -44,7 +44,7 @@ export const queryKeys = {
       filters
         ? ([...queryKeys.tubes.all, 'list', filters] as const)
         : ([...queryKeys.tubes.all, 'list'] as const),
-    lists: () => [...queryKeys.tubes.all, 'list'] as const, // Canonical base query
+    listAll: () => [...queryKeys.tubes.all, 'list'] as const,
     detail: (id: string) => [...queryKeys.tubes.all, 'detail', id] as const,
     location: (tankId: string, rackId: string, boxId: string) =>
       [...queryKeys.tubes.all, 'location', tankId, rackId, boxId] as const,

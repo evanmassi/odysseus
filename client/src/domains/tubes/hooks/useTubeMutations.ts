@@ -126,7 +126,7 @@ function handlePositionOccupiedError(
   }
 
   notifications.error(message);
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 }
 
 /** Show conflict error message and refresh cache. */
@@ -138,7 +138,7 @@ function handleTubeConflictError(
     'Update failed: This tube was modified by another user. Please review the latest changes and try again.'
   );
   void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(tubeId) });
-  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+  void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 }
 
 // MUTATION HOOKS (WRITE OPERATIONS)
@@ -176,7 +176,7 @@ export const useCreateTubeMutation = (
       queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
 
       // Invalidate and refetch tube lists to show new tube
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 
       // Invalidate location-specific queries
       if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
@@ -256,7 +256,7 @@ export const useUpdateTubeMutation = (
 
       // Update tube in list queries
       queryClient.setQueriesData(
-        { queryKey: queryKeys.tubes.lists() },
+        { queryKey: queryKeys.tubes.listAll() },
         (oldData: TubeData[] | undefined) => {
           if (!oldData) return oldData;
           return oldData.map(t => (t.id === tube.id ? tube : t));
@@ -365,14 +365,14 @@ export const useDeleteTubeMutation = (
     onMutate: async id => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.tubes.detail(id) });
-      await queryClient.cancelQueries({ queryKey: queryKeys.tubes.lists() });
+      await queryClient.cancelQueries({ queryKey: queryKeys.tubes.listAll() });
 
       // Snapshot previous tube for rollback
       const previousTube = queryClient.getQueryData<TubeData>(queryKeys.tubes.detail(id));
 
       // Optimistically remove from cache
       queryClient.setQueriesData(
-        { queryKey: queryKeys.tubes.lists() },
+        { queryKey: queryKeys.tubes.listAll() },
         (oldData: TubeData[] | undefined) => {
           if (!oldData) return oldData;
           return oldData.filter(tube => tube.id !== id);
@@ -388,7 +388,7 @@ export const useDeleteTubeMutation = (
 
       // Remove from list queries (should already be done by optimistic update)
       queryClient.setQueriesData(
-        { queryKey: queryKeys.tubes.lists() },
+        { queryKey: queryKeys.tubes.listAll() },
         (oldData: TubeData[] | undefined) => {
           if (!oldData) return oldData;
           return oldData.filter(tube => tube.id !== id);
@@ -420,7 +420,7 @@ export const useDeleteTubeMutation = (
       // Rollback optimistic update - add tube back to lists
       if (context?.previousTube) {
         queryClient.setQueriesData(
-          { queryKey: queryKeys.tubes.lists() },
+          { queryKey: queryKeys.tubes.listAll() },
           (oldData: TubeData[] | undefined) => {
             if (!oldData) return [context.previousTube];
             // Add back if not already there
@@ -433,7 +433,7 @@ export const useDeleteTubeMutation = (
 
     onSettled: (_data, _error, _id) => {
       // Refetch lists to ensure consistency
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
     },
 
     ...options,
@@ -574,7 +574,7 @@ export const useBulkDeleteTubesMutation = (
 
       // Update list queries
       queryClient.setQueriesData(
-        { queryKey: queryKeys.tubes.lists() },
+        { queryKey: queryKeys.tubes.listAll() },
         (oldData: TubeData[] | undefined) => {
           if (!oldData) return oldData;
           return oldData.filter(tube => !successfulIds.includes(tube.id));
@@ -593,7 +593,7 @@ export const useBulkDeleteTubesMutation = (
 
     onSettled: () => {
       // Always refetch to ensure consistency
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
     },
 
     ...options,
@@ -632,7 +632,7 @@ export const usePasteTubesMutation = (
       });
 
       // Invalidate all list queries to show new tubes
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 
       // Invalidate location-specific queries for all affected locations
       createdTubes.forEach(tube => {
@@ -666,7 +666,7 @@ export const usePasteTubesMutation = (
 
     onSettled: () => {
       // Refetch to ensure consistency
-      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
     },
 
     ...options,

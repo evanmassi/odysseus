@@ -34,7 +34,7 @@ export function useOptimisticCreateTubeMutation() {
 
     optimisticUpdate: {
       queryKeys: [
-        queryKeys.tubes.lists() as unknown as string[],
+        queryKeys.tubes.listAll() as unknown as string[],
         // Location-specific invalidation handled in updateFn
       ],
       updateFn: (variables: CreateTubeRequest, oldData: TubeData[] | undefined) => {
@@ -89,7 +89,7 @@ export function useOptimisticUpdateTubeMutation() {
     },
 
     optimisticUpdate: {
-      queryKeys: [queryKeys.tubes.lists() as unknown as string[]],
+      queryKeys: [queryKeys.tubes.listAll() as unknown as string[]],
       updateFn: (
         { id, data }: { id: string; data: UpdateTubeRequest },
         oldData: TubeData[] | undefined
@@ -142,7 +142,7 @@ export function useOptimisticDeleteTubeMutation() {
     },
 
     optimisticUpdate: {
-      queryKeys: [queryKeys.tubes.lists() as unknown as string[]],
+      queryKeys: [queryKeys.tubes.listAll() as unknown as string[]],
       updateFn: (tubeId: string, oldData: TubeData[] | undefined) => {
         if (!oldData) return oldData;
         return oldData.filter(tube => tube.id !== tubeId);
@@ -163,7 +163,7 @@ export function useOptimisticDeleteTubeMutation() {
 
       // Invalidate location queries and statistics
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.tubes.lists(),
+        queryKey: queryKeys.tubes.listAll(),
         predicate: query => {
           const key = query.queryKey as string[];
           return key.includes('location');
@@ -203,7 +203,7 @@ export function useOptimisticBatchTubesMutation() {
     },
 
     optimisticUpdate: {
-      queryKeys: [queryKeys.tubes.lists() as unknown as string[]],
+      queryKeys: [queryKeys.tubes.listAll() as unknown as string[]],
       updateFn: ({ operation, tubeIds, data }, oldData: TubeData[] | undefined) => {
         if (!oldData) return oldData;
 
@@ -241,7 +241,7 @@ export function useOptimisticBatchTubesMutation() {
     onSuccess: () => {
       // Invalidate all location queries and statistics
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.tubes.lists(),
+        queryKey: queryKeys.tubes.listAll(),
         predicate: query => {
           const key = query.queryKey as string[];
           return key.includes('location');
@@ -276,7 +276,7 @@ export function useOptimisticMoveTubeMutation() {
 
     optimisticUpdate: {
       queryKeys: [
-        queryKeys.tubes.lists() as unknown as string[],
+        queryKeys.tubes.listAll() as unknown as string[],
         // Location-specific invalidation handled in updateFn
       ],
       updateFn: ({ tubeId, toLocation }, oldData: TubeData[] | undefined) => {

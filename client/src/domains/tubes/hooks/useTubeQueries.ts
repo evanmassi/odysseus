@@ -63,7 +63,7 @@ export const useTubes = (
   > = {}
 ) => {
   return useQuery<TubeData[], Error, TubeData[]>({
-    queryKey: queryKeys.tubes.lists(),
+    queryKey: queryKeys.tubes.listAll(),
     queryFn: async (): Promise<TubeData[]> => {
       const schemaTubes = await TubeService.fetchTubes();
       return schemaTubes.map(convertSchemaToSharedTubeData);

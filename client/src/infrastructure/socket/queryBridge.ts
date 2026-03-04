@@ -357,7 +357,7 @@ export class SocketQueryBridge {
         });
 
         // Invalidate global lists query (used by TubeEditorModal position analysis)
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
@@ -401,7 +401,7 @@ export class SocketQueryBridge {
         }
 
         // Invalidate global lists query (used by TubeEditorModal position analysis)
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
@@ -424,7 +424,7 @@ export class SocketQueryBridge {
         });
 
         // Invalidate global lists query (used by TubeEditorModal position analysis)
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.lists() });
+        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 
         // Invalidate statistics
         void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
