@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
 import { isConflictError } from '@shared/errors';
 import { notifications } from '@shared/utils/notifications';

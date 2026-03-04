@@ -13,7 +13,7 @@
 
 import { z } from 'zod';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { getNetworkMonitor } from '@infra/connection/networkMonitor';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
@@ -23,7 +23,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
 
 // Re-export queryKeys from centralized location
-export { queryKeys } from '@app/queryKeys';
+export { queryKeys } from '@app/cache/queryKeys';
 
 /**
  * Socket event schemas for type safety

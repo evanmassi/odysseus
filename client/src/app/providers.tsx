@@ -18,8 +18,8 @@ import {
 } from '@shared/ui/components/ConnectionStatusIndicator';
 import { notifications } from '@shared/utils/notifications';
 
+import { queryClient, setupQueryPersistence } from './cache/queryClient';
 import { ThemeProvider } from './contexts/ThemeContext';
-import { queryClient, setupQueryPersistence } from './queryClient';
 
 // Dev-only: Expose notifications to console for testing
 if (env.isDev()) {

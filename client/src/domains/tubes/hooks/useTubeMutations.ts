@@ -12,7 +12,7 @@
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { getStorageDataFromCache } from '@domains/storage/hooks/useStorageData';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { TubeService } from '@domains/tubes/services/TubeService';

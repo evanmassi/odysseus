@@ -5,7 +5,7 @@
  */
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 
 import { PersonService, type UpdatePersonProfileWithPassword } from '../services/PersonService';
 

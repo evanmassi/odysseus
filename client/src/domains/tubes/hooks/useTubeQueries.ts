@@ -18,7 +18,7 @@ import {
   type UseInfiniteQueryOptions,
 } from '@tanstack/react-query';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { TubeService, type TubeStats } from '@domains/tubes/services/TubeService';
 import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 

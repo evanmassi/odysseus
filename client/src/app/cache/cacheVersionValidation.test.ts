@@ -39,9 +39,8 @@ vi.mock('../queryKeys', () => ({
 
 import { logger } from '@shared/infrastructure/logger';
 
-import { queryClient } from '../queryClient';
-
 import { validateCacheVersion } from './cacheVersionValidation';
+import { queryClient } from './queryClient';
 
 const mockFetch = vi.fn();
 global.fetch = mockFetch;

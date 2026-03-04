@@ -10,7 +10,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { adminService } from '@domains/admin/services/AdminService';
 import { logger } from '@shared/infrastructure/logger';
 

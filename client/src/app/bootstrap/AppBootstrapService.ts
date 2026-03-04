@@ -16,10 +16,10 @@ import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
 import { logger } from '@shared/infrastructure/logger';
 
 import { validateCacheVersion } from '../cache';
-import { clearChunkReloadFlag } from '../chunkErrorRecovery';
-import { queryClient } from '../queryClient';
-import { queryKeys } from '../queryKeys';
+import { queryClient } from '../cache/queryClient';
+import { queryKeys } from '../cache/queryKeys';
 
+import { clearChunkReloadFlag } from './chunkErrorRecovery';
 import { BOOTSTRAP_STEPS } from './constants';
 
 import type { AppBootstrapState, BootstrapStep } from './types';

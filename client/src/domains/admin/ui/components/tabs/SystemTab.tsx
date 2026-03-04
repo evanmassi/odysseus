@@ -9,7 +9,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Gauge, FlaskConical, FileText, Check, X } from 'lucide-react';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api/httpClient';

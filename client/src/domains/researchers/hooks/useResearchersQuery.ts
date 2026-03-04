@@ -14,8 +14,8 @@ import {
 } from '@odysseus/shared-schemas';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { DOMAIN_QUERY_OPTIONS } from '@app/queryClient';
-import { queryKeys } from '@app/queryKeys';
+import { DOMAIN_QUERY_OPTIONS } from '@app/cache/queryClient';
+import { queryKeys } from '@app/cache/queryKeys';
 import { notifications } from '@shared/utils/notifications';
 
 import { ResearcherService } from '../services/ResearcherService';

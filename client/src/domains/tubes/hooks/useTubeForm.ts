@@ -27,7 +27,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { logger } from '@shared/infrastructure/logger';
 
 import { useCreateTubeMutation, useUpdateTubeMutation } from './useTubeMutations';

@@ -102,8 +102,6 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
   const { data: mediaValues = [] } = useLookupValuesQuery('media');
-  const modalService = useModalStore();
-
   const speciesOptions = useMemo(
     () => speciesValues.map(v => ({ value: v.value, label: v.value })),
     [speciesValues]
@@ -167,7 +165,6 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
       sourceOptions={sourceOptions}
       mediaOptions={mediaOptions}
       onClose={onClose}
-      modalService={modalService}
     />
   );
 }
@@ -185,7 +182,6 @@ interface EditModeFormProps {
   sourceOptions: SelectOption[];
   mediaOptions: SelectOption[];
   onClose: () => void;
-  modalService: ReturnType<typeof useModalStore>;
 }
 
 function EditModeForm({
@@ -197,8 +193,8 @@ function EditModeForm({
   sourceOptions,
   mediaOptions,
   onClose,
-  modalService,
 }: EditModeFormProps) {
+  const modalService = useModalStore();
   // Build initialData from tube - uses FORM INPUT type (pre-transformation)
   // concentration as string, date as string
   // Memoized to prevent unnecessary re-renders and useEffect triggers

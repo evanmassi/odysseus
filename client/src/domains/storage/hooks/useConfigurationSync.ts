@@ -11,7 +11,7 @@ import { useEffect, useRef } from 'react';
 import { SYSTEM_DEFAULTS } from '@odysseus/shared-schemas';
 import { useQueryClient } from '@tanstack/react-query';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { logger } from '@shared/infrastructure/logger';

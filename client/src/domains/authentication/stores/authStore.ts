@@ -8,7 +8,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import { clearAllCaches } from '@app/queryClient';
+import { clearAllCaches } from '@app/cache/queryClient';
 import { SessionManager, LocalStorageSessionStorage } from '@app/services/SessionManager';
 import { modalStore } from '@app/stores/modalStore';
 import { authHttpClient } from '@infra/api/AuthHttpClient';

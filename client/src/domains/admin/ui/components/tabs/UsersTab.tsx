@@ -31,7 +31,7 @@ import {
   ShieldBan,
 } from 'lucide-react';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';

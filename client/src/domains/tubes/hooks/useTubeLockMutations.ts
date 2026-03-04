@@ -10,7 +10,7 @@
 
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
 import { logger } from '@shared/infrastructure/logger';
 

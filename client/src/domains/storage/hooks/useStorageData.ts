@@ -6,7 +6,7 @@
  */
 import { useCallback } from 'react';
 
-import { queryKeys } from '@app/queryKeys';
+import { queryKeys } from '@app/cache/queryKeys';
 
 import { GRID_TEMPLATES } from '../utils/gridHelpers';
 

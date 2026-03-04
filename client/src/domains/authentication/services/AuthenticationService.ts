@@ -9,7 +9,7 @@ import {
   type VerificationStatusResponse,
 } from '@odysseus/shared-schemas';
 
-import { queryClient } from '@app/queryClient';
+import { queryClient } from '@app/cache/queryClient';
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 

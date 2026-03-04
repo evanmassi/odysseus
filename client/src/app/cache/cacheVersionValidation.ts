@@ -6,8 +6,8 @@
  */
 import { logger } from '@shared/infrastructure/logger';
 
-import { queryClient } from '../queryClient';
-import { queryKeys } from '../queryKeys';
+import { queryClient } from './queryClient';
+import { queryKeys } from './queryKeys';
 
 import type { QueryClient } from '@tanstack/react-query';
 

@@ -6,7 +6,7 @@
 
 import { useEffect, useState } from 'react';
 
-import { cacheMetrics } from '@app/queryClient';
+import { cacheMetrics } from '@app/cache/queryClient';
 
 import type { QueryClient } from '@tanstack/react-query';
 
