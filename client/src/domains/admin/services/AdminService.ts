@@ -1,8 +1,7 @@
 /**
  * Admin Service
  *
- * Manages admin operations including user management and role updates.
- * Uses httpClient for proper authentication and error handling.
+ * Manages admin operations including user, researcher, audit, and security management.
  */
 
 import { httpClient } from '@infra/api/httpClient';
@@ -27,9 +26,6 @@ import type {
 } from '@odysseus/shared-schemas';
 
 export class AdminService {
-  /**
-   * Get all users (admin only)
-   */
   async getUsers(): Promise<{ success: boolean; users: AdminUser[] }> {
     try {
       const response = await httpClient.get<{
@@ -43,15 +39,11 @@ export class AdminService {
         users: response.data.data.users,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get users', { error });
       throw error;
     }
   }
 
-  /**
-   * Update user role (admin only)
-   */
   async updateUserRole(
     userId: string,
     newRole: 'lab_admin' | 'user'
@@ -62,29 +54,21 @@ export class AdminService {
       });
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to update user role', { userId, error });
       throw error;
     }
   }
 
-  /**
-   * Delete user (admin only)
-   */
   async deleteUser(userId: string): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.delete<{ success: boolean }>(`/admin/users/${userId}`);
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to delete user', { userId, error });
       throw error;
     }
   }
 
-  /**
-   * Get pending users awaiting approval (admin only)
-   */
   async getPendingUsers(): Promise<{ success: boolean; users: AdminUser[] }> {
     try {
       const response = await httpClient.get<{
@@ -98,15 +82,11 @@ export class AdminService {
         users: response.data.data.users,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get pending users', { error });
       throw error;
     }
   }
 
-  /**
-   * Approve pending user (admin only)
-   */
   async approveUser(userId: string): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.post<{ success: boolean }>(
@@ -114,21 +94,16 @@ export class AdminService {
       );
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to approve user', { userId, error });
       throw error;
     }
   }
 
-  /**
-   * Reject pending user (admin only)
-   */
   async rejectUser(userId: string): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.post<{ success: boolean }>(`/admin/users/${userId}/reject`);
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to reject user', { userId, error });
       throw error;
     }
@@ -158,9 +133,6 @@ export class AdminService {
     }
   }
 
-  /**
-   * Link researcher profile to user (admin only)
-   */
   async linkResearcherToUser(userId: string, researcherId: string): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.post<{ success: boolean }>(
@@ -169,15 +141,11 @@ export class AdminService {
       );
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to link researcher to user', { userId, error });
       throw error;
     }
   }
 
-  /**
-   * Unlink researcher profile from user (admin only)
-   */
   async unlinkResearcherFromUser(userId: string): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.post<{ success: boolean }>(
@@ -185,15 +153,11 @@ export class AdminService {
       );
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to unlink researcher from user', { userId, error });
       throw error;
     }
   }
 
-  /**
-   * Admin resets user password directly
-   */
   async resetUserPassword(
     userId: string,
     newPassword: string,
@@ -209,7 +173,6 @@ export class AdminService {
       });
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to reset password for user', { userId, error });
       throw error;
     }
@@ -241,9 +204,6 @@ export class AdminService {
     }
   }
 
-  /**
-   * Get all researchers with admin metadata (admin only)
-   */
   async getResearchers(): Promise<{ success: boolean; researchers: AdminResearcher[] }> {
     try {
       const response = await httpClient.get<{
@@ -258,16 +218,12 @@ export class AdminService {
         researchers: response.data.data.researchers,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get researchers', { error });
       throw error;
     }
   }
 
-  /**
-   * Delete researcher (admin only)
-   * Safe deletion only - requires zero tubes AND no linked user
-   */
+  /** Safe deactivation only — requires zero tubes AND no linked user. */
   async deactivateResearcher(researcherId: string): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.put<{ success: boolean }>(
@@ -299,15 +255,11 @@ export class AdminService {
       );
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to delete researcher', { researcherId, error });
       throw error;
     }
   }
 
-  /**
-   * Get unlinked researchers (not associated with any user)
-   */
   async getUnlinkedResearchers(): Promise<{ success: boolean; researchers: AdminResearcher[] }> {
     try {
       const response = await httpClient.get<{
@@ -320,15 +272,11 @@ export class AdminService {
         researchers: response.data.data.researchers,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get unlinked researchers', { error });
       throw error;
     }
   }
 
-  /**
-   * Create researcher and link to user in one operation
-   */
   async createAndLinkResearcher(
     userId: string,
     researcherData: {
@@ -346,15 +294,11 @@ export class AdminService {
       );
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to create and link researcher', { error });
       throw error;
     }
   }
 
-  /**
-   * Create standalone researcher (no user link)
-   */
   async createResearcher(data: {
     firstName: string;
     lastName: string;
@@ -373,15 +317,11 @@ export class AdminService {
         researcher: response.data.data,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to create researcher', { error });
       throw error;
     }
   }
 
-  /**
-   * Get admin metrics/statistics
-   */
   async getMetrics(): Promise<{
     success: boolean;
     data: SystemMetrics;
@@ -398,15 +338,11 @@ export class AdminService {
         data: response.data.data,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get admin metrics', { error });
       throw error;
     }
   }
 
-  /**
-   * Get security configuration
-   */
   async getSecurityConfig(): Promise<{
     success: boolean;
     config: SecurityConfig;
@@ -425,15 +361,11 @@ export class AdminService {
         config: response.data.data.config,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get security config', { error });
       throw error;
     }
   }
 
-  /**
-   * Update security configuration
-   */
   async updateSecurityConfig(config: UpdateSecurityConfig): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.put<{
@@ -446,15 +378,11 @@ export class AdminService {
         success: response.data.success,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to update security config', { error });
       throw error;
     }
   }
 
-  /**
-   * Get synchronization status
-   */
   async getSyncStatus(): Promise<{
     success: boolean;
     sync: SyncStatus;
@@ -473,15 +401,11 @@ export class AdminService {
         sync: response.data.data.sync,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get sync status', { error });
       throw error;
     }
   }
 
-  /**
-   * Get audit log entries
-   */
   async getAuditLog(options: AuditLogFilters = {}): Promise<{
     success: boolean;
     entries: AuditLogEntry[];
@@ -494,8 +418,8 @@ export class AdminService {
   }> {
     try {
       const params = new URLSearchParams();
-      if (options.limit) params.append('limit', options.limit.toString());
-      if (options.offset) params.append('offset', options.offset.toString());
+      if (options.limit !== undefined) params.append('limit', options.limit.toString());
+      if (options.offset !== undefined) params.append('offset', options.offset.toString());
       if (options.username) params.append('username', options.username);
       if (options.action) params.append('action', options.action);
       if (options.entityType) params.append('entityType', options.entityType);
@@ -524,15 +448,11 @@ export class AdminService {
         pagination: response.data.data.pagination,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get audit log', { error });
       throw error;
     }
   }
 
-  /**
-   * Get audit statistics for dashboard
-   */
   async getAuditStatistics(): Promise<{
     success: boolean;
     data: {
@@ -559,15 +479,11 @@ export class AdminService {
 
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get audit statistics', { error });
       throw error;
     }
   }
 
-  /**
-   * Get audit history for a specific entity
-   */
   async getEntityHistory(
     entityType: string,
     entityId: string
@@ -583,15 +499,11 @@ export class AdminService {
 
       return response.data;
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get entity history', { entityType, entityId, error });
       throw error;
     }
   }
 
-  /**
-   * Search audit logs with optional archive inclusion
-   */
   async searchAuditLogs(
     options: AuditLogFilters = {},
     includeArchive: boolean = false
@@ -607,8 +519,8 @@ export class AdminService {
   }> {
     try {
       const params = new URLSearchParams();
-      if (options.limit) params.append('limit', options.limit.toString());
-      if (options.offset) params.append('offset', options.offset.toString());
+      if (options.limit !== undefined) params.append('limit', options.limit.toString());
+      if (options.offset !== undefined) params.append('offset', options.offset.toString());
       if (options.username) params.append('username', options.username);
       if (options.action) params.append('action', options.action);
       if (options.entityType) params.append('entityType', options.entityType);
@@ -639,15 +551,11 @@ export class AdminService {
         pagination: response.data.data.pagination,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to search audit logs', { error });
       throw error;
     }
   }
 
-  /**
-   * Get retention metrics
-   */
   async getRetentionMetrics(): Promise<{
     success: boolean;
     data: {
@@ -680,15 +588,11 @@ export class AdminService {
         data: response.data.data.metrics,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get retention metrics', { error });
       throw error;
     }
   }
 
-  /**
-   * Get retention policy
-   */
   async getRetentionPolicy(): Promise<{
     success: boolean;
     data: {
@@ -713,15 +617,11 @@ export class AdminService {
         data: response.data.data.policy,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to get retention policy', { error });
       throw error;
     }
   }
 
-  /**
-   * Manually trigger archival process
-   */
   async runManualArchival(): Promise<{
     success: boolean;
     data: {
@@ -746,15 +646,11 @@ export class AdminService {
         data: response.data.data,
       };
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to run manual archival', { error });
       throw error;
     }
   }
 
-  /**
-   * Export archived logs
-   */
   async exportArchivedLogs(dateFrom?: Date, dateTo?: Date): Promise<Blob> {
     try {
       const params = new URLSearchParams();
@@ -765,15 +661,11 @@ export class AdminService {
 
       return await httpClient.getBlob(`/admin/audit/retention/export${query}`);
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to export archived logs', { error });
       throw error;
     }
   }
 
-  /**
-   * Get application version info (public endpoint)
-   */
   async getVersionInfo(): Promise<{
     success: boolean;
     data: {
@@ -801,9 +693,6 @@ export class AdminService {
     }
   }
 
-  /**
-   * Export tubes data in CSV or JSON format
-   */
   async exportTubes(format: 'csv' | 'json'): Promise<Blob> {
     try {
       return await httpClient.getBlob(`/admin/export/tubes?format=${format}`);
@@ -813,9 +702,6 @@ export class AdminService {
     }
   }
 
-  /**
-   * Export users data in CSV or JSON format (excludes sensitive data)
-   */
   async exportUsers(format: 'csv' | 'json'): Promise<Blob> {
     try {
       return await httpClient.getBlob(`/admin/export/users?format=${format}`);
@@ -825,9 +711,6 @@ export class AdminService {
     }
   }
 
-  /**
-   * Export researchers data in CSV or JSON format
-   */
   async exportResearchers(format: 'csv' | 'json'): Promise<Blob> {
     try {
       return await httpClient.getBlob(`/admin/export/researchers?format=${format}`);
@@ -837,9 +720,6 @@ export class AdminService {
     }
   }
 
-  /**
-   * Export system configuration backup (JSON only)
-   */
   async exportSystemBackup(): Promise<Blob> {
     try {
       return await httpClient.getBlob('/admin/export/system-backup');
