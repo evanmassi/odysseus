@@ -28,7 +28,6 @@ function getCachedConfigVersion(qc: QueryClient): number | null {
     return null;
   }
 
-  // Navigate to version: data.configuration.systemConfig.version
   const data = cachedData as Record<string, unknown>;
   const configuration = data['configuration'] as Record<string, unknown> | undefined;
   const systemConfig = configuration?.['systemConfig'] as Record<string, unknown> | undefined;
@@ -52,7 +51,7 @@ async function fetchServerVersion(accessToken: string): Promise<number | null> {
         Authorization: `Bearer ${accessToken}`,
         'Content-Type': 'application/json',
       },
-      signal: AbortSignal.timeout(5000), // 5 second timeout
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!response.ok) {
@@ -160,5 +159,3 @@ export async function validateCacheVersion(
     reason: 'match',
   };
 }
-
-export { queryClient };

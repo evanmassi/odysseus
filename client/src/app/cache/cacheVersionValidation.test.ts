@@ -1,5 +1,7 @@
 /**
  * Cache Version Validation Tests
+ *
+ * Covers version match/mismatch, missing cache, missing session, and network error paths.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
@@ -41,26 +43,15 @@ import { queryClient } from '../queryClient';
 
 import { validateCacheVersion } from './cacheVersionValidation';
 
-// Mock fetch globally
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-// Mock localStorage
 const mockLocalStorage = {
   removeItem: vi.fn(),
 };
 Object.defineProperty(global, 'localStorage', {
   value: mockLocalStorage,
   writable: true,
-});
-
-// Mock import.meta.env
-vi.stubGlobal('import', {
-  meta: {
-    env: {
-      VITE_API_URL: 'http://localhost:3001/api',
-    },
-  },
 });
 
 describe('validateCacheVersion', () => {
