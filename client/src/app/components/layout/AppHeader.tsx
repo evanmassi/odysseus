@@ -31,14 +31,16 @@ import { useAuthStore } from '@domains/authentication';
 import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
 import { useStorageData } from '@domains/storage';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
-import { parsePositionKey, type PositionKey } from '@shared/types/GridSelection';
 import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
 import { OnlineUsersBadges } from '@shared/ui/components';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
 
+import { useSelectionAnalysis } from '../../hooks/grid';
+
 import type { TubeData } from '@domains/tubes/types';
+import type { PositionKey } from '@shared/types/GridSelection';
 import type { LucideIcon } from 'lucide-react';
 
 // Lazy load modals for code splitting
@@ -251,64 +253,7 @@ export function AppHeader({
     void logout();
   };
 
-  const selectionAnalysis = (() => {
-    if (!selectedPositions || selectedPositions.size === 0 || !tubes) {
-      return {
-        hasSelection: false,
-        selectedTubes: [],
-        emptyPositions: new Set(),
-        filledPositions: new Set(),
-        hasEmpty: false,
-        hasFilled: false,
-        isMixed: false,
-      };
-    }
-
-    const selectedTubes = Array.from(selectedPositions)
-      .map(key => {
-        const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return tubes.find(
-          t =>
-            t.location.tankId === tankId &&
-            t.location.rackId === rackId &&
-            t.location.boxId === boxId &&
-            t.location.position === position
-        );
-      })
-      .filter((tube): tube is TubeData => tube !== undefined);
-
-    const emptyPositions = new Set(
-      Array.from(selectedPositions).filter(key => {
-        const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return !tubes.find(
-          t =>
-            t.location.tankId === tankId &&
-            t.location.rackId === rackId &&
-            t.location.boxId === boxId &&
-            t.location.position === position
-        );
-      })
-    );
-
-    const filledPositions = new Set(
-      Array.from(selectedPositions).filter(key => !emptyPositions.has(key))
-    );
-
-    const hasEmpty = emptyPositions.size > 0;
-    const hasFilled = filledPositions.size > 0;
-
-    const result = {
-      hasSelection: true,
-      selectedTubes,
-      emptyPositions,
-      filledPositions,
-      hasEmpty,
-      hasFilled,
-      isMixed: hasEmpty && hasFilled,
-    };
-
-    return result;
-  })();
+  const selectionAnalysis = useSelectionAnalysis(selectedPositions, tubes);
 
   return (
     <header className="bg-background px-4 h-full flex items-center">

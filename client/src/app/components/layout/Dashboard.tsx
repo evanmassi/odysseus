@@ -34,7 +34,6 @@ import { ShareAccessModal } from '@domains/tubes/ui/components/modals/ShareAcces
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
-import { parsePositionKey } from '@shared/types/GridSelection';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { UnsavedConfirmDialog } from '@shared/ui/components/UnsavedConfirmDialog';
@@ -43,7 +42,7 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils/notifications';
 
-import { useGridController } from '../../hooks/grid';
+import { useGridController, useSelectionAnalysis } from '../../hooks/grid';
 import { useModalStore } from '../../stores/modalStore';
 
 import { AppHeader } from './AppHeader';
@@ -401,68 +400,7 @@ function LabDashboard() {
     };
   }, [user, accessControl, userDisplayMap]);
 
-  const selectionAnalysis = (() => {
-    if (selectedPositions.size === 0) {
-      return {
-        selectedTubes: [],
-        emptyPositions: new Set<string>(),
-        filledPositions: new Set<string>(),
-        hasEmpty: false,
-        hasFilled: false,
-        isMixed: false,
-        totalSelected: 0,
-      };
-    }
-
-    const selectedTubes = Array.from(selectedPositions)
-      .map(key => {
-        const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return tubes.find(
-          t =>
-            t.location.tankId === tankId &&
-            t.location.rackId === rackId &&
-            t.location.boxId === boxId &&
-            t.location.position === position
-        );
-      })
-      .filter((tube): tube is TubeData => tube !== undefined);
-
-    const emptyPositions = new Set(
-      Array.from(selectedPositions).filter(key => {
-        const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return !tubes.find(
-          t =>
-            t.location.tankId === tankId &&
-            t.location.rackId === rackId &&
-            t.location.boxId === boxId &&
-            t.location.position === position
-        );
-      })
-    );
-
-    const filledPositions = new Set(
-      Array.from(selectedPositions).filter(key => {
-        const { tankId, rackId, boxId, position } = parsePositionKey(key);
-        return tubes.find(
-          t =>
-            t.location.tankId === tankId &&
-            t.location.rackId === rackId &&
-            t.location.boxId === boxId &&
-            t.location.position === position
-        );
-      })
-    );
-
-    return {
-      selectedTubes,
-      emptyPositions,
-      filledPositions,
-      hasEmpty: emptyPositions.size > 0,
-      hasFilled: filledPositions.size > 0,
-      isMixed: emptyPositions.size > 0 && filledPositions.size > 0,
-      totalSelected: selectedPositions.size,
-    };
-  })();
+  const selectionAnalysis = useSelectionAnalysis(selectedPositions, tubes);
 
   // Users without a researcher profile can only browse (admins always have full access)
   const hasResearcherProfile =
