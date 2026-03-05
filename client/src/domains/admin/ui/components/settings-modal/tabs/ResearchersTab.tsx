@@ -249,8 +249,7 @@ export function ResearchersTab({
       id: 'researcher',
       header: 'Researcher',
       sortable: true,
-      render: (_, row) => {
-        const researcher = row;
+      render: (_, researcher) => {
         return (
           <div className="flex items-center whitespace-nowrap">
             <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
@@ -269,8 +268,7 @@ export function ResearchersTab({
     {
       id: 'position',
       header: 'Position',
-      render: (_, row) => {
-        const researcher = row;
+      render: (_, researcher) => {
         return (
           <div className="whitespace-nowrap max-w-[150px]">
             {researcher.position ? (
@@ -295,8 +293,7 @@ export function ResearchersTab({
       id: 'tubes',
       header: 'Tubes',
       sortable: true,
-      render: (_, row) => {
-        const researcher = row;
+      render: (_, researcher) => {
         return (
           <Chip
             size="sm"
@@ -311,8 +308,7 @@ export function ResearchersTab({
     {
       id: 'linkedUser',
       header: 'Linked User',
-      render: (_, row) => {
-        const researcher = row;
+      render: (_, researcher) => {
         if (researcher.linkedUserId) {
           return (
             <div className="whitespace-nowrap">
@@ -330,9 +326,7 @@ export function ResearchersTab({
       id: 'status',
       header: 'Status',
       sortable: true,
-      render: (_, row) => {
-        const researcher = row;
-
+      render: (_, researcher) => {
         // Pending approval takes precedence (researcher not yet vetted)
         if (researcher.approvalStatus === 'pending') {
           return (
@@ -365,8 +359,7 @@ export function ResearchersTab({
     {
       id: 'actions',
       header: 'Actions',
-      render: (_, row) => {
-        const researcher = row;
+      render: (_, researcher) => {
         const isSelfResearcher = researcher.linkedUserId === currentUserId;
         return (
           <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">

@@ -108,8 +108,7 @@ function CategorySection({
       id: 'value',
       header: 'Name',
       sortable: true,
-      render: (_, row) => {
-        const item = row;
+      render: (_, item) => {
         if (editingId === item.id) {
           return (
             <Input
@@ -134,8 +133,7 @@ function CategorySection({
       header: 'Tubes',
       sortable: true,
       width: 80,
-      render: (_, row) => {
-        const item = row;
+      render: (_, item) => {
         return (
           <Chip
             size="sm"
@@ -151,8 +149,7 @@ function CategorySection({
       id: 'actions',
       header: 'Actions',
       width: 100,
-      render: (_, row) => {
-        const item = row;
+      render: (_, item) => {
         const canDelete = item.tubeCount === 0;
         if (editingId === item.id) {
           return (

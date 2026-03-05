@@ -298,8 +298,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       id: 'user',
       header: 'User',
       sortable: true,
-      render: (_, row) => {
-        const user = row;
+      render: (_, user) => {
         const initials =
           user.firstName && user.lastName
             ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
@@ -354,8 +353,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       id: 'role',
       header: 'Role',
       sortable: true,
-      render: (_, row) => {
-        const user = row;
+      render: (_, user) => {
         const isDisabled =
           readOnly ||
           updating === user.id ||
@@ -389,8 +387,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     {
       id: 'researcher',
       header: 'Researcher',
-      render: (_, row) => {
-        const user = row;
+      render: (_, user) => {
         if (user.researcherId) {
           return (
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground whitespace-nowrap">
@@ -410,8 +407,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       id: 'lastActivity',
       header: 'Last Active',
       sortable: true,
-      render: (_, row) => {
-        const user = row;
+      render: (_, user) => {
         return (
           <span className="text-sm text-muted-foreground whitespace-nowrap">
             {user.lastActivity ? new Date(user.lastActivity).toLocaleDateString() : 'Never'}
@@ -422,8 +418,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     {
       id: 'actions',
       header: 'Actions',
-      render: (_, row) => {
-        const user = row;
+      render: (_, user) => {
         const isSelf = user.id === currentUserId;
         return (
           <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">

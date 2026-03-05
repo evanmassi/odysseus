@@ -258,8 +258,7 @@ export function AuditLogViewer({
       id: 'timestamp',
       header: 'Timestamp',
       width: '8rem',
-      render: (_, row) => {
-        const entry = row;
+      render: (_, entry) => {
         return (
           <span className="whitespace-nowrap text-muted-foreground text-[11px]">
             {formatTimestamp(entry.timestamp)}
@@ -271,8 +270,7 @@ export function AuditLogViewer({
       id: 'username',
       header: 'User',
       width: '6rem',
-      render: (_, row) => {
-        const entry = row;
+      render: (_, entry) => {
         return (
           <span className="font-medium text-card-foreground whitespace-nowrap">
             {entry.username}
@@ -284,8 +282,7 @@ export function AuditLogViewer({
       id: 'action',
       header: 'Action',
       width: '6rem',
-      render: (_, row) => {
-        const entry = row;
+      render: (_, entry) => {
         return (
           <span className={`whitespace-nowrap ${getActionBadgeClass(entry.action)}`}>
             {formatAction(entry.action)}
@@ -297,8 +294,7 @@ export function AuditLogViewer({
       id: 'entityType',
       header: 'Item',
       width: '7rem',
-      render: (_, row) => {
-        const entry = row;
+      render: (_, entry) => {
         if (!entry.entityType) {
           return <span className="text-muted-foreground text-xs">-</span>;
         }
@@ -320,8 +316,7 @@ export function AuditLogViewer({
     {
       id: 'details',
       header: 'Details',
-      render: (_, row) => {
-        const entry = row;
+      render: (_, entry) => {
         const { text, fullText } = formatAuditDetails(entry);
         const tooltipContent = fullText ?? text;
         return (
