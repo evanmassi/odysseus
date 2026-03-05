@@ -2,7 +2,6 @@
  * User Settings Modal
  *
  * Modal for managing user-specific preferences and settings.
- * Extensible tab-based interface for future settings categories.
  */
 import { useState, useEffect, lazy, Suspense } from 'react';
 
@@ -22,7 +21,6 @@ import type {
   ThemePreference,
 } from '@odysseus/shared-schemas';
 
-// Lazy-load tab components for code splitting
 const DisplayTab = lazy(() =>
   import('./tabs/DisplayTab').then(m => ({
     default: m.DisplayTab,
@@ -43,13 +41,11 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   const [localSettings, setLocalSettings] = useState<UserSettings>({});
   const [originalSettings, setOriginalSettings] = useState<UserSettings>({});
 
-  // Fetch user settings
   const { settings, isLoading } = useUserSettings();
   const { updateSettings, isSaving } = useUserSettingsActions();
   const modalService = useModalStore();
   const { setPreference } = useTheme();
 
-  // Load settings when modal opens
   useEffect(() => {
     if (isOpen && settings) {
       setLocalSettings(settings);
@@ -65,7 +61,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
   };
 
   const handleThemeChange = (theme: ThemePreference) => {
-    // Update local state for save
     setLocalSettings(prev => ({
       ...prev,
       theme,
@@ -93,7 +88,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     }
   };
 
-  // Check if there are any unsaved changes
   const hasChanges = JSON.stringify(localSettings) !== JSON.stringify(originalSettings);
 
   const handleClose = () => {
@@ -119,7 +113,6 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     { id: 'display', label: 'Display', icon: Table2 },
   ] as const;
 
-  // Vertical sidebar tabs (only rendered if multiple tabs)
   const tabs =
     tabItems.length > 1 ? (
       <Tabs value={activeTab} onChange={v => setActiveTab(v as 'account' | 'security' | 'display')}>

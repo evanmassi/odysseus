@@ -1,8 +1,7 @@
 /**
- * Session List Section
+ * Active Session List
  *
- * Displays active sessions with revocation controls
- * Shows current session + 4 most recent sessions
+ * Displays active sessions with revocation controls.
  */
 
 import { useState, useMemo } from 'react';
