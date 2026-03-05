@@ -7,10 +7,31 @@
 import { Lock, LockKeyhole, Notebook, Palette, ScanEye, ShieldCheck } from 'lucide-react';
 
 import { IndicatorSVG } from '@domains/tubes/ui/components/grid/IndicatorSVG';
+import { cellLineCategories } from '@domains/tubes/utils/colorSystem';
+import { getOptimalTextColor } from '@shared/utils/labColorSpace';
 
 import './TubesTab.css';
 
-// --- Callout group helper ---
+const CELL_LINE_DISPLAY_NAMES: Record<string, string> = {
+  jurkat: 'Jurkat',
+  nalm6: 'NALM6',
+  lncap: 'LNCaP',
+  '22rv1': '22Rv1',
+  skbr3: 'SKBR3',
+  panc1: 'PANC1',
+  mcf7: 'MCF7',
+  a549: 'A549',
+  h1299: 'H1299',
+  hela: 'HeLa',
+  k562: 'K562',
+  u937: 'U937',
+};
+
+const CELL_LINE_SWATCHES = cellLineCategories.map(c => ({
+  name: CELL_LINE_DISPLAY_NAMES[c.name] ?? c.name,
+  color: c.color,
+  textColor: getOptimalTextColor(c.color),
+}));
 
 interface CalloutProps {
   label: string;
@@ -45,32 +66,12 @@ function Callout({ label, x1, y1, x2, y2, labelAnchor, labelOffsetY = -8 }: Call
   );
 }
 
-// --- Swatch data ---
-
-const CELL_LINE_SWATCHES = [
-  { name: 'Jurkat', color: '#A85A4A', textColor: '#FFFFFF' },
-  { name: 'NALM6', color: '#4A9A8F', textColor: '#FFFFFF' },
-  { name: 'LNCaP', color: '#7B7FC4', textColor: '#FFFFFF' },
-  { name: '22Rv1', color: '#C9B86A', textColor: '#000000' },
-  { name: 'SKBR3', color: '#9A7AA8', textColor: '#FFFFFF' },
-  { name: 'PANC1', color: '#C9986A', textColor: '#000000' },
-  { name: 'MCF7', color: '#3D5A73', textColor: '#FFFFFF' },
-  { name: 'A549', color: '#C47A65', textColor: '#FFFFFF' },
-  { name: 'H1299', color: '#4A6A6A', textColor: '#FFFFFF' },
-  { name: 'HeLa', color: '#8B6B4A', textColor: '#FFFFFF' },
-  { name: 'K562', color: '#B84A5A', textColor: '#FFFFFF' },
-  { name: 'U937', color: '#5A8AAA', textColor: '#FFFFFF' },
-];
-
-// Donor-based brightness example: same donor base color (#5E7A6B) with cell type offsets
-// PBMC = 0, NK Cells = +10, Human T Cells = +25
+// Example swatches showing how a single donor's base color shifts by cell type
 const DONOR_BRIGHTNESS_SWATCHES = [
   { name: 'PBMC', color: '#5E7A6B', textColor: '#FFFFFF' },
   { name: 'NK Cells', color: '#6E8B7B', textColor: '#FFFFFF' },
   { name: 'Human T Cells', color: '#87A494', textColor: '#000000' },
 ];
-
-// --- Main component ---
 
 export function TubesTab() {
   return (

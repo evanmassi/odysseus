@@ -7,7 +7,7 @@ import type { ReactNode } from 'react';
 
 import { Globe, Grid3X3, Navigation } from 'lucide-react';
 
-const isMac = navigator.platform.toUpperCase().includes('MAC');
+const isMac = /mac/i.test(navigator.userAgent);
 const mod = isMac ? '⌘' : 'Ctrl';
 
 interface Shortcut {

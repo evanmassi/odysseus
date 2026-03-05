@@ -59,7 +59,7 @@ interface CellLineCategory {
   patterns: string[];
 }
 
-const cellLineCategories: CellLineCategory[] = [
+export const cellLineCategories: CellLineCategory[] = [
   // Lab's commonly used cell lines (muted versions)
   {
     name: 'jurkat',
