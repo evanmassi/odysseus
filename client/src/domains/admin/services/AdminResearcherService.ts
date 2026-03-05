@@ -7,7 +7,7 @@
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 
-import type { AdminResearcher } from '@odysseus/shared-schemas';
+import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
 
 export class AdminResearcherService {
   async getResearchers(): Promise<{ success: boolean; researchers: AdminResearcher[] }> {
@@ -85,13 +85,7 @@ export class AdminResearcherService {
 
   async createAndLinkResearcher(
     userId: string,
-    researcherData: {
-      firstName: string;
-      lastName: string;
-      email: string;
-      position?: string;
-      department?: string;
-    }
+    researcherData: CreateResearcherProfile
   ): Promise<{ success: boolean }> {
     try {
       const response = await httpClient.post<{ success: boolean }>(
@@ -105,13 +99,9 @@ export class AdminResearcherService {
     }
   }
 
-  async createResearcher(data: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    position?: string;
-    department?: string;
-  }): Promise<{ success: boolean; researcher: AdminResearcher }> {
+  async createResearcher(
+    data: CreateResearcherProfile
+  ): Promise<{ success: boolean; researcher: AdminResearcher }> {
     try {
       const response = await httpClient.post<{
         success: boolean;
