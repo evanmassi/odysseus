@@ -13,7 +13,7 @@ export class LookupValueApplicationService {
   constructor(private lookupValueRepository: LookupValueRepository) {}
 
   async getActiveByCategory(labId: string, category: LookupCategory): Promise<ReturnType<LookupValue['toData']>[]> {
-    const values = await this.lookupValueRepository.findActiveByCategoryForDropdown(category);
+    const values = await this.lookupValueRepository.findActiveByCategoryForLabDropdown(category, labId);
     return values.map(v => v.toData());
   }
 
