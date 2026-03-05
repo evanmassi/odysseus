@@ -1,3 +1,9 @@
+/**
+ * System Admin Dashboard
+ *
+ * Landing page for system admins: lab overview, lab creation, and drill-down into individual labs.
+ */
+
 import { useState } from 'react';
 
 import {
@@ -38,9 +44,12 @@ import { LabDashboard } from './LabDashboard';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
 
+// 48-hour window gives lab admins time to register without codes lingering
+const LAB_ADMIN_CODE_EXPIRY_MS = 48 * 60 * 60 * 1000;
+
 export function SystemAdminDashboard() {
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
-  const { data: labs = [], isLoading: isLabsLoading, refetch } = useLabsQuery();
+  const { data: labs = [], isLoading, refetch } = useLabsQuery();
   const { data: overview, refetch: refetchOverview } = useSystemOverviewQuery();
   const createLabMutation = useCreateLabMutation();
   const deactivateLabMutation = useDeactivateLabMutation();
@@ -53,14 +62,21 @@ export function SystemAdminDashboard() {
   const [generatingCodeForLab, setGeneratingCodeForLab] = useState<string | null>(null);
   const [labInviteCodes, setLabInviteCodes] = useState<Record<string, InviteCodeData[]>>({});
 
-  const isLoading = isLabsLoading;
-
   const handleRefresh = () => {
     void refetch();
     void refetchOverview();
   };
 
   const demoLabExists = labs.some(lab => lab.isDemo);
+
+  const handleCreateDemoLab = async () => {
+    try {
+      await createLabMutation.mutateAsync({ name: 'Demo Lab', isDemo: true });
+      notifications.success('Demo lab created');
+    } catch {
+      notifications.error('Failed to create demo lab');
+    }
+  };
 
   const handleCreateLab = async () => {
     if (!newLabName.trim()) return;
@@ -97,7 +113,7 @@ export function SystemAdminDashboard() {
   const handleGenerateLabAdminCode = async (labId: string) => {
     setGeneratingCodeForLab(labId);
     try {
-      const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+      const expiresAt = new Date(Date.now() + LAB_ADMIN_CODE_EXPIRY_MS).toISOString();
       const code = await createInviteCodeMutation.mutateAsync({
         labId,
         role: 'lab_admin',
@@ -173,14 +189,7 @@ export function SystemAdminDashboard() {
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={async () => {
-                  try {
-                    await createLabMutation.mutateAsync({ name: 'Demo Lab', isDemo: true });
-                    notifications.success('Demo lab created');
-                  } catch {
-                    notifications.error('Failed to create demo lab');
-                  }
-                }}
+                onClick={handleCreateDemoLab}
                 isLoading={createLabMutation.isPending}
                 leftIcon={<Plus size={14} />}
               >
