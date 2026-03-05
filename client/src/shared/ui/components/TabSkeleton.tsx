@@ -1,7 +1,7 @@
 /**
  * Tab Loading Skeleton
  *
- * Suspense fallback for lazy-loaded admin settings tabs.
+ * Suspense fallback for lazy-loaded tab content in modals.
  */
 export function TabSkeleton() {
   return (

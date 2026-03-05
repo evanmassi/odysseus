@@ -7,8 +7,7 @@ import { lazy, Suspense, useState } from 'react';
 
 import { CircleHelp, Dna, Keyboard, Rocket, TestTube } from 'lucide-react';
 
-import { TabSkeleton } from '@domains/admin/ui/components/settings-modal/TabSkeleton';
-import { Tab, Tabs } from '@shared/ui';
+import { Tab, TabSkeleton, Tabs } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 

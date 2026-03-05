@@ -23,14 +23,12 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useStorageData } from '@domains/storage';
 import { logger } from '@shared/infrastructure/logger';
-import { AlertBanner, Button, Tab, Tabs, Tooltip } from '@shared/ui';
+import { AlertBanner, Button, Tab, TabSkeleton, Tabs, Tooltip } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../services/AdminService';
 import { adminUserService } from '../../../services/AdminUserService';
-
-import { TabSkeleton } from './TabSkeleton';
 
 import type { SecurityConfig, AdminUser, SystemMetrics } from '@odysseus/shared-schemas';
 

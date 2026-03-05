@@ -26,6 +26,7 @@ export { AnimatedPresence, useAnimatedPresence } from './components/AnimatedPres
 
 // Loading components
 export { LoadingOverlay, LoadingSkeletons, Spinner } from './components/loading';
+export { TabSkeleton } from './components/TabSkeleton';
 
 // Connection status
 export { ConnectionStatusIndicator } from './components/ConnectionStatusIndicator';
