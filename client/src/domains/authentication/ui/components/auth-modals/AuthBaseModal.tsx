@@ -9,6 +9,7 @@ import { type ReactNode, type RefObject, useRef, useState, useEffect } from 'rea
 
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick-altered.svg?react';
+import { mergeRefs } from '@shared/hooks/mergeRefs';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { ModalPortal } from '@shared/ui/components/ModalPortal';
 import { SketchBorder } from '@shared/ui/components/SketchBorder';
@@ -80,10 +81,7 @@ export function AuthBaseModal({
         className={`fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center ${zIndexClass} animate-modal-backdrop-in`}
       >
         <div
-          ref={el => {
-            (trapRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-            (modalRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
-          }}
+          ref={mergeRefs(trapRef, modalRef)}
           className={`relative bg-transparent rounded-2xl w-full ${sizeClasses} mx-4 ${className}`}
         >
           {dimensions.width > 0 && (

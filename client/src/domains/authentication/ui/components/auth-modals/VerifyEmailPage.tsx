@@ -4,12 +4,12 @@
  * Reads token from URL, verifies via backend, then redirects to login.
  */
 
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-import { authService } from '../../../services/AuthService';
+import { authService } from '@domains/authentication/services/AuthService';
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();
@@ -73,8 +73,8 @@ export function VerifyEmailPage() {
       <div className="min-h-screen bg-gradient-to-br from-primary via-blue-600 to-blue-700 flex items-center justify-center p-4">
         <div className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl border border-border">
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
-              <CheckCircle className="w-10 h-10 text-white" />
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-success-bg to-success-hover flex items-center justify-center shadow-lg">
+              <CheckCircle className="w-10 h-10 text-success-btnText" />
             </div>
           </div>
 
@@ -83,8 +83,8 @@ export function VerifyEmailPage() {
             <p className="text-secondary-foreground">Your email has been successfully verified.</p>
           </div>
 
-          <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 mb-6">
-            <p className="text-sm text-emerald-800 font-medium">
+          <div className="bg-success-light border border-success-border rounded-lg p-4 mb-6">
+            <p className="text-sm text-success-text font-medium">
               Redirecting to login in 3 seconds...
             </p>
           </div>

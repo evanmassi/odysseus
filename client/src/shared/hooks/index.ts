@@ -7,6 +7,7 @@
 
 export { useAnimatedClose } from './useAnimatedClose';
 export { useDebounce } from './useDebounce';
+export { mergeRefs } from './mergeRefs';
 export { useFocusTrap } from './useFocusTrap';
 export { useTextTruncation } from './useTextTruncation';
 export { useEditModalForm } from './useEditModalForm';
