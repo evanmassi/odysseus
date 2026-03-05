@@ -5,13 +5,21 @@
  * Shown when no system admin exists (detected during bootstrap).
  */
 
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { UserRound, KeyRound, Mail, ShieldCheck, Building2, BriefcaseBusiness } from 'lucide-react';
 
-import { authService } from '@domains/authentication/services/AuthService';
+import {
+  authService,
+  type PasswordRequirements as PasswordConfig,
+} from '@domains/authentication/services/AuthService';
 import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
+import {
+  generateUsernamePreview,
+  getValidationState,
+  isValidEmail,
+} from '@domains/authentication/utils/registrationUtils';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
@@ -36,40 +44,33 @@ export function SystemAdminSetupPage() {
 
   const firstNameRef = useRef<HTMLInputElement>(null);
 
+  const [passwordConfig, setPasswordConfig] = useState<PasswordConfig | null>(null);
+
   const requireSetupKey = !!import.meta.env['VITE_REQUIRE_SETUP_KEY'];
 
-  const usernamePreview = useMemo(() => {
-    if (!firstName.trim() || !lastName.trim()) return '';
-    const cleanFirst = firstName
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z]/g, '');
-    const cleanLast = lastName
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z]/g, '');
-    if (!cleanFirst || !cleanLast) return '';
-    return `${cleanFirst}.${cleanLast}`;
-  }, [firstName, lastName]);
+  const usernamePreview = useMemo(
+    () => generateUsernamePreview(firstName, lastName),
+    [firstName, lastName]
+  );
 
-  const getValidationState = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'default' as const;
-    return isValid ? ('success' as const) : ('error' as const);
-  };
+  const emailIsValid = useMemo(() => isValidEmail(email), [email]);
 
-  const emailIsValid = useMemo(() => {
-    if (!email.trim()) return false;
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  }, [email]);
+  useEffect(() => {
+    async function loadPasswordRequirements() {
+      try {
+        const requirements = await authService.getPasswordRequirements();
+        setPasswordConfig(requirements);
+      } catch (error) {
+        logger.error('Failed to load password requirements', { error });
+      }
+    }
+    void loadPasswordRequirements();
+  }, []);
 
   const passwordIsValid = useMemo(() => {
-    if (!password) return false;
-    return PasswordValidator.validate(password, {
-      passwordMinLength: 8,
-      requireStrongPasswords: false,
-      passwordRequireSpecialChars: false,
-    }).isValid;
-  }, [password]);
+    if (!passwordConfig || !password) return false;
+    return PasswordValidator.validate(password, passwordConfig).isValid;
+  }, [password, passwordConfig]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

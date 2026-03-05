@@ -14,6 +14,11 @@ import {
   type PasswordRequirements as PasswordConfig,
 } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
+import {
+  generateUsernamePreview,
+  getValidationState,
+  isValidEmail,
+} from '@domains/authentication/utils/registrationUtils';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
@@ -74,23 +79,10 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
   const { registerWithResearcher } = useAuthStore();
 
-  const usernamePreview = useMemo(() => {
-    if (!firstName.trim() || !lastName.trim()) {
-      return '';
-    }
-    const cleanFirst = firstName
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z]/g, '');
-    const cleanLast = lastName
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z]/g, '');
-    if (!cleanFirst || !cleanLast) {
-      return '';
-    }
-    return `${cleanFirst}.${cleanLast}`;
-  }, [firstName, lastName]);
+  const usernamePreview = useMemo(
+    () => generateUsernamePreview(firstName, lastName),
+    [firstName, lastName]
+  );
 
   useEffect(() => {
     async function loadPasswordRequirements() {
@@ -132,16 +124,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
     }
   }, [inviteCode]);
 
-  const getValidationState = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'default' as const;
-    return isValid ? ('success' as const) : ('error' as const);
-  };
-
-  const emailIsValid = useMemo(() => {
-    if (!email.trim()) return false;
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailPattern.test(email.trim());
-  }, [email]);
+  const emailIsValid = useMemo(() => isValidEmail(email), [email]);
 
   const passwordMeetsRequirements = useMemo(() => {
     if (!passwordConfig || !password) return false;
