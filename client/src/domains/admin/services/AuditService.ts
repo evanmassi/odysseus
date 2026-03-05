@@ -9,49 +9,10 @@ import { logger } from '@shared/infrastructure/logger';
 
 import { buildAuditFilterParams } from './buildAuditFilterParams';
 
-import type { RetentionMetrics, RetentionPolicy } from '../types/metrics';
+import type { Pagination, RetentionMetrics, RetentionPolicy } from '../types/metrics';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 export class AuditService {
-  async getAuditLog(options: AuditLogFilters = {}): Promise<{
-    success: boolean;
-    entries: AuditLogEntry[];
-    pagination: {
-      total: number;
-      limit: number;
-      offset: number;
-      hasMore: boolean;
-    };
-  }> {
-    try {
-      const params = buildAuditFilterParams(options);
-      const query = params.toString() ? `?${params.toString()}` : '';
-
-      const response = await httpClient.get<{
-        success: boolean;
-        data: {
-          entries: AuditLogEntry[];
-          pagination: {
-            total: number;
-            limit: number;
-            offset: number;
-            hasMore: boolean;
-          };
-        };
-        meta?: { timing: number };
-      }>(`/admin/audit${query}`);
-
-      return {
-        success: response.data.success,
-        entries: response.data.data.entries,
-        pagination: response.data.data.pagination,
-      };
-    } catch (error) {
-      logger.error('Failed to get audit log', { error });
-      throw error;
-    }
-  }
-
   async getAuditStatistics(): Promise<{
     success: boolean;
     data: {
@@ -109,12 +70,7 @@ export class AuditService {
   ): Promise<{
     success: boolean;
     entries: AuditLogEntry[];
-    pagination: {
-      total: number;
-      limit: number;
-      offset: number;
-      hasMore: boolean;
-    };
+    pagination: Pagination;
   }> {
     try {
       const params = buildAuditFilterParams(options);
@@ -126,12 +82,7 @@ export class AuditService {
         success: boolean;
         data: {
           entries: AuditLogEntry[];
-          pagination: {
-            total: number;
-            limit: number;
-            offset: number;
-            hasMore: boolean;
-          };
+          pagination: Pagination;
           includeArchive: boolean;
         };
         meta?: { timing: number };
@@ -150,21 +101,7 @@ export class AuditService {
 
   async getRetentionMetrics(): Promise<{
     success: boolean;
-    data: {
-      activeTable: {
-        count: number;
-        oldestEntry: Date | null;
-        newestEntry: Date | null;
-        retentionDays: number;
-      };
-      archiveTable: {
-        count: number;
-        oldestEntry: Date | null;
-        retentionDays: number;
-      };
-      nextArchivalDate: Date | null;
-      performanceWarning: boolean;
-    };
+    data: RetentionMetrics;
   }> {
     try {
       const response = await httpClient.get<{
@@ -187,13 +124,7 @@ export class AuditService {
 
   async getRetentionPolicy(): Promise<{
     success: boolean;
-    data: {
-      activeRetentionDays: number;
-      totalRetentionDays: number;
-      archiveRetentionDays: number;
-      enableAutoArchival: boolean;
-      activeTableWarningThreshold: number;
-    };
+    data: RetentionPolicy;
   }> {
     try {
       const response = await httpClient.get<{

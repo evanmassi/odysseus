@@ -1,31 +1,32 @@
 /**
- * Admin Metrics and Policy Type Definitions
+ * Admin Audit Types
  *
- * Type definitions for retention metrics and policies.
+ * Shared types for audit log pagination, retention metrics, and policies.
  */
 
-/**
- * Retention metrics for audit log lifecycle management
- */
+export interface Pagination {
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+}
+
 export interface RetentionMetrics {
   activeTable: {
     count: number;
-    oldestEntry: Date | null;
-    newestEntry: Date | null;
+    oldestEntry: string | null;
+    newestEntry: string | null;
     retentionDays: number;
   };
   archiveTable: {
     count: number;
-    oldestEntry: Date | null;
+    oldestEntry: string | null;
     retentionDays: number;
   };
-  nextArchivalDate: Date | null;
+  nextArchivalDate: string | null;
   performanceWarning: boolean;
 }
 
-/**
- * Retention policy configuration for audit logs
- */
 export interface RetentionPolicy {
   activeRetentionDays: number;
   totalRetentionDays: number;

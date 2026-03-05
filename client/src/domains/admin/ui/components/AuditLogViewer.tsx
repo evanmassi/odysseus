@@ -29,6 +29,7 @@ import { Button, Table, Tooltip } from '@shared/ui';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 
+import type { Pagination } from '@domains/admin/types/metrics';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { TableColumn, TableRow } from '@shared/ui';
 
@@ -55,7 +56,7 @@ export function AuditLogViewer({
     ...initialFilters,
   });
 
-  const [pagination, setPagination] = useState({
+  const [pagination, setPagination] = useState<Pagination>({
     total: 0,
     limit: 50,
     offset: 0,
