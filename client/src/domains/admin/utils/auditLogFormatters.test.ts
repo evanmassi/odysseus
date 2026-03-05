@@ -10,7 +10,6 @@ import { formatAuditDetails } from './auditLogFormatters';
 
 import type { AuditLogEntry } from '@odysseus/shared-schemas';
 
-/** Helper to build a minimal AuditLogEntry for testing */
 function entry(
   action: string,
   entityType: string,
@@ -371,16 +370,16 @@ describe('researcher events', () => {
 describe('user events', () => {
   it('user_created shows username and role', () => {
     const result = formatAuditDetails(
-      entry('user_created', 'user', { username: 'alice', role: 'admin', changedBy: 'admin' })
+      entry('user_created', 'user', { username: 'alice', role: 'lab_admin', changedBy: 'admin' })
     );
-    expect(result.text).toBe('alice (admin)');
+    expect(result.text).toBe('alice (Lab Admin)');
   });
 
   it('user_created first user shows setup note', () => {
     const result = formatAuditDetails(
-      entry('user_created', 'user', { username: 'admin', role: 'admin' })
+      entry('user_created', 'user', { username: 'admin', role: 'system_admin' })
     );
-    expect(result.text).toBe('admin (admin) — first user setup');
+    expect(result.text).toBe('admin (System Admin) — first user setup');
   });
 
   it('user_logged_in shows username', () => {
@@ -390,16 +389,20 @@ describe('user events', () => {
 
   it('user_role_changed shows old → new role', () => {
     const result = formatAuditDetails(
-      entry('user_role_changed', 'user', { username: 'alice', oldRole: 'user', newRole: 'admin' })
+      entry('user_role_changed', 'user', {
+        username: 'alice',
+        oldRole: 'user',
+        newRole: 'lab_admin',
+      })
     );
-    expect(result.text).toBe('user → admin');
+    expect(result.text).toBe('alice — User → Lab Admin');
   });
 
   it('user_password_changed', () => {
     const result = formatAuditDetails(
       entry('user_password_changed', 'user', { username: 'alice' })
     );
-    expect(result.text).toBe('Password changed');
+    expect(result.text).toBe('alice — Password changed');
   });
 
   it('user_approved', () => {

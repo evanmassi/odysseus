@@ -12,18 +12,12 @@
 
 import type { AuditLogEntry } from '@odysseus/shared-schemas';
 
-/**
- * Represents a single change record in audit logs
- */
 interface AuditChangeRecord {
   field: string;
   oldValue: unknown;
   newValue: unknown;
 }
 
-/**
- * Type guard to validate if an unknown value is an AuditChangeRecord
- */
 function isAuditChangeRecord(value: unknown): value is AuditChangeRecord {
   return (
     typeof value === 'object' &&
@@ -34,9 +28,6 @@ function isAuditChangeRecord(value: unknown): value is AuditChangeRecord {
   );
 }
 
-/**
- * Type guard to check if parsed details has a changes array
- */
 function hasChangesArray(
   details: unknown
 ): details is { changes: unknown[] } & Record<string, unknown> {
@@ -48,9 +39,6 @@ function hasChangesArray(
   );
 }
 
-/**
- * Safely parse audit log details
- */
 function parseAuditDetailsJson(details: unknown): Record<string, unknown> {
   try {
     if (typeof details === 'object' && details !== null) {
@@ -95,7 +83,6 @@ function getAllChanges(details: Record<string, unknown>): AuditChangeRecord[] {
   return details.changes.filter(isAuditChangeRecord);
 }
 
-/** Map raw field names to human-readable labels */
 const FIELD_LABELS: Record<string, string> = {
   cellType: 'Cell Type',
   donorInternalId: 'Internal ID',
@@ -136,17 +123,11 @@ function getRoleLabel(role: string): string {
   return ROLE_LABELS[role] ?? role;
 }
 
-/**
- * Normalize location separators for display.
- * Converts legacy " / " separators to " · " for consistency.
- */
+// Converts legacy " / " separators to " · "
 function normalizeLocation(location: string): string {
   return location.split(' / ').join(' · ');
 }
 
-/**
- * Get the display location from details, normalizing separators
- */
 function getLocation(details: Record<string, unknown>): string {
   const display = getStringProperty(details, 'displayLocation');
   if (display) return normalizeLocation(display);
@@ -155,16 +136,10 @@ function getLocation(details: Record<string, unknown>): string {
   return '';
 }
 
-/**
- * Build a storage path with center dot separators
- */
 function storagePath(...parts: string[]): string {
   return parts.filter(Boolean).join(' · ');
 }
 
-/**
- * Format a list of changed field names with truncation.
- */
 function formatChangedFields(changes: AuditChangeRecord[]): { text: string; full?: string } {
   const labels = changes.map(c => getFieldLabel(c.field));
   if (labels.length <= 3) return { text: labels.join(', ') };
@@ -174,9 +149,6 @@ function formatChangedFields(changes: AuditChangeRecord[]): { text: string; full
   };
 }
 
-/**
- * Format a list of usernames with truncation.
- */
 function formatUserList(users: unknown[]): { text: string; full?: string } {
   const names = users
     .filter(
@@ -196,20 +168,12 @@ function formatUserList(users: unknown[]): { text: string; full?: string } {
   };
 }
 
-/** Result from formatAuditDetails with optional tooltip content */
 export interface AuditDetailFormatted {
-  /** Display text (may be truncated) */
   text: string;
-  /** Full untruncated text for tooltip — only set when content was truncated */
+  /** Only set when content was truncated */
   fullText?: string;
 }
 
-/**
- * Format audit log entry details for display.
- *
- * Consistent separator conventions:
- *   · location paths    — change details    → transitions    : subject prefix    , lists
- */
 export function formatAuditDetails(entry: AuditLogEntry): AuditDetailFormatted {
   const plain = (text: string): AuditDetailFormatted => ({ text });
 
