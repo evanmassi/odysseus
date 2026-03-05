@@ -1,5 +1,7 @@
 /**
  * App Bootstrap Module
+ *
+ * Initialization sequence for authentication, configuration, and socket setup.
  */
 
 export { AppBootstrapService, appBootstrapService } from './AppBootstrapService';

@@ -153,9 +153,8 @@ export const useSearchStore = create<SearchUIStore>((set, get) => ({
     const rackId = firstTube.location.rackId;
     const boxId = firstTube.location.boxId;
 
-    // Use atomic navigation service
-    const { gridNavigationService } = await import('@domains/grid');
-    await gridNavigationService.navigateToLocation({ tankId, rackId, boxId });
+    const { navigateToLocation } = await import('@domains/grid');
+    await navigateToLocation({ tankId, rackId, boxId });
 
     const tubeStore = useTubeStore.getState();
 

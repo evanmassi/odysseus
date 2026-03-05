@@ -10,7 +10,7 @@ import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { MapPin, Navigation, NotepadText, ScanEye, UserRound, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { gridNavigationService } from '@domains/grid';
+import { navigateToLocation } from '@domains/grid';
 import { useStorageData, useLocationDisplayNames } from '@domains/storage';
 import { useConfigurationSync } from '@domains/storage/hooks/useConfigurationSync';
 import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
@@ -316,16 +316,11 @@ function LabDashboard() {
       return;
     }
 
-    const result = await gridNavigationService.navigateToLocation({
+    await navigateToLocation({
       tankId: location.tankId,
       rackId: location.rackId,
       boxId: location.boxId,
     });
-
-    if (!result.success) {
-      logger.error('Navigation failed', { error: result.error });
-      notifications.error(`Navigation failed: ${result.error}`);
-    }
   };
 
   const handleCloseModal = () => {
