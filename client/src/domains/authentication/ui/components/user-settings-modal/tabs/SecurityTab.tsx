@@ -16,9 +16,8 @@ import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
-import { PasswordRequirements } from '../PasswordRequirements';
-
-import { SessionListSection } from './SessionListSection';
+import { PasswordRequirements } from '../../password/PasswordRequirements';
+import { SessionListPanel } from '../SessionListPanel';
 
 import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthService';
 
@@ -275,7 +274,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           <p className="text-xs text-secondary-foreground mb-4">
             Manage your active sessions across all devices. You can revoke access from any device.
           </p>
-          <SessionListSection />
+          <SessionListPanel />
         </div>
       </div>
     </div>

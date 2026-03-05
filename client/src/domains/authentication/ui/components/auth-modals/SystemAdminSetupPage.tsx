@@ -18,7 +18,7 @@ import { notifications } from '@shared/utils';
 
 import { AuthBaseModal } from './AuthBaseModal';
 
-export function SystemAdminSetup() {
+export function SystemAdminSetupPage() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');

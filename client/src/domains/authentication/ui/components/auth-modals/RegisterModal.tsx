@@ -19,8 +19,9 @@ import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
+import { PasswordRequirements } from '../password/PasswordRequirements';
+
 import { AuthBaseModal } from './AuthBaseModal';
-import { PasswordRequirements } from './PasswordRequirements';
 import { RegistrationSuccessModal } from './RegistrationSuccessModal';
 
 interface RegisterModalProps {

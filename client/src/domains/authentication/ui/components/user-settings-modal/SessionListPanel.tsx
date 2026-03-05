@@ -15,7 +15,7 @@ import { useUserSessions } from '@domains/users';
 import { Button, Tooltip } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
-export function SessionListSection() {
+export function SessionListPanel() {
   const { sessions, isLoading, revokeSession, isRevoking, revokeAll, isRevokingAll } =
     useUserSessions();
 

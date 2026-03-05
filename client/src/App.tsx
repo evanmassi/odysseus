@@ -11,9 +11,9 @@ import { useAuthSocketSync } from '@app/hooks';
 import { AppProviders } from '@app/providers/AppProviders';
 import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
-import { ResetPasswordPage } from '@domains/authentication/ui/components/ResetPasswordPage';
-import { SessionTimeoutWarningModal } from '@domains/authentication/ui/components/SessionTimeoutWarningModal';
-import { VerifyEmailPage } from '@domains/authentication/ui/components/VerifyEmailPage';
+import { SessionTimeoutWarningModal } from '@domains/authentication/ui/components/auth-modals/SessionTimeoutWarningModal';
+import { VerifyEmailPage } from '@domains/authentication/ui/components/auth-modals/VerifyEmailPage';
+import { ResetPasswordPage } from '@domains/authentication/ui/components/password/ResetPasswordPage';
 import { useTubeStore } from '@domains/tubes';
 import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
 // Import app-layer components (moved from @shared)

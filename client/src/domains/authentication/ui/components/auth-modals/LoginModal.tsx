@@ -15,8 +15,9 @@ import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
+import { CreatePasswordForm } from '../password/CreatePasswordForm';
+
 import { AuthBaseModal } from './AuthBaseModal';
-import { CreatePasswordForm } from './CreatePasswordForm';
 
 interface LoginModalProps {
   onSwitchToRegister?: () => void;

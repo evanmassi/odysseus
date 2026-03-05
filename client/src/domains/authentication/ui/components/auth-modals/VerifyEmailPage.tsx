@@ -10,7 +10,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { CheckCircle, XCircle, Loader2, ArrowRight } from 'lucide-react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-import { authService } from '../../services/AuthService';
+import { authService } from '../../../services/AuthService';
 
 export function VerifyEmailPage() {
   const [searchParams] = useSearchParams();

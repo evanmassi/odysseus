@@ -12,7 +12,7 @@ import { isAdminRole } from '@domains/authentication/types';
 
 import { LoginModal } from './LoginModal';
 import { RegisterModal } from './RegisterModal';
-import { SystemAdminSetup } from './SystemAdminSetup';
+import { SystemAdminSetupPage } from './SystemAdminSetupPage';
 
 interface AuthGatewayProps {
   children?: React.ReactNode;
@@ -48,7 +48,7 @@ function AuthUnauthenticatedRouter() {
   // System admin setup auto-logs in on completion, so AuthGateway
   // naturally transitions to authenticated state via sessionStatus
   if (flags.needsSystemAdmin) {
-    return <SystemAdminSetup />;
+    return <SystemAdminSetupPage />;
   }
 
   if (showRegister) {
