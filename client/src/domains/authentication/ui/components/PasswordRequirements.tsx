@@ -9,7 +9,7 @@ import React, { useMemo } from 'react';
 
 import { PasswordValidator, type PasswordRequirement } from '@odysseus/shared-schemas';
 
-import type { PasswordRequirements as PasswordConfig } from '../../services/AuthenticationService';
+import type { PasswordRequirements as PasswordConfig } from '../../services/AuthService';
 
 export interface PasswordRequirementsProps {
   password: string;

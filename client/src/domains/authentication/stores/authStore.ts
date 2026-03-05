@@ -16,7 +16,7 @@ import { configureHttpClientWithSessionService } from '@infra/api/httpClient';
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
 
-import { authService, isPasswordChangeRequired } from '../services/AuthenticationService';
+import { authService, isPasswordChangeRequired } from '../services/AuthService';
 
 import type { User } from '../types';
 import type { PasswordChangeRequiredResponse } from '../types/api';

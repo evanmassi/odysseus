@@ -9,7 +9,7 @@ import { useState, useRef } from 'react';
 
 import { KeyRound, UserRound, Mail, Clock, TimerOff } from 'lucide-react';
 
-import { authService } from '@domains/authentication/services/AuthenticationService';
+import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';

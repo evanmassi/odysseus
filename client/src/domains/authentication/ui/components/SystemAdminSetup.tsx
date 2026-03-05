@@ -10,7 +10,7 @@ import { useState, useRef, useMemo } from 'react';
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { UserRound, KeyRound, Mail, ShieldCheck, Building2, BriefcaseBusiness } from 'lucide-react';
 
-import { authService } from '@domains/authentication/services/AuthenticationService';
+import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';

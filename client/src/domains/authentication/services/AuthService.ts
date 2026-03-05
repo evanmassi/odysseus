@@ -1,8 +1,7 @@
 /**
- * Authentication Application Service
+ * Authentication Service
  *
- * Clean separation of concerns - removes business logic from UI components.
- * Coordinates between domain, infrastructure, and UI layers.
+ * Handles user authentication, registration, and session verification.
  */
 import {
   type RegisterWithResearcherRequest,
@@ -22,20 +21,6 @@ import type {
 } from '../types/api';
 export { isPasswordChangeRequired } from '../types/api';
 
-// Domain types (keep existing types intact)
-export interface User {
-  id: string;
-  username: string;
-  role: UserRole;
-  labId?: string;
-  createdAt: string;
-  lastActivity: string;
-  status?: 'pending' | 'approved' | 'rejected';
-}
-
-// Re-export API types for backward compatibility
-export type { AuthResponse, RegisterWithResearcherResponse };
-
 export interface RegisterRequest {
   username: string;
   password: string;
@@ -53,12 +38,16 @@ export interface PasswordRequirements {
   passwordRequireSpecialChars: boolean;
 }
 
-/**
- * Authentication service with clean business logic
- */
+function rethrow(error: unknown, fallback: string): never {
+  if (error && typeof error === 'object' && 'message' in error) {
+    throw new Error((error as Error).message);
+  }
+  throw new Error(fallback);
+}
+
 export class AuthService {
   /**
-   * Register new user (first-time setup - legacy method)
+   * Register new user (first-time setup)
    */
   async register(request: RegisterRequest): Promise<AuthResponse> {
     try {
@@ -70,7 +59,6 @@ export class AuthService {
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
 
-        // Return enhanced response with token pair
         return {
           user: responseData.user,
           tokens: responseData.tokens,
@@ -79,10 +67,7 @@ export class AuthService {
 
       throw new Error('Registration failed');
     } catch (error) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        throw new Error((error as Error).message);
-      }
-      throw new Error('Registration failed');
+      rethrow(error, 'Registration failed');
     }
   }
 
@@ -104,10 +89,9 @@ export class AuthService {
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
 
-        // Return response with optional tokens (based on approval status)
         return {
           user: responseData.user,
-          tokens: responseData.tokens, // undefined for pending users
+          tokens: responseData.tokens,
           status: responseData.status,
           message: responseData.message,
         };
@@ -115,10 +99,7 @@ export class AuthService {
 
       throw new Error('Registration failed');
     } catch (error) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        throw new Error((error as Error).message);
-      }
-      throw new Error('Registration failed');
+      rethrow(error, 'Registration failed');
     }
   }
 
@@ -140,12 +121,10 @@ export class AuthService {
       if (response.data.success && response.data.data) {
         const responseData = response.data.data;
 
-        // Check if password change is required
         if ('requirePasswordChange' in responseData && responseData.requirePasswordChange) {
           return responseData as PasswordChangeRequiredResponse;
         }
 
-        // Return transformed response (dates automatically converted by HttpClient)
         return {
           user: (responseData as AuthResponse).user,
           tokens: (responseData as AuthResponse).tokens,
@@ -154,10 +133,7 @@ export class AuthService {
 
       throw new Error('Login failed');
     } catch (error) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        throw new Error((error as Error).message);
-      }
-      throw new Error('Login failed');
+      rethrow(error, 'Login failed');
     }
   }
 
@@ -180,10 +156,7 @@ export class AuthService {
 
       throw new Error('Password change failed');
     } catch (error) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        throw new Error((error as Error).message);
-      }
-      throw new Error('Password change failed');
+      rethrow(error, 'Password change failed');
     }
   }
 
@@ -271,10 +244,7 @@ export class AuthService {
 
       throw new Error('System admin setup failed');
     } catch (error) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        throw new Error((error as Error).message);
-      }
-      throw new Error('System admin setup failed');
+      rethrow(error, 'System admin setup failed');
     }
   }
 
@@ -291,7 +261,6 @@ export class AuthService {
         return response.data.data;
       }
 
-      // Default fallback requirements
       return {
         passwordMinLength: 8,
         requireStrongPasswords: false,
@@ -299,7 +268,6 @@ export class AuthService {
       };
     } catch (error) {
       logger.error('Failed to get password requirements', { error });
-      // Return safe defaults on error
       return {
         passwordMinLength: 8,
         requireStrongPasswords: false,
@@ -323,17 +291,13 @@ export class AuthService {
         throw new Error(response.data.message || 'Email verification failed');
       }
     } catch (error) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        throw new Error((error as Error).message);
-      }
-      throw new Error('Email verification failed');
+      rethrow(error, 'Email verification failed');
     }
   }
 
   /**
    * Resend verification email (public endpoint - no authentication required)
    * Rate limited - 5 minute cooldown between requests
-   * @param usernameOrEmail - Username or email address to send verification to
    */
   async resendVerificationEmail(usernameOrEmail: string): Promise<void> {
     try {
@@ -346,10 +310,7 @@ export class AuthService {
         throw new Error(response.data.message || 'Failed to resend verification email');
       }
     } catch (error) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        throw new Error((error as Error).message);
-      }
-      throw new Error('Failed to resend verification email');
+      rethrow(error, 'Failed to resend verification email');
     }
   }
 
@@ -363,10 +324,7 @@ export class AuthService {
       );
       return response.data;
     } catch (error) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        throw new Error((error as Error).message);
-      }
-      throw new Error('Failed to get verification status');
+      rethrow(error, 'Failed to get verification status');
     }
   }
 
@@ -380,22 +338,14 @@ export class AuthService {
         newPassword,
       });
     } catch (error) {
-      if (error && typeof error === 'object' && 'message' in error) {
-        throw new Error((error as Error).message);
-      }
-      throw new Error('Failed to reset password');
+      rethrow(error, 'Failed to reset password');
     }
   }
 
-  /**
-   * Logout user (SessionService handles cleanup)
-   */
   async logout(): Promise<void> {
     // SessionService will handle token cleanup and HTTP client state
-    queryClient.clear(); // Clear all React Query cache on logout
+    queryClient.clear();
   }
 }
 
-// Singleton instance
 export const authService = new AuthService();
-export const authenticationService = authService; // Alias for consistency

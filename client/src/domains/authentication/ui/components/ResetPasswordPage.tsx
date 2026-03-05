@@ -7,7 +7,7 @@ import { useRef, useEffect, useState } from 'react';
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
-import { authenticationService } from '@domains/authentication/services/AuthenticationService';
+import { authService } from '@domains/authentication/services/AuthService';
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
@@ -44,7 +44,7 @@ export const ResetPasswordPage: React.FC = () => {
       throw new Error('Invalid reset token');
     }
 
-    await authenticationService.resetPasswordWithToken(token, newPassword);
+    await authService.resetPasswordWithToken(token, newPassword);
     setIsSuccess(true);
 
     // Redirect to login after showing success confirmation

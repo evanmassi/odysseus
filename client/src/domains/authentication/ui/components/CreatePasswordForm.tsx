@@ -11,7 +11,7 @@ import { KeyRound } from 'lucide-react';
 import {
   authService,
   type PasswordRequirements as PasswordConfig,
-} from '@domains/authentication/services/AuthenticationService';
+} from '@domains/authentication/services/AuthService';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 

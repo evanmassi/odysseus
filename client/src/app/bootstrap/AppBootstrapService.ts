@@ -5,7 +5,7 @@
  * cache validation, network setup, and socket connection.
  */
 
-import { authService } from '@domains/authentication/services/AuthenticationService';
+import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
 import { useSearchStore } from '@domains/search/stores/searchStore';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';

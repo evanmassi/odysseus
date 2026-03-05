@@ -13,7 +13,7 @@ import { UserRound, KeyRound, Mail, Building2, BriefcaseBusiness, TicketCheck } 
 import {
   authService,
   type PasswordRequirements as PasswordConfig,
-} from '@domains/authentication/services/AuthenticationService';
+} from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button, Toggle } from '@shared/ui';

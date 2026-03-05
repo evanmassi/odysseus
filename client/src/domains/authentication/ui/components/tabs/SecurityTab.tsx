@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { PasswordValidator } from '@odysseus/shared-schemas';
 import { KeyRound, Save, Shield } from 'lucide-react';
 
-import { authService } from '@domains/authentication/services/AuthenticationService';
+import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useChangePassword } from '@domains/users/hooks/useChangePassword';
 import { logger } from '@shared/infrastructure/logger';
@@ -20,7 +20,7 @@ import { PasswordRequirements } from '../PasswordRequirements';
 
 import { SessionListSection } from './SessionListSection';
 
-import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthenticationService';
+import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthService';
 
 interface SecurityTabProps {
   onSaveComplete?: () => void;
