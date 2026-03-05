@@ -8,7 +8,6 @@ import {
 } from '@odysseus/shared-schemas';
 import { XCircle, RefreshCw, Edit, Save, Trash2 } from 'lucide-react';
 
-import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import {
   useStorageData,
@@ -26,6 +25,7 @@ import {
   useBulkDeleteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
+import { useUserSettings } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button } from '@shared/ui';
 import { InfoDialog } from '@shared/ui/components/InfoDialog';

@@ -8,13 +8,12 @@ import {
 } from '@odysseus/shared-schemas';
 import { Download, MapPin } from 'lucide-react';
 
-import { useUserSettings } from '@domains/authentication';
 import { useResearchersQuery } from '@domains/researchers';
 import { useSearch, useSearchStore } from '@domains/search';
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useTubeStore } from '@domains/tubes';
-import { useUserLookupQuery } from '@domains/users';
+import { useUserSettings, useUserLookupQuery } from '@domains/users';
 import { Button, Chip, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';

@@ -6,7 +6,6 @@ import {
 } from '@odysseus/shared-schemas';
 import { AlertTriangle, Lock, MapPin, Notebook, Pencil, TestTube, UsersRound } from 'lucide-react';
 
-import { useUserSettings } from '@domains/authentication';
 import { useResearchersQuery } from '@domains/researchers';
 import {
   useStorageData,
@@ -15,6 +14,7 @@ import {
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
 import { useFieldResolverQuery } from '@domains/tubes/hooks';
+import { useUserSettings } from '@domains/users';
 import { parsePositionKey } from '@shared/types/GridSelection';
 import { Chip, Tooltip } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateUtils';

@@ -24,7 +24,6 @@ import {
 import { Edit, Plus, Save, Trash2 } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { useUserSettings } from '@domains/authentication';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubes, useTube } from '@domains/tubes';
@@ -36,6 +35,7 @@ import {
   useDeleteTubeMutation,
   usePasteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
+import { useUserSettings } from '@domains/users';
 import { isOfflineError } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey } from '@shared/types/GridSelection';
