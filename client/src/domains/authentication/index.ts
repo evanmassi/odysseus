@@ -10,7 +10,7 @@ export { RegisterModal } from './ui/components/RegisterModal';
 export { useAuthStore } from './stores/authStore';
 
 // Hooks
-export { useUserSettings, useUserSettingsActions } from './hooks/useUserSettings';
+export { useUserSettings, useUserSettingsActions } from '@domains/users/hooks/useUserSettings';
 
 // Types
 export * from './types';

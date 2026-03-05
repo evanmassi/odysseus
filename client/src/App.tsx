@@ -11,11 +11,11 @@ import { useAuthSocketSync } from '@app/hooks';
 import { AppProviders } from '@app/providers/AppProviders';
 import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
-import { useUserSettingsQuery } from '@domains/authentication/hooks/useUserSettings';
 import { ResetPasswordPage } from '@domains/authentication/ui/components/ResetPasswordPage';
 import { SessionTimeoutWarningModal } from '@domains/authentication/ui/components/SessionTimeoutWarningModal';
 import { VerifyEmailPage } from '@domains/authentication/ui/components/VerifyEmailPage';
 import { useTubeStore } from '@domains/tubes';
+import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
 // Import app-layer components (moved from @shared)
 import { ErrorBanner, ConnectionIndicator } from '@shared/ui';
 

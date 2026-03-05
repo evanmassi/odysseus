@@ -78,7 +78,8 @@
       "Bash(python3:*)",
       "WebFetch(domain:unpkg.com)",
       "Bash(docker ps:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(mv:*)"
     ]
   }
 }

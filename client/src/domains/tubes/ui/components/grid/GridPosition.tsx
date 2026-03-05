@@ -1,8 +1,8 @@
 import React, { memo, useMemo, useRef, useCallback } from 'react';
 
-import { useUserSettings } from '@domains/authentication/hooks/useUserSettings';
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
+import { useUserSettings } from '@domains/users/hooks/useUserSettings';
 import { InlineEditInput } from '@shared/ui';
 
 import {
