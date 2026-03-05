@@ -1,4 +1,9 @@
-import { useState, useRef } from 'react';
+/**
+ * Researcher Modal
+ *
+ * Create or link researcher profiles to user accounts.
+ */
+import { useState } from 'react';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -36,9 +41,6 @@ export function ResearcherModal({
 }: ResearcherModalProps) {
   const [actionMode, setActionMode] = useState<'create' | 'select'>('create');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Autofocus on first name input (BaseModal handles this with autoFocusFirstInput)
-  const firstNameInputRef = useRef<HTMLInputElement>(null);
 
   const {
     register,
@@ -136,18 +138,7 @@ export function ResearcherModal({
                     size={16}
                   />
                   <input
-                    {...register('firstName', {
-                      setValueAs: v => v,
-                    })}
-                    ref={element => {
-                      // Merge react-hook-form ref with custom ref for autofocus
-                      register('firstName').ref(element);
-                      if (firstNameInputRef.current !== element) {
-                        (
-                          firstNameInputRef as React.MutableRefObject<HTMLInputElement | null>
-                        ).current = element;
-                      }
-                    }}
+                    {...register('firstName')}
                     id="firstName"
                     className="w-full pl-7 bg-transparent border-none outline-none focus:ring-0 text-sm placeholder:text-muted-foreground placeholder:opacity-45"
                     placeholder="First name"
@@ -220,7 +211,7 @@ export function ResearcherModal({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            {/* Department - NOW BEFORE Position */}
+            {/* Department */}
             <div>
               <div className="auth-input-container border-border">
                 <label

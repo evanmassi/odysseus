@@ -23,6 +23,31 @@ import { Button } from '@shared/ui';
 
 import type { RetentionMetrics, RetentionPolicy } from '@domains/admin/types/auditTypes';
 
+const STATUS_CONFIG = {
+  healthy: {
+    icon: CheckCircle,
+    text: 'Healthy',
+    alertClass: 'alert-success',
+    lightClass: 'bg-success-light',
+    outlineClass: 'outline-success-border/50',
+    hoverClass: 'hover:bg-success-light-hover',
+    iconClass: 'alert-success-icon',
+    headingClass: 'alert-success-heading',
+    textClass: 'alert-success-text',
+  },
+  warning: {
+    icon: AlertTriangle,
+    text: 'Warning',
+    alertClass: 'alert-warning',
+    lightClass: 'bg-warning-light',
+    outlineClass: 'outline-warning-border/50',
+    hoverClass: 'hover:bg-warning-light-hover',
+    iconClass: 'alert-warning-icon',
+    headingClass: 'alert-warning-heading',
+    textClass: 'alert-warning-text',
+  },
+};
+
 interface AuditRetentionSettingsProps {
   defaultCollapsed?: boolean;
   isDemo?: boolean;
@@ -66,7 +91,6 @@ export function AuditRetentionSettings({
     void loadData();
   }, []);
 
-  // Manually trigger archival
   const runArchival = async () => {
     try {
       setArchiving(true);
@@ -116,56 +140,18 @@ export function AuditRetentionSettings({
     });
   };
 
-  // Format number with commas
   const formatNumber = (num: number) => {
     return num.toLocaleString();
   };
 
-  const getStatus = (): 'healthy' | 'warning' | 'critical' => {
+  const getStatus = (): 'healthy' | 'warning' => {
     if (!metrics) return 'healthy';
     if (metrics.performanceWarning) return 'warning';
     return 'healthy';
   };
 
   const status = getStatus();
-
-  const statusConfig = {
-    healthy: {
-      icon: CheckCircle,
-      text: 'Healthy',
-      alertClass: 'alert-success',
-      lightClass: 'bg-success-light',
-      outlineClass: 'outline-success-border/50',
-      hoverClass: 'hover:bg-success-light-hover',
-      iconClass: 'alert-success-icon',
-      headingClass: 'alert-success-heading',
-      textClass: 'alert-success-text',
-    },
-    warning: {
-      icon: AlertTriangle,
-      text: 'Warning',
-      alertClass: 'alert-warning',
-      lightClass: 'bg-warning-light',
-      outlineClass: 'outline-warning-border/50',
-      hoverClass: 'hover:bg-warning-light-hover',
-      iconClass: 'alert-warning-icon',
-      headingClass: 'alert-warning-heading',
-      textClass: 'alert-warning-text',
-    },
-    critical: {
-      icon: AlertTriangle,
-      text: 'Critical',
-      alertClass: 'alert-error',
-      lightClass: 'bg-danger-light',
-      outlineClass: 'outline-danger-border/50',
-      hoverClass: 'hover:bg-danger-light-hover',
-      iconClass: 'alert-error-icon',
-      headingClass: 'alert-error-heading',
-      textClass: 'alert-error-text',
-    },
-  };
-
-  const currentStatus = statusConfig[status];
+  const currentStatus = STATUS_CONFIG[status];
   const StatusIcon = currentStatus.icon;
 
   if (loading) {

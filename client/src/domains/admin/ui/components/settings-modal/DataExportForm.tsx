@@ -1,8 +1,7 @@
 /**
- * Data Export Section Component
+ * Data Export Form
  *
- * Provides UI for exporting data from the System tab.
- * Supports exporting tubes, users, researchers, and system backup.
+ * Export controls for tubes, users, researchers, and system backup.
  */
 
 import { useState, useCallback } from 'react';
@@ -68,9 +67,6 @@ function downloadBlob(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-/**
- * Generate filename with date stamp
- */
 function generateFilename(type: ExportType, format: ExportFormat): string {
   const date = new Date().toISOString().split('T')[0];
   return `odysseus-${type}-${date}.${format}`;

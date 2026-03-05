@@ -16,6 +16,22 @@ import { notifications } from '@shared/utils/notifications';
 
 import { adminUserService } from '../../../services/AdminUserService';
 
+function getPasswordStrength(password: string): string {
+  if (password.length === 0) return '';
+  if (password.length < 4) return 'Too short';
+  if (password.length < 8) return 'Weak';
+  if (password.length < 12) return 'Medium';
+  return 'Strong';
+}
+
+function getPasswordStrengthColor(password: string): string {
+  const strength = getPasswordStrength(password);
+  if (strength === 'Too short' || strength === 'Weak') return 'text-danger-text';
+  if (strength === 'Medium') return 'text-warning-text';
+  if (strength === 'Strong') return 'text-success-text';
+  return '';
+}
+
 interface PasswordResetModalProps {
   isOpen: boolean;
   userId: string;
@@ -102,22 +118,6 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
         }
       })();
     }
-  };
-
-  const getPasswordStrength = (password: string): string => {
-    if (password.length === 0) return '';
-    if (password.length < 4) return 'Too short';
-    if (password.length < 8) return 'Weak';
-    if (password.length < 12) return 'Medium';
-    return 'Strong';
-  };
-
-  const getPasswordStrengthColor = (password: string): string => {
-    const strength = getPasswordStrength(password);
-    if (strength === 'Too short' || strength === 'Weak') return 'text-danger-text';
-    if (strength === 'Medium') return 'text-warning-text';
-    if (strength === 'Strong') return 'text-success-text';
-    return '';
   };
 
   const tabs = (

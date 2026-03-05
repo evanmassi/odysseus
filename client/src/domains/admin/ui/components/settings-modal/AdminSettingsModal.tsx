@@ -1,3 +1,8 @@
+/**
+ * Admin Settings Modal
+ *
+ * Top-level admin modal with lazy-loaded tabs for security, users, researchers, and system config.
+ */
 import React, { useState, useEffect, lazy, Suspense, useCallback } from 'react';
 
 import { DEFAULT_SECURITY_CONFIG, sortByName } from '@odysseus/shared-schemas';
@@ -29,7 +34,6 @@ import { TabSkeleton } from './TabSkeleton';
 
 import type { SecurityConfig, AdminUser, SystemMetrics } from '@odysseus/shared-schemas';
 
-// Lazy-load tab components for code splitting
 const SecurityTab = lazy(() =>
   import('./tabs/SecurityTab').then(m => ({ default: m.SecurityTab }))
 );
@@ -93,7 +97,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
         // Merge with defaults to ensure all fields are present
         const loadedConfig = { ...DEFAULT_SECURITY_CONFIG, ...response.config };
         setConfig(loadedConfig);
-        setOriginalConfig(loadedConfig); // Store original for change tracking
+        setOriginalConfig(loadedConfig);
       }
     } catch (error) {
       logger.error('Failed to load configuration', { error });
@@ -110,7 +114,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       if (response.success && Array.isArray(response.users)) {
         setUsers(sortByName(response.users));
       } else {
-        // API returned unsuccessfully or invalid data - set empty array as fallback
         setUsers([]);
         logger.warn(
           'Failed to load users: API returned unsuccessful response or invalid data format'
@@ -141,9 +144,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
   };
 
   const saveConfiguration = async () => {
-    // SessionService handles authentication automatically
-
-    // Calculate only the fields that actually changed
     const changes: Partial<SecurityConfig> = {};
     Object.keys(config).forEach(key => {
       const configKey = key as keyof SecurityConfig;
@@ -161,9 +161,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
 
       if (response.success) {
         notifications.success('Security configuration updated successfully');
-        // Update original config to reflect saved state
         setOriginalConfig(config);
-        // Close modal after successful save
         onClose();
       } else {
         notifications.error('Failed to update security configuration');
@@ -180,7 +178,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
     setConfig(prev => ({ ...prev, [field]: value }));
   };
 
-  // Check if there are any unsaved changes
   const hasChanges = Object.keys(config).some(key => {
     const configKey = key as keyof SecurityConfig;
     return config[configKey] !== originalConfig[configKey];

@@ -3,7 +3,7 @@
  *
  * Multi-select filters for actions, entity types, users, and date ranges
  */
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 
 import { ChevronDown, ChevronRight, UserRound, Zap, Box, Calendar } from 'lucide-react';
 
@@ -19,10 +19,54 @@ export interface AuditFilterState {
   datePreset?: string;
 }
 
+const ACTION_GROUPS = {
+  tube: [
+    { value: 'tube_created', label: 'Created' },
+    { value: 'tube_updated', label: 'Updated' },
+    { value: 'tube_moved', label: 'Moved' },
+    { value: 'tube_deleted', label: 'Deleted' },
+    { value: 'tube_bulk_updated', label: 'Bulk Updated' },
+  ],
+  storage: [
+    { value: 'tank_created', label: 'Tank Created' },
+    { value: 'tank_updated', label: 'Tank Updated' },
+    { value: 'tank_deleted', label: 'Tank Deleted' },
+    { value: 'rack_created', label: 'Rack Created' },
+    { value: 'rack_updated', label: 'Rack Updated' },
+    { value: 'rack_deleted', label: 'Rack Deleted' },
+    { value: 'box_created', label: 'Box Created' },
+    { value: 'box_updated', label: 'Box Updated' },
+    { value: 'box_deleted', label: 'Box Deleted' },
+    { value: 'lab_name_changed', label: 'Lab Name Changed' },
+  ],
+  researcher: [
+    { value: 'researcher_created', label: 'Created' },
+    { value: 'researcher_updated', label: 'Updated' },
+    { value: 'researcher_deactivated', label: 'Deactivated' },
+    { value: 'researcher_reactivated', label: 'Reactivated' },
+  ],
+  user: [
+    { value: 'user_created', label: 'Created' },
+    { value: 'user_logged_in', label: 'Login' },
+    { value: 'user_logged_out', label: 'Logout' },
+    { value: 'user_role_changed', label: 'Role Changed' },
+    { value: 'user_password_changed', label: 'Password Changed' },
+    { value: 'user_linked_to_researcher', label: 'Linked' },
+    { value: 'user_unlinked_from_researcher', label: 'Unlinked' },
+    { value: 'user_deleted', label: 'Deleted' },
+  ],
+};
+
+const ENTITY_TYPES = [
+  { value: 'tube', label: 'Tube' },
+  { value: 'storage', label: 'Storage' },
+  { value: 'user', label: 'User' },
+  { value: 'researcher', label: 'Researcher' },
+];
+
 interface AuditLogFilterPanelProps {
   filters: AuditFilterState;
   onChange: (filters: AuditFilterState) => void;
-  onApply: () => void;
   onClear: () => void;
 }
 
@@ -73,12 +117,7 @@ function CollapsibleSection({
   );
 }
 
-export function AuditLogFilterPanel({
-  filters,
-  onChange,
-  onApply: _onApply,
-  onClear,
-}: AuditLogFilterPanelProps) {
+export function AuditLogFilterPanel({ filters, onChange, onClear }: AuditLogFilterPanelProps) {
   const [openSections, setOpenSections] = useState({
     actions: false,
     entityTypes: false,
@@ -90,56 +129,6 @@ export function AuditLogFilterPanel({
     userActions: false,
     researcherActions: false,
   });
-
-  // Action definitions grouped by entity
-  const actionGroups = {
-    tube: [
-      { value: 'tube_created', label: 'Created' },
-      { value: 'tube_updated', label: 'Updated' },
-      { value: 'tube_moved', label: 'Moved' },
-      { value: 'tube_deleted', label: 'Deleted' },
-      { value: 'tube_bulk_updated', label: 'Bulk Updated' },
-    ],
-    storage: [
-      { value: 'tank_created', label: 'Tank Created' },
-      { value: 'tank_updated', label: 'Tank Updated' },
-      { value: 'tank_deleted', label: 'Tank Deleted' },
-      { value: 'rack_created', label: 'Rack Created' },
-      { value: 'rack_updated', label: 'Rack Updated' },
-      { value: 'rack_deleted', label: 'Rack Deleted' },
-      { value: 'box_created', label: 'Box Created' },
-      { value: 'box_updated', label: 'Box Updated' },
-      { value: 'box_deleted', label: 'Box Deleted' },
-      { value: 'lab_name_changed', label: 'Lab Name Changed' },
-    ],
-    researcher: [
-      { value: 'researcher_created', label: 'Created' },
-      { value: 'researcher_updated', label: 'Updated' },
-      { value: 'researcher_deactivated', label: 'Deactivated' },
-      { value: 'researcher_reactivated', label: 'Reactivated' },
-    ],
-    user: [
-      { value: 'user_created', label: 'Created' },
-      { value: 'user_logged_in', label: 'Login' },
-      { value: 'user_logged_out', label: 'Logout' },
-      { value: 'user_role_changed', label: 'Role Changed' },
-      { value: 'user_password_changed', label: 'Password Changed' },
-      { value: 'user_linked_to_researcher', label: 'Linked' },
-      { value: 'user_unlinked_from_researcher', label: 'Unlinked' },
-      { value: 'user_deleted', label: 'Deleted' },
-    ],
-  };
-
-  // Entity types - reordered to match action sections
-  const entityTypes = useMemo(
-    () => [
-      { value: 'tube', label: 'Tube' },
-      { value: 'storage', label: 'Storage' },
-      { value: 'user', label: 'User' },
-      { value: 'researcher', label: 'Researcher' },
-    ],
-    []
-  );
 
   const datePresets = [
     { value: 'today', label: 'Today' },
@@ -239,10 +228,10 @@ export function AuditLogFilterPanel({
     // Action filters
     filters.actions?.forEach(action => {
       const allActions = [
-        ...actionGroups.tube,
-        ...actionGroups.storage,
-        ...actionGroups.researcher,
-        ...actionGroups.user,
+        ...ACTION_GROUPS.tube,
+        ...ACTION_GROUPS.storage,
+        ...ACTION_GROUPS.researcher,
+        ...ACTION_GROUPS.user,
       ];
       const actionDef = allActions.find(a => a.value === action);
       if (actionDef) {
@@ -255,7 +244,7 @@ export function AuditLogFilterPanel({
 
     // Entity type filters
     filters.entityTypes?.forEach(entityType => {
-      const entity = entityTypes.find(e => e.value === entityType);
+      const entity = ENTITY_TYPES.find(e => e.value === entityType);
       if (entity) {
         result.push({
           label: entity.label,
@@ -288,17 +277,7 @@ export function AuditLogFilterPanel({
     }
 
     return result;
-  }, [
-    filters,
-    actionGroups.tube,
-    actionGroups.storage,
-    actionGroups.researcher,
-    actionGroups.user,
-    entityTypes,
-    toggleAction,
-    toggleEntityType,
-    onChange,
-  ]);
+  }, [filters, toggleAction, toggleEntityType, onChange]);
 
   const hasActiveFilters = activeFilters.length > 0;
 
@@ -372,7 +351,7 @@ export function AuditLogFilterPanel({
                   </button>
                   {openSections.tubeActions && (
                     <div className="flex flex-wrap gap-1 ml-4">
-                      {actionGroups.tube.map(action => (
+                      {ACTION_GROUPS.tube.map(action => (
                         <Chip
                           key={action.value}
                           behavior="selectable"
@@ -523,7 +502,7 @@ export function AuditLogFilterPanel({
                   </button>
                   {openSections.userActions && (
                     <div className="flex flex-wrap gap-1 ml-4">
-                      {actionGroups.user.map(action => (
+                      {ACTION_GROUPS.user.map(action => (
                         <Chip
                           key={action.value}
                           behavior="selectable"
@@ -560,7 +539,7 @@ export function AuditLogFilterPanel({
                   </button>
                   {openSections.researcherActions && (
                     <div className="flex flex-wrap gap-1 ml-4">
-                      {actionGroups.researcher.map(action => (
+                      {ACTION_GROUPS.researcher.map(action => (
                         <Chip
                           key={action.value}
                           behavior="selectable"
@@ -589,7 +568,7 @@ export function AuditLogFilterPanel({
               onToggle={() => toggleSection('entityTypes')}
             >
               <div className="flex flex-wrap gap-2">
-                {entityTypes.map(entity => (
+                {ENTITY_TYPES.map(entity => (
                   <Chip
                     key={entity.value}
                     behavior="selectable"

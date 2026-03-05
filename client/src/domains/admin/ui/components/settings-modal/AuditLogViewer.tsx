@@ -33,6 +33,56 @@ import type { Pagination } from '@domains/admin/types/auditTypes';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { TableColumn, TableRow } from '@shared/ui';
 
+const ACTION_LABEL_OVERRIDES: Record<string, string> = {
+  user_logged_in: 'Login',
+  user_logged_out: 'Logout',
+  user_linked_to_researcher: 'Linked',
+  user_unlinked_from_researcher: 'Unlinked',
+  user_password_changed: 'Updated',
+  user_role_changed: 'Updated',
+  tube_bulk_updated: 'Bulk Updated',
+  user_deactivated: 'Deactivated',
+  user_suspended: 'Suspended',
+  user_reactivated: 'Reactivated',
+  user_rejected: 'Rejected',
+  invite_code_created: 'Created',
+  invite_code_used: 'Used',
+  researcher_approved: 'Approved',
+  lab_created: 'Created',
+};
+
+// Full class names so Tailwind's content scanner can detect them
+const BADGE_CLASS_OVERRIDES: Record<string, string> = {
+  invite_code_created: 'badge-audit-action-created',
+  invite_code_used: 'badge-audit-action-linked',
+  user_password_changed: 'badge-audit-action-updated',
+  user_role_changed: 'badge-audit-action-updated',
+  tube_bulk_updated: 'badge-audit-action-updated',
+  user_logged_in: 'badge-audit-action-login',
+  user_logged_out: 'badge-audit-action-logout',
+};
+
+const SUFFIX_BADGE_MAP: Record<string, string> = {
+  created: 'badge-audit-action-created',
+  approved: 'badge-audit-action-created',
+  reactivated: 'badge-audit-action-created',
+  unlocked: 'badge-audit-action-created',
+  updated: 'badge-audit-action-updated',
+  moved: 'badge-audit-action-moved',
+  reassigned: 'badge-audit-action-moved',
+  locked: 'badge-audit-action-moved',
+  deleted: 'badge-audit-action-deleted',
+  deactivated: 'badge-audit-action-deleted',
+  suspended: 'badge-audit-action-deleted',
+  rejected: 'badge-audit-action-deleted',
+  assigned: 'badge-audit-action-linked',
+  shared: 'badge-audit-action-linked',
+  linked: 'badge-audit-action-linked',
+  unassigned: 'badge-audit-action-unlinked',
+  unlinked: 'badge-audit-action-unlinked',
+  revoked: 'badge-audit-action-unlinked',
+};
+
 interface AuditLogViewerProps {
   initialFilters?: Partial<AuditLogFilters>;
   onFiltersChange?: (filters: AuditLogFilters) => void;
@@ -144,24 +194,6 @@ export function AuditLogViewer({
     });
   };
 
-  const ACTION_LABEL_OVERRIDES: Record<string, string> = {
-    user_logged_in: 'Login',
-    user_logged_out: 'Logout',
-    user_linked_to_researcher: 'Linked',
-    user_unlinked_from_researcher: 'Unlinked',
-    user_password_changed: 'Updated',
-    user_role_changed: 'Updated',
-    tube_bulk_updated: 'Bulk Updated',
-    user_deactivated: 'Deactivated',
-    user_suspended: 'Suspended',
-    user_reactivated: 'Reactivated',
-    user_rejected: 'Rejected',
-    invite_code_created: 'Created',
-    invite_code_used: 'Used',
-    researcher_approved: 'Approved',
-    lab_created: 'Created',
-  };
-
   const formatAction = (action: string) => {
     const override = ACTION_LABEL_OVERRIDES[action];
     if (override) return override;
@@ -173,44 +205,12 @@ export function AuditLogViewer({
     return action.charAt(0).toUpperCase() + action.slice(1);
   };
 
-  const BADGE_CLASS_OVERRIDES: Record<string, string> = {
-    invite_code_created: 'created',
-    invite_code_used: 'linked',
-    user_password_changed: 'updated',
-    user_role_changed: 'updated',
-    tube_bulk_updated: 'updated',
-    user_logged_in: 'login',
-    user_logged_out: 'logout',
-  };
-
-  const SUFFIX_BADGE_MAP: Record<string, string> = {
-    created: 'created',
-    approved: 'created',
-    reactivated: 'created',
-    unlocked: 'created',
-    updated: 'updated',
-    moved: 'moved',
-    reassigned: 'moved',
-    locked: 'moved',
-    deleted: 'deleted',
-    deactivated: 'deleted',
-    suspended: 'deleted',
-    rejected: 'deleted',
-    assigned: 'linked',
-    shared: 'linked',
-    linked: 'linked',
-    unassigned: 'unlinked',
-    unlinked: 'unlinked',
-    revoked: 'unlinked',
-  };
-
   const getActionBadgeClass = (action: string) => {
     const override = BADGE_CLASS_OVERRIDES[action];
-    if (override) return `badge-audit-action-${override}`;
+    if (override) return override;
 
     const suffix = action.split('_').pop() ?? '';
-    const badge = SUFFIX_BADGE_MAP[suffix];
-    return badge ? `badge-audit-action-${badge}` : 'badge-audit-action-default';
+    return SUFFIX_BADGE_MAP[suffix] ?? 'badge-audit-action-default';
   };
 
   const formatEntityType = (entityType: string) => {
@@ -406,7 +406,6 @@ export function AuditLogViewer({
         <AuditLogFilterPanel
           filters={filterState}
           onChange={handleFilterChange}
-          onApply={clearFilters}
           onClear={clearFilters}
         />
       )}
