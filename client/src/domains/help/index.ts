@@ -1,5 +1,7 @@
 /**
- * Public API for Help Domain
+ * Help Domain Public API
+ *
+ * In-app reference guide with tabbed help content.
  */
 
-export { HelpModal } from './ui/components/HelpModal';
+export { HelpModal } from './ui/components/help-modal/HelpModal';

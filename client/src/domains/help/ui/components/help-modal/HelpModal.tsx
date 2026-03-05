@@ -45,19 +45,18 @@ const tabItems = [
 export function HelpModal({ isOpen, onClose }: HelpModalProps) {
   const [activeTab, setActiveTab] = useState<HelpTabId>('getting-started');
 
-  const tabs =
-    tabItems.length > 1 ? (
-      <Tabs value={activeTab} onChange={v => setActiveTab(v as HelpTabId)} orientation="vertical">
-        {tabItems.map(tab => {
-          const Icon = tab.icon;
-          return (
-            <Tab key={tab.id} id={tab.id} icon={<Icon size={18} />}>
-              {tab.label}
-            </Tab>
-          );
-        })}
-      </Tabs>
-    ) : undefined;
+  const tabs = (
+    <Tabs value={activeTab} onChange={v => setActiveTab(v as HelpTabId)} orientation="vertical">
+      {tabItems.map(tab => {
+        const Icon = tab.icon;
+        return (
+          <Tab key={tab.id} id={tab.id} icon={<Icon size={18} />}>
+            {tab.label}
+          </Tab>
+        );
+      })}
+    </Tabs>
+  );
 
   return (
     <BaseModal
