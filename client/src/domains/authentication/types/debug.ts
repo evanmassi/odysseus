@@ -1,15 +1,11 @@
 /**
- * Authentication Debug Type Definitions
+ * Authentication Debug Types
  *
- * Type-safe debugging interfaces for development-only auth diagnostics.
- * Tree-shaken in production builds.
+ * Type-safe interfaces for development-only auth diagnostics.
  */
 
 import type { SessionStatus } from '@shared/session/types';
 
-/**
- * SessionService debug information
- */
 export interface SessionDebugInfo {
   sessionStatus: SessionStatus;
   accessTokenExpiresIn: string;
@@ -18,9 +14,6 @@ export interface SessionDebugInfo {
   lastRefresh: string;
 }
 
-/**
- * AuthStore debug information
- */
 export interface AuthDebugInfo {
   storeState: {
     hasUser: boolean;

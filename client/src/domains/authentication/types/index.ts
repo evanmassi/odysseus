@@ -1,3 +1,9 @@
+/**
+ * Authentication Domain Types
+ *
+ * Core user and role types shared across the authentication domain.
+ */
+
 export type UserRole = 'system_admin' | 'lab_admin' | 'user';
 
 export interface User {
@@ -12,19 +18,4 @@ export interface User {
 
 export function isAdminRole(role?: string): boolean {
   return role === 'system_admin' || role === 'lab_admin';
-}
-
-export function isSystemAdmin(role?: string): boolean {
-  return role === 'system_admin';
-}
-
-export interface AuthCredentials {
-  username: string;
-  apiKey: string;
-}
-
-export interface AuthResponse {
-  success: boolean;
-  user?: User;
-  message?: string;
 }

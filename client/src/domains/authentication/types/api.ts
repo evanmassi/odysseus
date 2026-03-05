@@ -7,9 +7,6 @@
 import type { User } from './index';
 import type { TokenPair } from '@shared/session/types';
 
-/**
- * Standard authentication response with user and tokens
- */
 export interface AuthResponse {
   user: User;
   tokens: TokenPair;
@@ -33,9 +30,6 @@ export interface PasswordChangeRequiredResponse {
  */
 export type LoginResponse = AuthResponse | PasswordChangeRequiredResponse;
 
-/**
- * Type guard to check if login response requires password change
- */
 export function isPasswordChangeRequired(
   response: LoginResponse
 ): response is PasswordChangeRequiredResponse {
@@ -51,19 +45,4 @@ export interface RegisterWithResearcherResponse {
   tokens?: TokenPair;
   status: 'approved' | 'pending';
   message: string;
-}
-
-/**
- * Raw API response from authentication endpoints
- * Returned by httpClient before transformation
- */
-export interface AuthApiResponse {
-  data: AuthResponse;
-}
-
-/**
- * Raw API response from register with researcher endpoint
- */
-export interface RegisterWithResearcherApiResponse {
-  data: RegisterWithResearcherResponse;
 }
