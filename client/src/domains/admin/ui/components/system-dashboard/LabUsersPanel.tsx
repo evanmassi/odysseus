@@ -19,7 +19,7 @@ import {
   useDeactivateLabUserMutation,
   useSuspendLabUserMutation,
   useDeleteLabUserMutation,
-} from '../../../hooks/useLabQueries';
+} from '../../../hooks/useLabMutations';
 import { getRoleLabel } from '../../../utils/auditLogFormatters';
 
 import type { LabDetailsUser } from '@odysseus/shared-schemas';

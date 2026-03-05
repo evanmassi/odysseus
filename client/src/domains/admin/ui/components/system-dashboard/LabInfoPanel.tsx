@@ -34,7 +34,7 @@ import {
   useUpdateLabMutation,
   useActivateLabMutation,
   useDeactivateLabMutation,
-} from '../../../hooks/useLabQueries';
+} from '../../../hooks/useLabMutations';
 
 import type { LabDetails } from '@odysseus/shared-schemas';
 

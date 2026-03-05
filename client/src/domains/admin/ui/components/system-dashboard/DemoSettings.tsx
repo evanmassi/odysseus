@@ -18,9 +18,9 @@ import {
   useResetDemoDataMutation,
   useSeedDemoMutation,
   useUnseedDemoMutation,
-  useDemoLimitsQuery,
   useUpdateDemoLimitsMutation,
-} from '../../../hooks/useLabQueries';
+} from '../../../hooks/useLabMutations';
+import { useDemoLimitsQuery } from '../../../hooks/useLabQueries';
 
 import type { DemoLimits } from '@odysseus/shared-schemas';
 

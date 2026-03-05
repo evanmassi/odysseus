@@ -32,13 +32,12 @@ import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils';
 
 import {
-  useLabsQuery,
-  useSystemOverviewQuery,
   useCreateLabMutation,
   useDeactivateLabMutation,
   useActivateLabMutation,
   useCreateLabInviteCodeMutation,
-} from '../../../hooks/useLabQueries';
+} from '../../../hooks/useLabMutations';
+import { useLabsQuery, useSystemOverviewQuery } from '../../../hooks/useLabQueries';
 
 import { LabDashboard } from './LabDashboard';
 

@@ -1,7 +1,7 @@
 /**
- * Researcher Query Hooks
+ * Researchers Query
  *
- * Full-list and active-only (approved + active) researcher queries with sorted results.
+ * Full researcher list with optional filters and sorted results.
  */
 
 import { type Researcher, sortByName } from '@odysseus/shared-schemas';
@@ -28,20 +28,5 @@ export function useResearchersQuery(options?: {
     },
     ...DOMAIN_QUERY_OPTIONS.researchers,
     ...queryOptions,
-  });
-}
-
-/** Server-side filtered to approved+active only — pending researchers excluded from dropdowns. */
-export function useActiveResearchersQuery(options?: {
-  queryOptions?: Omit<UseQueryOptions<Researcher[], Error, Researcher[]>, 'queryKey' | 'queryFn'>;
-}) {
-  return useQuery<Researcher[], Error, Researcher[]>({
-    queryKey: queryKeys.researchers.visible(),
-    queryFn: async () => {
-      const researchers = await ResearcherService.list({ visible: true });
-      return sortByName(researchers);
-    },
-    ...DOMAIN_QUERY_OPTIONS.researchers,
-    ...options?.queryOptions,
   });
 }
