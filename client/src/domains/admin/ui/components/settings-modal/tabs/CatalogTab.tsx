@@ -19,7 +19,7 @@ import { notifications } from '@shared/utils';
 import { adminService } from '../../../../services/AdminService';
 
 import type { LookupCategory, LookupValueWithCount } from '@odysseus/shared-schemas';
-import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
+import type { TableColumn, SortConfig } from '@shared/ui';
 
 interface CategorySectionProps {
   category: LookupCategory;
@@ -103,13 +103,13 @@ function CategorySection({
     });
   }, [values, sortConfig]);
 
-  const columns: TableColumn<TableRow>[] = [
+  const columns: TableColumn<LookupValueWithCount>[] = [
     {
       id: 'value',
       header: 'Name',
       sortable: true,
       render: (_, row) => {
-        const item = row as unknown as LookupValueWithCount;
+        const item = row;
         if (editingId === item.id) {
           return (
             <Input
@@ -135,7 +135,7 @@ function CategorySection({
       sortable: true,
       width: 80,
       render: (_, row) => {
-        const item = row as unknown as LookupValueWithCount;
+        const item = row;
         return (
           <Chip
             size="sm"
@@ -152,7 +152,7 @@ function CategorySection({
       header: 'Actions',
       width: 100,
       render: (_, row) => {
-        const item = row as unknown as LookupValueWithCount;
+        const item = row;
         const canDelete = item.tubeCount === 0;
         if (editingId === item.id) {
           return (
@@ -254,7 +254,7 @@ function CategorySection({
 
       <Table
         columns={columns}
-        data={sortedValues as TableRow[]}
+        data={sortedValues}
         size="sm"
         variant="default"
         hoverable

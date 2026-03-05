@@ -242,53 +242,49 @@ function getUserColumns(
   labId: string,
   onUserAction: (action: UserAction) => void,
   currentUserId?: string
-): TableColumn[] {
+): TableColumn<LabDetailsUser>[] {
   return [
     {
       id: 'lastName',
       header: 'User',
       sortable: true,
       render: (_value, row) => {
-        const firstName = row['firstName'] as string | null;
-        const lastName = row['lastName'] as string | null;
-        const username = String(row['username']);
-        const status = String(row['status']);
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Intentionally using || to treat empty strings as falsy
-        const hasName = lastName || firstName;
+        const hasName = row.lastName || row.firstName;
         const displayName = hasName
-          ? `${lastName ?? ''}${lastName && firstName ? ', ' : ''}${firstName ?? ''}`
-          : username;
+          ? `${row.lastName ?? ''}${row.lastName && row.firstName ? ', ' : ''}${row.firstName ?? ''}`
+          : row.username;
 
         const initials =
-          firstName && lastName
-            ? `${firstName[0]}${lastName[0]}`.toUpperCase()
-            : username.slice(0, 2).toUpperCase();
+          row.firstName && row.lastName
+            ? `${row.firstName[0]}${row.lastName[0]}`.toUpperCase()
+            : row.username.slice(0, 2).toUpperCase();
 
         return (
           <div
-            className={`flex items-center whitespace-nowrap gap-2 ${status !== 'approved' && status !== 'pending' ? 'opacity-60' : ''}`}
+            className={`flex items-center whitespace-nowrap gap-2 ${row.status !== 'approved' && row.status !== 'pending' ? 'opacity-60' : ''}`}
           >
-            <UserBadge type="otherUser" initials={initials} username={username} size="md" />
+            <UserBadge type="otherUser" initials={initials} username={row.username} size="md" />
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="text-sm font-medium text-card-foreground">{displayName}</span>
-                {status === 'pending' && (
+                {row.status === 'pending' && (
                   <Tooltip content="Pending approval">
                     <Clock size={12} className="text-warning-text" />
                   </Tooltip>
                 )}
-                {status === 'deactivated' && (
+                {row.status === 'deactivated' && (
                   <Tooltip content="Deactivated">
                     <Power size={12} className="text-danger-text" />
                   </Tooltip>
                 )}
-                {status === 'suspended' && (
+                {row.status === 'suspended' && (
                   <Tooltip content="Suspended">
                     <ShieldBan size={12} className="text-danger-text" />
                   </Tooltip>
                 )}
               </div>
-              <div className="text-xs text-muted-foreground">{username}</div>
+              <div className="text-xs text-muted-foreground">{row.username}</div>
             </div>
           </div>
         );
@@ -298,9 +294,7 @@ function getUserColumns(
       id: 'email',
       header: 'Email',
       sortable: true,
-      render: (_value, row) => (
-        <span className="text-muted-foreground">{String(row['email'] ?? '-')}</span>
-      ),
+      render: (_value, row) => <span className="text-muted-foreground">{row.email ?? '-'}</span>,
     },
     {
       id: 'role',
@@ -308,7 +302,7 @@ function getUserColumns(
       sortable: true,
       render: (_value, row) => (
         <Chip color="default" size="sm">
-          {getRoleLabel(String(row['role']))}
+          {getRoleLabel(row.role)}
         </Chip>
       ),
     },
@@ -317,9 +311,7 @@ function getUserColumns(
       header: 'Last Active',
       sortable: true,
       render: (_value, row) => (
-        <span className="text-muted-foreground">
-          {formatLastActivity(String(row['lastActivity']))}
-        </span>
+        <span className="text-muted-foreground">{formatLastActivity(row.lastActivity)}</span>
       ),
     },
     {
@@ -327,7 +319,7 @@ function getUserColumns(
       header: 'Actions',
       render: (_value, row) => (
         <ActionsCell
-          user={row as unknown as LabDetailsUser}
+          user={row}
           labId={labId}
           onUserAction={onUserAction}
           currentUserId={currentUserId}

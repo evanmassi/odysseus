@@ -96,6 +96,7 @@ export type {
   TableProps,
   TableColumn,
   TableRow,
+  TableRowBase,
   TableRef,
   TableVariant,
   TableSize,

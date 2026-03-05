@@ -30,7 +30,7 @@ import { adminResearcherService } from '../../../../services/AdminResearcherServ
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
-import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
+import type { TableColumn, SortConfig } from '@shared/ui';
 
 export interface ResearchersTabProps {
   onResearcherUpdate?: () => void;
@@ -244,13 +244,13 @@ export function ResearchersTab({
     });
   }, [researchers, sortConfig]);
 
-  const researcherColumns: TableColumn<TableRow>[] = [
+  const researcherColumns: TableColumn<AdminResearcher>[] = [
     {
       id: 'researcher',
       header: 'Researcher',
       sortable: true,
       render: (_, row) => {
-        const researcher = row as unknown as AdminResearcher;
+        const researcher = row;
         return (
           <div className="flex items-center whitespace-nowrap">
             <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center mr-2">
@@ -270,7 +270,7 @@ export function ResearchersTab({
       id: 'position',
       header: 'Position',
       render: (_, row) => {
-        const researcher = row as unknown as AdminResearcher;
+        const researcher = row;
         return (
           <div className="whitespace-nowrap max-w-[150px]">
             {researcher.position ? (
@@ -296,7 +296,7 @@ export function ResearchersTab({
       header: 'Tubes',
       sortable: true,
       render: (_, row) => {
-        const researcher = row as unknown as AdminResearcher;
+        const researcher = row;
         return (
           <Chip
             size="sm"
@@ -312,7 +312,7 @@ export function ResearchersTab({
       id: 'linkedUser',
       header: 'Linked User',
       render: (_, row) => {
-        const researcher = row as unknown as AdminResearcher;
+        const researcher = row;
         if (researcher.linkedUserId) {
           return (
             <div className="whitespace-nowrap">
@@ -331,7 +331,7 @@ export function ResearchersTab({
       header: 'Status',
       sortable: true,
       render: (_, row) => {
-        const researcher = row as unknown as AdminResearcher;
+        const researcher = row;
 
         // Pending approval takes precedence (researcher not yet vetted)
         if (researcher.approvalStatus === 'pending') {
@@ -366,7 +366,7 @@ export function ResearchersTab({
       id: 'actions',
       header: 'Actions',
       render: (_, row) => {
-        const researcher = row as unknown as AdminResearcher;
+        const researcher = row;
         const isSelfResearcher = researcher.linkedUserId === currentUserId;
         return (
           <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
@@ -453,7 +453,7 @@ export function ResearchersTab({
 
       <Table
         columns={readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns}
-        data={sortedResearchers as TableRow[]}
+        data={sortedResearchers}
         size="sm"
         variant="default"
         hoverable

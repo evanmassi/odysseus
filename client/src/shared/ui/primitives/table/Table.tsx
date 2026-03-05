@@ -4,7 +4,7 @@
  * Accessible table primitive with sorting, selection, and responsive design.
  */
 
-import React, { forwardRef, createContext, useContext } from 'react';
+import React, { createContext, useContext } from 'react';
 
 import { cva, type VariantProps } from 'class-variance-authority';
 
@@ -13,8 +13,8 @@ import { defaultTableProps } from './types';
 import type {
   TableColumn,
   TableRow,
+  TableRowBase,
   TableProps,
-  TableRef,
   TableContextValue,
   TableRounded,
 } from './types';
@@ -23,6 +23,7 @@ import type {
 export type {
   TableColumn,
   TableRow,
+  TableRowBase,
   TableProps,
   TableRef,
   TableVariant,
@@ -289,7 +290,7 @@ export const TableHeader = <T,>({
 };
 
 // Table Body component
-export const TableBody = <T extends TableRow>({
+export const TableBody = <T extends TableRowBase>({
   columns,
   data,
   striped = false,
@@ -396,129 +397,122 @@ const roundedClasses: Record<TableRounded, string> = {
   lg: 'rounded-lg',
 };
 
-export const Table = forwardRef<TableRef, TableProps>(
-  (
-    {
-      columns,
-      data,
-      sortable = defaultTableProps.sortable,
-      selectable = defaultTableProps.selectable,
-      multiSelect = defaultTableProps.multiSelect,
-      striped = defaultTableProps.striped,
-      hoverable = defaultTableProps.hoverable,
-      selectedRows = defaultTableProps.selectedRows,
-      sortConfig,
-      loading = defaultTableProps.loading,
-      variant = defaultTableProps.variant,
-      size = defaultTableProps.size,
-      state = defaultTableProps.state,
-      stickyHeader = defaultTableProps.stickyHeader,
-      rounded = defaultTableProps.rounded,
-      pagination: _pagination,
-      onSort,
-      onSelectionChange = () => {},
-      onRowClick,
-      emptyMessage = defaultTableProps.emptyMessage,
-      loadingMessage = defaultTableProps.loadingMessage,
-      'aria-label': ariaLabel,
-      className,
-      headerClassName,
-      bodyClassName,
-      rowClassName,
-      maxHeight,
-      virtualized: _virtualized = defaultTableProps.virtualized,
-      ...props
-    },
-    ref
-  ) => {
-    // When rounded, border moves to wrapper - use borderless for table
-    const needsRoundedWrapper = rounded && rounded !== 'none';
-    const effectiveVariant = needsRoundedWrapper ? 'borderless' : variant;
+export function Table<T extends TableRowBase = TableRow>({
+  columns,
+  data,
+  sortable = defaultTableProps.sortable,
+  selectable = defaultTableProps.selectable,
+  multiSelect = defaultTableProps.multiSelect,
+  striped = defaultTableProps.striped,
+  hoverable = defaultTableProps.hoverable,
+  selectedRows = defaultTableProps.selectedRows,
+  sortConfig,
+  loading = defaultTableProps.loading,
+  variant = defaultTableProps.variant,
+  size = defaultTableProps.size,
+  state = defaultTableProps.state,
+  stickyHeader = defaultTableProps.stickyHeader,
+  rounded = defaultTableProps.rounded,
+  pagination: _pagination,
+  onSort,
+  onSelectionChange = () => {},
+  onRowClick,
+  emptyMessage = defaultTableProps.emptyMessage,
+  loadingMessage = defaultTableProps.loadingMessage,
+  'aria-label': ariaLabel,
+  className,
+  headerClassName,
+  bodyClassName,
+  rowClassName,
+  maxHeight,
+  virtualized: _virtualized = defaultTableProps.virtualized,
+  ...props
+}: TableProps<T>) {
+  // When rounded, border moves to wrapper - use borderless for table
+  const needsRoundedWrapper = rounded && rounded !== 'none';
+  const effectiveVariant = needsRoundedWrapper ? 'borderless' : variant;
 
-    // Table classes
-    const tableClasses = tableVariants({ variant: effectiveVariant, size, state, className });
+  // Table classes
+  const tableClasses = tableVariants({ variant: effectiveVariant, size, state, className });
 
-    // Context value
-    const contextValue: TableContextValue = {
-      selectable: selectable!,
-      multiSelect: multiSelect!,
-      selectedRows: selectedRows!,
-      onSelectionChange,
-      sortConfig,
-      onSort: sortable ? onSort : undefined,
-    };
+  // Context value
+  const contextValue: TableContextValue = {
+    selectable: selectable!,
+    multiSelect: multiSelect!,
+    selectedRows: selectedRows!,
+    onSelectionChange,
+    sortConfig,
+    onSort: sortable ? onSort : undefined,
+  };
 
-    // Loading state
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center py-8">
-          <div className="text-muted-foreground">{loadingMessage}</div>
-        </div>
-      );
-    }
-
-    // Empty state
-    if (data.length === 0) {
-      return (
-        <div className="flex items-center justify-center py-8">
-          <div className="text-muted-foreground">{emptyMessage}</div>
-        </div>
-      );
-    }
-
-    const tableContent = (
-      <TableContext.Provider value={contextValue}>
-        <table ref={ref} className={tableClasses} role="table" aria-label={ariaLabel} {...props}>
-          <TableHeader columns={columns} className={headerClassName} />
-          <TableBody
-            columns={columns}
-            data={data}
-            striped={striped}
-            hoverable={hoverable}
-            rowClassName={rowClassName}
-            onRowClick={onRowClick}
-            className={bodyClassName}
-          />
-        </table>
-      </TableContext.Provider>
+  // Loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">{loadingMessage}</div>
+      </div>
     );
-
-    // Determine if we need a wrapper container
-    const needsScrollWrapper = maxHeight ?? stickyHeader;
-
-    // When rounded, move border from table to wrapper for proper corner rendering
-    const borderClassForWrapper =
-      needsRoundedWrapper && variant === 'default'
-        ? 'border border-border'
-        : needsRoundedWrapper && variant === 'bordered'
-          ? 'border-2 border-border'
-          : '';
-
-    // Build wrapper classes
-    const wrapperClasses = [
-      needsRoundedWrapper
-        ? `overflow-hidden ${roundedClasses[rounded!]} ${borderClassForWrapper}`
-        : '',
-      needsScrollWrapper ? 'overflow-auto' : '',
-      stickyHeader ? 'relative' : '',
-    ]
-      .filter(Boolean)
-      .join(' ');
-
-    // Wrap if needed for rounded corners, max height, or sticky header
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR, not null coalescing
-    if (needsRoundedWrapper || needsScrollWrapper) {
-      return (
-        <div className={wrapperClasses} style={maxHeight ? { maxHeight } : undefined} tabIndex={-1}>
-          {tableContent}
-        </div>
-      );
-    }
-
-    return tableContent;
   }
-);
 
-Table.displayName = 'Table';
+  // Empty state
+  if (data.length === 0) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-muted-foreground">{emptyMessage}</div>
+      </div>
+    );
+  }
+
+  const tableContent = (
+    <TableContext.Provider value={contextValue}>
+      <table className={tableClasses} role="table" aria-label={ariaLabel} {...props}>
+        <TableHeader columns={columns} className={headerClassName} />
+        <TableBody
+          columns={columns}
+          data={data}
+          striped={striped}
+          hoverable={hoverable}
+          rowClassName={rowClassName}
+          onRowClick={onRowClick}
+          className={bodyClassName}
+        />
+      </table>
+    </TableContext.Provider>
+  );
+
+  // Determine if we need a wrapper container
+  const needsScrollWrapper = maxHeight ?? stickyHeader;
+
+  // When rounded, move border from table to wrapper for proper corner rendering
+  const borderClassForWrapper =
+    needsRoundedWrapper && variant === 'default'
+      ? 'border border-border'
+      : needsRoundedWrapper && variant === 'bordered'
+        ? 'border-2 border-border'
+        : '';
+
+  // Build wrapper classes
+  const wrapperClasses = [
+    needsRoundedWrapper
+      ? `overflow-hidden ${roundedClasses[rounded!]} ${borderClassForWrapper}`
+      : '',
+    needsScrollWrapper ? 'overflow-auto' : '',
+    stickyHeader ? 'relative' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  // Wrap if needed for rounded corners, max height, or sticky header
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR, not null coalescing
+  if (needsRoundedWrapper || needsScrollWrapper) {
+    return (
+      <div className={wrapperClasses} style={maxHeight ? { maxHeight } : undefined} tabIndex={-1}>
+        {tableContent}
+      </div>
+    );
+  }
+
+  return tableContent;
+}
 
 export type TableVariantsProps = VariantProps<typeof tableVariants>;

@@ -31,7 +31,7 @@ import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPane
 
 import type { Pagination } from '@domains/admin/types/auditTypes';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
-import type { TableColumn, TableRow } from '@shared/ui';
+import type { TableColumn } from '@shared/ui';
 
 const ACTION_LABEL_OVERRIDES: Record<string, string> = {
   user_logged_in: 'Login',
@@ -253,13 +253,13 @@ export function AuditLogViewer({
   );
 
   // Define table columns - use TableRow base type, cast in render functions
-  const auditLogColumns: TableColumn<TableRow>[] = [
+  const auditLogColumns: TableColumn<AuditLogEntry>[] = [
     {
       id: 'timestamp',
       header: 'Timestamp',
       width: '8rem',
       render: (_, row) => {
-        const entry = row as unknown as AuditLogEntry;
+        const entry = row;
         return (
           <span className="whitespace-nowrap text-muted-foreground text-[11px]">
             {formatTimestamp(entry.timestamp)}
@@ -272,7 +272,7 @@ export function AuditLogViewer({
       header: 'User',
       width: '6rem',
       render: (_, row) => {
-        const entry = row as unknown as AuditLogEntry;
+        const entry = row;
         return (
           <span className="font-medium text-card-foreground whitespace-nowrap">
             {entry.username}
@@ -285,7 +285,7 @@ export function AuditLogViewer({
       header: 'Action',
       width: '6rem',
       render: (_, row) => {
-        const entry = row as unknown as AuditLogEntry;
+        const entry = row;
         return (
           <span className={`whitespace-nowrap ${getActionBadgeClass(entry.action)}`}>
             {formatAction(entry.action)}
@@ -298,7 +298,7 @@ export function AuditLogViewer({
       header: 'Item',
       width: '7rem',
       render: (_, row) => {
-        const entry = row as unknown as AuditLogEntry;
+        const entry = row;
         if (!entry.entityType) {
           return <span className="text-muted-foreground text-xs">-</span>;
         }
@@ -321,7 +321,7 @@ export function AuditLogViewer({
       id: 'details',
       header: 'Details',
       render: (_, row) => {
-        const entry = row as unknown as AuditLogEntry;
+        const entry = row;
         const { text, fullText } = formatAuditDetails(entry);
         const tooltipContent = fullText ?? text;
         return (
@@ -426,7 +426,7 @@ export function AuditLogViewer({
       {!loading && !error && entries && entries.length > 0 && (
         <Table
           columns={auditLogColumns}
-          data={entries as TableRow[]}
+          data={entries}
           size="sm"
           variant="default"
           hoverable

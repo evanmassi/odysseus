@@ -50,15 +50,13 @@ export interface TableColumn<T = Record<string, unknown>> {
   render?: (value: unknown, row: T, index: number) => ReactNode;
 }
 
-// Table row data (requires id for selection/keying)
-// Using a looser constraint to allow any object with an id property
-export interface TableRow {
-  id: string | number;
+// Base constraint for table data — just needs an id for selection/keying
+export type TableRowBase = { id: string | number };
+
+// Default table row type for unparameterized usage
+export interface TableRow extends TableRowBase {
   [key: string]: unknown;
 }
-
-// Base constraint for table data - just needs an id
-export type TableDataItem = { id: string | number } & Record<string, unknown>;
 
 // Pagination configuration
 export interface TablePagination {
@@ -68,7 +66,7 @@ export interface TablePagination {
 }
 
 // Table component props
-export interface TableProps<T = TableRow> {
+export interface TableProps<T extends TableRowBase = TableRow> {
   // Data
   columns: TableColumn<T>[];
   data: T[];

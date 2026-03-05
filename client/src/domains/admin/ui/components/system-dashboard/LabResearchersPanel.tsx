@@ -47,7 +47,7 @@ export function LabResearchersPanel({ researchers, sortConfig, onSort }: LabRese
   );
 }
 
-function getResearcherColumns(): TableColumn[] {
+function getResearcherColumns(): TableColumn<LabResearcher>[] {
   return [
     {
       id: 'name',
@@ -55,34 +55,30 @@ function getResearcherColumns(): TableColumn[] {
       sortable: true,
       render: (_value, row) => (
         <span>
-          {String(row['firstName'])} {String(row['lastName'])}
+          {row.firstName} {row.lastName}
         </span>
       ),
     },
     {
       id: 'linkedUser',
       header: 'Linked User',
-      render: (_value, row) => {
-        const linkedUser = row['linkedUser'] as { id: string; username: string } | null;
-        return <span className="text-muted-foreground">{linkedUser?.username ?? '—'}</span>;
-      },
+      render: (_value, row) => (
+        <span className="text-muted-foreground">{row.linkedUser?.username ?? '—'}</span>
+      ),
     },
     {
       id: 'tubeCount',
       header: 'Tubes',
       sortable: true,
-      render: (_value, row) => {
-        const tubeCount = row['tubeCount'] as number;
-        return (
-          <Chip
-            size="sm"
-            color={tubeCount > 0 ? 'primary' : 'default'}
-            className={tubeCount > 0 ? 'border border-action' : 'border border-border'}
-          >
-            {tubeCount}
-          </Chip>
-        );
-      },
+      render: (_value, row) => (
+        <Chip
+          size="sm"
+          color={row.tubeCount > 0 ? 'primary' : 'default'}
+          className={row.tubeCount > 0 ? 'border border-action' : 'border border-border'}
+        >
+          {row.tubeCount}
+        </Chip>
+      ),
     },
   ];
 }

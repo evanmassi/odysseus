@@ -42,7 +42,7 @@ import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminUser, CreateResearcherProfile, AdminResearcher } from '@odysseus/shared-schemas';
-import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
+import type { TableColumn, SortConfig } from '@shared/ui';
 
 // Role dropdown options (lab_admin can only assign user/lab_admin within their lab)
 const ROLE_OPTIONS = [
@@ -302,13 +302,13 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     });
   }, [users, sortConfig]);
 
-  const userColumns: TableColumn<TableRow>[] = [
+  const userColumns: TableColumn<AdminUser>[] = [
     {
       id: 'user',
       header: 'User',
       sortable: true,
       render: (_, row) => {
-        const user = row as unknown as AdminUser;
+        const user = row;
         const initials =
           user.firstName && user.lastName
             ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
@@ -364,7 +364,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       header: 'Role',
       sortable: true,
       render: (_, row) => {
-        const user = row as unknown as AdminUser;
+        const user = row;
         const isDisabled =
           readOnly ||
           updating === user.id ||
@@ -399,7 +399,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       id: 'researcher',
       header: 'Researcher',
       render: (_, row) => {
-        const user = row as unknown as AdminUser;
+        const user = row;
         if (user.researcherId) {
           return (
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground whitespace-nowrap">
@@ -420,7 +420,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       header: 'Last Active',
       sortable: true,
       render: (_, row) => {
-        const user = row as unknown as AdminUser;
+        const user = row;
         return (
           <span className="text-sm text-muted-foreground whitespace-nowrap">
             {user.lastActivity ? new Date(user.lastActivity).toLocaleDateString() : 'Never'}
@@ -432,7 +432,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
       id: 'actions',
       header: 'Actions',
       render: (_, row) => {
-        const user = row as unknown as AdminUser;
+        const user = row;
         const isSelf = user.id === currentUserId;
         return (
           <div className="flex items-center gap-1 whitespace-nowrap text-sm font-medium">
@@ -606,7 +606,7 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
 
       <Table
         columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
-        data={(sortedUsers ?? []) as TableRow[]}
+        data={sortedUsers ?? []}
         size="sm"
         variant="default"
         hoverable
