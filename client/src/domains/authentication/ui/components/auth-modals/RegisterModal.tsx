@@ -1,8 +1,7 @@
 /**
- * RegisterModal - First-time setup component
+ * User Registration Form
  *
- * Uses researcher profile registration with auto-generated usernames.
- * Delegates business logic to authStore and AuthService.
+ * Researcher profile registration with auto-generated usernames.
  */
 
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
@@ -75,7 +74,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
   const { registerWithResearcher } = useAuthStore();
 
-  // Auto-generate username preview from researcher name
   const usernamePreview = useMemo(() => {
     if (!firstName.trim() || !lastName.trim()) {
       return '';
@@ -94,7 +92,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
     return `${cleanFirst}.${cleanLast}`;
   }, [firstName, lastName]);
 
-  // Fetch password requirements on mount
   useEffect(() => {
     async function loadPasswordRequirements() {
       try {
@@ -135,20 +132,17 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
     }
   }, [inviteCode]);
 
-  // Convert touched/valid to AuthInput validation state
   const getValidationState = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'default' as const;
     return isValid ? ('success' as const) : ('error' as const);
   };
 
-  // Validate email format
   const emailIsValid = useMemo(() => {
     if (!email.trim()) return false;
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailPattern.test(email.trim());
   }, [email]);
 
-  // Validate password meets all requirements using shared validator
   const passwordMeetsRequirements = useMemo(() => {
     if (!passwordConfig || !password) return false;
     return PasswordValidator.validate(password, passwordConfig).isValid;
@@ -201,7 +195,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
       });
 
       if (result.success) {
-        // Store registration result and show success modal
         setRegistrationResult({
           username: usernamePreview,
           email: email.trim(),
@@ -209,7 +202,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
         });
         setShowSuccessModal(true);
       } else {
-        // Check if it's an email-specific error
         const errorMessage =
           result.message ?? 'Registration failed. Please check your information and try again.';
         if (errorMessage.toLowerCase().includes('email')) {
@@ -228,13 +220,11 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
   const handleSuccessModalClose = () => {
     setShowSuccessModal(false);
-    // Redirect to login if needed
     if (onSwitchToLogin) {
       onSwitchToLogin();
     }
   };
 
-  // Show success modal if registration was successful
   if (showSuccessModal && registrationResult) {
     return (
       <RegistrationSuccessModal
@@ -313,7 +303,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
           </AlertBanner>
         )}
 
-        {/* Registration form — shown after invite code validation */}
         {inviteCodeValidated && (
           <>
             {/* Name Fields Group */}
@@ -334,7 +323,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   disabled={isLoading}
                   maxLength={50}
                 />
-                {/* Username Preview - Always visible */}
                 <div className="min-h-[18px] ml-1">
                   {usernamePreview ? (
                     <p className="text-[10px] text-secondary-foreground">
@@ -389,7 +377,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   disabled={isLoading}
                   maxLength={255}
                 />
-                {/* Email error message */}
                 {emailError && <p className="text-[11px] text-danger-text ml-1">{emailError}</p>}
               </div>
 
@@ -453,7 +440,6 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
                   disabled={isLoading}
                 />
 
-                {/* Password Requirements - Always visible */}
                 {passwordConfig && (
                   <PasswordRequirements
                     password={password}

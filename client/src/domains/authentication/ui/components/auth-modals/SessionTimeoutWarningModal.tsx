@@ -21,9 +21,6 @@ const EXIT_DURATION = 200;
 const CIRCLE_RADIUS = 54;
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
 
-/**
- * Format milliseconds as MM:SS
- */
 function formatTime(ms: number): string {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const minutes = Math.floor(totalSeconds / 60);
@@ -31,9 +28,6 @@ function formatTime(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-/**
- * SessionTimeoutWarningModal Component
- */
 export function SessionTimeoutWarningModal() {
   const { sessionTimeoutWarning } = useModalStore();
   const { isOpen, timeRemainingMs, onStayLoggedIn, onLogout } = sessionTimeoutWarning;
@@ -45,7 +39,6 @@ export function SessionTimeoutWarningModal() {
 
   const [displayTime, setDisplayTime] = useState(timeRemainingMs);
 
-  // Handle the actual close action after animation completes
   const handleCloseComplete = useCallback(() => {
     const action = pendingActionRef.current;
     if (action === 'stayLoggedIn') {
@@ -66,7 +59,6 @@ export function SessionTimeoutWarningModal() {
     exitDuration: EXIT_DURATION,
   });
 
-  // Focus trap for keyboard accessibility
   const trapRef = useFocusTrap({
     isOpen: isVisible,
     restoreFocus: true,
@@ -75,7 +67,6 @@ export function SessionTimeoutWarningModal() {
     autoFocusFirstInput: false,
   });
 
-  // Capture initial time only once when modal first opens
   useEffect(() => {
     if (isOpen && timeRemainingMs > 0 && initialTimeRef.current === null) {
       initialTimeRef.current = timeRemainingMs;
@@ -149,12 +140,10 @@ export function SessionTimeoutWarningModal() {
   const formattedTime = formatTime(displayTime);
   const isUrgent = displayTime <= 60000;
 
-  // Progress calculation (1 = full, 0 = empty)
   const initialTime = initialTimeRef.current ?? timeRemainingMs;
   const progress = initialTime > 0 ? displayTime / initialTime : 0;
   const strokeOffset = CIRCLE_CIRCUMFERENCE * (1 - progress);
 
-  // Color transitions from warning to danger
   const ringColor = isUrgent ? 'text-danger-bg' : 'text-warning-bg';
   const borderColor = isUrgent ? 'border-danger-border' : 'border-warning-border';
 

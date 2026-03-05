@@ -1,8 +1,7 @@
 /**
- * RegistrationSuccessModal
+ * Registration Success Confirmation
  *
- * Confirmation modal shown after successful registration.
- * Displays username, account status, and next steps.
+ * Displays username, account status, and next steps after registration.
  */
 
 import { useState } from 'react';

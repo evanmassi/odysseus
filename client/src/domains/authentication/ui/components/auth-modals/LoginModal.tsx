@@ -1,8 +1,7 @@
 /**
- * LoginModal - Primary authentication entry point
+ * Login Form
  *
- * Handles three states: login form, forced password change, and success confirmation.
- * Supports session expiration banners and email verification flows.
+ * Handles login, forced password change, and session expiration banners.
  */
 
 import { useState, useRef } from 'react';
@@ -36,7 +35,7 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     forceChangePassword,
     clearPasswordChangeRequired,
     logoutReason,
-    error: authError, // Still used for forceChangePassword error display
+    error: authError,
     passwordChangeRequired,
     passwordChangeSuccess,
   } = useAuthStore();
@@ -45,7 +44,6 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Clear previous error on new attempt
     setLoginError(null);
 
     if (!username.trim() || !password.trim()) {
@@ -61,10 +59,8 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
       if (result.success === true) {
         notifications.success('Login successful!');
       } else if (result.success === 'password_change_required') {
-        // Password change form will be shown automatically via passwordChangeRequired state
         setPassword('');
       } else {
-        // Error message comes directly from the login result
         setLoginError(result.error || 'Incorrect username or password. Please try again.');
       }
     } catch (error) {
@@ -81,7 +77,6 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty error message should fall through to default
       throw new Error(authError || 'Password change failed. Please try again.');
     }
-    // Success state and delay are handled in the auth store
   };
 
   const handleCancelPasswordChange = () => {
@@ -108,14 +103,12 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     }
   };
 
-  // Check if error is about email verification
   /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check multiple error conditions */
   const isEmailVerificationError =
     loginError?.toLowerCase().includes('email not verified') ||
     loginError?.toLowerCase().includes('verify your email');
   /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
-  // Show success confirmation after password change (before full login completes)
   if (passwordChangeSuccess) {
     return (
       <AuthBaseModal key="password-success" showBranding="icon">
@@ -131,7 +124,6 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     );
   }
 
-  // Show forgot password message
   if (showForgotPassword) {
     return (
       <AuthBaseModal key="forgot-password" showBranding="icon">
@@ -154,7 +146,6 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
     );
   }
 
-  // Show password change form when required
   if (passwordChangeRequired) {
     return (
       <AuthBaseModal key="password-change" showBranding="icon">
@@ -179,7 +170,6 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
       subtitle="Welcome back · sign in to continue"
       initialFocusRef={usernameInputRef}
     >
-      {/* Session Expiration Banners */}
       {logoutReason === 'idle_timeout' && (
         <AlertBanner variant="warning" icon={Clock}>
           Session timed out due to inactivity
@@ -192,7 +182,6 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         </AlertBanner>
       )}
 
-      {/* Email Verification Error Banner */}
       {loginError && isEmailVerificationError && (
         <div className="mb-6 p-4 bg-info-light border border-info-border rounded-lg animate-in slide-in-from-top-2 duration-300">
           <div className="flex items-start gap-3 mb-3">
@@ -223,13 +212,11 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
         </div>
       )}
 
-      {/* Generic Login Error Banner */}
       {loginError && !isEmailVerificationError && (
         <AlertBanner variant="error">{loginError}</AlertBanner>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Username or Email */}
         <AuthInput
           ref={usernameInputRef}
           id="username"
@@ -244,7 +231,6 @@ export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
           disabled={isLoading}
         />
 
-        {/* Password */}
         <div>
           <AuthInput
             id="password"

@@ -1,8 +1,7 @@
 /**
- * VerifyEmailPage - Email verification landing page
+ * Email Verification Landing Page
  *
- * Handles email verification when user clicks link from their email.
- * Reads token from URL, calls backend, shows status, then redirects to login.
+ * Reads token from URL, verifies via backend, then redirects to login.
  */
 
 import React, { useEffect, useState, useRef } from 'react';
@@ -18,7 +17,6 @@ export function VerifyEmailPage() {
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');
   const [error, setError] = useState<string>('');
 
-  // Store timer ID for cleanup
   const redirectTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -47,7 +45,6 @@ export function VerifyEmailPage() {
 
     void verifyEmail();
 
-    // Cleanup timer on unmount
     return () => {
       if (redirectTimerRef.current !== null) {
         clearTimeout(redirectTimerRef.current);

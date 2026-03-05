@@ -1,10 +1,8 @@
 /**
- * AuthBaseModal - Shared layout wrapper for authentication modals
+ * Authentication Modal Base Layout
  *
- * Provides consistent backdrop, card styling, animations, focus trap,
- * and optional branding header across all auth modals.
- *
- * Uses sketch animation: border draws → background fills → content fades
+ * Shared wrapper providing sketch-draw animation sequence:
+ * border draws → background fills → content fades.
  */
 
 import { type ReactNode, type RefObject, useRef, useState, useEffect } from 'react';
@@ -17,17 +15,12 @@ import { SketchBorder } from '@shared/ui/components/SketchBorder';
 
 export interface AuthBaseModalProps {
   children: ReactNode;
-  /** Modal width: 'default' (max-w-md) or 'large' (max-w-lg) */
   size?: 'default' | 'large';
-  /** Branding header mode: true (icon + logo), 'icon' (icon only), false (no header) */
   showBranding?: boolean | 'icon';
-  /** Subtitle text below branding (works with showBranding true or 'icon') */
   subtitle?: string;
-  /** Reference to element that should receive initial focus */
   initialFocusRef?: RefObject<HTMLElement>;
   /** z-index override for nested modals */
   zIndex?: 50 | 60;
-  /** Additional CSS classes for the modal card */
   className?: string;
 }
 
@@ -53,7 +46,6 @@ export function AuthBaseModal({
     const element = modalRef.current;
     if (!element) return;
 
-    // Initial measurement after first paint
     const frameId = requestAnimationFrame(() => {
       setDimensions({ width: element.offsetWidth, height: element.offsetHeight });
     });
@@ -89,13 +81,11 @@ export function AuthBaseModal({
       >
         <div
           ref={el => {
-            // Merge refs
             (trapRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
             (modalRef as React.MutableRefObject<HTMLDivElement | null>).current = el;
           }}
           className={`relative bg-transparent rounded-2xl w-full ${sizeClasses} mx-4 ${className}`}
         >
-          {/* SVG border that draws itself */}
           {dimensions.width > 0 && (
             <SketchBorder
               width={dimensions.width}
