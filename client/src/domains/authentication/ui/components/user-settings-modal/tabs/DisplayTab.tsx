@@ -1,9 +1,7 @@
 /**
- * Display Tab
+ * Display Preferences
  *
- * Allows users to set display-related preferences:
- * - Theme (light/dark/auto)
- * - Position display format (numeric/alphanumeric)
+ * Theme and position display format settings.
  */
 import { Monitor, Moon, Sun, Table2 } from 'lucide-react';
 
@@ -39,7 +37,6 @@ export function DisplayTab({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border">
         <Table2 size={22} className="text-secondary-foreground" />
         <h3 className="text-xl font-semibold text-card-foreground">Display</h3>
@@ -50,7 +47,6 @@ export function DisplayTab({
         <h4 className="text-base font-semibold text-card-foreground mb-3">Theme</h4>
 
         <div className="grid grid-cols-3 gap-2">
-          {/* Light Option */}
           <button
             type="button"
             onClick={() => onThemeChange('light')}
@@ -81,7 +77,6 @@ export function DisplayTab({
             </p>
           </button>
 
-          {/* Dark Option */}
           <button
             type="button"
             onClick={() => onThemeChange('dark')}
@@ -112,7 +107,6 @@ export function DisplayTab({
             </p>
           </button>
 
-          {/* System Option */}
           <button
             type="button"
             onClick={() => onThemeChange('auto')}
@@ -154,9 +148,7 @@ export function DisplayTab({
           Choose how position labels are displayed throughout the application.
         </p>
 
-        {/* Segmented Control with Inline Descriptions */}
         <div className="grid grid-cols-3 gap-2">
-          {/* Numeric Option */}
           <button
             type="button"
             onClick={() => handleFormatChange('numeric')}
@@ -213,7 +205,6 @@ export function DisplayTab({
             </div>
           </button>
 
-          {/* Alphanumeric Option */}
           <button
             type="button"
             onClick={() => handleFormatChange('alphanumeric')}
@@ -272,7 +263,6 @@ export function DisplayTab({
             </div>
           </button>
 
-          {/* System Default Option */}
           <button
             type="button"
             onClick={() => handleFormatChange(null)}

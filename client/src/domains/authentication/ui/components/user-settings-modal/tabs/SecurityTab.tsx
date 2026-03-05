@@ -1,8 +1,7 @@
 /**
- * Security Tab
+ * Password & Session Security
  *
- * Password management for authenticated users.
- * Requires current password verification for security.
+ * Password management and active session controls for authenticated users.
  */
 import { useState, useEffect, useMemo } from 'react';
 
@@ -129,8 +128,7 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           }
         },
         onError: (error: Error) => {
-          logger.error('❌ [SecurityTab] Password change failed', { error });
-          // Check if error is due to incorrect password
+          logger.error('SecurityTab password change failed', { error });
           if (
             error.message.toLowerCase().includes('incorrect') ||
             error.message.toLowerCase().includes('invalid')
@@ -160,7 +158,6 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           )}
         </div>
 
-        {/* Current Password */}
         <div className="space-y-1">
           <AuthInput
             id="security-currentPassword"
@@ -185,7 +182,6 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           )}
         </div>
 
-        {/* New Password */}
         <div className="space-y-1">
           <AuthInput
             id="security-newPassword"
@@ -220,7 +216,6 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           )}
         </div>
 
-        {/* Confirm Password */}
         <div className="space-y-1">
           <AuthInput
             id="security-confirmPassword"
@@ -243,7 +238,6 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           )}
         </div>
 
-        {/* Save Button and Success Banner */}
         <div className="pt-1 pb-2">
           <div className="flex items-center gap-3 min-h-[38px]">
             <Button

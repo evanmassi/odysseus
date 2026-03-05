@@ -1,8 +1,7 @@
 /**
- * Account Tab
+ * Account Profile Editor
  *
  * User profile management with password confirmation requirement.
- * Uses label-in-border styling matching RegisterModal.
  */
 import { useState, useEffect, useMemo } from 'react';
 
@@ -34,7 +33,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
   const { profile, isLoading } = useUserProfile();
   const { updateProfile, isUpdating } = useUserProfileActions();
 
-  // Form fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -42,13 +40,11 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
   const [position, setPosition] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
 
-  // Touched state for validation
   const [firstNameTouched, setFirstNameTouched] = useState(false);
   const [lastNameTouched, setLastNameTouched] = useState(false);
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
 
-  // Load profile data
   useEffect(() => {
     if (profile) {
       setFirstName(profile.firstName);
@@ -59,26 +55,22 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
     }
   }, [profile]);
 
-  // Field border styling
   const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'border-border';
     return isValid ? 'border-2 border-success-border' : 'input-field-error';
   };
 
-  // Label color styling
   const getLabelColorClass = (touched: boolean, isValid: boolean) => {
     if (!touched) return 'text-secondary-foreground';
     return isValid ? 'text-success-text' : 'text-danger-text';
   };
 
-  // Email validation
   const emailIsValid = useMemo(() => {
     if (!email.trim()) return false;
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailPattern.test(email.trim());
   }, [email]);
 
-  // Check if there are changes
   const hasChanges = useMemo(() => {
     if (!profile) return false;
     return (
@@ -91,7 +83,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
   }, [profile, firstName, lastName, email, department, position]);
 
   const handleSave = async () => {
-    // Validation
     if (!firstName.trim() || !lastName.trim() || !email.trim()) {
       notifications.error('First name, last name, and email are required');
       return;
@@ -109,7 +100,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
       return;
     }
 
-    // Build update object
     const updateData: UpdatePersonProfileWithPassword = {
       currentPassword,
     };
@@ -124,7 +114,7 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
     updateProfile(updateData, {
       onSuccess: () => {
         notifications.success('Profile updated successfully');
-        setCurrentPassword(''); // Clear password field
+        setCurrentPassword('');
         setPasswordTouched(false);
         if (onSaveComplete) {
           onSaveComplete();
@@ -150,7 +140,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <UserRound size={22} className="text-secondary-foreground" />
         <h3 className="text-xl font-semibold text-card-foreground">Account Information</h3>
@@ -165,7 +154,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
 
         {/* Name Fields */}
         <div className="grid grid-cols-2 gap-3">
-          {/* First Name */}
           <div
             className={`auth-input-container ${getFieldBorderClass(firstNameTouched, firstName.trim().length > 0)}`}
           >
@@ -195,7 +183,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             </div>
           </div>
 
-          {/* Last Name */}
           <div
             className={`auth-input-container ${getFieldBorderClass(lastNameTouched, lastName.trim().length > 0)}`}
           >
@@ -226,7 +213,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
           </div>
         </div>
 
-        {/* Email */}
         <div className={`auth-input-container ${getFieldBorderClass(emailTouched, emailIsValid)}`}>
           <label
             htmlFor="account-email"
@@ -261,7 +247,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
 
         {/* Department & Position */}
         <div className="grid grid-cols-2 gap-3">
-          {/* Department */}
           <div className="auth-input-container border-border">
             <label
               htmlFor="account-department"
@@ -287,7 +272,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
             </div>
           </div>
 
-          {/* Position */}
           <div className="auth-input-container border-border">
             <label
               htmlFor="account-position"
@@ -352,7 +336,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
               </div>
             </div>
 
-            {/* Save Button */}
             <Button
               variant="primary"
               onClick={handleSave}
