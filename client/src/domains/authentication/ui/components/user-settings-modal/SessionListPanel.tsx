@@ -12,7 +12,48 @@ import { UAParser } from 'ua-parser-js';
 
 import { useUserSessions } from '@domains/users';
 import { Button, Tooltip } from '@shared/ui';
+import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
+
+function parseUserAgent(userAgent: string | undefined) {
+  if (!userAgent) return { device: 'Unknown Device', type: 'desktop' as const };
+
+  const parser = new UAParser(userAgent);
+  const result = parser.getResult();
+
+  const browser = result.browser.name ?? 'Unknown Browser';
+  const browserVersion = result.browser.version?.split('.')[0] ?? '';
+  const os = result.os.name ?? 'Unknown OS';
+  const osVersion = result.os.version ?? '';
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty device type is invalid, default to 'desktop'
+  const deviceType = result.device.type || 'desktop';
+
+  const deviceName = `${browser}${browserVersion ? ' ' + browserVersion : ''} on ${os}${osVersion ? ' ' + osVersion : ''}`;
+
+  return {
+    device: deviceName,
+    type: deviceType as 'desktop' | 'mobile' | 'tablet',
+  };
+}
+
+function formatTimestamp(date: Date) {
+  const relative = formatDistanceToNow(date, { addSuffix: true });
+  const absolute = format(date, 'MMM d, yyyy, h:mm a');
+  return { relative, absolute };
+}
+
+function getDeviceIcon(isCurrentSession: boolean, deviceType: string) {
+  if (isCurrentSession) return MonitorCheck;
+  return deviceType === 'desktop' ? Monitor : TabletSmartphone;
+}
+
+function CurrentSessionBadge() {
+  return (
+    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-light text-success-text mt-1">
+      Current Session
+    </span>
+  );
+}
 
 export function SessionListPanel() {
   const { sessions, isLoading, revokeSession, isRevoking, revokeAll, isRevokingAll } =
@@ -21,40 +62,22 @@ export function SessionListPanel() {
   const [showRevokeAllConfirm, setShowRevokeAllConfirm] = useState(false);
   const [revokingSessionId, setRevokingSessionId] = useState<string | null>(null);
 
-  const parseUserAgent = (userAgent: string | undefined) => {
-    if (!userAgent) return { device: 'Unknown Device', type: 'desktop' };
-
-    const parser = new UAParser(userAgent);
-    const result = parser.getResult();
-
-    const browser = result.browser.name ?? 'Unknown Browser';
-    const browserVersion = result.browser.version?.split('.')[0] ?? '';
-    const os = result.os.name ?? 'Unknown OS';
-    const osVersion = result.os.version ?? '';
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty device type is invalid, default to 'desktop'
-    const deviceType = result.device.type || 'desktop';
-
-    const deviceName = `${browser}${browserVersion ? ' ' + browserVersion : ''} on ${os}${osVersion ? ' ' + osVersion : ''}`;
-
-    return {
-      device: deviceName,
-      type: deviceType as 'desktop' | 'mobile' | 'tablet',
-    };
-  };
-
-  const formatTimestamp = (date: Date) => {
-    const relative = formatDistanceToNow(date, { addSuffix: true });
-    const absolute = format(date, 'MMM d, yyyy, h:mm a');
-    return { relative, absolute };
-  };
-
   const displayedSessions = useMemo(() => {
     const sorted = [...sessions].sort((a, b) => b.lastUsedAt.getTime() - a.lastUsedAt.getTime());
 
     const current = sorted.find(s => s.isCurrentSession);
     const others = sorted.filter(s => !s.isCurrentSession).slice(0, 4);
+    const selected = current ? [current, ...others] : others.slice(0, 5);
 
-    return current ? [current, ...others] : others.slice(0, 5);
+    return selected.map(session => {
+      const parsed = parseUserAgent(session.userAgent);
+      return {
+        ...session,
+        device: parsed.device,
+        DeviceIcon: getDeviceIcon(session.isCurrentSession, parsed.type),
+        timestamp: formatTimestamp(session.lastUsedAt),
+      };
+    });
   }, [sessions]);
 
   const otherSessionsCount = sessions.filter(s => !s.isCurrentSession).length;
@@ -138,167 +161,121 @@ export function SessionListPanel() {
             </tr>
           </thead>
           <tbody className="bg-card divide-y divide-border">
-            {displayedSessions.map(session => {
-              const { device, type } = parseUserAgent(session.userAgent);
-              const DeviceIcon = session.isCurrentSession
-                ? MonitorCheck
-                : type === 'desktop'
-                  ? Monitor
-                  : TabletSmartphone;
-              const timestamp = formatTimestamp(session.lastUsedAt);
-
-              return (
-                <tr
-                  key={session.id}
-                  className={
-                    session.isCurrentSession ? 'bg-muted/50 border-l-4 border-l-success-bg' : ''
-                  }
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center space-x-3">
-                      <DeviceIcon size={16} className="text-muted-foreground flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-card-foreground">{device}</p>
-                        {session.isCurrentSession && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-light text-success-text mt-1">
-                            Current Session
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="text-sm text-secondary-foreground">
-                      {session.ipAddress ?? 'Unknown'}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">
+            {displayedSessions.map(session => (
+              <tr
+                key={session.id}
+                className={
+                  session.isCurrentSession ? 'bg-muted/50 border-l-4 border-l-success-bg' : ''
+                }
+              >
+                <td className="px-4 py-3">
+                  <div className="flex items-center space-x-3">
+                    <session.DeviceIcon size={16} className="text-muted-foreground flex-shrink-0" />
                     <div>
-                      <p className="text-sm text-card-foreground font-medium">
-                        {timestamp.relative}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{timestamp.absolute}</p>
+                      <p className="text-sm font-medium text-card-foreground">{session.device}</p>
+                      {session.isCurrentSession && <CurrentSessionBadge />}
                     </div>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {!session.isCurrentSession && (
-                      <Tooltip content="Logout from this session" side="bottom">
-                        <Button
-                          variant="danger"
-                          size="xs"
-                          onClick={() => handleRevokeSession(session.id)}
-                          disabled={isRevoking}
-                          isLoading={revokingSessionId === session.id}
-                          leftIcon={<LogOut size={12} />}
-                        >
-                          Logout
-                        </Button>
-                      </Tooltip>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <p className="text-sm text-secondary-foreground">
+                    {session.ipAddress ?? 'Unknown'}
+                  </p>
+                </td>
+                <td className="px-4 py-3">
+                  <div>
+                    <p className="text-sm text-card-foreground font-medium">
+                      {session.timestamp.relative}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{session.timestamp.absolute}</p>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  {!session.isCurrentSession && (
+                    <Tooltip content="Logout from this session" side="bottom">
+                      <Button
+                        variant="danger"
+                        size="xs"
+                        onClick={() => handleRevokeSession(session.id)}
+                        disabled={isRevoking}
+                        isLoading={revokingSessionId === session.id}
+                        leftIcon={<LogOut size={12} />}
+                      >
+                        Logout
+                      </Button>
+                    </Tooltip>
+                  )}
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
       {/* Mobile Card View */}
       <div className="md:hidden space-y-3">
-        {displayedSessions.map(session => {
-          const { device, type } = parseUserAgent(session.userAgent);
-          const DeviceIcon = session.isCurrentSession
-            ? MonitorCheck
-            : type === 'desktop'
-              ? Monitor
-              : TabletSmartphone;
-          const timestamp = formatTimestamp(session.lastUsedAt);
-
-          return (
-            <div
-              key={session.id}
-              className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-muted/50 border border-border border-l-4 border-l-success-bg' : 'border border-border bg-card'}`}
-            >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center space-x-3 flex-1 min-w-0">
-                  <DeviceIcon size={20} className="text-muted-foreground flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-card-foreground truncate">{device}</p>
-                    {session.isCurrentSession && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success-light text-success-text mt-1">
-                        Current Session
-                      </span>
-                    )}
-                  </div>
-                </div>
-                {!session.isCurrentSession && (
-                  <Tooltip content="Logout from this session" side="bottom">
-                    <Button
-                      variant="danger"
-                      size="xs"
-                      iconOnly
-                      onClick={() => handleRevokeSession(session.id)}
-                      disabled={isRevoking}
-                      isLoading={revokingSessionId === session.id}
-                      aria-label="Logout from this session"
-                      className="flex-shrink-0 ml-2"
-                    >
-                      <LogOut size={12} />
-                    </Button>
-                  </Tooltip>
-                )}
-              </div>
-              <div className="space-y-1 text-xs text-secondary-foreground">
-                <p>
-                  <span className="font-medium">Location:</span> {session.ipAddress ?? 'Unknown'}
-                </p>
-                <div>
-                  <span className="font-medium">Last Active:</span>
-                  <p className="ml-0 mt-0.5">{timestamp.relative}</p>
-                  <p className="text-[11px] text-muted-foreground ml-0">{timestamp.absolute}</p>
+        {displayedSessions.map(session => (
+          <div
+            key={session.id}
+            className={`rounded-lg p-4 ${session.isCurrentSession ? 'bg-muted/50 border border-border border-l-4 border-l-success-bg' : 'border border-border bg-card'}`}
+          >
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex items-center space-x-3 flex-1 min-w-0">
+                <session.DeviceIcon size={20} className="text-muted-foreground flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-card-foreground truncate">
+                    {session.device}
+                  </p>
+                  {session.isCurrentSession && <CurrentSessionBadge />}
                 </div>
               </div>
+              {!session.isCurrentSession && (
+                <Tooltip content="Logout from this session" side="bottom">
+                  <Button
+                    variant="danger"
+                    size="xs"
+                    iconOnly
+                    onClick={() => handleRevokeSession(session.id)}
+                    disabled={isRevoking}
+                    isLoading={revokingSessionId === session.id}
+                    aria-label="Logout from this session"
+                    className="flex-shrink-0 ml-2"
+                  >
+                    <LogOut size={12} />
+                  </Button>
+                </Tooltip>
+              )}
             </div>
-          );
-        })}
-      </div>
-
-      {/* Confirmation Dialog */}
-      {showRevokeAllConfirm && (
-        <div className="fixed inset-0 bg-[hsl(var(--overlay))] flex items-center justify-center z-50 animate-modal-backdrop-in">
-          <div className="bg-card rounded-lg shadow-xl max-w-md w-full mx-4 animate-modal-blowup-in">
-            <div className="px-6 py-4 border-b border-border">
-              <h3 className="text-lg font-semibold text-card-foreground">
-                Logout All Other Devices?
-              </h3>
-            </div>
-            <div className="px-6 py-4">
-              <p className="text-sm text-secondary-foreground">
-                This will end all other active sessions ({otherSessionsCount} device
-                {otherSessionsCount !== 1 ? 's' : ''}). You will remain logged in on this device.
+            <div className="space-y-1 text-xs text-secondary-foreground">
+              <p>
+                <span className="font-medium">Location:</span> {session.ipAddress ?? 'Unknown'}
               </p>
-            </div>
-            <div className="px-6 py-4 bg-muted flex justify-end space-x-3">
-              <Button
-                variant="secondary"
-                onClick={() => setShowRevokeAllConfirm(false)}
-                disabled={isRevokingAll}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="danger"
-                onClick={handleRevokeAll}
-                isLoading={isRevokingAll}
-                loadingText="Revoking..."
-                leftIcon={<LogOut size={14} />}
-              >
-                Logout All
-              </Button>
+              <div>
+                <span className="font-medium">Last Active:</span>
+                <p className="ml-0 mt-0.5">{session.timestamp.relative}</p>
+                <p className="text-[11px] text-muted-foreground ml-0">
+                  {session.timestamp.absolute}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        ))}
+      </div>
+
+      <ConfirmDialog
+        isOpen={showRevokeAllConfirm}
+        variant="danger"
+        title="Logout All Other Devices?"
+        message={
+          <>
+            This will end all other active sessions ({otherSessionsCount} device
+            {otherSessionsCount !== 1 ? 's' : ''}). You will remain logged in on this device.
+          </>
+        }
+        confirmText="Logout All"
+        onConfirm={handleRevokeAll}
+        onCancel={() => setShowRevokeAllConfirm(false)}
+      />
     </div>
   );
 }

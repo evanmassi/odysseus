@@ -69,23 +69,18 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     setPreference(theme);
   };
 
-  const handleSave = async () => {
-    try {
-      await updateSettings(localSettings, {
-        onSuccess: () => {
-          notifications.success('Settings saved successfully');
-          setOriginalSettings(localSettings);
-          onClose();
-        },
-        onError: (error: Error) => {
-          logger.error('UserSettingsModal save failed', { error });
-          notifications.error(`Failed to save settings: ${error.message}`);
-        },
-      });
-    } catch (error) {
-      logger.error('UserSettingsModal failed to save settings', { error });
-      notifications.error('Failed to save settings');
-    }
+  const handleSave = () => {
+    updateSettings(localSettings, {
+      onSuccess: () => {
+        notifications.success('Settings saved successfully');
+        setOriginalSettings(localSettings);
+        onClose();
+      },
+      onError: (error: Error) => {
+        logger.error('UserSettingsModal save failed', { error });
+        notifications.error(`Failed to save settings: ${error.message}`);
+      },
+    });
   };
 
   const hasChanges = JSON.stringify(localSettings) !== JSON.stringify(originalSettings);
@@ -113,19 +108,18 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
     { id: 'display', label: 'Display', icon: Table2 },
   ] as const;
 
-  const tabs =
-    tabItems.length > 1 ? (
-      <Tabs value={activeTab} onChange={v => setActiveTab(v as 'account' | 'security' | 'display')}>
-        {tabItems.map(tab => {
-          const Icon = tab.icon;
-          return (
-            <Tab key={tab.id} id={tab.id} icon={<Icon size={18} />}>
-              {tab.label}
-            </Tab>
-          );
-        })}
-      </Tabs>
-    ) : undefined;
+  const tabs = (
+    <Tabs value={activeTab} onChange={v => setActiveTab(v as 'account' | 'security' | 'display')}>
+      {tabItems.map(tab => {
+        const Icon = tab.icon;
+        return (
+          <Tab key={tab.id} id={tab.id} icon={<Icon size={18} />}>
+            {tab.label}
+          </Tab>
+        );
+      })}
+    </Tabs>
+  );
 
   const footer = (
     <div className="flex items-center justify-between gap-4">
