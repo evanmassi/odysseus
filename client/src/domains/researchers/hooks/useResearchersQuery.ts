@@ -1,6 +1,7 @@
 /**
- * React Query hooks for researcher data management
- * Provides type-safe server state management with automatic caching and invalidation
+ * Researcher Query Hooks
+ *
+ * Full-list and active-only (approved + active) researcher queries with sorted results.
  */
 
 import { type Researcher, sortByName } from '@odysseus/shared-schemas';
@@ -13,10 +14,6 @@ import { ResearcherService } from '../services/ResearcherService';
 
 import type { UseQueryOptions } from '@tanstack/react-query';
 
-/**
- * Hook to fetch all researchers (basic data only)
- * Use this for dropdowns, forms, and general display
- */
 export function useResearchersQuery(options?: {
   filters?: { active?: boolean; search?: string };
   queryOptions?: Omit<UseQueryOptions<Researcher[]>, 'queryKey' | 'queryFn'>;
@@ -34,12 +31,7 @@ export function useResearchersQuery(options?: {
   });
 }
 
-/**
- * Hook to get visible researchers (approved AND active)
- * Used for dropdowns where only vetted, working researchers should appear
- *
- * Server-side filtering ensures pending researchers don't show in dropdowns
- */
+/** Server-side filtered to approved+active only — pending researchers excluded from dropdowns. */
 export function useActiveResearchersQuery(options?: {
   queryOptions?: Omit<UseQueryOptions<Researcher[], Error, Researcher[]>, 'queryKey' | 'queryFn'>;
 }) {
