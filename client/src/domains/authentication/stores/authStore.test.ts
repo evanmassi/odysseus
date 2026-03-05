@@ -15,7 +15,6 @@ import type { TokenPair } from '../../../shared/session/types';
 const mockAuthService = vi.hoisted(() => ({
   login: vi.fn(),
   register: vi.fn(),
-  verify: vi.fn(),
   logout: vi.fn(),
   checkFirstTime: vi.fn(),
   verifySession: vi.fn(),
@@ -33,8 +32,7 @@ const mockSessionService = vi.hoisted(() => ({
   getTokens: vi.fn(),
 }));
 
-// Mock external dependencies
-vi.mock('../services/AuthenticationService', () => ({
+vi.mock('../services/AuthService', () => ({
   authService: mockAuthService,
   isPasswordChangeRequired: vi.fn(() => false),
 }));
@@ -66,9 +64,6 @@ vi.mock('@infra/api/AuthHttpClient', () => ({
   authHttpClient: {},
 }));
 
-// Import after mocks are set up
-
-// Test data
 const mockUser = {
   id: 'user-1',
   username: 'testuser',

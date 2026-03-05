@@ -24,18 +24,12 @@ import type { AuthDebugInfo } from '../types/debug';
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
 import type { TokenPair, SessionStatus } from '@shared/session/types';
 
-// Re-export User for external consumers
-export type { User };
-
 /** Structured result from login for explicit error handling */
 export type LoginResult =
   | { success: true }
   | { success: false; error: string }
   | { success: 'password_change_required' };
 
-/**
- * Enhanced authentication state
- */
 interface AuthState {
   // Core session data
   user: User | null;
@@ -57,9 +51,6 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-/**
- * Authentication actions (clean API)
- */
 interface AuthActions {
   // Primary authentication methods
   login: (username: string, password: string) => Promise<LoginResult>;
@@ -93,13 +84,11 @@ interface AuthStore extends AuthState, AuthActions {}
 // Initialize session manager with AuthHttpClient to prevent circular dependency
 const sessionStorage = new LocalStorageSessionStorage();
 
-// Create session manager with callback for session expiration
 // Callback pattern: SessionService notifies auth store when session expires
 const sessionManager = new SessionService(
   authHttpClient,
   sessionStorage,
   reason => {
-    // When session expires, clear auth store and trigger UI update
     useAuthStore.getState().clearAuth(reason);
   },
   undefined, // Use default config
@@ -117,12 +106,8 @@ const sessionManager = new SessionService(
   }
 );
 
-// Configure httpClient to use SessionService for automatic token handling
 configureHttpClientWithSessionService(sessionManager);
 
-/**
- * Enhanced authentication store with OAuth 2.0 dual-token architecture
- */
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
@@ -137,7 +122,6 @@ export const useAuthStore = create<AuthStore>()(
       passwordChangeRequired: null,
       passwordChangeSuccess: false,
 
-      // Authentication state (reactive to token changes)
       isAuthenticated: false,
 
       // AUTHENTICATION METHODS
@@ -153,7 +137,6 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const result = await authService.login({ username, password });
 
-          // Check if password change is required
           if (isPasswordChangeRequired(result)) {
             logger.info('Password change required for user', { username: result.user.username });
 
@@ -174,7 +157,6 @@ export const useAuthStore = create<AuthStore>()(
           // Set tokens in session manager (handles HTTP client + storage)
           sessionManager.setTokens(result.tokens);
 
-          // Update store state (Zustand persist automatically saves user)
           set({
             user: userWithActivity,
             tokens: result.tokens,
@@ -240,7 +222,6 @@ export const useAuthStore = create<AuthStore>()(
           // Brief delay to show success animation
           await new Promise(resolve => setTimeout(resolve, 2500));
 
-          // Now complete authentication
           set({
             user: userWithActivity,
             tokens: result.tokens,
@@ -274,9 +255,6 @@ export const useAuthStore = create<AuthStore>()(
         set({ passwordChangeRequired: null, error: null });
       },
 
-      /**
-       * Register new user account
-       */
       register: async (username: string, password: string) => {
         set({ isLoading: true, error: null });
 
@@ -285,13 +263,12 @@ export const useAuthStore = create<AuthStore>()(
 
           const userWithActivity = {
             ...result.user,
-            lastActivity: new Date().toISOString(), // Ensure lastActivity is set
+            lastActivity: new Date().toISOString(),
           };
 
-          // Set tokens in session manager
+          // Set tokens in session manager (handles HTTP client + storage)
           sessionManager.setTokens(result.tokens);
 
-          // Update store state (Zustand persist automatically saves user)
           set({
             user: userWithActivity,
             tokens: result.tokens,
@@ -335,7 +312,6 @@ export const useAuthStore = create<AuthStore>()(
 
             sessionManager.setTokens(result.tokens);
 
-            // Update store state (Zustand persist automatically saves user)
             set({
               user: userWithActivity,
               tokens: result.tokens,
@@ -370,7 +346,6 @@ export const useAuthStore = create<AuthStore>()(
             };
           }
 
-          // Unexpected state
           throw new Error('Invalid registration response status');
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Registration error';
@@ -388,9 +363,6 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      /**
-       * Verify existing session
-       */
       verify: async () => {
         const tokens = sessionManager.getTokens();
         if (!tokens) {
@@ -407,14 +379,12 @@ export const useAuthStore = create<AuthStore>()(
             return false;
           }
 
-          // Verify with backend
           const result = await authService.verifySession();
 
-          // AuthService returns AuthResponse directly
           set({
             user: {
               ...result.user,
-              lastActivity: new Date().toISOString(), // Ensure lastActivity is set
+              lastActivity: new Date().toISOString(),
             },
             tokens: sessionManager.getTokens(),
             sessionStatus: 'authenticated',
@@ -428,9 +398,6 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      /**
-       * Check if this is first-time setup
-       */
       checkFirstTime: async () => {
         try {
           const result = await authService.checkFirstTime();
@@ -441,9 +408,6 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      /**
-       * Logout user and clear session
-       */
       logout: async () => {
         set({ isLoading: true });
 
@@ -461,9 +425,6 @@ export const useAuthStore = create<AuthStore>()(
 
       // SESSION MANAGEMENT
 
-      /**
-       * Update session status from SessionService
-       */
       updateSessionStatus: () => {
         const newStatus = sessionManager.getSessionStatus();
         const currentStatus = get().sessionStatus;
@@ -480,17 +441,15 @@ export const useAuthStore = create<AuthStore>()(
        */
       initializeFromStorage: () => {
         const tokens = sessionManager.getTokens();
-        const user = get().user; // Get from Zustand state (already persisted/rehydrated)
+        const user = get().user;
 
         if (tokens && user) {
-          // Both tokens and user available - restore authenticated session
           set({
             tokens,
             sessionStatus: sessionManager.getSessionStatus(),
             isAuthenticated: true,
           });
         } else {
-          // Missing tokens or user - unauthenticated
           set({
             sessionStatus: 'unauthenticated',
             isAuthenticated: false,
@@ -500,9 +459,6 @@ export const useAuthStore = create<AuthStore>()(
 
       // INTERNAL STATE MANAGEMENT
 
-      /**
-       * Set authentication data (used by login/register)
-       */
       setAuthData: (user: User, tokens: TokenPair) => {
         set({
           user,
@@ -514,11 +470,6 @@ export const useAuthStore = create<AuthStore>()(
         });
       },
 
-      /**
-       * Clear authentication state
-       *
-       * @param reason - Why the session is being cleared (for UX messaging)
-       */
       clearAuth: (reason: 'idle_timeout' | 'token_expired' | 'manual_logout' = 'manual_logout') => {
         // Clear React Query cache so next user gets fresh data (critical for demo isolation)
         clearAllCaches();
@@ -534,31 +485,19 @@ export const useAuthStore = create<AuthStore>()(
         });
       },
 
-      /**
-       * Set loading state
-       */
       setLoading: (loading: boolean) => {
         set({ isLoading: loading });
       },
 
-      /**
-       * Set error state
-       */
       setError: (error: string | null) => {
         set({ error });
       },
 
-      /**
-       * Reset store to initial state
-       */
       reset: () => {
         sessionManager.clearSession();
         get().clearAuth();
       },
 
-      /**
-       * Development debugging information
-       */
       getDebugInfo: () => {
         if (!env.isDev()) {
           return null;
@@ -587,13 +526,11 @@ export const useAuthStore = create<AuthStore>()(
         user: state.user,
       }),
 
-      // Session restoration moved to AppBootstrapService for reliable, predictable initialization
-      // onRehydrateStorage removed - it fires multiple times with unpredictable state
+      // Don't use onRehydrateStorage: fires multiple times with unpredictable state
     }
   )
 );
 
-// Export session manager for HTTP client integration
 export { sessionManager };
 
 // Development-only global debugging (removed in production builds)
