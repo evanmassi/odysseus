@@ -29,21 +29,21 @@ export type {
 export { DEFAULT_SECURITY_CONFIG } from '@odysseus/shared-schemas';
 
 // UI Components
-export { AdminSettingsModal } from './ui/components/AdminSettingsModal';
-export { SystemAdminContent } from './ui/components/SystemAdminContent';
-export { TabSkeleton } from './ui/components/TabSkeleton';
+export { AdminSettingsModal } from './ui/components/settings-modal/AdminSettingsModal';
+export { SystemAdminDashboard } from './ui/components/system-dashboard/SystemAdminDashboard';
+export { TabSkeleton } from './ui/components/settings-modal/TabSkeleton';
 
 // Tab Components
-export { SecurityTab } from './ui/components/tabs/SecurityTab';
-export type { SecurityTabProps } from './ui/components/tabs/SecurityTab';
+export { SecurityTab } from './ui/components/settings-modal/tabs/SecurityTab';
+export type { SecurityTabProps } from './ui/components/settings-modal/tabs/SecurityTab';
 
-export { UsersTab } from './ui/components/tabs/UsersTab';
-export type { UsersTabProps } from './ui/components/tabs/UsersTab';
+export { UsersTab } from './ui/components/settings-modal/tabs/UsersTab';
+export type { UsersTabProps } from './ui/components/settings-modal/tabs/UsersTab';
 
-export { SystemTab } from './ui/components/tabs/SystemTab';
-export type { SystemTabProps } from './ui/components/tabs/SystemTab';
+export { SystemTab } from './ui/components/settings-modal/tabs/SystemTab';
+export type { SystemTabProps } from './ui/components/settings-modal/tabs/SystemTab';
 
-export { MonitoringTab } from './ui/components/tabs/MonitoringTab';
-export type { MonitoringTabProps } from './ui/components/tabs/MonitoringTab';
+export { MonitoringTab } from './ui/components/settings-modal/tabs/MonitoringTab';
+export type { MonitoringTabProps } from './ui/components/settings-modal/tabs/MonitoringTab';
 
-export { CatalogTab } from './ui/components/tabs/CatalogTab';
+export { CatalogTab } from './ui/components/settings-modal/tabs/CatalogTab';

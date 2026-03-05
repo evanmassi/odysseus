@@ -22,8 +22,8 @@ import { AlertBanner, Button, Tab, Tabs, Tooltip } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils';
 
-import { adminService } from '../../services/AdminService';
-import { adminUserService } from '../../services/AdminUserService';
+import { adminService } from '../../../services/AdminService';
+import { adminUserService } from '../../../services/AdminUserService';
 
 import { TabSkeleton } from './TabSkeleton';
 

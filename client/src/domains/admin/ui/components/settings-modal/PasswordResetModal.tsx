@@ -14,7 +14,7 @@ import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 import { notifications } from '@shared/utils/notifications';
 
-import { adminUserService } from '../../services/AdminUserService';
+import { adminUserService } from '../../../services/AdminUserService';
 
 interface PasswordResetModalProps {
   isOpen: boolean;

@@ -17,9 +17,8 @@ import { logger } from '@shared/infrastructure/logger';
 import { Button, Input, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
-import { adminService } from '../../../services/AdminService';
-
-import { DataExportSection } from './DataExportSection';
+import { adminService } from '../../../../services/AdminService';
+import { DataExportForm } from '../DataExportForm';
 
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 
@@ -229,7 +228,7 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
         </div>
       </div>
 
-      <DataExportSection />
+      <DataExportForm />
     </div>
   );
 }

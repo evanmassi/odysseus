@@ -76,7 +76,7 @@ function generateFilename(type: ExportType, format: ExportFormat): string {
   return `odysseus-${type}-${date}.${format}`;
 }
 
-export function DataExportSection() {
+export function DataExportForm() {
   const [selectedType, setSelectedType] = useState<ExportType>('tubes');
   const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('csv');
   const [isExporting, setIsExporting] = useState(false);

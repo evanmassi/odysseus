@@ -56,8 +56,8 @@ import type { PositionKey } from '@shared/types/GridSelection';
 
 import '@shared/styles/base/layout.css';
 
-const SystemAdminContent = lazy(() =>
-  import('@domains/admin').then(m => ({ default: m.SystemAdminContent }))
+const SystemAdminDashboard = lazy(() =>
+  import('@domains/admin').then(m => ({ default: m.SystemAdminDashboard }))
 );
 
 export function Dashboard() {
@@ -75,9 +75,9 @@ export function Dashboard() {
               <div className="text-muted-foreground">Loading...</div>
             </div>
           }
-          name="SystemAdminContent"
+          name="SystemAdminDashboard"
         >
-          <SystemAdminContent />
+          <SystemAdminDashboard />
         </SuspenseBoundary>
       </div>
     );

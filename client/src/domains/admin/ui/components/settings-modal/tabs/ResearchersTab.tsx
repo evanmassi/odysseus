@@ -33,7 +33,7 @@ import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
-import { adminResearcherService } from '../../../services/AdminResearcherService';
+import { adminResearcherService } from '../../../../services/AdminResearcherService';
 import { ResearcherModal } from '../ResearcherModal';
 
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';

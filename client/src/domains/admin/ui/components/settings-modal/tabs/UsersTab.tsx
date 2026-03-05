@@ -43,9 +43,9 @@ import {
   useDeleteUserMutation,
   useDeactivateUserMutation,
   useActivateUserMutation,
-} from '../../../hooks/useUserMutations';
-import { adminResearcherService } from '../../../services/AdminResearcherService';
-import { adminUserService } from '../../../services/AdminUserService';
+} from '../../../../hooks/useUserMutations';
+import { adminResearcherService } from '../../../../services/AdminResearcherService';
+import { adminUserService } from '../../../../services/AdminUserService';
 import { PasswordResetModal } from '../PasswordResetModal';
 import { ResearcherModal } from '../ResearcherModal';
 

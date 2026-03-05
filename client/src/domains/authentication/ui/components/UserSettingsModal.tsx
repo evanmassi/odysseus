@@ -10,7 +10,7 @@ import { Save, Settings, Table2, UserRound, Shield, Info } from 'lucide-react';
 
 import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
-import { TabSkeleton } from '@domains/admin/ui/components/TabSkeleton';
+import { TabSkeleton } from '@domains/admin/ui/components/settings-modal/TabSkeleton';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Tab, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';

@@ -14,7 +14,7 @@ import { Button, Chip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
-import { adminService } from '../../../services/AdminService';
+import { adminService } from '../../../../services/AdminService';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
 

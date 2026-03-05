@@ -16,7 +16,7 @@ import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
 
-import { adminService } from '../../../services/AdminService';
+import { adminService } from '../../../../services/AdminService';
 
 import type { LookupCategory, LookupValueWithCount } from '@odysseus/shared-schemas';
 import type { TableColumn, TableRow, SortConfig } from '@shared/ui';

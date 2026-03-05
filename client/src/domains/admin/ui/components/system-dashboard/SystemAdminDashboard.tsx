@@ -32,13 +32,13 @@ import {
   useDeactivateLabMutation,
   useActivateLabMutation,
   useCreateLabInviteCodeMutation,
-} from '../../hooks/useLabQueries';
+} from '../../../hooks/useLabQueries';
 
-import { LabDetailView } from './LabDetailView';
+import { LabDashboard } from './LabDashboard';
 
 import type { InviteCodeData } from '@odysseus/shared-schemas';
 
-export function SystemAdminContent() {
+export function SystemAdminDashboard() {
   const [selectedLabId, setSelectedLabId] = useState<string | null>(null);
   const { data: labs = [], isLoading: isLabsLoading, refetch } = useLabsQuery();
   const { data: overview, refetch: refetchOverview } = useSystemOverviewQuery();
@@ -122,7 +122,7 @@ export function SystemAdminContent() {
   };
 
   if (selectedLabId) {
-    return <LabDetailView labId={selectedLabId} onBack={() => setSelectedLabId(null)} />;
+    return <LabDashboard labId={selectedLabId} onBack={() => setSelectedLabId(null)} />;
   }
 
   return (

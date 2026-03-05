@@ -51,19 +51,18 @@ import {
   useUnseedDemoMutation,
   useDemoLimitsQuery,
   useUpdateDemoLimitsMutation,
-} from '../../hooks/useLabQueries';
-
-import { AuditLogViewer } from './AuditLogViewer';
+} from '../../../hooks/useLabQueries';
+import { AuditLogViewer } from '../settings-modal/AuditLogViewer';
 
 import type { DemoLimits, LabDetailsUser } from '@odysseus/shared-schemas';
 import type { TableColumn, SortConfig } from '@shared/ui';
 
-interface LabDetailViewProps {
+interface LabDashboardProps {
   labId: string;
   onBack: () => void;
 }
 
-export function LabDetailView({ labId, onBack }: LabDetailViewProps) {
+export function LabDashboard({ labId, onBack }: LabDashboardProps) {
   const currentUserId = useAuthStore(s => s.user?.id);
   const { data: details, isLoading } = useLabDetailsQuery(labId);
   const updateLabMutation = useUpdateLabMutation();
