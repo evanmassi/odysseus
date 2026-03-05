@@ -4,11 +4,11 @@
  * Real-time validation checklist showing which requirements are met as the user types.
  */
 
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 
 import { PasswordValidator, type PasswordRequirement } from '@odysseus/shared-schemas';
 
-import type { PasswordRequirements as PasswordConfig } from '../../../services/AuthService';
+import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthService';
 
 export interface PasswordRequirementsProps {
   password: string;

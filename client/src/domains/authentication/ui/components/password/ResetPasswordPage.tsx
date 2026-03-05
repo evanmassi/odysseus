@@ -3,7 +3,7 @@
  * Token is provided via admin-generated link (no auth required).
  */
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, type ReactNode, type RefObject } from 'react';
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
 
@@ -15,7 +15,37 @@ import { Button } from '@shared/ui';
 
 import { CreatePasswordForm } from './CreatePasswordForm';
 
-export const ResetPasswordPage: React.FC = () => {
+// Enough time to read the success message before redirecting
+const REDIRECT_DELAY_MS = 2500;
+
+function OdysseusLogo({ className = 'mb-1' }: { className?: string }) {
+  return (
+    <div className={`w-24 h-24 mx-auto flex items-center justify-center ${className}`}>
+      <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
+    </div>
+  );
+}
+
+function PageLayout({
+  trapRef,
+  children,
+}: {
+  trapRef: RefObject<HTMLDivElement>;
+  children: ReactNode;
+}) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-muted">
+      <div
+        ref={trapRef}
+        className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
@@ -47,7 +77,7 @@ export const ResetPasswordPage: React.FC = () => {
 
     redirectTimerRef.current = window.setTimeout(() => {
       void navigate('/login');
-    }, 2500);
+    }, REDIRECT_DELAY_MS);
   };
 
   const handleBackToLogin = () => {
@@ -56,88 +86,67 @@ export const ResetPasswordPage: React.FC = () => {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted">
-        <div
-          ref={trapRef}
-          className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
-        >
-          <div className="text-center mb-4">
-            <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
-              <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
-            </div>
-            <h2 className="text-xl font-bold text-danger-text">Invalid Reset Link</h2>
-          </div>
-
-          <p className="text-secondary-foreground mb-6 text-center text-sm">
-            This password reset link is invalid or has expired. Please contact your administrator
-            for a new reset link.
-          </p>
-
-          <Button
-            variant="primary"
-            size="xl"
-            fullWidth
-            onClick={handleBackToLogin}
-            className="shadow-lg font-bold"
-          >
-            Back to Login
-          </Button>
+      <PageLayout trapRef={trapRef}>
+        <div className="text-center mb-4">
+          <OdysseusLogo />
+          <h2 className="text-xl font-bold text-danger-text">Invalid Reset Link</h2>
         </div>
-      </div>
+
+        <p className="text-secondary-foreground mb-6 text-center text-sm">
+          This password reset link is invalid or has expired. Please contact your administrator for
+          a new reset link.
+        </p>
+
+        <Button
+          variant="primary"
+          size="xl"
+          fullWidth
+          onClick={handleBackToLogin}
+          className="shadow-lg font-bold"
+        >
+          Back to Login
+        </Button>
+      </PageLayout>
     );
   }
 
   if (isSuccess) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-muted">
-        <div
-          ref={trapRef}
-          className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
-        >
-          <div className="text-center">
-            <div className="w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-              <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
-            </div>
+      <PageLayout trapRef={trapRef}>
+        <div className="text-center">
+          <OdysseusLogo className="mb-4" />
 
-            <div className="flex justify-center mb-4">
-              <AnimatedCheckmark size={64} className="text-success-text" />
-            </div>
-
-            <h2 className="text-xl font-bold text-success-text mb-2">Password Changed</h2>
-            <p className="text-sm text-muted-foreground">Redirecting to login...</p>
+          <div className="flex justify-center mb-4">
+            <AnimatedCheckmark size={64} className="text-success-text" />
           </div>
+
+          <h2 className="text-xl font-bold text-success-text mb-2">Password Changed</h2>
+          <p className="text-sm text-muted-foreground">Redirecting to login...</p>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted">
-      <div
-        ref={trapRef}
-        className="bg-card rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl shadow-black/10"
-      >
-        <div className="text-center mb-4">
-          <div className="w-24 h-24 mx-auto mb-1 flex items-center justify-center">
-            <img src={odysseusIcon} alt="Odysseus" className="w-full h-full object-contain" />
-          </div>
-          <h2 className="text-xl font-bold text-card-foreground">Create New Password</h2>
-        </div>
-
-        <CreatePasswordForm
-          onSubmit={handleSubmit}
-          onCancel={handleBackToLogin}
-          cancelText="Login"
-          submitText="Reset Password"
-          loadingText="Resetting Password..."
-        />
-
-        <div className="mt-6 pt-4 border-t border-border">
-          <p className="text-xs text-muted-foreground text-center">
-            This reset link expires in 15 minutes and can only be used once.
-          </p>
-        </div>
+    <PageLayout trapRef={trapRef}>
+      <div className="text-center mb-4">
+        <OdysseusLogo />
+        <h2 className="text-xl font-bold text-card-foreground">Create New Password</h2>
       </div>
-    </div>
+
+      <CreatePasswordForm
+        onSubmit={handleSubmit}
+        onCancel={handleBackToLogin}
+        cancelText="Login"
+        submitText="Reset Password"
+        loadingText="Resetting Password..."
+      />
+
+      <div className="mt-6 pt-4 border-t border-border">
+        <p className="text-xs text-muted-foreground text-center">
+          This reset link expires in 15 minutes and can only be used once.
+        </p>
+      </div>
+    </PageLayout>
   );
-};
+}
