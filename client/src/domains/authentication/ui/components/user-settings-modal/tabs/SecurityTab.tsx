@@ -20,11 +20,7 @@ import { SessionListPanel } from '../SessionListPanel';
 
 import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthService';
 
-interface SecurityTabProps {
-  onSaveComplete?: () => void;
-}
-
-export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
+export function SecurityTab() {
   const user = useAuthStore(state => state.user);
   const isDemo = user?.isDemo ?? false;
   const { changePassword, isChanging, reset } = useChangePassword();
@@ -33,7 +29,6 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [_currentPasswordTouched, setCurrentPasswordTouched] = useState(false);
   const [newPasswordTouched, setNewPasswordTouched] = useState(false);
   const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false);
 
@@ -117,15 +112,11 @@ export function SecurityTab({ onSaveComplete }: SecurityTabProps) {
           setCurrentPassword('');
           setNewPassword('');
           setConfirmPassword('');
-          setCurrentPasswordTouched(false);
           setNewPasswordTouched(false);
           setConfirmPasswordTouched(false);
           setCurrentPasswordError(null);
           setShowSuccess(true);
           reset();
-          if (onSaveComplete) {
-            onSaveComplete();
-          }
         },
         onError: (error: Error) => {
           logger.error('SecurityTab password change failed', { error });

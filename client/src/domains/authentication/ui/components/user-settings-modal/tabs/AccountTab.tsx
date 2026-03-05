@@ -23,6 +23,16 @@ import { notifications } from '@shared/utils';
 
 import type { UpdatePersonProfileWithPassword } from '@domains/users/services/PersonService';
 
+function getFieldBorderClass(touched: boolean, isValid: boolean) {
+  if (!touched) return 'border-border';
+  return isValid ? 'border-2 border-success-border' : 'input-field-error';
+}
+
+function getLabelColorClass(touched: boolean, isValid: boolean) {
+  if (!touched) return 'text-secondary-foreground';
+  return isValid ? 'text-success-text' : 'text-danger-text';
+}
+
 interface AccountTabProps {
   onSaveComplete?: () => void;
 }
@@ -54,16 +64,6 @@ export function AccountTab({ onSaveComplete }: AccountTabProps) {
       setPosition(profile.position ?? '');
     }
   }, [profile]);
-
-  const getFieldBorderClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'border-border';
-    return isValid ? 'border-2 border-success-border' : 'input-field-error';
-  };
-
-  const getLabelColorClass = (touched: boolean, isValid: boolean) => {
-    if (!touched) return 'text-secondary-foreground';
-    return isValid ? 'text-success-text' : 'text-danger-text';
-  };
 
   const emailIsValid = useMemo(() => {
     if (!email.trim()) return false;
