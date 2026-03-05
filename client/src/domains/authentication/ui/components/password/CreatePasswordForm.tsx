@@ -18,19 +18,12 @@ import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { PasswordRequirements } from './PasswordRequirements';
 
 export interface CreatePasswordFormProps {
-  /** Called when form is submitted with valid password */
   onSubmit: (newPassword: string) => Promise<void>;
-  /** Optional cancel/back action */
   onCancel?: () => void;
-  /** Text for cancel link (default: "Login") */
   cancelText?: string;
-  /** Text for submit button (default: "Set New Password") */
   submitText?: string;
-  /** Loading text for submit button (default: "Changing Password...") */
   loadingText?: string;
-  /** External error message to display */
   error?: string | null;
-  /** Clear external error when user starts typing */
   onErrorClear?: () => void;
 }
 
@@ -70,7 +63,6 @@ export function CreatePasswordForm({
     return confirmPassword.length > 0 && newPassword === confirmPassword;
   }, [newPassword, confirmPassword]);
 
-  // Validation state for new password
   const newPasswordValidationState = useMemo(() => {
     if (!newPassword) return 'default' as const;
     if (passwordMeetsRequirements) return 'success' as const;
@@ -78,7 +70,6 @@ export function CreatePasswordForm({
     return 'default' as const;
   }, [newPassword, passwordMeetsRequirements, newPasswordTouched]);
 
-  // Validation state for confirm password
   const confirmPasswordValidationState = useMemo(() => {
     if (!confirmPassword) return 'default' as const;
     if (passwordsMatch && passwordMeetsRequirements) return 'success' as const;
@@ -136,11 +127,9 @@ export function CreatePasswordForm({
 
   return (
     <>
-      {/* Error Banner */}
       {displayError && <AlertBanner variant="error">{displayError}</AlertBanner>}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* New Password */}
         <AuthInput
           id="newPassword"
           type="password"
@@ -157,7 +146,6 @@ export function CreatePasswordForm({
           autoFocus
         />
 
-        {/* Password Requirements */}
         {passwordConfig && (
           <PasswordRequirements
             password={newPassword}
@@ -167,7 +155,6 @@ export function CreatePasswordForm({
           />
         )}
 
-        {/* Confirm Password */}
         <AuthInput
           id="confirmPassword"
           type="password"

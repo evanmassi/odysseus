@@ -21,7 +21,6 @@ export const ResetPasswordPage: React.FC = () => {
   const token = searchParams.get('token');
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // Timer ref for cleanup on unmount
   const redirectTimerRef = useRef<number | null>(null);
 
   // Focus trap for the modal-like card
@@ -30,7 +29,6 @@ export const ResetPasswordPage: React.FC = () => {
     restoreFocus: true,
   });
 
-  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
       if (redirectTimerRef.current !== null) {
@@ -47,7 +45,6 @@ export const ResetPasswordPage: React.FC = () => {
     await authService.resetPasswordWithToken(token, newPassword);
     setIsSuccess(true);
 
-    // Redirect to login after showing success confirmation
     redirectTimerRef.current = window.setTimeout(() => {
       void navigate('/login');
     }, 2500);
@@ -57,7 +54,6 @@ export const ResetPasswordPage: React.FC = () => {
     void navigate('/login');
   };
 
-  // Invalid or missing token
   if (!token) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted">
@@ -91,7 +87,6 @@ export const ResetPasswordPage: React.FC = () => {
     );
   }
 
-  // Success view after password reset
   if (isSuccess) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted">
@@ -137,7 +132,6 @@ export const ResetPasswordPage: React.FC = () => {
           loadingText="Resetting Password..."
         />
 
-        {/* Help Text */}
         <div className="mt-6 pt-4 border-t border-border">
           <p className="text-xs text-muted-foreground text-center">
             This reset link expires in 15 minutes and can only be used once.

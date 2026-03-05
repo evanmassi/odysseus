@@ -1,8 +1,7 @@
 /**
- * PasswordRequirements Component
+ * Password Requirement Checklist
  *
- * Real-time password validation checklist that shows users which
- * password requirements are met as they type.
+ * Real-time validation checklist showing which requirements are met as the user types.
  */
 
 import React, { useMemo } from 'react';
@@ -14,16 +13,10 @@ import type { PasswordRequirements as PasswordConfig } from '../../../services/A
 export interface PasswordRequirementsProps {
   password: string;
   config: PasswordConfig;
-  showError?: boolean; // Show red error state when true
+  showError?: boolean;
   className?: string;
 }
 
-/**
- * PasswordRequirements Component
- *
- * Displays real-time password validation as a simple bullet list.
- * Shows green when met, gray when unmet, red when error state active.
- */
 export function PasswordRequirements({
   password,
   config,
