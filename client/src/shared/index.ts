@@ -41,8 +41,3 @@ export * from './stores';
 export * from './ui';
 
 // Note: Design system tokens accessible via './ui' re-export
-
-// Client-side validation schemas - REMOVED (migrated to @odysseus/shared-schemas)
-
-// Grid utilities
-export * from './types/GridLayout';
