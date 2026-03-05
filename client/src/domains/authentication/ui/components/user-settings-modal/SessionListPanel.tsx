@@ -273,6 +273,7 @@ export function SessionListPanel() {
           </>
         }
         confirmText="Logout All"
+        isLoading={isRevokingAll}
         onConfirm={handleRevokeAll}
         onCancel={() => setShowRevokeAllConfirm(false)}
       />

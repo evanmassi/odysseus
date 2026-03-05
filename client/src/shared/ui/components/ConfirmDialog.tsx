@@ -118,13 +118,9 @@ export function ConfirmDialog({
 
   const handleConfirm = useCallback(() => {
     if (!isLoading) {
-      // Call the confirm handler, then trigger close animation
-      // Note: If onConfirm is async, the dialog closes immediately after calling it
-      // For proper async handling, the caller should manage loading state
       onConfirm();
-      triggerClose();
     }
-  }, [isLoading, onConfirm, triggerClose]);
+  }, [isLoading, onConfirm]);
 
   // Focus trap for keyboard accessibility
   const trapRef = useFocusTrap({
