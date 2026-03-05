@@ -47,12 +47,10 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
     platform: string;
   } | null>(null);
 
-  // Sync input when currentLab changes
   useEffect(() => {
     setLabNameInput(currentLab?.name ?? '');
   }, [currentLab?.name]);
 
-  // Fetch version info on mount
   useEffect(() => {
     async function fetchVersionInfo() {
       try {
@@ -111,14 +109,12 @@ export function SystemTab({ config, stats, onChange, onTabFooter }: SystemTabPro
       // Use dedicated system settings endpoint - only updates labName, preserves all equipment
       await httpClient.put('/configuration/system', { labName: trimmedName });
 
-      // Invalidate React Query cache to refetch updated data
       void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
 
       notifications.success('Lab name updated successfully');
       setIsEditingLabName(false);
     } catch {
       notifications.error('Failed to update lab name');
-      // Revert input on error
       setLabNameInput(currentLab?.name ?? '');
     } finally {
       setIsSavingLabName(false);

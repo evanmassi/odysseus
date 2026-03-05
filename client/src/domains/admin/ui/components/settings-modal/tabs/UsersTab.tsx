@@ -1,15 +1,7 @@
 /**
- * Users Tab Component
+ * Users Tab
  *
- * Provides admin interface for managing users including:
- * - Viewing all users with details (username, role, last activity)
- * - Changing user roles (admin/user)
- * - Deleting users
- * - Creating invite codes for new users
- *
- * Part of the Admin Settings modal tab system.
- *
- * @module admin/ui/components/tabs
+ * Admin interface for user management, role assignment, and researcher linking.
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -58,35 +50,12 @@ const ROLE_OPTIONS = [
   { value: 'lab_admin', label: 'Lab Admin' },
 ];
 
-/**
- * UsersTab Props Interface
- *
- * @interface UsersTabProps
- */
 export interface UsersTabProps {
   users: AdminUser[];
   onUserUpdate: () => void;
   readOnly?: boolean;
 }
 
-/**
- * Users Tab Component
- *
- * Renders user management interface with table of users and invite code section.
- * All user modifications (role changes, deletions) are performed via adminService
- * and trigger onUserUpdate callback to refresh the list.
- *
- * @param {UsersTabProps} props - Component props
- * @returns {JSX.Element} User management interface
- *
- * @example
- * ```tsx
- * <UsersTab
- *   users={users}
- *   onUserUpdate={loadUsers}
- * />
- * ```
- */
 export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTabProps) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [pendingUsers, setPendingUsers] = useState<AdminUser[]>([]);
@@ -118,16 +87,10 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   const activateUserMutation = useActivateUserMutation();
   const queryClient = useQueryClient();
 
-  /**
-   * Load pending users on component mount and when user list updates
-   */
   useEffect(() => {
     void loadPendingUsers();
   }, [users]);
 
-  /**
-   * Fetch all pending users awaiting approval
-   */
   const loadPendingUsers = async () => {
     setLoadingPending(true);
     try {
@@ -143,10 +106,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     }
   };
 
-  /**
-   * Update user role (admin/user)
-   * Shows loading state during update and refreshes list on success
-   */
   const updateUserRole = async (userId: string, newRole: 'lab_admin' | 'user') => {
     setUpdating(userId);
     try {
@@ -167,17 +126,10 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     }
   };
 
-  /**
-   * Delete user - opens confirmation dialog
-   */
   const handleDeleteUser = (userId: string, username: string) => {
     setConfirmDialog({ type: 'delete', userId, username });
   };
 
-  /**
-   * Execute user deletion after confirmation
-   * Uses mutation hook for proper cache invalidation (users list + storage config)
-   */
   const executeDeleteUser = (userId: string, username: string) => {
     deleteUserMutation.mutate(userId, {
       onSuccess: () => {
@@ -192,10 +144,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     });
   };
 
-  /**
-   * Approve pending user
-   * User gains access to the system after approval
-   */
   const approveUser = async (userId: string, username: string) => {
     setProcessingApproval(userId);
     try {
@@ -219,17 +167,10 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     }
   };
 
-  /**
-   * Reject pending user - opens confirmation dialog
-   */
   const rejectUser = (userId: string, username: string) => {
     setConfirmDialog({ type: 'reject', userId, username });
   };
 
-  /**
-   * Execute user rejection after confirmation
-   * User is denied access to the system
-   */
   const executeRejectUser = async (userId: string, username: string) => {
     setProcessingApproval(userId);
     try {
@@ -280,17 +221,10 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     }
   };
 
-  /**
-   * Unlink researcher profile from user - opens confirmation dialog
-   */
   const unlinkResearcher = (userId: string, username: string) => {
     setConfirmDialog({ type: 'unlink', userId, username });
   };
 
-  /**
-   * Execute unlink after confirmation
-   * Preserves researcher record for tube history
-   */
   const executeUnlinkResearcher = async (userId: string, username: string) => {
     setUpdating(userId);
     try {
@@ -314,13 +248,9 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     }
   };
 
-  /**
-   * Open link researcher modal
-   */
   const openLinkModal = async (user: { id: string; username: string }) => {
     setResearcherModalData(user);
     setIsResearcherModalOpen(true);
-    // Load unlinked researchers
     try {
       const response = await adminResearcherService.getUnlinkedResearchers();
       if (response.success) {
@@ -333,9 +263,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     }
   };
 
-  /**
-   * Link existing researcher to user
-   */
   const handleLinkExisting = async (researcherId: string) => {
     if (!researcherModalData) return;
 
@@ -343,9 +270,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     await onUserUpdate(); // Make sure to await the update
   };
 
-  /**
-   * Create new researcher and link to user
-   */
   const handleCreateAndLink = async (data: CreateResearcherProfile) => {
     if (!researcherModalData) return;
 
@@ -378,7 +302,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
     });
   }, [users, sortConfig]);
 
-  // Define table columns
   const userColumns: TableColumn<TableRow>[] = [
     {
       id: 'user',
@@ -609,7 +532,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
 
   return (
     <div className="space-y-2">
-      {/* Header with Refresh Button */}
       <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
         <div className="flex items-center space-x-2">
           <UsersRound size={22} className="text-secondary-foreground" />
@@ -629,7 +551,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         )}
       </div>
 
-      {/* Pending Approvals Section */}
       {!readOnly && pendingUsers.length > 0 && (
         <div className="bg-muted border-l-4 border-l-warning-border rounded-lg shadow-sm p-3">
           <div className="flex items-center gap-2 mb-3">
@@ -683,7 +604,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         </div>
       )}
 
-      {/* All Users Table */}
       <Table
         columns={readOnly ? userColumns.filter(c => c.id !== 'actions') : userColumns}
         data={(sortedUsers ?? []) as TableRow[]}
@@ -698,7 +618,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         aria-label="Users list"
       />
 
-      {/* Link Researcher Modal */}
       {researcherModalData && (
         <ResearcherModal
           isOpen={isResearcherModalOpen}
@@ -715,7 +634,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         />
       )}
 
-      {/* Password Reset Modal */}
       {passwordResetModalData && (
         <PasswordResetModal
           isOpen={isPasswordResetModalOpen}
@@ -729,7 +647,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         />
       )}
 
-      {/* Confirmation Dialog */}
       {confirmDialog && (
         <ConfirmDialog
           isOpen={true}

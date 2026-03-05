@@ -1,16 +1,7 @@
 /**
- * Monitoring Tab Component
+ * Monitoring Tab
  *
- * Provides admin interface for system monitoring and audit trail viewing.
- * Displays:
- * - Audit log retention settings and metrics
- * - Audit log with filtering and search
- * - System activity tracking
- * - User action history
- *
- * Part of the Admin Settings modal tab system.
- *
- * @module admin/ui/components/tabs
+ * Audit log viewer with retention settings and archive controls.
  */
 
 import { Activity } from 'lucide-react';

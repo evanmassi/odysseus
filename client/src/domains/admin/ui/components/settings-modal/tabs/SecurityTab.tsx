@@ -1,14 +1,7 @@
 /**
- * Security Settings Tab Component
+ * Security Settings Tab
  *
- * Provides admin interface for configuring security policies including:
- * - Authentication settings (enhanced auth, password requirements)
- * - Session management (timeouts, concurrent sessions)
- * - Rate limiting (brute force protection)
- *
- * Part of the Admin Settings modal tab system.
- *
- * @module admin/ui/components/tabs
+ * Admin controls for authentication, session management, and rate limiting policies.
  */
 
 import { Shield } from 'lucide-react';
@@ -17,43 +10,15 @@ import { AlertBanner, NumberInput, Toggle } from '@shared/ui';
 
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
-/**
- * SecurityTab Props Interface
- *
- * @interface SecurityTabProps
- */
 export interface SecurityTabProps {
-  /** Current security configuration */
   config: SecurityConfig;
-
-  /** Callback invoked when any security setting is changed */
   onChange: (field: keyof SecurityConfig, value: boolean | number | string) => void;
-
-  /** When true, all controls are disabled (lab admins can view but not edit) */
   readOnly?: boolean;
 }
 
-/**
- * Security Tab Component
- *
- * Renders form controls for all security-related settings. Changes are
- * propagated up via onChange callback for parent component to manage state.
- *
- * @param {SecurityTabProps} props - Component props
- * @returns {JSX.Element} Security settings form
- *
- * @example
- * ```tsx
- * <SecurityTab
- *   config={currentConfig}
- *   onChange={(field, value) => setConfig({...config, [field]: value})}
- * />
- * ```
- */
 export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabProps) {
   return (
     <div className="space-y-2">
-      {/* Header */}
       <div className="flex items-center space-x-2 pb-3 border-b border-border mb-4">
         <Shield size={22} className="text-secondary-foreground" />
         <h3 className="text-xl font-semibold text-card-foreground">Security</h3>
@@ -65,14 +30,12 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
         </AlertBanner>
       )}
 
-      {/* Authentication Settings Section */}
       <div>
         <h4 className="text-base font-semibold text-card-foreground mb-2">
           Authentication Settings
         </h4>
         <div className="space-y-1.5">
           <div className="grid grid-cols-2 gap-1.5">
-            {/* Enhanced Authentication Toggle */}
             <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
               <div>
                 <h5 className="text-sm font-medium text-card-foreground">
@@ -88,7 +51,6 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
               />
             </div>
 
-            {/* Strong Password Requirements Toggle */}
             <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
               <div>
                 <h5 className="text-sm font-medium text-card-foreground">Strong Passwords</h5>
@@ -143,11 +105,9 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
         </div>
       </div>
 
-      {/* Session Management Section */}
       <div>
         <h4 className="text-base font-semibold text-card-foreground mb-2">Session Management</h4>
         <div className="grid grid-cols-2 gap-1.5">
-          {/* Auto-Logout */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
               <h5 className="text-sm font-medium text-card-foreground">Auto-Logout</h5>
@@ -167,7 +127,6 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
             </div>
           </div>
 
-          {/* Logout Warning */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
               <h5 className="text-sm font-medium text-card-foreground">Logout Warning</h5>
@@ -187,7 +146,6 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
             </div>
           </div>
 
-          {/* Max Login Time */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
               <h5 className="text-sm font-medium text-card-foreground">Max Login Time</h5>
@@ -207,7 +165,6 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
             </div>
           </div>
 
-          {/* Token Lifetime */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
               <h5 className="text-sm font-medium text-card-foreground">Token Lifetime</h5>
@@ -229,11 +186,9 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
         </div>
       </div>
 
-      {/* Rate Limiting Section */}
       <div>
         <h4 className="text-base font-semibold text-card-foreground mb-2">Rate Limiting</h4>
         <div className="space-y-1.5">
-          {/* Enable Rate Limiting Toggle */}
           <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
             <div>
               <h5 className="text-sm font-medium text-card-foreground">Enable Rate Limiting</h5>
@@ -247,10 +202,8 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
             />
           </div>
 
-          {/* Conditional Rate Limiting Configuration */}
           {config.enableRateLimiting && (
             <div className="grid grid-cols-2 gap-1.5">
-              {/* Max Login Attempts Input */}
               <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
                 <div>
                   <h5 className="text-sm font-medium text-card-foreground">Max Attempts/Minute</h5>
@@ -270,7 +223,6 @@ export function SecurityTab({ config, onChange, readOnly = false }: SecurityTabP
                 </div>
               </div>
 
-              {/* Lockout Duration Input */}
               <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">
                 <div>
                   <h5 className="text-sm font-medium text-card-foreground">Lockout Duration</h5>

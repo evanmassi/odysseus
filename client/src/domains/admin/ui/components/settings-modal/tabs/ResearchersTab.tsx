@@ -1,14 +1,7 @@
 /**
- * Researchers Tab Component
+ * Researchers Tab
  *
- * Provides admin interface for managing researcher profiles including:
- * - Viewing all researchers with metadata (tube counts, linked users)
- * - Deleting orphaned researchers (zero tubes + no linked user)
- * - Visual indicators for deletion eligibility
- *
- * Part of the Admin Settings modal tab system.
- *
- * @module admin/ui/components/tabs
+ * Admin interface for researcher profiles, status management, and deletion.
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -39,33 +32,12 @@ import { ResearcherModal } from '../ResearcherModal';
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';
 import type { TableColumn, TableRow, SortConfig } from '@shared/ui';
 
-/**
- * ResearchersTab Props Interface
- *
- * @interface ResearchersTabProps
- */
 export interface ResearchersTabProps {
   onResearcherUpdate?: () => void;
   onTabFooter?: (footer: React.ReactNode) => void;
   readOnly?: boolean;
 }
 
-/**
- * Researchers Tab Component
- *
- * Renders researcher management interface with table of researchers and deletion controls.
- * All researcher modifications (deletions) are performed via adminResearcherService.
- *
- * @param {ResearchersTabProps} props - Component props
- * @returns {JSX.Element} Researcher management interface
- *
- * @example
- * ```tsx
- * <ResearchersTab
- *   onResearcherUpdate={loadResearchers}
- * />
- * ```
- */
 export function ResearchersTab({
   onResearcherUpdate,
   onTabFooter,
@@ -84,9 +56,6 @@ export function ResearchersTab({
   const [sortConfig, setSortConfig] = useState<SortConfig | undefined>(undefined);
   const currentUserId = useAuthStore(s => s.user?.id);
 
-  /**
-   * Load researchers on component mount
-   */
   useEffect(() => {
     void loadResearchers();
   }, []);
@@ -132,10 +101,6 @@ export function ResearchersTab({
     }
   };
 
-  /**
-   * Delete researcher - opens confirmation dialog
-   * Only allowed if researcher has zero tubes AND no linked user
-   */
   const deleteResearcher = (researcherId: string, researcherName: string) => {
     const researcher = researchers.find(r => r.id === researcherId);
 
@@ -234,16 +199,10 @@ export function ResearchersTab({
     }
   };
 
-  /**
-   * Check if researcher can be safely deleted
-   */
   const canDelete = (researcher: AdminResearcher): boolean => {
     return researcher.tubeCount === 0 && !researcher.linkedUserId;
   };
 
-  /**
-   * Get deletion status message
-   */
   const getDeletionStatus = (researcher: AdminResearcher): string => {
     if (researcher.tubeCount > 0 && researcher.linkedUserId) {
       return `Has ${researcher.tubeCount} tubes and linked to user`;
@@ -257,18 +216,12 @@ export function ResearchersTab({
     return 'Can be deleted';
   };
 
-  /**
-   * Create new researcher
-   */
   const handleCreateResearcher = async (data: CreateResearcherProfile) => {
     await adminResearcherService.createResearcher(data);
     await loadResearchers();
     onResearcherUpdate?.();
   };
 
-  /**
-   * Sort researchers based on current sort configuration
-   */
   const sortedResearchers = useMemo(() => {
     if (!sortConfig) return researchers;
 
@@ -291,7 +244,6 @@ export function ResearchersTab({
     });
   }, [researchers, sortConfig]);
 
-  // Define table columns
   const researcherColumns: TableColumn<TableRow>[] = [
     {
       id: 'researcher',
@@ -472,7 +424,6 @@ export function ResearchersTab({
 
   return (
     <div className="space-y-2">
-      {/* Header with Add and Refresh Buttons */}
       <div className="flex items-center justify-between pb-3 border-b border-border mb-4">
         <div className="flex items-center space-x-2">
           <Dna size={22} className="text-secondary-foreground" />
@@ -500,7 +451,6 @@ export function ResearchersTab({
         )}
       </div>
 
-      {/* Researchers Table */}
       <Table
         columns={readOnly ? researcherColumns.filter(c => c.id !== 'actions') : researcherColumns}
         data={sortedResearchers as TableRow[]}
@@ -517,7 +467,6 @@ export function ResearchersTab({
         aria-label="Researchers list"
       />
 
-      {/* Add Researcher Modal */}
       <ResearcherModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
@@ -527,7 +476,6 @@ export function ResearchersTab({
         onLinkExisting={async () => {}}
       />
 
-      {/* Confirmation Dialog */}
       {confirmDialog && (
         <ConfirmDialog
           isOpen={true}
