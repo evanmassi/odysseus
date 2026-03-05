@@ -40,13 +40,13 @@ interface PasswordResetModalProps {
   onSuccess: () => void;
 }
 
-export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
+export function PasswordResetModal({
   isOpen,
   userId,
   username,
   onClose,
   onSuccess,
-}) => {
+}: PasswordResetModalProps) {
   const [activeTab, setActiveTab] = useState<'direct' | 'token'>('direct');
   const [newPassword, setNewPassword] = useState('');
   const [requirePasswordChange, setRequirePasswordChange] = useState(true);
@@ -251,4 +251,4 @@ export const PasswordResetModal: React.FC<PasswordResetModalProps> = ({
       </div>
     </BaseModal>
   );
-};
+}

@@ -314,7 +314,6 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       tabOrientation="vertical"
       footer={footer}
       tabFooter={tabFooter}
-      tabSidebarFooter={undefined}
       className="h-[85vh]"
       onClose={handleClose}
     >

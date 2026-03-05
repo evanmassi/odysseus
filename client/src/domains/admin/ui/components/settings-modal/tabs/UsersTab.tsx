@@ -59,7 +59,6 @@ export interface UsersTabProps {
 export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTabProps) {
   const [updating, setUpdating] = useState<string | null>(null);
   const [pendingUsers, setPendingUsers] = useState<AdminUser[]>([]);
-  const [_loadingPending, setLoadingPending] = useState(false);
   const [processingApproval, setProcessingApproval] = useState<string | null>(null);
   // Modal state: separate data from visibility for exit animations
   const [researcherModalData, setResearcherModalData] = useState<{
@@ -92,17 +91,13 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
   }, [users]);
 
   const loadPendingUsers = async () => {
-    setLoadingPending(true);
     try {
       const response = await adminUserService.getPendingUsers();
       if (response.success) {
         setPendingUsers(response.users);
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to load pending users', { error });
-    } finally {
-      setLoadingPending(false);
     }
   };
 
@@ -159,7 +154,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         notifications.error('Failed to approve user');
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to approve user', { error });
       notifications.error('Failed to approve user');
     } finally {
@@ -186,7 +180,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         setConfirmDialog(null);
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to reject user', { error });
       notifications.error('Failed to reject user');
       setConfirmDialog(null);
@@ -239,7 +232,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         setConfirmDialog(null);
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to unlink researcher', { error });
       notifications.error('Failed to unlink researcher');
       setConfirmDialog(null);
@@ -257,7 +249,6 @@ export function UsersTab({ users = [], onUserUpdate, readOnly = false }: UsersTa
         setUnlinkedResearchers(response.researchers);
       }
     } catch (error) {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
       logger.error('Failed to load unlinked researchers', { error });
       notifications.error('Failed to load available researchers');
     }
