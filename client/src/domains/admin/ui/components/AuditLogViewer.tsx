@@ -29,7 +29,7 @@ import { Button, Table, Tooltip } from '@shared/ui';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';
 
-import type { Pagination } from '@domains/admin/types/metrics';
+import type { Pagination } from '@domains/admin/types/auditTypes';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { TableColumn, TableRow } from '@shared/ui';
 

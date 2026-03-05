@@ -21,7 +21,7 @@ import { auditService } from '@domains/admin/services/AuditService';
 import { logger } from '@shared/infrastructure/logger';
 import { Button } from '@shared/ui';
 
-import type { RetentionMetrics, RetentionPolicy } from '@domains/admin/types/metrics';
+import type { RetentionMetrics, RetentionPolicy } from '@domains/admin/types/auditTypes';
 
 interface AuditRetentionSettingsProps {
   defaultCollapsed?: boolean;

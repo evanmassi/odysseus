@@ -7,7 +7,7 @@
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 
-import { buildAuditFilterParams } from './buildAuditFilterParams';
+import { buildAuditFilterParams } from '../utils/auditLogFilterParams';
 
 import type {
   LabData,

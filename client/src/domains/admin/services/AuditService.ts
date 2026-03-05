@@ -7,9 +7,9 @@
 import { httpClient } from '@infra/api/httpClient';
 import { logger } from '@shared/infrastructure/logger';
 
-import { buildAuditFilterParams } from './buildAuditFilterParams';
+import { buildAuditFilterParams } from '../utils/auditLogFilterParams';
 
-import type { Pagination, RetentionMetrics, RetentionPolicy } from '../types/metrics';
+import type { Pagination, RetentionMetrics, RetentionPolicy } from '../types/auditTypes';
 import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 
 export class AuditService {
