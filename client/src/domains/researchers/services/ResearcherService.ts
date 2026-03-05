@@ -15,7 +15,6 @@ import {
   createResearcherProfileSchema,
   updateResearcherProfileSchema,
 } from '@odysseus/shared-schemas';
-import { z } from 'zod';
 
 import { httpClient } from '@infra/api/httpClient';
 
@@ -105,16 +104,5 @@ export class ResearcherService {
    */
   static async delete(id: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${id}`);
-  }
-
-  /**
-   * Get tube count for a researcher
-   */
-  static async getTubeCount(id: string): Promise<number> {
-    const response = await httpClient.getData(
-      `${this.BASE_PATH}/${id}/tubes/count`,
-      z.object({ tubeCount: z.number() })
-    );
-    return response.tubeCount;
   }
 }

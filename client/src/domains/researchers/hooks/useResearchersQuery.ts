@@ -3,20 +3,11 @@
  * Provides type-safe server state management with automatic caching and invalidation
  */
 
-import {
-  type Researcher,
-  type AdminResearcher,
-  type CreateResearcherProfile,
-  type UpdateResearcherProfile,
-  formatResearcherDropdownDisplay,
-  formatResearcherListDisplay,
-  sortByName,
-} from '@odysseus/shared-schemas';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { type Researcher, sortByName } from '@odysseus/shared-schemas';
+import { useQuery } from '@tanstack/react-query';
 
 import { DOMAIN_QUERY_OPTIONS } from '@app/cache/queryClient';
 import { queryKeys } from '@app/cache/queryKeys';
-import { notifications } from '@shared/utils/notifications';
 
 import { ResearcherService } from '../services/ResearcherService';
 
@@ -40,103 +31,6 @@ export function useResearchersQuery(options?: {
     },
     ...DOMAIN_QUERY_OPTIONS.researchers,
     ...queryOptions,
-  });
-}
-
-/**
- * Hook to fetch a single researcher by ID
- */
-export function useResearcherQuery(
-  researcherId: string,
-  options?: {
-    queryOptions?: Omit<UseQueryOptions<AdminResearcher>, 'queryKey' | 'queryFn'>;
-  }
-) {
-  return useQuery({
-    queryKey: queryKeys.researchers.detail(researcherId),
-    queryFn: () => ResearcherService.get(researcherId),
-    staleTime: 10 * 60 * 1000,
-    enabled: !!researcherId,
-    ...options?.queryOptions,
-  });
-}
-
-/**
- * Hook for creating a new researcher
- * Uses profile-only schema - separates profile data from auth/permissions
- */
-export function useCreateResearcherMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (researcherData: CreateResearcherProfile) =>
-      ResearcherService.create(researcherData),
-    onSuccess: newResearcher => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-      notifications.success(
-        `Researcher "${formatResearcherDropdownDisplay(newResearcher)}" created successfully`
-      );
-    },
-    onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to create researcher: ${message}`);
-    },
-  });
-}
-
-/**
- * Hook for updating an existing researcher
- * Uses profile-only schema - separates profile data from auth/permissions
- */
-export function useUpdateResearcherMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateResearcherProfile }) =>
-      ResearcherService.update(id, data),
-    onSuccess: (updatedResearcher, variables) => {
-      queryClient.setQueryData(
-        queryKeys.researchers.detail(updatedResearcher.id),
-        updatedResearcher
-      );
-      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-
-      // Show appropriate success message based on what was updated
-      if (variables.data.active !== undefined) {
-        const action = variables.data.active ? 'reactivated' : 'deactivated';
-        notifications.success(
-          `Researcher "${formatResearcherListDisplay(updatedResearcher)}" ${action} successfully`
-        );
-      } else {
-        notifications.success(
-          `Researcher "${formatResearcherListDisplay(updatedResearcher)}" updated successfully`
-        );
-      }
-    },
-    onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to update researcher: ${message}`);
-    },
-  });
-}
-
-/**
- * Hook for deleting a researcher
- */
-export function useDeleteResearcherMutation() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (researcherId: string) => ResearcherService.delete(researcherId),
-    onSuccess: (_, researcherId) => {
-      queryClient.removeQueries({ queryKey: queryKeys.researchers.detail(researcherId) });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-      notifications.success('Researcher deleted successfully');
-    },
-    onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to delete researcher: ${message}`);
-    },
   });
 }
 
