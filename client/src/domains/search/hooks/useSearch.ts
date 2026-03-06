@@ -6,7 +6,6 @@
 
 import { useMemo } from 'react';
 
-import { useActiveResearchersQuery } from '@domains/researchers';
 import { useDebounce } from '@shared/hooks';
 
 import { useSearchStore } from '../stores/searchStore';
@@ -41,11 +40,9 @@ export function useSearch() {
     enabled: isSearchActive,
   });
 
-  const { data: researchers = [] } = useActiveResearchersQuery();
-
   // Use original query for highlighting (immediate feedback), not debounced query
   const formattedResults: DisplayResults | null = isSearchActive
-    ? formatResultsForDisplay(searchResult.data, query, researchers)
+    ? formatResultsForDisplay(searchResult.data, query)
     : null;
 
   return {

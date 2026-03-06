@@ -1,13 +1,13 @@
 /**
  * Search Display Formatters
  *
- * Client-side presentation logic: text highlighting, result formatting, and researcher enrichment.
+ * Client-side presentation logic: text highlighting and result formatting.
  */
 
 import { groupTubesByRelevance } from './groupTubesByRelevance';
 
 import type { TubeData } from '@domains/tubes/types';
-import type { SearchResult, GroupedResult, Researcher } from '@odysseus/shared-schemas';
+import type { SearchResult, GroupedResult } from '@odysseus/shared-schemas';
 
 export interface HighlightedSegment {
   text: string;
@@ -24,10 +24,8 @@ export interface DisplayResults {
 }
 
 /**
- * Splits text into segments marked as matching or non-matching.
- * Supports multi-term highlighting with optional server-provided matchedTerms
- * (which include synonyms and normalized forms). Falls back to splitting query
- * by whitespace. Longer terms match first to avoid partial overlaps.
+ * Supports server-provided matchedTerms (synonyms, normalized forms) with
+ * fallback to whitespace-split query terms. Longer terms match first.
  *
  * @example
  * highlightMatches("CD34+ Stem Cells", "CD34 cells")
@@ -74,40 +72,13 @@ export function highlightMatches(
     }));
 }
 
-/** Resolves researcherId UUIDs to display names using the presenter pattern. */
-export function enrichWithResearchers(
-  results: GroupedResult[],
-  researchers: Researcher[]
-): GroupedResult[] {
-  if (!researchers || researchers.length === 0) {
-    return results;
-  }
-
-  const researcherMap = new Map(researchers.map(r => [r.id, `${r.firstName} ${r.lastName}`]));
-
-  return results.map(group => ({
-    ...group,
-    tubes: group.tubes.map(tube => {
-      if (tube.researcherId) {
-        const researcherName = researcherMap.get(tube.researcherId);
-        return {
-          ...tube,
-          researcherName,
-        } as TubeData & { researcherName?: string };
-      }
-      return tube;
-    }),
-  }));
-}
-
 /**
  * Converts raw server response to display-ready results.
  * Uses server-side grouping when available, falls back to client-side.
  */
 export function formatResultsForDisplay(
   serverResult: SearchResult | null | undefined,
-  query: string,
-  researchers: Researcher[] = []
+  query: string
 ): DisplayResults | null {
   if (!serverResult?.data) {
     return null;
@@ -134,8 +105,6 @@ export function formatResultsForDisplay(
   } else {
     grouped = groupTubesByRelevance(tubes, query);
   }
-
-  grouped = enrichWithResearchers(grouped, researchers);
 
   return {
     tubes,

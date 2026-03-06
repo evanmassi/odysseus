@@ -43,20 +43,22 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
     }
   >();
 
+  const lowerQuery = query.toLowerCase();
+
   tubes.forEach(tube => {
     let groupType: GroupedResult['groupType'] = 'cellType';
 
-    if (tube.sample.donorInternalId?.toLowerCase().includes(query.toLowerCase())) {
+    if (tube.sample.donorInternalId?.toLowerCase().includes(lowerQuery)) {
       groupType = 'donor';
-    } else if (tube.sample.donorSourceId?.toLowerCase().includes(query.toLowerCase())) {
+    } else if (tube.sample.donorSourceId?.toLowerCase().includes(lowerQuery)) {
       groupType = 'donor';
-    } else if (tube.sample.cellType?.toLowerCase().includes(query.toLowerCase())) {
+    } else if (tube.sample.cellType?.toLowerCase().includes(lowerQuery)) {
       groupType = 'cellType';
-    } else if (tube.researcherId?.toLowerCase().includes(query.toLowerCase())) {
+    } else if (tube.researcherId?.toLowerCase().includes(lowerQuery)) {
       groupType = 'researcher';
-    } else if (tube.sample.lotNumber?.toLowerCase().includes(query.toLowerCase())) {
+    } else if (tube.sample.lotNumber?.toLowerCase().includes(lowerQuery)) {
       groupType = 'lotNumber';
-    } else if (getMediaString(tube.sample).toLowerCase().includes(query.toLowerCase())) {
+    } else if (getMediaString(tube.sample).toLowerCase().includes(lowerQuery)) {
       groupType = 'media';
     } else {
       groupType = 'cellType';
