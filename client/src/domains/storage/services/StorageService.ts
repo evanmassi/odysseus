@@ -1,4 +1,4 @@
-import { ConfigurationResponseSchema } from '@odysseus/shared-schemas';
+import { ConfigurationResponseSchema, positionDisplayConfigSchema } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
 import { httpClient } from '@infra/api/httpClient';
@@ -23,12 +23,11 @@ const BulkOperationResponseSchema = z.object({
 const SuccessResponseSchema = z.object({ success: z.boolean() });
 
 /**
- * Storage Service
+ * Storage Configuration API
+ *
+ * HTTP client for storage equipment CRUD and configuration management.
  */
 export class StorageService {
-  /**
-   * Load configuration from server
-   */
   static async loadConfiguration(): Promise<ConfigurationResponse> {
     try {
       const response = await httpClient.getData('/configuration', ConfigurationResponseSchema);
@@ -41,9 +40,7 @@ export class StorageService {
     }
   }
 
-  /**
-   * Check if configuration exists on server
-   */
+  // Returns false on any error — used during bootstrap to detect first-time setup
   static async checkConfigurationExists(): Promise<boolean> {
     try {
       const { exists } = await httpClient.getData(
@@ -56,14 +53,6 @@ export class StorageService {
     }
   }
 
-  /**
-   * Get available position display presets from server
-   *
-   * Returns presets for numeric and alphanumeric position display formats.
-   * These can be used to populate UI selectors for box position configuration.
-   *
-   * @returns Position display presets with descriptions
-   */
   static async getPositionDisplayPresets(): Promise<{
     presets: typeof POSITION_DISPLAY_PRESETS;
     description: Record<string, string>;
@@ -72,9 +61,9 @@ export class StorageService {
       const responseSchema = z.object({
         success: z.boolean(),
         presets: z.object({
-          NUMERIC: z.any(),
-          ALPHANUMERIC_STANDARD: z.any(),
-          ALPHANUMERIC_REVERSE: z.any(),
+          NUMERIC: positionDisplayConfigSchema,
+          ALPHANUMERIC_STANDARD: positionDisplayConfigSchema,
+          ALPHANUMERIC_REVERSE: positionDisplayConfigSchema,
         }),
         description: z.record(z.string(), z.string()),
       });
@@ -96,17 +85,7 @@ export class StorageService {
     }
   }
 
-  /**
-   * Update position display configuration for a specific box
-   *
-   * Allows changing how position numbers are displayed (numeric vs alphanumeric).
-   * Pass null to reset to system default (alphanumeric).
-   *
-   * @param tankId - Tank identifier
-   * @param rackId - Rack identifier
-   * @param boxId - Box identifier
-   * @param positionDisplay - New position display config (null = reset to default)
-   */
+  /** Pass null to reset to system default (alphanumeric). */
   static async updateBoxPositionDisplay(
     tankId: string,
     rackId: string,
@@ -130,15 +109,7 @@ export class StorageService {
     }
   }
 
-  /**
-   * Update lab-wide default position display configuration
-   *
-   * Sets the default position display format for all boxes in the lab.
-   * Boxes with custom overrides will not be affected.
-   * Pass null to clear the lab default and fall back to system default (alphanumeric).
-   *
-   * @param positionDisplay - New lab default position display config (null = reset to system default)
-   */
+  /** Boxes with custom overrides are not affected. Pass null to fall back to system default. */
   static async updateLabDefaultPositionDisplay(
     positionDisplay: PositionDisplayConfig | null
   ): Promise<void> {
@@ -155,18 +126,7 @@ export class StorageService {
     }
   }
 
-  /**
-   * Update custom label for a rack or box
-   *
-   * Uses fine-grained permissions (canEditResource) to allow resource owners
-   * to set their own labels, not just admins.
-   *
-   * @param resourceType - 'rack' or 'box'
-   * @param tankId - Tank identifier
-   * @param rackId - Rack identifier
-   * @param boxId - Box identifier (required for box type)
-   * @param customLabel - New label (empty/undefined = clear label)
-   */
+  /** Resource owners can set their own labels via canEditResource, not just admins. */
   static async updateResourceLabel(
     resourceType: 'rack' | 'box',
     tankId: string,
@@ -194,7 +154,6 @@ export class StorageService {
 
   // CQRS Tank Operations
 
-  /** Add a new tank to the configuration. */
   static async addTank(name: string, location?: string): Promise<{ tankId: string }> {
     try {
       const response = await httpClient.postData(
@@ -213,7 +172,6 @@ export class StorageService {
     }
   }
 
-  /** Update an existing tank's properties. */
   static async updateTank(
     tankId: string,
     updates: { name?: string; location?: string; isActive?: boolean }
@@ -245,7 +203,6 @@ export class StorageService {
 
   // CQRS Rack Operations
 
-  /** Add one or more racks to a tank. */
   static async addRacks(tankId: string, count: number): Promise<{ rackIds: string[] }> {
     try {
       const response = await httpClient.postData(
@@ -264,7 +221,6 @@ export class StorageService {
     }
   }
 
-  /** Update an existing rack's properties. */
   static async updateRack(
     tankId: string,
     rackId: string,
@@ -297,7 +253,6 @@ export class StorageService {
     }
   }
 
-  /** Assign or unassign a rack to/from a user. */
   static async assignRack(
     tankId: string,
     rackId: string,
@@ -320,7 +275,6 @@ export class StorageService {
 
   // CQRS Box Operations
 
-  /** Add one or more boxes to a rack. */
   static async addBoxes(
     tankId: string,
     rackId: string,
@@ -344,7 +298,6 @@ export class StorageService {
     }
   }
 
-  /** Update an existing box's properties. */
   static async updateBox(
     tankId: string,
     rackId: string,
@@ -388,7 +341,6 @@ export class StorageService {
     }
   }
 
-  /** Assign or unassign a box to/from a user. */
   static async assignBox(
     tankId: string,
     rackId: string,
@@ -433,7 +385,6 @@ export class StorageService {
     }
   }
 
-  /** Reassign all resources from one user to another. */
   static async bulkReassignResources(
     fromUserId: string,
     toUserId: string
