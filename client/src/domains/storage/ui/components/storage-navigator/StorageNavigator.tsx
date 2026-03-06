@@ -2,12 +2,22 @@ import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react'
 
 import { StorageNavigatorItem } from './StorageNavigatorItem';
 import { TreeLineOverlay } from './TreeLineOverlay';
-import { getNodeKey } from './types';
 import { useStorageNavigation } from './useStorageNavigation';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
 
 import type { StorageNavigatorProps, VisibleTreeNode } from './types';
 import type { UserBadgeType } from '@shared/ui/components';
+
+function getNodeKey(
+  level: 'tank' | 'rack' | 'box',
+  tankId: string,
+  rackId?: string,
+  boxId?: string
+): string {
+  if (level === 'tank') return `tank:${tankId}`;
+  if (level === 'rack') return `rack:${tankId}:${rackId}`;
+  return `box:${tankId}:${rackId}:${boxId}`;
+}
 
 // Helper to compute effective owner (handles inheritance cascade)
 function getEffectiveOwner(

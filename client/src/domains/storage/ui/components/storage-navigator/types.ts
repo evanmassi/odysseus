@@ -79,15 +79,3 @@ export interface VisibleTreeNode {
   ariaPosinset: number;
   ariaSetsize: number;
 }
-
-// Generate unique composite key for a node
-export function getNodeKey(
-  level: 'tank' | 'rack' | 'box',
-  tankId: string,
-  rackId?: string,
-  boxId?: string
-): string {
-  if (level === 'tank') return `tank:${tankId}`;
-  if (level === 'rack') return `rack:${tankId}:${rackId}`;
-  return `box:${tankId}:${rackId}:${boxId}`;
-}
