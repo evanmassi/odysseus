@@ -3,12 +3,13 @@ import { useMemo } from 'react';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useDebounce } from '@shared/hooks';
 
-import { SearchEngine } from '../engine/SearchEngine';
 import { useSearchStore } from '../stores/searchStore';
+import { navigateToResult } from '../utils/navigateToResult';
+import { formatResultsForDisplay } from '../utils/searchFormatters';
 
 import { useSearchTubesQuery } from './useSearchQuery';
 
-import type { DisplayResults } from '../engine/SearchEngine';
+import type { DisplayResults } from '../utils/searchFormatters';
 
 /**
  * Search Hook
@@ -47,7 +48,7 @@ export function useSearch() {
   // Only format results if search is actually active (has query or filters)
   const isSearchActive = !!debouncedQuery.trim() || hasActiveFilters();
   const formattedResults: DisplayResults | null = isSearchActive
-    ? SearchEngine.formatResultsForDisplay(searchResult.data, query, researchers)
+    ? formatResultsForDisplay(searchResult.data, query, researchers)
     : null;
 
   return {
@@ -68,7 +69,7 @@ export function useSearch() {
       clearSearch();
       void searchResult.refetch(); // Clear results from React Query
     },
-    navigateToResult: SearchEngine.navigateToResult,
+    navigateToResult,
 
     // Raw query result (for advanced use cases)
     refetch: searchResult.refetch,

@@ -7,9 +7,9 @@ import { logger } from '@shared/infrastructure/logger';
 import { Tooltip } from '@shared/ui';
 
 import { FilterPanel } from './FilterPanel';
-import { SearchResults } from './SearchResults';
+import { SearchResultsPanel } from './SearchResultsPanel';
 
-export function SearchContainer() {
+export function SearchPanel() {
   const { query, filters, results, isSearching, search, clear, refetch } = useSearch();
 
   const [showDropdown, setShowDropdown] = useState(false);
@@ -200,7 +200,11 @@ export function SearchContainer() {
             </div>
 
             <div className="w-96 min-h-[500px] flex flex-col">
-              <SearchResults results={results} isSearching={isSearching} onClose={closeDropdown} />
+              <SearchResultsPanel
+                results={results}
+                isSearching={isSearching}
+                onClose={closeDropdown}
+              />
             </div>
           </div>
         </div>

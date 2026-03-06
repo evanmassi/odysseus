@@ -1,3 +1,9 @@
+/**
+ * Tube Relevance Grouping
+ *
+ * Groups search result tubes by matched field and location for display.
+ */
+
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 
 import type { TubeData } from '@domains/tubes/types';
@@ -9,15 +15,8 @@ const getMediaString = (sample: TubeData['sample']): string => {
     .join(' ');
 };
 
-/**
- * Group tubes by relevance for search results
- *
- * This function maintains the existing grouping logic from the original SearchStore
- * but is now extracted as a pure utility function.
- */
 export const groupTubesByRelevance = (tubes: TubeData[], query: string): GroupedResult[] => {
   if (!query.trim()) {
-    // Group by cell type when no query
     const groups = new Map<string, TubeData[]>();
     tubes.forEach(tube => {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- cellType is required; empty string indicates missing data, display as 'Unknown'
@@ -47,7 +46,6 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
   tubes.forEach(tube => {
     let groupType: GroupedResult['groupType'] = 'cellType';
 
-    // Determine what field matched the query
     if (tube.sample.donorInternalId?.toLowerCase().includes(query.toLowerCase())) {
       groupType = 'donor';
     } else if (tube.sample.donorSourceId?.toLowerCase().includes(query.toLowerCase())) {
@@ -55,8 +53,6 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
     } else if (tube.sample.cellType?.toLowerCase().includes(query.toLowerCase())) {
       groupType = 'cellType';
     } else if (tube.researcherId?.toLowerCase().includes(query.toLowerCase())) {
-      // Search by researcherId (ID-based, not name)
-      // Note: This searches by ID string. To search by name, need to fetch researcher data separately
       groupType = 'researcher';
     } else if (tube.sample.lotNumber?.toLowerCase().includes(query.toLowerCase())) {
       groupType = 'lotNumber';
@@ -66,7 +62,6 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
       groupType = 'cellType';
     }
 
-    // Group by tube's CURRENT identifier, not what was matched
     const tankId = tube.location.tankId || NAMING_PATTERNS.TANK.ID_PATTERN(1);
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: empty strings should fall through */
     const currentGroupKey =
@@ -95,13 +90,9 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
     .sort((a, b) => b.totalCount - a.totalCount);
 };
 
-/**
- * Get primary location for a group of tubes (internal helper)
- */
 const getPrimaryLocation = (tubes: TubeData[]): string => {
   if (tubes.length === 0) return 'No location';
 
-  // Return raw location data - display names will be resolved in UI components
   const firstTube = tubes[0];
   const tankId = firstTube.location.tankId || NAMING_PATTERNS.TANK.ID_PATTERN(1);
 

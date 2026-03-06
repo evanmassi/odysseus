@@ -20,15 +20,19 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { SortDropdown } from './SortDropdown';
 
-import type { SearchResults as SearchResultsType } from '@domains/search';
+import type { SearchResults } from '@domains/search';
 
-interface SearchResultsProps {
-  results: SearchResultsType | null;
+interface SearchResultsPanelProps {
+  results: SearchResults | null;
   isSearching?: boolean;
   onClose?: () => void;
 }
 
-export function SearchResults({ results, isSearching = false, onClose }: SearchResultsProps) {
+export function SearchResultsPanel({
+  results,
+  isSearching = false,
+  onClose,
+}: SearchResultsPanelProps) {
   // ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
   const { navigateToResult } = useSearch();
   const { currentTank } = useTubeStore();

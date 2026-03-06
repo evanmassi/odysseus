@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { SearchContainer } from '@domains/search/ui/components/SearchContainer';
+import { SearchPanel } from '@domains/search/ui/components/SearchPanel';
 import { useStorageData } from '@domains/storage';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
@@ -451,7 +451,7 @@ export function AppHeader({
           {/* Search Container */}
           {hasLab && (
             <div className="flex-shrink-0">
-              <SearchContainer />
+              <SearchPanel />
             </div>
           )}
 
