@@ -12,7 +12,7 @@ import { MapPin, Navigation, NotepadText, ScanEye, UserRound, UsersRound } from 
 import { useAuthStore } from '@domains/authentication';
 import { navigateToLocation } from '@domains/grid';
 import { useStorageData, useStorageLocationNames } from '@domains/storage';
-import { useResourceOwnership } from '@domains/storage/hooks/useStorageOwnership';
+import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
 import { useConfigurationSync } from '@domains/storage/hooks/useStorageSync';
 import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
 import { useTubeStore, TubeInfoPanel } from '@domains/tubes';
@@ -288,7 +288,7 @@ function LabDashboard() {
     return Array.from(map.values());
   }, [activeUsers, currentUserDisplayInfo]);
 
-  const { getUserInfo: getOwnershipUserInfo } = useResourceOwnership(allDisplayUsers, user?.id);
+  const { getUserInfo: getOwnershipUserInfo } = useStorageOwnership(allDisplayUsers, user?.id);
 
   const currentUserInfo = useMemo(() => {
     if (!user) return undefined;

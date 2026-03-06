@@ -1,3 +1,8 @@
+/**
+ * Storage Ownership
+ *
+ * Ownership calculations and cascade logic for storage resources.
+ */
 import { useMemo } from 'react';
 
 import { getUserInitials } from '@shared/utils/userDisplayUtils';
@@ -12,7 +17,7 @@ interface UserInfo {
   lastName?: string;
 }
 
-interface UseResourceOwnershipResult {
+interface UseStorageOwnershipResult {
   getUserInfo: (userId: string) => UserInfo | null;
   getEffectiveOwner: (
     resource: BoxConfiguration,
@@ -24,14 +29,10 @@ interface UseResourceOwnershipResult {
   ) => boolean;
 }
 
-/**
- * Hook for resource ownership calculations and display
- * Handles user initials, ownership cascade, and ownership checks
- */
-export function useResourceOwnership(
+export function useStorageOwnership(
   users: UserDisplayInfo[],
   currentUserId: string | undefined
-): UseResourceOwnershipResult {
+): UseStorageOwnershipResult {
   const getUserInfo = useMemo(
     () =>
       (userId: string): UserInfo | null => {
