@@ -1,8 +1,13 @@
+/**
+ * Storage Permissions
+ *
+ * Permission checks and access control for storage resources.
+ */
 import { useMemo } from 'react';
 
 import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';
 
-interface UseResourcePermissionsResult {
+interface UseStoragePermissionsResult {
   canEditResource: (
     resource: RackConfiguration | BoxConfiguration,
     parentRack?: RackConfiguration
@@ -11,10 +16,10 @@ interface UseResourcePermissionsResult {
   isResourceLocked: (resource: TankConfiguration | RackConfiguration | BoxConfiguration) => boolean;
 }
 
-export function useResourcePermissions(
+export function useStoragePermissions(
   currentUser: { id: string; role?: string } | null | undefined,
   isDemo = false
-): UseResourcePermissionsResult {
+): UseStoragePermissionsResult {
   const isResourceLocked = useMemo(
     () =>
       (resource: TankConfiguration | RackConfiguration | BoxConfiguration): boolean =>
@@ -52,7 +57,7 @@ export function useResourcePermissions(
     [currentUser, isDemo]
   );
 
-  // Only admins can manage storage structure (add/edit/delete tanks, racks, boxes)
+  // Only admins can manage storage structure
   const canManageStorage = useMemo(
     () => currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin',
     [currentUser?.role]

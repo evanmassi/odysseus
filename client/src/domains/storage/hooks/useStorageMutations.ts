@@ -380,3 +380,34 @@ export const useInitializeConfigurationMutation = () => {
     ),
   });
 };
+
+// Resource Label Mutations
+
+export const useUpdateResourceLabelMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ['storage', 'updateResourceLabel'],
+    mutationFn: ({
+      resourceType,
+      tankId,
+      rackId,
+      boxId,
+      customLabel,
+    }: {
+      resourceType: 'rack' | 'box';
+      tankId: string;
+      rackId: string;
+      boxId?: string;
+      customLabel?: string;
+    }) => StorageService.updateResourceLabel(resourceType, tankId, rackId, boxId, customLabel),
+
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.storage.data(),
+      });
+    },
+
+    onError: createMutationErrorHandler(queryClient, 'Update label', 'Failed to update label'),
+  });
+};

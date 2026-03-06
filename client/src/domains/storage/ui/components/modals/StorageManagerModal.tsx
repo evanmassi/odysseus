@@ -25,7 +25,7 @@ import {
   useBulkReassignMutation,
 } from '@domains/storage';
 import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
-import { useResourcePermissions } from '@domains/storage/hooks/useStoragePermissions';
+import { useStoragePermissions } from '@domains/storage/hooks/useStoragePermissions';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { AlertBanner, Button, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
@@ -124,7 +124,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const { getUserInfo, isOwnedByCurrentUser } = useStorageOwnership(displayUsers, currentUser?.id);
   const isDemo = currentUser?.isDemo ?? false;
-  const { canEditResource, canManageStorage, isResourceLocked } = useResourcePermissions(
+  const { canEditResource, canManageStorage, isResourceLocked } = useStoragePermissions(
     currentUser,
     isDemo
   );

@@ -7,12 +7,8 @@
 
 // Hooks (Server State - Primary Data Access)
 export { useStorageData, getStorageDataFromCache } from './hooks/useStorageData';
-export {
-  useLoadStorageQuery,
-  useStorageExistsQuery,
-  useUpdateResourceLabelMutation,
-} from './hooks/useStorageQueries';
-export { useConfigurationSync } from './hooks/useStorageSync';
+export { useLoadStorageQuery, useStorageExistsQuery } from './hooks/useStorageQueries';
+export { useStorageSync } from './hooks/useStorageSync';
 export { useStorageLocationNames } from './hooks/useStorageLocationNames';
 export type { LocationDisplayNames } from './hooks/useStorageLocationNames';
 
@@ -36,6 +32,7 @@ export {
   useBulkUnassignMutation,
   useBulkReassignMutation,
   useInitializeConfigurationMutation,
+  useUpdateResourceLabelMutation,
 } from './hooks/useStorageMutations';
 
 // Services

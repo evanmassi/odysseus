@@ -1,10 +1,7 @@
 /**
- * Configuration Sync Hook
+ * Storage Sync
  *
- * Handles three responsibilities:
- * 1. Fresh install detection - initializes default config on server if none exists
- * 2. Multi-tab sync - invalidates React Query cache when config changes in another tab
- * 3. Tank sync - ensures tubeStore points to an available tank (critical for demo mode isolation)
+ * Fresh install detection, multi-tab cache sync, and tubeStore tank alignment.
  */
 import { useEffect, useRef } from 'react';
 
@@ -19,7 +16,7 @@ import { logger } from '@shared/infrastructure/logger';
 import { useInitializeConfigurationMutation } from './useStorageMutations';
 import { useLoadStorageQuery } from './useStorageQueries';
 
-export function useConfigurationSync() {
+export function useStorageSync() {
   const { user } = useAuthStore();
   const hasLab = !!user?.labId;
 
@@ -31,7 +28,7 @@ export function useConfigurationSync() {
   const hasInitialized = useRef(false);
 
   // Initialize server with defaults if no config exists (fresh install)
-  // Note: Only runs when server is reachable but returns 404/error for config
+  // Only runs when server is reachable but returns 404/error for config
   // Does NOT run when offline (query uses cached data or pauses)
   // Skip entirely for users without a lab (system admins)
   useEffect(() => {
@@ -40,7 +37,6 @@ export function useConfigurationSync() {
     if (isError && !hasInitialized.current && !initializeMutation.isPending) {
       hasInitialized.current = true;
 
-      // Use dedicated initialize endpoint for fresh installs
       initializeMutation.mutate(
         {
           labName: SYSTEM_DEFAULTS.LAB.NAME,
@@ -91,16 +87,14 @@ export function useConfigurationSync() {
   // Multi-tab synchronization via storage events
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      // Listen for configuration version changes from other tabs
       if (e.key === 'odysseus-configuration-version') {
-        // Invalidate React Query cache to refetch from server
         void queryClient.invalidateQueries({
           queryKey: queryKeys.storage.data(),
         });
       }
     };
 
-    // Listen for storage events (only fires in other tabs)
+    // Only fires in other tabs
     window.addEventListener('storage', handleStorageChange);
 
     return () => {
@@ -111,7 +105,6 @@ export function useConfigurationSync() {
   // Broadcast version changes to other tabs when data updates
   useEffect(() => {
     if (isSuccess && data?.configuration.systemConfig.version) {
-      // Update localStorage with current version (triggers storage event in other tabs)
       localStorage.setItem(
         'odysseus-configuration-version',
         String(data.configuration.systemConfig.version)
@@ -126,18 +119,14 @@ export function useConfigurationSync() {
       const availableTanks = data.configuration.currentLab.equipment.tanks;
       if (availableTanks.length > 0) {
         const currentTank = useTubeStore.getState().currentTank;
-
-        // Check if current tank is available in the user's configuration
         const tankExists = availableTanks.some(tank => tank.id === currentTank);
 
         if (!tankExists) {
-          // Current tank not available - switch to first available tank
           const firstTank = availableTanks[0];
           const tubeStore = useTubeStore.getState();
 
           tubeStore.setCurrentTank(firstTank.id);
 
-          // Also reset rack and box to first available in that tank
           if (firstTank.racks && firstTank.racks.length > 0) {
             const firstRack = firstTank.racks[0];
             tubeStore.setCurrentRack(firstRack.id);

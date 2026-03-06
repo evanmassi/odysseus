@@ -1,18 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+/**
+ * Storage Queries
+ *
+ * React Query hooks for reading storage configuration data.
+ */
+import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
-import { isConflictError } from '@shared/errors';
-import { notifications } from '@shared/utils/notifications';
 
 import { StorageService } from '../services/StorageService';
 
-/**
- * Load Storage Configuration Hook
- *
- * Loads the complete lab configuration from the server.
- * Automatically disabled for users without a lab (system admins).
- */
+/** Automatically disabled for users without a lab (system admins). */
 export const useLoadStorageQuery = (config?: { enabled?: boolean; staleTime?: number }) => {
   const { user } = useAuthStore();
   const hasLab = !!user?.labId;
@@ -28,11 +26,6 @@ export const useLoadStorageQuery = (config?: { enabled?: boolean; staleTime?: nu
   });
 };
 
-/**
- * Check Storage Configuration Exists Hook
- *
- * Checks if configuration exists on server
- */
 export const useStorageExistsQuery = (config?: { enabled?: boolean; staleTime?: number }) => {
   return useQuery({
     queryKey: queryKeys.storage.exists(),
@@ -42,52 +35,5 @@ export const useStorageExistsQuery = (config?: { enabled?: boolean; staleTime?: 
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: 1,
     refetchOnWindowFocus: false,
-  });
-};
-
-/**
- * Update Resource Label Mutation Hook
- *
- * Updates custom label for a rack or box using fine-grained permissions.
- * Users can update labels on resources they own, not just admins.
- * Invalidates storage cache on success to keep UI in sync.
- */
-export const useUpdateResourceLabelMutation = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationKey: ['storage', 'updateResourceLabel'],
-    mutationFn: ({
-      resourceType,
-      tankId,
-      rackId,
-      boxId,
-      customLabel,
-    }: {
-      resourceType: 'rack' | 'box';
-      tankId: string;
-      rackId: string;
-      boxId?: string;
-      customLabel?: string;
-    }) => StorageService.updateResourceLabel(resourceType, tankId, rackId, boxId, customLabel),
-
-    onSuccess: () => {
-      // Invalidate storage cache to reflect updated labels
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.storage.data(),
-      });
-    },
-
-    onError: (error: unknown) => {
-      if (isConflictError(error)) {
-        notifications.error(
-          'Update label failed: Configuration was modified by another user. Please review the latest changes and try again.'
-        );
-        void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
-        return;
-      }
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to update label: ${message}`);
-    },
   });
 };

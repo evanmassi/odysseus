@@ -13,7 +13,7 @@ import { useAuthStore } from '@domains/authentication';
 import { navigateToLocation } from '@domains/grid';
 import { useStorageData, useStorageLocationNames } from '@domains/storage';
 import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
-import { useConfigurationSync } from '@domains/storage/hooks/useStorageSync';
+import { useStorageSync } from '@domains/storage/hooks/useStorageSync';
 import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
 import { useTubeStore, TubeInfoPanel } from '@domains/tubes';
 import {
@@ -61,7 +61,7 @@ const SystemAdminDashboard = lazy(() =>
 );
 
 export function Dashboard() {
-  const { isSynced, hasNoLab } = useConfigurationSync();
+  const { isSynced, hasNoLab } = useStorageSync();
 
   if (hasNoLab) {
     return (
