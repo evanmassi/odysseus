@@ -24,10 +24,10 @@ export const useSearchTubesQuery = (
     queryKey,
     queryFn: () => SearchService.searchTubes(options),
     enabled: config?.enabled ?? true,
-    staleTime: config?.staleTime ?? 30 * 1000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: config?.staleTime ?? 30 * 1000,
+    gcTime: 5 * 60 * 1000,
     retry: 2,
     refetchOnWindowFocus: false,
-    placeholderData: previousData => previousData, // Keep previous results while loading new ones
+    placeholderData: previousData => previousData,
   });
 };

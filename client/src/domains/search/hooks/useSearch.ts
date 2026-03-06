@@ -18,11 +18,10 @@ import type { DisplayResults } from '../utils/searchFormatters';
  * and result formatting for search operations.
  */
 export function useSearch() {
-  // UI State (Zustand)
+  // UI State
   const { query, filters, setSearchQuery, setSearchFilters, clearSearch, hasActiveFilters } =
     useSearchStore();
 
-  // Debounce query to prevent API call on every keystroke
   const debouncedQuery = useDebounce(query, 300);
 
   // Memoize search options to prevent unnecessary React Query cache misses
@@ -35,18 +34,16 @@ export function useSearch() {
     [debouncedQuery, filters]
   );
 
-  // Server State (React Query)
+  // Server State
+  const isSearchActive = !!debouncedQuery.trim() || hasActiveFilters();
+
   const searchResult = useSearchTubesQuery(searchOptions, {
-    enabled: !!debouncedQuery.trim() || hasActiveFilters(),
+    enabled: isSearchActive,
   });
 
-  // Researcher data for name resolution
   const { data: researchers = [] } = useActiveResearchersQuery();
 
-  // Format results using SearchEngine
   // Use original query for highlighting (immediate feedback), not debounced query
-  // Only format results if search is actually active (has query or filters)
-  const isSearchActive = !!debouncedQuery.trim() || hasActiveFilters();
   const formattedResults: DisplayResults | null = isSearchActive
     ? formatResultsForDisplay(searchResult.data, query, researchers)
     : null;
@@ -65,10 +62,7 @@ export function useSearch() {
     // Actions
     search: setSearchQuery,
     updateFilters: setSearchFilters,
-    clear: () => {
-      clearSearch();
-      void searchResult.refetch(); // Clear results from React Query
-    },
+    clear: clearSearch,
     navigateToResult,
 
     // Raw query result (for advanced use cases)
