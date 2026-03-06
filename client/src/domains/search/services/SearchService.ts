@@ -1,3 +1,9 @@
+/**
+ * Search Service
+ *
+ * Client-side search API with input validation and date normalization.
+ */
+
 import { SearchResultSchema, AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api/httpClient';
@@ -6,13 +12,7 @@ import { normalizeDateString } from '@shared/utils/dateUtils';
 
 import type { AdvancedSearchOptions, SearchResult } from '@odysseus/shared-schemas';
 
-/**
- * Search Service
- */
 export class SearchService {
-  /**
-   * Perform advanced search across tubes
-   */
   static async searchTubes(options: AdvancedSearchOptions): Promise<SearchResult> {
     try {
       const validatedOptions = AdvancedSearchOptionsSchema.parse(options);

@@ -1,3 +1,9 @@
+/**
+ * Search Query Hook
+ *
+ * Performs search with filters, pagination, and sorting.
+ */
+
 import { useQuery } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
@@ -6,11 +12,6 @@ import { SearchService } from '../services/SearchService';
 
 import type { AdvancedSearchOptions } from '@odysseus/shared-schemas';
 
-/**
- * Search Query Hook
- *
- * Performs search with filters, pagination, and sorting.
- */
 export const useSearchTubesQuery = (
   options: AdvancedSearchOptions,
   config?: {

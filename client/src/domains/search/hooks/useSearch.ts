@@ -1,3 +1,9 @@
+/**
+ * Search Hook
+ *
+ * Combines UI state, server state, and result formatting for search operations.
+ */
+
 import { useMemo } from 'react';
 
 import { useActiveResearchersQuery } from '@domains/researchers';
@@ -11,12 +17,6 @@ import { useSearchTubesQuery } from './useSearchQuery';
 
 import type { DisplayResults } from '../utils/searchFormatters';
 
-/**
- * Search Hook
- *
- * Combines UI state (Zustand), server state (React Query),
- * and result formatting for search operations.
- */
 export function useSearch() {
   // UI State
   const { query, filters, setSearchQuery, setSearchFilters, clearSearch, hasActiveFilters } =
