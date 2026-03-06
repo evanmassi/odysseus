@@ -68,29 +68,10 @@ export {
 } from '@odysseus/shared-schemas';
 
 // UI Helpers (computed properties)
-export {
-  getGridTotalPositions,
-  getGridDisplayName,
-  getGridType,
-  createGridConfig,
-  GRID_TEMPLATES,
-  DEFAULT_GRID_CONFIG,
-} from './utils/gridHelpers';
+export { getGridTotalPositions, GRID_TEMPLATES, DEFAULT_GRID_CONFIG } from './utils/gridHelpers';
 
 // Position Display Utilities
-export {
-  formatPositionForBox,
-  parsePositionLabelForBox,
-  isValidLabelForBox,
-  generateLabelsForBox,
-  getPositionDisplayForBox,
-  hasCustomPositionDisplay,
-  formatPositionRangesForBox,
-} from './utils/positionDisplayUtils';
+export { formatPositionForBox, formatPositionRangesForBox } from './utils/positionDisplayUtils';
 
 // User Assignment Utilities
 export { extractAssignedUserIds } from './utils/extractAssignedUserIds';
-
-// Label Change Detection
-export { extractLabelChanges } from './utils/extractLabelChanges';
-export type { LabelChange } from './utils/extractLabelChanges';

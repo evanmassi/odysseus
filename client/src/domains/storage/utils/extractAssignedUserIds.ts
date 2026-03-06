@@ -1,12 +1,11 @@
-import type { LabConfiguration } from '@domains/storage';
-
 /**
- * Extracts all unique assigned user IDs from a lab configuration.
- * Collects IDs from both rack and box assignments.
+ * Assigned User Extraction
  *
- * @param lab - The lab configuration to extract IDs from
- * @returns Array of unique user IDs
+ * Collects unique user IDs from rack and box assignments in a lab configuration.
  */
+
+import type { LabConfiguration } from '@odysseus/shared-schemas';
+
 export function extractAssignedUserIds(lab: LabConfiguration | null): string[] {
   if (!lab) return [];
 
