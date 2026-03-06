@@ -9,6 +9,7 @@ import {
   useStorageData,
   useUpdateResourceLabelMutation,
   extractAssignedUserIds,
+  GRID_TEMPLATES,
   useAddTankMutation,
   useUpdateTankMutation,
   useDeleteTankMutation,
@@ -63,7 +64,7 @@ interface StorageManagerModalProps {
 }
 
 export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProps) {
-  const { currentLab, getAvailableGridTemplates } = useStorageData();
+  const { currentLab } = useStorageData();
   const modalService = useModalStore();
   const { user: currentUser } = useAuthStore();
 
@@ -177,7 +178,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   const [rackCountToAdd, setRackCountToAdd] = useState<Record<string, number>>({});
   const [boxCountToAdd, setBoxCountToAdd] = useState<Record<string, number>>({});
 
-  const gridTemplates = getAvailableGridTemplates();
+  const gridTemplates = GRID_TEMPLATES;
 
   // Convert collapsed state to expanded state for TreeLineOverlay
   const expandedTanks = useMemo(() => {

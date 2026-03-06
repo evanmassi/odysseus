@@ -1,14 +1,11 @@
 /**
- * Storage Data Hook
+ * Storage Data Access
  *
- * Primary hook for accessing storage configuration data.
- * Reads from React Query cache.
+ * Primary hook for accessing storage configuration data from React Query cache.
  */
 import { useCallback } from 'react';
 
 import { queryKeys } from '@app/cache/queryKeys';
-
-import { GRID_TEMPLATES } from '../utils/gridHelpers';
 
 import { useLoadStorageQuery } from './useStorageQueries';
 
@@ -18,8 +15,6 @@ import type {
   TankConfiguration,
   RackConfiguration,
   BoxConfiguration,
-  GridConfiguration,
-  PositionDisplayConfig,
 } from '@odysseus/shared-schemas';
 import type { useQueryClient } from '@tanstack/react-query';
 
@@ -33,25 +28,13 @@ interface StorageDataResult {
   isError: boolean;
   isFetched: boolean;
 
-  // Derived getters (stable references via useCallback)
+  // Derived getters
   getCurrentTanks: () => TankConfiguration[];
   getCurrentRacks: (tankId?: string) => RackConfiguration[];
   getCurrentBoxes: (tankId: string, rackId: string) => BoxConfiguration[];
   getBox: (tankId: string, rackId: string, boxId: string) => BoxConfiguration | undefined;
-  getBoxPositionDisplay: (
-    tankId: string,
-    rackId: string,
-    boxId: string
-  ) => PositionDisplayConfig | undefined;
-  getAvailableGridTemplates: () => readonly GridConfiguration[];
 }
 
-/**
- * Primary hook for accessing storage configuration data
- *
- * Replaces direct Zustand store access for server state.
- * Data comes directly from React Query cache.
- */
 export function useStorageData(config?: { enabled?: boolean }): StorageDataResult {
   const { data, isLoading, isError, isFetched } = useLoadStorageQuery({ enabled: config?.enabled });
 
@@ -67,7 +50,6 @@ export function useStorageData(config?: { enabled?: boolean }): StorageDataResul
       const tanks = currentLab?.equipment.tanks ?? [];
 
       if (!tankId) {
-        // Return all racks from all tanks
         return tanks.flatMap(tank => tank.racks ?? []);
       }
 
@@ -97,21 +79,6 @@ export function useStorageData(config?: { enabled?: boolean }): StorageDataResul
     [currentLab]
   );
 
-  const getBoxPositionDisplay = useCallback(
-    (tankId: string, rackId: string, boxId: string): PositionDisplayConfig | undefined => {
-      const tanks = currentLab?.equipment.tanks ?? [];
-      const tank = tanks.find(t => t.id === tankId);
-      const rack = tank?.racks?.find(r => r.id === rackId);
-      const box = rack?.boxes?.find(b => b.id === boxId);
-      return box?.positionDisplay;
-    },
-    [currentLab]
-  );
-
-  const getAvailableGridTemplates = useCallback((): readonly GridConfiguration[] => {
-    return GRID_TEMPLATES;
-  }, []);
-
   return {
     currentLab,
     systemConfig,
@@ -122,17 +89,10 @@ export function useStorageData(config?: { enabled?: boolean }): StorageDataResul
     getCurrentRacks,
     getCurrentBoxes,
     getBox,
-    getBoxPositionDisplay,
-    getAvailableGridTemplates,
   };
 }
 
-/**
- * Imperative access to storage data (for services outside React)
- *
- * Use sparingly - prefer passing data as parameters.
- * Reads from React Query cache, not Zustand.
- */
+/** Use sparingly — prefer passing data as parameters. */
 export function getStorageDataFromCache(queryClient: ReturnType<typeof useQueryClient>): {
   currentLab: LabConfiguration | null;
   systemConfig: SystemConfiguration | null;
