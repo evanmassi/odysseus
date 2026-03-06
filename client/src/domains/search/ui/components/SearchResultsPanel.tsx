@@ -7,7 +7,6 @@
 import { useMemo } from 'react';
 
 import {
-  type TubeData,
   formatConcentrationDisplay,
   formatResearcherDropdownDisplay,
   formatResourceDisplayName,
@@ -24,9 +23,12 @@ import { Button, Chip, Tooltip } from '@shared/ui';
 import { TubeIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
+import { highlightMatches } from '../../utils/searchFormatters';
+
 import { SortDropdown } from './SortDropdown';
 
 import type { SearchResults } from '@domains/search';
+import type { TubeData } from '@domains/tubes/types';
 
 interface SearchResultsPanelProps {
   results: SearchResults | null;
@@ -143,36 +145,14 @@ export function SearchResultsPanel({
     );
   }
 
-  // Uses server-provided matchedTerms which include synonyms and normalized forms
   const highlightText = (text: string, searchQuery: string): React.ReactNode => {
-    if (!searchQuery || !text) return text;
-
-    let terms: string[];
-    if (matchedTerms.length > 0) {
-      terms = matchedTerms.filter(t => t.length > 0);
-    } else {
-      terms = searchQuery
-        .toLowerCase()
-        .split(/\s+/)
-        .filter(t => t.length > 0);
-    }
-
-    if (terms.length === 0) return text;
-
-    // Sort by length descending so longer terms match first
-    const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
-    const regex = new RegExp(
-      `(${sortedTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
-      'gi'
-    );
-
-    const parts = text.split(regex);
+    const segments = highlightMatches(text, searchQuery, matchedTerms);
+    if (segments.length === 1 && !segments[0].isMatch) return text;
 
     return (
       <>
-        {parts.map((part, i) => {
-          const isMatch = terms.some(term => part.toLowerCase().includes(term));
-          return isMatch ? (
+        {segments.map((segment, i) =>
+          segment.isMatch ? (
             <span
               key={i}
               className="border-b-2 border-action"
@@ -182,12 +162,12 @@ export function SearchResultsPanel({
                 paddingBottom: '1px',
               }}
             >
-              {part}
+              {segment.text}
             </span>
           ) : (
-            part
-          );
-        })}
+            segment.text
+          )
+        )}
       </>
     );
   };
@@ -378,20 +358,6 @@ export function SearchResultsPanel({
     const firstTube = tubes[0];
     const { tankId, rackId, boxId } = firstTube.location;
 
-    const box = getBox(tankId, rackId, boxId);
-    if (!box?.gridConfig) {
-      // Fallback to numeric if box config not found
-      const positions = Array.from(
-        new Set(
-          tubes
-            .map(tube => tube.location.position)
-            .filter(pos => pos != null)
-            .map(pos => Number(pos))
-        )
-      ).sort((a, b) => a - b);
-      return positions.length === 1 ? `Pos: ${positions[0]}` : `Pos: ${positions.join(', ')}`;
-    }
-
     const positions = Array.from(
       new Set(
         tubes
@@ -400,6 +366,12 @@ export function SearchResultsPanel({
           .map(pos => Number(pos))
       )
     ).sort((a, b) => a - b);
+
+    const box = getBox(tankId, rackId, boxId);
+    if (!box?.gridConfig) {
+      // Fallback to numeric if box config not found
+      return positions.length === 1 ? `Pos: ${positions[0]}` : `Pos: ${positions.join(', ')}`;
+    }
 
     if (positions.length === 1) {
       const label = formatPositionForBox(

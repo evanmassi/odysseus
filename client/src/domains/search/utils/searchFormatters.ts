@@ -24,46 +24,54 @@ export interface DisplayResults {
 }
 
 /**
+ * Splits text into segments marked as matching or non-matching.
+ * Supports multi-term highlighting with optional server-provided matchedTerms
+ * (which include synonyms and normalized forms). Falls back to splitting query
+ * by whitespace. Longer terms match first to avoid partial overlaps.
+ *
  * @example
- * highlightMatches("CD34+ Cells", "CD34")
- * // Returns: [{ text: "CD34", isMatch: true }, { text: "+ Cells", isMatch: false }]
+ * highlightMatches("CD34+ Stem Cells", "CD34 cells")
+ * // Returns: [
+ * //   { text: "CD34", isMatch: true }, { text: "+ Stem ", isMatch: false },
+ * //   { text: "Cells", isMatch: true }
+ * // ]
  */
-export function highlightMatches(text: string, query: string): HighlightedSegment[] {
-  if (!query.trim() || !text) {
+export function highlightMatches(
+  text: string,
+  query: string,
+  matchedTerms: string[] = []
+): HighlightedSegment[] {
+  if (!text || !query) {
     return [{ text, isMatch: false }];
   }
 
-  const segments: HighlightedSegment[] = [];
-  const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(escapedQuery, 'gi');
+  const terms =
+    matchedTerms.length > 0
+      ? matchedTerms.filter(t => t.length > 0)
+      : query
+          .toLowerCase()
+          .split(/\s+/)
+          .filter(t => t.length > 0);
 
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      segments.push({
-        text: text.substring(lastIndex, match.index),
-        isMatch: false,
-      });
-    }
-
-    segments.push({
-      text: match[0],
-      isMatch: true,
-    });
-
-    lastIndex = regex.lastIndex;
+  if (terms.length === 0) {
+    return [{ text, isMatch: false }];
   }
 
-  if (lastIndex < text.length) {
-    segments.push({
-      text: text.substring(lastIndex),
-      isMatch: false,
-    });
-  }
+  // Sort by length descending so longer terms match first
+  const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
+  const regex = new RegExp(
+    `(${sortedTerms.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
+    'gi'
+  );
 
-  return segments;
+  const parts = text.split(regex);
+
+  return parts
+    .filter(part => part.length > 0)
+    .map(part => ({
+      text: part,
+      isMatch: terms.some(term => part.toLowerCase().includes(term.toLowerCase())),
+    }));
 }
 
 /** Resolves researcherId UUIDs to display names using the presenter pattern. */

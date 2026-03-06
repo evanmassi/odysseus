@@ -8,7 +8,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
-import { useSearch } from '@domains/search';
+import { useSearch, useSearchStore } from '@domains/search';
 import { logger } from '@shared/infrastructure/logger';
 import { Tooltip } from '@shared/ui';
 
@@ -60,20 +60,9 @@ export function SearchPanel() {
     (e: React.MouseEvent) => {
       e.stopPropagation();
       clear();
-
-      if (showDropdown && !isClosingDropdown) {
-        setIsClosingDropdown(true);
-        if (closeTimeoutRef.current) {
-          clearTimeout(closeTimeoutRef.current);
-        }
-        closeTimeoutRef.current = setTimeout(() => {
-          setShowDropdown(false);
-          setShowFilters(false);
-          setIsClosingDropdown(false);
-        }, 200);
-      }
+      closeDropdown();
     },
-    [clear, showDropdown, isClosingDropdown]
+    [clear, closeDropdown]
   );
 
   useEffect(() => {
@@ -125,7 +114,7 @@ export function SearchPanel() {
     setShowDropdown(true);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleInputKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       void (async () => {
         try {
@@ -143,9 +132,7 @@ export function SearchPanel() {
     }
   }, [query, filters]);
 
-  const hasActiveFilters = Object.values(filters).some(value =>
-    Array.isArray(value) ? value.length > 0 : value !== undefined
-  );
+  const hasActiveFilters = useSearchStore(state => state.hasActiveFilters());
 
   return (
     <div ref={containerRef} className="relative">
@@ -159,7 +146,7 @@ export function SearchPanel() {
               placeholder="Search..."
               value={query}
               onChange={e => search(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleInputKeyDown}
               className="input-search w-56 pl-8 pr-[4.5rem]"
             />
 
