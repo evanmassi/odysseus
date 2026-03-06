@@ -1,8 +1,7 @@
 /**
- * Storage Equipment CQRS Mutation Hooks
+ * Storage Mutations
  *
- * React Query mutation hooks for atomic tank, rack, and box operations.
- * These hooks invalidate cache after server mutations instead of modifying local state.
+ * React Query mutation hooks for tank, rack, and box operations.
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -17,7 +16,6 @@ import { StorageService } from '../services/StorageService';
 
 import type { GridConfiguration, PositionDisplayConfig } from '@odysseus/shared-schemas';
 
-/** Show conflict error message and refresh cache. */
 function handleConflictError(
   queryClient: ReturnType<typeof useQueryClient>,
   operation: string
@@ -28,9 +26,25 @@ function handleConflictError(
   void queryClient.invalidateQueries({ queryKey: queryKeys.storage.data() });
 }
 
+function createMutationErrorHandler(
+  queryClient: ReturnType<typeof useQueryClient>,
+  operation: string,
+  errorLabel: string
+) {
+  return (error: unknown) => {
+    if (isOfflineError(error)) return;
+    if (isConflictError(error)) {
+      handleConflictError(queryClient, operation);
+      return;
+    }
+    logger.error(`${operation} failed`, { error });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    notifications.error(`${errorLabel}: ${message}`);
+  };
+}
+
 // Tank Mutations
 
-/** Creates a new tank in the configuration. */
 export const useAddTankMutation = () => {
   const queryClient = useQueryClient();
 
@@ -44,20 +58,10 @@ export const useAddTankMutation = () => {
       notifications.success(`Tank "${variables.name}" added successfully`);
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Add tank');
-        return;
-      }
-      logger.error('useAddTankMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to add tank: ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Add tank', 'Failed to add tank'),
   });
 };
 
-/** Updates an existing tank's properties. */
 export const useUpdateTankMutation = () => {
   const queryClient = useQueryClient();
 
@@ -76,20 +80,11 @@ export const useUpdateTankMutation = () => {
       notifications.success('Tank updated successfully');
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Update tank');
-        return;
-      }
-      logger.error('useUpdateTankMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to update tank: ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Update tank', 'Failed to update tank'),
   });
 };
 
-/** Removes a tank. Blocks if tubes exist. */
+/** Blocks if tubes exist. */
 export const useDeleteTankMutation = () => {
   const queryClient = useQueryClient();
 
@@ -102,22 +97,12 @@ export const useDeleteTankMutation = () => {
       notifications.success('Tank deleted successfully');
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Delete tank');
-        return;
-      }
-      logger.error('useDeleteTankMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to delete tank: ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Delete tank', 'Failed to delete tank'),
   });
 };
 
 // Rack Mutations
 
-/** Adds one or more racks to a tank. Use count > 1 for bulk add. */
 export const useAddRacksMutation = () => {
   const queryClient = useQueryClient();
 
@@ -135,20 +120,10 @@ export const useAddRacksMutation = () => {
       notifications.success(message);
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Add rack(s)');
-        return;
-      }
-      logger.error('useAddRacksMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to add rack(s): ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Add rack(s)', 'Failed to add rack(s)'),
   });
 };
 
-/** Updates an existing rack's properties. */
 export const useUpdateRackMutation = () => {
   const queryClient = useQueryClient();
 
@@ -169,20 +144,11 @@ export const useUpdateRackMutation = () => {
       notifications.success('Rack updated successfully');
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Update rack');
-        return;
-      }
-      logger.error('useUpdateRackMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to update rack: ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Update rack', 'Failed to update rack'),
   });
 };
 
-/** Removes a rack. Blocks if tubes exist. */
+/** Blocks if tubes exist. */
 export const useDeleteRackMutation = () => {
   const queryClient = useQueryClient();
 
@@ -196,20 +162,10 @@ export const useDeleteRackMutation = () => {
       notifications.success('Rack deleted successfully');
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Delete rack');
-        return;
-      }
-      logger.error('useDeleteRackMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to delete rack: ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Delete rack', 'Failed to delete rack'),
   });
 };
 
-/** Assigns or unassigns a rack to/from a user. */
 export const useAssignRackMutation = () => {
   const queryClient = useQueryClient();
 
@@ -232,22 +188,12 @@ export const useAssignRackMutation = () => {
       );
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Assign rack');
-        return;
-      }
-      logger.error('useAssignRackMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to assign rack: ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Assign rack', 'Failed to assign rack'),
   });
 };
 
 // Box Mutations
 
-/** Adds one or more boxes to a rack. Use count > 1 for bulk add. */
 export const useAddBoxesMutation = () => {
   const queryClient = useQueryClient();
 
@@ -265,20 +211,10 @@ export const useAddBoxesMutation = () => {
       notifications.success(message);
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Add box(es)');
-        return;
-      }
-      logger.error('useAddBoxesMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to add box(es): ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Add box(es)', 'Failed to add box(es)'),
   });
 };
 
-/** Updates an existing box's properties. */
 export const useUpdateBoxMutation = () => {
   const queryClient = useQueryClient();
 
@@ -306,20 +242,11 @@ export const useUpdateBoxMutation = () => {
       notifications.success('Box updated successfully');
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Update box');
-        return;
-      }
-      logger.error('useUpdateBoxMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to update box: ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Update box', 'Failed to update box'),
   });
 };
 
-/** Removes a box. Blocks if tubes exist. */
+/** Blocks if tubes exist. */
 export const useDeleteBoxMutation = () => {
   const queryClient = useQueryClient();
 
@@ -333,20 +260,10 @@ export const useDeleteBoxMutation = () => {
       notifications.success('Box deleted successfully');
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Delete box');
-        return;
-      }
-      logger.error('useDeleteBoxMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to delete box: ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Delete box', 'Failed to delete box'),
   });
 };
 
-/** Assigns or unassigns a box to/from a user. */
 export const useAssignBoxMutation = () => {
   const queryClient = useQueryClient();
 
@@ -371,22 +288,13 @@ export const useAssignBoxMutation = () => {
       );
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Assign box');
-        return;
-      }
-      logger.error('useAssignBoxMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to assign box: ${message}`);
-    },
+    onError: createMutationErrorHandler(queryClient, 'Assign box', 'Failed to assign box'),
   });
 };
 
 // Bulk Operations
 
-/** Unassigns all resources from a user. Used when deactivating users. */
+/** Used when deactivating users. */
 export const useBulkUnassignMutation = () => {
   const queryClient = useQueryClient();
 
@@ -407,20 +315,14 @@ export const useBulkUnassignMutation = () => {
       }
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Bulk unassign');
-        return;
-      }
-      logger.error('useBulkUnassignMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to unassign resources: ${message}`);
-    },
+    onError: createMutationErrorHandler(
+      queryClient,
+      'Bulk unassign',
+      'Failed to unassign resources'
+    ),
   });
 };
 
-/** Reassigns all resources from one user to another. */
 export const useBulkReassignMutation = () => {
   const queryClient = useQueryClient();
 
@@ -441,20 +343,15 @@ export const useBulkReassignMutation = () => {
       }
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Bulk reassign');
-        return;
-      }
-      logger.error('useBulkReassignMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to reassign resources: ${message}`);
-    },
+    onError: createMutationErrorHandler(
+      queryClient,
+      'Bulk reassign',
+      'Failed to reassign resources'
+    ),
   });
 };
 
-/** Creates initial configuration for a fresh install. */
+/** For fresh installs only. */
 export const useInitializeConfigurationMutation = () => {
   const queryClient = useQueryClient();
 
@@ -476,15 +373,10 @@ export const useInitializeConfigurationMutation = () => {
       notifications.success('Lab configuration initialized successfully');
     },
 
-    onError: (error: unknown) => {
-      if (isOfflineError(error)) return;
-      if (isConflictError(error)) {
-        handleConflictError(queryClient, 'Initialize configuration');
-        return;
-      }
-      logger.error('useInitializeConfigurationMutation failed', { error });
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      notifications.error(`Failed to initialize configuration: ${message}`);
-    },
+    onError: createMutationErrorHandler(
+      queryClient,
+      'Initialize configuration',
+      'Failed to initialize configuration'
+    ),
   });
 };
