@@ -10,7 +10,7 @@ import { queryKeys } from '@app/cache/queryKeys';
 
 import { GRID_TEMPLATES } from '../utils/gridHelpers';
 
-import { useLoadStorageQuery } from './useStorageQuery';
+import { useLoadStorageQuery } from './useStorageQueries';
 
 import type {
   LabConfiguration,

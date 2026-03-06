@@ -11,10 +11,10 @@ export {
   useLoadStorageQuery,
   useStorageExistsQuery,
   useUpdateResourceLabelMutation,
-} from './hooks/useStorageQuery';
-export { useConfigurationSync } from './hooks/useConfigurationSync';
-export { useLocationDisplayNames } from './hooks/useLocationDisplayNames';
-export type { LocationDisplayNames } from './hooks/useLocationDisplayNames';
+} from './hooks/useStorageQueries';
+export { useConfigurationSync } from './hooks/useStorageSync';
+export { useLocationDisplayNames } from './hooks/useStorageLocationNames';
+export type { LocationDisplayNames } from './hooks/useStorageLocationNames';
 
 // CQRS Equipment Mutation Hooks (Preferred for all modifications)
 export {
@@ -36,7 +36,7 @@ export {
   useBulkUnassignMutation,
   useBulkReassignMutation,
   useInitializeConfigurationMutation,
-} from './hooks/useStorageEquipmentMutations';
+} from './hooks/useStorageMutations';
 
 // Services
 export { StorageService } from './services/StorageService';

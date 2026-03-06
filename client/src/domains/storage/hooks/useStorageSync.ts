@@ -16,8 +16,8 @@ import { useAuthStore } from '@domains/authentication';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { logger } from '@shared/infrastructure/logger';
 
-import { useInitializeConfigurationMutation } from './useStorageEquipmentMutations';
-import { useLoadStorageQuery } from './useStorageQuery';
+import { useInitializeConfigurationMutation } from './useStorageMutations';
+import { useLoadStorageQuery } from './useStorageQueries';
 
 export function useConfigurationSync() {
   const { user } = useAuthStore();

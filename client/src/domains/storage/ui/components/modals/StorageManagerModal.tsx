@@ -23,8 +23,8 @@ import {
   useBulkUnassignMutation,
   useBulkReassignMutation,
 } from '@domains/storage';
-import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
-import { useResourcePermissions } from '@domains/storage/hooks/useResourcePermissions';
+import { useResourceOwnership } from '@domains/storage/hooks/useStorageOwnership';
+import { useResourcePermissions } from '@domains/storage/hooks/useStoragePermissions';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { AlertBanner, Button, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';

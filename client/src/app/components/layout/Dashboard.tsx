@@ -12,8 +12,8 @@ import { MapPin, Navigation, NotepadText, ScanEye, UserRound, UsersRound } from 
 import { useAuthStore } from '@domains/authentication';
 import { navigateToLocation } from '@domains/grid';
 import { useStorageData, useLocationDisplayNames } from '@domains/storage';
-import { useConfigurationSync } from '@domains/storage/hooks/useConfigurationSync';
-import { useResourceOwnership } from '@domains/storage/hooks/useResourceOwnership';
+import { useResourceOwnership } from '@domains/storage/hooks/useStorageOwnership';
+import { useConfigurationSync } from '@domains/storage/hooks/useStorageSync';
 import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
 import { useTubeStore, TubeInfoPanel } from '@domains/tubes';
 import {
