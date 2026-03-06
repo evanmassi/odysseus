@@ -9,7 +9,7 @@ import { AlertTriangle, Lock, MapPin, Notebook, Pencil, TestTube, UsersRound } f
 import { useResearchersQuery } from '@domains/researchers';
 import {
   useStorageData,
-  useLocationDisplayNames,
+  useStorageLocationNames,
   formatPositionRangesForBox,
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
@@ -91,7 +91,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     rackName,
     boxName,
     box: currentBoxObj,
-  } = useLocationDisplayNames(currentTank, currentRack, currentBox);
+  } = useStorageLocationNames(currentTank, currentRack, currentBox);
 
   const positionSummary = useMemo(() => {
     if (selectedTubes.length === 0) return { positionLabel: '', formattedPositions: '' };

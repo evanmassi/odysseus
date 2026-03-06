@@ -10,7 +10,7 @@ import { useMemo } from 'react';
 
 import { MapPin } from 'lucide-react';
 
-import { useStorageData, useLocationDisplayNames, DEFAULT_GRID_CONFIG } from '@domains/storage';
+import { useStorageData, useStorageLocationNames, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useUserSettings } from '@domains/users/hooks/useUserSettings';
 
@@ -66,7 +66,7 @@ function SinglePositionDisplay({
 }: SinglePositionProps) {
   const { currentLab } = useStorageData();
   const { settings } = useUserSettings();
-  const { tankName, rackName, boxName, box } = useLocationDisplayNames(tankId, rackId, boxId);
+  const { tankName, rackName, boxName, box } = useStorageLocationNames(tankId, rackId, boxId);
 
   const positionLabel = useMemo(() => {
     const gridConfig = box?.gridConfig ?? DEFAULT_GRID_CONFIG;

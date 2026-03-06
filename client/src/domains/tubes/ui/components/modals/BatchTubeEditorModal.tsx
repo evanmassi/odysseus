@@ -11,7 +11,7 @@ import { XCircle, RefreshCw, Edit, Save, Trash2 } from 'lucide-react';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import {
   useStorageData,
-  useLocationDisplayNames,
+  useStorageLocationNames,
   formatPositionRangesForBox,
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
@@ -516,7 +516,7 @@ export function BatchTubeEditorModal({
     rackName,
     boxName,
     box: boxObj,
-  } = useLocationDisplayNames(tankId, rackId, boxId);
+  } = useStorageLocationNames(tankId, rackId, boxId);
   const { currentLab } = useStorageData();
 
   // Get user settings for position display preferences

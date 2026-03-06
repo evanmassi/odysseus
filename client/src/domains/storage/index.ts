@@ -13,7 +13,7 @@ export {
   useUpdateResourceLabelMutation,
 } from './hooks/useStorageQueries';
 export { useConfigurationSync } from './hooks/useStorageSync';
-export { useLocationDisplayNames } from './hooks/useStorageLocationNames';
+export { useStorageLocationNames } from './hooks/useStorageLocationNames';
 export type { LocationDisplayNames } from './hooks/useStorageLocationNames';
 
 // CQRS Equipment Mutation Hooks (Preferred for all modifications)

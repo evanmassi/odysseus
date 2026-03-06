@@ -11,7 +11,7 @@ import { MapPin, Navigation, NotepadText, ScanEye, UserRound, UsersRound } from 
 
 import { useAuthStore } from '@domains/authentication';
 import { navigateToLocation } from '@domains/grid';
-import { useStorageData, useLocationDisplayNames } from '@domains/storage';
+import { useStorageData, useStorageLocationNames } from '@domains/storage';
 import { useResourceOwnership } from '@domains/storage/hooks/useStorageOwnership';
 import { useConfigurationSync } from '@domains/storage/hooks/useStorageSync';
 import { StorageNavigator } from '@domains/storage/ui/components/storage-navigator';
@@ -193,7 +193,7 @@ function LabDashboard() {
     boxName: boxDisplayName,
     rack: currentRackObj,
     box: currentBoxObj,
-  } = useLocationDisplayNames(currentTank, currentRack, currentBox);
+  } = useStorageLocationNames(currentTank, currentRack, currentBox);
 
   const tanks = getCurrentTanks();
   const modalService = useModalStore();
