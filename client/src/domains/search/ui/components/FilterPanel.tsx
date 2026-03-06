@@ -1,3 +1,9 @@
+/**
+ * Filter Panel
+ *
+ * Collapsible filter sections for location, sample fields, researcher, and date range.
+ */
+
 import { useMemo, useState, useCallback } from 'react';
 
 import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
@@ -151,7 +157,6 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
     date: false,
   });
 
-  // Server state from React Query
   const { data: tubes = [] } = useTubes(
     {},
     {
@@ -162,7 +167,6 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
   const { getCurrentTanks } = useStorageData();
   const tanks = getCurrentTanks();
 
-  // Extract unique filter options from tubes
   const filterOptions = useMemo(() => {
     const uniqueSampleValues = (field: string): string[] =>
       Array.from(
@@ -191,7 +195,6 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
     };
   }, [tubes, researchers]);
 
-  // Get tank name from ID
   const getTankName = useCallback(
     (tankId: string): string => {
       const tank = tanks.find(t => t.id === tankId);
@@ -200,7 +203,6 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
     [tanks]
   );
 
-  // Update date filter
   const updateDateFilter = useCallback(
     (field: 'dateFrom' | 'dateTo', value: string) => {
       const normalized = normalizeDateString(value);
@@ -212,13 +214,11 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
     [filters, setSearchFilters]
   );
 
-  // Check if a value is selected in an array filter
   const isSelected = (filterKey: keyof typeof filters, value: string): boolean => {
     const filterValue = filters[filterKey];
     return Array.isArray(filterValue) && filterValue.includes(value);
   };
 
-  // Get count of active items in a filter section
   const getSectionCount = (section: 'location' | 'sample' | 'researcher' | 'date'): number => {
     switch (section) {
       case 'location':
@@ -245,7 +245,6 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // Build active filters list grouped by category
   interface ActiveFilter {
     category: string;
     label: string;
@@ -325,7 +324,6 @@ export function FilterPanel({ onClose }: FilterPanelProps = {}) {
 
   const hasActiveFilters = activeFilters.length > 0;
 
-  // Smart truncation state
   const [showAllFilters, setShowAllFilters] = useState(false);
   const TRUNCATE_LIMIT = 6;
   const visibleFilters = showAllFilters ? activeFilters : activeFilters.slice(0, TRUNCATE_LIMIT);

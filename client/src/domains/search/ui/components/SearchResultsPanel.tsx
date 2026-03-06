@@ -1,3 +1,9 @@
+/**
+ * Search Results Panel
+ *
+ * Displays grouped, sorted search results with highlighting, export, and navigation.
+ */
+
 import { useMemo } from 'react';
 
 import {
@@ -42,13 +48,11 @@ export function SearchResultsPanel({
   const sortField = useSearchStore(state => state.sortField);
   const sortDirection = useSearchStore(state => state.sortDirection);
 
-  // Extract data for sorting (handle null results safely)
   const tubes = results?.tubes ?? [];
   const totalCount = results?.total ?? 0;
   const query = results?.query ?? '';
   const matchedTerms = results?.matchedTerms ?? [];
 
-  // Extract unique lockedBy user IDs for display name lookup
   const lockedByUserIds = useMemo(() => {
     const tubeList = results?.tubes ?? [];
     const ids = tubeList.map(t => t.lockedBy).filter((id): id is string => !!id);
@@ -56,7 +60,7 @@ export function SearchResultsPanel({
   }, [results?.tubes]);
   const { data: lockedByUsers = [] } = useUserLookupQuery(lockedByUserIds);
 
-  // Client-side sorting of grouped results - MUST be called before early returns
+  // Must be called before early returns (React hooks rule)
   const sortedGroups = useMemo(() => {
     const groups = results?.grouped ?? [];
     if (!groups || groups.length === 0) return groups;
@@ -116,7 +120,6 @@ export function SearchResultsPanel({
     return sorted;
   }, [results, sortField, sortDirection, researchers]);
 
-  // NOW safe to do early returns after all hooks are called
   if (!results && isSearching) {
     return (
       <div className="flex-1 flex items-center justify-center p-4">
@@ -140,18 +143,14 @@ export function SearchResultsPanel({
     );
   }
 
-  // Helper: Highlight matching terms with underline accent
-  // Uses matchedTerms from server (includes synonyms and normalized forms)
+  // Uses server-provided matchedTerms which include synonyms and normalized forms
   const highlightText = (text: string, searchQuery: string): React.ReactNode => {
     if (!searchQuery || !text) return text;
 
-    // Use server-provided matchedTerms if available (includes synonyms, normalized forms)
-    // Otherwise fall back to splitting the query
     let terms: string[];
     if (matchedTerms.length > 0) {
       terms = matchedTerms.filter(t => t.length > 0);
     } else {
-      // Fallback: extract search terms (split by spaces, remove empty strings)
       terms = searchQuery
         .toLowerCase()
         .split(/\s+/)
@@ -160,7 +159,6 @@ export function SearchResultsPanel({
 
     if (terms.length === 0) return text;
 
-    // Build regex to match any term (case-insensitive)
     // Sort by length descending so longer terms match first
     const sortedTerms = [...terms].sort((a, b) => b.length - a.length);
     const regex = new RegExp(
@@ -168,7 +166,6 @@ export function SearchResultsPanel({
       'gi'
     );
 
-    // Split text by matches
     const parts = text.split(regex);
 
     return (
@@ -195,7 +192,6 @@ export function SearchResultsPanel({
     );
   };
 
-  // Resolve display names from configuration
   const getDisplayLocation = (primaryLocation: string): string => {
     const [tankId, rackId, boxId] = primaryLocation.split(':');
     const tanks = getCurrentTanks();
@@ -209,14 +205,12 @@ export function SearchResultsPanel({
     return `${tankName} → ${rackName} → Box ${boxId}`;
   };
 
-  // Get researcher name from ID (returns empty string if no researcher assigned)
   const getResearcherName = (researcherId: string | undefined): string => {
     if (!researcherId) return '';
     const researcher = researchers.find(r => r.id === researcherId);
     return researcher ? formatResearcherDropdownDisplay(researcher) : '';
   };
 
-  // Get user display name from ID (for locked-by field)
   const getUserDisplayName = (userId: string | undefined): string => {
     if (!userId) return '';
     const user = lockedByUsers.find(u => u.id === userId);
@@ -227,7 +221,6 @@ export function SearchResultsPanel({
     return user.username;
   };
 
-  // Format date as MM/DD/YYYY
   const formatDate = (dateString: string | Date | undefined): string => {
     if (!dateString) return '';
     try {
@@ -242,7 +235,6 @@ export function SearchResultsPanel({
   };
 
   const handleExportResults = () => {
-    // Escape CSV value - wrap in quotes if contains comma, quote, or newline
     const escapeCsvValue = (value: string): string => {
       if (value.includes(',') || value.includes('"') || value.includes('\n')) {
         return `"${value.replace(/"/g, '""')}"`;
@@ -250,7 +242,6 @@ export function SearchResultsPanel({
       return value;
     };
 
-    // Get display names for a location
     const getLocationNames = (tankId: string, rackId: string, boxId: string) => {
       const tanks = getCurrentTanks();
       const tank = tanks.find(t => t.id === tankId);
@@ -377,7 +368,6 @@ export function SearchResultsPanel({
     }));
     await navigateToResult(tubesWithTankId);
 
-    // Close search results after navigation
     onClose?.();
   };
 
@@ -388,7 +378,6 @@ export function SearchResultsPanel({
     const firstTube = tubes[0];
     const { tankId, rackId, boxId } = firstTube.location;
 
-    // Get box configuration for grid dimensions
     const box = getBox(tankId, rackId, boxId);
     if (!box?.gridConfig) {
       // Fallback to numeric if box config not found
@@ -403,7 +392,6 @@ export function SearchResultsPanel({
       return positions.length === 1 ? `Pos: ${positions[0]}` : `Pos: ${positions.join(', ')}`;
     }
 
-    // Get unique positions and sort numerically
     const positions = Array.from(
       new Set(
         tubes
@@ -442,7 +430,6 @@ export function SearchResultsPanel({
       if (positions[i] === end + 1) {
         end = positions[i];
       } else {
-        // Convert range boundaries to labels
         const startLabel = formatPositionForBox(
           start,
           tankId,
@@ -487,7 +474,6 @@ export function SearchResultsPanel({
     );
     ranges.push(start === end ? startLabel : `${startLabel}-${endLabel}`);
 
-    // Limit display to prevent overflow - show first 4 ranges, then count
     if (ranges.length > 4) {
       const displayRanges = ranges.slice(0, 4);
       const remaining = ranges.length - 4;

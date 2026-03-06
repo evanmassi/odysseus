@@ -1,3 +1,9 @@
+/**
+ * Search Panel
+ *
+ * Top-bar search input with dropdown results and filter panel.
+ */
+
 import { useState, useRef, useEffect, useCallback } from 'react';
 
 import { Search, SlidersHorizontal, X } from 'lucide-react';

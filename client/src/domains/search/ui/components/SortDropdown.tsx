@@ -1,3 +1,9 @@
+/**
+ * Sort Dropdown
+ *
+ * Field and direction controls for search result ordering.
+ */
+
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
 import { useSearchStore, type SortField } from '@domains/search';
@@ -23,7 +29,6 @@ export function SortDropdown() {
     <div className="flex items-center gap-2 h-9 px-4 bg-muted border-b border-border">
       <span className="text-xs font-medium text-secondary-foreground">Sort by:</span>
 
-      {/* Sort Field Dropdown */}
       <Select
         options={SORT_OPTIONS}
         value={sortField}
@@ -34,7 +39,6 @@ export function SortDropdown() {
         className="w-32"
       />
 
-      {/* Sort Direction Toggle */}
       <Tooltip content={sortDirection === 'asc' ? 'Ascending' : 'Descending'} side="bottom">
         <button
           onClick={toggleSortDirection}
