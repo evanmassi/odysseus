@@ -12,7 +12,7 @@ export { useStorageSync } from './hooks/useStorageSync';
 export { useStorageLocationNames } from './hooks/useStorageLocationNames';
 export type { LocationDisplayNames } from './hooks/useStorageLocationNames';
 
-// CQRS Equipment Mutation Hooks (Preferred for all modifications)
+// Equipment Mutation Hooks
 export {
   // Tank mutations
   useAddTankMutation,

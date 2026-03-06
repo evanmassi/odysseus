@@ -1,7 +1,5 @@
 import type { UserBadgeType } from '@shared/ui/components';
 
-export type { UserBadgeType };
-
 export interface StorageHierarchy {
   tanks: Tank[];
 }
