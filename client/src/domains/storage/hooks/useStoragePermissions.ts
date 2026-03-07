@@ -34,13 +34,11 @@ export function useStoragePermissions(
 
         if (isDemo && resource.isSeeded) return false;
 
-        // Admins can edit anything
         if (currentUser.role === 'lab_admin' || currentUser.role === 'system_admin') return true;
 
         // null = explicitly unassigned/common - anyone can edit
         if (resource.assignedUserId === null) return true;
 
-        // Resource owner can edit
         if (resource.assignedUserId === currentUser.id) return true;
 
         // Cascade: rack owner can edit unassigned boxes (undefined, not null)
@@ -57,7 +55,6 @@ export function useStoragePermissions(
     [currentUser, isDemo]
   );
 
-  // Only admins can manage storage structure
   const canManageStorage = useMemo(
     () => currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin',
     [currentUser?.role]
