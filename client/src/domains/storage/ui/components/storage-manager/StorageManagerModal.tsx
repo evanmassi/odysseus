@@ -21,13 +21,13 @@ import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { TreeLinesByLocation } from '../storage-navigator/TreeLinesByLocation';
 
 import '../storage-navigator/storage-navigator.css';
-import { AssignmentByUserView } from './assignments/AssignmentByUserView';
 import { BoxEditModal } from './edit-modals/BoxEditModal';
 import { CustomLabelEditModal } from './edit-modals/CustomLabelEditModal';
 import { RackEditModal } from './edit-modals/RackEditModal';
 import { TankEditModal } from './edit-modals/TankEditModal';
-import { TankRow } from './rows/TankRow';
 import { StorageManagerContext } from './StorageManagerContext';
+import { TankRow } from './tabs/by-location/TankRow';
+import { ByUserTab } from './tabs/by-user/ByUserTab';
 import { useStorageManagerMutations } from './useStorageManagerMutations';
 
 function toggleSetItem<T>(set: Set<T>, item: T): Set<T> {
@@ -330,7 +330,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
             </StorageManagerContext.Provider>
           </div>
         ) : (
-          <AssignmentByUserView
+          <ByUserTab
             lab={currentLab}
             getUserInfo={getUserInfo}
             currentUserId={currentUser?.id}

@@ -7,13 +7,13 @@ import { ChevronDown, Edit3, Lock, Plus, Tag, Trash2 } from 'lucide-react';
 import { Button, NumberInput, OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 
-import { AssignmentBadge } from '../assignments/AssignmentBadge';
-import { AssignmentDropdown } from '../assignments/AssignmentDropdown';
-import { useStorageManagerContext } from '../StorageManagerContext';
+import { useStorageManagerContext } from '../../StorageManagerContext';
+import { AssignmentBadge } from '../by-user/AssignmentBadge';
+import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
 
 import { BoxRow } from './BoxRow';
 import { CustomLabelButton } from './CustomLabelButton';
-import '../../storage-navigator/storage-navigator.css';
+import '../../../storage-navigator/storage-navigator.css';
 
 import type { RackConfiguration } from '@domains/storage';
 

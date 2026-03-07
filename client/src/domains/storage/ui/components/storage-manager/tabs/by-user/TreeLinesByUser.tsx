@@ -7,13 +7,13 @@
 
 import { useCallback } from 'react';
 
-import { TreeLinesDisplay } from '../../storage-navigator/TreeLinesDisplay';
+import { TreeLinesDisplay } from '../../../storage-navigator/TreeLinesDisplay';
 import {
   useTreeLines,
   LINE_OFFSET,
   VERTICAL_OFFSET,
   type TreeLine,
-} from '../../storage-navigator/useTreeLines';
+} from '../../../storage-navigator/useTreeLines';
 
 interface TreeLinesByUserProps {
   expandedUsers: Set<string | null>;

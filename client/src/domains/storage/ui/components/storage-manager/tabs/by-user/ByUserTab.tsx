@@ -10,7 +10,7 @@ import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { TreeLinesByUser } from './TreeLinesByUser';
-import '../../storage-navigator/storage-navigator.css';
+import '../../../storage-navigator/storage-navigator.css';
 
 import type { LabConfiguration } from '@domains/storage';
 
@@ -21,7 +21,7 @@ interface UserInfo {
   lastName?: string;
 }
 
-interface AssignmentByUserViewProps {
+interface ByUserTabProps {
   lab: LabConfiguration;
   getUserInfo: (userId: string) => UserInfo | null;
   currentUserId?: string;
@@ -69,7 +69,7 @@ interface UserAssignments {
  *
  * Handles inheritance: boxes with undefined assignedUserId inherit from their rack.
  */
-export function AssignmentByUserView({
+export function ByUserTab({
   lab,
   getUserInfo,
   currentUserId,
@@ -77,7 +77,7 @@ export function AssignmentByUserView({
   users = [],
   onBulkUnassign,
   onBulkReassign,
-}: AssignmentByUserViewProps) {
+}: ByUserTabProps) {
   // Track expanded/collapsed users
   const [expandedUsers, setExpandedUsers] = useState<Set<string | null>>(() => new Set());
 

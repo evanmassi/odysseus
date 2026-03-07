@@ -6,12 +6,12 @@ import { Edit3, Lock, Tag, Trash2 } from 'lucide-react';
 import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 
-import { AssignmentBadge } from '../assignments/AssignmentBadge';
-import { AssignmentDropdown } from '../assignments/AssignmentDropdown';
-import { useStorageManagerContext } from '../StorageManagerContext';
+import { useStorageManagerContext } from '../../StorageManagerContext';
+import { AssignmentBadge } from '../by-user/AssignmentBadge';
+import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
 
 import { CustomLabelButton } from './CustomLabelButton';
-import '../../storage-navigator/storage-navigator.css';
+import '../../../storage-navigator/storage-navigator.css';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
 

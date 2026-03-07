@@ -6,10 +6,10 @@ import { ChevronDown, Edit3, Lock, Plus, Trash2 } from 'lucide-react';
 import { Button, NumberInput, Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
 
-import { useStorageManagerContext } from '../StorageManagerContext';
+import { useStorageManagerContext } from '../../StorageManagerContext';
 
 import { RackRow } from './RackRow';
-import '../../storage-navigator/storage-navigator.css';
+import '../../../storage-navigator/storage-navigator.css';
 
 import type { TankConfiguration } from '@domains/storage';
 

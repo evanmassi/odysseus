@@ -1,6 +1,6 @@
 import { UserBadge, type UserBadgeType } from '@shared/ui/components';
 
-import { useStorageManagerContext } from '../StorageManagerContext';
+import { useStorageManagerContext } from '../../StorageManagerContext';
 
 interface AssignmentBadgeProps {
   userId: string | undefined;
