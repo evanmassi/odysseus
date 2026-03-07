@@ -1,3 +1,9 @@
+/**
+ * Tree Keyboard Navigation
+ *
+ * Implements WAI-ARIA TreeView keyboard interaction pattern with type-ahead search.
+ */
+
 import { useCallback, useState, useRef } from 'react';
 
 import type { VisibleTreeNode } from './types';
@@ -15,7 +21,6 @@ interface UseTreeKeyboardNavigationProps {
 function findParentIndex(nodes: VisibleTreeNode[], currentIndex: number): number {
   const current = nodes[currentIndex];
 
-  // Search backwards for parent based on level hierarchy
   for (let i = currentIndex - 1; i >= 0; i--) {
     const candidate = nodes[i];
 
@@ -34,14 +39,12 @@ function findParentIndex(nodes: VisibleTreeNode[], currentIndex: number): number
 function findNextMatch(nodes: VisibleTreeNode[], startIndex: number, search: string): number {
   const searchLower = search.toLowerCase();
 
-  // Search from startIndex + 1 to end
   for (let i = startIndex + 1; i < nodes.length; i++) {
     if (nodes[i].name.toLowerCase().startsWith(searchLower)) {
       return i;
     }
   }
 
-  // Wrap around: search from 0 to startIndex
   for (let i = 0; i <= startIndex; i++) {
     if (nodes[i].name.toLowerCase().startsWith(searchLower)) {
       return i;
@@ -103,39 +106,33 @@ export function useTreeKeyboardNavigation({
         case 'ArrowRight':
           event.preventDefault();
           if (node.hasChildren && !node.isExpanded) {
-            // Closed node with children: open it
             if (node.level === 'tank') {
               onToggleTank(node.id);
             } else if (node.level === 'rack') {
               onToggleRack(node.tankId, node.id);
             }
           } else if (node.hasChildren && node.isExpanded) {
-            // Open node with children: move to first child
             const nextIndex = focusedIndex + 1;
             if (nextIndex < visibleNodes.length) {
               focusNode(nextIndex);
             }
           }
-          // End node: do nothing
           break;
 
         case 'ArrowLeft':
           event.preventDefault();
           if (node.hasChildren && node.isExpanded) {
-            // Open node: close it
             if (node.level === 'tank') {
               onToggleTank(node.id);
             } else if (node.level === 'rack') {
               onToggleRack(node.tankId, node.id);
             }
           } else if (node.level !== 'tank') {
-            // Child node (closed or end): move to parent
             const parentIndex = findParentIndex(visibleNodes, focusedIndex);
             if (parentIndex !== -1) {
               focusNode(parentIndex);
             }
           }
-          // Root node (tank): do nothing
           break;
 
         case 'Enter':
@@ -149,16 +146,13 @@ export function useTreeKeyboardNavigation({
           if (event.key.length === 1 && !event.ctrlKey && !event.altKey && !event.metaKey) {
             event.preventDefault();
 
-            // Clear previous timeout
             if (searchTimeoutRef.current) {
               clearTimeout(searchTimeoutRef.current);
             }
 
-            // Append character to search string
             const newSearch = searchString + event.key.toLowerCase();
             setSearchString(newSearch);
 
-            // Find next matching node (starting from current + 1, wrap around)
             const matchIndex = findNextMatch(visibleNodes, focusedIndex, newSearch);
             if (matchIndex !== -1) {
               focusNode(matchIndex);

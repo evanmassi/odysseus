@@ -1,20 +1,24 @@
+/**
+ * Storage Navigator Hook
+ *
+ * Manages expand/collapse state and selection for the storage tree hierarchy.
+ */
+
 import { useState, useCallback, useMemo } from 'react';
 
 import { logger } from '@shared/infrastructure/logger';
 
 import type { StorageHierarchy, SelectedLocation } from './types';
 
-export const useStorageNavigator = (
+export function useStorageNavigator(
   data: StorageHierarchy,
   selected: SelectedLocation,
   onSelect: (location: SelectedLocation) => void
-) => {
-  // Track what user has explicitly collapsed (inverted logic for reliable initialization)
-  // Empty set = nothing collapsed = all tanks expanded by default
+) {
+  // Inverted logic: tracking collapsed rather than expanded ensures all tanks start expanded without needing data
   const [collapsedTanks, setCollapsedTanks] = useState<Set<string>>(new Set());
   const [expandedRacks, setExpandedRacks] = useState<Set<string>>(new Set());
 
-  // Derive expandedTanks from data - a tank is expanded if NOT in collapsedTanks
   const expandedTanks = useMemo(() => {
     const expanded = new Set<string>();
     data.tanks.forEach(tank => {
@@ -29,10 +33,8 @@ export const useStorageNavigator = (
     setCollapsedTanks(prev => {
       const next = new Set(prev);
       if (next.has(tankId)) {
-        // Currently collapsed, expand it
         next.delete(tankId);
       } else {
-        // Currently expanded, collapse it
         next.add(tankId);
       }
       return next;
@@ -127,4 +129,4 @@ export const useStorageNavigator = (
     isRackSelected,
     isBoxSelected,
   };
-};
+}

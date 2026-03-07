@@ -1,3 +1,9 @@
+/**
+ * Tree Lines Display
+ *
+ * Renders SVG connecting lines as an absolute-positioned overlay within a tree container.
+ */
+
 import type { TreeLine } from './useTreeLines';
 
 interface TreeLinesDisplayProps {
