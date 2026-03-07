@@ -1,3 +1,9 @@
+/**
+ * By User Tab
+ *
+ * Displays storage assignments grouped by user with bulk reassign/unassign controls.
+ */
+
 import { useMemo, useState, useCallback } from 'react';
 
 import { formatResourceDisplayName, type UserDisplayInfo } from '@odysseus/shared-schemas';
@@ -10,7 +16,6 @@ import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
 import { TreeLinesByUser } from './TreeLinesByUser';
-import '../../../storage-navigator/storage-navigator.css';
 
 import type { LabConfiguration } from '@domains/storage';
 
@@ -45,7 +50,7 @@ interface ResourceAssignment {
   boxId?: string;
   boxName?: string;
   boxCustomLabel?: string;
-  isInherited?: boolean; // true if box inherits from rack
+  isInherited?: boolean;
 }
 
 interface UserAssignments {
@@ -54,21 +59,13 @@ interface UserAssignments {
   initials: string;
   firstName?: string;
   lastName?: string;
-  displayName: string; // Formatted display name: "Last, First (username)" or just username
+  displayName: string;
   assignments: ResourceAssignment[];
   rackCount: number;
   boxCount: number;
   inheritedBoxCount: number;
 }
 
-/**
- * Assignment By User View
- *
- * Displays resource assignments grouped by user, providing a user-centric
- * view of who owns what in the storage system.
- *
- * Handles inheritance: boxes with undefined assignedUserId inherit from their rack.
- */
 export function ByUserTab({
   lab,
   getUserInfo,
@@ -78,10 +75,8 @@ export function ByUserTab({
   onBulkUnassign,
   onBulkReassign,
 }: ByUserTabProps) {
-  // Track expanded/collapsed users
   const [expandedUsers, setExpandedUsers] = useState<Set<string | null>>(() => new Set());
 
-  // Track which user row is showing the reassign dropdown
   const [reassigningUserId, setReassigningUserId] = useState<string | null>(null);
 
   const toggleUser = (userId: string | null) => {
@@ -96,11 +91,9 @@ export function ByUserTab({
     });
   };
 
-  // Group assignments by user (handling inheritance)
   const assignmentsByUser = useMemo(() => {
     const grouped = new Map<string | null, ResourceAssignment[]>();
 
-    // Helper to add assignment to a user's group
     const addAssignment = (userId: string | null, assignment: ResourceAssignment) => {
       if (!grouped.has(userId)) {
         grouped.set(userId, []);
@@ -108,13 +101,11 @@ export function ByUserTab({
       grouped.get(userId)!.push(assignment);
     };
 
-    // Iterate through all tanks, racks, boxes
     for (const tank of lab.equipment.tanks) {
       for (const rack of tank.racks) {
         // Determine rack owner (string = assigned, null/undefined = unassigned)
         const rackOwnerId = rack.assignedUserId ?? null;
 
-        // Add rack assignment
         addAssignment(rackOwnerId, {
           type: 'rack',
           tankId: tank.id,
@@ -124,7 +115,6 @@ export function ByUserTab({
           rackCustomLabel: rack.customLabel,
         });
 
-        // Process boxes
         for (const box of rack.boxes) {
           if (box.assignedUserId === undefined) {
             // Box inherits from rack - add to rack owner with inherited flag
@@ -159,7 +149,6 @@ export function ByUserTab({
       }
     }
 
-    // Convert to array and build UserAssignments objects
     const result: UserAssignments[] = [];
 
     for (const [userId, assignments] of grouped) {
@@ -185,7 +174,6 @@ export function ByUserTab({
         const firstName = userInfo?.firstName;
         const lastName = userInfo?.lastName;
 
-        // Format display name: "Last, First (username)" or fallback to username
         const displayName =
           firstName && lastName ? `${lastName}, ${firstName} (${username})` : username;
 
@@ -204,7 +192,6 @@ export function ByUserTab({
       }
     }
 
-    // Sort: current user first, then alphabetically by displayName, unassigned last
     result.sort((a, b) => {
       if (a.userId === currentUserId) return -1;
       if (b.userId === currentUserId) return 1;
@@ -216,7 +203,6 @@ export function ByUserTab({
     return result;
   }, [lab, getUserInfo, currentUserId]);
 
-  // Build overflow menu items for a user
   const buildOverflowMenuItems = useCallback(
     (userId: string): OverflowMenuItem[] => {
       const items: OverflowMenuItem[] = [
@@ -241,6 +227,76 @@ export function ByUserTab({
     [onBulkUnassign]
   );
 
+  const buildRackGroups = useCallback(
+    (racks: ResourceAssignment[], boxes: ResourceAssignment[]) => {
+      // Build rack groups: combine owned racks with racks containing orphan boxes
+      const rackGroupMap = new Map<
+        string,
+        {
+          tankId: string;
+          tankName: string;
+          rackId: string;
+          rackName: string;
+          rackCustomLabel?: string;
+          ownsRack: boolean;
+          boxes: ResourceAssignment[];
+        }
+      >();
+
+      for (const rack of racks) {
+        const key = `${rack.tankId}-${rack.rackId}`;
+        const rackBoxes = boxes
+          .filter(b => b.tankId === rack.tankId && b.rackId === rack.rackId)
+          .sort((a, b) => (a.boxId ?? '').localeCompare(b.boxId ?? ''));
+        rackGroupMap.set(key, {
+          tankId: rack.tankId,
+          tankName: rack.tankName,
+          rackId: rack.rackId,
+          rackName: rack.rackName,
+          rackCustomLabel: rack.rackCustomLabel,
+          ownsRack: true,
+          boxes: rackBoxes,
+        });
+      }
+
+      // Add orphan boxes grouped by their parent rack
+      for (const box of boxes) {
+        const key = `${box.tankId}-${box.rackId}`;
+        if (!rackGroupMap.has(key)) {
+          // This is an orphan box - create a rack group for it
+          rackGroupMap.set(key, {
+            tankId: box.tankId,
+            tankName: box.tankName,
+            rackId: box.rackId,
+            rackName: box.rackName,
+            rackCustomLabel: box.rackCustomLabel,
+            ownsRack: false,
+            boxes: [],
+          });
+        }
+        const group = rackGroupMap.get(key)!;
+        // Only add if not already in the list (avoid duplicates)
+        if (!group.ownsRack && !group.boxes.some(b => b.boxId === box.boxId)) {
+          group.boxes.push(box);
+        }
+      }
+
+      return Array.from(rackGroupMap.values())
+        .map(group => ({
+          ...group,
+          boxes: group.ownsRack
+            ? group.boxes
+            : group.boxes.sort((a, b) => (a.boxId ?? '').localeCompare(b.boxId ?? '')),
+        }))
+        .sort((a, b) => {
+          const tankCompare = a.tankName.localeCompare(b.tankName);
+          if (tankCompare !== 0) return tankCompare;
+          return a.rackId.localeCompare(b.rackId);
+        });
+    },
+    []
+  );
+
   if (assignmentsByUser.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -259,14 +315,14 @@ export function ByUserTab({
           const isCurrentUser = userAssignment.userId === currentUserId;
           const isUnassigned = userAssignment.userId === null;
 
-          // Group assignments by rack for better display
           const racks = userAssignment.assignments.filter(a => a.type === 'rack');
           const boxes = userAssignment.assignments.filter(a => a.type === 'box');
-
-          // Check if showing reassign dropdown for this user
+          const badgeType = isUnassigned
+            ? 'unassigned'
+            : isCurrentUser
+              ? 'currentUser'
+              : 'otherUser';
           const isReassigning = reassigningUserId === userAssignment.userId;
-
-          // Show overflow menu for assigned users when admin and not currently reassigning
           const showOverflowMenu =
             canManageStorage && !isUnassigned && userAssignment.userId && !isReassigning;
 
@@ -277,7 +333,6 @@ export function ByUserTab({
               onOpenChange={() => toggleUser(userAssignment.userId)}
             >
               <div data-level="user" data-id={userAssignment.userId ?? 'unassigned'}>
-                {/* User Header - Navigator styled button */}
                 <div className="storage-nav-item--modal storage-nav-item--tank">
                   <button
                     type="button"
@@ -292,16 +347,13 @@ export function ByUserTab({
                       aria-hidden="true"
                     />
                     <UserBadge
-                      type={
-                        isUnassigned ? 'unassigned' : isCurrentUser ? 'currentUser' : 'otherUser'
-                      }
+                      type={badgeType}
                       initials={userAssignment.initials}
                       username={userAssignment.username}
                       size="md"
                     />
                     <span className="storage-nav-button__text">{userAssignment.displayName}</span>
 
-                    {/* Counts - styled like ownership badges */}
                     <div className="flex items-center gap-1.5 text-xs mr-1">
                       {userAssignment.rackCount > 0 && (
                         <span className="storage-nav-pill storage-nav-pill--muted flex items-center gap-1">
@@ -318,7 +370,6 @@ export function ByUserTab({
                     </div>
                   </button>
 
-                  {/* Reassign dropdown (shown when reassigning) */}
                   {isReassigning && (
                     <div
                       className="flex items-center gap-1 flex-shrink-0"
@@ -349,7 +400,6 @@ export function ByUserTab({
                     </div>
                   )}
 
-                  {/* Overflow menu (shown when not reassigning) */}
                   {showOverflowMenu && (
                     <div className="flex-shrink-0">
                       <OverflowMenu
@@ -362,171 +412,87 @@ export function ByUserTab({
                   )}
                 </div>
 
-                {/* Assignments List - collapsible with animation */}
                 <Collapsible.Content className="overflow-visible data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
                   {userAssignment.assignments.length > 0 && (
                     <div className="storage-nav-children mt-1 space-y-1">
-                      {(() => {
-                        // Build rack groups: combine owned racks with racks containing orphan boxes
-                        const rackGroupMap = new Map<
-                          string,
-                          {
-                            tankId: string;
-                            tankName: string;
-                            rackId: string;
-                            rackName: string;
-                            rackCustomLabel?: string;
-                            ownsRack: boolean;
-                            boxes: ResourceAssignment[];
-                          }
-                        >();
-
-                        // Add racks the user owns
-                        for (const rack of racks) {
-                          const key = `${rack.tankId}-${rack.rackId}`;
-                          const rackBoxes = boxes
-                            .filter(b => b.tankId === rack.tankId && b.rackId === rack.rackId)
-                            .sort((a, b) => (a.boxId ?? '').localeCompare(b.boxId ?? ''));
-                          rackGroupMap.set(key, {
-                            tankId: rack.tankId,
-                            tankName: rack.tankName,
-                            rackId: rack.rackId,
-                            rackName: rack.rackName,
-                            rackCustomLabel: rack.rackCustomLabel,
-                            ownsRack: true,
-                            boxes: rackBoxes,
-                          });
-                        }
-
-                        // Add orphan boxes grouped by their parent rack
-                        for (const box of boxes) {
-                          const key = `${box.tankId}-${box.rackId}`;
-                          if (!rackGroupMap.has(key)) {
-                            // This is an orphan box - create a rack group for it
-                            rackGroupMap.set(key, {
-                              tankId: box.tankId,
-                              tankName: box.tankName,
-                              rackId: box.rackId,
-                              rackName: box.rackName,
-                              rackCustomLabel: box.rackCustomLabel,
-                              ownsRack: false,
-                              boxes: [],
-                            });
-                          }
-                          const group = rackGroupMap.get(key)!;
-                          // Only add if not already in the list (avoid duplicates)
-                          if (!group.ownsRack && !group.boxes.some(b => b.boxId === box.boxId)) {
-                            group.boxes.push(box);
-                          }
-                        }
-
-                        // Sort boxes within each group and sort rack groups by tank/rack
-                        const rackGroups = Array.from(rackGroupMap.values())
-                          .map(group => ({
-                            ...group,
-                            boxes: group.boxes.sort((a, b) =>
-                              (a.boxId ?? '').localeCompare(b.boxId ?? '')
-                            ),
-                          }))
-                          .sort((a, b) => {
-                            const tankCompare = a.tankName.localeCompare(b.tankName);
-                            if (tankCompare !== 0) return tankCompare;
-                            return a.rackId.localeCompare(b.rackId);
-                          });
-
-                        return rackGroups.map(rackGroup => (
-                          <div
-                            key={`rack-${rackGroup.tankId}-${rackGroup.rackId}`}
-                            data-level="rack"
-                            data-id={`${rackGroup.tankId}-${rackGroup.rackId}`}
-                          >
-                            {/* Rack row - Navigator styled */}
-                            <div className="storage-nav-item--modal storage-nav-item--rack">
-                              <button
-                                type="button"
-                                className="storage-nav-button storage-nav-button--rack"
-                                aria-label={`${rackGroup.tankName} / ${rackGroup.rackName}`}
-                              >
-                                <UserBadge
-                                  type={
-                                    isUnassigned
-                                      ? 'unassigned'
-                                      : isCurrentUser
-                                        ? 'currentUser'
-                                        : 'otherUser'
-                                  }
-                                  initials={userAssignment.initials}
-                                  username={userAssignment.username}
-                                  size="md"
-                                />
-                                <div className="storage-nav-button__icon">
-                                  <RackIcon size={16} aria-hidden="true" />
-                                </div>
-                                <span className="storage-nav-button__text">
-                                  {rackGroup.tankName} /{' '}
-                                  {formatResourceDisplayName(
-                                    rackGroup.rackName,
-                                    rackGroup.rackCustomLabel
-                                  )}
-                                  {!rackGroup.ownsRack && (
-                                    <span className="ml-1.5 text-xs text-muted-foreground italic font-normal">
-                                      (boxes only)
-                                    </span>
-                                  )}
-                                </span>
-                                {rackGroup.boxes.length > 0 && (
-                                  <span className="storage-nav-pill storage-nav-pill--muted">
-                                    {rackGroup.boxes.length}{' '}
-                                    {rackGroup.boxes.length === 1 ? 'box' : 'boxes'}
+                      {buildRackGroups(racks, boxes).map(rackGroup => (
+                        <div
+                          key={`rack-${rackGroup.tankId}-${rackGroup.rackId}`}
+                          data-level="rack"
+                          data-id={`${rackGroup.tankId}-${rackGroup.rackId}`}
+                        >
+                          <div className="storage-nav-item--modal storage-nav-item--rack">
+                            <button
+                              type="button"
+                              className="storage-nav-button storage-nav-button--rack"
+                              aria-label={`${rackGroup.tankName} / ${rackGroup.rackName}`}
+                            >
+                              <UserBadge
+                                type={badgeType}
+                                initials={userAssignment.initials}
+                                username={userAssignment.username}
+                                size="md"
+                              />
+                              <div className="storage-nav-button__icon">
+                                <RackIcon size={16} aria-hidden="true" />
+                              </div>
+                              <span className="storage-nav-button__text">
+                                {rackGroup.tankName} /{' '}
+                                {formatResourceDisplayName(
+                                  rackGroup.rackName,
+                                  rackGroup.rackCustomLabel
+                                )}
+                                {!rackGroup.ownsRack && (
+                                  <span className="ml-1.5 text-xs text-muted-foreground italic font-normal">
+                                    (boxes only)
                                   </span>
                                 )}
-                              </button>
-                            </div>
+                              </span>
+                              {rackGroup.boxes.length > 0 && (
+                                <span className="storage-nav-pill storage-nav-pill--muted">
+                                  {rackGroup.boxes.length}{' '}
+                                  {rackGroup.boxes.length === 1 ? 'box' : 'boxes'}
+                                </span>
+                              )}
+                            </button>
+                          </div>
 
-                            {/* Boxes under this rack */}
-                            {rackGroup.boxes.length > 0 && (
-                              <div className="storage-nav-children mt-0.5 space-y-0.5">
-                                {rackGroup.boxes.map(box => (
+                          {rackGroup.boxes.length > 0 && (
+                            <div className="storage-nav-children mt-0.5 space-y-0.5">
+                              {rackGroup.boxes.map(box => (
+                                <div
+                                  key={`box-${box.tankId}-${box.rackId}-${box.boxId}`}
+                                  data-level="box"
+                                  data-id={box.boxId}
+                                >
                                   <div
-                                    key={`box-${box.tankId}-${box.rackId}-${box.boxId}`}
-                                    data-level="box"
-                                    data-id={box.boxId}
+                                    className="storage-nav-item--modal storage-nav-item--box"
+                                    role="listitem"
                                   >
-                                    <div
-                                      className="storage-nav-item--modal storage-nav-item--box"
-                                      role="listitem"
-                                    >
-                                      <div className="storage-nav-button storage-nav-button--box">
-                                        <UserBadge
-                                          type={
-                                            isUnassigned
-                                              ? 'unassigned'
-                                              : isCurrentUser
-                                                ? 'currentUser'
-                                                : 'otherUser'
-                                          }
-                                          initials={userAssignment.initials}
-                                          username={userAssignment.username}
-                                          size="sm"
-                                        />
-                                        <div className="storage-nav-button__icon">
-                                          <BoxIcon size={14} aria-hidden="true" />
-                                        </div>
-                                        <span className="storage-nav-button__text">
-                                          {formatResourceDisplayName(
-                                            box.boxName!,
-                                            box.boxCustomLabel
-                                          )}
-                                        </span>
+                                    <div className="storage-nav-button storage-nav-button--box">
+                                      <UserBadge
+                                        type={badgeType}
+                                        initials={userAssignment.initials}
+                                        username={userAssignment.username}
+                                        size="sm"
+                                      />
+                                      <div className="storage-nav-button__icon">
+                                        <BoxIcon size={14} aria-hidden="true" />
                                       </div>
+                                      <span className="storage-nav-button__text">
+                                        {formatResourceDisplayName(
+                                          box.boxName!,
+                                          box.boxCustomLabel
+                                        )}
+                                      </span>
                                     </div>
                                   </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        ));
-                      })()}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
                     </div>
                   )}
                 </Collapsible.Content>

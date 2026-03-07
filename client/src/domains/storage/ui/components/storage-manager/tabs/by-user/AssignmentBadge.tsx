@@ -1,3 +1,9 @@
+/**
+ * Assignment Badge
+ *
+ * Displays a user badge indicating resource ownership status (current user, other, or unassigned).
+ */
+
 import { UserBadge, type UserBadgeType } from '@shared/ui/components';
 
 import { useStorageManagerContext } from '../../StorageManagerContext';

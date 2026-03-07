@@ -1,10 +1,16 @@
-import React, { useMemo, useCallback } from 'react';
+/**
+ * Assignment Dropdown
+ *
+ * User selection dropdown for assigning storage resources, with inherited/common state support.
+ */
+
+import { useMemo, useCallback } from 'react';
 
 import { Select, type SelectOption } from '@shared/ui';
 
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';
 
-// Special value for explicitly unassigned/common boxes
+// Sentinel value distinguishing "explicitly common" (null) from "no selection"
 const COMMON_VALUE = '__COMMON__';
 
 interface AssignmentDropdownProps {
@@ -18,16 +24,13 @@ interface AssignmentDropdownProps {
   parentUserId?: string;
 }
 
-// Extended option with extra metadata for rendering
 interface AssignmentOption extends SelectOption {
   firstName?: string;
   lastName?: string;
   username?: string;
   isCommon?: boolean;
-  isInherited?: boolean;
 }
 
-// Common option always shown at top
 const COMMON_OPTION: AssignmentOption = {
   value: COMMON_VALUE,
   label: 'Unassigned/Common',
@@ -57,20 +60,17 @@ export function AssignmentDropdown({
     [users]
   );
 
-  // Show Unassigned/Common at top only if enabled (for boxes), then users
   const options = useMemo(
     (): AssignmentOption[] => (showCommonOption ? [COMMON_OPTION, ...userOptions] : userOptions),
     [userOptions, showCommonOption]
   );
 
-  // Create a lookup map for option metadata
   const optionMap = useMemo(() => {
     const map = new Map<string, AssignmentOption>();
     options.forEach(opt => map.set(String(opt.value), opt));
     return map;
   }, [options]);
 
-  // Determine current selected value for the Select
   const selectedValue = useMemo(() => {
     if (value === null) return COMMON_VALUE;
     if (value) return value;
@@ -79,7 +79,6 @@ export function AssignmentDropdown({
     return '';
   }, [value, parentUserId]);
 
-  // Track if current display is inherited (for styling)
   const isInherited = value === undefined && !!parentUserId;
 
   const handleChange = useCallback(
@@ -91,14 +90,12 @@ export function AssignmentDropdown({
         // Explicitly unassigned/common
         onChange(null);
       } else {
-        // Assigned to specific user
         onChange(String(newValue));
       }
     },
     [onChange]
   );
 
-  // Custom option rendering
   const renderOption = useCallback(
     (option: SelectOption) => {
       const fullOption = optionMap.get(String(option.value));
@@ -121,7 +118,6 @@ export function AssignmentDropdown({
     [optionMap]
   );
 
-  // Custom value rendering (for selected display)
   const renderValue = useCallback(
     (selectedOptions: SelectOption[]) => {
       if (selectedOptions.length === 0) return null;
