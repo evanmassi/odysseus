@@ -1,7 +1,7 @@
 /**
- * Storage Navigator
+ * Storage Navigator Styles
  *
- * Text-based tree navigation with indentation for hierarchy.
+ * BEM-style classes for the tree-based storage location picker.
  */
 
 :root {
@@ -180,9 +180,6 @@
 
 .storage-nav-children {
   margin-top: 0.25rem;
-}
-
-.storage-nav-children--rack {
 }
 
 .storage-nav-add-controls {

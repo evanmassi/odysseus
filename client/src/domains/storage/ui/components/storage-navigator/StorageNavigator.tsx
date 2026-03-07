@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
+/**
+ * Storage Navigator
+ *
+ * Tree-based location picker for navigating tank → rack → box hierarchy.
+ */
+
+import { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 
 import { StorageNavigatorNode } from './StorageNavigatorNode';
 import { TreeLinesByLocation } from './TreeLinesByLocation';
@@ -19,7 +25,6 @@ function getNodeKey(
   return `box:${tankId}:${rackId}:${boxId}`;
 }
 
-// Helper to compute effective owner (handles inheritance cascade)
 function getEffectiveOwner(
   assignedUserId: string | null | undefined,
   parentAssignedUserId?: string | null
@@ -28,7 +33,6 @@ function getEffectiveOwner(
   return assignedUserId === undefined ? parentAssignedUserId : assignedUserId;
 }
 
-// Helper to compute ownership type for display
 function computeOwnershipType(
   effectiveOwner: string | null | undefined,
   currentUserId?: string,
@@ -44,14 +48,14 @@ function computeOwnershipType(
   return undefined;
 }
 
-export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
+export function StorageNavigator({
   data,
   selected,
   onSelect,
   className = '',
   currentUser,
   getUserInitials: getUserInitialsFn,
-}) => {
+}: StorageNavigatorProps) {
   const {
     expandedTanks,
     expandedRacks,
@@ -65,10 +69,8 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     isBoxSelected,
   } = useStorageNavigator(data, selected, onSelect);
 
-  // Stable ref storage - persists across re-renders
   const nodeRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
 
-  // Build flat list of visible nodes for keyboard navigation
   const visibleNodes = useMemo((): VisibleTreeNode[] => {
     const nodes: VisibleTreeNode[] = [];
 
@@ -89,7 +91,6 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
       };
       nodes.push(tankNode);
 
-      // Only include racks if tank is expanded
       if (expandedTanks.has(tank.id)) {
         tank.racks.forEach((rack, rackIndex) => {
           const compositeKey = `${tank.id}-${rack.id}`;
@@ -110,7 +111,6 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
           };
           nodes.push(rackNode);
 
-          // Only include boxes if rack is expanded
           if (expandedRacks.has(compositeKey)) {
             rack.boxes.forEach((box, boxIndex) => {
               const boxKey = getNodeKey('box', tank.id, rack.id, box.id);
@@ -139,7 +139,6 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     return nodes;
   }, [data, expandedTanks, expandedRacks, isTankSelected, isRackSelected, isBoxSelected]);
 
-  // Build a quick lookup map for finding nodes by key
   const nodeKeyToIndex = useMemo(() => {
     const map = new Map<string, number>();
     visibleNodes.forEach((node, index) => {
@@ -148,26 +147,22 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     return map;
   }, [visibleNodes]);
 
-  // Track which node has keyboard focus by key (stable across tree changes)
+  // Stable across tree changes — uses node key instead of index
   const [focusedKey, setFocusedKey] = useState<string | null>(() => {
-    // Initialize to first selected node, or first node if none selected
     const selectedNode = visibleNodes.find(node => node.isSelected);
     return selectedNode?.nodeKey ?? visibleNodes[0]?.nodeKey ?? null;
   });
 
-  // Compute focused index from key
   const focusedIndex = focusedKey ? (nodeKeyToIndex.get(focusedKey) ?? 0) : 0;
 
   // When tree changes, ensure focusedKey still exists; if not, find closest valid node
   useEffect(() => {
     if (!focusedKey || !nodeKeyToIndex.has(focusedKey)) {
-      // Key no longer exists - find first visible node or reset
       const firstKey = visibleNodes[0]?.nodeKey ?? null;
       setFocusedKey(firstKey);
     }
   }, [focusedKey, nodeKeyToIndex, visibleNodes]);
 
-  // Setter that converts index to key
   const setFocusedIndex = useCallback(
     (index: number) => {
       const node = visibleNodes[index];
@@ -178,10 +173,8 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     [visibleNodes]
   );
 
-  // Get ref for a node by key
   const getNodeRef = useCallback((nodeKey: string) => nodeRefs.current.get(nodeKey) ?? null, []);
 
-  // Set ref for a node by key
   const setNodeRef = useCallback((nodeKey: string, element: HTMLButtonElement | null) => {
     if (element) {
       nodeRefs.current.set(nodeKey, element);
@@ -190,7 +183,6 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     }
   }, []);
 
-  // Handle node selection from keyboard
   const handleSelectNode = useCallback(
     (node: VisibleTreeNode) => {
       if (node.level === 'tank') {
@@ -215,7 +207,6 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     [currentUser, getUserInitialsFn]
   );
 
-  // Keyboard navigation
   const { handleKeyDown } = useTreeKeyboardNavigation({
     visibleNodes,
     focusedIndex,
@@ -349,4 +340,4 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
       </div>
     </nav>
   );
-};
+}

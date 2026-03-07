@@ -1,4 +1,8 @@
-import React from 'react';
+/**
+ * Storage Navigator Node
+ *
+ * Single tree node representing a tank, rack, or box in the navigator.
+ */
 
 import { refrigeratorFreezer } from '@lucide/lab';
 import * as Collapsible from '@radix-ui/react-collapsible';
@@ -9,9 +13,17 @@ import { Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components';
 
 import type { StorageNavigatorNodeProps } from './types';
-import './storage-navigator.css';
 
-export const StorageNavigatorNode: React.FC<StorageNavigatorNodeProps> = ({
+const ICON_SIZE = { tank: 20, rack: 18, box: 16 } as const;
+
+function LevelIcon({ level }: { level: 'tank' | 'rack' | 'box' }) {
+  const size = ICON_SIZE[level];
+  if (level === 'tank') return <Icon iconNode={refrigeratorFreezer} size={size} />;
+  if (level === 'rack') return <Rows3 size={size} />;
+  return <BoxIcon size={size} />;
+}
+
+export function StorageNavigatorNode({
   id,
   name,
   level,
@@ -28,21 +40,9 @@ export const StorageNavigatorNode: React.FC<StorageNavigatorNodeProps> = ({
   ariaSetsize,
   ownershipType,
   ownershipInitials,
-}) => {
+}: StorageNavigatorNodeProps) {
   const hasChildren = !!children;
   const { ref: textRef, isTruncated } = useTextTruncation<HTMLSpanElement>([name]);
-
-  const iconSize = level === 'tank' ? 20 : level === 'rack' ? 18 : 16;
-
-  const LevelIcon = () => {
-    if (level === 'tank') {
-      return <Icon iconNode={refrigeratorFreezer} size={iconSize} />;
-    } else if (level === 'rack') {
-      return <Rows3 size={iconSize} />;
-    } else {
-      return <BoxIcon size={iconSize} />;
-    }
-  };
 
   return (
     <Collapsible.Root open={isExpanded} onOpenChange={onToggle}>
@@ -62,7 +62,7 @@ export const StorageNavigatorNode: React.FC<StorageNavigatorNodeProps> = ({
           aria-label={`${level} ${name}`}
         >
           <div className="storage-nav-button__icon">
-            <LevelIcon />
+            <LevelIcon level={level} />
           </div>
           <Tooltip content={name} disabled={!isTruncated} side="right" delayDuration={400}>
             <span ref={textRef} className="storage-nav-button__text">
@@ -93,4 +93,4 @@ export const StorageNavigatorNode: React.FC<StorageNavigatorNodeProps> = ({
       </div>
     </Collapsible.Root>
   );
-};
+}
