@@ -1,3 +1,9 @@
+/**
+ * Box Row
+ *
+ * Leaf node in the By Location tab with grid display and assignment controls.
+ */
+
 import { useMemo } from 'react';
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
@@ -11,7 +17,6 @@ import { AssignmentBadge } from '../by-user/AssignmentBadge';
 import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
 
 import { CustomLabelButton } from './CustomLabelButton';
-import '../../../storage-navigator/storage-navigator.css';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
 
@@ -45,10 +50,8 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
   // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(box, rack);
 
-  // Can delete box if there's more than one box in the rack
   const canDeleteBox = rack.boxes.length > 1;
 
-  // Build overflow menu items for admin
   const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
     if (!canManageStorage || locked) return [];
 
@@ -92,12 +95,10 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
     onDeleteBox,
   ]);
 
-  // Divider before Delete Box
   const dividerBefore = canDeleteBox ? ['Delete Box'] : [];
 
   return (
     <div data-level="box" data-id={box.id}>
-      {/* Box Row - Navigator styled button with inline controls */}
       <div className="storage-nav-item--modal storage-nav-item--box">
         <button
           type="button"
@@ -120,7 +121,6 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
           </span>
         </button>
 
-        {/* Admin: Assignment dropdown + Overflow menu */}
         {canManageStorage && !locked && (
           <div className="flex items-center gap-1 flex-shrink-0">
             {(currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin') && (
@@ -151,7 +151,6 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
           </div>
         )}
 
-        {/* Non-admin owner: Custom label button */}
         {!canManageStorage && (
           <div className="w-7 flex-shrink-0 flex justify-center">
             {showInlineCustomLabel && (

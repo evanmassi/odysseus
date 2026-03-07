@@ -1,3 +1,9 @@
+/**
+ * Rack Row
+ *
+ * Collapsible rack node in the By Location tab with box management and assignment controls.
+ */
+
 import { useMemo } from 'react';
 
 import { EQUIPMENT_DEFAULTS, formatResourceDisplayName } from '@odysseus/shared-schemas';
@@ -13,7 +19,6 @@ import { AssignmentDropdown } from '../by-user/AssignmentDropdown';
 
 import { BoxRow } from './BoxRow';
 import { CustomLabelButton } from './CustomLabelButton';
-import '../../../storage-navigator/storage-navigator.css';
 
 import type { RackConfiguration } from '@domains/storage';
 
@@ -64,7 +69,6 @@ export function RackRow({
   // Show non-admin custom label button inline (not in overflow menu)
   const showInlineCustomLabel = !canManageStorage && canEditResource(rack);
 
-  // Build overflow menu items for admin
   const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
     if (!canManageStorage || locked) return [];
 
@@ -106,13 +110,11 @@ export function RackRow({
     onDeleteRack,
   ]);
 
-  // Divider before Delete Rack
   const dividerBefore = canDeleteRack ? ['Delete Rack'] : [];
 
   return (
     <Collapsible.Root open={!collapsed} onOpenChange={onToggleCollapse}>
       <div data-level="rack" data-id={rack.id}>
-        {/* Rack Header - Navigator styled button with inline controls */}
         <div className="storage-nav-item--modal storage-nav-item--rack">
           <button
             type="button"
@@ -143,7 +145,6 @@ export function RackRow({
             </span>
           </button>
 
-          {/* Admin: Assignment dropdown + Overflow menu */}
           {canManageStorage && !locked && (
             <div className="flex items-center gap-1 flex-shrink-0">
               {(currentUser?.role === 'lab_admin' || currentUser?.role === 'system_admin') && (
@@ -172,7 +173,6 @@ export function RackRow({
             </div>
           )}
 
-          {/* Non-admin owner: Custom label button */}
           {!canManageStorage && (
             <div className="w-7 flex-shrink-0 flex justify-center">
               {showInlineCustomLabel && (
@@ -184,7 +184,6 @@ export function RackRow({
           )}
         </div>
 
-        {/* Boxes - collapsible with animation */}
         <Collapsible.Content className="overflow-visible data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
           <div id={`rack-content-${rackKey}`} className="storage-nav-children mt-0.5 space-y-0.5">
             {rack.boxes.map(box => (

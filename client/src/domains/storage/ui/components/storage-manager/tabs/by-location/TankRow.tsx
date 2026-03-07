@@ -1,3 +1,9 @@
+/**
+ * Tank Row
+ *
+ * Collapsible tank node in the By Location tab with rack management controls.
+ */
+
 import { useMemo } from 'react';
 
 import * as Collapsible from '@radix-ui/react-collapsible';
@@ -9,7 +15,6 @@ import { TankIcon } from '@shared/ui/components/icons';
 import { useStorageManagerContext } from '../../StorageManagerContext';
 
 import { RackRow } from './RackRow';
-import '../../../storage-navigator/storage-navigator.css';
 
 import type { TankConfiguration } from '@domains/storage';
 
@@ -56,7 +61,6 @@ export function TankRow({
   const extraRackCount = Math.max(0, nonSeededRackCount - rackBaseline);
   const rackLimitReached = demoLimitsActive && extraRackCount >= demoLimits.maxRacksPerTank;
 
-  // Build overflow menu items
   const overflowMenuItems = useMemo((): OverflowMenuItem[] => {
     if (locked) return [];
 
@@ -80,13 +84,11 @@ export function TankRow({
     return items;
   }, [tank, locked, canDeleteTank, onEditTank, onDeleteTank]);
 
-  // Divider before Delete Tank
   const dividerBefore = canDeleteTank ? ['Delete Tank'] : [];
 
   return (
     <Collapsible.Root open={!collapsed} onOpenChange={onToggleCollapse}>
       <div data-level="tank" data-id={tank.id}>
-        {/* Tank Header - Navigator styled button with inline controls */}
         <div className="storage-nav-item--modal storage-nav-item--tank">
           <button
             type="button"
@@ -132,7 +134,6 @@ export function TankRow({
           )}
         </div>
 
-        {/* Tank Content - collapsible with animation */}
         <Collapsible.Content className="overflow-visible data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
           <div id={`tank-content-${tank.id}`} className="storage-nav-children mt-1 space-y-1">
             {tank.racks.map(rack => {

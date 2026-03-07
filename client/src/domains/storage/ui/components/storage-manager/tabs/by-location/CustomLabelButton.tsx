@@ -1,4 +1,8 @@
-import React from 'react';
+/**
+ * Custom Label Button
+ *
+ * Inline tag button that opens the custom label editor for a storage resource.
+ */
 
 import { Tag } from 'lucide-react';
 
@@ -17,7 +21,7 @@ export function CustomLabelButton({
 }: CustomLabelButtonProps) {
   return (
     <Tooltip content="Edit custom label" side="bottom">
-      <button onClick={onClick} className={className}>
+      <button type="button" onClick={onClick} className={className}>
         <Tag size={size} />
       </button>
     </Tooltip>
