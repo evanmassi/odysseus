@@ -1,3 +1,9 @@
+/**
+ * Storage Manager Context
+ *
+ * Shared state and callbacks for the storage manager modal's child components.
+ */
+
 import { createContext, useContext } from 'react';
 
 import type { BoxConfiguration, RackConfiguration, TankConfiguration } from '@domains/storage';

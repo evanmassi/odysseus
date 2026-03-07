@@ -1,3 +1,9 @@
+/**
+ * Storage Manager Modal
+ *
+ * Admin modal for managing storage layout (tanks, racks, boxes) and user assignments.
+ */
+
 import { useState, useMemo, useCallback } from 'react';
 
 import { sortByName } from '@odysseus/shared-schemas';
@@ -49,6 +55,34 @@ import type {
   BoxConfiguration,
   GridConfiguration,
 } from '@domains/storage';
+
+function toggleSetItem<T>(set: Set<T>, item: T): Set<T> {
+  const next = new Set(set);
+  if (next.has(item)) next.delete(item);
+  else next.add(item);
+  return next;
+}
+
+function countAssignedResources(
+  tanks: TankConfiguration[],
+  userId: string
+): { rackCount: number; boxCount: number } {
+  let rackCount = 0;
+  let boxCount = 0;
+  for (const tank of tanks) {
+    for (const rack of tank.racks) {
+      if (rack.assignedUserId === userId) rackCount++;
+      for (const box of rack.boxes) {
+        if (box.assignedUserId === userId) {
+          boxCount++;
+        } else if (box.assignedUserId === undefined && rack.assignedUserId === userId) {
+          boxCount++;
+        }
+      }
+    }
+  }
+  return { rackCount, boxCount };
+}
 
 function getNextTankName(existingTanks: TankConfiguration[]): string {
   const existingNames = new Set(existingTanks.map(t => t.name));
@@ -178,9 +212,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   const [rackCountToAdd, setRackCountToAdd] = useState<Record<string, number>>({});
   const [boxCountToAdd, setBoxCountToAdd] = useState<Record<string, number>>({});
 
-  const gridTemplates = GRID_TEMPLATES;
-
-  // Convert collapsed state to expanded state for TreeLinesByLocation
   const expandedTanks = useMemo(() => {
     if (!currentLab) return new Set<string>();
     const all = new Set(currentLab.equipment.tanks.map(t => t.id));
@@ -204,27 +235,11 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   }, [currentLab, collapsedRacks]);
 
   const toggleTankCollapse = (tankId: string) => {
-    setCollapsedTanks(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(tankId)) {
-        newSet.delete(tankId);
-      } else {
-        newSet.add(tankId);
-      }
-      return newSet;
-    });
+    setCollapsedTanks(prev => toggleSetItem(prev, tankId));
   };
 
   const toggleRackCollapse = (rackKey: string) => {
-    setCollapsedRacks(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(rackKey)) {
-        newSet.delete(rackKey);
-      } else {
-        newSet.add(rackKey);
-      }
-      return newSet;
-    });
+    setCollapsedRacks(prev => toggleSetItem(prev, rackKey));
   };
 
   const handleAssignRack = useCallback(
@@ -419,21 +434,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   const handleBulkUnassign = (userId: string) => {
     if (!currentLab) return;
 
-    let rackCount = 0;
-    let boxCount = 0;
-    for (const tank of currentLab.equipment.tanks) {
-      for (const rack of tank.racks) {
-        if (rack.assignedUserId === userId) rackCount++;
-        for (const box of rack.boxes) {
-          if (box.assignedUserId === userId) {
-            boxCount++;
-          } else if (box.assignedUserId === undefined && rack.assignedUserId === userId) {
-            boxCount++;
-          }
-        }
-      }
-    }
-
+    const { rackCount, boxCount } = countAssignedResources(currentLab.equipment.tanks, userId);
     const userInfo = getUserInfo(userId);
     const username = userInfo?.username ?? 'this user';
 
@@ -465,21 +466,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
   const handleBulkReassign = (fromUserId: string, toUserId: string) => {
     if (!currentLab) return;
 
-    let rackCount = 0;
-    let boxCount = 0;
-    for (const tank of currentLab.equipment.tanks) {
-      for (const rack of tank.racks) {
-        if (rack.assignedUserId === fromUserId) rackCount++;
-        for (const box of rack.boxes) {
-          if (box.assignedUserId === fromUserId) {
-            boxCount++;
-          } else if (box.assignedUserId === undefined && rack.assignedUserId === fromUserId) {
-            boxCount++;
-          }
-        }
-      }
-    }
-
+    const { rackCount, boxCount } = countAssignedResources(currentLab.equipment.tanks, fromUserId);
     const fromUserInfo = getUserInfo(fromUserId);
     const toUserInfo = getUserInfo(toUserId);
     const fromUsername = fromUserInfo?.username ?? 'this user';
@@ -510,7 +497,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     });
   };
 
-  // Stable callbacks for context to prevent unnecessary re-renders
   const onEditTank = useCallback((tank: TankConfiguration) => {
     setTankModalData(tank);
     setIsTankModalOpen(true);
@@ -539,7 +525,6 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
     []
   );
 
-  // Memoized context value to prevent child re-renders
   const contextValue = useMemo(
     () => ({
       users: dropdownUsers,
@@ -716,14 +701,13 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
         )}
       </BaseModal>
 
-      {/* Nested modals - always rendered when data exists, isOpen controls visibility */}
       {boxModalData && (
         <BoxEditModal
           isOpen={isBoxModalOpen}
           initialBox={boxModalData.box}
           tankId={boxModalData.tankId}
           rackId={boxModalData.rackId}
-          gridTemplates={gridTemplates}
+          gridTemplates={GRID_TEMPLATES}
           onSave={handleUpdateBoxGrid}
           onClose={() => setIsBoxModalOpen(false)}
         />
