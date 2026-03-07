@@ -1,5 +1,5 @@
 /**
- * Tree Line Overlay (By User)
+ * Tree Lines By User
  *
  * Draws SVG connecting lines for user → rack → box hierarchy
  * in the By User tab of the Storage Manager modal.
@@ -7,19 +7,19 @@
 
 import { useCallback } from 'react';
 
-import { TreeLineSvg } from '../storage-navigator/TreeLineSvg';
+import { TreeLinesDisplay } from '../../storage-navigator/TreeLinesDisplay';
 import {
   useTreeLines,
   LINE_OFFSET,
   VERTICAL_OFFSET,
   type TreeLine,
-} from '../storage-navigator/useTreeLines';
+} from '../../storage-navigator/useTreeLines';
 
-interface TreeLineOverlayByUserProps {
+interface TreeLinesByUserProps {
   expandedUsers: Set<string | null>;
 }
 
-export function TreeLineOverlayByUser({ expandedUsers }: TreeLineOverlayByUserProps) {
+export function TreeLinesByUser({ expandedUsers }: TreeLinesByUserProps) {
   const calculateLines = useCallback(() => {
     const container = document.querySelector('[role="tree"][data-view="by-user"]');
     if (!container) return { container: null, lines: [] };
@@ -120,5 +120,5 @@ export function TreeLineOverlayByUser({ expandedUsers }: TreeLineOverlayByUserPr
 
   const lines = useTreeLines(calculateLines);
 
-  return <TreeLineSvg lines={lines} />;
+  return <TreeLinesDisplay lines={lines} />;
 }

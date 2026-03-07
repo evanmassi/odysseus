@@ -45,7 +45,7 @@ export interface StorageNavigatorProps {
   getUserInitials?: (userId: string) => string | undefined;
 }
 
-export interface StorageNavigatorItemProps {
+export interface StorageNavigatorNodeProps {
   id: string;
   name: string;
   level: 'tank' | 'rack' | 'box';

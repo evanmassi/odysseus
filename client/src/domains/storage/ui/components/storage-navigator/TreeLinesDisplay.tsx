@@ -1,10 +1,10 @@
 import type { TreeLine } from './useTreeLines';
 
-interface TreeLineSvgProps {
+interface TreeLinesDisplayProps {
   lines: TreeLine[];
 }
 
-export function TreeLineSvg({ lines }: TreeLineSvgProps) {
+export function TreeLinesDisplay({ lines }: TreeLinesDisplayProps) {
   if (lines.length === 0) return null;
 
   return (

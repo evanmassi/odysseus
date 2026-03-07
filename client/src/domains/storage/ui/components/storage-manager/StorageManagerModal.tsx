@@ -32,16 +32,16 @@ import { TankIcon } from '@shared/ui/components/icons';
 import { BaseModal } from '@shared/ui/components/modals/BaseModal';
 import { notifications } from '@shared/utils/notifications';
 
-import { TreeLineOverlay } from '../storage-navigator/TreeLineOverlay';
+import { TreeLinesByLocation } from '../storage-navigator/TreeLinesByLocation';
 
 import '../storage-navigator/storage-navigator.css';
-import { AssignmentsByUserView } from './AssignmentsByUserView';
-import { BoxEditModal } from './BoxEditModal';
-import { CustomLabelEditModal } from './CustomLabelEditModal';
-import { RackEditModal } from './RackEditModal';
+import { AssignmentByUserView } from './assignments/AssignmentByUserView';
+import { BoxEditModal } from './edit-modals/BoxEditModal';
+import { CustomLabelEditModal } from './edit-modals/CustomLabelEditModal';
+import { RackEditModal } from './edit-modals/RackEditModal';
+import { TankEditModal } from './edit-modals/TankEditModal';
+import { TankRow } from './rows/TankRow';
 import { StorageManagerContext } from './StorageManagerContext';
-import { TankEditModal } from './TankEditModal';
-import { TankRow } from './TankRow';
 
 import type {
   TankConfiguration,
@@ -180,7 +180,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
   const gridTemplates = GRID_TEMPLATES;
 
-  // Convert collapsed state to expanded state for TreeLineOverlay
+  // Convert collapsed state to expanded state for TreeLinesByLocation
   const expandedTanks = useMemo(() => {
     if (!currentLab) return new Set<string>();
     const all = new Set(currentLab.equipment.tanks.map(t => t.id));
@@ -674,7 +674,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
 
             <StorageManagerContext.Provider value={contextValue}>
               <div className="relative" role="tree" data-tree-id="modal">
-                <TreeLineOverlay
+                <TreeLinesByLocation
                   expandedTanks={expandedTanks}
                   expandedRacks={expandedRacks}
                   treeId="modal"
@@ -704,7 +704,7 @@ export function StorageManagerModal({ isOpen, onClose }: StorageManagerModalProp
             </StorageManagerContext.Provider>
           </div>
         ) : (
-          <AssignmentsByUserView
+          <AssignmentByUserView
             lab={currentLab}
             getUserInfo={getUserInfo}
             currentUserId={currentUser?.id}

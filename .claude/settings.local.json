@@ -79,7 +79,9 @@
       "WebFetch(domain:unpkg.com)",
       "Bash(docker ps:*)",
       "Bash(mkdir:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(sed:*)",
+      "Bash(printenv DATABASE_URL:*)"
     ]
   }
 }

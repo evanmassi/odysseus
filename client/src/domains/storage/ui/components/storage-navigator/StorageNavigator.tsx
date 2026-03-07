@@ -1,8 +1,8 @@
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react';
 
-import { StorageNavigatorItem } from './StorageNavigatorItem';
-import { TreeLineOverlay } from './TreeLineOverlay';
-import { useStorageNavigation } from './useStorageNavigation';
+import { StorageNavigatorNode } from './StorageNavigatorNode';
+import { TreeLinesByLocation } from './TreeLinesByLocation';
+import { useStorageNavigator } from './useStorageNavigator';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
 
 import type { StorageNavigatorProps, VisibleTreeNode } from './types';
@@ -63,7 +63,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
     isTankSelected,
     isRackSelected,
     isBoxSelected,
-  } = useStorageNavigation(data, selected, onSelect);
+  } = useStorageNavigator(data, selected, onSelect);
 
   // Stable ref storage - persists across re-renders
   const nodeRefs = useRef<Map<string, HTMLButtonElement | null>>(new Map());
@@ -239,7 +239,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
         tabIndex={-1}
         className="relative flex flex-col gap-1 outline-none"
       >
-        <TreeLineOverlay
+        <TreeLinesByLocation
           expandedTanks={expandedTanks}
           expandedRacks={expandedRacks}
           treeId="navigator"
@@ -252,7 +252,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
           const tankNode = visibleNodes[tankNodeIndex];
 
           return (
-            <StorageNavigatorItem
+            <StorageNavigatorNode
               key={tank.id}
               id={tank.id}
               name={tank.name}
@@ -280,7 +280,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                 const rackNode = visibleNodes[rackNodeIndex];
 
                 return (
-                  <StorageNavigatorItem
+                  <StorageNavigatorNode
                     key={rack.id}
                     id={rack.id}
                     name={rack.name}
@@ -316,7 +316,7 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                       );
 
                       return (
-                        <StorageNavigatorItem
+                        <StorageNavigatorNode
                           key={box.id}
                           id={box.id}
                           name={box.name}
@@ -340,10 +340,10 @@ export const StorageNavigator: React.FC<StorageNavigatorProps> = ({
                         />
                       );
                     })}
-                  </StorageNavigatorItem>
+                  </StorageNavigatorNode>
                 );
               })}
-            </StorageNavigatorItem>
+            </StorageNavigatorNode>
           );
         })}
       </div>

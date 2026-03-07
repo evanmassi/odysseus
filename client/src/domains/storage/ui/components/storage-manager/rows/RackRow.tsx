@@ -7,12 +7,13 @@ import { ChevronDown, Edit3, Lock, Plus, Tag, Trash2 } from 'lucide-react';
 import { Button, NumberInput, OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
 
-import { AssignedUserBadge } from './AssignedUserBadge';
-import { AssignmentDropdown } from './AssignmentDropdown';
+import { AssignmentBadge } from '../assignments/AssignmentBadge';
+import { AssignmentDropdown } from '../assignments/AssignmentDropdown';
+import { useStorageManagerContext } from '../StorageManagerContext';
+
 import { BoxRow } from './BoxRow';
 import { CustomLabelButton } from './CustomLabelButton';
-import { useStorageManagerContext } from './StorageManagerContext';
-import '../storage-navigator/storage-navigator.css';
+import '../../storage-navigator/storage-navigator.css';
 
 import type { RackConfiguration } from '@domains/storage';
 
@@ -126,7 +127,7 @@ export function RackRow({
               className={`storage-nav-button__chevron transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`}
               aria-hidden="true"
             />
-            <AssignedUserBadge
+            <AssignmentBadge
               userId={rack.assignedUserId}
               size="md"
               isOwnedByCurrentUser={isRackOwnedByUser}

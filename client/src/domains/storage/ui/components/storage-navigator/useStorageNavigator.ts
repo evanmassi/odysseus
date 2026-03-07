@@ -4,7 +4,7 @@ import { logger } from '@shared/infrastructure/logger';
 
 import type { StorageHierarchy, SelectedLocation } from './types';
 
-export const useStorageNavigation = (
+export const useStorageNavigator = (
   data: StorageHierarchy,
   selected: SelectedLocation,
   onSelect: (location: SelectedLocation) => void

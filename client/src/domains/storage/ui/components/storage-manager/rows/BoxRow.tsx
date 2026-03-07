@@ -6,11 +6,12 @@ import { Edit3, Lock, Tag, Trash2 } from 'lucide-react';
 import { OverflowMenu, Tooltip, type OverflowMenuItem } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
 
-import { AssignedUserBadge } from './AssignedUserBadge';
-import { AssignmentDropdown } from './AssignmentDropdown';
+import { AssignmentBadge } from '../assignments/AssignmentBadge';
+import { AssignmentDropdown } from '../assignments/AssignmentDropdown';
+import { useStorageManagerContext } from '../StorageManagerContext';
+
 import { CustomLabelButton } from './CustomLabelButton';
-import { useStorageManagerContext } from './StorageManagerContext';
-import '../storage-navigator/storage-navigator.css';
+import '../../storage-navigator/storage-navigator.css';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
 
@@ -103,7 +104,7 @@ export function BoxRow({ box, rack, tankId, rackId }: BoxRowProps) {
           className="storage-nav-button storage-nav-button--box"
           aria-label={`Box ${box.name}`}
         >
-          <AssignedUserBadge
+          <AssignmentBadge
             userId={effectiveOwnerId}
             size="sm"
             isOwnedByCurrentUser={isBoxOwnedByUser}

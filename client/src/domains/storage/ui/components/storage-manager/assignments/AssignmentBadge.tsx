@@ -1,14 +1,14 @@
 import { UserBadge, type UserBadgeType } from '@shared/ui/components';
 
-import { useStorageManagerContext } from './StorageManagerContext';
+import { useStorageManagerContext } from '../StorageManagerContext';
 
-interface AssignedUserBadgeProps {
+interface AssignmentBadgeProps {
   userId: string | undefined;
   size: 'sm' | 'md';
   isOwnedByCurrentUser: boolean;
 }
 
-export function AssignedUserBadge({ userId, size, isOwnedByCurrentUser }: AssignedUserBadgeProps) {
+export function AssignmentBadge({ userId, size, isOwnedByCurrentUser }: AssignmentBadgeProps) {
   const { getUserInfo } = useStorageManagerContext();
 
   const userInfo = userId ? getUserInfo(userId) : null;

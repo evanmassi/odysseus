@@ -9,8 +9,8 @@ import { UserBadge } from '@shared/ui/components';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';
-import { TreeLineOverlayByUser } from './TreeLineOverlayByUser';
-import '../storage-navigator/storage-navigator.css';
+import { TreeLinesByUser } from './TreeLinesByUser';
+import '../../storage-navigator/storage-navigator.css';
 
 import type { LabConfiguration } from '@domains/storage';
 
@@ -21,7 +21,7 @@ interface UserInfo {
   lastName?: string;
 }
 
-interface AssignmentsByUserViewProps {
+interface AssignmentByUserViewProps {
   lab: LabConfiguration;
   getUserInfo: (userId: string) => UserInfo | null;
   currentUserId?: string;
@@ -62,14 +62,14 @@ interface UserAssignments {
 }
 
 /**
- * Assignments By User View
+ * Assignment By User View
  *
  * Displays resource assignments grouped by user, providing a user-centric
  * view of who owns what in the storage system.
  *
  * Handles inheritance: boxes with undefined assignedUserId inherit from their rack.
  */
-export function AssignmentsByUserView({
+export function AssignmentByUserView({
   lab,
   getUserInfo,
   currentUserId,
@@ -77,7 +77,7 @@ export function AssignmentsByUserView({
   users = [],
   onBulkUnassign,
   onBulkReassign,
-}: AssignmentsByUserViewProps) {
+}: AssignmentByUserViewProps) {
   // Track expanded/collapsed users
   const [expandedUsers, setExpandedUsers] = useState<Set<string | null>>(() => new Set());
 
@@ -252,7 +252,7 @@ export function AssignmentsByUserView({
 
   return (
     <div className="relative" role="tree" data-view="by-user">
-      <TreeLineOverlayByUser expandedUsers={expandedUsers} />
+      <TreeLinesByUser expandedUsers={expandedUsers} />
       <div className="space-y-1">
         {assignmentsByUser.map(userAssignment => {
           const isExpanded = expandedUsers.has(userAssignment.userId);

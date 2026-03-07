@@ -8,10 +8,10 @@ import { useTextTruncation } from '@shared/hooks';
 import { Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components';
 
-import type { StorageNavigatorItemProps } from './types';
+import type { StorageNavigatorNodeProps } from './types';
 import './storage-navigator.css';
 
-export const StorageNavigatorItem: React.FC<StorageNavigatorItemProps> = ({
+export const StorageNavigatorNode: React.FC<StorageNavigatorNodeProps> = ({
   id,
   name,
   level,
