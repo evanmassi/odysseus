@@ -1,4 +1,8 @@
-import React from 'react';
+/**
+ * Tank Edit Modal
+ *
+ * Modal for editing a tank's name, location, and active status.
+ */
 
 import { Save } from 'lucide-react';
 

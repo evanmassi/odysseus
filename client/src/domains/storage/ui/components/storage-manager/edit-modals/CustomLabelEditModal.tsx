@@ -1,4 +1,8 @@
-import React from 'react';
+/**
+ * Custom Label Edit Modal
+ *
+ * Modal for setting or removing a custom display label on a rack or box.
+ */
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { Save, Tag } from 'lucide-react';
@@ -72,7 +76,6 @@ export function CustomLabelEditModal({
       className="max-w-sm"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Generic Name (Read-only) */}
         <div>
           <div className="block text-sm font-medium mb-1 text-secondary-foreground">
             System Name
@@ -82,7 +85,6 @@ export function CustomLabelEditModal({
           </div>
         </div>
 
-        {/* Custom Label Input */}
         <div>
           <label
             htmlFor="custom-label-input"
@@ -105,7 +107,6 @@ export function CustomLabelEditModal({
           </div>
         </div>
 
-        {/* Preview */}
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <span>Preview:</span>
           <span className="font-semibold text-secondary-foreground">{previewName}</span>

@@ -1,4 +1,8 @@
-import React from 'react';
+/**
+ * Rack Edit Modal
+ *
+ * Modal for editing a rack's name and active status.
+ */
 
 import { Save } from 'lucide-react';
 

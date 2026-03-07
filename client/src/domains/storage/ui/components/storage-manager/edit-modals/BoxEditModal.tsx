@@ -1,4 +1,10 @@
-import React, { useMemo } from 'react';
+/**
+ * Box Edit Modal
+ *
+ * Modal for changing a box's grid configuration (rows × columns).
+ */
+
+import { useMemo } from 'react';
 
 import { Save } from 'lucide-react';
 
@@ -39,7 +45,6 @@ export function BoxEditModal({
     createSubmitHandler,
   } = useEditModalForm<GridConfiguration>(isOpen, initialBox.gridConfig);
 
-  // Convert grid templates to Select options
   const gridOptions = useMemo(
     () =>
       gridTemplates.map(template => ({
