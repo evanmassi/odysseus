@@ -1,3 +1,9 @@
+/**
+ * Storage Navigator Types
+ *
+ * View-model interfaces for the tree-based storage location picker.
+ */
+
 import type { UserBadgeType } from '@shared/ui/components';
 
 export interface StorageHierarchy {
@@ -30,7 +36,7 @@ export interface SelectedLocation {
   boxId: string | null;
 }
 
-export interface CurrentUserInfo {
+interface CurrentUserInfo {
   id: string;
   initials: string;
   isAdmin?: boolean;
