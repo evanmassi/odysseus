@@ -3,7 +3,9 @@
  *
  * Data structures for grid copy/cut/paste operations.
  */
-import type { TubeData } from './Tube';
+
+import type { PositionContext } from './gridSelectionTypes';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 export type SelectionMode = 'drag' | 'standard';
 
@@ -13,9 +15,5 @@ export interface ClipboardData {
   timestamp: Date;
   /** How the tubes were selected — determines paste behavior (rectangular vs sequential) */
   selectionMode: SelectionMode;
-  sourceLocation?: {
-    tankId: string;
-    rackId: string;
-    boxId: string;
-  };
+  sourceLocation?: PositionContext;
 }

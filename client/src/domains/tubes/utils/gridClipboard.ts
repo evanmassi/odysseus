@@ -4,7 +4,7 @@
  * OS clipboard integration with safe fallback patterns for tube grid management.
  */
 
-import type { ClipboardData } from '@shared/types/Clipboard';
+import type { ClipboardData } from '@domains/tubes/types/clipboardTypes';
 
 const CLIPBOARD_MARKER = 'OdysseusGrid/Tubes@v1';
 

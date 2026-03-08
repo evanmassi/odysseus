@@ -8,20 +8,23 @@ import { useMemo, useState, useCallback } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useTubesByLocation } from '@domains/tubes/hooks';
+import { toPositionKey, parsePositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import {
   canModifyTube,
   canModifyAllTubes,
   getBlockedModificationMessage,
 } from '@domains/tubes/utils/tubeAccessControl';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey, parsePositionKey } from '@shared/types/GridSelection';
 import { notifications } from '@shared/utils/notifications';
 
 import { useGridClipboard } from './useGridClipboard';
 import { useGridSelection } from './useGridSelection';
 
+import type {
+  GridControllerProps,
+  GridControllerReturn,
+} from '@domains/tubes/types/gridSelectionTypes';
 import type { TubeData } from '@odysseus/shared-schemas';
-import type { GridControllerProps, GridControllerReturn } from '@shared/types/GridSelection';
 
 export const useGridController = ({
   tankId,

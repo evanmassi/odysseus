@@ -8,7 +8,7 @@ import type { ReactNode } from 'react';
 
 import { create } from 'zustand';
 
-import { type PositionKey } from '@shared/types/GridSelection';
+import { type PositionKey } from '@domains/tubes/types/gridSelectionTypes';
 
 interface ConfirmDialogState {
   isOpen: boolean;

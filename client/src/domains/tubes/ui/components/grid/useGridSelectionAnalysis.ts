@@ -7,10 +7,10 @@
 
 import { useMemo } from 'react';
 
-import { parsePositionKey } from '@shared/types/GridSelection';
+import { parsePositionKey } from '@domains/tubes/types/gridSelectionTypes';
 
 import type { TubeData } from '@domains/tubes/types';
-import type { PositionKey } from '@shared/types/GridSelection';
+import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
 
 export interface SelectionAnalysis {
   selectedTubes: TubeData[];

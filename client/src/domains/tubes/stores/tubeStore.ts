@@ -7,9 +7,9 @@
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { create } from 'zustand';
 
-import { type PositionKey } from '@shared/types/GridSelection';
+import { type PositionKey } from '@domains/tubes/types/gridSelectionTypes';
 
-import type { SelectionMode } from '@shared/types/Clipboard';
+import type { SelectionMode } from '@domains/tubes/types/clipboardTypes';
 
 interface TubeStoreState {
   currentTank: string;

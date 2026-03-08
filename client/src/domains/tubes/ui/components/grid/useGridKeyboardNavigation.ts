@@ -8,17 +8,17 @@ import { useCallback } from 'react';
 
 import { getGridTotalPositions } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
+import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import { logger } from '@shared/infrastructure/logger';
-import { toPositionKey } from '@shared/types/GridSelection';
 import { getSelectionRange } from '@shared/utils/coordinates';
 
-import type { GridConfiguration } from '@odysseus/shared-schemas';
-import type { ClipboardData } from '@shared/types/Clipboard';
+import type { ClipboardData } from '@domains/tubes/types/clipboardTypes';
 import type {
   GridControllerReturn,
   PositionContext,
   PositionKey,
-} from '@shared/types/GridSelection';
+} from '@domains/tubes/types/gridSelectionTypes';
+import type { GridConfiguration } from '@odysseus/shared-schemas';
 
 export interface UseGridKeyboardNavigationProps {
   gridConfig: GridConfiguration;

@@ -8,7 +8,7 @@ import type { GridConfiguration } from '@/domains/storage';
 import { getGridTotalPositions } from '@/domains/storage';
 import { positionToCoordinates, coordinatesToPosition } from '@shared/utils/coordinates';
 
-import type { SelectionMode } from '@shared/types/Clipboard';
+import type { SelectionMode } from '@domains/tubes/types/clipboardTypes';
 
 export interface PasteValidationResult {
   isValid: boolean;

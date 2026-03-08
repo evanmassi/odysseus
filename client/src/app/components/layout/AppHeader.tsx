@@ -39,7 +39,7 @@ import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
 
 import type { TubeData } from '@domains/tubes/types';
-import type { PositionKey } from '@shared/types/GridSelection';
+import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import type { LucideIcon } from 'lucide-react';
 
 // Lazy load modals for code splitting

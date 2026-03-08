@@ -11,19 +11,7 @@
 export * from './utils';
 
 // Type definitions - type-only exports
-export type {
-  // API types
-  APIResponse as ApiResponse,
-  TubeAPIResponse,
-  QueryOptions,
-  // Tube types - specific exports to avoid conflicts
-  TubeLocation,
-  TubeSample,
-  TubeTimestamps,
-  // Form types
-  FormFieldConfig,
-  TubeFormConfig,
-} from './types';
+export type { APIResponse as ApiResponse, TubeAPIResponse, QueryOptions } from './types';
 
 // WebSocket and query types from domain schemas
 export type { WebSocketMessage, QueryParameters } from '@odysseus/shared-schemas';

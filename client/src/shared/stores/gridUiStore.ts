@@ -5,7 +5,7 @@
 
 import { create } from 'zustand';
 
-import type { ClipboardData } from '@shared/types/Clipboard';
+import type { ClipboardData } from '@domains/tubes/types/clipboardTypes';
 
 interface MousePosition {
   x: number;

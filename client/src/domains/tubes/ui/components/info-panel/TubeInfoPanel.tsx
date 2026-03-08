@@ -21,19 +21,18 @@ import {
 } from '@domains/storage';
 import { useTubeFieldResolver } from '@domains/tubes/hooks';
 import { useUserSettings } from '@domains/users';
-import { parsePositionKey } from '@shared/types/GridSelection';
 import { Chip, Tooltip } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateUtils';
 
 import { useTubeStore } from '../../../stores/tubeStore';
+import { parsePositionKey } from '../../../types/gridSelectionTypes';
 import { TubeLockNoteModal } from '../locking/TubeLockNoteModal';
 
 import { TubeInfoField } from './TubeInfoField';
 import { TubeInfoGroup } from './TubeInfoGroup';
 
-import type { Researcher } from '@odysseus/shared-schemas';
-import type { LockContext } from '@shared/types/GridSelection';
-import type { TubeData } from '@shared/types/Tube';
+import type { LockContext } from '../../../types/gridSelectionTypes';
+import type { Researcher, TubeData } from '@odysseus/shared-schemas';
 
 const FIELD_PATHS = [
   'sample.cellType',

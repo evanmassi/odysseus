@@ -1,4 +1,4 @@
-import type { TubeData } from '../../shared/types/Tube';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 /**
  * Create a mock tube with realistic test data

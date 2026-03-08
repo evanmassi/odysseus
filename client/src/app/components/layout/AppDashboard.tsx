@@ -52,7 +52,7 @@ import type {
   SelectedLocation,
 } from '@domains/storage/ui/components/storage-navigator';
 import type { TubeData } from '@domains/tubes/types';
-import type { PositionKey } from '@shared/types/GridSelection';
+import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
 
 import '@shared/styles/base/layout.css';
 

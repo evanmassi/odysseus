@@ -7,6 +7,8 @@
 export type LockVariant = 'own' | 'shared' | 'admin-override' | 'other';
 
 export * from './bulkUpdateTypes';
+export * from './clipboardTypes';
+export * from './gridSelectionTypes';
 export * from './tubeColorCodingTypes';
 
 export type {
@@ -18,6 +20,6 @@ export type {
   CreateTubeRequest,
   UpdateTubeRequest,
   ConcentrationUnit,
-} from '@shared/types/Tube';
+} from '@odysseus/shared-schemas';
 
-export { UNKNOWN_RESEARCHER } from '@shared/types/Tube';
+export { UNKNOWN_RESEARCHER } from '@odysseus/shared-schemas';

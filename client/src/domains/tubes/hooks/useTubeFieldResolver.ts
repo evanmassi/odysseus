@@ -17,7 +17,7 @@ import type {
   TubeFieldTypeMap,
   ValidFieldPath,
 } from '@domains/tubes/types/fieldTypes';
-import type { TubeData } from '@shared/types/Tube';
+import type { TubeData } from '@odysseus/shared-schemas';
 
 // Treats empty as a distinct value — empty vs filled = conflict
 export interface FieldConflictAnalysis<T extends NormalizedFieldValue = NormalizedFieldValue> {
