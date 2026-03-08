@@ -10,7 +10,6 @@ import { formatResourceDisplayName } from '@odysseus/shared-schemas';
 import { MapPin, Navigation, NotepadText, ScanEye, UserRound, UsersRound } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { navigateToLocation } from '@domains/grid';
 import { useStorageData, useStorageLocationNames } from '@domains/storage';
 import { useStorageOwnership } from '@domains/storage/hooks/useStorageOwnership';
 import { useStorageSync } from '@domains/storage/hooks/useStorageSync';
@@ -30,6 +29,7 @@ import { TubeBulkEditorModal } from '@domains/tubes/ui/components/modals/TubeBul
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
 import { TubeLockModal } from '@domains/tubes/ui/components/modals/TubeLockModal';
 import { TubeShareAccessModal } from '@domains/tubes/ui/components/modals/TubeShareAccessModal';
+import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
