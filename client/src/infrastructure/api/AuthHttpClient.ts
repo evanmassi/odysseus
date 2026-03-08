@@ -4,28 +4,9 @@
  * Dedicated transport for auth endpoints — no token injection to avoid circular dependency with SessionService.
  */
 
+import { ApiError } from '@odysseus/shared-schemas';
+
 import { transformApiResponse } from './responseTransformers';
-
-export interface AuthApiErrorData {
-  message: string;
-  status: number;
-  code?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Error details structure varies by error type
-  details?: any;
-}
-
-export class AuthApiError extends Error implements AuthApiErrorData {
-  constructor(
-    message: string,
-    public status: number,
-    public code?: string,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Error details structure varies by error type
-    public details?: any
-  ) {
-    super(message);
-    this.name = 'AuthApiError';
-  }
-}
 
 export class AuthHttpClient {
   private readonly baseURL: string;
@@ -69,21 +50,16 @@ export class AuthHttpClient {
     };
 
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
       const response = await fetch(url, {
         ...options,
         headers,
-        signal: controller.signal,
+        signal: AbortSignal.timeout(this.timeout),
       });
-
-      clearTimeout(timeoutId);
 
       const responseData = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new AuthApiError(
+        throw new ApiError(
           responseData.message || `Authentication request failed: ${response.status}`,
           response.status,
           responseData.code,
@@ -103,17 +79,17 @@ export class AuthHttpClient {
 
       return transformApiResponse<T>(responseData, typeHint);
     } catch (error) {
-      if (error instanceof AuthApiError) {
+      if (error instanceof ApiError) {
         throw error;
       }
 
       if ((error as Error).name === 'AbortError') {
-        throw new AuthApiError('Authentication request timeout', 408);
+        throw new ApiError('Authentication request timeout', 408);
       }
 
-      throw new AuthApiError(
+      throw new ApiError(
         `Authentication request failed: ${(error as Error).message}`,
-        0, // Unknown status for network errors
+        0,
         'NETWORK_ERROR',
         error
       );

@@ -21,6 +21,104 @@ import { transformApiResponse, ResponseTransformers } from './responseTransforme
 
 import type { TokenProvider } from '@shared/session/types';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
+type TransformFn = (data: any) => unknown;
+
+function mapArray(transformer: TransformFn): TransformFn {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
+  return (data: any) => (Array.isArray(data) ? data.map(transformer) : transformer(data));
+}
+
+// Order matters — more specific paths must come before broader ones (e.g. /admin/audit/statistics before /admin/audit)
+const URL_TRANSFORMER_REGISTRY: { match: (url: string) => boolean; transform: TransformFn }[] = [
+  // Auth
+  {
+    match: url =>
+      url.includes('/auth/login') ||
+      url.includes('/auth/register') ||
+      url.includes('/auth/force-change-password'),
+    transform: data => ResponseTransformers.LoginResponse(data),
+  },
+  {
+    match: url => url.includes('/auth/refresh'),
+    transform: data => ResponseTransformers.RefreshResponse(data),
+  },
+  // Session verification returns same structure as login
+  {
+    match: url => url.includes('/auth/verify'),
+    transform: data => ResponseTransformers.LoginResponse(data),
+  },
+  // Other auth endpoints (first-time, password-requirements, etc.) have no date fields
+  {
+    match: url => url.includes('/auth/'),
+    transform: data => transformApiResponse(data, 'AuthGenericResponse'),
+  },
+  // Users
+  {
+    match: url => url.includes('/users/me/profile'),
+    transform: data => ResponseTransformers.Person(data),
+  },
+  {
+    match: url => url.includes('/users/me/sessions'),
+    transform: mapArray(ResponseTransformers.ActiveSession),
+  },
+  {
+    match: url => url.includes('/users/me/settings'),
+    transform: data => transformApiResponse(data, 'UserSettingsResponse'),
+  },
+  {
+    match: url => url.includes('/users/lookup') || url.includes('/users/list'),
+    transform: data => transformApiResponse(data, 'UserLookup'),
+  },
+  // Domain
+  {
+    match: url => url.includes('/configuration'),
+    transform: data => transformApiResponse(data, 'ConfigurationResponse'),
+  },
+  {
+    match: url => url.includes('/tubes'),
+    transform: data => transformApiResponse(data, 'TubeData'),
+  },
+  {
+    match: url => url.includes('/researchers'),
+    transform: data => ResponseTransformers.Researcher(data),
+  },
+  {
+    match: url => url.includes('/lookups'),
+    transform: data => transformApiResponse(data, 'LookupValue'),
+  },
+  // Admin
+  {
+    match: url => url.includes('/admin/users'),
+    transform: mapArray(ResponseTransformers.AdminUser),
+  },
+  {
+    match: url => url.includes('/admin/metrics'),
+    transform: data => ResponseTransformers.SystemMetrics(data),
+  },
+  {
+    match: url => url.includes('/admin/security-config'),
+    transform: data => transformApiResponse(data, 'SecurityConfigResponse'),
+  },
+  {
+    match: url => url.includes('/admin/audit/statistics'),
+    transform: data => transformApiResponse(data, 'AuditStatistics'),
+  },
+  {
+    match: url => url.includes('/admin/audit/retention'),
+    transform: data => transformApiResponse(data, 'AuditRetention'),
+  },
+  {
+    match: url => url.includes('/admin/audit'),
+    transform: mapArray(ResponseTransformers.AuditLogEntry),
+  },
+  // Misc
+  {
+    match: url => url.includes('/session-info'),
+    transform: data => transformApiResponse(data, 'SessionInfo'),
+  },
+];
+
 // Session errors that should NOT trigger token refresh — session is invalidated server-side
 const SESSION_TERMINAL_ERRORS: Set<string> = new Set([
   API_ERROR_CODES.SESSION_IDLE_TIMEOUT,
@@ -141,65 +239,11 @@ export class HttpClient {
   applyResponseTransformation(data: unknown, url: string): unknown {
     if (!data) return data;
 
-    if (
-      url.includes('/auth/login') ||
-      url.includes('/auth/register') ||
-      url.includes('/auth/force-change-password')
-    ) {
-      return ResponseTransformers.LoginResponse(data);
-    } else if (url.includes('/auth/refresh')) {
-      return ResponseTransformers.RefreshResponse(data);
-    } else if (url.includes('/auth/verify')) {
-      // Session verification returns same structure as login
-      return ResponseTransformers.LoginResponse(data);
-    } else if (url.includes('/auth/')) {
-      // Other auth endpoints (first-time, password-requirements, etc.) have no date fields
-      return transformApiResponse(data, 'AuthGenericResponse');
-    } else if (url.includes('/users/me/profile')) {
-      return ResponseTransformers.Person(data);
-    } else if (url.includes('/users/me/sessions')) {
-      if (Array.isArray(data)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
-        return data.map((session: any) => ResponseTransformers.ActiveSession(session));
-      }
-      return ResponseTransformers.ActiveSession(data);
-    } else if (url.includes('/users/me/settings')) {
-      return transformApiResponse(data, 'UserSettingsResponse');
-    } else if (url.includes('/configuration')) {
-      return transformApiResponse(data, 'ConfigurationResponse');
-    } else if (url.includes('/tubes')) {
-      return transformApiResponse(data, 'TubeData');
-    } else if (url.includes('/researchers')) {
-      return ResponseTransformers.Researcher(data);
-    } else if (url.includes('/lookups')) {
-      return transformApiResponse(data, 'LookupValue');
-    } else if (url.includes('/admin/users')) {
-      if (Array.isArray(data)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
-        return data.map((user: any) => ResponseTransformers.AdminUser(user));
-      }
-      return ResponseTransformers.AdminUser(data);
-    } else if (url.includes('/admin/metrics')) {
-      return ResponseTransformers.SystemMetrics(data);
-    } else if (url.includes('/admin/security-config')) {
-      return transformApiResponse(data, 'SecurityConfigResponse');
-    } else if (url.includes('/admin/audit/statistics')) {
-      return transformApiResponse(data, 'AuditStatistics');
-    } else if (url.includes('/admin/audit/retention')) {
-      return transformApiResponse(data, 'AuditRetention');
-    } else if (url.includes('/admin/audit')) {
-      if (Array.isArray(data)) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
-        return data.map((entry: any) => ResponseTransformers.AuditLogEntry(entry));
-      }
-      return ResponseTransformers.AuditLogEntry(data);
-    } else if (url.includes('/session-info')) {
-      return transformApiResponse(data, 'SessionInfo');
-    } else if (url.includes('/users/lookup') || url.includes('/users/list')) {
-      return transformApiResponse(data, 'UserLookup');
-    } else {
-      return transformApiResponse(data);
+    for (const { match, transform } of URL_TRANSFORMER_REGISTRY) {
+      if (match(url)) return transform(data);
     }
+
+    return transformApiResponse(data);
   }
 
   async get<T = unknown>(url: string, headers?: Record<string, string>): Promise<ApiResponse<T>> {
@@ -384,26 +428,23 @@ export function configureHttpClientWithSessionService(sessionManager: TokenProvi
   const originalDelete = httpClient.delete.bind(httpClient);
   const originalGetBlob = httpClient.getBlob.bind(httpClient);
 
-  async function buildAuthHeaders(sessionManager: TokenProvider): Promise<Record<string, string>> {
+  async function getAuthHeaders(): Promise<Record<string, string>> {
     const token = await sessionManager.getValidAccessToken();
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  const injectNoData = async <T>(
-    originalMethod: (url: string, headers?: Record<string, string>) => Promise<ApiResponse<T>>,
-    url: string,
-    headers: Record<string, string> | undefined,
-    sessionManager: TokenProvider
-  ) => {
-    const authHeaders = await buildAuthHeaders(sessionManager);
-    const requestHeaders = { ...headers, ...authHeaders };
+  /**
+   * Single retry on 401: refresh the token and replay the request once.
+   * Terminal session errors (idle/absolute timeout, revoked) are never retried.
+   */
+  async function withAuthRetry<T>(
+    execute: (headers: Record<string, string>) => Promise<T>,
+    baseHeaders: Record<string, string> | undefined
+  ): Promise<T> {
+    const authHeaders = await getAuthHeaders();
 
     try {
-      const response = await originalMethod(url, requestHeaders);
-      if (response && response.data) {
-        response.data = httpClient.applyResponseTransformation(response.data, url) as T;
-      }
-      return response;
+      return await execute({ ...baseHeaders, ...authHeaders });
     } catch (error) {
       if (error instanceof ApiError && error.status === 401) {
         if (error.code && SESSION_TERMINAL_ERRORS.has(error.code)) {
@@ -411,76 +452,28 @@ export function configureHttpClientWithSessionService(sessionManager: TokenProvi
         }
 
         const newToken = await sessionManager.getValidAccessToken();
-
         if (newToken) {
-          const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
-          const retryResponse = await originalMethod(url, retryHeaders);
-
-          if (retryResponse && retryResponse.data) {
-            retryResponse.data = httpClient.applyResponseTransformation(
-              retryResponse.data,
-              url
-            ) as T;
-          }
-          return retryResponse;
+          return await execute({ ...baseHeaders, Authorization: `Bearer ${newToken}` });
         }
       }
 
       throw error;
     }
-  };
+  }
 
-  const injectWithData = async <T>(
-    originalMethod: (
-      url: string,
-      data?: unknown,
-      headers?: Record<string, string>
-    ) => Promise<ApiResponse<T>>,
-    url: string,
-    data: unknown,
-    headers: Record<string, string> | undefined,
-    sessionManager: TokenProvider
-  ) => {
-    const authHeaders = await buildAuthHeaders(sessionManager);
-    const requestHeaders = { ...headers, ...authHeaders };
-
-    try {
-      const response = await originalMethod(url, data, requestHeaders);
-      if (response && response.data) {
-        response.data = httpClient.applyResponseTransformation(response.data, url) as T;
-      }
-      return response;
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        if (error.code && SESSION_TERMINAL_ERRORS.has(error.code)) {
-          throw error;
-        }
-
-        const newToken = await sessionManager.getValidAccessToken();
-
-        if (newToken) {
-          const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
-          const retryResponse = await originalMethod(url, data, retryHeaders);
-
-          if (retryResponse && retryResponse.data) {
-            retryResponse.data = httpClient.applyResponseTransformation(
-              retryResponse.data,
-              url
-            ) as T;
-          }
-          return retryResponse;
-        }
-      }
-
-      throw error;
+  function applyTransform<T>(response: ApiResponse<T>, url: string): ApiResponse<T> {
+    if (response && response.data) {
+      response.data = httpClient.applyResponseTransformation(response.data, url) as T;
     }
-  };
+    return response;
+  }
+
   httpClient.get = async function <T = unknown>(url: string, headers?: Record<string, string>) {
-    return injectNoData<T>(originalGet, url, headers, sessionManager);
+    return withAuthRetry(h => originalGet<T>(url, h).then(r => applyTransform(r, url)), headers);
   };
 
   httpClient.delete = async function <T = unknown>(url: string, headers?: Record<string, string>) {
-    return injectNoData<T>(originalDelete, url, headers, sessionManager);
+    return withAuthRetry(h => originalDelete<T>(url, h).then(r => applyTransform(r, url)), headers);
   };
 
   httpClient.post = async function <T = unknown>(
@@ -488,7 +481,10 @@ export function configureHttpClientWithSessionService(sessionManager: TokenProvi
     data?: unknown,
     headers?: Record<string, string>
   ) {
-    return injectWithData<T>(originalPost, url, data, headers, sessionManager);
+    return withAuthRetry(
+      h => originalPost<T>(url, data, h).then(r => applyTransform(r, url)),
+      headers
+    );
   };
 
   httpClient.put = async function <T = unknown>(
@@ -496,28 +492,13 @@ export function configureHttpClientWithSessionService(sessionManager: TokenProvi
     data?: unknown,
     headers?: Record<string, string>
   ) {
-    return injectWithData<T>(originalPut, url, data, headers, sessionManager);
+    return withAuthRetry(
+      h => originalPut<T>(url, data, h).then(r => applyTransform(r, url)),
+      headers
+    );
   };
 
   httpClient.getBlob = async function (url: string, headers?: Record<string, string>) {
-    const authHeaders = await buildAuthHeaders(sessionManager);
-    const requestHeaders = { ...headers, ...authHeaders };
-
-    try {
-      return await originalGetBlob(url, requestHeaders);
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        if (error.code && SESSION_TERMINAL_ERRORS.has(error.code)) {
-          throw error;
-        }
-
-        const newToken = await sessionManager.getValidAccessToken();
-        if (newToken) {
-          const retryHeaders = { ...headers, Authorization: `Bearer ${newToken}` };
-          return await originalGetBlob(url, retryHeaders);
-        }
-      }
-      throw error;
-    }
+    return withAuthRetry(h => originalGetBlob(url, h), headers);
   };
 }
