@@ -1,3 +1,9 @@
+/**
+ * Tube UI Store
+ *
+ * Client-only UI state for location navigation and grid selection.
+ */
+
 import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { create } from 'zustand';
 
@@ -5,13 +11,7 @@ import { type PositionKey } from '@shared/types/GridSelection';
 
 import type { SelectionMode } from '@shared/types/Clipboard';
 
-/**
- * Tube Store - Client State Management
- *
- * Client-only UI state. Server state is handled by React Query hooks.
- */
-
-interface CleanTubeState {
+interface TubeStoreState {
   currentTank: string;
   currentRack: string;
   currentBox: string;
@@ -20,11 +20,9 @@ interface CleanTubeState {
   selectionAnchor: number | null;
   /** Determines paste positioning strategy (rectangular vs sequential) */
   lastSelectionMethod: SelectionMode;
-
-  isConnected: boolean;
 }
 
-interface CleanTubeActions {
+interface TubeStoreActions {
   setCurrentTank: (tankId: string) => void;
   setCurrentRack: (rackId: string) => void;
   setCurrentBox: (boxId: string) => void;
@@ -38,18 +36,17 @@ interface CleanTubeActions {
   resetStore: () => void;
 }
 
-interface CleanTubeStore extends CleanTubeState, CleanTubeActions {}
-
-export const useTubeStore = create<CleanTubeStore>((set, get) => ({
-  selectedPositions: new Set<PositionKey>(),
-  selectionAnchor: null,
-  lastSelectionMethod: 'standard' as SelectionMode,
+const initialState: TubeStoreState = {
   currentTank: NAMING_PATTERNS.TANK.ID_PATTERN(1),
   currentRack: '1',
   currentBox: 'A',
+  selectedPositions: new Set<PositionKey>(),
+  selectionAnchor: null,
+  lastSelectionMethod: 'standard',
+};
 
-  // Legacy state preserved for compatibility — bootstrap handles connection
-  isConnected: true,
+export const useTubeStore = create<TubeStoreState & TubeStoreActions>((set, get) => ({
+  ...initialState,
 
   // Clear selection on location change
   setCurrentTank: tankId => {
@@ -99,11 +96,8 @@ export const useTubeStore = create<CleanTubeStore>((set, get) => ({
 
   resetStore: () =>
     set({
+      ...initialState,
+      // Set must produce new instances to trigger re-renders
       selectedPositions: new Set<PositionKey>(),
-      selectionAnchor: null,
-      lastSelectionMethod: 'standard' as SelectionMode,
-      currentTank: NAMING_PATTERNS.TANK.ID_PATTERN(1),
-      currentRack: '1',
-      currentBox: 'A',
     }),
 }));

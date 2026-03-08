@@ -14,10 +14,8 @@ import { AuthGateway, useAuthStore } from '@domains/authentication';
 import { AuthEmailVerificationPage } from '@domains/authentication/ui/components/gateway/AuthEmailVerificationPage';
 import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/gateway/AuthSessionTimeoutModal';
 import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
-import { useTubeStore } from '@domains/tubes';
 import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
-// Import app-layer components (moved from @shared)
-import { ErrorBanner, ConnectionIndicator } from '@shared/ui';
+import { ErrorBanner } from '@shared/ui';
 
 import '@shared/styles/components/notifications.css';
 import '@shared/styles/utilities/accessibility.css';
@@ -30,7 +28,6 @@ function AppContent() {
 
   // State for UI components
   const { errors, clearErrors } = useErrorStore();
-  const { isConnected } = useTubeStore();
   const { isAuthenticated } = useAuthStore();
 
   useAuthSocketSync();
@@ -94,7 +91,6 @@ function AppContent() {
 
         {/* UI overlays and notifications */}
         <ErrorBanner errors={errors} onClear={clearErrors} />
-        <ConnectionIndicator connected={isConnected} />
 
         {/* Session timeout warning - only relevant when authenticated */}
         {isAuthenticated && <AuthSessionTimeoutModal />}
