@@ -1,9 +1,8 @@
 /**
- * PersonService - Profile data operations
+ * Person Profile Service
  *
  * Handles current user's person profile retrieval and updates.
  */
-
 import {
   type Person,
   type UpdatePersonProfile,
@@ -13,9 +12,7 @@ import {
 
 import { httpClient } from '@infra/api/httpClient';
 
-/**
- * Extended update type including password confirmation requirement
- */
+/** Extended update type including password confirmation requirement. */
 export interface UpdatePersonProfileWithPassword extends UpdatePersonProfile {
   currentPassword: string;
 }
@@ -23,17 +20,11 @@ export interface UpdatePersonProfileWithPassword extends UpdatePersonProfile {
 export class PersonService {
   private static readonly BASE_PATH = '/users/me/profile';
 
-  /**
-   * Get current user's person profile
-   */
   static async getMyProfile(): Promise<Person> {
     return await httpClient.getData(this.BASE_PATH, personSchema);
   }
 
-  /**
-   * Update current user's person profile
-   * Requires current password for security
-   */
+  /** Requires current password for security. */
   static async updateMyProfile(data: UpdatePersonProfileWithPassword): Promise<Person> {
     const { currentPassword, ...profileData } = data;
     const validated = updatePersonProfileSchema.parse(profileData);

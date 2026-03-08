@@ -1,16 +1,15 @@
 /**
- * UserSessionService - Session management operations
+ * Session Management Service
  *
  * Handles listing and revoking user sessions.
  */
-
 import { z } from 'zod';
 
 import { httpClient } from '@infra/api/httpClient';
 
 /**
- * Active session data returned from GET /api/users/me/sessions
- * Subset of UserSession with isCurrentSession flag
+ * Active session data returned from GET /api/users/me/sessions.
+ * Subset of UserSession with isCurrentSession flag.
  */
 const activeSessionSchema = z.object({
   id: z.string(),
@@ -33,31 +32,16 @@ const revokeAllResponseSchema = z.object({
 export class UserSessionService {
   private static readonly BASE_PATH = '/users/me/sessions';
 
-  /**
-   * Get all active sessions for current user
-   */
   static async getMySessions(): Promise<ActiveSession[]> {
-    return await httpClient.getData(
-      this.BASE_PATH,
-      z.array(activeSessionSchema)
-    );
+    return await httpClient.getData(this.BASE_PATH, z.array(activeSessionSchema));
   }
 
-  /**
-   * Revoke a specific session
-   *
-   * @param sessionId - Session ID to revoke
-   * @throws Error if attempting to revoke current session
-   */
+  /** @throws Error if attempting to revoke current session */
   static async revokeSession(sessionId: string): Promise<void> {
     await httpClient.deleteData(`${this.BASE_PATH}/${sessionId}`);
   }
 
-  /**
-   * Revoke all sessions except current session
-   *
-   * @returns Number of sessions revoked
-   */
+  /** @returns Number of sessions revoked */
   static async revokeAllOtherSessions(): Promise<number> {
     const response = await httpClient.deleteWithData(
       `${this.BASE_PATH}/all`,
