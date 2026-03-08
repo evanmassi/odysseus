@@ -5,7 +5,7 @@
  * These are tree-shaken in production builds.
  */
 
-import type { AuthDebugInfo } from '@domains/authentication/types/debug';
+import type { AuthDebugInfo } from '@domains/authentication/types/debugTypes';
 
 declare global {
   /**

@@ -8,7 +8,7 @@ import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
 
 import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
-import type { SessionDebugInfo } from '@domains/authentication/types/debug';
+import type { SessionDebugInfo } from '@domains/authentication/types/debugTypes';
 import type {
   TokenPair,
   SessionStatus,
