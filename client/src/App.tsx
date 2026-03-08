@@ -13,7 +13,7 @@ import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
 import { AuthEmailVerificationPage } from '@domains/authentication/ui/components/auth-modals/AuthEmailVerificationPage';
 import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/auth-modals/AuthSessionTimeoutModal';
-import { ResetPasswordPage } from '@domains/authentication/ui/components/password/ResetPasswordPage';
+import { AuthPasswordResetPage } from '@domains/authentication/ui/components/password/AuthPasswordResetPage';
 import { useTubeStore } from '@domains/tubes';
 import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
 // Import app-layer components (moved from @shared)
@@ -79,7 +79,7 @@ function AppContent() {
           <Route path="/verify-email" element={<AuthEmailVerificationPage />} />
 
           {/* Public route for password reset */}
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/reset-password" element={<AuthPasswordResetPage />} />
 
           {/* Main app route */}
           <Route

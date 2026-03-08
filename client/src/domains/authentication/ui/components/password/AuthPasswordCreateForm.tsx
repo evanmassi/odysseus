@@ -1,6 +1,6 @@
 /**
  * Reusable password creation form with real-time validation.
- * Used by AuthLoginModal (force change) and ResetPasswordPage (token reset).
+ * Used by AuthLoginModal (force change) and AuthPasswordResetPage (token reset).
  */
 
 import { useState, useEffect, useMemo } from 'react';
@@ -17,7 +17,7 @@ import { AlertBanner, AuthInput, Button } from '@shared/ui';
 
 import { PasswordRequirements } from './PasswordRequirements';
 
-export interface CreatePasswordFormProps {
+export interface AuthPasswordCreateFormProps {
   onSubmit: (newPassword: string) => Promise<void>;
   onCancel?: () => void;
   cancelText?: string;
@@ -27,7 +27,7 @@ export interface CreatePasswordFormProps {
   onErrorClear?: () => void;
 }
 
-export function CreatePasswordForm({
+export function AuthPasswordCreateForm({
   onSubmit,
   onCancel,
   cancelText = 'Login',
@@ -35,7 +35,7 @@ export function CreatePasswordForm({
   loadingText = 'Changing Password...',
   error: externalError,
   onErrorClear,
-}: CreatePasswordFormProps) {
+}: AuthPasswordCreateFormProps) {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);

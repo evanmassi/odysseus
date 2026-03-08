@@ -13,7 +13,7 @@ import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { Button } from '@shared/ui';
 
-import { CreatePasswordForm } from './CreatePasswordForm';
+import { AuthPasswordCreateForm } from './AuthPasswordCreateForm';
 
 // Enough time to read the success message before redirecting
 const REDIRECT_DELAY_MS = 2500;
@@ -45,7 +45,7 @@ function PageLayout({
   );
 }
 
-export function ResetPasswordPage() {
+export function AuthPasswordResetPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const token = searchParams.get('token');
@@ -134,7 +134,7 @@ export function ResetPasswordPage() {
         <h2 className="text-xl font-bold text-card-foreground">Create New Password</h2>
       </div>
 
-      <CreatePasswordForm
+      <AuthPasswordCreateForm
         onSubmit={handleSubmit}
         onCancel={handleBackToLogin}
         cancelText="Login"

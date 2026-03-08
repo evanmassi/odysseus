@@ -14,7 +14,7 @@ import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
-import { CreatePasswordForm } from '../password/CreatePasswordForm';
+import { AuthPasswordCreateForm } from '../password/AuthPasswordCreateForm';
 
 import { AuthBaseModal } from './AuthBaseModal';
 
@@ -153,7 +153,7 @@ export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
           Create New Password
         </h2>
 
-        <CreatePasswordForm
+        <AuthPasswordCreateForm
           onSubmit={handlePasswordChange}
           onCancel={handleCancelPasswordChange}
           cancelText="Login"
