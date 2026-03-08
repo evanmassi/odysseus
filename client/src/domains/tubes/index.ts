@@ -1,18 +1,16 @@
 /**
- * Public API for Tubes Domain
+ * Tubes Domain Barrel
  *
- * This file exports the public interface for the tubes domain,
- * following the principle of encapsulation where internal
- * implementation details are hidden.
+ * Public API for the tubes domain.
  */
 
-// UI Components - Public exports only
+// UI Components
 export { TubeInfoPanel } from './ui/components/info-panel/TubeInfoPanel';
 
 // Store
 export { useTubeStore } from './stores/tubeStore';
 
-// Types - Re-export all domain types
+// Types
 export type {
   TubeData,
   TubeLocation,
@@ -21,7 +19,6 @@ export type {
   CreateTubeRequest,
   UpdateTubeRequest,
 } from './types';
-export { UNKNOWN_RESEARCHER } from './types';
 
-// React Query Hooks - from barrel file
+// Hooks
 export * from './hooks';

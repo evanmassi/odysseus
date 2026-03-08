@@ -92,11 +92,9 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     const { currentLab } = useStorageData();
 
     const colors = tube ? getTubeColor(tube) : null;
-    const lotStyle = tube?.sample?.lotNumber
-      ? getLotStyleForBox(tube.sample.lotNumber, rackId, boxId)
-      : null;
+    const lotStyle = tube?.sample?.lotNumber ? getLotStyleForBox(tube.sample.lotNumber) : null;
     const conditionStyle = tube?.sample?.cultureCondition
-      ? getConditionStyleForBox(tube.sample.cultureCondition, rackId, boxId)
+      ? getConditionStyleForBox(tube.sample.cultureCondition)
       : null;
     const donorInfo = tube ? parseDonorInfo(tube) : { internal: '', source: '' };
 

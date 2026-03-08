@@ -1,4 +1,9 @@
-// Color system for tube identification using LAB color space
+/**
+ * Tube Color Coding
+ *
+ * LAB color space system for visually distinguishing tubes by donor, cell type, and lot.
+ */
+
 import { adaptTubeDataForColorSystem } from '@domains/tubes/types/tubeColorCodingTypes';
 import { logger } from '@shared/infrastructure/logger';
 import {
@@ -42,17 +47,14 @@ interface LotStyle {
   size?: 'small' | 'medium' | 'large';
 }
 
-// Enhanced donor color palette - LAB color space optimized for maximum visual distinction
 const donorColorPalette = generateOptimalColorPalette({
-  count: 72, // Fewer colors but more visually distinct
-  minDistance: 18, // ΔE units for clear visual distinction (18 = clearly noticeable)
-  lightRange: [40, 75], // Wider range for better variety
-  chromaRange: [30, 55], // Muted but distinct (not washed out)
-  seed: 12345, // Deterministic seed for consistent colors across sessions
+  count: 72,
+  minDistance: 18,
+  lightRange: [40, 75],
+  chromaRange: [30, 55],
+  seed: 12345,
 });
 
-// Category-based cell line color system
-// Each cell line has a pre-assigned muted color and pattern variants
 interface CellLineCategory {
   name: string;
   color: string;
@@ -188,16 +190,14 @@ export const cellLineCategories: CellLineCategory[] = [
 // Light theme blue for tubes with missing donor/cell line info
 const UNKNOWN_FALLBACK_COLOR = '#b8d0e5';
 
-// Enhanced lot number indicators - LAB color space optimized with extended patterns
 const baseIndicatorColors = generateOptimalColorPalette({
   count: 16,
-  minDistance: 20, // Higher threshold for corner indicators
-  lightRange: [25, 85], // Full range for maximum distinction
-  chromaRange: [20, 80], // High saturation for visibility
-  seed: 54321, // Different seed for lot indicators
+  minDistance: 20,
+  lightRange: [25, 85],
+  chromaRange: [20, 80],
+  seed: 54321,
 });
 
-// Enhanced pattern system with more variations
 const enhancedPatterns: LotStyle['pattern'][] = [
   'solid',
   'stripe',
@@ -209,7 +209,6 @@ const enhancedPatterns: LotStyle['pattern'][] = [
   'diamond',
 ];
 
-// Generate comprehensive lot indicator styles (16 colors × 8 patterns = 128 combinations)
 const lotIndicatorStyles: LotStyle[] = [];
 
 baseIndicatorColors.forEach(color => {
@@ -218,7 +217,6 @@ baseIndicatorColors.forEach(color => {
   });
 });
 
-// Add additional high-contrast combinations for edge cases
 const additionalStyles: LotStyle[] = [
   { color: '#000000', pattern: 'solid' },
   { color: '#FFFFFF', pattern: 'solid' },
@@ -232,7 +230,6 @@ const additionalStyles: LotStyle[] = [
 
 lotIndicatorStyles.push(...additionalStyles);
 
-// Simplified culture condition indicators - highly distinct solid colors for small triangular indicators
 const conditionIndicatorColors = [
   '#FF0000', // Pure Red
   '#00AA00', // Green
@@ -252,18 +249,14 @@ const conditionIndicatorColors = [
   '#664400', // Olive Brown
 ];
 
-// Generate condition indicator styles - solid colors only for clarity
 const conditionIndicatorStyles: LotStyle[] = conditionIndicatorColors.map(color => ({
   color,
   pattern: 'solid',
 }));
 
-// Enhanced cache system with LRU eviction
-class EnhancedColorCache {
+class ColorCache {
   private tubeColors = new Map<string, string>();
   private donorColors = new Map<string, string>();
-  private boxLotAssignments = new Map<string, Map<string, number>>();
-  private boxConditionAssignments = new Map<string, Map<string, number>>();
   private accessOrder: string[] = [];
   private maxCacheSize = 1000;
 
@@ -296,14 +289,6 @@ class EnhancedColorCache {
     this.updateAccess(signature);
   }
 
-  invalidateTubeColor(signature: string): void {
-    this.tubeColors.delete(signature);
-    const index = this.accessOrder.indexOf(signature);
-    if (index > -1) {
-      this.accessOrder.splice(index, 1);
-    }
-  }
-
   getDonorColor(donorId: string): string | undefined {
     return this.donorColors.get(donorId);
   }
@@ -311,27 +296,9 @@ class EnhancedColorCache {
   setDonorColor(donorId: string, color: string): void {
     this.donorColors.set(donorId, color);
   }
-
-  getBoxLotAssignments(boxKey: string): Map<string, number> {
-    if (!this.boxLotAssignments.has(boxKey)) {
-      this.boxLotAssignments.set(boxKey, new Map());
-    }
-    return this.boxLotAssignments.get(boxKey)!;
-  }
-
-  getBoxConditionAssignments(boxKey: string): Map<string, number> {
-    if (!this.boxConditionAssignments.has(boxKey)) {
-      this.boxConditionAssignments.set(boxKey, new Map());
-    }
-    return this.boxConditionAssignments.get(boxKey)!;
-  }
 }
 
-// Global cache instance
-const enhancedCache = new EnhancedColorCache();
-
-// Global cache instance for direct use
-const globalCache = enhancedCache;
+const colorCache = new ColorCache();
 
 // FNV-1a hash function for good distribution and collision resistance
 function hashStringToIndex(str: string, maxIndex: number): number {
@@ -348,18 +315,15 @@ function hashStringToIndex(str: string, maxIndex: number): number {
   return Math.abs(hash) % maxIndex;
 }
 
-// Get pre-assigned color for a known cell line (returns null if not a cell line)
 function getCellLineColor(cellType: string): string | null {
   if (!cellType) return null;
   const normalized = cellType.toLowerCase().trim();
 
   for (const category of cellLineCategories) {
-    // Check exact pattern matches
     if (category.patterns.includes(normalized)) {
       return category.color;
     }
 
-    // Check partial matches (pattern contained in input)
     for (const pattern of category.patterns) {
       if (normalized.includes(pattern)) {
         return category.color;
@@ -370,9 +334,7 @@ function getCellLineColor(cellType: string): string | null {
   return null;
 }
 
-// Get donor identifier from tube data
 function getDonorIdentifier(tubeData: ColorSystemTubeData): string {
-  // Check new fields first
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
   if (tubeData.donorInternalId || tubeData.donorSourceId) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
@@ -385,12 +347,11 @@ function getDonorIdentifier(tubeData: ColorSystemTubeData): string {
   try {
     const donorData = JSON.parse(tubeData.donor);
     return donorData.internal || donorData.source || 'unknown';
-  } catch (e) {
+  } catch {
     return tubeData.donor || 'unknown';
   }
 }
 
-// Create unique signature for a tube
 function createTubeSignature(tubeData: ColorSystemTubeData): string {
   const donorId = getDonorIdentifier(tubeData);
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
@@ -401,8 +362,6 @@ function createTubeSignature(tubeData: ColorSystemTubeData): string {
   return `${donorId}|${cellType}|${lotNumber}|${condition}`;
 }
 
-// Category-based cell type brightness system
-// Each category has a single brightness value and an array of pattern variants
 interface CellTypeCategory {
   name: string;
   brightness: number;
@@ -653,14 +612,11 @@ function getCellTypeBrightnessOffset(cellType: string): number {
 
   const normalized = cellType.toLowerCase().trim();
 
-  // Search through categories
   for (const category of cellTypeCategories) {
-    // Check exact pattern matches
     if (category.patterns.includes(normalized)) {
       return category.brightness;
     }
 
-    // Check partial matches (pattern contained in input or vice versa)
     for (const pattern of category.patterns) {
       if (normalized.includes(pattern) || pattern.includes(normalized)) {
         return category.brightness;
@@ -668,36 +624,25 @@ function getCellTypeBrightnessOffset(cellType: string): number {
     }
   }
 
-  // Unknown cell types get neutral offset
   return 0;
 }
 
-// LAB-based brightness adjustment for perceptually uniform changes
 function adjustColorBrightness(color: string, percent: number): string {
   try {
-    // Convert to LAB color space
     const lab = rgbStringToLAB(color);
-
-    // Adjust lightness in LAB space for perceptually uniform brightness change
     lab.L = Math.max(0, Math.min(100, lab.L + percent));
-
-    // Convert back to RGB string
     return labToRGBString(lab);
   } catch (error) {
-    // Fallback to original color if conversion fails
     logger.warn('Color adjustment failed, using original color', { color });
     return color;
   }
 }
 
-// Enhanced main function to get tube colors
 export function getTubeColor(tubeData: TubeData): ColorResult {
-  // Adapt incoming data to color system format
   const adaptedData = adaptTubeDataForColorSystem(tubeData);
   const signature = createTubeSignature(adaptedData);
 
-  // Check enhanced cache first
-  const cachedColor = globalCache.getTubeColor(signature);
+  const cachedColor = colorCache.getTubeColor(signature);
   if (cachedColor) {
     return {
       backgroundColor: cachedColor,
@@ -709,35 +654,29 @@ export function getTubeColor(tubeData: TubeData): ColorResult {
   let finalColor: string;
   const cellType = adaptedData.cellType || '';
 
-  // Step 1: Check if this is a known cell line (pre-assigned color)
   const cellLineColor = getCellLineColor(cellType);
   if (cellLineColor) {
     finalColor = cellLineColor;
   } else {
-    // Step 2: Check for donor IDs
     const donorId = getDonorIdentifier(adaptedData);
 
     if (donorId !== 'unknown') {
-      // Has donor ID - use donor palette
-      let baseColor = globalCache.getDonorColor(donorId);
+      let baseColor = colorCache.getDonorColor(donorId);
       if (!baseColor) {
         const colorIndex = hashStringToIndex(donorId, donorColorPalette.length);
         baseColor = donorColorPalette[colorIndex];
-        globalCache.setDonorColor(donorId, baseColor);
+        colorCache.setDonorColor(donorId, baseColor);
       }
 
-      // Apply systematic cell type brightness offset
       const brightnessOffset = getCellTypeBrightnessOffset(cellType);
       finalColor = adjustColorBrightness(baseColor, brightnessOffset);
     } else {
-      // Step 3: No donor ID and not a cell line - use theme fallback with brightness offset
       const brightnessOffset = getCellTypeBrightnessOffset(cellType);
       finalColor = adjustColorBrightness(UNKNOWN_FALLBACK_COLOR, brightnessOffset);
     }
   }
 
-  // Store the color for this exact tube combination
-  globalCache.setTubeColor(signature, finalColor);
+  colorCache.setTubeColor(signature, finalColor);
 
   return {
     backgroundColor: finalColor,
@@ -746,50 +685,18 @@ export function getTubeColor(tubeData: TubeData): ColorResult {
   };
 }
 
-// Cache invalidation helper for tube updates
-export function invalidateTubeCache(oldTubeData: TubeData, newTubeData?: Partial<TubeData>): void {
-  // Adapt data for color system
-  const adaptedOldData = adaptTubeDataForColorSystem(oldTubeData);
-
-  // Create old signature to remove from cache
-  const oldSignature = createTubeSignature(adaptedOldData);
-  globalCache.invalidateTubeColor(oldSignature);
-
-  // If new data provided, also invalidate new signature in case of conflicts
-  if (newTubeData) {
-    const updatedTube = { ...oldTubeData, ...newTubeData };
-    const adaptedNewData = adaptTubeDataForColorSystem(updatedTube);
-    const newSignature = createTubeSignature(adaptedNewData);
-    globalCache.invalidateTubeColor(newSignature);
-  }
-}
-
-// Global lot style assignment for consistency across all boxes
-export function getLotStyleForBox(
-  lotNumber: string | undefined,
-  _rackId: string,
-  _boxId: string
-): LotStyle | null {
+export function getLotStyleForBox(lotNumber: string | undefined): LotStyle | null {
   if (!lotNumber || lotNumber.trim() === '') return null;
 
   const lot = lotNumber.trim();
-
-  // Use global assignment - same lot number gets same style everywhere
   const styleIndex = hashStringToIndex(lot, lotIndicatorStyles.length);
   return lotIndicatorStyles[styleIndex];
 }
 
-// Global condition style assignment for consistency across all boxes
-export function getConditionStyleForBox(
-  condition: string | undefined,
-  _rackId: string,
-  _boxId: string
-): LotStyle | null {
+export function getConditionStyleForBox(condition: string | undefined): LotStyle | null {
   if (!condition || condition.trim() === '') return null;
 
   const cond = condition.trim();
-
-  // Use global assignment - same condition gets same style everywhere
   const styleIndex = hashStringToIndex(cond, conditionIndicatorStyles.length);
   return conditionIndicatorStyles[styleIndex];
 }
@@ -811,7 +718,6 @@ export function formatIdForGrid(id: string, maxLength = 5): string {
 export function parseDonorInfo(tubeData: TubeData): { internal: string; source: string } {
   const adaptedData = adaptTubeDataForColorSystem(tubeData);
 
-  // Check if we have the new separate fields first
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR logic to check if either donor field is present
   if (adaptedData.donorInternalId || adaptedData.donorSourceId) {
     return {
