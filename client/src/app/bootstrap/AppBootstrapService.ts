@@ -15,7 +15,7 @@ import {
   isOffline,
   resetNetworkState,
 } from '@infra/connection';
-import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
+import { initializeSocket, cleanupSocket } from '@infra/socket';
 import { logger } from '@shared/infrastructure/logger';
 
 import { validateCacheVersion } from '../cache';

@@ -9,7 +9,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAuthStore } from '@domains/authentication';
-import { cleanupSocket, initializeSocket } from '@infra/socket/SocketService';
+import { cleanupSocket, initializeSocket } from '@infra/socket';
 import { logger } from '@shared/infrastructure/logger';
 
 export function useAuthSocketSync(): void {
