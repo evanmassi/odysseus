@@ -10,7 +10,7 @@ import { Lock, Notebook } from 'lucide-react';
 
 import { useLockTubesMutation } from '@domains/tubes/hooks';
 import { AlertBanner, Button, Input } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
 export interface TubeLockModalProps {

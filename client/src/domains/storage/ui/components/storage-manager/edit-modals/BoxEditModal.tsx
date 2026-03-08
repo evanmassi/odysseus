@@ -11,7 +11,7 @@ import { Save } from 'lucide-react';
 import { useEditModalForm } from '@shared/hooks';
 import { Button, Select } from '@shared/ui';
 import { BoxIcon } from '@shared/ui/components/icons';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
 
 import type { BoxConfiguration, GridConfiguration } from '@domains/storage';
 

@@ -10,8 +10,8 @@ import { KeyRound, UserRound, Mail, Clock, TimerOff } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
-import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
+import { AnimatedCheckmark } from '@shared/ui/components/icons/AnimatedCheckmark';
 import { notifications } from '@shared/utils';
 
 import { AuthPasswordCreateForm } from '../password/AuthPasswordCreateForm';

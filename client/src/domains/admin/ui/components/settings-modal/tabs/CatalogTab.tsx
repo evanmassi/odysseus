@@ -12,7 +12,7 @@ import { Check, Pencil, Plus, RefreshCw, Trash2, X, BookOpen } from 'lucide-reac
 import { queryKeys } from '@app/cache/queryKeys';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
-import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Input } from '@shared/ui/primitives';
 import { notifications } from '@shared/utils';
 

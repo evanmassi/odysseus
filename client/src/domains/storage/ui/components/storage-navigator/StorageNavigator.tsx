@@ -12,7 +12,7 @@ import { useStorageNavigator } from './useStorageNavigator';
 import { useTreeKeyboardNavigation } from './useTreeKeyboardNavigation';
 
 import type { StorageNavigatorProps, VisibleTreeNode } from './types';
-import type { UserBadgeType } from '@shared/ui/components';
+import type { UserBadgeType } from '@shared/ui/components/badges';
 
 function getNodeKey(
   level: 'tank' | 'rack' | 'box',

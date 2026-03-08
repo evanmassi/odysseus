@@ -7,7 +7,7 @@
 import { CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 import { Button } from '@shared/ui';
-import { ModalPortal } from '@shared/ui/components/ModalPortal';
+import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
 
 import type { BulkUpdateProgress } from '@domains/tubes/types';
 

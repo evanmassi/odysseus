@@ -8,8 +8,8 @@ import { useState } from 'react';
 
 import { Copy, Check } from 'lucide-react';
 
-import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
 import { AlertBanner, Button } from '@shared/ui';
+import { AnimatedCheckmark } from '@shared/ui/components/icons/AnimatedCheckmark';
 
 import { AuthBaseModal } from './AuthBaseModal';
 

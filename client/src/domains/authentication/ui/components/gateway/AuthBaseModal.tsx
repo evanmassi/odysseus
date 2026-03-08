@@ -11,8 +11,9 @@ import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick-altered.svg?react';
 import { mergeRefs } from '@shared/hooks/mergeRefs';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
-import { ModalPortal } from '@shared/ui/components/ModalPortal';
-import { SketchBorder } from '@shared/ui/components/SketchBorder';
+import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
+
+import { AnimatedBorder } from './AnimatedBorder';
 
 export interface AuthBaseModalProps {
   children: ReactNode;
@@ -85,7 +86,7 @@ export function AuthBaseModal({
           className={`relative bg-transparent rounded-2xl w-full ${sizeClasses} mx-4 ${className}`}
         >
           {dimensions.width > 0 && (
-            <SketchBorder
+            <AnimatedBorder
               width={dimensions.width}
               height={dimensions.height}
               borderRadius={16}

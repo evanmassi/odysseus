@@ -9,7 +9,7 @@ import { Save } from 'lucide-react';
 import { useEditModalForm } from '@shared/hooks';
 import { Button, Checkbox, Input } from '@shared/ui';
 import { RackIcon } from '@shared/ui/components/icons';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
 
 import type { RackConfiguration } from '@domains/storage';
 

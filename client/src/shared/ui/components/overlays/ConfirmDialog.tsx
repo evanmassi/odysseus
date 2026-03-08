@@ -28,13 +28,14 @@ import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 
 import { useModalStore } from '@app/stores/modalStore';
-import { AnimatedWarningMark } from '@shared/components/AnimatedWarningMark';
-import { AnimatedXMark } from '@shared/components/AnimatedXMark';
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
-import { ModalPortal } from '@shared/ui/components/ModalPortal';
+import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
+import { AnimatedXMark } from '@shared/ui/components/icons/AnimatedXMark';
 
-import { Button, type ButtonVariant } from '../primitives';
+import { Button, type ButtonVariant } from '../../primitives';
+
+import { ModalPortal } from './ModalPortal';
 
 export interface ConfirmDialogProps {
   /** Whether dialog is visible */

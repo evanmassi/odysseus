@@ -10,7 +10,7 @@ import {
   AnimatedSparkles,
   AnimatedWarningMark,
   AnimatedXMark,
-} from '@shared/components';
+} from '@shared/ui/components/icons';
 
 import { defaultAlertBannerProps } from './types';
 

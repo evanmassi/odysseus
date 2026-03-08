@@ -16,7 +16,7 @@ import { useStoragePermissions } from '@domains/storage/hooks/useStoragePermissi
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { AlertBanner, Button, Tabs, Tab } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
-import { BaseModal } from '@shared/ui/components/modals/BaseModal';
+import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
 import { TreeLinesByLocation } from '../storage-navigator/TreeLinesByLocation';
 

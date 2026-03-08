@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-interface SketchBorderProps {
+interface AnimatedBorderProps {
   width: number;
   height: number;
   borderRadius?: number;
@@ -10,11 +10,8 @@ interface SketchBorderProps {
   className?: string;
 }
 
-/**
- * SVG border that animates drawing itself using stroke-dashoffset.
- * Used for auth modals to create a "sketch" effect.
- */
-export function SketchBorder({
+/** Animates drawing itself via stroke-dashoffset. */
+export function AnimatedBorder({
   width,
   height,
   borderRadius = 16,
@@ -22,7 +19,7 @@ export function SketchBorder({
   strokeColor = 'currentColor',
   isClosing = false,
   className = '',
-}: SketchBorderProps) {
+}: AnimatedBorderProps) {
   const pathRef = useRef<SVGRectElement>(null);
   // Initialize with calculated estimate to prevent flash of borderLength=0
   // Formula: perimeter of rounded rect = 2*(w + h) - 8*r + 2*PI*r

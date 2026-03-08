@@ -9,13 +9,13 @@ import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
-import { env } from '@shared/config';
-import { logger } from '@shared/infrastructure/logger';
-import { Button } from '@shared/ui';
 import {
   ConnectionStatusIndicator,
   RealtimeSyncIndicator,
-} from '@shared/ui/components/ConnectionStatusIndicator';
+} from '@app/components/layout/ConnectionStatusIndicator';
+import { env } from '@shared/config';
+import { logger } from '@shared/infrastructure/logger';
+import { Button } from '@shared/ui';
 import { notifications } from '@shared/utils/notifications';
 
 import { queryClient, setupQueryPersistence } from '../cache/queryClient';

@@ -3,7 +3,7 @@
  *
  * Suspense fallback for lazy-loaded tab content in modals.
  */
-export function TabSkeleton() {
+export function LoadingSkeleton() {
   return (
     <div
       className="space-y-6 animate-pulse"

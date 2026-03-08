@@ -28,7 +28,7 @@ import { useAuthStore } from '@domains/authentication';
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
-import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 import {

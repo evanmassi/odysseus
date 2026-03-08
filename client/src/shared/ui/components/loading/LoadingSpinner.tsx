@@ -24,7 +24,7 @@ const sizeClasses: Record<SpinnerSize, string> = {
 /**
  * Renders a thin ring spinner with smooth rotation animation.
  */
-export function Spinner({ size = 'md', className = '' }: SpinnerProps) {
+export function LoadingSpinner({ size = 'md', className = '' }: SpinnerProps) {
   return (
     <div
       className={`

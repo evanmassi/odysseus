@@ -5,5 +5,6 @@
  */
 
 export { LoadingOverlay } from './LoadingOverlay';
-export { LoadingSkeletons } from './LoadingSkeletons';
-export { Spinner } from './Spinner';
+export { LoadingSkeleton } from './LoadingSkeleton';
+export { LoadingSpinner } from './LoadingSpinner';
+export { ModalSkeleton } from './ModalSkeleton';

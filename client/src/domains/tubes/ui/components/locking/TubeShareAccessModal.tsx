@@ -11,7 +11,7 @@ import { Share2, X, UserRoundPlus, UsersRound } from 'lucide-react';
 import { useShareTubeAccessMutation, useRevokeTubeAccessMutation } from '@domains/tubes/hooks';
 import { useActiveUsersQuery } from '@domains/users';
 import { AlertBanner, Button, Checkbox } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { notifications } from '@shared/utils/notifications';
 

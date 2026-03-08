@@ -10,7 +10,7 @@ import { Pencil, Notebook } from 'lucide-react';
 
 import { useBulkUpdateTubesMutation } from '@domains/tubes/hooks';
 import { AlertBanner, Button, Input } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
 import { notifications } from '@shared/utils/notifications';
 
 import type { TubeData } from '@domains/tubes/types';

@@ -13,7 +13,7 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { Button } from '@shared/ui';
-import { ModalPortal } from '@shared/ui/components/ModalPortal';
+import { ModalPortal } from '@shared/ui/components/overlays/ModalPortal';
 
 const EXIT_DURATION = 200;
 

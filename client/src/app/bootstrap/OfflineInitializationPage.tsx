@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { WifiOff, RefreshCw } from 'lucide-react';
 
-import { Button, Spinner } from '@shared/ui';
+import { Button, LoadingSpinner } from '@shared/ui';
 
 interface OfflineInitializationPageProps {
   onRetry: () => void;
@@ -63,7 +63,11 @@ export function OfflineInitializationPage({ onRetry }: OfflineInitializationPage
       <div className="bg-card rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4">
         <div className="text-center mb-6">
           <div className="mb-4 flex justify-center">
-            {isRetrying ? <Spinner size="xl" /> : <WifiOff className="w-14 h-14 text-danger-bg" />}
+            {isRetrying ? (
+              <LoadingSpinner size="xl" />
+            ) : (
+              <WifiOff className="w-14 h-14 text-danger-bg" />
+            )}
           </div>
 
           <h1

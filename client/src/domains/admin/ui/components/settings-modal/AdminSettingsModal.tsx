@@ -23,8 +23,8 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useStorageData } from '@domains/storage';
 import { logger } from '@shared/infrastructure/logger';
-import { AlertBanner, Button, Tab, TabSkeleton, Tabs, Tooltip } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/modals/BaseModal';
+import { AlertBanner, Button, Tab, LoadingSkeleton, Tabs, Tooltip } from '@shared/ui';
+import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../services/AdminService';
@@ -316,25 +316,25 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       onClose={handleClose}
     >
       {activeTab === 'security' && !isDemo && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <SecurityTab config={config} onChange={handleConfigChange} readOnly={securityReadOnly} />
         </Suspense>
       )}
 
       {activeTab === 'invite-codes' && !isSystemAdmin && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <InviteCodesTab readOnly={demoSeeded} />
         </Suspense>
       )}
 
       {activeTab === 'users' && !isSystemAdmin && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <UsersTab users={users} onUserUpdate={loadUsers} readOnly={isDemo} />
         </Suspense>
       )}
 
       {activeTab === 'researchers' && !isSystemAdmin && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <ResearchersTab
             onResearcherUpdate={loadSystemStats}
             onTabFooter={handleTabFooter}
@@ -344,13 +344,13 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       )}
 
       {activeTab === 'catalog' && !isSystemAdmin && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <CatalogTab onTabFooter={handleTabFooter} readOnly={demoSeeded} />
         </Suspense>
       )}
 
       {activeTab === 'system' && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <SystemTab
             config={config}
             stats={systemStats}
@@ -361,7 +361,7 @@ export function AdminSettingsModal({ isOpen, onClose }: AdminSettingsModalProps)
       )}
 
       {activeTab === 'monitoring' && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <MonitoringTab isSystemAdmin={isSystemAdmin} isDemo={isDemo} />
         </Suspense>
       )}

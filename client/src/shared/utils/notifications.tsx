@@ -14,7 +14,7 @@
 
 import { toast } from 'react-hot-toast';
 
-import { Toast } from '@shared/ui/components/Toast';
+import { Toast } from '@shared/ui/components/overlays/Toast';
 
 /**
  * Duration constants (milliseconds)

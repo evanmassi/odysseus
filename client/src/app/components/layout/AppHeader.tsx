@@ -33,9 +33,9 @@ import { useStorageData } from '@domains/storage';
 import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
-import { OnlineUsersBadges } from '@shared/ui/components';
+import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
-import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
+import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
 
 import type { TubeData } from '@domains/tubes/types';
@@ -445,7 +445,7 @@ export function AppHeader({
           )}
 
           {/* Online Users Badges */}
-          <OnlineUsersBadges />
+          <OnlineUsersBadgeList />
 
           {/* Search Container */}
           {hasLab && (

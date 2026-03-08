@@ -10,7 +10,7 @@ import { KeyRound, Copy, Check, RotateCcwKey, ExternalLink } from 'lucide-react'
 
 import { logger } from '@shared/infrastructure/logger';
 import { AuthInput, Button, Tab, Tabs, Toggle } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/modals/BaseModal';
+import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 import { notifications } from '@shared/utils/notifications';
 

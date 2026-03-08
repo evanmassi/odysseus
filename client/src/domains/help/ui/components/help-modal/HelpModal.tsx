@@ -7,9 +7,9 @@ import { lazy, Suspense, useState } from 'react';
 
 import { CircleHelp, Dna, Keyboard, Rocket, TestTube } from 'lucide-react';
 
-import { Tab, TabSkeleton, Tabs } from '@shared/ui';
+import { Tab, LoadingSkeleton, Tabs } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
-import { BaseModal } from '@shared/ui/components/modals/BaseModal';
+import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 
 const GettingStartedTab = lazy(() =>
   import('./tabs/GettingStartedTab').then(m => ({ default: m.GettingStartedTab }))
@@ -72,27 +72,27 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
       onClose={onClose}
     >
       {activeTab === 'getting-started' && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <GettingStartedTab />
         </Suspense>
       )}
       {activeTab === 'tubes' && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <TubesTab />
         </Suspense>
       )}
       {activeTab === 'storage' && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <StorageTab />
         </Suspense>
       )}
       {activeTab === 'researchers' && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <ResearchersTab />
         </Suspense>
       )}
       {activeTab === 'shortcuts' && (
-        <Suspense fallback={<TabSkeleton />}>
+        <Suspense fallback={<LoadingSkeleton />}>
           <ShortcutsTab />
         </Suspense>
       )}

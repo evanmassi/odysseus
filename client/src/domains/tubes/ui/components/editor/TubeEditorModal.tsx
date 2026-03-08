@@ -36,8 +36,8 @@ import { useUserSettings } from '@domains/users';
 import { isOfflineError } from '@infra/api/HttpClient';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button, Checkbox } from '@shared/ui';
-import { InfoDialog } from '@shared/ui/components/InfoDialog';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
+import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
 

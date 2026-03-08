@@ -11,7 +11,7 @@ import { TicketCheck, Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-
 
 import { logger } from '@shared/infrastructure/logger';
 import { Button, Chip } from '@shared/ui';
-import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 import { adminService } from '../../../../services/AdminService';

@@ -10,8 +10,7 @@ import { useQueryClient, type MutationCacheNotifyEvent } from '@tanstack/react-q
 import { RefreshCw, WifiOff } from 'lucide-react';
 
 import { useNetworkStatus } from '@infra/connection';
-
-import { Tooltip } from '../primitives/tooltip/Tooltip';
+import { Tooltip } from '@shared/ui';
 
 export const ConnectionStatusIndicator: React.FC = () => {
   const queryClient = useQueryClient();

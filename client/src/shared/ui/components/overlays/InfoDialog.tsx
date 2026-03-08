@@ -7,12 +7,12 @@ import { useEffect, useRef, useCallback, type ReactNode } from 'react';
 
 import { X } from 'lucide-react';
 
-import { AnimatedInfoMark } from '@shared/components/AnimatedInfoMark';
-import { AnimatedWarningMark } from '@shared/components/AnimatedWarningMark';
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
+import { AnimatedInfoMark } from '@shared/ui/components/icons/AnimatedInfoMark';
+import { AnimatedWarningMark } from '@shared/ui/components/icons/AnimatedWarningMark';
 
-import { Button } from '../primitives';
+import { Button } from '../../primitives';
 
 import { ModalPortal } from './ModalPortal';
 

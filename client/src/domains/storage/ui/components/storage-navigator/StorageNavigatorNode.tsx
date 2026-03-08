@@ -10,7 +10,7 @@ import { ChevronDown, Icon, Rows3, Box as BoxIcon } from 'lucide-react';
 
 import { useTextTruncation } from '@shared/hooks';
 import { Tooltip } from '@shared/ui';
-import { UserBadge } from '@shared/ui/components';
+import { UserBadge } from '@shared/ui/components/badges';
 
 import type { StorageNavigatorNodeProps } from './types';
 

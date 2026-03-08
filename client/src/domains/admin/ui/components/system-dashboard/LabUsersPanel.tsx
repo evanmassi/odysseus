@@ -11,7 +11,7 @@ import { Clock, Power, ShieldBan, Trash2, UserRoundCheck, UsersRound } from 'luc
 import { useAuthStore } from '@domains/authentication';
 import { Button, Chip, Table, Tooltip } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
-import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 import {

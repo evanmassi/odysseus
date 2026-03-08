@@ -9,7 +9,7 @@ import { Save, Tag } from 'lucide-react';
 
 import { useEditModalForm } from '@shared/hooks';
 import { Button, Input } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
 
 import type { LabConfiguration } from '@domains/storage';
 

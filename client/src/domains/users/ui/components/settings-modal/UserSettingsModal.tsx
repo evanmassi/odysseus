@@ -11,8 +11,8 @@ import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings, useUserSettingsActions } from '@domains/users/hooks/useUserSettings';
 import { logger } from '@shared/infrastructure/logger';
-import { Button, Tab, TabSkeleton, Tabs } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/modals/BaseModal';
+import { Button, Tab, LoadingSkeleton, Tabs } from '@shared/ui';
+import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';
 
 import type {
@@ -160,21 +160,21 @@ export function UserSettingsModal({ isOpen, onClose }: UserSettingsModalProps) {
       onClose={handleClose}
     >
       {isLoading ? (
-        <TabSkeleton />
+        <LoadingSkeleton />
       ) : (
         <>
           {activeTab === 'account' && (
-            <Suspense fallback={<TabSkeleton />}>
+            <Suspense fallback={<LoadingSkeleton />}>
               <AccountTab onSaveComplete={onClose} />
             </Suspense>
           )}
           {activeTab === 'security' && (
-            <Suspense fallback={<TabSkeleton />}>
+            <Suspense fallback={<LoadingSkeleton />}>
               <SecurityTab />
             </Suspense>
           )}
           {activeTab === 'display' && (
-            <Suspense fallback={<TabSkeleton />}>
+            <Suspense fallback={<LoadingSkeleton />}>
               <DisplayTab
                 defaultPositionDisplay={localSettings.defaultPositionDisplay}
                 savedPositionDisplay={originalSettings.defaultPositionDisplay}

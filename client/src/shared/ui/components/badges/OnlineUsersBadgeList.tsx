@@ -12,7 +12,7 @@ import { UserPresenceBadge } from './UserPresenceBadge';
  * Badges show user initials with a green background.
  * Gracefully handles loading/error states by not rendering anything.
  */
-export function OnlineUsersBadges() {
+export function OnlineUsersBadgeList() {
   const { user: currentUser } = useAuthStore();
   const { data: onlineUserIds = [] } = useUserPresenceQuery();
   const { data: allUsers = [] } = useActiveUsersQuery();

@@ -12,7 +12,7 @@ import { UAParser } from 'ua-parser-js';
 
 import { useUserSessions } from '@domains/users';
 import { Button, Tooltip } from '@shared/ui';
-import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 function parseUserAgent(userAgent: string | undefined) {

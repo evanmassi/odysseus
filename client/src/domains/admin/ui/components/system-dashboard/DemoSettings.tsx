@@ -11,7 +11,7 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { ChevronDown, Save, RotateCcw, BeanOff, Sprout } from 'lucide-react';
 
 import { Button, NumberInput } from '@shared/ui';
-import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 import {

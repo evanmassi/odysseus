@@ -4,7 +4,7 @@
  * View-model interfaces for the tree-based storage location picker.
  */
 
-import type { UserBadgeType } from '@shared/ui/components';
+import type { UserBadgeType } from '@shared/ui/components/badges';
 
 export interface StorageHierarchy {
   tanks: Tank[];

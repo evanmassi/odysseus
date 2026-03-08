@@ -15,7 +15,7 @@ import { Plus, User, Mail, Building2, Briefcase, Dna } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
 import { Button } from '@shared/ui';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
 import { withAsyncHandler } from '@shared/utils/asyncErrorHandler';
 
 export interface ResearcherModalProps {

@@ -8,7 +8,7 @@ import { AlertCircle, RefreshCw, CheckCircle2, Clock } from 'lucide-react';
 
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { env } from '@shared/config/environment';
-import { AlertBanner, Button, Spinner } from '@shared/ui';
+import { AlertBanner, Button, LoadingSpinner } from '@shared/ui';
 
 import { LOADING_MESSAGES } from '../../bootstrap/constants';
 import { OfflineInitializationPage } from '../../bootstrap/OfflineInitializationPage';
@@ -38,7 +38,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
             {state === 'error' ? (
               <AlertCircle className="w-14 h-14 text-danger-bg" />
             ) : (
-              <Spinner size="xl" />
+              <LoadingSpinner size="xl" />
             )}
           </div>
 
@@ -69,7 +69,7 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
             {currentStep && (
               <div className="flex items-center space-x-3 p-3 bg-muted rounded-lg">
                 <div className="flex-shrink-0">
-                  <Spinner size="sm" />
+                  <LoadingSpinner size="sm" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-card-foreground truncate">
@@ -155,11 +155,11 @@ export function AppLoader({ context, onRetry, onCancel }: AppLoaderProps) {
 }
 
 /** Simplified loading spinner for quick transitions */
-export function AppLoadingSpinner({ message = 'Loading...' }: { message?: string }) {
+export function AppLoadingLoadingSpinner({ message = 'Loading...' }: { message?: string }) {
   return (
     <div className="flex items-center justify-center p-8">
       <div className="flex items-center space-x-3">
-        <Spinner size="md" />
+        <LoadingSpinner size="md" />
         <span className="text-muted-foreground">{message}</span>
       </div>
     </div>

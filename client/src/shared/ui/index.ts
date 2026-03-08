@@ -18,12 +18,10 @@ export * from './primitives';
 export { ErrorBoundary } from './components/boundaries/ErrorBoundary';
 export { SuspenseBoundary } from './components/boundaries/SuspenseBoundary';
 
-// Animation
-export { AnimatedPresence, useAnimatedPresence } from './components/AnimatedPresence';
-
 // Loading components
-export { LoadingOverlay, LoadingSkeletons, Spinner } from './components/loading';
-export { TabSkeleton } from './components/TabSkeleton';
-
-// Connection status
-export { ConnectionStatusIndicator } from './components/ConnectionStatusIndicator';
+export {
+  LoadingOverlay,
+  LoadingSkeleton,
+  LoadingSpinner,
+  ModalSkeleton,
+} from './components/loading';

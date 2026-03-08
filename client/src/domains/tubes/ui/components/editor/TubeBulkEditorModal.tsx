@@ -32,9 +32,9 @@ import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { useUserSettings } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button } from '@shared/ui';
-import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
-import { InfoDialog } from '@shared/ui/components/InfoDialog';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
+import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
 

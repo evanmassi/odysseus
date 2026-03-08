@@ -10,7 +10,7 @@ import { getGridTotalPositions } from '@domains/storage';
 import { useEditModalForm } from '@shared/hooks';
 import { Button, Checkbox, Input } from '@shared/ui';
 import { TankIcon } from '@shared/ui/components/icons';
-import { BaseModal } from '@shared/ui/components/modals';
+import { BaseModal } from '@shared/ui/components/overlays';
 
 import type { TankConfiguration } from '@domains/storage';
 

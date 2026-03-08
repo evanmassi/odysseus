@@ -9,9 +9,9 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 
 import { authService } from '@domains/authentication/services/AuthService';
 import odysseusIcon from '@shared/assets/odysseus-logo-icon-frozen.webp';
-import { AnimatedCheckmark } from '@shared/components/AnimatedCheckmark';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
 import { Button } from '@shared/ui';
+import { AnimatedCheckmark } from '@shared/ui/components/icons/AnimatedCheckmark';
 
 import { AuthPasswordCreateForm } from './AuthPasswordCreateForm';
 

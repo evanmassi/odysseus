@@ -27,7 +27,7 @@ import {
 
 import { Button, Chip } from '@shared/ui';
 import { LabBadge } from '@shared/ui/components/badges/LabBadge';
-import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
+import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';
 
 import {

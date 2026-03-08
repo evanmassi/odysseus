@@ -11,7 +11,7 @@ import * as Collapsible from '@radix-ui/react-collapsible';
 import { UsersRound, ChevronDown, UserRoundX, UserRoundPen } from 'lucide-react';
 
 import { Tooltip, OverflowMenu, type OverflowMenuItem } from '@shared/ui';
-import { UserBadge } from '@shared/ui/components';
+import { UserBadge } from '@shared/ui/components/badges';
 import { RackIcon, BoxIcon } from '@shared/ui/components/icons';
 
 import { AssignmentDropdown } from './AssignmentDropdown';

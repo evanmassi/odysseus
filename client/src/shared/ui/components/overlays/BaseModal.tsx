@@ -10,8 +10,9 @@ import { X } from 'lucide-react';
 import { useModalKeyboardNavigation } from '@shared/hooks/keyboard/useModalKeyboardNavigation';
 import { useAnimatedClose } from '@shared/hooks/useAnimatedClose';
 import { useFocusTrap } from '@shared/hooks/useFocusTrap';
-import { ModalPortal } from '@shared/ui/components/ModalPortal';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
+
+import { ModalPortal } from './ModalPortal';
 
 export type ModalSize = 'sm' | 'md' | 'md-lg' | 'lg' | 'xl' | 'full';
 export type ModalAnimation = 'zoom' | 'slide';

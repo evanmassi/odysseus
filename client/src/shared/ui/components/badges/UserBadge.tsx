@@ -2,9 +2,35 @@ import { UsersRound } from 'lucide-react';
 
 import { Tooltip } from '@shared/ui';
 
-import { getUserBadgeStyles } from './userBadge.styles';
-
 export type UserBadgeType = 'unassigned' | 'currentUser' | 'otherUser';
+
+export interface UserBadgeStyles {
+  border: string;
+  background: string;
+  text: string;
+}
+
+const styleMap: Record<UserBadgeType, UserBadgeStyles> = {
+  currentUser: {
+    border: 'border-l-ownership-user-badge',
+    background: 'bg-ownership-user-badge',
+    text: 'text-white',
+  },
+  otherUser: {
+    border: 'border-l-ownership-other-badge',
+    background: 'bg-ownership-other-badge',
+    text: 'text-white',
+  },
+  unassigned: {
+    border: 'border-l-ownership-unassigned-badge',
+    background: 'bg-ownership-unassigned-badge',
+    text: 'text-white',
+  },
+};
+
+export function getUserBadgeStyles(type: UserBadgeType): UserBadgeStyles {
+  return styleMap[type];
+}
 
 interface UserBadgeProps {
   type: UserBadgeType;
