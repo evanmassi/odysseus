@@ -12,8 +12,8 @@ import { toPositionKey } from '@shared/types/GridSelection';
 
 import { ContextMenu } from '../../../../../shared/ui/primitives/ContextMenu';
 
-import { GridPosition } from './GridPosition';
-import { GridTooltip } from './GridTooltip';
+import { TubeGridCell } from './TubeGridCell';
+import { TubeGridTooltip } from './TubeGridTooltip';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey, GridControllerReturn, LockContext } from '@shared/types/GridSelection';
@@ -278,7 +278,7 @@ export function TubeGrid({
               tube && lockContext ? lockContext.getLockOwnerName(tube) : undefined;
 
             return (
-              <GridPosition
+              <TubeGridCell
                 key={position}
                 position={position}
                 tankId={tankId}
@@ -335,7 +335,7 @@ export function TubeGrid({
         isUnlocking={controller.selection.isUnlocking}
       />
 
-      <GridTooltip
+      <TubeGridTooltip
         tube={hoveredTube}
         anchorRect={hoverAnchorRect}
         lockVariant={hoveredLockVariant}

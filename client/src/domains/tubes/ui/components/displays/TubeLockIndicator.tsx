@@ -19,7 +19,7 @@ interface TubeLockIndicatorProps {
   className?: string;
 }
 
-/** Purely visual — lock info is displayed via GridTooltip on cell hover. */
+/** Purely visual — lock info is displayed via TubeGridTooltip on cell hover. */
 export function TubeLockIndicator({
   size = 12,
   variant = 'other',

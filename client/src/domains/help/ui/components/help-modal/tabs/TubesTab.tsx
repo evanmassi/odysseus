@@ -6,7 +6,7 @@
  */
 import { Lock, LockKeyhole, Notebook, Palette, ScanEye, ShieldCheck } from 'lucide-react';
 
-import { IndicatorSVG } from '@domains/tubes/ui/components/grid/IndicatorSVG';
+import { TubePropertyIndicator } from '@domains/tubes/ui/components/grid/TubePropertyIndicator';
 import { cellLineCategories } from '@domains/tubes/utils/colorSystem';
 import { getOptimalTextColor } from '@shared/utils/labColorSpace';
 
@@ -347,7 +347,7 @@ export function TubesTab() {
         {/* Indicator examples */}
         <h4 className="text-xs font-medium text-card-foreground mb-2">Indicators</h4>
         <div className="flex items-center gap-2">
-          <IndicatorSVG
+          <TubePropertyIndicator
             shape="square"
             color="#4CAF50"
             pattern="stripe"
@@ -359,7 +359,7 @@ export function TubesTab() {
           </span>
         </div>
         <div className="flex items-center gap-2 mt-2">
-          <IndicatorSVG
+          <TubePropertyIndicator
             shape="triangle"
             color="#FF9800"
             pattern="solid"

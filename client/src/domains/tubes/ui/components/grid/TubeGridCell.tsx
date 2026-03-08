@@ -13,7 +13,7 @@ import {
 } from '../../../utils/colorSystem';
 import { TubeLockIndicator } from '../displays/TubeLockIndicator';
 
-import { IndicatorSVG } from './IndicatorSVG';
+import { TubePropertyIndicator } from './TubePropertyIndicator';
 
 import type { GridConfiguration } from '@domains/storage';
 import type { TubeData } from '@domains/tubes/types';
@@ -29,7 +29,7 @@ function getCellTypeFontSize(baseFont: number, text: string): number {
   return baseFont * 0.62;
 }
 
-interface GridPositionProps {
+interface TubeGridCellProps {
   position: number;
   tankId: string;
   rackId: string;
@@ -62,7 +62,7 @@ interface GridPositionProps {
   lockOwnerName?: string;
 }
 
-export const GridPosition = memo<GridPositionProps>(
+export const TubeGridCell = memo<TubeGridCellProps>(
   ({
     position,
     tankId,
@@ -199,7 +199,7 @@ export const GridPosition = memo<GridPositionProps>(
         {/* Lot number indicator - top-left (square) */}
         {tube && lotStyle && (
           <div className="absolute top-0.5 left-0.5 z-[1]">
-            <IndicatorSVG
+            <TubePropertyIndicator
               shape="square"
               color={lotStyle.color}
               pattern={lotStyle.pattern}
@@ -211,7 +211,7 @@ export const GridPosition = memo<GridPositionProps>(
         {/* Condition indicator - bottom-right (triangle) */}
         {tube && conditionStyle && (
           <div className="absolute bottom-0.5 right-0.5 z-[1]">
-            <IndicatorSVG
+            <TubePropertyIndicator
               shape="triangle"
               color={conditionStyle.color}
               pattern="solid"
@@ -302,4 +302,4 @@ export const GridPosition = memo<GridPositionProps>(
   }
 );
 
-GridPosition.displayName = 'GridPosition';
+TubeGridCell.displayName = 'TubeGridCell';

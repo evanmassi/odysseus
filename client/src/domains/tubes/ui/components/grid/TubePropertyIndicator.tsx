@@ -11,7 +11,7 @@ type IndicatorPattern =
   | 'double-stripe'
   | 'diamond';
 
-interface IndicatorSVGProps {
+interface TubePropertyIndicatorProps {
   shape: IndicatorShape;
   color: string;
   pattern: IndicatorPattern;
@@ -228,7 +228,7 @@ function renderTrianglePattern(
   }
 }
 
-export const IndicatorSVG = memo<IndicatorSVGProps>(
+export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
   ({ shape, color, pattern, size, title, className }) => {
     const viewBoxSize = 16;
     const strokeColor = getStrokeColor(color);
@@ -281,4 +281,4 @@ export const IndicatorSVG = memo<IndicatorSVGProps>(
   }
 );
 
-IndicatorSVG.displayName = 'IndicatorSVG';
+TubePropertyIndicator.displayName = 'TubePropertyIndicator';

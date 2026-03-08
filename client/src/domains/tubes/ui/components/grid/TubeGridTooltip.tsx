@@ -17,7 +17,7 @@ import type { TubeData } from '@domains/tubes/types';
 
 export type LockVariant = 'own' | 'shared' | 'admin-override' | 'other';
 
-interface GridTooltipProps {
+interface TubeGridTooltipProps {
   tube: TubeData | null;
   anchorRect: DOMRect | null;
   lockVariant?: LockVariant;
@@ -40,7 +40,12 @@ const lockLabels: Record<LockVariant, (name: string) => string> = {
   other: name => `Locked by ${name}`,
 };
 
-export function GridTooltip({ tube, anchorRect, lockVariant, lockOwnerName }: GridTooltipProps) {
+export function TubeGridTooltip({
+  tube,
+  anchorRect,
+  lockVariant,
+  lockOwnerName,
+}: TubeGridTooltipProps) {
   const [isOpen, setIsOpen] = useState(false);
   const timerRef = useRef<number | null>(null);
 
