@@ -6,7 +6,7 @@
 
 import type { GridConfiguration } from '@/domains/storage';
 import { getGridTotalPositions } from '@/domains/storage';
-import { positionToCoordinates, coordinatesToPosition } from '@shared/utils/coordinates';
+import { positionToCoordinates, coordinatesToPosition } from '@shared/utils/gridCoordinates';
 
 import type { SelectionMode } from '@domains/tubes/types/clipboardTypes';
 

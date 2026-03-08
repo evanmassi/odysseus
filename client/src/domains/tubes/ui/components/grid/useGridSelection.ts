@@ -8,7 +8,7 @@ import { useCallback, useRef, useEffect, useMemo } from 'react';
 
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { toPositionKey, parsePositionKey } from '@domains/tubes/types/gridSelectionTypes';
-import { getSelectionRange } from '@shared/utils/coordinates';
+import { getSelectionRange } from '@shared/utils/gridCoordinates';
 
 import type {
   PositionKey,

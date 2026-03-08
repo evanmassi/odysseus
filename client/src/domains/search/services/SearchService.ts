@@ -8,7 +8,7 @@ import { SearchResultSchema, AdvancedSearchOptionsSchema } from '@odysseus/share
 
 import { httpClient } from '@infra/api/HttpClient';
 import { InfrastructureError } from '@shared/errors/AppError';
-import { normalizeDateString } from '@shared/utils/dateUtils';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 
 import type { AdvancedSearchOptions, SearchResult } from '@odysseus/shared-schemas';
 

@@ -39,7 +39,7 @@ import { AlertBanner, Button, Checkbox } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { InfoDialog } from '@shared/ui/components/overlays/InfoDialog';
 import { notifications } from '@shared/utils';
-import { formatDateForInput } from '@shared/utils/dateUtils';
+import { formatDateForInput } from '@shared/utils/dateFormatters';
 
 import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 

@@ -32,7 +32,7 @@ import { useTubes } from '@domains/tubes/hooks';
 import { Chip, DatePicker, Tooltip } from '@shared/ui';
 import { TankIcon, RackIcon, BoxIcon } from '@shared/ui/components/icons';
 import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
-import { normalizeDateString } from '@shared/utils/dateUtils';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 
 import type { TubeData, Researcher, SearchFilters } from '@odysseus/shared-schemas';
 

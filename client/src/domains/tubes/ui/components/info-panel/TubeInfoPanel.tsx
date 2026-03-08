@@ -22,7 +22,7 @@ import {
 import { useTubeFieldResolver } from '@domains/tubes/hooks';
 import { useUserSettings } from '@domains/users';
 import { Chip, Tooltip } from '@shared/ui';
-import { formatDateForDisplay } from '@shared/utils/dateUtils';
+import { formatDateForDisplay } from '@shared/utils/dateFormatters';
 
 import { useTubeStore } from '../../../stores/tubeStore';
 import { parsePositionKey } from '../../../types/gridSelectionTypes';

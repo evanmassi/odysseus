@@ -27,7 +27,7 @@ import {
 } from '@odysseus/shared-schemas';
 
 import { httpClient } from '@infra/api/HttpClient';
-import { normalizeDateString } from '@shared/utils/dateUtils';
+import { normalizeDateString } from '@shared/utils/dateFormatters';
 
 export class TubeService {
   private static readonly BASE_PATH = '/tubes';

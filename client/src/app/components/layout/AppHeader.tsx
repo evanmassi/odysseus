@@ -36,7 +36,7 @@ import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
-import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
+import { PreloadHelpers } from '@shared/utils/preloadHelpers';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';

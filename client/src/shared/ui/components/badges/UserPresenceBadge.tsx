@@ -1,5 +1,5 @@
 import { Tooltip } from '@shared/ui';
-import { getUserInitials, getUserDisplayName } from '@shared/utils/userDisplayUtils';
+import { getUserInitials, getUserDisplayName } from '@shared/utils/userDisplayFormatters';
 
 interface UserPresenceBadgeProps {
   username: string;

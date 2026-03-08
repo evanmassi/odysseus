@@ -5,7 +5,7 @@
  */
 import { useMemo } from 'react';
 
-import { getUserInitials } from '@shared/utils/userDisplayUtils';
+import { getUserInitials } from '@shared/utils/userDisplayFormatters';
 
 import type { BoxConfiguration, RackConfiguration } from '@domains/storage';
 import type { UserDisplayInfo } from '@odysseus/shared-schemas';

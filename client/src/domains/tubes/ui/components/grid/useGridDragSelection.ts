@@ -13,7 +13,7 @@ import {
   type PositionContext,
   type PositionKey,
 } from '@domains/tubes/types/gridSelectionTypes';
-import { getPositionsInRectangle, positionToCoordinates } from '@shared/utils/coordinates';
+import { getPositionsInRectangle, positionToCoordinates } from '@shared/utils/gridCoordinates';
 
 import type { GridConfiguration } from '@odysseus/shared-schemas';
 
