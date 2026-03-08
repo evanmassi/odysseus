@@ -1,26 +1,17 @@
 /**
  * Network Connection Monitor
  *
- * Monitors actual server reachability (not just browser online/offline).
- * Provides intelligent reconnection with exponential backoff.
- *
- * Architecture:
- * - NetworkMonitor is the ONLY system that should listen to browser online/offline events
- * - Socket and other systems should notify NetworkMonitor of connection changes
- * - All network status checks should go through networkState.ts (isOffline/isOnline)
+ * Monitors actual server reachability (not just browser online/offline) with exponential backoff reconnection.
  */
 
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
-import { setOffline, markInitialized } from './networkState';
+import { setOffline } from './networkState';
 
 import type { NavigatorWithConnection } from '@shared/types';
 import type { QueryClient } from '@tanstack/react-query';
 
-/**
- * Network status and quality metrics
- */
 export interface NetworkStatus {
   isOnline: boolean;
   isHighQuality: boolean;
@@ -31,9 +22,6 @@ export interface NetworkStatus {
   reconnectAttempts: number;
 }
 
-/**
- * Connection quality levels based on speed and latency
- */
 export enum ConnectionQuality {
   EXCELLENT = 'excellent', // > 10 Mbps, < 100ms RTT
   GOOD = 'good', // > 1 Mbps, < 300ms RTT
@@ -42,9 +30,6 @@ export enum ConnectionQuality {
   OFFLINE = 'offline',
 }
 
-/**
- * Network event types for internal pub/sub
- */
 export type NetworkEvent =
   | 'online'
   | 'offline'
@@ -53,12 +38,6 @@ export type NetworkEvent =
   | 'reconnect-success'
   | 'reconnect-failed';
 
-/**
- * Network Monitor Service
- *
- * Manages connection status. Other systems (Socket, HTTP client)
- * should read from networkState and notify this monitor of connection changes.
- */
 export class NetworkMonitor {
   private queryClient: QueryClient;
   private status: NetworkStatus;
@@ -68,7 +47,6 @@ export class NetworkMonitor {
   private qualityCheckInterval: NodeJS.Timeout | null = null;
   private initializationPromise: Promise<void> | null = null;
 
-  // Store bound handlers for proper cleanup
   private boundHandleOnline: () => void;
   private boundHandleOffline: () => void;
 
@@ -81,37 +59,26 @@ export class NetworkMonitor {
       reconnectAttempts: 0,
     };
 
-    // Create bound handlers once for proper addEventListener/removeEventListener pairing
     this.boundHandleOnline = this.handleBrowserOnline.bind(this);
     this.boundHandleOffline = this.handleBrowserOffline.bind(this);
 
-    // Set initial state from browser (will be verified by server ping)
     setOffline(!navigator.onLine);
 
-    // Start monitoring and verification
     this.setupBrowserEvents();
     this.startHeartbeat();
     this.startQualityMonitoring();
     this.setupNetworkInformationAPI();
 
-    // Store initialization promise for awaitable init
     this.initializationPromise = this.verifyInitialConnectivity();
   }
 
-  /**
-   * Wait for initial connectivity verification to complete.
-   * Call this before starting socket connections to ensure proper initialization order.
-   */
+  /** Call before starting socket connections to ensure proper initialization order. */
   public async waitForInitialization(): Promise<void> {
     if (this.initializationPromise) {
       await this.initializationPromise;
     }
   }
 
-  /**
-   * Verify actual server connectivity on startup.
-   * Updates shared network state based on real server reachability.
-   */
   private async verifyInitialConnectivity(): Promise<void> {
     const isActuallyOnline = await this.pingServer();
 
@@ -125,40 +92,22 @@ export class NetworkMonitor {
       this.startReconnectionAttempts();
     }
 
-    markInitialized();
     this.notifyListeners(isActuallyOnline ? 'online' : 'offline');
   }
 
-  /**
-   * Set up browser online/offline event listeners.
-   * NetworkMonitor is the ONLY system that should listen to these events.
-   */
   private setupBrowserEvents(): void {
     window.addEventListener('online', this.boundHandleOnline);
     window.addEventListener('offline', this.boundHandleOffline);
   }
 
-  /**
-   * Handle browser online event.
-   * Verifies actual connectivity before updating state.
-   */
   private handleBrowserOnline(): void {
-    // Don't trust browser event alone - verify with server ping
     void this.verifyAndUpdateOnlineStatus();
   }
 
-  /**
-   * Handle browser offline event.
-   * Immediately marks as offline since browser detected network loss.
-   */
   private handleBrowserOffline(): void {
     this.setOfflineState();
   }
 
-  /**
-   * Verify server connectivity and update online status if reachable.
-   * Used by browser online event and socket reconnection notifications.
-   */
   private async verifyAndUpdateOnlineStatus(): Promise<void> {
     const isActuallyOnline = await this.pingServer();
 
@@ -170,75 +119,46 @@ export class NetworkMonitor {
     }
   }
 
-  /**
-   * Set state to online and notify listeners.
-   * Consolidates all online state transitions.
-   */
   private async setOnlineState(): Promise<void> {
-    // Skip if already online
     if (this.status.isOnline) return;
 
     this.status.isOnline = true;
     this.status.lastConnected = Date.now();
     this.status.reconnectAttempts = 0;
 
-    // Clear any pending reconnection attempts
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
     }
 
-    // Update shared state
     setOffline(false);
 
-    // Refetch stale queries
     await this.queryClient.refetchQueries({ stale: true });
-
-    // Single notification with fixed ID
     notifications.success('Connection restored', { id: 'connection-status' });
 
     this.notifyListeners('online');
     this.notifyListeners('reconnect-success');
   }
 
-  /**
-   * Set state to offline and start reconnection attempts.
-   * Consolidates all offline state transitions.
-   */
   private setOfflineState(): void {
-    // Skip if already offline
     if (!this.status.isOnline) return;
 
     this.status.isOnline = false;
     this.status.isHighQuality = false;
 
-    // Update shared state
     setOffline(true);
-
-    // Start reconnection attempts
     this.startReconnectionAttempts();
 
     this.notifyListeners('offline');
   }
 
-  /**
-   * Notify monitor that socket has connected.
-   * Called by SocketService when socket connection is established.
-   * This helps keep NetworkMonitor in sync with actual connectivity.
-   */
   public notifySocketConnected(): void {
     if (!this.status.isOnline) {
-      // Socket connected while we thought we were offline - verify and update
       void this.verifyAndUpdateOnlineStatus();
     }
   }
 
-  /**
-   * Notify monitor that socket has disconnected.
-   * Called by SocketService when socket connection is lost.
-   */
   public notifySocketDisconnected(): void {
-    // Socket disconnected - verify if we're actually offline
     void this.pingServer().then(isOnline => {
       if (!isOnline) {
         this.setOfflineState();
@@ -246,9 +166,6 @@ export class NetworkMonitor {
     });
   }
 
-  /**
-   * Start intelligent reconnection attempts with exponential backoff.
-   */
   private startReconnectionAttempts(): void {
     if (this.reconnectTimeout) return;
 
@@ -281,19 +198,11 @@ export class NetworkMonitor {
       }
     };
 
-    // First attempt after 1 second
     this.reconnectTimeout = setTimeout(attemptReconnect, 1000);
   }
 
-  /**
-   * Ping server health endpoint to verify actual connectivity.
-   *
-   * Uses "trust but verify" approach:
-   * - If browser explicitly reports offline, trust it (skip ping)
-   * - If browser reports online, verify with actual server ping
-   */
+  // Trust browser's explicit offline signal; only ping when browser says online
   private async pingServer(): Promise<boolean> {
-    // Trust browser's explicit offline signal - don't waste resources pinging
     if (!navigator.onLine) {
       return false;
     }
@@ -312,9 +221,6 @@ export class NetworkMonitor {
     }
   }
 
-  /**
-   * Start periodic connection quality monitoring.
-   */
   private startQualityMonitoring(): void {
     this.qualityCheckInterval = setInterval(() => {
       if (this.status.isOnline) {
@@ -323,9 +229,6 @@ export class NetworkMonitor {
     }, 30000);
   }
 
-  /**
-   * Update connection quality metrics and adjust React Query behavior.
-   */
   private updateConnectionQuality(): void {
     const quality = this.assessConnectionQuality();
     const wasHighQuality = this.status.isHighQuality;
@@ -339,9 +242,6 @@ export class NetworkMonitor {
     }
   }
 
-  /**
-   * Assess current connection quality using Network Information API.
-   */
   private assessConnectionQuality(): ConnectionQuality {
     if (!this.status.isOnline) return ConnectionQuality.OFFLINE;
 
@@ -364,9 +264,6 @@ export class NetworkMonitor {
     return ConnectionQuality.GOOD;
   }
 
-  /**
-   * Adjust React Query settings based on connection quality.
-   */
   private adjustQueryClientForQuality(): void {
     if (this.status.isHighQuality) {
       this.queryClient.setDefaultOptions({
@@ -379,9 +276,6 @@ export class NetworkMonitor {
     }
   }
 
-  /**
-   * Set up Network Information API change listener.
-   */
   private setupNetworkInformationAPI(): void {
     const nav = navigator as NavigatorWithConnection;
     const connection = nav.connection ?? nav.mozConnection ?? nav.webkitConnection;
@@ -393,9 +287,6 @@ export class NetworkMonitor {
     }
   }
 
-  /**
-   * Start heartbeat to detect silent connection loss.
-   */
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(async () => {
       if (this.status.isOnline) {
@@ -407,9 +298,6 @@ export class NetworkMonitor {
     }, 60000);
   }
 
-  /**
-   * Subscribe to network events.
-   */
   public on(event: NetworkEvent, callback: (status: NetworkStatus) => void): void {
     if (!this.listeners.has(event)) {
       this.listeners.set(event, []);
@@ -417,9 +305,6 @@ export class NetworkMonitor {
     this.listeners.get(event)!.push(callback);
   }
 
-  /**
-   * Unsubscribe from network events.
-   */
   public off(event: NetworkEvent, callback: (status: NetworkStatus) => void): void {
     const callbacks = this.listeners.get(event);
     if (callbacks) {
@@ -430,9 +315,6 @@ export class NetworkMonitor {
     }
   }
 
-  /**
-   * Notify all listeners of an event.
-   */
   private notifyListeners(event: NetworkEvent): void {
     const callbacks = this.listeners.get(event) ?? [];
     callbacks.forEach(callback => {
@@ -444,16 +326,10 @@ export class NetworkMonitor {
     });
   }
 
-  /**
-   * Get current network status snapshot.
-   */
   public getStatus(): NetworkStatus {
     return { ...this.status };
   }
 
-  /**
-   * Manually trigger reconnection attempt.
-   */
   public async retryConnection(): Promise<void> {
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
@@ -470,11 +346,7 @@ export class NetworkMonitor {
     }
   }
 
-  /**
-   * Cleanup all resources.
-   */
   public destroy(): void {
-    // Remove browser event listeners using stored references
     window.removeEventListener('online', this.boundHandleOnline);
     window.removeEventListener('offline', this.boundHandleOffline);
 
@@ -497,16 +369,10 @@ export class NetworkMonitor {
   }
 }
 
-// =============================================================================
 // Global Instance Management
-// =============================================================================
 
 let globalNetworkMonitor: NetworkMonitor | null = null;
 
-/**
- * Initialize global network monitoring.
- * Should be called once during app bootstrap.
- */
 export const initializeNetworkMonitor = (queryClient: QueryClient): NetworkMonitor => {
   if (!globalNetworkMonitor) {
     globalNetworkMonitor = new NetworkMonitor(queryClient);
@@ -514,16 +380,10 @@ export const initializeNetworkMonitor = (queryClient: QueryClient): NetworkMonit
   return globalNetworkMonitor;
 };
 
-/**
- * Get global network monitor instance.
- */
 export const getNetworkMonitor = (): NetworkMonitor | null => {
   return globalNetworkMonitor;
 };
 
-/**
- * Cleanup global network monitor.
- */
 export const cleanupNetworkMonitor = (): void => {
   if (globalNetworkMonitor) {
     globalNetworkMonitor.destroy();

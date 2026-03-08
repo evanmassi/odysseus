@@ -10,8 +10,7 @@ import React, { useState, useEffect, useTransition, useRef, useCallback } from '
 import { useQueryClient, type MutationCacheNotifyEvent } from '@tanstack/react-query';
 import { RefreshCw, WifiOff } from 'lucide-react';
 
-import { ConnectionQuality } from '@infra/connection/NetworkMonitor';
-import { useNetworkStatus } from '@infra/connection/useNetworkStatus';
+import { ConnectionQuality, useNetworkStatus } from '@infra/connection';
 
 import { Tooltip } from '../primitives/tooltip/Tooltip';
 

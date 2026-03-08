@@ -9,8 +9,12 @@ import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore, sessionManager } from '@domains/authentication/stores/authStore';
 import { useSearchStore } from '@domains/search/stores/searchStore';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
-import { initializeNetworkMonitor, cleanupNetworkMonitor } from '@infra/connection/NetworkMonitor';
-import { isOffline, resetNetworkState } from '@infra/connection/networkState';
+import {
+  initializeNetworkMonitor,
+  cleanupNetworkMonitor,
+  isOffline,
+  resetNetworkState,
+} from '@infra/connection';
 import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
 import { logger } from '@shared/infrastructure/logger';
 

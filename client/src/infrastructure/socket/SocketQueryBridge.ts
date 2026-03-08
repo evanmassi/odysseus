@@ -14,7 +14,7 @@
 import { z } from 'zod';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { getNetworkMonitor } from '@infra/connection/NetworkMonitor';
+import { getNetworkMonitor } from '@infra/connection';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
