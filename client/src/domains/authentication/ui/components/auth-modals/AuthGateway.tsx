@@ -8,9 +8,9 @@ import React, { useState } from 'react';
 import { useBootstrapContext } from '@app/contexts/BootstrapContext';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 
-import { LoginModal } from './LoginModal';
-import { RegisterModal } from './RegisterModal';
-import { SystemAdminSetupPage } from './SystemAdminSetupPage';
+import { AuthLoginModal } from './AuthLoginModal';
+import { AuthRegistrationModal } from './AuthRegistrationModal';
+import { AuthSysAdminSetupPage } from './AuthSysAdminSetupPage';
 
 interface AuthGatewayProps {
   children?: React.ReactNode;
@@ -38,12 +38,12 @@ function AuthUnauthenticatedRouter() {
   // System admin setup auto-logs in on completion, so AuthGateway
   // naturally transitions to authenticated state via sessionStatus
   if (flags.needsSystemAdmin) {
-    return <SystemAdminSetupPage />;
+    return <AuthSysAdminSetupPage />;
   }
 
   if (showRegister) {
-    return <RegisterModal onSwitchToLogin={() => setShowRegister(false)} />;
+    return <AuthRegistrationModal onSwitchToLogin={() => setShowRegister(false)} />;
   }
 
-  return <LoginModal onSwitchToRegister={() => setShowRegister(true)} />;
+  return <AuthLoginModal onSwitchToRegister={() => setShowRegister(true)} />;
 }

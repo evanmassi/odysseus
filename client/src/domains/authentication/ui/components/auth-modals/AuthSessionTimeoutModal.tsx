@@ -28,7 +28,7 @@ function formatTime(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
-export function SessionTimeoutWarningModal() {
+export function AuthSessionTimeoutModal() {
   const { sessionTimeoutWarning } = useModalStore();
   const { isOpen, timeRemainingMs, onStayLoggedIn, onLogout } = sessionTimeoutWarning;
 

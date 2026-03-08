@@ -13,17 +13,17 @@ import { AlertBanner, Button } from '@shared/ui';
 
 import { AuthBaseModal } from './AuthBaseModal';
 
-export interface RegistrationSuccessModalProps {
+export interface AuthRegistrationSuccessModalProps {
   username: string;
   status: 'approved' | 'pending';
   onClose: () => void;
 }
 
-export function RegistrationSuccessModal({
+export function AuthRegistrationSuccessModal({
   username,
   status,
   onClose,
-}: RegistrationSuccessModalProps) {
+}: AuthRegistrationSuccessModalProps) {
   const [copied, setCopied] = useState(false);
 
   const handleCopyUsername = async () => {

@@ -1,6 +1,6 @@
 /**
  * Reusable password creation form with real-time validation.
- * Used by LoginModal (force change) and ResetPasswordPage (token reset).
+ * Used by AuthLoginModal (force change) and ResetPasswordPage (token reset).
  */
 
 import { useState, useEffect, useMemo } from 'react';

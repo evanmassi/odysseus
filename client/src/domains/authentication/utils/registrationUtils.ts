@@ -1,7 +1,7 @@
 /**
  * Registration Utilities
  *
- * Shared helpers for registration forms (RegisterModal, SystemAdminSetupPage).
+ * Shared helpers for registration forms (AuthRegistrationModal, AuthSysAdminSetupPage).
  */
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

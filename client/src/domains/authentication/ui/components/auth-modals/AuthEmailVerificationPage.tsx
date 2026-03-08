@@ -21,7 +21,7 @@ function VerifyEmailLayout({ children }: { children: ReactNode }) {
   );
 }
 
-export function VerifyEmailPage() {
+export function AuthEmailVerificationPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState<'verifying' | 'success' | 'error'>('verifying');

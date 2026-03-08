@@ -26,13 +26,13 @@ import { notifications } from '@shared/utils';
 import { PasswordRequirements } from '../password/PasswordRequirements';
 
 import { AuthBaseModal } from './AuthBaseModal';
-import { RegistrationSuccessModal } from './RegistrationSuccessModal';
+import { AuthRegistrationSuccessModal } from './AuthRegistrationSuccessModal';
 
-interface RegisterModalProps {
+interface AuthRegistrationModalProps {
   onSwitchToLogin?: () => void;
 }
 
-export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
+export function AuthRegistrationModal({ onSwitchToLogin }: AuthRegistrationModalProps) {
   // Invite code fields
   const [inviteCode, setInviteCode] = useState('');
   const [inviteCodeValidated, setInviteCodeValidated] = useState(false);
@@ -210,7 +210,7 @@ export function RegisterModal({ onSwitchToLogin }: RegisterModalProps) {
 
   if (showSuccessModal && registrationResult) {
     return (
-      <RegistrationSuccessModal
+      <AuthRegistrationSuccessModal
         username={registrationResult.username}
         status={registrationResult.status}
         onClose={handleSuccessModalClose}

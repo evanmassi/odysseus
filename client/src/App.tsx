@@ -11,8 +11,8 @@ import { useAuthSocketSync } from '@app/hooks';
 import { AppProviders } from '@app/providers/AppProviders';
 import { useErrorStore } from '@app/stores';
 import { AuthGateway, useAuthStore } from '@domains/authentication';
-import { SessionTimeoutWarningModal } from '@domains/authentication/ui/components/auth-modals/SessionTimeoutWarningModal';
-import { VerifyEmailPage } from '@domains/authentication/ui/components/auth-modals/VerifyEmailPage';
+import { AuthEmailVerificationPage } from '@domains/authentication/ui/components/auth-modals/AuthEmailVerificationPage';
+import { AuthSessionTimeoutModal } from '@domains/authentication/ui/components/auth-modals/AuthSessionTimeoutModal';
 import { ResetPasswordPage } from '@domains/authentication/ui/components/password/ResetPasswordPage';
 import { useTubeStore } from '@domains/tubes';
 import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
@@ -76,7 +76,7 @@ function AppContent() {
       <AppErrorBoundary onRetry={retry}>
         <Routes>
           {/* Public route for email verification */}
-          <Route path="/verify-email" element={<VerifyEmailPage />} />
+          <Route path="/verify-email" element={<AuthEmailVerificationPage />} />
 
           {/* Public route for password reset */}
           <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -97,7 +97,7 @@ function AppContent() {
         <ConnectionIndicator connected={isConnected} />
 
         {/* Session timeout warning - only relevant when authenticated */}
-        {isAuthenticated && <SessionTimeoutWarningModal />}
+        {isAuthenticated && <AuthSessionTimeoutModal />}
       </AppErrorBoundary>
     </BootstrapProvider>
   );

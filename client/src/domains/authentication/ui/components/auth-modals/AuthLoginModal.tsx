@@ -18,11 +18,11 @@ import { CreatePasswordForm } from '../password/CreatePasswordForm';
 
 import { AuthBaseModal } from './AuthBaseModal';
 
-interface LoginModalProps {
+interface AuthLoginModalProps {
   onSwitchToRegister?: () => void;
 }
 
-export function LoginModal({ onSwitchToRegister }: LoginModalProps) {
+export function AuthLoginModal({ onSwitchToRegister }: AuthLoginModalProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
