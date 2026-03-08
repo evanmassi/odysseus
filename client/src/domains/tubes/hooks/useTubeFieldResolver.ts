@@ -1,13 +1,14 @@
 /**
- * Simple Field Resolver Hook
+ * Tube Field Resolver
  *
- * Lightweight field resolver for Zod-based data structures.
- * Provides dynamic field access using dot notation paths.
+ * Dynamic field access for tube data using dot notation paths,
+ * with integrated query state and conflict analysis.
  */
 
 import { useCallback, useMemo } from 'react';
 
 import { hasValue, isObject } from '@app/types/fieldTypeMapping';
+import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { logger } from '@shared/infrastructure/logger';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
@@ -30,7 +31,7 @@ export interface FieldConflictAnalysis<T extends NormalizedFieldValue = Normaliz
   distribution: Map<T | undefined, number>;
 }
 
-export interface SimpleFieldResolver {
+export interface TubeFieldResolverResult {
   getTubeValue<K extends ValidFieldPath>(tube: TubeData, fieldPath: K): TubeFieldTypeMap[K];
   getTubeValue<T extends NormalizedFieldValue = NormalizedFieldValue>(
     tube: TubeData,
@@ -69,6 +70,38 @@ export interface SimpleFieldResolver {
     tubes: TubeData[],
     fieldPath: string
   ): FieldConflictAnalysis<T>;
+
+  tubes: {
+    data: TubeData[] | undefined;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => void;
+    getFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+      fieldPath: string
+    ) => T[];
+    findByFieldValue: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+      fieldPath: string,
+      value: T
+    ) => TubeData[];
+    getUniqueFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+      fieldPath: string
+    ) => T[];
+    analyzeConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+      selectedTubes: TubeData[],
+      fieldPath: string
+    ) => {
+      hasConflict: boolean;
+      values: (T | undefined)[];
+      commonValue: T | undefined;
+      totalSelected: number;
+      withValue: number;
+    };
+    hasAnyConflicts: (selectedTubes: TubeData[], fieldPaths: string[]) => boolean;
+  };
+
+  isLoading: boolean;
+  hasErrors: boolean;
+  errors: (Error | null)[];
 }
 
 function getNestedValue(obj: unknown, path: string): unknown {
@@ -82,7 +115,9 @@ function getNestedValue(obj: unknown, path: string): unknown {
   }, obj);
 }
 
-export function useSimpleFieldResolver(): SimpleFieldResolver {
+export function useTubeFieldResolver(): TubeFieldResolverResult {
+  const { data, isLoading, error, refetch } = useTubes();
+
   const getTubeValue = useCallback(
     <T extends NormalizedFieldValue = NormalizedFieldValue>(
       tube: TubeData,
@@ -223,6 +258,62 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
     [getTubeValues]
   );
 
+  const tubeUtils = useMemo(() => {
+    const tubes = data ?? [];
+
+    return {
+      data,
+      isLoading,
+      error,
+      refetch,
+
+      getFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string
+      ): T[] => {
+        return getTubeValues<T>(tubes, fieldPath).filter(v => v !== undefined) as T[];
+      },
+
+      findByFieldValue: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string,
+        value: T
+      ): TubeData[] => {
+        return findTubesByFieldValue(tubes, fieldPath, value);
+      },
+
+      getUniqueFieldValues: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        fieldPath: string
+      ): T[] => {
+        return getUniqueTubeValues<T>(tubes, fieldPath);
+      },
+
+      analyzeConflicts: <T extends NormalizedFieldValue = NormalizedFieldValue>(
+        selectedTubes: TubeData[],
+        fieldPath: string
+      ) => {
+        return analyzeFieldConflicts<T>(selectedTubes, fieldPath);
+      },
+
+      hasAnyConflicts: (selectedTubes: TubeData[], fieldPaths: string[]): boolean => {
+        if (selectedTubes.length <= 1) return false;
+        return fieldPaths.some(
+          fieldPath => analyzeFieldConflicts(selectedTubes, fieldPath).hasConflict
+        );
+      },
+    };
+  }, [
+    data,
+    isLoading,
+    error,
+    refetch,
+    getTubeValues,
+    findTubesByFieldValue,
+    getUniqueTubeValues,
+    analyzeFieldConflicts,
+  ]);
+
+  const errors = useMemo(() => [error], [error]);
+  const hasErrors = error !== null;
+
   return useMemo(
     () => ({
       getTubeValue,
@@ -231,6 +322,10 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
       getUniqueTubeValues,
       findTubesByFieldValue,
       analyzeFieldConflicts,
+      tubes: tubeUtils,
+      isLoading,
+      hasErrors,
+      errors,
     }),
     [
       getTubeValue,
@@ -239,6 +334,10 @@ export function useSimpleFieldResolver(): SimpleFieldResolver {
       getUniqueTubeValues,
       findTubesByFieldValue,
       analyzeFieldConflicts,
+      tubeUtils,
+      isLoading,
+      hasErrors,
+      errors,
     ]
   );
 }

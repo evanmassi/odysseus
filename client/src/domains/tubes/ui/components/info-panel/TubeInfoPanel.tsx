@@ -13,7 +13,7 @@ import {
   formatPositionRangesForBox,
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
-import { useFieldResolverQuery } from '@domains/tubes/hooks';
+import { useTubeFieldResolver } from '@domains/tubes/hooks';
 import { useUserSettings } from '@domains/users';
 import { parsePositionKey } from '@shared/types/GridSelection';
 import { Chip, Tooltip } from '@shared/ui';
@@ -70,7 +70,7 @@ interface TubeInfoPanelProps {
 }
 
 export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps) {
-  const { getTubeValue, analyzeFieldConflicts, tubes } = useFieldResolverQuery();
+  const { getTubeValue, analyzeFieldConflicts, tubes } = useTubeFieldResolver();
   const { data: researchers = [] } = useResearchersQuery();
   const { settings: userSettings } = useUserSettings();
 

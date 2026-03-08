@@ -15,7 +15,7 @@ import {
   formatPositionRangesForBox,
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
-import { useFieldResolverQuery } from '@domains/tubes/hooks/useTubeFieldResolverQuery';
+import { useTubeFieldResolver, TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useTubeFieldResolver';
 import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
 import { useLookupValuesQuery } from '@domains/tubes/hooks/useTubeLookupValuesQuery';
 import {
@@ -23,7 +23,6 @@ import {
   useBulkDeleteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
-import { TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useTubeSimpleFieldResolver';
 import { useUserSettings } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button } from '@shared/ui';
@@ -39,7 +38,7 @@ import { TubeBulkProgressModal } from './TubeBulkProgressModal';
 import { TubeForm } from './TubeForm';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
-import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useTubeSimpleFieldResolver';
+import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useTubeFieldResolver';
 import type { BulkUpdateProgress, BulkUpdateResult } from '@domains/tubes/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
@@ -121,7 +120,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
   const { data: mediaValues = [] } = useLookupValuesQuery('media');
-  const { analyzeFieldConflicts } = useFieldResolverQuery();
+  const { analyzeFieldConflicts } = useTubeFieldResolver();
 
   const speciesOptions = useMemo(
     () => speciesValues.map(v => ({ value: v.value, label: v.value })),

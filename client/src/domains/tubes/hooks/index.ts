@@ -49,10 +49,9 @@ export {
 } from './useTubeForm';
 
 // Field resolver hooks
-export { useFieldResolverQuery } from './useTubeFieldResolverQuery';
 export {
-  useSimpleFieldResolver,
+  useTubeFieldResolver,
   TUBE_FIELD_PATHS,
   type FieldConflictAnalysis,
-  type SimpleFieldResolver,
-} from './useTubeSimpleFieldResolver';
+  type TubeFieldResolverResult,
+} from './useTubeFieldResolver';
