@@ -1,12 +1,12 @@
 /**
  * Tubes Domain Types
- * All types from shared schemas
+ *
+ * Local bulk/color-coding types and re-exports from shared schemas.
  */
 
 export * from './bulkUpdateTypes';
 export * from './tubeColorCodingTypes';
 
-// Re-export tube types from shared schemas
 export type {
   TubeData,
   TubeLocation,
@@ -18,5 +18,4 @@ export type {
   ConcentrationUnit,
 } from '@shared/types/Tube';
 
-// Re-export domain constants
 export { UNKNOWN_RESEARCHER } from '@shared/types/Tube';

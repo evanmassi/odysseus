@@ -1,66 +1,11 @@
 /**
- * Color System Types
- * Types and utilities for tube color coding visualization
+ * Color Coding Types
+ *
+ * Normalized tube data shape and adapter for the color coding system.
  */
 
 import type { TubeData } from '@odysseus/shared-schemas';
 
-export interface ColorPalette {
-  primary: string;
-  secondary: string;
-  accent: string;
-  background: string;
-  surface: string;
-  text: string;
-}
-
-export interface TubeColor {
-  background: string;
-  border: string;
-  text: string;
-  hover?: string;
-  selected?: string;
-}
-
-export interface ColorTheme {
-  name: string;
-  colors: ColorPalette;
-  tubeColors: {
-    default: TubeColor;
-    filled: TubeColor;
-    selected: TubeColor;
-    error: TubeColor;
-    warning: TubeColor;
-  };
-}
-
-export interface LotStyle {
-  id: string;
-  name: string;
-  color: string;
-  backgroundColor?: string;
-  borderColor?: string;
-  pattern?: 'solid' | 'striped' | 'dotted';
-}
-
-export interface ColorSystemConfig {
-  theme: ColorTheme;
-  lotStyles: LotStyle[];
-  enableCustomColors: boolean;
-  colorBlindAccessibility: boolean;
-}
-
-export interface ColorMapping {
-  [key: string]: string;
-}
-
-export interface ColorSystemState {
-  config: ColorSystemConfig;
-  customMappings: ColorMapping;
-  isDarkMode: boolean;
-}
-
-// Additional types for color system
 export interface ColorSystemTubeData {
   id: string;
   cellType: string;
@@ -76,7 +21,6 @@ export interface ColorSystemTubeData {
   cultureCondition?: string;
 }
 
-// Adapter function for tube data
 export const adaptTubeDataForColorSystem = (tubeData: TubeData): ColorSystemTubeData => {
   const mediaString = tubeData.sample?.mediaType;
 

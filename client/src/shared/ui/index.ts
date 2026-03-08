@@ -5,9 +5,6 @@
  * that are truly shared and domain-agnostic.
  */
 
-// Connection Status (shared component)
-export { ConnectionIndicator } from './layout/ConnectionIndicator';
-
 // UI Primitive Components
 export { InlineEditInput } from './components/inputs/InlineEditInput';
 export { ValidatedInput } from './components/inputs/ValidatedInput';
