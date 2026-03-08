@@ -51,6 +51,12 @@ export const queryKeys = {
     locationStats: (tankId: string, rackId: string) =>
       [...queryKeys.tubes.all, 'locationStats', tankId, rackId] as const,
     stats: () => [...queryKeys.tubes.all, 'stats'] as const,
+    bulk: (tubeIds: string[]) =>
+      [
+        ...queryKeys.tubes.all,
+        'bulk',
+        { tubeIds: [...tubeIds].sort(), length: tubeIds.length },
+      ] as const,
     paginated: (filters?: TubeQueryFilters) =>
       [...queryKeys.tubes.all, 'paginated', filters] as const,
   },

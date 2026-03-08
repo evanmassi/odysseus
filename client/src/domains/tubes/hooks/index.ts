@@ -9,8 +9,6 @@ export {
   useTubes,
   useTubesByLocation,
   useTube,
-  useInfiniteTubes,
-  useSearchTubes,
   useBulkTubes,
   usePrefetchTubeLocation,
   useTubeStats,
