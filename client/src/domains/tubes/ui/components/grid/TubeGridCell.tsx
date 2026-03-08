@@ -11,7 +11,7 @@ import {
   getConditionStyleForBox,
   parseDonorInfo,
 } from '../../../utils/tubeColorCoding';
-import { TubeLockIndicator } from '../displays/TubeLockIndicator';
+import { TubeLockIndicator } from '../locking/TubeLockIndicator';
 
 import { TubePropertyIndicator } from './TubePropertyIndicator';
 

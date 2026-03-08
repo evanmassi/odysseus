@@ -7,7 +7,7 @@
  */
 
 // UI Components - Public exports only
-export { TubeInfoPanel } from './ui/components/grid/TubeInfoPanel';
+export { TubeInfoPanel } from './ui/components/info-panel/TubeInfoPanel';
 
 // Store
 export { useTubeStore } from './stores/tubeStore';

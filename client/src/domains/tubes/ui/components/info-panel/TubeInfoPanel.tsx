@@ -20,9 +20,10 @@ import { Chip, Tooltip } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateUtils';
 
 import { useTubeStore } from '../../../stores/tubeStore';
-import { TubeInfoField } from '../displays/TubeInfoField';
-import { TubeInfoGroup } from '../displays/TubeInfoGroup';
-import { TubeLockNoteModal } from '../modals/TubeLockNoteModal';
+import { TubeLockNoteModal } from '../locking/TubeLockNoteModal';
+
+import { TubeInfoField } from './TubeInfoField';
+import { TubeInfoGroup } from './TubeInfoGroup';
 
 import type { Researcher } from '@odysseus/shared-schemas';
 import type { LockContext } from '@shared/types/GridSelection';

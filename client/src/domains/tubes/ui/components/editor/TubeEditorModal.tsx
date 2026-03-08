@@ -44,9 +44,9 @@ import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
 
-import { TubePositionDisplay } from '../displays/TubePositionDisplay';
-import { TubeForm } from '../forms/TubeForm';
+import { TubePositionDisplay } from '../info-panel/TubePositionDisplay';
 
+import { TubeForm } from './TubeForm';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';

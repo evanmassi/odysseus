@@ -24,11 +24,11 @@ import {
   useBulkDeleteTubesMutation,
   usePasteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
+import { TubeBulkEditorModal } from '@domains/tubes/ui/components/editor/TubeBulkEditorModal';
+import { TubeEditorModal } from '@domains/tubes/ui/components/editor/TubeEditorModal';
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
-import { TubeBulkEditorModal } from '@domains/tubes/ui/components/modals/TubeBulkEditorModal';
-import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
-import { TubeLockModal } from '@domains/tubes/ui/components/modals/TubeLockModal';
-import { TubeShareAccessModal } from '@domains/tubes/ui/components/modals/TubeShareAccessModal';
+import { TubeLockModal } from '@domains/tubes/ui/components/locking/TubeLockModal';
+import { TubeShareAccessModal } from '@domains/tubes/ui/components/locking/TubeShareAccessModal';
 import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
