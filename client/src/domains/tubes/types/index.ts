@@ -3,7 +3,7 @@
  * All types from shared schemas
  */
 
-export * from './bulkOperationTypes';
+export * from './bulkUpdateTypes';
 export * from './tubeColorCodingTypes';
 
 // Re-export tube types from shared schemas
