@@ -11,7 +11,7 @@ import { createPortal } from 'react-dom';
 
 import { Tooltip } from '@shared/ui';
 
-import { parseDonorInfo } from '../../../utils/colorSystem';
+import { parseDonorInfo } from '../../../utils/tubeColorCoding';
 
 import type { TubeData } from '@domains/tubes/types';
 

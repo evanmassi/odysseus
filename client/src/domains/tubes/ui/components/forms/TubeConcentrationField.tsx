@@ -27,7 +27,7 @@ interface ConcentrationFieldProps {
   hasConflict?: boolean; // Applies amber highlight for conflicting values in batch edit
 }
 
-export function ConcentrationInput({
+export function TubeConcentrationField({
   label,
   value,
   unitValue,

@@ -7,7 +7,7 @@
 import { Lock, LockKeyhole, Notebook, Palette, ScanEye, ShieldCheck } from 'lucide-react';
 
 import { TubePropertyIndicator } from '@domains/tubes/ui/components/grid/TubePropertyIndicator';
-import { cellLineCategories } from '@domains/tubes/utils/colorSystem';
+import { cellLineCategories } from '@domains/tubes/utils/tubeColorCoding';
 import { getOptimalTextColor } from '@shared/utils/labColorSpace';
 
 import './TubesTab.css';

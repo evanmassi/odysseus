@@ -15,7 +15,7 @@ import { Controller, useWatch } from 'react-hook-form';
 
 import { DatePicker, Select, ValidatedInput } from '@shared/ui';
 
-import { ConcentrationInput } from './ConcentrationInput';
+import { TubeConcentrationField } from './TubeConcentrationField';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
@@ -245,7 +245,7 @@ export const TubeForm = ({
                 name="sample.concentrationUnit"
                 control={control}
                 render={({ field: { value: unitValue, onChange: onUnitChange } }) => (
-                  <ConcentrationInput
+                  <TubeConcentrationField
                     label="Concentration"
                     value={String(value ?? '')}
                     unitValue={unitValue ?? ''}

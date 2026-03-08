@@ -1,5 +1,5 @@
 // Color system for tube identification using LAB color space
-import { adaptTubeDataForColorSystem } from '@domains/tubes/types/colorSystemTypes';
+import { adaptTubeDataForColorSystem } from '@domains/tubes/types/tubeColorCodingTypes';
 import { logger } from '@shared/infrastructure/logger';
 import {
   generateOptimalColorPalette,
@@ -8,7 +8,7 @@ import {
   labToRGBString,
 } from '@shared/utils/labColorSpace';
 
-import type { ColorSystemTubeData } from '@domains/tubes/types/colorSystemTypes';
+import type { ColorSystemTubeData } from '@domains/tubes/types/tubeColorCodingTypes';
 import type { TubeData } from '@odysseus/shared-schemas';
 
 interface ColorResult {

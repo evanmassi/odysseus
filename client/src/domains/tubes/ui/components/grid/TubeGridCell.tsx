@@ -10,7 +10,7 @@ import {
   getLotStyleForBox,
   getConditionStyleForBox,
   parseDonorInfo,
-} from '../../../utils/colorSystem';
+} from '../../../utils/tubeColorCoding';
 import { TubeLockIndicator } from '../displays/TubeLockIndicator';
 
 import { TubePropertyIndicator } from './TubePropertyIndicator';

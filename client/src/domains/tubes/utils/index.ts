@@ -2,4 +2,4 @@
  * Tubes Domain Utilities
  */
 
-export * from './colorSystem';
+export * from './tubeColorCoding';
