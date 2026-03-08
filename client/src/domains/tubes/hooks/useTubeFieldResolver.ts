@@ -8,7 +8,7 @@
 import { useCallback, useMemo } from 'react';
 
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
-import { hasValue, isObject } from '@domains/tubes/types/fieldTypeMapping';
+import { hasValue, isObject } from '@domains/tubes/types/fieldTypes';
 import { logger } from '@shared/infrastructure/logger';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
@@ -16,7 +16,7 @@ import type {
   NormalizedFieldValue,
   TubeFieldTypeMap,
   ValidFieldPath,
-} from '@domains/tubes/types/fieldTypeMapping';
+} from '@domains/tubes/types/fieldTypes';
 import type { TubeData } from '@shared/types/Tube';
 
 // Treats empty as a distinct value — empty vs filled = conflict
