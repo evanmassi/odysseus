@@ -1,10 +1,7 @@
 /**
- * TubeEditorModal - Tube Creation & Editing Modal
+ * Tube Editor
  *
- * Handles CREATE, EDIT, and MIXED modes:
- * - CREATE: single/multiple empty positions
- * - EDIT: single tube by ID
- * - MIXED: create new + update existing positions
+ * Modal for creating and editing tubes with create, edit, and mixed modes.
  */
 
 import React, { useMemo, useState, useEffect } from 'react';
@@ -52,33 +49,17 @@ import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
-/**
- * TubeEditorModal Props
- * - For CREATE: provide selectedPositions
- * - For EDIT: provide tubeId
- * - Cannot provide both
- */
 export interface TubeEditorModalProps {
-  /** Whether modal is open - controls visibility with exit animation */
   isOpen?: boolean;
   onClose: () => void;
-
-  // Edit mode: Single tube ID
   tubeId?: string;
-
-  // Create/Mixed mode: Multiple positions
   rackId?: string;
   boxId?: string;
   selectedPositions?: Set<PositionKey>;
 }
 
-/**
- * Tube Editor Modal Component - detects mode based on props
- */
 export function TubeEditorModal(props: TubeEditorModalProps) {
   const { isOpen = true, tubeId, onClose } = props;
-
-  // Mode detection
   const isEditMode = Boolean(tubeId);
 
   if (isEditMode) {
@@ -88,10 +69,6 @@ export function TubeEditorModal(props: TubeEditorModalProps) {
   }
 }
 
-/**
- * Edit Mode Content
- * Fetches tube data and shows edit form with delete button
- */
 interface EditModeContentProps {
   isOpen: boolean;
   tubeId: string;
@@ -116,13 +93,10 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
     [mediaValues]
   );
 
-  // Fetch tube data from React Query cache (always fresh)
   const { data: tube, isLoading: isFetchingTube, isError } = useTube(tubeId);
 
-  // Focus return management - restore focus when modal unmounts
   useTubeModalFocusReturn();
 
-  // Error state - tube was deleted or doesn't exist
   if (isError) {
     return (
       <InfoDialog
@@ -136,7 +110,6 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
     );
   }
 
-  // Loading state while fetching tube
   if (isFetchingTube || !tube) {
     return (
       <BaseModal
@@ -170,10 +143,6 @@ function EditModeContent({ isOpen, tubeId, onClose }: EditModeContentProps) {
   );
 }
 
-/**
- * Edit Mode Form
- * Inner component that resets form state when tube data changes
- */
 interface EditModeFormProps {
   isOpen: boolean;
   tube: TubeData;
@@ -196,9 +165,7 @@ function EditModeForm({
   onClose,
 }: EditModeFormProps) {
   const modalService = useModalStore();
-  // Build initialData from tube - uses FORM INPUT type (pre-transformation)
-  // concentration as string, date as string
-  // Memoized to prevent unnecessary re-renders and useEffect triggers
+  // Uses FORM INPUT type (pre-transformation): concentration as string, date as string
   const initialData: Partial<UpdateTubeFormInput> = useMemo(
     () => ({
       sample: {
@@ -225,7 +192,6 @@ function EditModeForm({
     [tube]
   );
 
-  // Use edit mode hook - fully type-safe wrapper
   const {
     form,
     submitTube,
@@ -245,7 +211,6 @@ function EditModeForm({
   const showStaleWarning =
     isStale && form.formState.isDirty && !staleWarningDismissed && !isSavingLocal;
 
-  // Handle refresh - accept new data and update tracked version
   const handleRefresh = () => {
     form.reset(initialData);
     setOpenedWithVersion(tube.version);
@@ -276,15 +241,12 @@ function EditModeForm({
   const deleteMutation = useDeleteTubeMutation();
   const isSubmitting = formSubmitting || deleteMutation.isPending;
 
-  // Form submission handler
   // Receives form INPUT type, Zod transforms to OUTPUT type
   const handleFormSubmit = async (validatedData: UpdateTubeFormInput) => {
     // Mark as saving to suppress stale warning (our save triggers version bump)
     setIsSavingLocal(true);
 
     try {
-      // Send all form data (simplicity > micro-optimization)
-      // submitTube handles Zod transformation: INPUT → OUTPUT
       const result = await submitTube(validatedData, { location: tube.location });
 
       if (result.success) {
@@ -304,7 +266,6 @@ function EditModeForm({
     }
   };
 
-  // Delete handler
   const handleDelete = async () => {
     try {
       await deleteMutation.mutateAsync(tubeId);
@@ -318,10 +279,7 @@ function EditModeForm({
     }
   };
 
-  // Use React Hook Form's built-in validation and dirty state
   const { isValid: isFormValid, isDirty } = form.formState;
-
-  // Button should be disabled if form is invalid OR no changes have been made
   const canSubmit = isFormValid && isDirty;
 
   return (
@@ -429,17 +387,7 @@ function EditModeForm({
   );
 }
 
-/**
- * Create Mode Content
- * Handles single/multiple position creation and mixed create+update
- */
-function CreateModeContent({
-  isOpen = true,
-  onClose,
-  rackId: _rackId,
-  boxId: _boxId,
-  selectedPositions,
-}: TubeEditorModalProps) {
+function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
@@ -463,7 +411,6 @@ function CreateModeContent({
   const { currentLab, getBox } = useStorageData();
   const { settings: userSettings } = useUserSettings();
 
-  // State for overwrite confirmation
   const [allowOverwrite, setAllowOverwrite] = useState(false);
 
   // Defer conditional banners so they mount after the modal entrance animation (400ms)
@@ -473,10 +420,8 @@ function CreateModeContent({
     return () => clearTimeout(timer);
   }, []);
 
-  // Focus return management - restore focus when modal unmounts
   useTubeModalFocusReturn();
 
-  // Parse selected positions from string format
   const parsedPositions = useMemo(() => {
     if (!selectedPositions) return [];
     return Array.from(selectedPositions).map(positionKey => {
@@ -493,7 +438,6 @@ function CreateModeContent({
     });
   }, [selectedPositions]);
 
-  // Analyze which positions are occupied vs empty
   const positionAnalysis = useMemo(() => {
     const emptyPositions = [];
     const occupiedPositions = [];
@@ -524,7 +468,6 @@ function CreateModeContent({
     };
   }, [parsedPositions, allTubes]);
 
-  // Get location display names for batch operations (includes customLabels)
   const batchLocationDisplay = useMemo(() => {
     if (parsedPositions.length === 0) return null;
 
@@ -559,7 +502,7 @@ function CreateModeContent({
     return { tankName, rackName, boxName, positionRanges };
   }, [parsedPositions, currentLab, getBox, userSettings]);
 
-  // Default values use FORM INPUT type (pre-transformation)
+  // FORM INPUT type (pre-transformation): concentration as string, date as string
   const defaultValues = useMemo(
     (): Partial<CreateTubeFormInput> => ({
       location: parsedPositions[0]?.location,
@@ -586,7 +529,6 @@ function CreateModeContent({
     [parsedPositions]
   );
 
-  // Use create mode hook
   // Only show individual notifications for single tube creation, not batch operations
   const isSingleTube = parsedPositions.length === 1;
   const { form, submitTube, isSubmitting } = useCreateTubeForm({
@@ -615,11 +557,7 @@ function CreateModeContent({
     }
   }, [isOpen, form, defaultValues]);
 
-  /**
-   * Handle form submission for multiple positions
-   * Supports create, update, and mixed operations
-   * Receives form INPUT type, Zod transforms to OUTPUT type
-   */
+  // Receives form INPUT type, Zod transforms to OUTPUT type
   const handleFormSubmit = async (formData: CreateTubeFormInput) => {
     try {
       if (parsedPositions.length === 0) {
@@ -696,7 +634,6 @@ function CreateModeContent({
         }
       }
 
-      // Provide comprehensive user feedback
       if (successCount === parsedPositions.length) {
         const createCount = positionAnalysis.emptyPositions.length;
         const updateCount = positionAnalysis.occupiedPositions.length;
@@ -747,7 +684,6 @@ function CreateModeContent({
     }
   };
 
-  // Use React Hook Form's built-in validation state (more efficient)
   const isFormValid = form.formState.isValid;
 
   return (

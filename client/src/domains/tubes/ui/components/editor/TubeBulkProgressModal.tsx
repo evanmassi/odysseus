@@ -1,3 +1,9 @@
+/**
+ * Bulk Progress Modal
+ *
+ * Displays real-time progress during bulk tube update operations.
+ */
+
 import { CheckCircle, XCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 import { Button } from '@shared/ui';

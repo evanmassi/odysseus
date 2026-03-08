@@ -43,9 +43,6 @@ const CONFLICT_FIELD_MAP: Record<string, string> = {
 // Conflict indicator icon for fields with mixed values
 const ConflictIcon = () => <AlertTriangle className="w-3.5 h-3.5 text-warning-text" />;
 
-/**
- * Form values union - supports both create and edit modes
- */
 type TubeFormValues = CreateTubeRequest | UpdateTubeRequest;
 
 export interface TubeFormProps {
@@ -75,12 +72,10 @@ export const TubeForm = ({
 }: TubeFormProps) => {
   const notesValue = useWatch({ control, name: 'sample.notes' }) as string | undefined;
 
-  // Check if a field path has a conflict
   const hasConflict = (fieldPath: string): boolean => {
     return conflictingFields.some(conflictKey => CONFLICT_FIELD_MAP[conflictKey] === fieldPath);
   };
 
-  // Get conflict indicator for a field
   const getConflictBadge = (fieldPath: string) => {
     return hasConflict(fieldPath) ? <ConflictIcon /> : undefined;
   };

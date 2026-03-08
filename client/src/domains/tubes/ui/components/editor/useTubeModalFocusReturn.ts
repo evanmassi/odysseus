@@ -1,12 +1,14 @@
+/**
+ * Tube Modal Focus Return
+ *
+ * Restores focus to the previously focused element when tube modals unmount.
+ */
+
 import { useState, useEffect } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
 
-/**
- * Manages focus restoration when tube modals unmount.
- * Returns focus to the previously focused element, unless preserveSelection
- * is enabled (batch operations should not restore focus to avoid clearing selection).
- */
+/** Batch operations set preserveSelection to skip focus return, avoiding clearing grid selection. */
 export function useTubeModalFocusReturn() {
   const modalService = useModalStore();
 

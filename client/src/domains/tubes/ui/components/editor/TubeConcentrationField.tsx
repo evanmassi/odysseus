@@ -1,3 +1,9 @@
+/**
+ * Tube Concentration Field
+ *
+ * Paired numeric input + unit selector with scientific notation formatting.
+ */
+
 import React, { useRef, useState } from 'react';
 
 import { AlertCircle, AlertTriangle } from 'lucide-react';
@@ -23,8 +29,8 @@ interface ConcentrationFieldProps {
     onBlur: () => void;
   };
   className?: string;
-  badge?: React.ReactNode; // Optional badge/icon shown next to label
-  hasConflict?: boolean; // Applies amber highlight for conflicting values in batch edit
+  badge?: React.ReactNode;
+  hasConflict?: boolean;
 }
 
 export function TubeConcentrationField({
@@ -46,26 +52,22 @@ export function TubeConcentrationField({
     { value: 'c/mL', label: 'c/mL' },
   ];
 
-  // Track initial values to determine if field was edited
-  // useRef to capture initial value on first render only
+  // useRef captures initial value on first render only
   const initialValueRef = useRef<string>(value);
   const initialUnitRef = useRef<string>(unitValue);
   const [isDirty, setIsDirty] = useState(false);
 
-  // Check if either value or unit has changed from initial
   const checkDirty = (newValue: string, newUnit: string) => {
     const valueChanged = newValue !== initialValueRef.current;
     const unitChanged = newUnit !== initialUnitRef.current;
     setIsDirty(valueChanged || unitChanged);
   };
 
-  // Map validation state to InputState for the Input primitive
-  // Only show success if user has actually edited the field
+  // Only show success state if user has actually edited the field
   const getInputState = (): InputState => {
     if (validation?.error) return 'error';
     if (validation?.warning) return 'warning';
     if (hasConflict) return 'warning';
-    // Success only when: dirty (user edited) AND has value AND no errors
     if (isDirty && value && !validation?.error && !validation?.warning) return 'success';
     return 'default';
   };
@@ -82,16 +84,13 @@ export function TubeConcentrationField({
     }
   };
 
-  // Format to scientific notation when appropriate
   const handleFormat = (inputValue: string): string => {
     if (!inputValue || inputValue.trim() === '') return inputValue;
 
-    // If it's already in scientific notation format, keep it
     if (isScientificNotationInput(inputValue) || inputValue.includes('E')) {
       return inputValue;
     }
 
-    // If it's a large number, format to scientific notation
     const numValue = parseFloat(inputValue);
     if (!isNaN(numValue) && numValue >= 1000) {
       return formatToScientificNotation(inputValue);
@@ -121,10 +120,7 @@ export function TubeConcentrationField({
       onChange(formatted);
     }
 
-    // Call validation onBlur if provided
-    if (validation?.onBlur) {
-      validation.onBlur();
-    }
+    validation?.onBlur?.();
   };
 
   return (

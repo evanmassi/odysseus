@@ -1,3 +1,9 @@
+/**
+ * Bulk Tube Editor
+ *
+ * Modal for batch-editing multiple tubes with conflict detection and partial updates.
+ */
+
 import { useState, useMemo, useEffect, useRef } from 'react';
 
 import {
@@ -407,7 +413,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         onClose();
       } else {
         notifications.warning(
-          `⚠️ Retry completed: ${retryResult.successCount}/${retryResult.totalProcessed} successful`
+          `Retry completed: ${retryResult.successCount}/${retryResult.totalProcessed} successful`
         );
       }
     } catch (error) {
@@ -514,10 +520,8 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
   } = useStorageLocationNames(tankId, rackId, boxId);
   const { currentLab } = useStorageData();
 
-  // Get user settings for position display preferences
   const { settings: userSettings } = useUserSettings();
 
-  // Format position ranges for display with flexible formatting
   const gridConfig = boxObj?.gridConfig ?? DEFAULT_GRID_CONFIG;
   const positionRanges = formatPositionRangesForBox(
     tubes.map(t => t.location.position),
