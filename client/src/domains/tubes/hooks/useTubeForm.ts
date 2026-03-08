@@ -1,15 +1,7 @@
 /**
- * Tube Form Hook - Generic Factory Pattern
+ * Tube Form Hooks
  *
- * Generic factory pattern for tube forms:
- * - Private generic implementation contains all logic (DRY)
- * - Public type-safe wrappers provide domain-specific APIs
- * - Full type safety with Zod input/output types
- *
- * Type Flow:
- * 1. User interacts with form → TInput (CreateTubeFormInput: concentration as string)
- * 2. Form submits → Zod validates and transforms → TOutput (CreateTubeRequest: concentration as number)
- * 3. API receives proper output type
+ * Generic factory with public wrappers for create, edit, and batch tube forms.
  */
 
 import { useCallback } from 'react';
@@ -42,26 +34,12 @@ export interface SubmitContext {
   location?: TubeData['location'];
 }
 
-/**
- * Form submission result
- */
 export interface TubeFormSubmissionResult {
   success: boolean;
   data?: TubeData;
   error?: string;
 }
 
-// PRIVATE GENERIC IMPLEMENTATION
-
-/**
- * Generic tube form hook - private implementation
- *
- * Contains all form logic. Not exported directly.
- * Public wrappers (useCreateTubeForm, useEditTubeForm) provide type-safe APIs.
- *
- * @template TInput - Form input type (pre-Zod transformation, must be valid form values)
- * @template TOutput - API output type (post-Zod transformation)
- */
 function useTubeForm<
   TInput extends FieldValues,
   TOutput extends CreateTubeRequest | UpdateTubeRequest,
@@ -83,32 +61,24 @@ function useTubeForm<
   const { mode, tubeId, initialData, onSuccess, onError } = config;
   const queryClient = useQueryClient();
 
-  // React Hook Form with Zod validation
-  // Type assertion needed for generic factory pattern - type safety enforced at public wrappers
+  // Type assertion needed for generic factory pattern - safety enforced at public wrappers
   const form = useForm<TInput>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic Zod schema requires any for React Hook Form resolver compatibility
     resolver: zodResolver(schema as any),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic defaultValues require any for type compatibility across TInput instances
     defaultValues: initialData as any,
-    mode: 'onChange', // Real-time validation for immediate feedback
+    mode: 'onChange',
   });
 
-  // React Query mutations
   const createTubeMutation = useCreateTubeMutation();
   const updateTubeMutation = useUpdateTubeMutation();
 
-  /**
-   * Validate complete payload with business rules (duplicate position, warnings)
-   *
-   * @param payload - Validated payload (post-transformation)
-   */
   const validateCompletePayload = useCallback(
     (payload: TOutput): { warnings: Record<string, string> } => {
       const warnings: Record<string, string> = {};
 
-      // Warning: Duplicate position check (only if we have location)
       if ('location' in payload && payload.location) {
-        // Get existing tubes for duplicate validation (fresh on every validation)
+        // Fresh query on every validation to avoid stale duplicate checks
         const existingTubes = queryClient.getQueryData<TubeData[]>(queryKeys.tubes.all) ?? [];
 
         const filteredTubes =
@@ -135,14 +105,6 @@ function useTubeForm<
     [queryClient, mode, tubeId]
   );
 
-  /**
-   * Form submission handler with context support
-   *
-   * Proper type transformation:
-   * - Form data is INPUT type (pre-transformation: concentration is string)
-   * - Zod validates and transforms: INPUT → OUTPUT type
-   * - Mutation receives OUTPUT type (post-transformation: concentration is number)
-   */
   const submitTube = useCallback(
     async (data: TInput, ctx?: SubmitContext): Promise<TubeFormSubmissionResult> => {
       try {
@@ -153,18 +115,13 @@ function useTubeForm<
             throw new Error('Location is required for create mode');
           }
 
-          // Merge form data with context location
           const formInputWithLocation = {
             ...data,
             location: ctx.location,
           };
 
-          // Zod validates and transforms INPUT → OUTPUT
-          // Input: concentration as string ("1.5e6")
-          // Output: concentration as number (1500000)
           const validatedPayload = schema.parse(formInputWithLocation) as TOutput;
 
-          // Validate complete payload and show warnings (non-blocking)
           const { warnings } = validateCompletePayload(validatedPayload);
           if (Object.keys(warnings).length > 0) {
             logger.warn('Tube creation warnings', { warnings });
@@ -177,16 +134,13 @@ function useTubeForm<
             throw new Error('Tube ID is required for edit mode');
           }
 
-          // Merge form data with optional context location
           const formInputWithContext = {
             ...data,
             ...(ctx?.location && { location: ctx.location }),
           };
 
-          // Zod validates and transforms INPUT → OUTPUT
           const validatedPayload = schema.parse(formInputWithContext) as TOutput;
 
-          // Validate complete payload and show warnings (non-blocking)
           const { warnings } = validateCompletePayload(validatedPayload);
           if (Object.keys(warnings).length > 0) {
             logger.warn('Tube update warnings', { warnings });
@@ -199,7 +153,6 @@ function useTubeForm<
           });
         }
 
-        // Call success callback
         onSuccess?.(result);
 
         return {
@@ -229,30 +182,19 @@ function useTubeForm<
     ]
   );
 
-  // Loading state
   const isSubmitting = createTubeMutation.isPending || updateTubeMutation.isPending;
 
-  // Error state
   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback chain, empty string should trigger next option
   const submitError = createTubeMutation.error || updateTubeMutation.error;
 
   return {
-    form, // Pure React Hook Form instance
-    submitTube, // Custom async submission logic
-    isSubmitting, // Combined loading state
-    submitError, // Combined error state
+    form,
+    submitTube,
+    isSubmitting,
+    submitError,
   };
 }
 
-// PUBLIC TYPE-SAFE WRAPPERS
-
-/**
- * Hook for tube creation
- *
- * Type-safe wrapper around generic implementation:
- * - Form uses CreateTubeFormInput (pre-transformation)
- * - Enforces location requirement at submit time
- */
 export function useCreateTubeForm(config?: {
   initialData?: Partial<CreateTubeFormInput>;
   onSuccess?: (data: TubeData) => void;
@@ -271,7 +213,6 @@ export function useCreateTubeForm(config?: {
     ...config,
   });
 
-  // Wrapper: location is required parameter
   const submitTube = useCallback(
     (data: CreateTubeFormInput, location: TubeData['location']) =>
       base.submitTube(data, { location }),
@@ -286,13 +227,6 @@ export function useCreateTubeForm(config?: {
   };
 }
 
-/**
- * Hook for tube editing
- *
- * Type-safe wrapper around generic implementation:
- * - Form uses UpdateTubeFormInput (pre-transformation)
- * - Location optional (preserves existing if not provided)
- */
 export function useEditTubeForm(
   tubeId: string,
   config?: {
@@ -313,14 +247,6 @@ export function useEditTubeForm(
   });
 }
 
-/**
- * Hook for batch tube editing
- *
- * Type-safe wrapper for editing multiple tubes simultaneously:
- * - Uses UpdateTubeFormInput (no location required)
- * - No tubeId needed (batch operations handle IDs separately)
- * - Validates with updateTubeRequestSchema
- */
 export function useBatchEditTubeForm(config?: {
   initialData?: Partial<UpdateTubeFormInput>;
   onSuccess?: (data: TubeData) => void;
@@ -344,14 +270,6 @@ export function useBatchEditTubeForm(config?: {
   };
 }
 
-// UTILITY HOOKS
-
-/**
- * Hook for transforming TubeData to form format (for edit mode)
- * Converts domain data to form-ready structure
- *
- * Returns FORM INPUT type (pre-transformation)
- */
 export function useTubeFormTransform() {
   const transformToFormData = useCallback((tubeData: TubeData): Partial<CreateTubeFormInput> => {
     return {
