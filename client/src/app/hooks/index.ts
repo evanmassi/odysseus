@@ -4,4 +4,4 @@
  * Barrel export for app-level React hooks.
  */
 
-export * from './lifecycle';
+export { useAuthSocketSync } from './useAuthSocketSync';

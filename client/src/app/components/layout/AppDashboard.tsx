@@ -1,5 +1,5 @@
 /**
- * Dashboard
+ * App Dashboard
  *
  * Main lab workspace: storage navigator, tube grid, and info panel.
  */
@@ -60,7 +60,7 @@ const SystemAdminDashboard = lazy(() =>
   import('@domains/admin').then(m => ({ default: m.SystemAdminDashboard }))
 );
 
-export function Dashboard() {
+export function AppDashboard() {
   const { isSynced, hasNoLab } = useStorageSync();
 
   if (hasNoLab) {

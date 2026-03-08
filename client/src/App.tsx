@@ -3,9 +3,9 @@ import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 import { useAppBootstrap } from '@app/bootstrap';
-import { AppErrorBoundary } from '@app/components/boundaries/AppErrorBoundary';
+import { AppDashboard } from '@app/components/layout/AppDashboard';
+import { AppErrorBoundary } from '@app/components/layout/AppErrorBoundary';
 import { AppLoader } from '@app/components/layout/AppLoader';
-import { Dashboard } from '@app/components/layout/Dashboard';
 import { BootstrapProvider } from '@app/contexts/BootstrapContext';
 import { useAuthSocketSync } from '@app/hooks';
 import { AppProviders } from '@app/providers/AppProviders';
@@ -86,7 +86,7 @@ function AppContent() {
             path="*"
             element={
               <AuthGateway>
-                <Dashboard />
+                <AppDashboard />
               </AuthGateway>
             }
           />

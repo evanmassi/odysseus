@@ -11,8 +11,7 @@ import { env } from '@shared/config/environment';
 import { AlertBanner, Button, Spinner } from '@shared/ui';
 
 import { LOADING_MESSAGES } from '../../bootstrap/constants';
-
-import { OfflineInitializationPage } from './OfflineInitializationPage';
+import { OfflineInitializationPage } from '../../bootstrap/OfflineInitializationPage';
 
 import type { UseAppBootstrapResult } from '../../bootstrap/types';
 

@@ -1,9 +1,10 @@
 /**
  * Layout Components
  *
- * App shell components: header, dashboard, loading screen, and offline state.
+ * App shell components: header, dashboard, loading screen, and error boundary.
  */
 
-export { Dashboard } from './Dashboard';
+export { AppDashboard } from './AppDashboard';
+export { AppErrorBoundary } from './AppErrorBoundary';
 export { AppHeader } from './AppHeader';
 export { AppLoader } from './AppLoader';
