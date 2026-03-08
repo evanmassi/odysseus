@@ -18,7 +18,7 @@ import { TubePropertyIndicator } from './TubePropertyIndicator';
 import type { GridConfiguration } from '@domains/storage';
 import type { TubeData } from '@domains/tubes/types';
 
-import './color-indicators.css';
+import './tube-grid.css';
 
 /** Avoids mid-word breaks and truncation by scaling font to fit longer cell type names. */
 function getCellTypeFontSize(baseFont: number, text: string): number {

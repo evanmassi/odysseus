@@ -31,7 +31,7 @@
     }
   }
 
-  /* pulseSelectionRing is defined in color-indicators.css for grid selection */
+  /* pulseSelectionRing is defined in tube-grid.css for grid selection */
 
   /* Session timeout countdown - gentle breathing glow */
   @keyframes countdownPulse {
