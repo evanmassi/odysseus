@@ -8,13 +8,13 @@ import { useMemo, useState, useCallback } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useTubesByLocation } from '@domains/tubes/hooks';
+import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey, parsePositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import {
   canModifyTube,
   canModifyAllTubes,
   getBlockedModificationMessage,
 } from '@domains/tubes/utils/tubeAccessControl';
-import { useGridUiStore } from '@shared/stores/gridUiStore';
 import { notifications } from '@shared/utils/notifications';
 
 import { useGridClipboard } from './useGridClipboard';
@@ -99,7 +99,7 @@ export const useGridController = ({
     });
 
   const modalService = useModalStore();
-  const setMousePositionStore = useGridUiStore(state => state.setMousePosition);
+  const setMousePositionStore = useGridClipboardStore(state => state.setMousePosition);
 
   const [contextMenu, setContextMenu] = useState({
     isOpen: false,

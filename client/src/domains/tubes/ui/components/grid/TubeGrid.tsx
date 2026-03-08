@@ -7,8 +7,8 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { useStorageData, getGridTotalPositions, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
+import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
-import { useGridUiStore } from '@shared/stores/gridUiStore';
 import { ContextMenu } from '@shared/ui';
 
 import { TubeGridCell } from './TubeGridCell';
@@ -55,7 +55,7 @@ export function TubeGrid({
   const gridConfig = boxConfig?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
   // Clipboard access for Escape key clearing
-  const setClipboard = useGridUiStore(state => state.setClipboard);
+  const setClipboard = useGridClipboardStore(state => state.setClipboard);
 
   const [focusedPosition, setFocusedPosition] = useState<number>(1);
 

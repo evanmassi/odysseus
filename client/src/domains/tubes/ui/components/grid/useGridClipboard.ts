@@ -11,6 +11,7 @@ import { tubeDataToCreateRequest } from '@odysseus/shared-schemas';
 import { useModalStore } from '@app/stores/modalStore';
 import { useStorageData } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
+import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
 import { writeClipboardOS, readClipboardOS } from '@domains/tubes/utils/gridClipboard';
 import { validatePasteOperation } from '@domains/tubes/utils/gridPasteValidation';
@@ -18,7 +19,6 @@ import {
   canModifyAllTubes,
   getBlockedModificationMessage,
 } from '@domains/tubes/utils/tubeAccessControl';
-import { useGridUiStore } from '@shared/stores/gridUiStore';
 import { notifications } from '@shared/utils/notifications';
 
 import type { ClipboardData } from '@domains/tubes/types/clipboardTypes';
@@ -71,8 +71,8 @@ export const useGridClipboard = ({
   isAdmin = false,
   hasResearcherProfile = true,
 }: UseGridClipboardProps): UseGridClipboardReturn => {
-  const clipboard = useGridUiStore(state => state.clipboard);
-  const setClipboard = useGridUiStore(state => state.setClipboard);
+  const clipboard = useGridClipboardStore(state => state.clipboard);
+  const setClipboard = useGridClipboardStore(state => state.setClipboard);
   const modalService = useModalStore();
   const { getBox } = useStorageData();
 

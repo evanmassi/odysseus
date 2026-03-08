@@ -22,9 +22,6 @@ export * from './config';
 // Error classes and utilities
 export * from './errors';
 
-// Stores - shared application stores
-export * from './stores';
-
 // Generic UI components and primitives
 export * from './ui';
 

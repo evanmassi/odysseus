@@ -1,6 +1,7 @@
 /**
- * Grid UI Store
- * Manages ephemeral grid UI state (mouse position, clipboard)
+ * Grid Clipboard Store
+ *
+ * Ephemeral grid state for mouse position and clipboard data.
  */
 
 import { create } from 'zustand';
@@ -12,17 +13,15 @@ interface MousePosition {
   y: number;
 }
 
-interface GridUiState {
+interface GridClipboardState {
   mousePosition: MousePosition | null;
   clipboard: ClipboardData | null;
-
-  // Actions
   setMousePosition: (position: MousePosition | null) => void;
   setClipboard: (clipboard: ClipboardData | null) => void;
   clearClipboard: () => void;
 }
 
-export const useGridUiStore = create<GridUiState>(set => ({
+export const useGridClipboardStore = create<GridClipboardState>(set => ({
   mousePosition: null,
   clipboard: null,
 
