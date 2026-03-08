@@ -26,7 +26,7 @@ export function useUserSettingsQuery(options?: { enabled?: boolean }) {
   });
 }
 
-export function useUpdateUserSettingsMutation() {
+function useUpdateUserSettingsMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -40,7 +40,7 @@ export function useUpdateUserSettingsMutation() {
   });
 }
 
-export function useUpdatePositionDisplayPreferenceMutation() {
+function useUpdatePositionDisplayPreferenceMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -55,7 +55,7 @@ export function useUpdatePositionDisplayPreferenceMutation() {
   });
 }
 
-export function useUpdateThemePreferenceMutation() {
+function useUpdateThemePreferenceMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({

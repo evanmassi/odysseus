@@ -1,16 +1,7 @@
 /**
- * Users Domain - Public API
+ * Users Domain Public API
  *
- * Exports services and hooks for user account management:
- * - PersonService: Profile data operations
- * - UserSessionService: Session management operations
- * - UserSettingsService: User preferences and settings
- * - UserPasswordService: Password management operations
- * - UserLookupService: User display info lookup
- * - useUserProfile: Profile query and mutation hooks
- * - useChangePassword: Password change mutation hooks
- * - useUserSessions: Session query and mutation hooks
- * - useUserLookupQuery: User display info lookup hook
+ * Services and hooks for user account management.
  */
 
 export { PersonService, type UpdatePersonProfileWithPassword } from './services/PersonService';
@@ -18,20 +9,14 @@ export { UserSessionService, type ActiveSession } from './services/UserSessionSe
 export { UserSettingsService, userSettingsService } from './services/UserSettingsService';
 export { UserPasswordService } from './services/UserPasswordService';
 export { UserLookupService, userLookupService } from './services/UserLookupService';
+export { useUserProfile, useUserProfileActions } from './hooks/useUserProfile';
+export { useChangePassword } from './hooks/useChangePassword';
+export { useUserSessions } from './hooks/useUserSessions';
 export {
-  useUserProfile,
-  useUserProfileActions,
-  useUserProfileQuery,
-  useUpdateUserProfileMutation,
-} from './hooks/useUserProfile';
-export { useChangePassword, useChangePasswordMutation } from './hooks/useChangePassword';
-export {
-  useUserSessions,
-  useUserSessionsQuery,
-  useRevokeSessionMutation,
-  useRevokeAllSessionsMutation,
-} from './hooks/useUserSessions';
-export { useUserSettings, useUserSettingsActions } from './hooks/useUserSettings';
+  useUserSettings,
+  useUserSettingsActions,
+  useUserSettingsQuery,
+} from './hooks/useUserSettings';
 export { useUserLookupQuery } from './hooks/useUserLookupQuery';
 export { useActiveUsersQuery } from './hooks/useActiveUsersQuery';
-export { usePresenceQuery, useIsUserOnline, useOtherOnlineUsers } from './hooks/usePresenceQuery';
+export { usePresenceQuery } from './hooks/usePresenceQuery';

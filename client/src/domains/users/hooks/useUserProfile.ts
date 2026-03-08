@@ -11,14 +11,11 @@ import { PersonService, type UpdatePersonProfileWithPassword } from '../services
 
 import type { Person } from '@odysseus/shared-schemas';
 
-/**
- * Query hook for user profile
- */
-export function useUserProfileQuery(options?: { enabled?: boolean }) {
+function useUserProfileQuery(options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: queryKeys.users.profile(),
     queryFn: () => PersonService.getMyProfile(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     enabled: options?.enabled ?? true,
     meta: {
       errorMessage: 'Failed to load profile',
@@ -26,10 +23,7 @@ export function useUserProfileQuery(options?: { enabled?: boolean }) {
   });
 }
 
-/**
- * Mutation hook for updating user profile
- */
-export function useUpdateUserProfileMutation() {
+function useUpdateUserProfileMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -43,23 +37,17 @@ export function useUpdateUserProfileMutation() {
   });
 }
 
-/**
- * Derived state hook for UI components
- */
 export function useUserProfile() {
   const { data: profile, isLoading, error } = useUserProfileQuery();
 
   return {
-    profile: profile ?? null,
+    profile,
     isLoading,
     error,
     hasProfile: !!profile,
   };
 }
 
-/**
- * Hook for profile actions (mutations)
- */
 export function useUserProfileActions() {
   const updateProfileMutation = useUpdateUserProfileMutation();
 

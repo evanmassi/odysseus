@@ -12,10 +12,7 @@ interface ChangePasswordVariables {
   newPassword: string;
 }
 
-/**
- * Mutation hook for changing password
- */
-export function useChangePasswordMutation() {
+function useChangePasswordMutation() {
   return useMutation({
     mutationFn: ({ currentPassword, newPassword }: ChangePasswordVariables) =>
       UserPasswordService.changePassword(currentPassword, newPassword),
@@ -25,9 +22,6 @@ export function useChangePasswordMutation() {
   });
 }
 
-/**
- * Hook for password change actions
- */
 export function useChangePassword() {
   const mutation = useChangePasswordMutation();
 

@@ -89,7 +89,8 @@
       "Bash(do echo \"=== $f ===\")",
       "Read(//c/Users/evan/Desktop/Odysseus/odysseus-app/**)",
       "Bash(done)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(git fetch:*)"
     ]
   }
 }

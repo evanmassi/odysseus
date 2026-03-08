@@ -1,30 +1,23 @@
 /**
  * User Sessions Hooks
  *
- * React Query hooks for session management operations
+ * React Query hooks for session management operations.
  */
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 
 import { UserSessionService } from '../services/UserSessionService';
 
-/**
- * Fetch all active sessions for current user
- */
-export function useUserSessionsQuery() {
+function useUserSessionsQuery() {
   return useQuery({
     queryKey: queryKeys.users.sessions(),
     queryFn: () => UserSessionService.getMySessions(),
-    staleTime: 60 * 1000, // 1 minute
+    staleTime: 60 * 1000,
   });
 }
 
-/**
- * Revoke a specific session mutation
- */
-export function useRevokeSessionMutation() {
+function useRevokeSessionMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -35,11 +28,8 @@ export function useRevokeSessionMutation() {
   });
 }
 
-/**
- * Revoke all other sessions mutation
- * Returns number of sessions revoked
- */
-export function useRevokeAllSessionsMutation() {
+/** Returns number of sessions revoked. */
+function useRevokeAllSessionsMutation() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -50,9 +40,6 @@ export function useRevokeAllSessionsMutation() {
   });
 }
 
-/**
- * Combined hook with all session operations
- */
 export function useUserSessions() {
   const sessionsQuery = useUserSessionsQuery();
   const revokeSessionMutation = useRevokeSessionMutation();
