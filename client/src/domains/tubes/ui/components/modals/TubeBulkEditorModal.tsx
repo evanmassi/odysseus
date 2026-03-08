@@ -27,6 +27,7 @@ import { TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useTubeSimpleFieldResolve
 import { useUserSettings } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button } from '@shared/ui';
+import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { InfoDialog } from '@shared/ui/components/InfoDialog';
 import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
@@ -35,7 +36,6 @@ import { formatDateForInput } from '@shared/utils/dateUtils';
 import { TubePositionDisplay } from '../displays/TubePositionDisplay';
 import { TubeForm } from '../forms/TubeForm';
 
-import { DeleteConfirmDialog } from './DeleteConfirmDialog';
 import { TubeBulkProgressModal } from './TubeBulkProgressModal';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
@@ -668,8 +668,9 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
         canClose={!isSubmitting && result !== null}
       />
 
-      <DeleteConfirmDialog
+      <ConfirmDialog
         isOpen={showDeleteConfirm}
+        variant="danger"
         title="Remove All Tubes"
         message={`Are you sure you want to remove all ${tubes.length} tubes? This action cannot be undone and will permanently remove all selected tubes from your inventory.`}
         confirmText={`Remove All ${tubes.length}`}

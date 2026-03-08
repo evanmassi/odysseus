@@ -26,8 +26,6 @@ import {
   usePasteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
-import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
-import { OverwriteConfirmDialog } from '@domains/tubes/ui/components/modals/OverwriteConfirmDialog';
 import { TubeBulkEditorModal } from '@domains/tubes/ui/components/modals/TubeBulkEditorModal';
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
 import { TubeLockModal } from '@domains/tubes/ui/components/modals/TubeLockModal';
@@ -35,6 +33,7 @@ import { TubeShareAccessModal } from '@domains/tubes/ui/components/modals/TubeSh
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
+import { ConfirmDialog } from '@shared/ui/components/ConfirmDialog';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { UnsavedConfirmDialog } from '@shared/ui/components/UnsavedConfirmDialog';
 import { Chip } from '@shared/ui/primitives/chip/Chip';
@@ -612,8 +611,9 @@ function LabDashboard() {
         />
       </SuspenseBoundary>
 
-      <DeleteConfirmDialog
+      <ConfirmDialog
         isOpen={modalService.deleteConfirm.isOpen}
+        variant="danger"
         title={modalService.deleteConfirm.title}
         message={modalService.deleteConfirm.message}
         confirmText={modalService.deleteConfirm.confirmText}
@@ -621,8 +621,9 @@ function LabDashboard() {
         onCancel={modalService.deleteConfirm.onCancel}
       />
 
-      <OverwriteConfirmDialog
+      <ConfirmDialog
         isOpen={modalService.overwriteConfirm.isOpen}
+        variant="warning"
         title={modalService.overwriteConfirm.title}
         message={modalService.overwriteConfirm.message}
         confirmText={modalService.overwriteConfirm.confirmText}
