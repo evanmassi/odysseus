@@ -1,3 +1,8 @@
+/**
+ * Tube Property Indicator
+ *
+ * SVG-based shape indicators (square/triangle) with pattern overlays for lot and condition coding.
+ */
 import React, { memo } from 'react';
 
 type IndicatorShape = 'square' | 'triangle';
@@ -33,7 +38,6 @@ function getPatternColor(fillColor: string): string {
   return getStrokeColor(fillColor);
 }
 
-// Render pattern elements inside the shape
 function renderPattern(
   pattern: IndicatorPattern,
   patternColor: string,
@@ -142,7 +146,6 @@ function renderPattern(
   }
 }
 
-// Render pattern for triangle (adjusted for triangle shape)
 function renderTrianglePattern(
   pattern: IndicatorPattern,
   patternColor: string,
@@ -248,7 +251,6 @@ export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
 
         {shape === 'square' ? (
           <>
-            {/* Square background */}
             <rect
               x={strokeWidth / 2}
               y={strokeWidth / 2}
@@ -259,7 +261,6 @@ export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
               strokeWidth={strokeWidth}
               rx={1}
             />
-            {/* Pattern overlay */}
             {renderPattern(pattern, patternColor, viewBoxSize)}
           </>
         ) : (
@@ -272,7 +273,6 @@ export const TubePropertyIndicator = memo<TubePropertyIndicatorProps>(
               strokeWidth={strokeWidth}
               strokeLinejoin="round"
             />
-            {/* Pattern overlay for triangle */}
             {renderTrianglePattern(pattern, patternColor, viewBoxSize)}
           </>
         )}

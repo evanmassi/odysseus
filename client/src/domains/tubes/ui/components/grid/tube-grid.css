@@ -1,10 +1,11 @@
-/* Grid Position Styles - Indicators moved to SVG for crisp rendering at any size */
+/*
+ * Tube Grid Styles
+ *
+ * Selection glow, drag preview, clipboard marching ants, and position cell layout.
+ */
 
 .tube-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   width: 94%;
   height: 88%;
   display: flex;
@@ -51,8 +52,6 @@
   opacity: 0.8;
 }
 
-/* One-time animation on selection provides immediate visual feedback */
-
 @keyframes tube-select-once {
   0% {
     transform: scale3d(1, 1, 1);
@@ -65,14 +64,13 @@
   }
 }
 
-/* Registered custom property for synchronized glow animation */
 @property --glow-intensity {
   syntax: '<number>';
   initial-value: 0.5;
   inherits: true;
 }
 
-/* Global glow pulse on grid container - all children inherit the same phase */
+/* Animates on parent .tube-grid so all children inherit the same glow phase */
 @keyframes syncedGlowPulse {
   0%,
   100% {
@@ -112,13 +110,12 @@
   backface-visibility: hidden;
 }
 
-/* Non-selected tubes: smooth hover transition */
 .tube-position:not(.selected) {
   transition: transform 200ms ease;
 }
 
 .tube-position:not(.selected):hover {
-  transform: scale3d(1.05, 1.05, 1); /* GPU-accelerated scale */
+  transform: scale3d(1.05, 1.05, 1);
 }
 
 .tube-position.selected {
@@ -134,7 +131,6 @@
   backface-visibility: hidden;
 }
 
-/* Outermost ambient glow — pulses like a neon sign breathing */
 .tube-position.selected::after {
   content: '';
   position: absolute;
@@ -194,7 +190,6 @@
   box-shadow: none !important;
 }
 
-/* Selected cells: remove outline but keep box-shadow for glow effect */
 .tube-position.selected,
 .tube-position.selected:focus,
 .tube-position.selected:focus-visible,
@@ -202,7 +197,6 @@
   outline: none !important;
 }
 
-/* Prevent mobile tap highlight */
 .tube-position {
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
@@ -210,15 +204,8 @@
   user-select: none;
 }
 
-/* Remove borders from child elements that might show focus */
 .tube-position *:not(.tube-position) {
   border: none !important;
-}
-
-/* Ensure tube content stays above selection overlays */
-.tube-content {
-  position: relative;
-  z-index: 2;
 }
 
 /* Drag preview uses faded selection styling to differentiate from actual selection */
@@ -255,7 +242,6 @@
   z-index: 1;
 }
 
-/* Cut tubes appear faded to indicate pending removal */
 .tube-position.cut-tube {
   opacity: var(--grid-cut-opacity);
   filter: grayscale(0.4);
@@ -264,7 +250,6 @@
     filter 0.3s ease;
 }
 
-/* Marching ants pattern for cut selection indicator */
 @keyframes marching-ants {
   0% {
     background-position:

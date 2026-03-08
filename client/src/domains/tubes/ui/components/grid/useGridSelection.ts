@@ -1,6 +1,7 @@
 /**
  * Grid Selection Hook
- * Handles position selection with click, shift-click, ctrl-click, and range selection
+ *
+ * Handles position selection with click, shift-click, ctrl-click, and range selection.
  */
 
 import { useCallback, useRef, useEffect, useMemo } from 'react';

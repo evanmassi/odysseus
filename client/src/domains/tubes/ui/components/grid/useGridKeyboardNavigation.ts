@@ -36,8 +36,6 @@ export interface UseGridKeyboardNavigationReturn {
 }
 
 /**
- * Custom hook for grid keyboard navigation and shortcuts
- *
  * Keyboard shortcuts:
  * - Arrow keys: Navigation (with wrapping)
  * - Shift+Arrow: Range selection
@@ -128,6 +126,7 @@ export function useGridKeyboardNavigation(
         } else {
           const positionKey = toPositionKey(ctx, focusedPosition);
           onSelectionChange(new Set([positionKey]));
+          // Defer so selection state settles before modal reads it
           setTimeout(() => controller.openModal(), 0);
         }
         return;

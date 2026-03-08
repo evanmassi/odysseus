@@ -1,11 +1,15 @@
+/**
+ * Tube Storage Grid
+ *
+ * Configuration-driven grid supporting individual box customization and dynamic grid sizes.
+ */
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { useStorageData, getGridTotalPositions, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
 import { toPositionKey } from '@shared/types/GridSelection';
-
-import { ContextMenu } from '../../../../../shared/ui/primitives/ContextMenu';
+import { ContextMenu } from '@shared/ui';
 
 import { TubeGridCell } from './TubeGridCell';
 import { TubeGridTooltip } from './TubeGridTooltip';
@@ -13,12 +17,10 @@ import { useGridDragSelection } from './useGridDragSelection';
 import { useGridFontSizing } from './useGridFontSizing';
 import { useGridKeyboardNavigation } from './useGridKeyboardNavigation';
 
+import type { LockVariant } from './TubeGridTooltip';
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey, GridControllerReturn, LockContext } from '@shared/types/GridSelection';
 
-/**
- * TubeGrid Props Interface
- */
 interface TubeGridProps {
   tankId: string;
   rackId: string;
@@ -26,15 +28,8 @@ interface TubeGridProps {
   selectedPositions: Set<PositionKey>;
   onSelectionChange: (positions: Set<PositionKey>) => void;
   gridController: GridControllerReturn;
-  // Lock context (optional - for lock-enabled grids)
   lockContext?: LockContext;
 }
-
-/**
- * TubeGrid - Configuration-driven grid component
- *
- * Supports individual box customization and dynamic grid sizes.
- */
 export function TubeGrid({
   tankId,
   rackId,
@@ -55,30 +50,19 @@ export function TubeGrid({
   const boxConfig = getBox(tankId, rackId, boxId);
   const gridConfig = boxConfig?.gridConfig ?? DEFAULT_GRID_CONFIG;
 
-  // Use grid controller passed from parent (single controller instance)
-  const controller = gridController;
-
   // Clipboard access for Escape key clearing
   const setClipboard = useGridUiStore(state => state.setClipboard);
 
-  // UI-related state only
-  const [quickEditMode, setQuickEditMode] = useState<{ position: number; field: string } | null>(
-    null
-  );
   const [focusedPosition, setFocusedPosition] = useState<number>(1);
 
   // Shared tooltip state - singleton pattern avoids Radix composeRefs bug
   const [hoveredTube, setHoveredTube] = useState<TubeData | null>(null);
   const [hoverAnchorRect, setHoverAnchorRect] = useState<DOMRect | null>(null);
-  const [hoveredLockVariant, setHoveredLockVariant] = useState<
-    'own' | 'shared' | 'admin-override' | 'other' | undefined
-  >();
+  const [hoveredLockVariant, setHoveredLockVariant] = useState<LockVariant | undefined>();
   const [hoveredLockOwnerName, setHoveredLockOwnerName] = useState<string | undefined>();
 
-  // Custom hooks for separation of concerns
   const ctx = useMemo(() => ({ tankId, rackId, boxId }), [tankId, rackId, boxId]);
 
-  // Drag selection hook (RAF-throttled rectangular selection)
   const dragSelection = useGridDragSelection({
     gridConfig,
     selectedPositions,
@@ -86,7 +70,6 @@ export function TubeGrid({
     ctx,
   });
 
-  // Keyboard navigation hook (arrow keys, shortcuts)
   const keyboardNav = useGridKeyboardNavigation({
     gridConfig,
     focusedPosition,
@@ -103,7 +86,6 @@ export function TubeGrid({
     gridConfig,
   });
 
-  // Create dynamic grid based on configuration
   const positions = Array.from({ length: getGridTotalPositions(gridConfig) }, (_, i) => i + 1);
 
   const tubesByPosition = useMemo(
@@ -118,29 +100,26 @@ export function TubeGrid({
     [tubes]
   );
 
-  // Position click handler (delegates to grid controller)
   const handlePositionClick = useCallback(
     (position: number, event: React.MouseEvent | React.KeyboardEvent) => {
-      setFocusedPosition(position); // Update keyboard focus on click
-      controller.handlePositionClick(position, event);
+      setFocusedPosition(position);
+      gridController.handlePositionClick(position, event);
     },
-    [controller]
+    [gridController]
   );
 
   const handlePositionRightClick = useCallback(
     (position: number, event: React.MouseEvent) => {
       event.preventDefault();
 
-      // Replace selection with clicked position if not already selected
-      // (right-click on unselected item selects only that item)
-      if (!controller.isPositionSelected(position)) {
-        controller.actions.setSelection(position);
+      // Right-click on unselected position selects only that position
+      if (!gridController.isPositionSelected(position)) {
+        gridController.actions.setSelection(position);
       }
 
-      // Position menu at actual mouse cursor position
-      controller.contextMenu.show(event.clientX, event.clientY);
+      gridController.contextMenu.show(event.clientX, event.clientY);
     },
-    [controller]
+    [gridController]
   );
 
   const handleHoverStart = useCallback(
@@ -148,7 +127,6 @@ export function TubeGrid({
       setHoveredTube(tube);
       setHoverAnchorRect(rect);
 
-      // Compute lock variant for tooltip display
       if (tube.isLocked && lockContext) {
         const ownerName = lockContext.getLockOwnerName(tube);
         const isMine = lockContext.isLockedByCurrentUser(tube);
@@ -180,14 +158,12 @@ export function TubeGrid({
     setHoveredLockOwnerName(undefined);
   }, []);
 
-  // Focus grid once it mounts after data loads
   useEffect(() => {
     if (gridNode) {
       gridNode.focus();
     }
   }, [gridNode]);
 
-  // Sync animations on selection change (force reflow to restart animation)
   useEffect(() => {
     if (!gridNode) return;
 
@@ -200,7 +176,6 @@ export function TubeGrid({
     });
   }, [selectedPositions, gridNode]);
 
-  // Dynamic CSS grid based on configuration - CSS handles sizing via container queries
   const gridStyle = {
     display: 'grid',
     gridTemplateColumns: `repeat(${gridConfig.cols}, minmax(0, 1fr))`,
@@ -208,7 +183,6 @@ export function TubeGrid({
     placeItems: 'center',
   };
 
-  // Loading state indicator
   if (isLoading) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center">
@@ -223,7 +197,6 @@ export function TubeGrid({
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center">
@@ -237,7 +210,6 @@ export function TubeGrid({
 
   return (
     <div className="w-full h-full flex flex-col">
-      {/* Main Grid Container */}
       <div className="flex-1 flex items-start justify-center">
         <div
           ref={gridRef}
@@ -258,13 +230,12 @@ export function TubeGrid({
           {positions.map(position => {
             const positionKey = toPositionKey(ctx, position);
             const tube = tubesByPosition[position];
-            const selected = controller.isPositionSelected(position);
-            const isCut = controller.clipboard.cutPositions.has(positionKey);
-            const isCopied = controller.clipboard.copyPositions.has(positionKey);
+            const selected = gridController.isPositionSelected(position);
+            const isCut = gridController.clipboard.cutPositions.has(positionKey);
+            const isCopied = gridController.clipboard.copyPositions.has(positionKey);
             const inDragPreview = dragSelection.dragPreview.has(positionKey);
             const isKeyboardFocused = position === focusedPosition;
 
-            // Lock state for this tube
             const isLockedOut = tube && lockContext ? lockContext.isLockedOutFrom(tube) : false;
             const isLockedByCurrentUser =
               tube && lockContext ? lockContext.isLockedByCurrentUser(tube) : false;
@@ -288,16 +259,13 @@ export function TubeGrid({
                 isCut={isCut}
                 isCopied={isCopied}
                 _isKeyboardFocused={isKeyboardFocused}
-                quickEditMode={quickEditMode}
                 gridConfig={gridConfig}
                 fontSize={fontSize}
                 onPositionClick={handlePositionClick}
                 onPositionRightClick={handlePositionRightClick}
-                onPositionDoubleClick={controller.handlePositionDoubleClick}
+                onPositionDoubleClick={gridController.handlePositionDoubleClick}
                 onMouseDown={dragSelection.handleMouseDown}
                 onMouseMove={dragSelection.handleMouseMove}
-                onQuickEditSave={() => {}}
-                onQuickEditCancel={() => setQuickEditMode(null)}
                 onHoverStart={handleHoverStart}
                 onHoverEnd={handleHoverEnd}
                 isLockedOut={isLockedOut}
@@ -312,25 +280,25 @@ export function TubeGrid({
       </div>
 
       <ContextMenu
-        isVisible={controller.contextMenu.isOpen}
-        position={{ x: controller.contextMenu.x, y: controller.contextMenu.y }}
+        isVisible={gridController.contextMenu.isOpen}
+        position={{ x: gridController.contextMenu.x, y: gridController.contextMenu.y }}
         selectedCount={selectedPositions.size}
-        hasFilledSelection={controller.selection.hasFilledSelection}
-        isMixedSelection={controller.selection.isMixed}
-        onClose={controller.contextMenu.hide}
-        onOpen={controller.openModal}
-        onDelete={controller.actions.delete}
-        onCopy={controller.actions.copy}
-        onCut={controller.actions.cut}
-        onPaste={controller.actions.paste}
-        canPaste={controller.clipboard.hasData}
-        lockableCount={controller.selection.lockableCount}
-        unlockableCount={controller.selection.unlockableCount}
-        sharableCount={controller.selection.sharableCount}
-        onLock={controller.actions.lock}
-        onUnlock={controller.actions.unlock}
-        onShare={controller.actions.shareAccess}
-        isUnlocking={controller.selection.isUnlocking}
+        hasFilledSelection={gridController.selection.hasFilledSelection}
+        isMixedSelection={gridController.selection.isMixed}
+        onClose={gridController.contextMenu.hide}
+        onOpen={gridController.openModal}
+        onDelete={gridController.actions.delete}
+        onCopy={gridController.actions.copy}
+        onCut={gridController.actions.cut}
+        onPaste={gridController.actions.paste}
+        canPaste={gridController.clipboard.hasData}
+        lockableCount={gridController.selection.lockableCount}
+        unlockableCount={gridController.selection.unlockableCount}
+        sharableCount={gridController.selection.sharableCount}
+        onLock={gridController.actions.lock}
+        onUnlock={gridController.actions.unlock}
+        onShare={gridController.actions.shareAccess}
+        isUnlocking={gridController.selection.isUnlocking}
       />
 
       <TubeGridTooltip

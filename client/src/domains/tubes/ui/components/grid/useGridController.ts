@@ -392,44 +392,6 @@ export const useGridController = ({
   const actions = useMemo(
     () => ({
       ...selectionActions,
-      add: () => {
-        if (guardAddInViewOnly()) return;
-
-        const positions = Array.from(selectedPositions);
-        if (positions.length === 0) return;
-
-        modalService.showTubeEditorModal({
-          mode: 'add',
-          positions,
-          rackId,
-          boxId,
-        });
-      },
-      edit: () => {
-        if (guardModifyOperation()) return;
-
-        const selectedTubeIds = Array.from(selectedPositions)
-          .map(positionKey => {
-            const { position } = parsePositionKey(positionKey);
-            return resolveTube(position);
-          })
-          .filter((tubeId): tubeId is string => tubeId !== null);
-
-        if (selectedTubeIds.length === 0) return;
-
-        if (selectedTubeIds.length === 1) {
-          modalService.showTubeEditorModal({
-            mode: 'edit',
-            tubeId: selectedTubeIds[0],
-          });
-        } else {
-          modalService.showTubeEditorModal({
-            mode: 'batch',
-            tubeIds: selectedTubeIds,
-            preserveSelection: true,
-          });
-        }
-      },
       copy,
       cut,
       paste,
@@ -441,11 +403,6 @@ export const useGridController = ({
     }),
     [
       selectionActions,
-      selectedPositions,
-      modalService,
-      rackId,
-      boxId,
-      resolveTube,
       copy,
       cut,
       paste,
@@ -458,8 +415,6 @@ export const useGridController = ({
       lockTubes,
       unlockTubes,
       shareAccess,
-      guardAddInViewOnly,
-      guardModifyOperation,
     ]
   );
 

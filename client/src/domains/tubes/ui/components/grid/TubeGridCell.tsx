@@ -1,9 +1,13 @@
+/**
+ * Grid Cell
+ *
+ * Individual tube position cell with color coding, lock indicators, and property indicators.
+ */
 import React, { memo, useMemo, useRef, useCallback } from 'react';
 
 import { useStorageData } from '@domains/storage';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { useUserSettings } from '@domains/users/hooks/useUserSettings';
-import { InlineEditInput } from '@shared/ui';
 
 import {
   getTubeColor,
@@ -40,8 +44,6 @@ interface TubeGridCellProps {
   isCut: boolean;
   isCopied: boolean;
   _isKeyboardFocused: boolean;
-  animationKey?: number;
-  quickEditMode: { position: number; field: string } | null;
   gridConfig: GridConfiguration;
   fontSize: { cellFont: number; donorFont: number; positionFont: number };
   onPositionClick: (position: number, event: React.MouseEvent | React.KeyboardEvent) => void;
@@ -49,12 +51,9 @@ interface TubeGridCellProps {
   onPositionDoubleClick?: (position: number, event: React.MouseEvent) => void;
   onMouseDown: (position: number, event: React.MouseEvent) => void;
   onMouseMove: (position: number) => void;
-  onQuickEditSave: (position: number, field: string, value: string) => void;
-  onQuickEditCancel: () => void;
   // Shared tooltip handlers - parent renders single tooltip instance
   onHoverStart: (tube: TubeData, rect: DOMRect) => void;
   onHoverEnd: () => void;
-  // Lock indicator props (optional - for lock-enabled grids)
   isLockedOut?: boolean;
   isLockedByCurrentUser?: boolean;
   hasSharedAccess?: boolean;
@@ -74,8 +73,6 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     isCut,
     isCopied,
     _isKeyboardFocused,
-    animationKey = 0,
-    quickEditMode,
     gridConfig,
     fontSize,
     onPositionClick,
@@ -83,8 +80,6 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     onPositionDoubleClick,
     onMouseDown,
     onMouseMove,
-    onQuickEditSave,
-    onQuickEditCancel,
     onHoverStart,
     onHoverEnd,
     isLockedOut,
@@ -93,13 +88,9 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     hasAdminOverride,
     lockOwnerName,
   }) => {
-    const isQuickEdit = quickEditMode?.position === position;
-
-    // Get user settings for 4-tier position display hierarchy
     const { settings } = useUserSettings();
     const { currentLab } = useStorageData();
 
-    // Get color coding for this tube
     const colors = tube ? getTubeColor(tube) : null;
     const lotStyle = tube?.sample?.lotNumber
       ? getLotStyleForBox(tube.sample.lotNumber, rackId, boxId)
@@ -131,7 +122,7 @@ export const TubeGridCell = memo<TubeGridCellProps>(
     return (
       <div
         ref={cellRef}
-        key={`${position}-${animationKey}`}
+        key={position}
         onClick={e => onPositionClick(position, e)}
         onKeyDown={e => {
           if (e.key === ' ' || e.key === 'Enter') {
@@ -173,14 +164,12 @@ export const TubeGridCell = memo<TubeGridCellProps>(
             width: '100%',
             height: '100%',
             aspectRatio: '1',
-            // CSS custom properties for dynamic theming
             '--border-color': colors?.borderColor ?? 'hsl(var(--grid-border))',
           } as React.CSSProperties
         }
         data-grid-size={`${gridConfig.rows}x${gridConfig.cols}`}
         data-position={position}
       >
-        {/* Position number - compact responsive design */}
         <div
           className="absolute top-0.5 right-0.5 font-semibold rounded-sm shadow-sm border flex items-center justify-center leading-none"
           style={{
@@ -285,17 +274,6 @@ export const TubeGridCell = memo<TubeGridCellProps>(
               Empty
             </div>
           </div>
-        )}
-
-        {/* Quick edit overlay */}
-        {isQuickEdit && tube && quickEditMode && (
-          <InlineEditInput
-            initialValue={((tube as Record<string, unknown>)[quickEditMode.field] as string) ?? ''}
-            fieldName={quickEditMode.field}
-            onSave={value => onQuickEditSave(position, quickEditMode.field, value)}
-            onCancel={onQuickEditCancel}
-            placeholder={`Edit ${quickEditMode.field}`}
-          />
         )}
       </div>
     );

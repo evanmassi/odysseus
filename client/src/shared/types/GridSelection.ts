@@ -142,8 +142,6 @@ export interface GridControllerReturn {
     removeFromSelection: (position: number) => void;
     toggleInSelection: (position: number) => void;
     clearSelection: () => void;
-    add: () => void;
-    edit: () => void;
     copy: () => Promise<void>;
     cut: () => Promise<void>;
     paste: (options?: { targetStart?: number }) => Promise<void>;
