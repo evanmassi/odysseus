@@ -18,8 +18,8 @@ import type {
   RegisterWithResearcherResponse,
   LoginResponse,
   PasswordChangeRequiredResponse,
-} from '../types/api';
-export { isPasswordChangeRequired } from '../types/api';
+} from '../types/apiTypes';
+export { isPasswordChangeRequired } from '../types/apiTypes';
 
 export interface RegisterRequest {
   username: string;

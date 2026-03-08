@@ -19,8 +19,8 @@ import { logger } from '@shared/infrastructure/logger';
 import { authService, isPasswordChangeRequired } from '../services/AuthService';
 
 import type { User } from '../types';
-import type { PasswordChangeRequiredResponse } from '../types/api';
-import type { AuthDebugInfo } from '../types/debug';
+import type { PasswordChangeRequiredResponse } from '../types/apiTypes';
+import type { AuthDebugInfo } from '../types/debugTypes';
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
 import type { TokenPair, SessionStatus } from '@shared/session/types';
 
