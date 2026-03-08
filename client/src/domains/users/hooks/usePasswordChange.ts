@@ -22,7 +22,7 @@ function useChangePasswordMutation() {
   });
 }
 
-export function useChangePassword() {
+export function usePasswordChange() {
   const mutation = useChangePasswordMutation();
 
   return {

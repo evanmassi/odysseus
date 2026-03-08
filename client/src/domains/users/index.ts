@@ -10,7 +10,7 @@ export { UserSettingsService, userSettingsService } from './services/UserSetting
 export { UserPasswordService } from './services/UserPasswordService';
 export { UserLookupService, userLookupService } from './services/UserLookupService';
 export { useUserProfile, useUserProfileActions } from './hooks/useUserProfile';
-export { useChangePassword } from './hooks/useChangePassword';
+export { usePasswordChange } from './hooks/usePasswordChange';
 export { useUserSessions } from './hooks/useUserSessions';
 export {
   useUserSettings,
@@ -19,4 +19,4 @@ export {
 } from './hooks/useUserSettings';
 export { useUserLookupQuery } from './hooks/useUserLookupQuery';
 export { useActiveUsersQuery } from './hooks/useActiveUsersQuery';
-export { usePresenceQuery } from './hooks/usePresenceQuery';
+export { useUserPresenceQuery } from './hooks/useUserPresenceQuery';

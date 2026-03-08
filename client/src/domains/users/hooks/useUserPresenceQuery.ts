@@ -13,7 +13,7 @@ import { queryKeys } from '@app/cache/queryKeys';
  * - REST fetch creates race condition (fetch can overwrite socket event data)
  * - Socket is the authoritative real-time source for presence
  */
-export function usePresenceQuery() {
+export function useUserPresenceQuery() {
   return useQuery({
     queryKey: queryKeys.users.presence(),
     queryFn: (): Promise<string[]> => Promise.resolve([]),

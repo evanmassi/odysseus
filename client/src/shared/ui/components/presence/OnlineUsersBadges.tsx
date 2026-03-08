@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 
 import { useAuthStore } from '@domains/authentication';
-import { useActiveUsersQuery, usePresenceQuery } from '@domains/users';
+import { useActiveUsersQuery, useUserPresenceQuery } from '@domains/users';
 
 import { UserPresenceBadge } from './UserPresenceBadge';
 
@@ -14,7 +14,7 @@ import { UserPresenceBadge } from './UserPresenceBadge';
  */
 export function OnlineUsersBadges() {
   const { user: currentUser } = useAuthStore();
-  const { data: onlineUserIds = [] } = usePresenceQuery();
+  const { data: onlineUserIds = [] } = useUserPresenceQuery();
   const { data: allUsers = [] } = useActiveUsersQuery();
 
   // Filter to online users excluding current user, with user details

@@ -11,7 +11,7 @@ import { KeyRound, Save, Shield } from 'lucide-react';
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { PasswordRequirements } from '@domains/authentication/ui/components/password/PasswordRequirements';
-import { useChangePassword } from '@domains/users/hooks/useChangePassword';
+import { usePasswordChange } from '@domains/users/hooks/usePasswordChange';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
@@ -23,7 +23,7 @@ import type { PasswordRequirements as PasswordConfig } from '@domains/authentica
 export function SecurityTab() {
   const user = useAuthStore(state => state.user);
   const isDemo = user?.isDemo ?? false;
-  const { changePassword, isChanging, reset } = useChangePassword();
+  const { changePassword, isChanging, reset } = usePasswordChange();
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
