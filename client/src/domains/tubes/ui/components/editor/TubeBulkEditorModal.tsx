@@ -38,7 +38,7 @@ import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
 
-import { TubePositionDisplay } from '../info-panel/TubePositionDisplay';
+import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 
 import { TubeBulkProgressModal } from './TubeBulkProgressModal';
 import { TubeForm } from './TubeForm';
@@ -586,7 +586,7 @@ export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBul
       >
         <form id="tube-batch-edit-form" onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-3">
-            <TubePositionDisplay
+            <TubeLocationDisplay
               tankName={tankName}
               rackName={rackName}
               boxName={boxName}

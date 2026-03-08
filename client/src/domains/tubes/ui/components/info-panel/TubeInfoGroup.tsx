@@ -1,19 +1,19 @@
 /**
- * Info section wrapper component
- * Groups related fields with a subtle divider and muted header
+ * Tube Info Group
+ *
+ * Section wrapper that groups related fields under a muted header with divider.
  */
 
-import React from 'react';
+import type { FC, ReactNode } from 'react';
 
 interface TubeInfoGroupProps {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
   className?: string;
-  /** Hide the title/divider (useful for first section) */
   hideTitle?: boolean;
 }
 
-export const TubeInfoGroup: React.FC<TubeInfoGroupProps> = ({
+export const TubeInfoGroup: FC<TubeInfoGroupProps> = ({
   title,
   children,
   className = '',

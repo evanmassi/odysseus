@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useEffect } from 'react';
+/**
+ * Tube Info Panel
+ *
+ * Read-only detail panel for one or more selected tubes with conflict indicators.
+ */
+
+import { useMemo, useState, useEffect, type ReactNode } from 'react';
 
 import {
   formatConcentrationDisplay,
@@ -63,6 +69,48 @@ const SAMPLE_INFO_PATHS = [
   'sample.catalogNumber',
   'researcherId',
 ] as const;
+
+function LocationHeader({
+  tankName,
+  rackName,
+  boxName,
+  positionLabel,
+  formattedPositions,
+  children,
+}: {
+  tankName: string;
+  rackName: string;
+  boxName: string;
+  positionLabel?: string;
+  formattedPositions?: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="bg-muted rounded-md px-3 py-2.5">
+      <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
+        <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+        <Tooltip content={tankName} side="bottom">
+          <span className="text-card-foreground font-medium truncate max-w-24">{tankName}</span>
+        </Tooltip>
+        <span className="text-muted-foreground flex-shrink-0">›</span>
+        <Tooltip content={rackName} side="bottom">
+          <span className="text-card-foreground font-medium truncate max-w-24">{rackName}</span>
+        </Tooltip>
+        <span className="text-muted-foreground flex-shrink-0">›</span>
+        <Tooltip content={boxName} side="bottom">
+          <span className="text-card-foreground font-medium truncate max-w-24">{boxName}</span>
+        </Tooltip>
+      </div>
+      {formattedPositions && positionLabel && (
+        <div className="flex items-baseline gap-1.5 mt-1.5">
+          <span className="text-muted-foreground text-xs">{positionLabel}:</span>
+          <span className="text-card-foreground font-medium text-sm">{formattedPositions}</span>
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
 
 interface TubeInfoPanelProps {
   selectedTubes: TubeData[];
@@ -210,38 +258,13 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     return (
       <div style={{ minWidth: '280px' }}>
         <div className="space-y-3">
-          <div className="bg-muted rounded-md px-3 py-2.5">
-            <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
-              <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-              <Tooltip content={tankName} side="bottom">
-                <span className="text-card-foreground font-medium truncate max-w-24">
-                  {tankName}
-                </span>
-              </Tooltip>
-              <span className="text-muted-foreground flex-shrink-0">›</span>
-              <Tooltip content={rackName} side="bottom">
-                <span className="text-card-foreground font-medium truncate max-w-24">
-                  {rackName}
-                </span>
-              </Tooltip>
-              <span className="text-muted-foreground flex-shrink-0">›</span>
-              <Tooltip content={boxName} side="bottom">
-                <span className="text-card-foreground font-medium truncate max-w-24">
-                  {boxName}
-                </span>
-              </Tooltip>
-            </div>
-            {formattedPositions && (
-              <div className="flex items-baseline gap-1.5 mt-1.5">
-                <span className="text-muted-foreground text-xs">
-                  Position{positionCount > 1 ? 's' : ''}:
-                </span>
-                <span className="text-card-foreground font-medium text-sm">
-                  {formattedPositions}
-                </span>
-              </div>
-            )}
-          </div>
+          <LocationHeader
+            tankName={tankName}
+            rackName={rackName}
+            boxName={boxName}
+            positionLabel={positionCount > 1 ? 'Positions' : 'Position'}
+            formattedPositions={formattedPositions || undefined}
+          />
 
           <div className="text-center py-6">
             <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-muted flex items-center justify-center">
@@ -297,28 +320,12 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
     if (researcherId && researcherMap.has(researcherId as string)) {
       return formatResearcherDropdownDisplay(researcherMap.get(researcherId as string)!);
     }
-    return (createdByName as string | undefined) ?? undefined;
+    return createdByName as string | undefined;
   })();
 
-  const hasConflicts = tubes.hasAnyConflicts(selectedTubes, [
-    'sample.cellType',
-    'sample.donorInternalId',
-    'sample.donorSourceId',
-    'sample.cultureCondition',
-    'sample.lotNumber',
-    'sample.species',
-    'sample.source',
-    'sample.catalogNumber',
-    'sample.passageNumber',
-    'sample.mediaType',
-    'sample.mediaSupplements',
-    'sample.mediaSelection',
-    'sample.concentration',
-    'sample.concentrationUnit',
-    'sample.date',
-    'researcherId',
-    'sample.notes',
-  ]);
+  // createdByName is a historical fallback, not a tube field — exclude from conflict detection
+  const conflictPaths = FIELD_PATHS.filter(p => p !== 'createdByName');
+  const hasConflicts = tubes.hasAnyConflicts(selectedTubes, [...conflictPaths]);
 
   const hasSampleInfo =
     cultureCondition !== undefined ||
@@ -348,27 +355,13 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
   return (
     <div style={{ minWidth: '280px' }}>
       <div className="space-y-3">
-        <div className="bg-muted rounded-md px-3 py-2.5">
-          <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 text-xs">
-            <MapPin className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-            <Tooltip content={tankName} side="bottom">
-              <span className="text-card-foreground font-medium truncate max-w-24">{tankName}</span>
-            </Tooltip>
-            <span className="text-muted-foreground flex-shrink-0">›</span>
-            <Tooltip content={rackName} side="bottom">
-              <span className="text-card-foreground font-medium truncate max-w-24">{rackName}</span>
-            </Tooltip>
-            <span className="text-muted-foreground flex-shrink-0">›</span>
-            <Tooltip content={boxName} side="bottom">
-              <span className="text-card-foreground font-medium truncate max-w-24">{boxName}</span>
-            </Tooltip>
-          </div>
-          <div className="flex items-baseline gap-1.5 mt-1.5">
-            <span className="text-muted-foreground text-xs">{positionSummary.positionLabel}:</span>
-            <span className="text-card-foreground font-medium text-sm">
-              {positionSummary.formattedPositions}
-            </span>
-          </div>
+        <LocationHeader
+          tankName={tankName}
+          rackName={rackName}
+          boxName={boxName}
+          positionLabel={positionSummary.positionLabel}
+          formattedPositions={positionSummary.formattedPositions}
+        >
           {selectedTubes.length > 1 && (
             <div className="flex items-center gap-2 mt-2 pt-2 border-t border-border">
               <Chip size="sm" color="info" leftIcon={<TestTube />}>
@@ -381,7 +374,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
               )}
             </div>
           )}
-        </div>
+        </LocationHeader>
 
         {lockInfo && (
           <div className="flex flex-wrap gap-1.5">
@@ -466,7 +459,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             ) : null}
             {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: empty string should fall through to mixed check */}
             {(cellType || isFieldMixed('sample.cellType')) &&
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Boolean OR: empty string should fall through to mixed check
+              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               (species || isFieldMixed('sample.species')) && (
                 <span className="text-card-foreground/30">·</span>
               )}

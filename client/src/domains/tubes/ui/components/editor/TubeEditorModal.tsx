@@ -41,7 +41,7 @@ import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
 
-import { TubePositionDisplay } from '../info-panel/TubePositionDisplay';
+import { TubeLocationDisplay } from '../info-panel/TubeLocationDisplay';
 
 import { TubeForm } from './TubeForm';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
@@ -331,7 +331,7 @@ function EditModeForm({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-3"
       >
-        <TubePositionDisplay
+        <TubeLocationDisplay
           tankId={tube.location.tankId}
           rackId={tube.location.rackId}
           boxId={tube.location.boxId}
@@ -722,7 +722,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
       >
         <div className="space-y-3">
           {parsedPositions.length === 1 && parsedPositions[0] && (
-            <TubePositionDisplay
+            <TubeLocationDisplay
               tankId={parsedPositions[0].location.tankId}
               rackId={parsedPositions[0].location.rackId}
               boxId={parsedPositions[0].location.boxId}
@@ -730,7 +730,7 @@ function CreateModeContent({ isOpen = true, onClose, selectedPositions }: TubeEd
             />
           )}
           {parsedPositions.length > 1 && batchLocationDisplay && (
-            <TubePositionDisplay
+            <TubeLocationDisplay
               tankName={batchLocationDisplay.tankName}
               rackName={batchLocationDisplay.rackName}
               boxName={batchLocationDisplay.boxName}

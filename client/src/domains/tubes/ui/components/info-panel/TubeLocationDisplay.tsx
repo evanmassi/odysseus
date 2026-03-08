@@ -1,9 +1,7 @@
 /**
- * LocationDisplay Component
+ * Tube Position Display
  *
- * Read-only display of tube location using user-friendly display names.
- * Supports single position (resolves IDs internally) and pre-resolved batch display.
- * Format: "TankName › RackName › BoxName · Position(s)"
+ * Read-only location breadcrumb showing tank › rack › box · position.
  */
 
 import { useMemo } from 'react';
@@ -30,9 +28,9 @@ interface PreResolvedProps {
   className?: string;
 }
 
-export type TubePositionDisplayProps = SinglePositionProps | PreResolvedProps;
+export type TubeLocationDisplayProps = SinglePositionProps | PreResolvedProps;
 
-function isPreResolved(props: TubePositionDisplayProps): props is PreResolvedProps {
+function isPreResolved(props: TubeLocationDisplayProps): props is PreResolvedProps {
   return 'tankName' in props;
 }
 
@@ -57,7 +55,7 @@ function LocationBreadcrumb({
   );
 }
 
-function SinglePositionDisplay({
+function SingleLocationBreadcrumb({
   tankId,
   rackId,
   boxId,
@@ -84,9 +82,9 @@ function SinglePositionDisplay({
   );
 }
 
-export function TubePositionDisplay(props: TubePositionDisplayProps) {
+export function TubeLocationDisplay(props: TubeLocationDisplayProps) {
   if (isPreResolved(props)) {
     return <LocationBreadcrumb {...props} />;
   }
-  return <SinglePositionDisplay {...props} />;
+  return <SingleLocationBreadcrumb {...props} />;
 }

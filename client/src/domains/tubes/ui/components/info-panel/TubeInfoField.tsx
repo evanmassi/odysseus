@@ -1,11 +1,10 @@
 /**
- * Simple field value display component
- * Read-only presentation of a single field with label and value
- * Supports inline (Label: Value) or stacked layout
- * Supports mixed state for multi-select scenarios
+ * Tube Info Field
+ *
+ * Read-only label–value display with inline or stacked layout and mixed-state indicator.
  */
 
-import React from 'react';
+import type { FC } from 'react';
 
 import { AlertTriangle } from 'lucide-react';
 
@@ -13,13 +12,11 @@ interface TubeInfoFieldProps {
   label: string;
   value: string | number | null | undefined;
   className?: string;
-  /** Use inline "Label: Value" format (default: true) */
   inline?: boolean;
-  /** Show "Mixed" indicator for conflicting values in multi-select */
   isMixed?: boolean;
 }
 
-export const TubeInfoField: React.FC<TubeInfoFieldProps> = ({
+export const TubeInfoField: FC<TubeInfoFieldProps> = ({
   label,
   value,
   className = '',
