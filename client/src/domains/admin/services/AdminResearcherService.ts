@@ -4,7 +4,7 @@
  * Researcher lifecycle management for lab administrators.
  */
 
-import { httpClient } from '@infra/api/httpClient';
+import { httpClient } from '@infra/api/HttpClient';
 import { logger } from '@shared/infrastructure/logger';
 
 import type { AdminResearcher, CreateResearcherProfile } from '@odysseus/shared-schemas';

@@ -7,7 +7,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { isOfflineError } from '@infra/api/httpClient';
+import { isOfflineError } from '@infra/api/HttpClient';
 import { isConflictError } from '@shared/errors';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';

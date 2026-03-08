@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 
-import { httpClient } from '@infra/api/httpClient';
+import { httpClient } from '@infra/api/HttpClient';
 
 const changePasswordResponseSchema = z.object({
   message: z.string(),

@@ -10,7 +10,7 @@ import {
   updatePersonProfileSchema,
 } from '@odysseus/shared-schemas';
 
-import { httpClient } from '@infra/api/httpClient';
+import { httpClient } from '@infra/api/HttpClient';
 
 /** Extended update type including password confirmation requirement. */
 export interface UpdatePersonProfileWithPassword extends UpdatePersonProfile {

@@ -26,7 +26,7 @@ import {
   revokeAccessResultSchema,
 } from '@odysseus/shared-schemas';
 
-import { httpClient } from '@infra/api/httpClient';
+import { httpClient } from '@infra/api/HttpClient';
 import { normalizeDateString } from '@shared/utils/dateUtils';
 
 export class TubeService {

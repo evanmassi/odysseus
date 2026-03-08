@@ -4,7 +4,7 @@
  * Data export operations for tubes, users, researchers, and system backups.
  */
 
-import { httpClient } from '@infra/api/httpClient';
+import { httpClient } from '@infra/api/HttpClient';
 import { logger } from '@shared/infrastructure/logger';
 
 export class ExportService {

@@ -12,7 +12,7 @@ import { clearAllCaches } from '@app/cache/queryClient';
 import { SessionService, LocalStorageSessionStorage } from '@app/services/SessionService';
 import { modalStore } from '@app/stores/modalStore';
 import { authHttpClient } from '@infra/api/AuthHttpClient';
-import { configureHttpClientWithSessionService } from '@infra/api/httpClient';
+import { configureHttpClientWithSessionService } from '@infra/api/HttpClient';
 import { env } from '@shared/config';
 import { logger } from '@shared/infrastructure/logger';
 

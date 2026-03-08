@@ -14,16 +14,13 @@
 import { z } from 'zod';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { getNetworkMonitor } from '@infra/connection/networkMonitor';
+import { getNetworkMonitor } from '@infra/connection/NetworkMonitor';
 import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { QueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
-
-// Re-export queryKeys from centralized location
-export { queryKeys } from '@app/cache/queryKeys';
 
 /**
  * Socket event schemas for type safety

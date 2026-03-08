@@ -10,7 +10,7 @@ import { io } from 'socket.io-client';
 import { sessionManager } from '@domains/authentication/stores/authStore';
 import { logger } from '@shared/infrastructure/logger';
 
-import { getSocketBridge, cleanupSocketBridge } from './queryBridge';
+import { getSocketBridge, cleanupSocketBridge } from './SocketQueryBridge';
 
 import type { QueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';

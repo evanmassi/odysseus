@@ -32,7 +32,7 @@ import {
   usePasteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useUserSettings } from '@domains/users';
-import { isOfflineError } from '@infra/api/httpClient';
+import { isOfflineError } from '@infra/api/HttpClient';
 import { logger } from '@shared/infrastructure/logger';
 import { parsePositionKey, type PositionKey } from '@shared/types/GridSelection';
 import { AlertBanner, Button, Checkbox } from '@shared/ui';

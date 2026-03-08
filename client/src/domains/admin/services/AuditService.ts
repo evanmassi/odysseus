@@ -4,7 +4,7 @@
  * Audit log querying, retention management, and archive operations.
  */
 
-import { httpClient } from '@infra/api/httpClient';
+import { httpClient } from '@infra/api/HttpClient';
 import { logger } from '@shared/infrastructure/logger';
 
 import { buildAuditFilterParams } from '../utils/auditLogFilterParams';
