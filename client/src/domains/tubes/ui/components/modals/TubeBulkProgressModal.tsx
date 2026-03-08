@@ -5,14 +5,19 @@ import { ModalPortal } from '@shared/ui/components/ModalPortal';
 
 import type { BulkUpdateProgress } from '@domains/tubes/types';
 
-interface BulkProgressModalProps {
+interface TubeBulkProgressModalProps {
   isOpen: boolean;
   progress: BulkUpdateProgress;
   onClose: () => void;
   canClose: boolean;
 }
 
-export function BulkProgressModal({ isOpen, progress, onClose, canClose }: BulkProgressModalProps) {
+export function TubeBulkProgressModal({
+  isOpen,
+  progress,
+  onClose,
+  canClose,
+}: TubeBulkProgressModalProps) {
   if (!isOpen) return null;
 
   const getPhaseLabel = (phase: BulkUpdateProgress['phase']) => {

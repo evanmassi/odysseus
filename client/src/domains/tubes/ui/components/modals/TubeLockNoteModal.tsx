@@ -18,7 +18,7 @@ import { notifications } from '@shared/utils/notifications';
 
 import type { TubeData } from '@domains/tubes/types';
 
-export interface EditLockNoteModalProps {
+export interface TubeLockNoteModalProps {
   /** Whether modal is open - controls visibility with exit animation */
   isOpen?: boolean;
   /** Tubes to edit (must all be locked by current user) */
@@ -41,12 +41,12 @@ export interface EditLockNoteModalProps {
  * />
  * ```
  */
-export function EditLockNoteModal({
+export function TubeLockNoteModal({
   isOpen = true,
   tubes,
   onClose,
   onSuccess,
-}: EditLockNoteModalProps) {
+}: TubeLockNoteModalProps) {
   // Determine initial note value based on selected tubes
   const { initialNote, hasMixedNotes } = useMemo(() => {
     if (tubes.length === 0) {

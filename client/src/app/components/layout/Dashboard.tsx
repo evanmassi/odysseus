@@ -26,12 +26,12 @@ import {
   usePasteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
-import { BatchTubeEditorModal } from '@domains/tubes/ui/components/modals/BatchTubeEditorModal';
 import { DeleteConfirmDialog } from '@domains/tubes/ui/components/modals/DeleteConfirmDialog';
-import { LockTubesModal } from '@domains/tubes/ui/components/modals/LockTubesModal';
 import { OverwriteConfirmDialog } from '@domains/tubes/ui/components/modals/OverwriteConfirmDialog';
-import { ShareAccessModal } from '@domains/tubes/ui/components/modals/ShareAccessModal';
+import { TubeBulkEditorModal } from '@domains/tubes/ui/components/modals/TubeBulkEditorModal';
 import { TubeEditorModal } from '@domains/tubes/ui/components/modals/TubeEditorModal';
+import { TubeLockModal } from '@domains/tubes/ui/components/modals/TubeLockModal';
+import { TubeShareAccessModal } from '@domains/tubes/ui/components/modals/TubeShareAccessModal';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
@@ -600,8 +600,8 @@ function LabDashboard() {
         />
       </SuspenseBoundary>
 
-      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="BatchTubeEditorModal">
-        <BatchTubeEditorModal
+      <SuspenseBoundary fallback={<ModalSkeleton size="lg" />} name="TubeBulkEditorModal">
+        <TubeBulkEditorModal
           isOpen={
             modalService.tubeEditorModal.isOpen &&
             modalService.tubeEditorModal.mode === 'batch' &&
@@ -638,13 +638,13 @@ function LabDashboard() {
         onCancel={modalService.unsavedConfirm.onCancel}
       />
 
-      <LockTubesModal
+      <TubeLockModal
         isOpen={modalService.lockTubesModal.isOpen}
         tubeIds={modalService.lockTubesModal.tubeIds}
         onClose={modalService.hideLockTubesModal}
       />
 
-      <ShareAccessModal
+      <TubeShareAccessModal
         isOpen={modalService.shareAccessModal.isOpen && !!user}
         tubes={modalService.shareAccessModal.tubeIds
           .map(id => tubes.find(t => t.id === id))

@@ -22,7 +22,7 @@ import { notifications } from '@shared/utils/notifications';
 
 import type { TubeData } from '@domains/tubes/types';
 
-export interface ShareAccessModalProps {
+export interface TubeShareAccessModalProps {
   /** Whether modal is open - controls visibility with exit animation */
   isOpen?: boolean;
   /** Tubes to share access for (must be locked by current user) */
@@ -48,13 +48,13 @@ export interface ShareAccessModalProps {
  * />
  * ```
  */
-export function ShareAccessModal({
+export function TubeShareAccessModal({
   isOpen = true,
   tubes,
   currentUserId,
   onClose,
   onSuccess,
-}: ShareAccessModalProps) {
+}: TubeShareAccessModalProps) {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const shareMutation = useShareTubeAccessMutation();
   const revokeMutation = useRevokeTubeAccessMutation();

@@ -35,15 +35,15 @@ import { formatDateForInput } from '@shared/utils/dateUtils';
 import { TubePositionDisplay } from '../displays/TubePositionDisplay';
 import { TubeForm } from '../forms/TubeForm';
 
-import { BulkProgressModal } from './BulkProgressModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { TubeBulkProgressModal } from './TubeBulkProgressModal';
 import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useTubeSimpleFieldResolver';
 import type { BulkUpdateProgress, BulkUpdateResult } from '@domains/tubes/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
-export interface BatchTubeEditorModalProps {
+export interface TubeBulkEditorModalProps {
   isOpen?: boolean;
   tubeIds: string[];
   onClose: () => void;
@@ -116,11 +116,7 @@ function pickDirtyFields(
   return result;
 }
 
-export function BatchTubeEditorModal({
-  isOpen = true,
-  tubeIds,
-  onClose,
-}: BatchTubeEditorModalProps) {
+export function TubeBulkEditorModal({ isOpen = true, tubeIds, onClose }: TubeBulkEditorModalProps) {
   const { data: researchers = [] } = useActiveResearchersQuery();
   const { data: speciesValues = [] } = useLookupValuesQuery('species');
   const { data: sourceValues = [] } = useLookupValuesQuery('source');
@@ -665,7 +661,7 @@ export function BatchTubeEditorModal({
         )}
       </BaseModal>
 
-      <BulkProgressModal
+      <TubeBulkProgressModal
         isOpen={showProgress}
         progress={progress}
         onClose={handleProgressClose}

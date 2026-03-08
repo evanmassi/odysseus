@@ -22,7 +22,7 @@ import { formatDateForDisplay } from '@shared/utils/dateUtils';
 import { useTubeStore } from '../../../stores/tubeStore';
 import { TubeInfoField } from '../displays/TubeInfoField';
 import { TubeInfoGroup } from '../displays/TubeInfoGroup';
-import { EditLockNoteModal } from '../modals/EditLockNoteModal';
+import { TubeLockNoteModal } from '../modals/TubeLockNoteModal';
 
 import type { Researcher } from '@odysseus/shared-schemas';
 import type { LockContext } from '@shared/types/GridSelection';
@@ -581,7 +581,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
         )}
       </div>
 
-      <EditLockNoteModal
+      <TubeLockNoteModal
         isOpen={showEditLockNoteModal && ownedLockedTubes.length > 0}
         tubes={ownedLockedTubes}
         onClose={() => setShowEditLockNoteModal(false)}
