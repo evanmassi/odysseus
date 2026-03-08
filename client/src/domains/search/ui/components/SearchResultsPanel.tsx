@@ -25,7 +25,7 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 
 import { highlightMatches } from '../../utils/searchFormatters';
 
-import { SortDropdown } from './SortDropdown';
+import { SearchSortControls } from './SearchSortControls';
 
 import type { SearchResults } from '@domains/search';
 import type { TubeData } from '@domains/tubes/types';
@@ -468,7 +468,7 @@ export function SearchResultsPanel({
       )}
 
       {/* Sort Controls */}
-      <SortDropdown />
+      <SearchSortControls />
 
       {/* Scrollable Results Container */}
       <ScrollArea className="flex-1 p-4 space-y-3">

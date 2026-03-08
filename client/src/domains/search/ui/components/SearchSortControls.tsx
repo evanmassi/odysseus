@@ -19,7 +19,7 @@ const SORT_OPTIONS: SelectOption[] = [
   { value: 'lotNumber', label: 'Lot Number' },
 ];
 
-export function SortDropdown() {
+export function SearchSortControls() {
   const sortField = useSearchStore(state => state.sortField);
   const sortDirection = useSearchStore(state => state.sortDirection);
   const setSortField = useSearchStore(state => state.setSortField);

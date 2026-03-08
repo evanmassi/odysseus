@@ -12,7 +12,7 @@ import { useSearch, useSearchStore } from '@domains/search';
 import { logger } from '@shared/infrastructure/logger';
 import { Tooltip } from '@shared/ui';
 
-import { FilterPanel } from './FilterPanel';
+import { SearchFilterPanel } from './SearchFilterPanel';
 import { SearchResultsPanel } from './SearchResultsPanel';
 
 export function SearchPanel() {
@@ -188,7 +188,7 @@ export function SearchPanel() {
               }`}
             >
               <div className="w-80 h-[500px] flex flex-col border-r border-border">
-                <FilterPanel onClose={() => setShowFilters(false)} />
+                <SearchFilterPanel onClose={() => setShowFilters(false)} />
               </div>
             </div>
 

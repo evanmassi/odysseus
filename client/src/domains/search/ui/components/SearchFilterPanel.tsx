@@ -143,11 +143,11 @@ function CollapsibleSection({
   );
 }
 
-interface FilterPanelProps {
+interface SearchFilterPanelProps {
   onClose?: () => void;
 }
 
-export function FilterPanel({ onClose }: FilterPanelProps = {}) {
+export function SearchFilterPanel({ onClose }: SearchFilterPanelProps = {}) {
   const { filters, toggleFilterValue, setSearchFilters, clearFilters } = useSearchStore();
 
   const [openSections, setOpenSections] = useState({
