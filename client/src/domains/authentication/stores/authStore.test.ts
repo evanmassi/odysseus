@@ -38,10 +38,7 @@ vi.mock('../services/AuthService', () => ({
 }));
 
 vi.mock('../../../infrastructure/api/httpClient', () => ({
-  httpClient: {
-    setAuthToken: vi.fn(),
-    clearAuthToken: vi.fn(),
-  },
+  httpClient: {},
   configureHttpClientWithSessionService: vi.fn(),
 }));
 

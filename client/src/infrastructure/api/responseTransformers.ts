@@ -96,7 +96,7 @@ function isDateField(key: string, typeName?: string): boolean {
 function isValidDateValue(value: unknown): boolean {
   // Only strings and numbers can be transformed to dates
   // Explicitly exclude booleans, null, objects, arrays
-  return (typeof value === 'string' || typeof value === 'number') && value !== null;
+  return typeof value === 'string' || typeof value === 'number';
 }
 
 /**
@@ -183,12 +183,10 @@ export function transformApiResponse<T = any>(response: unknown, typeName?: stri
  * Provides explicit type safety for critical business objects
  */
 export const ResponseTransformers = {
-  TokenPair: (data: unknown) => transformApiResponse(data, 'TokenPair'),
   RefreshResponse: (data: unknown) => transformApiResponse(data, 'RefreshResponse'),
   LoginResponse: (data: unknown) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Type assertion needed for nested property access before transformation
     const transformed = transformApiResponse(data, 'LoginResponse') as any;
-    // Ensure nested TokenPair is also transformed
     // Tokens may be at transformed.tokens (direct) or transformed.data.tokens (API wrapper)
     if (transformed.data?.tokens) {
       transformed.data.tokens = transformApiResponse(transformed.data.tokens, 'TokenPair');
@@ -197,10 +195,8 @@ export const ResponseTransformers = {
     }
     return transformed;
   },
-  User: (data: unknown) => transformApiResponse(data, 'User'),
   Person: (data: unknown) => transformApiResponse(data, 'Person'),
   ActiveSession: (data: unknown) => transformApiResponse(data, 'ActiveSession'),
-  TubeData: (data: unknown) => transformApiResponse(data, 'TubeData'),
   Researcher: (data: unknown) => transformApiResponse(data, 'Researcher'),
   AdminUser: (data: unknown) => transformApiResponse(data, 'AdminUser'),
   SystemMetrics: (data: unknown) => transformApiResponse(data, 'SystemMetrics'),

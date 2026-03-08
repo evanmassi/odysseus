@@ -320,7 +320,7 @@ export class HttpClient {
     const envelope = successEnvelopeSchema(z.array(itemSchema)).safeParse(response.data);
 
     if (!envelope.success) {
-      throw 'error' in envelope ? envelope.error : new Error('Validation failed');
+      throw envelope.error;
     }
 
     return envelope.data.data;
@@ -419,14 +419,6 @@ export class HttpClient {
     const envelope = batchEnvelopeSchema(itemSchema).parse(response.data);
 
     return envelope.data;
-  }
-
-  setAuthToken(token: string) {
-    this.defaultHeaders['Authorization'] = `Bearer ${token}`;
-  }
-
-  removeAuthToken() {
-    delete this.defaultHeaders['Authorization'];
   }
 }
 

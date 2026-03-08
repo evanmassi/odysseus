@@ -157,13 +157,6 @@ export class AuthHttpClient {
       );
     }
   }
-
-  /**
-   * Get base URL for debugging
-   */
-  getBaseURL(): string {
-    return this.baseURL;
-  }
 }
 
 /**

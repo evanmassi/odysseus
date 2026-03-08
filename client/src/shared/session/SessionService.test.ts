@@ -23,7 +23,6 @@ function createMockHttpClient() {
   return {
     post: vi.fn(),
     get: vi.fn(),
-    getBaseURL: vi.fn(() => 'http://localhost:3001/api'),
   } as unknown as AuthHttpClient & {
     post: ReturnType<typeof vi.fn>;
     get: ReturnType<typeof vi.fn>;
