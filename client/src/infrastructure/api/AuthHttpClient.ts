@@ -1,15 +1,7 @@
 /**
  * Authentication HTTP Client
  *
- * Dedicated HTTP client for authentication endpoints only.
- * Prevents circular dependency with SessionService by providing
- * a pure HTTP transport layer without token injection.
- *
- * Purpose:
- * - Handle /login, /refresh, /logout endpoints
- * - No automatic token injection (prevents circular dependency)
- * - No 401 retry logic (auth endpoints don't need token refresh)
- * - Simple, focused transport layer
+ * Dedicated transport for auth endpoints — no token injection to avoid circular dependency with SessionService.
  */
 
 import { transformApiResponse } from './responseTransformers';
@@ -35,15 +27,6 @@ export class AuthApiError extends Error implements AuthApiErrorData {
   }
 }
 
-/**
- * Pure HTTP client for authentication operations
- *
- * This client intentionally does NOT:
- * - Inject authentication tokens (prevents circular dependency)
- * - Handle 401 retries (auth endpoints handle their own errors)
- * - Use SessionService (would create infinite loop)
- * - Apply complex transformations (keeps it simple)
- */
 export class AuthHttpClient {
   private readonly baseURL: string;
   private readonly timeout: number;
@@ -59,14 +42,6 @@ export class AuthHttpClient {
     this.timeout = config.timeout || 30000;
   }
 
-  /**
-   * POST request for authentication endpoints
-   *
-   * @param path - API path (e.g., '/public/auth/login')
-   * @param data - Request payload
-   * @param headers - Optional additional headers
-   * @returns Promise with parsed JSON response
-   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client, accepts any request body
   async post<T = any>(path: string, data: any, headers?: Record<string, string>): Promise<T> {
     return this.request<T>(path, {
@@ -76,12 +51,6 @@ export class AuthHttpClient {
     });
   }
 
-  /**
-   * GET request for authentication endpoints (if needed)
-   *
-   * @param path - API path
-   * @param headers - Optional additional headers (e.g., Authorization for session-info)
-   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Generic HTTP client response type
   async get<T = any>(path: string, headers?: Record<string, string>): Promise<T> {
     return this.request<T>(path, {
@@ -90,20 +59,16 @@ export class AuthHttpClient {
     });
   }
 
-  /**
-   * Core request method with minimal error handling
-   */
   private async request<T>(path: string, options: RequestInit): Promise<T> {
     const url = `${this.baseURL}${path}`;
 
-    // Build headers - NO Authorization header
+    // No Authorization header — auth endpoints must not auto-inject tokens
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
     };
 
     try {
-      // Create abort controller for timeout
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
@@ -115,7 +80,6 @@ export class AuthHttpClient {
 
       clearTimeout(timeoutId);
 
-      // Parse response
       const responseData = await response.json().catch(() => ({}));
 
       if (!response.ok) {
@@ -127,7 +91,6 @@ export class AuthHttpClient {
         );
       }
 
-      // Apply response transformation (converts date strings to Date objects)
       const typeHint = path.includes('/refresh')
         ? 'RefreshResponse'
         : path.includes('/login')
@@ -144,7 +107,6 @@ export class AuthHttpClient {
         throw error;
       }
 
-      // Handle fetch errors (network, timeout, etc.)
       if ((error as Error).name === 'AbortError') {
         throw new AuthApiError('Authentication request timeout', 408);
       }
@@ -159,7 +121,4 @@ export class AuthHttpClient {
   }
 }
 
-/**
- * Default auth HTTP client instance
- */
 export const authHttpClient = new AuthHttpClient();
