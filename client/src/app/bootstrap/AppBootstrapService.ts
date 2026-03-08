@@ -11,7 +11,6 @@ import { useSearchStore } from '@domains/search/stores/searchStore';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
 import { initializeNetworkMonitor, cleanupNetworkMonitor } from '@infra/connection/NetworkMonitor';
 import { isOffline, resetNetworkState } from '@infra/connection/networkState';
-import { initializeOptimisticUpdates } from '@infra/optimistic/OptimisticUpdatesService';
 import { initializeSocket, cleanupSocket } from '@infra/socket/SocketService';
 import { logger } from '@shared/infrastructure/logger';
 
@@ -202,8 +201,6 @@ export class AppBootstrapService {
           this.setOfflineError();
           return;
         }
-
-        initializeOptimisticUpdates(queryClient);
 
         // Socket will notify NetworkMonitor of connection state changes
         await initializeSocket(queryClient);

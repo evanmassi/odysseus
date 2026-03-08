@@ -12,7 +12,6 @@ import { RefreshCw, WifiOff } from 'lucide-react';
 
 import { ConnectionQuality } from '@infra/connection/NetworkMonitor';
 import { useNetworkStatus } from '@infra/connection/useNetworkStatus';
-import { getOptimisticUpdatesService } from '@infra/optimistic/OptimisticUpdatesService';
 
 import { Tooltip } from '../primitives/tooltip/Tooltip';
 
@@ -22,25 +21,8 @@ import { Tooltip } from '../primitives/tooltip/Tooltip';
 export const ConnectionStatusIndicator: React.FC = () => {
   const queryClient = useQueryClient();
   const networkStatus = useNetworkStatus(queryClient);
-  const [pendingOperations, setPendingOperations] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-
-  // Monitor pending optimistic updates
-  useEffect(() => {
-    const optimisticService = getOptimisticUpdatesService();
-    if (!optimisticService) return;
-
-    const checkPendingOperations = () => {
-      setPendingOperations(optimisticService.getPendingMutationsCount());
-    };
-
-    // Check immediately and then periodically
-    checkPendingOperations();
-    const interval = setInterval(checkPendingOperations, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Handle click outside to close details card
   const handleClickOutside = useCallback((event: MouseEvent) => {
@@ -77,15 +59,6 @@ export const ConnectionStatusIndicator: React.FC = () => {
         color: 'hsl(var(--color-warning-bg))',
         text: `Reconnecting... (${networkStatus.reconnectAttempts})`,
         description: 'Attempting to restore connection',
-      };
-    }
-
-    if (pendingOperations > 0) {
-      return {
-        icon: '◐',
-        color: 'hsl(var(--color-info-bg))',
-        text: `Syncing (${pendingOperations})`,
-        description: `${pendingOperations} operation${pendingOperations > 1 ? 's' : ''} pending`,
       };
     }
 
@@ -130,10 +103,9 @@ export const ConnectionStatusIndicator: React.FC = () => {
 
   const status = getStatusDisplay();
 
-  // Auto-show card for critical states only (offline, reconnecting, syncing)
+  // Auto-show card for critical states only (offline, reconnecting)
   // Slow connection quality is indicated by dot color, not auto-expanding
-  const shouldShow =
-    !networkStatus.isOnline || networkStatus.reconnectAttempts > 0 || pendingOperations > 0;
+  const shouldShow = !networkStatus.isOnline || networkStatus.reconnectAttempts > 0;
 
   // Determine dot color based on connection quality
   // Uses CSS variables via inline styles for consistency
