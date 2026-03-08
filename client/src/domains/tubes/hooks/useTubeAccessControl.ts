@@ -15,28 +15,16 @@ interface ContainerInfo {
 }
 
 interface UseTubeAccessControlResult {
-  /** Check if user can lock a tube */
   canLockTube: (tube: TubeData, container?: ContainerInfo) => boolean;
-  /** Check if user can unlock a tube */
   canUnlockTube: (tube: TubeData) => boolean;
-  /** Check if user can access (edit) a locked tube */
   canAccessLockedTube: (tube: TubeData) => boolean;
-  /** Check if user can share access to a locked tube */
   canShareTubeAccess: (tube: TubeData) => boolean;
-  /** Check if tube is locked out from user (shows lock indicator) */
   isLockedOutFrom: (tube: TubeData) => boolean;
-  /** Check if tube is locked by the current user */
   isLockedByCurrentUser: (tube: TubeData) => boolean;
-  /** Check if current user has explicit shared access (is in sharedWithUserIds) */
   hasExplicitSharedAccess: (tube: TubeData) => boolean;
 }
 
 /**
- * Hook for tube locking permission checks
- *
- * @param currentUser - Current authenticated user
- * @returns Permission check functions
- *
  * @example
  * ```tsx
  * const { canLockTube, isLockedOutFrom } = useTubeAccessControl(currentUser);
@@ -59,12 +47,6 @@ export function useTubeAccessControl(
   );
   const userId = currentUser?.id;
 
-  /**
-   * Check if user can lock a tube
-   * - Admins can lock any tube
-   * - Users can lock tubes in their own or common space
-   * - Cannot lock already-locked tubes
-   */
   const canLockTube = useCallback(
     (tube: TubeData, container?: ContainerInfo): boolean => {
       if (!userId) return false;
@@ -83,11 +65,6 @@ export function useTubeAccessControl(
     [userId, isAdmin]
   );
 
-  /**
-   * Check if user can unlock a tube
-   * - Admins can unlock any tube
-   * - Lock owner can unlock their own locks
-   */
   const canUnlockTube = useCallback(
     (tube: TubeData): boolean => {
       if (!userId) return false;
@@ -98,13 +75,6 @@ export function useTubeAccessControl(
     [userId, isAdmin]
   );
 
-  /**
-   * Check if user can access (edit) a locked tube
-   * - Admins can always access
-   * - Lock owner can access
-   * - Users with shared access can access
-   * - Unlocked tubes are accessible to all (handled elsewhere)
-   */
   const canAccessLockedTube = useCallback(
     (tube: TubeData): boolean => {
       if (!userId) return false;
@@ -117,10 +87,6 @@ export function useTubeAccessControl(
     [userId, isAdmin]
   );
 
-  /**
-   * Check if user can share access to a locked tube
-   * - Only lock owner or admin can share
-   */
   const canShareTubeAccess = useCallback(
     (tube: TubeData): boolean => {
       if (!userId) return false;
@@ -131,14 +97,6 @@ export function useTubeAccessControl(
     [userId, isAdmin]
   );
 
-  /**
-   * Check if tube is locked out from user
-   * Shows lock indicator when:
-   * - Tube is locked
-   * - User is not the lock owner
-   * - User is not an admin
-   * - User does not have shared access
-   */
   const isLockedOutFrom = useCallback(
     (tube: TubeData): boolean => {
       if (!tube.isLocked) return false;
@@ -151,9 +109,6 @@ export function useTubeAccessControl(
     [userId, isAdmin]
   );
 
-  /**
-   * Check if tube is locked by the current user
-   */
   const isLockedByCurrentUser = useCallback(
     (tube: TubeData): boolean => {
       if (!userId) return false;
@@ -162,7 +117,6 @@ export function useTubeAccessControl(
     [userId]
   );
 
-  /** Check if current user is explicitly listed in sharedWithUserIds */
   const hasExplicitSharedAccess = useCallback(
     (tube: TubeData): boolean => {
       if (!userId || !tube.isLocked) return false;
