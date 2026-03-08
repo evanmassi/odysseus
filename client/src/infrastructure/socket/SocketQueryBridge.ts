@@ -474,60 +474,22 @@ class SocketQueryBridge {
     );
   }
 
-  // RESEARCHER EVENT HANDLERS
+  // RESEARCHER EVENT HANDLERS — all invalidate researchers + tube stats
 
   private setupResearcherEventHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.on('researcher_created', (data: unknown) => {
-      try {
-        researcherEventSchemas.researcher_created.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-      } catch (error) {
-        logger.error('Invalid researcher_created event', { error });
-      }
-    });
-
-    this.socket.on('researcher_updated', (data: unknown) => {
-      try {
-        researcherEventSchemas.researcher_updated.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-      } catch (error) {
-        logger.error('Invalid researcher_updated event', { error });
-      }
-    });
-
-    this.socket.on('researcher_deactivated', (data: unknown) => {
-      try {
-        researcherEventSchemas.researcher_deactivated.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-      } catch (error) {
-        logger.error('Invalid researcher_deactivated event', { error });
-      }
-    });
-
-    this.socket.on('researcher_reactivated', (data: unknown) => {
-      try {
-        researcherEventSchemas.researcher_reactivated.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-      } catch (error) {
-        logger.error('Invalid researcher_reactivated event', { error });
-      }
-    });
-
-    this.socket.on('researcher_deleted', (data: unknown) => {
-      try {
-        researcherEventSchemas.researcher_deleted.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
-      } catch (error) {
-        logger.error('Invalid researcher_deleted event', { error });
-      }
-    });
+    for (const [event, schema] of Object.entries(researcherEventSchemas)) {
+      this.socket.on(event, (data: unknown) => {
+        try {
+          schema.parse(data);
+          void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
+          void this.queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
+        } catch (error) {
+          logger.error(`Invalid ${event} event`, { error });
+        }
+      });
+    }
   }
 
   // USER EVENT HANDLERS
@@ -535,66 +497,33 @@ class SocketQueryBridge {
   private setupUserEventHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.on('user_approved', (data: unknown) => {
-      try {
-        userEventSchemas.user_approved.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
-      } catch (error) {
-        logger.error('Invalid user_approved event', { error });
-      }
-    });
+    const userListAndAdmin = [queryKeys.users.list(), queryKeys.admin.users()] as const;
+    const userListAdminAndResearchers = [...userListAndAdmin, queryKeys.researchers.all] as const;
 
-    this.socket.on('user_deleted', (data: unknown) => {
-      try {
-        userEventSchemas.user_deleted.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
-      } catch (error) {
-        logger.error('Invalid user_deleted event', { error });
-      }
-    });
+    const userEventHandlers: {
+      event: keyof typeof userEventSchemas;
+      invalidate: ReadonlyArray<readonly unknown[]>;
+    }[] = [
+      { event: 'user_approved', invalidate: userListAndAdmin },
+      { event: 'user_deleted', invalidate: userListAndAdmin },
+      { event: 'user_role_changed', invalidate: userListAndAdmin },
+      { event: 'user_created', invalidate: [queryKeys.admin.users()] },
+      { event: 'user_linked_to_researcher', invalidate: userListAdminAndResearchers },
+      { event: 'user_unlinked_from_researcher', invalidate: userListAdminAndResearchers },
+    ];
 
-    this.socket.on('user_role_changed', (data: unknown) => {
-      try {
-        userEventSchemas.user_role_changed.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
-      } catch (error) {
-        logger.error('Invalid user_role_changed event', { error });
-      }
-    });
-
-    this.socket.on('user_created', (data: unknown) => {
-      try {
-        userEventSchemas.user_created.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
-      } catch (error) {
-        logger.error('Invalid user_created event', { error });
-      }
-    });
-
-    this.socket.on('user_linked_to_researcher', (data: unknown) => {
-      try {
-        userEventSchemas.user_linked_to_researcher.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-      } catch (error) {
-        logger.error('Invalid user_linked_to_researcher event', { error });
-      }
-    });
-
-    this.socket.on('user_unlinked_from_researcher', (data: unknown) => {
-      try {
-        userEventSchemas.user_unlinked_from_researcher.parse(data);
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.users.list() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.admin.users() });
-        void this.queryClient.invalidateQueries({ queryKey: queryKeys.researchers.all });
-      } catch (error) {
-        logger.error('Invalid user_unlinked_from_researcher event', { error });
-      }
-    });
+    for (const { event, invalidate } of userEventHandlers) {
+      this.socket.on(event, (data: unknown) => {
+        try {
+          userEventSchemas[event].parse(data);
+          for (const queryKey of invalidate) {
+            void this.queryClient.invalidateQueries({ queryKey });
+          }
+        } catch (error) {
+          logger.error(`Invalid ${event} event`, { error });
+        }
+      });
+    }
   }
 
   // PRESENCE EVENT HANDLERS — writes authoritative server list directly to cache
@@ -774,23 +703,21 @@ class SocketQueryBridge {
     return 'Multiple configuration changes applied';
   }
 
-  // RECONNECTION HANDLERS
-  // TODO: These listen on Socket but reconnect/reconnect_attempt/reconnect_failed/reconnect_error
-  // are Manager-level events (socket.io) in Socket.IO v4. These handlers never fire.
+  // RECONNECTION HANDLERS — Manager-level events (socket.io) in Socket.IO v4
 
   private setupReconnectionHandlers(): void {
     if (!this.socket) return;
 
-    this.socket.on('reconnect', () => {
+    this.socket.io.on('reconnect', () => {
       void this.queryClient.invalidateQueries();
     });
 
-    this.socket.on('reconnect_failed', () => {
+    this.socket.io.on('reconnect_failed', () => {
       logger.error('Failed to reconnect to server after all attempts');
       notifications.error('Failed to reconnect to server. Please refresh the page.');
     });
 
-    this.socket.on('reconnect_error', (error: Error) => {
+    this.socket.io.on('reconnect_error', (error: Error) => {
       logger.error('Reconnection error', { error });
     });
   }
