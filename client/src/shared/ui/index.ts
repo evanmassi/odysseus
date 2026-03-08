@@ -8,8 +8,8 @@
 // UI Primitive Components
 export { InlineEditInput } from './components/inputs/InlineEditInput';
 export { ValidatedInput } from './components/inputs/ValidatedInput';
-export { ContextMenu } from './primitives/ContextMenu';
-export { ErrorBanner } from './primitives/ErrorBanner';
+export { ContextMenu } from './primitives/menus/ContextMenu';
+export { ErrorBanner } from './primitives/banners/ErrorBanner';
 
 // Re-export all primitives for convenience
 export * from './primitives';
