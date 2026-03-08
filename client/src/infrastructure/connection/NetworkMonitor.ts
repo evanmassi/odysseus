@@ -9,31 +9,17 @@ import { notifications } from '@shared/utils/notifications';
 
 import { setOffline } from './networkState';
 
-import type { NavigatorWithConnection } from '@shared/types';
 import type { QueryClient } from '@tanstack/react-query';
 
 export interface NetworkStatus {
   isOnline: boolean;
-  isHighQuality: boolean;
-  downlink?: number;
-  effectiveType?: string;
-  rtt?: number;
   lastConnected: number;
   reconnectAttempts: number;
-}
-
-export enum ConnectionQuality {
-  EXCELLENT = 'excellent', // > 10 Mbps, < 100ms RTT
-  GOOD = 'good', // > 1 Mbps, < 300ms RTT
-  FAIR = 'fair', // > 0.5 Mbps, < 1000ms RTT
-  POOR = 'poor', // < 0.5 Mbps, > 1000ms RTT
-  OFFLINE = 'offline',
 }
 
 export type NetworkEvent =
   | 'online'
   | 'offline'
-  | 'quality-change'
   | 'reconnect-attempt'
   | 'reconnect-success'
   | 'reconnect-failed';
@@ -44,7 +30,6 @@ export class NetworkMonitor {
   private listeners: Map<NetworkEvent, Array<(status: NetworkStatus) => void>> = new Map();
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private reconnectTimeout: NodeJS.Timeout | null = null;
-  private qualityCheckInterval: NodeJS.Timeout | null = null;
   private initializationPromise: Promise<void> | null = null;
 
   private boundHandleOnline: () => void;
@@ -54,7 +39,6 @@ export class NetworkMonitor {
     this.queryClient = queryClient;
     this.status = {
       isOnline: navigator.onLine,
-      isHighQuality: true,
       lastConnected: Date.now(),
       reconnectAttempts: 0,
     };
@@ -66,8 +50,6 @@ export class NetworkMonitor {
 
     this.setupBrowserEvents();
     this.startHeartbeat();
-    this.startQualityMonitoring();
-    this.setupNetworkInformationAPI();
 
     this.initializationPromise = this.verifyInitialConnectivity();
   }
@@ -144,7 +126,6 @@ export class NetworkMonitor {
     if (!this.status.isOnline) return;
 
     this.status.isOnline = false;
-    this.status.isHighQuality = false;
 
     setOffline(true);
     this.startReconnectionAttempts();
@@ -221,72 +202,6 @@ export class NetworkMonitor {
     }
   }
 
-  private startQualityMonitoring(): void {
-    this.qualityCheckInterval = setInterval(() => {
-      if (this.status.isOnline) {
-        this.updateConnectionQuality();
-      }
-    }, 30000);
-  }
-
-  private updateConnectionQuality(): void {
-    const quality = this.assessConnectionQuality();
-    const wasHighQuality = this.status.isHighQuality;
-
-    this.status.isHighQuality =
-      quality === ConnectionQuality.EXCELLENT || quality === ConnectionQuality.GOOD;
-
-    if (wasHighQuality !== this.status.isHighQuality) {
-      this.adjustQueryClientForQuality();
-      this.notifyListeners('quality-change');
-    }
-  }
-
-  private assessConnectionQuality(): ConnectionQuality {
-    if (!this.status.isOnline) return ConnectionQuality.OFFLINE;
-
-    const nav = navigator as NavigatorWithConnection;
-    const connection = nav.connection ?? nav.mozConnection ?? nav.webkitConnection;
-
-    if (connection) {
-      const { downlink, rtt, effectiveType } = connection;
-
-      this.status.downlink = downlink;
-      this.status.rtt = rtt;
-      this.status.effectiveType = effectiveType;
-
-      if (downlink && downlink > 10 && rtt && rtt < 100) return ConnectionQuality.EXCELLENT;
-      if (downlink && downlink > 1 && rtt && rtt < 300) return ConnectionQuality.GOOD;
-      if (downlink && downlink > 0.5 && rtt && rtt < 1000) return ConnectionQuality.FAIR;
-      return ConnectionQuality.POOR;
-    }
-
-    return ConnectionQuality.GOOD;
-  }
-
-  private adjustQueryClientForQuality(): void {
-    if (this.status.isHighQuality) {
-      this.queryClient.setDefaultOptions({
-        queries: { networkMode: 'online', retry: 3, staleTime: 5 * 60 * 1000 },
-      });
-    } else {
-      this.queryClient.setDefaultOptions({
-        queries: { networkMode: 'online', retry: 1, staleTime: 10 * 60 * 1000 },
-      });
-    }
-  }
-
-  private setupNetworkInformationAPI(): void {
-    const nav = navigator as NavigatorWithConnection;
-    const connection = nav.connection ?? nav.mozConnection ?? nav.webkitConnection;
-
-    if (connection) {
-      connection.addEventListener('change', () => {
-        this.updateConnectionQuality();
-      });
-    }
-  }
-
   private startHeartbeat(): void {
     this.heartbeatInterval = setInterval(async () => {
       if (this.status.isOnline) {
@@ -358,11 +273,6 @@ export class NetworkMonitor {
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
       this.reconnectTimeout = null;
-    }
-
-    if (this.qualityCheckInterval) {
-      clearInterval(this.qualityCheckInterval);
-      this.qualityCheckInterval = null;
     }
 
     this.listeners.clear();

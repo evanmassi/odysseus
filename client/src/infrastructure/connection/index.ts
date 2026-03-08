@@ -4,7 +4,6 @@
 
 export {
   NetworkMonitor,
-  ConnectionQuality,
   initializeNetworkMonitor,
   getNetworkMonitor,
   cleanupNetworkMonitor,
