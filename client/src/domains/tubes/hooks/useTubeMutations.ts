@@ -2,11 +2,6 @@
  * Tube Mutation Hooks
  *
  * React Query hooks for tube write operations.
- *
- * - Uses TubeService
- * - Optimistic updates with rollback on error
- * - Smart cache invalidation and updates
- * - Consistent error handling and notifications
  */
 
 import { formatResourceDisplayName } from '@odysseus/shared-schemas';
@@ -31,7 +26,6 @@ import type {
 function isPositionOccupiedError(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) return false;
 
-  // Check for details.code === 'POSITION_OCCUPIED' in API error response
   const err = error as { details?: { body?: { details?: { code?: string } } } };
   return err.details?.body?.details?.code === 'POSITION_OCCUPIED';
 }
@@ -75,17 +69,14 @@ function formatPositionDisplayString(
 ): string {
   const { currentLab } = getStorageDataFromCache(queryClient);
 
-  // Find equipment in cached configuration
   const tank = currentLab?.equipment.tanks.find(t => t.id === tankId);
   const rack = tank?.racks?.find(r => r.id === rackId);
   const box = rack?.boxes?.find(b => b.id === boxId);
 
-  // Format display names
   const tankName = tank?.name ?? tankId;
   const rackName = formatResourceDisplayName(rack?.name ?? rackId, rack?.customLabel);
   const boxName = formatResourceDisplayName(box?.name ?? boxId, box?.customLabel);
 
-  // Format position label (try alphanumeric, fall back to numeric)
   let positionLabel = String(position);
   if (box?.gridConfig && currentLab) {
     try {
@@ -141,11 +132,6 @@ function handleTubeConflictError(
   void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 }
 
-// MUTATION HOOKS (WRITE OPERATIONS)
-
-/**
- * Create new tube mutation
- */
 export const useCreateTubeMutation = (
   options: UseMutationOptions<
     TubeData,
@@ -162,23 +148,16 @@ export const useCreateTubeMutation = (
     },
 
     onMutate: async newTube => {
-      // Cancel outgoing refetches (so they don't overwrite our optimistic update)
       await queryClient.cancelQueries({ queryKey: queryKeys.tubes.all });
-
-      // Snapshot previous value for rollback
       const previousTubes = queryClient.getQueryData(queryKeys.tubes.all);
 
       return { previousTubes, newTube };
     },
 
     onSuccess: (tube, _variables, _context) => {
-      // Add to individual tube cache
       queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
-
-      // Invalidate and refetch tube lists to show new tube
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 
-      // Invalidate location-specific queries
       if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
         void queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.location(
@@ -189,34 +168,26 @@ export const useCreateTubeMutation = (
         });
       }
 
-      // Invalidate statistics
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
 
     onError: (error, _variables, context) => {
-      logger.error('❌ [React Query] Create tube failed', { error });
+      logger.error('Create tube failed', { error });
 
-      // Handle position already occupied (race condition)
       if (isPositionOccupiedError(error)) {
         handlePositionOccupiedError(queryClient, error);
         return;
       }
 
-      // Rollback optimistic updates if any were made
       if (context?.previousTubes) {
         queryClient.setQueryData(queryKeys.tubes.all, context.previousTubes);
       }
     },
 
-    onSettled: () => {},
-
     ...options,
   });
 };
 
-/**
- * Update existing tube mutation
- */
 export const useUpdateTubeMutation = (
   options: UseMutationOptions<
     TubeData,
@@ -238,23 +209,17 @@ export const useUpdateTubeMutation = (
     },
 
     onMutate: async ({ id, updates }) => {
-      // Cancel outgoing refetches for this tube
       await queryClient.cancelQueries({ queryKey: queryKeys.tubes.detail(id) });
-
-      // Snapshot previous value for rollback
       const previousTube = queryClient.getQueryData<TubeData>(queryKeys.tubes.detail(id));
 
-      // Skip optimistic update for PATCH operations with nullable fields
-      // Server response will update cache with correct values
+      // Skip optimistic update — PATCH with nullable fields needs server response for correct values
 
       return { previousTube, id, updates };
     },
 
     onSuccess: (tube, variables, context) => {
-      // Update individual tube cache with server data
       queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
 
-      // Update tube in list queries
       queryClient.setQueriesData(
         { queryKey: queryKeys.tubes.listAll() },
         (oldData: TubeData[] | undefined) => {
@@ -263,7 +228,6 @@ export const useUpdateTubeMutation = (
         }
       );
 
-      // Update tube in location query cache for immediate feedback
       if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
         queryClient.setQueriesData(
           {
@@ -280,10 +244,8 @@ export const useUpdateTubeMutation = (
         );
       }
 
-      // Invalidate location queries if location changed
       const oldTube = context?.previousTube;
       if (oldTube) {
-        // Invalidate old location
         if (
           oldTube.location.tankId &&
           oldTube.location.rackId !== undefined &&
@@ -299,7 +261,6 @@ export const useUpdateTubeMutation = (
         }
       }
 
-      // Invalidate new location
       if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
         void queryClient.invalidateQueries({
           queryKey: queryKeys.tubes.location(
@@ -310,33 +271,28 @@ export const useUpdateTubeMutation = (
         });
       }
 
-      // Invalidate statistics
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
 
     onError: (error, variables, context) => {
-      logger.error(`❌ [React Query] Update tube ${variables.id} failed`, { error });
+      logger.error(`Update tube ${variables.id} failed`, { error });
 
-      // Handle version conflict (409) - another user modified the tube
       if (isConflictError(error)) {
         handleTubeConflictError(queryClient, variables.id);
         return;
       }
 
-      // Handle position already occupied (race condition on move)
       if (isPositionOccupiedError(error)) {
         handlePositionOccupiedError(queryClient, error);
         return;
       }
 
-      // Rollback optimistic update for other errors
       if (context?.previousTube) {
         queryClient.setQueryData(queryKeys.tubes.detail(variables.id), context.previousTube);
       }
     },
 
     onSettled: (data, error, variables) => {
-      // Always refetch the tube to ensure consistency
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.detail(variables.id) });
     },
 
@@ -344,9 +300,6 @@ export const useUpdateTubeMutation = (
   });
 };
 
-/**
- * Delete tube mutation
- */
 export const useDeleteTubeMutation = (
   options: UseMutationOptions<
     void,
@@ -363,14 +316,11 @@ export const useDeleteTubeMutation = (
     },
 
     onMutate: async id => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.tubes.detail(id) });
       await queryClient.cancelQueries({ queryKey: queryKeys.tubes.listAll() });
 
-      // Snapshot previous tube for rollback
       const previousTube = queryClient.getQueryData<TubeData>(queryKeys.tubes.detail(id));
 
-      // Optimistically remove from cache
       queryClient.setQueriesData(
         { queryKey: queryKeys.tubes.listAll() },
         (oldData: TubeData[] | undefined) => {
@@ -383,19 +333,8 @@ export const useDeleteTubeMutation = (
     },
 
     onSuccess: (data, id, context) => {
-      // Remove from all caches
       queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(id) });
 
-      // Remove from list queries (should already be done by optimistic update)
-      queryClient.setQueriesData(
-        { queryKey: queryKeys.tubes.listAll() },
-        (oldData: TubeData[] | undefined) => {
-          if (!oldData) return oldData;
-          return oldData.filter(tube => tube.id !== id);
-        }
-      );
-
-      // Invalidate location queries if we know the location
       if (context?.previousTube) {
         const tube = context.previousTube;
         if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
@@ -409,21 +348,17 @@ export const useDeleteTubeMutation = (
         }
       }
 
-      // Invalidate statistics
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
 
     onError: (error, id, context) => {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      logger.error(`❌ [React Query] Delete tube ${id} failed`, { error });
+      logger.error(`Delete tube ${id} failed`, { error });
 
-      // Rollback optimistic update - add tube back to lists
       if (context?.previousTube) {
         queryClient.setQueriesData(
           { queryKey: queryKeys.tubes.listAll() },
           (oldData: TubeData[] | undefined) => {
             if (!oldData) return [context.previousTube];
-            // Add back if not already there
             const exists = oldData.some(tube => tube.id === id);
             return exists ? oldData : [...oldData, context.previousTube];
           }
@@ -432,7 +367,6 @@ export const useDeleteTubeMutation = (
     },
 
     onSettled: (_data, _error, _id) => {
-      // Refetch lists to ensure consistency
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
     },
 
@@ -440,9 +374,6 @@ export const useDeleteTubeMutation = (
   });
 };
 
-/**
- * Bulk update tubes mutation
- */
 export const useBulkUpdateTubesMutation = (
   options: UseMutationOptions<
     BulkUpdateResult,
@@ -457,8 +388,8 @@ export const useBulkUpdateTubesMutation = (
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ tubeIds, updates, onProgress: _onProgress }) => {
-      // Use the actual bulk update endpoint to get proper audit logging
+    mutationFn: async ({ tubeIds, updates }) => {
+      // Uses bulk endpoint instead of individual updates for proper audit logging
       const bulkUpdateItems = tubeIds.map(id => ({
         id,
         data: updates,
@@ -466,7 +397,6 @@ export const useBulkUpdateTubesMutation = (
 
       const result = await TubeService.bulkUpdateTubes(bulkUpdateItems);
 
-      // Transform server response to BulkUpdateResult format
       const errors = result.failed.map(f => ({
         itemId: f.id,
         tubeId: f.id,
@@ -492,29 +422,18 @@ export const useBulkUpdateTubesMutation = (
     },
 
     onSuccess: (_data, _variables) => {
-      // Invalidate all tube queries - active queries will refetch immediately in background
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
-
-      // Invalidate statistics
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
 
     onError: (error, _variables) => {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      logger.error('❌ [React Query] Bulk update failed', { error });
+      logger.error('Bulk update failed', { error });
     },
-
-    onSettled: () => {},
 
     ...options,
   });
 };
 
-/**
- * Bulk delete tubes mutation
- *
- * New functionality - bulk delete operations
- */
 export const useBulkDeleteTubesMutation = (
   options: UseMutationOptions<
     BulkUpdateResult,
@@ -564,15 +483,12 @@ export const useBulkDeleteTubesMutation = (
     },
 
     onSuccess: (data, _variables) => {
-      // Remove successful deletes from cache
       const successfulIds = data.results.filter(result => result.success).map(result => result.id);
 
-      // Remove from individual caches
       successfulIds.forEach(id => {
         queryClient.removeQueries({ queryKey: queryKeys.tubes.detail(id) });
       });
 
-      // Update list queries
       queryClient.setQueriesData(
         { queryKey: queryKeys.tubes.listAll() },
         (oldData: TubeData[] | undefined) => {
@@ -581,18 +497,15 @@ export const useBulkDeleteTubesMutation = (
         }
       );
 
-      // Invalidate all queries that could be affected by the deletion
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
     },
 
     onError: (error, _variables) => {
-      // eslint-disable-next-line no-console -- Error logging needed for debugging production issues
-      logger.error('❌ [React Query] Bulk delete failed', { error });
+      logger.error('Bulk delete failed', { error });
     },
 
     onSettled: () => {
-      // Always refetch to ensure consistency
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
     },
 
@@ -600,7 +513,6 @@ export const useBulkDeleteTubesMutation = (
   });
 };
 
-/** Result type for paste tubes operation */
 export type PasteTubesResult = {
   success: boolean;
   created: TubeData[];
@@ -626,15 +538,12 @@ export const usePasteTubesMutation = (
     onSuccess: (result, _variables) => {
       const { created: createdTubes, failed } = result;
 
-      // Add all created tubes to individual caches
       createdTubes.forEach(tube => {
         queryClient.setQueryData(queryKeys.tubes.detail(tube.id), tube);
       });
 
-      // Invalidate all list queries to show new tubes
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
 
-      // Invalidate location-specific queries for all affected locations
       createdTubes.forEach(tube => {
         if (tube.location.tankId && tube.location.rackId !== undefined && tube.location.boxId) {
           void queryClient.invalidateQueries({
@@ -647,10 +556,8 @@ export const usePasteTubesMutation = (
         }
       });
 
-      // Invalidate statistics
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.stats() });
 
-      // Log partial failures for debugging
       if (failed.length > 0) {
         logger.warn('Paste tubes partial failure', {
           created: createdTubes.length,
@@ -665,7 +572,6 @@ export const usePasteTubesMutation = (
     },
 
     onSettled: () => {
-      // Refetch to ensure consistency
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.listAll() });
     },
 

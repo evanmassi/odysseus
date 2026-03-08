@@ -23,6 +23,8 @@ export {
   useDeleteTubeMutation,
   useBulkUpdateTubesMutation,
   useBulkDeleteTubesMutation,
+  usePasteTubesMutation,
+  type PasteTubesResult,
 } from './useTubeMutations';
 
 // Lock mutation hooks
