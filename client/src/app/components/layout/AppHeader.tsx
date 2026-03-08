@@ -30,14 +30,13 @@ import {
 import { useAuthStore } from '@domains/authentication';
 import { SearchPanel } from '@domains/search/ui/components/SearchPanel';
 import { useStorageData } from '@domains/storage';
+import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
 import OdysseusLogo from '@shared/assets/odysseus-logo-thick.svg?react';
 import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
 import { OnlineUsersBadges } from '@shared/ui/components';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/LoadingSkeletons';
 import { PreloadHelpers } from '@shared/utils/lazy/PreloadHelpers';
-
-import { useGridSelectionAnalysis } from '../../hooks/grid';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey } from '@shared/types/GridSelection';

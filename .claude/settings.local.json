@@ -88,7 +88,8 @@
       "Bash(while read f)",
       "Bash(do echo \"=== $f ===\")",
       "Read(//c/Users/evan/Desktop/Odysseus/odysseus-app/**)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(wc:*)"
     ]
   }
 }

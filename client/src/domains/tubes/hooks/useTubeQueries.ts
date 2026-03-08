@@ -8,7 +8,7 @@ import { type TubeData as SchemaTubeData } from '@odysseus/shared-schemas';
 import { useQuery, useQueryClient, type UseQueryOptions } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { TubeService, type TubeStats } from '@domains/tubes/services/TubeService';
+import { TubeService } from '@domains/tubes/services/TubeService';
 import { normalizeConcentration } from '@shared/utils/concentrationConverter';
 
 import type { TubeData } from '@domains/tubes/types';
@@ -156,38 +156,6 @@ export const useBulkTubes = (
     enabled: tubeIds.length > 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 10 * 60 * 1000,
-    ...options,
-  });
-};
-
-export const usePrefetchTubeLocation = () => {
-  const queryClient = useQueryClient();
-
-  const prefetchLocation = async (tankId: string, rackId: string, boxId: string) => {
-    await queryClient.prefetchQuery({
-      queryKey: queryKeys.tubes.location(tankId, rackId, boxId),
-      queryFn: async () => {
-        const schemaTubes = await TubeService.fetchTubesByLocation(tankId, rackId, boxId);
-        return schemaTubes.map(convertSchemaToSharedTubeData);
-      },
-      staleTime: 2 * 60 * 1000,
-    });
-  };
-
-  return { prefetchLocation };
-};
-
-/** Fetches pre-computed stats from the server instead of downloading all tubes. */
-export const useTubeStats = (
-  options: Omit<UseQueryOptions<TubeStats>, 'queryKey' | 'queryFn'> = {}
-) => {
-  return useQuery({
-    queryKey: queryKeys.tubes.stats(),
-    queryFn: async () => {
-      return TubeService.fetchStats();
-    },
-    staleTime: 10 * 60 * 1000,
-    gcTime: 30 * 60 * 1000,
     ...options,
   });
 };

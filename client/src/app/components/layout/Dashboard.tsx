@@ -27,6 +27,8 @@ import {
 import { TubeBulkEditorModal } from '@domains/tubes/ui/components/editor/TubeBulkEditorModal';
 import { TubeEditorModal } from '@domains/tubes/ui/components/editor/TubeEditorModal';
 import { TubeGrid } from '@domains/tubes/ui/components/grid/TubeGrid';
+import { useGridController } from '@domains/tubes/ui/components/grid/useGridController';
+import { useGridSelectionAnalysis } from '@domains/tubes/ui/components/grid/useGridSelectionAnalysis';
 import { TubeLockModal } from '@domains/tubes/ui/components/locking/TubeLockModal';
 import { TubeShareAccessModal } from '@domains/tubes/ui/components/locking/TubeShareAccessModal';
 import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
@@ -41,7 +43,6 @@ import { ScrollArea } from '@shared/ui/primitives/scroll-area/ScrollArea';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils/notifications';
 
-import { useGridController, useGridSelectionAnalysis } from '../../hooks/grid';
 import { useModalStore } from '../../stores/modalStore';
 
 import { AppHeader } from './AppHeader';

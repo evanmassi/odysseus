@@ -1,10 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 
-import {
-  useGridDragSelection,
-  useGridKeyboardNavigation,
-  useGridFontSizing,
-} from '@app/hooks/grid';
 import { useStorageData, getGridTotalPositions, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
@@ -14,6 +9,9 @@ import { ContextMenu } from '../../../../../shared/ui/primitives/ContextMenu';
 
 import { TubeGridCell } from './TubeGridCell';
 import { TubeGridTooltip } from './TubeGridTooltip';
+import { useGridDragSelection } from './useGridDragSelection';
+import { useGridFontSizing } from './useGridFontSizing';
+import { useGridKeyboardNavigation } from './useGridKeyboardNavigation';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey, GridControllerReturn, LockContext } from '@shared/types/GridSelection';
