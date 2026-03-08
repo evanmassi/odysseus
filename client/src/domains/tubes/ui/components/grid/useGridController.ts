@@ -8,14 +8,14 @@ import { useMemo, useState, useCallback } from 'react';
 
 import { useModalStore } from '@app/stores/modalStore';
 import { useTubesByLocation } from '@domains/tubes/hooks';
-import { useGridUiStore } from '@shared/stores/gridUiStore';
-import { toPositionKey, parsePositionKey } from '@shared/types/GridSelection';
-import { notifications } from '@shared/utils/notifications';
 import {
   canModifyTube,
   canModifyAllTubes,
   getBlockedModificationMessage,
-} from '@shared/utils/tubeAccessControl';
+} from '@domains/tubes/utils/tubeAccessControl';
+import { useGridUiStore } from '@shared/stores/gridUiStore';
+import { toPositionKey, parsePositionKey } from '@shared/types/GridSelection';
+import { notifications } from '@shared/utils/notifications';
 
 import { useGridClipboard } from './useGridClipboard';
 import { useGridSelection } from './useGridSelection';

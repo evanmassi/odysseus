@@ -11,12 +11,15 @@ import { tubeDataToCreateRequest } from '@odysseus/shared-schemas';
 import { useModalStore } from '@app/stores/modalStore';
 import { useStorageData } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
+import { writeClipboardOS, readClipboardOS } from '@domains/tubes/utils/gridClipboard';
+import { validatePasteOperation } from '@domains/tubes/utils/gridPasteValidation';
+import {
+  canModifyAllTubes,
+  getBlockedModificationMessage,
+} from '@domains/tubes/utils/tubeAccessControl';
 import { useGridUiStore } from '@shared/stores/gridUiStore';
 import { toPositionKey } from '@shared/types/GridSelection';
-import { writeClipboardOS, readClipboardOS } from '@shared/utils/gridClipboard';
 import { notifications } from '@shared/utils/notifications';
-import { validatePasteOperation } from '@shared/utils/pasteValidation';
-import { canModifyAllTubes, getBlockedModificationMessage } from '@shared/utils/tubeAccessControl';
 
 import type { TubeData } from '@odysseus/shared-schemas';
 import type { ClipboardData } from '@shared/types/Clipboard';

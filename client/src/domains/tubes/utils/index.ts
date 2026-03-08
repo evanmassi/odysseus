@@ -1,8 +1,11 @@
 /**
  * Tubes Domain Utilities
  *
- * Grid navigation and color-coding helpers.
+ * Grid navigation, clipboard, access control, and color-coding helpers.
  */
 
+export * from './gridClipboard';
 export * from './gridNavigation';
+export * from './gridPasteValidation';
+export * from './tubeAccessControl';
 export * from './tubeColorCoding';

@@ -1,23 +1,15 @@
 /**
- * Paste Validation Utilities
+ * Grid Paste Validation
  *
  * Pure functions for validating paste operations across different grid configurations.
- * Validation patterns with zero side effects.
  */
 
 import type { GridConfiguration } from '@/domains/storage';
 import { getGridTotalPositions } from '@/domains/storage';
+import { positionToCoordinates, coordinatesToPosition } from '@shared/utils/coordinates';
 
 import type { SelectionMode } from '@shared/types/Clipboard';
 
-/**
- * Grid configuration for validation (re-export shared schema type)
- */
-type GridConfig = GridConfiguration;
-
-/**
- * Result of paste validation operation
- */
 export interface PasteValidationResult {
   isValid: boolean;
   warnings: string[];
@@ -32,8 +24,8 @@ export interface PasteValidationResult {
 export function validatePasteOperation(
   sourcePositions: number[],
   targetAnchor: number,
-  sourceGrid: GridConfig,
-  targetGrid: GridConfig,
+  sourceGrid: GridConfiguration,
+  targetGrid: GridConfiguration,
   selectionMode: SelectionMode = 'standard'
 ): PasteValidationResult {
   const warnings: string[] = [];
@@ -52,16 +44,10 @@ export function validatePasteOperation(
 
   if (selectionMode === 'drag') {
     // Coordinate-based mapping matching rectangular paste logic
-    const posToRowCol = (pos: number, cols: number) => ({
-      row: Math.floor((pos - 1) / cols),
-      col: (pos - 1) % cols,
-    });
-    const rowColToPos = (row: number, col: number, cols: number) => row * cols + col + 1;
-
-    const sourceCoords = sourcePositions.map(pos => posToRowCol(pos, sourceGrid.cols));
+    const sourceCoords = sourcePositions.map(pos => positionToCoordinates(pos, sourceGrid.cols));
     const minRow = Math.min(...sourceCoords.map(c => c.row));
     const minCol = Math.min(...sourceCoords.map(c => c.col));
-    const anchorCoords = posToRowCol(targetAnchor, targetGrid.cols);
+    const anchorCoords = positionToCoordinates(targetAnchor, targetGrid.cols);
 
     targetPositions = sourceCoords.map(({ row, col }) => {
       const targetRow = anchorCoords.row + (row - minRow);
@@ -76,7 +62,7 @@ export function validatePasteOperation(
         return -1; // Out of bounds marker
       }
 
-      return rowColToPos(targetRow, targetCol, targetGrid.cols);
+      return coordinatesToPosition(targetRow, targetCol, targetGrid.cols);
     });
   } else {
     // Sequential mapping: anchor, anchor+1, anchor+2, ...
