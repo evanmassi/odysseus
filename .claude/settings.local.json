@@ -83,7 +83,8 @@
       "Bash(sed:*)",
       "Bash(printenv DATABASE_URL:*)",
       "Bash(rmdir:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(cp:*)"
     ]
   }
 }

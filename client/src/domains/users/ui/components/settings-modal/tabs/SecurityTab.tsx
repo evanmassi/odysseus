@@ -10,12 +10,12 @@ import { KeyRound, Save, Shield } from 'lucide-react';
 
 import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
+import { PasswordRequirements } from '@domains/authentication/ui/components/password/PasswordRequirements';
 import { useChangePassword } from '@domains/users/hooks/useChangePassword';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 
-import { PasswordRequirements } from '../../password/PasswordRequirements';
 import { SessionListPanel } from '../SessionListPanel';
 
 import type { PasswordRequirements as PasswordConfig } from '@domains/authentication/services/AuthService';

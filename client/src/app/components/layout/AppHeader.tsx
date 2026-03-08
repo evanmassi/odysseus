@@ -57,7 +57,7 @@ const StorageManagerModal = lazy(() =>
 );
 
 const UserSettingsModal = lazy(() =>
-  import('@domains/authentication/ui/components/user-settings-modal/UserSettingsModal').then(m => ({
+  import('@domains/users/ui/components/settings-modal/UserSettingsModal').then(m => ({
     default: m.UserSettingsModal,
   }))
 );
@@ -75,7 +75,7 @@ const useLazyStorageManager = PreloadHelpers.createHook(
 );
 
 const useLazyUserSettings = PreloadHelpers.createHook(
-  () => import('@domains/authentication/ui/components/user-settings-modal/UserSettingsModal')
+  () => import('@domains/users/ui/components/settings-modal/UserSettingsModal')
 );
 
 const useLazyHelp = PreloadHelpers.createHook(() => import('@domains/help'));
