@@ -82,7 +82,8 @@
       "Bash(mv:*)",
       "Bash(sed:*)",
       "Bash(printenv DATABASE_URL:*)",
-      "Bash(rmdir:*)"
+      "Bash(rmdir:*)",
+      "Bash(rm:*)"
     ]
   }
 }

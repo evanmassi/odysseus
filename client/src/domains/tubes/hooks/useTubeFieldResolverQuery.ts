@@ -12,7 +12,7 @@ import { formatResearcherDropdownDisplay } from '@odysseus/shared-schemas';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 
-import { useSimpleFieldResolver, type SimpleFieldResolver } from './useSimpleFieldResolver';
+import { useSimpleFieldResolver, type SimpleFieldResolver } from './useTubeSimpleFieldResolver';
 
 import type { NormalizedFieldValue } from '@app/types/fieldTypeMapping';
 import type { Researcher } from '@odysseus/shared-schemas';

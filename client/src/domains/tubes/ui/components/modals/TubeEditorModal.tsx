@@ -27,9 +27,8 @@ import { useModalStore } from '@app/stores/modalStore';
 import { useActiveResearchersQuery } from '@domains/researchers';
 import { useStorageData, formatPositionRangesForBox, DEFAULT_GRID_CONFIG } from '@domains/storage';
 import { useTubes, useTube } from '@domains/tubes';
-import { useLookupValuesQuery } from '@domains/tubes/hooks/useLookupValuesQuery';
 import { useCreateTubeForm, useEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
-import { useTubeModalFocusReturn } from '@domains/tubes/hooks/useTubeModalFocusReturn';
+import { useLookupValuesQuery } from '@domains/tubes/hooks/useTubeLookupValuesQuery';
 import {
   useUpdateTubeMutation,
   useDeleteTubeMutation,
@@ -45,8 +44,10 @@ import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
 
-import { LocationDisplay } from '../displays/LocationDisplay';
+import { TubePositionDisplay } from '../displays/TubePositionDisplay';
 import { TubeForm } from '../forms/TubeForm';
+
+import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
@@ -372,7 +373,7 @@ function EditModeForm({
         onSubmit={form.handleSubmit(handleFormSubmit)}
         className="space-y-3"
       >
-        <LocationDisplay
+        <TubePositionDisplay
           tankId={tube.location.tankId}
           rackId={tube.location.rackId}
           boxId={tube.location.boxId}
@@ -785,7 +786,7 @@ function CreateModeContent({
       >
         <div className="space-y-3">
           {parsedPositions.length === 1 && parsedPositions[0] && (
-            <LocationDisplay
+            <TubePositionDisplay
               tankId={parsedPositions[0].location.tankId}
               rackId={parsedPositions[0].location.rackId}
               boxId={parsedPositions[0].location.boxId}
@@ -793,7 +794,7 @@ function CreateModeContent({
             />
           )}
           {parsedPositions.length > 1 && batchLocationDisplay && (
-            <LocationDisplay
+            <TubePositionDisplay
               tankName={batchLocationDisplay.tankName}
               rackName={batchLocationDisplay.rackName}
               boxName={batchLocationDisplay.boxName}

@@ -15,16 +15,15 @@ import {
   formatPositionRangesForBox,
   DEFAULT_GRID_CONFIG,
 } from '@domains/storage';
-import { useFieldResolverQuery } from '@domains/tubes/hooks/useFieldResolverQuery';
-import { useLookupValuesQuery } from '@domains/tubes/hooks/useLookupValuesQuery';
-import { TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useSimpleFieldResolver';
+import { useFieldResolverQuery } from '@domains/tubes/hooks/useTubeFieldResolverQuery';
 import { useBatchEditTubeForm } from '@domains/tubes/hooks/useTubeForm';
-import { useTubeModalFocusReturn } from '@domains/tubes/hooks/useTubeModalFocusReturn';
+import { useLookupValuesQuery } from '@domains/tubes/hooks/useTubeLookupValuesQuery';
 import {
   useBulkUpdateTubesMutation,
   useBulkDeleteTubesMutation,
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
+import { TUBE_FIELD_PATHS } from '@domains/tubes/hooks/useTubeSimpleFieldResolver';
 import { useUserSettings } from '@domains/users';
 import { logger } from '@shared/infrastructure/logger';
 import { AlertBanner, Button } from '@shared/ui';
@@ -33,13 +32,14 @@ import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils';
 import { formatDateForInput } from '@shared/utils/dateUtils';
 
-import { LocationDisplay } from '../displays/LocationDisplay';
+import { TubePositionDisplay } from '../displays/TubePositionDisplay';
 import { TubeForm } from '../forms/TubeForm';
 
 import { BulkProgressModal } from './BulkProgressModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
+import { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
 
-import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useSimpleFieldResolver';
+import type { FieldConflictAnalysis } from '@domains/tubes/hooks/useTubeSimpleFieldResolver';
 import type { BulkUpdateProgress, BulkUpdateResult } from '@domains/tubes/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';
 
@@ -587,7 +587,7 @@ export function BatchTubeEditorModal({
       >
         <form id="tube-batch-edit-form" onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-3">
-            <LocationDisplay
+            <TubePositionDisplay
               tankName={tankName}
               rackName={rackName}
               boxName={boxName}

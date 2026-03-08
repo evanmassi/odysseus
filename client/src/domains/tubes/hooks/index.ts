@@ -37,10 +37,7 @@ export {
 export { useTubeAccessControl } from './useTubeAccessControl';
 
 // Lookup hooks
-export { useLookupValuesQuery } from './useLookupValuesQuery';
-
-// Modal utilities
-export { useTubeModalFocusReturn } from './useTubeModalFocusReturn';
+export { useLookupValuesQuery } from './useTubeLookupValuesQuery';
 
 // Form hooks (public API - generic implementation is private)
 export {
@@ -52,10 +49,10 @@ export {
 } from './useTubeForm';
 
 // Field resolver hooks
-export { useFieldResolverQuery } from './useFieldResolverQuery';
+export { useFieldResolverQuery } from './useTubeFieldResolverQuery';
 export {
   useSimpleFieldResolver,
   TUBE_FIELD_PATHS,
   type FieldConflictAnalysis,
   type SimpleFieldResolver,
-} from './useSimpleFieldResolver';
+} from './useTubeSimpleFieldResolver';

@@ -9,7 +9,7 @@ import React from 'react';
 
 import { AlertTriangle } from 'lucide-react';
 
-interface FieldValueProps {
+interface TubeInfoFieldProps {
   label: string;
   value: string | number | null | undefined;
   className?: string;
@@ -19,7 +19,7 @@ interface FieldValueProps {
   isMixed?: boolean;
 }
 
-export const FieldValue: React.FC<FieldValueProps> = ({
+export const TubeInfoField: React.FC<TubeInfoFieldProps> = ({
   label,
   value,
   className = '',

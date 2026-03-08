@@ -15,7 +15,7 @@ import { Controller, useWatch } from 'react-hook-form';
 
 import { DatePicker, Select, ValidatedInput } from '@shared/ui';
 
-import { ConcentrationInput } from '../../inputs/ConcentrationInput';
+import { ConcentrationInput } from './ConcentrationInput';
 
 import type { SelectOption } from '@shared/ui/primitives/select/types';
 import type { Control, UseFormRegister, FieldErrors, UseFormTrigger } from 'react-hook-form';

@@ -8,7 +8,7 @@ import { Lock, ShieldCheck, ShieldUser } from 'lucide-react';
 
 import { getOptimalTextColor } from '@shared/utils/labColorSpace';
 
-interface LockIndicatorProps {
+interface TubeLockIndicatorProps {
   /** Size of the lock icon */
   size?: number;
   /** Visual variant: 'own' (black/white), 'shared' (ShieldCheck), 'admin-override' (ShieldUser), 'other' (red) */
@@ -20,12 +20,12 @@ interface LockIndicatorProps {
 }
 
 /** Purely visual — lock info is displayed via GridTooltip on cell hover. */
-export function LockIndicator({
+export function TubeLockIndicator({
   size = 12,
   variant = 'other',
   backgroundColor,
   className = '',
-}: LockIndicatorProps) {
+}: TubeLockIndicatorProps) {
   // Determine if background is dark (needs light icon) or light (needs dark icon)
   const needsLightIcon = backgroundColor
     ? getOptimalTextColor(backgroundColor).toLowerCase() === '#ffffff'

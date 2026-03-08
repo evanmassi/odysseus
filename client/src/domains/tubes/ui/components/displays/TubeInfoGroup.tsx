@@ -5,7 +5,7 @@
 
 import React from 'react';
 
-interface InfoSectionProps {
+interface TubeInfoGroupProps {
   title: string;
   children: React.ReactNode;
   className?: string;
@@ -13,7 +13,7 @@ interface InfoSectionProps {
   hideTitle?: boolean;
 }
 
-export const InfoSection: React.FC<InfoSectionProps> = ({
+export const TubeInfoGroup: React.FC<TubeInfoGroupProps> = ({
   title,
   children,
   className = '',

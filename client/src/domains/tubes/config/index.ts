@@ -1,3 +1,0 @@
-/**
- * Tubes Domain Configuration
- */

@@ -2,5 +2,5 @@
  * Display Components - Public API
  */
 
-export { LocationDisplay } from './LocationDisplay';
-export type { LocationDisplayProps } from './LocationDisplay';
+export { TubePositionDisplay } from './TubePositionDisplay';
+export type { TubePositionDisplayProps } from './TubePositionDisplay';

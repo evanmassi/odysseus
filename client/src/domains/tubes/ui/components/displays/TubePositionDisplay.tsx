@@ -30,9 +30,9 @@ interface PreResolvedProps {
   className?: string;
 }
 
-export type LocationDisplayProps = SinglePositionProps | PreResolvedProps;
+export type TubePositionDisplayProps = SinglePositionProps | PreResolvedProps;
 
-function isPreResolved(props: LocationDisplayProps): props is PreResolvedProps {
+function isPreResolved(props: TubePositionDisplayProps): props is PreResolvedProps {
   return 'tankName' in props;
 }
 
@@ -84,7 +84,7 @@ function SinglePositionDisplay({
   );
 }
 
-export function LocationDisplay(props: LocationDisplayProps) {
+export function TubePositionDisplay(props: TubePositionDisplayProps) {
   if (isPreResolved(props)) {
     return <LocationBreadcrumb {...props} />;
   }

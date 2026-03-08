@@ -20,8 +20,8 @@ import { Chip, Tooltip } from '@shared/ui';
 import { formatDateForDisplay } from '@shared/utils/dateUtils';
 
 import { useTubeStore } from '../../../stores/tubeStore';
-import { FieldValue } from '../displays/FieldValue';
-import { InfoSection } from '../displays/InfoSection';
+import { TubeInfoField } from '../displays/TubeInfoField';
+import { TubeInfoGroup } from '../displays/TubeInfoGroup';
 import { EditLockNoteModal } from '../modals/EditLockNoteModal';
 
 import type { Researcher } from '@odysseus/shared-schemas';
@@ -453,7 +453,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
           </div>
         )}
 
-        <InfoSection title="Donor Information">
+        <TubeInfoGroup title="Donor Information">
           <div className="flex items-baseline gap-1.5 -mt-0.5 mb-2">
             {cellType ? (
               <span className="text-card-foreground font-semibold text-sm">{cellType}</span>
@@ -479,96 +479,96 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
             ) : null}
           </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-            <FieldValue
+            <TubeInfoField
               label="Internal ID"
               value={donorInternalId}
               inline={false}
               isMixed={isFieldMixed('sample.donorInternalId')}
             />
-            <FieldValue
+            <TubeInfoField
               label="Source ID"
               value={donorSourceId}
               inline={false}
               isMixed={isFieldMixed('sample.donorSourceId')}
             />
           </div>
-        </InfoSection>
+        </TubeInfoGroup>
 
         {hasSampleInfo && (
-          <InfoSection title="Sample Information">
+          <TubeInfoGroup title="Sample Information">
             <div className="grid grid-cols-2 gap-x-3 gap-y-2.5">
-              <FieldValue
+              <TubeInfoField
                 label="Concentration"
                 value={formattedConcentration}
                 inline={false}
                 isMixed={isFieldMixed('sample.concentration')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Condition"
                 value={cultureCondition}
                 inline={false}
                 isMixed={isFieldMixed('sample.cultureCondition')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Passage #"
                 value={passageNumber}
                 inline={false}
                 isMixed={isFieldMixed('sample.passageNumber')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Media"
                 value={mediaType}
                 inline={false}
                 isMixed={isFieldMixed('sample.mediaType')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Supplements"
                 value={mediaSupplements}
                 inline={false}
                 isMixed={isFieldMixed('sample.mediaSupplements')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Selection"
                 value={mediaSelection}
                 inline={false}
                 isMixed={isFieldMixed('sample.mediaSelection')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Source"
                 value={source}
                 inline={false}
                 isMixed={isFieldMixed('sample.source')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Catalog #"
                 value={catalogNumber}
                 inline={false}
                 isMixed={isFieldMixed('sample.catalogNumber')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Lot #"
                 value={lotNumber}
                 inline={false}
                 isMixed={isFieldMixed('sample.lotNumber')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Date"
                 value={formattedDate}
                 inline={false}
                 isMixed={isFieldMixed('sample.date')}
               />
-              <FieldValue
+              <TubeInfoField
                 label="Researcher"
                 value={researcherDisplay}
                 inline={false}
                 isMixed={isFieldMixed('researcherId')}
               />
             </div>
-          </InfoSection>
+          </TubeInfoGroup>
         )}
 
         {(Boolean(notes) || isFieldMixed('sample.notes')) && (
-          <InfoSection title="Notes">
+          <TubeInfoGroup title="Notes">
             {notes ? (
               <div className="-mt-0.5 text-card-foreground/85 text-sm leading-relaxed">{notes}</div>
             ) : (
@@ -577,7 +577,7 @@ export function TubeInfoPanel({ selectedTubes, lockContext }: TubeInfoPanelProps
                 <span className="text-card-foreground/30 text-sm">—</span>
               </div>
             )}
-          </InfoSection>
+          </TubeInfoGroup>
         )}
       </div>
 

@@ -11,7 +11,7 @@ import {
   getConditionStyleForBox,
   parseDonorInfo,
 } from '../../../utils/colorSystem';
-import { LockIndicator } from '../LockIndicator';
+import { TubeLockIndicator } from '../displays/TubeLockIndicator';
 
 import { IndicatorSVG } from './IndicatorSVG';
 
@@ -222,28 +222,28 @@ export const GridPosition = memo<GridPositionProps>(
 
         {/* Lock indicator - bottom-left */}
         {tube && isLockedByCurrentUser && (
-          <LockIndicator
+          <TubeLockIndicator
             size={fontSize.positionFont + 2}
             variant="own"
             backgroundColor={colors?.backgroundColor}
           />
         )}
         {tube && hasSharedAccess && lockOwnerName && (
-          <LockIndicator
+          <TubeLockIndicator
             size={fontSize.positionFont + 2}
             variant="shared"
             backgroundColor={colors?.backgroundColor}
           />
         )}
         {tube && hasAdminOverride && lockOwnerName && (
-          <LockIndicator
+          <TubeLockIndicator
             size={fontSize.positionFont + 2}
             variant="admin-override"
             backgroundColor={colors?.backgroundColor}
           />
         )}
         {tube && isLockedOut && lockOwnerName && (
-          <LockIndicator
+          <TubeLockIndicator
             size={fontSize.positionFont + 2}
             variant="other"
             backgroundColor={colors?.backgroundColor}
