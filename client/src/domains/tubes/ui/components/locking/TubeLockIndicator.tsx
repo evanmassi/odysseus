@@ -8,14 +8,13 @@ import { Lock, ShieldCheck, ShieldUser } from 'lucide-react';
 
 import { getOptimalTextColor } from '@shared/utils/labColorSpace';
 
+import type { LockVariant } from '@domains/tubes/types';
+
 interface TubeLockIndicatorProps {
-  /** Size of the lock icon */
   size?: number;
-  /** Visual variant: 'own' (black/white), 'shared' (ShieldCheck), 'admin-override' (ShieldUser), 'other' (red) */
-  variant?: 'own' | 'shared' | 'admin-override' | 'other';
-  /** Background color of the tube cell - used to determine icon color for visibility */
+  variant?: LockVariant;
+  /** Used to pick a contrasting icon color for visibility */
   backgroundColor?: string;
-  /** Additional CSS classes */
   className?: string;
 }
 
@@ -26,7 +25,6 @@ export function TubeLockIndicator({
   backgroundColor,
   className = '',
 }: TubeLockIndicatorProps) {
-  // Determine if background is dark (needs light icon) or light (needs dark icon)
   const needsLightIcon = backgroundColor
     ? getOptimalTextColor(backgroundColor).toLowerCase() === '#ffffff'
     : false;

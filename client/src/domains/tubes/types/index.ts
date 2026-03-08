@@ -4,6 +4,8 @@
  * Local bulk/color-coding types and re-exports from shared schemas.
  */
 
+export type LockVariant = 'own' | 'shared' | 'admin-override' | 'other';
+
 export * from './bulkUpdateTypes';
 export * from './tubeColorCodingTypes';
 

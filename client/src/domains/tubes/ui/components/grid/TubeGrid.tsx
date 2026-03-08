@@ -17,8 +17,7 @@ import { useGridDragSelection } from './useGridDragSelection';
 import { useGridFontSizing } from './useGridFontSizing';
 import { useGridKeyboardNavigation } from './useGridKeyboardNavigation';
 
-import type { LockVariant } from './TubeGridTooltip';
-import type { TubeData } from '@domains/tubes/types';
+import type { LockVariant, TubeData } from '@domains/tubes/types';
 import type { PositionKey, GridControllerReturn, LockContext } from '@shared/types/GridSelection';
 
 interface TubeGridProps {

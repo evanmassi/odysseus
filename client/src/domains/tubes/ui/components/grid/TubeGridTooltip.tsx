@@ -13,9 +13,7 @@ import { Tooltip } from '@shared/ui';
 
 import { parseDonorInfo } from '../../../utils/tubeColorCoding';
 
-import type { TubeData } from '@domains/tubes/types';
-
-export type LockVariant = 'own' | 'shared' | 'admin-override' | 'other';
+import type { LockVariant, TubeData } from '@domains/tubes/types';
 
 interface TubeGridTooltipProps {
   tube: TubeData | null;

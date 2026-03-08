@@ -1,12 +1,7 @@
 /**
- * ShareAccessModal - Modal for sharing tube access with other users
+ * Tube Share Access Modal
  *
- * Allows lock owners to:
- * - Share access to locked tubes with specific users
- * - View currently shared users
- * - Revoke access from users
- *
- * @module tubes/ui/components/modals
+ * Shares or revokes edit access to locked tubes with other users.
  */
 
 import { useState, useMemo } from 'react';
@@ -23,31 +18,14 @@ import { notifications } from '@shared/utils/notifications';
 import type { TubeData } from '@domains/tubes/types';
 
 export interface TubeShareAccessModalProps {
-  /** Whether modal is open - controls visibility with exit animation */
   isOpen?: boolean;
-  /** Tubes to share access for (must be locked by current user) */
+  /** Must be locked by current user */
   tubes: TubeData[];
-  /** Current user's ID */
   currentUserId: string;
-  /** Close handler */
   onClose: () => void;
-  /** Optional callback after successful share/revoke */
   onSuccess?: () => void;
 }
 
-/**
- * ShareAccessModal Component
- *
- * @example
- * ```tsx
- * <ShareAccessModal
- *   tubes={selectedLockedTubes}
- *   currentUserId={user.id}
- *   onClose={() => setShowShareModal(false)}
- *   onSuccess={() => clearSelection()}
- * />
- * ```
- */
 export function TubeShareAccessModal({
   isOpen = true,
   tubes,
@@ -59,15 +37,12 @@ export function TubeShareAccessModal({
   const shareMutation = useShareTubeAccessMutation();
   const revokeMutation = useRevokeTubeAccessMutation();
 
-  // Fetch active users for the dropdown (server filters to approved users only)
   const { data: allUsers = [], isLoading: isLoadingUsers } = useActiveUsersQuery();
 
-  // Filter out current user from available users
   const availableUsers = useMemo(() => {
     return allUsers.filter(u => u.id !== currentUserId);
   }, [allUsers, currentUserId]);
 
-  // Get currently shared user IDs across all selected tubes
   const currentlySharedUserIds = useMemo(() => {
     const sharedSet = new Set<string>();
     tubes.forEach(tube => {
@@ -76,7 +51,6 @@ export function TubeShareAccessModal({
     return Array.from(sharedSet);
   }, [tubes]);
 
-  // Get user display name
   const getUserName = (userId: string): string => {
     const user = allUsers.find(u => u.id === userId);
     if (!user) return userId;
@@ -86,7 +60,6 @@ export function TubeShareAccessModal({
     return user.username ?? userId;
   };
 
-  // Handle sharing access
   const handleShare = async () => {
     if (selectedUserIds.length === 0) {
       notifications.warning('Please select at least one user to share with');
@@ -116,12 +89,11 @@ export function TubeShareAccessModal({
       } else {
         notifications.warning('No tubes were shared');
       }
-    } catch (error) {
+    } catch {
       notifications.error('Failed to share tube access');
     }
   };
 
-  // Handle revoking access
   const handleRevoke = async (userId: string) => {
     try {
       const result = await revokeMutation.mutateAsync({
@@ -136,12 +108,11 @@ export function TubeShareAccessModal({
       } else {
         notifications.warning('No access was revoked');
       }
-    } catch (error) {
+    } catch {
       notifications.error('Failed to revoke access');
     }
   };
 
-  // Toggle user selection
   const toggleUserSelection = (userId: string) => {
     setSelectedUserIds(prev =>
       prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
@@ -160,7 +131,6 @@ export function TubeShareAccessModal({
       className="max-w-lg"
     >
       <div className="space-y-4">
-        {/* Currently Shared Users */}
         {currentlySharedUserIds.length > 0 && (
           <div>
             <h4 className="block text-sm font-medium text-secondary-foreground mb-2">
@@ -189,7 +159,6 @@ export function TubeShareAccessModal({
           </div>
         )}
 
-        {/* Add Users Section */}
         <div>
           <h4 className="block text-sm font-medium text-secondary-foreground mb-2">
             <UserRoundPlus className="inline-block w-4 h-4 mr-1" />
@@ -221,9 +190,7 @@ export function TubeShareAccessModal({
                         onChange={() => toggleUserSelection(user.id)}
                       />
                       <span className="ml-3 text-sm text-secondary-foreground">
-                        {user.firstName && user.lastName
-                          ? `${user.firstName} ${user.lastName} (${user.username})`
-                          : (user.username ?? user.id)}
+                        {getUserName(user.id)}
                       </span>
                     </label>
                   );
@@ -232,12 +199,10 @@ export function TubeShareAccessModal({
           )}
         </div>
 
-        {/* Info text */}
         <AlertBanner variant="info" spacing="none" className="text-xs">
           Shared users can edit tubes. Only you can unlock or revoke access.
         </AlertBanner>
 
-        {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">
           <Button variant="secondary" onClick={onClose}>
             {currentlySharedUserIds.length > 0 ? 'Done' : 'Cancel'}

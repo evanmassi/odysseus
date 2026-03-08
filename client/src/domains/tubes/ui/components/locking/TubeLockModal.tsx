@@ -1,11 +1,7 @@
 /**
- * LockTubesModal - Modal for locking tubes with optional note
+ * Tube Lock Modal
  *
- * Simple modal that allows users to:
- * - Lock selected tubes
- * - Add an optional note explaining the lock
- *
- * @module tubes/ui/components/modals
+ * Locks selected tubes with an optional note explaining the lock.
  */
 
 import { useEffect, useState } from 'react';
@@ -18,28 +14,12 @@ import { BaseModal } from '@shared/ui/components/modals';
 import { notifications } from '@shared/utils/notifications';
 
 export interface TubeLockModalProps {
-  /** Whether modal is open - controls visibility with exit animation */
   isOpen?: boolean;
-  /** IDs of tubes to lock */
   tubeIds: string[];
-  /** Close handler */
   onClose: () => void;
-  /** Optional callback after successful lock */
   onSuccess?: () => void;
 }
 
-/**
- * LockTubesModal Component
- *
- * @example
- * ```tsx
- * <LockTubesModal
- *   tubeIds={selectedTubeIds}
- *   onClose={() => setShowLockModal(false)}
- *   onSuccess={() => clearSelection()}
- * />
- * ```
- */
 export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: TubeLockModalProps) {
   const [lockNote, setLockNote] = useState('');
   const lockMutation = useLockTubesMutation();
@@ -96,7 +76,6 @@ export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: Tu
       className="max-w-md"
     >
       <div className="space-y-4">
-        {/* Lock Note Input */}
         <div>
           <label
             htmlFor="lockNote"
@@ -124,13 +103,11 @@ export function TubeLockModal({ isOpen = true, tubeIds, onClose, onSuccess }: Tu
           <p className="text-xs text-muted-foreground mt-1">Provides context for the lock.</p>
         </div>
 
-        {/* Info text */}
         <AlertBanner variant="info" spacing="none" className="text-xs">
           Locking prevents other users from editing or moving these tubes. You can unlock or share
           access anytime.
         </AlertBanner>
 
-        {/* Actions */}
         <div className="flex justify-end space-x-3 pt-2">
           <Button variant="secondary" onClick={onClose}>
             Cancel
