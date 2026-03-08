@@ -2,10 +2,6 @@
  * Tube Lock Mutation Hooks
  *
  * React Query hooks for tube locking operations.
- *
- * - Uses TubeService lock methods
- * - Smart cache invalidation
- * - Consistent error handling
  */
 
 import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/react-query';
@@ -25,12 +21,7 @@ import type {
   RevokeAccessResult,
 } from '@odysseus/shared-schemas';
 
-/**
- * Lock tubes mutation
- *
- * Batch locks tubes with partial success pattern.
- * Returns locked tubeIds and skipped tubes with reasons.
- */
+/** Partial success pattern — returns locked tubeIds and skipped tubes with reasons. */
 export const useLockTubesMutation = (
   options: UseMutationOptions<BatchLockResult, Error, LockTubesRequest> = {}
 ) => {
@@ -42,7 +33,6 @@ export const useLockTubesMutation = (
     },
 
     onSuccess: () => {
-      // Invalidate all tube queries to refetch with lock state
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
     },
 
@@ -54,12 +44,7 @@ export const useLockTubesMutation = (
   });
 };
 
-/**
- * Unlock tubes mutation
- *
- * Batch unlocks tubes with partial success pattern.
- * Returns unlocked tubeIds and skipped tubes with reasons.
- */
+/** Partial success pattern — returns unlocked tubeIds and skipped tubes with reasons. */
 export const useUnlockTubesMutation = (
   options: UseMutationOptions<BatchUnlockResult, Error, UnlockTubesRequest> = {}
 ) => {
@@ -71,7 +56,6 @@ export const useUnlockTubesMutation = (
     },
 
     onSuccess: () => {
-      // Invalidate all tube queries to refetch with lock state
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
     },
 
@@ -83,12 +67,7 @@ export const useUnlockTubesMutation = (
   });
 };
 
-/**
- * Share tube access mutation
- *
- * Shares access to locked tubes with specified users.
- * Returns shared tubeIds and skipped tubes with reasons.
- */
+/** Partial success pattern — returns shared tubeIds and skipped tubes with reasons. */
 export const useShareTubeAccessMutation = (
   options: UseMutationOptions<ShareAccessResult, Error, ShareTubeAccessRequest> = {}
 ) => {
@@ -100,7 +79,6 @@ export const useShareTubeAccessMutation = (
     },
 
     onSuccess: () => {
-      // Invalidate all tube queries to refetch with updated sharing
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
     },
 
@@ -112,12 +90,7 @@ export const useShareTubeAccessMutation = (
   });
 };
 
-/**
- * Revoke tube access mutation
- *
- * Revokes access to locked tubes from specified users.
- * Returns revoked tubeIds and skipped tubes with reasons.
- */
+/** Partial success pattern — returns revoked tubeIds and skipped tubes with reasons. */
 export const useRevokeTubeAccessMutation = (
   options: UseMutationOptions<RevokeAccessResult, Error, RevokeTubeAccessRequest> = {}
 ) => {
@@ -129,7 +102,6 @@ export const useRevokeTubeAccessMutation = (
     },
 
     onSuccess: () => {
-      // Invalidate all tube queries to refetch with updated sharing
       void queryClient.invalidateQueries({ queryKey: queryKeys.tubes.all });
     },
 

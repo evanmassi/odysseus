@@ -84,7 +84,11 @@
       "Bash(printenv DATABASE_URL:*)",
       "Bash(rmdir:*)",
       "Bash(rm:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(while read f)",
+      "Bash(do echo \"=== $f ===\")",
+      "Read(//c/Users/evan/Desktop/Odysseus/odysseus-app/**)",
+      "Bash(done)"
     ]
   }
 }
