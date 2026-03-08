@@ -19,7 +19,7 @@ export async function navigateToResult(tubes: TubeData[]): Promise<void> {
   const rackId = firstTube.location.rackId;
   const boxId = firstTube.location.boxId;
 
-  const { navigateToLocation } = await import('@domains/grid');
+  const { navigateToLocation } = await import('@domains/tubes/utils/gridNavigation');
   await navigateToLocation({ tankId, rackId, boxId });
 
   const tubeStore = useTubeStore.getState();

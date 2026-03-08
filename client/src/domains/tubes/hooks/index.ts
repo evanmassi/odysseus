@@ -4,7 +4,7 @@
  * React Query hooks for tube data operations.
  */
 
-// Query hooks (read operations)
+// Query hooks
 export {
   useTubes,
   useTubesByLocation,
@@ -16,7 +16,7 @@ export {
   useTubeStats,
 } from './useTubeQueries';
 
-// Mutation hooks (write operations)
+// Mutation hooks
 export {
   useCreateTubeMutation,
   useUpdateTubeMutation,
@@ -39,7 +39,7 @@ export { useTubeAccessControl } from './useTubeAccessControl';
 // Lookup hooks
 export { useLookupValuesQuery } from './useTubeLookupValuesQuery';
 
-// Form hooks (public API - generic implementation is private)
+// Form hooks
 export {
   useCreateTubeForm,
   useEditTubeForm,
