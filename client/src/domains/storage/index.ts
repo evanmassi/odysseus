@@ -5,35 +5,8 @@
  * Types from shared-schemas, data from React Query.
  */
 
-// Hooks (Server State - Primary Data Access)
-export { useStorageData, getStorageDataFromCache } from './hooks/useStorageData';
-export { useLoadStorageQuery, useStorageExistsQuery } from './hooks/useStorageQueries';
-export { useStorageSync } from './hooks/useStorageSync';
-export { useStorageLocationNames } from './hooks/useStorageLocationNames';
-export type { LocationDisplayNames } from './hooks/useStorageLocationNames';
-
-// Equipment Mutation Hooks
-export {
-  // Tank mutations
-  useAddTankMutation,
-  useUpdateTankMutation,
-  useDeleteTankMutation,
-  // Rack mutations
-  useAddRacksMutation,
-  useUpdateRackMutation,
-  useDeleteRackMutation,
-  useAssignRackMutation,
-  // Box mutations
-  useAddBoxesMutation,
-  useUpdateBoxMutation,
-  useDeleteBoxMutation,
-  useAssignBoxMutation,
-  // Bulk operations
-  useBulkUnassignMutation,
-  useBulkReassignMutation,
-  useInitializeConfigurationMutation,
-  useUpdateResourceLabelMutation,
-} from './hooks/useStorageMutations';
+// Hooks
+export * from './hooks';
 
 // Services
 export { StorageService } from './services/StorageService';

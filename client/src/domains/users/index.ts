@@ -4,19 +4,12 @@
  * Services and hooks for user account management.
  */
 
+// Services
 export { PersonService, type UpdatePersonProfileWithPassword } from './services/PersonService';
 export { UserSessionService, type ActiveSession } from './services/UserSessionService';
 export { UserSettingsService, userSettingsService } from './services/UserSettingsService';
 export { UserPasswordService } from './services/UserPasswordService';
 export { UserLookupService, userLookupService } from './services/UserLookupService';
-export { useUserProfile, useUserProfileActions } from './hooks/useUserProfile';
-export { usePasswordChange } from './hooks/usePasswordChange';
-export { useUserSessions } from './hooks/useUserSessions';
-export {
-  useUserSettings,
-  useUserSettingsActions,
-  useUserSettingsQuery,
-} from './hooks/useUserSettings';
-export { useUserLookupQuery } from './hooks/useUserLookupQuery';
-export { useActiveUsersQuery } from './hooks/useActiveUsersQuery';
-export { useUserPresenceQuery } from './hooks/useUserPresenceQuery';
+
+// Hooks
+export * from './hooks';
