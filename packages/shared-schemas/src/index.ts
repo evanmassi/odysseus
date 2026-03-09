@@ -4,26 +4,20 @@
  * Validation schemas used by both client and server.
  */
 
+// Tubes
 export {
-  // Constants
   CONCENTRATION_UNITS,
   UNKNOWN_RESEARCHER,
-
-  // Domain Schemas
   tubeLocationSchema,
   tubeSampleSchema,
   tubeTimestampsSchema,
   tubeDataSchema,
   tubeDataArraySchema,
-
-  // API Schemas (Client & Server use these directly)
   createTubeRequestSchema,
   updateTubeRequestSchema,
   tubeQueryFiltersSchema,
   batchTubeOperationSchema,
   tubeValidationResultSchema,
-
-  // Types
   type TubeData,
   type TubeLocation,
   type TubeSample,
@@ -35,18 +29,10 @@ export {
   type BatchTubeOperation,
   type TubeValidationResult,
   type ConcentrationUnit,
-
-  // Form Input Types (z.input - raw form state before Zod transformations)
   type CreateTubeFormInput,
   type UpdateTubeFormInput,
-
-  // Utilities
   validateTubePosition,
-  validateConcentrationUnit
-} from './tubes/tubeSchemas';
-
-// Tube Validation Utilities
-export {
+  validateConcentrationUnit,
   parseConcentrationInput,
   concentrationPreprocessor,
   concentrationPreprocessorNullable,
@@ -56,55 +42,36 @@ export {
   optionalFromEmpty,
   nullableOptionalFromEmpty,
   validateConcentrationUnit as validateConcentrationUnitInvariant,
-  concentrationUnitRefinement
-} from './tubes/tubeValidation';
-
-// Tube Display Formatters (Presentation layer only)
-export {
+  concentrationUnitRefinement,
   formatConcentrationDisplay,
   formatTubeLocation,
   formatTubeLocationShort,
   formatTubeDate,
   parseConcentrationDisplay,
-  type TubeLocationFormatOptions
-} from './tubes/tubeFormatters';
-
-// Tube Data Mappers
-export {
+  type TubeLocationFormatOptions,
   tubeDataToCreateRequest,
-  tubeDataArrayToCreateRequests
-} from './tubes/tubeMappers';
-
-// Tube Lock Schemas (Lock/Unlock operations)
-export {
-  // Request Schemas
+  tubeDataArrayToCreateRequests,
   lockTubesRequestSchema,
   unlockTubesRequestSchema,
   shareTubeAccessRequestSchema,
   revokeTubeAccessRequestSchema,
-
-  // Result Schemas
   skippedTubeSchema,
   batchLockResultSchema,
   batchUnlockResultSchema,
   shareAccessResultSchema,
   revokeAccessResultSchema,
-
-  // Request Types
   type LockTubesRequest,
   type UnlockTubesRequest,
   type ShareTubeAccessRequest,
   type RevokeTubeAccessRequest,
-
-  // Result Types
   type SkippedTube,
   type BatchLockResult,
   type BatchUnlockResult,
   type ShareAccessResult,
   type RevokeAccessResult,
-} from './tubes/tubeLockSchemas';
+} from './tubes';
 
-// Lookup Schemas (Admin-managed dropdown values)
+// Lookups
 export {
   LOOKUP_CATEGORIES,
   lookupValueSchema,
@@ -118,9 +85,8 @@ export {
   type RenameLookupValueRequest,
 } from './lookups';
 
-// Search Schemas
+// Search
 export {
-  // Schemas
   SearchFiltersSchema,
   AdvancedSearchOptionsSchema,
   SearchPaginationSchema,
@@ -133,8 +99,6 @@ export {
   SavedSearchSchema,
   SavedSearchesResponseSchema,
   FilterOptionsResponseSchema,
-  
-  // Types
   type SearchFilters,
   type AdvancedSearchOptions,
   type SearchResult,
@@ -144,12 +108,11 @@ export {
   type SaveSearchResponse,
   type SavedSearch,
   type SavedSearchesResponse,
-  type FilterOptionsResponse
+  type FilterOptionsResponse,
 } from './search/searchSchemas';
 
-// Researcher Schemas (Clean Architecture - Simple Domain Entities)
+// Researchers
 export {
-  // Core Schemas
   researcherSchema,
   researchersArraySchema,
   createResearcherProfileSchema,
@@ -157,48 +120,34 @@ export {
   researcherQueryFiltersSchema,
   adminResearcherSchema,
   adminResearchersResponseSchema,
-
-  // Types
   type Researcher,
   type CreateResearcherProfile,
   type UpdateResearcherProfile,
   type ResearcherQueryFilters,
   type AdminResearcher,
   type AdminResearchersResponse,
-
-  // Utilities
   validateResearcherName,
   validateResearcherEmail,
-
-  // Display Formatters
   formatResearcherListDisplay,
   formatResearcherDropdownDisplay,
   formatResearcherFullDisplay,
-
-  // Duplicate Detection
   calculateNameSimilarity,
-  findSimilarResearchers
+  findSimilarResearchers,
 } from './researchers/researcherSchemas';
 
-// Transport Schemas
+// Transport
 export {
-  // Envelope Schemas (generic functions)
   successEnvelopeSchema,
   errorEnvelopeSchema,
   paginatedEnvelopeSchema,
   batchEnvelopeSchema,
-  
-  // Error Class
   ApiError,
-  
-  // Types
   type PaginatedResult,
-  type BatchResult
+  type BatchResult,
 } from './infrastructure/transportSchemas';
 
-// Laboratory Configuration Schemas
+// Storage
 export {
-  // Schemas
   GridConfigurationSchema,
   BoxConfigurationSchema,
   RackConfigurationSchema,
@@ -211,8 +160,6 @@ export {
   ConfigurationResponseSchema,
   SaveConfigurationRequestSchema,
   DeleteTankResponseSchema,
-
-  // Types
   type GridConfiguration,
   type BoxConfiguration,
   type RackConfiguration,
@@ -224,46 +171,27 @@ export {
   type SystemConfiguration,
   type ConfigurationResponse,
   type SaveConfigurationRequest,
-  type DeleteTankResponse
-} from './storage/configurationSchemas';
-
-// Storage Formatters
-export {
-  formatResourceDisplayName
-} from './storage/formatters';
-
-// Position Display Schemas & Utilities
-export {
-  // Schemas
+  type DeleteTankResponse,
+  formatResourceDisplayName,
   positionDisplayFormatSchema,
   alphanumericConfigSchema,
   positionDisplayConfigSchema,
   positionDisplayPreferenceSchema,
-
-  // Constants
   POSITION_DISPLAY_PRESETS,
-
-  // Types
   type PositionDisplayFormat,
   type AlphanumericConfig,
   type PositionDisplayConfig,
   type PositionDisplayPreference,
-
-  // Config Generators (flexible for any grid size)
   generateAlphabeticLabels,
   generateNumericLabels,
   createAlphanumericConfig,
   createNumericConfig,
   getDefaultPositionDisplay,
-} from './storage/positionSchemas';
-
-export {
-  // Utilities
   positionToLabel,
   labelToPosition,
   isValidPositionLabel,
   generatePositionLabels,
-} from './storage/positionFormatters';
+} from './storage';
 
 // API Constants
 export {
@@ -272,26 +200,16 @@ export {
 
 // System Constants
 export {
-  // Equipment Defaults
   EQUIPMENT_DEFAULTS,
-
-  // Validation Limits
   VALIDATION_LIMITS,
-
-  // System Defaults
   SYSTEM_DEFAULTS,
-
-  // Naming Patterns
   NAMING_PATTERNS,
-
-  // Grid Templates
   GRID_TEMPLATES,
-  DEFAULT_GRID_CONFIG
+  DEFAULT_GRID_CONFIG,
 } from './constants';
 
-// Admin Schemas (Security, User Management, System Monitoring)
+// Admin
 export {
-  // Schemas
   securityConfigSchema,
   updateSecurityConfigSchema,
   adminUserSchema,
@@ -303,11 +221,7 @@ export {
   adminUsersResponseSchema,
   systemMetricsResponseSchema,
   auditLogResponseSchema,
-
-  // Constants
   DEFAULT_SECURITY_CONFIG,
-
-  // Types
   type SecurityConfig,
   type UpdateSecurityConfig,
   type AdminUser,
@@ -321,9 +235,8 @@ export {
   type AuditLogResponse,
 } from './admin/adminSchemas';
 
-// Authentication Schemas (Registration, Login, Email Verification)
+// Authentication
 export {
-  // Schemas
   registerWithResearcherSchema,
   verifyEmailRequestSchema,
   resendVerificationRequestSchema,
@@ -331,30 +244,38 @@ export {
   systemAdminSetupSchema,
   validateInviteCodeRequestSchema,
   validateInviteCodeResponseSchema,
-
-  // Types
   type RegisterWithResearcherRequest,
   type VerifyEmailRequest,
   type ResendVerificationRequest,
   type VerificationStatusResponse,
   type SystemAdminSetupRequest,
   type ValidateInviteCodeRequest,
-  type ValidateInviteCodeResponse
-} from './auth/authSchemas';
+  type ValidateInviteCodeResponse,
+  PasswordValidator,
+  type PasswordRequirementsConfig,
+  type PasswordRequirement,
+  type PasswordValidationResult,
+  adminResetPasswordRequestSchema,
+  generatePasswordResetTokenResponseSchema,
+  resetPasswordWithTokenRequestSchema,
+  forceChangePasswordRequestSchema,
+  passwordChangeRequiredResponseSchema,
+  type AdminResetPasswordRequest,
+  type GeneratePasswordResetTokenResponse,
+  type ResetPasswordWithTokenRequest,
+  type ForceChangePasswordRequest,
+  type PasswordChangeRequiredResponse,
+} from './auth';
 
-// Lab & Invite Code Schemas (Multi-tenancy)
+// Labs
 export {
-  // Schemas
   labDataSchema,
   labPublicDataSchema,
   inviteCodeDataSchema,
   createLabRequestSchema,
   createInviteCodeRequestSchema,
-
   labDetailsSchema,
   labDetailsUserSchema,
-
-  // Types
   type LabData,
   type LabPublicData,
   type InviteCodeData,
@@ -363,103 +284,52 @@ export {
   type LabDetails,
   type LabDetailsUser,
   type LabDetailsResearcher,
-
   systemOverviewSchema,
   type SystemOverview,
 } from './labs/labSchemas';
 
-// Password Validation
+// Users
 export {
-  // Validator
-  PasswordValidator,
-
-  // Types
-  type PasswordRequirementsConfig,
-  type PasswordRequirement,
-  type PasswordValidationResult
-} from './auth/passwordValidation';
-
-// Password Reset Schemas (Admin-initiated, no email dependency)
-export {
-  // Schemas
-  adminResetPasswordRequestSchema,
-  generatePasswordResetTokenResponseSchema,
-  resetPasswordWithTokenRequestSchema,
-  forceChangePasswordRequestSchema,
-  passwordChangeRequiredResponseSchema,
-
-  // Types
-  type AdminResetPasswordRequest,
-  type GeneratePasswordResetTokenResponse,
-  type ResetPasswordWithTokenRequest,
-  type ForceChangePasswordRequest,
-  type PasswordChangeRequiredResponse
-} from './auth/passwordResetSchemas';
-
-// User Settings Schemas (Per-user preferences and configuration)
-export {
-  // Schemas
   userSettingsSchema,
   updateUserSettingsRequestSchema,
   userSettingsResponseSchema,
   themePreferenceSchema,
-
-  // Constants
   DEFAULT_USER_SETTINGS,
-
-  // Types
   type UserSettings,
   type UpdateUserSettingsRequest,
   type UserSettingsResponse,
-  type ThemePreference
-} from './users/userSettingsSchemas';
-
-// User Lookup Schemas (Public endpoint for display info)
-export {
-  // Schemas
+  type ThemePreference,
   userLookupRequestSchema,
   userDisplayInfoSchema,
   userLookupResponseSchema,
   activeUsersListResponseSchema,
-
-  // Types
   type UserLookupRequest,
   type UserDisplayInfo,
   type UserLookupResponse,
-  type ActiveUsersListResponse
-} from './users/userLookupSchemas';
+  type ActiveUsersListResponse,
+} from './users';
 
-// Demo Infrastructure Schemas (Seeding, Limits)
+// Demo
 export {
-  // Schemas
   DemoLimitsSchema,
   UpdateDemoLimitsSchema,
   SeedDemoResponseSchema,
   UnseedDemoResponseSchema,
-
-  // Constants
   DEMO_LIMITS_DEFAULTS,
-
-  // Types
   type DemoLimits,
   type UpdateDemoLimits,
   type SeedDemoResponse,
   type UnseedDemoResponse,
 } from './demo/demoSchemas';
 
-// Person Schemas (Core profile entity)
+// Persons
 export {
-  // Schemas
   personSchema,
   updatePersonProfileSchema,
   personProfileResponseSchema,
-
-  // Types
   type Person,
   type UpdatePersonProfile,
   type PersonProfileResponse,
   type NameSortable,
-
-  // Utilities
-  sortByName
+  sortByName,
 } from './persons/personSchemas';

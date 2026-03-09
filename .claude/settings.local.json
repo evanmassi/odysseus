@@ -90,7 +90,10 @@
       "Read(//c/Users/evan/Desktop/Odysseus/odysseus-app/**)",
       "Bash(done)",
       "Bash(wc:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(for dir in admin api auth constants demo infrastructure labs lookups persons researchers search storage tubes users)",
+      "Bash(do echo \"=== $dir ===\")",
+      "Read(//c/Users/evan/Desktop/Odysseus/odysseus-app/packages/shared-schemas/src/**)"
     ]
   }
 }
