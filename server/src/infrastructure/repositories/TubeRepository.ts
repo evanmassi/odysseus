@@ -601,9 +601,11 @@ export class TubeRepository implements ITubeRepository {
         return sql;
       }
 
-      const configuration = labId
-        ? await this.configurationRepository.getForLab(labId)
-        : await this.configurationRepository.getCurrent();
+      if (!labId) {
+        logger.warn('[TubeRepository] No labId provided for position label parsing');
+        return sql;
+      }
+      const configuration = await this.configurationRepository.getForLab(labId);
       if (!configuration) {
         logger.warn('[TubeRepository] No configuration found for position label parsing');
         return sql;

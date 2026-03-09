@@ -281,7 +281,7 @@ export class UserApplicationService {
     if (this.configurationRepository) {
       const config = admin.labId
         ? await this.configurationRepository.getForLab(admin.labId)
-        : await this.configurationRepository.getCurrent();
+        : null;
       if (config) {
         const configData = config.toData();
         let assignedResourceCount = 0;

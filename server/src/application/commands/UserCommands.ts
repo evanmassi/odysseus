@@ -369,9 +369,10 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
     let boxesAffected = 0;
 
     for (let attempt = 1; attempt <= MAX_CASCADE_RETRIES; attempt++) {
-      const configuration = user.labId
-        ? await this.configurationRepository.getForLab(user.labId)
-        : await this.configurationRepository.getCurrent();
+      if (!user.labId) {
+        break; // No lab context — no configuration to update
+      }
+      const configuration = await this.configurationRepository.getForLab(user.labId);
       if (!configuration) {
         break; // No configuration to update
       }

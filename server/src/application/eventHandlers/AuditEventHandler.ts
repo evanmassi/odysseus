@@ -233,9 +233,9 @@ export class AuditEventHandler {
   // TUBE EVENT HANDLERS
 
   /** Resolve a Location to a human-readable path (e.g. "Tank 1 · Rack A · Box 1 · A1"). */
-  private async getDisplayLocation(location: Location): Promise<string> {
+  private async getDisplayLocation(location: Location, labId: string): Promise<string> {
     try {
-      const config = await this.configurationRepository.getCurrent();
+      const config = await this.configurationRepository.getForLab(labId);
       if (!config) return location.toString();
 
       const tank = config.equipment.tanks.find(t => t.id === location.tankId);
@@ -267,7 +267,7 @@ export class AuditEventHandler {
       tankId: event.location.tankId,
       labId: event.labId,
       buildDetails: async (username) => {
-        const displayLocation = await this.getDisplayLocation(event.location);
+        const displayLocation = await this.getDisplayLocation(event.location, event.labId);
         return {
           location: event.location.toString(),
           displayLocation,
@@ -319,7 +319,7 @@ export class AuditEventHandler {
           }
         });
 
-        const displayLocation = await this.getDisplayLocation(event.newLocation);
+        const displayLocation = await this.getDisplayLocation(event.newLocation, event.labId);
 
         return {
           changes,
@@ -337,8 +337,8 @@ export class AuditEventHandler {
       actorId: event.movedBy, action: 'tube_moved', entityType: 'tube',
       entityId: event.tubeId, occurredOn: event.occurredOn, labId: event.labId,
       buildDetails: async (username) => {
-        const oldDisplayLocation = await this.getDisplayLocation(event.oldLocation);
-        const newDisplayLocation = await this.getDisplayLocation(event.newLocation);
+        const oldDisplayLocation = await this.getDisplayLocation(event.oldLocation, event.labId);
+        const newDisplayLocation = await this.getDisplayLocation(event.newLocation, event.labId);
 
         return {
           oldLocation: event.oldLocation.toString(),
@@ -363,7 +363,7 @@ export class AuditEventHandler {
       tankId: event.location.tankId,
       labId: event.labId,
       buildDetails: async (username) => {
-        const displayLocation = await this.getDisplayLocation(event.location);
+        const displayLocation = await this.getDisplayLocation(event.location, event.labId);
         return {
           location: event.location.toString(),
           displayLocation,

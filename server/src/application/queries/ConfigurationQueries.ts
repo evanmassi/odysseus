@@ -97,7 +97,7 @@ export class GetConfigurationHistoryQueryHandler {
   constructor(private configurationRepository: ConfigurationRepository) {}
 
   async handle(query: GetConfigurationHistoryQuery): Promise<ConfigurationHistory[]> {
-    return this.configurationRepository.getHistory(query.limit);
+    return this.configurationRepository.getHistory(query.labId, query.limit);
   }
 }
 
@@ -115,7 +115,7 @@ export class GetConfigurationByVersionQueryHandler {
   constructor(private configurationRepository: ConfigurationRepository) {}
 
   async handle(query: GetConfigurationByVersionQuery): Promise<Configuration> {
-    const configuration = await this.configurationRepository.getByVersion(query.version);
+    const configuration = await this.configurationRepository.getByVersion(query.labId, query.version);
     
     if (!configuration) {
       throw NotFoundError.configuration();

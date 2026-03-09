@@ -23,7 +23,7 @@ export class TubePositionService {
       warnings: []
     };
 
-    const configurationValid = await this.validateEquipmentConfiguration(location);
+    const configurationValid = await this.validateEquipmentConfiguration(location, labId);
     if (!configurationValid.isValid) {
       result.isValid = false;
       result.errors.push(...configurationValid.errors);
@@ -50,29 +50,29 @@ export class TubePositionService {
     return result;
   }
 
-  async validateEquipmentConfiguration(location: Location): Promise<PositionValidation> {
+  async validateEquipmentConfiguration(location: Location, labId: string): Promise<PositionValidation> {
     const result: PositionValidation = { isValid: true, errors: [] };
 
     try {
-      const isValid = await this.configurationRepository.isLocationValid(location);
+      const isValid = await this.configurationRepository.isLocationValid(labId, location);
 
       if (!isValid) {
         result.isValid = false;
         result.errors.push(`Location ${location.toString()} does not exist in equipment configuration`);
 
-        const tankExists = await this.configurationRepository.tankExists(location.tankId);
+        const tankExists = await this.configurationRepository.tankExists(labId, location.tankId);
         if (!tankExists) {
           result.errors.push(`Tank '${location.tankId}' does not exist`);
         } else {
-          const rackExists = await this.configurationRepository.rackExists(location.tankId, location.rackId);
+          const rackExists = await this.configurationRepository.rackExists(labId, location.tankId, location.rackId);
           if (!rackExists) {
             result.errors.push(`Rack ${location.rackId} does not exist in tank '${location.tankId}'`);
           } else {
-            const boxExists = await this.configurationRepository.boxExists(location.tankId, location.rackId, location.boxId);
+            const boxExists = await this.configurationRepository.boxExists(labId, location.tankId, location.rackId, location.boxId);
             if (!boxExists) {
               result.errors.push(`Box '${location.boxId}' does not exist in rack ${location.rackId} of tank '${location.tankId}'`);
             } else {
-              const maxPosition = await this.configurationRepository.getMaxPosition(location.tankId, location.rackId, location.boxId);
+              const maxPosition = await this.configurationRepository.getMaxPosition(labId, location.tankId, location.rackId, location.boxId);
               if (location.position > maxPosition) {
                 result.errors.push(`Position ${location.position} exceeds maximum position ${maxPosition} for this box`);
               }
@@ -122,6 +122,7 @@ export class TubePositionService {
       );
 
       const maxPosition = await this.configurationRepository.getMaxPosition(
+        labId,
         location.tankId,
         location.rackId,
         location.boxId
@@ -168,6 +169,7 @@ export class TubePositionService {
       );
 
       const availablePositions = await this.configurationRepository.getAvailablePositions(
+        labId,
         location.tankId,
         location.rackId,
         location.boxId,
@@ -207,7 +209,7 @@ export class TubePositionService {
     try {
       const tubes = await this.tubeRepository.findByRackAndBox(rackId, boxId, labId);
       const boxTubes = tubes.filter(tube => tube.tankId === tankId);
-      const maxPosition = await this.configurationRepository.getMaxPosition(tankId, rackId, boxId);
+      const maxPosition = await this.configurationRepository.getMaxPosition(labId, tankId, rackId, boxId);
 
       const researchers = new Set(boxTubes.map(tube => tube.researcherId).filter(r => r));      const cellTypes = new Set(boxTubes.map(tube => tube.cellType).filter(ct => ct));
 
