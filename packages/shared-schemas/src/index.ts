@@ -316,8 +316,6 @@ export {
   syncStatusResponseSchema,
   auditLogResponseSchema,
 
-  demoResetResponseSchema,
-
   // Constants
   DEFAULT_SECURITY_CONFIG,
 
@@ -335,8 +333,6 @@ export {
   type SystemMetricsResponse,
   type SyncStatusResponse,
   type AuditLogResponse,
-
-  type DemoResetResponse
 } from './admin/adminSchemas';
 
 // Authentication Schemas (Registration, Login, Email Verification)
