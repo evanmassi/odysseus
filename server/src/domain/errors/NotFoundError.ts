@@ -56,7 +56,7 @@ export class NotFoundError extends DomainError {
   /**
    * Create not found error for position
    */
-  static position(tankId: string, rackId: number, boxId: string, position: number): NotFoundError {
+  static position(tankId: string, rackId: string, boxId: string, position: number): NotFoundError {
     return new NotFoundError(
       'Position not found or not available',
       { tankId, rackId, boxId, position }

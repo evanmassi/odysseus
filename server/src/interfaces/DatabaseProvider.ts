@@ -90,7 +90,7 @@ export interface DatabaseProvider {
   
   // Tube Operations (identical to existing API)
   getAllTubes(): TubeData[];
-  getTubesByRackAndBox(rackId: number, boxName: string): TubeData[];
+  getTubesByRackAndBox(rackId: string, boxName: string): TubeData[];
   getTubeById(id: string): TubeData | null;
   createTube(tube: Omit<TubeData, 'createdAt' | 'updatedAt'>): TubeData;
   updateTube(id: string, updates: Partial<TubeData>): TubeData | null;

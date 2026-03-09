@@ -67,7 +67,7 @@ export interface UpdateEquipmentConfigurationCommand {
   }>;
   boxes?: Array<{
     name: string;
-    rackId: number;
+    rackId: string;
     tankId: string;
     rows: number;
     columns: number;

@@ -138,7 +138,7 @@ export interface ConfigurationRepository {
   /**
    * Get all box names for a rack
    */
-  getBoxNames(tankId: string, rackId: string | number): Promise<string[]>;
+  getBoxNames(tankId: string, rackId: string): Promise<string[]>;
   
   /**
    * Get equipment hierarchy summary

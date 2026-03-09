@@ -610,7 +610,7 @@ export class TubeRepository implements ITubeRepository {
       }
 
       // Find the box to get its position display configuration
-      const box = configuration.equipment.findBox(tankId, String(rackId), boxId);
+      const box = configuration.equipment.findBox(tankId, rackId, boxId);
       if (!box) {
         logger.warn(`[TubeRepository] Box not found: ${tankId}/${rackId}/${boxId}`);
         return sql;

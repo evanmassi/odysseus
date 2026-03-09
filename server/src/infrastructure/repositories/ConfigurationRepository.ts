@@ -325,7 +325,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     const tank = config.equipment.tanks.find(t => t.id === tankId);
     if (!tank) return false;
 
-    return tank.racks.some(rack => String(rack.id) === rackId);
+    return tank.racks.some(rack => rack.id === rackId);
   }
 
   async boxExists(tankId: string, rackId: string, boxId: string): Promise<boolean> {
@@ -351,11 +351,11 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return allPositions;
   }
 
-  async getTotalPositions(tankId: string, rackId: number, boxId: string): Promise<number> {
+  async getTotalPositions(tankId: string, rackId: string, boxId: string): Promise<number> {
     return EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX;
   }
 
-  async getOccupiedPositions(tankId: string, rackId: number, boxId: string): Promise<number[]> {
+  async getOccupiedPositions(tankId: string, rackId: string, boxId: string): Promise<number[]> {
     return [];
   }
 
@@ -391,32 +391,32 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return racks.filter(rack => rack.isActive);
   }
 
-  async getRackById(tankId: string, rackId: string | number): Promise<Rack | null> {
+  async getRackById(tankId: string, rackId: string): Promise<Rack | null> {
     const racks = await this.getRacksForTank(tankId);
-    const rackIdStr = String(rackId);
+    const rackIdStr = rackId;
     return racks.find(rack => rack.id === rackIdStr) || null;
   }
 
-  async getBoxesForRack(tankId: string, rackId: string | number): Promise<Box[]> {
+  async getBoxesForRack(tankId: string, rackId: string): Promise<Box[]> {
     const config = await this.getCurrent();
     if (!config) return [];
 
     const tank = config.equipment.tanks.find(t => t.id === tankId);
     if (!tank) return [];
 
-    const rackIdStr = String(rackId);
+    const rackIdStr = rackId;
     const rack = tank.racks.find(r => r.id === rackIdStr);
     if (!rack) return [];
 
     return [...rack.boxes];
   }
 
-  async getActiveBoxesForRack(tankId: string, rackId: string | number): Promise<Box[]> {
+  async getActiveBoxesForRack(tankId: string, rackId: string): Promise<Box[]> {
     const boxes = await this.getBoxesForRack(tankId, rackId);
     return boxes.filter(box => box.isActive);
   }
 
-  async getBoxByName(tankId: string, rackId: string | number, boxId: string): Promise<Box | null> {
+  async getBoxByName(tankId: string, rackId: string, boxId: string): Promise<Box | null> {
     const boxes = await this.getBoxesForRack(tankId, rackId);
     return boxes.find(box => box.name.toLowerCase() === boxId.toLowerCase()) || null;
   }
@@ -574,7 +574,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return racks.map(rack => rack.id);
   }
 
-  async getBoxNames(tankId: string, rackId: string | number): Promise<string[]> {
+  async getBoxNames(tankId: string, rackId: string): Promise<string[]> {
     const boxes = await this.getBoxesForRack(tankId, rackId);
     return boxes.map(box => box.name);
   }
@@ -1380,7 +1380,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
           }
 
           const tank = configData.tanks[tankIndex];
-          const rackIndex = tank.racks.findIndex((r) => String(r.id) === String(rackId));
+          const rackIndex = tank.racks.findIndex((r) => r.id === rackId);
 
           if (rackIndex === -1) {
             throw new NotFoundError(`Rack '${rackId}' not found in tank '${tankId}'`);
@@ -1480,7 +1480,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
           }
 
           const tank = configData.tanks[tankIndex];
-          const rackIndex = tank.racks.findIndex((r) => String(r.id) === String(rackId));
+          const rackIndex = tank.racks.findIndex((r) => r.id === rackId);
 
           if (rackIndex === -1) {
             throw new NotFoundError(`Rack '${rackId}' not found in tank '${tankId}'`);

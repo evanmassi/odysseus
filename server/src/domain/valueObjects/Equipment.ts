@@ -486,7 +486,7 @@ export class EquipmentConfiguration {
       return false;
     }
 
-    const rack = tank.racks.find(r => String(r.id) === rackId && r.isActive);
+    const rack = tank.racks.find(r => r.id === rackId && r.isActive);
     if (!rack || !rack.canAccommodateBox(boxId)) {
       return false;
     }
@@ -518,12 +518,11 @@ export class EquipmentConfiguration {
   /**
    * Get active boxes for a rack
    */
-  getActiveBoxesForRack(tankId: string, rackId: string | number): Box[] {
+  getActiveBoxesForRack(tankId: string, rackId: string): Box[] {
     const tank = this._tanks.find(t => t.id === tankId);
     if (!tank) return [];
 
-    const rackIdStr = String(rackId);
-    const rack = tank.racks.find(r => r.id === rackIdStr);
+    const rack = tank.racks.find(r => r.id === rackId);
     if (!rack) return [];
 
     return rack.boxes.filter(b => b.isActive) as Box[];
@@ -541,7 +540,7 @@ export class EquipmentConfiguration {
     const tank = this._tanks.find(t => t.id === tankId && t.isActive);
     if (!tank) return null;
 
-    const rack = tank.racks.find(r => String(r.id) === rackId && r.isActive);
+    const rack = tank.racks.find(r => r.id === rackId && r.isActive);
     if (!rack) return null;
 
     const box = rack.boxes.find(b => b.name === boxId.toUpperCase() && b.isActive);
