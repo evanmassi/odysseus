@@ -19,10 +19,9 @@ export interface TubeSearchResult {
 }
 
 export interface TubeSearchCriteria {
-  // Generic query - searches across ALL fields
   query?: string;
 
-  // Location criteria (array-based for multiple selection support)
+  // Location
   tankIds?: string[];
   rackIds?: string[];
   boxIds?: string[];
@@ -32,10 +31,10 @@ export interface TubeSearchCriteria {
   rackId?: string;
   boxId?: string;
 
-  // Position criteria - supports alphanumeric labels (e.g., "C5") or numeric (e.g., "23")
+  // Supports alphanumeric labels (e.g., "C5") or numeric (e.g., "23")
   positionLabel?: string;
 
-  // Sample criteria (array-based for multiple selection support)
+  // Sample
   cellTypes?: string[];
   species?: string[];
   sources?: string[];
@@ -50,16 +49,16 @@ export interface TubeSearchCriteria {
   donorInternalId?: string;
   donorSourceId?: string;
 
-  // Researcher criteria (array-based for multiple selection support)
+  // Researcher
   researcherIds?: string[];
 
-  // Date range criteria (date-only fields are strings YYYY-MM-DD)
+  // Date range — date-only fields are strings YYYY-MM-DD
   dateFrom?: string;
   dateTo?: string;
   createdAfter?: Date;
   createdBefore?: Date;
 
-  // Status criteria
+  // Status
   hasConcentration?: boolean;
   isComplete?: boolean;
   isExpired?: boolean;
@@ -77,46 +76,26 @@ export interface TubeSearchCriteria {
 }
 
 export interface ResearcherSearchCriteria {
-  // Name criteria
   name?: string;
   namePattern?: string;
-
-  // Status criteria
   isActive?: boolean;
-
-  // Date criteria
   createdAfter?: Date;
   createdBefore?: Date;
-
-  // Integration criteria
   hasTubes?: boolean;
-
-  // Pagination
   limit?: number;
   offset?: number;
-
-  // Sorting
   sortBy?: 'firstName' | 'lastName' | 'createdAt';
   sortOrder?: 'asc' | 'desc';
 }
 
 export interface UserSearchCriteria {
-  // Basic criteria
   username?: string;
   role?: 'admin' | 'user';
-
-  // Date criteria
   createdAfter?: Date;
   createdBefore?: Date;
-
-  // Status criteria
   isLocked?: boolean;
-
-  // Pagination
   limit?: number;
   offset?: number;
-
-  // Sorting
   sortBy?: 'username' | 'createdAt' | 'status';
   sortOrder?: 'asc' | 'desc';
 }

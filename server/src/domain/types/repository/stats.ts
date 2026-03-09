@@ -55,19 +55,6 @@ export interface ResearcherRepositoryStats {
   };
 }
 
-export interface UserActivitySummary {
-  userId: string;
-  username: string;
-  role: 'system_admin' | 'lab_admin' | 'user';
-  createdAt: Date;
-  lastActivity: Date;
-  totalSessions: number;
-  failedLoginAttempts: number;
-  isCurrentlyLocked: boolean;
-  daysSinceCreation: number;
-  daysSinceLastActivity: number;
-}
-
 export interface UserRepositoryStats {
   totalUsers: number;
   adminCount: number;

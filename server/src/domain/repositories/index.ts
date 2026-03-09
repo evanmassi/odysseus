@@ -23,7 +23,7 @@ export { InviteCodeRepository } from './InviteCodeRepository';
 
 // Repository Types (re-exported from centralized locations)
 export type { TubeSearchCriteria, ResearcherSearchCriteria, UserSearchCriteria } from '@domain/types/repository/searchCriteria';
-export type { TubeRepositoryStats, ResearcherUsageStats, ResearcherRepositoryStats, UserActivitySummary, UserRepositoryStats, EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } from '@domain/types/repository/stats';
+export type { TubeRepositoryStats, ResearcherUsageStats, ResearcherRepositoryStats, UserRepositoryStats, EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } from '@domain/types/repository/stats';
 export { RefreshTokenRepository } from './RefreshTokenRepository';
 
 // Import types for use in interfaces below
