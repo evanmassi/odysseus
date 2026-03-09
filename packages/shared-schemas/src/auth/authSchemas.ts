@@ -1,8 +1,7 @@
 /**
  * Authentication Domain Schemas
  *
- * Validation schemas for user authentication and registration.
- * Used by both client (form validation) and server (API validation).
+ * Validation schemas for user registration and authentication, shared by client and server.
  */
 
 import { z } from 'zod';

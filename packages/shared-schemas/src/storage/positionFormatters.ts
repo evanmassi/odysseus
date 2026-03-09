@@ -1,8 +1,7 @@
 /**
  * Position Formatting Utilities
  *
- * Handles conversion between numeric positions (1-81) and display labels.
- * Database stores positions as integers; display format is configurable per box.
+ * Converts between integer database positions and configurable display labels for box grids.
  */
 
 import type { PositionDisplayConfig, AlphanumericConfig } from './positionSchemas';

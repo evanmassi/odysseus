@@ -1,9 +1,7 @@
 /**
  * Password Reset Schemas
  *
- * Admin-initiated password reset without email dependency.
- * Two flows: direct reset (admin sets password) and token-based (user sets own password).
- * Tokens expire in 15 minutes for security.
+ * Admin-initiated and token-based password reset flows with 15-minute token expiry.
  */
 
 import { z } from 'zod';

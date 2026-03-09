@@ -1,8 +1,7 @@
 /**
  * Position Display Schemas
  *
- * Supports numeric (1-81) and alphanumeric (A1-I9) position labeling
- * to match real-world laboratory freezer box formats.
+ * Supports numeric (1-81) and alphanumeric (A1-I9) position labeling for lab freezer boxes.
  */
 
 import { z } from 'zod';

@@ -1,22 +1,13 @@
 /**
  * Tube Data Mappers
  *
- * Transforms between tube data formats. Used by client paste operations.
- * Server TubeDto handles: CreateRequest → Domain, Domain → Response
- * This mapper handles: Response → CreateRequest (client paste operation)
+ * Transforms tube API responses into create requests for client-side paste operations.
  */
 
 import type { TubeData, CreateTubeRequest, TubeLocation } from './tubeSchemas';
 import { parseDate } from './tubeValidation';
 
-/**
- * Transform TubeData (API response) to CreateTubeRequest (API input)
- *
- * Use case: Client-side paste operation
- * - Strips read-only fields (id, createdAt, updatedAt)
- * - Preserves only fields allowed in CreateTubeRequest
- * - Allows overriding location for paste to new position
- */
+/** Transforms a tube response into a create request for client-side paste operations. */
 export function tubeDataToCreateRequest(
   tube: TubeData,
   newLocation: TubeLocation
@@ -43,17 +34,4 @@ export function tubeDataToCreateRequest(
     },
     researcherId: tube.researcherId
   };
-}
-
-/**
- * Batch transform multiple tubes for paste operation.
- * Use case: Multi-tube paste with position mapping — preserves relative positioning via positionMap.
- */
-export function tubeDataArrayToCreateRequests(
-  tubes: TubeData[],
-  positionMap: (tube: TubeData, index: number) => TubeLocation
-): CreateTubeRequest[] {
-  return tubes.map((tube, index) =>
-    tubeDataToCreateRequest(tube, positionMap(tube, index))
-  );
 }

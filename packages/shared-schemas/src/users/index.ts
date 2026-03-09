@@ -19,10 +19,8 @@ export {
 export {
   userLookupRequestSchema,
   userDisplayInfoSchema,
-  userLookupResponseSchema,
   activeUsersListResponseSchema,
   type UserLookupRequest,
   type UserDisplayInfo,
-  type UserLookupResponse,
   type ActiveUsersListResponse,
 } from './userLookupSchemas';

@@ -1,7 +1,7 @@
 /**
- * @odysseus/shared-schemas
+ * Shared Validation Schemas
  *
- * Validation schemas used by both client and server.
+ * Public exports for all Zod schemas used by both client and server.
  */
 
 // Tubes
@@ -48,7 +48,6 @@ export {
   parseConcentrationDisplay,
   type TubeLocationFormatOptions,
   tubeDataToCreateRequest,
-  tubeDataArrayToCreateRequests,
   lockTubesRequestSchema,
   unlockTubesRequestSchema,
   shareTubeAccessRequestSchema,
@@ -278,11 +277,9 @@ export {
   type ThemePreference,
   userLookupRequestSchema,
   userDisplayInfoSchema,
-  userLookupResponseSchema,
   activeUsersListResponseSchema,
   type UserLookupRequest,
   type UserDisplayInfo,
-  type UserLookupResponse,
   type ActiveUsersListResponse,
 } from './users';
 

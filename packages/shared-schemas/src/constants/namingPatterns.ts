@@ -1,9 +1,7 @@
 /**
  * Naming Patterns and Conventions
  *
- * Default display names and ID generators for storage equipment.
- * Tanks have globally unique IDs (tank-1, tank-2). Racks and boxes
- * are scoped within their parent and named sequentially.
+ * Default display names and ID generators for storage equipment (tanks globally, racks/boxes scoped to parent).
  */
 
 export const NAMING_PATTERNS = {
