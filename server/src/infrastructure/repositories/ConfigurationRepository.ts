@@ -560,7 +560,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
   // ADDITIONAL INTERFACE METHODS
 
   async getMaxPosition(tankId: string, rackId: string, boxId: string): Promise<number> {
-    const box = await this.getBoxByName(tankId, Number(rackId), boxId);
+    const box = await this.getBoxByName(tankId, rackId, boxId);
     return box ? box.maxPositions : 0;
   }
 

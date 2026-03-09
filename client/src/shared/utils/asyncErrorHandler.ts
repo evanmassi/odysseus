@@ -1,9 +1,10 @@
-import { notifications } from './notifications';
-
 /**
- * Wraps an async operation with loading state management, success/error notifications,
- * and optional callbacks. Eliminates the repeated try/catch/finally pattern across modals.
+ * Async Error Handler
+ *
+ * Wraps async operations with loading state, notifications, and error handling.
  */
+
+import { notifications } from './notifications';
 export async function withAsyncHandler(
   operation: () => Promise<void>,
   options: {

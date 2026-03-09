@@ -1,5 +1,7 @@
 /**
- * Shared Utility Functions
+ * Shared Utilities Barrel
+ *
+ * Cross-cutting utility functions shared across all feature domains.
  */
 
 export * from './asyncErrorHandler';

@@ -36,7 +36,7 @@ import { Button, SuspenseBoundary, Tooltip } from '@shared/ui';
 import { OnlineUsersBadgeList } from '@shared/ui/components/badges';
 import { TankIcon } from '@shared/ui/components/icons/TankIcon';
 import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
-import { PreloadHelpers } from '@shared/utils/preloadHelpers';
+import { createPreloadHook } from '@shared/utils/preloadHelpers';
 
 import type { TubeData } from '@domains/tubes/types';
 import type { PositionKey } from '@domains/tubes/types/gridSelectionTypes';
@@ -67,17 +67,17 @@ const HelpModal = lazy(() =>
   }))
 );
 
-const useLazyAdminSettings = PreloadHelpers.createHook(() => import('@domains/admin'));
+const useLazyAdminSettings = createPreloadHook(() => import('@domains/admin'));
 
-const useLazyStorageManager = PreloadHelpers.createHook(
+const useLazyStorageManager = createPreloadHook(
   () => import('@domains/storage/ui/components/storage-manager/StorageManagerModal')
 );
 
-const useLazyUserSettings = PreloadHelpers.createHook(
+const useLazyUserSettings = createPreloadHook(
   () => import('@domains/users/ui/components/settings-modal/UserSettingsModal')
 );
 
-const useLazyHelp = PreloadHelpers.createHook(() => import('@domains/help'));
+const useLazyHelp = createPreloadHook(() => import('@domains/help'));
 
 type IconComponent = LucideIcon | React.ComponentType<{ size?: number; className?: string }>;
 
