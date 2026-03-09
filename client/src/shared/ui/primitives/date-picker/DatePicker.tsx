@@ -4,7 +4,7 @@
  * Calendar-based date selector with portal dropdown and keyboard navigation.
  */
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useId } from 'react';
 
 import { cva } from 'class-variance-authority';
 import { Calendar, X } from 'lucide-react';
@@ -100,6 +100,9 @@ export const DatePicker: React.FC<DatePickerProps> = ({
   className,
   'aria-label': ariaLabel,
 }) => {
+  const id = useId();
+  const dialogId = `${id}-dialog`;
+
   const [isOpen, setIsOpen] = useState(false);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
@@ -204,7 +207,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
         onKeyDown={handleKeyDown}
         role="combobox"
         aria-expanded={isOpen}
-        aria-controls="datepicker-dialog"
+        aria-controls={dialogId}
         aria-haspopup="dialog"
         aria-label={ariaLabel}
         tabIndex={disabled ? -1 : 0}
@@ -235,7 +238,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       {createPortal(
         <div
           ref={dropdownRef}
-          id="datepicker-dialog"
+          id={dialogId}
           className={`fixed z-[9999] bg-card border border-border rounded-lg shadow-lg p-3 ${
             isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}

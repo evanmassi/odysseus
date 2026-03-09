@@ -41,12 +41,6 @@ export interface TableRow extends TableRowBase {
   [key: string]: unknown;
 }
 
-export interface TablePagination {
-  page: number;
-  pageSize: number;
-  total: number;
-}
-
 export interface TableProps<T extends TableRowBase = TableRow> {
   columns: TableColumn<T>[];
   data: T[];
@@ -63,7 +57,6 @@ export interface TableProps<T extends TableRowBase = TableRow> {
   state?: TableState;
   stickyHeader?: boolean;
   rounded?: TableRounded;
-  pagination?: TablePagination;
   onSort?: (config: SortConfig) => void;
   onSelectionChange?: (selectedIds: (string | number)[]) => void;
   onRowClick?: (row: T, index: number) => void;
@@ -75,7 +68,6 @@ export interface TableProps<T extends TableRowBase = TableRow> {
   bodyClassName?: string;
   rowClassName?: string | ((row: T, index: number) => string);
   maxHeight?: string | number;
-  virtualized?: boolean;
 }
 
 export type TableRef = HTMLTableElement;
@@ -85,6 +77,7 @@ export interface TableContextValue {
   selectable: boolean;
   multiSelect: boolean;
   selectedRows: (string | number)[];
+  allRowIds: (string | number)[];
   onSelectionChange: (selectedIds: (string | number)[]) => void;
   sortConfig?: SortConfig;
   onSort?: (config: SortConfig) => void;
@@ -102,7 +95,6 @@ export const defaultTableProps: Partial<TableProps> = {
   hoverable: true,
   loading: false,
   stickyHeader: false,
-  virtualized: false,
   selectedRows: [],
   emptyMessage: 'No data available',
   loadingMessage: 'Loading...',

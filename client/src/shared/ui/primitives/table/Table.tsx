@@ -192,12 +192,18 @@ export const TableHeader = <T,>({
   columns: TableColumn<T>[];
   className?: string;
 }) => {
-  const { selectable, multiSelect, selectedRows, onSelectionChange, sortConfig, onSort } =
-    useTableContext();
+  const {
+    selectable,
+    multiSelect,
+    selectedRows,
+    allRowIds,
+    onSelectionChange,
+    sortConfig,
+    onSort,
+  } = useTableContext();
 
   const handleSelectAll = (checked: boolean) => {
-    // Simplified - in real implementation would need access to all row IDs
-    onSelectionChange(checked ? [] : []);
+    onSelectionChange(checked ? allRowIds : []);
   };
 
   const handleSort = (columnId: string) => {
@@ -217,7 +223,7 @@ export const TableHeader = <T,>({
             {multiSelect && (
               <TableCheckbox
                 checked={selectedRows.length > 0}
-                indeterminate={selectedRows.length > 0 && selectedRows.length < 100}
+                indeterminate={selectedRows.length > 0 && selectedRows.length < allRowIds.length}
                 onChange={handleSelectAll}
                 aria-label="Select all rows"
               />
@@ -386,7 +392,6 @@ export function Table<T extends TableRowBase = TableRow>({
   state = defaultTableProps.state,
   stickyHeader = defaultTableProps.stickyHeader,
   rounded = defaultTableProps.rounded,
-  pagination: _pagination,
   onSort,
   onSelectionChange = () => {},
   onRowClick,
@@ -398,7 +403,6 @@ export function Table<T extends TableRowBase = TableRow>({
   bodyClassName,
   rowClassName,
   maxHeight,
-  virtualized: _virtualized = defaultTableProps.virtualized,
   ...props
 }: TableProps<T>) {
   // When rounded, border moves to wrapper - use borderless for table
@@ -413,6 +417,7 @@ export function Table<T extends TableRowBase = TableRow>({
     selectable: selectable!,
     multiSelect: multiSelect!,
     selectedRows: selectedRows!,
+    allRowIds: data.map(row => row.id),
     onSelectionChange,
     sortConfig,
     onSort: sortable ? onSort : undefined,

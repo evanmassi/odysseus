@@ -74,7 +74,6 @@ export type {
   TableState,
   SortConfig,
   SortDirection,
-  TablePagination,
 } from './table/types';
 
 export { Tabs, Tab } from './tabs/Tabs';

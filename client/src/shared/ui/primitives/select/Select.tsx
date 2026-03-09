@@ -173,6 +173,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
     // IDs
     const id = useId();
     const labelId = `${id}-label`;
+    const listboxId = `${id}-listbox`;
     const descriptionId = `${id}-description`;
     const errorId = `${id}-error`;
 
@@ -485,7 +486,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
           role="combobox"
           aria-expanded={isOpen}
           aria-haspopup="listbox"
-          aria-controls="select-listbox"
+          aria-controls={listboxId}
           aria-label={ariaLabel}
           aria-labelledby={label ? labelId : undefined}
           aria-describedby={
@@ -554,7 +555,7 @@ export const Select = forwardRef<SelectRef, SelectProps>(
             <div
               ref={optionsRef}
               role="listbox"
-              id="select-listbox"
+              id={listboxId}
               // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Empty label should fallback to 'Select'
               aria-label={`${label || 'Select'} options`}
             >

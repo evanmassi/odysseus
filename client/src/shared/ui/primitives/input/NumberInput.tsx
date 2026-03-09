@@ -119,7 +119,6 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           ${className}
         `}
       >
-        {/* Decrement button */}
         <button
           type="button"
           onClick={handleDecrement}
@@ -141,7 +140,6 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           <Minus size={styles.icon} />
         </button>
 
-        {/* Input field */}
         <input
           ref={ref}
           type="text"
@@ -166,7 +164,6 @@ export const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
           `}
         />
 
-        {/* Increment button */}
         <button
           type="button"
           onClick={handleIncrement}

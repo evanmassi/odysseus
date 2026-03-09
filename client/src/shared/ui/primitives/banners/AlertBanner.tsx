@@ -15,41 +15,32 @@ import {
 import { defaultAlertBannerProps } from './types';
 
 import type { AlertBannerProps, AlertBannerVariant } from './types';
-import type { LucideIcon } from 'lucide-react';
 
-const variantStyles: Record<
-  AlertBannerVariant,
-  { bg: string; icon: string; text: string; defaultIcon: LucideIcon | null }
-> = {
+const variantStyles: Record<AlertBannerVariant, { bg: string; icon: string; text: string }> = {
   error: {
     bg: 'bg-danger-light',
     icon: 'text-danger-text',
     text: 'text-danger-text',
-    defaultIcon: null,
   },
   warning: {
     bg: 'bg-warning-light',
     icon: 'text-warning-text',
     text: 'text-warning-text',
-    defaultIcon: null,
   },
   info: {
     bg: 'bg-info-light',
     icon: 'text-info-text',
     text: 'text-info-text',
-    defaultIcon: null,
   },
   success: {
     bg: 'bg-success-light',
     icon: 'text-success-text',
     text: 'text-success-text',
-    defaultIcon: null,
   },
   demo: {
     bg: 'bg-demo-light',
     icon: 'text-demo-text',
     text: 'text-demo-text',
-    defaultIcon: null,
   },
 };
 
@@ -71,7 +62,6 @@ export function AlertBanner({
   spacing = defaultAlertBannerProps.spacing,
 }: AlertBannerProps) {
   const styles = variantStyles[variant];
-  const Icon = icon ?? styles.defaultIcon;
   const animationClass = animate ? 'animate-in slide-in-from-top-2 duration-300' : '';
   const spacingClass = spacingStyles[spacing ?? 'md'];
 
@@ -102,8 +92,9 @@ export function AlertBanner({
         );
       }
     }
-    if (Icon) {
-      return <Icon className={`w-4 h-4 ${styles.icon} flex-shrink-0 ${extraClass}`} />;
+    if (icon) {
+      const CustomIcon = icon;
+      return <CustomIcon className={`w-4 h-4 ${styles.icon} flex-shrink-0 ${extraClass}`} />;
     }
     return null;
   };

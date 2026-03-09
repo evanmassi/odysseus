@@ -159,7 +159,6 @@ export function OverflowMenu({
 
   return (
     <>
-      {/* Trigger Button */}
       <button
         ref={triggerRef}
         type="button"
@@ -172,7 +171,6 @@ export function OverflowMenu({
         <MoreVertical size={iconSize} />
       </button>
 
-      {/* Dropdown Menu - rendered via portal */}
       {createPortal(
         <div
           ref={menuRef}

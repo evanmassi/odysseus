@@ -10,12 +10,12 @@ import { CircleX, X, Copy } from 'lucide-react';
 
 import { logger } from '@infra/logger';
 
-interface ErrorDisplayProps {
+interface ErrorBannerProps {
   errors: string[];
   onClear: () => void;
 }
 
-export function ErrorBanner({ errors, onClear }: ErrorDisplayProps) {
+export function ErrorBanner({ errors, onClear }: ErrorBannerProps) {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
