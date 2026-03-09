@@ -1,10 +1,16 @@
+/**
+ * Inline Edit Input
+ *
+ * Absolute-positioned text input for in-place field editing with save/cancel controls.
+ */
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 
 import { Check, X } from 'lucide-react';
 
 import { Tooltip } from '../../primitives/tooltip/Tooltip';
 
-interface QuickEditFieldProps {
+interface InlineEditInputProps {
   initialValue: string;
   fieldName: string;
   onSave: (value: string) => void;
@@ -18,7 +24,7 @@ export function InlineEditInput({
   onSave,
   onCancel,
   placeholder,
-}: QuickEditFieldProps) {
+}: InlineEditInputProps) {
   const [value, setValue] = useState(initialValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -42,17 +48,12 @@ export function InlineEditInput({
           e.stopPropagation();
           onCancel();
           break;
-        case 'Tab':
-          // Allow tab to work normally but save on tab out
-          onSave(value);
-          break;
       }
     },
     [value, onSave, onCancel]
   );
 
   const handleBlur = useCallback(() => {
-    // Auto-save on blur
     onSave(value);
   }, [value, onSave]);
 
