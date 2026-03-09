@@ -89,26 +89,14 @@ export {
 export {
   SearchFiltersSchema,
   AdvancedSearchOptionsSchema,
-  SearchPaginationSchema,
-  SearchMetadataSchema,
   SearchResultSchema,
   GroupedResultSchema,
-  SearchResultsSchema,
   SearchSuggestionsResponseSchema,
-  SaveSearchResponseSchema,
-  SavedSearchSchema,
-  SavedSearchesResponseSchema,
-  FilterOptionsResponseSchema,
   type SearchFilters,
   type AdvancedSearchOptions,
   type SearchResult,
   type GroupedResult,
-  type SearchResults,
   type SearchSuggestionsResponse,
-  type SaveSearchResponse,
-  type SavedSearch,
-  type SavedSearchesResponse,
-  type FilterOptionsResponse,
 } from './search/searchSchemas';
 
 // Researchers
