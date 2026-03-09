@@ -322,10 +322,8 @@ export {
 export {
   personSchema,
   updatePersonProfileSchema,
-  personProfileResponseSchema,
   type Person,
   type UpdatePersonProfile,
-  type PersonProfileResponse,
   type NameSortable,
   sortByName,
 } from './persons/personSchemas';

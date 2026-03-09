@@ -6,12 +6,6 @@
 
 import { z } from 'zod';
 
-/**
- * Person Domain Entity
- *
- * Core profile entity containing name, email, and organizational data.
- * Referenced by User and Researcher entities.
- */
 export const personSchema = z.object({
   id: z.string(),
   firstName: z.string(),
@@ -25,12 +19,6 @@ export const personSchema = z.object({
 
 export type Person = z.infer<typeof personSchema>;
 
-/**
- * Person Update Schema
- *
- * Input for updating person profiles
- * All fields optional for partial updates
- */
 export const updatePersonProfileSchema = z.object({
   firstName: z.string().min(1, 'First name cannot be empty').max(50, 'First name too long').optional(),
   lastName: z.string().min(1, 'Last name cannot be empty').max(50, 'Last name too long').optional(),
@@ -42,23 +30,8 @@ export const updatePersonProfileSchema = z.object({
 export type UpdatePersonProfile = z.infer<typeof updatePersonProfileSchema>;
 
 /**
- * Person Profile Response Schema
- *
- * API response for person profile queries
- */
-export const personProfileResponseSchema = z.object({
-  success: z.boolean(),
-  data: personSchema
-});
-
-export type PersonProfileResponse = z.infer<typeof personProfileResponseSchema>;
-
-/**
- * Name Sortable Interface
- *
  * Objects that can be sorted by name. Supports flexible field presence:
- * - Researchers: have firstName/lastName (required)
- * - Users: have username (required), firstName/lastName (optional)
+ * researchers have firstName/lastName, users fall back to username.
  */
 export interface NameSortable {
   lastName?: string;
@@ -67,15 +40,7 @@ export interface NameSortable {
 }
 
 /**
- * Sort an array of person-like objects by name
- *
- * Sorting priority: lastName → firstName → username
- * - Handles hyphenated last names (e.g., "Smith-Johnson" sorts as "Smith")
- * - Empty/missing values sort to the end
- * - Case-insensitive comparison
- *
- * @param items - Array of objects with name fields
- * @returns New sorted array (does not mutate original)
+ * Sorts by lastName → firstName → username. Empty/missing values sort to the end.
  *
  * @example
  * ```typescript
@@ -88,19 +53,14 @@ export interface NameSortable {
  */
 export function sortByName<T extends NameSortable>(items: T[]): T[] {
   return [...items].sort((a, b) => {
-    // Extract sort key from lastName, handling hyphenated names
+    // Hyphenated last names sort by first segment
     const getLastNameKey = (name?: string): string => {
       if (!name?.trim()) return '\uffff'; // Sort empty to end
       const parts = name.split('-');
       return parts[0].trim().toLowerCase();
     };
 
-    const getFirstNameKey = (name?: string): string => {
-      if (!name?.trim()) return '\uffff'; // Sort empty to end
-      return name.trim().toLowerCase();
-    };
-
-    const getUsernameKey = (name?: string): string => {
+    const getNameKey = (name?: string): string => {
       if (!name?.trim()) return '\uffff'; // Sort empty to end
       return name.trim().toLowerCase();
     };
@@ -113,15 +73,13 @@ export function sortByName<T extends NameSortable>(items: T[]): T[] {
     }
 
     // Secondary: firstName
-    const firstNameA = getFirstNameKey(a.firstName);
-    const firstNameB = getFirstNameKey(b.firstName);
+    const firstNameA = getNameKey(a.firstName);
+    const firstNameB = getNameKey(b.firstName);
     if (firstNameA !== firstNameB) {
       return firstNameA.localeCompare(firstNameB);
     }
 
     // Tertiary: username (fallback for users without names)
-    const usernameA = getUsernameKey(a.username);
-    const usernameB = getUsernameKey(b.username);
-    return usernameA.localeCompare(usernameB);
+    return getNameKey(a.username).localeCompare(getNameKey(b.username));
   });
 }
