@@ -1,14 +1,11 @@
 /**
- * Configuration Update Types
+ * Configuration Import Types
  *
- * Type definitions for laboratory configuration updates.
+ * Shape accepted by Configuration.fromData() for importing lab configuration.
  */
 
-import type { TankConfiguration, RackConfiguration, BoxConfiguration, PositionDisplayConfig } from '@odysseus/shared-schemas';
+import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 
-/**
- * Data structure for importing configuration (matches Configuration.fromData() parameter)
- */
 export interface ConfigurationImportData {
   tanks: Array<{
     id: string;
@@ -25,15 +22,20 @@ export interface ConfigurationImportData {
         isActive?: boolean;
         assignedUserId?: string | null;
         customLabel?: string;
+        sharedWithUserIds?: string[];
+        isSeeded?: boolean;
       }>;
       maxBoxes?: number;
       capacity?: number;
       isActive?: boolean;
       assignedUserId?: string;
       customLabel?: string;
+      sharedWithUserIds?: string[];
+      isSeeded?: boolean;
     }>;
     maxRacks?: number;
     isActive?: boolean;
+    isSeeded?: boolean;
   }>;
   systemSettings: {
     labName: string;
@@ -45,16 +47,4 @@ export interface ConfigurationImportData {
   };
   updatedAt?: string;
   version?: number;
-}
-
-/**
- * Configuration update data
- */
-export interface ConfigurationUpdateData {
-  tanks?: TankConfiguration[];
-  equipment?: {
-    tanks?: TankConfiguration[];
-    racks?: RackConfiguration[];
-    boxes?: BoxConfiguration[];
-  };
 }
