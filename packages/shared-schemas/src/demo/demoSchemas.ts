@@ -12,15 +12,15 @@ export const DEMO_LIMITS_DEFAULTS = {
   maxBoxesPerRack: 10,
 } as const;
 
-export const DemoLimitsSchema = z.object({
+export const demoLimitsSchema = z.object({
   maxTanks: z.number().int().min(0).max(50).default(DEMO_LIMITS_DEFAULTS.maxTanks),
   maxRacksPerTank: z.number().int().min(0).max(50).default(DEMO_LIMITS_DEFAULTS.maxRacksPerTank),
   maxBoxesPerRack: z.number().int().min(0).max(100).default(DEMO_LIMITS_DEFAULTS.maxBoxesPerRack),
 }).strict();
 
-export const UpdateDemoLimitsSchema = DemoLimitsSchema.partial();
+export const updateDemoLimitsSchema = demoLimitsSchema.partial();
 
-export const SeedDemoResponseSchema = z.object({
+export const seedDemoResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
   seededCount: z.object({
@@ -30,12 +30,12 @@ export const SeedDemoResponseSchema = z.object({
   }),
 }).strict();
 
-export const UnseedDemoResponseSchema = z.object({
+export const unseedDemoResponseSchema = z.object({
   success: z.boolean(),
   message: z.string(),
 }).strict();
 
-export type DemoLimits = z.infer<typeof DemoLimitsSchema>;
-export type UpdateDemoLimits = z.infer<typeof UpdateDemoLimitsSchema>;
-export type SeedDemoResponse = z.infer<typeof SeedDemoResponseSchema>;
-export type UnseedDemoResponse = z.infer<typeof UnseedDemoResponseSchema>;
+export type DemoLimits = z.infer<typeof demoLimitsSchema>;
+export type UpdateDemoLimits = z.infer<typeof updateDemoLimitsSchema>;
+export type SeedDemoResponse = z.infer<typeof seedDemoResponseSchema>;
+export type UnseedDemoResponse = z.infer<typeof unseedDemoResponseSchema>;

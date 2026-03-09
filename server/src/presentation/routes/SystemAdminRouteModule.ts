@@ -15,7 +15,7 @@ import { ConfigurationController } from '@presentation/controllers/Configuration
 import { AuditController } from '@presentation/controllers/AuditController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { validateBody, validateParams } from '@middleware/Validation';
-import { updateSecurityConfigSchema, UpdateDemoLimitsSchema } from '@odysseus/shared-schemas';
+import { updateSecurityConfigSchema, updateDemoLimitsSchema } from '@odysseus/shared-schemas';
 
 export class SystemAdminRouteModule implements RouteModule {
   constructor(
@@ -131,7 +131,7 @@ export class SystemAdminRouteModule implements RouteModule {
 
     router.put('/labs/:labId/demo/limits',
       validateParams(z.object({ labId: z.string() })),
-      validateBody(UpdateDemoLimitsSchema),
+      validateBody(updateDemoLimitsSchema),
       this.labController.updateDemoLimits.bind(this.labController)
     );
 

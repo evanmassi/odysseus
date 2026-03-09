@@ -311,10 +311,10 @@ export {
 
 // Demo
 export {
-  DemoLimitsSchema,
-  UpdateDemoLimitsSchema,
-  SeedDemoResponseSchema,
-  UnseedDemoResponseSchema,
+  demoLimitsSchema,
+  updateDemoLimitsSchema,
+  seedDemoResponseSchema,
+  unseedDemoResponseSchema,
   DEMO_LIMITS_DEFAULTS,
   type DemoLimits,
   type UpdateDemoLimits,
