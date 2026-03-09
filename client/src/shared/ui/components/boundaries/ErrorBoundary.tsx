@@ -2,25 +2,16 @@
  * Error Boundary Component
  *
  * Error boundary with retry functionality and error reporting.
- * Handles runtime errors in React component tree.
  */
 
 import type { ReactNode, ErrorInfo } from 'react';
-import React, {
-  Component,
-  useState,
-  useCallback,
-  useEffect,
-  forwardRef,
-  createElement,
-} from 'react';
+import React, { Component } from 'react';
 
 import { logger } from '@infra/logger';
 import { env } from '@shared/config';
 
 import { Button } from '../../primitives';
 
-// Error boundary state
 interface ErrorBoundaryState {
   hasError: boolean;
   error: Error | null;
@@ -28,11 +19,8 @@ interface ErrorBoundaryState {
   errorId: string | null;
 }
 
-// Error boundary props
 export interface ErrorBoundaryProps {
   children: ReactNode;
-
-  // Error handling
   fallback?:
     | React.ComponentType<{
         error: Error;
@@ -46,20 +34,13 @@ export interface ErrorBoundaryProps {
         retry: () => void;
         errorId: string;
       }) => ReactNode);
-
-  // Callbacks
   onError?: (error: Error, errorInfo: ErrorInfo, errorId: string) => void;
   onRetry?: () => void;
-
-  // Configuration
-  isolate?: boolean; // Prevent error propagation
-  level?: 'page' | 'section' | 'component'; // Error boundary level
-
-  // Debugging
-  name?: string; // For debugging purposes
+  isolate?: boolean;
+  level?: 'page' | 'section' | 'component';
+  name?: string;
 }
 
-// Default error fallback component
 interface DefaultErrorFallbackProps {
   error: Error;
   errorInfo: ErrorInfo | null;
@@ -160,15 +141,11 @@ const DefaultErrorFallback: React.FC<DefaultErrorFallbackProps> = ({
   );
 };
 
-// Generate unique error ID
 const generateErrorId = (): string => {
   return `err_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
 };
 
-// Main Error Boundary class component
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  private errorId: string = '';
-
   constructor(props: ErrorBoundaryProps) {
     super(props);
 
@@ -199,7 +176,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       errorId,
     });
 
-    // Log error for monitoring
     if (env.isDev()) {
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Debug logging: empty name shows 'Unknown'
       // eslint-disable-next-line no-console -- Development-only error logging (environment-gated)
@@ -211,20 +187,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       console.groupEnd();
     }
 
-    // Call error callback
     this.props.onError?.(error, errorInfo, errorId);
-
-    // In production, you might want to send this to an error reporting service
-    if (env.isProd()) {
-      // Example: Send to error reporting service
-      // errorReportingService.captureException(error, {
-      //   tags: {
-      //     errorBoundary: this.props.name || 'unknown',
-      //     errorId,
-      //   },
-      //   extra: errorInfo,
-      // });
-    }
   }
 
   handleRetry = () => {
@@ -251,76 +214,9 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         name: this.props.name,
       };
 
-      // Handle function vs component fallback
-      if (typeof FallbackComponent === 'function') {
-        return <FallbackComponent {...fallbackProps} />;
-      } else {
-        return createElement(FallbackComponent, fallbackProps);
-      }
+      return <FallbackComponent {...fallbackProps} />;
     }
 
     return this.props.children;
   }
 }
-
-// Hook for handling errors in functional components
-export const useErrorHandler = () => {
-  const [error, setError] = useState<Error | null>(null);
-
-  const handleError = useCallback((error: Error) => {
-    setError(error);
-
-    // Log error
-    if (env.isDev()) {
-      logger.error('Handled error', { error });
-    }
-  }, []);
-
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
-
-  // Re-throw error to be caught by error boundary
-  useEffect(() => {
-    if (error) {
-      throw error;
-    }
-  }, [error]);
-
-  return { handleError, clearError, error };
-};
-
-// Higher-order component for error boundary
-export const withErrorBoundary = <P extends object>(
-  Component: React.ComponentType<P>,
-  errorBoundaryConfig?: Omit<ErrorBoundaryProps, 'children'>
-) => {
-  const WrappedComponent = forwardRef<unknown, P>((props, ref) => {
-    // Conditionally pass ref only if it exists
-    const componentProps = ref ? { ...props, ref: ref as React.Ref<unknown> } : props;
-
-    return (
-      <ErrorBoundary {...errorBoundaryConfig}>
-        <Component {...(componentProps as P)} />
-      </ErrorBoundary>
-    );
-  });
-
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback for React displayName
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-
-  return WrappedComponent;
-};
-
-// Error boundary for specific scenarios
-export const PageErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = props => (
-  <ErrorBoundary {...props} level="page" />
-);
-
-export const SectionErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = props => (
-  <ErrorBoundary {...props} level="section" />
-);
-
-export const ComponentErrorBoundary: React.FC<Omit<ErrorBoundaryProps, 'level'>> = props => (
-  <ErrorBoundary {...props} level="component" />
-);
