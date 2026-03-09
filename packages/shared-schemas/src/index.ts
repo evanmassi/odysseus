@@ -139,11 +139,7 @@ export {
 export {
   successEnvelopeSchema,
   errorEnvelopeSchema,
-  paginatedEnvelopeSchema,
-  batchEnvelopeSchema,
   ApiError,
-  type PaginatedResult,
-  type BatchResult,
 } from './infrastructure/transportSchemas';
 
 // Storage
