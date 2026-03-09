@@ -7,12 +7,6 @@
 import type { PositionDisplayConfig, AlphanumericConfig } from './positionSchemas';
 
 /**
- * Convert numeric position to display label
- *
- * @param position - 1-based position number (1-81 for 9x9 grid)
- * @param gridRows - Number of rows in grid
- * @param gridCols - Number of columns in grid
- * @param config - Display format configuration
  * @returns Formatted label ("23" or "C5" depending on config)
  * @throws Error if position is out of bounds or config is invalid
  *
@@ -62,12 +56,6 @@ export function positionToLabel(
 }
 
 /**
- * Convert display label to numeric position
- *
- * @param label - Display label ("23" or "C5")
- * @param gridRows - Number of rows in grid
- * @param gridCols - Number of columns in grid
- * @param config - Display format configuration
  * @returns 1-based position number
  * @throws Error if label is invalid or out of bounds
  *
@@ -148,6 +136,8 @@ export function isValidPositionLabel(
 }
 
 /**
+ * Generates all position labels for a grid in row-major order.
+ *
  * @example
  * // Numeric 3x3
  * generatePositionLabels(3, 3, { format: 'numeric' })
