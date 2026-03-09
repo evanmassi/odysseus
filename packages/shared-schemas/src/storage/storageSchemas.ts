@@ -1,20 +1,20 @@
+/**
+ * Storage Configuration Schemas
+ *
+ * Zod schemas for lab equipment hierarchy: tanks → racks → boxes → grid.
+ */
+
 import { z } from 'zod';
 import { demoLimitsSchema } from '../demo/demoSchemas';
 import { positionDisplayConfigSchema, POSITION_DISPLAY_PRESETS } from './positionSchemas';
 
-/**
- * Grid Configuration Schema
- * Minimal server representation; client computes derived values.
- */
+// Minimal server representation; client computes derived values.
 export const GridConfigurationSchema = z.object({
   rows: z.number().min(1).max(20),
   cols: z.number().min(1).max(20),
   template: z.string(),
 }).strict();
 
-/**
- * Box Configuration Schema
- */
 export const BoxConfigurationSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -29,9 +29,6 @@ export const BoxConfigurationSchema = z.object({
   isSeeded: z.boolean().optional(),
 }).strict();
 
-/**
- * Rack Configuration Schema
- */
 export const RackConfigurationSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -45,9 +42,6 @@ export const RackConfigurationSchema = z.object({
   isSeeded: z.boolean().optional(),
 }).strict();
 
-/**
- * Tank Configuration Schema
- */
 export const TankConfigurationSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -60,9 +54,6 @@ export const TankConfigurationSchema = z.object({
   isSeeded: z.boolean().optional(),
 }).strict();
 
-/**
- * Color Scheme Schema
- */
 export const ColorSchemeSchema = z.object({
   primary: z.string(),
   secondary: z.string(),
@@ -71,18 +62,12 @@ export const ColorSchemeSchema = z.object({
   text: z.string(),
 }).strict();
 
-/**
- * Equipment Configuration Schema
- */
 export const EquipmentConfigurationSchema = z.object({
   tanks: z.array(TankConfigurationSchema),
   defaultBoxConfig: BoxConfigurationSchema,
   defaultGridConfig: GridConfigurationSchema,
 }).strict();
 
-/**
- * Lab Configuration Schema
- */
 export const LabConfigurationSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -104,9 +89,6 @@ export const LabConfigurationSchema = z.object({
   demoLimits: demoLimitsSchema.optional(),
 }).strict();
 
-/**
- * Global Settings Schema
- */
 export const GlobalSettingsSchema = z.object({
   theme: z.enum(['light', 'dark']).default('light'),
   language: z.string().default('en'),
@@ -114,9 +96,6 @@ export const GlobalSettingsSchema = z.object({
   autoBackup: z.boolean().default(true),
 }).strict();
 
-/**
- * System Configuration Schema
- */
 export const SystemConfigurationSchema = z.object({
   currentLabId: z.string(),
   availableLabs: z.array(LabConfigurationSchema),
@@ -124,32 +103,17 @@ export const SystemConfigurationSchema = z.object({
   version: z.number(),
 }).strict();
 
-/**
- * Configuration Response Schema (pure domain type)
- */
+const configurationPayloadSchema = z.object({
+  systemConfig: SystemConfigurationSchema,
+  currentLab: LabConfigurationSchema,
+});
+
 export const ConfigurationResponseSchema = z.object({
-  configuration: z.object({
-    systemConfig: SystemConfigurationSchema,
-    currentLab: LabConfigurationSchema,
-  }),
+  configuration: configurationPayloadSchema,
 }).strict();
 
-/**
- * Save Configuration Request Schema
- */
 export const SaveConfigurationRequestSchema = z.object({
-  configuration: z.object({
-    systemConfig: SystemConfigurationSchema,
-    currentLab: LabConfigurationSchema,
-  }),
-}).strict();
-
-/**
- * Delete Tank Response Schema
- */
-export const DeleteTankResponseSchema = z.object({
-  message: z.string(),
-  deletedTubes: z.number(),
+  configuration: configurationPayloadSchema,
 }).strict();
 
 export type GridConfiguration = z.infer<typeof GridConfigurationSchema>;
@@ -163,4 +127,3 @@ export type GlobalSettings = z.infer<typeof GlobalSettingsSchema>;
 export type SystemConfiguration = z.infer<typeof SystemConfigurationSchema>;
 export type ConfigurationResponse = z.infer<typeof ConfigurationResponseSchema>;
 export type SaveConfigurationRequest = z.infer<typeof SaveConfigurationRequestSchema>;
-export type DeleteTankResponse = z.infer<typeof DeleteTankResponseSchema>;

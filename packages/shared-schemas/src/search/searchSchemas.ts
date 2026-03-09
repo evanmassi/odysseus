@@ -72,6 +72,16 @@ export const SearchResultSchema = z.object({
   metadata: SearchMetadataSchema.optional(),
 }).strict();
 
+// UI-layer result shape — distinct from SearchResultSchema (API response)
+export const SearchResultsSchema = z.object({
+  tubes: z.array(tubeDataSchema),
+  grouped: z.array(GroupedResultSchema),
+  matchedTerms: z.array(z.string()).optional(), // Terms for client-side highlighting (includes synonyms)
+  total: z.number(),
+  query: z.string(),
+  hasResults: z.boolean(),
+}).strict();
+
 export const SearchSuggestionsResponseSchema = z.object({
   suggestions: z.array(z.string()),
 }).strict();
@@ -79,5 +89,6 @@ export const SearchSuggestionsResponseSchema = z.object({
 export type SearchFilters = z.infer<typeof SearchFiltersSchema>;
 export type AdvancedSearchOptions = z.infer<typeof AdvancedSearchOptionsSchema>;
 export type SearchResult = z.infer<typeof SearchResultSchema>;
+export type SearchResults = z.infer<typeof SearchResultsSchema>;
 export type GroupedResult = z.infer<typeof GroupedResultSchema>;
 export type SearchSuggestionsResponse = z.infer<typeof SearchSuggestionsResponseSchema>;

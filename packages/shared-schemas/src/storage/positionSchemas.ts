@@ -1,13 +1,11 @@
-import { z } from 'zod';
-
 /**
- * Position Display Format Types
+ * Position Display Schemas
  *
- * Supports both numeric (1-81) and alphanumeric (A1-I9) position labeling
+ * Supports numeric (1-81) and alphanumeric (A1-I9) position labeling
  * to match real-world laboratory freezer box formats.
- *
- * Flexible for ANY grid size - generates labels dynamically.
  */
+
+import { z } from 'zod';
 
 export const positionDisplayFormatSchema = z.enum(['numeric', 'alphanumeric']);
 
@@ -47,12 +45,9 @@ export const positionDisplayConfigSchema = z.object({
 export type PositionDisplayConfig = z.infer<typeof positionDisplayConfigSchema>;
 
 /**
- * Position Display Preference Schema (User Preferences Only)
- *
- * For user preferences, we only store the format preference (numeric vs alphanumeric).
- * The full config with grid-specific alphanumericConfig is generated when applied to actual boxes.
- *
- * This is different from box overrides or lab defaults, which store complete configs.
+ * For user preferences, only the format is stored (numeric vs alphanumeric).
+ * The full alphanumericConfig is generated when applied to a specific box — unlike
+ * box overrides or lab defaults, which store complete configs.
  */
 export const positionDisplayPreferenceSchema = z.object({
   format: positionDisplayFormatSchema,
@@ -61,10 +56,7 @@ export const positionDisplayPreferenceSchema = z.object({
 export type PositionDisplayPreference = z.infer<typeof positionDisplayPreferenceSchema>;
 
 /**
- * Generate alphabetic labels for any count (A, B, ... Z, AA, AB, ... ZZ, AAA, ...)
- *
- * @param count - Number of labels to generate
- * @returns Array of alphabetic labels
+ * Generates alphabetic labels for any count (A, B, ... Z, AA, AB, ... ZZ, AAA, ...)
  *
  * @example
  * generateAlphabeticLabels(3)  // ['A', 'B', 'C']
@@ -89,11 +81,6 @@ export function generateAlphabeticLabels(count: number): string[] {
 }
 
 /**
- * Generate numeric labels for any count (1, 2, 3, ... 100, ...)
- *
- * @param count - Number of labels to generate
- * @returns Array of numeric string labels
- *
  * @example
  * generateNumericLabels(5)   // ['1', '2', '3', '4', '5']
  * generateNumericLabels(100) // ['1', '2', ..., '100']
@@ -103,13 +90,6 @@ export function generateNumericLabels(count: number): string[] {
 }
 
 /**
- * Create alphanumeric position display config for any grid size
- *
- * @param gridRows - Number of rows in grid
- * @param gridCols - Number of columns in grid
- * @param format - Label format ('row-col' for A1, 'col-row' for 1A)
- * @returns Position display configuration
- *
  * @example
  * // 9x9 grid: A1, A2, ..., I9
  * createAlphanumericConfig(9, 9, 'row-col')
@@ -138,11 +118,6 @@ export function createAlphanumericConfig(
   };
 }
 
-/**
- * Create numeric position display config
- *
- * @returns Position display configuration for numeric format
- */
 export function createNumericConfig(): PositionDisplayConfig {
   return {
     format: 'numeric',
@@ -168,14 +143,8 @@ export const POSITION_DISPLAY_PRESETS = {
 } as const;
 
 /**
- * Get default position display config for a given grid size
- *
  * Returns alphanumeric (row-col) format by default.
  * For custom formats, use createAlphanumericConfig() or createNumericConfig().
- *
- * @param gridRows - Number of rows in grid
- * @param gridCols - Number of columns in grid
- * @returns Position display configuration appropriate for grid size
  *
  * @example
  * getDefaultPositionDisplay(5, 5)   // A1-E5

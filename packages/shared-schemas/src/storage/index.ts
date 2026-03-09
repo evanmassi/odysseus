@@ -1,5 +1,5 @@
 /**
- * Storage Barrel
+ * Storage Module Exports
  *
  * Lab configuration, equipment schemas, position display, and formatters.
  */
@@ -16,7 +16,6 @@ export {
   SystemConfigurationSchema,
   ConfigurationResponseSchema,
   SaveConfigurationRequestSchema,
-  DeleteTankResponseSchema,
   type GridConfiguration,
   type BoxConfiguration,
   type RackConfiguration,
@@ -28,12 +27,11 @@ export {
   type SystemConfiguration,
   type ConfigurationResponse,
   type SaveConfigurationRequest,
-  type DeleteTankResponse,
-} from './configurationSchemas';
+} from './storageSchemas';
 
 export {
   formatResourceDisplayName,
-} from './formatters';
+} from './storageFormatters';
 
 export {
   positionDisplayFormatSchema,

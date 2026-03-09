@@ -4,7 +4,7 @@
  * Storage boxes are square and range from 5x5 to 10x10 positions.
  */
 
-import type { GridConfiguration } from '../storage/configurationSchemas';
+import type { GridConfiguration } from '../storage/storageSchemas';
 
 export const GRID_TEMPLATES: readonly GridConfiguration[] = [
   { rows: 5, cols: 5, template: 'extra-small' },   // 25 positions

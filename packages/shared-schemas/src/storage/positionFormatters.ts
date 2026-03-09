@@ -1,11 +1,11 @@
-import type { PositionDisplayConfig, AlphanumericConfig } from './positionSchemas';
-
 /**
  * Position Formatting Utilities
  *
  * Handles conversion between numeric positions (1-81) and display labels.
  * Database stores positions as integers; display format is configurable per box.
  */
+
+import type { PositionDisplayConfig, AlphanumericConfig } from './positionSchemas';
 
 /**
  * Convert numeric position to display label
@@ -134,15 +134,6 @@ export function labelToPosition(
   return rowIndex * gridCols + colIndex + 1;
 }
 
-/**
- * Validate that a label is valid for the given configuration
- *
- * @param label - Display label to validate
- * @param gridRows - Number of rows in grid
- * @param gridCols - Number of columns in grid
- * @param config - Display format configuration
- * @returns true if label is valid, false otherwise
- */
 export function isValidPositionLabel(
   label: string,
   gridRows: number,
@@ -158,13 +149,6 @@ export function isValidPositionLabel(
 }
 
 /**
- * Generate all valid position labels for a grid
- *
- * @param gridRows - Number of rows in grid
- * @param gridCols - Number of columns in grid
- * @param config - Display format configuration
- * @returns Array of all valid position labels in order
- *
  * @example
  * // Numeric 3x3
  * generatePositionLabels(3, 3, { format: 'numeric' })
