@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 
 import { Button, Chip } from '@shared/ui';
-import { LabBadge } from '@shared/ui/components/badges/LabBadge';
+import { LabBadge } from '@shared/ui/components/badges';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Tooltip } from '@shared/ui/primitives/tooltip/Tooltip';
 import { notifications } from '@shared/utils';

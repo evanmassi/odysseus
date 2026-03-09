@@ -1,3 +1,9 @@
+/**
+ * User Presence Badge
+ *
+ * Green circular avatar indicating a user is currently online.
+ */
+
 import { Tooltip } from '@shared/ui';
 import { getUserInitials, getUserDisplayName } from '@shared/utils/userDisplayFormatters';
 
@@ -7,15 +13,8 @@ interface UserPresenceBadgeProps {
   lastName?: string;
 }
 
-/**
- * Single user presence badge
- * Displays user initials in a green circular badge with tooltip showing full name
- */
 export function UserPresenceBadge({ username, firstName, lastName }: UserPresenceBadgeProps) {
-  // Generate initials: prefer first/last name, fall back to username
   const initials = getUserInitials(username, firstName, lastName);
-
-  // Generate display name for tooltip
   const displayName = getUserDisplayName(username, firstName, lastName);
 
   return (
