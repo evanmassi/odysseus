@@ -56,16 +56,6 @@ export class UserInactiveError extends DomainError {
   }
 }
 
-export class PasswordRequirementError extends DomainError {
-  readonly code = 'PASSWORD_REQUIREMENTS_NOT_MET';
-  readonly statusCode = 400;
-
-  constructor(requirements: string[]) {
-    const message = `Password does not meet requirements: ${requirements.join(', ')}`;
-    super(message, { requirements });
-  }
-}
-
 export class SessionExpiredError extends DomainError {
   readonly code = 'SESSION_EXPIRED';
   readonly statusCode = 401;

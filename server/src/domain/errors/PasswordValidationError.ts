@@ -1,7 +1,9 @@
 import { DomainError } from './DomainError';
 
 /**
- * Error for password validation failures
+ * Password Validation Error
+ *
+ * Password does not meet validation requirements. Maps to HTTP 400.
  */
 export class PasswordValidationError extends DomainError {
   readonly code = 'PASSWORD_VALIDATION_ERROR';
@@ -9,6 +11,5 @@ export class PasswordValidationError extends DomainError {
 
   constructor(message: string, context?: Record<string, unknown>) {
     super(message, context);
-    this.name = 'PasswordValidationError';
   }
 }

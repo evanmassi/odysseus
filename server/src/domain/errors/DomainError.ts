@@ -1,6 +1,7 @@
 /**
- * Base Domain Error - All domain errors extend this
- * Provides consistent error handling across the domain layer
+ * Base Domain Error
+ *
+ * Abstract base for all domain-layer errors with consistent serialization.
  */
 export abstract class DomainError extends Error {
   abstract readonly code: string;
@@ -19,9 +20,6 @@ export abstract class DomainError extends Error {
     }
   }
 
-  /**
-   * Convert domain error to JSON for API responses
-   */
   toJSON(): {
     error: string;
     code: string;

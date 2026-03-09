@@ -1,7 +1,9 @@
 import { DomainError } from './DomainError';
 
 /**
- * Error for password reset operations
+ * Password Reset Error
+ *
+ * Password reset token validation failure. Maps to HTTP 400.
  */
 export class PasswordResetError extends DomainError {
   readonly code = 'PASSWORD_RESET_ERROR';
@@ -9,7 +11,6 @@ export class PasswordResetError extends DomainError {
 
   constructor(message: string, context?: Record<string, unknown>) {
     super(message, context);
-    this.name = 'PasswordResetError';
   }
 
   static expired(): PasswordResetError {
