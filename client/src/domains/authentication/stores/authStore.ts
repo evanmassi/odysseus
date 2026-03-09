@@ -22,7 +22,7 @@ import type { User } from '../types';
 import type { PasswordChangeRequiredResponse } from '../types/apiTypes';
 import type { AuthDebugInfo } from '../types/debugTypes';
 import type { RegisterWithResearcherRequest } from '@odysseus/shared-schemas';
-import type { TokenPair, SessionStatus } from '@shared/session/types';
+import type { TokenPair, SessionStatus } from '@shared/types/sessionTypes';
 
 /** Structured result from login for explicit error handling */
 export type LoginResult =

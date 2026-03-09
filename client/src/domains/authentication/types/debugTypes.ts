@@ -4,7 +4,7 @@
  * Type-safe interfaces for development-only auth diagnostics.
  */
 
-import type { SessionStatus } from '@shared/session/types';
+import type { SessionStatus } from '@shared/types/sessionTypes';
 
 export interface SessionDebugInfo {
   sessionStatus: SessionStatus;

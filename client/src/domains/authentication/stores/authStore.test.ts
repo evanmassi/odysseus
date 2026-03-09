@@ -9,7 +9,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { useAuthStore } from './authStore';
 
-import type { TokenPair } from '../../../shared/session/types';
+import type { TokenPair } from '@shared/types/sessionTypes';
 
 // Hoisted mocks must be declared before vi.mock calls
 const mockAuthService = vi.hoisted(() => ({

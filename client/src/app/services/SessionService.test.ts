@@ -6,8 +6,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { SessionService } from '@app/services/SessionService';
 
-import type { TokenPair, SessionConfig } from './types';
 import type { AuthHttpClient } from '@infra/api/AuthHttpClient';
+import type { TokenPair, SessionConfig } from '@shared/types/sessionTypes';
 
 // Mock storage matching actual SessionStorage interface
 function createMockStorage() {

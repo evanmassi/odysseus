@@ -19,7 +19,7 @@ import { isOffline } from '@infra/connection';
 
 import { transformApiResponse, ResponseTransformers } from './responseTransformers';
 
-import type { TokenProvider } from '@shared/session/types';
+import type { TokenProvider } from '@shared/types/sessionTypes';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Raw API data before transformation
 type TransformFn = (data: any) => unknown;

@@ -5,7 +5,7 @@
  */
 
 import type { User } from './index';
-import type { TokenPair } from '@shared/session/types';
+import type { TokenPair } from '@shared/types/sessionTypes';
 
 export interface AuthResponse {
   user: User;

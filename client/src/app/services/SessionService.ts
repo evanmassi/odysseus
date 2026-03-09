@@ -18,7 +18,7 @@ import type {
   SessionStorage,
   RefreshResponse,
   TokenProvider,
-} from '@shared/session/types';
+} from '@shared/types/sessionTypes';
 
 interface SessionInfoData {
   isAuthenticated: boolean;
