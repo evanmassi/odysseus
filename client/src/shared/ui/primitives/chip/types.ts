@@ -46,28 +46,3 @@ export const defaultChipProps: Partial<ChipProps> = {
   selected: false,
   disabled: false,
 };
-
-export const isChipColor = (value: string): value is ChipColor => {
-  return [
-    'default',
-    'primary',
-    'active',
-    'inverted',
-    'success',
-    'warning',
-    'danger',
-    'info',
-  ].includes(value);
-};
-
-export const isChipSize = (value: string): value is ChipSize => {
-  return ['xs', 'sm', 'md'].includes(value);
-};
-
-export const isChipShape = (value: string): value is ChipShape => {
-  return ['rounded', 'pill'].includes(value);
-};
-
-export const isChipBehavior = (value: string): value is ChipBehavior => {
-  return ['static', 'selectable', 'removable'].includes(value);
-};

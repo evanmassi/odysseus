@@ -6,7 +6,7 @@
 
 import { forwardRef } from 'react';
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva } from 'class-variance-authority';
 
 import { defaultButtonProps } from './types';
 
@@ -302,5 +302,3 @@ export const Button = forwardRef<ButtonRef, ButtonProps>(
 );
 
 Button.displayName = 'Button';
-
-export type ButtonVariantsProps = VariantProps<typeof buttonVariants>;

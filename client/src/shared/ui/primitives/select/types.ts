@@ -138,16 +138,3 @@ export const defaultSelectProps: Partial<SelectProps> = {
   placeholder: 'Select an option...',
   maxHeight: 240,
 };
-
-// Type guards
-export const isSelectVariant = (value: string): value is SelectVariant => {
-  return ['default', 'filled', 'outlined'].includes(value);
-};
-
-export const isSelectSize = (value: string): value is SelectSize => {
-  return ['xs', 'sm', 'md', 'lg'].includes(value);
-};
-
-export const isSelectState = (value: string): value is SelectState => {
-  return ['default', 'error', 'warning', 'success'].includes(value);
-};

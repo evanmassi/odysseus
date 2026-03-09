@@ -147,24 +147,3 @@ export const defaultTableProps: Partial<TableProps> = {
   emptyMessage: 'No data available',
   loadingMessage: 'Loading...',
 };
-
-// Type guards
-export const isTableVariant = (value: string): value is TableVariant => {
-  return ['default', 'bordered', 'borderless'].includes(value);
-};
-
-export const isTableSize = (value: string): value is TableSize => {
-  return ['sm', 'md', 'lg'].includes(value);
-};
-
-export const isTableState = (value: string): value is TableState => {
-  return ['default', 'error', 'warning', 'success'].includes(value);
-};
-
-export const isSortDirection = (value: string): value is SortDirection => {
-  return ['asc', 'desc'].includes(value);
-};
-
-export const isTableRounded = (value: string): value is TableRounded => {
-  return ['none', 'sm', 'md', 'lg'].includes(value);
-};

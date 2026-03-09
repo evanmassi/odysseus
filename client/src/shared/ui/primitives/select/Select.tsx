@@ -7,22 +7,12 @@
 
 import React, { forwardRef, useState, useRef, useCallback, useId, useEffect } from 'react';
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva } from 'class-variance-authority';
 import { createPortal } from 'react-dom';
 
 import { defaultSelectProps } from './types';
 
 import type { SelectOption, SelectProps, SelectRef } from './types';
-
-// Re-export types for backward compatibility
-export type {
-  SelectOption,
-  SelectProps,
-  SelectRef,
-  SelectVariant,
-  SelectSize,
-  SelectState,
-} from './types';
 
 // Select styling using semantic design tokens
 const selectVariants = cva(
@@ -688,5 +678,3 @@ export const Select = forwardRef<SelectRef, SelectProps>(
 );
 
 Select.displayName = 'Select';
-
-export type SelectVariantsProps = VariantProps<typeof selectVariants>;

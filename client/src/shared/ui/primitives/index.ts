@@ -35,10 +35,6 @@ export type { AuthInputProps, AuthInputValidationState } from './input/AuthInput
 export type { NumberInputProps } from './input/NumberInput';
 export type {
   InputProps,
-  TextInputProps,
-  SearchInputProps,
-  DateInputProps,
-  PasswordInputProps,
   InputVariant,
   InputSize,
   InputState,

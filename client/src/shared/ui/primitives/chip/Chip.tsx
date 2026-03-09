@@ -6,7 +6,7 @@
 
 import { forwardRef } from 'react';
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva } from 'class-variance-authority';
 import { X } from 'lucide-react';
 
 import { defaultChipProps } from './types';
@@ -216,5 +216,3 @@ export const Chip = forwardRef<ChipRef, ChipProps>(
 );
 
 Chip.displayName = 'Chip';
-
-export type ChipVariantsProps = VariantProps<typeof chipVariants>;

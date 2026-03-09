@@ -36,18 +36,6 @@ export type ButtonShape =
   | 'pill' // Fully rounded (pill-shaped)
   | 'square'; // Sharp corners
 
-// Button loading state
-export type ButtonLoadingState = {
-  isLoading: boolean;
-  loadingText?: string;
-};
-
-// Button icon configuration
-export type ButtonIcon = {
-  icon: ReactNode;
-  position?: 'left' | 'right';
-};
-
 // Base button props (extends HTML button attributes)
 export interface BaseButtonProps extends Omit<ComponentProps<'button'>, 'children'> {
   // Content
@@ -92,76 +80,6 @@ export interface ButtonProps extends BaseButtonProps {
   // Additional props can be added here if needed
 }
 
-// Button group props for grouping buttons
-export interface ButtonGroupProps {
-  children: ReactNode;
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  orientation?: 'horizontal' | 'vertical';
-  spacing?: 'none' | 'sm' | 'md' | 'lg';
-  className?: string;
-}
-
-// Button dropdown props for dropdown buttons
-export interface ButtonDropdownProps extends BaseButtonProps {
-  isOpen?: boolean;
-  onToggle?: () => void;
-  dropdownContent?: ReactNode;
-  placement?: 'bottom' | 'top' | 'left' | 'right';
-}
-
-// Toggle button props for toggle functionality
-export interface ToggleButtonProps extends BaseButtonProps {
-  isPressed?: boolean;
-  onToggle?: (pressed: boolean) => void;
-  'aria-pressed'?: boolean;
-}
-
-// Button with tooltip props
-export interface ButtonWithTooltipProps extends BaseButtonProps {
-  tooltip?: string;
-  tooltipPlacement?: 'top' | 'bottom' | 'left' | 'right';
-}
-
-// Button style variants (for internal styling)
-export interface ButtonStyleVariants {
-  variant: Record<ButtonVariant, string>;
-  size: Record<ButtonSize, string>;
-  shape: Record<ButtonShape, string>;
-}
-
-// Button theme configuration
-export interface ButtonTheme {
-  // Base styles
-  base: string;
-
-  // Variant styles
-  variants: ButtonStyleVariants['variant'];
-
-  // Size styles
-  sizes: ButtonStyleVariants['size'];
-
-  // Shape styles
-  shapes: ButtonStyleVariants['shape'];
-
-  // State styles
-  states: {
-    disabled: string;
-    loading: string;
-    focus: string;
-    hover: string;
-    active: string;
-  };
-
-  // Icon styles
-  icons: {
-    left: string;
-    right: string;
-    only: string;
-    loading: string;
-  };
-}
-
 // Default props
 export const defaultButtonProps: Partial<ButtonProps> = {
   variant: 'primary',
@@ -172,30 +90,4 @@ export const defaultButtonProps: Partial<ButtonProps> = {
   isLoading: false,
   fullWidth: false,
   iconOnly: false,
-};
-
-// Type guards
-export const isButtonVariant = (value: string): value is ButtonVariant => {
-  return [
-    'primary',
-    'secondary',
-    'tertiary',
-    'danger',
-    'success',
-    'warning',
-    'info',
-    'ghost',
-    'ghost-danger',
-    'ghost-warning',
-    'cancel',
-    'clear',
-  ].includes(value);
-};
-
-export const isButtonSize = (value: string): value is ButtonSize => {
-  return ['xs', 'sm', 'md', 'lg', 'xl'].includes(value);
-};
-
-export const isButtonShape = (value: string): value is ButtonShape => {
-  return ['rounded', 'pill', 'square'].includes(value);
 };

@@ -7,7 +7,7 @@
 
 import React, { forwardRef, useState, useId, useCallback, useEffect, useRef } from 'react';
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva } from 'class-variance-authority';
 
 import { defaultInputProps } from './types';
 
@@ -610,8 +610,4 @@ export const Input = forwardRef<InputRef, InputProps>(
   }
 );
 
-// Display name for debugging
 Input.displayName = 'Input';
-
-// Export input variants type for external use
-export type InputVariantsProps = VariantProps<typeof inputVariants>;

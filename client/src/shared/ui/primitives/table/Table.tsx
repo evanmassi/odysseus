@@ -6,7 +6,7 @@
 
 import React, { createContext, useContext } from 'react';
 
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva } from 'class-variance-authority';
 
 import { defaultTableProps } from './types';
 
@@ -17,22 +17,6 @@ import type {
   TableProps,
   TableContextValue,
   TableRounded,
-} from './types';
-
-// Re-export types
-export type {
-  TableColumn,
-  TableRow,
-  TableRowBase,
-  TableProps,
-  TableRef,
-  TableVariant,
-  TableSize,
-  TableState,
-  TableRounded,
-  SortConfig,
-  SortDirection,
-  TablePagination,
 } from './types';
 
 // Table context
@@ -514,5 +498,3 @@ export function Table<T extends TableRowBase = TableRow>({
 
   return tableContent;
 }
-
-export type TableVariantsProps = VariantProps<typeof tableVariants>;
