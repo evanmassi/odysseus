@@ -18,41 +18,14 @@ type ConfigurationJson = Parameters<typeof Configuration.fromData>[0];
 /**
  * ConfigurationRepository - Configuration data access
  *
- * Manages system configuration with versioning and snapshots.
- * Configuration is stored as JSON with separate tables for history and security settings.
+ * Manages lab-scoped configuration with versioning and snapshots.
+ * All lab-specific methods require an explicit labId parameter.
  */
 export class ConfigurationRepository implements IConfigurationRepository {
 
   constructor(private context: PostgresContext) {}
 
   // CORE CONFIGURATION MANAGEMENT
-
-  async getCurrent(): Promise<Configuration | null> {
-    try {
-      const row = await this.context.queryOne<{ config_json: ConfigurationJson; version: number; updated_at: Date | string }>(`
-        SELECT config_json, version, updated_at
-        FROM configuration_current
-        WHERE id = 1
-      `);
-
-      if (!row) {
-        throw new ValidationError('Configuration not found. Database initialization may have failed.');
-      }
-
-      return Configuration.fromData({ ...row.config_json, version: row.version });
-
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Failed to get current configuration:', { message: errorMessage });
-      throw new ValidationError(`Database error retrieving configuration: ${errorMessage}`);
-    }
-  }
-
-  async save(configuration: Configuration): Promise<number> {
-    return this.saveWithVersioning(configuration, 'Configuration updated');
-  }
-
-  // LAB-SCOPED CONFIGURATION
 
   async getForLab(labId: string): Promise<Configuration | null> {
     try {
@@ -137,93 +110,72 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   // VERSIONING & HISTORY
 
-  async getByVersion(version: number): Promise<Configuration | null> {
+  async getByVersion(labId: string, version: number): Promise<Configuration | null> {
     try {
       const row = await this.context.queryOne<{ config_json: ConfigurationJson }>(`
         SELECT config_json
         FROM configuration_versions
-        WHERE version = $1
-      `, [version]);
+        WHERE lab_id = $1 AND version = $2
+      `, [labId, version]);
 
       if (!row) {
         return null;
       }
 
-      const configData = row.config_json;
-      return Configuration.fromData(configData);
+      return Configuration.fromData(row.config_json);
 
     } catch (error) {
-      logger.error('Failed to get configuration by version:', { error, version });
+      logger.error('Failed to get configuration by version:', { error, labId, version });
       throw new ValidationError(`Database error retrieving configuration version ${version}: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  async getHistory(limit: number = 50): Promise<ConfigurationHistory[]> {
+  async getHistory(labId: string, limit: number = 50): Promise<ConfigurationHistory[]> {
     try {
       const rows = await this.context.queryMany<{ version: number; updated_at: Date | string; change_description: string; changed_by: string; config_json: ConfigurationJson }>(`
         SELECT version, updated_at, change_description, changed_by, config_json
         FROM configuration_versions
+        WHERE lab_id = $1
         ORDER BY version DESC
-        LIMIT $1
-      `, [limit]);
+        LIMIT $2
+      `, [labId, limit]);
 
-      return rows.map(row => {
-        const configData = row.config_json;
-        const configuration = Configuration.fromData(configData);
-
-        return {
-          version: row.version,
-          timestamp: row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at),
-          changeDescription: row.change_description,
-          changedBy: row.changed_by,
-          configuration
-        };
-      });
+      return rows.map(row => ({
+        version: row.version,
+        timestamp: row.updated_at instanceof Date ? row.updated_at : new Date(row.updated_at),
+        changeDescription: row.change_description,
+        changedBy: row.changed_by,
+        configuration: Configuration.fromData(row.config_json)
+      }));
 
     } catch (error) {
-      logger.error('Failed to get configuration history:', { error });
+      logger.error('Failed to get configuration history:', { error, labId });
       throw new ValidationError(`Database error retrieving configuration history: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  async saveWithVersioning(configuration: Configuration, changeDescription: string = 'Configuration updated', changedBy: string = 'system', labId?: string): Promise<number> {
+  async saveWithVersioning(labId: string, configuration: Configuration, changeDescription: string = 'Configuration updated', changedBy: string = 'system'): Promise<number> {
     try {
       let newVersion = 0;
       await this.context.transaction(async (client) => {
         const now = new Date();
         const configJson = JSON.stringify(configuration.toData());
 
-        const versionResult = labId
-          ? await client.query<{ version: number }>(
-              `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
-               VALUES ($1, $2, $3, $4, $5)
-               RETURNING version`,
-              [labId, now, changeDescription, changedBy, configJson]
-            )
-          : await client.query<{ version: number }>(
-              `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
-               VALUES ($1, $2, $3, $4)
-               RETURNING version`,
-              [now, changeDescription, changedBy, configJson]
-            );
+        const versionResult = await client.query<{ version: number }>(
+          `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING version`,
+          [labId, now, changeDescription, changedBy, configJson]
+        );
 
         newVersion = versionResult.rows[0].version;
 
-        if (labId) {
-          await client.query(
-            `UPDATE configuration_current
-             SET version = $1, updated_at = $2, config_json = $3
-             WHERE lab_id = $4`,
-            [newVersion, now, configJson, labId]
-          );
-        } else {
-          await client.query(
-            `UPDATE configuration_current
-             SET version = $1, updated_at = $2, config_json = $3
-             WHERE id = 1`,
-            [newVersion, now, configJson]
-          );
-        }
+        await client.query(
+          `UPDATE configuration_current
+           SET version = $1, updated_at = $2, config_json = $3
+           WHERE lab_id = $4`,
+          [newVersion, now, configJson, labId]
+        );
 
         logger.info(`Configuration saved with version ${newVersion}: ${changeDescription}`);
       });
@@ -231,17 +183,17 @@ export class ConfigurationRepository implements IConfigurationRepository {
       return newVersion;
 
     } catch (error) {
-      logger.error('Failed to save configuration with versioning:', { error });
+      logger.error('Failed to save configuration with versioning:', { error, labId });
       throw new ValidationError(`Database error saving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   async saveWithOptimisticLock(
+    labId: string,
     configuration: Configuration,
     expectedVersion: number,
     changeDescription: string = 'Configuration updated',
-    changedBy: string = 'system',
-    labId?: string
+    changedBy: string = 'system'
   ): Promise<number> {
     try {
       let newVersion = 0;
@@ -249,40 +201,26 @@ export class ConfigurationRepository implements IConfigurationRepository {
         const now = new Date();
         const configJson = JSON.stringify(configuration.toData());
 
-        const versionResult = labId
-          ? await client.query<{ version: number }>(
-              `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
-               VALUES ($1, $2, $3, $4, $5)
-               RETURNING version`,
-              [labId, now, changeDescription, changedBy, configJson]
-            )
-          : await client.query<{ version: number }>(
-              `INSERT INTO configuration_versions (updated_at, change_description, changed_by, config_json)
-               VALUES ($1, $2, $3, $4)
-               RETURNING version`,
-              [now, changeDescription, changedBy, configJson]
-            );
+        const versionResult = await client.query<{ version: number }>(
+          `INSERT INTO configuration_versions (lab_id, updated_at, change_description, changed_by, config_json)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING version`,
+          [labId, now, changeDescription, changedBy, configJson]
+        );
 
         newVersion = versionResult.rows[0].version;
-
-        const whereClause = labId ? 'lab_id = $4 AND version = $5' : 'id = 1 AND version = $4';
-        const updateParams = labId
-          ? [newVersion, now, configJson, labId, expectedVersion]
-          : [newVersion, now, configJson, expectedVersion];
 
         const updateResult = await client.query(
           `UPDATE configuration_current
            SET version = $1, updated_at = $2, config_json = $3
-           WHERE ${whereClause}`,
-          updateParams
+           WHERE lab_id = $4 AND version = $5`,
+          [newVersion, now, configJson, labId, expectedVersion]
         );
 
         if (updateResult.rowCount === 0) {
-          const versionWhereClause = labId ? 'lab_id = $1' : 'id = 1';
-          const versionParams = labId ? [labId] : [];
           const currentRow = await client.query<{ version: number }>(
-            `SELECT version FROM configuration_current WHERE ${versionWhereClause}`,
-            versionParams
+            `SELECT version FROM configuration_current WHERE lab_id = $1`,
+            [labId]
           );
           const currentVersion = currentRow.rows[0]?.version ?? 0;
 
@@ -295,31 +233,30 @@ export class ConfigurationRepository implements IConfigurationRepository {
       return newVersion;
 
     } catch (error) {
-      // Re-throw ConflictError without wrapping
       if (error instanceof ConflictError) {
         throw error;
       }
-      logger.error('Failed to save configuration with optimistic lock:', { error });
+      logger.error('Failed to save configuration with optimistic lock:', { error, labId });
       throw new ValidationError(`Database error saving configuration: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   // EQUIPMENT VALIDATION
 
-  async isLocationValid(location: Location): Promise<boolean> {
-    const config = await this.getCurrent();
+  async isLocationValid(labId: string, location: Location): Promise<boolean> {
+    const config = await this.getForLab(labId);
     if (!config) return false;
     return config.isLocationValid(location);
   }
 
-  async tankExists(tankId: string): Promise<boolean> {
-    const config = await this.getCurrent();
+  async tankExists(labId: string, tankId: string): Promise<boolean> {
+    const config = await this.getForLab(labId);
     if (!config) return false;
     return config.equipment.tanks.some(tank => tank.id === tankId);
   }
 
-  async rackExists(tankId: string, rackId: string): Promise<boolean> {
-    const config = await this.getCurrent();
+  async rackExists(labId: string, tankId: string, rackId: string): Promise<boolean> {
+    const config = await this.getForLab(labId);
     if (!config) return false;
 
     const tank = config.equipment.tanks.find(t => t.id === tankId);
@@ -328,22 +265,23 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return tank.racks.some(rack => rack.id === rackId);
   }
 
-  async boxExists(tankId: string, rackId: string, boxId: string): Promise<boolean> {
-    const config = await this.getCurrent();
+  async boxExists(labId: string, tankId: string, rackId: string, boxId: string): Promise<boolean> {
+    const config = await this.getForLab(labId);
     if (!config) return false;
 
     const tank = config.equipment.tanks.find(t => t.id === tankId);
     if (!tank) return false;
 
-    const rack = tank.racks.find(r => String(r.id) === rackId);
+    const rack = tank.racks.find(r => r.id === rackId);
     if (!rack) return false;
 
     return rack.boxes.some(box => box.name.toLowerCase() === boxId.toLowerCase());
   }
 
-  async getAvailablePositions(tankId: string, rackId: string, boxId: string, occupiedPositions: number[]): Promise<number[]> {
+  async getAvailablePositions(labId: string, tankId: string, rackId: string, boxId: string, occupiedPositions: number[]): Promise<number[]> {
+    const maxPosition = await this.getMaxPosition(labId, tankId, rackId, boxId);
     const allPositions: number[] = [];
-    for (let i = 1; i <= EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX; i++) {
+    for (let i = 1; i <= maxPosition; i++) {
       if (!occupiedPositions.includes(i)) {
         allPositions.push(i);
       }
@@ -351,33 +289,15 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return allPositions;
   }
 
-  async getTotalPositions(tankId: string, rackId: string, boxId: string): Promise<number> {
-    return EQUIPMENT_DEFAULTS.POSITIONS_PER_BOX;
-  }
+  // INTERNAL EQUIPMENT HELPERS
 
-  async getOccupiedPositions(tankId: string, rackId: string, boxId: string): Promise<number[]> {
-    return [];
-  }
-
-  // EQUIPMENT QUERIES
-
-  async getAllTanks(): Promise<Tank[]> {
-    const config = await this.getCurrent();
+  private async getAllTanks(labId: string): Promise<Tank[]> {
+    const config = await this.getForLab(labId);
     return config ? [...config.equipment.tanks] : [];
   }
 
-  async getActiveTanks(): Promise<Tank[]> {
-    const tanks = await this.getAllTanks();
-    return tanks.filter(tank => tank.isActive);
-  }
-
-  async getTankById(tankId: string): Promise<Tank | null> {
-    const tanks = await this.getAllTanks();
-    return tanks.find(tank => tank.id === tankId) || null;
-  }
-
-  async getRacksForTank(tankId: string): Promise<Rack[]> {
-    const config = await this.getCurrent();
+  private async getRacksForTank(labId: string, tankId: string): Promise<Rack[]> {
+    const config = await this.getForLab(labId);
     if (!config) return [];
 
     const tank = config.equipment.tanks.find(t => t.id === tankId);
@@ -386,45 +306,28 @@ export class ConfigurationRepository implements IConfigurationRepository {
     return [...tank.racks];
   }
 
-  async getActiveRacksForTank(tankId: string): Promise<Rack[]> {
-    const racks = await this.getRacksForTank(tankId);
-    return racks.filter(rack => rack.isActive);
-  }
-
-  async getRackById(tankId: string, rackId: string): Promise<Rack | null> {
-    const racks = await this.getRacksForTank(tankId);
-    const rackIdStr = rackId;
-    return racks.find(rack => rack.id === rackIdStr) || null;
-  }
-
-  async getBoxesForRack(tankId: string, rackId: string): Promise<Box[]> {
-    const config = await this.getCurrent();
+  private async getBoxesForRack(labId: string, tankId: string, rackId: string): Promise<Box[]> {
+    const config = await this.getForLab(labId);
     if (!config) return [];
 
     const tank = config.equipment.tanks.find(t => t.id === tankId);
     if (!tank) return [];
 
-    const rackIdStr = rackId;
-    const rack = tank.racks.find(r => r.id === rackIdStr);
+    const rack = tank.racks.find(r => r.id === rackId);
     if (!rack) return [];
 
     return [...rack.boxes];
   }
 
-  async getActiveBoxesForRack(tankId: string, rackId: string): Promise<Box[]> {
-    const boxes = await this.getBoxesForRack(tankId, rackId);
-    return boxes.filter(box => box.isActive);
-  }
-
-  async getBoxByName(tankId: string, rackId: string, boxId: string): Promise<Box | null> {
-    const boxes = await this.getBoxesForRack(tankId, rackId);
+  private async getBoxByName(labId: string, tankId: string, rackId: string, boxId: string): Promise<Box | null> {
+    const boxes = await this.getBoxesForRack(labId, tankId, rackId);
     return boxes.find(box => box.name.toLowerCase() === boxId.toLowerCase()) || null;
   }
 
   // ANALYTICS & REPORTING
 
-  async getEquipmentSummary(): Promise<EquipmentSummary> {
-    const config = await this.getCurrent();
+  async getEquipmentSummary(labId: string): Promise<EquipmentSummary> {
+    const config = await this.getForLab(labId);
     if (!config) {
       return {
         totalTanks: 0,
@@ -471,7 +374,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
   }
 
-  async validateConfiguration(configuration: Configuration): Promise<ConfigurationValidationResult> {
+  async validateConfiguration(labId: string, configuration: Configuration): Promise<ConfigurationValidationResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
     const recommendations: string[] = [];
@@ -509,8 +412,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
   }
 
-  async exportConfiguration(): Promise<ConfigurationExport> {
-    const config = await this.getCurrent();
+  async exportConfiguration(labId: string): Promise<ConfigurationExport> {
+    const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration to export');
     }
@@ -534,15 +437,15 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   async isHealthy(): Promise<boolean> {
     try {
-      const config = await this.getCurrent();
-      return config !== null;
+      await this.context.queryOne<{ result: number }>('SELECT 1 as result');
+      return true;
     } catch {
       return false;
     }
   }
 
-  async getStats(): Promise<ConfigurationRepositoryStats> {
-    const config = await this.getCurrent();
+  async getStats(labId: string): Promise<ConfigurationRepositoryStats> {
+    const config = await this.getForLab(labId);
     const now = new Date();
 
     return {
@@ -559,28 +462,28 @@ export class ConfigurationRepository implements IConfigurationRepository {
 
   // ADDITIONAL INTERFACE METHODS
 
-  async getMaxPosition(tankId: string, rackId: string, boxId: string): Promise<number> {
-    const box = await this.getBoxByName(tankId, rackId, boxId);
+  async getMaxPosition(labId: string, tankId: string, rackId: string, boxId: string): Promise<number> {
+    const box = await this.getBoxByName(labId, tankId, rackId, boxId);
     return box ? box.maxPositions : 0;
   }
 
-  async getAllTankIds(): Promise<string[]> {
-    const tanks = await this.getAllTanks();
+  async getAllTankIds(labId: string): Promise<string[]> {
+    const tanks = await this.getAllTanks(labId);
     return tanks.map(tank => tank.id);
   }
 
-  async getRackIds(tankId: string): Promise<string[]> {
-    const racks = await this.getRacksForTank(tankId);
+  async getRackIds(labId: string, tankId: string): Promise<string[]> {
+    const racks = await this.getRacksForTank(labId, tankId);
     return racks.map(rack => rack.id);
   }
 
-  async getBoxNames(tankId: string, rackId: string): Promise<string[]> {
-    const boxes = await this.getBoxesForRack(tankId, rackId);
+  async getBoxNames(labId: string, tankId: string, rackId: string): Promise<string[]> {
+    const boxes = await this.getBoxesForRack(labId, tankId, rackId);
     return boxes.map(box => box.name);
   }
 
-  async createSnapshot(description?: string): Promise<ConfigurationSnapshot> {
-    const config = await this.getCurrent();
+  async createSnapshot(labId: string, description?: string): Promise<ConfigurationSnapshot> {
+    const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration to snapshot');
     }
@@ -614,13 +517,12 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async restoreFromSnapshot(snapshotId: string): Promise<Configuration> {
+  async restoreFromSnapshot(labId: string, snapshotId: string): Promise<Configuration> {
     if (!snapshotId) {
       throw new ValidationError('Snapshot ID is required');
     }
 
     try {
-      // Get the snapshot data
       const row = await this.context.queryOne<{ config_json: ConfigurationJson }>(`
         SELECT config_json FROM configuration_snapshots WHERE id = $1
       `, [snapshotId]);
@@ -629,11 +531,9 @@ export class ConfigurationRepository implements IConfigurationRepository {
         throw new ValidationError(`Snapshot not found: ${snapshotId}`);
       }
 
-      // Parse and restore the configuration
-      const configData = row.config_json;
-      const config = Configuration.fromData(configData);
+      const config = Configuration.fromData(row.config_json);
 
-      await this.saveWithVersioning(config, `Restored from snapshot ${snapshotId}`);
+      await this.saveWithVersioning(labId, config, `Restored from snapshot ${snapshotId}`);
 
       logger.info(`Restored from snapshot: ${snapshotId}`);
       return config;
@@ -645,58 +545,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async deleteSnapshot(snapshotId: string): Promise<boolean> {
-    const result = await this.context.execute(
-      'DELETE FROM configuration_snapshots WHERE id = $1',
-      [snapshotId]
-    );
-    return (result.rowCount ?? 0) > 0;
-  }
-
-  async getSnapshots(): Promise<ConfigurationSnapshot[]> {
-    return this.listSnapshots();
-  }
-
-  async cleanupOldHistory(retentionDays: number): Promise<void> {
-    const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
-
-    await this.context.execute(
-      'DELETE FROM configuration_versions WHERE updated_at < $1',
-      [cutoffDate]
-    );
-  }
-
-  async backupConfiguration(): Promise<string> {
-    return 'backup-path';
-  }
-
-  async restoreFromBackup(backupPath: string): Promise<Configuration> {
-    return Configuration.createDefault();
-  }
-
-  async migrateConfiguration(fromVersion: number, toVersion: number): Promise<Configuration> {
-    return Configuration.createDefault();
-  }
-
-  async validateMigration(fromVersion: number, toVersion: number): Promise<{ isValid: boolean; issues: string[] }> {
-    return { isValid: true, issues: [] };
-  }
-
-  async optimizeStorage(): Promise<{ success: boolean; tasksPerformed: string[] }> {
-    return { success: true, tasksPerformed: [] };
-  }
-
-  async rebuildIndexes(): Promise<void> {
-    // Database maintenance - PostgreSQL handles this differently
-  }
-
-  async compactHistory(): Promise<number> {
-    return 0;
-  }
-
-  async getCapacityInfo(): Promise<CapacityInfo> {
-    const config = await this.getCurrent();
+  async getCapacityInfo(labId: string): Promise<CapacityInfo> {
+    const config = await this.getForLab(labId);
     if (!config) {
       return {
         totalCapacity: 0,
@@ -740,13 +590,15 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
   }
 
-  async getLabName(): Promise<string> {
-    const config = await this.getCurrent();
+  // SYSTEM SETTINGS
+
+  async getLabName(labId: string): Promise<string> {
+    const config = await this.getForLab(labId);
     return config ? config.systemSettings.labName : 'Odysseus Lab';
   }
 
-  async updateLabName(labName: string): Promise<void> {
-    const config = await this.getCurrent();
+  async updateLabName(labId: string, labName: string): Promise<void> {
+    const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
@@ -761,16 +613,16 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
 
     const updatedConfig = config.updateSystemSettings(updatedSettings);
-    await this.saveWithVersioning(updatedConfig, `Lab name updated to: ${labName}`, 'admin');
+    await this.saveWithVersioning(labId, updatedConfig, `Lab name updated to: ${labName}`, 'admin');
   }
 
-  async getDefaultResearcher(): Promise<string> {
-    const config = await this.getCurrent();
+  async getDefaultResearcher(labId: string): Promise<string> {
+    const config = await this.getForLab(labId);
     return config ? config.systemSettings.defaultResearcher : '';
   }
 
-  async updateDefaultResearcher(researcher: string): Promise<void> {
-    const config = await this.getCurrent();
+  async updateDefaultResearcher(labId: string, researcher: string): Promise<void> {
+    const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
@@ -781,16 +633,16 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
 
     const updatedConfig = config.updateSystemSettings(updatedSettings);
-    await this.saveWithVersioning(updatedConfig, `Default researcher updated to: ${researcher}`, 'admin');
+    await this.saveWithVersioning(labId, updatedConfig, `Default researcher updated to: ${researcher}`, 'admin');
   }
 
-  async getAutoSave(): Promise<boolean> {
-    const config = await this.getCurrent();
+  async getAutoSave(labId: string): Promise<boolean> {
+    const config = await this.getForLab(labId);
     return config ? config.systemSettings.autoSave : true;
   }
 
-  async updateAutoSave(autoSave: boolean): Promise<void> {
-    const config = await this.getCurrent();
+  async updateAutoSave(labId: string, autoSave: boolean): Promise<void> {
+    const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
@@ -801,16 +653,16 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
 
     const updatedConfig = config.updateSystemSettings(updatedSettings);
-    await this.saveWithVersioning(updatedConfig, `Auto-save ${autoSave ? 'enabled' : 'disabled'}`, 'admin');
+    await this.saveWithVersioning(labId, updatedConfig, `Auto-save ${autoSave ? 'enabled' : 'disabled'}`, 'admin');
   }
 
-  async getAuditTrailEnabled(): Promise<boolean> {
-    const config = await this.getCurrent();
+  async getAuditTrailEnabled(labId: string): Promise<boolean> {
+    const config = await this.getForLab(labId);
     return config ? config.systemSettings.auditTrailEnabled : true;
   }
 
-  async updateAuditTrailEnabled(enabled: boolean): Promise<void> {
-    const config = await this.getCurrent();
+  async updateAuditTrailEnabled(labId: string, enabled: boolean): Promise<void> {
+    const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
@@ -821,16 +673,16 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
 
     const updatedConfig = config.updateSystemSettings(updatedSettings);
-    await this.saveWithVersioning(updatedConfig, `Audit trail ${enabled ? 'enabled' : 'disabled'}`, 'admin');
+    await this.saveWithVersioning(labId, updatedConfig, `Audit trail ${enabled ? 'enabled' : 'disabled'}`, 'admin');
   }
 
-  async getSyncEnabled(): Promise<boolean> {
-    const config = await this.getCurrent();
+  async getSyncEnabled(labId: string): Promise<boolean> {
+    const config = await this.getForLab(labId);
     return config ? config.systemSettings.syncEnabled : false;
   }
 
-  async updateSyncEnabled(enabled: boolean): Promise<void> {
-    const config = await this.getCurrent();
+  async updateSyncEnabled(labId: string, enabled: boolean): Promise<void> {
+    const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration found to update');
     }
@@ -841,25 +693,27 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
 
     const updatedConfig = config.updateSystemSettings(updatedSettings);
-    await this.saveWithVersioning(updatedConfig, `Sync ${enabled ? 'enabled' : 'disabled'}`, 'admin');
+    await this.saveWithVersioning(labId, updatedConfig, `Sync ${enabled ? 'enabled' : 'disabled'}`, 'admin');
   }
 
-  async importConfiguration(configExport: ConfigurationExport): Promise<Configuration> {
+  // BACKUP AND RESTORE
+
+  async importConfiguration(labId: string, configExport: ConfigurationExport): Promise<Configuration> {
     if (!configExport || !configExport.configuration) {
       throw new ValidationError('Invalid configuration export provided');
     }
 
-    const validationResult = await this.validateConfiguration(configExport.configuration);
+    const validationResult = await this.validateConfiguration(labId, configExport.configuration);
     if (!validationResult.isValid) {
       throw new ValidationError(`Configuration import failed: ${validationResult.errors.join(', ')}`);
     }
 
-    await this.saveWithVersioning(configExport.configuration, 'Configuration imported');
+    await this.saveWithVersioning(labId, configExport.configuration, 'Configuration imported');
 
     return configExport.configuration;
   }
 
-  async listSnapshots(): Promise<ConfigurationSnapshot[]> {
+  async listSnapshots(labId: string): Promise<ConfigurationSnapshot[]> {
     try {
       const rows = await this.context.queryMany<{ id: string; version: number; created_at: Date | string; description: string; created_by: string; size_bytes: number }>(`
         SELECT id, version, created_at, description, created_by, size_bytes
@@ -882,13 +736,12 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async cleanupSnapshots(keepCount: number): Promise<number> {
+  async cleanupSnapshots(labId: string, keepCount: number): Promise<number> {
     if (keepCount < 1) {
       throw new ValidationError('Keep count must be at least 1');
     }
 
     try {
-      // Get IDs to keep
       const keepRows = await this.context.queryMany<{ id: string }>(`
         SELECT id FROM configuration_snapshots
         ORDER BY created_at DESC
@@ -901,7 +754,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
         return 0;
       }
 
-      // Delete all except the ones to keep
       const placeholders = keepIds.map((_, i) => `$${i + 1}`).join(',');
       const result = await this.context.execute(
         `DELETE FROM configuration_snapshots WHERE id NOT IN (${placeholders})`,
@@ -922,8 +774,10 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  async getForApi(): Promise<ApiConfigurationResponse> {
-    const config = await this.getCurrent();
+  // INTEGRATION SUPPORT
+
+  async getForApi(labId: string): Promise<ApiConfigurationResponse> {
+    const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration available for API response');
     }
@@ -964,8 +818,8 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
   }
 
-  async getForFrontend(): Promise<FrontendConfiguration> {
-    const config = await this.getCurrent();
+  async getForFrontend(labId: string): Promise<FrontendConfiguration> {
+    const config = await this.getForLab(labId);
     if (!config) {
       throw new ValidationError('No configuration available for frontend');
     }
@@ -993,15 +847,17 @@ export class ConfigurationRepository implements IConfigurationRepository {
     };
   }
 
-  async performMaintenance(): Promise<MaintenanceResult> {
+  // MAINTENANCE OPERATIONS
+
+  async performMaintenance(labId: string): Promise<MaintenanceResult> {
     const startTime = Date.now();
     const tasksPerformed: string[] = [];
     const errors: string[] = [];
 
     try {
-      const config = await this.getCurrent();
+      const config = await this.getForLab(labId);
       if (config) {
-        const validationResult = await this.validateConfiguration(config);
+        const validationResult = await this.validateConfiguration(labId, config);
         if (validationResult.isValid) {
           tasksPerformed.push('Configuration validation completed');
         } else {
@@ -1009,7 +865,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
         }
       }
 
-      const deletedSnapshots = await this.cleanupSnapshots(10);
+      const deletedSnapshots = await this.cleanupSnapshots(labId, 10);
       if (deletedSnapshots > 0) {
         tasksPerformed.push(`Cleaned up ${deletedSnapshots} old snapshots`);
       }
@@ -1040,7 +896,7 @@ export class ConfigurationRepository implements IConfigurationRepository {
     }
   }
 
-  // SECURITY & ADMIN CONFIGURATION
+  // SECURITY & ADMIN CONFIGURATION (system-wide, not lab-scoped)
 
   async getSecurityConfig(): Promise<SecurityConfig> {
     try {
@@ -1225,23 +1081,11 @@ export class ConfigurationRepository implements IConfigurationRepository {
   }
 
   async getSyncStatus(): Promise<SyncStatus> {
-    try {
-      const syncEnabled = await this.getSyncEnabled();
-
-      return {
-        enabled: syncEnabled,
-        firebase: false,
-        workspaceId: undefined
-      };
-
-    } catch (error) {
-      logger.error('Failed to get sync status:', { error });
-      return {
-        enabled: false,
-        firebase: false,
-        workspaceId: undefined
-      };
-    }
+    return {
+      enabled: false,
+      firebase: false,
+      workspaceId: undefined
+    };
   }
 
   // ATOMIC EQUIPMENT DELETION
@@ -1257,7 +1101,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         return await this.context.transactionSerializable(async (client) => {
-          // Count tubes in tank (SERIALIZABLE prevents concurrent inserts from being invisible)
           const countResult = await client.query<{ count: string }>(
             'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1',
             [tankId]
@@ -1271,7 +1114,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
             );
           }
 
-          // Load and validate configuration
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
             'SELECT config_json, version FROM configuration_current WHERE lab_id = $1',
             [labId]
@@ -1291,7 +1133,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
           const tankName = configData.tanks[tankIndex].name;
           configData.tanks.splice(tankIndex, 1);
 
-          // Save updated configuration
           const now = new Date();
           const configJson = JSON.stringify(configData);
 
@@ -1320,7 +1161,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
         });
 
       } catch (error) {
-        // Retry on serialization failure (PostgreSQL error code 40001)
         const isSerializationFailure =
           error instanceof Error &&
           'code' in error &&
@@ -1348,7 +1188,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         return await this.context.transactionSerializable(async (client) => {
-          // Count tubes in rack
           const countResult = await client.query<{ count: string }>(
             'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2',
             [tankId, rackId]
@@ -1362,7 +1201,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
             );
           }
 
-          // Load and validate configuration
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
             'SELECT config_json, version FROM configuration_current WHERE lab_id = $1',
             [labId]
@@ -1390,7 +1228,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
           const rackName = tank.racks[rackIndex].name;
           tank.racks.splice(rackIndex, 1);
 
-          // Save updated configuration
           const now = new Date();
           const configJson = JSON.stringify(configData);
 
@@ -1448,7 +1285,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
     for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
       try {
         return await this.context.transactionSerializable(async (client) => {
-          // Count tubes in box
           const countResult = await client.query<{ count: string }>(
             'SELECT COUNT(*) as count FROM tubes WHERE tank_id = $1 AND rack_id = $2 AND box_id = $3',
             [tankId, rackId, boxIdUpper]
@@ -1462,7 +1298,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
             );
           }
 
-          // Load and validate configuration
           const configRow = await client.query<{ config_json: ConfigurationJson; version: number }>(
             'SELECT config_json, version FROM configuration_current WHERE lab_id = $1',
             [labId]
@@ -1498,7 +1333,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
           const boxName = rack.boxes[boxIndex].name;
           rack.boxes.splice(boxIndex, 1);
 
-          // Save updated configuration
           const now = new Date();
           const configJson = JSON.stringify(configData);
 
