@@ -81,11 +81,11 @@ export class AddTankCommandHandler {
     const expectedVersion = currentConfig.version;
     currentConfig.addTank(tankId, command.name);
     const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       currentConfig,
       expectedVersion,
       `Added tank '${command.name}'`,
-      command.userId,
-      command.labId
+      command.userId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -166,11 +166,11 @@ export class UpdateTankCommandHandler {
     });
 
     const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       currentConfig,
       expectedVersion,
       `Updated tank '${configData.tanks[tankIndex].name}'`,
-      command.userId,
-      command.labId
+      command.userId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -272,11 +272,11 @@ export class ResetDemoDataCommandHandler {
       const expectedVersion = currentConfig.version;
       currentConfig.removeNonSeededEquipment();
       await this.configurationRepository.saveWithOptimisticLock(
+        command.labId,
         currentConfig,
         expectedVersion,
         'Removed non-seeded equipment during demo reset',
-        command.userId,
-        command.labId
+        command.userId
       );
     }
 

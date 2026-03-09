@@ -74,11 +74,11 @@ export class SeedDemoCommandHandler {
     const expectedVersion = config.version;
     config.seedAll();
     await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       config,
       expectedVersion,
       'Seeded demo infrastructure',
-      command.userId,
-      command.labId
+      command.userId
     );
 
     if (this.auditRepository) {
@@ -178,11 +178,11 @@ export class UnseedDemoCommandHandler {
     const expectedVersion = config.version;
     config.unseedAll();
     await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       config,
       expectedVersion,
       'Unseeded demo infrastructure',
-      command.userId,
-      command.labId
+      command.userId
     );
 
     return {

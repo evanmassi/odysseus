@@ -127,11 +127,11 @@ export class AddRacksCommandHandler {
 
     const expectedVersion = currentConfig.version;
     const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       currentConfig,
       expectedVersion,
       `Added ${command.count} rack(s) to tank '${tank.name}'`,
-      command.userId,
-      command.labId
+      command.userId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -215,11 +215,11 @@ export class UpdateRackCommandHandler {
     });
 
     const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       currentConfig,
       expectedVersion,
       `Updated rack '${configData.tanks[tankIndex].racks[rackIndex].name}' in tank '${tank.name}'`,
-      command.userId,
-      command.labId
+      command.userId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -365,11 +365,11 @@ export class AssignRackCommandHandler {
       ? (previousUserId ? 'Reassigned' : 'Assigned')
       : 'Unassigned';
     const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       currentConfig,
       expectedVersion,
       `${action} rack '${rack.name}' in tank '${tank.name}'`,
-      command.userId,
-      command.labId
+      command.userId
     );
     currentConfig.applyPersistedVersion(newVersion);
 

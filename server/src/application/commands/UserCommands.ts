@@ -389,11 +389,11 @@ export class DeleteUserCommandHandler implements CommandHandler<DeleteUserComman
 
       try {
         await this.configurationRepository.saveWithOptimisticLock(
+          user.labId!,
           configuration,
           expectedVersion,
           `Cleared assignments for deleted user '${username}'`,
-          command.initiatedBy,
-          user.labId
+          command.initiatedBy
         );
 
         racksAffected = counts.racks;

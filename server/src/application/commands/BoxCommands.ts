@@ -147,11 +147,11 @@ export class AddBoxesCommandHandler {
 
     const expectedVersion = currentConfig.version;
     const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       currentConfig,
       expectedVersion,
       `Added ${command.count} box(es) to rack '${rack.name}' in tank '${tank.name}'`,
-      command.userId,
-      command.labId
+      command.userId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -255,11 +255,11 @@ export class UpdateBoxCommandHandler {
     });
 
     const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       currentConfig,
       expectedVersion,
       `Updated box '${boxData.name}' in rack '${rack.name}'`,
-      command.userId,
-      command.labId
+      command.userId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
@@ -414,11 +414,11 @@ export class AssignBoxCommandHandler {
       ? (previousUserId ? 'Reassigned' : 'Assigned')
       : 'Unassigned';
     const newVersion = await this.configurationRepository.saveWithOptimisticLock(
+      command.labId,
       currentConfig,
       expectedVersion,
       `${action} box '${box.name}' in rack '${rack.name}'`,
-      command.userId,
-      command.labId
+      command.userId
     );
     currentConfig.applyPersistedVersion(newVersion);
 
