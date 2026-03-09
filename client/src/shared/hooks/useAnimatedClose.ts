@@ -1,3 +1,9 @@
+/**
+ * Animated Close Hook
+ *
+ * Manages modal visibility to allow exit animations before unmount.
+ */
+
 import { useState, useCallback, useEffect, useRef } from 'react';
 
 interface UseAnimatedCloseOptions {
@@ -13,8 +19,6 @@ interface UseAnimatedCloseReturn {
 }
 
 /**
- * Manages modal visibility to allow exit animations before unmount.
- *
  * Handles two close flows:
  * - Internal: X button calls triggerClose → animate → call onClose
  * - External: Parent sets isOpen=false → animate → unmount (no onClose needed)

@@ -38,7 +38,6 @@ function unobserveElement(element: Element): void {
   observedElements.delete(element);
   sharedObserver?.unobserve(element);
 
-  // Clean up observer when no elements are being watched
   if (observedElements.size === 0 && sharedObserver) {
     sharedObserver.disconnect();
     sharedObserver = null;
@@ -60,11 +59,9 @@ export function useTextTruncation<T extends HTMLElement = HTMLElement>(
     const element = ref.current;
     if (!element) return;
 
-    // Initial check
     const initialTruncated = element.scrollWidth > element.clientWidth;
     setIsTruncated(initialTruncated);
 
-    // Register with shared observer
     observeElement(element, handleTruncationChange);
 
     return () => {

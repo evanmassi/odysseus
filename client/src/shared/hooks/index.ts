@@ -1,5 +1,7 @@
 /**
- * Shared Hooks
+ * Shared Hooks Barrel
+ *
+ * Cross-cutting React hooks shared across all feature domains.
  */
 
 export { useAnimatedClose } from './useAnimatedClose';

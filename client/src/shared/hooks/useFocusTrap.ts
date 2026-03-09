@@ -1,3 +1,9 @@
+/**
+ * Focus Trap Hook
+ *
+ * Traps keyboard focus within modal dialogs for WCAG 2.1 compliance.
+ */
+
 import { useRef, useEffect } from 'react';
 
 interface UseFocusTrapOptions {
@@ -8,19 +14,6 @@ interface UseFocusTrapOptions {
   autoFocusFirstInput?: boolean;
 }
 
-/**
- * Focus trap for modal dialogs
- *
- * Ensures keyboard focus stays within modal (WCAG 2.1 compliance)
- * and restores focus to trigger element when closed.
- *
- * @param options.isOpen - Whether modal is currently open
- * @param options.restoreFocus - Restore focus to trigger on close (default: true)
- * @param options.initialFocusDelay - Delay before initial focus in ms (default: 150ms)
- * @param options.initialFocusRef - Specific element to focus (takes priority)
- * @param options.autoFocusFirstInput - Focus first input/textarea/select instead of first focusable element
- * @returns Ref to attach to modal container element
- */
 export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTMLDivElement> {
   const trapRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -35,14 +28,11 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
     autoFocusFirstInput = false,
   } = options ?? {};
 
-  // Save focus on mount and restore on close/unmount
   useEffect(() => {
     if (isOpen) {
-      // Save currently focused element when modal opens
       previousFocusRef.current = document.activeElement as HTMLElement;
     }
 
-    // Restore focus when modal closes (isOpen changes to false) or unmounts
     return () => {
       if (restoreFocus && previousFocusRef.current) {
         previousFocusRef.current.focus();
@@ -50,7 +40,6 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
     };
   }, [isOpen, restoreFocus]);
 
-  // Initial focus when modal opens
   useEffect(() => {
     if (!isOpen) return;
 
@@ -128,8 +117,6 @@ export function useFocusTrap(options?: UseFocusTrapOptions): React.RefObject<HTM
   return trapRef;
 }
 
-// Comprehensive selector covers all interactive elements
-// Excludes disabled/hidden elements per WCAG guidelines
 const FOCUSABLE_SELECTOR = [
   'a[href]',
   'area[href]',
@@ -144,8 +131,6 @@ const FOCUSABLE_SELECTOR = [
   '[contenteditable]',
 ].join(', ');
 
-// Form input selector - focuses first typeable field (skips buttons, checkboxes, radios)
-// Used when autoFocusFirstInput is enabled
 const FORM_INPUT_SELECTOR = [
   'input:not([disabled]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"])',
   'textarea:not([disabled])',

@@ -8,28 +8,13 @@
 import { useEffect, useCallback, type RefObject } from 'react';
 
 export interface MenuKeyboardNavigationConfig {
-  /** Ref to the menu container element */
   menuRef: RefObject<HTMLElement>;
-  /** Ref to the trigger button (for returning focus on close) */
   triggerRef?: RefObject<HTMLElement>;
-  /** Whether the menu is currently open */
   isOpen: boolean;
-  /** Callback to close the menu */
   onClose: () => void;
-  /** Whether keyboard navigation is enabled (default: true) */
   enabled?: boolean;
 }
 
-/**
- * Hook for handling keyboard navigation in dropdown menus
- *
- * Features:
- * - ArrowDown/ArrowUp: Navigate between menu items (wraps around)
- * - Home/End: Jump to first/last item
- * - Escape: Close menu and return focus to trigger
- * - Tab: Close menu (via onBlur)
- * - Auto-focus first item when menu opens
- */
 export function useMenuKeyboardNavigation({
   menuRef,
   triggerRef,
@@ -37,7 +22,6 @@ export function useMenuKeyboardNavigation({
   onClose,
   enabled = true,
 }: MenuKeyboardNavigationConfig) {
-  // Focus first menu item when menu opens
   useEffect(() => {
     if (!isOpen || !enabled) return;
 
@@ -52,7 +36,6 @@ export function useMenuKeyboardNavigation({
     return () => clearTimeout(timeoutId);
   }, [isOpen, enabled, menuRef]);
 
-  // Keyboard event handler
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (!enabled) return;
@@ -96,13 +79,11 @@ export function useMenuKeyboardNavigation({
     [enabled, menuRef, triggerRef, onClose]
   );
 
-  // Close menu when focus leaves the container
   const handleBlur = useCallback(
     (e: React.FocusEvent) => {
       if (!enabled) return;
 
       // relatedTarget is the element receiving focus
-      // Only close if focus is moving outside the menu container
       if (!menuRef.current?.contains(e.relatedTarget as Node)) {
         onClose();
       }

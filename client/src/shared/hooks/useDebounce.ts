@@ -1,12 +1,11 @@
+/**
+ * Debounced Value Hook
+ *
+ * Delays downstream re-renders by batching rapid value changes.
+ */
+
 import { useState, useEffect } from 'react';
 
-/**
- * Debounce a value by delaying updates
- *
- * @param value - The value to debounce
- * @param delay - Delay in milliseconds (default: 300ms)
- * @returns Debounced value that updates after delay
- */
 export function useDebounce<T>(value: T, delay: number = 300): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
 

@@ -1,11 +1,11 @@
+/**
+ * Edit Modal Form Hook
+ *
+ * Manages form state lifecycle for edit modals (init, reset on open, submit wrapper).
+ */
+
 import { useState, useEffect, useCallback } from 'react';
 
-/**
- * Manages common edit modal form lifecycle:
- * - Form state initialized from a value
- * - Resets when modal opens
- * - Provides a submit handler wrapper (preventDefault + fire-and-forget)
- */
 export function useEditModalForm<T>(isOpen: boolean, initialValue: T) {
   const [formData, setFormData] = useState<T>(initialValue);
 
