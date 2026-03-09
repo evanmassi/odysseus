@@ -13,7 +13,7 @@ import { defaultInputProps } from './types';
 
 import type { InputProps, InputRef, ValidationResult } from './types';
 
-// Input styling using class-variance-authority for type-safe variants
+// Input styling variants
 const inputVariants = cva(
   // Base input styles
   [

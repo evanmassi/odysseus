@@ -1,7 +1,7 @@
 /**
  * Tube Data Service
  *
- * Type-safe tube CRUD, bulk operations, locking, and access sharing.
+ * Tube CRUD, bulk operations, locking, and access sharing.
  */
 
 import {

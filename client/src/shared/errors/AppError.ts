@@ -1,7 +1,7 @@
 /**
  * Application Error Taxonomy
  *
- * Provides a comprehensive, type-safe error handling system for frontend applications.
+ * Structured error classes for consistent frontend error handling.
  */
 
 /**

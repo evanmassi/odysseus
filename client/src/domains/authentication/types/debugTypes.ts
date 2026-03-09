@@ -1,7 +1,7 @@
 /**
  * Authentication Debug Types
  *
- * Type-safe interfaces for development-only auth diagnostics.
+ * Interfaces for development-only auth diagnostics.
  */
 
 import type { SessionStatus } from '@shared/types/sessionTypes';

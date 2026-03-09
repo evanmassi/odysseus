@@ -1,7 +1,7 @@
 /**
  * Shared Configuration Exports
- * 
- * Centralized exports for all shared configuration modules
+ *
+ * Environment detection and app-wide configuration constants.
  */
 
-export { environment, env } from './environment';
+export { env } from './environment';

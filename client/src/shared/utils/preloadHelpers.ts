@@ -12,7 +12,6 @@
  *
  * DESIGN PHILOSOPHY:
  * - DRY (Don't Repeat Yourself): Extract common preload patterns
- * - Type-safe: Full TypeScript support with generics
  * - Performance-focused: Non-blocking, deduplication-aware
  * - User intent-driven: Preload based on behavioral signals
  * - Framework-agnostic: Works with any React lazy component
@@ -45,10 +44,6 @@ import { logger } from '@infra/logger';
  * - Non-blocking: Preload happens in background
  * - Error-tolerant: Failures don't throw (component lazy loads normally instead)
  * - State-tracking: Tracks whether preload succeeded
- *
- * TYPE SAFETY:
- * - T: The props type of the lazy component
- * - Uses generic to ensure type safety when using the hook
  *
  * IMPLEMENTATION NOTES:
  * - Browser automatically deduplicates identical dynamic imports
