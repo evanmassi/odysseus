@@ -1,29 +1,7 @@
 /**
- * Shared Error System - Index
+ * Shared Error Exports
  *
- * Exports the complete error handling system for use throughout the application.
+ * Infrastructure errors and type guards for frontend error handling.
  */
 
-// Core error classes
-export {
-  AppError,
-  AuthenticationError,
-  ValidationError,
-  DomainError,
-  InfrastructureError,
-  ApiError,
-  UnknownError,
-  FieldResolutionError,
-  FieldPathError,
-} from './AppError';
-
-// Type guards
-export {
-  isAppError,
-  isRetryableError,
-  isAuthError,
-  isValidationError,
-  isDomainError,
-  isInfrastructureError,
-  isConflictError,
-} from './AppError';
+export { InfrastructureError, isConflictError } from './InfrastructureError';

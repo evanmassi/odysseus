@@ -1,3 +1,9 @@
+/**
+ * Animated Border
+ *
+ * SVG border that draws itself in/out using stroke-dashoffset animation.
+ */
+
 import { useEffect, useRef, useState } from 'react';
 
 interface AnimatedBorderProps {
