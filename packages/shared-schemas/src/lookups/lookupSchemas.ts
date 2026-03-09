@@ -1,7 +1,7 @@
 /**
  * Lookup Value Schemas
  *
- * Validation for admin-managed dropdown values (species, source).
+ * Validation for admin-managed dropdown values (species, source, media).
  */
 
 import { z } from 'zod';

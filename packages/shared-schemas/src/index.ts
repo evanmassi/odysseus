@@ -83,7 +83,7 @@ export {
   type LookupValueWithCount,
   type CreateLookupValueRequest,
   type RenameLookupValueRequest,
-} from './lookups';
+} from './lookups/lookupSchemas';
 
 // Search
 export {
