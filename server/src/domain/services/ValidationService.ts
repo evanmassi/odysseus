@@ -12,7 +12,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { TubePositionService } from '@domain/services/TubePositionService';
 import { AccessControlService } from '@domain/services/AccessControlService';
 import type { ConfigurationUpdateData } from '@domain/types/configuration';
-import type { DomainValidationResult, BulkValidationResult } from '@domain/types/validation';
+import type { DomainValidationResult, BulkValidationResult } from '@domain/types/services';
 import type { TubeCreationData, TubeUpdateData, TubeBusinessRuleInput } from '@domain/types/services';
 
 /**

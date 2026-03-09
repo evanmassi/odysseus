@@ -22,7 +22,7 @@ export { ValidationService } from './ValidationService';
 export type { PositionValidation, PositionValidationWithWarnings, PositionValidationResult, BoxStatistics } from '@domain/types/services';
 export type { AccessResult, BulkAccessResult, BulkOperation } from '@domain/types/services';
 export type { TubeCreationData, TubeUpdateData } from '@domain/types/services';
-export type { DomainValidationResult, BulkValidationResult } from '@domain/types/validation';
+export type { DomainValidationResult, BulkValidationResult } from '@domain/types/services';
 export { RolePermissionService, UserRole as UserRoleType, RolePermissionComparison, PermissionAuditReport } from './RolePermissionService';
 
 // Import types for interfaces

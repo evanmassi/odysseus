@@ -29,6 +29,20 @@ export interface PositionValidationResult extends PositionValidationWithWarnings
 }
 
 /**
+ * Position conflict information
+ */
+export interface PositionConflict {
+  tubeId: string;
+  location: {
+    tankId: string;
+    rackId: string;
+    boxId: string;
+    position: number;
+  };
+  message: string;
+}
+
+/**
  * Statistical information about a storage box
  */
 export interface BoxStatistics {
