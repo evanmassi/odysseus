@@ -265,19 +265,9 @@ export {
   generatePositionLabels,
 } from './storage/positionFormatters';
 
-// API Schemas
+// API Constants
 export {
-  // Schemas
-  websocketMessageSchema,
-  queryParametersSchema,
-  httpStatusSchema,
-
-  // Constants
   API_ERROR_CODES,
-
-  // Types
-  type WebSocketMessage,
-  type QueryParameters
 } from './api/apiSchemas';
 
 // System Constants
