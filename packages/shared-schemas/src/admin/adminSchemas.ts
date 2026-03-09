@@ -92,20 +92,6 @@ export const systemMetricsSchema = z.object({
 
 export type SystemMetrics = z.infer<typeof systemMetricsSchema>;
 
-/**
- * Sync Status Schema
- *
- * Firebase synchronization status and configuration
- */
-export const syncStatusSchema = z.object({
-  enabled: z.boolean(),
-  firebase: z.boolean(),
-  workspaceId: z.string().optional(),
-  lastSyncAt: dateOrString.optional(),
-});
-
-export type SyncStatus = z.infer<typeof syncStatusSchema>;
-
 /** Records user actions for security and compliance auditing. */
 export const auditLogEntrySchema = z.object({
   id: z.string(),
@@ -171,13 +157,6 @@ export const systemMetricsResponseSchema = z.object({
 });
 
 export type SystemMetricsResponse = z.infer<typeof systemMetricsResponseSchema>;
-
-export const syncStatusResponseSchema = z.object({
-  success: z.boolean(),
-  sync: syncStatusSchema,
-});
-
-export type SyncStatusResponse = z.infer<typeof syncStatusResponseSchema>;
 
 export const auditLogResponseSchema = z.object({
   success: z.boolean(),

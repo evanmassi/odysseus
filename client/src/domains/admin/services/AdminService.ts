@@ -11,7 +11,6 @@ import type {
   SecurityConfig,
   UpdateSecurityConfig,
   SystemMetrics,
-  SyncStatus,
   LookupCategory,
   LookupValueWithCount,
   LookupValue,
@@ -77,29 +76,6 @@ export class AdminService {
       };
     } catch (error) {
       logger.error('Failed to update security config', { error });
-      throw error;
-    }
-  }
-
-  async getSyncStatus(): Promise<{
-    success: boolean;
-    sync: SyncStatus;
-  }> {
-    try {
-      const response = await httpClient.get<{
-        success: boolean;
-        data: {
-          sync: SyncStatus;
-        };
-        meta?: { timing: number };
-      }>('/admin/sync-status');
-
-      return {
-        success: response.data.success,
-        sync: response.data.data.sync,
-      };
-    } catch (error) {
-      logger.error('Failed to get sync status', { error });
       throw error;
     }
   }

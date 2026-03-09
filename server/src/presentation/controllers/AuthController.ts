@@ -893,27 +893,6 @@ export class AuthController {
     }
   }
 
-  /**
-   * Get synchronization status (admin only)
-   * GET /api/admin/sync-status
-   */
-  async getSyncStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const startTime = Date.now();
-      const syncStatus = await this.configRepository.getSyncStatus();
-
-      const response = ResponseBuilder.withTiming(startTime, {
-        sync: syncStatus
-      });
-      res.status(200).json(response);
-
-      logger.debug('Sync status retrieved', {
-        requestedBy: req.user?.username
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
 
   // USER-RESEARCHER REGISTRATION & APPROVAL WORKFLOW
 

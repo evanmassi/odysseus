@@ -4,7 +4,7 @@ import { Configuration } from '@domain/entities/Configuration';
 import { Location } from '@domain/valueObjects/Location';
 import { Tank, Rack, Box } from '@domain/valueObjects/Equipment';
 import { generateId } from '@domain/utils/generateId';
-import type { SecurityConfig, SystemMetrics, SyncStatus } from '@odysseus/shared-schemas';
+import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 import { DEFAULT_SECURITY_CONFIG, EQUIPMENT_DEFAULTS } from '@odysseus/shared-schemas';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { ValidationError } from '@domain/errors/ValidationError';
@@ -1078,14 +1078,6 @@ export class ConfigurationRepository implements IConfigurationRepository {
         lastBackup: new Date().toISOString()
       };
     }
-  }
-
-  async getSyncStatus(): Promise<SyncStatus> {
-    return {
-      enabled: false,
-      firebase: false,
-      workspaceId: undefined
-    };
   }
 
   // ATOMIC EQUIPMENT DELETION

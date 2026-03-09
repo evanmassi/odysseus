@@ -1,6 +1,6 @@
 import { Configuration } from '@domain/entities/Configuration';
 import { Location } from '@domain/valueObjects/Location';
-import type { SecurityConfig, SystemMetrics, SyncStatus } from '@odysseus/shared-schemas';
+import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
 import type { EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } from '@domain/types/repository/Stats';
 
 /**
@@ -137,7 +137,6 @@ export interface ConfigurationRepository {
   getSecurityConfig(): Promise<SecurityConfig>;
   updateSecurityConfig(updates: Partial<SecurityConfig>): Promise<SecurityConfig>;
   getSystemMetrics(labId: string): Promise<SystemMetrics>;
-  getSyncStatus(): Promise<SyncStatus>;
 }
 
 /**

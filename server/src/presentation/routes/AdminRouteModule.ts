@@ -161,10 +161,6 @@ export class AdminRouteModule implements RouteModule {
       this.authController.getMetrics.bind(this.authController)
     );
 
-    router.get('/sync-status',
-      this.authController.getSyncStatus.bind(this.authController)
-    );
-
     router.get('/stats/users',
       this.authController.getUserStatistics.bind(this.authController)
     );

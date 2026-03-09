@@ -306,14 +306,12 @@ export {
   updateSecurityConfigSchema,
   adminUserSchema,
   systemMetricsSchema,
-  syncStatusSchema,
   auditLogEntrySchema,
   auditLogFiltersSchema,
   userSessionSchema,
   securityConfigResponseSchema,
   adminUsersResponseSchema,
   systemMetricsResponseSchema,
-  syncStatusResponseSchema,
   auditLogResponseSchema,
 
   // Constants
@@ -324,14 +322,12 @@ export {
   type UpdateSecurityConfig,
   type AdminUser,
   type SystemMetrics,
-  type SyncStatus,
   type AuditLogEntry,
   type AuditLogFilters,
   type UserSession,
   type SecurityConfigResponse,
   type AdminUsersResponse,
   type SystemMetricsResponse,
-  type SyncStatusResponse,
   type AuditLogResponse,
 } from './admin/adminSchemas';
 
