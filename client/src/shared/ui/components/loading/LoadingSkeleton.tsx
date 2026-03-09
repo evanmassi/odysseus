@@ -8,7 +8,7 @@ export function LoadingSkeleton() {
     <div
       className="space-y-6 animate-pulse"
       role="status"
-      aria-label="Loading settings..."
+      aria-label="Loading content..."
       aria-live="polite"
     >
       <div className="h-8 bg-border rounded w-1/3" aria-hidden="true"></div>
@@ -19,7 +19,7 @@ export function LoadingSkeleton() {
         <div className="h-16 bg-muted rounded"></div>
       </div>
 
-      <span className="sr-only">Loading admin settings content, please wait...</span>
+      <span className="sr-only">Loading content, please wait...</span>
     </div>
   );
 }

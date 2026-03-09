@@ -25,8 +25,7 @@ const Skeleton: React.FC<SkeletonProps> = ({
   <div
     className={`${skeletonAnimation} ${rounded ? 'rounded' : ''} ${className}`}
     style={{ width, height }}
-    role="status"
-    aria-label="Loading..."
+    aria-hidden="true"
   />
 );
 
@@ -44,7 +43,11 @@ export const ModalSkeleton: React.FC<ModalSkeletonProps> = ({ size = 'md', class
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--overlay))]">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--overlay))]"
+      role="status"
+      aria-label="Loading modal..."
+    >
       <div className={`${sizeClasses[size]} w-full mx-4 bg-card rounded-lg shadow-xl ${className}`}>
         <div className="px-6 py-4 border-b border-border">
           <Skeleton width="40%" height="1.25rem" />

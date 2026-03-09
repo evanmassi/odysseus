@@ -1,16 +1,13 @@
 /**
- * Spinner Component
+ * Loading Spinner
  *
- * Loading spinner using CSS-only animation.
- * Thin ring style.
+ * CSS-only thin ring spinner with smooth rotation animation.
  */
 
 type SpinnerSize = 'sm' | 'md' | 'lg' | 'xl';
 
-interface SpinnerProps {
-  /** Spinner size variant */
+interface LoadingSpinnerProps {
   size?: SpinnerSize;
-  /** Additional CSS classes */
   className?: string;
 }
 
@@ -21,10 +18,7 @@ const sizeClasses: Record<SpinnerSize, string> = {
   xl: 'w-14 h-14 border-[3px]',
 };
 
-/**
- * Renders a thin ring spinner with smooth rotation animation.
- */
-export function LoadingSpinner({ size = 'md', className = '' }: SpinnerProps) {
+export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerProps) {
   return (
     <div
       className={`

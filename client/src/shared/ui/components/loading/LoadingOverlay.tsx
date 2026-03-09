@@ -6,9 +6,7 @@
 import { Loader2 } from 'lucide-react';
 
 interface LoadingOverlayProps {
-  /** Loading message to display */
   message?: string;
-  /** Optional submessage for additional context */
   submessage?: string;
 }
 
