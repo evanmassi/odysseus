@@ -1,6 +1,7 @@
 /**
  * Layout System
- * Fixed proportions for consistent, predictable behavior
+ *
+ * Fixed proportions for consistent, predictable behavior.
  */
 
 :root {
@@ -9,25 +10,9 @@
   --layout-top-padding: 8px;
   --panel-title-height: 40px;
 
-  /* Design Tokens - Unified spacing and typography */
-  --space-xs: 4px;
   --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-
-  /* Typography Scale */
-  --fs-title: 0.875rem;
-  --fs-body: 0.75rem;
-  --fs-small: 0.6875rem;
-
-  /* Frosted Glass Effect - Icy theme */
-  --frost-bg: rgba(255, 255, 255, 0.85);
-  --frost-bg-fallback: #ffffff;
-  --frost-blur: 12px;
 }
 
-/* Main Application Layout */
 .app-container {
   height: 100vh;
   display: flex;
@@ -51,7 +36,7 @@
   background-color: hsl(var(--page));
 }
 
-/* Storage Navigator Panel - Flexible width for custom labels */
+/* Storage Navigator Panel */
 .storage-navigator-panel {
   display: flex;
   flex-direction: column;
@@ -60,7 +45,7 @@
   max-width: 280px;
 }
 
-/* Grid Section - Fills available space, capped to square */
+/* Grid Section */
 .grid-section {
   display: flex;
   flex-direction: column;
@@ -74,7 +59,7 @@
   );
 }
 
-/* Info Panel - Flexible Width */
+/* Info Panel */
 .info-panel {
   display: flex;
   flex-direction: column;
@@ -83,18 +68,18 @@
   max-width: 400px;
 }
 
-/* Grid Container - Square based on container's smaller dimension */
+/* Grid Container */
 .grid-container {
   display: flex;
-  align-items: flex-start; /* Top-align with other panel content */
+  align-items: flex-start;
   justify-content: center;
-  padding: 12px; /* Even padding all sides */
+  padding: 12px;
   min-width: 0;
   min-height: 0;
-  container-type: inline-size; /* Container query for width only */
+  container-type: inline-size; /* Width-only so height doesn't create circular dependency */
 }
 
-/* Panel Title - Consistent height across all panels */
+/* Panel Title */
 .panel-title {
   height: var(--panel-title-height);
   min-height: var(--panel-title-height);
@@ -103,9 +88,8 @@
   flex-shrink: 0;
 }
 
-/* TubeGrid - Square based on container width or viewport height */
+/* Tube Grid */
 .tube-grid {
-  /* Use the smaller of container width or viewport-based height */
   width: min(
     100cqw,
     calc(

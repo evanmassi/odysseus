@@ -80,18 +80,6 @@ export default {
           'light-hover': 'hsl(var(--color-warning-light-hover) / <alpha-value>)',
           border: 'hsl(var(--color-warning-border) / <alpha-value>)',
         },
-        lock: {
-          bg: 'hsl(var(--color-lock-bg) / <alpha-value>)',
-          hover: 'hsl(var(--color-lock-hover) / <alpha-value>)',
-          text: 'hsl(var(--color-lock-text) / <alpha-value>)',
-          btnText: 'hsl(var(--color-lock-btnText) / <alpha-value>)',
-        },
-        share: {
-          bg: 'hsl(var(--color-share-bg) / <alpha-value>)',
-          hover: 'hsl(var(--color-share-hover) / <alpha-value>)',
-          text: 'hsl(var(--color-share-text) / <alpha-value>)',
-          btnText: 'hsl(var(--color-share-btnText) / <alpha-value>)',
-        },
         success: {
           bg: 'hsl(var(--color-success-bg) / <alpha-value>)',
           hover: 'hsl(var(--color-success-hover) / <alpha-value>)',
