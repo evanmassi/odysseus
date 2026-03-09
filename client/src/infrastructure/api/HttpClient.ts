@@ -6,12 +6,8 @@
 import {
   successEnvelopeSchema,
   errorEnvelopeSchema,
-  paginatedEnvelopeSchema,
-  batchEnvelopeSchema,
   ApiError,
   API_ERROR_CODES,
-  type PaginatedResult,
-  type BatchResult,
 } from '@odysseus/shared-schemas';
 import { z } from 'zod';
 
@@ -373,41 +369,6 @@ export class HttpClient {
     const response = await this.delete(url, headers);
 
     const envelope = successEnvelopeSchema(responseSchema).parse(response.data);
-
-    return envelope.data;
-  }
-
-  async getPaginated<T>(
-    url: string,
-    itemSchema: z.ZodType<T>,
-    headers?: Record<string, string>
-  ): Promise<PaginatedResult<T>> {
-    const response = await this.get(url, headers);
-
-    const envelope = paginatedEnvelopeSchema(itemSchema).parse(response.data);
-
-    return {
-      items: envelope.data,
-      pagination: envelope.pagination ?? {
-        total: envelope.data.length,
-        page: 1,
-        limit: envelope.data.length,
-        totalPages: 1,
-        hasNext: false,
-        hasPrev: false,
-      },
-    };
-  }
-
-  async postBatch<T>(
-    url: string,
-    body: unknown,
-    itemSchema: z.ZodType<T>,
-    headers?: Record<string, string>
-  ): Promise<BatchResult<T>> {
-    const response = await this.post(url, body, headers);
-
-    const envelope = batchEnvelopeSchema(itemSchema).parse(response.data);
 
     return envelope.data;
   }
