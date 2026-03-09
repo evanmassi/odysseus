@@ -4,8 +4,6 @@
  * Groups search result tubes by matched field and location for display.
  */
 
-import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
-
 import type { TubeData } from '@domains/tubes/types';
 import type { GroupedResult } from '@odysseus/shared-schemas';
 
@@ -64,7 +62,7 @@ export const groupTubesByRelevance = (tubes: TubeData[], query: string): Grouped
       groupType = 'cellType';
     }
 
-    const tankId = tube.location.tankId || NAMING_PATTERNS.TANK.ID_PATTERN(1);
+    const tankId = tube.location.tankId;
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing -- Cascading fallback: empty strings should fall through */
     const currentGroupKey =
       tube.sample.donorInternalId ||
@@ -96,7 +94,7 @@ const getPrimaryLocation = (tubes: TubeData[]): string => {
   if (tubes.length === 0) return 'No location';
 
   const firstTube = tubes[0];
-  const tankId = firstTube.location.tankId || NAMING_PATTERNS.TANK.ID_PATTERN(1);
+  const tankId = firstTube.location.tankId;
 
   return `${tankId}:${firstTube.location.rackId}:${firstTube.location.boxId}`;
 };

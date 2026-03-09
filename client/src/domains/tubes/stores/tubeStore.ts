@@ -4,7 +4,6 @@
  * Client-only UI state for location navigation and grid selection.
  */
 
-import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
 import { create } from 'zustand';
 
 import { type PositionKey } from '@domains/tubes/types/gridSelectionTypes';
@@ -37,7 +36,7 @@ interface TubeStoreActions {
 }
 
 const initialState: TubeStoreState = {
-  currentTank: NAMING_PATTERNS.TANK.ID_PATTERN(1),
+  currentTank: '',
   currentRack: '1',
   currentBox: 'A',
   selectedPositions: new Set<PositionKey>(),

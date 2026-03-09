@@ -1,19 +1,14 @@
 /**
  * Naming Patterns and Conventions
  *
- * ID Pattern Design:
- * - Tanks: Globally unique with prefix pattern (tank-1, tank-2, etc.)
- * - Racks: Scoped within tank, simple sequential numbers ("1", "2", "3")
- * - Boxes: Scoped within rack, single letters ("A", "B", "C")
+ * Default display names and ID generators for storage equipment.
+ * Tanks have globally unique IDs (tank-1, tank-2). Racks and boxes
+ * are scoped within their parent and named sequentially.
  */
 
 export const NAMING_PATTERNS = {
   TANK: {
-    PREFIX: 'tank-',
     DEFAULT_NAME: (n: number): string => `Tank ${n}`,
-    // IDs are system-generated and not customizable
-    ID_PATTERN: (n: number): string => `tank-${n}`,
-    DEFAULT_LOCATION: 'Main Laboratory',
   },
 
   // Location is implied by parent tank (nested relationship)

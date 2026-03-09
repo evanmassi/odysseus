@@ -4,8 +4,6 @@
  * Navigates to a tube's storage location and selects it in the grid.
  */
 
-import { NAMING_PATTERNS } from '@odysseus/shared-schemas';
-
 import { useTubeStore } from '@domains/tubes';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
 
@@ -15,7 +13,7 @@ export async function navigateToResult(tubes: TubeData[]): Promise<void> {
   if (tubes.length === 0) return;
 
   const firstTube = tubes[0];
-  const tankId = firstTube.location.tankId || NAMING_PATTERNS.TANK.ID_PATTERN(1);
+  const tankId = firstTube.location.tankId;
   const rackId = firstTube.location.rackId;
   const boxId = firstTube.location.boxId;
 
