@@ -1,11 +1,7 @@
 /**
  * Researcher Domain Schemas
  *
- * Researchers are simple domain entities representing scientific profiles:
- * - Researcher: Profile data only
- * - CreateResearcherProfile / UpdateResearcherProfile: Mutation inputs
- *
- * No authentication/authorization concerns - pure domain entities.
+ * Pure domain entities for researcher profiles with no auth concerns.
  */
 
 import { z } from 'zod';
@@ -17,13 +13,6 @@ export const researcherSourceSchema = z.enum(['registration', 'admin']);
 export type ResearcherApprovalStatus = z.infer<typeof researcherApprovalStatusSchema>;
 export type ResearcherSource = z.infer<typeof researcherSourceSchema>;
 
-/**
- * Researcher Domain Entity
- *
- * Represents a researcher profile in the lab system.
- * Includes denormalized Person fields for display purposes.
- * Matches backend ResearcherResponse DTO.
- */
 export const researcherSchema = z.object({
   id: z.string(),
   personId: z.string(),
@@ -39,17 +28,6 @@ export const researcherSchema = z.object({
   department: z.string().optional()
 });
 
-/**
- * Array of researchers schema
- */
-export const researchersArraySchema = z.array(researcherSchema);
-
-/**
- * Researcher Creation Schema
- *
- * Input for creating new researchers
- * Matches backend CreateResearcherRequest DTO exactly
- */
 export const createResearcherProfileSchema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50, 'First name too long'),
   lastName: z.string().min(1, 'Last name is required').max(50, 'Last name too long'),
@@ -58,19 +36,10 @@ export const createResearcherProfileSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email format')
 });
 
-/**
- * Researcher Update Schema
- *
- * Partial version for updates with active status support
- * Matches backend UpdateResearcherRequest DTO exactly
- */
 export const updateResearcherProfileSchema = createResearcherProfileSchema.partial().extend({
   active: z.boolean().optional()
 });
 
-/**
- * Researcher query filters schema
- */
 export const researcherQueryFiltersSchema = z.object({
   active: z.boolean().optional(),
   department: z.string().optional(),
@@ -87,20 +56,10 @@ export type UpdateResearcherProfile = z.infer<typeof updateResearcherProfileSche
 export type ResearcherQueryFilters = z.infer<typeof researcherQueryFiltersSchema>;
 
 /**
- * Admin Researcher Schema
- *
- * Extended researcher view with admin metadata and denormalized Person fields
- * Includes person data for display purposes in admin UI
+ * Extended researcher view with admin metadata.
  */
 export const adminResearcherSchema = researcherSchema.extend({
-  // Person fields (denormalized for display)
-  firstName: z.string(),
-  lastName: z.string(),
-  email: z.string(),
-  position: z.string().optional(),
-  department: z.string().optional(),
-
-  // Approval workflow fields (required in admin view)
+  // Approval workflow fields (required in admin view, overrides optional on base schema)
   approvalStatus: researcherApprovalStatusSchema,
   source: researcherSourceSchema,
 
@@ -111,36 +70,6 @@ export const adminResearcherSchema = researcherSchema.extend({
 });
 
 export type AdminResearcher = z.infer<typeof adminResearcherSchema>;
-
-/**
- * Admin Researchers Response Schema
- *
- * API response for admin researcher queries
- */
-export const adminResearchersResponseSchema = z.object({
-  success: z.boolean(),
-  researchers: z.array(adminResearcherSchema),
-});
-
-export type AdminResearchersResponse = z.infer<typeof adminResearchersResponseSchema>;
-
-/**
- * Validation utilities
- */
-export const validateResearcherName = (firstName: string, lastName: string): boolean => {
-  return firstName.trim().length >= 1 && firstName.trim().length <= 50 &&
-         lastName.trim().length >= 1 && lastName.trim().length <= 50;
-};
-
-export const validateResearcherEmail = (email?: string): boolean => {
-  if (!email) return true; // email is optional
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
-
-/**
- * Display utilities for person names
- */
 
 /** Format for display in lists: "Last, First" */
 export const formatResearcherListDisplay = (person: Pick<Person, 'firstName' | 'lastName'>): string => {
@@ -159,20 +88,13 @@ export const formatResearcherFullDisplay = (person: Pick<Person, 'firstName' | '
 };
 
 /**
- * Name similarity detection utilities
- * Used for duplicate prevention when creating researchers
- */
-
-/**
- * Calculate Levenshtein distance between two strings
- * Returns the number of single-character edits needed to transform one string into another
+ * Number of single-character edits needed to transform one string into another.
  */
 function levenshteinDistance(str1: string, str2: string): number {
   const len1 = str1.length;
   const len2 = str2.length;
   const matrix: number[][] = [];
 
-  // Initialize matrix
   for (let i = 0; i <= len1; i++) {
     matrix[i] = [i];
   }
@@ -180,7 +102,6 @@ function levenshteinDistance(str1: string, str2: string): number {
     matrix[0][j] = j;
   }
 
-  // Fill matrix
   for (let i = 1; i <= len1; i++) {
     for (let j = 1; j <= len2; j++) {
       if (str1[i - 1] === str2[j - 1]) {
@@ -198,9 +119,7 @@ function levenshteinDistance(str1: string, str2: string): number {
   return matrix[len1][len2];
 }
 
-/**
- * Calculate similarity score between two names (0-1, where 1 is identical)
- */
+/** Similarity score between two names: 0–1, where 1 is identical. */
 export function calculateNameSimilarity(name1: string, name2: string): number {
   const s1 = name1.toLowerCase().trim();
   const s2 = name2.toLowerCase().trim();
@@ -214,10 +133,7 @@ export function calculateNameSimilarity(name1: string, name2: string): number {
   return 1 - (distance / maxLength);
 }
 
-/**
- * Find similar persons that might be duplicates
- * Returns persons with high name similarity (>85% match or exact match)
- */
+/** Returns researchers with >85% name similarity — used for duplicate prevention on create. */
 export function findSimilarResearchers(
   newPerson: Pick<Person, 'firstName' | 'lastName'>,
   existingPersons: Pick<Person, 'firstName' | 'lastName'>[]
