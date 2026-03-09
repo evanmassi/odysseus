@@ -13,7 +13,7 @@
 import type { Socket } from 'socket.io';
 import type { ExtendedError } from 'socket.io/dist/namespace';
 import type { SessionService } from '@application/commands/UserCommands';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 // Extend Socket interface with authenticated user info
 declare module 'socket.io' {

@@ -2,8 +2,8 @@ import { Request, Response } from 'express';
 import { TubeApplicationService } from '@application/services/TubeApplicationService';
 import { CreateTubeRequest, UpdateTubeRequest, BulkUpdateRequest, TubeSearchRequest } from '@application/dto/TubeDto';
 import { ErrorDto } from '@application/dto/ErrorDto';
-import { handleControllerError } from '@presentation/utilities/ErrorHandler';
-import { logger } from '@utils/logger';
+import { handleControllerError } from '@presentation/utils/ErrorHandler';
+import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
 
 /**

@@ -2,7 +2,7 @@
  * Response Builder - Factory for creating standardized API responses
  *
  * Provides utility methods for building consistent response objects.
- * Extracted from presentation/responses/ApiResponse.ts
+ * Provides utility methods for building consistent response objects.
  */
 
 import { randomUUID } from 'crypto';
@@ -10,7 +10,7 @@ import type {
   ApiResponse,
   ApiResponseMeta,
   PaginationMeta
-} from '@shared/types/api/ApiResponse';
+} from '@presentation/types/apiResponse';
 
 export class ResponseBuilder {
   private static readonly API_VERSION = '1.0.0';

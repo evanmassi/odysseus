@@ -2,7 +2,7 @@ import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { PaginatedResult } from '@domain/types/repository';
 import type { AuditArchiveRepository as IAuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
 import { PostgresContext } from '@infrastructure/database/PostgresContext';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 /**
  * Explicit column list for audit_log_archive table queries

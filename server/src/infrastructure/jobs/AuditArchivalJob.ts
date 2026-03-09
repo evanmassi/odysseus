@@ -1,7 +1,7 @@
 import * as cron from 'node-cron';
 import { AuditRetentionService } from '@application/services/AuditRetentionService';
-import { AUDIT_RETENTION_CONFIG } from '@config/auditConfig';
-import { logger } from '@utils/logger';
+import { AUDIT_RETENTION_CONFIG } from '@application/config/AuditConfig';
+import { logger } from '@infrastructure/logging/logger';
 
 /**
  * Audit Archival Job

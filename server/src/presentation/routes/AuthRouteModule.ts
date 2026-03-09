@@ -9,7 +9,7 @@ import { Router, RequestHandler } from 'express';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
-import { createRateLimitMiddleware } from '@middleware/RateLimiting';
+import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 
 export class AuthRouteModule implements RouteModule {

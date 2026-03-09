@@ -9,9 +9,9 @@ import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { SearchController } from '@presentation/controllers/SearchController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
-import { createRateLimitMiddleware } from '@middleware/RateLimiting';
+import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
-import { validateBody, validateParams, validateQuery } from '@middleware/Validation';
+import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
 import { AdvancedSearchOptionsSchema } from '@odysseus/shared-schemas';
 
 export class SearchRouteModule implements RouteModule {

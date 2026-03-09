@@ -14,7 +14,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import type { EventBus } from '@application/contracts/EventBus';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 import {
   TubeCreatedEvent,
   TubeUpdatedEvent,

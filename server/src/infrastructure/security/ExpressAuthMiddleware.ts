@@ -8,7 +8,7 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { SessionService } from '@application/commands/UserCommands';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 export class ExpressAuthMiddleware implements AuthMiddleware {
   constructor(

@@ -16,7 +16,7 @@ import {
   shouldSkipFuzzyMatching,
   SearchRankTier,
 } from '@infrastructure/database/searchUtils';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 
 /**

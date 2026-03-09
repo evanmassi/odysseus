@@ -13,9 +13,9 @@ import { TubeLockController } from '@presentation/controllers/TubeLockController
 import { ResearcherController } from '@presentation/controllers/ResearcherController';
 import { LookupValueController } from '@presentation/controllers/LookupValueController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
-import { createRateLimitMiddleware } from '@middleware/RateLimiting';
+import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
-import { validateBody, validateParams, validateQuery } from '@middleware/Validation';
+import { validateBody, validateParams, validateQuery } from '@presentation/middleware/requestValidation';
 import {
   CreateTubeHttpSchema,
   UpdateTubeHttpSchema,
@@ -27,7 +27,7 @@ import {
   UnlockTubesHttpSchema,
   ShareTubeAccessHttpSchema,
   RevokeTubeAccessHttpSchema
-} from '@validation/schemas';
+} from '@presentation/validation/schemas';
 
 export class ResourceRouteModule implements RouteModule {
   private readonly rateLimitMiddleware: RequestHandler;

@@ -7,7 +7,7 @@
 
 import { Express, Router, Request, Response, NextFunction } from 'express';
 import { RouteModule } from '@presentation/routes/RouteModule';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 export class RouteRegistry {
   private modules: RouteModule[] = [];

@@ -2,8 +2,8 @@ import type { AuditLogEntry, AuditLogFilters } from '@odysseus/shared-schemas';
 import type { AuditRepository } from '@domain/repositories/AuditRepository';
 import type { AuditArchiveRepository } from '@domain/repositories/AuditArchiveRepository';
 import type { PaginatedResult } from '@domain/types/repository';
-import { AUDIT_RETENTION_CONFIG } from '@config/auditConfig';
-import { logger } from '@utils/logger';
+import { AUDIT_RETENTION_CONFIG } from '@application/config/AuditConfig';
+import { logger } from '@infrastructure/logging/logger';
 
 /**
  * Retention metrics for monitoring

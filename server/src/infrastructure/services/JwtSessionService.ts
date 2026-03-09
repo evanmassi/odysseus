@@ -8,11 +8,11 @@
 import * as jwt from 'jsonwebtoken';
 import { randomUUID, randomBytes } from 'crypto';
 import { User } from '@domain/entities/User';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 import { RefreshToken } from '@domain/entities/RefreshToken';
 import { UserSession } from '@domain/entities/UserSession';
 import { SessionService, SessionValidationResult, SessionValidationOutcome } from '@application/commands/UserCommands';
-import { ConfigurationService } from '@infrastructure/configuration/ConfigurationService';
+import { ConfigurationService } from '@infrastructure/services/ConfigurationService';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { RefreshTokenRepository } from '@domain/repositories/RefreshTokenRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
@@ -25,7 +25,7 @@ import {
   EnhancedLoginResponse,
   RefreshTokenResponse,
   TokenConfiguration
-} from '@shared/types/Token';
+} from '@application/types/token';
 import type { SecurityConfig } from '@odysseus/shared-schemas';
 
 export interface JwtSessionConfig {

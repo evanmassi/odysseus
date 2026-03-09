@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 import { UserSessionRepository } from '@domain/repositories/UserSessionRepository';
 import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';

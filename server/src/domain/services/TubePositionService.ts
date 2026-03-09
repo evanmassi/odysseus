@@ -4,7 +4,7 @@ import { Configuration } from '@domain/entities/Configuration';
 import { TubeRepository } from '@domain/repositories/TubeRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { ValidationError } from '@domain/errors/ValidationError';
-import type { PositionConflict } from '@domain/types/Position';
+import type { PositionConflict } from '@domain/types/position';
 import type { PositionValidation, PositionValidationWithWarnings, PositionValidationResult, BoxStatistics } from '@domain/types/services';
 
 export class TubePositionService {

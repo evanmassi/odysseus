@@ -1,7 +1,7 @@
 import { Configuration } from '@domain/entities/Configuration';
 import { Location } from '@domain/valueObjects/Location';
 import type { SecurityConfig, SystemMetrics } from '@odysseus/shared-schemas';
-import type { EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } from '@domain/types/repository/Stats';
+import type { EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } from '@domain/types/repository/stats';
 
 /**
  * Configuration Repository Interface

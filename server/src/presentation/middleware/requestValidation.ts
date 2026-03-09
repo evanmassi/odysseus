@@ -4,7 +4,7 @@
  */
 import { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 export interface ValidationError {
   field: string;

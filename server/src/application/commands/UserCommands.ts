@@ -15,7 +15,7 @@ import { LabRepository } from '@domain/repositories/LabRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { Person } from '@domain/entities/Person';
 import { PasswordService } from '@application/contracts/PasswordService';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 import { EventBus } from '@application/contracts/EventBus';
 import {
   UserCreatedEvent,
@@ -32,7 +32,7 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { type UserSettings, PasswordValidator } from '@odysseus/shared-schemas';
-import type { EnhancedLoginResponse, RefreshTokenResponse } from '@shared/types/Token';
+import type { EnhancedLoginResponse, RefreshTokenResponse } from '@application/types/token';
 
 // Create User Command
 

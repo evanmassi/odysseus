@@ -16,7 +16,7 @@ const SESSION_COLUMNS = `
  *
  * Handles session tracking for concurrent session limit enforcement.
  */
-export class SessionRepository implements UserSessionRepository {
+export class UserSessionRepositoryImpl implements UserSessionRepository {
 
   constructor(private context: PostgresContext) {}
 

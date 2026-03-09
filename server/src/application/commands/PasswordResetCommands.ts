@@ -15,7 +15,7 @@ import { NotFoundError } from '@domain/errors/NotFoundError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { PasswordResetByAdminEvent, PasswordResetTokenGeneratedEvent, PasswordResetCompletedEvent } from '@domain/events/PasswordResetEvents';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 /**
  * Command: Admin directly resets user password

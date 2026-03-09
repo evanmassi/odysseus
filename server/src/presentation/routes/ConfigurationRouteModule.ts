@@ -2,7 +2,7 @@ import { Router, RequestHandler, Request, Response, NextFunction } from 'express
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
 import { RouteModule } from '@presentation/routes/RouteModule';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 /**
  * Configuration Route Module

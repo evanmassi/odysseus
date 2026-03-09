@@ -5,7 +5,7 @@ import {
 } from '@application/commands/UserCommands';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
-import { handleControllerError } from '@presentation/utilities/ErrorHandler';
+import { handleControllerError } from '@presentation/utils/ErrorHandler';
 import { userSettingsSchema, userLookupRequestSchema } from '@odysseus/shared-schemas';
 import { BaseController } from '@presentation/controllers/BaseController';
 

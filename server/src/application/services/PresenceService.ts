@@ -10,7 +10,7 @@
  * - Multi-tab safe: closing an old tab doesn't remove a newer connection
  */
 
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 interface ConnectedUser {
   userId: string;

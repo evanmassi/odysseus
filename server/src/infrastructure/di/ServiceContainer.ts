@@ -1,5 +1,5 @@
 import { RepositoryFactory } from '@infrastructure/repositories';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 // CQRS Command Handlers
 import { CreateUserCommandHandler, LoginCommandHandler, ChangeUserPasswordCommandHandler, ChangeUserRoleCommandHandler, DeleteUserCommandHandler, UpdateUserSettingsCommandHandler, GetUserSettingsQueryHandler } from '@application/commands/UserCommands';
@@ -60,7 +60,7 @@ import { ConfigurationChangeDetector } from '@domain/services/ConfigurationChang
 import { BcryptPasswordService } from '@infrastructure/services/BcryptPasswordService';
 import { JwtSessionService } from '@infrastructure/services/JwtSessionService';
 import { ExpressAuthMiddleware } from '@infrastructure/security/ExpressAuthMiddleware';
-import { ConfigurationService } from '@infrastructure/configuration/ConfigurationService';
+import { ConfigurationService } from '@infrastructure/services/ConfigurationService';
 import { ConsoleEmailService } from '@infrastructure/services/ConsoleEmailService';
 import { AuditArchiveRepository } from '@infrastructure/repositories/AuditArchiveRepository';
 import { AuditArchivalJob } from '@infrastructure/jobs/AuditArchivalJob';

@@ -13,7 +13,7 @@
 import type { EventBus } from '@application/contracts/EventBus';
 import type { Server as SocketIOServer } from 'socket.io';
 import type { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 import { PresenceService } from '@application/services/PresenceService';
 import {
   TankUpdatedEvent,

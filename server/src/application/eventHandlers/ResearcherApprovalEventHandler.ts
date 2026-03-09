@@ -14,7 +14,7 @@ import { UserApprovedEvent, UserRejectedEvent } from '@domain/events/UserEvents'
 import { ResearcherApprovedEvent } from '@domain/events/ResearcherEvents';
 import { Researcher } from '@domain/entities/Researcher';
 import { Person } from '@domain/entities/Person';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 export class ResearcherApprovalEventHandler {
   constructor(

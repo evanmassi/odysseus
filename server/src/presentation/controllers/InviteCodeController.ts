@@ -6,10 +6,10 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { BaseController } from './BaseController';
-import { ResponseBuilder } from '@presentation/utilities/ResponseBuilder';
+import { ResponseBuilder } from '@presentation/utils/ResponseBuilder';
 import type { CreateInviteCodeCommandHandler, DeactivateInviteCodeCommandHandler, ValidateInviteCodeQueryHandler } from '@application/commands/InviteCodeCommands';
 import type { InviteCodeRepository } from '@domain/repositories/InviteCodeRepository';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 export class InviteCodeController extends BaseController {
   constructor(

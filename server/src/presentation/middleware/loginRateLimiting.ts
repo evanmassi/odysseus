@@ -14,7 +14,7 @@
 
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 /**
  * Represents a single rate limit attempt record

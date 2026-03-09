@@ -10,7 +10,7 @@ import { LookupValueApplicationService } from '@application/services/LookupValue
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { ErrorDto } from '@application/dto/ErrorDto';
 import { ValidationError } from '@domain/errors/ValidationError';
-import { handleControllerError } from '@presentation/utilities/ErrorHandler';
+import { handleControllerError } from '@presentation/utils/ErrorHandler';
 import type { LookupCategory } from '@domain/entities/LookupValue';
 
 export class LookupValueController extends BaseController {

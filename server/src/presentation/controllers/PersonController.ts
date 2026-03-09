@@ -5,7 +5,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { NotFoundError } from '@domain/errors/NotFoundError';

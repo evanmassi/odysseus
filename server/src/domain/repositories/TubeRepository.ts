@@ -1,7 +1,7 @@
 import { Tube } from '@domain/entities/Tube';
 import { Location } from '@domain/valueObjects/Location';
-import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/SearchCriteria';
-import type { TubeRepositoryStats } from '@domain/types/repository/Stats';
+import type { TubeSearchCriteria, TubeSearchResult } from '@domain/types/repository/searchCriteria';
+import type { TubeRepositoryStats } from '@domain/types/repository/stats';
 
 export interface TubeRepository {
 

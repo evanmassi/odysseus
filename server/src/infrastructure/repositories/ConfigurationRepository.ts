@@ -10,7 +10,7 @@ import { PostgresContext } from '@infrastructure/database/PostgresContext';
 import { ValidationError } from '@domain/errors/ValidationError';
 import { ConflictError } from '@domain/errors/ConflictError';
 import { NotFoundError } from '@domain/errors/NotFoundError';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 /** Type for configuration JSON stored in JSONB columns */
 type ConfigurationJson = Parameters<typeof Configuration.fromData>[0];

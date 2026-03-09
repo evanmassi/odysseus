@@ -1,5 +1,5 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 import { generateId } from '@domain/utils/generateId';
 
 /**

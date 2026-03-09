@@ -11,10 +11,10 @@ import { ValidationError } from '@domain/errors/ValidationError';
 import { PermissionError } from '@domain/errors/PermissionError';
 import { EventBus } from '@application/contracts/EventBus';
 import { rejectDemoConfigOperation } from '@application/guards/DemoGuards';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 import type { PositionDisplayConfig } from '@odysseus/shared-schemas';
 import type { ResourceWithOwnership } from '@domain/services/AccessControlService';
-import type { ConfigurationImportData } from '@domain/types/Configuration';
+import type { ConfigurationImportData } from '@domain/types/configuration';
 import {
   RackAssignedEvent,
   RackUnassignedEvent,

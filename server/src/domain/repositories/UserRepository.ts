@@ -1,6 +1,6 @@
 import { User } from '@domain/entities/User';
-import type { UserSearchCriteria } from '@domain/types/repository/SearchCriteria';
-import type { UserRepositoryStats } from '@domain/types/repository/Stats';
+import type { UserSearchCriteria } from '@domain/types/repository/searchCriteria';
+import type { UserRepositoryStats } from '@domain/types/repository/stats';
 
 /**
  * User Repository Interface

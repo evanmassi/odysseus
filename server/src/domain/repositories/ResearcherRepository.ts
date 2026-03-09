@@ -1,6 +1,6 @@
 import { Researcher } from '@domain/entities/Researcher';
-import type { ResearcherSearchCriteria } from '@domain/types/repository/SearchCriteria';
-import type { ResearcherUsageStats, ResearcherRepositoryStats } from '@domain/types/repository/Stats';
+import type { ResearcherSearchCriteria } from '@domain/types/repository/searchCriteria';
+import type { ResearcherUsageStats, ResearcherRepositoryStats } from '@domain/types/repository/stats';
 
 /**
  * Researcher Repository Interface

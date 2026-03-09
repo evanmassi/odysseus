@@ -32,7 +32,7 @@ if (!isPkgBundle && !isElectronPackaged && !isElectronApp) {
   transports.push(
     // Error logs with rotation
     new DailyRotateFile({
-      filename: path.join(__dirname, '../../logs/error-%DATE%.log'),
+      filename: path.join(__dirname, '../../../logs/error-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       level: 'error',
       maxSize: '10m',
@@ -41,7 +41,7 @@ if (!isPkgBundle && !isElectronPackaged && !isElectronApp) {
     }),
     // Combined logs with rotation
     new DailyRotateFile({
-      filename: path.join(__dirname, '../../logs/combined-%DATE%.log'),
+      filename: path.join(__dirname, '../../../logs/combined-%DATE%.log'),
       datePattern: 'YYYY-MM-DD',
       maxSize: '10m',
       maxFiles: '7d',
@@ -58,7 +58,7 @@ export const logger = winston.createLogger({
 
 // Create logs directory if it doesn't exist (only in development, not in Electron)
 import fs from 'fs';
-const logsDir = path.join(__dirname, '../../logs');
+const logsDir = path.join(__dirname, '../../../logs');
 
 if (!isPkgBundle && !isElectronPackaged && !isElectronApp && !fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });

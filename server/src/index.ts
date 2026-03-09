@@ -7,9 +7,9 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { initializeRepositories, RepositoryFactory } from '@infrastructure/repositories';
 import { ServiceContainer } from '@infrastructure/di/ServiceContainer';
-import { logger } from '@utils/logger';
-import { sanitizeStrings } from '@middleware/Validation';
-import { requestIdMiddleware } from '@middleware/RequestId';
+import { logger } from '@infrastructure/logging/logger';
+import { sanitizeStrings } from '@presentation/middleware/requestValidation';
+import { requestIdMiddleware } from '@presentation/middleware/requestId';
 import { createSocketAuthMiddleware } from '@presentation/middleware/socketAuth';
 
 // Load environment variables from appropriate file

@@ -1,5 +1,5 @@
 import { EmailService } from '@domain/services/EmailService';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 /**
  * Console Email Service Implementation

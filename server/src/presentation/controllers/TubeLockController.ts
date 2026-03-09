@@ -7,8 +7,8 @@ import type {
   RevokeTubeAccessRequest
 } from '@application/dto/TubeLockDto';
 import { ErrorDto } from '@application/dto/ErrorDto';
-import { handleControllerError } from '@presentation/utilities/ErrorHandler';
-import { logger } from '@utils/logger';
+import { handleControllerError } from '@presentation/utils/ErrorHandler';
+import { logger } from '@infrastructure/logging/logger';
 import { BaseController } from '@presentation/controllers/BaseController';
 
 /**

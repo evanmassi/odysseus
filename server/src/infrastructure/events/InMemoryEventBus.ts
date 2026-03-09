@@ -8,7 +8,7 @@
 import type { DomainEvent } from '@domain/events/DomainEvent';
 import type { DomainEventMap, DomainEventName } from '@domain/events/DomainEventMap';
 import type { EventBus, EventHandler } from '@application/contracts/EventBus';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 // Internal handler type for storage (runtime can't verify generic types)
 type AnyEventHandler = EventHandler<DomainEvent>;

@@ -10,9 +10,9 @@ import { z } from 'zod';
 import { RouteModule } from '@presentation/routes/RouteModule';
 import { AuthController } from '@presentation/controllers/AuthController';
 import { InviteCodeController } from '@presentation/controllers/InviteCodeController';
-import { createRateLimitMiddleware } from '@middleware/RateLimiting';
+import { createRateLimitMiddleware } from '@presentation/middleware/loginRateLimiting';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
-import { validateBody } from '@middleware/Validation';
+import { validateBody } from '@presentation/middleware/requestValidation';
 import {
   registerWithResearcherSchema,
   resetPasswordWithTokenRequestSchema,

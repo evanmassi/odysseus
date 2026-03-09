@@ -26,7 +26,7 @@ import {
   RackUnassignedEvent,
   RackReassignedEvent
 } from '@domain/events/ConfigurationEvents';
-import type { FieldChange } from '@domain/types/FieldChange';
+import type { FieldChange } from '@domain/types/fieldChange';
 
 // COMMAND INTERFACES
 

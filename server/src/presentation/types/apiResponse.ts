@@ -2,7 +2,6 @@
  * Standardized API Response Format
  *
  * Provides consistent response structure across all endpoints.
- * Consolidated from shared/types/ApiTypes.ts and presentation/responses/ApiResponse.ts
  */
 
 export interface ApiResponse<T = unknown> {

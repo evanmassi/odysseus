@@ -7,7 +7,7 @@
 
 import { Request, Response } from 'express';
 import { ExportService } from '@application/services/ExportService';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 export class ExportController {
   constructor(private exportService: ExportService) {}

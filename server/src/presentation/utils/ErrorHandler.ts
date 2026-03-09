@@ -7,7 +7,7 @@
 
 import { Response } from 'express';
 import { ErrorDto } from '@application/dto/ErrorDto';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 /** Type guard for Zod validation errors. */
 function isZodError(value: unknown): value is { name: 'ZodError'; errors: unknown[] } {

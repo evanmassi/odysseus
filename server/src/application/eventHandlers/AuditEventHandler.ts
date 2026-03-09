@@ -66,8 +66,8 @@ import {
 import { UserRepository } from '@domain/repositories/UserRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { Location } from '@domain/valueObjects/Location';
-import type { FieldChange } from '@domain/types/FieldChange';
-import { logger } from '@utils/logger';
+import type { FieldChange } from '@domain/types/fieldChange';
+import { logger } from '@infrastructure/logging/logger';
 
 /**
  * Audit Event Handler

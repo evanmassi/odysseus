@@ -21,13 +21,7 @@
       "@domain/*": ["src/domain/*"],
       "@application/*": ["src/application/*"],
       "@infrastructure/*": ["src/infrastructure/*"],
-      "@presentation/*": ["src/presentation/*"],
-      "@shared/*": ["src/shared/*"],
-      "@utils/*": ["src/utils/*"],
-      "@middleware/*": ["src/middleware/*"],
-      "@validation/*": ["src/validation/*"],
-      "@interfaces/*": ["src/interfaces/*"],
-      "@config/*": ["src/config/*"]
+      "@presentation/*": ["src/presentation/*"]
     }
   },
   "include": ["src/**/*"],

@@ -11,7 +11,7 @@ import { ResearcherRepository } from '@domain/repositories/ResearcherRepository'
 import { PersonRepository } from '@domain/repositories/PersonRepository';
 import { ConfigurationRepository } from '@domain/repositories/ConfigurationRepository';
 import { generateCsv, formatDateForCsv, formatDateShort } from '@infrastructure/utils/csvGenerator';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 /** Flattened tube data for export */
 interface TubeExportRow {

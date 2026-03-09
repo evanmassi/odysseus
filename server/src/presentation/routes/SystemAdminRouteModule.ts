@@ -14,7 +14,7 @@ import { AuthController } from '@presentation/controllers/AuthController';
 import { ConfigurationController } from '@presentation/controllers/ConfigurationController';
 import { AuditController } from '@presentation/controllers/AuditController';
 import { AuthMiddleware } from '@infrastructure/security/AuthMiddleware';
-import { validateBody, validateParams } from '@middleware/Validation';
+import { validateBody, validateParams } from '@presentation/middleware/requestValidation';
 import { updateSecurityConfigSchema, updateDemoLimitsSchema } from '@odysseus/shared-schemas';
 
 export class SystemAdminRouteModule implements RouteModule {

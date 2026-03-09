@@ -5,7 +5,7 @@ import { ResearcherRepository as ResearcherRepositoryImpl } from '@infrastructur
 import { PersonRepository as PersonRepositoryImpl } from '@infrastructure/repositories/PersonRepository';
 import { ConfigurationRepository as ConfigurationRepositoryImpl } from '@infrastructure/repositories/ConfigurationRepository';
 import { RefreshTokenRepository as RefreshTokenRepositoryImpl } from '@infrastructure/repositories/RefreshTokenRepository';
-import { SessionRepository as SessionRepositoryImpl } from '@infrastructure/repositories/SessionRepository';
+import { UserSessionRepositoryImpl } from '@infrastructure/repositories/UserSessionRepository';
 import { AuditRepository as AuditRepositoryImpl } from '@infrastructure/repositories/AuditRepository';
 import { LookupValueRepository as LookupValueRepositoryImpl } from '@infrastructure/repositories/LookupValueRepository';
 import { LabRepository as LabRepositoryImpl } from '@infrastructure/repositories/LabRepository';
@@ -122,7 +122,7 @@ export class RepositoryFactory {
    */
   getUserSessionRepository(): UserSessionRepository {
     if (!this.userSessionRepository) {
-      this.userSessionRepository = new SessionRepositoryImpl(this.postgresContext);
+      this.userSessionRepository = new UserSessionRepositoryImpl(this.postgresContext);
     }
     return this.userSessionRepository;
   }

@@ -6,7 +6,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { BaseController } from './BaseController';
-import { ResponseBuilder } from '@presentation/utilities/ResponseBuilder';
+import { ResponseBuilder } from '@presentation/utils/ResponseBuilder';
 import type { CreateLabCommandHandler, UpdateLabCommandHandler, DeactivateLabCommandHandler, ActivateLabCommandHandler } from '@application/commands/LabCommands';
 import type { UpdateDemoLimitsCommandHandler } from '@application/commands/DemoSeedCommands';
 import type { LabRepository } from '@domain/repositories/LabRepository';
@@ -16,7 +16,7 @@ import type { ConfigurationRepository } from '@domain/repositories/Configuration
 import type { ResearcherRepository } from '@domain/repositories/ResearcherRepository';
 import type { PersonRepository } from '@domain/repositories/PersonRepository';
 import { DEMO_LIMITS_DEFAULTS } from '@odysseus/shared-schemas';
-import { logger } from '@utils/logger';
+import { logger } from '@infrastructure/logging/logger';
 
 export class LabController extends BaseController {
   constructor(
