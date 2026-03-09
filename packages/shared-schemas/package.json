@@ -1,6 +1,6 @@
 {
   "name": "@odysseus/shared-schemas",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Shared Zod schemas for Odysseus client and server",
   "private": true,
   "main": "dist/index.cjs",
@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsup",
     "watch": "tsup --watch",
-    "clean": "rmdir /S /Q dist 2>nul || echo \"Clean completed\""
+    "clean": "rm -rf dist"
   },
   "peerDependencies": {
     "zod": "^4.1.5"
