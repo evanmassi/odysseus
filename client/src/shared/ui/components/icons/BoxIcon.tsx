@@ -1,3 +1,9 @@
+/**
+ * Box Storage Icon
+ *
+ * Semantic wrapper around Lucide's Box icon for storage hierarchy.
+ */
+
 import { Box } from 'lucide-react';
 
 interface BoxIconProps {

@@ -1,9 +1,7 @@
 /**
- * AnimatedInfoMark Component
+ * Animated Info Icon
  *
- * SVG-based animated info mark (circle with "i" symbol) with stroke animation.
- * Uses Lucide Info's exact geometry for consistency.
- * Used as info indicator for alerts and feedback.
+ * SVG-based animated info mark using Lucide Info's exact geometry.
  */
 import { useEffect, useState } from 'react';
 
@@ -20,9 +18,7 @@ export function AnimatedInfoMark({ size = 48, className = '' }: AnimatedInfoMark
     return () => clearTimeout(timer);
   }, []);
 
-  // Uses Lucide's 24x24 viewBox with exact Info geometry
-  // Note: Lucide's "i" has dot at TOP (y=8) and line below (y=12 to y=16)
-
+  // Lucide's "i" has dot at TOP (y=8) and line below (y=12 to y=16)
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
       <svg width={size} height={size} viewBox="0 0 24 24">

@@ -1,8 +1,7 @@
 /**
- * AnimatedCheckmark Component
+ * Animated Checkmark Icon
  *
- * SVG-based animated checkmark with circle stroke animation.
- * Uses Lucide CircleCheckBig's exact geometry for consistency.
+ * SVG-based animated checkmark using Lucide CircleCheckBig's exact geometry.
  */
 import { useEffect, useState } from 'react';
 
@@ -24,8 +23,6 @@ export function AnimatedCheckmark({
     const timer = setTimeout(() => setIsVisible(true), delay);
     return () => clearTimeout(timer);
   }, [delay]);
-
-  // Uses Lucide's 24x24 viewBox with exact CircleCheckBig geometry
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>

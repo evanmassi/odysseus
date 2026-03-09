@@ -1,9 +1,7 @@
 /**
- * AnimatedXMark Component
+ * Animated X Mark Icon
  *
- * SVG-based animated X mark with octagon stroke animation.
- * Uses Lucide OctagonX's exact geometry for rounded octagonal shape.
- * Used as error/danger indicator for alerts and feedback.
+ * SVG-based animated X mark using Lucide OctagonX's exact geometry.
  */
 import { useEffect, useState } from 'react';
 
@@ -19,8 +17,6 @@ export function AnimatedXMark({ size = 48, className = '' }: AnimatedXMarkProps)
     const timer = setTimeout(() => setIsVisible(true), 50);
     return () => clearTimeout(timer);
   }, []);
-
-  // Uses Lucide's 24x24 viewBox with exact CircleX geometry
 
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>

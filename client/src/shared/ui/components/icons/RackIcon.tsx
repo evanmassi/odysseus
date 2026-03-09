@@ -1,3 +1,9 @@
+/**
+ * Rack Storage Icon
+ *
+ * Semantic wrapper around Lucide's Rows3 icon for storage hierarchy.
+ */
+
 import { Rows3 } from 'lucide-react';
 
 interface RackIconProps {

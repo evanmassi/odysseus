@@ -1,3 +1,9 @@
+/**
+ * Tank Storage Icon
+ *
+ * Semantic wrapper around Lucide Lab's refrigeratorFreezer icon for storage hierarchy.
+ */
+
 import { refrigeratorFreezer } from '@lucide/lab';
 import { Icon } from 'lucide-react';
 

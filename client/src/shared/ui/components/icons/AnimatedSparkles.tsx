@@ -1,9 +1,7 @@
 /**
- * AnimatedSparkles Component
+ * Animated Sparkles Icon
  *
- * SVG-based animated sparkles with stroke-draw animation.
- * Uses Lucide Sparkles' exact geometry for consistency.
- * Used as demo/sandbox indicator for alerts and feedback.
+ * SVG-based animated sparkles using Lucide Sparkles' exact geometry.
  */
 import { useEffect, useState } from 'react';
 

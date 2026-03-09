@@ -1,9 +1,7 @@
 /**
- * AnimatedWarningMark Component
+ * Animated Warning Icon
  *
- * SVG-based animated warning mark (triangle with exclamation) with stroke animation.
- * Uses Lucide AlertTriangle's exact path geometry for proper rounded corners.
- * Used as warning indicator for alerts and feedback.
+ * SVG-based animated warning triangle using Lucide AlertTriangle's exact geometry.
  */
 import { useEffect, useState } from 'react';
 
@@ -20,9 +18,7 @@ export function AnimatedWarningMark({ size = 48, className = '' }: AnimatedWarni
     return () => clearTimeout(timer);
   }, []);
 
-  // Uses Lucide's 24x24 viewBox with exact AlertTriangle path (has arc commands for rounded corners)
   // pathLength="100" normalizes the path for easier dash animation
-
   return (
     <div className={`inline-flex items-center justify-center ${className}`}>
       <svg width={size} height={size} viewBox="0 0 24 24">

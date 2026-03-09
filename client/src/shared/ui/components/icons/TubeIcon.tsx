@@ -1,3 +1,9 @@
+/**
+ * Tube Inventory Icon
+ *
+ * Semantic wrapper around Lucide's TestTube icon for tube records.
+ */
+
 import { TestTube } from 'lucide-react';
 
 interface TubeIconProps {

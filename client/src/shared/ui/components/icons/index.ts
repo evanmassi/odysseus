@@ -1,5 +1,7 @@
 /**
  * Icon Components
+ *
+ * Domain-semantic icon wrappers and animated SVG indicators.
  */
 
 export { TankIcon } from './TankIcon';
