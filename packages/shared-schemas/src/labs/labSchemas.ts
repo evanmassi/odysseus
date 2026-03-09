@@ -21,13 +21,13 @@ export const labDataSchema = z.object({
 
 export type LabData = z.infer<typeof labDataSchema>;
 
-export const labPublicDataSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  slug: z.string(),
-  isActive: z.boolean(),
-  isDemo: z.boolean(),
-  demoLimits: demoLimitsSchema.optional(),
+export const labPublicDataSchema = labDataSchema.pick({
+  id: true,
+  name: true,
+  slug: true,
+  isActive: true,
+  isDemo: true,
+  demoLimits: true,
 });
 
 export type LabPublicData = z.infer<typeof labPublicDataSchema>;
@@ -105,7 +105,7 @@ export const labDetailsSchema = z.object({
 
 export type LabDetails = z.infer<typeof labDetailsSchema>;
 
-export const systemOverviewLabStatSchema = z.object({
+const systemOverviewLabStatSchema = z.object({
   labId: z.string(),
   labName: z.string(),
   adminCount: z.number(),
@@ -115,6 +115,8 @@ export const systemOverviewLabStatSchema = z.object({
   rackCount: z.number(),
   boxCount: z.number(),
 });
+
+export type SystemOverviewLabStat = z.infer<typeof systemOverviewLabStatSchema>;
 
 export const systemOverviewSchema = z.object({
   totalLabs: z.number(),
