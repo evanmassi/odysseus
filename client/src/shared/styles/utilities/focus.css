@@ -1,8 +1,11 @@
+/**
+ * Focus Ring System
+ *
+ * Global focus-visible styles with data-focus attribute opt-out.
+ */
+
 @layer components {
   /*
-   * Focus Ring System
-   *
-   * Default focus ring is applied globally to all focusable elements.
    * Use data-focus attribute to opt out or customize:
    *   - data-focus="none"   - No focus ring (element has custom visual feedback like modal tabs)
    *   - data-focus="custom" - Custom focus handling (grid elements, tubes)
@@ -10,17 +13,8 @@
    * Special cases handled by CSS:
    *   - .input-field-error  - Validation error state (pulsing red border)
    *   - .auth-input-container - Container-managed focus (:focus-within)
-   *
-   * Light focus ring (white for dark backgrounds) - Not currently used.
-   * To add: use data-focus="light" attribute with this rule:
-   *   [data-focus='light']:focus-visible {
-   *     outline: var(--focus-ring-width) solid white;
-   *     outline-offset: var(--focus-ring-offset);
-   *     box-shadow: 0 0 0 3px rgba(255,255,255,0.3), 0 0 0 6px rgba(255,255,255,0.15);
-   *   }
    */
 
-  /* Global Default Focus Ring - Applied to all focusable elements without data-focus */
   /* Contrast ring (inner) + colored outer ring + neon glow */
   button:not([data-focus]):focus-visible,
   a:not([data-focus]):focus-visible,

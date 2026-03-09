@@ -1,4 +1,8 @@
-/* Lato Font - Self-hosted for offline availability */
+/**
+ * Lato Font Declarations
+ *
+ * Self-hosted @font-face rules for offline availability.
+ */
 
 @font-face {
   font-family: 'Lato';

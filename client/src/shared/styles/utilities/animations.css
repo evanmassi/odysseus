@@ -1,5 +1,10 @@
+/**
+ * Shared Animation Keyframes
+ *
+ * Reusable keyframe animations and their utility classes.
+ */
+
 @layer utilities {
-  /* Icon micro-interaction on hover */
   @keyframes iconPop {
     0% {
       transform: scale(1) rotate(0deg);
@@ -16,7 +21,6 @@
     animation: iconPop 350ms ease-out;
   }
 
-  /* Two-layer neon glow effect that pulses */
   @keyframes pulseErrorRing {
     0%,
     100% {
@@ -33,7 +37,6 @@
 
   /* pulseSelectionRing is defined in tube-grid.css for grid selection */
 
-  /* Session timeout countdown - gentle breathing glow */
   @keyframes countdownPulse {
     0%,
     100% {
