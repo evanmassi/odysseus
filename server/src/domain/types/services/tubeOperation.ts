@@ -1,12 +1,9 @@
 /**
- * Validation Service Types
+ * Tube Operation Types
  *
- * Type definitions for tube validation operations.
+ * Type definitions for tube creation, update, and validation operations.
  */
 
-/**
- * Tube creation data with nested structure matching shared schemas
- */
 export interface TubeCreationData {
   location: {
     tankId: string;
@@ -31,9 +28,6 @@ export interface TubeCreationData {
   researcherId?: string;
 }
 
-/**
- * Sample data fields used for business rule validation
- */
 interface SampleValidationFields {
   concentration?: number;
   concentrationUnit?: 'c/v' | 'c/mL';
@@ -41,17 +35,11 @@ interface SampleValidationFields {
   donorInternalId?: string;
 }
 
-/**
- * Input for tube business rule validation
- * Supports both nested (.sample) and flat sample data access
- */
+/** Supports both nested (.sample) and flat sample data access */
 export interface TubeBusinessRuleInput extends SampleValidationFields {
   sample?: SampleValidationFields;
 }
 
-/**
- * Tube update data for PATCH operations
- */
 export interface TubeUpdateData {
   location?: {
     tankId?: string;

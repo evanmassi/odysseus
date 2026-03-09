@@ -6,31 +6,19 @@
 
 import type { Tube } from '@domain/entities/Tube';
 
-/**
- * Basic position validation result
- */
 export interface PositionValidation {
   isValid: boolean;
   errors: string[];
 }
 
-/**
- * Position validation with optional warnings
- */
 export interface PositionValidationWithWarnings extends PositionValidation {
   warnings?: string[];
 }
 
-/**
- * Complete position validation result including conflict information
- */
 export interface PositionValidationResult extends PositionValidationWithWarnings {
   conflictingTube?: Tube;
 }
 
-/**
- * Position conflict information
- */
 export interface PositionConflict {
   tubeId: string;
   location: {
@@ -42,9 +30,6 @@ export interface PositionConflict {
   message: string;
 }
 
-/**
- * Statistical information about a storage box
- */
 export interface BoxStatistics {
   totalCapacity: number;
   occupiedCount: number;
