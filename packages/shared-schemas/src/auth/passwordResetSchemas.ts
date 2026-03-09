@@ -8,6 +8,10 @@
 
 import { z } from 'zod';
 
+const passwordField = z.string()
+  .min(4, 'Password must be at least 4 characters')
+  .max(128, 'Password cannot exceed 128 characters');
+
 /**
  * Admin directly resets user password
  *
@@ -15,9 +19,7 @@ import { z } from 'zod';
  * requirePasswordChange forces user to set own password on next login.
  */
 export const adminResetPasswordRequestSchema = z.object({
-  newPassword: z.string()
-    .min(4, 'Password must be at least 4 characters')
-    .max(128, 'Password cannot exceed 128 characters'),
+  newPassword: passwordField,
 
   requirePasswordChange: z.boolean()
     .optional()
@@ -50,9 +52,7 @@ export const resetPasswordWithTokenRequestSchema = z.object({
     .min(32, 'Invalid reset token')
     .max(256, 'Token too long'),
 
-  newPassword: z.string()
-    .min(4, 'Password must be at least 4 characters')
-    .max(128, 'Password cannot exceed 128 characters')
+  newPassword: passwordField,
 });
 
 export type ResetPasswordWithTokenRequest = z.infer<typeof resetPasswordWithTokenRequestSchema>;
@@ -68,9 +68,7 @@ export const forceChangePasswordRequestSchema = z.object({
     .min(20, 'Invalid temp token')
     .max(512, 'Token too long'),
 
-  newPassword: z.string()
-    .min(4, 'Password must be at least 4 characters')
-    .max(128, 'Password cannot exceed 128 characters')
+  newPassword: passwordField,
 });
 
 export type ForceChangePasswordRequest = z.infer<typeof forceChangePasswordRequestSchema>;

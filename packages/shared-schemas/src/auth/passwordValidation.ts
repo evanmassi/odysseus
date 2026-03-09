@@ -21,19 +21,12 @@ export interface PasswordValidationResult {
   requirements: PasswordRequirement[];
 }
 
-/**
- * Password validation shared between client and server
- */
 export class PasswordValidator {
   private static readonly UPPERCASE_REGEX = /[A-Z]/;
   private static readonly LOWERCASE_REGEX = /[a-z]/;
   private static readonly NUMBER_REGEX = /[0-9]/;
   private static readonly SPECIAL_CHAR_REGEX = /[!@#$%^&*(),.?":{}|<>_\-+=[\]\\/'`~;]/;
 
-  /**
-   * Validate password against requirements
-   * Returns detailed validation result for UI display
-   */
   static validate(password: string, config: PasswordRequirementsConfig): PasswordValidationResult {
     const requirements = this.getRequirements(password, config);
     const isValid = requirements.every(req => req.isMet);
@@ -41,10 +34,6 @@ export class PasswordValidator {
     return { isValid, requirements };
   }
 
-  /**
-   * Get individual requirement checks
-   * Used by UI components to show real-time feedback
-   */
   static getRequirements(password: string, config: PasswordRequirementsConfig): PasswordRequirement[] {
     const requirements: PasswordRequirement[] = [];
 
@@ -88,10 +77,7 @@ export class PasswordValidator {
     return requirements;
   }
 
-  /**
-   * Server-side enforcement with error throwing
-   * Validates password and throws descriptive errors
-   */
+  /** Server-side enforcement — throws on invalid password. */
   static enforce(password: string, config: PasswordRequirementsConfig): void {
     // Check max length first to prevent DoS via hashing
     if (password.length > 128) {

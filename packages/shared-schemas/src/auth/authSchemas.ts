@@ -7,6 +7,10 @@
 
 import { z } from 'zod';
 
+const passwordField = z.string()
+  .min(4, 'Password must be at least 4 characters')
+  .max(128, 'Password cannot exceed 128 characters');
+
 /**
  * Registration with researcher profile
  *
@@ -19,11 +23,8 @@ import { z } from 'zod';
  */
 export const registerWithResearcherSchema = z.object({
   // User credentials (username auto-generated server-side from name)
-  password: z.string()
-    .min(4, 'Password must be at least 4 characters')
-    .max(128, 'Password cannot exceed 128 characters'),
+  password: passwordField,
 
-  // User/Researcher info (used to generate username and optionally create researcher profile)
   firstName: z.string()
     .min(1, 'First name is required')
     .max(50, 'First name cannot exceed 50 characters')
@@ -134,11 +135,6 @@ export const resendVerificationRequestSchema = z.object({});
 
 export type ResendVerificationRequest = z.infer<typeof resendVerificationRequestSchema>;
 
-/**
- * Email verification status response
- *
- * Returns current verification state for authenticated user.
- */
 export const verificationStatusResponseSchema = z.object({
   emailVerified: z.boolean(),
   email: z.string().email()
