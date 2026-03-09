@@ -5,45 +5,32 @@ import type { EquipmentSummary, CapacityInfo, ConfigurationRepositoryStats } fro
 
 /**
  * Configuration Repository Interface
- * Defines the contract for configuration data access operations
- * Infrastructure layer will implement this interface
+ * Defines the contract for lab-scoped configuration data access operations.
+ * All lab-specific methods require an explicit labId parameter.
  */
 export interface ConfigurationRepository {
-  
+
   // CONFIGURATION MANAGEMENT
 
-  getCurrent(): Promise<Configuration | null>;
   getForLab(labId: string): Promise<Configuration | null>;
-  save(configuration: Configuration): Promise<number>;
   saveForLab(labId: string, configuration: Configuration): Promise<number>;
   ensureDefaultForLab(labId: string): Promise<Configuration>;
-  
+
   // VERSIONING AND HISTORY
 
-  /**
-   * Get configuration by version number
-   */
-  getByVersion(version: number): Promise<Configuration | null>;
-  
-  /**
-   * Get configuration history (for audit/rollback)
-   */
-  getHistory(limit?: number): Promise<ConfigurationHistory[]>;
-  
-  /**
-   * Get current version number
-   */
-  saveWithVersioning(configuration: Configuration, changeDescription?: string, changedBy?: string, labId?: string): Promise<number>;
+  getByVersion(labId: string, version: number): Promise<Configuration | null>;
+  getHistory(labId: string, limit?: number): Promise<ConfigurationHistory[]>;
+  saveWithVersioning(labId: string, configuration: Configuration, changeDescription?: string, changedBy?: string): Promise<number>;
 
   /**
    * Save with optimistic locking. @throws ConflictError if version mismatch.
    */
   saveWithOptimisticLock(
+    labId: string,
     configuration: Configuration,
     expectedVersion: number,
     changeDescription?: string,
-    changedBy?: string,
-    labId?: string
+    changedBy?: string
   ): Promise<number>;
 
   // ATOMIC EQUIPMENT DELETION
@@ -88,209 +75,68 @@ export interface ConfigurationRepository {
 
   // EQUIPMENT VALIDATION
 
-  /**
-   * Validate if a location exists in current configuration
-   */
-  isLocationValid(location: Location): Promise<boolean>;
-  
-  /**
-   * Check if tank exists
-   */
-  tankExists(tankId: string): Promise<boolean>;
-  
-  /**
-   * Check if rack exists in tank
-   */
-  rackExists(tankId: string, rackId: string): Promise<boolean>;
-  
-  /**
-   * Check if box exists in rack
-   */
-  boxExists(tankId: string, rackId: string, boxId: string): Promise<boolean>;
-  
-  /**
-   * Get available positions in a box
-   */
+  isLocationValid(labId: string, location: Location): Promise<boolean>;
+  tankExists(labId: string, tankId: string): Promise<boolean>;
+  rackExists(labId: string, tankId: string, rackId: string): Promise<boolean>;
+  boxExists(labId: string, tankId: string, rackId: string, boxId: string): Promise<boolean>;
+
   getAvailablePositions(
-    tankId: string, 
-    rackId: string, 
-    boxId: string, 
+    labId: string,
+    tankId: string,
+    rackId: string,
+    boxId: string,
     occupiedPositions: number[]
   ): Promise<number[]>;
-  
-  /**
-   * Get maximum position number for a box
-   */
-  getMaxPosition(tankId: string, rackId: string, boxId: string): Promise<number>;
-  
+
+  getMaxPosition(labId: string, tankId: string, rackId: string, boxId: string): Promise<number>;
+
   // EQUIPMENT QUERIES
 
-  /**
-   * Get all tank IDs
-   */
-  getAllTankIds(): Promise<string[]>;
-  
-  /**
-   * Get all rack IDs for a tank
-   */
-  getRackIds(tankId: string): Promise<string[]>;
+  getAllTankIds(labId: string): Promise<string[]>;
+  getRackIds(labId: string, tankId: string): Promise<string[]>;
+  getBoxNames(labId: string, tankId: string, rackId: string): Promise<string[]>;
+  getEquipmentSummary(labId: string): Promise<EquipmentSummary>;
+  getCapacityInfo(labId: string): Promise<CapacityInfo>;
 
-  /**
-   * Get all box names for a rack
-   */
-  getBoxNames(tankId: string, rackId: string): Promise<string[]>;
-  
-  /**
-   * Get equipment hierarchy summary
-   */
-  getEquipmentSummary(): Promise<EquipmentSummary>;
-  
-  /**
-   * Get capacity information
-   */
-  getCapacityInfo(): Promise<CapacityInfo>;
-  
   // SYSTEM SETTINGS
 
-  /**
-   * Get lab name from configuration
-   */
-  getLabName(): Promise<string>;
-  
-  /**
-   * Update lab name
-   */
-  updateLabName(labName: string): Promise<void>;
-  
-  /**
-   * Get default researcher
-   */
-  getDefaultResearcher(): Promise<string>;
-  
-  /**
-   * Update default researcher
-   */
-  updateDefaultResearcher(researcher: string): Promise<void>;
-  
-  /**
-   * Get auto-save setting
-   */
-  getAutoSave(): Promise<boolean>;
-  
-  /**
-   * Update auto-save setting
-   */
-  updateAutoSave(autoSave: boolean): Promise<void>;
-  
-  /**
-   * Get audit trail enabled setting
-   */
-  getAuditTrailEnabled(): Promise<boolean>;
-  
-  /**
-   * Update audit trail setting
-   */
-  updateAuditTrailEnabled(enabled: boolean): Promise<void>;
-  
-  /**
-   * Get sync enabled setting
-   */
-  getSyncEnabled(): Promise<boolean>;
-  
-  /**
-   * Update sync enabled setting
-   */
-  updateSyncEnabled(enabled: boolean): Promise<void>;
-  
+  getLabName(labId: string): Promise<string>;
+  updateLabName(labId: string, labName: string): Promise<void>;
+  getDefaultResearcher(labId: string): Promise<string>;
+  updateDefaultResearcher(labId: string, researcher: string): Promise<void>;
+  getAutoSave(labId: string): Promise<boolean>;
+  updateAutoSave(labId: string, autoSave: boolean): Promise<void>;
+  getAuditTrailEnabled(labId: string): Promise<boolean>;
+  updateAuditTrailEnabled(labId: string, enabled: boolean): Promise<void>;
+  getSyncEnabled(labId: string): Promise<boolean>;
+  updateSyncEnabled(labId: string, enabled: boolean): Promise<void>;
+
   // BACKUP AND RESTORE
 
-  /**
-   * Export configuration for backup
-   */
-  exportConfiguration(): Promise<ConfigurationExport>;
-  
-  /**
-   * Import configuration from backup
-   */
-  importConfiguration(configExport: ConfigurationExport): Promise<Configuration>;
-  
-  /**
-   * Create configuration snapshot
-   */
-  createSnapshot(description?: string): Promise<ConfigurationSnapshot>;
-  
-  /**
-   * Restore from snapshot
-   */
-  restoreFromSnapshot(snapshotId: string): Promise<Configuration>;
-  
-  /**
-   * List available snapshots
-   */
-  listSnapshots(): Promise<ConfigurationSnapshot[]>;
-  
-  /**
-   * Delete old snapshots
-   */
-  cleanupSnapshots(keepCount: number): Promise<number>; // Returns count of deleted snapshots
-  
+  exportConfiguration(labId: string): Promise<ConfigurationExport>;
+  importConfiguration(labId: string, configExport: ConfigurationExport): Promise<Configuration>;
+  createSnapshot(labId: string, description?: string): Promise<ConfigurationSnapshot>;
+  restoreFromSnapshot(labId: string, snapshotId: string): Promise<Configuration>;
+  listSnapshots(labId: string): Promise<ConfigurationSnapshot[]>;
+  cleanupSnapshots(labId: string, keepCount: number): Promise<number>;
+
   // INTEGRATION SUPPORT
 
-  /**
-   * Get configuration optimized for API responses
-   */
-  getForApi(): Promise<ApiConfigurationResponse>;
-  
-  /**
-   * Get configuration optimized for frontend
-   */
-  getForFrontend(): Promise<FrontendConfiguration>;
-  
-  /**
-   * Validate configuration against business rules
-   */
-  validateConfiguration(configuration: Configuration): Promise<ConfigurationValidationResult>;
-  
+  getForApi(labId: string): Promise<ApiConfigurationResponse>;
+  getForFrontend(labId: string): Promise<FrontendConfiguration>;
+  validateConfiguration(labId: string, configuration: Configuration): Promise<ConfigurationValidationResult>;
+
   // MAINTENANCE OPERATIONS
 
-  /**
-   * Check repository health/connectivity
-   */
   isHealthy(): Promise<boolean>;
-  
-  /**
-   * Get repository statistics
-   */
-  getStats(): Promise<ConfigurationRepositoryStats>;
-  
-  /**
-   * Perform maintenance tasks (cleanup, optimization)
-   */
-  performMaintenance(): Promise<MaintenanceResult>;
+  getStats(labId: string): Promise<ConfigurationRepositoryStats>;
+  performMaintenance(labId: string): Promise<MaintenanceResult>;
 
-  // SECURITY & ADMIN CONFIGURATION
+  // SECURITY & ADMIN CONFIGURATION (system-wide, not lab-scoped)
 
-  /**
-   * Get security configuration
-   * Returns default configuration if none exists
-   */
   getSecurityConfig(): Promise<SecurityConfig>;
-
-  /**
-   * Update security configuration with partial updates
-   * @param updates - Partial security configuration to update
-   * @returns Updated SecurityConfig
-   */
   updateSecurityConfig(updates: Partial<SecurityConfig>): Promise<SecurityConfig>;
-
-  /**
-   * Get system metrics for admin dashboard
-   */
   getSystemMetrics(labId: string): Promise<SystemMetrics>;
-
-  /**
-   * Get synchronization status
-   */
   getSyncStatus(): Promise<SyncStatus>;
 }
 
@@ -301,7 +147,7 @@ export interface ConfigurationHistory {
   version: number;
   timestamp: Date;
   changeDescription?: string;
-  changedBy?: string; // User ID who made the change
+  changedBy?: string;
   configuration: Configuration;
 }
 
@@ -416,5 +262,5 @@ export interface MaintenanceResult {
   snapshotsDeleted: number;
   historyEntriesCleaned: number;
   errors: string[];
-  duration: number; // Milliseconds
+  duration: number;
 }
