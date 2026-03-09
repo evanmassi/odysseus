@@ -175,11 +175,11 @@ export default {
           '0%': { opacity: '0', transform: 'translateX(100px)' },
           '100%': { opacity: '1', transform: 'translateX(0)' },
         },
-        slideDown: {
+        'collapsible-down': {
           from: { height: '0', opacity: '0' },
           to: { height: 'var(--radix-collapsible-content-height)', opacity: '1' },
         },
-        slideUp: {
+        'collapsible-up': {
           from: { height: 'var(--radix-collapsible-content-height)', opacity: '1' },
           to: { height: '0', opacity: '0' },
         },
@@ -189,8 +189,8 @@ export default {
         'zoom-in-95': 'zoom-in-95 250ms cubic-bezier(0.22, 1, 0.36, 1)',
         'slide-up-fade': 'slide-up-fade 200ms cubic-bezier(0.16, 1, 0.3, 1)',
         'slide-in-right': 'slide-in-right 400ms cubic-bezier(0.16, 1, 0.3, 1)',
-        slideDown: 'slideDown 200ms cubic-bezier(0.4, 0, 0.2, 1)',
-        slideUp: 'slideUp 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+        'collapsible-down': 'collapsible-down 200ms cubic-bezier(0.4, 0, 0.2, 1)',
+        'collapsible-up': 'collapsible-up 200ms cubic-bezier(0.4, 0, 0.2, 1)',
       },
     },
   },

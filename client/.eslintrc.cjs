@@ -16,7 +16,7 @@ module.exports = {
     'plugin:import/typescript',
     'prettier',
   ],
-  ignorePatterns: ['dist', '.eslintrc.js'],
+  ignorePatterns: ['dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
@@ -54,12 +54,10 @@ module.exports = {
     },
   },
   rules: {
-    // React specific rules
     'react/react-in-jsx-scope': 'off', // Not needed in React 18+
     'react/prop-types': 'off', // Using TypeScript for prop validation
     'react-hooks/exhaustive-deps': 'error', // Critical for hook dependencies
-    
-    // TypeScript specific rules
+
     '@typescript-eslint/no-unused-vars': [
       'error',
       {
@@ -74,8 +72,7 @@ module.exports = {
     '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/prefer-nullish-coalescing': 'error',
     '@typescript-eslint/prefer-optional-chain': 'error',
-    
-    // Import organization
+
     'import/order': [
       'error',
       {
@@ -110,17 +107,14 @@ module.exports = {
     ],
     'import/no-unresolved': 'error',
     'import/no-cycle': 'error',
-    
-    // Accessibility rules
+
     'jsx-a11y/anchor-is-valid': 'error',
     'jsx-a11y/click-events-have-key-events': 'error',
     'jsx-a11y/no-static-element-interactions': 'error',
-    
-    // React Query specific rules
+
     '@tanstack/query/exhaustive-deps': 'error',
     '@tanstack/query/stable-query-client': 'error',
-    
-    // General code quality
+
     'no-console': 'error', // Enforce structured logging via ClientLogger
     'no-debugger': 'error',
     'prefer-const': 'error',

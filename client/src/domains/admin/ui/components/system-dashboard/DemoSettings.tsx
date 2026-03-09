@@ -97,7 +97,7 @@ export function DemoSettings({ labId, isSeeded }: DemoSettingsProps) {
             <h3 className="text-sm font-semibold text-card-foreground">Demo Settings</h3>
           </div>
         </Collapsible.Trigger>
-        <Collapsible.Content className="overflow-hidden data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
+        <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
           <div className="px-3 pb-3 space-y-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between p-2.5 bg-muted rounded-lg">

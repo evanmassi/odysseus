@@ -86,7 +86,7 @@ export function StorageNavigatorNode({
         </button>
 
         {hasChildren && (
-          <Collapsible.Content className="overflow-visible data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
+          <Collapsible.Content className="overflow-visible data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
             <div className="mt-1 space-y-1">{children}</div>
           </Collapsible.Content>
         )}

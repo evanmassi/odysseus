@@ -133,7 +133,7 @@ export function LabDashboard({ labId, onBack }: LabDashboardProps) {
               <h3 className="text-sm font-semibold text-card-foreground">Audit Log</h3>
             </div>
           </Collapsible.Trigger>
-          <Collapsible.Content className="overflow-hidden data-[state=open]:animate-slideDown data-[state=closed]:animate-slideUp">
+          <Collapsible.Content className="overflow-hidden data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
             <div className="px-3 pb-3">
               <AuditLogViewer labId={labId} readOnly />
             </div>

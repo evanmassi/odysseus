@@ -10,7 +10,7 @@ import { TubePropertyIndicator } from '@domains/tubes/ui/components/grid/TubePro
 import { cellLineCategories } from '@domains/tubes/utils/tubeColorCoding';
 import { getOptimalTextColor } from '@shared/utils/labColorSpace';
 
-import './TubesTab.css';
+import './tubes-tab.css';
 
 const CELL_LINE_DISPLAY_NAMES: Record<string, string> = {
   jurkat: 'Jurkat',

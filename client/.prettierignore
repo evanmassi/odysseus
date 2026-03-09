@@ -22,8 +22,6 @@ pids
 *.seed
 *.pid.lock
 
-# Coverage directory used by tools like istanbul
-coverage/
 .nyc_output
 
 # IDE files

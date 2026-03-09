@@ -33,7 +33,6 @@ export default defineConfig({
         '**/vite-env.d.ts',
       ],
     },
-    // Mock Electron APIs
     env: {
       NODE_ENV: 'test',
     },

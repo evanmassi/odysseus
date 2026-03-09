@@ -23,9 +23,6 @@ src/__tests__/setup.ts
 public/
 assets/
 
-# Electron main process (if needed)
-electron/
-
 # IDE files
 .vscode/
 .idea/
