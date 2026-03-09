@@ -9,9 +9,9 @@ import { useStorageData, getGridTotalPositions, DEFAULT_GRID_CONFIG } from '@dom
 import { useTubesByLocation } from '@domains/tubes/hooks';
 import { useGridClipboardStore } from '@domains/tubes/stores/gridClipboardStore';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
-import { ContextMenu } from '@shared/ui';
 
 import { TubeGridCell } from './TubeGridCell';
+import { TubeGridContextMenu } from './TubeGridContextMenu';
 import { TubeGridTooltip } from './TubeGridTooltip';
 import { useGridDragSelection } from './useGridDragSelection';
 import { useGridFontSizing } from './useGridFontSizing';
@@ -283,7 +283,7 @@ export function TubeGrid({
         </div>
       </div>
 
-      <ContextMenu
+      <TubeGridContextMenu
         isVisible={gridController.contextMenu.isOpen}
         position={{ x: gridController.contextMenu.x, y: gridController.contextMenu.y }}
         selectedCount={selectedPositions.size}

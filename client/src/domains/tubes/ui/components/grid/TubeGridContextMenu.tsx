@@ -1,5 +1,5 @@
 /**
- * Context Menu
+ * Tube Grid Context Menu
  *
  * Right-click menu for grid cell operations with keyboard shortcut hints.
  */
@@ -20,7 +20,7 @@ import {
 
 import { useMenuKeyboardNavigation } from '@shared/hooks';
 
-interface ContextMenuProps {
+interface TubeGridContextMenuProps {
   isVisible: boolean;
   position: { x: number; y: number };
   selectedCount: number;
@@ -103,7 +103,7 @@ function MenuItem({
   );
 }
 
-export function ContextMenu({
+export function TubeGridContextMenu({
   isVisible,
   position,
   selectedCount,
@@ -123,7 +123,7 @@ export function ContextMenu({
   onUnlock,
   onShare,
   isUnlocking = false,
-}: ContextMenuProps) {
+}: TubeGridContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [isAnimatingIn, setIsAnimatingIn] = useState(false);
   const [adjustedPosition, setAdjustedPosition] = useState({ x: 0, y: 0 });
@@ -144,24 +144,20 @@ export function ContextMenu({
     let x = position.x;
     let y = position.y;
 
-    // Flip horizontally if would overflow right
     if (x + rect.width > viewportWidth - VIEWPORT_PADDING) {
       x = Math.max(VIEWPORT_PADDING, x - rect.width);
     }
 
-    // Flip vertically if would overflow bottom
     if (y + rect.height > viewportHeight - VIEWPORT_PADDING) {
       y = Math.max(VIEWPORT_PADDING, y - rect.height);
     }
 
-    // Ensure doesn't go off left/top
     x = Math.max(VIEWPORT_PADDING, x);
     y = Math.max(VIEWPORT_PADDING, y);
 
     setAdjustedPosition({ x, y });
   }, [isVisible, position.x, position.y]);
 
-  // Handle visibility and animation
   useEffect(() => {
     if (isVisible) {
       if (closeTimeoutRef.current) {
@@ -178,8 +174,7 @@ export function ContextMenu({
     }
   }, [isVisible]);
 
-  // Handle position changes while menu is open (right-click on different tube)
-  // Using useLayoutEffect to prevent visual flicker when cancelling close animation
+  // useLayoutEffect prevents visual flicker when cancelling close animation
   useLayoutEffect(() => {
     if (!isVisible) {
       prevPositionRef.current = null;
@@ -201,7 +196,6 @@ export function ContextMenu({
     prevPositionRef.current = { x: position.x, y: position.y };
   }, [isVisible, position.x, position.y]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (closeTimeoutRef.current) clearTimeout(closeTimeoutRef.current);
@@ -222,7 +216,6 @@ export function ContextMenu({
     onClose: closeMenu,
   });
 
-  // Handle click outside
   useEffect(() => {
     if (!isVisible) return;
 
@@ -240,7 +233,6 @@ export function ContextMenu({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isVisible, closeMenu]);
 
-  // Don't render if not visible
   if (!isVisible) return null;
 
   const isEditMode = hasFilledSelection && !isMixedSelection;

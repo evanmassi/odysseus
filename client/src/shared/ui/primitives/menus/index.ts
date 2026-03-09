@@ -1,9 +1,8 @@
 /**
  * Menu Primitives
  *
- * Barrel export for context menu and overflow menu components.
+ * Barrel export for the overflow menu component.
  */
 
-export { ContextMenu } from './ContextMenu';
 export { OverflowMenu } from './OverflowMenu';
 export type { OverflowMenuProps, OverflowMenuItem } from './types';
