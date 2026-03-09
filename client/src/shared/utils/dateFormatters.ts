@@ -10,7 +10,7 @@
  * Display:    Format using Intl.DateTimeFormat
  */
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 /**
  * Date string type (YYYY-MM-DD format)

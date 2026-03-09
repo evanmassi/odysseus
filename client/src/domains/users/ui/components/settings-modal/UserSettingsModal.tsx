@@ -10,7 +10,7 @@ import { Save, Settings, Table2, UserRound, Shield, Info } from 'lucide-react';
 import { useTheme } from '@app/contexts/ThemeContext';
 import { useModalStore } from '@app/stores/modalStore';
 import { useUserSettings, useUserSettingsActions } from '@domains/users/hooks/useUserSettings';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { Button, Tab, LoadingSkeleton, Tabs } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';

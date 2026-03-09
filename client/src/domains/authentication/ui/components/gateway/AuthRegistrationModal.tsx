@@ -19,7 +19,7 @@ import {
   getValidationState,
   isValidEmail,
 } from '@domains/authentication/utils/registrationUtils';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 

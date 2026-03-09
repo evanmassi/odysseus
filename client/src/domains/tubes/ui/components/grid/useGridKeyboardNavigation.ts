@@ -9,7 +9,7 @@ import { useCallback } from 'react';
 import { getGridTotalPositions } from '@domains/storage';
 import { useTubeStore } from '@domains/tubes';
 import { toPositionKey } from '@domains/tubes/types/gridSelectionTypes';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { getSelectionRange } from '@shared/utils/gridCoordinates';
 
 import type { ClipboardData } from '@domains/tubes/types/clipboardTypes';

@@ -34,7 +34,7 @@
 
 import { useCallback, useState, useMemo, useEffect } from 'react';
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 /**
  * Create a preload hook for any lazy-loaded component

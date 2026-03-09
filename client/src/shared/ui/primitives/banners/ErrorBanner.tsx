@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 
 import { CircleX, X, Copy } from 'lucide-react';
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 interface ErrorDisplayProps {
   errors: string[];

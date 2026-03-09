@@ -17,7 +17,7 @@ import {
 
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useUserProfile, useUserProfileActions } from '@domains/users/hooks/useUserProfile';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { AlertBanner, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 

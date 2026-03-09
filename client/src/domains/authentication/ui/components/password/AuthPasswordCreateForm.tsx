@@ -12,7 +12,7 @@ import {
   authService,
   type PasswordRequirements as PasswordConfig,
 } from '@domains/authentication/services/AuthService';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 
 import { PasswordRequirements } from './PasswordRequirements';

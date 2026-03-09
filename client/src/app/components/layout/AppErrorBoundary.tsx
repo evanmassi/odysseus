@@ -9,8 +9,8 @@ import React, { Component } from 'react';
 
 import { AlertTriangle, RefreshCw, Home, Bug, ExternalLink } from 'lucide-react';
 
+import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { logger } from '@shared/infrastructure/logger';
 import { Button } from '@shared/ui';
 
 interface AppErrorBoundaryProps {

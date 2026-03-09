@@ -13,8 +13,8 @@ import {
   ConnectionStatusIndicator,
   RealtimeSyncIndicator,
 } from '@app/components/layout/ConnectionStatusIndicator';
+import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { logger } from '@shared/infrastructure/logger';
 import { Button } from '@shared/ui';
 import { notifications } from '@shared/utils/notifications';
 

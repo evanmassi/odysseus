@@ -2,8 +2,8 @@ import { ConfigurationResponseSchema, positionDisplayConfigSchema } from '@odyss
 import { z } from 'zod';
 
 import { httpClient } from '@infra/api/HttpClient';
+import { logger } from '@infra/logger';
 import { InfrastructureError } from '@shared/errors';
-import { logger } from '@shared/infrastructure/logger';
 
 import type {
   ConfigurationResponse,

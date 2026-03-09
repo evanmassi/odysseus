@@ -4,8 +4,8 @@
  * OAuth 2.0 session lifecycle with automatic token refresh and idle timeout monitoring.
  */
 
+import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { logger } from '@shared/infrastructure/logger';
 
 import type { AuthHttpClient } from '../../infrastructure/api/AuthHttpClient';
 import type { SessionDebugInfo } from '@domains/authentication/types/debugTypes';

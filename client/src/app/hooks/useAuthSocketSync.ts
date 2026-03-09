@@ -9,8 +9,8 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAuthStore } from '@domains/authentication';
+import { logger } from '@infra/logger';
 import { cleanupSocket, initializeSocket } from '@infra/socket';
-import { logger } from '@shared/infrastructure/logger';
 
 export function useAuthSocketSync(): void {
   const queryClient = useQueryClient();

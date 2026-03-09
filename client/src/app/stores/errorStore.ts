@@ -6,7 +6,7 @@
 
 import { create } from 'zustand';
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 interface ErrorState {
   errors: string[];

@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 
 import { useAuthStore } from '@domains/authentication';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';

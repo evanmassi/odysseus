@@ -9,7 +9,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import { TicketCheck, Plus, Copy, Trash2, RefreshCw, ChevronDown } from 'lucide-react';
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { Button, Chip } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { notifications } from '@shared/utils';

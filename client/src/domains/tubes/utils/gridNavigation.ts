@@ -5,7 +5,7 @@
  */
 
 import { useTubeStore } from '@domains/tubes';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 interface GridLocation {
   tankId: string;

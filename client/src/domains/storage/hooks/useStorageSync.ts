@@ -11,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
 import { useTubeStore } from '@domains/tubes/stores/tubeStore';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 import { useInitializeConfigurationMutation } from './useStorageMutations';
 import { useLoadStorageQuery } from './useStorageQueries';

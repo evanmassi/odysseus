@@ -25,7 +25,7 @@ import {
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { Button, Chip, Select, Tooltip, Table } from '@shared/ui';
 import { UserBadge } from '@shared/ui/components/badges/UserBadge';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';

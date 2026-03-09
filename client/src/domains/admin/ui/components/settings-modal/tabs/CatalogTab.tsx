@@ -10,7 +10,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Check, Pencil, Plus, RefreshCw, Trash2, X, BookOpen } from 'lucide-react';
 
 import { queryKeys } from '@app/cache/queryKeys';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { AlertBanner, Button, Chip, Tooltip, Table } from '@shared/ui';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';
 import { Input } from '@shared/ui/primitives';

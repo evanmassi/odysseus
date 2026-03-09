@@ -5,7 +5,7 @@
  */
 
 import { adaptTubeDataForColorSystem } from '@domains/tubes/types/tubeColorCodingTypes';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import {
   generateOptimalColorPalette,
   getOptimalTextColor,

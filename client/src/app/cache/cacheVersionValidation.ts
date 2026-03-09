@@ -4,7 +4,7 @@
  * Validates that client-side cached data matches server state.
  * Clears stale cache when version mismatch is detected (e.g., after database reset).
  */
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 import { queryClient } from './queryClient';
 import { queryKeys } from './queryKeys';

@@ -12,7 +12,7 @@ import { authService } from '@domains/authentication/services/AuthService';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { PasswordRequirements } from '@domains/authentication/ui/components/password/PasswordRequirements';
 import { usePasswordChange } from '@domains/users/hooks/usePasswordChange';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { AlertBanner, AuthInput, Button } from '@shared/ui';
 import { notifications } from '@shared/utils';
 

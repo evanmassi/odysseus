@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock dependencies before imports
-vi.mock('@shared/infrastructure/logger', () => ({
+vi.mock('@infra/logger', () => ({
   logger: {
     info: vi.fn(),
     warn: vi.fn(),
@@ -37,7 +37,7 @@ vi.mock('../queryKeys', () => ({
   },
 }));
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 import { validateCacheVersion } from './cacheVersionValidation';
 import { queryClient } from './queryClient';

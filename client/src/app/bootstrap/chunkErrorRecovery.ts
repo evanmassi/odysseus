@@ -4,7 +4,7 @@
  * Handles stale chunk errors after deployments by reloading once to get fresh assets.
  */
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 const RELOAD_KEY = 'chunk-error-reload';
 

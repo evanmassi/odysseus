@@ -10,7 +10,7 @@ import {
 
 import { queryClient } from '@app/cache/queryClient';
 import { httpClient } from '@infra/api/HttpClient';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 import type { UserRole } from '../types';
 import type {

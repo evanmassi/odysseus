@@ -15,8 +15,8 @@ import React, {
   createElement,
 } from 'react';
 
+import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { logger } from '@shared/infrastructure/logger';
 
 import { Button } from '../../primitives';
 

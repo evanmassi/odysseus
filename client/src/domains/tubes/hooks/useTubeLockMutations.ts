@@ -8,7 +8,7 @@ import { useMutation, useQueryClient, type UseMutationOptions } from '@tanstack/
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { TubeService } from '@domains/tubes/services/TubeService';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 import type {
   LockTubesRequest,

@@ -9,7 +9,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { Search, SlidersHorizontal, X } from 'lucide-react';
 
 import { useSearch, useSearchStore } from '@domains/search';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { Tooltip } from '@shared/ui';
 
 import { SearchFilterPanel } from './SearchFilterPanel';

@@ -4,7 +4,7 @@
  * Monitors actual server reachability (not just browser online/offline) with exponential backoff reconnection.
  */
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { notifications } from '@shared/utils/notifications';
 
 import { setOffline } from './networkState';

@@ -7,7 +7,7 @@
 import { io } from 'socket.io-client';
 
 import { sessionManager } from '@domains/authentication/stores/authStore';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 import { getSocketBridge, cleanupSocketBridge } from './SocketQueryBridge';
 

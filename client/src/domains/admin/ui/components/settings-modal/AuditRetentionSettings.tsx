@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 import { auditService } from '@domains/admin/services/AuditService';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { Button } from '@shared/ui';
 
 import type { RetentionMetrics, RetentionPolicy } from '@domains/admin/types/auditTypes';

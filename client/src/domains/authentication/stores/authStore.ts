@@ -13,8 +13,8 @@ import { SessionService, LocalStorageSessionStorage } from '@app/services/Sessio
 import { modalStore } from '@app/stores/modalStore';
 import { authHttpClient } from '@infra/api/AuthHttpClient';
 import { configureHttpClientWithSessionService } from '@infra/api/HttpClient';
+import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { logger } from '@shared/infrastructure/logger';
 
 import { authService, isPasswordChangeRequired } from '../services/AuthService';
 

@@ -11,8 +11,8 @@ import { queryKeys } from '@app/cache/queryKeys';
 import { getStorageDataFromCache } from '@domains/storage/hooks/useStorageData';
 import { formatPositionForBox } from '@domains/storage/utils/positionDisplayUtils';
 import { TubeService } from '@domains/tubes/services/TubeService';
+import { logger } from '@infra/logger';
 import { isConflictError } from '@shared/errors';
-import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
 import type {

@@ -30,7 +30,7 @@ import {
 } from '@domains/tubes/hooks/useTubeMutations';
 import { useBulkTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { useUserSettings } from '@domains/users';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { AlertBanner, Button } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';

@@ -8,8 +8,8 @@
 import type { ReactNode } from 'react';
 import React, { Suspense, useCallback, useState, forwardRef } from 'react';
 
+import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { logger } from '@shared/infrastructure/logger';
 
 import { Button } from '../../primitives';
 

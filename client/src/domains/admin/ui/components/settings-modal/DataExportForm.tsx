@@ -8,7 +8,7 @@ import { useState, useCallback } from 'react';
 
 import { Download, FileSpreadsheet, FileJson } from 'lucide-react';
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { Button, Chip, Select } from '@shared/ui';
 import { notifications } from '@shared/utils';
 

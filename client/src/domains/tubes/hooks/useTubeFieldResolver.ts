@@ -9,7 +9,7 @@ import { useCallback, useMemo } from 'react';
 
 import { useTubes } from '@domains/tubes/hooks/useTubeQueries';
 import { hasValue, isObject } from '@domains/tubes/types/fieldTypes';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { normalizeDateString } from '@shared/utils/dateFormatters';
 
 import type {

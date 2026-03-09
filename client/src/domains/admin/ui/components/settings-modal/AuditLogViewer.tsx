@@ -24,7 +24,7 @@ import {
 import { auditService } from '@domains/admin/services/AuditService';
 import { labService } from '@domains/admin/services/LabService';
 import { formatAuditDetails } from '@domains/admin/utils/auditLogFormatters';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { Button, Table, Tooltip } from '@shared/ui';
 
 import { AuditLogFilterPanel, type AuditFilterState } from './AuditLogFilterPanel';

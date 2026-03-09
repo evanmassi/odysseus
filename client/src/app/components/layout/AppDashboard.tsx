@@ -33,7 +33,7 @@ import { TubeLockModal } from '@domains/tubes/ui/components/locking/TubeLockModa
 import { TubeShareAccessModal } from '@domains/tubes/ui/components/locking/TubeShareAccessModal';
 import { navigateToLocation } from '@domains/tubes/utils/gridNavigation';
 import { useActiveUsersQuery, useUserLookupQuery } from '@domains/users';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { ErrorBoundary, SuspenseBoundary } from '@shared/ui';
 import { ModalSkeleton } from '@shared/ui/components/loading/ModalSkeleton';
 import { ConfirmDialog } from '@shared/ui/components/overlays/ConfirmDialog';

@@ -22,7 +22,7 @@ import {
 import { useModalStore } from '@app/stores/modalStore';
 import { useAuthStore } from '@domains/authentication/stores/authStore';
 import { useStorageData } from '@domains/storage';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { AlertBanner, Button, Tab, LoadingSkeleton, Tabs, Tooltip } from '@shared/ui';
 import { BaseModal } from '@shared/ui/components/overlays/BaseModal';
 import { notifications } from '@shared/utils';

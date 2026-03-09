@@ -13,7 +13,7 @@ import { queryKeys } from '@app/cache/queryKeys';
 import { useAuthStore } from '@domains/authentication';
 import { useStorageData } from '@domains/storage';
 import { httpClient } from '@infra/api/HttpClient';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 import { Button, Input, Toggle } from '@shared/ui';
 import { notifications } from '@shared/utils';
 

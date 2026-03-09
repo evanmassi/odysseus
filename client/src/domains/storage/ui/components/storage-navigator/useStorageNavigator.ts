@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useMemo } from 'react';
 
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 import type { StorageHierarchy, SelectedLocation } from './types';
 

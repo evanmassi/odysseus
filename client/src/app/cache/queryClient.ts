@@ -9,8 +9,8 @@ import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persist
 import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 
+import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { logger } from '@shared/infrastructure/logger';
 import { notifications } from '@shared/utils/notifications';
 
 import type { DefaultOptions } from '@tanstack/react-query';

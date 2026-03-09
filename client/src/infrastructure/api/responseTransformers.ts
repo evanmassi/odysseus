@@ -4,8 +4,8 @@
  * Converts date-string fields in API responses to native Date objects at the HTTP boundary.
  */
 
+import { logger } from '@infra/logger';
 import { env } from '@shared/config';
-import { logger } from '@shared/infrastructure/logger';
 
 const DATE_FIELD_PATTERNS = [
   /.*[Dd]ate.*$/, // createdDate, lastDate, updateDate

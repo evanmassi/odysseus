@@ -8,7 +8,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { queryKeys } from '@app/cache/queryKeys';
 import { adminUserService } from '@domains/admin/services/AdminUserService';
-import { logger } from '@shared/infrastructure/logger';
+import { logger } from '@infra/logger';
 
 export function useDeactivateUserMutation() {
   const queryClient = useQueryClient();
