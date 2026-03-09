@@ -1,49 +1,21 @@
+/**
+ * Vite Ambient Type Declarations
+ *
+ * SVG module augmentation and environment variable types for the Vite build.
+ */
+
 /// <reference types="vite/client" />
 
-/**
- * SVG as React Component Type Definitions
- *
- * Enables importing SVG files as React components using the ?react suffix.
- * Example: import Logo from './logo.svg?react';
- */
+/** Usage: `import Logo from './logo.svg?react'` */
 declare module '*.svg?react' {
   import type { FC, SVGProps } from 'react';
   const content: FC<SVGProps<SVGSVGElement>>;
   export default content;
 }
 
-/**
- * Vite Environment Variables Type Definitions
- *
- * This file provides TypeScript type definitions for Vite's environment variables.
- * Extends the default ImportMetaEnv interface with application-specific variables.
- */
-
 interface ImportMetaEnv {
-  // API & Socket configuration
   readonly VITE_API_URL?: string;
   readonly VITE_SOCKET_URL?: string;
-
-  // Application configuration
-  readonly VITE_APP_TITLE?: string;
-  readonly VITE_APP_VERSION?: string;
-  readonly VITE_API_TIMEOUT?: string;
-
-  // Development & debugging
-  readonly VITE_ENABLE_DEVTOOLS?: string;
-  readonly VITE_LOG_LEVEL?: 'debug' | 'info' | 'warn' | 'error';
-  readonly VITE_ENABLE_MOCK_API?: string;
-
-  // Feature flags
-  readonly VITE_ENABLE_ANALYTICS?: string;
-  readonly VITE_ENABLE_ERROR_REPORTING?: string;
-  readonly VITE_ENABLE_PERFORMANCE_MONITORING?: string;
-
-  // Build configuration
-  readonly VITE_PORT?: string;
-  readonly VITE_BUILD_TARGET?: string;
-
-  // Add other custom environment variables as needed
 }
 
 interface ImportMeta {

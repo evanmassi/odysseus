@@ -1,4 +1,8 @@
-import React from 'react';
+/**
+ * Application Root
+ *
+ * Top-level component that orchestrates bootstrap, routing, and global overlays.
+ */
 
 import { Routes, Route } from 'react-router-dom';
 
@@ -17,24 +21,18 @@ import { AuthPasswordResetPage } from '@domains/authentication/ui/components/pas
 import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
 import { ErrorBanner } from '@shared/ui';
 
-// Inner app component that uses React Query hooks - must be inside QueryClientProvider
 function AppContent() {
-  // Only App.tsx calls useAppBootstrap() - other components use BootstrapContext
+  // Only App.tsx calls useAppBootstrap() — other components use BootstrapContext
   const bootstrapState = useAppBootstrap();
   const { isReady, isLoading, isError, retry } = bootstrapState;
 
-  // State for UI components
   const { errors, clearErrors } = useErrorStore();
   const { isAuthenticated } = useAuthStore();
 
   useAuthSocketSync();
-
-  // Prefetch user settings in background (only when authenticated)
-  // Settings are cached by React Query and available throughout the app
   useUserSettingsQuery({ enabled: isAuthenticated });
 
-  // Show loading screen during bootstrap
-  if (isLoading) {
+  if (isLoading || isError) {
     return (
       <AppErrorBoundary onRetry={retry}>
         <AppLoader context={bootstrapState} onRetry={retry} />
@@ -42,18 +40,8 @@ function AppContent() {
     );
   }
 
-  // Show error state if bootstrap failed
-  if (isError) {
-    return (
-      <AppErrorBoundary onRetry={retry}>
-        <AppLoader context={bootstrapState} onRetry={retry} />
-      </AppErrorBoundary>
-    );
-  }
-
-  // App is ready - render main interface (data guaranteed to be loaded)
+  // Fallback loading state (should rarely be reached)
   if (!isReady) {
-    // Fallback loading state (should rarely be reached)
     return (
       <div className="min-h-screen bg-muted flex items-center justify-center">
         <div className="text-center">
@@ -64,18 +52,12 @@ function AppContent() {
     );
   }
 
-  // Main app interface (all data guaranteed to be loaded)
   return (
     <BootstrapProvider value={bootstrapState}>
       <AppErrorBoundary onRetry={retry}>
         <Routes>
-          {/* Public route for email verification */}
           <Route path="/verify-email" element={<AuthEmailVerificationPage />} />
-
-          {/* Public route for password reset */}
           <Route path="/reset-password" element={<AuthPasswordResetPage />} />
-
-          {/* Main app route */}
           <Route
             path="*"
             element={
@@ -86,17 +68,13 @@ function AppContent() {
           />
         </Routes>
 
-        {/* UI overlays and notifications */}
         <ErrorBanner errors={errors} onClear={clearErrors} />
-
-        {/* Session timeout warning - only relevant when authenticated */}
         {isAuthenticated && <AuthSessionTimeoutModal />}
       </AppErrorBoundary>
     </BootstrapProvider>
   );
 }
 
-// Root App component - sets up providers first, then renders content
 export function App() {
   return (
     <AppProviders>

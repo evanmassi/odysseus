@@ -1,3 +1,9 @@
+/**
+ * Application Entry Point
+ *
+ * Mounts the React app with strict mode, routing, and chunk error recovery.
+ */
+
 import { StrictMode } from 'react';
 
 import { createRoot } from 'react-dom/client';
@@ -7,7 +13,6 @@ import { App } from './App';
 import { initChunkErrorRecovery } from './app/bootstrap/chunkErrorRecovery';
 import './index.css';
 
-// Initialize chunk error recovery before rendering
 // Handles stale chunk errors after deployments by auto-refreshing
 initChunkErrorRecovery();
 

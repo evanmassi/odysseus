@@ -1,8 +1,7 @@
 /**
- * Shared UI Components Public API
+ * Shared UI
  *
- * Clean architecture - only contains generic UI primitives and components
- * that are truly shared and domain-agnostic.
+ * Barrel export for shared UI primitives, boundaries, and loading components.
  */
 
 // UI Primitive Components
