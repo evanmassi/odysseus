@@ -1,8 +1,7 @@
 /**
- * UnsavedConfirmDialog - Wrapper for ConfirmDialog (Warning variant)
+ * Unsaved Changes Dialog
  *
- * Thin wrapper around the unified ConfirmDialog component.
- * Provides a consistent interface for unsaved changes confirmations.
+ * Warning-variant ConfirmDialog preset for discarding unsaved changes.
  */
 
 import { ConfirmDialog } from './ConfirmDialog';

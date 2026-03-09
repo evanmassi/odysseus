@@ -1,9 +1,7 @@
 /**
- * ModalPortal - Renders modals outside main app DOM with inert management
+ * Modal Portal
  *
- * Uses portal + inert pattern to ensure focus cannot escape to background
- * elements and screen readers properly ignore inactive content.
- * Ref counting supports nested modals.
+ * Renders modals outside the app DOM with inert management and nested modal ref counting.
  */
 
 import { useEffect, type ReactNode } from 'react';

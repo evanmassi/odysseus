@@ -3,7 +3,7 @@
  *
  * Single-button acknowledgment dialog for non-decision situations
  */
-import { useEffect, useRef, useCallback, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import { X } from 'lucide-react';
 
@@ -19,7 +19,6 @@ export interface InfoDialogProps {
   isOpen: boolean;
   variant: 'warning' | 'info';
   title: string;
-  /** Supports React elements for rich formatting */
   message: ReactNode;
   buttonText?: string;
   onClose: () => void;
@@ -62,10 +61,6 @@ export function InfoDialog({
     exitDuration: EXIT_DURATION_MS,
   });
 
-  const handleClose = useCallback(() => {
-    triggerClose();
-  }, [triggerClose]);
-
   const trapRef = useFocusTrap({
     isOpen: isVisible,
     restoreFocus: true,
@@ -74,7 +69,7 @@ export function InfoDialog({
     autoFocusFirstInput: false,
   });
 
-  // Enter/Escape both dismiss - disabled during exit to prevent double-triggers
+  // Disabled during exit to prevent double-triggers
   useEffect(() => {
     if (!isVisible || isClosing) return;
 
@@ -82,7 +77,7 @@ export function InfoDialog({
       if (e.key === 'Enter' || e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        handleClose();
+        triggerClose();
       }
     };
 
@@ -90,7 +85,7 @@ export function InfoDialog({
     return () => {
       document.removeEventListener('keydown', handleKeyDown, true);
     };
-  }, [isVisible, isClosing, handleClose]);
+  }, [isVisible, isClosing, triggerClose]);
 
   if (!isVisible) return null;
 
@@ -122,7 +117,7 @@ export function InfoDialog({
               </h2>
             </div>
             <button
-              onClick={handleClose}
+              onClick={triggerClose}
               className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-all duration-200"
               aria-label="Close dialog"
               type="button"
@@ -138,7 +133,7 @@ export function InfoDialog({
           </div>
 
           <div className="flex justify-end">
-            <Button ref={closeButtonRef} variant="secondary" onClick={handleClose}>
+            <Button ref={closeButtonRef} variant="secondary" onClick={triggerClose}>
               {buttonText}
             </Button>
           </div>

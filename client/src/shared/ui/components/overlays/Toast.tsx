@@ -1,17 +1,7 @@
 /**
- * Toast - Custom notification component for react-hot-toast
+ * Toast Notification
  *
- * Toast design with left border accent.
- * Uses design system colors for visual consistency.
- *
- * Features:
- * - 5 types: success, error, warning, info, loading
- * - Accessible with proper aria-live regions
- * - Smooth enter/exit animations
- * - Design system color integration
- *
- * @example
- * toast.custom((t) => <Toast type="success" message="Tube created" visible={t.visible} />)
+ * Left-border-accent notification component for react-hot-toast integration.
  */
 
 import { CheckCircle, XCircle, AlertTriangle, Info, Loader2 } from 'lucide-react';
@@ -19,20 +9,12 @@ import { CheckCircle, XCircle, AlertTriangle, Info, Loader2 } from 'lucide-react
 export type ToastType = 'success' | 'error' | 'warning' | 'info' | 'loading';
 
 export interface ToastProps {
-  /** Toast variant - determines icon, border color, and accessibility */
   type: ToastType;
-
-  /** Message to display */
   message: string;
-
-  /** Controls enter/exit animation state (from react-hot-toast's t.visible) */
+  /** Bound to react-hot-toast's t.visible for enter/exit animation */
   visible?: boolean;
 }
 
-/**
- * Toast configuration mapping type to visual properties
- * Colors reference CSS variables from the design system (variables.css)
- */
 const TOAST_CONFIG = {
   success: {
     icon: CheckCircle,
@@ -66,10 +48,6 @@ const TOAST_CONFIG = {
   },
 } as const;
 
-/**
- * Custom toast component with left border accent style
- * Dark background with colored left border accent indicator
- */
 export function Toast({ type, message, visible = true }: ToastProps): React.ReactElement {
   const config = TOAST_CONFIG[type];
   const Icon = config.icon;

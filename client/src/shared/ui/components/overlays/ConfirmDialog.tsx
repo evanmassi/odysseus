@@ -1,26 +1,7 @@
 /**
- * ConfirmDialog - Unified Confirmation Dialog Component
+ * Confirmation Dialog
  *
- * Confirmation dialog with keyboard navigation and accessibility.
- * Supports danger (delete) and warning (overwrite) variants.
- *
- * Features:
- * - Auto-focus on confirm button for immediate Enter confirmation
- * - Keyboard support: Enter confirms, Escape cancels, Tab cycles
- * - Focus trap prevents Tab from escaping dialog
- * - ARIA alertdialog role for urgent/destructive actions
- * - Multiple cancel methods: X button, Cancel button, Escape key
- *
- * @example
- * <ConfirmDialog
- *   isOpen={isOpen}
- *   variant="danger"
- *   title="Delete Tube"
- *   message="Are you sure you want to delete this tube?"
- *   confirmText="Delete"
- *   onConfirm={handleDelete}
- *   onCancel={handleCancel}
- * />
+ * Danger/warning confirmation with keyboard navigation and focus trap.
  */
 
 import { useEffect, useRef, useCallback, type ReactNode } from 'react';
@@ -37,35 +18,16 @@ import { Button, type ButtonVariant } from '../../primitives';
 import { ModalPortal } from './ModalPortal';
 
 export interface ConfirmDialogProps {
-  /** Whether dialog is visible */
   isOpen: boolean;
-
-  /** Visual variant - determines colors and styling */
   variant: 'danger' | 'warning';
-
-  /** Dialog title */
   title: string;
-
-  /** Confirmation message - can include React elements for formatting */
   message: ReactNode;
-
-  /** Text for confirm button (e.g., "Delete", "Overwrite") */
   confirmText?: string;
-
-  /** Callback when user confirms */
   onConfirm: () => void;
-
-  /** Callback when user cancels (X, Cancel button, or Escape) */
   onCancel: () => void;
-
-  /** Loading state - disables buttons and shows spinner */
   isLoading?: boolean;
 }
 
-/**
- * Get variant-specific styling
- * Shadow colors use CSS variables from the design system
- */
 function getVariantStyles(variant: 'danger' | 'warning') {
   if (variant === 'danger') {
     return {
@@ -84,7 +46,6 @@ function getVariantStyles(variant: 'danger' | 'warning') {
   };
 }
 
-/** Exit animation duration for blowup effect */
 const EXIT_DURATION = 200;
 
 export function ConfirmDialog({
@@ -103,7 +64,6 @@ export function ConfirmDialog({
   const styles = getVariantStyles(variant);
   const MarkComponent = styles.Mark;
 
-  // Dialog manages its own visibility and exit animation
   const { isVisible, isClosing, triggerClose } = useAnimatedClose({
     isOpen,
     onClose: onCancel,
@@ -122,7 +82,6 @@ export function ConfirmDialog({
     }
   }, [isLoading, onConfirm]);
 
-  // Focus trap for keyboard accessibility
   const trapRef = useFocusTrap({
     isOpen: isVisible,
     restoreFocus: true,
@@ -131,7 +90,6 @@ export function ConfirmDialog({
     autoFocusFirstInput: false,
   });
 
-  // Focus return management - restore focus when modal unmounts
   useEffect(() => {
     if (!isVisible) return;
 
@@ -144,7 +102,6 @@ export function ConfirmDialog({
     };
   }, [isVisible, modalService, variant]);
 
-  // Keyboard navigation: Enter confirms, Escape cancels
   // Disabled during exit animation to prevent double-triggers
   useEffect(() => {
     if (!isVisible || isClosing) return;
@@ -167,7 +124,6 @@ export function ConfirmDialog({
     };
   }, [isVisible, isClosing, handleConfirm, handleCancel, isLoading]);
 
-  // Don't render if not visible
   if (!isVisible) return null;
 
   const backdropAnimationClass = isClosing

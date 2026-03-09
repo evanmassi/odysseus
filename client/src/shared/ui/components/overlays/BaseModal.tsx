@@ -51,7 +51,7 @@ const SIZE_CLASSES: Record<ModalSize, string> = {
 
 const ANIMATION_CLASSES: Record<ModalAnimation, { enter: string; exit: string }> = {
   zoom: { enter: 'animate-modal-reveal-in', exit: 'animate-modal-reveal-out' },
-  slide: { enter: 'animate-modal-reveal-in', exit: 'animate-modal-reveal-out' },
+  slide: { enter: 'animate-modal-reveal-in', exit: 'animate-modal-reveal-out' }, // TODO: implement distinct slide animation
 };
 
 const EXIT_DURATION_MS = 300;
