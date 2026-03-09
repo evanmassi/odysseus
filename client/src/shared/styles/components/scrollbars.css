@@ -1,3 +1,9 @@
+/**
+ * Custom Scrollbar Theme
+ *
+ * OverlayScrollbars theme with design system colors and hover expansion.
+ */
+
 @import 'overlayscrollbars/overlayscrollbars.css';
 
 .os-theme-odysseus {

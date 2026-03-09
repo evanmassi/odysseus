@@ -1,10 +1,15 @@
+/**
+ * Badge Styles
+ *
+ * Base, audit log, and status badge classes for the design system.
+ */
+
 @layer components {
-  /* Base Badge Styles */
   .badge {
     @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border;
   }
 
-  /* Audit Log Badge Base - Left border accent style */
+  /* Audit Log Badge Base */
   .badge-audit {
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium;
     @apply bg-muted border-l-2 border-y border-r border-y-border border-r-border;
@@ -120,7 +125,7 @@
     color: hsl(var(--color-audit-entity-system));
   }
 
-  /* Status Badges - For general use (using CSS variables from design system) */
+  /* Status Badges */
   .badge-success {
     @apply badge bg-success-light text-success-text border-success-border;
   }

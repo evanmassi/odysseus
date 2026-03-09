@@ -1,5 +1,11 @@
+/**
+ * Input Styles
+ *
+ * Base, search, auth, and form field input classes for the design system.
+ */
+
 @layer components {
-  /* Auth modal input container - Focus ring on container when input focused */
+  /* Auth Input Container */
   .auth-input-container {
     @apply relative border rounded-lg transition-all duration-200;
   }
@@ -21,31 +27,7 @@
     outline: none;
   }
 
-  .input {
-    @apply flex h-10 w-full rounded-lg border border-border bg-input px-3 py-2 text-sm text-foreground file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground placeholder:opacity-40 disabled:cursor-not-allowed disabled:opacity-50;
-    transition:
-      border-color 200ms,
-      box-shadow 200ms,
-      outline 200ms;
-  }
-
-  .input:focus {
-    border-color: transparent;
-  }
-
-  .input-compact {
-    @apply flex h-8 w-full rounded-md border border-border bg-input px-2 py-1 text-xs text-foreground file:border-0 file:bg-transparent file:text-xs file:font-medium placeholder:text-muted-foreground placeholder:opacity-40 disabled:cursor-not-allowed disabled:opacity-50;
-    transition:
-      border-color 200ms,
-      box-shadow 200ms,
-      outline 200ms;
-  }
-
-  .input-compact:focus {
-    border-color: transparent;
-  }
-
-  /* Search input - background tint, no border until focus */
+  /* Search Input */
   .input-search {
     @apply flex h-8 w-full rounded-lg px-2 py-1 text-sm text-foreground;
     @apply bg-muted border border-transparent;
@@ -60,32 +42,6 @@
 
   .input-search:focus {
     @apply bg-input border-border;
-  }
-
-  /* Form field inputs (ValidatedInput component) */
-  .input-form-field {
-    @apply text-foreground;
-    transition:
-      border-color 200ms,
-      box-shadow 200ms,
-      outline 200ms;
-  }
-
-  .input-form-field:focus {
-    border-color: transparent;
-  }
-
-  /* Small number inputs (for quantity selectors, etc) */
-  .input-number-sm {
-    @apply border rounded text-xs text-center text-foreground;
-    transition:
-      border-color 200ms,
-      box-shadow 200ms,
-      outline 200ms;
-  }
-
-  .input-number-sm:focus {
-    border-color: transparent;
   }
 }
 

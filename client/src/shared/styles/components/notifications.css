@@ -2,26 +2,8 @@
  * Toast Notification Styles
  *
  * Minimal styling - custom Toast component handles its own appearance.
- * Only container-level styles and animations remain.
  */
 
-/* Connection status animation */
-@keyframes bounce-in {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-bounce-in {
-  animation: bounce-in 0.3s ease-out;
-}
-
-/* Toast container spacing */
 .react-hot-toast-container {
   gap: 8px !important;
 }

@@ -1,13 +1,10 @@
+/**
+ * Card and Spinner Styles
+ *
+ * Shared component-layer CSS classes.
+ */
+
 @layer components {
-  .card {
-    @apply bg-card rounded-xl border border-border transition-all duration-200;
-    box-shadow: 0 10px 15px -3px color-mix(in srgb, var(--border) 50%, transparent);
-  }
-
-  .card:hover {
-    box-shadow: 0 20px 25px -5px color-mix(in srgb, var(--border) 60%, transparent);
-  }
-
   .spinner {
     @apply animate-spin rounded-full border-2 border-border border-t-primary;
   }

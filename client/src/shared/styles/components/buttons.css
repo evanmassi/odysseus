@@ -1,3 +1,9 @@
+/**
+ * Button Styles
+ *
+ * Base, variant, compact, and icon button classes for the design system.
+ */
+
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center rounded-lg text-sm font-medium disabled:pointer-events-none disabled:opacity-50 shadow-sm;
@@ -37,23 +43,11 @@
     @apply btn bg-info-bg text-info-btnText hover:bg-info-hover hover:shadow-md h-10 px-4 py-2;
   }
 
-  .btn-approve {
-    @apply btn bg-success-bg text-success-btnText hover:bg-success-hover hover:shadow-md h-10 px-4 py-2;
-  }
-
   .btn-cancel {
     @apply btn border border-border bg-card text-card-foreground hover:bg-accent h-10 px-4 py-2;
   }
 
-  .btn-refresh {
-    @apply btn bg-transparent text-secondary-foreground hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 shadow-none;
-  }
-
-  .btn-refresh-compact {
-    @apply btn-compact bg-transparent text-secondary-foreground hover:bg-accent hover:text-accent-foreground shadow-none;
-  }
-
-  /* Compact Button Variants - For tables, inline actions, and space-constrained UIs */
+  /* Compact Button Variants */
   .btn-compact {
     @apply inline-flex items-center justify-center rounded-lg text-xs font-medium disabled:pointer-events-none disabled:opacity-50 px-2 py-1;
     transition:
@@ -75,15 +69,7 @@
     @apply btn-compact bg-transparent text-muted-foreground hover:bg-danger-light hover:text-danger-text;
   }
 
-  .btn-approve-compact {
-    @apply btn-compact bg-transparent text-muted-foreground hover:bg-success-light hover:text-success-text;
-  }
-
-  .btn-password-compact {
-    @apply btn-compact bg-transparent text-muted-foreground hover:bg-warning-light hover:text-warning-text;
-  }
-
-  /* Icon Button Size Modifiers - Combine with color classes (.btn-edit, .btn-danger, etc.) */
+  /* Icon Button Size Modifiers */
   .btn-icon-sm {
     @apply w-6 h-6 flex items-center justify-center rounded text-xs;
     transition:
@@ -123,15 +109,5 @@
 
   [data-theme='dark'] .btn-variant-primary:active {
     @apply bg-action-hover/70;
-  }
-
-  /* Header button with white focus ring (hamburger menu on blue background) */
-  .btn-header-menu {
-    @apply p-1.5 cursor-pointer rounded transition-colors;
-  }
-
-  /* Navigation Tab Buttons (sidebar) */
-  .nav-tab {
-    @apply w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-left transition-all;
   }
 }

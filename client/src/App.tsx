@@ -17,9 +17,6 @@ import { AuthPasswordResetPage } from '@domains/authentication/ui/components/pas
 import { useUserSettingsQuery } from '@domains/users/hooks/useUserSettings';
 import { ErrorBanner } from '@shared/ui';
 
-import '@shared/styles/components/notifications.css';
-import '@shared/styles/utilities/accessibility.css';
-
 // Inner app component that uses React Query hooks - must be inside QueryClientProvider
 function AppContent() {
   // Only App.tsx calls useAppBootstrap() - other components use BootstrapContext

@@ -1,3 +1,9 @@
+/**
+ * Modal and Overlay Animations
+ *
+ * Keyframes and animation classes for modals, dropdowns, and sketch borders.
+ */
+
 /* @keyframes must be at top level - CSS spec doesn't allow them inside @layer */
 
 @keyframes modal-backdrop-in {
